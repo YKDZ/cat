@@ -1,0 +1,213 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider        = "prisma-client"
+    previewFeatures = ["fullTextSearchPostgres"]
+    output          = "../generated/prisma"
+    moduleFormat    = "esm"
+}
+
+model User {
+    id            String   @id @default(cuid())
+    name          String
+    email         String   @unique
+    emailVerified Boolean  @default(false)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+
+    Accounts          Account[]
+    ReadableLanguages Language[] @relation("ReadableLanguages")
+    WritableLanguages Language[] @relation("WritableLanguages")
+
+    Projects           Project[]
+    Translations       Translation[]       @relation("Translator")
+    Documents          Document[]
+    ProjectPermissions ProjectPermission[]
+    TranslationVotes   TranslationVote[]
+    Memories           Memory[]
+}
+
+model Translation {
+    id             Int       @id @default(autoincrement())
+    value          String    @db.Text
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+    isApproved     Boolean   @default(false)
+    lastApprovedAt DateTime?
+
+    translatorId String
+    Translator   User   @relation("Translator", fields: [translatorId], references: [id], onDelete: Cascade)
+
+    translatableElementId Int
+    TranslatableElement   TranslatableElement @relation(fields: [translatableElementId], references: [id], onDelete: Cascade)
+
+    languageId String
+    Language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+    TranslationVotes TranslationVote[]
+    MemoryItems      MemoryItem[]
+
+    @@unique(name: "oneTranslationPerUserLanguageElement", [translatorId, languageId, translatableElementId])
+}
+
+model TranslationVote {
+    id        Int      @id @default(autoincrement())
+    value     Int      @default(0)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    voterId String
+    Voter   User   @relation(fields: [voterId], references: [id])
+
+    translationId Int
+    Translation   Translation @relation(fields: [translationId], references: [id])
+
+    @@unique(name: "oneVotePerUserUniqueTranslation", [voterId, translationId])
+    @@index([translationId])
+    @@index([voterId])
+}
+
+model Account {
+    type              String
+    provider          String
+    providedAccountId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    userId String
+    User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([provider, providedAccountId])
+}
+
+model Project {
+    id          String   @id @default(cuid())
+    name        String
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    sourceLanguageId String
+    SourceLanguage   Language @relation("ProjectSourceLanguage", fields: [sourceLanguageId], references: [id])
+
+    TargetLanguages Language[] @relation("ProjectTargetLanguage")
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id])
+
+    Memories           Memory[]
+    Documents          Document[]
+    ProjectPermissions ProjectPermission[]
+
+    @@index([creatorId])
+}
+
+model File {
+    id         Int      @id @default(autoincrement())
+    originName String
+    storedName String
+    storedDIR  String   @default("uploads")
+    createdAt  DateTime @default(now())
+
+    Documents Document[]
+}
+
+model Document {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    typeId Int
+    Type   DocumentType @relation(fields: [typeId], references: [id])
+
+    fileId Int
+    File   File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+    projectId String
+    Project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id])
+
+    TranslatableElements TranslatableElement[]
+}
+
+model DocumentType {
+    id   Int    @id @default(autoincrement())
+    name String @unique
+    icon String @default("i-mdi:file")
+
+    Documents Document[]
+}
+
+model TranslatableElement {
+    id Int @id @default(autoincrement())
+
+    value     String                       @db.Text
+    embedding Unsupported("vector(1024)")?
+    meta      Json?
+
+    documentId String
+    Document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+    Translations Translation[]
+    MemoryItems  MemoryItem[]
+}
+
+model Memory {
+    id          Int      @id @default(autoincrement())
+    name        String
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id])
+
+    MemoryItems MemoryItem[]
+    Projects    Project[]
+}
+
+model MemoryItem {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    translationId Int
+    Translation   Translation @relation(fields: [translationId], references: [id], onDelete: Cascade)
+
+    sourceElementId Int
+    SourceElement   TranslatableElement @relation(fields: [sourceElementId], references: [id], onDelete: Cascade)
+
+    memoryId Int
+    Memory   Memory @relation(fields: [memoryId], references: [id])
+}
+
+model Language {
+    id   String @id
+    name String
+
+    Translation Translation[]
+
+    SourceProjects Project[] @relation("ProjectSourceLanguage")
+    TargetProjects Project[] @relation("ProjectTargetLanguage")
+
+    ReadableUsers User[] @relation("ReadableLanguages")
+    WritableUsers User[] @relation("WritableLanguages")
+}
+
+model ProjectPermission {
+    permission String
+
+    projectId String
+    Project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+    userId String
+    User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([permission, projectId, userId])
+}

@@ -1,0 +1,32 @@
+services:
+  redis:
+    image: redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    user: "redis:redis"
+  postgres:
+    image: pgvector/pgvector:pg17
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: cat
+    user: "postgres:postgres"
+  text-embeddings-inference:
+    image: ghcr.io/huggingface/text-embeddings-inference:turing-1.7
+    volumes:
+      - ./models:/data
+    ports:
+      - 8080:80
+    command: --model-id intfloat/multilingual-e5-large-instruct
+    environment:
+      - HTTPS_PROXY=http://192.168.2.9:10809
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
