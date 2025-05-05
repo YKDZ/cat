@@ -43,10 +43,10 @@ importers:
         version: link:../../packages/db
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../packages/cat-plugin-core
+        version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../packages/cat-shared
+        version: link:../../packages/shared
       '@trpc/client':
         specifier: ^11.0.2
         version: 11.1.2(@trpc/server@11.1.2(typescript@5.8.3))(typescript@5.8.3)
@@ -152,10 +152,10 @@ importers:
     devDependencies:
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../cat-plugin-core
+        version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../cat-shared
+        version: link:../../shared
       '@types/node':
         specifier: ^22.15.2
         version: 22.15.3
@@ -183,10 +183,10 @@ importers:
     devDependencies:
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../cat-plugin-core
+        version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../cat-shared
+        version: link:../../shared
       tsx:
         specifier: ^4.19.3
         version: 4.19.4
@@ -207,10 +207,10 @@ importers:
     devDependencies:
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../cat-plugin-core
+        version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../cat-shared
+        version: link:../../shared
       '@types/node':
         specifier: ^22.14.1
         version: 22.15.3
@@ -234,10 +234,10 @@ importers:
     devDependencies:
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../cat-plugin-core
+        version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../cat-shared
+        version: link:../../shared
       '@types/node':
         specifier: ^22.14.1
         version: 22.15.3
@@ -261,10 +261,10 @@ importers:
     devDependencies:
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../cat-plugin-core
+        version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../cat-shared
+        version: link:../../shared
       '@types/node':
         specifier: ^22.14.1
         version: 22.15.3
@@ -283,57 +283,6 @@ importers:
       vite-plugin-dts:
         specifier: ^4.5.3
         version: 4.5.3(@types/node@22.15.3)(rollup@4.38.0)(typescript@5.8.3)(vite@6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
-
-  packages/cat-plugin-core:
-    devDependencies:
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../cat-shared
-      '@types/node':
-        specifier: ^22.14.1
-        version: 22.15.3
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.4
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-      typescript-eslint:
-        specifier: ^8.29.0
-        version: 8.31.1(eslint@9.25.1(jiti@2.4.2))(typescript@5.8.3)
-      vite:
-        specifier: ^6.3.3
-        version: 6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1)
-      vite-plugin-dts:
-        specifier: ^4.5.3
-        version: 4.5.3(@types/node@22.15.3)(rollup@4.38.0)(typescript@5.8.3)(vite@6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
-      zod:
-        specifier: ^3.24.3
-        version: 3.24.3
-
-  packages/cat-shared:
-    devDependencies:
-      '@types/node':
-        specifier: ^22.14.1
-        version: 22.15.3
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.4
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-      typescript-eslint:
-        specifier: ^8.29.0
-        version: 8.31.1(eslint@9.25.1(jiti@2.4.2))(typescript@5.8.3)
-      vite:
-        specifier: ^6.3.3
-        version: 6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1)
-      vite-plugin-dts:
-        specifier: ^4.5.3
-        version: 4.5.3(@types/node@22.15.3)(rollup@4.38.0)(typescript@5.8.3)(vite@6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
-      zod:
-        specifier: ^3.24.3
-        version: 3.24.3
 
   packages/db:
     dependencies:
@@ -395,6 +344,57 @@ importers:
       vue-eslint-parser:
         specifier: ^10.1.3
         version: 10.1.3(eslint@9.25.1(jiti@2.4.2))
+
+  packages/plugin-core:
+    devDependencies:
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@types/node':
+        specifier: ^22.14.1
+        version: 22.15.3
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.4
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      typescript-eslint:
+        specifier: ^8.29.0
+        version: 8.31.1(eslint@9.25.1(jiti@2.4.2))(typescript@5.8.3)
+      vite:
+        specifier: ^6.3.3
+        version: 6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1)
+      vite-plugin-dts:
+        specifier: ^4.5.3
+        version: 4.5.3(@types/node@22.15.3)(rollup@4.38.0)(typescript@5.8.3)(vite@6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
+      zod:
+        specifier: ^3.24.3
+        version: 3.24.3
+
+  packages/shared:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.14.1
+        version: 22.15.3
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.4
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      typescript-eslint:
+        specifier: ^8.29.0
+        version: 8.31.1(eslint@9.25.1(jiti@2.4.2))(typescript@5.8.3)
+      vite:
+        specifier: ^6.3.3
+        version: 6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1)
+      vite-plugin-dts:
+        specifier: ^4.5.3
+        version: 4.5.3(@types/node@22.15.3)(rollup@4.38.0)(typescript@5.8.3)(vite@6.3.4(@types/node@22.15.3)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
+      zod:
+        specifier: ^3.24.3
+        version: 3.24.3
 
 packages:
 
