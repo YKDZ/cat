@@ -20,9 +20,6 @@ services:
     ports:
       - 7997:7997
     command: v2 --revision "main" --dtype float16 --engine torch --port 7997
-    environment:
-      - HTTP_PROXY=http://192.168.2.23:20171
-      - HTTPS_PROXY=http://192.168.2.23:20171
     deploy:
       resources:
         reservations:
