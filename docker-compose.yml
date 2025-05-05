@@ -13,15 +13,16 @@ services:
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: cat
     user: "postgres:postgres"
-  text-embeddings-inference:
-    image: ghcr.io/huggingface/text-embeddings-inference:turing-1.7
+  infinity:
+    image: michaelf34/infinity:0.0.75-trt-onnx
     volumes:
-      - ./models:/data
+      - ./models/cache:/app/.cache
     ports:
-      - 8080:80
-    command: --model-id intfloat/multilingual-e5-large-instruct
+      - 7997:7997
+    command: v2 --revision "main" --dtype float16 --engine torch --port 7997
     environment:
-      - HTTPS_PROXY=http://192.168.2.9:10809
+      - HTTP_PROXY=http://192.168.2.23:20171
+      - HTTPS_PROXY=http://192.168.2.23:20171
     deploy:
       resources:
         reservations:
