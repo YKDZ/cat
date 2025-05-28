@@ -1,6 +1,6 @@
 import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { useStorage } from "@/server/utils/storage/useStorage";
-import { prisma, redis } from "@cat/db";
+import { prisma } from "@cat/db";
 import {
   TextVectorizerRegistry,
   TranslatableFileHandlerRegistry,
