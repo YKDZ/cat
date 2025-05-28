@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "@types/node": "^22.15.11",
+    "@types/node": "^22.15.23",
     "prisma": "6.8.2",
     "tsx": "^4.19.4"
   },
