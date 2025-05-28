@@ -122,10 +122,10 @@ const oidcRouter = router({
       const {
         sub,
         name,
-        preferred_username,
+        preferred_username: preferredUserName,
         nickname,
         email,
-        email_verified,
+        email_verified: emailVerified,
         nonce,
       } = payload as {
         sub: string;
@@ -165,9 +165,9 @@ const oidcRouter = router({
           })) ??
           (await tx.user.create({
             data: {
-              name: preferred_username ?? nickname ?? name,
+              name: preferredUserName ?? nickname ?? name,
               email,
-              emailVerified: email_verified,
+              emailVerified: emailVerified,
               Accounts: {
                 create: {
                   type: "OIDC",

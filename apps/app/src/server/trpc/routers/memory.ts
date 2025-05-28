@@ -1,14 +1,13 @@
-import { object, z } from "zod/v4";
-import { authedProcedure, router } from "../server";
-import { prisma } from "@cat/db";
 import { AsyncMessageQueue } from "@/server/utils/queue";
+import { prisma, redisSub } from "@cat/db";
 import {
   MemorySchema,
   MemorySuggestion,
   MemorySuggestionSchema,
 } from "@cat/shared";
-import { redisSub } from "@cat/db";
 import { tracked } from "@trpc/server";
+import { z } from "zod/v4";
+import { authedProcedure, router } from "../server";
 
 export const memoryRouter = router({
   create: authedProcedure
