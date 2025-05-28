@@ -22,14 +22,14 @@
     "@aws-sdk/client-s3": "^3.803.0",
     "@elastic/elasticsearch": "^9.0.1",
     "@prisma/adapter-pg": "^6.7.0",
-    "@prisma/client": "6.7.0",
+    "@prisma/client": "6.8.2",
     "dotenv": "^16.5.0",
     "redis": "^4.7.0"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "@types/node": "^22.15.11",
-    "prisma": "6.7.0",
+    "@types/node": "^22.15.23",
+    "prisma": "6.8.2",
     "tsx": "^4.19.4"
   },
   "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"

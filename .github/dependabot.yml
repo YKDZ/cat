@@ -4,23 +4,28 @@ updates:
     directory: "/apps/app"
     schedule:
       interval: "weekly"
+    security-updates: true
 
   - package-ecosystem: "npm"
     directory: "/packages/db"
     schedule:
       interval: "weekly"
+    security-updates: true
 
   - package-ecosystem: "npm"
     directory: "/packages/eslint-config"
     schedule:
       interval: "weekly"
+    security-updates: true
 
   - package-ecosystem: "npm"
     directory: "/packages/plugin-core"
     schedule:
       interval: "weekly"
+    security-updates: true
 
   - package-ecosystem: "npm"
     directory: "/packages/shared"
     schedule:
       interval: "weekly"
+    security-updates: true
