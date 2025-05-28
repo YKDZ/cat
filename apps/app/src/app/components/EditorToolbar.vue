@@ -31,14 +31,14 @@ const handleTranslate = async (jumpToNext: boolean) => {
         class="text-red"
         @click="clear"
       />
-      <Button transparent icon="i-mdi:undo" magic-key="Ctrl+Z" @click="undo" />
+      <Button transparent icon="i-mdi:undo" magic-key="Control+Z" @click="undo" />
       <EditorTranslationVerifyResult />
     </div>
     <div class="flex gap-1 items-center">
       <Button
         transparent
         icon="i-mdi:check"
-        magic-key="Ctrl+Shift+Enter"
+        magic-key="Control+Shift+Enter"
         @click="handleTranslate(false)"
         @magic-click="handleTranslate(false)"
       >
@@ -47,7 +47,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <Button
         transparent
         icon="i-mdi:arrow-right"
-        magic-key="Ctrl+Enter"
+        magic-key="Control+Enter"
         @click="handleTranslate(true)"
         @magic-click="handleTranslate(true)"
       >
