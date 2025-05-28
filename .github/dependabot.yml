@@ -1,11 +1,26 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/" # 根目录，也可以指定子路径
+    directory: "/apps/app"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
-    allow:
-      - dependency-type: "direct"
-    reviewers:
-      - YKDZ
+
+  - package-ecosystem: "npm"
+    directory: "/packages/db"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/eslint-config"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/plugin-core"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/shared"
+    schedule:
+      interval: "weekly"
