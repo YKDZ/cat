@@ -1,0 +1,44 @@
+name: Auto-merge Dependabot PRs
+
+on:
+  pull_request:
+    types:
+      - opened
+      - labeled
+      - synchronize
+      - reopened
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      checks: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check PR is from dependabot and security update
+        id: pr-check
+        run: |
+          echo "PR title: ${{ github.event.pull_request.title }}"
+          if [[ "${{ github.event.pull_request.title }}" != *"security"* ]]; then
+            echo "Not a security update. Skipping."
+            exit 1
+          fi
+
+      - name: Enable auto-merge
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash
+
+      - name: Auto-approve PR (needed if repo requires approval)
+        uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
