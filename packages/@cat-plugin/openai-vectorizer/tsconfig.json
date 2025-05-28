@@ -1,18 +1,14 @@
 {
-    "compilerOptions": {
-        "strict": true,
-        "declaration": true,
-        "forceConsistentCasingInFileNames": true,
-        "esModuleInterop": true,
-        "module": "ESNext",
-        "moduleResolution": "Bundler",
-        "target": "ES2022",
-        "outDir": "./dist",
-    },
-    "include": [
-        "src/**/*.ts",
-    ],
-    "exclude": [
-        "dist"
-    ]
+  "compilerOptions": {
+    "strict": true,
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist"]
 }

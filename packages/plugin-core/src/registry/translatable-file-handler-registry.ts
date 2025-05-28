@@ -1,16 +1,13 @@
-import { Document, File, Translation } from "@cat/shared";
+import { File, Translation } from "@cat/shared";
 import { TranslatableElementData } from "@cat/shared";
 
 export interface TranslatableFileHandler {
-  detectDocumentTypeFromFile(file: File): string | void;
-  canExtractElementFromFile(document: Document, fileContent: string): boolean;
-  extractElementFromFile(
-    document: Document,
-    fileContent: string,
-  ): TranslatableElementData[];
-  canGenerateTranslatedFile(document: Document, fileContent: string): boolean;
-  generateTranslatedFile(
-    document: Document,
+  getId(): string;
+  canExtractElement(file: File): boolean;
+  extractElement(file: File, fileContent: string): TranslatableElementData[];
+  canGenerateTranslated(file: File, fileContent: string): boolean;
+  generateTranslated(
+    file: File,
     fileContent: string,
     translations: Translation[],
   ): string;

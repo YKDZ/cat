@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { languages } = storeToRefs(useLanguageStore());
 
-const languageId = defineModel<string>("languageId");
+const languageId = defineModel<string | null>({ default: null });
 
 const options = computed(() => {
   return languages.value
@@ -33,9 +33,9 @@ const options = computed(() => {
 
 <template>
   <Picker
-    v-model:model-value="languageId"
+    v-model="languageId"
     :full-width
     :options
-    placeholder="搜索或选择一个语言"
+    placeholder="选择一个语言"
   />
 </template>

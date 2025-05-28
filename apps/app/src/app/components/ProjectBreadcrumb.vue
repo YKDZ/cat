@@ -13,7 +13,7 @@ const props = defineProps<{
     <UserAvatar
       v-if="project.Creator"
       :user="project.Creator"
-      size="30px"
+      :size="30"
       with-name
       link
     />

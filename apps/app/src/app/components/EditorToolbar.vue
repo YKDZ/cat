@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import Button from "./Button.vue";
-import { useEditorStore } from "../stores/editor";
 import { storeToRefs } from "pinia";
+import { useEditorStore } from "../stores/editor";
+import Button from "./Button.vue";
+import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
 
-const { translate, jumpToNextUntranslated, copy, clear } = useEditorStore();
+const { translate, jumpToNextUntranslated, replace, clear } = useEditorStore();
+const { undo } = useEditorStore();
 
 const { element } = storeToRefs(useEditorStore());
 
@@ -15,12 +17,12 @@ const handleTranslate = async (jumpToNext: boolean) => {
 
 <template>
   <div class="px-2 pb-4 pt-1 flex w-full items-center justify-between">
-    <div class="flex gap-2 items-center">
+    <div class="flex gap-1 items-center">
       <Button
         transparent
         no-text
         icon="i-mdi:content-copy"
-        @click="copy(element?.value ?? ``)"
+        @click="replace(element?.value ?? ``)"
       />
       <Button
         transparent
@@ -29,17 +31,28 @@ const handleTranslate = async (jumpToNext: boolean) => {
         class="text-red"
         @click="clear"
       />
+      <Button transparent icon="i-mdi:undo" magic-key="Ctrl+Z" @click="undo" />
+      <EditorTranslationVerifyResult />
     </div>
     <div class="flex gap-1 items-center">
-      <Button transparent icon="i-mdi:check" @click="handleTranslate(false)"
-        >提交</Button
+      <Button
+        transparent
+        icon="i-mdi:check"
+        magic-key="Ctrl+Shift+Enter"
+        @click="handleTranslate(false)"
+        @magic-click="handleTranslate(false)"
       >
+        提交
+      </Button>
       <Button
         transparent
         icon="i-mdi:arrow-right"
+        magic-key="Ctrl+Enter"
         @click="handleTranslate(true)"
-        >提交并继续</Button
+        @magic-click="handleTranslate(true)"
       >
+        提交并继续
+      </Button>
     </div>
   </div>
 </template>

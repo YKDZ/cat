@@ -18,6 +18,34 @@ const ctx = usePageContext();
 const { isFree } = storeToRefs(useSidebarStore());
 
 const { user } = usePageContext();
+
+const items = ref([
+  {
+    path: "/",
+    icon: "i-mdi:home",
+    text: "主页",
+  },
+  {
+    path: "/projects",
+    icon: "i-mdi:folder",
+    text: "项目",
+  },
+  {
+    path: "/glossaries",
+    icon: "i-mdi:file-word-box",
+    text: "术语",
+  },
+  {
+    path: "/memories",
+    icon: "i-mdi:zip-box",
+    text: "记忆",
+  },
+  {
+    path: "/plugins",
+    icon: "i-mdi:toy-brick",
+    text: "插件",
+  },
+]);
 </script>
 
 <template>
@@ -39,24 +67,16 @@ const { user } = usePageContext();
         <!-- Middle -->
         <div class="px-2 pt-6 flex flex-col gap-1 w-full">
           <Button
-            :focused="ctx.urlParsed.pathname === `/`"
+            v-for="item in items"
+            :key="item.path"
+            :focused="ctx.urlParsed.pathname === item.path"
             full-width
             transparent
             left
             large
-            icon="i-mdi:home"
-            @click="navigate(`/`)"
-            >主页</Button
-          >
-          <Button
-            :focused="ctx.urlParsed.pathname === `/project`"
-            left
-            large
-            full-width
-            transparent
-            icon="i-mdi:folder"
-            @click="navigate(`/project`)"
-            >项目</Button
+            :icon="item.icon"
+            @click="navigate(item.path)"
+            >{{ item.text }}</Button
           >
         </div>
       </div>
@@ -66,10 +86,10 @@ const { user } = usePageContext();
           <template #trigger>
             <UserAvatar
               v-if="user"
+              class="px-2 py-1 rounded-sm cursor-pointer hover:bg-highlight-darkest"
               full-width
-              button
               with-name
-              size="32px"
+              :size="32"
               :user
             />
           </template>

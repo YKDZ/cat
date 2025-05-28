@@ -7,7 +7,7 @@ export const useLanguageStore = defineStore("language", () => {
   const languages = ref<Language[]>([]);
 
   const update = async () => {
-    trpc.language.query.query().then((langs) => (languages.value = langs));
+    trpc.language.listAll.query().then((langs) => (languages.value = langs));
   };
 
   return {

@@ -1,4 +1,11 @@
 packages:
-  - "apps/*"
-  - "packages/*"
-  - "packages/@cat-plugin/*"
+  - apps/*
+  - packages/*
+  - packages/@cat-plugin/*
+
+onlyBuiltDependencies:
+  - "@prisma/client"
+  - "@prisma/engines"
+  - esbuild
+  - prisma
+  - protobufjs

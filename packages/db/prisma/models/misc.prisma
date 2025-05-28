@@ -1,0 +1,44 @@
+model Language {
+    id   String @id
+    name String
+
+    Translation Translation[]
+
+    SourceProjects Project[] @relation("ProjectSourceLanguage")
+    TargetProjects Project[] @relation("ProjectTargetLanguage")
+
+    ReadableUsers User[] @relation("ReadableLanguages")
+    WritableUsers User[] @relation("WritableLanguages")
+
+    SourceMemoryItems      MemoryItem[] @relation("MemoryItemSourceLanguage")
+    TranslationMemoryItems MemoryItem[] @relation("MemoryItemTranslationLanguage")
+
+    Terms Term[]
+}
+
+model Task {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    status    String   @default("pending")
+    result    Json?
+    type      String
+
+    Documents Document[]
+}
+
+model StorageType {
+    id   Int    @id @default(autoincrement())
+    name String @unique
+
+    Files File[]
+}
+
+model Permission {
+    permission String
+
+    userId String
+    User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([permission, userId])
+}

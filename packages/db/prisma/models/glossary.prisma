@@ -1,0 +1,45 @@
+model Glossary {
+    id          String   @id @default(cuid())
+    name        String
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+    Projects Project[]
+    Terms    Term[]
+}
+
+model Term {
+    id        Int      @id @default(autoincrement())
+    value     String
+    context   String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    languageId String
+    Language   Language @relation(fields: [languageId], references: [id])
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+    glossaryId String
+    Glossary   Glossary @relation(fields: [glossaryId], references: [id], onDelete: Cascade)
+
+    TermRelation            TermRelation[] @relation(name: "Term")
+    TermTranslaitonRelation TermRelation[] @relation(name: "TermTranslaiton")
+
+    @@index([languageId])
+}
+
+model TermRelation {
+    termId Int
+    Term   Term @relation(name: "Term", fields: [termId], references: [id], onDelete: Cascade)
+
+    translationId Int
+    Translation   Term @relation(name: "TermTranslaiton", fields: [translationId], references: [id], onDelete: Cascade)
+
+    @@id([termId, translationId])
+}

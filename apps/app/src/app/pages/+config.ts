@@ -10,9 +10,9 @@ export default {
   description: "Self-hosted CAT platform",
 
   passToClient: ["user", "_piniaInitState"],
-  extends: [vikeVue as typeof vikeVue, vikeServer],
+  extends: [vikeVue, vikeServer],
 
-  server: "@/server/index.ts",
+  server: "src/server/index.ts",
 
   filesystemRoutingRoot: "/",
 } as Config;

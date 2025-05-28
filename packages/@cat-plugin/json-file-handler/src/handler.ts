@@ -1,10 +1,5 @@
 import { TranslatableFileHandler } from "@cat/plugin-core";
-import {
-  File,
-  Document,
-  TranslatableElementData,
-  Translation,
-} from "@cat/shared";
+import { File, TranslatableElementData, Translation } from "@cat/shared";
 
 type JSONValue =
   | string
@@ -15,27 +10,24 @@ type JSONValue =
   | { [key: string]: JSONValue };
 
 export class JSONTranslatableFileHandler implements TranslatableFileHandler {
-  detectDocumentTypeFromFile(file: File): string | void {
-    if (file.originName.endsWith(".json")) return "JSON";
+  getId(): string {
+    return "json";
   }
 
-  canExtractElementFromFile(document: Document, fileContent: string): boolean {
-    return document.Type.name === "JSON";
+  canExtractElement(file: File): boolean {
+    return file.Type?.mimeType === "application/json";
   }
 
-  extractElementFromFile(
-    document: Document,
-    fileContent: string,
-  ): TranslatableElementData[] {
+  extractElement(file: File, fileContent: string): TranslatableElementData[] {
     return collectTranslatableElement(fileContent);
   }
 
-  canGenerateTranslatedFile(document: Document, fileContent: string) {
-    return document.Type.name === "JSON";
+  canGenerateTranslated(file: File, fileContent: string) {
+    return file.Type?.mimeType === "application/json";
   }
 
-  generateTranslatedFile(
-    document: Document,
+  generateTranslated(
+    file: File,
     fileContent: string,
     translations: Translation[],
   ): string {
@@ -44,7 +36,9 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
 
     for (const translation of translations) {
       try {
-        const meta = JSON.parse(translation.TranslatableElement?.meta ?? "");
+        const meta = translation.TranslatableElement?.meta as {
+          key: string[];
+        };
         const pathParts: string[] = meta.key;
 
         let current: unknown = modifiedObj;
@@ -102,9 +96,9 @@ const collectTranslatableElement = (
     } else if (typeof obj === "string" && obj.trim() !== "") {
       result.push({
         value: obj,
-        meta: JSON.stringify({
+        meta: {
           key: currentPath,
-        }),
+        },
       });
     }
   };

@@ -12,7 +12,7 @@ const props = defineProps({
   <div
     class="px-2 text-center rounded-sm inline-flex gap-3 h-full w-full select-none items-center"
     :class="{
-      'cursor-pointer hover:bg-gray-200': link,
+      'cursor-pointer hover:bg-highlight-darker': link,
     }"
     @click="link && navigate(`/`)"
   >

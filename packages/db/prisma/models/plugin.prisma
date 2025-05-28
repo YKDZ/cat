@@ -1,0 +1,62 @@
+model Plugin {
+    id         String   @id
+    origin     Json
+    name       String
+    overview   String?
+    enabled    Boolean  @default(true)
+    isExternal Boolean  @default(false)
+    entry      String
+    iconURL    String?
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @default(now()) @updatedAt
+
+    Config PluginConfig?
+
+    Permissions PluginPermission[]
+    Versions    PluginVersion[]
+    Tags        PluginTag[]
+}
+
+model PluginVersion {
+    id        Int      @id @default(autoincrement())
+    version   String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    pluginId String
+    Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+    @@unique([pluginId, version])
+}
+
+model PluginPermission {
+    id          Int      @id @default(autoincrement())
+    permission  String
+    description String
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @default(now()) @updatedAt
+
+    pluginId String
+    Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+    @@unique([pluginId, permission])
+}
+
+model PluginConfig {
+    id        Int      @id @default(autoincrement())
+    content   Json
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    pluginId String @unique
+    Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+}
+
+model PluginTag {
+    id        Int      @id @default(autoincrement())
+    name      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    Plugin Plugin[]
+}

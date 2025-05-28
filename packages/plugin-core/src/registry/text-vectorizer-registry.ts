@@ -1,10 +1,11 @@
-import { UnvectorizedElementData } from "@cat/shared";
+import { UnvectorizedTextData } from "@cat/shared";
 
 export interface TextVectorizer {
+  getId(): string;
   canVectorize(languageId: string): boolean;
   vectorize(
     languageId: string,
-    elements: UnvectorizedElementData[],
+    elements: UnvectorizedTextData[],
   ): Promise<number[][]>;
 }
 

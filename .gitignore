@@ -1,13 +1,13 @@
-.editorconfig
 .history
-storage
 .yarn
-models
 .vscode
 .turbo
 .npmrc
 dist
 generated
+ollama
+uploads
+apps/app/plugins
 
 # Logs
 logs

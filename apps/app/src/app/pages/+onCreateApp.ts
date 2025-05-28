@@ -1,19 +1,18 @@
 import { createPinia } from "pinia";
 import { PageContext } from "vike/types";
-import { i18n } from "../utils/i18n";
 
 export const onCreateApp = (ctx: PageContext) => {
   const { app } = ctx;
 
   if (!app) return;
 
-  if (!import.meta.env.SSR) {
-    ctx.globalContext.pinia = createPinia();
-  }
+  if (!import.meta.env.SSR) hydratePinia(ctx);
 
-  // client: GlobalContext
-  // server: PageContext
   app.use(ctx.globalContext.pinia ?? ctx.pinia!);
+};
 
-  app.use(i18n);
+const hydratePinia = (ctx: PageContext) => {
+  ctx.globalContext.pinia = createPinia();
+  if (ctx._piniaInitState)
+    ctx.globalContext.pinia.state.value = ctx._piniaInitState;
 };

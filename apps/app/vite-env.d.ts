@@ -7,8 +7,11 @@ interface ViteTypeOptions {
 interface ImportMetaEnv {
   readonly DATABASE_URL: string | undefined;
   readonly REDIS_URL: string | undefined;
-  readonly URL: string | undefined;
+  readonly PUBLIC_ENV__URL: string | undefined;
   readonly PORT: string | undefined;
+  // Storage
+  readonly STORAGE_TYPE: string | undefined;
+  // Local
   readonly LOCAL_STORAGE_ROOT_DIR: string | undefined;
   // S3
   readonly S3_ACCESS_KEY_ID: string | undefined;

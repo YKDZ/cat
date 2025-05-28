@@ -1,9 +1,8 @@
-import { CatPlugin } from "@cat/plugin-core";
+import { CatPlugin, TextVectorizerRegistry } from "@cat/plugin-core";
+import { Vectorizer } from "./vectorizer";
 
 export default class Plugin implements CatPlugin {
-  getId(): string {
-    return "LibreTranslate";
+  async onLoaded() {
+    TextVectorizerRegistry.getInstance().register(new Vectorizer());
   }
-
-  async onLoaded() {}
 }

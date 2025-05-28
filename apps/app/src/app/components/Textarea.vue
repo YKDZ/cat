@@ -5,6 +5,6 @@ const modalValue = defineModel({ type: String });
 <template>
   <textarea
     v-model="modalValue"
-    class="p-3 max-w-2/3 min-h-6 select-none focus-visible:(outline-0 ring-1 ring-gray-200 ring-offset-transparent ring-offset-1)"
+    class="p-3 outline-0 min-h-6rem select-none ring-1 ring-highlight-darkest ring-offset-transparent focus-visible:ring-base"
   />
 </template>

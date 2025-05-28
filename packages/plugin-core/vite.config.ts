@@ -32,6 +32,7 @@ export default defineConfig({
         "zod",
         "module",
         "@cat/shared",
+        "@cat/db",
       ],
     },
   },

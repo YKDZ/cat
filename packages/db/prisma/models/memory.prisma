@@ -1,0 +1,43 @@
+model Memory {
+    id          String   @id @default(cuid())
+    name        String
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id])
+
+    MemoryItems MemoryItem[]
+    Projects    Project[]
+}
+
+model MemoryItem {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    source      String
+    translation String
+
+    sourceEmbeddingId Int
+    SourceEmbedding   Vector @relation(fields: [sourceEmbeddingId], references: [id], onDelete: Cascade)
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id])
+
+    memoryId String
+    Memory   Memory @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+
+    sourceElementId Int?
+    SourceElement   TranslatableElement? @relation(fields: [sourceElementId], references: [id])
+
+    translationId Int?
+    Translation   Translation? @relation(fields: [translationId], references: [id])
+
+    sourceLanguageId String
+    SourceLanguage   Language @relation(name: "MemoryItemSourceLanguage", fields: [sourceLanguageId], references: [id])
+
+    translationLanguageId String
+    TranslationLanguage   Language @relation(name: "MemoryItemTranslationLanguage", fields: [translationLanguageId], references: [id])
+}

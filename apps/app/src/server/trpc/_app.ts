@@ -7,6 +7,8 @@ import { translationRouter } from "./routers/translation";
 import { suggestionRouter } from "./routers/suggestion";
 import { userRouter } from "./routers/user";
 import { memoryRouter } from "./routers/memory";
+import { glossaryRouter } from "./routers/glossary";
+import { pluginRouter } from "./routers/plugin";
 
 export const appRouter = router({
   auth: authRouter,
@@ -17,6 +19,8 @@ export const appRouter = router({
   suggestion: suggestionRouter,
   user: userRouter,
   memory: memoryRouter,
+  glossary: glossaryRouter,
+  plugin: pluginRouter,
 });
 
 export type AppRouter = typeof appRouter;

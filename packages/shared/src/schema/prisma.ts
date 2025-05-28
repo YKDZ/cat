@@ -1,12 +1,90 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { ElementTranslationStatusSchema } from "./misc";
 
-export const PrimsaDateTime = z.date().or(z.string().date());
+export const PrimsaDateTime = z.date().or(z.iso.date());
+
+export const PluginTagSchema = z.object({
+  id: z.number().int(),
+  name: z.string(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+});
+
+export const PluginConfigSchema = z.object({
+  id: z.number().int(),
+  content: z.string(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  pluginId: z.string(),
+});
+
+export const PluginPermissionSchema = z.object({
+  id: z.number().int(),
+  permission: z.string(),
+  description: z.string(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  pluginId: z.string(),
+});
+
+export const PluginVersionSchema = z.object({
+  id: z.number().int(),
+  version: z.string(),
+  pluginId: z.string(),
+});
+
+export const PluginSchema = z.object({
+  id: z.string(),
+  origin: z.json(),
+  name: z.string(),
+  overview: z.string().nullable(),
+  enabled: z.boolean(),
+  iconURL: z.url().nullable(),
+  isExternal: z.boolean(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  Config: PluginConfigSchema.optional(),
+  Permissions: z.array(PluginPermissionSchema).optional(),
+  Versions: z.array(PluginVersionSchema).optional(),
+  Tags: z.array(PluginTagSchema).optional(),
+});
+
+export const TaskSchema = z.object({
+  id: z.cuid2(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  status: z.enum(["pending", "processing", "completed", "failed"]),
+  result: z.record(z.string(), z.unknown()).nullable(),
+  type: z.string(),
+});
+
+export const VectorSchema = z.object({
+  id: z.number().int(),
+  vector: z.array(z.number()),
+});
+
+export const FileTypeSchema = z.object({
+  id: z.number().int(),
+  name: z.string(),
+  mimeType: z.string(),
+  icon: z.string(),
+});
+
+export const StorageTypeSchema = z.object({
+  id: z.number().int(),
+  name: z.string(),
+});
 
 export const FileSchema = z.object({
   id: z.number().int(),
   originName: z.string(),
+  storedPath: z.string(),
   createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  typeId: z.number().int(),
+  Type: FileTypeSchema.optional(),
+  storageTypeId: z.number().int(),
+  StorageType: StorageTypeSchema.optional(),
 });
 
 export const LanguageSchema = z.object({
@@ -14,10 +92,10 @@ export const LanguageSchema = z.object({
   name: z.string(),
 });
 
-export const ProjectPermissionSchema = z.object({
+export const PermissionSchema = z.object({
   permission: z.string(),
-  projectId: z.string().cuid2(),
-  userId: z.string().cuid2(),
+  projectId: z.cuid2(),
+  userId: z.cuid2(),
 });
 
 export const TranslationVoteSchema = z.object({
@@ -25,12 +103,12 @@ export const TranslationVoteSchema = z.object({
   value: z.number().int(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  voterId: z.string().cuid2(),
+  voterId: z.cuid2(),
   translationId: z.number().int(),
 });
 
 export const UserSchema = z.object({
-  id: z.string().cuid2(),
+  id: z.cuid2(),
   name: z.string(),
   email: z.string(),
   emailVerified: z.boolean().default(false),
@@ -38,7 +116,7 @@ export const UserSchema = z.object({
   updatedAt: PrimsaDateTime,
   writableLanguages: z.array(LanguageSchema).optional(),
   readableLanguages: z.array(LanguageSchema).optional(),
-  ProjectPermissions: z.array(ProjectPermissionSchema).optional(),
+  Permissions: z.array(PermissionSchema).optional(),
   TranslationVotes: z.array(TranslationVoteSchema).optional(),
 });
 
@@ -48,21 +126,16 @@ export const AccountSchema = z.object({
   providedAccountId: z.string(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  userId: z.string().cuid2(),
+  userId: z.cuid2(),
   User: UserSchema.optional(),
-});
-
-export const DocumentTypeSchema = z.object({
-  id: z.number().int(),
-  name: z.string(),
-  icon: z.string(),
 });
 
 export const TranslatableElementSchema = z.object({
   id: z.number().int(),
   value: z.string(),
-  embedding: z.array(z.number()).optional(),
-  meta: z.string().or(z.unknown()),
+  meta: z.json(),
+  embeddingId: z.number().int(),
+  Embedding: VectorSchema.optional(),
   // 不是数据库中的一个列
   // 仅用于前端临时储存数据
   status: ElementTranslationStatusSchema.optional().default("NO"),
@@ -75,7 +148,7 @@ export const TranslationSchema = z.object({
   updatedAt: PrimsaDateTime,
   isApproved: z.boolean().default(false),
   lastApprovedAt: PrimsaDateTime.nullable(),
-  translatorId: z.string().cuid2(),
+  translatorId: z.cuid2(),
   Translator: UserSchema.optional(),
   translatableElementId: z.number().int(),
   TranslatableElement: TranslatableElementSchema.optional(),
@@ -85,15 +158,13 @@ export const TranslationSchema = z.object({
 });
 
 export const DocumentSchema = z.object({
-  id: z.string().cuid2(),
+  id: z.cuid2(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  typeId: z.number().int(),
-  Type: DocumentTypeSchema,
-  creatorId: z.string().cuid2(),
+  creatorId: z.cuid2(),
   Creator: UserSchema.optional(),
   TranslatableElements: z.array(TranslatableElementSchema).optional(),
-  fileId: z.number().int(),
+  fileId: z.number().int().nullable(),
   File: FileSchema.optional(),
   projectId: z.string(),
 });
@@ -102,34 +173,42 @@ export const MemoryItemSchema = z.object({
   id: z.number().int(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  translationId: z.number().int(),
-  Translation: TranslationSchema.optional(),
-  sourceElementId: z.number().int(),
-  SoruceElement: TranslatableElementSchema.optional(),
+  source: z.string(),
+  sourceLanguageId: z.string(),
+  SourceLanguage: LanguageSchema.optional(),
+  translation: z.string(),
+  translationLanguageId: z.string(),
+  TranslationLanguage: LanguageSchema.optional(),
+  sourceEmbeddingId: z.number().int(),
+  SourceEmbedding: z.array(z.number()).optional(),
+  memoryId: z.number(),
+  creatorId: z.cuid2(),
+  Creator: UserSchema.optional(),
 });
 
 export const MemorySchema = z.object({
-  id: z.number().int(),
-  name: z.string().optional(),
-  description: z.string(),
+  id: z.cuid2(),
+  name: z.string(),
+  description: z.string().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  creatorId: z.string().cuid2(),
+  creatorId: z.cuid2(),
   Creator: UserSchema.optional(),
   MemoryItems: z.array(MemoryItemSchema).optional(),
 });
 
 export const ProjectSchema = z.object({
-  id: z.string().cuid2(),
-  name: z.string().optional(),
-  description: z.string(),
+  id: z.cuid2(),
+  name: z.string(),
+  description: z.string().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   Memories: z.array(MemorySchema).optional(),
   sourceLanguageId: z.string(),
   SourceLanguage: LanguageSchema.optional(),
-  TargetLanguages: z.array(LanguageSchema).optional(),
+  creatorId: z.cuid2(),
   Creator: UserSchema.optional(),
+  TargetLanguages: z.array(LanguageSchema).optional(),
   Documents: z.array(DocumentSchema).optional(),
 });
 
@@ -140,8 +219,40 @@ export const PrismaErrorSchema = z.object({
   clientVersion: z.string(),
 });
 
+export const TermSchema = z.object({
+  id: z.number().int(),
+  value: z.string(),
+  context: z.string().optional().nullable(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  glossaryId: z.cuid2(),
+  languageId: z.string(),
+  Language: LanguageSchema.optional(),
+  creatorId: z.cuid2(),
+  Creator: UserSchema.optional(),
+});
+
+export const TermRelationSchema = z.object({
+  termId: z.number().int(),
+  Term: TermSchema.optional(),
+  translationId: z.number().int(),
+  Translation: TermSchema.optional(),
+});
+
+export const GlossarySchema = z.object({
+  id: z.cuid2(),
+  name: z.string(),
+  description: z.string().nullable(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  creatorId: z.cuid2(),
+  Creator: UserSchema.optional(),
+  GlossaryItems: z.array(TermSchema).optional(),
+});
+
+export type Vector = z.infer<typeof VectorSchema>;
 export type Document = z.infer<typeof DocumentSchema>;
-export type DocumentType = z.infer<typeof DocumentTypeSchema>;
+export type FileType = z.infer<typeof FileTypeSchema>;
 export type Translation = z.infer<typeof TranslationSchema>;
 export type TranslatableElement = z.infer<typeof TranslatableElementSchema>;
 export type Language = z.infer<typeof LanguageSchema>;
@@ -153,3 +264,14 @@ export type PrismaError = z.infer<typeof PrismaErrorSchema>;
 export type File = z.infer<typeof FileSchema>;
 export type TranslationVote = z.infer<typeof TranslationVoteSchema>;
 export type MemoryItem = z.infer<typeof MemoryItemSchema>;
+export type Task = z.infer<typeof TaskSchema>;
+export type Glossary = z.infer<typeof GlossarySchema>;
+export type Term = z.infer<typeof TermSchema>;
+export type TermRelation = z.infer<typeof TermRelationSchema>;
+export type StorageType = z.infer<typeof StorageTypeSchema>;
+export type Permission = z.infer<typeof PermissionSchema>;
+export type Plugin = z.infer<typeof PluginSchema>;
+export type PluginConfig = z.infer<typeof PluginConfigSchema>;
+export type PluginTag = z.infer<typeof PluginTagSchema>;
+export type PluginVersion = z.infer<typeof PluginVersionSchema>;
+export type PluginPermission = z.infer<typeof PluginPermissionSchema>;

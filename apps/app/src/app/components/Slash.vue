@@ -6,7 +6,7 @@ const props = defineProps<{
 
 <template>
   <span
-    class="i-mdi:slash-forward text-gray-500 inline-block"
+    class="i-mdi:slash-forward text-highlight-content inline-block"
     :class="{
       'h-6 w-6': large,
     }"

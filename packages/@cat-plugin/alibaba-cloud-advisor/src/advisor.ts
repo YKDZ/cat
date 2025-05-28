@@ -12,6 +12,10 @@ export class Advisor implements TranslationAdvisor {
     this.url = `https://${process.env.PLUGIN_ALIBABA_CLOUD_API_ENDPOINT}/api/translate/web/${process.env.PLUGIN_ALIBABA_CLOUD_API_VERSION}`;
   }
 
+  getId(): string {
+    return "alibabaCloud";
+  }
+
   getName() {
     return process.env.PLUGIN_ALIBABA_CLOUD_NAME ?? "Alibaba Cloud Translation";
   }

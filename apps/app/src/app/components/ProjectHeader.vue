@@ -2,7 +2,6 @@
 import { usePageContext } from "vike-vue/usePageContext";
 import Header from "./Header.vue";
 import { ref, watch } from "vue";
-import Slash from "./Slash.vue";
 import Button from "./Button.vue";
 import { storeToRefs } from "pinia";
 import { useSidebarStore } from "../stores/sidebar";

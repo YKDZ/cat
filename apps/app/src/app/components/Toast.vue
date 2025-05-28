@@ -15,7 +15,7 @@ const { toasts } = storeToRefs(useToastStore());
       v-for="toast in toasts"
       :key="toast.id"
       :class="{
-        'text-gray-600 bg-highlight': toast.type === 'INFO',
+        'text-highlight-content bg-highlight': toast.type === 'INFO',
         'text-black bg-yellow-300': toast.type === 'WARNNING',
         'text-black bg-red-300': toast.type === 'ERROR',
       }"

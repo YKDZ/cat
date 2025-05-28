@@ -36,6 +36,6 @@ const handleAuth = () => {
     :is-loading="isLoading"
     @click="handleAuth"
   >
-    使用 {{ method.title }} 登录或注册</Button
-  >
+    使用 {{ method.title }} 登录或注册
+  </Button>
 </template>

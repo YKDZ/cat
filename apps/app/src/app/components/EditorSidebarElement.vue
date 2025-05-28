@@ -2,7 +2,10 @@
 import { navigate } from "vike/client/router";
 import { useEditorStore } from "../stores/editor";
 import { storeToRefs } from "pinia";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
+import { useToastStore } from "../stores/toast";
+
+const { trpcWarn } = useToastStore();
 
 const {
   documentId,
@@ -22,30 +25,32 @@ const element = computed(() => {
   return storedElements.value.find((e) => e.id === props.elementId);
 });
 
+const handleClick = () => {
+  if (!element.value) return;
+
+  navigate(
+    `/editor/${documentId.value}/${languageFromId.value}-${languageToId.value}/${element.value.id}`,
+  );
+};
+
 onMounted(() => {
   queryElementTranslationStatus(props.elementId)
     .then((queried) => {
       if (!element.value) return;
       element.value.status = queried;
     })
-    .catch((e) => {
-      console.log(e);
-    });
+    .catch(trpcWarn);
 });
 </script>
 
 <template>
   <button
     v-if="element"
-    class="px-2 py-2 text-start flex gap-3 cursor-pointer items-center hover:bg-gray-300"
+    class="px-2 py-2 text-start flex gap-3 cursor-pointer items-center hover:bg-highlight-darkest"
     :class="{
-      'bg-gray-200': elementId === currentElementId,
+      'bg-highlight-darkest': elementId === currentElementId,
     }"
-    @click="
-      navigate(
-        `/editor/${documentId}/${languageFromId}-${languageToId}/${element.id}`,
-      )
-    "
+    @click="handleClick"
   >
     <span
       class="h-2 min-h-2 min-w-2 w-2 block"

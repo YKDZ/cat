@@ -5,10 +5,16 @@ export default defineConfig({
   presets: [presetWind4(), presetIcons()],
   theme: {
     colors: {
-      base: "#38C800",
-      "base-darker": "#2DA000",
-      highlight: "#FFFFFF",
-      "highlight-darker": "#EDF2F7",
+      base: "var(--cat-theme-base)",
+      "base-darker": "var(--cat-theme-base-darker)",
+      "base-darkest": "var(--cat-theme-base-darkest)",
+      "base-content": "var(--cat-theme-base-content)",
+      "base-content-darker": "var(--cat-theme-base-content-darker)",
+      highlight: "var(--cat-theme-highlight)",
+      "highlight-darker": "var(--cat-theme-highlight-darker)",
+      "highlight-darkest": "var(--cat-theme-highlight-darkest)",
+      "highlight-content": "var(--cat-theme-highlight-content)",
+      "highlight-content-darker": "var(--cat-theme-highlight-content-darker)",
     },
   },
 });

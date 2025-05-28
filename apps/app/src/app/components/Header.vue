@@ -3,7 +3,7 @@
 <template>
   <!-- Header -->
   <div
-    class="px-4 py-1 bg-transparent flex h-16 w-full select-none items-center justify-between md:px-6"
+    class="px-4 py-1 bg-highlight flex min-h-16 w-full select-none items-center left-0 top-0 justify-between sticky z-10 md:px-6"
   >
     <slot />
   </div>

@@ -1,34 +1,37 @@
-import { defineStore } from "pinia";
-import { computed, nextTick, reactive, ref, watch } from "vue";
+import { trpc } from "@/server/trpc/client";
 import {
-  Translation,
-  TranslationSuggestion,
   Document,
   ElementTranslationStatus,
-  TranslatableElement,
   MemorySuggestion,
+  TermRelation,
+  TranslatableElement,
+  Translation,
+  TranslationSuggestion,
 } from "@cat/shared";
-import { trpc } from "@/server/trpc/client";
-import { navigate } from "vike/client/router";
-import { useToastStore } from "./toast";
 import { TRPCClientError } from "@trpc/client";
+import { defineStore } from "pinia";
+import { navigate } from "vike/client/router";
+import { computed, nextTick, reactive, ref, watch } from "vue";
+import { PartData } from "../components/formater";
+import { useToastStore } from "./toast";
 import { useUserStore } from "./user";
 
 export const useEditorStore = defineStore("editor", () => {
-  const { trpcWarn } = useToastStore();
+  const { warn, trpcWarn } = useToastStore();
 
   // 分页与查询
   const elementTotalAmount = ref(0);
   const pageSize = ref(16);
-  const documentId = ref<string | null>();
   const storedElements = ref<TranslatableElement[]>([]);
   const currentPageIndex = ref(-1);
   const loadedPages = ref<number[]>([]);
   const loadedPagesInfo = reactive(
     new Map<number, { fromId: number; toId: number }>(),
   );
+  const searchQuery = ref("");
 
   // 基本信息
+  const documentId = ref<string | null>();
   const languageFromId = ref<string | null>(null);
   const languageToId = ref<string | null>(null);
   const translations = ref<Translation[]>([]);
@@ -37,8 +40,11 @@ export const useEditorStore = defineStore("editor", () => {
   const translationValue = ref<string>("");
   const suggestions = ref<TranslationSuggestion[]>([]);
   const memories = ref<MemorySuggestion[]>([]);
+  const terms = ref<TermRelation[]>([]);
   const originDivEl = ref<HTMLDivElement>();
   const inputDivEl = ref<HTMLDivElement>();
+  const sourceParts = ref<PartData[]>([]);
+  const translationParts = ref<PartData[]>([]);
 
   // 撤回重做
   const inputTextareaEl = ref<HTMLTextAreaElement | null>(null);
@@ -53,6 +59,29 @@ export const useEditorStore = defineStore("editor", () => {
   const totalPageIndex = computed(() =>
     Math.floor(elementTotalAmount.value / pageSize.value),
   );
+
+  const addTerms = (...termsToAdd: TermRelation[]) => {
+    termsToAdd.forEach((relation) => {
+      const { Term: term, Translation: translation } = relation;
+      if (!term || !translation) return;
+      const id =
+        term.value +
+        translation.value +
+        term.creatorId +
+        translation.creatorId +
+        term.createdAt;
+      if (
+        !terms.value.find((relation) => {
+          const { Term: t, Translation: tr } = relation;
+          if (!t || !tr) return false;
+          return (
+            t.value + tr.value + t.creatorId + tr.creatorId + t.createdAt === id
+          );
+        })
+      )
+        terms.value.push(relation);
+    });
+  };
 
   const addElements = (...elements: TranslatableElement[]) => {
     const seen = new Set<number>(storedElements.value.map((e) => e.id));
@@ -72,6 +101,7 @@ export const useEditorStore = defineStore("editor", () => {
         id,
         documentId: documentId.value,
         pageSize: pageSize.value,
+        searchQuery: searchQuery.value,
       });
       await toPage(page);
       elementId.value = id;
@@ -92,9 +122,12 @@ export const useEditorStore = defineStore("editor", () => {
         documentId: documentId.value,
         page: index,
         pageSize: pageSize.value,
+        searchQuery: searchQuery.value,
       })
       .then((elements) => {
         currentPageIndex.value = index;
+
+        if (elements.length === 0) return;
 
         loadedPagesInfo.set(currentPageIndex.value, {
           fromId: elements[0].id,
@@ -104,6 +137,19 @@ export const useEditorStore = defineStore("editor", () => {
         addElements(...elements);
         loadedPages.value.push(currentPageIndex.value);
       });
+  };
+
+  const refresh = () => {
+    elementTotalAmount.value = 0;
+    currentPageIndex.value = -1;
+    loadedPages.value = [];
+    loadedPagesInfo.clear();
+    storedElements.value = [];
+    terms.value = [];
+    suggestions.value = [];
+    translations.value = [];
+    translationValue.value = "";
+    memories.value = [];
   };
 
   const element = computed(() =>
@@ -161,8 +207,14 @@ export const useEditorStore = defineStore("editor", () => {
         document.value = newDocument;
       });
 
+    await fetchElementTotalAmount();
+  };
+
+  const fetchElementTotalAmount = async () => {
+    if (!documentId.value) return;
+
     await trpc.document.queryElementTotalAmount
-      .query({ id: documentId.value })
+      .query({ id: documentId.value, searchQuery: searchQuery.value })
       .then((amount) => {
         elementTotalAmount.value = amount;
       });
@@ -258,7 +310,7 @@ export const useEditorStore = defineStore("editor", () => {
     );
   };
 
-  const copy = (value: string) => {
+  const replace = (value: string) => {
     translationValue.value = value;
   };
 
@@ -278,7 +330,7 @@ export const useEditorStore = defineStore("editor", () => {
     });
   });
 
-  const insertToSelection = (value: string) => {
+  const insert = (value: string) => {
     if (!element.value || !inputTextareaEl.value) return;
 
     const start = inputTextareaEl.value.selectionStart;
@@ -327,9 +379,16 @@ export const useEditorStore = defineStore("editor", () => {
     suggestions,
     memories,
     inputTextareaEl,
+    terms,
     totalPageIndex,
     originDivEl,
     inputDivEl,
+    searchQuery,
+    sourceParts,
+    translationParts,
+    fetchElementTotalAmount,
+    refresh,
+    addTerms,
     jumpToNextUntranslated,
     toPage,
     toElement,
@@ -338,9 +397,9 @@ export const useEditorStore = defineStore("editor", () => {
     fetchDocument,
     translate,
     updateOrInsertTranslation,
-    copy,
+    replace,
+    insert,
     clear,
-    insertToSelection,
     queryElementTranslationStatus,
   };
 });

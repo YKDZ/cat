@@ -1,154 +1,107 @@
-import { PutObjectCommand, PutObjectCommandInput } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { TRPCError } from "@trpc/server";
-import { readFileSync } from "fs";
-import { randomUUID } from "node:crypto";
-import { z } from "zod";
-import { authedProcedure, router } from "../server";
+import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
+import { useStorage } from "@/server/utils/storage/useStorage";
+import { prisma, redis } from "@cat/db";
+import {
+  TextVectorizerRegistry,
+  TranslatableFileHandlerRegistry,
+} from "@cat/plugin-core";
 import {
   DocumentSchema,
   ElementTranslationStatusSchema,
   FileMetaSchema,
   FileSchema,
   PrismaError,
+  TaskSchema,
   TranslatableElementSchema,
   TranslationSchema,
-  UnvectorizedElementDataSchema,
 } from "@cat/shared";
-import { prisma } from "@cat/db";
-import { base64ToBlob, safeJoinPath, saveBlobToFs } from "../../utils/file";
-import { redis } from "../../database/redis";
-import { s3 } from "../../database/s3";
-import {
-  TextVectorizerRegistry,
-  TranslatableFileHandlerRegistry,
-} from "@cat/plugin-core";
+import { TRPCError } from "@trpc/server";
+import { readFileSync } from "fs";
+import { join } from "node:path";
+import { z } from "zod/v4";
+import { safeJoinPath, sanitizeFileName } from "../../utils/file";
+import { authedProcedure, router } from "../server";
 
 export const documentRouter = router({
-  initS3Upload: authedProcedure
-    .input(FileMetaSchema)
-    .query(async ({ input }) => {
-      const file = input;
-      try {
-        const sanitizedName = file.name.replace(/[^\w.-]/g, "_");
-        const key = `uploads/${randomUUID()}-${sanitizedName}`;
+  fileUploadURL: authedProcedure
+    .input(
+      z.object({
+        meta: FileMetaSchema,
+      }),
+    )
+    .output(
+      z.object({
+        url: z.string().url(),
+        file: FileSchema,
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { meta } = input;
+      const {
+        storage: { getId, getBasicPath, generateUploadURL },
+      } = useStorage();
 
-        const params: PutObjectCommandInput = {
-          Bucket: import.meta.env.S3_UPLOAD_BUCKET_NAME,
-          Key: key,
-        } as PutObjectCommandInput;
+      const name = sanitizeFileName(meta.name);
 
-        const command = new PutObjectCommand(params);
-        const presignedUrl = await getSignedUrl(s3, command, {
-          expiresIn: 180,
-        });
+      const path = join(getBasicPath(), "documents", name);
 
-        const uploadSessionKey = `upload:session:${key}`;
-        await redis.set(uploadSessionKey, "pending");
+      // TODO 校验文件类型
+      const file = await prisma.file.create({
+        data: {
+          originName: meta.name,
+          storedPath: path,
+          Type: {
+            connect: {
+              mimeType: meta.type,
+            },
+          },
+          StorageType: {
+            connect: {
+              name: getId(),
+            },
+          },
+        },
+      });
 
-        return {
-          originalName: file.name,
-          sanitizedName,
-          presignedUrl,
-        };
-      } catch (e) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          cause: e,
-          message: "生成预签名链接失败",
-        });
-      }
+      return {
+        url: await generateUploadURL(path, 120),
+        file: FileSchema.parse(file),
+      };
     }),
-  create: authedProcedure
+  createFromFile: authedProcedure
     .input(
       z.object({
         projectId: z.string(),
-        base64File: z.string(),
-        name: z.string(),
-        type: z.string(),
+        fileId: z.number().int(),
       }),
     )
+    .output(DocumentSchema)
     .mutation(async ({ input, ctx }) => {
-      const { projectId, base64File, name, type } = input;
+      const { projectId, fileId } = input;
       const { user } = ctx;
 
-      await prisma.$transaction(async (tx) => {
-        const blob = base64ToBlob(base64File, type);
-
-        const storedName = `${randomUUID()}-${name}`;
-        const path = safeJoinPath(
-          import.meta.env.LOCAL_STORAGE_ROOT_DIR ?? "",
-          "uploads",
-          storedName,
-        );
-        await saveBlobToFs(blob, path);
-
-        const file = await tx.file.create({
-          data: {
-            originName: name,
-            storedName,
-          },
-        });
-
-        const parsedFile = FileSchema.parse(
-          await tx.file.create({
-            data: {
-              originName: name,
-              storedName,
-            },
-          }),
-        );
-
-        const documentType = TranslatableFileHandlerRegistry.getInstance()
-          .getHandlers()
-          .map((handler) => handler.detectDocumentTypeFromFile(parsedFile))
-          .filter((name) => typeof name === "string")
-          .at(0);
-
-        if (!documentType)
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "CAT 不支持处理这种文档",
-          });
-
-        const document = await tx.document.create({
-          data: {
-            Creator: {
-              connect: {
-                id: user.id,
-              },
-            },
-            Type: {
-              connect: {
-                name: documentType,
-              },
-            },
-            File: {
-              connect: {
-                id: file.id,
-              },
-            },
-            Project: {
-              connect: {
-                id: projectId,
-              },
-            },
+      const {
+        parsedFile,
+        document,
+        parsedDocument,
+        handler,
+        vectorizer,
+        taskId,
+      } = await prisma.$transaction(async (tx) => {
+        const file = await prisma.file.findUnique({
+          where: {
+            id: fileId,
           },
           include: {
             Type: true,
-            File: true,
-            Project: true,
           },
         });
 
-        const parsedDocument = DocumentSchema.parse(document);
-        const fileContent = readFileSync(path, "utf-8");
+        const parsedFile = FileSchema.parse(file);
 
         const handler = TranslatableFileHandlerRegistry.getInstance()
           .getHandlers()
-          .find((handler) =>
-            handler.canExtractElementFromFile(parsedDocument, fileContent),
-          );
+          .find((handler) => handler.canExtractElement(parsedFile));
 
         if (!handler) {
           throw new TRPCError({
@@ -157,42 +110,133 @@ export const documentRouter = router({
           });
         }
 
-        const elements = handler
-          .extractElementFromFile(parsedDocument, fileContent)
-          .map((element) => {
-            return {
-              value: element.value,
-              documentId: document.id,
-              meta: element.meta,
-            };
+        const project = await tx.project.findUnique({
+          where: {
+            id: projectId,
+          },
+        });
+
+        if (!project)
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Project with given id does not exists",
           });
 
         const vectorizer = TextVectorizerRegistry.getInstance()
           .getVectorizers()
           .find((vectorizer) =>
-            vectorizer.canVectorize(document.Project.sourceLanguageId),
+            vectorizer.canVectorize(project.sourceLanguageId),
           );
 
-        if (!vectorizer) return;
+        if (!vectorizer) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "CAT 没有可以处理这种文本的向量化器",
+          });
+        }
 
-        const vectors =
-          (await vectorizer.vectorize(
-            document.Project.sourceLanguageId,
-            z.array(UnvectorizedElementDataSchema).parse(elements),
-          )) ?? [];
+        const task = await tx.task.create({
+          data: {
+            type: "document_from_file_pretreatment",
+          },
+        });
 
-        if (!vectors) return;
+        const document = await tx.document.create({
+          data: {
+            Creator: {
+              connect: {
+                id: user.id,
+              },
+            },
+            File: {
+              connect: {
+                id: fileId,
+              },
+            },
+            Project: {
+              connect: {
+                id: projectId,
+              },
+            },
+            Tasks: {
+              connect: {
+                id: task.id,
+              },
+            },
+          },
+          include: {
+            File: {
+              include: {
+                Type: true,
+              },
+            },
+            Project: true,
+          },
+        });
 
-        await Promise.all(
-          elements.map(async (element, index) => {
-            const embedding = `[${vectors[index].join(",")}]`;
-            return await tx.$executeRawUnsafe(`
-              INSERT INTO "TranslatableElement" (value, embedding, meta, "documentId")
-              VALUES ('${element.value}', '${embedding}', '${element.meta}', '${element.documentId}')
-            `);
-          }),
-        );
+        const parsedDocument = DocumentSchema.parse(document);
+
+        return {
+          parsedFile,
+          document,
+          parsedDocument,
+          handler,
+          vectorizer,
+          taskId: task.id,
+        };
       });
+
+      documentFromFilePretreatmentQueue.add(
+        taskId,
+        {
+          taskId: taskId,
+          sourceLanguageId: document.Project.sourceLanguageId,
+          parsedFile,
+          parsedDocument,
+          handlerId: handler.getId(),
+          vectorizerId: vectorizer.getId(),
+        },
+        {
+          attempts: 3,
+          removeOnComplete: {
+            age: 60 * 60,
+            count: 1000,
+          },
+          removeOnFail: {
+            age: 24 * 60 * 60,
+          },
+        },
+      );
+
+      return parsedDocument;
+    }),
+  queryTask: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+        type: z.string(),
+      }),
+    )
+    .output(TaskSchema.nullable())
+    .query(async ({ input }) => {
+      const { id, type } = input;
+
+      const task = await prisma.document.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          Tasks: {
+            where: {
+              type,
+            },
+          },
+        },
+      });
+
+      if (!task || task.Tasks.length === 0) return null;
+
+      return TaskSchema.nullable().parse(task.Tasks[0]);
     }),
   query: authedProcedure
     .input(z.object({ id: z.string() }))
@@ -200,13 +244,16 @@ export const documentRouter = router({
       const { id } = input;
 
       const document = await prisma.document
-        .findUniqueOrThrow({
+        .findUnique({
           where: {
             id,
           },
           include: {
-            Type: true,
-            File: true,
+            File: {
+              include: {
+                Type: true,
+              },
+            },
           },
         })
         .catch((e: PrismaError) => {
@@ -217,16 +264,20 @@ export const documentRouter = router({
           });
         });
 
-      return DocumentSchema.parse(document);
+      return DocumentSchema.nullable().parse(document);
     }),
   queryElementTotalAmount: authedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.string(), searchQuery: z.string() }))
     .query(async ({ input }) => {
-      const { id } = input;
+      const { id, searchQuery } = input;
 
       return await prisma.translatableElement.count({
         where: {
           documentId: id,
+          value:
+            searchQuery.trim().length !== 0
+              ? { contains: searchQuery, mode: "insensitive" }
+              : undefined,
         },
       });
     }),
@@ -262,7 +313,7 @@ export const documentRouter = router({
 
       return TranslatableElementSchema.nullable().parse(firstTry);
     }),
-  exportFinal: authedProcedure
+  exportFinalFile: authedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -277,8 +328,11 @@ export const documentRouter = router({
           id,
         },
         include: {
-          File: true,
-          Type: true,
+          File: {
+            include: {
+              Type: true,
+            },
+          },
         },
       });
 
@@ -288,18 +342,24 @@ export const documentRouter = router({
           message: "指定文档不存在",
         });
 
+      if (!document.File)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "指定文档不是基于文件的",
+        });
+
       const parsedDocument = DocumentSchema.parse(document);
       const path = safeJoinPath(
         import.meta.env.LOCAL_STORAGE_ROOT_DIR ?? "",
         "uploads",
-        document.File.storedName,
+        document.File.storedPath,
       );
       const fileContent = readFileSync(path, "utf-8");
 
       const handler = TranslatableFileHandlerRegistry.getInstance()
         .getHandlers()
         .find((handler) =>
-          handler.canGenerateTranslatedFile(parsedDocument, fileContent),
+          handler.canGenerateTranslated(document.File!, fileContent),
         );
 
       if (!handler)
@@ -323,17 +383,16 @@ export const documentRouter = router({
       );
 
       try {
-        const result = handler.generateTranslatedFile(
-          parsedDocument,
+        handler.generateTranslated(
+          parsedDocument.File!,
           fileContent,
           translations,
         );
-        console.log(result);
       } catch (e) {
-        console.error(e);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "生成译文时出错",
+          cause: e,
         });
       }
     }),
@@ -366,7 +425,7 @@ export const documentRouter = router({
           });
         });
     }),
-  countTranslatedElementWithApprove: authedProcedure
+  countTranslatedElementWithApproved: authedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -446,7 +505,7 @@ export const documentRouter = router({
         documentId: z.string(),
         page: z.number().int().int().default(0),
         pageSize: z.number().int().int().default(16),
-        searchQuery: z.string().optional(),
+        searchQuery: z.string(),
       }),
     )
     .output(z.array(TranslatableElementSchema))
@@ -457,9 +516,10 @@ export const documentRouter = router({
         await prisma.translatableElement.findMany({
           where: {
             documentId: documentId,
-            value: searchQuery
-              ? { contains: searchQuery, mode: "insensitive" }
-              : undefined,
+            value:
+              searchQuery?.trim().length !== 0
+                ? { contains: searchQuery }
+                : undefined,
           },
           orderBy: {
             id: "asc",
@@ -475,11 +535,12 @@ export const documentRouter = router({
         id: z.number(),
         documentId: z.string(),
         pageSize: z.number().int().default(16),
+        searchQuery: z.string(),
       }),
     )
     .output(z.number().int())
     .query(async ({ input }) => {
-      const { id, documentId, pageSize } = input;
+      const { id, documentId, pageSize, searchQuery } = input;
 
       const count = await prisma.translatableElement.count({
         where: {
@@ -487,9 +548,44 @@ export const documentRouter = router({
             lt: id,
           },
           documentId,
+          value:
+            searchQuery.trim().length !== 0
+              ? { contains: searchQuery, mode: "insensitive" }
+              : undefined,
         },
       });
 
       return Math.floor(count / pageSize);
+    }),
+  delete: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { id } = input;
+
+      await prisma.document.delete({
+        where: {
+          id,
+        },
+      });
+    }),
+  countTranslatableElement: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .output(z.number())
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      return await prisma.translatableElement.count({
+        where: {
+          documentId: id,
+        },
+      });
     }),
 });

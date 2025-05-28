@@ -29,5 +29,9 @@ export const guard = async (ctx: PageContext) => {
     target = first[0];
   }
 
+  if (!target) {
+    throw redirect(`/editor/${documentId}/${languageFromTo}/empty`);
+  }
+
   throw redirect(`/editor/${documentId}/${languageFromTo}/${target.id}`);
 };

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@cat/db";
@@ -36,7 +36,7 @@ export const translationRouter = router({
   create: authedProcedure
     .input(
       z.object({
-        projectId: z.string().cuid2(),
+        projectId: z.cuid2(),
         elementId: z.number().int(),
         languageId: z.string(),
         value: z.string(),
@@ -71,6 +71,19 @@ export const translationRouter = router({
           },
         });
 
+        const element = await prisma.translatableElement.findUniqueOrThrow({
+          where: {
+            id: elementId,
+          },
+          include: {
+            Document: {
+              include: {
+                Project: true,
+              },
+            },
+          },
+        });
+
         const projectWithMemories = await prisma.project.findUnique({
           where: { id: projectId },
           include: {
@@ -85,9 +98,15 @@ export const translationRouter = router({
           await prisma.memoryItem.createMany({
             data: projectWithMemories.Memories.map((memory) => {
               return {
-                sourceElementId: elementId,
-                translationId: translation.id,
+                source: element.value,
+                sourceLanguageId: element.Document.Project.sourceLanguageId,
+                translation: translation.value,
+                translationLanguageId: translation.languageId,
                 memoryId: memory.id,
+                sourceEmbeddingId: element?.embeddingId,
+                creatorId: user.id,
+                sourceElementId: element.id,
+                translationId: translation.id,
               };
             }),
           });
@@ -109,17 +128,30 @@ export const translationRouter = router({
       const { user } = ctx;
       const { id, value } = input;
 
-      const translation = await prisma.translation.update({
-        where: {
-          id,
-          translatorId: user.id,
-        },
-        data: {
-          value,
-        },
-        include: {
-          Translator: true,
-        },
+      const translation = await prisma.$transaction(async (tx) => {
+        const translation = await tx.translation.update({
+          where: {
+            id,
+            translatorId: user.id,
+          },
+          data: {
+            value,
+          },
+          include: {
+            Translator: true,
+          },
+        });
+
+        await tx.memoryItem.updateMany({
+          where: {
+            translationId: translation.id,
+          },
+          data: {
+            translation: translation.value,
+          },
+        });
+
+        return translation;
       });
 
       return TranslationSchema.parse(translation);

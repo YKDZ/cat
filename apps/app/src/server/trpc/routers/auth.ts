@@ -1,19 +1,18 @@
-import { prisma } from "@cat/db";
-import { redis } from "@/server/database/redis";
-import { AuthMethod, AuthMethodType, PrismaError } from "@cat/shared";
+import { prisma, redis } from "@cat/db";
+import { AuthMethod, AuthMethodType } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { publicProcedure, router } from "../server";
 
 export const OIDC_REDIRECT_URL = new URL(
   "/auth/oidc.callback",
-  import.meta.env.URL,
+  import.meta.env.PUBLIC_ENV__URL,
 ).toString();
 
 const oidcRouter = router({
-  init: publicProcedure.query(async ({ input, ctx }) => {
+  init: publicProcedure.query(async ({ ctx }) => {
     if (!import.meta.env.OIDC_CLIENT_ID)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -146,46 +145,76 @@ const oidcRouter = router({
 
       // 所有验证完成
       // 进入签发会话阶段
-      const account = await prisma.account
-        .findFirstOrThrow({
-          where: {
-            // TODO 支持多 OIDC 源
-            type: "OIDC",
-            provider: "OIDC",
-            providedAccountId: sub,
-          },
-          include: {
-            User: true,
-          },
-        })
-        .catch(async (e: PrismaError) => {
-          // 不存在则自动创建账户和用户
-          if (e.code === "P2025") {
-            return await prisma.account.create({
-              data: {
-                type: "OIDC",
-                provider: "OIDC",
-                providedAccountId: sub,
-                User: {
-                  create: {
-                    name: preferred_username ?? nickname ?? name,
-                    email,
-                    emailVerified: email_verified,
-                  },
+      const { user, account } = await prisma.$transaction(async (tx) => {
+        const user =
+          (await tx.user.findUnique({
+            where: {
+              // TODO 支持多 OIDC 源
+              email,
+            },
+            select: {
+              id: true,
+              Accounts: {
+                where: {
+                  type: "OIDC",
+                  provider: "OIDC",
+                  providedAccountId: sub,
                 },
               },
-              include: {
-                User: true,
+            },
+          })) ??
+          (await tx.user.create({
+            data: {
+              name: preferred_username ?? nickname ?? name,
+              email,
+              emailVerified: email_verified,
+              Accounts: {
+                create: {
+                  type: "OIDC",
+                  provider: "OIDC",
+                  providedAccountId: sub,
+                },
               },
-            });
-          } else throw e;
-        });
+            },
+            select: {
+              id: true,
+              Accounts: {
+                where: {
+                  type: "OIDC",
+                  provider: "OIDC",
+                  providedAccountId: sub,
+                },
+              },
+            },
+          }));
+
+        let account = user.Accounts[0];
+
+        // 用户存在但 Account 不存在
+        // 代表用户之前可能通过其他途径登录
+        if (user && !user.Accounts[0]) {
+          account = await tx.account.create({
+            data: {
+              type: "OIDC",
+              provider: "OIDC",
+              providedAccountId: sub,
+              User: {
+                connect: {
+                  id: user.id,
+                },
+              },
+            },
+          });
+        }
+
+        return { user, account };
+      });
 
       const sessionId = randomBytes(32).toString("hex");
       const sessionKey = `user:session:${sessionId}`;
 
       await redis.hSet(sessionKey, {
-        userId: account.User.id,
+        userId: user.id,
         idToken,
         provider: account.provider,
         providerType: account.type,
@@ -196,7 +225,7 @@ const oidcRouter = router({
       ctx.setCookie("sessionId", sessionId, 24 * 60 * 60);
     }),
   logout: publicProcedure.mutation(async ({ ctx }) => {
-    const { user, sessionId } = ctx;
+    const { sessionId } = ctx;
 
     if (!ctx.user || !ctx.sessionId)
       throw new TRPCError({ code: "CONFLICT", message: "Currently not login" });
@@ -212,7 +241,7 @@ const oidcRouter = router({
     const state = randomBytes(16).toString("hex");
     const params = new URLSearchParams({
       id_token_hint: idToken,
-      post_logout_redirect_uri: import.meta.env.URL!,
+      post_logout_redirect_uri: import.meta.env.PUBLIC_ENV__URL!,
       state,
     });
 
@@ -235,7 +264,7 @@ const oidcRouter = router({
 });
 
 const miscRouter = router({
-  availableAuthMethod: publicProcedure.query(async ({ input, ctx }) => {
+  availableAuthMethod: publicProcedure.query(async () => {
     const result: AuthMethod[] = [];
     if (import.meta.env.OIDC_CLIENT_ID)
       result.push({

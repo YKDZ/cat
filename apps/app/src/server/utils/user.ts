@@ -1,5 +1,5 @@
 import { prisma } from "@cat/db";
-import { redis } from "../database/redis";
+import { redis } from "@cat/db";
 import { User, UserSchema } from "@cat/shared";
 
 export const userFromSessionId = async (
@@ -15,7 +15,7 @@ export const userFromSessionId = async (
         id: userId,
       },
       include: {
-        ProjectPermissions: true,
+        Permissions: true,
         ReadableLanguages: true,
         WritableLanguages: true,
       },

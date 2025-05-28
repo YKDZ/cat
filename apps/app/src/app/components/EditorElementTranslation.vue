@@ -84,9 +84,9 @@ watch(
     <UserAvatar
       v-if="translation.Translator"
       :user="translation.Translator"
-      size="36px"
+      :size="36"
     />
-    <Render v-if="document" :type="document.Type" :text="translation.value" />
+    <Render v-if="document" :text="translation.value" />
     <div class="ml-auto flex gap-1 items-center">
       <Button
         icon="i-mdi:minus"

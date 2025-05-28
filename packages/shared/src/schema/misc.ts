@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const ElementTranslationStatusSchema = z.enum([
   "NO",
@@ -10,7 +10,7 @@ export const TranslationSuggestionStatusSchema = z.enum(["ERROR", "SUCCESS"]);
 
 export const TranslatableElementDataSchema = z.object({
   value: z.string(),
-  meta: z.string(),
+  meta: z.json(),
 });
 
 export const TranslationSuggestionSchema = z.object({
@@ -22,15 +22,21 @@ export const TranslationSuggestionSchema = z.object({
 export const MemorySuggestionSchema = z.object({
   source: z.string(),
   translation: z.string(),
-  memoryId: z.number(),
-  translatorId: z.string().cuid2(),
-  similarity: z.number(),
+  memoryId: z.cuid2(),
+  translatorId: z.cuid2(),
+  similarity: z.number().min(0).max(1),
 });
 
-export const UnvectorizedElementDataSchema = z.object({
+export const UnvectorizedTextDataSchema = z.object({
   value: z.string(),
-  meta: z.string(),
-  documentId: z.string(),
+  meta: z.json().nullable(),
+});
+
+export const TermDataSchema = z.object({
+  term: z.string(),
+  termLanguageId: z.string(),
+  translation: z.string(),
+  translationLanguageId: z.string(),
 });
 
 export type TranslationSuggestion = z.infer<typeof TranslationSuggestionSchema>;
@@ -44,6 +50,5 @@ export type MemorySuggestion = z.infer<typeof MemorySuggestionSchema>;
 export type TranslationSuggestionStatus = z.infer<
   typeof TranslationSuggestionStatusSchema
 >;
-export type UnvectorizedElementData = z.infer<
-  typeof UnvectorizedElementDataSchema
->;
+export type UnvectorizedTextData = z.infer<typeof UnvectorizedTextDataSchema>;
+export type TermData = z.infer<typeof TermDataSchema>;

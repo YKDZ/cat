@@ -13,10 +13,10 @@ export const trpc = createTRPCClient<AppRouter>({
     splitLink({
       condition: (op) => op.type === "subscription",
       true: httpSubscriptionLink({
-        url: `/api/trpc`,
+        url: new URL(`/api/trpc`, import.meta.env.PUBLIC_ENV__URL).toString(),
       }),
       false: httpBatchLink({
-        url: `/api/trpc`,
+        url: new URL(`/api/trpc`, import.meta.env.PUBLIC_ENV__URL).toString(),
       }),
     }),
   ],

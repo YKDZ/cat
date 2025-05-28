@@ -1,0 +1,12 @@
+:root {
+  --cat-theme-highlight: #ffffff;
+  --cat-theme-highlight-darker: #edf2f7;
+  --cat-theme-highlight-darkest: #d7e0ea;
+  --cat-theme-highlight-content: #4e5c6e;
+  --cat-theme-highlight-content-darker: #000000;
+  --cat-theme-base: #38c800;
+  --cat-theme-base-darker: #2da000;
+  --cat-theme-base-darkest: #2b9401;
+  --cat-theme-base-content: #ffffff;
+  --cat-theme-base-content-darker: #ffffff;
+}

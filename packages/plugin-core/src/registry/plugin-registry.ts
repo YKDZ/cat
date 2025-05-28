@@ -1,14 +1,18 @@
-import { access, readFile } from "fs/promises";
 import { createRequire } from "module";
-import path from "path";
 import { pathToFileURL } from "url";
+import { prisma } from "@cat/db";
+import { z } from "zod/v4";
+import { logger } from "@cat/shared";
+import { join, resolve } from "path";
 
-const appRequire = createRequire(process.cwd() + "/package.json");
+const pluginsDir = join(process.cwd(), "plugins");
+const appRequire = createRequire(process.cwd());
 
-export type CatPlugin = {
-  getId(): string;
+export interface CatPlugin {
   onLoaded(): Promise<void>;
-};
+}
+
+const PluginObjectSchema = z.custom<CatPlugin>();
 
 export class PluginRegistry {
   private static instance: PluginRegistry;
@@ -23,92 +27,64 @@ export class PluginRegistry {
     return PluginRegistry.instance;
   }
 
-  private async findRootPackageJson(): Promise<string> {
-    const currentDir = process.cwd();
-    const candidate = path.join(currentDir, "package.json");
-    try {
-      await access(candidate);
-      JSON.parse(await readFile(candidate, "utf-8"));
-      return candidate;
-    } catch (err) {
-      console.error(
-        "[Plugin] Can not locate or parse package.json. No plugin will be loaded.",
-      );
-      throw err;
-    }
-  }
-
   public async loadPlugins() {
-    console.log("Prepared to load plugins...");
-    let packageJsonPath: string;
-    try {
-      packageJsonPath = await this.findRootPackageJson();
-    } catch {
-      console.error(
-        "[Plugin] Aborting plugin load due to missing package.json.",
-      );
-      return;
+    this.plugins.clear();
+    logger.info("PLUGIN", "Prepared to load plugins...");
+
+    const plugins = await prisma.plugin.findMany({
+      where: {
+        enabled: true,
+      },
+      select: {
+        id: true,
+        entry: true,
+      },
+    });
+
+    if (plugins.length === 0) {
+      logger.info("PLUGIN", "No plugins to load.");
     }
 
-    const packageJson = JSON.parse(await readFile(packageJsonPath, "utf-8"));
-    const deps = [
-      ...Object.keys(packageJson.dependencies || {}),
-      ...Object.keys(packageJson.devDependencies || {}),
-    ].filter((d) => d.startsWith("@cat-plugin/"));
-
-    for (const dep of deps) {
+    for (const { id, entry } of plugins) {
       try {
-        let PluginClass;
+        let pluginObj: CatPlugin;
 
         try {
-          const pluginFsPath = appRequire.resolve(dep);
+          const pluginFsPath = PluginRegistry.getPluginEntryFsPath(id, entry);
           // Vite build will sometimes remove inline /* @vite-ignore */ comments
           // and cause runtime warning
           const pluginUrl = /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
+          logger.info(
+            "PLUGIN",
+            `About to load plugin '${id}' from: ${pluginUrl}`,
+          );
           const imported = await import(/* @vite-ignore */ pluginUrl);
-          PluginClass = imported.default ?? imported;
+          pluginObj = PluginObjectSchema.parse(imported.default ?? imported);
         } catch (importErr) {
-          try {
-            const required = appRequire(dep);
-            PluginClass = required.default ?? required;
-          } catch (requireErr) {
-            console.error(
-              `[Plugin] Failed to load ${dep} via import and require:`,
-              importErr instanceof Error ? importErr.message : importErr,
-              requireErr instanceof Error ? requireErr.message : requireErr,
-            );
-            continue;
-          }
+          logger.error("PLUGIN", `Failed to load plugin '${id}'`, importErr);
+          continue;
         }
 
-        await this.loadPlugin(PluginClass);
-      } catch (err) {
-        console.error(
-          `[Plugin] Unexpected error loading ${dep}:`,
-          err instanceof Error ? err.message : err,
+        await this.loadPlugin(id, pluginObj);
+      } catch (loadErr) {
+        logger.error(
+          "PLUGIN",
+          `Unexpected error loading plugin '${id}'`,
+          loadErr,
         );
       }
     }
   }
 
-  private async loadPlugin(PluginClass: new () => CatPlugin) {
-    const instance = new PluginClass();
+  private async loadPlugin(id: string, instance: CatPlugin) {
+    this.plugins.set(id, instance);
 
-    if (typeof instance.getId !== "function") {
-      throw new Error("Plugin must implement getId() method");
-    }
+    await instance.onLoaded();
 
-    const pluginId = instance.getId();
-    if (this.plugins.has(pluginId)) {
-      throw new Error(`Duplicate plugin ID: ${pluginId}`);
-    }
+    logger.info("PLUGIN", `Successfully loaded plugin: ${id}`);
+  }
 
-    this.plugins.set(pluginId, instance);
-
-    if (typeof instance.onLoaded === "function") {
-      await instance.onLoaded();
-    }
-
-    console.log(`[Plugin] Successfully loaded plugin: ${pluginId}`);
+  public static getPluginEntryFsPath(id: string, entry: string): string {
+    return join(pluginsDir, id, entry);
   }
 }

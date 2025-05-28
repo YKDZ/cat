@@ -1,0 +1,7 @@
+model Vector {
+    id     Int                         @id @default(autoincrement())
+    vector Unsupported("vector(1024)")
+
+    TranslatableElements TranslatableElement[]
+    MemoryItems          MemoryItem[]
+}

@@ -1,8 +1,8 @@
 import { TextVectorizer } from "@cat/plugin-core";
-import { UnvectorizedElementData } from "@cat/shared";
+import { UnvectorizedTextData } from "@cat/shared";
 
 export const embed = async (text: string): Promise<number[]> => {
-  const url = new URL("embed", process.env.PLUGIN_TEI_VECTORIZER_API_URL ?? "");
+  const url = new URL(process.env.PLUGIN_TEI_VECTORIZER_API_URL ?? "");
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -20,13 +20,17 @@ export const embed = async (text: string): Promise<number[]> => {
 };
 
 export class Vectorizer implements TextVectorizer {
+  getId(): string {
+    return "tei";
+  }
+
   canVectorize(languageId: string): boolean {
     return true;
   }
 
   async vectorize(
     languageId: string,
-    elements: UnvectorizedElementData[],
+    elements: UnvectorizedTextData[],
   ): Promise<number[][]> {
     return await Promise.all(
       elements.map(async (element) => {

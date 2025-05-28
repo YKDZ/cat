@@ -1,16 +1,15 @@
-import { z } from "zod";
-import { authedProcedure, router } from "../server";
-import { tracked } from "@trpc/server";
-import { redis, redisPub, redisSub } from "../../database/redis";
+import { hash } from "@/server/utils/crypto";
+import { AsyncMessageQueue } from "@/server/utils/queue";
+import { prisma, redis, redisPub, redisSub } from "@cat/db";
+import { TranslationAdvisorRegistry } from "@cat/plugin-core";
 import {
   TranslatableElementSchema,
   TranslationSuggestion,
   TranslationSuggestionSchema,
 } from "@cat/shared";
-import { prisma } from "@cat/db";
-import { TranslationAdvisorRegistry } from "@cat/plugin-core";
-import { hash } from "@/server/utils/crypto";
-import { AsyncMessageQueue } from "@/server/utils/queue";
+import { tracked, TRPCError } from "@trpc/server";
+import { z } from "zod/v4";
+import { authedProcedure, router } from "../server";
 
 export const suggestionRouter = router({
   onNew: authedProcedure
@@ -36,7 +35,12 @@ export const suggestionRouter = router({
         },
       });
 
-      if (!element) return;
+      if (!element) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "请求建议的元素不存在",
+        });
+      }
 
       const suggestionsQueue = new AsyncMessageQueue<TranslationSuggestion>();
       const suggestionChannelKey = `suggestions:channel:${elementId}`;
@@ -53,11 +57,10 @@ export const suggestionRouter = router({
       };
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-      let counter = 0;
-      const providerAmount =
+      const advisorAmount =
         TranslationAdvisorRegistry.getInstance().getEnabledAdvisors().length;
 
-      if (providerAmount === 0) {
+      if (advisorAmount === 0) {
         yield tracked("CAT Admin", {
           from: "CAT Admin",
           value: "没有任何一个可用的翻译建议器",
@@ -65,6 +68,7 @@ export const suggestionRouter = router({
         } satisfies TranslationSuggestion);
         return;
       }
+
       TranslationAdvisorRegistry.getInstance()
         .getEnabledAdvisors()
         .forEach(async (advisor) => {
@@ -90,7 +94,6 @@ export const suggestionRouter = router({
               languageId,
             )
             .then((suggestions) => {
-              counter++;
               if (suggestions.length === 0) {
                 console.error(
                   `翻译建议提供器 ${advisor.getName()} 没有返回任意一条建议，这是不推荐的行为（可能导致用户迷惑）。请在错误时也返回一条携带错误提示信息的建议。`,
@@ -108,7 +111,7 @@ export const suggestionRouter = router({
               });
             })
             .catch((e) => {
-              console.error("Error when generate translaetion suggestions: ");
+              console.error("Error when generate translation suggestions: ");
               console.error(e);
             });
         });
@@ -116,11 +119,6 @@ export const suggestionRouter = router({
       try {
         for await (const suggestion of suggestionsQueue.consume()) {
           yield tracked(suggestion.from, suggestion);
-
-          // 手动终止订阅
-          if (counter >= providerAmount) {
-            return;
-          }
         }
       } finally {
         await redisSub.unsubscribe(suggestionChannelKey);

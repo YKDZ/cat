@@ -7,19 +7,26 @@ services:
   postgres:
     image: pgvector/pgvector:pg17
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:8654:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: cat
     user: "postgres:postgres"
-  infinity:
-    image: michaelf34/infinity:0.0.75-trt-onnx
-    volumes:
-      - ./models/cache:/app/.cache
+  es:
+    image: elasticsearch:9.0.1
     ports:
-      - 7997:7997
-    command: v2 --revision "main" --dtype float16 --engine torch --port 7997
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9300:9300"
+    environment:
+      discovery.type: single-node
+      ELASTIC_PASSWORD: 1256987qazA!
+  ollama:
+    image: ollama/ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ./ollama:/root/.ollama
     deploy:
       resources:
         reservations:

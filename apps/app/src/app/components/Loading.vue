@@ -8,11 +8,11 @@ const props = defineProps({
   },
   spinColor: {
     type: String,
-    default: "base",
+    default: "var(--cat-theme-base)",
   },
   trackColor: {
     type: String,
-    default: "highlight",
+    default: "var(--cat-theme-highlight)",
   },
   backgroundColor: {
     type: String,
@@ -59,12 +59,6 @@ const dynamicBorderRatio = computed(() => {
   return 0.08 + (Math.log(baseSize + 10) / Math.log(100)) * 0.01;
 });
 
-const dynClasses = computed(() => [
-  `bg-${props.backgroundColor}`,
-  `border-b-${props.spinColor}`,
-  `border-${props.trackColor}`,
-]);
-
 const dynStyle = computed(() => {
   if (props.size === "auto") {
     const sizeValue = containerSize.value;
@@ -90,7 +84,13 @@ const dynStyle = computed(() => {
 <template>
   <span
     class="rounded-full inline-block box-border animate-spin"
-    :style="dynStyle"
-    :class="dynClasses"
+    :style="[
+      dynStyle,
+      {
+        'border-color': trackColor,
+        'border-bottom-color': spinColor,
+        'background-color': backgroundColor,
+      },
+    ]"
   />
 </template>

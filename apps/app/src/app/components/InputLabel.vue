@@ -30,7 +30,7 @@ const focusNextFocusable = () => {
 <template>
   <label
     ref="labelRef"
-    class="text-gray-800 font-500 cursor-pointer select-none -mb-0.5"
+    class="text-highlight-content font-500 w-fit cursor-pointer select-none -mb-0.5"
     :class="{
       'label after:text-red-500 after:ml-0.5': required,
     }"

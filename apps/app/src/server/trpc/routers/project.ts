@@ -1,20 +1,34 @@
-import { z } from "zod";
-import { authedProcedure, router } from "../server";
-import { TRPCError } from "@trpc/server";
 import { prisma } from "@cat/db";
 import { PrismaError, ProjectSchema } from "@cat/shared";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod/v4";
+import { authedProcedure, publicProcedure, router } from "../server";
 
 export const projectRouter = router({
   create: authedProcedure
     .input(
       z.object({
         name: z.string(),
-        description: z.string().optional(),
-        languageId: z.string(),
+        description: z.string().nullable(),
+        sourceLanguageId: z.string(),
+        targetLanguageIds: z.array(z.string()),
+        memoryIds: z.array(z.cuid2()),
+        glossaryIds: z.array(z.cuid2()),
+        createMemory: z.boolean(),
+        createGlossary: z.boolean(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { name, description, languageId } = input;
+      const {
+        name,
+        description,
+        sourceLanguageId,
+        targetLanguageIds,
+        memoryIds,
+        glossaryIds,
+        createMemory,
+        createGlossary,
+      } = input;
       const { user } = ctx;
 
       const project = await prisma.project
@@ -29,8 +43,31 @@ export const projectRouter = router({
             },
             SourceLanguage: {
               connect: {
-                id: languageId,
+                id: sourceLanguageId,
               },
+            },
+            TargetLanguages: {
+              connect: targetLanguageIds.map((id) => ({
+                id,
+              })),
+            },
+            Memories: {
+              connect: memoryIds.map((id) => {
+                return {
+                  id,
+                };
+              }),
+              create: createMemory ? [{ name, creatorId: user.id }] : undefined,
+            },
+            Glossaries: {
+              connect: glossaryIds.map((id) => {
+                return {
+                  id,
+                };
+              }),
+              create: createGlossary
+                ? [{ name, creatorId: user.id }]
+                : undefined,
             },
           },
         })
@@ -42,6 +79,52 @@ export const projectRouter = router({
         });
 
       return ProjectSchema.parse(project);
+    }),
+  linkGlossary: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+        glossaryIds: z.array(z.cuid2()),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { id, glossaryIds } = input;
+
+      await prisma.project.update({
+        where: {
+          id,
+        },
+        data: {
+          Glossaries: {
+            connect: glossaryIds.map((glossaryId) => ({
+              id: glossaryId,
+            })),
+          },
+        },
+      });
+    }),
+  unlinkGlossary: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+        glossaryIds: z.array(z.cuid2()),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { id, glossaryIds } = input;
+
+      await prisma.project.update({
+        where: {
+          id,
+        },
+        data: {
+          Glossaries: {
+            disconnect: glossaryIds.map((glossaryId) => ({
+              id: glossaryId,
+            })),
+          },
+        },
+      });
     }),
   delete: authedProcedure
     .input(
@@ -71,73 +154,92 @@ export const projectRouter = router({
         },
       });
     }),
-  listParticipated: authedProcedure.query(async ({ input, ctx }) => {
-    const { user } = ctx;
+  listUserParticipated: publicProcedure
+    .input(
+      z.object({
+        userId: z.cuid2(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { userId } = input;
 
-    const participated = await prisma.project.findMany({
-      where: {
-        OR: [
-          {
-            ProjectPermissions: {
-              some: {
-                userId: user.id,
-                permission: "translate",
+      return await prisma.$transaction(async (tx) => {
+        const projectIds = (
+          await tx.permission.findMany({
+            where: {
+              userId: userId,
+              permission: {
+                startsWith: "project.translate.",
+              },
+            },
+            select: {
+              permission: true,
+            },
+          })
+        ).map((result) => result.permission.split(".")[2]);
+
+        const projects = await tx.project.findMany({
+          where: {
+            OR: [
+              {
+                creatorId: userId,
+              },
+              {
+                id: {
+                  in: projectIds,
+                },
+              },
+            ],
+          },
+          include: {
+            Creator: true,
+            SourceLanguage: true,
+            TargetLanguages: true,
+            Documents: {
+              include: {
+                File: {
+                  include: {
+                    Type: true,
+                  },
+                },
               },
             },
           },
-          {
-            creatorId: user.id,
-          },
-        ],
-      },
-      include: {
-        Creator: true,
-        SourceLanguage: true,
-        TargetLanguages: true,
-        Documents: {
-          include: {
-            Type: true,
-            File: true,
-          },
-        },
-      },
-    });
+        });
 
-    return z.array(ProjectSchema).parse(participated);
-  }),
+        return z.array(ProjectSchema).parse(projects);
+      });
+    }),
   query: authedProcedure
     .input(
       z.object({
         id: z.string(),
       }),
     )
-    .query(async ({ input, ctx }) => {
+    .output(ProjectSchema.nullable())
+    .query(async ({ input }) => {
       const { id } = input;
 
-      return ProjectSchema.parse(
-        await prisma.project
-          .findUniqueOrThrow({
-            where: {
-              id,
-            },
-            include: {
-              Creator: true,
-              TargetLanguages: true,
-              SourceLanguage: true,
-              Documents: {
-                include: {
-                  Type: true,
-                  File: true,
+      return ProjectSchema.nullable().parse(
+        await prisma.project.findUnique({
+          where: {
+            id,
+          },
+          include: {
+            Creator: true,
+            TargetLanguages: true,
+            SourceLanguage: true,
+            Documents: {
+              include: {
+                File: {
+                  include: {
+                    Type: true,
+                  },
                 },
               },
             },
-          })
-          .catch((e: PrismaError) => {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: e.message,
-            });
-          }),
+          },
+        }),
       );
     }),
   addNewLanguage: authedProcedure
@@ -187,11 +289,84 @@ export const projectRouter = router({
       const { id } = input;
       const { user } = ctx;
 
-      await prisma.projectPermission.create({
+      await prisma.permission.create({
         data: {
-          projectId: id,
           userId: user.id,
-          permission: "translate",
+          permission: `project.translate.${id}`,
+        },
+      });
+    }),
+  countTranslatableElement: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+      }),
+    )
+    .output(z.number().int().min(0))
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      return await prisma.translatableElement.count({
+        where: {
+          Document: {
+            Project: {
+              id,
+            },
+          },
+        },
+      });
+    }),
+  countTranslatedElement: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+        languageId: z.string(),
+      }),
+    )
+    .output(z.number().int().min(0))
+    .query(async ({ input }) => {
+      const { id, languageId } = input;
+
+      return await prisma.translatableElement.count({
+        where: {
+          Document: {
+            Project: {
+              id,
+            },
+          },
+          Translations: {
+            some: {
+              languageId,
+            },
+          },
+        },
+      });
+    }),
+  countTranslatedElementWithApproved: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+        languageId: z.string(),
+        isApproved: z.boolean(),
+      }),
+    )
+    .output(z.number().int().min(0))
+    .query(async ({ input }) => {
+      const { id, languageId, isApproved } = input;
+
+      return await prisma.translatableElement.count({
+        where: {
+          Document: {
+            Project: {
+              id,
+            },
+          },
+          Translations: {
+            some: {
+              languageId,
+              isApproved,
+            },
+          },
         },
       });
     }),

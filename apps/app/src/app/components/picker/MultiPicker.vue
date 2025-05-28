@@ -3,11 +3,19 @@ import { ref, computed } from "vue";
 import { vOnClickOutside } from "@vueuse/components";
 import { PickerOption } from ".";
 
-const props = defineProps<{
-  options: PickerOption[];
-  placeholder?: string;
-  fullWidth?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    options: PickerOption[];
+    placeholder?: string;
+    width?: string;
+    filter?: (option: PickerOption) => boolean;
+  }>(),
+  {
+    width: "fit-content",
+    placeholder: "",
+    filter: () => true,
+  },
+);
 
 const modelValue = defineModel<string[]>("modelValue", { default: [] });
 const searchQuery = ref("");
@@ -18,13 +26,15 @@ const emits = defineEmits<{
 }>();
 
 const filteredOptions = computed(() => {
-  if (!searchQuery.value) return props.options;
+  if (!searchQuery.value) return props.options.filter(props.filter);
   const query = searchQuery.value.toLowerCase();
-  return props.options.filter(
-    (option) =>
-      option.content.toLowerCase().includes(query) ||
-      (option.value?.toLowerCase().includes(query) ?? false),
-  );
+  return props.options
+    .filter(props.filter)
+    .filter(
+      (option) =>
+        option.content.toLowerCase().includes(query) ||
+        (option.value?.toLowerCase().includes(query) ?? false),
+    );
 });
 
 const selectOption = (option: PickerOption) => {
@@ -51,6 +61,7 @@ const handleInputFocus = () => {
 
 const selectedOptions = computed(() => {
   return props.options
+    .filter(props.filter)
     .filter((option) =>
       modelValue.value.includes(option.value ?? option.content),
     )
@@ -70,29 +81,38 @@ const selectedOptions = computed(() => {
   <div
     v-on-click-outside="close"
     class="relative"
-    :class="{
-      'w-fit': !fullWidth,
-      'w-full': fullWidth,
+    :style="{
+      width,
     }"
   >
     <!-- 已选项框 -->
-    <div class="px-3 py-2 flex gap-1 w-full ring-1">
+    <div
+      class="px-2 py-1 flex gap-1 w-full ring-1 ring-offset-transparent"
+      :class="{
+        'ring-base': isOpen,
+        'ring-highlight-darkest': !isOpen,
+      }"
+    >
       <div
         v-if="selectedOptions.length !== 0"
         class="inline-flex gap-1 items-center"
       >
-        <span
+        <div
           v-for="option in selectedOptions"
           :key="option.value ?? option.content"
-          class="text-sm px-1.5 py-1 rounded-md text-nowrap shadow-sm"
+          class="text-sm px-1.5 py-1 rounded-md inline-flex gap-0.5 text-nowrap shadow-sm items-center"
         >
           {{ option.content }}
-        </span>
+          <button
+            class="i-mdi:close inline-block cursor-pointer"
+            @click="selectOption(option)"
+          />
+        </div>
       </div>
       <!-- 输入框 -->
       <input
         v-model="searchQuery"
-        class="w-full focus:outline-0"
+        class="outline-0 w-full"
         :placeholder="modelValue.length === 0 ? placeholder : ``"
         @focus="handleInputFocus"
         @keydown.esc="isOpen = false"
@@ -107,7 +127,7 @@ const selectedOptions = computed(() => {
       <div
         v-for="option in filteredOptions"
         :key="option.value ?? option.content"
-        class="px-3 py-2 flex cursor-pointer items-center hover:bg-gray-100"
+        class="px-3 py-2 flex cursor-pointer items-center hover:bg-highlight-darker"
         @click="selectOption(option)"
       >
         <span
@@ -122,12 +142,12 @@ const selectedOptions = computed(() => {
         />
       </div>
 
-      <div v-if="options.length === 0" class="text-gray-500 px-3 py-2">
+      <div v-if="options.length === 0" class="text-highlight-content px-3 py-2">
         无可用选项
       </div>
       <div
         v-else-if="filteredOptions.length === 0"
-        class="text-gray-500 px-3 py-2"
+        class="text-highlight-content px-3 py-2"
       >
         无匹配结果
       </div>

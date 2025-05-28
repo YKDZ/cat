@@ -24,6 +24,10 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
     fetchSupportedLanguages(this.languagesURL);
   }
 
+  getId(): string {
+    return "libretranslate";
+  }
+
   getName() {
     return (
       (process.env.PLUGIN_LIBRETRANSLATE_NAME as string) ?? "LibreTranslate"

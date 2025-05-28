@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "outDir": "./dist",
+    "removeComments": false
+  },
+  "types": ["vite/client"],
+  "include": ["**/*.ts"],
+  "exclude": ["dist"]
+}

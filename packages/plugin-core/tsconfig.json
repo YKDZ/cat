@@ -13,14 +13,7 @@
     "outDir": "./dist",
     "removeComments": false
   },
-  "types": [
-    "vite/client"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "src/*.ts"
-  ],
-  "exclude": [
-    "dist"
-  ]
+  "types": ["vite/client"],
+  "include": ["./src/**/*.ts"],
+  "exclude": ["dist"]
 }

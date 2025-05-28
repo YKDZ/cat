@@ -1,26 +1,20 @@
 import eslint from "@eslint/js";
-import prettier from "eslint-plugin-prettier/recommended";
+import unocss from "@unocss/eslint-config/flat";
 import pluginVue from "eslint-plugin-vue";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import tseslint, { ConfigArray } from "typescript-eslint";
 import vueParser from "vue-eslint-parser";
-import unocss from "@unocss/eslint-config/flat";
-import turboConfig from 'eslint-config-turbo/flat';
-import turbo from 'eslint-plugin-turbo';
+import eslintConfigPrettier from "eslint-config-prettier/flat";
 
 export default tseslint.config(
   {
-    ignores: [
-      "**/dist/**",
-      "server/database/generated/*",
-      "**/*.ts.build-*.mjs",
-      "*.js",
-      "*.cjs",
-      "*.mjs",
-    ],
+    ignores: ["**/dist/**", "**/generated/prisma/**", "*.js", "*.cjs", "*.mjs"],
   },
+
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  eslintConfigPrettier,
+
   {
     languageOptions: {
       parserOptions: {
@@ -52,6 +46,24 @@ export default tseslint.config(
         ecmaVersion: "latest",
       },
     },
+    rules: {
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          selector: "variable",
+          format: ["camelCase"],
+        },
+        {
+          selector: "variable",
+          modifiers: ["const"],
+          format: ["UPPER_CASE", "camelCase", "PascalCase"],
+        },
+        {
+          selector: "typeLike",
+          format: ["PascalCase"],
+        },
+      ],
+    },
   },
 
   ...pluginVue.configs["flat/recommended"],
@@ -62,8 +74,13 @@ export default tseslint.config(
       "vue/singleline-html-element-content-newline": "off",
       "vue/max-attributes-per-line": "off",
       "vue/html-self-closing": "off",
-      "prettier/prettier": "error",
       "no-multiple-empty-lines": "error",
+      "vue/block-order": [
+        "error",
+        {
+          order: ["script", "template", "style", "i18n"],
+        },
+      ],
     },
     languageOptions: {
       sourceType: "module",
@@ -73,16 +90,11 @@ export default tseslint.config(
     },
   },
 
-  prettier,
-  unocss,
-  ...turboConfig,
-
   {
-    plugins: {
-      turbo,
-    },
     rules: {
-      'turbo/no-undeclared-env-vars': 'error',
+      "linebreak-style": ["error", "unix"],
     },
   },
-);
+
+  unocss,
+) as ConfigArray;

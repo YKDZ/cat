@@ -9,12 +9,12 @@ const props = defineProps<{
   fullWidth?: boolean;
 }>();
 
-const modelValue = defineModel<string>("modelValue", { default: "" });
+const modelValue = defineModel<string | null>({ default: null });
 const searchQuery = ref("");
 const isOpen = ref(false);
 
 const emits = defineEmits<{
-  (e: "change", from: string | undefined, to: string | undefined): void;
+  (e: "change", from: string | null, to: string | undefined): void;
 }>();
 
 const filteredOptions = computed(() => {
@@ -29,17 +29,23 @@ const filteredOptions = computed(() => {
 
 const selectOption = (option: PickerOption) => {
   const value = option.value ?? option.content;
-  modelValue.value = value;
-  searchQuery.value = option.content;
-  isOpen.value = false;
+
+  if (value === modelValue.value) {
+    modelValue.value = null;
+    searchQuery.value = "";
+  } else {
+    modelValue.value = value;
+    searchQuery.value = option.content;
+    isOpen.value = false;
+  }
+
   emits("change", modelValue.value, value);
 };
 
 const close = () => (isOpen.value = false);
 
-const onInputFocus = () => {
+const handleFocus = () => {
   isOpen.value = true;
-  if (searchQuery.value !== "") searchQuery.value = "";
 };
 
 watch(
@@ -64,13 +70,13 @@ watch(
     <!-- 输入框 -->
     <input
       v-model="searchQuery"
-      class="px-2 py-1 ring-1 focus:outline-0"
+      class="px-2 py-1 ring-1 ring-highlight-darkest ring-offset-transparent focus:outline-0 focus-visible:ring-base"
       :class="{
         'min-w-32 w-fit': !fullWidth,
         'w-full': fullWidth,
       }"
       :placeholder
-      @focus="onInputFocus"
+      @focus="handleFocus"
       @keydown.esc="isOpen = false"
     />
 
@@ -82,7 +88,7 @@ watch(
       <div
         v-for="option in filteredOptions"
         :key="option.value ?? option.content"
-        class="px-3 py-2 flex cursor-pointer items-center hover:bg-gray-100"
+        class="px-3 py-2 flex cursor-pointer items-center hover:bg-highlight-darker"
         @click="selectOption(option)"
       >
         <span
@@ -97,12 +103,12 @@ watch(
         />
       </div>
 
-      <div v-if="options.length === 0" class="text-gray-500 px-3 py-2">
+      <div v-if="options.length === 0" class="text-highlight-content px-3 py-2">
         无可用选项
       </div>
       <div
         v-else-if="filteredOptions.length === 0"
-        class="text-gray-500 px-3 py-2"
+        class="text-highlight-content px-3 py-2"
       >
         无匹配结果
       </div>

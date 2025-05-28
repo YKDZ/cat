@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ProgressTextItem } from "@/app/components/progress/text";
-import ProgressText from "@/app/components/progress/text/ProgressText.vue";
+import { TextTabItem } from "@/app/components/tab/text";
 import { useToastStore } from "@/app/stores/toast";
 import { Project } from "@cat/shared";
 import { ref } from "vue";
 import CreateProject from "./CreateProject.vue";
-import CreateMemory from "./CreateMemory.vue";
 import UploadFiles from "./UploadFiles.vue";
 import Finish from "./Finish.vue";
+import TextTab from "@/app/components/tab/text/TextTab.vue";
 
 const { info, warn, zWarn, error } = useToastStore();
 
@@ -15,12 +14,9 @@ const progress = ref<number>(0);
 
 const project = ref<Project>();
 
-const items = ref<ProgressTextItem[]>([
+const items = ref<TextTabItem[]>([
   {
     content: `为项目起名`,
-  },
-  {
-    content: `创建记忆库`,
   },
   {
     content: `上传要翻译的文件`,
@@ -47,10 +43,10 @@ const onProgressChange = (from: number, to: number): number => {
     初始化项目
   </h1>
   <div
-    class="pb-2 pr-2 border-b-3 border-gray-300 border-dotted w-full md:max-w-screen-sm"
+    class="pb-2 pr-2 border-b-3 border-highlight-content border-dotted w-full md:max-w-screen-sm"
   >
     你正在创建一个<span class="font-bold">纯文本文件</span
-    >的翻译项目<br />你需要完成以下任务：<ProgressText
+    >的翻译项目<br />你需要完成以下任务：<TextTab
       v-model:progress="progress"
       :on-progress-change
       :items
@@ -61,17 +57,12 @@ const onProgressChange = (from: number, to: number): number => {
     v-model:project="project"
     v-model:progress="progress"
   />
-  <CreateMemory
-    v-if="progress === 1 && project"
-    v-model:project="project"
-    v-model:progress="progress"
-  />
   <UploadFiles
-    v-if="progress === 2"
+    v-if="progress === 1"
     v-model:project="project"
     v-model:progress="progress"
   />
-  <Finish v-if="progress === 3" v-model:project="project" />
+  <Finish v-if="progress === 2" v-model:project="project" />
 </template>
 
 <style scoped>

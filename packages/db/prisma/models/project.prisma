@@ -1,0 +1,21 @@
+model Project {
+    id          String   @id @default(cuid())
+    name        String
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    sourceLanguageId String
+    SourceLanguage   Language @relation("ProjectSourceLanguage", fields: [sourceLanguageId], references: [id])
+
+    TargetLanguages Language[] @relation("ProjectTargetLanguage")
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id])
+
+    Memories   Memory[]
+    Glossaries Glossary[]
+    Documents  Document[]
+
+    @@index([creatorId])
+}

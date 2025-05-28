@@ -1,9 +1,13 @@
-import { z } from "zod";
+import { object, z } from "zod/v4";
 import { authedProcedure, router } from "../server";
 import { prisma } from "@cat/db";
 import { AsyncMessageQueue } from "@/server/utils/queue";
-import { MemorySuggestion, MemorySuggestionSchema } from "@cat/shared";
-import { redisSub } from "@/server/database/redis";
+import {
+  MemorySchema,
+  MemorySuggestion,
+  MemorySuggestionSchema,
+} from "@cat/shared";
+import { redisSub } from "@cat/db";
 import { tracked } from "@trpc/server";
 
 export const memoryRouter = router({
@@ -12,7 +16,7 @@ export const memoryRouter = router({
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        projectId: z.string().cuid2().optional(),
+        projectId: z.cuid2().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -42,49 +46,65 @@ export const memoryRouter = router({
     .input(
       z.object({
         elementId: z.number().int(),
-        languageId: z.string(),
+        sourceLanguageId: z.string(),
+        translationLanguageId: z.string(),
         isApproved: z.boolean().optional(),
-        translatorId: z.string().cuid2().optional(),
+        translatorId: z.cuid2().optional(),
       }),
     )
     .subscription(async function* ({ input }) {
-      const { elementId, languageId, isApproved, translatorId } = input;
+      const {
+        elementId,
+        sourceLanguageId,
+        translationLanguageId,
+        isApproved,
+        translatorId,
+      } = input;
 
-      const result = (await prisma.$queryRaw`
+      const result = await prisma.$queryRaw<
+        {
+          id: number;
+          value: string;
+          embedding: number[];
+          projectId: string;
+        }[]
+      >`
         SELECT
           te.id AS id,
           te.value AS value,
-          te.embedding::real[] AS embedding,
+          v.vector::real[] AS embedding,
           p.id AS "projectId"
         FROM
           "TranslatableElement" te
+        JOIN
+          "Vector" v ON te."embeddingId" = v.id
         JOIN
           "Document" d ON te."documentId" = d.id
         JOIN
           "Project" p ON d."projectId" = p.id
         WHERE
           te.id = ${elementId};
-      `) as {
-        id: number;
-        value: string;
-        embedding: number[];
-        projectId: string;
-      }[];
+      `;
 
       // 要匹配记忆的元素
       const element = result[0];
 
-      const memories = await prisma.memory.findMany({
-        where: {
-          Projects: {
-            some: {
-              id: element.projectId,
+      const memoryIds = (
+        await prisma.memory.findMany({
+          where: {
+            Projects: {
+              some: {
+                id: element.projectId,
+              },
             },
           },
-        },
-      });
+          select: {
+            id: true,
+          },
+        })
+      ).map((memory) => memory.id);
 
-      if (!element || memories.length === 0) return;
+      if (!element || memoryIds.length === 0) return;
 
       const memoriesQueue = new AsyncMessageQueue<MemorySuggestion>();
       const memoryChannelKey = `memories:channel:${elementId}`;
@@ -102,82 +122,116 @@ export const memoryRouter = router({
       await redisSub.subscribe(memoryChannelKey, onNewMemory);
 
       // 开始查找记忆
-      const minSimilarity = 0.85;
+      const minSimilarity = 0.72;
       const maxAmount = 3;
+
       prisma.$transaction(async (tx) => {
-        const allPossibleElementIds = (
-          await tx.translatableElement.findMany({
-            where: {
-              id: {
-                not: elementId,
-              },
-              Document: {
-                Project: {
-                  sourceLanguageId: languageId,
-                },
-              },
-              Translations: {
-                some: {
-                  isApproved,
-                  translatorId,
-                },
-              },
-            },
-          })
-        ).map((element) => element.id);
-
-        const data = (await tx.$queryRawUnsafe(`
+        const memories = await tx.$queryRaw<
+          {
+            memoryId: string;
+            source: string;
+            translation: string;
+            creatorId: string;
+            similarity: number;
+          }[]
+        >`
           SELECT 
-            id,
-            value,
-            1 - (embedding <=> '[${element.embedding.join(",")}]') AS similarity
-          FROM "TranslatableElement"
-          WHERE id IN (${allPossibleElementIds.join(",")})
-          ORDER BY similarity ASC
+            mi."memoryId",
+            mi.source,
+            mi.translation,
+            mi."creatorId",
+            1 - (v.vector <=> ${element.embedding}::vector) AS similarity
+          FROM 
+            "MemoryItem" mi
+          JOIN
+            "Vector" v ON mi."sourceEmbeddingId" = v.id
+          WHERE
+            mi."sourceLanguageId" = ${sourceLanguageId} AND
+            mi."translationLanguageId" = ${translationLanguageId} AND
+            mi."memoryId" = ANY(${memoryIds})
+          ORDER BY similarity DESC
           LIMIT ${maxAmount};
-        `)) as {
-          id: number;
-          value: string;
-          similarity: number;
-        }[];
+        `;
 
-        for (const { id, value, similarity } of data) {
+        for (const {
+          memoryId,
+          source,
+          translation,
+          creatorId,
+          similarity,
+        } of memories) {
           if (similarity < minSimilarity) continue;
 
-          const items = await tx.memoryItem.findMany({
-            where: {
-              sourceElementId: id,
-              Memory: {
-                id: {
-                  in: memories.map((memory) => memory.id),
-                },
-              },
-            },
-            include: {
-              Translation: true,
-              Memory: true,
-            },
+          memoriesQueue.push({
+            source,
+            translation,
+            memoryId,
+            translatorId: creatorId,
+            similarity,
           });
-
-          for (const item of items) {
-            memoriesQueue.push({
-              source: value,
-              translation: item.Translation.value,
-              memoryId: item.Memory.id,
-              translatorId: item.Translation.translatorId,
-              similarity,
-            });
-          }
         }
       });
 
       try {
         for await (const memory of memoriesQueue.consume()) {
-          yield tracked(`${memory.memoryId}`, memory);
+          yield tracked(memory.memoryId, memory);
         }
       } finally {
         await redisSub.unsubscribe(memoryChannelKey);
         memoriesQueue.clear();
       }
+    }),
+  listUserOwned: authedProcedure
+    .input(
+      z.object({
+        userId: z.cuid2(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { userId } = input;
+
+      // TODO 按权限选择
+      return z.array(MemorySchema).parse(
+        await prisma.memory.findMany({
+          where: {
+            creatorId: userId,
+          },
+        }),
+      );
+    }),
+  query: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      return MemorySchema.nullable().parse(
+        await prisma.memory.findUnique({
+          where: {
+            id,
+          },
+        }),
+      );
+    }),
+  countMemoryItem: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+      }),
+    )
+    .output(z.number().int().min(0))
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      return await prisma.memoryItem.count({
+        where: {
+          Memory: {
+            id,
+          },
+        },
+      });
     }),
 });

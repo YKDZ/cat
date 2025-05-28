@@ -98,7 +98,7 @@ onMounted(() => {
     <div
       v-if="!realIsFolding && isFree"
       ref="layerEl"
-      class="bg-black op-40 h-full w-full left-0 top-0 fixed md:hidden"
+      class="bg-black op-40 h-full w-full left-0 top-0 fixed z-40 md:hidden"
       @click="isFolding = true"
     />
   </Transition>
@@ -138,7 +138,7 @@ onMounted(() => {
       </div>
       <!-- Dragger -->
       <div
-        class="b-r-4 b-transparent bg-transparent w-1 hidden cursor-ew-resize transition-colors bottom-0 right-0 top-0 absolute z-60 hover:b-gray-200 md:block"
+        class="border-r-4 border-transparent bg-transparent w-1 hidden cursor-ew-resize transition-colors bottom-0 right-0 top-0 absolute z-60 hover:border-highlight-darker md:block"
         @mousedown="startResize"
       /></div
   ></Transition>

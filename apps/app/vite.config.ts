@@ -13,12 +13,12 @@ export default defineConfig({
   },
   server: {
     watch: {
-      ignored: ["**/.history/**"],
+      ignored: ["**/.history/**", "plugins/**"],
     },
   },
   plugins: [
     UnoCSS(),
-    vike(),
+    !process.env.VITEST && vike(),
     vue({
       include: [/\.vue$/, /\.md$/],
     }),
@@ -26,6 +26,9 @@ export default defineConfig({
   ],
   build: {
     target: "es2022",
+    rollupOptions: {
+      external: ["cloudflare:sockets", /\.prisma\/client\/.*$/],
+    },
   },
   ssr: {
     noExternal: ["@cat/plugin-core"],

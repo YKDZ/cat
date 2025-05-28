@@ -6,7 +6,8 @@
         "^build"
       ],
       "inputs": [
-        ".env"
+        ".env",
+        "src/**"
       ],
       "outputs": [
         "dist/**"
@@ -15,9 +16,20 @@
     "lint": {
       "dependsOn": [
         "^lint"
+      ],
+      "inputs": [
+        "src/**"
       ]
     },
+    "start": {
+      "persistent": true,
+      "cache": false
+    },
     "dev": {
+      "persistent": true,
+      "cache": false
+    },
+    "test": {
       "persistent": true,
       "cache": false
     },
@@ -35,6 +47,35 @@
       "cache": false
     },
     "db:push": {
+      "cache": false
+    },
+    "db:seed": {
+      "cache": false
+    },
+    "format": {
+      "dependsOn": [
+        "^format"
+      ],
+      "inputs": [
+        "src/**",
+        "*.json",
+        "*.ts",
+        ".env"
+      ]
+    },
+    "format:check": {
+      "dependsOn": [
+        "^format:check"
+      ],
+      "inputs": [
+        "src/**",
+        "*.json",
+        "*.ts",
+        ".env"
+      ]
+    },
+    "clean": {
+      "persistent": true,
       "cache": false
     }
   },

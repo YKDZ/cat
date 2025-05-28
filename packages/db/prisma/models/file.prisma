@@ -1,0 +1,25 @@
+model File {
+    id         Int      @id @default(autoincrement())
+    originName String
+    storedPath String
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    typeId Int
+    Type   FileType @relation(fields: [typeId], references: [id])
+
+    storageTypeId Int
+    StorageType   StorageType @relation(fields: [storageTypeId], references: [id])
+
+    Documents Document[]
+    Users     User[]
+}
+
+model FileType {
+    id       Int    @id @default(autoincrement())
+    name     String
+    mimeType String @unique
+    icon     String @default("i-mdi:file")
+
+    Files File[]
+}

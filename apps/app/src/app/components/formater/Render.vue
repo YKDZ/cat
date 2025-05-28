@@ -1,51 +1,86 @@
 <script setup lang="ts">
-import { DocumentType } from "@cat/shared";
-import { computed, h } from "vue";
-import Newline from "./Newline.vue";
+import { computed, watch } from "vue";
+import { clippers, PartData } from ".";
 import Empty from "./Empty.vue";
+import Part from "./Part.vue";
 
-const props = defineProps<{
-  type: DocumentType;
-  text: string;
+const props = withDefaults(
+  defineProps<{
+    text: string;
+    interactable?: boolean;
+  }>(),
+  {
+    interactable: false,
+  },
+);
+
+const emits = defineEmits<{
+  (e: "update", from: PartData[] | undefined, to: PartData[]): void;
 }>();
 
-const contentNodes = computed(() => {
-  if (!props.text)
-    return [
-      h(Empty, {
-        key: "empty",
-      }),
-    ];
+const partsData = computed(() => {
+  const combinedPattern = clippers.value
+    .map(({ splitter }) => `(?:${splitter.source})`)
+    .join("|");
+  const combined = new RegExp(`(${combinedPattern})`, "g");
 
-  const segments = props.text.split(/(\n)/g);
+  const results: PartData[] = [];
+  let lastIndex = 0;
+  let match;
 
-  return segments.map((segment, index) => {
-    if (segment === "\n") {
-      return h(Newline, {
-        key: `nl-${index}`,
+  while ((match = combined.exec(props.text)) !== null) {
+    const matchedText = match[0];
+    const matchStart = match.index;
+    const matchEnd = combined.lastIndex;
+
+    if (matchStart > lastIndex) {
+      results.push({
+        index: matchStart,
+        text: props.text.slice(lastIndex, matchStart),
+        clipperId: null,
       });
     }
-    return h(
-      "span",
-      {
-        key: `text-${index}`,
-      },
-      segment,
-    );
-  });
+
+    let whichClipper = null;
+    for (const clipper of clippers.value) {
+      const exactRe = new RegExp(`^${clipper.splitter.source}$`);
+      if (exactRe.test(matchedText)) {
+        whichClipper = clipper;
+        break;
+      }
+    }
+
+    results.push({
+      index: matchStart,
+      text: matchedText,
+      clipperId: whichClipper?.id ?? null,
+    });
+
+    lastIndex = matchEnd;
+  }
+
+  if (lastIndex < props.text.length) {
+    results.push({
+      index: lastIndex + 1,
+      text: props.text.slice(lastIndex),
+      clipperId: null,
+    });
+  }
+
+  return results;
 });
 
-const RenderedContent = () => {
-  return h(
-    "div",
-    {
-      class: "flex items-center flex-wrap",
-    },
-    contentNodes.value,
-  );
-};
+watch(partsData, (to, from) => emits("update", from, to), { immediate: true });
 </script>
 
 <template>
-  <RenderedContent />
+  <div class="inline-block">
+    <Empty v-if="text.length === 0" />
+    <Part
+      v-for="part in partsData"
+      :key="part.index + part.text"
+      :part
+      :interactable
+    />
+  </div>
 </template>

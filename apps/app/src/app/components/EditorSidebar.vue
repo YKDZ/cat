@@ -8,6 +8,7 @@ import { useEditorStore } from "../stores/editor";
 import Logo from "./Logo.vue";
 import EditorSidebarElement from "./EditorSidebarElement.vue";
 import Input from "./Input.vue";
+import EditorElementSearcher from "./EditorElementSearcher.vue";
 
 const { displayedElements, currentPageIndex, totalPageIndex } =
   storeToRefs(useEditorStore());
@@ -51,7 +52,7 @@ const handleNextPage = () => {
       <!-- Search Input -->
       <!-- TODO 查询 -->
       <div class="px-3 pb-1 pt-3 w-full">
-        <Input full-width no-round icon="i-mdi:magnify" />
+        <EditorElementSearcher />
       </div>
       <!-- Elements -->
       <div class="px-2 flex flex-col h-full w-full">
@@ -60,6 +61,12 @@ const handleNextPage = () => {
           :key="element.id"
           :element-id="element.id"
         />
+        <button
+          v-if="displayedElements.length === 0"
+          class="px-2 py-2 text-start flex gap-3 items-center"
+        >
+          <span class="text-nowrap overflow-x-hidden">没有任何可翻译元素</span>
+        </button>
       </div>
       <div
         v-if="currentPageIndex !== -1"

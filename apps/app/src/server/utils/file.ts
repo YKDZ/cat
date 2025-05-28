@@ -1,6 +1,6 @@
+import { Blob } from "buffer";
 import { mkdirSync, writeFileSync } from "fs";
 import { normalize, resolve, sep } from "path";
-import { Blob } from "buffer";
 
 export const base64ToBlob = (base64: string, mimeType: string): Blob => {
   return new Blob([Buffer.from(base64, "base64")], { type: mimeType });
@@ -60,4 +60,8 @@ export const findStringValues = (
   });
 
   return results;
+};
+
+export const sanitizeFileName = (name: string) => {
+  return name.replace(/[^\w.-]/g, "_");
 };

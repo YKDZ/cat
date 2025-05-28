@@ -38,9 +38,9 @@ const modalValue = defineModel({ type: String });
       v-model="modalValue"
       :type
       :placeholder
-      class="text-black px-3 bg-transparent h-10 w-full select-none file:(text-sm text-black font-bold font-medium mr-2 px-3 py-2 bg-neutral cursor-pointer -ml-2.5) focus-visible:(outline-0 ring-1 ring-gray-200 ring-offset-transparent ring-offset-1) disabled:(opacity-50 cursor-not-allowed)"
+      class="text-black px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent file:text-black file:font-bold file:font-medium file:mr-2 file:px-3 file:py-2 file:bg-neutral disabled:opacity-50 file:cursor-text disabled:cursor-not-allowed focus-visible:ring-base file:-ml-2.5"
       :class="{
-        'pl-7': icon,
+        'pl-8': icon,
         'rounded-md': !noRound,
       }"
     />

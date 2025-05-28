@@ -14,7 +14,7 @@ const { isFolding } = storeToRefs(useSidebarStore());
       no-text
       icon="i-mdi:menu"
       class="font-bold md:hidden"
-      @click.stop="isFolding = !isFolding"
+      @click="isFolding = !isFolding"
     />
   </Header>
 </template>

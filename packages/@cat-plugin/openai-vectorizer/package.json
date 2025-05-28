@@ -1,31 +1,36 @@
 {
-    "name": "@cat-plugin/openai-vectorizer",
-    "version": "0.1.0",
-    "license": "MIT",
-    "keywords": [
-        "plugins",
-        "typescript",
-        "types",
-        "cat"
-    ],
-    "type": "module",
-    "main": "./dist/index.mjs",
-    "module": "./dist/index.mjs",
-    "types": "./dist/index.d.ts",
-    "files": [
-        "dist"
-    ],
-    "scripts": {
-        "build": "vite build",
-        "lint": "eslint ."
-    },
-    "devDependencies": {
-        "@cat/plugin-core": "workspace:*",
-        "@cat/shared": "workspace:*",
-        "tsx": "^4.19.3",
-        "typescript": "^5.8.3",
-        "typescript-eslint": "^8.29.0",
-        "vite": "^6.3.3",
-        "vite-plugin-dts": "^4.5.3"
-    }
+  "name": "@cat-plugin/openai-vectorizer",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": [
+    "plugins",
+    "typescript",
+    "types",
+    "cat"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "lint": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --write .",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@types/node": "^22.14.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.29.0",
+    "vite": "^6.3.3",
+    "vite-plugin-dts": "^4.5.3"
+  }
 }

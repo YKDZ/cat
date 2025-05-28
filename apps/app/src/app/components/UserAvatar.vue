@@ -1,36 +1,92 @@
 <script setup lang="ts">
+import { trpc } from "@/server/trpc/client";
 import { User } from "@cat/shared";
-import { computed } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const props = defineProps<{
-  user: User;
-  size: string;
-  link?: boolean;
+  user?: User;
+  userId?: string;
+  size: number;
   withName?: boolean;
-  button?: boolean;
   fullWidth?: boolean;
 }>();
 
-const dynStyle = computed(() => ({
-  width: props.size,
-  height: props.size,
+const user = ref<User | null>(props.user ?? null);
+const avatar = ref<string>("");
+const avatarExpiresIn = ref<number>(0);
+const interval = ref<number>(-1);
+const isFallback = ref(true);
+
+const containerStyle = computed(() => ({
+  gap: props.size * 0.2 + "px",
 }));
+
+const imgStyle = computed(() => ({
+  width: props.size + "px",
+  height: props.size + "px",
+  "font-size": props.size * 0.6 + "px",
+}));
+
+const updateAvatar = async () => {
+  if (!user.value) return;
+
+  await trpc.user.queryAvatar
+    .query({ id: user.value.id })
+    .then(({ url, expiresIn }) => {
+      avatar.value = url ?? "";
+      avatarExpiresIn.value = expiresIn;
+    });
+};
+
+const handleImgLoad = () => {
+  isFallback.value = false;
+};
+
+const handleImgError = () => {
+  isFallback.value = true;
+};
+
+watch(avatarExpiresIn, (to) => {
+  if (import.meta.env.SSR) return;
+  if (interval.value !== -1) clearInterval(interval.value);
+
+  interval.value = setInterval(updateAvatar, to * 1000) as unknown as number;
+});
+
+onMounted(async () => {
+  if (!props.user && props.userId) {
+    user.value = await trpc.user.query.query({ id: props.userId });
+  }
+  await updateAvatar();
+});
 </script>
 
 <template>
-  <div
-    class="flex gap-2.5 select-none items-center"
-    :class="{
-      'cursor-pointer hover:bg-gray-200 px-2 py-1 rounded-sm': button,
-      'w-full': fullWidth,
-    }"
-  >
+  <KeepAlive :max="16">
     <div
-      class="text-center rounded-full bg-base flex items-center justify-center"
-      :style="dynStyle"
+      v-if="user"
+      class="flex select-none items-center"
+      :class="{
+        'w-full': fullWidth,
+      }"
+      :style="containerStyle"
     >
-      <span class="text-highlight font-bold">{{ user.name.charAt(0) }}</span>
+      <img
+        v-show="!isFallback"
+        :src="avatar"
+        :style="imgStyle"
+        class="rounded-full object-cover"
+        @load="handleImgLoad"
+        @error="handleImgError"
+      />
+      <div
+        v-if="isFallback"
+        class="text-base-content text-center rounded-full bg-base flex items-center justify-center overflow-hidden"
+        :style="imgStyle"
+      >
+        <span class="font-bold">{{ user.name.charAt(0) }}</span>
+      </div>
+      <span v-if="withName">{{ user.name }}</span>
     </div>
-    <span v-if="withName" class="">{{ user.name }}</span>
-  </div>
+  </KeepAlive>
 </template>

@@ -37,9 +37,13 @@ onMounted(() => {
 
 <template>
   <div
-    class="h-screen max-h-screen max-w-screen min-h-screen min-w-screen w-screen overflow-x-hidden overflow-y-auto"
+    class="bg-highlight h-screen max-h-screen max-w-screen min-h-screen min-w-screen w-screen overflow-x-hidden overflow-y-auto"
   >
     <slot />
   </div>
   <Toast />
 </template>
+
+<style>
+@import url("../assets/theme.css");
+</style>

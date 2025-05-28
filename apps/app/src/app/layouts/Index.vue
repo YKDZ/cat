@@ -6,7 +6,7 @@ import IndexSidebar from "../components/IndexSidebar.vue";
 <template>
   <div class="flex flex-col h-full w-full md:flex-row">
     <IndexSidebar />
-    <div class="flex flex-col h-full w-full">
+    <div class="flex flex-col h-full w-full overflow-y-auto">
       <IndexHeader />
       <!-- Content -->
       <div class="p-4 flex flex-col gap-2">

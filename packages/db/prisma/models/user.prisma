@@ -1,0 +1,40 @@
+model User {
+    id            String   @id @default(cuid())
+    name          String
+    email         String   @unique
+    emailVerified Boolean  @default(false)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+
+    avatarFileId Int?
+    AvatarFile   File? @relation(fields: [avatarFileId], references: [id])
+
+    Accounts          Account[]
+    ReadableLanguages Language[] @relation("ReadableLanguages")
+    WritableLanguages Language[] @relation("WritableLanguages")
+
+    Projects         Project[]
+    Translations     Translation[]     @relation("Translator")
+    Documents        Document[]
+    Permissions      Permission[]
+    TranslationVotes TranslationVote[]
+    Memories         Memory[]
+    MemoryItems      MemoryItem[]
+    Glossaries       Glossary[]
+
+    Terms Term[]
+}
+
+model Account {
+    type              String
+    provider          String
+    providedAccountId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    userId String
+    User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([provider, providedAccountId])
+}

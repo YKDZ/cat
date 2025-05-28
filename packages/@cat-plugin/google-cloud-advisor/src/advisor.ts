@@ -15,6 +15,10 @@ export class Advisor implements TranslationAdvisor {
     }
   }
 
+  getId(): string {
+    return "googleCloud";
+  }
+
   getName() {
     return process.env.PLUGIN_GOOGLE_CLOUD_NAME ?? "Google Cloud Translate";
   }

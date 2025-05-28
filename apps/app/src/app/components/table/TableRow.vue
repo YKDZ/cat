@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <tr class="border-b transition-colors">
+  <tr class="transition-colors">
     <slot />
   </tr>
 </template>

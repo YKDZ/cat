@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { vOnClickOutside } from "@vueuse/components";
+import Icon from "./Icon.vue";
 
 const props = defineProps({
   text: {
     type: String,
-    default: "点击展开",
+    default: "",
+  },
+  icon: {
+    type: String,
+    default: null,
   },
   textClasses: {
     type: String,
@@ -23,23 +28,25 @@ const handleClickOutside = () => {
   <div v-on-click-outside="handleClickOutside">
     <div class="relative">
       <div
-        class="mb-1 px-2 py-1 flex gap-1 w-fit cursor-pointer items-center hover:bg-highlight-darker"
+        class="px-2 py-1 rounded-xs flex gap-1 w-fit cursor-pointer items-center hover:bg-highlight-darker"
         @click="isOpen = !isOpen"
       >
-        <span class="select-none text-nowrap" :class="textClasses">{{
-          text
-        }}</span>
+        <span
+          v-if="text.length !== 0"
+          class="select-none text-nowrap"
+          :class="textClasses"
+          >{{ text }}</span
+        >
+        <Icon v-if="icon" :icon />
         <span
           class="i-mdi:chevron-down inline-block transform-gpu transition-all"
           :class="{ 'transform-rotate-180': isOpen }"
         ></span>
       </div>
-
       <Transition name="slide-down">
         <div
           v-if="isOpen"
           class="px-3 py-2 bg-highlight h-fit w-fit shadow-md left-0 right-0 absolute z-50"
-          style="top: calc(100% + 0.25rem)"
         >
           <slot />
         </div>

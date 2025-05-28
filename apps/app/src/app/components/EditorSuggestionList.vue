@@ -9,14 +9,14 @@ import { trpc } from "@/server/trpc/client";
 import Render from "./formater/Render.vue";
 
 const { info, trpcWarn } = useToastStore();
-const { copy } = useEditorStore();
+const { replace } = useEditorStore();
 const { elementId, languageToId, suggestions, document } =
   storeToRefs(useEditorStore());
 
 const handleCopy = (suggestion: TranslationSuggestion) => {
   if (suggestion.status !== "SUCCESS") return;
 
-  copy(suggestion.value);
+  replace(suggestion.value);
   info(`成功复制来自 ${suggestion.from} 的翻译`);
 };
 
@@ -49,7 +49,7 @@ watch(elementId, load, { immediate: true });
 <template>
   <div
     v-for="suggestion in suggestions"
-    :key="suggestion.from"
+    :key="suggestion.value"
     class="px-3 py-2 flex flex-col gap-1"
     :class="{
       'hover:bg-highlight-darker': suggestion.status === 'SUCCESS',
@@ -63,9 +63,9 @@ watch(elementId, load, { immediate: true });
       }"
       @click="handleCopy(suggestion)"
     >
-      <Render v-if="document" :type="document.Type" :text="suggestion.value" />
+      <Render v-if="document" :text="suggestion.value" />
     </button>
-    <div class="text-sm text-gray-600">{{ suggestion.from }}</div>
+    <div class="text-sm text-highlight-content">{{ suggestion.from }}</div>
   </div>
   <div v-if="suggestions.length === 0" class="px-3 py-2 flex flex-col gap-1">
     还没有可用的翻译建议
