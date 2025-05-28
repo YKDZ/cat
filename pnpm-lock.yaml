@@ -479,22 +479,22 @@ importers:
         specifier: workspace:*
         version: link:../eslint-config
       '@types/node':
-        specifier: ^22.14.1
+        specifier: ^22.15.23
         version: 22.15.23
       tsx:
-        specifier: ^4.19.3
+        specifier: ^4.19.4
         version: 4.19.4
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
       vite:
-        specifier: ^6.3.3
+        specifier: ^6.3.5
         version: 6.3.5(@types/node@22.15.23)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1)
       vite-plugin-dts:
-        specifier: ^4.5.3
+        specifier: ^4.5.4
         version: 4.5.4(@types/node@22.15.23)(rollup@4.38.0)(typescript@5.8.3)(vite@6.3.5(@types/node@22.15.23)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
       zod:
-        specifier: ^3.25.20
+        specifier: ^3.25.32
         version: 3.25.32
 
 packages:
