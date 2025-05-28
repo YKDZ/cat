@@ -1,0 +1,60 @@
+name: Safe Auto-merge Dependabot PRs
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Analyze PR metadata
+        id: check
+        run: |
+          echo "PR_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
+          echo "CHANGED_FILES=$(gh pr view ${{ github.event.pull_request.html_url }} --json files -q '.files | length')" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if safe to auto-merge
+        id: safe
+        run: |
+          echo "Title: ${{ steps.check.outputs.PR_TITLE }}"
+          echo "Files changed: ${{ steps.check.outputs.CHANGED_FILES }}"
+
+          TITLE="${{ steps.check.outputs.PR_TITLE }}"
+          FILES_CHANGED=${{ steps.check.outputs.CHANGED_FILES }}
+
+          # Check for major update
+          if echo "$TITLE" | grep -Eiq 'bump .* to v?[0-9]+\.[0-9]+\.0'; then
+            echo "Detected possible major version bump. Skipping."
+            echo "safe=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Skip PRs that touch too many files (e.g. grouped updates)
+          if [ "$FILES_CHANGED" -gt 10 ]; then
+            echo "Too many files changed. Skipping."
+            echo "safe=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "safe=true" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge
+        if: steps.safe.outputs.safe == 'true'
+        run: gh pr merge "$PR_URL" --auto --merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
