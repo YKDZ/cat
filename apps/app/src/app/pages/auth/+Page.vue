@@ -5,7 +5,7 @@ import { AuthMethod } from "@cat/shared";
 import { useData } from "vike-vue/useData";
 import { ref } from "vue";
 import logoUrl from "../../assets/logo.png";
-import { Data } from "./+data.server";
+import type { Data } from "./+data";
 
 const data = useData<Data>();
 

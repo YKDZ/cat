@@ -1,19 +1,26 @@
 import { defineConfig } from "vite";
-import path from "path";
+import { resolve } from "path";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": resolve(__dirname, "src"),
     },
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
-      name: "plugin-core",
-      fileName: (format) => `index.${format}` + (format === "es" ? ".js" : ""),
+      entry: resolve(__dirname, "src/index.ts"),
       formats: ["es", "cjs"],
+      fileName: (format, entryName) => {
+        return entryName === "index"
+          ? format === "es"
+            ? "index.es.js"
+            : "index.cjs.js"
+          : format === "es"
+            ? "browser.es.js"
+            : "browser.cjs.js";
+      },
     },
     outDir: "dist",
     terserOptions: {
@@ -22,6 +29,13 @@ export default defineConfig({
       },
     },
     rollupOptions: {
+      input: {
+        index: resolve(__dirname, "src/index.ts"),
+        browser: resolve(__dirname, "src/index-browser.ts"),
+      },
+      output: {
+        dir: resolve(__dirname, "dist"),
+      },
       external: [
         "path",
         "fs",
@@ -38,8 +52,8 @@ export default defineConfig({
   },
   plugins: [
     dts({
-      outDir: "dist",
-      tsconfigPath: path.resolve(__dirname, "tsconfig.json"),
+      outDir: "dist/types",
+      insertTypesEntry: true,
     }),
   ],
 });

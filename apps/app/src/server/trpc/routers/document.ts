@@ -2,10 +2,6 @@ import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFr
 import { useStorage } from "@/server/utils/storage/useStorage";
 import { prisma } from "@cat/db";
 import {
-  TextVectorizerRegistry,
-  TranslatableFileHandlerRegistry,
-} from "@cat/plugin-core";
-import {
   DocumentSchema,
   ElementTranslationStatusSchema,
   FileMetaSchema,
@@ -78,7 +74,7 @@ export const documentRouter = router({
     .output(DocumentSchema)
     .mutation(async ({ input, ctx }) => {
       const { projectId, fileId } = input;
-      const { user } = ctx;
+      const { user, pluginRegistry } = ctx;
 
       const {
         parsedFile,
@@ -99,8 +95,8 @@ export const documentRouter = router({
 
         const parsedFile = FileSchema.parse(file);
 
-        const handler = TranslatableFileHandlerRegistry.getInstance()
-          .getHandlers()
+        const handler = pluginRegistry
+          .getTranslatableFileHandlers()
           .find((handler) => handler.canExtractElement(parsedFile));
 
         if (!handler) {
@@ -122,8 +118,8 @@ export const documentRouter = router({
             message: "Project with given id does not exists",
           });
 
-        const vectorizer = TextVectorizerRegistry.getInstance()
-          .getVectorizers()
+        const vectorizer = pluginRegistry
+          .getTextVectorizers()
           .find((vectorizer) =>
             vectorizer.canVectorize(project.sourceLanguageId),
           );
@@ -320,7 +316,8 @@ export const documentRouter = router({
         languageId: z.string(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const { pluginRegistry } = ctx;
       const { id, languageId } = input;
 
       const document = await prisma.document.findFirst({
@@ -356,8 +353,8 @@ export const documentRouter = router({
       );
       const fileContent = readFileSync(path, "utf-8");
 
-      const handler = TranslatableFileHandlerRegistry.getInstance()
-        .getHandlers()
+      const handler = pluginRegistry
+        .getTranslatableFileHandlers()
         .find((handler) =>
           handler.canGenerateTranslated(document.File!, fileContent),
         );

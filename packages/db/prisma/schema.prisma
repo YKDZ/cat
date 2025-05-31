@@ -1,6 +1,6 @@
 datasource db {
     provider = "postgresql"
-    url      = "postgresql://user:pass@localhost:8654/cat?schema=public"
+    url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -8,4 +8,8 @@ generator client {
     previewFeatures = ["fullTextSearchPostgres"]
     output          = "../src/generated/prisma"
     moduleFormat    = "esm"
+}
+
+generator json {
+    provider = "prisma-json-types-generator"
 }

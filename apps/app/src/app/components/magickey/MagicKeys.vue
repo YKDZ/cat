@@ -10,9 +10,9 @@ const props = defineProps<{
 const emits = defineEmits(["press"]);
 
 const keys = useMagicKeys();
-const requiredKeys = computed(() => props.keyString.split("+").map((k) => k.trim().toLowerCase()));
-
-watch(() => keys.current, (to) => console.log(to))
+const requiredKeys = computed(() =>
+  props.keyString.split("+").map((k) => k.trim().toLowerCase()),
+);
 
 whenever(
   () => requiredKeys.value.every((key) => keys.current.has(key)),

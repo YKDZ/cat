@@ -1,11 +1,10 @@
-import { CatPlugin, TranslatableFileHandlerRegistry } from "@cat/plugin-core";
+import { CatPlugin } from "@cat/plugin-core";
 import { JSONTranslatableFileHandler } from "./handler";
 
 class Plugin implements CatPlugin {
-  async onLoaded() {
-    TranslatableFileHandlerRegistry.getInstance().register(
-      new JSONTranslatableFileHandler(),
-    );
+  async onLoaded() {}
+  getTranslatableFileHandlers() {
+    return [new JSONTranslatableFileHandler()];
   }
 }
 

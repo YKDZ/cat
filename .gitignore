@@ -4,10 +4,9 @@
 .turbo
 .npmrc
 dist
-generated
+generated/prisma
 ollama
 uploads
-apps/app/plugins
 
 # Logs
 logs

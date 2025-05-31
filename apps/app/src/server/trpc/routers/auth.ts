@@ -6,10 +6,8 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../server";
 
-export const OIDC_REDIRECT_URL = new URL(
-  "/auth/oidc.callback",
-  import.meta.env.PUBLIC_ENV__URL,
-).toString();
+const getRedirectURL = () =>
+  new URL("/auth/oidc.callback", process.env.PUBLIC_ENV__URL).toString();
 
 const oidcRouter = router({
   init: publicProcedure.query(async ({ ctx }) => {
@@ -26,7 +24,7 @@ const oidcRouter = router({
     const nonce = randomBytes(16).toString("hex");
     const searchParams = new URLSearchParams({
       client_id: import.meta.env.OIDC_CLIENT_ID,
-      redirect_uri: OIDC_REDIRECT_URL,
+      redirect_uri: getRedirectURL(),
       response_type: "code",
       scope: import.meta.env.OIDC_SCOPES ?? "",
       state,
@@ -80,7 +78,7 @@ const oidcRouter = router({
         client_id: import.meta.env.OIDC_CLIENT_ID ?? "",
         client_secret: import.meta.env.OIDC_CLIENT_SECRET ?? "",
         code,
-        redirect_uri: OIDC_REDIRECT_URL,
+        redirect_uri: getRedirectURL(),
         grant_type: "authorization_code",
       });
 

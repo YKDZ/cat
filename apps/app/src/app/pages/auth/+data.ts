@@ -1,17 +1,8 @@
-import { EMPTY_CONTEXT } from "@/server/trpc/context";
-import { authRouter } from "@/server/trpc/routers/auth";
-import { createCallerFactory } from "@/server/trpc/server";
+import { useSSCTRPC } from "@/server/trpc/sscClient";
 import { PageContext } from "vike/types";
 
 export const data = async (ctx: PageContext) => {
-  const createCaller = createCallerFactory(authRouter);
-  const caller = createCaller({
-    ...EMPTY_CONTEXT,
-    user: ctx.user,
-  });
-
-  const methods = await caller.misc.availableAuthMethod();
-
+  const methods = await useSSCTRPC({ ...ctx }).auth.misc.availableAuthMethod();
   return { methods };
 };
 

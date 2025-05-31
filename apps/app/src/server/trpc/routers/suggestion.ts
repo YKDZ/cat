@@ -1,7 +1,6 @@
 import { hash } from "@/server/utils/crypto";
 import { AsyncMessageQueue } from "@/server/utils/queue";
 import { prisma, redis, redisPub, redisSub } from "@cat/db";
-import { TranslationAdvisorRegistry } from "@cat/plugin-core";
 import {
   TranslatableElementSchema,
   TranslationSuggestion,
@@ -19,7 +18,8 @@ export const suggestionRouter = router({
         languageId: z.string(),
       }),
     )
-    .subscription(async function* ({ input }) {
+    .subscription(async function* ({ ctx, input }) {
+      const { pluginRegistry } = ctx;
       const { elementId, languageId } = input;
 
       const element = await prisma.translatableElement.findUnique({
@@ -57,8 +57,7 @@ export const suggestionRouter = router({
       };
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-      const advisorAmount =
-        TranslationAdvisorRegistry.getInstance().getEnabledAdvisors().length;
+      const advisorAmount = pluginRegistry.getTranslationAdvisors().length;
 
       if (advisorAmount === 0) {
         yield tracked("CAT Admin", {
@@ -69,52 +68,50 @@ export const suggestionRouter = router({
         return;
       }
 
-      TranslationAdvisorRegistry.getInstance()
-        .getEnabledAdvisors()
-        .forEach(async (advisor) => {
-          const elementHash = hash({
-            ...element,
-            targetLanguageId: languageId,
-            advisorName: advisor.getName(),
-          });
-          const cacheKey = `cache:suggestions:${elementHash}`;
-          const cachedSuggestion = await redis.sMembers(cacheKey);
-          if (cachedSuggestion.length > 0) {
-            cachedSuggestion.forEach((suggestion) => {
-              redisPub.publish(suggestionChannelKey, suggestion);
-            });
-            return;
-          }
-
-          const zElement = TranslatableElementSchema.parse(element);
-          advisor
-            .getSuggestions(
-              zElement,
-              element.Document.Project.sourceLanguageId,
-              languageId,
-            )
-            .then((suggestions) => {
-              if (suggestions.length === 0) {
-                console.error(
-                  `翻译建议提供器 ${advisor.getName()} 没有返回任意一条建议，这是不推荐的行为（可能导致用户迷惑）。请在错误时也返回一条携带错误提示信息的建议。`,
-                );
-                return;
-              }
-              suggestions.forEach((suggestion) => {
-                const suggestionStr = JSON.stringify(suggestion);
-                redisPub.publish(suggestionChannelKey, suggestionStr);
-                // 缓存结果
-                if (suggestion.status === "SUCCESS") {
-                  redis.sAdd(cacheKey, suggestionStr);
-                  redis.expire(cacheKey, 60 * 60);
-                }
-              });
-            })
-            .catch((e) => {
-              console.error("Error when generate translation suggestions: ");
-              console.error(e);
-            });
+      pluginRegistry.getTranslationAdvisors().forEach(async (advisor) => {
+        const elementHash = hash({
+          ...element,
+          targetLanguageId: languageId,
+          advisorName: advisor.getName(),
         });
+        const cacheKey = `cache:suggestions:${elementHash}`;
+        const cachedSuggestion = await redis.sMembers(cacheKey);
+        if (cachedSuggestion.length > 0) {
+          cachedSuggestion.forEach((suggestion) => {
+            redisPub.publish(suggestionChannelKey, suggestion);
+          });
+          return;
+        }
+
+        const zElement = TranslatableElementSchema.parse(element);
+        advisor
+          .getSuggestions(
+            zElement,
+            element.Document.Project.sourceLanguageId,
+            languageId,
+          )
+          .then((suggestions) => {
+            if (suggestions.length === 0) {
+              console.error(
+                `翻译建议提供器 ${advisor.getName()} 没有返回任意一条建议，这是不推荐的行为（可能导致用户迷惑）。请在错误时也返回一条携带错误提示信息的建议。`,
+              );
+              return;
+            }
+            suggestions.forEach((suggestion) => {
+              const suggestionStr = JSON.stringify(suggestion);
+              redisPub.publish(suggestionChannelKey, suggestionStr);
+              // 缓存结果
+              if (suggestion.status === "SUCCESS") {
+                redis.sAdd(cacheKey, suggestionStr);
+                redis.expire(cacheKey, 60 * 60);
+              }
+            });
+          })
+          .catch((e) => {
+            console.error("Error when generate translation suggestions: ");
+            console.error(e);
+          });
+      });
 
       try {
         for await (const suggestion of suggestionsQueue.consume()) {

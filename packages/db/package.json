@@ -2,14 +2,24 @@
   "name": "@cat/db",
   "version": "0.1.0",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "prisma": {
     "schema": "./prisma",
     "seed": "tsx src/seed.ts"
   },
   "scripts": {
+    "build": "rollup --config",
+    "lint": "eslint . --fix",
+    "clean": "rimraf dist",
     "db:generate": "prisma generate",
     "db:push": "prisma db push --accept-data-loss",
     "db:migrate": "prisma migrate dev",
@@ -21,15 +31,19 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.803.0",
     "@elastic/elasticsearch": "^9.0.1",
-    "@prisma/adapter-pg": "^6.7.0",
     "@prisma/client": "6.8.2",
-    "dotenv": "^16.5.0",
-    "redis": "^5.1.1"
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "redis": "^5.1.1",
+    "rollup": "^4.41.1",
+    "rollup-plugin-dts": "^6.2.1"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@types/node": "^22.15.23",
+    "dotenv": "^16.5.0",
     "prisma": "6.8.2",
+    "prisma-json-types-generator": "^3.4.2",
     "tsx": "^4.19.4"
   },
   "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
