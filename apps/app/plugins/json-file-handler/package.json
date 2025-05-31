@@ -1,0 +1,40 @@
+{
+  "name": "@cat-plugin/json-file-handler",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": [
+    "plugins",
+    "typescript",
+    "types",
+    "cat"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "lint": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --write .",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "vue": "^3.5.16"
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*",
+    "@types/node": "^22.14.1",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3",
+    "vite-plugin-dts": "^4.5.3"
+  },
+  "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
+}

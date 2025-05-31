@@ -1,5 +1,5 @@
-import { PageContext } from "vike/types";
+import { PageContextServer } from "vike/types";
 
-export const onAfterRenderHtml = (ctx: PageContext) => {
-  ctx._piniaInitState = ctx.pinia?.state.value;
+export const onAfterRenderHtml = (ctx: PageContextServer) => {
+  ctx._piniaInitState = ctx.pinia!.state.value;
 };

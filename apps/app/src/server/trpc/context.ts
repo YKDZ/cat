@@ -2,6 +2,7 @@ import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { getCookieFunc } from "../utils/cookie";
 import { userFromSessionId } from "../utils/user";
+import { PluginRegistry } from "@cat/plugin-core";
 
 export const createHttpContext = async ({
   req,
@@ -16,6 +17,7 @@ export const createHttpContext = async ({
   return {
     user,
     sessionId,
+    pluginRegistry: PluginRegistry.getInstance(),
     setCookie: (key: string, value: string | undefined, maxAge: number) => {
       resHeaders.append(
         "Set-Cookie",

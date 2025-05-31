@@ -30,7 +30,4 @@ export default defineConfig({
       external: ["cloudflare:sockets", /\.prisma\/client\/.*$/],
     },
   },
-  ssr: {
-    noExternal: ["@cat/plugin-core"],
-  },
 });

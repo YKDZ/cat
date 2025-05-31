@@ -1,4 +1,5 @@
 import { Client } from "@elastic/elasticsearch";
+import "dotenv/config";
 
 export class ESDB {
   public static instance: ESDB;
@@ -6,21 +7,13 @@ export class ESDB {
 
   constructor() {
     if (ESDB.instance) throw Error("ESDB can only have a single instance");
-    // if (
-    //   !process.env.ES_API_KEY_ID ||
-    //   !process.env.ES_API_KEY_ID ||
-    //   !process.env.ES_API_KEY
-    // )
-    //   throw new Error(
-    //     "Can not create ElisticSearch client cause lack of enviroment varibles",
-    //   );
 
     ESDB.instance = this;
     this.client = new Client({
-      node: "https://127.0.0.1:9200",
+      node: process.env.ES_URL,
       auth: {
-        username: "elastic",
-        password: "1256987qazA!",
+        username: process.env.ES_AUTH_USERNAME || "elastic",
+        password: process.env.ES_AUTH_PASSWORD || "elastic",
       },
       tls: {
         rejectUnauthorized: false,

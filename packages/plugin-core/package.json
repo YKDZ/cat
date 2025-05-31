@@ -9,14 +9,17 @@
     "cat"
   ],
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.es.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.es.js"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./browser": {
+      "types": "./dist/types/index-browser.d.ts",
+      "import": "./dist/browser.es.js",
+      "require": "./dist/browser.cjs.js"
     }
   },
   "files": [
@@ -29,19 +32,20 @@
     "format:check": "prettier --write .",
     "clean": "rimraf dist"
   },
+  "dependencies": {
+    "execa": "^9.5.3"
+  },
   "devDependencies": {
-    "@cat/db": "workspace:*",
     "@cat/eslint-config": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@cat/db": "workspace:*",
     "@types/node": "^22.15.23",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
-    "vite-plugin-dts": "^4.5.4",
     "vite": "^6.3.5",
+    "vite-plugin-dts": "^4.5.4",
+    "vue": "^3.5.15",
     "zod": "^3.25.32"
   },
-  "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f",
-  "dependencies": {
-    "execa": "^9.5.3"
-  }
+  "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
 }

@@ -1,4 +1,5 @@
 import { createClient, RedisClientType } from "redis";
+import "dotenv/config";
 
 export class RedisDB {
   public static instance: RedisDB;
@@ -13,12 +14,39 @@ export class RedisDB {
     RedisDB.instance = this;
     this.redis = createClient({
       url: process.env.REDIS_URL,
+      socket: {
+        reconnectStrategy: (retries) => {
+          const jitter = Math.floor(Math.random() * 100);
+
+          const delay = Math.min(Math.pow(2, retries) * 50, 3000);
+
+          return delay + jitter;
+        },
+      },
     });
     this.redisPub = createClient({
       url: process.env.REDIS_URL,
+      socket: {
+        reconnectStrategy: (retries) => {
+          const jitter = Math.floor(Math.random() * 100);
+
+          const delay = Math.min(Math.pow(2, retries) * 50, 3000);
+
+          return delay + jitter;
+        },
+      },
     });
     this.redisSub = createClient({
       url: process.env.REDIS_URL,
+      socket: {
+        reconnectStrategy: (retries) => {
+          const jitter = Math.floor(Math.random() * 100);
+
+          const delay = Math.min(Math.pow(2, retries) * 50, 3000);
+
+          return delay + jitter;
+        },
+      },
     });
   }
 
@@ -29,9 +57,9 @@ export class RedisDB {
   }
 
   static async disconnect() {
-    await RedisDB.instance.redis.disconnect();
-    await RedisDB.instance.redisPub.disconnect();
-    await RedisDB.instance.redisSub.disconnect();
+    RedisDB.instance.redis.destroy();
+    RedisDB.instance.redisPub.destroy();
+    RedisDB.instance.redisSub.destroy();
   }
 }
 

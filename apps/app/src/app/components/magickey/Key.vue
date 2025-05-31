@@ -14,7 +14,7 @@ const icons = ref([
     icon: "i-fluent:arrow-enter-left-24-regular",
   },
   {
-    key: "ctrl",
+    key: "control",
     icon: "i-fluent:control-button-24-regular",
   },
   {

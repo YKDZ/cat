@@ -1,9 +1,8 @@
 import { prisma } from "@cat/db";
 import {
+  PluginRegistry,
   TextVectorizer,
-  TextVectorizerRegistry,
   TranslatableFileHandler,
-  TranslatableFileHandlerRegistry,
 } from "@cat/plugin-core";
 import { Document, File, UnvectorizedTextDataSchema } from "@cat/shared";
 import { z } from "zod/v4";
@@ -33,11 +32,11 @@ const worker = new Worker(
       vectorizerId: string;
     } = job.data;
 
-    const handler = TranslatableFileHandlerRegistry.getInstance()
-      .getHandlers()
+    const handler = PluginRegistry.getInstance()
+      .getTranslatableFileHandlers()
       .find((handler) => handler.getId() === handlerId);
-    const vectorizer = TextVectorizerRegistry.getInstance()
-      .getVectorizers()
+    const vectorizer = PluginRegistry.getInstance()
+      .getTextVectorizers()
       .find((vectorizer) => vectorizer.getId() === vectorizerId);
 
     if (!handler || !vectorizer)

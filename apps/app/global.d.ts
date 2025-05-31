@@ -1,15 +1,20 @@
-import { Pinia, StateTree } from "pinia";
-import { User } from "@cat/shared";
+import type { Pinia, StateTree } from "pinia";
+import type { User, PluginComponent } from "@cat/shared";
+import type { PluginRegistry } from "@cat/plugin-core";
 
 declare global {
   namespace Vike {
     interface PageContext {
       user: User | null;
       sessionId: string | null;
-      pinia?: Pinia;
       _piniaInitState?: StateTree;
+      pluginComponents: PluginComponent[];
     }
-    interface GlobalContext {
+    interface PageContextServer {
+      pinia?: Pinia;
+      pluginRegistry: PluginRegistry;
+    }
+    interface GlobalContextClient {
       pinia?: Pinia;
     }
   }

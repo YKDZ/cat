@@ -1,11 +1,10 @@
-import { CatPlugin, TranslationAdvisorRegistry } from "@cat/plugin-core";
+import { CatPlugin } from "@cat/plugin-core";
 import { LibreTranslateTranslationAdvisor } from "./advisor";
 
 class Plugin implements CatPlugin {
-  async onLoaded() {
-    TranslationAdvisorRegistry.getInstance().register(
-      new LibreTranslateTranslationAdvisor(),
-    );
+  async onLoaded() {}
+  getTranslationAdvisors() {
+    return [new LibreTranslateTranslationAdvisor()];
   }
 }
 

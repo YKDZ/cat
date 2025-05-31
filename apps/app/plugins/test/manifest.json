@@ -1,0 +1,5 @@
+{
+  "id": "test",
+  "entry": "dist/index.mjs",
+  "iconURL": "https://unocss.dev/logo.svg"
+}

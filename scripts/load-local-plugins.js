@@ -1,24 +1,19 @@
-// copy-plugins.js
 import { promises as fs } from 'fs';
-import path, { dirname, join, resolve } from 'path';
+import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-// 获取当前文件的目录路径（替代 __dirname）
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 源目录和目标目录
 const SRC_DIR = resolve(__dirname, '../packages/@cat-plugin');
 const DEST_DIR = resolve(__dirname, '../apps/app/plugins');
 
-// 需要拷贝的文件和文件夹（在插件目录内）
 const FILE_INCLUDES = [
-  'dist',           // 文件夹
-  'package.json',   // 文件
-  'manifest.json',  // 文件
+  'dist',
+  'package.json',
+  'manifest.json',
 ];
 
-// 需要处理的插件目录（SRC_DIR 下的一级目录）
 const FOLDER_INCLUDES = [
   'ollama-vectorizer',
   'libretranslate-advisor',
@@ -63,6 +58,7 @@ async function copyRecursive(srcPath, destPath) {
       const destFolderPath = join(DEST_DIR, folder);
 
       // 确保目标插件目录存在
+      await fs.rm(destFolderPath, { recursive: true });
       await fs.mkdir(destFolderPath, { recursive: true });
 
       // 读取插件目录内容
@@ -80,7 +76,7 @@ async function copyRecursive(srcPath, destPath) {
       }
     }
 
-    console.log('拷贝完成！');
+    console.log('成功拷贝指定的本地插件');
   } catch (err) {
     console.error('拷贝过程中出错：', err);
     process.exit(1);

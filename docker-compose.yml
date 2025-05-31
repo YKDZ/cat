@@ -2,12 +2,12 @@ services:
   redis:
     image: redis
     ports:
-      - "127.0.0.1:6379:6379"
+      - "6379:6379"
     user: "redis:redis"
   postgres:
     image: pgvector/pgvector:pg17
     ports:
-      - "127.0.0.1:8654:5432"
+      - "8654:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
@@ -16,8 +16,8 @@ services:
   es:
     image: elasticsearch:9.0.1
     ports:
-      - "127.0.0.1:9200:9200"
-      - "127.0.0.1:9300:9300"
+      - "9200:9200"
+      - "9300:9300"
     environment:
       discovery.type: single-node
       ELASTIC_PASSWORD: 1256987qazA!

@@ -1,15 +1,19 @@
-import { createRequire } from "module";
 import { pathToFileURL } from "url";
 import { prisma } from "@cat/db";
 import { z } from "zod/v4";
 import { logger } from "@cat/shared";
-import { join, resolve } from "path";
+import { join } from "path";
+import { TextVectorizer } from "./text-vectorizer";
+import { TranslatableFileHandler } from "./translatable-file-handler";
+import { TranslationAdvisor } from "./translation-advisor";
 
 const pluginsDir = join(process.cwd(), "plugins");
-const appRequire = createRequire(process.cwd());
 
 export interface CatPlugin {
-  onLoaded(): Promise<void>;
+  onLoaded: () => Promise<void>;
+  getTextVectorizers?: () => TextVectorizer[];
+  getTranslatableFileHandlers?: () => TranslatableFileHandler[];
+  getTranslationAdvisors?: () => TranslationAdvisor[];
 }
 
 const PluginObjectSchema = z.custom<CatPlugin>();
@@ -84,7 +88,44 @@ export class PluginRegistry {
     logger.info("PLUGIN", `Successfully loaded plugin: ${id}`);
   }
 
+  public getPlugins(): Map<string, CatPlugin> {
+    return this.plugins;
+  }
+
   public static getPluginEntryFsPath(id: string, entry: string): string {
-    return join(pluginsDir, id, entry);
+    return join(PluginRegistry.getPlugiFsPath(id), entry);
+  }
+
+  public static getPlugiFsPath(id: string): string {
+    return join(pluginsDir, id);
+  }
+
+  public getTranslationAdvisors(): TranslationAdvisor[] {
+    return Array.from(this.plugins.values())
+      .map((plugin) => plugin.getTranslationAdvisors?.())
+      .filter(
+        (advisors): advisors is TranslationAdvisor[] => advisors !== undefined,
+      )
+      .flat();
+  }
+
+  public getTextVectorizers(): TextVectorizer[] {
+    return Array.from(this.plugins.values())
+      .map((plugin) => plugin.getTextVectorizers?.())
+      .filter(
+        (vectorizers): vectorizers is TextVectorizer[] =>
+          vectorizers !== undefined,
+      )
+      .flat();
+  }
+
+  public getTranslatableFileHandlers(): TranslatableFileHandler[] {
+    return Array.from(this.plugins.values())
+      .map((plugin) => plugin.getTranslatableFileHandlers?.())
+      .filter(
+        (handlers): handlers is TranslatableFileHandler[] =>
+          handlers !== undefined,
+      )
+      .flat();
   }
 }

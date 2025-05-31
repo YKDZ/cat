@@ -34,6 +34,8 @@ const worker = new Worker(
         },
       });
 
+      // 不存在意味着即将创建
+      // ID 是自动生成的
       const id = originPlugin?.id ?? "PLUGIN_NOT_EXISTS";
 
       await tx.plugin.upsert({
