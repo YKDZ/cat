@@ -13,7 +13,6 @@ export default tseslint.config(
 
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  eslintConfigPrettier,
 
   {
     languageOptions: {
@@ -97,4 +96,5 @@ export default tseslint.config(
   },
 
   unocss,
+  eslintConfigPrettier,
 ) as ConfigArray;
