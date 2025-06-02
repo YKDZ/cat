@@ -5,43 +5,38 @@ import { randomBytes } from "crypto";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../server";
+import {
+  createOIDCAuthURL,
+  createOIDCSession,
+  createUserSession,
+  randomChars,
+} from "@/server/utils/auth";
 
 const getRedirectURL = () =>
   new URL("/auth/oidc.callback", process.env.PUBLIC_ENV__URL).toString();
 
 const oidcRouter = router({
   init: publicProcedure.query(async ({ ctx }) => {
+    const { user } = ctx;
+
     if (!process.env.OIDC_CLIENT_ID)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Environment variable OIDC_CLIENT_ID is not set",
       });
 
-    if (ctx.user)
+    if (user)
       throw new TRPCError({ code: "CONFLICT", message: "Already login" });
 
-    const state = randomBytes(16).toString("hex");
-    const nonce = randomBytes(16).toString("hex");
-    const searchParams = new URLSearchParams({
-      client_id: process.env.OIDC_CLIENT_ID,
-      redirect_uri: getRedirectURL(),
-      response_type: "code",
-      scope: process.env.OIDC_SCOPES ?? "",
-      state,
-      nonce,
-    });
+    const state = randomChars();
+    const nonce = randomChars();
 
-    const oidcSession = randomBytes(32).toString("hex");
-    const sessionKey = `auth:oidc:session:${oidcSession}`;
-    await redis.hSet(sessionKey, {
-      state,
-      nonce,
-    });
-    await redis.expire(sessionKey, 60);
-    ctx.setCookie("oidcSessionId", oidcSession, 60);
+    const authURL = createOIDCAuthURL(state, nonce);
+
+    await createOIDCSession(state, nonce, ctx);
 
     return {
-      authURL: `${process.env.OIDC_AUTH_URI}?${searchParams}`,
+      authURL,
     };
   }),
   callback: publicProcedure
@@ -51,13 +46,15 @@ const oidcRouter = router({
         code: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      if (ctx.user)
-        throw new TRPCError({ code: "CONFLICT", message: "Already login" });
-
+    .mutation(async ({ ctx, input }) => {
+      const { getCookie } = ctx;
       const { state, code } = input;
 
-      const oidcSessionId = ctx.getCookie("oidcSessionId");
+      if (ctx.user)
+        throw new TRPCError({ code: "CONFLICT", message: "Already logged in" });
+
+      // 验证 OIDC 会话
+      const oidcSessionId = getCookie("oidcSessionId");
       if (!oidcSessionId)
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -67,6 +64,8 @@ const oidcRouter = router({
       const { state: storedState, nonce: storedNonce } =
         await redis.hGetAll(oidcSessionKey);
       await redis.del(oidcSessionKey);
+
+      // 验证 State
       if (!storedState || storedState !== state || !storedNonce)
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -74,6 +73,7 @@ const oidcRouter = router({
         });
       ctx.delCookie("oidcSessionId");
 
+      // 请求 Token
       const params = new URLSearchParams({
         client_id: process.env.OIDC_CLIENT_ID ?? "",
         client_secret: process.env.OIDC_CLIENT_SECRET ?? "",
@@ -106,6 +106,7 @@ const oidcRouter = router({
         });
       }
 
+      // 验证 ID Token
       const { id_token: idToken } = body;
 
       const JWKS = createRemoteJWKSet(new URL(process.env.OIDC_JWKS_URI ?? ""));
@@ -115,6 +116,7 @@ const oidcRouter = router({
         audience: process.env.OIDC_CLIENT_ID,
       });
 
+      // 解析 ID Token 携带的信息
       const {
         sub,
         name,
@@ -133,6 +135,7 @@ const oidcRouter = router({
         nonce: string;
       };
 
+      // 验证 Nonce
       if (nonce !== storedNonce)
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -143,9 +146,9 @@ const oidcRouter = router({
       // 进入签发会话阶段
       const { user, account } = await prisma.$transaction(async (tx) => {
         const user =
+          // 用户不存在则创建
           (await tx.user.findUnique({
             where: {
-              // TODO 支持多 OIDC 源
               email,
             },
             select: {
@@ -153,7 +156,7 @@ const oidcRouter = router({
               Accounts: {
                 where: {
                   type: "OIDC",
-                  provider: "OIDC",
+                  provider: process.env.OIDC_ISSUER!,
                   providedAccountId: sub,
                 },
               },
@@ -167,7 +170,7 @@ const oidcRouter = router({
               Accounts: {
                 create: {
                   type: "OIDC",
-                  provider: "OIDC",
+                  provider: process.env.OIDC_ISSUER!,
                   providedAccountId: sub,
                 },
               },
@@ -177,7 +180,7 @@ const oidcRouter = router({
               Accounts: {
                 where: {
                   type: "OIDC",
-                  provider: "OIDC",
+                  provider: process.env.OIDC_ISSUER!,
                   providedAccountId: sub,
                 },
               },
@@ -188,11 +191,12 @@ const oidcRouter = router({
 
         // 用户存在但 Account 不存在
         // 代表用户之前可能通过其他途径登录
-        if (user && !user.Accounts[0]) {
+        // 创建 OIDC Account
+        if (!user.Accounts[0]) {
           account = await tx.account.create({
             data: {
               type: "OIDC",
-              provider: "OIDC",
+              provider: process.env.OIDC_ISSUER!,
               providedAccountId: sub,
               User: {
                 connect: {
@@ -206,19 +210,7 @@ const oidcRouter = router({
         return { user, account };
       });
 
-      const sessionId = randomBytes(32).toString("hex");
-      const sessionKey = `user:session:${sessionId}`;
-
-      await redis.hSet(sessionKey, {
-        userId: user.id,
-        idToken,
-        provider: account.provider,
-        providerType: account.type,
-        providedAccountId: account.providedAccountId,
-      });
-      await redis.expire(sessionKey, 24 * 60 * 60);
-
-      ctx.setCookie("sessionId", sessionId, 24 * 60 * 60);
+      await createUserSession(user.id, idToken, account, ctx);
     }),
   logout: publicProcedure.mutation(async ({ ctx }) => {
     const { sessionId } = ctx;

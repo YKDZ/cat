@@ -170,3 +170,5 @@ export const processPretreatment = async (
     throw e;
   }
 };
+
+export const documentFromFilePretreatmentWorker = worker;
