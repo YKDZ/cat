@@ -1,10 +1,15 @@
-import { prisma } from "@cat/db";
+import { Prisma, prisma } from "@cat/db";
 import {
   PluginRegistry,
   TextVectorizer,
   TranslatableFileHandler,
 } from "@cat/plugin-core";
-import { Document, File, UnvectorizedTextDataSchema } from "@cat/shared";
+import {
+  Document,
+  File,
+  logger,
+  UnvectorizedTextDataSchema,
+} from "@cat/shared";
 import { z } from "zod/v4";
 import { Queue, Worker } from "bullmq";
 import { config } from "./config";
@@ -32,15 +37,23 @@ const worker = new Worker(
       vectorizerId: string;
     } = job.data;
 
+    console.log(
+      PluginRegistry.getInstance().getTranslatableFileHandlers()[0].getId(),
+    );
+
     const handler = PluginRegistry.getInstance()
       .getTranslatableFileHandlers()
       .find((handler) => handler.getId() === handlerId);
+
+    if (!handler)
+      throw new Error(`Can not find handler by given id: '${handlerId}'`);
+
     const vectorizer = PluginRegistry.getInstance()
       .getTextVectorizers()
       .find((vectorizer) => vectorizer.getId() === vectorizerId);
 
-    if (!handler || !vectorizer)
-      throw new Error("Can not find handler or vectorizer by given id");
+    if (!vectorizer)
+      throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
 
     await processPretreatment(
       sourceLanguageId,
@@ -121,25 +134,39 @@ export const processPretreatment = async (
 
   if (!vectors) return;
 
-  await prisma.$transaction(async (tx) => {
-    for (const [index, element] of elements.entries()) {
-      const vectorId = (
-        await tx.$queryRaw<
-          {
-            id: number;
-          }[]
-        >`
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 批量插入所有向量数据
+      const vectorInsertResult = await tx.$queryRaw<{ id: number }[]>`
         INSERT INTO "Vector" (vector)
-        VALUES (${vectors[index]}::vector)
+        VALUES ${Prisma.join(vectors.map((v) => Prisma.sql`(${v}::vector)`))}
         RETURNING id
-      `
-      )[0].id;
+      `;
+
+      // 准备可翻译元素数据（与向量 ID 关联）
+      const translatableValues = elements.map(
+        (element, index) =>
+          Prisma.sql`(
+          ${element.value}::text, 
+          ${element.meta}::jsonb, 
+          ${element.documentId}::text, 
+          ${vectorInsertResult[index].id}::int
+        )`,
+      );
+
+      // 批量插入所有可翻译元素
       await tx.$executeRaw`
         INSERT INTO "TranslatableElement" 
           (value, meta, "documentId", "embeddingId")
-        VALUES 
-          (${element.value}::text, ${element.meta}::jsonb, ${element.documentId}::text, ${vectorId}::int)
+        VALUES ${Prisma.join(translatableValues, ",")}
       `;
-    }
-  });
+    });
+  } catch (e) {
+    logger.error(
+      "PROCESSER",
+      "Error when insert vector and element to database",
+      e,
+    );
+    throw e;
+  }
 };

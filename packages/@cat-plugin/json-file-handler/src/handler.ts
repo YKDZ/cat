@@ -11,7 +11,7 @@ type JSONValue =
 
 export class JSONTranslatableFileHandler implements TranslatableFileHandler {
   getId(): string {
-    return "json";
+    return "JSON";
   }
 
   canExtractElement(file: File): boolean {

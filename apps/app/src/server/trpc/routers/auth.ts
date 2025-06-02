@@ -11,7 +11,7 @@ const getRedirectURL = () =>
 
 const oidcRouter = router({
   init: publicProcedure.query(async ({ ctx }) => {
-    if (!import.meta.env.OIDC_CLIENT_ID)
+    if (!process.env.OIDC_CLIENT_ID)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Environment variable OIDC_CLIENT_ID is not set",
@@ -23,10 +23,10 @@ const oidcRouter = router({
     const state = randomBytes(16).toString("hex");
     const nonce = randomBytes(16).toString("hex");
     const searchParams = new URLSearchParams({
-      client_id: import.meta.env.OIDC_CLIENT_ID,
+      client_id: process.env.OIDC_CLIENT_ID,
       redirect_uri: getRedirectURL(),
       response_type: "code",
-      scope: import.meta.env.OIDC_SCOPES ?? "",
+      scope: process.env.OIDC_SCOPES ?? "",
       state,
       nonce,
     });
@@ -41,7 +41,7 @@ const oidcRouter = router({
     ctx.setCookie("oidcSessionId", oidcSession, 60);
 
     return {
-      authURL: `${import.meta.env.OIDC_AUTH_URI}?${searchParams}`,
+      authURL: `${process.env.OIDC_AUTH_URI}?${searchParams}`,
     };
   }),
   callback: publicProcedure
@@ -75,14 +75,14 @@ const oidcRouter = router({
       ctx.delCookie("oidcSessionId");
 
       const params = new URLSearchParams({
-        client_id: import.meta.env.OIDC_CLIENT_ID ?? "",
-        client_secret: import.meta.env.OIDC_CLIENT_SECRET ?? "",
+        client_id: process.env.OIDC_CLIENT_ID ?? "",
+        client_secret: process.env.OIDC_CLIENT_SECRET ?? "",
         code,
         redirect_uri: getRedirectURL(),
         grant_type: "authorization_code",
       });
 
-      const response = await fetch(import.meta.env.OIDC_TOKEN_URI ?? "", {
+      const response = await fetch(process.env.OIDC_TOKEN_URI ?? "", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -108,13 +108,11 @@ const oidcRouter = router({
 
       const { id_token: idToken } = body;
 
-      const JWKS = createRemoteJWKSet(
-        new URL(import.meta.env.OIDC_JWKS_URI ?? ""),
-      );
+      const JWKS = createRemoteJWKSet(new URL(process.env.OIDC_JWKS_URI ?? ""));
 
       const { payload } = await jwtVerify(idToken, JWKS, {
-        issuer: import.meta.env.OIDC_ISSUER,
-        audience: import.meta.env.OIDC_CLIENT_ID,
+        issuer: process.env.OIDC_ISSUER,
+        audience: process.env.OIDC_CLIENT_ID,
       });
 
       const {
@@ -239,11 +237,11 @@ const oidcRouter = router({
     const state = randomBytes(16).toString("hex");
     const params = new URLSearchParams({
       id_token_hint: idToken,
-      post_logout_redirect_uri: import.meta.env.PUBLIC_ENV__URL!,
+      post_logout_redirect_uri: process.env.PUBLIC_ENV__URL!,
       state,
     });
 
-    const res = await fetch(`${import.meta.env.OIDC_LOGOUT_URI}?${params}`, {
+    const res = await fetch(`${process.env.OIDC_LOGOUT_URI}?${params}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -264,10 +262,10 @@ const oidcRouter = router({
 const miscRouter = router({
   availableAuthMethod: publicProcedure.query(async () => {
     const result: AuthMethod[] = [];
-    if (import.meta.env.OIDC_CLIENT_ID)
+    if (process.env.OIDC_CLIENT_ID)
       result.push({
         type: AuthMethodType.OIDC,
-        title: import.meta.env.OIDC_DISPLAY_NAME ?? "OIDC Provider",
+        title: process.env.OIDC_DISPLAY_NAME ?? "OIDC Provider",
       });
     return result;
   }),

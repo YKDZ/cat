@@ -9,6 +9,7 @@ import { HeadBucketCommand } from "@aws-sdk/client-s3";
 import { PrismaDB, RedisDB, ESDB, S3DB, prisma, redis, es, s3 } from "@cat/db";
 import { logger } from "@cat/shared";
 import { PluginRegistry } from "@cat/plugin-core";
+import { initIndex } from "./utils/es";
 
 const initDB = async () => {
   try {
@@ -32,6 +33,10 @@ const initDB = async () => {
       );
 
     logger.info("DB", "All database is health.");
+
+    await initIndex();
+
+    logger.info("DB", "Successfully init es index");
   } catch (e) {
     logger.error(
       "DB",

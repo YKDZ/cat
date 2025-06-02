@@ -6,13 +6,11 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "load-local-plugins": "node scripts/load-local-plugins.js",
+    "load-internal-plugins": "node scripts/load-internal-plugins.js",
     "build:docker:app": "docker build . -f apps/app/Dockerfile"
   },
-  "dependencies": {
-    "rimraf": "^6.0.1"
-  },
   "devDependencies": {
+    "rimraf": "^6.0.1",
     "eslint": "^9.26.0",
     "prettier": "^3.5.3",
     "turbo": "latest"

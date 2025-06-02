@@ -10,8 +10,15 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "target": "ES2022",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "rootDir": "./"
   },
-  "include": ["src/**/*.ts", "src/*.ts"],
-  "exclude": ["dist"]
+  "include": [
+    "src/**/*.ts",
+    "src/*.ts",
+    "prisma/*.ts"
+  ],
+  "exclude": [
+    "dist"
+  ]
 }

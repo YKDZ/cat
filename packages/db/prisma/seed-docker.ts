@@ -1,4 +1,4 @@
-import { prisma, PrismaDB } from "./prisma";
+import { prisma, PrismaDB } from "@cat/db";
 
 const seed = async () => {
   await prisma.$transaction(async (tx) => {

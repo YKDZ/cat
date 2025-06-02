@@ -1,9 +1,9 @@
-import md from "unplugin-vue-markdown/vite";
 import vue from "@vitejs/plugin-vue";
-import { defineConfig } from "vite";
-import vike from "vike/plugin";
-import UnoCSS from "unocss/vite";
 import { resolve } from "path";
+import UnoCSS from "unocss/vite";
+import md from "unplugin-vue-markdown/vite";
+import vike from "vike/plugin";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   resolve: {

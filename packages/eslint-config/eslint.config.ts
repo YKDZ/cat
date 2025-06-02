@@ -8,7 +8,7 @@ import eslintConfigPrettier from "eslint-config-prettier/flat";
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/generated/prisma/**", "*.js", "*.cjs", "*.mjs"],
+    ignores: ["**/dist/**", "**/generated/prisma/**", "*.js", "*.cjs"],
   },
 
   eslint.configs.recommended,
