@@ -7,11 +7,11 @@ const props = withDefaults(
   defineProps<{
     options: PickerOption[];
     placeholder?: string;
-    width?: string;
+    fullWidth?: boolean;
     filter?: (option: PickerOption) => boolean;
   }>(),
   {
-    width: "fit-content",
+    fullWidth: false,
     placeholder: "",
     filter: () => true,
   },
@@ -81,6 +81,10 @@ const selectedOptions = computed(() => {
   <div
     v-on-click-outside="close"
     class="relative"
+    :class="{
+      'md:max-w-2/3': !fullWidth,
+      'w-full': fullWidth,
+    }"
     :style="{
       width,
     }"

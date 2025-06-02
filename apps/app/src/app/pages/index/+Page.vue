@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import NewProjectCard from "@/app/components/NewProjectCard.vue";
-import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
 import { navigate } from "vike/client/router";
 
 const handleClick = () => {
@@ -17,6 +16,5 @@ const handleClick = () => {
       icon="i-mdi:file"
       @click="handleClick"
     ></NewProjectCard>
-    <UserUploadAvatarBtn />
   </div>
 </template>

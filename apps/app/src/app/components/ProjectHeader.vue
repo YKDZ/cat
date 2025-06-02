@@ -30,8 +30,8 @@ watch(
 </script>
 
 <template>
-  <Header
-    ><Button
+  <Header>
+    <Button
       transparent
       no-text
       icon="i-mdi:menu"

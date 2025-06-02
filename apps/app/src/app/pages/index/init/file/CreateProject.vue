@@ -10,10 +10,10 @@ import Textarea from "@/app/components/Textarea.vue";
 import { useToastStore } from "@/app/stores/toast";
 import { trpc } from "@/server/trpc/client";
 import { Project } from "@cat/shared";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { z } from "zod/v4";
 
-const { info, warn, zWarn, trpcWarn, error } = useToastStore();
+const { info, zWarn, trpcWarn } = useToastStore();
 
 const progress = defineModel("progress", { type: Number, required: true });
 const project = defineModel<Project>("project");
@@ -111,22 +111,20 @@ const createProject = () => {
     <InputLabel required>源语言</InputLabel>
     <LanguagePicker v-model="sourceLanguageId" />
     <InputLabel>目标语言</InputLabel>
-    <MultiLanguagePicker v-model:language-ids="targetLanguageIds" width="80%" />
+    <MultiLanguagePicker v-model:language-ids="targetLanguageIds" />
     <InputLabel>记忆库</InputLabel>
     <MultiMemoryPicker
       v-model:memory-ids="memoryIds"
-      width="80%"
       placeholder="选择一个或多个记忆库"
     />
     <InputLabel>术语库</InputLabel>
     <MultiGlossaryPicker
       v-model:glossary-ids="glossaryIds"
-      width="80%"
       create-new
       placeholder="选择一个或多个术语库"
     />
-    <Button icon="i-mdi:plus" :is-processing @click="createProject"
-      >创建项目</Button
-    >
+    <Button icon="i-mdi:plus" :is-processing @click="createProject">
+      创建项目
+    </Button>
   </div>
 </template>
