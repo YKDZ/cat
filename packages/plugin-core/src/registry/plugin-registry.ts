@@ -128,4 +128,9 @@ export class PluginRegistry {
       )
       .flat();
   }
+
+  public async reload() {
+    this.plugins = new Map();
+    await this.loadPlugins();
+  }
 }

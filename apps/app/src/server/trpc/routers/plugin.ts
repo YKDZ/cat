@@ -1,8 +1,11 @@
 import { prisma } from "@cat/db";
-import { PluginSchema } from "@cat/shared";
+import { logger, PluginSchema } from "@cat/shared";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
 import { importPluginQueue } from "@/server/processor/importPlugin";
+import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
+import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
+import { TRPCError } from "@trpc/server";
 
 export const pluginRouter = router({
   listAll: authedProcedure.query(async () => {
@@ -73,4 +76,40 @@ export const pluginRouter = router({
         },
       });
     }),
+  reload: authedProcedure.mutation(async ({ ctx }) => {
+    const { pluginRegistry } = ctx;
+
+    logger.info("PROCESSER", "About to pause all processors to reload plugin");
+    await pauseAllProcessors()
+      .then(() => {
+        logger.info("PROCESSER", "Successfully paused all processors");
+      })
+      .catch((e) => {
+        logger.info("PROCESSER", "Error when pausing all processors", e);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Plugin reload was cancelled because error when pausing all processors",
+        });
+      });
+
+    await pluginRegistry.reload();
+
+    logger.info(
+      "PROCESSER",
+      "About to resume all processors after plugin reloaded",
+    );
+    await resumeAllProcessors()
+      .then(() => {
+        logger.info("PROCESSER", "Successfully resumed all processors");
+      })
+      .catch((e) => {
+        logger.info("PROCESSER", "Error when resuming all processors", e);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Error when resuming all processors after plugin reloaded. Please check console",
+        });
+      });
+  }),
 });
