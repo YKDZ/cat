@@ -3,7 +3,6 @@ import { logger, PluginSchema } from "@cat/shared";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
 import { importPluginQueue } from "@/server/processor/importPlugin";
-import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
 import { TRPCError } from "@trpc/server";
 
@@ -17,7 +16,7 @@ export const pluginRouter = router({
           Tags: true,
         },
         orderBy: {
-          name: "asc",
+          id: "asc",
         },
       }),
     );

@@ -223,14 +223,14 @@ export type PluginTagOrderByWithRelationInput = {
 
 export type PluginTagWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  name?: string
   AND?: Prisma.PluginTagWhereInput | Prisma.PluginTagWhereInput[]
   OR?: Prisma.PluginTagWhereInput[]
   NOT?: Prisma.PluginTagWhereInput | Prisma.PluginTagWhereInput[]
-  name?: Prisma.StringFilter<"PluginTag"> | string
   createdAt?: Prisma.DateTimeFilter<"PluginTag"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PluginTag"> | Date | string
   Plugin?: Prisma.PluginListRelationFilter
-}, "id">
+}, "id" | "name">
 
 export type PluginTagOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
