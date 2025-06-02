@@ -46,6 +46,18 @@ const worker = new Worker(
           name: data.name,
           overview: data.overview,
           iconURL: data.iconURL,
+          Tags: {
+            connectOrCreate: data.tags
+              ? data.tags.map((tag) => ({
+                  where: {
+                    name: tag,
+                  },
+                  create: {
+                    name: tag,
+                  },
+                }))
+              : undefined,
+          },
           Versions: {
             create: {
               version: data.version,
@@ -59,6 +71,18 @@ const worker = new Worker(
           overview: data.overview,
           entry: data.entry,
           iconURL: data.iconURL,
+          Tags: {
+            connectOrCreate: data.tags
+              ? data.tags.map((tag) => ({
+                  where: {
+                    name: tag,
+                  },
+                  create: {
+                    name: tag,
+                  },
+                }))
+              : undefined,
+          },
           Versions: {
             create: {
               version: data.version,

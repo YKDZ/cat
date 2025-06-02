@@ -43,6 +43,9 @@ export class PluginRegistry {
         id: true,
         entry: true,
       },
+      orderBy: {
+        id: "asc",
+      },
     });
 
     if (plugins.length === 0) {

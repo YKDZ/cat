@@ -1,17 +1,21 @@
-<template>
-  <h1>{{ heading }}</h1>
-  <p>{{ abortReason }}</p>
-</template>
-
 <script lang="ts" setup>
+import Button from "@/app/components/Button.vue";
 import { usePageContext } from "vike-vue/usePageContext";
 
 const ctx = usePageContext();
+
 let { is404, abortReason } = ctx;
+
 if (!abortReason) {
-  abortReason = is404
-    ? "This page could not be found."
-    : "Something went wrong.";
+  abortReason = is404 ? "页面不存在" : "出错了";
 }
-const heading = is404 ? "404 Page Not Found" : "500 Internal Server Error";
+
+const handleBack = () => {
+  window.history.back();
+};
 </script>
+
+<template>
+  <p>{{ abortReason }}</p>
+  <Button icon="i-mdi:arrow-left" @click="handleBack">返回上一页</Button>
+</template>

@@ -4,6 +4,7 @@ export const PluginManifestSchema = z.object({
   id: z.string(),
   entry: z.string(),
   iconURL: z.url().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const PluginDataSchema = PluginManifestSchema.extend({

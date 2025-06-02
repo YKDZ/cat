@@ -55,7 +55,7 @@ const dynBtnClasses = computed(() => {
   else
     return {
       "w-full": props.fullWidth && !props.noText,
-      "w-fit px-4.5 py-3.5 gap-1": !props.fullWidth && !props.noText,
+      "w-fit px-4 py-3 gap-1": !props.fullWidth && !props.noText,
       "w-12 h-12 gap-0 aspect-ratio-square": props.noText,
       "text-highlight bg-base":
         !props.transparent && !props.disabled && !props.focused,

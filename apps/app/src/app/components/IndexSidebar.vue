@@ -9,7 +9,7 @@ import { storeToRefs } from "pinia";
 import { useSidebarStore } from "../stores/sidebar";
 import Logo from "./Logo.vue";
 import DropdownMenu from "./dropdown/DropdownMenu.vue";
-import LogoutButton from "./LogoutButton.vue";
+import LogoutBtn from "./LogoutBtn.vue";
 
 const mouseInSidebar = ref<boolean>(false);
 
@@ -76,8 +76,9 @@ const items = ref([
             large
             :icon="item.icon"
             @click="navigate(item.path)"
-            >{{ item.text }}</Button
           >
+            {{ item.text }}
+          </Button>
         </div>
       </div>
       <!-- Bottom -->
@@ -95,7 +96,7 @@ const items = ref([
           </template>
           <template #content>
             <div class="flex flex-col">
-              <LogoutButton />
+              <LogoutBtn />
             </div>
           </template>
         </DropdownMenu>
