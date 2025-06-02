@@ -120,3 +120,5 @@ worker.on("failed", async (job) => {
 
   logger.error("PROCESSER", `Failed import_plugin task: ${id}`, job);
 });
+
+export const importPluginWorker = worker;

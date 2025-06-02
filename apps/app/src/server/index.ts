@@ -1,51 +1,18 @@
+import { PluginRegistry } from "@cat/plugin-core";
 import "dotenv/config";
+import { Server } from "http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import app from "./app";
 import { getCookieFunc } from "./utils/cookie";
+import { initDB, shutdownServer } from "./utils/server";
 import { userFromSessionId } from "./utils/user";
-import { useStorage } from "@/server/utils/storage/useStorage";
-import { HeadBucketCommand } from "@aws-sdk/client-s3";
-import { PrismaDB, RedisDB, ESDB, S3DB, prisma, redis, es, s3 } from "@cat/db";
-import { logger } from "@cat/shared";
-import { PluginRegistry } from "@cat/plugin-core";
-import { initIndex } from "./utils/es";
 
-const initDB = async () => {
-  try {
-    const { type: storageType } = useStorage();
+let server: Server | null = null;
 
-    await PrismaDB.connect();
-    await RedisDB.connect();
-    await ESDB.connect();
-    if (storageType === "S3") await S3DB.connect();
-
-    logger.info("DB", "Successfully connect to database.");
-
-    await prisma.$queryRaw`SELECT 1`;
-    await redis.ping();
-    await es.ping();
-    if (storageType === "S3")
-      await s3.send(
-        new HeadBucketCommand({
-          Bucket: process.env.S3_UPLOAD_BUCKET_NAME ?? "cat",
-        }),
-      );
-
-    logger.info("DB", "All database is health.");
-
-    await initIndex();
-
-    logger.info("DB", "Successfully init es index");
-  } catch (e) {
-    logger.error(
-      "DB",
-      "Database init failed. CAT process will exit with code 1 now.",
-      e,
-    );
-    process.exit(1);
-  }
-};
+process.on("SIGTERM", () => shutdownServer(server!));
+process.on("SIGQUIT", () => shutdownServer(server!));
+process.on("SIGINT", () => shutdownServer(server!));
 
 function startServer() {
   const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
@@ -66,7 +33,8 @@ function startServer() {
 
   return serve(app, {
     port,
-    onCreate: async () => {
+    onCreate: async (nodeServer) => {
+      server = nodeServer as Server;
       await initDB();
       await PluginRegistry.getInstance().loadPlugins();
     },

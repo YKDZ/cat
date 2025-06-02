@@ -6,7 +6,13 @@ export enum LogLevel {
   OFF = 50,
 }
 
-export type Situation = "PLUGIN" | "RPC" | "WEB" | "PROCESSER" | "DB";
+export type Situation =
+  | "PLUGIN"
+  | "RPC"
+  | "WEB"
+  | "PROCESSER"
+  | "DB"
+  | "SERVER";
 
 export interface LoggerOptions {
   level?: LogLevel;

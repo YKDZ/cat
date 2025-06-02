@@ -7,7 +7,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "load-internal-plugins": "node scripts/load-internal-plugins.js",
-    "build:docker:app": "docker build . -f apps/app/Dockerfile"
+    "build:docker:app": "docker build -f apps/app/Dockerfile . -t ykdz/cat",
+    "docker:push:app": "docker push ykdz/cat"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",
