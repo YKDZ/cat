@@ -263,7 +263,7 @@ export const documentRouter = router({
       return DocumentSchema.nullable().parse(document);
     }),
   queryElementTotalAmount: authedProcedure
-    .input(z.object({ id: z.string(), searchQuery: z.string() }))
+    .input(z.object({ id: z.string(), searchQuery: z.string().default("") }))
     .query(async ({ input }) => {
       const { id, searchQuery } = input;
 
@@ -502,7 +502,7 @@ export const documentRouter = router({
         documentId: z.string(),
         page: z.number().int().int().default(0),
         pageSize: z.number().int().int().default(16),
-        searchQuery: z.string(),
+        searchQuery: z.string().default(""),
       }),
     )
     .output(z.array(TranslatableElementSchema))
@@ -532,7 +532,7 @@ export const documentRouter = router({
         id: z.number(),
         documentId: z.string(),
         pageSize: z.number().int().default(16),
-        searchQuery: z.string(),
+        searchQuery: z.string().default(""),
       }),
     )
     .output(z.number().int())

@@ -5,7 +5,7 @@ export default [
   {
     input: "src/index.ts",
     output: {
-      file: "dist/index.js",
+      dir: "dist",
       format: "esm",
       sourcemap: true,
     },
@@ -17,6 +17,18 @@ export default [
         declarationMap: false,
         outDir: null,
       }),
+    ],
+    external: [
+      "@prisma/client",
+      "@aws-sdk/s3-request-presigner",
+      "@aws-sdk/client-s3",
+      "@elastic/elasticsearch",
+      "@prisma/client/runtime/library",
+      "dotenv/config",
+      "redis",
+      "node:process",
+      "node:path",
+      "node:url",
     ],
   },
 

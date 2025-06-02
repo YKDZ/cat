@@ -1,4 +1,4 @@
-import { es } from "@cat/db";
+import { es, prisma } from "@cat/db";
 import { TermRelation } from "@cat/shared";
 
 export const insertTerms = async (...relations: TermRelation[]) => {
@@ -10,15 +10,66 @@ export const insertTerm = async (relation: TermRelation) => {
 
   if (!term || !translation) return;
 
-  const indexName = `terms_${term.languageId.toLowerCase()}`;
+  const index = `terms_${term.languageId.toLowerCase()}`;
 
+  await es.index({
+    index,
+    document: {
+      value: term.value,
+      translationId: translation.id,
+    },
+  });
+};
+
+export const searchTerm = async (
+  text: string,
+  languageId: string,
+): Promise<number[]> => {
+  const index = `terms_${languageId.toLowerCase()}`;
+  const tokens =
+    (
+      await es.indices.analyze({
+        index,
+        text,
+      })
+    ).tokens?.map((token) => token.token) ?? [];
+  return (
+    await es.search<{
+      value: string;
+      translationId: number;
+    }>({
+      index,
+      query: {
+        bool: {
+          should: tokens.map((token) => ({
+            match: {
+              value: {
+                query: token,
+                operator: "and",
+                fuzziness: 1,
+                prefix_length: 1,
+                max_expansions: 50,
+                fuzzy_transpositions: true,
+              },
+            },
+          })),
+          minimum_should_match: 1,
+        },
+      },
+    })
+  ).hits.hits
+    .map((hit) => hit._source?.translationId)
+    .filter((id) => id !== undefined);
+};
+
+export const testIndex = async (index: string) => {
   const isExits = await es.indices.exists({
-    index: indexName,
+    index,
   });
 
   if (!isExits) {
     await es.indices.create({
-      index: indexName,
+      index,
       settings: {
         analysis: {
           analyzer: {
@@ -50,52 +101,18 @@ export const insertTerm = async (relation: TermRelation) => {
       },
     });
   }
-
-  await es.index({
-    index: indexName,
-    document: {
-      value: term.value,
-      translationId: translation.id,
-    },
-  });
 };
 
-export const searchTerm = async (
-  text: string,
-  languageId: string,
-): Promise<number[]> => {
-  const tokens =
+export const initIndex = async () => {
+  await Promise.all(
     (
-      await es.indices.analyze({
-        index: `terms_${languageId.toLowerCase()}`,
-        text,
-      })
-    ).tokens?.map((token) => token.token) ?? [];
-  return (
-    await es.search<{
-      value: string;
-      translationId: number;
-    }>({
-      index: `terms_${languageId.toLowerCase()}`,
-      query: {
-        bool: {
-          should: tokens.map((token) => ({
-            match: {
-              value: {
-                query: token,
-                operator: "and",
-                fuzziness: 1,
-                prefix_length: 1,
-                max_expansions: 50,
-                fuzzy_transpositions: true,
-              },
-            },
-          })),
-          minimum_should_match: 1,
+      await prisma.language.findMany({
+        select: {
+          id: true,
         },
-      },
-    })
-  ).hits.hits
-    .map((hit) => hit._source?.translationId)
-    .filter((id) => id !== undefined);
+      })
+    ).map(async ({ id }) => {
+      return await testIndex(`terms_${id.toLowerCase()}`);
+    }),
+  );
 };

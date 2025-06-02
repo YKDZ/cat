@@ -47,7 +47,8 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 FROM builder AS deployer
 WORKDIR /builder
 
-RUN pnpm --filter=@cat/app deploy --legacy --prod --no-optional /deployer
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm --filter=@cat/app deploy --legacy --prod --no-optional /deployer
 
 # --- 5. Runner: 拷贝运行时产物到最小镜像 ---
 FROM node:22-alpine AS runner
@@ -59,8 +60,8 @@ COPY --from=deployer /deployer/node_modules ./node_modules
 COPY --from=deployer /deployer/dist ./dist
 COPY --from=deployer /deployer/package.json ./package.json
 COPY --from=deployer /deployer/plugins ./plugins
-# 重要依赖
+# Prisma
+COPY --from=builder /builder/packages/db/prisma ./prisma
 COPY --from=builder /builder/packages/db/src/generated/prisma/libquery_engine* /tmp/prisma-engines/
 
-
-CMD ["node", "dist/server/index.js"]
+CMD ["npm", "run", "docker-entrypoint"]
