@@ -37,10 +37,6 @@ const worker = new Worker(
       vectorizerId: string;
     } = job.data;
 
-    console.log(
-      PluginRegistry.getInstance().getTranslatableFileHandlers()[0].getId(),
-    );
-
     const handler = PluginRegistry.getInstance()
       .getTranslatableFileHandlers()
       .find((handler) => handler.getId() === handlerId);

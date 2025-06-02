@@ -29,7 +29,7 @@ const modalValue = defineModel({ type: String });
   <div
     class="flex gap-1 items-center relative"
     :class="{
-      'max-w-2/3': !fullWidth,
+      'md:max-w-2/3': !fullWidth,
       'w-full': fullWidth,
     }"
   >
