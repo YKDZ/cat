@@ -8,7 +8,7 @@ import logoUrl from "../../assets/logo.png";
 import type { Data } from "./+data";
 import { usePageContext } from "vike-vue/usePageContext";
 
-const utx = usePageContext();
+const ctx = usePageContext();
 
 const data = useData<Data>();
 
