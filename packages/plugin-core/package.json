@@ -39,13 +39,13 @@
     "@cat/eslint-config": "workspace:*",
     "@cat/shared": "workspace:*",
     "@cat/db": "workspace:*",
-    "@types/node": "^22.15.23",
+    "@types/node": "^22.15.29",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "vite-plugin-dts": "^4.5.4",
     "vue": "^3.5.15",
-    "zod": "^3.25.32"
+    "zod": "^3.25.48"
   },
   "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
 }
