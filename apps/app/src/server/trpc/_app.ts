@@ -9,6 +9,7 @@ import { userRouter } from "./routers/user";
 import { memoryRouter } from "./routers/memory";
 import { glossaryRouter } from "./routers/glossary";
 import { pluginRouter } from "./routers/plugin";
+import { settingRouter } from "./routers/setting";
 
 export const appRouter = router({
   auth: authRouter,
@@ -21,6 +22,7 @@ export const appRouter = router({
   memory: memoryRouter,
   glossary: glossaryRouter,
   plugin: pluginRouter,
+  setting: settingRouter,
 });
 
 export type AppRouter = typeof appRouter;
