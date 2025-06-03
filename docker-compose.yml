@@ -1,6 +1,6 @@
 services:
   app:
-    image: ykdz/cat
+    image: ykdz/cat:latest
     depends_on:
       redis:
         condition: service_healthy

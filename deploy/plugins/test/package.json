@@ -1,0 +1,10 @@
+{
+  "name": "@cat-plugin/test",
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "./dist/index.mjs",
+  "type": "module",
+  "files": [
+    "dist"
+  ]
+}

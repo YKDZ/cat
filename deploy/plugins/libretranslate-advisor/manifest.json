@@ -1,0 +1,5 @@
+{
+  "id": "libretranslate-advisor",
+  "entry": "dist/index.mjs",
+  "iconURL": "https://unocss.dev/logo.svg"
+}
