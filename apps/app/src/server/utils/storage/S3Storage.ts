@@ -10,6 +10,10 @@ import { Readable } from "node:stream";
 import { S3DB, setting } from "@cat/db";
 
 export class S3Storage implements Storage {
+  constructor() {
+    if (!S3DB.client) S3DB.connect();
+  }
+
   getId() {
     return "S3";
   }
@@ -45,26 +49,21 @@ export class S3Storage implements Storage {
   }
 
   async generateUploadURL(path: string, expiresIn: number) {
-    try {
-      const s3UploadBucketName = (await setting(
-        "s3.bucket-name",
-        "cat",
-      )) as string;
+    const s3UploadBucketName = (await setting(
+      "s3.bucket-name",
+      "cat",
+    )) as string;
 
-      const params: PutObjectCommandInput = {
-        Bucket: s3UploadBucketName,
-        Key: path.replaceAll("\\", "/"),
-      } as PutObjectCommandInput;
-      const command = new PutObjectCommand(params);
-      const presignedUrl = await getSignedUrl(S3DB.client!, command, {
-        expiresIn,
-      });
+    const params: PutObjectCommandInput = {
+      Bucket: s3UploadBucketName,
+      Key: path.replaceAll("\\", "/"),
+    } as PutObjectCommandInput;
+    const command = new PutObjectCommand(params);
+    const presignedUrl = await getSignedUrl(S3DB.client!, command, {
+      expiresIn,
+    });
 
-      return presignedUrl;
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
+    return presignedUrl;
   }
 
   async generateURL(file: File, expiresIn: number) {

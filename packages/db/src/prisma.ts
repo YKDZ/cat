@@ -20,6 +20,10 @@ export class PrismaDB {
   static async disconnect() {
     await PrismaDB.instance.client.$disconnect();
   }
+
+  static async ping() {
+    await prisma.$queryRaw`SELECT 1`;
+  }
 }
 
 new PrismaDB();

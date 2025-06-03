@@ -61,6 +61,10 @@ export class RedisDB {
     RedisDB.instance.redisPub.destroy();
     RedisDB.instance.redisSub.destroy();
   }
+
+  static async ping() {
+    await redis.ping();
+  }
 }
 
 new RedisDB();

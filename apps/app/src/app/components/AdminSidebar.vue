@@ -22,29 +22,14 @@ const { user } = usePageContext();
 
 const items = ref([
   {
-    path: "/",
+    path: "/admin",
     icon: "i-mdi:home",
-    text: "主页",
+    text: "首页",
   },
   {
-    path: "/projects",
+    path: "/admin/settings",
     icon: "i-mdi:folder",
-    text: "项目",
-  },
-  {
-    path: "/glossaries",
-    icon: "i-mdi:file-word-box",
-    text: "术语",
-  },
-  {
-    path: "/memories",
-    icon: "i-mdi:zip-box",
-    text: "记忆",
-  },
-  {
-    path: "/plugins",
-    icon: "i-mdi:toy-brick",
-    text: "插件",
+    text: "参数设置",
   },
 ]);
 </script>
@@ -74,7 +59,6 @@ const items = ref([
             full-width
             transparent
             left
-            large
             :icon="item.icon"
             @click="navigate(item.path)"
           >
