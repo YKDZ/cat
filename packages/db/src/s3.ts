@@ -1,5 +1,5 @@
-import { S3Client } from "@aws-sdk/client-s3";
-import { settings } from "./utils/setting";
+import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
+import { setting, settings } from "./utils/setting";
 
 export class S3DB {
   public static instance: S3DB;
@@ -21,5 +21,14 @@ export class S3DB {
 
   static async disconnect() {
     S3DB.client.destroy();
+  }
+
+  static async ping() {
+    const bucket = (await setting("s3.bucket-name", "cat")) as string;
+    await S3DB.client.send(
+      new HeadBucketCommand({
+        Bucket: bucket,
+      }),
+    );
   }
 }

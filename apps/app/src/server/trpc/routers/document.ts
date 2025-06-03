@@ -35,7 +35,7 @@ export const documentRouter = router({
       const { meta } = input;
       const {
         storage: { getId, getBasicPath, generateUploadURL },
-      } = useStorage();
+      } = await useStorage();
 
       const name = sanitizeFileName(meta.name);
 

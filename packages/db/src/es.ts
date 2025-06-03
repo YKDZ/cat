@@ -26,6 +26,10 @@ export class ESDB {
   static async disconnect() {
     ESDB.instance.client.close();
   }
+
+  static async ping() {
+    await es.ping();
+  }
 }
 
 new ESDB();

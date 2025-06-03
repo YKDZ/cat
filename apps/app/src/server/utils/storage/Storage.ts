@@ -1,4 +1,4 @@
-import { File, FileMeta } from "@cat/shared";
+import { File } from "@cat/shared";
 
 export interface Storage {
   getId: () => string;

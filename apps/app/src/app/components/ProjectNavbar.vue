@@ -1,75 +1,54 @@
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
-import ProjectNavbarItem from "./ProjectNavbarItem.vue";
+import { ref } from "vue";
+import Navbar from "./navbar/Navbar.vue";
+import { usePageContext } from "vike-vue/usePageContext";
+import type { NavbarItemType } from "./navbar";
 
-const items = ref([
+const ctx = usePageContext();
+
+const items = ref<NavbarItemType[]>([
   {
     text: "主页",
     to: "",
     selected: false,
-    fallback: true,
+    icon: "i-mdi:earth",
   },
   {
     text: "文档",
     to: "/documents",
     selected: false,
-    fallback: false,
+    icon: "i-mdi:document",
   },
   {
     text: "记忆",
     to: "/memories",
     selected: false,
-    fallback: false,
+    icon: "i-mdi:zip-box",
   },
   {
     text: "术语",
     to: "/glossaries",
     selected: false,
-    fallback: false,
+    icon: "i-mdi:file-word-box",
   },
   {
     text: "成员",
     to: "/members",
     selected: false,
-    fallback: false,
+    icon: "i-mdi:account-group",
   },
   {
     text: "设置",
     to: "/settings",
     selected: false,
-    fallback: false,
+    icon: "i-mdi:cog",
   },
 ]);
-
-const fallbackTrigger = ref(false);
-
-const handleSelect = (id: string, from: boolean, to: boolean) => {
-  const index = items.value.findIndex((item) => item.to === id);
-  if (index === -1) return;
-
-  const newItem = items.value[index];
-  newItem.selected = to;
-  items.value.splice(index, 1, newItem);
-};
-
-watchEffect(() => {
-  const index = items.value.findIndex((item) => item.selected === true);
-  fallbackTrigger.value = index === -1;
-});
 </script>
 
 <template>
-  <nav>
-    <ol class="flex items-center">
-      <ProjectNavbarItem
-        v-for="item in items"
-        :key="item.to"
-        v-model:fallback-trigger="fallbackTrigger"
-        :text="item.text"
-        :to="item.to"
-        :fallback="item.fallback"
-        @select="(from, to) => handleSelect(item.to, from, to)"
-      />
-    </ol>
-  </nav>
+  <Navbar
+    v-model="items"
+    :path-prefix="`/project/${ctx.routeParams.projectId}`"
+  />
 </template>

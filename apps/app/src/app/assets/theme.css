@@ -10,3 +10,7 @@
   --cat-theme-base-content: #ffffff;
   --cat-theme-base-content-darker: #ffffff;
 }
+
+.page-transition {
+  cursor: wait;
+}

@@ -1,15 +1,11 @@
+import { setting } from "@cat/db";
 import { LocalStorage } from "./LocalStorage";
 import { S3Storage } from "./S3Storage";
-import { Storage } from "./Storage";
 
-const type =
-  import.meta.env.STORAGE_TYPE?.trim().toLowerCase() === "s3" ? "S3" : "LOCAL";
-
-const storage: Storage = type === "S3" ? new S3Storage() : new LocalStorage();
-
-export const useStorage = () => {
+export const useStorage = async () => {
+  const type = (await setting("server.storage-type", "local")) as string;
   return {
-    storage,
+    storage: type === "S3" ? new S3Storage() : new LocalStorage(),
     type,
   };
 };

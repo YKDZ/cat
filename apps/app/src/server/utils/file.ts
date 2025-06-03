@@ -15,7 +15,6 @@ export const safeJoinPath = (
   const fullPath = resolve(root, normalize(normalizedSub), filename);
   const resolvedRoot = resolve(root);
 
-  // 防止路径遍历攻击
   if (!fullPath.startsWith(resolvedRoot)) {
     throw new Error("路径超出允许的范围");
   }

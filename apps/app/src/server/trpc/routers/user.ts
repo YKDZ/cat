@@ -77,7 +77,7 @@ export const userRouter = router({
 
       const {
         storage: { getId, getBasicPath, generateUploadURL },
-      } = useStorage();
+      } = await useStorage();
 
       const sanitizedName = meta.name.replace(/[^\w.-]/g, "_");
       const name = `${randomUUID()}-${sanitizedName}`;
@@ -153,7 +153,7 @@ export const userRouter = router({
 
       const {
         storage: { generateURL },
-      } = useStorage();
+      } = await useStorage();
       const url = await generateURL(user.AvatarFile, expiresIn);
 
       return {
