@@ -5,8 +5,9 @@ import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import app from "./app";
 import { getCookieFunc } from "./utils/cookie";
-import { initDB, shutdownServer } from "./utils/server";
+import { initDB, initSettings, shutdownServer } from "./utils/server";
 import { userFromSessionId } from "./utils/user";
+import { setting } from "@cat/db";
 
 let server: Server | null = null;
 
@@ -22,8 +23,10 @@ function startServer() {
       const cookie = runtime.req?.headers["cookie"] ?? "";
       const sessionId = getCookieFunc(cookie)("sessionId");
       const user = await userFromSessionId(sessionId ?? "");
+      const name = (await setting("server.name", "CAT")) as string;
 
       return {
+        name,
         user,
         sessionId,
         pluginRegistry: PluginRegistry.getInstance(),
@@ -36,6 +39,7 @@ function startServer() {
     onCreate: async (nodeServer) => {
       server = nodeServer as Server;
       await initDB();
+      await initSettings();
       await PluginRegistry.getInstance().loadPlugins();
     },
   });

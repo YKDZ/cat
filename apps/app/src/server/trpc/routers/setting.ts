@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
 import { prisma } from "@cat/db";
-import { get } from "http";
 
 export const settingRouter = router({
   set: authedProcedure
@@ -28,7 +27,7 @@ export const settingRouter = router({
         key: z.string(),
       }),
     )
-    .output(z.json())
+    .output(z.json().nullable())
     .query(async ({ input }) => {
       const { key } = input;
 

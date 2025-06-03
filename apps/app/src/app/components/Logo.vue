@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import logoURL from "@/app/assets/logo.png";
+import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 
 const props = defineProps({
   link: Boolean,
 });
+
+const ctx = usePageContext();
 </script>
 
 <template>
@@ -17,6 +20,6 @@ const props = defineProps({
     @click="link && navigate(`/`)"
   >
     <img :src="logoURL" alt="Logo" class="h-6 w-6" />
-    <span class="font-bold">CAT</span>
+    <span class="font-bold">{{ ctx.name }}</span>
   </div>
 </template>

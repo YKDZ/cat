@@ -44,7 +44,11 @@ model Permission {
 }
 
 model Setting {
-    id    Int    @id @default(autoincrement())
-    key   String @unique
-    value Json
+    id        Int      @id @default(autoincrement())
+    key       String   @unique
+    value     Json
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    @@index([key])
 }

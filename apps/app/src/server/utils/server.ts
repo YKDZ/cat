@@ -1,9 +1,9 @@
-import { ESDB, PrismaDB, RedisDB, S3DB } from "@cat/db";
-import { logger } from "@cat/shared";
+import { ESDB, prisma, PrismaDB, RedisDB } from "@cat/db";
+import { logger, SettingSchema } from "@cat/shared";
 import { Server } from "http";
+import z from "zod/v4";
 import { closeAllProcessors } from "../processor";
 import { initESIndex } from "./es";
-import { useStorage } from "./storage/useStorage";
 
 export const shutdownServer = async (server: Server) => {
   logger.info("SERVER", "About to shutdown server gracefully...");
@@ -30,15 +30,11 @@ export const initDB = async () => {
     await RedisDB.connect();
     await ESDB.connect();
 
-    const { type } = await useStorage();
-    if (type === "S3") await S3DB.connect();
-
     logger.info("DB", "Successfully connect to all database.");
 
     await PrismaDB.ping();
     await RedisDB.ping();
     await ESDB.ping();
-    if (type === "S3") await S3DB.ping();
 
     logger.info("DB", "All database is health.");
 
@@ -51,4 +47,75 @@ export const initDB = async () => {
     );
     process.exit(1);
   }
+};
+
+const settings: SettingData[] = [
+  {
+    key: "s3.region",
+    value: "cn-south-1",
+  },
+  {
+    key: "s3.access-key-id",
+    value: "your key id",
+  },
+  {
+    key: "s3.secret-access-key",
+    value: "your key",
+  },
+  {
+    key: "s3.bucket-name",
+    value: "cat",
+  },
+  {
+    key: "s3.endpoint-url",
+    value: "http://localhost:9001",
+  },
+  {
+    key: "s3.force-path-style",
+    value: true,
+  },
+  {
+    key: "s3.storage-type",
+    value: "LOCAL",
+  },
+  {
+    key: "server.url",
+    value: "http://localhost:3000",
+  },
+  {
+    key: "server.name",
+    value: "CAT",
+  },
+];
+
+const SettingDataSchema = SettingSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+type SettingData = z.infer<typeof SettingDataSchema>;
+
+export const initSettings = async () => {
+  await prisma.$transaction(async (tx) => {
+    await Promise.all(
+      settings
+        .map((setting) => SettingDataSchema.parse(setting))
+        .map(async ({ key, value }) => {
+          const current = await tx.setting.findUnique({
+            where: {
+              key,
+            },
+          });
+
+          if (current) return;
+
+          await tx.setting.create({
+            data: {
+              key,
+              value,
+            },
+          });
+        }),
+    );
+  });
 };

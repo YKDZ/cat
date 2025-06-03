@@ -152,8 +152,10 @@ export const useEditorStore = defineStore("editor", () => {
     memories.value = [];
   };
 
-  const element = computed(() =>
-    storedElements.value.find((element) => element.id === elementId.value),
+  const element = computed(
+    (): TranslatableElement | null =>
+      storedElements.value.find((element) => element.id === elementId.value) ??
+      null,
   );
 
   const displayedElements = computed(() => {
@@ -192,7 +194,7 @@ export const useEditorStore = defineStore("editor", () => {
     if (!user || !translations.value) return null;
 
     return (
-      translations.value.find((translation) => {
+      translations.value.find((translation: { translatorId: string }) => {
         return translation.translatorId === user.id;
       }) ?? null
     );
