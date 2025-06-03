@@ -5,3 +5,5 @@ generated/prisma
 .github
 .vscode
 .env
+Dockerfile
+.dockerignore

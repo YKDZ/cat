@@ -1,0 +1,5 @@
+{
+  "id": "ollama-vectorizer",
+  "entry": "dist/index.mjs",
+  "iconURL": "https://unocss.dev/logo.svg"
+}

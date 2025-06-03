@@ -75,7 +75,7 @@ const settings: SettingData[] = [
     value: true,
   },
   {
-    key: "s3.storage-type",
+    key: "server.storage-type",
     value: "LOCAL",
   },
   {
