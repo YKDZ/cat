@@ -48,10 +48,9 @@ const update = async () => {
   })) as string;
 };
 
-watch(value, (to) => to && handleSet());
-
 onMounted(async () => {
   await update();
+  watch(value, (to) => to && handleSet());
 });
 </script>
 

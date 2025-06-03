@@ -43,7 +43,7 @@ export default defineConfig({
         "module",
         "fs/promises",
         "url",
-        "zod",
+        "zod/v4",
         "module",
         "@cat/shared",
         "@cat/db",

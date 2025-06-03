@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AdminSettingsBoolean from "@/app/components/AdminSettingsBoolean.vue";
 import AdminSettingsPicker from "@/app/components/AdminSettingsPicker.vue";
 import AdminSettingsString from "@/app/components/AdminSettingsString.vue";
 import AdminSettingsTitle from "@/app/components/AdminSettingsTitle.vue";
@@ -51,6 +52,11 @@ import AdminSettingsURL from "@/app/components/AdminSettingsURL.vue";
         setting-key="s3.secret-access-key"
         icon="i-mdi:key"
         label="令牌密钥"
+      />
+      <AdminSettingsBoolean
+        setting-key="s3.force-path-style"
+        icon="i-mdi:path"
+        label="强制路径样式"
       />
     </div>
   </div>

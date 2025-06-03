@@ -5,6 +5,7 @@ import type { PluginRegistry } from "@cat/plugin-core";
 declare global {
   namespace Vike {
     interface PageContext {
+      name: string;
       user: User | null;
       sessionId: string | null;
       _piniaInitState?: StateTree;

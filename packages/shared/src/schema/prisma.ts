@@ -3,6 +3,14 @@ import { ElementTranslationStatusSchema } from "./misc";
 
 export const PrimsaDateTime = z.date().or(z.iso.date());
 
+export const SettingSchema = z.object({
+  id: z.int(),
+  key: z.string(),
+  value: z.json(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+});
+
 export const PluginTagSchema = z.object({
   id: z.number().int(),
   name: z.string(),
@@ -43,10 +51,18 @@ export const PluginSchema = z.object({
   isExternal: z.boolean(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  Config: PluginConfigSchema.optional(),
-  Permissions: z.array(PluginPermissionSchema).optional(),
-  Versions: z.array(PluginVersionSchema).optional(),
-  Tags: z.array(PluginTagSchema).optional(),
+  get Config() {
+    return PluginConfigSchema.optional();
+  },
+  get Permissions() {
+    return z.array(PluginPermissionSchema).optional();
+  },
+  get Versions() {
+    return z.array(PluginVersionSchema).optional();
+  },
+  get Tags() {
+    return z.array(PluginTagSchema).optional();
+  },
 });
 
 export const TaskSchema = z.object({
@@ -82,9 +98,13 @@ export const FileSchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   typeId: z.number().int(),
-  Type: FileTypeSchema.optional(),
+  get Type() {
+    return FileTypeSchema.optional();
+  },
   storageTypeId: z.number().int(),
-  StorageType: StorageTypeSchema.optional(),
+  get StorageType() {
+    return StorageTypeSchema.optional();
+  },
 });
 
 export const LanguageSchema = z.object({
@@ -114,10 +134,18 @@ export const UserSchema = z.object({
   emailVerified: z.boolean().default(false),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  writableLanguages: z.array(LanguageSchema).optional(),
-  readableLanguages: z.array(LanguageSchema).optional(),
-  Permissions: z.array(PermissionSchema).optional(),
-  TranslationVotes: z.array(TranslationVoteSchema).optional(),
+  get WritableLanguages() {
+    return z.array(LanguageSchema).optional();
+  },
+  get ReadableLanguages() {
+    return z.array(LanguageSchema).optional();
+  },
+  get Permissions() {
+    return z.array(PermissionSchema).optional();
+  },
+  get TranslationVotes() {
+    return z.array(TranslationVoteSchema).optional();
+  },
 });
 
 export const AccountSchema = z.object({
@@ -127,7 +155,9 @@ export const AccountSchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   userId: z.cuid2(),
-  User: UserSchema.optional(),
+  get User() {
+    return UserSchema.optional();
+  },
 });
 
 export const TranslatableElementSchema = z.object({
@@ -135,7 +165,9 @@ export const TranslatableElementSchema = z.object({
   value: z.string(),
   meta: z.json(),
   embeddingId: z.number().int(),
-  Embedding: VectorSchema.optional(),
+  get Embedding() {
+    return VectorSchema.optional();
+  },
   // 不是数据库中的一个列
   // 仅用于前端临时储存数据
   status: ElementTranslationStatusSchema.optional().default("NO"),
@@ -149,12 +181,20 @@ export const TranslationSchema = z.object({
   isApproved: z.boolean().default(false),
   lastApprovedAt: PrimsaDateTime.nullable(),
   translatorId: z.cuid2(),
-  Translator: UserSchema.optional(),
+  get Translator() {
+    return UserSchema.optional();
+  },
   translatableElementId: z.number().int(),
-  TranslatableElement: TranslatableElementSchema.optional(),
+  get TranslatableElement() {
+    return TranslatableElementSchema.optional();
+  },
   languageId: z.string(),
-  Language: LanguageSchema.optional(),
-  TranslationVotes: z.array(TranslationVoteSchema).optional(),
+  get Language() {
+    return LanguageSchema.optional();
+  },
+  get TranslationVotes() {
+    return z.array(TranslationVoteSchema).optional();
+  },
 });
 
 export const DocumentSchema = z.object({
@@ -162,10 +202,16 @@ export const DocumentSchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   creatorId: z.cuid2(),
-  Creator: UserSchema.optional(),
-  TranslatableElements: z.array(TranslatableElementSchema).optional(),
+  get Creator() {
+    return UserSchema.optional();
+  },
+  get TranslatableElements() {
+    return z.array(TranslatableElementSchema).optional();
+  },
   fileId: z.number().int().nullable(),
-  File: FileSchema.optional(),
+  get File() {
+    return FileSchema.optional();
+  },
   projectId: z.string(),
 });
 
@@ -175,15 +221,23 @@ export const MemoryItemSchema = z.object({
   updatedAt: PrimsaDateTime,
   source: z.string(),
   sourceLanguageId: z.string(),
-  SourceLanguage: LanguageSchema.optional(),
+  get SourceLanguage() {
+    return LanguageSchema.optional();
+  },
   translation: z.string(),
   translationLanguageId: z.string(),
-  TranslationLanguage: LanguageSchema.optional(),
+  get TranslationLanguage() {
+    return LanguageSchema.optional();
+  },
   sourceEmbeddingId: z.number().int(),
-  SourceEmbedding: z.array(z.number()).optional(),
+  get SourceEmbedding() {
+    return z.array(z.number()).optional();
+  },
   memoryId: z.number(),
   creatorId: z.cuid2(),
-  Creator: UserSchema.optional(),
+  get Creator() {
+    return UserSchema.optional();
+  },
 });
 
 export const MemorySchema = z.object({
@@ -193,8 +247,12 @@ export const MemorySchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   creatorId: z.cuid2(),
-  Creator: UserSchema.optional(),
-  MemoryItems: z.array(MemoryItemSchema).optional(),
+  get Creator() {
+    return UserSchema.optional();
+  },
+  get MemoryItems() {
+    return z.array(MemoryItemSchema).optional();
+  },
 });
 
 export const ProjectSchema = z.object({
@@ -203,13 +261,23 @@ export const ProjectSchema = z.object({
   description: z.string().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  Memories: z.array(MemorySchema).optional(),
+  get Memories() {
+    return z.array(MemorySchema).optional();
+  },
   sourceLanguageId: z.string(),
-  SourceLanguage: LanguageSchema.optional(),
+  get SourceLanguage() {
+    return LanguageSchema.optional();
+  },
   creatorId: z.cuid2(),
-  Creator: UserSchema.optional(),
-  TargetLanguages: z.array(LanguageSchema).optional(),
-  Documents: z.array(DocumentSchema).optional(),
+  get Creator() {
+    return UserSchema.optional();
+  },
+  get TargetLanguages() {
+    return z.array(LanguageSchema).optional();
+  },
+  get Documents() {
+    return z.array(DocumentSchema).optional();
+  },
 });
 
 export const PrismaErrorSchema = z.object({
@@ -227,16 +295,24 @@ export const TermSchema = z.object({
   updatedAt: PrimsaDateTime,
   glossaryId: z.cuid2(),
   languageId: z.string(),
-  Language: LanguageSchema.optional(),
+  get Language() {
+    return LanguageSchema.optional();
+  },
   creatorId: z.cuid2(),
-  Creator: UserSchema.optional(),
+  get Creator() {
+    return UserSchema.optional();
+  },
 });
 
 export const TermRelationSchema = z.object({
   termId: z.number().int(),
-  Term: TermSchema.optional(),
+  get Term() {
+    return TermSchema.optional();
+  },
   translationId: z.number().int(),
-  Translation: TermSchema.optional(),
+  get Translation() {
+    return TermSchema.optional();
+  },
 });
 
 export const GlossarySchema = z.object({
@@ -246,10 +322,15 @@ export const GlossarySchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   creatorId: z.cuid2(),
-  Creator: UserSchema.optional(),
-  GlossaryItems: z.array(TermSchema).optional(),
+  get Creator() {
+    return UserSchema.optional();
+  },
+  get GlossaryItems() {
+    return z.array(TermSchema).optional();
+  },
 });
 
+export type Setting = z.infer<typeof SettingSchema>;
 export type Vector = z.infer<typeof VectorSchema>;
 export type Document = z.infer<typeof DocumentSchema>;
 export type FileType = z.infer<typeof FileTypeSchema>;

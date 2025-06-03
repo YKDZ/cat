@@ -3,6 +3,7 @@ import { ref } from "vue";
 
 const props = defineProps({
   required: Boolean,
+  noOffset: Boolean,
 });
 
 const labelRef = ref<HTMLLabelElement>();
@@ -30,9 +31,10 @@ const focusNextFocusable = () => {
 <template>
   <label
     ref="labelRef"
-    class="text-highlight-content font-500 w-fit cursor-pointer select-none -mb-2"
+    class="text-highlight-content font-500 w-fit cursor-pointer select-none"
     :class="{
       'label after:text-red-500 after:ml-0.5': required,
+      '-mb-2': !noOffset,
     }"
     role="button"
     tabindex="0"

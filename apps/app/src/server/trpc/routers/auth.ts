@@ -1,4 +1,4 @@
-import { prisma, redis } from "@cat/db";
+import { prisma, redis, setting } from "@cat/db";
 import { AuthMethod, AuthMethodType } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
@@ -12,8 +12,11 @@ import {
   randomChars,
 } from "@/server/utils/auth";
 
-const getRedirectURL = () =>
-  new URL("/auth/oidc.callback", process.env.PUBLIC_ENV__URL).toString();
+const getRedirectURL = async () =>
+  new URL(
+    "/auth/oidc.callback",
+    (await setting("server.url", "http://localhost:3000")) as string,
+  ).toString();
 
 const oidcRouter = router({
   init: publicProcedure.query(async ({ ctx }) => {
@@ -31,7 +34,7 @@ const oidcRouter = router({
     const state = randomChars();
     const nonce = randomChars();
 
-    const authURL = createOIDCAuthURL(state, nonce);
+    const authURL = await createOIDCAuthURL(state, nonce);
 
     await createOIDCSession(state, nonce, ctx);
 
@@ -78,7 +81,7 @@ const oidcRouter = router({
         client_id: process.env.OIDC_CLIENT_ID ?? "",
         client_secret: process.env.OIDC_CLIENT_SECRET ?? "",
         code,
-        redirect_uri: getRedirectURL(),
+        redirect_uri: await getRedirectURL(),
         grant_type: "authorization_code",
       });
 
@@ -229,7 +232,10 @@ const oidcRouter = router({
     const state = randomBytes(16).toString("hex");
     const params = new URLSearchParams({
       id_token_hint: idToken,
-      post_logout_redirect_uri: process.env.PUBLIC_ENV__URL!,
+      post_logout_redirect_uri: (await setting(
+        "server.url",
+        "http://localhost:3000",
+      )) as string,
       state,
     });
 

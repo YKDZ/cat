@@ -1,4 +1,4 @@
-import { redis } from "@cat/db";
+import { redis, setting } from "@cat/db";
 import { randomBytes } from "crypto";
 import { HttpContext } from "../trpc/context";
 import { Account } from "@cat/shared";
@@ -41,10 +41,13 @@ export const createOIDCSession = async (
   ctx.setCookie("oidcSessionId", oidcSession, 60);
 };
 
-export const createOIDCAuthURL = (state: string, nonce: string): string => {
+export const createOIDCAuthURL = async (
+  state: string,
+  nonce: string,
+): Promise<string> => {
   const redirecturi = new URL(
     "/auth/oidc.callback",
-    process.env.PUBLIC_ENV__URL,
+    (await setting("server.url", "http://localhost:3000")) as string,
   ).toString();
 
   const url = new URL("", process.env.OIDC_AUTH_URI);

@@ -6,10 +6,7 @@ import Root from "../layouts/Root.vue";
 export default {
   Layout: Root,
 
-  title: "CAT",
-  description: "Self-hosted CAT platform",
-
-  passToClient: ["user", "_piniaInitState"],
+  passToClient: ["name", "user", "_piniaInitState"],
   extends: [vikeVue, vikeServer],
 
   server: "src/server/index.ts",
