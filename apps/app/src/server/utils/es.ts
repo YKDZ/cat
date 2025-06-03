@@ -103,7 +103,7 @@ export const testIndex = async (index: string) => {
   }
 };
 
-export const initIndex = async () => {
+export const initESIndex = async () => {
   await Promise.all(
     (
       await prisma.language.findMany({

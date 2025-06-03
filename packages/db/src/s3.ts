@@ -1,32 +1,25 @@
 import { S3Client } from "@aws-sdk/client-s3";
-import "dotenv/config";
+import { settings } from "./utils/setting";
 
 export class S3DB {
   public static instance: S3DB;
-  public client: S3Client;
+  public static client: S3Client;
 
-  constructor() {
-    if (S3DB.instance) throw Error("S3DB can only have a single instance");
+  static async connect() {
+    const setting = await settings("s3.");
 
-    S3DB.instance = this;
-    this.client = new S3Client({
-      region: process.env.S3_REGION ?? "auto",
-      endpoint: process.env.S3_ENDPOINT_URL,
+    S3DB.client = new S3Client({
+      region: (setting["s3.region"] as string) ?? "auto",
+      endpoint: (setting["s3.endpoint-url"] as string) ?? "",
       credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY_ID ?? "",
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? "",
+        accessKeyId: (setting["s3.access-key-id"] as string) ?? "",
+        secretAccessKey: (setting["s3.secret-access-key"] as string) ?? "",
       },
-      forcePathStyle: Boolean(process.env.S3_FORCE_PATH_STYLE),
+      forcePathStyle: Boolean(setting["s3.force-path-style"]),
     });
   }
 
-  static async connect() {}
-
   static async disconnect() {
-    S3DB.instance.client.destroy();
+    S3DB.client.destroy();
   }
 }
-
-new S3DB();
-
-export const s3: S3Client = S3DB.instance.client;

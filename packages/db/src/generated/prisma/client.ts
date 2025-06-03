@@ -107,6 +107,11 @@ export type StorageType = Prisma.StorageTypeModel
  */
 export type Permission = Prisma.PermissionModel
 /**
+ * Model Setting
+ * 
+ */
+export type Setting = Prisma.SettingModel
+/**
  * Model Plugin
  * 
  */

@@ -70,7 +70,7 @@ export const userRouter = router({
         meta: FileMetaSchema,
       }),
     )
-    .output(z.string().url())
+    .output(z.url())
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
       const { meta } = input;

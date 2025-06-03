@@ -1,12 +1,10 @@
-import { es, ESDB, prisma, PrismaDB, redis, RedisDB, s3, S3DB } from "@cat/db";
-import { useStorage } from "./storage/useStorage";
 import { HeadBucketCommand } from "@aws-sdk/client-s3";
+import { es, ESDB, prisma, PrismaDB, redis, RedisDB, S3DB } from "@cat/db";
 import { logger } from "@cat/shared";
-import { initIndex } from "./es";
 import { Server } from "http";
-import { documentFromFilePretreatmentWorker } from "../processor/documentFromFilePretreatment";
-import { importPluginWorker } from "../processor/importPlugin";
 import { closeAllProcessors } from "../processor";
+import { initESIndex } from "./es";
+import { useStorage } from "./storage/useStorage";
 
 export const shutdownServer = async (server: Server) => {
   logger.info("SERVER", "About to shutdown server gracefully...");
@@ -36,13 +34,13 @@ export const initDB = async () => {
     await ESDB.connect();
     if (storageType === "S3") await S3DB.connect();
 
-    logger.info("DB", "Successfully connect to database.");
+    logger.info("DB", "Successfully connect to all database.");
 
     await prisma.$queryRaw`SELECT 1`;
     await redis.ping();
     await es.ping();
     if (storageType === "S3")
-      await s3.send(
+      await S3DB.client.send(
         new HeadBucketCommand({
           Bucket: process.env.S3_UPLOAD_BUCKET_NAME ?? "cat",
         }),
@@ -50,9 +48,7 @@ export const initDB = async () => {
 
     logger.info("DB", "All database is health.");
 
-    await initIndex();
-
-    logger.info("DB", "Successfully init es index");
+    await initESIndex();
   } catch (e) {
     logger.error(
       "DB",
