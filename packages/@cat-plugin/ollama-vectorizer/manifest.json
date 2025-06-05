@@ -1,5 +1,20 @@
 {
   "id": "ollama-vectorizer",
   "entry": "dist/index.mjs",
-  "iconURL": "https://unocss.dev/logo.svg"
+  "iconURL": "https://unocss.dev/logo.svg",
+  "tags": [
+    "文本向量化"
+  ],
+  "configs": [
+    {
+      "key": "api.model-id",
+      "type": "string",
+      "default": "snowflake-arctic-embed2"
+    },
+    {
+      "key": "api.url",
+      "type": "url",
+      "default": "http://localhost:11434/api/embed"
+    }
+  ]
 }

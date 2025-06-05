@@ -1,9 +1,16 @@
 node_modules
-dist
+**/node_modules
+
 build
+
 generated/prisma
+
 .github
 .vscode
 .env
+
 Dockerfile
 .dockerignore
+
+**/dist/
+!**/plugins/**/dist/

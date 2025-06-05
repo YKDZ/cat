@@ -1,5 +1,5 @@
 import { prisma } from "@cat/db";
-import { logger, PluginSchema } from "@cat/shared";
+import { logger, PluginConfigSchema, PluginSchema } from "@cat/shared";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
 import { importPluginQueue } from "@/server/processor/importPlugin";
@@ -7,6 +7,74 @@ import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
 import { TRPCError } from "@trpc/server";
 
 export const pluginRouter = router({
+  delete: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { id } = input;
+
+      await prisma.plugin.delete({
+        where: {
+          id,
+        },
+      });
+    }),
+  queryConfig: authedProcedure
+    .input(z.object({ pluginId: z.string(), key: z.string() }))
+    .output(PluginConfigSchema.nullable())
+    .query(async ({ input }) => {
+      const { pluginId, key } = input;
+
+      return PluginConfigSchema.nullable().parse(
+        await prisma.pluginConfig.findUnique({
+          where: {
+            pluginId_key: {
+              pluginId,
+              key,
+            },
+          },
+        }),
+      );
+    }),
+  updateConfig: authedProcedure
+    .input(z.object({ pluginId: z.string(), key: z.string(), value: z.json() }))
+    .mutation(async ({ input }) => {
+      const { pluginId, key, value } = input;
+
+      await prisma.pluginConfig.update({
+        where: {
+          pluginId_key: {
+            pluginId,
+            key,
+          },
+        },
+        data: {
+          value,
+        },
+      });
+    }),
+  query: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { id } = input;
+      return PluginSchema.nullable().parse(
+        await prisma.plugin.findUnique({
+          where: {
+            id,
+          },
+          include: {
+            Configs: true,
+          },
+        }),
+      );
+    }),
   listAll: authedProcedure.query(async () => {
     return z.array(PluginSchema).parse(
       await prisma.plugin.findMany({

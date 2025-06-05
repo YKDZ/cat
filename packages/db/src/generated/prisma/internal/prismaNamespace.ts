@@ -14,7 +14,7 @@
  * model files in the `model` directory!
  */
 
-import * as runtime from "@prisma/client/runtime/library"
+import * as runtime from "@prisma/client/runtime/client"
 import type * as Prisma from "../models"
 import { type PrismaClient } from "./class"
 
@@ -92,12 +92,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 6.8.2
- * Query Engine version: 2060c79ba17c6bb9f5823312b6f6b7f4a845738e
+ * Prisma Client JS version: 6.9.0
+ * Query Engine version: 81e4af48011447c3cc503a190e86995b66d2a28e
  */
 export const prismaVersion: PrismaVersion = {
-  client: "6.8.2",
-  engine: "2060c79ba17c6bb9f5823312b6f6b7f4a845738e"
+  client: "6.9.0",
+  engine: "81e4af48011447c3cc503a190e86995b66d2a28e"
 }
 
 /**
@@ -2509,7 +2509,11 @@ export type PluginPermissionScalarFieldEnum = (typeof PluginPermissionScalarFiel
 
 export const PluginConfigScalarFieldEnum = {
   id: 'id',
-  content: 'content',
+  type: 'type',
+  key: 'key',
+  default: 'default',
+  value: 'value',
+  description: 'description',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   pluginId: 'pluginId'
@@ -2793,6 +2797,9 @@ export type PluginPermissionOrderByRelevanceFieldEnum = (typeof PluginPermission
 
 
 export const PluginConfigOrderByRelevanceFieldEnum = {
+  type: 'type',
+  key: 'key',
+  description: 'description',
   pluginId: 'pluginId'
 } as const
 
@@ -2992,6 +2999,10 @@ export interface PrismaClientOptions {
     timeout?: number
     isolationLevel?: TransactionIsolationLevel
   }
+  /**
+   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`
+   */
+  adapter?: runtime.SqlDriverAdapterFactory | null
   /**
    * Global configuration for omitting model fields by default.
    * 

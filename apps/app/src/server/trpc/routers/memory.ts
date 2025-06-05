@@ -124,6 +124,8 @@ export const memoryRouter = router({
       const minSimilarity = 0.72;
       const maxAmount = 3;
 
+      const vectorLiteral = `[${element.embedding.join(",")}]`;
+
       prisma.$transaction(async (tx) => {
         const memories = await tx.$queryRaw<
           {
@@ -139,7 +141,7 @@ export const memoryRouter = router({
             mi.source,
             mi.translation,
             mi."creatorId",
-            1 - (v.vector <=> ${element.embedding}::vector) AS similarity
+            1 - (v.vector <=> ${vectorLiteral}) AS similarity
           FROM 
             "MemoryItem" mi
           JOIN

@@ -23,9 +23,10 @@ const emits = defineEmits(["change"]);
           }"
         ></div>
         <div
-          class="rounded-sm bg-white h-6 w-6 shadow-lg transform transition-all duration-100 ease-in-out left-0 top-0 absolute"
+          class="rounded-md h-6 w-6 shadow-2xl shadow-base-content-darker transform transition-all duration-100 ease-in-out left-0 top-0 absolute"
           :class="{
-            'translate-x-7': isChecked,
+            'translate-x-7 bg-base-content': isChecked,
+            'bg-highlight-content': !isChecked,
           }"
         ></div>
       </div>

@@ -10,8 +10,7 @@ model Plugin {
     createdAt  DateTime @default(now())
     updatedAt  DateTime @default(now()) @updatedAt
 
-    Config PluginConfig?
-
+    Configs     PluginConfig[]
     Permissions PluginPermission[]
     Versions    PluginVersion[]
     Tags        PluginTag[]
@@ -43,13 +42,21 @@ model PluginPermission {
 }
 
 model PluginConfig {
-    id        Int      @id @default(autoincrement())
-    content   Json
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+    id          Int      @id @default(autoincrement())
+    type        String
+    key         String
+    default     Json
+    value       Json
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @default(now()) @updatedAt
 
-    pluginId String @unique
+    pluginId String
     Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+    @@unique([pluginId, key])
+    @@index([pluginId])
+    @@index([key])
 }
 
 model PluginTag {

@@ -10,13 +10,15 @@ import EditorHeader from "../components/EditorHeader.vue";
 const ctx = usePageContext();
 
 const { trpcWarn } = useToastStore();
-const { fetchDocument, fetchTranslations, toElement } = useEditorStore();
+const { fetchDocument, fetchTranslations, toElement, refresh } =
+  useEditorStore();
 const { languageFromId, languageToId } = storeToRefs(useEditorStore());
 
 watch(
   () => ctx.routeParams["documentId"],
   async (to) => {
     if (import.meta.env.SSR) return;
+    refresh();
     await fetchDocument(to).catch(trpcWarn);
   },
   { immediate: true },

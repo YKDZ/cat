@@ -11,10 +11,6 @@ import { setting } from "@cat/db";
 
 let server: Server | null = null;
 
-process.on("SIGTERM", () => shutdownServer(server!));
-process.on("SIGQUIT", () => shutdownServer(server!));
-process.on("SIGINT", () => shutdownServer(server!));
-
 function startServer() {
   const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
@@ -41,6 +37,12 @@ function startServer() {
       await initDB();
       await initSettings();
       await PluginRegistry.getInstance().loadPlugins();
+
+      if (process.env.NODE_ENV === "production") {
+        process.on("SIGTERM", () => shutdownServer(server!));
+        process.on("SIGQUIT", () => shutdownServer(server!));
+        process.on("SIGINT", () => shutdownServer(server!));
+      }
     },
   });
 }

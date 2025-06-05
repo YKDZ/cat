@@ -27,7 +27,7 @@ export const documentRouter = router({
     )
     .output(
       z.object({
-        url: z.string().url(),
+        url: z.url(),
         file: FileSchema,
       }),
     )
@@ -59,8 +59,10 @@ export const documentRouter = router({
         },
       });
 
+      const url = await generateUploadURL(path, 120);
+
       return {
-        url: await generateUploadURL(path, 120),
+        url,
         file: FileSchema.parse(file),
       };
     }),

@@ -2,9 +2,9 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm" \
     PATH="/pnpm:$PATH"
-RUN corepack enable
 
-RUN pnpm add -g turbo@latest
+RUN corepack enable \
+    && pnpm add -g turbo@latest
 
 # --- 2. Installer
 FROM base AS pruner
@@ -12,7 +12,11 @@ WORKDIR /repo
 
 COPY . .
 
-RUN turbo prune @cat/app --docker --use-gitignore=false
+RUN turbo prune @cat/app --docker --use-gitignore=false \
+    # turbo prune remove injectWorkspacePackages from pnpm-lock.yaml
+    # https://github.com/vercel/turborepo/discussions/10541
+    && sed -i '/^settings:/a \  injectWorkspacePackages: true' ./out/pnpm-lock.yaml \
+    && sed -i '/^settings:/a \  injectWorkspacePackages: true' ./out/json/pnpm-lock.yaml
 
 # --- 3. Builder
 FROM base AS builder
@@ -26,27 +30,26 @@ RUN pnpm install -r --frozen-lockfile
 
 COPY --from=pruner /repo/out/full/ ./
 
-RUN pnpm --filter=@cat/db db:generate
-
-RUN turbo build --filter=@cat/app
+RUN pnpm --filter=@cat/db db:generate \
+    && turbo build --filter=@cat/app
 
 # --- 4. Deployer
 FROM builder AS deployer
 WORKDIR /builder
 
-RUN pnpm --filter=@cat/app deploy --legacy --prod --no-optional /deployer
-
-RUN pnpm prune --prod --no-optional
+RUN pnpm --filter=@cat/app deploy --prod --no-optional /deployer \
+    && pnpm prune --prod --no-optional
 
 # --- 5. Runner
 FROM node:22-alpine AS runner
 ENV PNPM_HOME="/pnpm" \
-    PATH="/pnpm:$PATH"
-RUN corepack enable
-
-ENV NODE_ENV=production
+    PATH="/pnpm:$PATH" \
+    NODE_ENV=production
 
 WORKDIR /app
+
+RUN corepack enable
+
 # Prisma
 COPY --from=builder /builder/packages/db/prisma ./prisma
 COPY --from=builder /builder/packages/db/src/generated/prisma/libquery_engine* /tmp/prisma-engines/

@@ -1,4 +1,5 @@
 import { PrismaClient } from "./generated/prisma";
+import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
 
 export class PrismaDB {
@@ -9,7 +10,11 @@ export class PrismaDB {
     if (PrismaDB.instance)
       throw Error("PrismaDB can only have a single instance");
 
-    this.client = new PrismaClient();
+    const adapter = new PrismaPg({
+      connectionString: process.env.DATABASE_URL,
+    });
+    this.client = new PrismaClient({ adapter });
+
     PrismaDB.instance = this;
   }
 

@@ -85,9 +85,6 @@ const selectedOptions = computed(() => {
       'md:max-w-2/3': !fullWidth,
       'w-full': fullWidth,
     }"
-    :style="{
-      width,
-    }"
   >
     <!-- 已选项框 -->
     <div

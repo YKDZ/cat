@@ -1,3 +1,6 @@
+// @boundaries-ignore root config inheritance
+// This script will never run in this package
+// but in built apps/app docker container where have @cat/db denpendency
 import { prisma, PrismaDB } from "@cat/db";
 
 const seed = async () => {
