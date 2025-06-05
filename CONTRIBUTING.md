@@ -8,6 +8,15 @@ The sub repo is stored under:
 - `packages/`: Some shared packages and plugin-core etc.
 - `packages/@cat-plugin/`: Internal CAT plugin
 
+The relating tech and framework are:
+
+- vike: SSR framework
+- vue: frontend framework
+- hono: web application framework
+- prisma: ORM
+- vite: bundler
+- rollup: bundler
+
 # Local Development
 
 You need to have a oidc server for run CAT, as CAT does not provide any username-password login method.
