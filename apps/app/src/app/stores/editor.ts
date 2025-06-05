@@ -15,6 +15,7 @@ import { computed, nextTick, reactive, ref, watch } from "vue";
 import { PartData } from "../components/formater";
 import { useToastStore } from "./toast";
 import { useUserStore } from "./user";
+import { z } from "zod/v4";
 
 export const useEditorStore = defineStore("editor", () => {
   const { warn, trpcWarn } = useToastStore();
@@ -153,7 +154,7 @@ export const useEditorStore = defineStore("editor", () => {
   };
 
   const element = computed(
-    (): TranslatableElement | null =>
+    () =>
       storedElements.value.find((element) => element.id === elementId.value) ??
       null,
   );

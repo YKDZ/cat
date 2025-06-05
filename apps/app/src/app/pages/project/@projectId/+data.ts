@@ -1,6 +1,3 @@
-import { EMPTY_CONTEXT } from "@/server/trpc/context";
-import { projectRouter } from "@/server/trpc/routers/project";
-import { createCallerFactory } from "@/server/trpc/server";
 import { useSSCTRPC } from "@/server/trpc/sscClient";
 import { redirect } from "vike/abort";
 import { PageContext } from "vike/types";

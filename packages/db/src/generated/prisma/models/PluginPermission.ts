@@ -9,7 +9,7 @@
  */
 
 import type * as PJTG from '../pjtg';
-import * as runtime from "@prisma/client/runtime/library"
+import * as runtime from "@prisma/client/runtime/client"
 import type * as $Enums from "../enums"
 import type * as Prisma from "../internal/prismaNamespace"
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ProjectDocumentList from "@/app/components/ProjectDocumentList.vue";
 import ProjectUploadFileBtn from "@/app/components/ProjectUploadFileBtn.vue";
-import { useProjectStore } from "@/app/stores/project";
 import { projectKey } from "@/app/utils/provide";
 import { inject } from "vue";
 

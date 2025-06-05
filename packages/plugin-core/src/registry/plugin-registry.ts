@@ -1,7 +1,7 @@
 import { pathToFileURL } from "url";
 import { prisma } from "@cat/db";
 import { z } from "zod/v4";
-import { logger } from "@cat/shared";
+import { logger, PluginConfig, PluginConfigSchema } from "@cat/shared";
 import { join } from "path";
 import { TextVectorizer } from "./text-vectorizer";
 import { TranslatableFileHandler } from "./translatable-file-handler";
@@ -9,8 +9,12 @@ import { TranslationAdvisor } from "./translation-advisor";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
+export type PluginLoadOptions = {
+  configs: PluginConfig[];
+};
+
 export interface CatPlugin {
-  onLoaded: () => Promise<void>;
+  onLoaded: (options: PluginLoadOptions) => Promise<void>;
   getTextVectorizers?: () => TextVectorizer[];
   getTranslatableFileHandlers?: () => TranslatableFileHandler[];
   getTranslationAdvisors?: () => TranslationAdvisor[];
@@ -86,7 +90,15 @@ export class PluginRegistry {
   private async loadPlugin(id: string, instance: CatPlugin) {
     this.plugins.set(id, instance);
 
-    await instance.onLoaded();
+    const configs = z.array(PluginConfigSchema).parse(
+      await prisma.pluginConfig.findMany({
+        where: {
+          pluginId: id,
+        },
+      }),
+    );
+
+    await instance.onLoaded({ configs });
 
     logger.info("PLUGIN", `Successfully loaded plugin: ${id}`);
   }

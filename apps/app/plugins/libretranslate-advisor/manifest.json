@@ -1,5 +1,30 @@
 {
   "id": "libretranslate-advisor",
   "entry": "dist/index.mjs",
-  "iconURL": "https://unocss.dev/logo.svg"
+  "iconURL": "https://unocss.dev/logo.svg",
+  "tags": [
+    "机器翻译"
+  ],
+  "configs": [
+    {
+      "key": "base.advisor-name",
+      "type": "stirng",
+      "default": "LibreTranslate"
+    },
+    {
+      "key": "api.url",
+      "type": "url",
+      "default": "http://libreTranslate:5000/"
+    },
+    {
+      "key": "api.key",
+      "type": "string",
+      "default": "xxxx"
+    },
+    {
+      "key": "api.alternatives-amount",
+      "type": "number",
+      "default": 2
+    }
+  ]
 }

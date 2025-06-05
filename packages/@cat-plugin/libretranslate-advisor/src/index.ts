@@ -1,10 +1,14 @@
-import { CatPlugin } from "@cat/plugin-core";
+import { CatPlugin, PluginLoadOptions } from "@cat/plugin-core";
 import { LibreTranslateTranslationAdvisor } from "./advisor";
 
 class Plugin implements CatPlugin {
-  async onLoaded() {}
+  public options: PluginLoadOptions | null = null;
+
+  async onLoaded(options: PluginLoadOptions) {
+    this.options = options;
+  }
   getTranslationAdvisors() {
-    return [new LibreTranslateTranslationAdvisor()];
+    return [new LibreTranslateTranslationAdvisor(this.options!)];
   }
 }
 

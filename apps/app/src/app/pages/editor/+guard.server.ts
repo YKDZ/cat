@@ -1,10 +1,11 @@
+import { useEditorStore } from "@/app/stores/editor";
 import { EMPTY_CONTEXT } from "@/server/trpc/context";
 import { documentRouter } from "@/server/trpc/routers/document";
 import { createCallerFactory } from "@/server/trpc/server";
 import { redirect } from "vike/abort";
-import { PageContext } from "vike/types";
+import { PageContextServer } from "vike/types";
 
-export const guard = async (ctx: PageContext) => {
+export const guard = async (ctx: PageContextServer) => {
   if (!ctx.user) throw redirect("/auth");
 
   const { elementId, documentId, languageFromTo } = ctx.routeParams;
@@ -14,6 +15,7 @@ export const guard = async (ctx: PageContext) => {
   const caller = createCaller({
     ...EMPTY_CONTEXT,
     user: ctx.user,
+    pluginRegistry: ctx.pluginRegistry,
   });
 
   let target = await caller.queryFirstUntranslatedElement({

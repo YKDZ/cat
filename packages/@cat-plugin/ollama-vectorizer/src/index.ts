@@ -1,10 +1,15 @@
-import { CatPlugin } from "@cat/plugin-core";
+import { CatPlugin, PluginLoadOptions } from "@cat/plugin-core";
 import { Vectorizer } from "./vectorizer";
 
 class Plugin implements CatPlugin {
-  async onLoaded() {}
+  public options: PluginLoadOptions | null = null;
+
+  async onLoaded(options: PluginLoadOptions) {
+    this.options = options;
+  }
+
   getTextVectorizers() {
-    return [new Vectorizer()];
+    return [new Vectorizer(this.options!)];
   }
 }
 

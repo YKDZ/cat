@@ -34,18 +34,38 @@ const worker = new Worker(
         },
       });
 
-      // 不存在意味着即将创建
-      // ID 是自动生成的
-      const id = originPlugin?.id ?? "PLUGIN_NOT_EXISTS";
+      const pluginId = originPlugin?.id ?? data.id;
 
       await tx.plugin.upsert({
         where: {
-          id,
+          // 不存在原插件意味着即将创建
+          id: pluginId,
         },
         update: {
           name: data.name,
           overview: data.overview,
           iconURL: data.iconURL,
+          Configs: {
+            connectOrCreate: data.configs
+              ? data.configs.map(
+                  ({ type, key, description, default: defaultValue }) => ({
+                    where: {
+                      pluginId_key: {
+                        pluginId,
+                        key,
+                      },
+                    },
+                    create: {
+                      type,
+                      key,
+                      value: defaultValue,
+                      default: defaultValue,
+                      description,
+                    },
+                  }),
+                )
+              : [],
+          },
           Tags: {
             connectOrCreate: data.tags
               ? data.tags.map((tag) => ({
@@ -59,18 +79,47 @@ const worker = new Worker(
               : undefined,
           },
           Versions: {
-            create: {
-              version: data.version,
+            connectOrCreate: {
+              where: {
+                pluginId_version: {
+                  pluginId,
+                  version: data.version,
+                },
+              },
+              create: {
+                version: data.version,
+              },
             },
           },
         },
         create: {
-          id: data.id,
+          id: pluginId,
           origin: origin as never,
           name: data.name,
           overview: data.overview,
           entry: data.entry,
           iconURL: data.iconURL,
+          Configs: {
+            connectOrCreate: data.configs
+              ? data.configs.map(
+                  ({ type, key, description, default: defaultValue }) => ({
+                    where: {
+                      pluginId_key: {
+                        pluginId,
+                        key,
+                      },
+                    },
+                    create: {
+                      type,
+                      key,
+                      value: defaultValue,
+                      default: defaultValue,
+                      description,
+                    },
+                  }),
+                )
+              : [],
+          },
           Tags: {
             connectOrCreate: data.tags
               ? data.tags.map((tag) => ({

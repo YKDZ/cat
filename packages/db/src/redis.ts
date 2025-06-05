@@ -14,39 +14,12 @@ export class RedisDB {
     RedisDB.instance = this;
     this.redis = createClient({
       url: process.env.REDIS_URL,
-      socket: {
-        reconnectStrategy: (retries) => {
-          const jitter = Math.floor(Math.random() * 100);
-
-          const delay = Math.min(Math.pow(2, retries) * 50, 3000);
-
-          return delay + jitter;
-        },
-      },
     });
     this.redisPub = createClient({
       url: process.env.REDIS_URL,
-      socket: {
-        reconnectStrategy: (retries) => {
-          const jitter = Math.floor(Math.random() * 100);
-
-          const delay = Math.min(Math.pow(2, retries) * 50, 3000);
-
-          return delay + jitter;
-        },
-      },
     });
     this.redisSub = createClient({
       url: process.env.REDIS_URL,
-      socket: {
-        reconnectStrategy: (retries) => {
-          const jitter = Math.floor(Math.random() * 100);
-
-          const delay = Math.min(Math.pow(2, retries) * 50, 3000);
-
-          return delay + jitter;
-        },
-      },
     });
   }
 
@@ -70,7 +43,5 @@ export class RedisDB {
 new RedisDB();
 
 export const redis: RedisClientType = RedisDB.instance.redis;
-
 export const redisPub: RedisClientType = RedisDB.instance.redisPub;
-
 export const redisSub: RedisClientType = RedisDB.instance.redisSub;

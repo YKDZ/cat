@@ -20,7 +20,11 @@ export const PluginTagSchema = z.object({
 
 export const PluginConfigSchema = z.object({
   id: z.number().int(),
-  content: z.string(),
+  type: z.string(),
+  key: z.string(),
+  default: z.json(),
+  value: z.json(),
+  description: z.string().nullable().optional(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   pluginId: z.string(),
@@ -51,8 +55,8 @@ export const PluginSchema = z.object({
   isExternal: z.boolean(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  get Config() {
-    return PluginConfigSchema.optional();
+  get Configs() {
+    return z.array(PluginConfigSchema).optional();
   },
   get Permissions() {
     return z.array(PluginPermissionSchema).optional();

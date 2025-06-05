@@ -4,6 +4,7 @@ import MultiPicker from "./picker/MultiPicker.vue";
 import { Memory } from "@cat/shared";
 import { trpc } from "@/server/trpc/client";
 import { PickerOption } from "./picker";
+import { usePageContext } from "vike-vue/usePageContext";
 
 const props = withDefaults(
   defineProps<{
@@ -14,6 +15,7 @@ const props = withDefaults(
   },
 );
 
+const { user } = usePageContext();
 const memoryIds = defineModel<string[]>("memoryIds", { required: true });
 
 const memories = ref<Memory[]>([]);
@@ -33,9 +35,13 @@ const options = computed(() => {
 });
 
 onMounted(() => {
-  trpc.memory.listOwned.query().then((mems) => {
-    memories.value = mems;
-  });
+  trpc.memory.listUserOwned
+    .query({
+      userId: user!.id,
+    })
+    .then((mems) => {
+      memories.value = mems;
+    });
 });
 </script>
 

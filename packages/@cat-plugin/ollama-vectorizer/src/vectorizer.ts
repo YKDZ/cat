@@ -1,28 +1,18 @@
-import { TextVectorizer } from "@cat/plugin-core";
+import { PluginLoadOptions, TextVectorizer } from "@cat/plugin-core";
 import { UnvectorizedTextData } from "@cat/shared";
 
-export const embed = async (text: string[]): Promise<number[][]> => {
-  const url = new URL(process.env.PLUGIN_OLLAMA_VECTORIZER_API_URL ?? "");
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      input: text,
-      model: process.env.PLUGIN_OLLAMA_VECTORIZER_MODEL_ID ?? undefined,
-    }),
-  });
+export class Vectorizer implements TextVectorizer {
+  private options: PluginLoadOptions;
 
-  if (!response.ok) {
-    throw new Error(`Server responded with ${response.status}`);
+  private config = (key: string): unknown => {
+    const config = this.options.configs.find((config) => config.key === key);
+    return config?.value ?? config?.default;
+  };
+
+  constructor(options: PluginLoadOptions) {
+    this.options = options;
   }
 
-  const data = await response.json();
-  return data.embeddings as number[][];
-};
-
-export class Vectorizer implements TextVectorizer {
   getId(): string {
     return "ollama";
   }
@@ -35,6 +25,24 @@ export class Vectorizer implements TextVectorizer {
     languageId: string,
     elements: UnvectorizedTextData[],
   ): Promise<number[][]> {
-    return await embed(elements.map((element) => element.value));
+    const values: string[] = elements.map((element) => element.value);
+
+    const response = await fetch(new URL(this.config("api.url") as string), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        input: values,
+        model: this.config("api.model-id") as string,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server responded with ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.embeddings as number[][];
   }
 }

@@ -34,7 +34,7 @@ const focusNextFocusable = () => {
     class="text-highlight-content font-500 w-fit cursor-pointer select-none"
     :class="{
       'label after:text-red-500 after:ml-0.5': required,
-      '-mb-2': !noOffset,
+      '-mb-1.5': !noOffset,
     }"
     role="button"
     tabindex="0"

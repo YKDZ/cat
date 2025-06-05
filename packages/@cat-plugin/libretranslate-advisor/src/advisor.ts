@@ -1,4 +1,4 @@
-import { TranslationAdvisor } from "@cat/plugin-core";
+import { PluginLoadOptions, TranslationAdvisor } from "@cat/plugin-core";
 import {
   safeJoin,
   TranslatableElement,
@@ -9,18 +9,19 @@ const supportedLangages = new Map<string, string[]>();
 let isEnabled = true;
 
 export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
-  private tranlateURL = "";
-  private languagesURL = "";
+  private options: PluginLoadOptions;
+  private tranlateURL: string;
+  private languagesURL: string;
 
-  constructor() {
-    this.tranlateURL = safeJoin(
-      process.env.PLUGIN_LIBRETRANSLATE_API_URL ?? "https://libretranslate.com",
-      "translate",
-    );
-    this.languagesURL = safeJoin(
-      process.env.PLUGIN_LIBRETRANSLATE_API_URL ?? "https://libretranslate.com",
-      "languages",
-    );
+  private config = (key: string): unknown => {
+    const config = this.options.configs.find((config) => config.key === key);
+    return config?.value ?? config?.default;
+  };
+
+  constructor(options: PluginLoadOptions) {
+    this.options = options;
+    this.tranlateURL = safeJoin(this.config("api.url") as string, "translate");
+    this.languagesURL = safeJoin(this.config("api.url") as string, "languages");
     fetchSupportedLanguages(this.languagesURL);
   }
 
@@ -29,13 +30,11 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
   }
 
   getName() {
-    return (
-      (process.env.PLUGIN_LIBRETRANSLATE_NAME as string) ?? "LibreTranslate"
-    );
+    return this.config("base.advisor-name") as string;
   }
 
   isEnabled() {
-    return isEnabled && process.env.PLUGIN_LIBRETTANSLATE_ENABLE !== "false";
+    return isEnabled;
   }
 
   canSuggest(
@@ -77,10 +76,8 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
           source: sourceLang,
           target: targetLang,
           format: "text",
-          alternatives: Number(
-            process.env.PLUGIN_LIBRETRANSLATE_API_ALTERNATIVES_AMOUNT,
-          ),
-          api_key: process.env.PLUGIN_LIBRETRANSLATE_API_KEY,
+          alternatives: this.config("api.alternatives-amount") as number,
+          api_key: this.config("api.key") as string,
         }),
         headers: { "Content-Type": "application/json" },
       });

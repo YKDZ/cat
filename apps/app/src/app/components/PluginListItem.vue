@@ -3,6 +3,7 @@ import { Plugin } from "@cat/shared";
 import PluginTags from "./PluginTags.vue";
 import { onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
+import { navigate } from "vike/client/router";
 
 const props = defineProps<{
   plugin: Plugin;
@@ -10,6 +11,10 @@ const props = defineProps<{
 
 const iconImgEl = ref<HTMLImageElement>();
 const isIconLoaded = ref(false);
+
+const handleNav = () => {
+  navigate(`/plugin/${props.plugin.id}`);
+};
 
 onMounted(() => {
   useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
@@ -19,6 +24,7 @@ onMounted(() => {
 <template>
   <div
     class="text-highlight-content p-4 rounded-md bg-highlight-darker flex flex-col gap-2 cursor-pointer hover:scale-101"
+    @click="handleNav"
   >
     <div class="flex gap-3 items-center">
       <!-- Icon -->
@@ -37,7 +43,7 @@ onMounted(() => {
       </div>
       <!-- Text & base tag -->
       <div class="flex flex-col gap-1 justify-start justify-between">
-        <h3 class="text-highlight-content-darker text-lg font-bold text-nowrap">
+        <h3 class="text-lg text-highlight-content-darker font-bold text-nowrap">
           {{ plugin.name }}
         </h3>
         <div

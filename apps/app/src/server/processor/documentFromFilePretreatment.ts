@@ -108,7 +108,7 @@ export const processPretreatment = async (
 ) => {
   const {
     storage: { getTextContent },
-  } = useStorage();
+  } = await useStorage();
 
   const fileContent = await getTextContent(parsedFile);
 
@@ -133,18 +133,21 @@ export const processPretreatment = async (
   try {
     await prisma.$transaction(async (tx) => {
       // 批量插入所有向量数据
-      const vectorInsertResult = await tx.$queryRaw<{ id: number }[]>`
+      const vectorLis = vectors
+        .map((vector) => `('[${vector.join(",")}]')`)
+        .join(",");
+      const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
         INSERT INTO "Vector" (vector)
-        VALUES ${Prisma.join(vectors.map((v) => Prisma.sql`(${v}::vector)`))}
+        VALUES ${vectorLis}
         RETURNING id
-      `;
+      `);
 
       // 准备可翻译元素数据（与向量 ID 关联）
       const translatableValues = elements.map(
         (element, index) =>
           Prisma.sql`(
           ${element.value}::text, 
-          ${element.meta}::jsonb, 
+          ${element.meta}::jsonb,
           ${element.documentId}::text, 
           ${vectorInsertResult[index].id}::int
         )`,

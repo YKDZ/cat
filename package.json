@@ -6,6 +6,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "clean": "turbo run clean --concurrency 20",
     "load-internal-plugins": "node scripts/load-internal-plugins.js",
     "build:docker:app": "docker build -f apps/app/Dockerfile . -t ykdz/cat",
     "docker:push:app": "docker push ykdz/cat"

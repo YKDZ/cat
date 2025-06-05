@@ -173,9 +173,15 @@ const handleImgLoad = () => {
 
   // 初始缩放
   if (imgNaturalWidth.value <= imgNaturalHeight.value) {
-    scale.value = copperWidth.value / imgNaturalWidth.value;
+    scale.value = Math.min(
+      maxScale.value,
+      Math.max(minScale.value, copperWidth.value / imgNaturalWidth.value),
+    );
   } else {
-    scale.value = copperHeight.value / imgNaturalHeight.value;
+    scale.value = Math.min(
+      maxScale.value,
+      Math.max(minScale.value, copperHeight.value / imgNaturalHeight.value),
+    );
   }
 };
 
