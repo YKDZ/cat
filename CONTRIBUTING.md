@@ -10,12 +10,12 @@ The sub repo is stored under:
 
 The relating tech and framework are:
 
-- vike: SSR framework
-- vue: frontend framework
-- hono: web application framework
-- prisma: ORM
-- vite: bundler
-- rollup: bundler
+- [vike](https://vike.dev/): SSR framework
+- [vue](https://vuejs.org/): frontend framework
+- [hono](https://hono.dev/): web application framework
+- [prisma](https://www.prisma.io/): ORM
+- [vite](https://vite.dev/): bundler
+- [rollup](https://rollupjs.org/): bundler
 
 # Local Development
 
