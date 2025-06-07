@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Button from "@/app/components/Button.vue";
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import { navigate } from "vike/client/router";
 
 const project = defineModel<Project>("project");

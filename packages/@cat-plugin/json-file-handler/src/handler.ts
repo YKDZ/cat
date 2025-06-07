@@ -1,5 +1,5 @@
-import { TranslatableFileHandler } from "@cat/plugin-core";
-import { File, TranslatableElementData, Translation } from "@cat/shared";
+import type { TranslatableFileHandler } from "@cat/plugin-core";
+import type { File, TranslatableElementData, Translation } from "@cat/shared";
 
 type JSONValue =
   | string

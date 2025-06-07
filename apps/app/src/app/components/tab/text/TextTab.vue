@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TextTabItem } from "./index";
+import type { TextTabItem } from "./index";
 
 const props = defineProps<{
   items: TextTabItem[];

@@ -2,7 +2,8 @@ import eslint from "@eslint/js";
 import unocss from "@unocss/eslint-config/flat";
 import pluginVue from "eslint-plugin-vue";
 import globals from "globals";
-import tseslint, { ConfigArray } from "typescript-eslint";
+import type { ConfigArray } from "typescript-eslint";
+import tseslint from "typescript-eslint";
 import vueParser from "vue-eslint-parser";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 
@@ -46,6 +47,7 @@ export default tseslint.config(
       },
     },
     rules: {
+      "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/naming-convention": [
         "error",
         {

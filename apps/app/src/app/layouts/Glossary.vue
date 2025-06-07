@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Glossary } from "@cat/shared";
+import type { Glossary } from "@cat/shared";
 import IndexSidebar from "../components/IndexSidebar.vue";
 import { provide, ref, watch } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";

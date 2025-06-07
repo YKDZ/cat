@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Language } from "@cat/shared";
+import type { Language } from "@cat/shared";
 import { navigate } from "vike/client/router";
 import { inject } from "vue";
 import { projectKey } from "../utils/provide";

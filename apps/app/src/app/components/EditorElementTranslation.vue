@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import UserAvatar from "./UserAvatar.vue";
-import { Translation, TranslationVote } from "@cat/shared";
+import type { Translation, TranslationVote } from "@cat/shared";
 import Button from "./Button.vue";
 import { onMounted, ref, watch } from "vue";
 import { trpc } from "@/server/trpc/client";

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PluginTag } from "@cat/shared";
+import type { PluginTag } from "@cat/shared";
 
 const props = defineProps<{
   tag: PluginTag;

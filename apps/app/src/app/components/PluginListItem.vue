@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared";
 import PluginTags from "./PluginTags.vue";
 import { onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";

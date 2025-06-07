@@ -1,7 +1,7 @@
 import { ESDB, prisma, PrismaDB, RedisDB } from "@cat/db";
 import { logger, SettingSchema } from "@cat/shared";
-import { Server } from "http";
-import z from "zod/v4";
+import type { Server } from "http";
+import type z from "zod/v4";
 import { closeAllProcessors } from "../processor";
 import { initESIndex } from "./es";
 

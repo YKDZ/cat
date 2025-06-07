@@ -1,11 +1,12 @@
 import { pathToFileURL } from "url";
 import { prisma } from "@cat/db";
 import { z } from "zod/v4";
-import { logger, PluginConfig, PluginConfigSchema } from "@cat/shared";
+import type { PluginConfig} from "@cat/shared";
+import { logger, PluginConfigSchema } from "@cat/shared";
 import { join } from "path";
-import { TextVectorizer } from "./text-vectorizer";
-import { TranslatableFileHandler } from "./translatable-file-handler";
-import { TranslationAdvisor } from "./translation-advisor";
+import type { TextVectorizer } from "./text-vectorizer";
+import type { TranslatableFileHandler } from "./translatable-file-handler";
+import type { TranslationAdvisor } from "./translation-advisor";
 
 const pluginsDir = join(process.cwd(), "plugins");
 

@@ -4,7 +4,7 @@ import { onMounted, ref, watch } from "vue";
 import InputLabel from "./InputLabel.vue";
 import { useToastStore } from "../stores/toast";
 import Picker from "./picker/Picker.vue";
-import { PickerOption } from "./picker";
+import type { PickerOption } from "./picker";
 import { z } from "zod/v4";
 
 const props = defineProps<{

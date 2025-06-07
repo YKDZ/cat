@@ -1,19 +1,11 @@
-import { EMPTY_CONTEXT } from "@/server/trpc/context";
-import { glossaryRouter } from "@/server/trpc/routers/glossary";
-import { createCallerFactory } from "@/server/trpc/server";
+import { useSSCTRPC } from "@/server/trpc/sscClient";
 import { redirect } from "vike/abort";
-import { PageContext } from "vike/types";
+import type { PageContextServer } from "vike/types";
 
-export const data = async (ctx: PageContext) => {
+export const data = async (ctx: PageContextServer) => {
   const { glossaryId } = ctx.routeParams;
 
-  const createCaller = createCallerFactory(glossaryRouter);
-  const caller = createCaller({
-    ...EMPTY_CONTEXT,
-    user: ctx.user,
-  });
-
-  const glossary = await caller.query({ id: glossaryId });
+  const glossary = await useSSCTRPC(ctx).glossary.query({ id: glossaryId });
 
   if (!glossary) throw redirect("/project");
 

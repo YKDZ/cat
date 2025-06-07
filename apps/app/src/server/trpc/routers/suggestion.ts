@@ -1,9 +1,10 @@
 import { hash } from "@/server/utils/crypto";
 import { AsyncMessageQueue } from "@/server/utils/queue";
 import { prisma, redis, redisPub, redisSub } from "@cat/db";
+import type {
+  TranslationSuggestion} from "@cat/shared";
 import {
   TranslatableElementSchema,
-  TranslationSuggestion,
   TranslationSuggestionSchema,
 } from "@cat/shared";
 import { tracked, TRPCError } from "@trpc/server";

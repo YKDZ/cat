@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { AuthMethod } from "@cat/shared";
+import type { AuthMethod } from "@cat/shared";
 import Button from "./Button.vue";
 import { trpc } from "@/server/trpc/client";
 import { useAuthStore } from "../stores/auth";
 import { ref } from "vue";
-import { TRPCError } from "@trpc/server";
+import type { TRPCError } from "@trpc/server";
 
 const props = defineProps<{
   method: AuthMethod;

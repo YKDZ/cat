@@ -1,8 +1,8 @@
-import { PluginData } from "@cat/shared";
+import type { PluginData } from "@cat/shared";
 import { join } from "path";
 import { z } from "zod/v4";
 import { loadPluginData } from "../plugin";
-import { PluginImporter } from "./plugin-importer-registry";
+import type { PluginImporter } from "./plugin-importer-registry";
 
 const pluginsDir = join(process.cwd(), "plugins");
 

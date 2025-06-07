@@ -1,4 +1,4 @@
-import { User } from "@cat/shared";
+import type { User } from "@cat/shared";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 

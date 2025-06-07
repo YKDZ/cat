@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ProgressBarLine } from ".";
+import type { ProgressBarLine } from ".";
 
 const props = defineProps<{
   line: ProgressBarLine;

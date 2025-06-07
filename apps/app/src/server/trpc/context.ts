@@ -1,5 +1,5 @@
-import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
+import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
+import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { getCookieFunc } from "../utils/cookie";
 import { userFromSessionId } from "../utils/user";
 import { PluginRegistry } from "@cat/plugin-core";

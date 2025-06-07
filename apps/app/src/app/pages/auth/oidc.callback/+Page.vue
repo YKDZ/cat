@@ -3,7 +3,7 @@ import { trpc } from "@/server/trpc/client";
 import { usePageContext } from "vike-vue/usePageContext";
 import { onMounted } from "vue";
 import { navigate } from "vike/client/router";
-import { TRPCError } from "@trpc/server";
+import type { TRPCError } from "@trpc/server";
 import { useAuthStore } from "@/app/stores/auth";
 import Loading from "@/app/components/Loading.vue";
 

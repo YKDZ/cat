@@ -1,5 +1,5 @@
-import { TranslatableElement } from "@cat/shared";
-import { TranslationSuggestion } from "@cat/shared";
+import type { TranslatableElement } from "@cat/shared";
+import type { TranslationSuggestion } from "@cat/shared";
 
 export interface TranslationAdvisor {
   getId(): string;

@@ -1,4 +1,4 @@
-import { PageContextServer } from "vike/types";
+import type { PageContextServer } from "vike/types";
 
 export const onCreateApp = async (ctx: PageContextServer) => {
   const { app } = ctx;

@@ -13,10 +13,10 @@ const handleNav = () => {
 <template>
   <Button
     :is-processing
-    full-width
-    large
-    left
-    transparent
+    
+    
+    
+     transparent full-width large left 
     icon="i-mdi:cog"
     @click="handleNav"
   >

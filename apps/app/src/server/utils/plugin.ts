@@ -1,5 +1,6 @@
+import type {
+  PluginData} from "@cat/shared";
 import {
-  PluginData,
   PluginDataSchema,
   PluginManifestSchema,
 } from "@cat/shared";

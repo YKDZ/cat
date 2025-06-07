@@ -1,5 +1,5 @@
 import { createPinia } from "pinia";
-import { PageContextClient } from "vike/types";
+import type { PageContextClient } from "vike/types";
 
 export const onCreateApp = (ctx: PageContextClient) => {
   const { app } = ctx;

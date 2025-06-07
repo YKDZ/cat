@@ -1,7 +1,7 @@
-import { PluginData } from "@cat/shared";
+import type { PluginData } from "@cat/shared";
 import { Octokit } from "octokit";
 import { z } from "zod/v4";
-import { PluginImporter } from "./plugin-importer-registry";
+import type { PluginImporter } from "./plugin-importer-registry";
 import { tarGZURLImporter } from "./tar-gz-url-plugin-importer";
 
 const OriginSchema = z.object({

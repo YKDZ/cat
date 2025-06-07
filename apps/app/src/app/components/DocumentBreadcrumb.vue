@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Document } from "@cat/shared";
+import type { Document } from "@cat/shared";
 import { computed } from "vue";
 
 const props = defineProps<{

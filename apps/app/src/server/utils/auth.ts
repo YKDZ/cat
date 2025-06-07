@@ -1,7 +1,7 @@
 import { redis, setting } from "@cat/db";
 import { randomBytes } from "crypto";
-import { HttpContext } from "../trpc/context";
-import { Account } from "@cat/shared";
+import type { HttpContext } from "../trpc/context";
+import type { Account } from "@cat/shared";
 
 export const createUserSession = async (
   userId: string,

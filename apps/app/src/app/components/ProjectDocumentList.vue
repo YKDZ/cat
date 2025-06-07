@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Document } from "@cat/shared";
+import type { Document } from "@cat/shared";
 import ProjectDocumentListItem from "./ProjectDocumentListItem.vue";
 import Table from "./table/Table.vue";
 import TableBody from "./table/TableBody.vue";

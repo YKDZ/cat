@@ -1,5 +1,5 @@
-import { File, Translation } from "@cat/shared";
-import { TranslatableElementData } from "@cat/shared";
+import type { File, Translation } from "@cat/shared";
+import type { TranslatableElementData } from "@cat/shared";
 
 export interface TranslatableFileHandler {
   getId(): string;

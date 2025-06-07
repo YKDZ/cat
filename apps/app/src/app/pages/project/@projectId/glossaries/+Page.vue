@@ -3,7 +3,7 @@ import ProjectGlossaryLinkerBtn from "@/app/components/ProjectGlossaryLinkerBtn.
 import ProjectGlossaryList from "@/app/components/ProjectGlossaryList.vue";
 import { projectKey } from "@/app/utils/provide";
 import { trpc } from "@/server/trpc/client";
-import { Glossary } from "@cat/shared";
+import type { Glossary } from "@cat/shared";
 import { inject, onMounted, ref, watch } from "vue";
 
 const project = inject(projectKey);

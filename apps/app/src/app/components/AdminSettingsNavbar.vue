@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import Navbar from "./navbar/Navbar.vue";
-import { NavbarItemType } from "./navbar";
+import type { NavbarItemType } from "./navbar";
 
 const items = ref<NavbarItemType[]>([
   {

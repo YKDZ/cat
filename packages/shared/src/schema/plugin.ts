@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import { z } from "zod/v4";
 import { PluginConfigSchema } from "./prisma";
 
 export const PluginConfigDataSchema = PluginConfigSchema.omit({

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared";
 import PluginListItem from "./PluginListItem.vue";
 
 const props = defineProps<{

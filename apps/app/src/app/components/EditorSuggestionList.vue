@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Unsubscribable } from "@trpc/server/observable";
+import type { Unsubscribable } from "@trpc/server/observable";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
-import { TranslationSuggestion } from "@cat/shared";
+import type { TranslationSuggestion } from "@cat/shared";
 import { trpc } from "@/server/trpc/client";
 import Render from "./formater/Render.vue";
 

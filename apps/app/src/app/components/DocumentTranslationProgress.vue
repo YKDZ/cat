@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted } from "vue";
 import { useDocumentStore } from "../stores/document";
 import Dot from "./Dot.vue";
-import { ProgressBarLine } from "./progress/bar";
+import type { ProgressBarLine } from "./progress/bar";
 import ProgressBar from "./progress/bar/ProgressBar.vue";
 import { toShortFixed } from "../../../../../packages/shared/src/utils/string";
 
@@ -49,7 +49,7 @@ onMounted(async () => {
   <div class="flex gap-2 items-center">
     <ProgressBar :lines="progressBarLines" />
     <div
-      class="bg-highlight-darkest text-xs px-3 py-1 rounded-sm flex gap-0.5 w-36 items-center justify-center"
+      class="text-xs px-3 py-1 rounded-sm bg-highlight-darkest flex gap-0.5 w-36 items-center justify-center"
     >
       <span v-if="progressBarLines[0]"
         >{{ toShortFixed(progressBarLines[0].progress * 100) }}%</span

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useEventListener } from "@vueuse/core";
-import { DraggableBoxData } from ".";
+import type { DraggableBoxData } from ".";
 
 const props = defineProps<{ box: DraggableBoxData }>();
 

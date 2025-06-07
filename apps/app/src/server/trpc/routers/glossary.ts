@@ -1,8 +1,9 @@
 import { prisma } from "@cat/db";
+import type {
+  TermRelation} from "@cat/shared";
 import {
   GlossarySchema,
   TermDataSchema,
-  TermRelation,
   TermRelationSchema,
 } from "@cat/shared";
 import { TRPCError } from "@trpc/server";

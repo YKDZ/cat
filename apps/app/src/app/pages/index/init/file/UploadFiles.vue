@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Button from "@/app/components/Button.vue";
 import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import { ref } from "vue";
 
 const progress = defineModel("progress", { type: Number, required: true });

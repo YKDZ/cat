@@ -1,5 +1,5 @@
 import { trpc } from "@/server/trpc/client";
-import {
+import type {
   Document,
   ElementTranslationStatus,
   MemorySuggestion,
@@ -8,17 +8,16 @@ import {
   Translation,
   TranslationSuggestion,
 } from "@cat/shared";
-import { TRPCClientError } from "@trpc/client";
+import type { TRPCClientError } from "@trpc/client";
 import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref, watch } from "vue";
-import { PartData } from "../components/formater";
+import type { PartData } from "../components/formater";
 import { useToastStore } from "./toast";
 import { useUserStore } from "./user";
-import { z } from "zod/v4";
 
 export const useEditorStore = defineStore("editor", () => {
-  const { warn, trpcWarn } = useToastStore();
+  const { trpcWarn } = useToastStore();
 
   // 分页与查询
   const elementTotalAmount = ref(0);
@@ -72,7 +71,7 @@ export const useEditorStore = defineStore("editor", () => {
         translation.creatorId +
         term.createdAt;
       if (
-        !terms.value.find((relation) => {
+        !terms.value.find((relation: TermRelation) => {
           const { Term: t, Translation: tr } = relation;
           if (!t || !tr) return false;
           return (
@@ -85,13 +84,18 @@ export const useEditorStore = defineStore("editor", () => {
   };
 
   const addElements = (...elements: TranslatableElement[]) => {
-    const seen = new Set<number>(storedElements.value.map((e) => e.id));
+    const seen = new Set<number>(
+      storedElements.value.map((e: TranslatableElement) => e.id),
+    );
+
     elements.forEach((element) => {
       if (seen.has(element.id)) return;
       seen.add(element.id);
       storedElements.value.push(element);
     });
-    storedElements.value.sort((a, b) => a.id - b.id);
+    storedElements.value.sort(
+      (a: TranslatableElement, b: TranslatableElement) => a.id - b.id,
+    );
   };
 
   const toElement = async (id: number) => {
@@ -154,9 +158,10 @@ export const useEditorStore = defineStore("editor", () => {
   };
 
   const element = computed(
-    () =>
-      storedElements.value.find((element) => element.id === elementId.value) ??
-      null,
+    (): TranslatableElement | null =>
+      storedElements.value.find(
+        (element: TranslatableElement) => element.id === elementId.value,
+      ) ?? null,
   );
 
   const displayedElements = computed(() => {
@@ -167,7 +172,7 @@ export const useEditorStore = defineStore("editor", () => {
     if (!info) return [];
 
     const start = storedElements.value.findIndex(
-      (element) => element.id >= info.fromId,
+      (element: TranslatableElement) => element.id >= info.fromId,
     );
     const end =
       storedElements.value.length -
@@ -243,7 +248,7 @@ export const useEditorStore = defineStore("editor", () => {
       element.value?.id ===
       storedElements.value[storedElements.value.length - 1].id;
     let firstUntranslatedElement: TranslatableElement | null =
-      storedElements.value.find((el) => {
+      storedElements.value.find((el: TranslatableElement) => {
         if (!element.value) return false;
         return el.status === "NO" && (isAtLast || element.value.id < el.id);
       }) ?? null;
@@ -300,7 +305,7 @@ export const useEditorStore = defineStore("editor", () => {
 
   const updateOrInsertTranslation = (translation: Translation) => {
     const index = translations.value.findIndex(
-      (item) => item.id === translation.id,
+      (item: Translation) => item.id === translation.id,
     );
 
     if (index === -1) {
@@ -308,8 +313,8 @@ export const useEditorStore = defineStore("editor", () => {
       return;
     }
 
-    translations.value = translations.value.map((item, i) =>
-      i === index ? translation : item,
+    translations.value = translations.value.map(
+      (item: Translation, i: number) => (i === index ? translation : item),
     );
   };
 

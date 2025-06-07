@@ -1,5 +1,5 @@
 import { trpc } from "@/server/trpc/client";
-import { Glossary } from "@cat/shared";
+import type { Glossary } from "@cat/shared";
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
 
@@ -12,7 +12,7 @@ export const useGlossaryStore = defineStore("glossary", () => {
       if (!glossary) continue;
 
       const currentIndex = glossaries.value.findIndex(
-        (p) => p.id === glossary.id,
+        (p: Glossary) => p.id === glossary.id,
       );
       if (currentIndex === -1) {
         glossaries.value.push(glossary);
