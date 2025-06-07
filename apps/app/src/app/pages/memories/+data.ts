@@ -1,25 +1,17 @@
-import { EMPTY_CONTEXT } from "@/server/trpc/context";
-import { glossaryRouter } from "@/server/trpc/routers/glossary";
-import { memoryRouter } from "@/server/trpc/routers/memory";
-import { createCallerFactory } from "@/server/trpc/server";
+import { useSSCTRPC } from "@/server/trpc/sscClient";
 import { redirect } from "vike/abort";
-import { PageContext } from "vike/types";
+import type { PageContextServer } from "vike/types";
 
-export const data = async (ctx: PageContext) => {
+export const data = async (ctx: PageContextServer) => {
   const { user } = ctx;
 
   if (!user) throw redirect("/");
 
-  const createCaller = createCallerFactory(memoryRouter);
-  const caller = createCaller({
-    ...EMPTY_CONTEXT,
-    user: ctx.user,
-    sessionId: ctx.sessionId,
-  });
-
-  const memories = await caller.listUserOwned({ userId: user.id }).catch(() => {
-    throw redirect("/");
-  });
+  const memories = await useSSCTRPC(ctx)
+    .memory.listUserOwned({ userId: user.id })
+    .catch(() => {
+      throw redirect("/");
+    });
 
   return { memories };
 };

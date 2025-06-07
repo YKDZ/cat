@@ -1,12 +1,14 @@
 import { Prisma, prisma } from "@cat/db";
-import {
-  PluginRegistry,
+import type {
   TextVectorizer,
-  TranslatableFileHandler,
-} from "@cat/plugin-core";
+  TranslatableFileHandler} from "@cat/plugin-core";
 import {
+  PluginRegistry
+} from "@cat/plugin-core";
+import type {
   Document,
-  File,
+  File} from "@cat/shared";
+import {
   logger,
   UnvectorizedTextDataSchema,
 } from "@cat/shared";

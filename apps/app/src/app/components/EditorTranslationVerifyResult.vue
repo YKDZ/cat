@@ -2,7 +2,8 @@
 import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
 import { computed, ref, watch } from "vue";
-import { clippers, ClipperVerifyResult } from "./formater";
+import type { ClipperVerifyResult } from "./formater";
+import { clippers } from "./formater";
 import Button from "./Button.vue";
 import Collapse from "./Collapse.vue";
 import Icon from "./Icon.vue";

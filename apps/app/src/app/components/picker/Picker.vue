@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { vOnClickOutside } from "@vueuse/components";
-import { PickerOption } from ".";
+import type { PickerOption } from ".";
 
 const props = defineProps<{
   options: PickerOption[];

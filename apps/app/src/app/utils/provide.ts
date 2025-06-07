@@ -1,4 +1,4 @@
-import { Glossary, Language, Plugin, Project } from "@cat/shared";
+import type { Glossary, Language, Plugin, Project } from "@cat/shared";
 import type { InjectionKey, Ref } from "vue";
 
 export const projectKey = Symbol() as InjectionKey<Ref<Project | null>>;

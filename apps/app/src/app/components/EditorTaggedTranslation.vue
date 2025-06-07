@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
 import Render from "./formater/Render.vue";
 import { onMounted, ref, watch } from "vue";
-import { PartData } from "./formater";
+import type { PartData } from "./formater";
 
 const {
   translationValue,

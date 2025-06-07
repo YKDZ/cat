@@ -1,4 +1,4 @@
-import { CatPlugin } from "@cat/plugin-core";
+import type { CatPlugin } from "@cat/plugin-core";
 import { JSONTranslatableFileHandler } from "./handler";
 
 class Plugin implements CatPlugin {

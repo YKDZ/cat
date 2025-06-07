@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
-import { clippers, PartData } from ".";
+import type { PartData } from ".";
+import { clippers } from ".";
 import Empty from "./Empty.vue";
 import Part from "./Part.vue";
 

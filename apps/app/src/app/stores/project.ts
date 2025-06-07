@@ -1,5 +1,5 @@
 import { trpc } from "@/server/trpc/client";
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
 
@@ -18,7 +18,9 @@ export const useProjectStore = defineStore("project", () => {
     for (const project of projectsToAdd) {
       if (!project) continue;
 
-      const currentIndex = projects.value.findIndex((p) => p.id === project.id);
+      const currentIndex = projects.value.findIndex(
+        (p: Project) => p.id === project.id,
+      );
       if (currentIndex === -1) {
         projects.value.push(project);
       } else {

@@ -1,0 +1,28 @@
+{
+  "name": "@cat/docs",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "GPL-3.0-only",
+  "prisma": {
+    "schema": "./prisma",
+    "seed": "tsx prisma/seed-docker.ts"
+  },
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "lint": "eslint ./docs --fix",
+    "test": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --write .",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "vue": "^3.5.16"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3",
+    "@cat/eslint-config": "workspace:*"
+  }
+}

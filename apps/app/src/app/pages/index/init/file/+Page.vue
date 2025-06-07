@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { TextTabItem } from "@/app/components/tab/text";
+import type { TextTabItem } from "@/app/components/tab/text";
 import { useToastStore } from "@/app/stores/toast";
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import { ref } from "vue";
 import CreateProject from "./CreateProject.vue";
 import UploadFiles from "./UploadFiles.vue";

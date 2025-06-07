@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { AuthMethod, AuthMethodType } from "@cat/shared";
+import type { AuthMethod} from "@cat/shared";
+import { AuthMethodType } from "@cat/shared";
 import OIDCAuthButton from "./OIDCAuthButton.vue";
 
 const props = defineProps<{

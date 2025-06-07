@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import { User } from "@cat/shared";
+import type { User } from "@cat/shared";
 import { computed, onMounted, ref, watch } from "vue";
 
 const props = defineProps<{

@@ -9,7 +9,7 @@ import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
 import Textarea from "@/app/components/Textarea.vue";
 import { useToastStore } from "@/app/stores/toast";
 import { trpc } from "@/server/trpc/client";
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import { ref } from "vue";
 import { z } from "zod/v4";
 

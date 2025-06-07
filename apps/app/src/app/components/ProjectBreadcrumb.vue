@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import Slash from "./Slash.vue";
 import UserAvatar from "./UserAvatar.vue";
 

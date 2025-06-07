@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import { TermRelation } from "@cat/shared";
+import type { TermRelation } from "@cat/shared";
 import { useToastStore } from "@/app/stores/toast";
 import Button from "@/app/components/Button.vue";
 import TableCell from "@/app/components/table/TableCell.vue";

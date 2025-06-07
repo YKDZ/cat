@@ -2,7 +2,7 @@
 import { usePageContext } from "vike-vue/usePageContext";
 import IndexHeader from "../components/IndexHeader.vue";
 import IndexSidebar from "../components/IndexSidebar.vue";
-import { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared";
 import { storeToRefs } from "pinia";
 import { provide, ref, watch } from "vue";
 import { pluginKey } from "../utils/provide";

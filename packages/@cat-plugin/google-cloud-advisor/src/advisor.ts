@@ -1,7 +1,7 @@
-import { TranslationSuggestion } from "@cat/shared";
-import { TranslationAdvisor } from "@cat/plugin-core";
+import type { TranslationSuggestion } from "@cat/shared";
+import type { TranslationAdvisor } from "@cat/plugin-core";
 import { v2 } from "@google-cloud/translate";
-import { TranslatableElement } from "@cat/shared";
+import type { TranslatableElement } from "@cat/shared";
 
 export class Advisor implements TranslationAdvisor {
   private client: v2.Translate | null = null;

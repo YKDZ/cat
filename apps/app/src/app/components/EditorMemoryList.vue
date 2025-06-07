@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import { Unsubscribable } from "@trpc/server/observable";
+import type { Unsubscribable } from "@trpc/server/observable";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 import { useEditorStore } from "../stores/editor";

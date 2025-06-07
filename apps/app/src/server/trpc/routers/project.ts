@@ -1,5 +1,6 @@
 import { prisma } from "@cat/db";
-import { PrismaError, ProjectSchema } from "@cat/shared";
+import type { PrismaError} from "@cat/shared";
+import { ProjectSchema } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 import { authedProcedure, publicProcedure, router } from "../server";

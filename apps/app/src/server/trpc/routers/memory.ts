@@ -1,8 +1,9 @@
 import { AsyncMessageQueue } from "@/server/utils/queue";
 import { prisma, redisSub } from "@cat/db";
+import type {
+  MemorySuggestion} from "@cat/shared";
 import {
   MemorySchema,
-  MemorySuggestion,
   MemorySuggestionSchema,
 } from "@cat/shared";
 import { tracked } from "@trpc/server";

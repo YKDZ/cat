@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, h } from "vue";
-import { clippers, PartData } from ".";
+import type { PartData } from ".";
+import { clippers } from ".";
 
 const props = defineProps<{ part: PartData; interactable: boolean }>();
 

@@ -1,6 +1,6 @@
 import { PluginRegistry } from "@cat/plugin-core";
 import "dotenv/config";
-import { Server } from "http";
+import type { Server } from "http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import app from "./app";

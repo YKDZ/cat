@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PluginConfig } from "@cat/shared";
+import type { PluginConfig } from "@cat/shared";
 import PluginConfigSwitcher from "./PluginConfigSwitcher.vue";
 
 const props = defineProps<{

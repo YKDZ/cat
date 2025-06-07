@@ -1,5 +1,6 @@
 import { useEditorStore } from "@/app/stores/editor";
-import { ref, VNode } from "vue";
+import type { VNode } from "vue";
+import { ref } from "vue";
 
 export type Clipper = {
   id: number | string;

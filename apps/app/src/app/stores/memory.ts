@@ -1,5 +1,5 @@
 import { trpc } from "@/server/trpc/client";
-import { Memory } from "@cat/shared";
+import type { Memory } from "@cat/shared";
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
 
@@ -11,7 +11,9 @@ export const useMemoryStore = defineStore("memory", () => {
     for (const memory of memoriesToAdd) {
       if (!memory) continue;
 
-      const currentIndex = memories.value.findIndex((p) => p.id === memory.id);
+      const currentIndex = memories.value.findIndex(
+        (p: Memory) => p.id === memory.id,
+      );
       if (currentIndex === -1) {
         memories.value.push(memory);
       } else {

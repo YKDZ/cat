@@ -2,13 +2,13 @@
 import { inject, onMounted, ref } from "vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
-import { TermRelation } from "@cat/shared";
+import type { TermRelation } from "@cat/shared";
 import { glossaryKey } from "@/app/utils/provide";
 import { trpc } from "@/server/trpc/client";
 import GlossaryTermListItem from "@/app/components/glossary/GlossaryTermListItem.vue";
 import GlossaryInsertTermBtn from "@/app/components/GlossaryInsertTermBtn.vue";
 import GlossaryTermListFilter from "@/app/components/glossary/GlossaryTermListFilter.vue";
-import { TermListFilterOptions } from ".";
+import type { TermListFilterOptions } from ".";
 
 const terms = ref<TermRelation[]>([]);
 

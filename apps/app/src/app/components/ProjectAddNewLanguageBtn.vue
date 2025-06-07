@@ -4,7 +4,7 @@ import { warn } from "console";
 import { inject, ref } from "vue";
 import { useToastStore } from "../stores/toast";
 import { projectKey } from "../utils/provide";
-import { PickerOption } from "./picker";
+import type { PickerOption } from "./picker";
 import { useProjectStore } from "../stores/project";
 
 const { trpcWarn } = useToastStore();

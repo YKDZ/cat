@@ -3,7 +3,7 @@ import { computed } from "vue";
 import Picker from "./picker/Picker.vue";
 import { storeToRefs } from "pinia";
 import { useLanguageStore } from "../stores/language";
-import { PickerOption } from "./picker";
+import type { PickerOption } from "./picker";
 
 interface Props {
   filter?: (option: PickerOption) => boolean;

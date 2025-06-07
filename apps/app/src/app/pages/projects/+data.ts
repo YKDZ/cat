@@ -1,16 +1,13 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
 import { redirect } from "vike/abort";
-import { PageContext } from "vike/types";
+import type { PageContextServer } from "vike/types";
 
-export const data = async (ctx: PageContext) => {
+export const data = async (ctx: PageContextServer) => {
   const { user } = ctx;
 
   if (!user) throw redirect("/auth");
 
-  const projects = await useSSCTRPC({
-    sessionId: ctx.sessionId,
-    user,
-  })
+  const projects = await useSSCTRPC(ctx)
     .project.listUserParticipated({
       userId: user.id,
     })

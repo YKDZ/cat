@@ -1,5 +1,5 @@
 import { trpc } from "@/server/trpc/client";
-import { Task } from "@cat/shared";
+import type { Task } from "@cat/shared";
 import { defineStore } from "pinia";
 import { reactive } from "vue";
 

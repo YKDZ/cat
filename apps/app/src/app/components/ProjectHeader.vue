@@ -6,7 +6,7 @@ import Button from "./Button.vue";
 import { storeToRefs } from "pinia";
 import { useSidebarStore } from "../stores/sidebar";
 import { useProjectStore } from "../stores/project";
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import ProjectBreadcrumb from "./ProjectBreadcrumb.vue";
 
 const { isFolding } = storeToRefs(useSidebarStore());

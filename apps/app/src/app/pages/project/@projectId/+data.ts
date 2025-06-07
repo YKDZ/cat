@@ -1,11 +1,11 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
 import { redirect } from "vike/abort";
-import { PageContext } from "vike/types";
+import type { PageContextServer } from "vike/types";
 
-export const data = async (ctx: PageContext) => {
+export const data = async (ctx: PageContextServer) => {
   const { projectId } = ctx.routeParams;
 
-  const project = await useSSCTRPC({ ...ctx }).project.query({ id: projectId });
+  const project = await useSSCTRPC(ctx).project.query({ id: projectId });
 
   if (!project) throw redirect("/project");
 

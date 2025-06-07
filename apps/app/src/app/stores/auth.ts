@@ -1,5 +1,5 @@
-import { AuthMethod } from "@cat/shared";
-import { TRPCError } from "@trpc/server";
+import type { AuthMethod } from "@cat/shared";
+import type { TRPCError } from "@trpc/server";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 

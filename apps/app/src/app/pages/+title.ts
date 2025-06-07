@@ -1,4 +1,4 @@
-import { PageContext } from "vike/types";
+import type { PageContext } from "vike/types";
 
 export const title = (ctx: PageContext) => {
   return ctx.name;

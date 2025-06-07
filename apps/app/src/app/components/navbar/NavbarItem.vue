@@ -3,7 +3,7 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { computed, ref, watch } from "vue";
 import Icon from "../Icon.vue";
-import { NavbarItemType } from ".";
+import type { NavbarItemType } from ".";
 
 const ctx = usePageContext();
 

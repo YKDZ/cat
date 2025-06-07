@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
 import Render from "./formater/Render.vue";
-import { PartData } from "./formater";
+import type { PartData } from "./formater";
 
 const { element, document, sourceParts } = storeToRefs(useEditorStore());
 

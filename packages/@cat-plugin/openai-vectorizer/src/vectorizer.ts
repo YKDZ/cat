@@ -1,5 +1,5 @@
-import { TextVectorizer } from "@cat/plugin-core";
-import { UnvectorizedTextData } from "@cat/shared";
+import type { TextVectorizer } from "@cat/plugin-core";
+import type { UnvectorizedTextData } from "@cat/shared";
 
 export const embed = async (text: string): Promise<number[]> => {
   const url = new URL(process.env.PLUGIN_OPENAI_VECTORIZER_API_URL ?? "");

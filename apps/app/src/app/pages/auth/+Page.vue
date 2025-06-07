@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AuthButton from "@/app/components/AuthButton.vue";
 import AuthError from "@/app/components/AuthError.vue";
-import { AuthMethod } from "@cat/shared";
+import type { AuthMethod } from "@cat/shared";
 import { useData } from "vike-vue/useData";
 import { ref } from "vue";
 import logoUrl from "../../assets/logo.png";

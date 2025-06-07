@@ -7,7 +7,7 @@ import TableRow from "@/app/components/table/TableRow.vue";
 import { useToastStore } from "@/app/stores/toast";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file";
 import { trpc } from "@/server/trpc/client";
-import { Document, Project } from "@cat/shared";
+import type { Document, Project } from "@cat/shared";
 import { computed, ref } from "vue";
 import Icon from "./Icon.vue";
 

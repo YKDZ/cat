@@ -1,5 +1,6 @@
 import { prisma, redis, setting } from "@cat/db";
-import { AuthMethod, AuthMethodType } from "@cat/shared";
+import type { AuthMethod} from "@cat/shared";
+import { AuthMethodType } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
 import { createRemoteJWKSet, jwtVerify } from "jose";

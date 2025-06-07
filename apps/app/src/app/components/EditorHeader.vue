@@ -4,7 +4,7 @@ import Button from "./Button.vue";
 import { storeToRefs } from "pinia";
 import { useSidebarStore } from "../stores/sidebar";
 import { useEditorStore } from "../stores/editor";
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import { ref, watch } from "vue";
 import { useProjectStore } from "../stores/project";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";

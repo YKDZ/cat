@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Memory, MemorySuggestion } from "@cat/shared";
+import type { Memory, MemorySuggestion } from "@cat/shared";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import Render from "./formater/Render.vue";

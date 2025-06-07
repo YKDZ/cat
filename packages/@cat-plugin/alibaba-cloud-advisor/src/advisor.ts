@@ -1,6 +1,6 @@
-import { TranslationSuggestion } from "@cat/shared";
-import { TranslationAdvisor } from "@cat/plugin-core";
-import { TranslatableElement } from "@cat/shared";
+import type { TranslationSuggestion } from "@cat/shared";
+import type { TranslationAdvisor } from "@cat/plugin-core";
+import type { TranslatableElement } from "@cat/shared";
 import Sender from "./sender";
 
 const languageCodeMap = new Map<string, string>([["zh_hans", "zh"]]);

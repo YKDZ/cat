@@ -4,7 +4,7 @@ import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import Render from "./formater/Render.vue";
 import Icon from "./Icon.vue";
-import { Glossary, Term, TermRelation } from "@cat/shared";
+import type { Glossary, Term, TermRelation } from "@cat/shared";
 import { onMounted, ref } from "vue";
 import { trpc } from "@/server/trpc/client";
 

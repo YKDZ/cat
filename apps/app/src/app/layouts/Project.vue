@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Project } from "@cat/shared";
+import type { Project } from "@cat/shared";
 import IndexSidebar from "../components/IndexSidebar.vue";
 import ProjectHeader from "../components/ProjectHeader.vue";
 import ProjectNavbar from "../components/ProjectNavbar.vue";

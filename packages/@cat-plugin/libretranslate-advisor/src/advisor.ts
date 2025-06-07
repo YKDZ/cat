@@ -1,8 +1,9 @@
-import { PluginLoadOptions, TranslationAdvisor } from "@cat/plugin-core";
-import {
-  safeJoin,
+import type { PluginLoadOptions, TranslationAdvisor } from "@cat/plugin-core";
+import type {
   TranslatableElement,
-  TranslationSuggestion,
+  TranslationSuggestion} from "@cat/shared";
+import {
+  safeJoin
 } from "@cat/shared";
 
 const supportedLangages = new Map<string, string[]>();

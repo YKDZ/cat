@@ -1,5 +1,5 @@
 import { es, prisma } from "@cat/db";
-import { TermRelation } from "@cat/shared";
+import type { TermRelation } from "@cat/shared";
 
 export const insertTerms = async (...relations: TermRelation[]) => {
   await Promise.all(relations.map(insertTerm));

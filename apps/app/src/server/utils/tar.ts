@@ -2,7 +2,7 @@ import { createGunzip } from "zlib";
 import { x } from "tar";
 import { mkdir } from "fs/promises";
 import { pipeline } from "stream/promises";
-import { ReadableStream as NodeReadableStream } from "stream/web";
+import type { ReadableStream as NodeReadableStream } from "stream/web";
 import { Readable } from "stream";
 
 export async function downloadAndExtract(

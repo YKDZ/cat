@@ -1,4 +1,4 @@
-import { PluginData } from "@cat/shared";
+import type { PluginData } from "@cat/shared";
 import { githubPluginImporter } from "./github-plugin-importer";
 import { tarGZURLImporter } from "./tar-gz-url-plugin-importer";
 import { localImporter } from "./local-plugin-impoter";

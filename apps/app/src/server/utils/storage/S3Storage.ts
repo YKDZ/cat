@@ -1,12 +1,13 @@
-import { File } from "@cat/shared";
-import { Storage } from "./Storage";
+import type { File } from "@cat/shared";
+import type { Storage } from "./Storage";
+import type {
+  PutObjectCommandInput} from "@aws-sdk/client-s3";
 import {
   GetObjectCommand,
-  PutObjectCommand,
-  PutObjectCommandInput,
+  PutObjectCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { Readable } from "node:stream";
+import type { Readable } from "node:stream";
 import { S3DB, setting } from "@cat/db";
 
 export class S3Storage implements Storage {

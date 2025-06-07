@@ -1,5 +1,5 @@
-import { Storage } from "./Storage";
-import { File } from "@cat/shared";
+import type { Storage } from "./Storage";
+import type { File } from "@cat/shared";
 
 export class LocalStorage implements Storage {
   getId() {

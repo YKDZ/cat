@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Glossary } from "@cat/shared";
+import type { Glossary } from "@cat/shared";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 import GlossaryListItem from "@/app/components/GlossaryListItem.vue";

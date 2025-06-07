@@ -1,6 +1,7 @@
 import { prisma } from "@cat/db";
 import { redis } from "@cat/db";
-import { User, UserSchema } from "@cat/shared";
+import type { User} from "@cat/shared";
+import { UserSchema } from "@cat/shared";
 
 export const userFromSessionId = async (
   sessionId: string | null,

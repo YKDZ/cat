@@ -3,7 +3,7 @@ import { ref } from "vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import Icon from "@/app/components/Icon.vue";
 import Button from "@/app/components/Button.vue";
-import { TermListFilterOptions } from ".";
+import type { TermListFilterOptions } from ".";
 
 const emits = defineEmits<{
   (e: "filter", options: TermListFilterOptions): void;

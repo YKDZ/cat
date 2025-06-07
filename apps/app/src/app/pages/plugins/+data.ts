@@ -1,8 +1,8 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
-import { PageContext } from "vike/types";
+import type { PageContextServer } from "vike/types";
 
-export const data = async (ctx: PageContext) => {
-  const plugins = useSSCTRPC({ ...ctx }).plugin.listAll();
+export const data = async (ctx: PageContextServer) => {
+  const plugins = useSSCTRPC(ctx).plugin.listAll();
   return { plugins };
 };
 

@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useLanguageStore } from "../stores/language";
-import { PickerOption } from "./picker";
+import type { PickerOption } from "./picker";
 import MultiPicker from "./picker/MultiPicker.vue";
 
 const props = withDefaults(

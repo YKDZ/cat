@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
-import { ProgressBarLine } from "./progress/bar";
+import type { ProgressBarLine } from "./progress/bar";
 import Dot from "./Dot.vue";
 import { useProjectStore } from "../stores/project";
 import { storeToRefs } from "pinia";

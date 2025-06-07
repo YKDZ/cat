@@ -1,12 +1,13 @@
 import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { useStorage } from "@/server/utils/storage/useStorage";
 import { prisma } from "@cat/db";
+import type {
+  PrismaError} from "@cat/shared";
 import {
   DocumentSchema,
   ElementTranslationStatusSchema,
   FileMetaSchema,
   FileSchema,
-  PrismaError,
   TaskSchema,
   TranslatableElementSchema,
   TranslationSchema,
