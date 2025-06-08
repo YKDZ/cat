@@ -1,12 +1,13 @@
 import { pathToFileURL } from "url";
 import { prisma } from "@cat/db";
 import { z } from "zod/v4";
-import type { PluginConfig} from "@cat/shared";
+import type { PluginConfig } from "@cat/shared";
 import { logger, PluginConfigSchema } from "@cat/shared";
 import { join } from "path";
 import type { TextVectorizer } from "./text-vectorizer";
 import type { TranslatableFileHandler } from "./translatable-file-handler";
 import type { TranslationAdvisor } from "./translation-advisor";
+import type { AuthProvider } from "./auth-provider";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
@@ -19,6 +20,7 @@ export interface CatPlugin {
   getTextVectorizers?: () => TextVectorizer[];
   getTranslatableFileHandlers?: () => TranslatableFileHandler[];
   getTranslationAdvisors?: () => TranslationAdvisor[];
+  getAuthProviders?: () => AuthProvider[];
 }
 
 const PluginObjectSchema = z.custom<CatPlugin>();
@@ -142,6 +144,13 @@ export class PluginRegistry {
         (handlers): handlers is TranslatableFileHandler[] =>
           handlers !== undefined,
       )
+      .flat();
+  }
+
+  public getAuthProviders(): AuthProvider[] {
+    return Array.from(this.plugins.values())
+      .map((plugin) => plugin.getAuthProviders?.())
+      .filter((handlers): handlers is AuthProvider[] => handlers !== undefined)
       .flat();
   }
 

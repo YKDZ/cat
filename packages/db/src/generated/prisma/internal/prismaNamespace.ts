@@ -2575,8 +2575,6 @@ export type TranslationVoteScalarFieldEnum = (typeof TranslationVoteScalarFieldE
 export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  email: 'email',
-  emailVerified: 'emailVerified',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   avatarFileId: 'avatarFileId'
@@ -2842,8 +2840,7 @@ export type TranslationVoteOrderByRelevanceFieldEnum = (typeof TranslationVoteOr
 
 export const UserOrderByRelevanceFieldEnum = {
   id: 'id',
-  name: 'name',
-  email: 'email'
+  name: 'name'
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]

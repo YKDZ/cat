@@ -1,276 +1,194 @@
-import { prisma, redis, setting } from "@cat/db";
-import type { AuthMethod} from "@cat/shared";
-import { AuthMethodType } from "@cat/shared";
+import { prisma, redis } from "@cat/db";
+import { AuthMethodSchema, type AuthMethod } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
-import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../server";
-import {
-  createOIDCAuthURL,
-  createOIDCSession,
-  createUserSession,
-  randomChars,
-} from "@/server/utils/auth";
 
-const getRedirectURL = async () =>
-  new URL(
-    "/auth/oidc.callback",
-    (await setting("server.url", "http://localhost:3000")) as string,
-  ).toString();
+export const authRouter = router({
+  preAuth: publicProcedure
+    .input(z.object({ providerId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { user, pluginRegistry, setCookie, helpers } = ctx;
+      const { providerId } = input;
 
-const oidcRouter = router({
-  init: publicProcedure.query(async ({ ctx }) => {
-    const { user } = ctx;
+      if (user)
+        throw new TRPCError({ code: "CONFLICT", message: "Already login" });
 
-    if (!process.env.OIDC_CLIENT_ID)
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Environment variable OIDC_CLIENT_ID is not set",
-      });
+      if (!process.env.OIDC_CLIENT_ID)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Environment variable OIDC_CLIENT_ID is not set",
+        });
 
-    if (user)
-      throw new TRPCError({ code: "CONFLICT", message: "Already login" });
+      const provider = pluginRegistry
+        .getAuthProviders()
+        .find((provider) => provider.getId() === providerId);
 
-    const state = randomChars();
-    const nonce = randomChars();
+      if (!provider)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Auth Provider ${providerId} does not exists`,
+        });
 
-    const authURL = await createOIDCAuthURL(state, nonce);
+      if (!provider.needPreAuth()) return {};
 
-    await createOIDCSession(state, nonce, ctx);
+      const { sessionId, passToClient, sessionMeta } =
+        await provider.handlePreAuth!(null, helpers);
 
-    return {
-      authURL,
-    };
-  }),
-  callback: publicProcedure
+      const sessionKey = `auth:preAuth:session:${sessionId}`;
+      await redis.hSet(sessionKey, { _providerId: providerId, ...sessionMeta });
+
+      setCookie("preAuthSessionId", sessionId);
+
+      return passToClient;
+    }),
+  auth: publicProcedure
     .input(
       z.object({
-        state: z.string(),
-        code: z.string(),
+        passToServer: z.json(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { getCookie } = ctx;
-      const { state, code } = input;
+      const { getCookie, setCookie, pluginRegistry, helpers } = ctx;
+      const { passToServer } = input;
 
       if (ctx.user)
         throw new TRPCError({ code: "CONFLICT", message: "Already logged in" });
 
-      // 验证 OIDC 会话
-      const oidcSessionId = getCookie("oidcSessionId");
-      if (!oidcSessionId)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "OIDC Session not found in cookie",
-        });
-      const oidcSessionKey = `auth:oidc:session:${oidcSessionId}`;
-      const { state: storedState, nonce: storedNonce } =
-        await redis.hGetAll(oidcSessionKey);
-      await redis.del(oidcSessionKey);
+      const preAuthSessionId = getCookie("preAuthSessionId") ?? "";
+      const preAuthSessionKey = `auth:preAuth:session:${preAuthSessionId}`;
 
-      // 验证 State
-      if (!storedState || storedState !== state || !storedNonce)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "State do not match",
-        });
-      ctx.delCookie("oidcSessionId");
+      const providerId = await redis.hGet(preAuthSessionKey, "_providerId");
 
-      // 请求 Token
-      const params = new URLSearchParams({
-        client_id: process.env.OIDC_CLIENT_ID ?? "",
-        client_secret: process.env.OIDC_CLIENT_SECRET ?? "",
-        code,
-        redirect_uri: await getRedirectURL(),
-        grant_type: "authorization_code",
-      });
-
-      const response = await fetch(process.env.OIDC_TOKEN_URI ?? "", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: params,
-      });
-
-      if (!response.ok) {
+      if (!providerId)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to exchange token`,
+          message: "Provider ID not found in session",
         });
-      }
 
-      const body = await response.json();
+      const provider = pluginRegistry
+        .getAuthProviders()
+        .find((provider) => provider.getId() === providerId);
 
-      if (body.error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to exchange token: ${body.error_description}`,
-        });
-      }
-
-      // 验证 ID Token
-      const { id_token: idToken } = body;
-
-      const JWKS = createRemoteJWKSet(new URL(process.env.OIDC_JWKS_URI ?? ""));
-
-      const { payload } = await jwtVerify(idToken, JWKS, {
-        issuer: process.env.OIDC_ISSUER,
-        audience: process.env.OIDC_CLIENT_ID,
-      });
-
-      // 解析 ID Token 携带的信息
-      const {
-        sub,
-        name,
-        preferred_username: preferredUserName,
-        nickname,
-        email,
-        email_verified: emailVerified,
-        nonce,
-      } = payload as {
-        sub: string;
-        name: string;
-        preferred_username: string;
-        nickname: string;
-        email: string;
-        email_verified: boolean;
-        nonce: string;
-      };
-
-      // 验证 Nonce
-      if (nonce !== storedNonce)
+      if (!provider)
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "NONCE do not match",
+          message: `Auth Provider ${providerId} does not exists`,
         });
 
-      // 所有验证完成
-      // 进入签发会话阶段
-      const { user, account } = await prisma.$transaction(async (tx) => {
-        const user =
-          // 用户不存在则创建
-          (await tx.user.findUnique({
-            where: {
-              email,
-            },
-            select: {
-              id: true,
-              Accounts: {
-                where: {
-                  type: "OIDC",
-                  provider: process.env.OIDC_ISSUER!,
-                  providedAccountId: sub,
-                },
-              },
-            },
-          })) ??
-          (await tx.user.create({
-            data: {
-              name: preferredUserName ?? nickname ?? name,
-              email,
-              emailVerified: emailVerified,
-              Accounts: {
-                create: {
-                  type: "OIDC",
-                  provider: process.env.OIDC_ISSUER!,
-                  providedAccountId: sub,
-                },
-              },
-            },
-            select: {
-              id: true,
-              Accounts: {
-                where: {
-                  type: "OIDC",
-                  provider: process.env.OIDC_ISSUER!,
-                  providedAccountId: sub,
-                },
-              },
-            },
-          }));
+      const { userName, providerIssuer, providedAccountId, sessionMeta } =
+        await provider.handleAuth(passToServer, helpers);
 
-        let account = user.Accounts[0];
+      const { userId, account } = await prisma.$transaction(async (tx) => {
+        let account = await tx.account.findUnique({
+          where: {
+            provider_providedAccountId: {
+              provider: providerIssuer,
+              providedAccountId,
+            },
+          },
+          include: {
+            User: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        });
 
-        // 用户存在但 Account 不存在
-        // 代表用户之前可能通过其他途径登录
-        // 创建 OIDC Account
-        if (!user.Accounts[0]) {
+        // 账户不存在
+        // 用户可能存在
+        if (!account) {
           account = await tx.account.create({
             data: {
-              type: "OIDC",
-              provider: process.env.OIDC_ISSUER!,
-              providedAccountId: sub,
+              type: provider.getType(),
+              provider: providerIssuer,
+              providedAccountId,
               User: {
-                connect: {
-                  id: user.id,
+                connectOrCreate: {
+                  where: {
+                    name: userName,
+                  },
+                  create: {
+                    name: userName,
+                  },
+                },
+              },
+            },
+            include: {
+              User: {
+                select: {
+                  id: true,
                 },
               },
             },
           });
         }
 
-        return { user, account };
+        return {
+          userId: account.User.id,
+          account,
+        };
       });
 
-      await createUserSession(user.id, idToken, account, ctx);
+      const sessionId = randomBytes(32).toString("hex");
+      const sessionKey = `user:session:${sessionId}`;
+
+      await redis.hSet(sessionKey, {
+        userId,
+        provider: account.provider,
+        providerType: account.type,
+        providedAccountId: account.providedAccountId,
+        _providerId: providerId,
+        ...sessionMeta,
+      });
+      await redis.expire(sessionKey, 24 * 60 * 60);
+
+      setCookie("sessionId", sessionId);
     }),
   logout: publicProcedure.mutation(async ({ ctx }) => {
-    const { sessionId } = ctx;
+    const { user, sessionId, pluginRegistry, delCookie } = ctx;
 
-    if (!ctx.user || !ctx.sessionId)
+    if (!user || !sessionId)
       throw new TRPCError({ code: "CONFLICT", message: "Currently not login" });
 
-    const idToken = await redis.hGet(`user:session:${sessionId}`, "idToken");
+    const sessionKey = `user:session:${sessionId}`;
 
-    if (!idToken)
+    const providerId = await redis.hGet(sessionKey, "_providerId");
+
+    if (!providerId)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "ID Token 不存在",
+        message: "Provider ID not found in session",
       });
 
-    const state = randomBytes(16).toString("hex");
-    const params = new URLSearchParams({
-      id_token_hint: idToken,
-      post_logout_redirect_uri: (await setting(
-        "server.url",
-        "http://localhost:3000",
-      )) as string,
-      state,
-    });
+    const provider = pluginRegistry
+      .getAuthProviders()
+      .find((provider) => provider.getId() === providerId);
 
-    const res = await fetch(`${process.env.OIDC_LOGOUT_URI}?${params}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-
-    if (!res.ok)
+    if (!provider)
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "登出时出现错误",
+        code: "BAD_REQUEST",
+        message: `Auth Provider ${providerId} does not exists`,
       });
+
+    await provider.handleLogout(sessionId);
 
     await redis.del(`user:session:${sessionId}`);
-    ctx.delCookie("sessionId");
+    delCookie("sessionId");
   }),
-});
-
-const miscRouter = router({
-  availableAuthMethod: publicProcedure.query(async () => {
-    const result: AuthMethod[] = [];
-    if (process.env.OIDC_CLIENT_ID)
-      result.push({
-        type: AuthMethodType.OIDC,
-        title: process.env.OIDC_DISPLAY_NAME ?? "OIDC Provider",
-      });
-    return result;
-  }),
-});
-
-export const authRouter = router({
-  oidc: oidcRouter,
-  misc: miscRouter,
+  availableAuthMethod: publicProcedure
+    .output(z.array(AuthMethodSchema))
+    .query(async () => {
+      const result: AuthMethod[] = [
+        {
+          id: "OIDC",
+          type: "OIDC",
+          name: "Forest SSO",
+          icon: "i-mdi:ssh",
+        },
+      ];
+      return result;
+    }),
 });

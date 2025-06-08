@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AuthButton from "@/app/components/AuthButton.vue";
+import AuthBtn from "@/app/components/AuthBtn.vue";
 import AuthError from "@/app/components/AuthError.vue";
 import type { AuthMethod } from "@cat/shared";
 import { useData } from "vike-vue/useData";
@@ -23,7 +23,7 @@ const methods = ref<AuthMethod[]>(data.methods);
     </h1>
     <AuthError class="-mt-1" />
     <div class="flex flex-col gap-1.5 w-full">
-      <AuthButton v-for="method in methods" :key="method.type" :method />
+      <AuthBtn v-for="method in methods" :key="method.type" :method />
     </div>
   </div>
 </template>

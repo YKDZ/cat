@@ -1,13 +1,13 @@
+import { setting } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import "dotenv/config";
 import type { Server } from "http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import app from "./app";
-import { getCookieFunc } from "./utils/cookie";
 import { initDB, initSettings, shutdownServer } from "./utils/server";
 import { userFromSessionId } from "./utils/user";
-import { setting } from "@cat/db";
+import { createHTTPHelpers } from "@cat/shared";
 
 let server: Server | null = null;
 
@@ -16,16 +16,21 @@ function startServer() {
 
   apply(app, {
     pageContext: async (runtime) => {
-      const cookie = runtime.req?.headers["cookie"] ?? "";
-      const sessionId = getCookieFunc(cookie)("sessionId");
+      const helpers = createHTTPHelpers(
+        runtime.hono.req.raw,
+        runtime.hono.res.headers,
+      );
+
+      const sessionId = helpers.getCookie("sessionId");
       const user = await userFromSessionId(sessionId ?? "");
-      const name = (await setting("server.name", "CAT")) as string;
+      const name = await setting("server.name", "CAT");
 
       return {
         name,
         user,
         sessionId,
         pluginRegistry: PluginRegistry.getInstance(),
+        helpers,
       };
     },
   });

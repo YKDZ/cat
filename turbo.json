@@ -8,8 +8,8 @@
       "inputs": [
         ".env",
         "package.json",
-        "**.ts",
-        "src/**"
+        "src/**",
+        "docs/**"
       ],
       "outputs": [
         "dist/**"
