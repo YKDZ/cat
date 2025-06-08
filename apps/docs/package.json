@@ -12,7 +12,6 @@
     "build": "vitepress build docs",
     "preview": "vitepress preview docs",
     "lint": "eslint ./docs --fix",
-    "test": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --write .",
     "clean": "rimraf dist"

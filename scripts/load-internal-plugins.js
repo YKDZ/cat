@@ -1,23 +1,20 @@
-import { promises as fs } from 'fs';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { promises as fs } from "fs";
+import { dirname, join, resolve } from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const SRC_DIR = resolve(__dirname, '../packages/@cat-plugin');
-const DEST_DIR = resolve(__dirname, '../apps/app/plugins');
+const SRC_DIR = resolve(__dirname, "../packages/@cat-plugin");
+const DEST_DIR = resolve(__dirname, "../apps/app/plugins");
 
-const FILE_INCLUDES = [
-  'dist',
-  'package.json',
-  'manifest.json',
-];
+const FILE_INCLUDES = ["dist", "package.json", "manifest.json"];
 
 const FOLDER_INCLUDES = [
-  'ollama-vectorizer',
-  'libretranslate-advisor',
-  'json-file-handler'
+  "ollama-vectorizer",
+  "libretranslate-advisor",
+  "json-file-handler",
+  "oidc-auth-provider",
 ];
 
 async function copyRecursive(srcPath, destPath) {
@@ -27,10 +24,7 @@ async function copyRecursive(srcPath, destPath) {
     await fs.mkdir(destPath, { recursive: true });
     const entries = await fs.readdir(srcPath);
     for (const entry of entries) {
-      await copyRecursive(
-        join(srcPath, entry),
-        join(destPath, entry)
-      );
+      await copyRecursive(join(srcPath, entry), join(destPath, entry));
     }
   } else if (stats.isFile()) {
     await fs.copyFile(srcPath, destPath);
@@ -49,6 +43,7 @@ async function copyRecursive(srcPath, destPath) {
       const srcFolderPath = join(SRC_DIR, folder);
       const destFolderPath = join(DEST_DIR, folder);
 
+      await fs.mkdir(destFolderPath, { recursive: true });
       await fs.rm(destFolderPath, { recursive: true });
       await fs.mkdir(destFolderPath, { recursive: true });
 
@@ -64,9 +59,9 @@ async function copyRecursive(srcPath, destPath) {
       }
     }
 
-    console.log('成功拷贝指定的本地插件：' + FOLDER_INCLUDES.join(", "));
+    console.log("成功拷贝指定的本地插件：" + FOLDER_INCLUDES.join(", "));
   } catch (err) {
-    console.error('拷贝过程中出错：', err);
+    console.error("拷贝过程中出错：", err);
     process.exit(1);
   }
 })();

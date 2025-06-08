@@ -15,10 +15,12 @@ const code = ctx.urlParsed.search.code;
 const auth = useAuthStore();
 
 onMounted(() => {
-  trpc.auth.oidc.callback
+  trpc.auth.auth
     .mutate({
-      state,
-      code,
+      passToServer: {
+        state,
+        code,
+      },
     })
     .then(() => {
       navigate("/");

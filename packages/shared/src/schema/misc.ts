@@ -1,5 +1,12 @@
 import { z } from "zod/v4";
 
+export const AuthMethodSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  name: z.string(),
+  icon: z.string(),
+});
+
 export const ElementTranslationStatusSchema = z.enum([
   "NO",
   "TRANSLATED",
@@ -52,3 +59,4 @@ export type TranslationSuggestionStatus = z.infer<
 >;
 export type UnvectorizedTextData = z.infer<typeof UnvectorizedTextDataSchema>;
 export type TermData = z.infer<typeof TermDataSchema>;
+export type AuthMethod = z.infer<typeof AuthMethodSchema>;

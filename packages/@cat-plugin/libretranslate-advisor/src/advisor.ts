@@ -1,10 +1,6 @@
 import type { PluginLoadOptions, TranslationAdvisor } from "@cat/plugin-core";
-import type {
-  TranslatableElement,
-  TranslationSuggestion} from "@cat/shared";
-import {
-  safeJoin
-} from "@cat/shared";
+import type { TranslatableElement, TranslationSuggestion } from "@cat/shared";
+import { safeJoinURL } from "@cat/shared";
 
 const supportedLangages = new Map<string, string[]>();
 let isEnabled = true;
@@ -21,8 +17,14 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
 
   constructor(options: PluginLoadOptions) {
     this.options = options;
-    this.tranlateURL = safeJoin(this.config("api.url") as string, "translate");
-    this.languagesURL = safeJoin(this.config("api.url") as string, "languages");
+    this.tranlateURL = safeJoinURL(
+      this.config("api.url") as string,
+      "translate",
+    );
+    this.languagesURL = safeJoinURL(
+      this.config("api.url") as string,
+      "languages",
+    );
     fetchSupportedLanguages(this.languagesURL);
   }
 

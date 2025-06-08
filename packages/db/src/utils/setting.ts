@@ -1,9 +1,6 @@
 import { prisma } from "../prisma";
 
-export const setting = async (
-  key: string,
-  fallback?: string,
-): Promise<unknown> => {
+export const setting = async <T>(key: string, fallback: T): Promise<T> => {
   const data = await prisma.setting.findUnique({
     where: {
       key,
@@ -12,7 +9,7 @@ export const setting = async (
       value: true,
     },
   });
-  return data?.value ?? fallback;
+  return data ? (data.value as T) : fallback;
 };
 
 export const settings = async (

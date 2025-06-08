@@ -15,7 +15,7 @@ const handleLogout = () => {
   isProcessing.value = true;
   info("登出中...");
 
-  trpc.auth.oidc.logout
+  trpc.auth.logout
     .mutate()
     .then(() => {
       info("登出成功");

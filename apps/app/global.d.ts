@@ -1,5 +1,5 @@
 import type { Pinia, StateTree } from "pinia";
-import type { User, PluginComponent } from "@cat/shared";
+import type { User, PluginComponent, HTTPHelpers } from "@cat/shared";
 import type { PluginRegistry } from "@cat/plugin-core";
 
 declare global {
@@ -14,6 +14,7 @@ declare global {
     interface PageContextServer {
       pinia?: Pinia;
       pluginRegistry: PluginRegistry;
+      helpers: HTTPHelpers;
     }
     interface GlobalContextClient {
       pinia?: Pinia;

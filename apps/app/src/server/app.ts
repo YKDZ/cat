@@ -5,10 +5,6 @@ import { healthHandler } from "./handler/health";
 
 const app = new Hono();
 
-// if (process.env.NODE_ENV === "production") {
-//   app.use(logger());
-// }
-
 app.route("/api/trpc", trpcHandler);
 
 // app.route("/doc/openapi", openapiHander);

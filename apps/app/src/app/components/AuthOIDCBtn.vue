@@ -17,10 +17,11 @@ const isLoading = ref<boolean>(false);
 const handleAuth = () => {
   isLoading.value = true;
   auth.setAuthMethod(props.method);
-  trpc.auth.oidc.init
-    .query()
-    .then(({ authURL }) => {
-      window.location.href = authURL;
+  trpc.auth.preAuth
+    .mutate({ providerId: "OIDC" })
+    .then((passToClient) => {
+      if (!passToClient.authURL) return;
+      window.location.href = passToClient.authURL as string;
     })
     .catch((e: TRPCError) => {
       auth.setError(e);
@@ -31,11 +32,11 @@ const handleAuth = () => {
 
 <template>
   <Button
-    icon="i-mdi-transit-connection-variant"
     full-width
     :is-loading="isLoading"
+    :icon="method.icon"
     @click="handleAuth"
   >
-    使用 {{ method.title }} 登录或注册
+    使用 {{ method.name }} 登录或注册
   </Button>
 </template>

@@ -1,5 +1,5 @@
 {
-  "name": "@cat/shared",
+  "name": "@cat-plugin/oidc-auth-provider",
   "version": "0.1.0",
   "license": "MIT",
   "keywords": [
@@ -9,34 +9,32 @@
     "cat"
   ],
   "type": "module",
-  "main": "./dist/index.cjs.js",
-  "module": "./dist/index.es.js",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
-    }
-  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "vite build",
-    "test": "vitest",
     "lint": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --write .",
     "clean": "rimraf dist"
   },
   "devDependencies": {
+    "@cat/db": "workspace:*",
     "@cat/eslint-config": "workspace:*",
-    "@types/node": "^22.15.29",
-    "tsx": "^4.19.4",
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@types/node": "^22.14.1",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5",
-    "vite-plugin-dts": "^4.5.4",
-    "zod": "^3.25.53"
+    "vite": "^6.3.3",
+    "vite-plugin-dts": "^4.5.3"
+  },
+  "dependencies": {
+    "jose": "^6.0.11",
+    "jsonwebtoken": "^9.0.2"
   }
 }

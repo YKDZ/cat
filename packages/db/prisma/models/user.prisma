@@ -1,10 +1,8 @@
 model User {
-    id            String   @id @default(cuid())
-    name          String
-    email         String   @unique
-    emailVerified Boolean  @default(false)
-    createdAt     DateTime @default(now())
-    updatedAt     DateTime @updatedAt
+    id        String   @id @default(cuid())
+    name      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     avatarFileId Int?
     AvatarFile   File? @relation(fields: [avatarFileId], references: [id])
@@ -37,4 +35,5 @@ model Account {
     User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@id([provider, providedAccountId])
+    @@unique([userId, provider])
 }
