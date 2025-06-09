@@ -26,7 +26,7 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "@elastic/elasticsearch": "^9.0.2",
-    "@hono/node-server": "^1.14.3",
+    "@hono/node-server": "^1.14.4",
     "@jsonforms/core": "^3.5.1",
     "@jsonforms/vue": "^3.5.1",
     "@jsonforms/vue-vanilla": "^3.5.1",
