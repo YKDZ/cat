@@ -2509,11 +2509,9 @@ export type PluginPermissionScalarFieldEnum = (typeof PluginPermissionScalarFiel
 
 export const PluginConfigScalarFieldEnum = {
   id: 'id',
-  type: 'type',
   key: 'key',
-  default: 'default',
   value: 'value',
-  description: 'description',
+  schema: 'schema',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   pluginId: 'pluginId'
@@ -2795,9 +2793,8 @@ export type PluginPermissionOrderByRelevanceFieldEnum = (typeof PluginPermission
 
 
 export const PluginConfigOrderByRelevanceFieldEnum = {
-  type: 'type',
   key: 'key',
-  description: 'description',
+  schema: 'schema',
   pluginId: 'pluginId'
 } as const
 

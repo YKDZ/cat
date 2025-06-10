@@ -8,5 +8,5 @@ const props = defineProps<{
 </script>
 
 <template>
-  <AuthOIDCBtn v-if="method.type === 'OIDC'" :method />
+  <AuthOIDCBtn v-if="method.providerType === 'OIDC'" :method />
 </template>

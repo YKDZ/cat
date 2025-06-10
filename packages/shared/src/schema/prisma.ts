@@ -20,11 +20,9 @@ export const PluginTagSchema = z.object({
 
 export const PluginConfigSchema = z.object({
   id: z.number().int(),
-  type: z.string(),
   key: z.string(),
-  default: z.json(),
   value: z.json(),
-  description: z.string().nullable().optional(),
+  schema: z.string(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   pluginId: z.string(),

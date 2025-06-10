@@ -47,23 +47,19 @@ const worker = new Worker(
           iconURL: data.iconURL,
           Configs: {
             connectOrCreate: data.configs
-              ? data.configs.map(
-                  ({ type, key, description, default: defaultValue }) => ({
-                    where: {
-                      pluginId_key: {
-                        pluginId,
-                        key,
-                      },
-                    },
-                    create: {
-                      type,
+              ? data.configs.map(({ key, schema }) => ({
+                  where: {
+                    pluginId_key: {
+                      pluginId,
                       key,
-                      value: defaultValue,
-                      default: defaultValue,
-                      description,
                     },
-                  }),
-                )
+                  },
+                  create: {
+                    key,
+                    schema: JSON.stringify(schema),
+                    value: getDefaultFromSchema(schema),
+                  },
+                }))
               : [],
           },
           Tags: {
@@ -101,23 +97,19 @@ const worker = new Worker(
           iconURL: data.iconURL,
           Configs: {
             connectOrCreate: data.configs
-              ? data.configs.map(
-                  ({ type, key, description, default: defaultValue }) => ({
-                    where: {
-                      pluginId_key: {
-                        pluginId,
-                        key,
-                      },
-                    },
-                    create: {
-                      type,
+              ? data.configs.map(({ key, schema }) => ({
+                  where: {
+                    pluginId_key: {
+                      pluginId,
                       key,
-                      value: defaultValue,
-                      default: defaultValue,
-                      description,
                     },
-                  }),
-                )
+                  },
+                  create: {
+                    key,
+                    schema: JSON.stringify(schema),
+                    value: getDefaultFromSchema(schema),
+                  },
+                }))
               : [],
           },
           Tags: {
@@ -195,3 +187,62 @@ worker.on("failed", async (job) => {
 });
 
 export const importPluginWorker = worker;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getDefaultFromSchema = (schema: any): any => {
+  if (schema.default !== undefined) {
+    return schema.default;
+  }
+
+  if (schema.type === "object" || schema.properties) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const obj: Record<string, any> = {};
+    const properties = schema.properties || {};
+
+    for (const [key, propSchema] of Object.entries(properties)) {
+      const value = getDefaultFromSchema(propSchema);
+      if (value !== undefined) {
+        obj[key] = value;
+      }
+    }
+    return Object.keys(obj).length > 0 ? obj : undefined;
+  }
+
+  if (schema.type === "array" || schema.items) {
+    if (schema.default !== undefined) return schema.default;
+
+    const itemsSchema = schema.items;
+    if (Array.isArray(itemsSchema)) {
+      const arr = itemsSchema
+        .map((item) => getDefaultFromSchema(item))
+        .filter((val) => val !== undefined);
+      return arr.length > 0 ? arr : undefined;
+    } else if (itemsSchema) {
+      const itemDefault = getDefaultFromSchema(itemsSchema);
+      return itemDefault !== undefined ? [itemDefault] : undefined;
+    }
+    return undefined;
+  }
+
+  if (schema.oneOf || schema.anyOf) {
+    const candidates = schema.oneOf || schema.anyOf;
+    for (const candidate of candidates) {
+      const result = getDefaultFromSchema(candidate);
+      if (result !== undefined) return result;
+    }
+    return undefined;
+  }
+
+  if (schema.if && schema.then) {
+    const ifResult = getDefaultFromSchema(schema.if);
+    if (ifResult !== undefined) {
+      const thenResult = getDefaultFromSchema(schema.then);
+      if (thenResult !== undefined) return thenResult;
+    }
+    if (schema.else) {
+      return getDefaultFromSchema(schema.else);
+    }
+  }
+
+  return {};
+};

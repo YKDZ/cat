@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PluginConfig } from "@cat/shared";
-import PluginConfigSwitcher from "./PluginConfigSwitcher.vue";
+import PluginConfigForm from "./PluginConfigForm.vue";
 
 const props = defineProps<{
   configs: PluginConfig[];
@@ -8,5 +8,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <PluginConfigSwitcher v-for="config in configs" :key="config.id" :config />
+  <div class="flex flex-col gap-1">
+    <PluginConfigForm v-for="config in configs" :key="config.id" :config />
+  </div>
 </template>

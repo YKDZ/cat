@@ -1,19 +1,32 @@
-import type {
-  AuthProvider,
-  CatPlugin,
-  PluginLoadOptions,
-} from "@cat/plugin-core";
+import type { CatPlugin, PluginLoadOptions } from "@cat/plugin-core";
 import { Provider } from "./provider";
 
+export type ProviderConfig = {
+  displayName: string;
+  scopes: string;
+  clientId: string;
+  clientSecret: string;
+  issuer: string;
+  authURI: string;
+  tokenURI: string;
+  userInfoURI: string;
+  logoutURI: string;
+  jwksURI: string;
+};
+
 class Plugin implements CatPlugin {
-  public options: PluginLoadOptions | null = null;
+  private options: PluginLoadOptions | null = null;
+  private providerConfigs: ProviderConfig[] = [];
 
   async onLoaded(options: PluginLoadOptions) {
     this.options = options;
+    this.providerConfigs =
+      (options.configs.find(({ key }) => key === "base.oidc-providers")
+        ?.value as ProviderConfig[]) ?? [];
   }
 
   getAuthProviders() {
-    return [new Provider()];
+    return this.providerConfigs.map((config) => new Provider(config));
   }
 }
 
