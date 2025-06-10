@@ -16,9 +16,10 @@ const isLoading = ref<boolean>(false);
 
 const handleAuth = () => {
   isLoading.value = true;
+
   auth.setAuthMethod(props.method);
   trpc.auth.preAuth
-    .mutate({ providerId: "OIDC" })
+    .mutate({ providerId: props.method.providerId })
     .then((passToClient) => {
       if (!passToClient.authURL) return;
       window.location.href = passToClient.authURL as string;

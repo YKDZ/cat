@@ -37,9 +37,8 @@ export type PluginConfigSumAggregateOutputType = {
 
 export type PluginConfigMinAggregateOutputType = {
   id: number | null
-  type: string | null
   key: string | null
-  description: string | null
+  schema: string | null
   createdAt: Date | null
   updatedAt: Date | null
   pluginId: string | null
@@ -47,9 +46,8 @@ export type PluginConfigMinAggregateOutputType = {
 
 export type PluginConfigMaxAggregateOutputType = {
   id: number | null
-  type: string | null
   key: string | null
-  description: string | null
+  schema: string | null
   createdAt: Date | null
   updatedAt: Date | null
   pluginId: string | null
@@ -57,11 +55,9 @@ export type PluginConfigMaxAggregateOutputType = {
 
 export type PluginConfigCountAggregateOutputType = {
   id: number
-  type: number
   key: number
-  default: number
   value: number
-  description: number
+  schema: number
   createdAt: number
   updatedAt: number
   pluginId: number
@@ -79,9 +75,8 @@ export type PluginConfigSumAggregateInputType = {
 
 export type PluginConfigMinAggregateInputType = {
   id?: true
-  type?: true
   key?: true
-  description?: true
+  schema?: true
   createdAt?: true
   updatedAt?: true
   pluginId?: true
@@ -89,9 +84,8 @@ export type PluginConfigMinAggregateInputType = {
 
 export type PluginConfigMaxAggregateInputType = {
   id?: true
-  type?: true
   key?: true
-  description?: true
+  schema?: true
   createdAt?: true
   updatedAt?: true
   pluginId?: true
@@ -99,11 +93,9 @@ export type PluginConfigMaxAggregateInputType = {
 
 export type PluginConfigCountAggregateInputType = {
   id?: true
-  type?: true
   key?: true
-  default?: true
   value?: true
-  description?: true
+  schema?: true
   createdAt?: true
   updatedAt?: true
   pluginId?: true
@@ -198,11 +190,9 @@ export type PluginConfigGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 
 export type PluginConfigGroupByOutputType = {
   id: number
-  type: string
   key: string
-  default: unknown
   value: unknown
-  description: string | null
+  schema: string
   createdAt: Date
   updatedAt: Date
   pluginId: string
@@ -233,11 +223,9 @@ export type PluginConfigWhereInput = {
   OR?: Prisma.PluginConfigWhereInput[]
   NOT?: Prisma.PluginConfigWhereInput | Prisma.PluginConfigWhereInput[]
   id?: Prisma.IntFilter<"PluginConfig"> | number
-  type?: Prisma.StringFilter<"PluginConfig"> | string
   key?: Prisma.StringFilter<"PluginConfig"> | string
-  default?: Prisma.JsonFilter<"PluginConfig">
   value?: Prisma.JsonFilter<"PluginConfig">
-  description?: Prisma.StringNullableFilter<"PluginConfig"> | string | null
+  schema?: Prisma.StringFilter<"PluginConfig"> | string
   createdAt?: Prisma.DateTimeFilter<"PluginConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PluginConfig"> | Date | string
   pluginId?: Prisma.StringFilter<"PluginConfig"> | string
@@ -246,11 +234,9 @@ export type PluginConfigWhereInput = {
 
 export type PluginConfigOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  default?: Prisma.SortOrder
   value?: Prisma.SortOrder
-  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  schema?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pluginId?: Prisma.SortOrder
@@ -264,11 +250,9 @@ export type PluginConfigWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.PluginConfigWhereInput | Prisma.PluginConfigWhereInput[]
   OR?: Prisma.PluginConfigWhereInput[]
   NOT?: Prisma.PluginConfigWhereInput | Prisma.PluginConfigWhereInput[]
-  type?: Prisma.StringFilter<"PluginConfig"> | string
   key?: Prisma.StringFilter<"PluginConfig"> | string
-  default?: Prisma.JsonFilter<"PluginConfig">
   value?: Prisma.JsonFilter<"PluginConfig">
-  description?: Prisma.StringNullableFilter<"PluginConfig"> | string | null
+  schema?: Prisma.StringFilter<"PluginConfig"> | string
   createdAt?: Prisma.DateTimeFilter<"PluginConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PluginConfig"> | Date | string
   pluginId?: Prisma.StringFilter<"PluginConfig"> | string
@@ -277,11 +261,9 @@ export type PluginConfigWhereUniqueInput = Prisma.AtLeast<{
 
 export type PluginConfigOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  default?: Prisma.SortOrder
   value?: Prisma.SortOrder
-  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  schema?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pluginId?: Prisma.SortOrder
@@ -297,22 +279,18 @@ export type PluginConfigScalarWhereWithAggregatesInput = {
   OR?: Prisma.PluginConfigScalarWhereWithAggregatesInput[]
   NOT?: Prisma.PluginConfigScalarWhereWithAggregatesInput | Prisma.PluginConfigScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"PluginConfig"> | number
-  type?: Prisma.StringWithAggregatesFilter<"PluginConfig"> | string
   key?: Prisma.StringWithAggregatesFilter<"PluginConfig"> | string
-  default?: Prisma.JsonWithAggregatesFilter<"PluginConfig">
   value?: Prisma.JsonWithAggregatesFilter<"PluginConfig">
-  description?: Prisma.StringNullableWithAggregatesFilter<"PluginConfig"> | string | null
+  schema?: Prisma.StringWithAggregatesFilter<"PluginConfig"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PluginConfig"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PluginConfig"> | Date | string
   pluginId?: Prisma.StringWithAggregatesFilter<"PluginConfig"> | string
 }
 
 export type PluginConfigCreateInput = {
-  type: string
   key: string
-  default: unknown
   value: unknown
-  description?: string | null
+  schema: string
   createdAt?: Date | string
   updatedAt?: Date | string
   Plugin: Prisma.PluginCreateNestedOneWithoutConfigsInput
@@ -320,22 +298,18 @@ export type PluginConfigCreateInput = {
 
 export type PluginConfigUncheckedCreateInput = {
   id?: number
-  type: string
   key: string
-  default: unknown
   value: unknown
-  description?: string | null
+  schema: string
   createdAt?: Date | string
   updatedAt?: Date | string
   pluginId: string
 }
 
 export type PluginConfigUpdateInput = {
-  type?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  default?: unknown
   value?: unknown
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schema?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Plugin?: Prisma.PluginUpdateOneRequiredWithoutConfigsNestedInput
@@ -343,11 +317,9 @@ export type PluginConfigUpdateInput = {
 
 export type PluginConfigUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  default?: unknown
   value?: unknown
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schema?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pluginId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -355,33 +327,27 @@ export type PluginConfigUncheckedUpdateInput = {
 
 export type PluginConfigCreateManyInput = {
   id?: number
-  type: string
   key: string
-  default: unknown
   value: unknown
-  description?: string | null
+  schema: string
   createdAt?: Date | string
   updatedAt?: Date | string
   pluginId: string
 }
 
 export type PluginConfigUpdateManyMutationInput = {
-  type?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  default?: unknown
   value?: unknown
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schema?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PluginConfigUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  default?: unknown
   value?: unknown
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schema?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pluginId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -410,11 +376,9 @@ export type PluginConfigPluginIdKeyCompoundUniqueInput = {
 
 export type PluginConfigCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  default?: Prisma.SortOrder
   value?: Prisma.SortOrder
-  description?: Prisma.SortOrder
+  schema?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pluginId?: Prisma.SortOrder
@@ -426,9 +390,8 @@ export type PluginConfigAvgOrderByAggregateInput = {
 
 export type PluginConfigMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  description?: Prisma.SortOrder
+  schema?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pluginId?: Prisma.SortOrder
@@ -436,9 +399,8 @@ export type PluginConfigMaxOrderByAggregateInput = {
 
 export type PluginConfigMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  type?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  description?: Prisma.SortOrder
+  schema?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pluginId?: Prisma.SortOrder
@@ -491,22 +453,18 @@ export type PluginConfigUncheckedUpdateManyWithoutPluginNestedInput = {
 }
 
 export type PluginConfigCreateWithoutPluginInput = {
-  type: string
   key: string
-  default: unknown
   value: unknown
-  description?: string | null
+  schema: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type PluginConfigUncheckedCreateWithoutPluginInput = {
   id?: number
-  type: string
   key: string
-  default: unknown
   value: unknown
-  description?: string | null
+  schema: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -542,11 +500,9 @@ export type PluginConfigScalarWhereInput = {
   OR?: Prisma.PluginConfigScalarWhereInput[]
   NOT?: Prisma.PluginConfigScalarWhereInput | Prisma.PluginConfigScalarWhereInput[]
   id?: Prisma.IntFilter<"PluginConfig"> | number
-  type?: Prisma.StringFilter<"PluginConfig"> | string
   key?: Prisma.StringFilter<"PluginConfig"> | string
-  default?: Prisma.JsonFilter<"PluginConfig">
   value?: Prisma.JsonFilter<"PluginConfig">
-  description?: Prisma.StringNullableFilter<"PluginConfig"> | string | null
+  schema?: Prisma.StringFilter<"PluginConfig"> | string
   createdAt?: Prisma.DateTimeFilter<"PluginConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PluginConfig"> | Date | string
   pluginId?: Prisma.StringFilter<"PluginConfig"> | string
@@ -554,43 +510,35 @@ export type PluginConfigScalarWhereInput = {
 
 export type PluginConfigCreateManyPluginInput = {
   id?: number
-  type: string
   key: string
-  default: unknown
   value: unknown
-  description?: string | null
+  schema: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type PluginConfigUpdateWithoutPluginInput = {
-  type?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  default?: unknown
   value?: unknown
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schema?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PluginConfigUncheckedUpdateWithoutPluginInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  default?: unknown
   value?: unknown
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schema?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PluginConfigUncheckedUpdateManyWithoutPluginInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  default?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   value?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schema?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -599,11 +547,9 @@ export type PluginConfigUncheckedUpdateManyWithoutPluginInput = {
 
 export type PluginConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  type?: boolean
   key?: boolean
-  default?: boolean
   value?: boolean
-  description?: boolean
+  schema?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   pluginId?: boolean
@@ -612,11 +558,9 @@ export type PluginConfigSelect<ExtArgs extends runtime.Types.Extensions.Internal
 
 export type PluginConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  type?: boolean
   key?: boolean
-  default?: boolean
   value?: boolean
-  description?: boolean
+  schema?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   pluginId?: boolean
@@ -625,11 +569,9 @@ export type PluginConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
 
 export type PluginConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  type?: boolean
   key?: boolean
-  default?: boolean
   value?: boolean
-  description?: boolean
+  schema?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   pluginId?: boolean
@@ -638,17 +580,15 @@ export type PluginConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
 
 export type PluginConfigSelectScalar = {
   id?: boolean
-  type?: boolean
   key?: boolean
-  default?: boolean
   value?: boolean
-  description?: boolean
+  schema?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   pluginId?: boolean
 }
 
-export type PluginConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "key" | "default" | "value" | "description" | "createdAt" | "updatedAt" | "pluginId", ExtArgs["result"]["pluginConfig"]>
+export type PluginConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "value" | "schema" | "createdAt" | "updatedAt" | "pluginId", ExtArgs["result"]["pluginConfig"]>
 export type PluginConfigInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Plugin?: boolean | Prisma.PluginDefaultArgs<ExtArgs>
 }
@@ -666,11 +606,9 @@ export type $PluginConfigPayload<ExtArgs extends runtime.Types.Extensions.Intern
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    type: string
     key: string
-    default: unknown
     value: unknown
-    description: string | null
+    schema: string
     createdAt: Date
     updatedAt: Date
     pluginId: string
@@ -1099,11 +1037,9 @@ export interface Prisma__PluginConfigClient<T, Null = never, ExtArgs extends run
  */
 export interface PluginConfigFieldRefs {
   readonly id: Prisma.FieldRef<"PluginConfig", 'Int'>
-  readonly type: Prisma.FieldRef<"PluginConfig", 'String'>
   readonly key: Prisma.FieldRef<"PluginConfig", 'String'>
-  readonly default: Prisma.FieldRef<"PluginConfig", 'Json'>
   readonly value: Prisma.FieldRef<"PluginConfig", 'Json'>
-  readonly description: Prisma.FieldRef<"PluginConfig", 'String'>
+  readonly schema: Prisma.FieldRef<"PluginConfig", 'String'>
   readonly createdAt: Prisma.FieldRef<"PluginConfig", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PluginConfig", 'DateTime'>
   readonly pluginId: Prisma.FieldRef<"PluginConfig", 'String'>

@@ -1,21 +1,12 @@
 import { Prisma, prisma } from "@cat/db";
-import type {
-  TextVectorizer,
-  TranslatableFileHandler} from "@cat/plugin-core";
-import {
-  PluginRegistry
-} from "@cat/plugin-core";
-import type {
-  Document,
-  File} from "@cat/shared";
-import {
-  logger,
-  UnvectorizedTextDataSchema,
-} from "@cat/shared";
-import { z } from "zod/v4";
+import type { TextVectorizer, TranslatableFileHandler } from "@cat/plugin-core";
+import { PluginRegistry } from "@cat/plugin-core";
+import type { Document, File } from "@cat/shared";
+import { logger, UnvectorizedTextDataSchema } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
-import { config } from "./config";
+import { z } from "zod/v4";
 import { useStorage } from "../utils/storage/useStorage";
+import { config } from "./config";
 
 const queueId = "documentFromFilePretreatment";
 

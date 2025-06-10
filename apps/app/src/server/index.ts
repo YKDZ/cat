@@ -5,7 +5,12 @@ import type { Server } from "http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import app from "./app";
-import { initDB, initSettings, shutdownServer } from "./utils/server";
+import {
+  initDB,
+  initSettings,
+  scanLocalPlugins,
+  shutdownServer,
+} from "./utils/server";
 import { userFromSessionId } from "./utils/user";
 import { createHTTPHelpers } from "@cat/shared";
 
@@ -42,6 +47,7 @@ function startServer() {
       await initDB();
       await initSettings();
       await PluginRegistry.getInstance().loadPlugins();
+      await scanLocalPlugins();
 
       if (process.env.NODE_ENV === "production") {
         process.on("SIGTERM", () => shutdownServer(server!));
