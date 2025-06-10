@@ -4,5 +4,64 @@
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
     "登录服务"
+  ],
+  "configs": [
+    {
+      "key": "base.oidc-providers",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "displayName": {
+              "type": "string",
+              "default": "My OIDC"
+            },
+            "scopes": {
+              "type": "string",
+              "default": "openid profile email"
+            },
+            "clientId": {
+              "type": "string",
+              "default": "xxx"
+            },
+            "clientSecret": {
+              "type": "string",
+              "default": "xxx"
+            },
+            "issuer": {
+              "type": "string",
+              "format": "url",
+              "default": "http://localhost:4000/"
+            },
+            "authURI": {
+              "type": "string",
+              "format": "url",
+              "default": "http://localhost:4000/"
+            },
+            "tokenURI": {
+              "type": "string",
+              "format": "url",
+              "default": "http://localhost:4000/"
+            },
+            "userInfoURI": {
+              "type": "string",
+              "format": "url",
+              "default": "http://localhost:4000/"
+            },
+            "logoutURI": {
+              "type": "string",
+              "format": "url",
+              "default": "http://localhost:4000/"
+            },
+            "jwksURI": {
+              "type": "string",
+              "format": "url",
+              "default": "http://localhost:4000/"
+            }
+          }
+        }
+      }
+    }
   ]
 }

@@ -12,7 +12,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
 
   private config = (key: string): unknown => {
     const config = this.options.configs.find((config) => config.key === key);
-    return config?.value ?? config?.default;
+    return config?.value;
   };
 
   constructor(options: PluginLoadOptions) {

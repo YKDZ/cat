@@ -4,6 +4,8 @@ import type { Server } from "http";
 import type z from "zod/v4";
 import { closeAllProcessors } from "../processor";
 import { initESIndex } from "./es";
+import { PluginRegistry } from "@cat/plugin-core";
+import { importPluginQueue } from "../processor/importPlugin";
 
 export const shutdownServer = async (server: Server) => {
   logger.info("SERVER", "About to shutdown server gracefully...");
@@ -118,4 +120,36 @@ export const initSettings = async () => {
         }),
     );
   });
+};
+
+export const scanLocalPlugins = async () => {
+  const pluginIds = (
+    await prisma.plugin.findMany({
+      select: {
+        id: true,
+      },
+    })
+  ).map((plugin) => plugin.id);
+
+  await Promise.all(
+    (await PluginRegistry.getPluginIdInLocalPlugins())
+      .filter((id) => !pluginIds.includes(id))
+      .map(async (id) => {
+        const task = await prisma.task.create({
+          data: {
+            type: "import_plugin",
+          },
+        });
+
+        importPluginQueue.add(task.id, {
+          taskId: task.id,
+          origin: {
+            type: "LOCAL",
+            data: {
+              name: id,
+            },
+          },
+        });
+      }),
+  );
 };

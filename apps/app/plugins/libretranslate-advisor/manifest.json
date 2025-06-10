@@ -8,23 +8,32 @@
   "configs": [
     {
       "key": "base.advisor-name",
-      "type": "stirng",
-      "default": "LibreTranslate"
+      "schema": {
+        "type": "string",
+        "default": "LibreTranslate"
+      }
     },
     {
       "key": "api.url",
-      "type": "url",
-      "default": "http://libreTranslate:5000/"
+      "schema": {
+        "type": "string",
+        "format": "url",
+        "default": "http://libreTranslate:5000/"
+      }
     },
     {
       "key": "api.key",
-      "type": "string",
-      "default": "xxxx"
+      "schema": {
+        "type": "string",
+        "default": "your api key"
+      }
     },
     {
       "key": "api.alternatives-amount",
-      "type": "number",
-      "default": 2
+      "schema": {
+        "type": "number",
+        "default": 2
+      }
     }
   ]
 }

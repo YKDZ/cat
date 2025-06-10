@@ -31,7 +31,7 @@ watch(
 <template>
   <div class="flex flex-col h-full w-full md:flex-row">
     <IndexSidebar />
-    <div class="flex flex-col h-full w-full overflow-y-auto">
+    <div class="flex flex-col h-full w-full overflow-x-hidden">
       <IndexHeader />
       <!-- Content -->
       <div class="p-4 flex flex-col gap-2">

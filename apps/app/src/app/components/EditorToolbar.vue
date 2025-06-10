@@ -5,7 +5,7 @@ import Button from "./Button.vue";
 import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
 
 const { translate, jumpToNextUntranslated, replace, clear } = useEditorStore();
-const { undo } = useEditorStore();
+const { undo, redo } = useEditorStore();
 
 const { element } = storeToRefs(useEditorStore());
 
@@ -31,7 +31,20 @@ const handleTranslate = async (jumpToNext: boolean) => {
         class="text-red"
         @click="clear"
       />
-      <Button transparent icon="i-mdi:undo" magic-key="Control+Z" @click="undo" />
+      <Button
+        transparent
+        icon="i-mdi:undo"
+        magic-key="Control+Z"
+        @click="undo"
+        @magic-click="undo"
+      />
+      <Button
+        transparent
+        icon="i-mdi:redo"
+        magic-key="Control+Shift+Z"
+        @click="redo"
+        @magic-click="redo"
+      />
       <EditorTranslationVerifyResult />
     </div>
     <div class="flex gap-1 items-center">

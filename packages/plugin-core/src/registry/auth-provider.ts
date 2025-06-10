@@ -16,6 +16,7 @@ export type AuthResult = {
 export interface AuthProvider {
   getId: () => string;
   getType: () => string;
+  getName: () => string;
   needPreAuth: () => boolean;
   getPreAuthFormSchema?: () => string | null;
   handlePreAuth?: (
