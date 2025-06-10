@@ -1,12 +1,12 @@
-import { PluginLoadOptions, TextVectorizer } from "@cat/plugin-core";
-import { UnvectorizedTextData } from "@cat/shared";
+import type { PluginLoadOptions, TextVectorizer } from "@cat/plugin-core";
+import type { UnvectorizedTextData } from "@cat/shared";
 
 export class Vectorizer implements TextVectorizer {
   private options: PluginLoadOptions;
 
   private config = (key: string): unknown => {
     const config = this.options.configs.find((config) => config.key === key);
-    return config?.value ?? config?.default;
+    return config?.value;
   };
 
   constructor(options: PluginLoadOptions) {

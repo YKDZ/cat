@@ -8,13 +8,18 @@
   "configs": [
     {
       "key": "api.model-id",
-      "type": "string",
-      "default": "snowflake-arctic-embed2"
+      "schema": {
+        "type": "string",
+        "default": "snowflake-arctic-embed2"
+      }
     },
     {
       "key": "api.url",
-      "type": "url",
-      "default": "http://localhost:11434/api/embed"
+      "schema": {
+        "type": "string",
+        "format": "url",
+        "default": "http://localhost:11434/api/embed"
+      }
     }
   ]
 }

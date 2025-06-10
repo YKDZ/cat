@@ -42,14 +42,12 @@ model PluginPermission {
 }
 
 model PluginConfig {
-    id          Int      @id @default(autoincrement())
-    type        String
-    key         String
-    default     Json
-    value       Json
-    description String?
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @default(now()) @updatedAt
+    id        Int      @id @default(autoincrement())
+    key       String
+    value     Json
+    schema    String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 
     pluginId String
     Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)

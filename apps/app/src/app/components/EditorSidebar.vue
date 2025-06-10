@@ -7,7 +7,6 @@ import { useSidebarStore } from "../stores/sidebar";
 import { useEditorStore } from "../stores/editor";
 import Logo from "./Logo.vue";
 import EditorSidebarElement from "./EditorSidebarElement.vue";
-import Input from "./Input.vue";
 import EditorElementSearcher from "./EditorElementSearcher.vue";
 
 const { displayedElements, currentPageIndex, totalPageIndex } =
