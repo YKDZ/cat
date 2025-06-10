@@ -153,3 +153,18 @@ export const scanLocalPlugins = async () => {
       }),
   );
 };
+
+export const isInited = async (): Promise<false | undefined> => {
+  return (
+    await prisma.setting.findUnique({
+      where: {
+        key: "server.isInited",
+      },
+      select: {
+        value: true,
+      },
+    })
+  )?.value !== true
+    ? false
+    : undefined;
+};

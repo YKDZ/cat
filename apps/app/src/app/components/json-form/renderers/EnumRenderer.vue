@@ -1,37 +1,36 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
-import { schemaKey } from "..";
+import { schemaKey, transferDataToString } from "..";
 import Picker from "../../picker/Picker.vue";
 import type { PickerOption } from "../../picker";
 
 const props = defineProps<{
   propertyKey?: string;
-  data: any;
+  data: unknown;
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: any): void;
+  (e: "_update", to: unknown): void;
 }>();
 
 const schema = inject(schemaKey);
 
 const jsonSchema = computed(() => {
-  return JSON.parse(schema ?? "");
+  return JSON.parse(schema ?? "{}");
 });
 const value = ref(props.data ?? jsonSchema.value.defaults);
 
 const enumValues = computed(() => {
-  return jsonSchema.value.enum as any[];
+  return jsonSchema.value.enum as unknown[];
 });
 
 const options = computed(() => {
-  return enumValues.value.map(
-    (value) =>
-      ({
-        value,
-        content: value,
-      }) satisfies PickerOption,
-  );
+  return enumValues.value.map((value) => {
+    return {
+      value,
+      content: transferDataToString(value),
+    } satisfies PickerOption;
+  });
 });
 
 watch(value, (to) => emits("_update", to));

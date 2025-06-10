@@ -10,16 +10,16 @@ export type AuthResult = {
   userName: string;
   providerIssuer: string;
   providedAccountId: string;
-  sessionMeta: Record<string, number | string>;
+  sessionMeta?: Record<string, number | string>;
 };
 
 export interface AuthProvider {
   getId: () => string;
   getType: () => string;
   getName: () => string;
-  needPreAuth: () => boolean;
   getPreAuthFormSchema?: () => string | null;
   handlePreAuth?: (
+    sessionId: string,
     gotFromClient: unknown,
     helpers: HTTPHelpers,
   ) => Promise<PreAuthResult>;
@@ -28,5 +28,5 @@ export interface AuthProvider {
     gotFromClient: unknown,
     helpers: HTTPHelpers,
   ) => Promise<AuthResult>;
-  handleLogout: (sessionId: string) => Promise<void>;
+  handleLogout?: (sessionId: string) => Promise<void>;
 }

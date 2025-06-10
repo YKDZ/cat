@@ -3,6 +3,7 @@ import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { userFromSessionId } from "../utils/user";
 import { PluginRegistry } from "@cat/plugin-core";
 import { createHTTPHelpers, getCookieFunc } from "@cat/shared";
+import { isInited } from "..";
 
 export const createHttpContext = async ({
   req,
@@ -14,6 +15,7 @@ export const createHttpContext = async ({
   const user = await userFromSessionId(sessionId);
 
   return {
+    isInited,
     user,
     sessionId,
     pluginRegistry: PluginRegistry.getInstance(),

@@ -1,5 +1,5 @@
 export type PickerOption = {
-  value: string;
+  value: unknown;
   content: string;
   icon?: string;
 };

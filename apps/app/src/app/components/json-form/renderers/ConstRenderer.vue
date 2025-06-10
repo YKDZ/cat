@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { schemaKey } from "..";
+import { schemaKey, transferDataToString } from "..";
 
 const props = defineProps<{
   propertyKey?: string;
-  data: any;
+  data: unknown;
 }>();
 
 const schema = inject(schemaKey);
@@ -14,7 +14,7 @@ const jsonSchema = computed(() => {
 });
 
 const constValue = computed(() => {
-  return jsonSchema.value.const as any;
+  return jsonSchema.value.const as unknown;
 });
 </script>
 
@@ -23,6 +23,6 @@ const constValue = computed(() => {
     <label class="text-highlight-content">{{
       jsonSchema.title ?? propertyKey
     }}</label>
-    <span>{{ constValue }}</span>
+    <span>{{ transferDataToString(constValue) }}</span>
   </div>
 </template>

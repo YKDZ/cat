@@ -10,6 +10,7 @@ import { memoryRouter } from "./routers/memory";
 import { glossaryRouter } from "./routers/glossary";
 import { pluginRouter } from "./routers/plugin";
 import { settingRouter } from "./routers/setting";
+import { initRouter } from "./routers/init";
 
 export const appRouter = router({
   auth: authRouter,
@@ -23,6 +24,7 @@ export const appRouter = router({
   glossary: glossaryRouter,
   plugin: pluginRouter,
   setting: settingRouter,
+  init: initRouter,
 });
 
 export type AppRouter = typeof appRouter;

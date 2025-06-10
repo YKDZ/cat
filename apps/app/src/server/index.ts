@@ -10,11 +10,14 @@ import {
   initSettings,
   scanLocalPlugins,
   shutdownServer,
+  isInited as checkInited,
 } from "./utils/server";
 import { userFromSessionId } from "./utils/user";
 import { createHTTPHelpers } from "@cat/shared";
 
 let server: Server | null = null;
+
+export let isInited: false | undefined = undefined;
 
 function startServer() {
   const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
@@ -31,6 +34,7 @@ function startServer() {
       const name = await setting("server.name", "CAT");
 
       return {
+        isInited,
         name,
         user,
         sessionId,
@@ -46,6 +50,7 @@ function startServer() {
       server = nodeServer as Server;
       await initDB();
       await initSettings();
+      isInited = await checkInited();
       await PluginRegistry.getInstance().loadPlugins();
       await scanLocalPlugins();
 
