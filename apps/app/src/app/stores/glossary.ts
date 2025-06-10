@@ -7,7 +7,7 @@ export const useGlossaryStore = defineStore("glossary", () => {
   const glossaries = ref<Glossary[]>([]);
   const termAmounts = reactive(new Map<string, number>());
 
-  const addGlossaries = (...glossariesToAdd: Glossary[]) => {
+  const upsertGlossaries = (...glossariesToAdd: Glossary[]) => {
     for (const glossary of glossariesToAdd) {
       if (!glossary) continue;
 
@@ -25,7 +25,7 @@ export const useGlossaryStore = defineStore("glossary", () => {
   const fetchGlossary = (id: string) => {
     trpc.glossary.query.query({ id }).then((glossary) => {
       if (glossary === null) return;
-      addGlossaries(glossary);
+      upsertGlossaries(glossary);
     });
   };
 
@@ -42,7 +42,7 @@ export const useGlossaryStore = defineStore("glossary", () => {
   return {
     glossaries,
     termAmounts,
-    addGlossaries,
+    upsertGlossaries,
     fetchGlossary,
     updateTermAmount,
   };

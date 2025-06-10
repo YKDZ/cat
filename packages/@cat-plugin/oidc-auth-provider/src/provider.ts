@@ -26,16 +26,11 @@ export class Provider implements AuthProvider {
     return this.config.displayName;
   }
 
-  needPreAuth() {
-    return true;
-  }
-
-  async handlePreAuth() {
+  async handlePreAuth(sessionId: string) {
     if (!this.config.clientId) throw new Error("Config invalid");
 
     const state = randomChars();
     const nonce = randomChars();
-    const sessionId = randomChars();
 
     const authURL = await createOIDCAuthURL(this.config, state, nonce);
 

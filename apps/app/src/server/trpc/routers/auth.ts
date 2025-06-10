@@ -25,17 +25,67 @@ export const authRouter = router({
           message: `Auth Provider ${providerId} does not exists`,
         });
 
-      if (!provider.needPreAuth()) return {};
+      if (typeof provider.handlePreAuth !== "function") return {};
 
-      const { sessionId, passToClient, sessionMeta } =
-        await provider.handlePreAuth!(null, helpers);
+      const sessionId = randomBytes(32).toString("hex");
 
-      const sessionKey = `auth:preAuth:session:${sessionId}`;
-      await redis.hSet(sessionKey, { _providerId: providerId, ...sessionMeta });
+      if (typeof provider.handlePreAuth === "function") {
+        const { passToClient, sessionMeta } = await provider.handlePreAuth!(
+          sessionId,
+          null,
+          helpers,
+        );
 
-      setCookie("preAuthSessionId", sessionId);
+        const sessionKey = `auth:preAuth:session:${sessionId}`;
+        await redis.hSet(sessionKey, {
+          _providerId: providerId,
+          ...sessionMeta,
+        });
 
-      return passToClient;
+        setCookie("preAuthSessionId", sessionId);
+
+        return passToClient;
+      } else {
+        const sessionKey = `auth:preAuth:session:${sessionId}`;
+        await redis.hSet(sessionKey, {
+          _providerId: providerId,
+        });
+
+        setCookie("preAuthSessionId", sessionId);
+
+        return null;
+      }
+    }),
+  queryAuthFormSchema: publicProcedure
+    .input(
+      z.object({
+        providerId: z.string(),
+      }),
+    )
+    .output(z.string())
+    .query(async ({ ctx, input }) => {
+      const { pluginRegistry } = ctx;
+      const { providerId } = input;
+
+      if (!providerId)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Provider ID not found in session",
+        });
+
+      const provider = pluginRegistry
+        .getAuthProviders()
+        .find((provider) => provider.getId() === providerId);
+
+      if (!provider)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Auth Provider ${providerId} does not exists`,
+        });
+
+      if (typeof provider.getAuthFormSchema !== "function") return "{}";
+
+      return provider.getAuthFormSchema() ?? "{}";
     }),
   auth: publicProcedure
     .input(
@@ -167,7 +217,9 @@ export const authRouter = router({
         message: `Auth Provider ${providerId} does not exists`,
       });
 
-    await provider.handleLogout(sessionId);
+    if (typeof provider.handleLogout === "function") {
+      await provider.handleLogout(sessionId);
+    }
 
     await redis.del(`user:session:${sessionId}`);
     delCookie("sessionId");

@@ -12,7 +12,7 @@ import type { TRPCClientError } from "@trpc/client";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
-import { computed, nextTick, reactive, ref } from "vue";
+import { computed, nextTick, reactive, ref, shallowRef } from "vue";
 import type { PartData } from "../components/formater";
 import { useToastStore } from "./toast";
 import { useUserStore } from "./user";
@@ -23,7 +23,7 @@ export const useEditorStore = defineStore("editor", () => {
   // 分页与查询
   const elementTotalAmount = ref(0);
   const pageSize = ref(16);
-  const storedElements = ref<TranslatableElement[]>([]);
+  const storedElements = shallowRef<TranslatableElement[]>([]);
   const currentPageIndex = ref(-1);
   const loadedPages = ref<number[]>([]);
   const loadedPagesInfo = reactive(
@@ -35,7 +35,7 @@ export const useEditorStore = defineStore("editor", () => {
   const documentId = ref<string | null>();
   const languageFromId = ref<string | null>(null);
   const languageToId = ref<string | null>(null);
-  const translations = ref<Translation[]>([]);
+  const translations = shallowRef<Translation[]>([]);
   const document = ref<Document | null>(null);
   const elementId = ref<number | null>(null);
   const translationValue = ref<string>("");
@@ -78,16 +78,20 @@ export const useEditorStore = defineStore("editor", () => {
     });
   };
 
-  const addElements = (...elements: TranslatableElement[]) => {
-    const seen = new Set<number>(
-      storedElements.value.map((e: TranslatableElement) => e.id),
-    );
+  const upsertElements = (...elementsToAdd: TranslatableElement[]) => {
+    for (const element of elementsToAdd) {
+      if (!element) continue;
 
-    elements.forEach((element) => {
-      if (seen.has(element.id)) return;
-      seen.add(element.id);
-      storedElements.value.push(element);
-    });
+      const currentIndex = storedElements.value.findIndex(
+        (p: TranslatableElement) => p.id === element.id,
+      );
+      if (currentIndex === -1) {
+        storedElements.value.push(element);
+      } else {
+        storedElements.value.splice(currentIndex, 1, element);
+      }
+    }
+
     storedElements.value.sort(
       (a: TranslatableElement, b: TranslatableElement) => a.id - b.id,
     );
@@ -134,7 +138,7 @@ export const useEditorStore = defineStore("editor", () => {
           toId: elements[elements.length - 1].id,
         });
 
-        addElements(...elements);
+        upsertElements(...elements);
         loadedPages.value.push(currentPageIndex.value);
       });
   };
@@ -152,16 +156,14 @@ export const useEditorStore = defineStore("editor", () => {
     memories.value = [];
   };
 
-  const element = computed(
+  const element = computed<TranslatableElement | null>(
     (): TranslatableElement | null =>
       storedElements.value.find(
         (element: TranslatableElement) => element.id === elementId.value,
       ) ?? null,
   );
 
-  const displayedElements = computed(() => {
-    if (!storedElements.value) return [];
-
+  const displayedElements = computed<TranslatableElement[]>(() => {
     const info = loadedPagesInfo.get(currentPageIndex.value);
 
     if (!info) return [];
@@ -175,7 +177,7 @@ export const useEditorStore = defineStore("editor", () => {
         .reverse()
         .findIndex((element) => element.id <= info.toId);
 
-    return storedElements.value.slice(start, end);
+    return storedElements.value.slice(start, end) as TranslatableElement[];
   });
 
   const fetchTranslations = async (elementId: number) => {
@@ -304,7 +306,7 @@ export const useEditorStore = defineStore("editor", () => {
     );
 
     if (index === -1) {
-      translations.value = [...translations.value, translation];
+      translations.value.push(translation);
       return;
     }
 
@@ -369,6 +371,7 @@ export const useEditorStore = defineStore("editor", () => {
     searchQuery,
     sourceParts,
     translationParts,
+    upsertElements,
     fetchElementTotalAmount,
     refresh,
     addTerms,

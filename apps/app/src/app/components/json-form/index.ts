@@ -27,6 +27,18 @@ export class RendererRegistry {
 
 const renderers: Renderer[] = [
   {
+    renderer: EnumRenderer,
+    matcher: ({ schema }) => {
+      return !!JSON.parse(schema).enum;
+    },
+  },
+  {
+    renderer: ConstRenderer,
+    matcher: ({ schema }) => {
+      return !!JSON.parse(schema).const;
+    },
+  },
+  {
     renderer: StringRenderer,
     matcher: ({ schema }) => {
       return JSON.parse(schema).type === "string";
@@ -50,18 +62,14 @@ const renderers: Renderer[] = [
       return JSON.parse(schema).type === "array";
     },
   },
-  {
-    renderer: EnumRenderer,
-    matcher: ({ schema }) => {
-      return !!JSON.parse(schema).enum;
-    },
-  },
-  {
-    renderer: ConstRenderer,
-    matcher: ({ schema }) => {
-      return !!JSON.parse(schema).const;
-    },
-  },
 ];
 
 renderers.forEach((renderer) => RendererRegistry.register(renderer));
+
+export const transferDataToString = (data: unknown) => {
+  if (typeof data === "string") {
+    return data;
+  } else {
+    return JSON.stringify(data);
+  }
+};

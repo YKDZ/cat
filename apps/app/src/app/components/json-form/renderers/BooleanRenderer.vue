@@ -15,7 +15,7 @@ const emits = defineEmits<{
 const schema = inject(schemaKey);
 
 const jsonSchema = computed(() => {
-  return JSON.parse(schema ?? "");
+  return JSON.parse(schema ?? "{}");
 });
 
 const value = ref(props.data ?? jsonSchema.value.default);

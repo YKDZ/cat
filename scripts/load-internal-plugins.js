@@ -15,6 +15,7 @@ const FOLDER_INCLUDES = [
   "libretranslate-advisor",
   "json-file-handler",
   "oidc-auth-provider",
+  "username-password-auth-provider",
 ];
 
 async function copyRecursive(srcPath, destPath) {

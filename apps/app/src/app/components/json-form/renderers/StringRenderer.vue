@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
-import { schemaKey } from "..";
+import { schemaKey, transferDataToString } from "..";
 
 const props = defineProps<{
   propertyKey?: string;
-  data: string;
+  data: unknown;
 }>();
 
 const emits = defineEmits<{
@@ -14,10 +14,13 @@ const emits = defineEmits<{
 const schema = inject(schemaKey);
 
 const jsonSchema = computed(() => {
-  return JSON.parse(schema ?? "");
+  return JSON.parse(schema ?? "{}");
 });
 
-const value = ref(props.data ?? jsonSchema.value.default);
+const value = ref(
+  transferDataToString(props.data) ??
+    transferDataToString(jsonSchema.value.default),
+);
 
 const inputType = computed(() => {
   if (jsonSchema.value.format === "email") return "email";

@@ -15,7 +15,7 @@ const value = ref(props.data);
 const schema = inject(schemaKey);
 
 const jsonSchema = computed(() => {
-  return JSON.parse(schema ?? "");
+  return JSON.parse(schema ?? "{}");
 });
 
 watch(value, (to) => emits("_update", to));

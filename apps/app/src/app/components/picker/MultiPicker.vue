@@ -17,12 +17,12 @@ const props = withDefaults(
   },
 );
 
-const modelValue = defineModel<string[]>("modelValue", { default: [] });
+const modelValue = defineModel<unknown[]>("modelValue", { default: [] });
 const searchQuery = ref("");
 const isOpen = ref(false);
 
 const emits = defineEmits<{
-  (e: "change", from: string[] | undefined, to: string[] | undefined): void;
+  (e: "change", from: unknown[], to: unknown[]): void;
 }>();
 
 const filteredOptions = computed(() => {
@@ -30,11 +30,7 @@ const filteredOptions = computed(() => {
   const query = searchQuery.value.toLowerCase();
   return props.options
     .filter(props.filter)
-    .filter(
-      (option) =>
-        option.content.toLowerCase().includes(query) ||
-        (option.value?.toLowerCase().includes(query) ?? false),
-    );
+    .filter((option) => option.content.toLowerCase().includes(query));
 });
 
 const selectOption = (option: PickerOption) => {
@@ -62,9 +58,7 @@ const handleInputFocus = () => {
 const selectedOptions = computed(() => {
   return props.options
     .filter(props.filter)
-    .filter((option) =>
-      modelValue.value.includes(option.value ?? option.content),
-    )
+    .filter((option) => modelValue.value.includes(option.value))
     .sort((a, b) => {
       const aIndex = modelValue.value.findIndex(
         (value) => (a.value ?? a.content) === value,
@@ -100,7 +94,7 @@ const selectedOptions = computed(() => {
       >
         <div
           v-for="option in selectedOptions"
-          :key="option.value ?? option.content"
+          :key="option.content"
           class="text-sm px-1.5 py-1 rounded-md inline-flex gap-0.5 text-nowrap shadow-sm items-center"
         >
           {{ option.content }}
@@ -127,7 +121,7 @@ const selectedOptions = computed(() => {
     >
       <div
         v-for="option in filteredOptions"
-        :key="option.value ?? option.content"
+        :key="option.content"
         class="px-3 py-2 flex cursor-pointer items-center hover:bg-highlight-darker"
         @click="selectOption(option)"
       >

@@ -2,8 +2,9 @@
 import { navigate } from "vike/client/router";
 import { useEditorStore } from "../stores/editor";
 import { storeToRefs } from "pinia";
-import { computed, onMounted } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useToastStore } from "../stores/toast";
+import type { TranslatableElement } from "@cat/shared";
 
 const { trpcWarn } = useToastStore();
 
@@ -15,15 +16,18 @@ const {
   elementId: currentElementId,
 } = storeToRefs(useEditorStore());
 
-const { queryElementTranslationStatus } = useEditorStore();
+const { queryElementTranslationStatus, upsertElements } = useEditorStore();
 
 const props = defineProps<{
   elementId: number;
 }>();
 
-const element = computed(() => {
-  return storedElements.value.find((e) => e.id === props.elementId);
-});
+const element = ref<TranslatableElement | null>();
+
+const updateElement = () => {
+  element.value =
+    storedElements.value.find((e) => e.id === props.elementId) ?? null;
+};
 
 const handleClick = () => {
   if (!element.value) return;
@@ -33,11 +37,14 @@ const handleClick = () => {
   );
 };
 
+watch(storedElements, updateElement, { immediate: true });
+
 onMounted(() => {
   queryElementTranslationStatus(props.elementId)
     .then((queried) => {
       if (!element.value) return;
       element.value.status = queried;
+      upsertElements(element.value);
     })
     .catch(trpcWarn);
 });

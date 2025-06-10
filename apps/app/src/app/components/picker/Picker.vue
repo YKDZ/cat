@@ -9,32 +9,30 @@ const props = defineProps<{
   fullWidth?: boolean;
 }>();
 
-const modelValue = defineModel<string | null>({ default: null });
+const modelValue = defineModel<unknown>({ default: null });
 const searchQuery = ref("");
 const isOpen = ref(false);
 
 const emits = defineEmits<{
-  (e: "change", from: string | null, to: string | undefined): void;
+  (e: "change", from: unknown, to: unknown): void;
 }>();
 
 const filteredOptions = computed(() => {
   if (!searchQuery.value) return props.options;
   const query = searchQuery.value.toLowerCase();
-  return props.options.filter(
-    (option) =>
-      option.content.toLowerCase().includes(query) ||
-      (option.value?.toLowerCase().includes(query) ?? false),
+  return props.options.filter((option) =>
+    option.content.toLowerCase().includes(query),
   );
 });
 
 const selectOption = (option: PickerOption) => {
-  const value = option.value ?? option.content;
+  const value = option.content;
 
   if (value === modelValue.value) {
     modelValue.value = null;
     searchQuery.value = "";
   } else {
-    modelValue.value = value;
+    modelValue.value = option.value;
     searchQuery.value = option.content;
     isOpen.value = false;
   }
@@ -87,7 +85,7 @@ watch(
     >
       <div
         v-for="option in filteredOptions"
-        :key="option.value ?? option.content"
+        :key="option.content"
         class="px-3 py-2 flex cursor-pointer items-center hover:bg-highlight-darker"
         @click="selectOption(option)"
       >

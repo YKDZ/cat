@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 const formSchema = z.object({
   data: z.object({
     email: z.email().meta({ title: "电子邮箱" }).default("3070799584@qq.com"),
+    test: z.enum(["test", "test2"]),
   }),
 });
 
