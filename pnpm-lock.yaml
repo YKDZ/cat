@@ -55,15 +55,6 @@ importers:
       '@hono/node-server':
         specifier: ^1.14.3
         version: 1.14.3(hono@4.7.11)
-      '@jsonforms/core':
-        specifier: ^3.5.1
-        version: 3.5.1
-      '@jsonforms/vue':
-        specifier: ^3.5.1
-        version: 3.5.1(@jsonforms/core@3.5.1)(vue@3.5.16(typescript@5.8.3))
-      '@jsonforms/vue-vanilla':
-        specifier: ^3.5.1
-        version: 3.5.1(@jsonforms/core@3.5.1)(@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.16(typescript@5.8.3)))(vue@3.5.16(typescript@5.8.3))
       '@prisma/adapter-pg':
         specifier: ^6.9.0
         version: 6.9.0(pg@8.16.0)
@@ -103,9 +94,15 @@ importers:
       jose:
         specifier: ^6.0.11
         version: 6.0.11
+      jsonschema:
+        specifier: ^1.5.0
+        version: 1.5.0
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       octokit:
         specifier: ^5.0.2
         version: 5.0.3
@@ -1367,22 +1364,6 @@ packages:
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
-
-  '@jsonforms/core@3.5.1':
-    resolution: {integrity: sha512-Jrq/UcfvKsAprLJ+9TMFa8pKsfdyv3dAw85XstSNRcjDT19LreBlhVqIvTvtgZidg8Iet3yqy5xlNnB+XyrvrQ==}
-
-  '@jsonforms/vue-vanilla@3.5.1':
-    resolution: {integrity: sha512-XkaescuGVFX+p80PXeIgDm9oLoWlBHebyC1o8JEjIZoPIuFmG8MGWlclmKLAXQapfotCUMhcUXLHV1Mi6A7ZQg==}
-    peerDependencies:
-      '@jsonforms/core': 3.5.1
-      '@jsonforms/vue': 3.5.1
-      vue: ^3.2.26
-
-  '@jsonforms/vue@3.5.1':
-    resolution: {integrity: sha512-mxxZ/RrvxpIyqxRXH1K4f+Zha/JJCeycx/oKC7h2w6ZsQFqLSFJuntQ1nIwNOCIR21lYQZXIt/VkmvAemnis5g==}
-    peerDependencies:
-      '@jsonforms/core': 3.5.1
-      vue: ^3.2.26
 
   '@mdit-vue/plugin-component@2.1.4':
     resolution: {integrity: sha512-fiLbwcaE6gZE4c8Mkdkc4X38ltXh/EdnuPE1hepFT2dLiW6I4X8ho2Wq7nhYuT8RmV4OKlCFENwCuXlKcpV/sw==}
@@ -2699,14 +2680,6 @@ packages:
       ajv:
         optional: true
 
-  ajv-formats@2.1.1:
-    resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
-    peerDependencies:
-      ajv: ^8.0.0
-    peerDependenciesMeta:
-      ajv:
-        optional: true
-
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
     peerDependencies:
@@ -3839,6 +3812,9 @@ packages:
 
   jsonfile@6.1.0:
     resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}
+
+  jsonschema@1.5.0:
+    resolution: {integrity: sha512-K+A9hhqbn0f3pJX17Q/7H6yQfD/5OXgdrR5UE12gMXCiN9D5Xq2o5mddV2QEcX/bjla99ASsAAQUyMCCRWAEhw==}
 
   jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -6253,26 +6229,6 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@jsonforms/core@3.5.1':
-    dependencies:
-      '@types/json-schema': 7.0.15
-      ajv: 8.13.0
-      ajv-formats: 2.1.1(ajv@8.13.0)
-      lodash: 4.17.21
-
-  '@jsonforms/vue-vanilla@3.5.1(@jsonforms/core@3.5.1)(@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.16(typescript@5.8.3)))(vue@3.5.16(typescript@5.8.3))':
-    dependencies:
-      '@jsonforms/core': 3.5.1
-      '@jsonforms/vue': 3.5.1(@jsonforms/core@3.5.1)(vue@3.5.16(typescript@5.8.3))
-      lodash: 4.17.21
-      vue: 3.5.16(typescript@5.8.3)
-
-  '@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.16(typescript@5.8.3))':
-    dependencies:
-      '@jsonforms/core': 3.5.1
-      lodash: 4.17.21
-      vue: 3.5.16(typescript@5.8.3)
-
   '@mdit-vue/plugin-component@2.1.4':
     dependencies:
       '@types/markdown-it': 14.1.2
@@ -7859,10 +7815,6 @@ snapshots:
     optionalDependencies:
       ajv: 8.13.0
 
-  ajv-formats@2.1.1(ajv@8.13.0):
-    optionalDependencies:
-      ajv: 8.13.0
-
   ajv-formats@3.0.1(ajv@8.13.0):
     optionalDependencies:
       ajv: 8.13.0
@@ -9186,6 +9138,8 @@ snapshots:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  jsonschema@1.5.0: {}
 
   jsonwebtoken@9.0.2:
     dependencies:

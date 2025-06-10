@@ -8,6 +8,7 @@ import type { TextVectorizer } from "./text-vectorizer";
 import type { TranslatableFileHandler } from "./translatable-file-handler";
 import type { TranslationAdvisor } from "./translation-advisor";
 import type { AuthProvider } from "./auth-provider";
+import { readdirSync } from "fs";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
@@ -157,5 +158,11 @@ export class PluginRegistry {
   public async reload() {
     this.plugins = new Map();
     await this.loadPlugins();
+  }
+
+  public static async getPluginIdInLocalPlugins() {
+    return readdirSync(pluginsDir, { withFileTypes: true })
+      .filter((dirent) => dirent.isDirectory())
+      .map((dirent) => dirent.name);
   }
 }

@@ -15,12 +15,6 @@ export const authRouter = router({
       if (user)
         throw new TRPCError({ code: "CONFLICT", message: "Already login" });
 
-      if (!process.env.OIDC_CLIENT_ID)
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Environment variable OIDC_CLIENT_ID is not set",
-        });
-
       const provider = pluginRegistry
         .getAuthProviders()
         .find((provider) => provider.getId() === providerId);
@@ -180,15 +174,16 @@ export const authRouter = router({
   }),
   availableAuthMethod: publicProcedure
     .output(z.array(AuthMethodSchema))
-    .query(async () => {
-      const result: AuthMethod[] = [
-        {
-          id: "OIDC",
-          type: "OIDC",
-          name: "Forest SSO",
-          icon: "i-mdi:ssh",
-        },
-      ];
-      return result;
+    .query(async ({ ctx }) => {
+      const { pluginRegistry } = ctx;
+      return pluginRegistry.getAuthProviders().map(
+        (provider) =>
+          ({
+            providerId: provider.getId(),
+            providerType: provider.getType(),
+            name: provider.getName(),
+            icon: "i-mdi:ssh",
+          }) satisfies AuthMethod,
+      );
     }),
 });
