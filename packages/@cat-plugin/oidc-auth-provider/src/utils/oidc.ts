@@ -1,5 +1,6 @@
 import { redis, setting } from "@cat/db";
 import { randomChars } from "./crypto";
+import type { ProviderConfig } from "..";
 
 export const createOIDCSession = async (state: string, nonce: string) => {
   const sessionId = randomChars();
@@ -16,6 +17,7 @@ export const createOIDCSession = async (state: string, nonce: string) => {
 };
 
 export const createOIDCAuthURL = async (
+  config: ProviderConfig,
   state: string,
   nonce: string,
 ): Promise<string> => {
@@ -24,11 +26,11 @@ export const createOIDCAuthURL = async (
     (await setting("server.url", "http://localhost:3000")) as string,
   ).toString();
 
-  const url = new URL("", process.env.OIDC_AUTH_URI);
-  url.searchParams.append("client_id", process.env.OIDC_CLIENT_ID ?? "");
+  const url = new URL("", config.authURI);
+  url.searchParams.append("client_id", config.clientId ?? "");
   url.searchParams.append("redirect_uri", redirecturi);
   url.searchParams.append("response_type", "code");
-  url.searchParams.append("scope", process.env.OIDC_SCOPES ?? "");
+  url.searchParams.append("scope", config.scopes ?? "");
   url.searchParams.append("state", state);
   url.searchParams.append("nonce", nonce);
 

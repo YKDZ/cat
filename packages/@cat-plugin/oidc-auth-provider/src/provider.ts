@@ -5,20 +5,25 @@ import { safeJoinURL } from "@cat/shared";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { randomChars } from "./utils/crypto";
 import { createOIDCAuthURL } from "./utils/oidc";
-
-const getRedirectURL = async () =>
-  safeJoinURL(
-    await setting("server.url", "http://localhost:3000"),
-    "/auth/oidc.callback",
-  );
+import type { ProviderConfig } from ".";
 
 export class Provider implements AuthProvider {
+  private config: ProviderConfig;
+
+  constructor(config: ProviderConfig) {
+    this.config = config;
+  }
+
   getId() {
-    return "OIDC";
+    return this.config.issuer;
   }
 
   getType() {
     return "OIDC";
+  }
+
+  getName() {
+    return this.config.displayName;
   }
 
   needPreAuth() {
@@ -26,14 +31,13 @@ export class Provider implements AuthProvider {
   }
 
   async handlePreAuth() {
-    if (!process.env.OIDC_CLIENT_ID)
-      throw new Error("Environment variable OIDC_CLIENT_ID is not set");
+    if (!this.config.clientId) throw new Error("Config invalid");
 
     const state = randomChars();
     const nonce = randomChars();
     const sessionId = randomChars();
 
-    const authURL = await createOIDCAuthURL(state, nonce);
+    const authURL = await createOIDCAuthURL(this.config, state, nonce);
 
     return {
       sessionId: sessionId,
@@ -76,14 +80,18 @@ export class Provider implements AuthProvider {
 
     // 请求 Token
     const params = new URLSearchParams({
-      client_id: process.env.OIDC_CLIENT_ID ?? "",
-      client_secret: process.env.OIDC_CLIENT_SECRET ?? "",
+      client_id: this.config.clientId,
+      client_secret: this.config.clientSecret,
       code,
-      redirect_uri: await getRedirectURL(),
+      redirect_uri: safeJoinURL(
+        await setting("server.url", "http://localhost:3000"),
+        "/auth/oidc.callback",
+      ),
       grant_type: "authorization_code",
     });
 
-    const response = await fetch(process.env.OIDC_TOKEN_URI ?? "", {
+    console.log(this.config);
+    const response = await fetch(this.config.tokenURI, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -104,11 +112,11 @@ export class Provider implements AuthProvider {
     // 验证 ID Token
     const { id_token: idToken } = body;
 
-    const JWKS = createRemoteJWKSet(new URL(process.env.OIDC_JWKS_URI ?? ""));
+    const JWKS = createRemoteJWKSet(new URL(this.config.jwksURI));
 
     const { payload } = await jwtVerify(idToken, JWKS, {
-      issuer: process.env.OIDC_ISSUER,
-      audience: process.env.OIDC_CLIENT_ID,
+      issuer: this.config.issuer,
+      audience: this.config.clientId,
     });
 
     // 解析 ID Token 携带的信息
@@ -136,7 +144,7 @@ export class Provider implements AuthProvider {
     // 所有验证完成
     return {
       userName: preferredUserName ?? nickname ?? name,
-      providerIssuer: process.env.OIDC_ISSUER!,
+      providerIssuer: this.config.issuer,
       providedAccountId: sub,
       sessionMeta: {
         idToken,
@@ -159,7 +167,7 @@ export class Provider implements AuthProvider {
       state,
     });
 
-    const res = await fetch(`${process.env.OIDC_LOGOUT_URI}?${params}`, {
+    const res = await fetch(`${this.config.logoutURI}?${params}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

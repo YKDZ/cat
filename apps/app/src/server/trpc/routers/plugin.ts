@@ -1,13 +1,13 @@
 import { prisma } from "@cat/db";
 import { logger, PluginConfigSchema, PluginSchema } from "@cat/shared";
 import { z } from "zod/v4";
-import { authedProcedure, router } from "../server";
+import { publicProcedure, router } from "../server";
 import { importPluginQueue } from "@/server/processor/importPlugin";
 import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
 import { TRPCError } from "@trpc/server";
 
 export const pluginRouter = router({
-  delete: authedProcedure
+  delete: publicProcedure
     .input(
       z.object({
         id: z.string(),
@@ -22,7 +22,7 @@ export const pluginRouter = router({
         },
       });
     }),
-  queryConfig: authedProcedure
+  queryConfig: publicProcedure
     .input(z.object({ pluginId: z.string(), key: z.string() }))
     .output(PluginConfigSchema.nullable())
     .query(async ({ input }) => {
@@ -39,7 +39,7 @@ export const pluginRouter = router({
         }),
       );
     }),
-  updateConfig: authedProcedure
+  updateConfig: publicProcedure
     .input(z.object({ pluginId: z.string(), key: z.string(), value: z.json() }))
     .mutation(async ({ input }) => {
       const { pluginId, key, value } = input;
@@ -56,7 +56,7 @@ export const pluginRouter = router({
         },
       });
     }),
-  query: authedProcedure
+  query: publicProcedure
     .input(
       z.object({
         id: z.string(),
@@ -75,7 +75,7 @@ export const pluginRouter = router({
         }),
       );
     }),
-  listAll: authedProcedure.query(async () => {
+  listAll: publicProcedure.query(async () => {
     return z.array(PluginSchema).parse(
       await prisma.plugin.findMany({
         include: {
@@ -89,7 +89,7 @@ export const pluginRouter = router({
       }),
     );
   }),
-  importFromGitHub: authedProcedure
+  importFromGitHub: publicProcedure
     .input(
       z.object({
         owner: z.string(),
@@ -118,7 +118,7 @@ export const pluginRouter = router({
         },
       });
     }),
-  importFromLocal: authedProcedure
+  importFromLocal: publicProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -143,7 +143,7 @@ export const pluginRouter = router({
         },
       });
     }),
-  reload: authedProcedure.mutation(async ({ ctx }) => {
+  reload: publicProcedure.mutation(async ({ ctx }) => {
     const { pluginRegistry } = ctx;
 
     logger.info("PROCESSER", "About to pause all processors to reload plugin");

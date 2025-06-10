@@ -1,12 +1,8 @@
 import { z } from "zod/v4";
-import { PluginConfigSchema } from "./prisma";
 
-export const PluginConfigDataSchema = PluginConfigSchema.omit({
-  id: true,
-  value: true,
-  createdAt: true,
-  updatedAt: true,
-  pluginId: true,
+export const PluginConfigDataSchema = z.object({
+  key: z.string(),
+  schema: z.json(),
 });
 
 export const PluginManifestSchema = z.object({

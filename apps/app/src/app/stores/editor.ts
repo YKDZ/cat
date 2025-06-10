@@ -9,9 +9,10 @@ import type {
   TranslationSuggestion,
 } from "@cat/shared";
 import type { TRPCClientError } from "@trpc/client";
+import { useRefHistory } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
-import { computed, nextTick, reactive, ref, watch } from "vue";
+import { computed, nextTick, reactive, ref } from "vue";
 import type { PartData } from "../components/formater";
 import { useToastStore } from "./toast";
 import { useUserStore } from "./user";
@@ -48,15 +49,9 @@ export const useEditorStore = defineStore("editor", () => {
 
   // 撤回重做
   const inputTextareaEl = ref<HTMLTextAreaElement | null>(null);
-  const undoStack = ref<
-    {
-      from: string;
-      to: string;
-    }[]
-  >([]);
-  const undoing = ref(false);
+  const { undo, redo } = useRefHistory(translationValue);
 
-  const totalPageIndex = computed(() =>
+  const totalPageIndex = computed<number>(() =>
     Math.floor(elementTotalAmount.value / pageSize.value),
   );
 
@@ -326,18 +321,6 @@ export const useEditorStore = defineStore("editor", () => {
     translationValue.value = "";
   };
 
-  watch(translationValue, (to, from) => {
-    if (undoing.value === true) {
-      undoing.value = false;
-      return;
-    }
-
-    undoStack.value.push({
-      from,
-      to,
-    });
-  });
-
   const insert = (value: string) => {
     if (!element.value || !inputTextareaEl.value) return;
 
@@ -359,14 +342,6 @@ export const useEditorStore = defineStore("editor", () => {
       const event = new Event("input", { bubbles: true });
       inputTextareaEl.value.dispatchEvent(event);
     });
-  };
-
-  const undo = () => {
-    const lastAction = undoStack.value.pop();
-    if (!lastAction) return;
-
-    undoing.value = true;
-    translationValue.value = lastAction.from;
   };
 
   return {
@@ -401,6 +376,7 @@ export const useEditorStore = defineStore("editor", () => {
     toPage,
     toElement,
     undo,
+    redo,
     fetchTranslations,
     fetchDocument,
     translate,
