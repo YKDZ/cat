@@ -1,7 +1,8 @@
 // @boundaries-ignore root config inheritance
 // This script will never run in this package
 // but in built apps/app docker container where have @cat/db denpendency
-import { prisma, PrismaDB } from "@cat/db";
+import { prisma, PrismaDB, hashPassword } from "@cat/db";
+import { randomBytes } from "crypto";
 
 const seed = async () => {
   await prisma.$transaction(async (tx) => {
@@ -10,6 +11,25 @@ const seed = async () => {
         { id: "zh_Hans", name: "简体中文" },
         { id: "en", name: "English" },
       ],
+    });
+
+    const password = randomBytes(2).toString("hex");
+    const hashedPassword = await hashPassword(password);
+
+    await tx.user.create({
+      data: {
+        name: "admin",
+        Accounts: {
+          create: {
+            type: "ID_PASSWORD",
+            provider: "USERNAME_PASSWORD",
+            providedAccountId: "USERNAME_PASSWORD",
+            meta: {
+              password: hashedPassword,
+            },
+          },
+        },
+      },
     });
 
     await tx.fileType.createMany({

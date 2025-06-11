@@ -6,11 +6,36 @@ import { z } from "zod/v4";
 import { publicProcedure, router } from "../server";
 
 export const authRouter = router({
+  queryPreAuthFormSchema: publicProcedure
+    .input(
+      z.object({
+        providerId: z.string(),
+      }),
+    )
+    .output(z.string())
+    .query(async ({ ctx, input }) => {
+      const { pluginRegistry } = ctx;
+      const { providerId } = input;
+
+      const provider = pluginRegistry
+        .getAuthProviders()
+        .find((provider) => provider.getId() === providerId);
+
+      if (!provider)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Auth Provider ${providerId} does not exists`,
+        });
+
+      if (typeof provider.getPreAuthFormSchema !== "function") return "{}";
+
+      return provider.getPreAuthFormSchema() ?? "{}";
+    }),
   preAuth: publicProcedure
-    .input(z.object({ providerId: z.string() }))
+    .input(z.object({ providerId: z.string(), gotFromClient: z.json() }))
     .mutation(async ({ ctx, input }) => {
       const { user, pluginRegistry, setCookie, helpers } = ctx;
-      const { providerId } = input;
+      const { providerId, gotFromClient } = input;
 
       if (user)
         throw new TRPCError({ code: "CONFLICT", message: "Already login" });
@@ -25,14 +50,12 @@ export const authRouter = router({
           message: `Auth Provider ${providerId} does not exists`,
         });
 
-      if (typeof provider.handlePreAuth !== "function") return {};
-
       const sessionId = randomBytes(32).toString("hex");
 
       if (typeof provider.handlePreAuth === "function") {
-        const { passToClient, sessionMeta } = await provider.handlePreAuth!(
+        const { passToClient, sessionMeta } = await provider.handlePreAuth(
           sessionId,
-          null,
+          gotFromClient,
           helpers,
         );
 
@@ -67,12 +90,6 @@ export const authRouter = router({
       const { pluginRegistry } = ctx;
       const { providerId } = input;
 
-      if (!providerId)
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Provider ID not found in session",
-        });
-
       const provider = pluginRegistry
         .getAuthProviders()
         .find((provider) => provider.getId() === providerId);
@@ -94,7 +111,7 @@ export const authRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { getCookie, setCookie, pluginRegistry, helpers } = ctx;
+      const { getCookie, setCookie, delCookie, pluginRegistry, helpers } = ctx;
       const { passToServer } = input;
 
       if (ctx.user)
@@ -102,6 +119,7 @@ export const authRouter = router({
 
       const preAuthSessionId = getCookie("preAuthSessionId") ?? "";
       const preAuthSessionKey = `auth:preAuth:session:${preAuthSessionId}`;
+      delCookie("preAuthSessionId");
 
       const providerId = await redis.hGet(preAuthSessionKey, "_providerId");
 
@@ -121,8 +139,13 @@ export const authRouter = router({
           message: `Auth Provider ${providerId} does not exists`,
         });
 
-      const { userName, providerIssuer, providedAccountId, sessionMeta } =
-        await provider.handleAuth(passToServer, helpers);
+      const {
+        userName,
+        providerIssuer,
+        providedAccountId,
+        sessionMeta,
+        accountMeta,
+      } = await provider.handleAuth(passToServer, helpers);
 
       const { userId, account } = await prisma.$transaction(async (tx) => {
         let account = await tx.account.findUnique({
@@ -149,6 +172,7 @@ export const authRouter = router({
               type: provider.getType(),
               provider: providerIssuer,
               providedAccountId,
+              meta: accountMeta,
               User: {
                 connectOrCreate: {
                   where: {

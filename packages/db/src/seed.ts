@@ -1,4 +1,6 @@
 import { prisma, PrismaDB } from "./prisma";
+import { randomBytes } from "crypto";
+import { hashPassword } from "./utils/password";
 
 const seed = async () => {
   await prisma.$transaction(async (tx) => {
@@ -7,6 +9,25 @@ const seed = async () => {
         { id: "zh_Hans", name: "简体中文" },
         { id: "en", name: "English" },
       ],
+    });
+
+    const password = randomBytes(2).toString("hex");
+    const hashedPassword = await hashPassword(password);
+
+    await tx.user.create({
+      data: {
+        name: "admin",
+        Accounts: {
+          create: {
+            type: "ID_PASSWORD",
+            provider: "USERNAME_PASSWORD",
+            providedAccountId: "USERNAME_PASSWORD",
+            meta: {
+              password: hashedPassword,
+            },
+          },
+        },
+      },
     });
 
     await tx.fileType.createMany({

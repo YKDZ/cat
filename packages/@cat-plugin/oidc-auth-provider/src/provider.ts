@@ -32,12 +32,12 @@ export class Provider implements AuthProvider {
     const state = randomChars();
     const nonce = randomChars();
 
-    const authURL = await createOIDCAuthURL(this.config, state, nonce);
+    const redirectURL = await createOIDCAuthURL(this.config, state, nonce);
 
     return {
       sessionId: sessionId,
       passToClient: {
-        authURL,
+        redirectURL,
       },
       sessionMeta: { state, nonce },
     } satisfies PreAuthResult;
@@ -85,7 +85,6 @@ export class Provider implements AuthProvider {
       grant_type: "authorization_code",
     });
 
-    console.log(this.config);
     const response = await fetch(this.config.tokenURI, {
       method: "POST",
       headers: {

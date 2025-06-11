@@ -12,7 +12,6 @@ declare global {
       pluginComponents: PluginComponent[];
     }
     interface PageContextServer {
-      isInited: false | undefined;
       pinia?: Pinia;
       pluginRegistry: PluginRegistry;
       helpers: HTTPHelpers;

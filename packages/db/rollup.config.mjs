@@ -34,6 +34,7 @@ export default [
       "node:process",
       "node:path",
       "node:url",
+      "node:crypto",
     ],
   },
 

@@ -27,6 +27,7 @@ model Account {
     type              String
     provider          String
     providedAccountId String
+    meta              Json?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
