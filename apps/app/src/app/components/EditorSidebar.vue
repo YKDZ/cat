@@ -49,7 +49,6 @@ const handleNextPage = () => {
         />
       </div>
       <!-- Search Input -->
-      <!-- TODO 查询 -->
       <div class="px-3 pb-1 pt-3 w-full">
         <EditorElementSearcher />
       </div>
@@ -58,7 +57,7 @@ const handleNextPage = () => {
         <EditorSidebarElement
           v-for="element in displayedElements"
           :key="element.id"
-          :element-id="element.id"
+          :element="element"
         />
         <button
           v-if="displayedElements.length === 0"

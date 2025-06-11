@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
-import Render from "./formater/Render.vue";
+import TextTagger from "./tagger/TextTagger.vue";
 import { onMounted, ref, watch } from "vue";
-import type { PartData } from "./formater";
+import type { PartData } from "./tagger";
 
 const {
   translationValue,
@@ -33,7 +33,7 @@ const handleUpdate = (from: PartData[] | undefined, to: PartData[]) => {
 
 <template>
   <div class="px-5 pt-5 flex flex-col gap-5 w-full items-start">
-    <Render
+    <TextTagger
       v-if="document"
       :text="translationValue"
       interactable

@@ -13,9 +13,9 @@ import { useRefHistory } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref, shallowRef } from "vue";
-import type { PartData } from "../../components/formater";
 import { useToastStore } from "./toast";
 import { useUserStore } from "./user";
+import type { PartData } from "../components/tagger";
 
 export const useEditorStore = defineStore("editor", () => {
   const { trpcWarn } = useToastStore();
@@ -83,8 +83,9 @@ export const useEditorStore = defineStore("editor", () => {
       if (!element) continue;
 
       const currentIndex = storedElements.value.findIndex(
-        (p: TranslatableElement) => p.id === element.id,
+        (e: TranslatableElement) => e.id === element.id,
       );
+
       if (currentIndex === -1) {
         storedElements.value.push(element);
       } else {
@@ -92,9 +93,12 @@ export const useEditorStore = defineStore("editor", () => {
       }
     }
 
-    storedElements.value.sort(
-      (a: TranslatableElement, b: TranslatableElement) => a.id - b.id,
-    );
+    // 用于强制触发其他响应式依赖的更新
+    storedElements.value = [
+      ...storedElements.value.sort(
+        (a: TranslatableElement, b: TranslatableElement) => a.id - b.id,
+      ),
+    ];
   };
 
   const toElement = async (id: number) => {
@@ -156,12 +160,13 @@ export const useEditorStore = defineStore("editor", () => {
     memories.value = [];
   };
 
-  const element = computed<TranslatableElement | null>(
-    (): TranslatableElement | null =>
-      storedElements.value.find(
-        (element: TranslatableElement) => element.id === elementId.value,
-      ) ?? null,
-  );
+  const element = computed<TranslatableElement | null>(() => {
+    const elements = [...storedElements.value];
+    return (
+      elements.find((e: TranslatableElement) => e.id === elementId.value) ??
+      null
+    );
+  });
 
   const displayedElements = computed<TranslatableElement[]>(() => {
     const info = loadedPagesInfo.get(currentPageIndex.value);

@@ -28,11 +28,13 @@ const handleClickOutside = () => {
   <div v-on-click-outside="handleClickOutside">
     <div class="relative">
       <div
+        id="click-trigger"
         class="px-2 py-1 rounded-xs flex gap-1 w-fit cursor-pointer items-center hover:bg-highlight-darker"
         @click="isOpen = !isOpen"
       >
         <span
           v-if="text.length !== 0"
+          id="collapse-text"
           class="select-none text-nowrap"
           :class="textClasses"
           >{{ text }}</span
@@ -46,6 +48,7 @@ const handleClickOutside = () => {
       <Transition name="slide-down">
         <div
           v-if="isOpen"
+          id="collapse-content"
           class="px-3 py-2 bg-highlight h-fit w-fit shadow-md left-0 right-0 absolute z-50"
         >
           <slot />

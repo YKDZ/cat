@@ -2,7 +2,7 @@
 import { navigate } from "vike/client/router";
 import { useEditorStore } from "../stores/editor";
 import { storeToRefs } from "pinia";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import { useToastStore } from "../stores/toast";
 import type { TranslatableElement } from "@cat/shared";
 
@@ -12,22 +12,16 @@ const {
   documentId,
   languageFromId,
   languageToId,
-  storedElements,
   elementId: currentElementId,
 } = storeToRefs(useEditorStore());
 
 const { queryElementTranslationStatus, upsertElements } = useEditorStore();
 
 const props = defineProps<{
-  elementId: number;
+  element: TranslatableElement;
 }>();
 
-const element = ref<TranslatableElement | null>();
-
-const updateElement = () => {
-  element.value =
-    storedElements.value.find((e) => e.id === props.elementId) ?? null;
-};
+const element = ref<TranslatableElement>(props.element);
 
 const handleClick = () => {
   if (!element.value) return;
@@ -37,10 +31,8 @@ const handleClick = () => {
   );
 };
 
-watch(storedElements, updateElement, { immediate: true });
-
 onMounted(() => {
-  queryElementTranslationStatus(props.elementId)
+  queryElementTranslationStatus(element.value.id)
     .then((queried) => {
       if (!element.value) return;
       element.value.status = queried;
@@ -55,7 +47,7 @@ onMounted(() => {
     v-if="element"
     class="px-2 py-2 text-start flex gap-3 cursor-pointer items-center hover:bg-highlight-darkest"
     :class="{
-      'bg-highlight-darkest': elementId === currentElementId,
+      'bg-highlight-darkest': element.id === currentElementId,
     }"
     @click="handleClick"
   >

@@ -2,7 +2,7 @@
 import type { Memory, MemorySuggestion } from "@cat/shared";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
-import Render from "./formater/Render.vue";
+import TextTagger from "./tagger/TextTagger.vue";
 import { toShortFixed } from "../../../../../packages/shared/src/utils/string";
 import UserAvatar from "./UserAvatar.vue";
 import { onMounted, ref } from "vue";
@@ -40,7 +40,7 @@ onMounted(() => {
       class="text-start cursor-pointer text-wrap"
       @click="handleCopy(memorySuggestion)"
     >
-      <Render :text="memorySuggestion.translation" />
+      <TextTagger :text="memorySuggestion.translation" />
     </button>
     <div class="text-sm text-highlight-content flex gap-2 items-center">
       <span>{{ toShortFixed(memorySuggestion.similarity * 100, 2) }}%</span>
