@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
 import type { PartData } from ".";
-import { clippers } from ".";
+import { clippers, recursiveSplit } from ".";
 import Empty from "./Empty.vue";
 import Part from "./Part.vue";
 
@@ -19,56 +19,10 @@ const emits = defineEmits<{
   (e: "update", from: PartData[] | undefined, to: PartData[]): void;
 }>();
 
-const partsData = computed(() => {
-  const combinedPattern = clippers.value
-    .map(({ splitter }) => `(?:${splitter.source})`)
-    .join("|");
-  const combined = new RegExp(`(${combinedPattern})`, "g");
-
-  const results: PartData[] = [];
-  let lastIndex = 0;
-  let match;
-
-  while ((match = combined.exec(props.text)) !== null) {
-    const matchedText = match[0];
-    const matchStart = match.index;
-    const matchEnd = combined.lastIndex;
-
-    if (matchStart > lastIndex) {
-      results.push({
-        index: matchStart,
-        text: props.text.slice(lastIndex, matchStart),
-        clipperId: null,
-      });
-    }
-
-    let whichClipper = null;
-    for (const clipper of clippers.value) {
-      const exactRe = new RegExp(`^${clipper.splitter.source}$`);
-      if (exactRe.test(matchedText)) {
-        whichClipper = clipper;
-        break;
-      }
-    }
-
-    results.push({
-      index: matchStart,
-      text: matchedText,
-      clipperId: whichClipper?.id ?? null,
-    });
-
-    lastIndex = matchEnd;
-  }
-
-  if (lastIndex < props.text.length) {
-    results.push({
-      index: lastIndex + 1,
-      text: props.text.slice(lastIndex),
-      clipperId: null,
-    });
-  }
-
-  return results;
+const partsData = computed<PartData[]>(() => {
+  const parts = recursiveSplit(props.text, clippers.value);
+  console.log(parts);
+  return parts;
 });
 
 watch(partsData, (to, from) => emits("update", from, to), { immediate: true });
