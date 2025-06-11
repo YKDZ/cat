@@ -6,7 +6,7 @@ import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import type { TranslationSuggestion } from "@cat/shared";
 import { trpc } from "@/server/trpc/client";
-import Render from "./formater/Render.vue";
+import TextTagger from "./tagger/TextTagger.vue";
 
 const { info, trpcWarn } = useToastStore();
 const { replace } = useEditorStore();
@@ -63,7 +63,7 @@ watch(elementId, load, { immediate: true });
       }"
       @click="handleCopy(suggestion)"
     >
-      <Render v-if="document" :text="suggestion.value" />
+      <TextTagger v-if="document" :text="suggestion.value" />
     </button>
     <div class="text-sm text-highlight-content">{{ suggestion.from }}</div>
   </div>

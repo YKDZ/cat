@@ -1,12 +1,20 @@
-import { expect, test } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
 import Button from "@/app/components/Button.vue";
+import { createPinia, setActivePinia } from "pinia";
 
-test("should render text", () => {
-  const wrapper = mount(Button, {
-    slots: {
-      default: "Test Button Text",
-    },
+beforeEach(() => {
+  setActivePinia(createPinia());
+});
+
+describe("Button.vue", () => {
+  it("should render text", () => {
+    const text = "Test Button Text";
+    const wrapper = mount(Button, {
+      slots: {
+        default: text,
+      },
+    });
+    expect(wrapper.text()).toBe(text);
   });
-  expect(wrapper.text()).toContain("Hello world");
 });

@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
-import Render from "./formater/Render.vue";
+import TextTagger from "./tagger/TextTagger.vue";
 import Icon from "./Icon.vue";
 import type { Glossary, Term, TermRelation } from "@cat/shared";
 import { onMounted, ref } from "vue";
@@ -40,9 +40,9 @@ onMounted(() => {
       class="text-start flex gap-1 cursor-pointer text-wrap items-center"
       @click="handleInsert(term.Translation!)"
     >
-      <Render v-if="document" :text="term.Term!.value" />
+      <TextTagger v-if="document" :text="term.Term!.value" />
       <Icon small icon="i-mdi:arrow-right" />
-      <Render v-if="document" :text="term.Translation!.value" />
+      <TextTagger v-if="document" :text="term.Translation!.value" />
     </button>
     <span v-if="glossary" class="text-sm text-highlight-content">{{
       glossary.name

@@ -31,4 +31,14 @@ export default defineConfig({
       external: ["cloudflare:sockets", /\.prisma\/client\/.*$/],
     },
   },
+  test: {
+    globals: true,
+    environment: "happy-dom",
+    deps: {
+      moduleDirectories: ["../../packages"],
+    },
+    alias: {
+      "@": resolve(__dirname, "src"),
+    },
+  },
 });

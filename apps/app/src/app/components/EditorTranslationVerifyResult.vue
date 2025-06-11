@@ -2,8 +2,8 @@
 import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
 import { computed, ref, watch } from "vue";
-import type { ClipperVerifyResult } from "./formater";
-import { clippers } from "./formater";
+import type { ClipperVerifyResult } from "./tagger";
+import { clippers } from "./tagger";
 import Button from "./Button.vue";
 import Collapse from "./Collapse.vue";
 import Icon from "./Icon.vue";
@@ -37,15 +37,11 @@ const failedResults = computed(() => {
   return clipperVerifyResults.value.filter((result) => !result.isPass);
 });
 
-watch(
-  translationValue,
-  async () => {
-    isProcessing.value = true;
-    await verifyTranslation();
-    isProcessing.value = false;
-  },
-  { immediate: true },
-);
+watch([sourceParts, translationValue], async () => {
+  isProcessing.value = true;
+  await verifyTranslation();
+  isProcessing.value = false;
+});
 
 watch(isAllPass, (to) => {
   isOpen.value = !to;

@@ -7,7 +7,7 @@ import type { Translation, TranslationVote } from "@cat/shared";
 import Button from "./Button.vue";
 import { onMounted, ref, watch } from "vue";
 import { trpc } from "@/server/trpc/client";
-import Render from "./formater/Render.vue";
+import TextTagger from "./tagger/TextTagger.vue";
 
 const { info, trpcWarn } = useToastStore();
 const { translationValue, document } = storeToRefs(useEditorStore());
@@ -86,7 +86,7 @@ watch(
       :user="translation.Translator"
       :size="36"
     />
-    <Render v-if="document" :text="translation.value" />
+    <TextTagger v-if="document" :text="translation.value" />
     <div class="ml-auto flex gap-1 items-center">
       <Button
         icon="i-mdi:minus"
