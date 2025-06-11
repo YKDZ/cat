@@ -24,12 +24,17 @@ const verifyTranslation = async () => {
 
   clipperVerifyResults.value = [];
   for (const clipper of clippers.value) {
-    if (!clipper.onVerify) continue;
-    const result = await clipper.onVerify(
-      sourceParts.value,
-      translationParts.value,
+    if (clipper.verifyHandlers.length === 0) continue;
+    await Promise.all(
+      clipper.verifyHandlers.map(async ({ handler }) => {
+        const result = await handler(
+          clipper,
+          sourceParts.value,
+          translationParts.value,
+        );
+        clipperVerifyResults.value.push(result);
+      }),
     );
-    clipperVerifyResults.value.push(result);
   }
 };
 
@@ -63,7 +68,7 @@ watch(isAllPass, (to) => {
       <ul>
         <li
           v-for="(result, index) in failedResults"
-          :key="result.clipperId ?? index"
+          :key="index"
           class="text-highlight-content font-normal flex gap-0.5 text-nowrap items-center"
         >
           <Icon small icon="i-mdi:close" class="color-red" />
