@@ -1,0 +1,18 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+pre-push:
+  jobs:
+    - name: audit
+      run: pnpm audit
+
+    - name: test
+      run: pnpm test
+
+    - name: format
+      run: pnpm format
+
+    - name: lint
+      run: pnpm lint
