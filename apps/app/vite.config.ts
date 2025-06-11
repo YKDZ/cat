@@ -19,7 +19,7 @@ export default defineConfig({
   },
   plugins: [
     UnoCSS(),
-    !process.env.VITEST && vike(),
+    vike(),
     vue({
       include: [/\.vue$/, /\.md$/],
     }),

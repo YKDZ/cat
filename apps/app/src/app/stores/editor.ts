@@ -13,7 +13,7 @@ import { useRefHistory } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref, shallowRef } from "vue";
-import type { PartData } from "../components/formater";
+import type { PartData } from "../../components/formater";
 import { useToastStore } from "./toast";
 import { useUserStore } from "./user";
 
