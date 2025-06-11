@@ -26,7 +26,7 @@ const filteredOptions = computed(() => {
 });
 
 const selectOption = (option: PickerOption) => {
-  const value = option.content;
+  const value = option.value;
 
   if (value === modelValue.value) {
     modelValue.value = null;

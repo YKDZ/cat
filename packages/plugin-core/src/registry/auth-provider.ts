@@ -1,4 +1,4 @@
-import type { HTTPHelpers } from "@cat/shared";
+import type { HTTPHelpers, JSONType } from "@cat/shared";
 
 export type PreAuthResult = {
   sessionId: string;
@@ -11,6 +11,7 @@ export type AuthResult = {
   providerIssuer: string;
   providedAccountId: string;
   sessionMeta?: Record<string, number | string>;
+  accountMeta?: JSONType;
 };
 
 export interface AuthProvider {
