@@ -86,7 +86,7 @@ const handleInsert = async () => {
       />
       <div class="flex flex-col gap-2">
         <LanguagePicker v-model="translationLanguageId" full-width />
-        <Textarea v-model="translations" />
+        <Textarea v-model="translations" full-width />
       </div>
     </div>
     <Button full-width @click="handleInsert">提交</Button>
