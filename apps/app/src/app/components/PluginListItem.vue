@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Plugin } from "@cat/shared";
 import PluginTags from "./PluginTags.vue";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
 
@@ -15,6 +15,10 @@ const isIconLoaded = ref(false);
 const handleNav = () => {
   navigate(`/plugin/${props.plugin.id}`);
 };
+
+const simpleName = computed(() => {
+  return props.plugin.name.replace("@cat-plugin/", "");
+});
 
 onMounted(() => {
   useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
@@ -33,18 +37,20 @@ onMounted(() => {
           v-show="plugin.iconURL && isIconLoaded"
           ref="iconImgEl"
           :src="plugin.iconURL ?? ``"
-          class="rounded-md h-12 w-12 aspect-ratio-square object-cover"
+          class="rounded-md max-h-12 max-h-12 min-h-12 min-w-12 aspect-ratio-square object-cover"
         />
         <span
           v-if="!isIconLoaded"
           class="text-3xl text-base-content rounded-md bg-base inline-flex h-12 w-12 aspect-ratio-square select-none items-center justify-center"
-          >{{ plugin.name.charAt(0) }}</span
+          >{{ simpleName.charAt(0).toUpperCase() }}</span
         >
       </div>
       <!-- Text & base tag -->
-      <div class="flex flex-col gap-1 justify-start justify-between">
-        <h3 class="text-lg text-highlight-content-darker font-bold text-nowrap">
-          {{ plugin.name }}
+      <div class="flex flex-col gap-1 max-w-80% justify-start justify-between">
+        <h3
+          class="text-lg text-highlight-content-darker font-bold text-nowrap text-ellipsis overflow-hidden"
+        >
+          {{ simpleName }}
         </h3>
         <div
           class="text-xs text-highlight-content flex gap-1 select-none text-nowrap items-center"
