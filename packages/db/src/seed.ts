@@ -11,9 +11,6 @@ const seed = async () => {
       ],
     });
 
-    const password = randomBytes(2).toString("hex");
-    const hashedPassword = await hashPassword(password);
-
     await tx.user.create({
       data: {
         name: "admin",
@@ -23,7 +20,7 @@ const seed = async () => {
             provider: "USERNAME_PASSWORD",
             providedAccountId: "USERNAME_PASSWORD",
             meta: {
-              password: hashedPassword,
+              password: await hashPassword(randomBytes(2).toString("hex")),
             },
           },
         },
