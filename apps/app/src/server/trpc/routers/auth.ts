@@ -33,7 +33,14 @@ export const authRouter = router({
       return provider.getPreAuthFormSchema();
     }),
   preAuth: publicProcedure
-    .input(z.object({ providerId: z.string(), gotFromClient: z.json() }))
+    .input(
+      z.object({
+        providerId: z.string(),
+        gotFromClient: z.object({
+          formData: z.json().optional(),
+        }),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { user, pluginRegistry, setCookie, helpers } = ctx;
       const { providerId, gotFromClient } = input;
@@ -108,7 +115,10 @@ export const authRouter = router({
   auth: publicProcedure
     .input(
       z.object({
-        passToServer: z.json(),
+        passToServer: z.object({
+          urlSearchParams: z.json(),
+          formData: z.json().optional(),
+        }),
       }),
     )
     .mutation(async ({ ctx, input }) => {

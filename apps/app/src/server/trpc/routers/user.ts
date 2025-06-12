@@ -47,22 +47,10 @@ export const userRouter = router({
             id: newUser.id,
           },
           data: {
-            email: user.email,
+            name: user.name,
           },
         }),
       );
-    }),
-  init: authedProcedure
-    .input(
-      z.object({
-        name: z.string(),
-        email: z.string(),
-        readableLanguageIds: z.array(z.string()),
-        writableLanguageIds: z.array(z.string()),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      // TODO 用户初始化
     }),
   uploadAvatar: authedProcedure
     .input(

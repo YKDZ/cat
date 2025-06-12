@@ -14,7 +14,7 @@ const props = defineProps<{
   method: AuthMethod;
 }>();
 
-const { info, trpcWarn } = useToastStore();
+const { trpcWarn } = useToastStore();
 const { authMethod } = storeToRefs(useAuthStore());
 
 const schema = ref<JSONSchema.JSONSchema>({});
@@ -30,7 +30,9 @@ const handlePreAuth = async () => {
   await trpc.auth.preAuth
     .mutate({
       providerId: props.method.providerId,
-      gotFromClient: data.value,
+      gotFromClient: {
+        formData: data.value,
+      },
     })
     .then((passToClient) => {
       if (

@@ -44,21 +44,25 @@ export class Provider implements AuthProvider {
   }
 
   async handleAuth(
-    gotFromClient: unknown,
+    gotFromClient: {
+      formData?: unknown;
+    },
     { getCookie, delCookie }: HTTPHelpers,
   ) {
     if (
       !gotFromClient ||
       typeof gotFromClient !== "object" ||
-      !("state" in gotFromClient) ||
-      !("code" in gotFromClient) ||
-      typeof gotFromClient.code !== "string" ||
-      typeof gotFromClient.state !== "string"
+      !gotFromClient.formData ||
+      typeof gotFromClient.formData !== "object" ||
+      !("state" in gotFromClient.formData) ||
+      !("code" in gotFromClient.formData) ||
+      typeof gotFromClient.formData.code !== "string" ||
+      typeof gotFromClient.formData.state !== "string"
     ) {
-      throw new Error();
+      throw new Error("Incorrect Form Data");
     }
 
-    const { state, code } = gotFromClient;
+    const { state, code } = gotFromClient.formData;
 
     // 验证 OIDC 会话
     const preAuthSessionId = getCookie("preAuthSessionId");

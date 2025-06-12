@@ -31,11 +31,8 @@ const handleUpdate = (to: JSONType, key?: string) => {
 
   if (
     key &&
-    typeof to === "object" &&
-    to !== null &&
     !Array.isArray(to) &&
     typeof props.data === "object" &&
-    props.data !== null &&
     !Array.isArray(props.data)
   ) {
     const obj = { ...props.data };

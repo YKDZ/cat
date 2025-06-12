@@ -141,6 +141,15 @@ export const clippers = ref<Clipper[]>([
     clickHandlers: [copyContent],
     verifyHandlers: [shouldMatchCount],
   },
+  {
+    id: 4,
+    splitter: /\d+/g,
+    content: null,
+    translatable: false,
+    highlight: true,
+    clickHandlers: [copyContent],
+    verifyHandlers: [shouldMatchContent],
+  },
 ]);
 
 export const recursiveSplit = (

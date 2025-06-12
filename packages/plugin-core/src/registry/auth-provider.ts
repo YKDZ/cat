@@ -22,12 +22,17 @@ export interface AuthProvider {
   getPreAuthFormSchema?: () => JSONSchema.JSONSchema;
   handlePreAuth?: (
     sessionId: string,
-    gotFromClient: unknown,
+    gotFromClient: {
+      formData?: unknown;
+    },
     helpers: HTTPHelpers,
   ) => Promise<PreAuthResult>;
   getAuthFormSchema?: () => JSONSchema.JSONSchema;
   handleAuth: (
-    gotFromClient: unknown,
+    gotFromClient: {
+      urlSearchParams: unknown;
+      formData?: unknown;
+    },
     helpers: HTTPHelpers,
   ) => Promise<AuthResult>;
   handleLogout?: (sessionId: string) => Promise<void>;
