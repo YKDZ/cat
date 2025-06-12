@@ -1,49 +1,46 @@
-<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { computed, provide } from "vue";
 import { RendererRegistry, schemaKey } from ".";
+import type { JSONSchema } from "zod/v4/core";
+import type { JSONType } from "@cat/shared";
 
 const props = defineProps<{
   propertyKey?: string;
-  schema: string;
-  data: any;
+  schema: JSONSchema.JSONSchema;
+  data: JSONType;
 }>();
 
 const emits = defineEmits<{
-  (e: "update", to: any): void;
-  (e: "_update", to: any, key: string): void;
+  (e: "update", to: JSONType): void;
+  (e: "_update", to: JSONType, key: string): void;
 }>();
 
-const jsonSchema = computed(() => {
-  return JSON.parse(props.schema);
-});
-
-const type = computed(() => {
-  return jsonSchema.value.type as string;
-});
-
 const objectProperties = computed(() => {
-  if (jsonSchema.value.type !== "object")
-    return [] as {
-      key: string;
-      schema: string;
-    }[];
-  return Object.keys(jsonSchema.value.properties).map((key) => {
+  if (props.schema.type !== "object" || !props.schema.properties) return [];
+
+  return Object.keys(props.schema.properties!).map((key) => {
     return {
       key,
-      schema: JSON.stringify(jsonSchema.value.properties[key]),
+      schema: props.schema.properties![key] as JSONSchema.JSONSchema,
     };
   });
 });
 
-const handleUpdate = (to: any, key?: string) => {
-  let newData;
+const handleUpdate = (to: JSONType, key?: string) => {
+  let newData: JSONType;
 
-  if (key) {
-    newData = {
-      ...props.data,
-    };
-    newData[key] = to;
+  if (
+    key &&
+    typeof to === "object" &&
+    to !== null &&
+    !Array.isArray(to) &&
+    typeof props.data === "object" &&
+    props.data !== null &&
+    !Array.isArray(props.data)
+  ) {
+    const obj = { ...props.data };
+    obj[key] = to;
+    newData = obj;
   } else {
     newData = to;
   }
@@ -57,8 +54,8 @@ const handleUpdate = (to: any, key?: string) => {
 
 const matchedRenderer = computed(() => {
   return (
-    RendererRegistry.renderers.find((renderer) => {
-      return renderer.matcher({ schema: props.schema });
+    RendererRegistry.renderers.find(({ matcher }) => {
+      return matcher({ schema: props.schema });
     })?.renderer ?? null
   );
 });
@@ -69,15 +66,15 @@ provide(schemaKey, props.schema);
 <template>
   <component
     :is="matchedRenderer"
-    :data="props.data ?? jsonSchema.default"
+    :data="props.data ?? schema.default"
     :property-key="propertyKey"
     @_update="handleUpdate"
   />
-  <div v-if="type === 'object'">
+  <div v-if="props.schema.type === 'object'">
     <JSONForm
       v-for="property in objectProperties"
       :key="property.key"
-      :data="(data ?? {})[property.key]"
+      :data="(data as Record<string, JSONType>)[property.key]"
       :property-key="property.key"
       :schema="property.schema"
       @_update="handleUpdate"

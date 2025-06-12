@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../server";
+import type { JSONSchema } from "zod/v4/core";
 
 export const authRouter = router({
   queryPreAuthFormSchema: publicProcedure
@@ -12,7 +13,7 @@ export const authRouter = router({
         providerId: z.string(),
       }),
     )
-    .output(z.string())
+    .output(z.custom<JSONSchema.JSONSchema>())
     .query(async ({ ctx, input }) => {
       const { pluginRegistry } = ctx;
       const { providerId } = input;
@@ -27,9 +28,9 @@ export const authRouter = router({
           message: `Auth Provider ${providerId} does not exists`,
         });
 
-      if (typeof provider.getPreAuthFormSchema !== "function") return "{}";
+      if (typeof provider.getPreAuthFormSchema !== "function") return {};
 
-      return provider.getPreAuthFormSchema() ?? "{}";
+      return provider.getPreAuthFormSchema();
     }),
   preAuth: publicProcedure
     .input(z.object({ providerId: z.string(), gotFromClient: z.json() }))
@@ -85,7 +86,7 @@ export const authRouter = router({
         providerId: z.string(),
       }),
     )
-    .output(z.string())
+    .output(z.custom<JSONSchema.JSONSchema>())
     .query(async ({ ctx, input }) => {
       const { pluginRegistry } = ctx;
       const { providerId } = input;
@@ -100,9 +101,9 @@ export const authRouter = router({
           message: `Auth Provider ${providerId} does not exists`,
         });
 
-      if (typeof provider.getAuthFormSchema !== "function") return "{}";
+      if (typeof provider.getAuthFormSchema !== "function") return {};
 
-      return provider.getAuthFormSchema() ?? "{}";
+      return provider.getAuthFormSchema();
     }),
   auth: publicProcedure
     .input(

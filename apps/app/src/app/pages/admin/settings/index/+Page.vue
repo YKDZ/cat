@@ -1,22 +1,19 @@
 <script setup lang="ts">
-import AdminSettingsString from "@/app/components/AdminSettingsString.vue";
+import AdminSettingForm from "@/app/components/AdminSettingForm.vue";
 import AdminSettingsTitle from "@/app/components/AdminSettingsTitle.vue";
+import { z } from "zod/v4";
 </script>
 
 <template>
   <div class="py-6 flex flex-col gap-2">
     <AdminSettingsTitle>站点设置</AdminSettingsTitle>
-    <div class="px-4 flex flex-col gap-2 w-full">
-      <AdminSettingsString
-        setting-key="server.name"
-        icon="i-mdi:link"
-        label="站点名称"
-      />
-      <AdminSettingsString
-        setting-key="server.url"
-        icon="i-mdi:bucket"
-        label="站点 URL"
-      />
-    </div>
+    <AdminSettingForm
+      config-key="server.name"
+      :schema="z.toJSONSchema(z.string().meta({ title: '站点名称' }))"
+    />
+    <AdminSettingForm
+      config-key="server.url"
+      :schema="z.toJSONSchema(z.url().meta({ title: '站点地址' }))"
+    />
   </div>
 </template>

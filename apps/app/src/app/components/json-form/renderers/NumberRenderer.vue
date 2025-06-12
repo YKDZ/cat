@@ -12,21 +12,24 @@ const emits = defineEmits<{
 }>();
 
 const value = ref(props.data);
-const schema = inject(schemaKey);
-
-const jsonSchema = computed(() => {
-  return JSON.parse(schema ?? "{}");
-});
+const schema = inject(schemaKey)!;
 
 const handleUpdate = () => {
   emits("_update", value.value);
 };
+
+watch(
+  () => props.data,
+  (newData) => {
+    value.value = newData;
+  },
+);
 </script>
 
 <template>
   <div class="flex flex-col gap-0.5">
     <label class="text-highlight-content">{{
-      jsonSchema.title ?? propertyKey
+      schema.title ?? propertyKey
     }}</label>
     <input
       v-model.number="value"

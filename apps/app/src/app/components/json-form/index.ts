@@ -5,11 +5,12 @@ import BooleanRenderer from "./renderers/BooleanRenderer.vue";
 import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import ArrayRenderer from "./renderers/ArrayRenderer.vue";
+import type { JSONSchema } from "zod/v4/core";
 
-export const schemaKey = Symbol() as InjectionKey<string>;
+export const schemaKey = Symbol() as InjectionKey<JSONSchema.JSONSchema>;
 
 export type RendererMatcherContenxt = {
-  schema: string;
+  schema: JSONSchema.JSONSchema;
 };
 
 export type Renderer = {
@@ -29,37 +30,37 @@ const renderers: Renderer[] = [
   {
     renderer: EnumRenderer,
     matcher: ({ schema }) => {
-      return !!JSON.parse(schema).enum;
+      return !!schema["enum"];
     },
   },
   {
     renderer: ConstRenderer,
     matcher: ({ schema }) => {
-      return !!JSON.parse(schema).const;
+      return !!schema.const;
     },
   },
   {
     renderer: StringRenderer,
     matcher: ({ schema }) => {
-      return JSON.parse(schema).type === "string";
+      return schema.type === "string";
     },
   },
   {
     renderer: NumberRenderer,
     matcher: ({ schema }) => {
-      return JSON.parse(schema).type === "number";
+      return schema.type === "number";
     },
   },
   {
     renderer: BooleanRenderer,
     matcher: ({ schema }) => {
-      return JSON.parse(schema).type === "boolean";
+      return schema.type === "boolean";
     },
   },
   {
     renderer: ArrayRenderer,
     matcher: ({ schema }) => {
-      return JSON.parse(schema).type === "array";
+      return schema.type === "array";
     },
   },
 ];

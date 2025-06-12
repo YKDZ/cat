@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PluginConfig } from "@cat/shared";
+import type { JSONType, PluginConfig } from "@cat/shared";
 import JSONForm from "./json-form/JSONForm.vue";
 import { trpc } from "@/server/trpc/client";
 import { useToastStore } from "../stores/toast";
@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const { info, trpcWarn } = useToastStore();
 
-const handleUpdate = async (to: any) => {
+const handleUpdate = async (to: JSONType) => {
   await trpc.plugin.updateConfig
     .mutate({
       pluginId: props.config.pluginId,

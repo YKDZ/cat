@@ -1,27 +1,24 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { schemaKey, transferDataToString } from "..";
+import type { JSONType } from "@cat/shared";
 
 const props = defineProps<{
   propertyKey?: string;
-  data: unknown;
+  data: JSONType;
 }>();
 
-const schema = inject(schemaKey);
-
-const jsonSchema = computed(() => {
-  return JSON.parse(schema ?? "");
-});
+const schema = inject(schemaKey)!;
 
 const constValue = computed(() => {
-  return jsonSchema.value.const as unknown;
+  return schema.const;
 });
 </script>
 
 <template>
   <div class="flex flex-col gap-0.5">
     <label class="text-highlight-content">{{
-      jsonSchema.title ?? propertyKey
+      schema.title ?? propertyKey
     }}</label>
     <span>{{ transferDataToString(constValue) }}</span>
   </div>

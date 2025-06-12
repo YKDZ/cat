@@ -74,6 +74,33 @@ const shouldMatchCount: VerifyHandler = {
   },
 };
 
+const shouldMatchContent: VerifyHandler = {
+  id: 1,
+  name: "Should Match Content",
+
+  handler: async (
+    clipper: Clipper,
+    sourceParts: PartData[],
+    translationParts: PartData[],
+  ) => {
+    const source = sourceParts
+      .filter((part) => part.clipperId === clipper.id)
+      .map((part) => part.text)
+      .join(", ");
+    const translation = translationParts
+      .filter((part) => part.clipperId === clipper.id)
+      .map((part) => part.text)
+      .join(", ");
+    const isPass = source === translation;
+    return {
+      isPass,
+      error: isPass
+        ? ""
+        : `${clipper.splitter} 内容不匹配（原文：${source}，译文：${translation}）`,
+    } satisfies ClipperVerifyResult;
+  },
+};
+
 const copyContent: ClickHandler = {
   id: 1,
   name: "Copy Content",
@@ -92,7 +119,7 @@ export const clippers = ref<Clipper[]>([
     translatable: false,
     highlight: true,
     clickHandlers: [copyContent],
-    verifyHandlers: [shouldMatchCount],
+    verifyHandlers: [shouldMatchContent],
   },
   {
     id: 2,
@@ -101,7 +128,7 @@ export const clippers = ref<Clipper[]>([
     translatable: false,
     highlight: true,
     clickHandlers: [copyContent],
-    verifyHandlers: [shouldMatchCount],
+    verifyHandlers: [shouldMatchContent],
   },
   {
     id: 3,

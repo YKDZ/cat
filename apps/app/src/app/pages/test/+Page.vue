@@ -1,23 +1,18 @@
 <script setup lang="ts">
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { z } from "zod/v4";
+import { JSONSchema } from "zod/v4/core";
 
-const formSchema = z.object({
-  data: z.object({
-    email: z.email().meta({ title: "电子邮箱" }).default("3070799584@qq.com"),
-    test: z.enum(["test", "test2"]),
-  }),
+const schema = z.object({
+  test: z.string(),
 });
 
-const jsonSchema = computed(() => {
-  return JSON.stringify(z.toJSONSchema(formSchema));
-});
+const jsonSchema = z.toJSONSchema(schema);
 
-let data = ref({});
+onMounted(() => {
+  console.log(jsonSchema);
+});
 </script>
 
-<template>
-  <JSONForm :data :schema="jsonSchema" @update="(to) => (data = to!)" />
-  <pre>{{ data }}</pre>
-</template>
+<template>1</template>

@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { ElementTranslationStatusSchema } from "./misc";
+import type { JSONSchema } from "zod/v4/core";
 
 export const PrimsaDateTime = z.date().or(z.iso.date());
 
@@ -22,7 +23,7 @@ export const PluginConfigSchema = z.object({
   id: z.number().int(),
   key: z.string(),
   value: z.json(),
-  schema: z.string(),
+  schema: z.custom<JSONSchema.JSONSchema>(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   pluginId: z.string(),
