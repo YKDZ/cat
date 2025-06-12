@@ -56,7 +56,7 @@ const worker = new Worker(
                   },
                   create: {
                     key,
-                    schema: JSON.stringify(schema),
+                    schema,
                     value: getDefaultFromSchema(schema),
                   },
                 }))
@@ -90,7 +90,7 @@ const worker = new Worker(
         },
         create: {
           id: pluginId,
-          origin: origin as never,
+          origin,
           name: data.name,
           overview: data.overview,
           entry: data.entry,
@@ -106,7 +106,7 @@ const worker = new Worker(
                   },
                   create: {
                     key,
-                    schema: JSON.stringify(schema),
+                    schema,
                     value: getDefaultFromSchema(schema),
                   },
                 }))

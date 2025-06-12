@@ -1,40 +1,38 @@
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, shallowRef, watch } from "vue";
 import { schemaKey } from "..";
 import JSONForm from "../JSONForm.vue";
 import Button from "../../Button.vue";
+import type { JSONSchema } from "zod/v4/core";
+import type { JSONType } from "@cat/shared";
 
 const props = defineProps<{
   propertyKey?: string;
-  data: unknown[];
+  data: JSONType[];
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: unknown[]): void;
+  (e: "_update", to: JSONType[]): void;
 }>();
 
-const schema = inject(schemaKey);
+const schema = inject(schemaKey)!;
 const count = ref(props.data.length);
+const skipNextUpdate = ref(false);
 
-const jsonSchema = computed(() => {
-  return JSON.parse(schema!);
-});
-
-const value = ref(props.data ?? jsonSchema.value.defaults);
+const value = shallowRef<JSONType[]>(props.data);
 
 const itemsSchema = computed(() => {
-  return JSON.stringify(jsonSchema.value.items);
+  // TODO 还可能是一个数组
+  return (schema.items as JSONSchema.JSONSchema) ?? [];
 });
 
 const prefixItemsSchemas = computed(() => {
-  return (
-    jsonSchema.value.prefixItems
-      ? (jsonSchema.value.prefixItems as unknown[])
-      : []
-  ).map((schema) => JSON.stringify(schema));
+  return schema.prefixItems
+    ? (schema.prefixItems as JSONSchema.JSONSchema[])
+    : [];
 });
 
-const handleUpdate = (to: unknown, index: number) => {
+const handleUpdate = (to: JSONType, index: number) => {
   value.value.splice(index, 1, to);
   emits("_update", value.value);
 };
@@ -44,6 +42,14 @@ const handleDelete = (index: number) => {
   value.value = value.value.filter((_, i) => i !== index);
   emits("_update", value.value);
 };
+
+watch(
+  () => props.data,
+  (newData) => {
+    skipNextUpdate.value = true;
+    value.value = newData;
+  },
+);
 </script>
 
 <template>

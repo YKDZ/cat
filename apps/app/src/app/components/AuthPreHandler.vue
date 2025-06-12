@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { AuthMethod } from "@cat/shared";
-import { onMounted, ref } from "vue";
+import type { AuthMethod, JSONType } from "@cat/shared";
+import { computed, onMounted, ref, shallowRef } from "vue";
 import { useAuthStore } from "../stores/auth";
 import { storeToRefs } from "pinia";
 import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
 import JSONForm from "./json-form/JSONForm.vue";
 import Button from "./Button.vue";
+import type { JSONSchema } from "zod/v4/core";
 
 const props = defineProps<{
   method: AuthMethod;
@@ -16,8 +17,12 @@ const props = defineProps<{
 const { info, trpcWarn } = useToastStore();
 const { authMethod } = storeToRefs(useAuthStore());
 
-const schema = ref("{}");
-const data = ref({});
+const schema = ref<JSONSchema.JSONSchema>({});
+const data = shallowRef<JSONType>({});
+
+const isEmpty = computed(() => {
+  return Object.keys(schema.value).length === 0;
+});
 
 const handlePreAuth = async () => {
   authMethod.value = props.method;
@@ -48,16 +53,10 @@ onMounted(async () => {
 
 <template>
   <div>
-    <JSONForm
-      v-if="schema !== '{}'"
-      :schema
-      :data
-      @update="(to) => (data = to)"
-    />
+    <JSONForm v-if="!isEmpty" :schema :data @update="(to) => (data = to)" />
     <Button
       full-width
       :icon="method.icon"
-      magic-key="Enter"
       @magic-click="handlePreAuth"
       @click="handlePreAuth"
       >通过 {{ method.name }} 登录</Button

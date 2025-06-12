@@ -12,21 +12,32 @@ const emits = defineEmits<{
   (e: "_update", to: boolean): void;
 }>();
 
-const schema = inject(schemaKey);
+const schema = inject(schemaKey)!;
+const skipNextUpdate = ref(false);
 
-const jsonSchema = computed(() => {
-  return JSON.parse(schema ?? "{}");
+const value = ref(props.data ?? schema.default);
+
+watch(value, (newVal) => {
+  if (skipNextUpdate.value) {
+    skipNextUpdate.value = false;
+    return;
+  }
+  emits("_update", newVal);
 });
 
-const value = ref(props.data ?? jsonSchema.value.default);
-
-watch(value, (to) => emits("_update", to));
+watch(
+  () => props.data,
+  (newData) => {
+    skipNextUpdate.value = true;
+    value.value = newData;
+  },
+);
 </script>
 
 <template>
   <div class="flex flex-col gap-0.5">
     <label class="text-highlight-content">{{
-      jsonSchema.title ?? propertyKey
+      schema.title ?? propertyKey
     }}</label>
     <Toggler v-model="value" />
   </div>

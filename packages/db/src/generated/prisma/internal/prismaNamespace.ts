@@ -2795,7 +2795,6 @@ export type PluginPermissionOrderByRelevanceFieldEnum = (typeof PluginPermission
 
 export const PluginConfigOrderByRelevanceFieldEnum = {
   key: 'key',
-  schema: 'schema',
   pluginId: 'pluginId'
 } as const
 

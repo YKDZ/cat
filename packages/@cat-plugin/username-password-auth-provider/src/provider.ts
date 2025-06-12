@@ -1,6 +1,7 @@
 import { hashPassword, prisma, verifyPassword } from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
 import type { HTTPHelpers } from "@cat/shared";
+import type { JSONSchema } from "zod/v4/core";
 
 export class Provider implements AuthProvider {
   getId() {
@@ -16,7 +17,7 @@ export class Provider implements AuthProvider {
   }
 
   getAuthFormSchema() {
-    return JSON.stringify({
+    return {
       type: "object",
       properties: {
         username: {
@@ -26,7 +27,7 @@ export class Provider implements AuthProvider {
           type: "string",
         },
       },
-    });
+    } satisfies JSONSchema.JSONSchema;
   }
 
   async handleAuth(gotFromClient: unknown, helpers: HTTPHelpers) {

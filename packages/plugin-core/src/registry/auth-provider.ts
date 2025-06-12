@@ -1,4 +1,5 @@
 import type { HTTPHelpers, JSONType } from "@cat/shared";
+import type { JSONSchema } from "zod/v4/core";
 
 export type PreAuthResult = {
   sessionId: string;
@@ -18,13 +19,13 @@ export interface AuthProvider {
   getId: () => string;
   getType: () => string;
   getName: () => string;
-  getPreAuthFormSchema?: () => string | null;
+  getPreAuthFormSchema?: () => JSONSchema.JSONSchema;
   handlePreAuth?: (
     sessionId: string,
     gotFromClient: unknown,
     helpers: HTTPHelpers,
   ) => Promise<PreAuthResult>;
-  getAuthFormSchema?: () => string | null;
+  getAuthFormSchema?: () => JSONSchema.JSONSchema;
   handleAuth: (
     gotFromClient: unknown,
     helpers: HTTPHelpers,
