@@ -6,7 +6,6 @@ import { navigate } from "vike/client/router";
 import type { TRPCError } from "@trpc/server";
 import { useAuthStore } from "@/app/stores/auth";
 import Loading from "@/app/components/Loading.vue";
-import { useCookies } from "@vueuse/integrations/useCookies";
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
 import Button from "@/app/components/Button.vue";
 import { storeToRefs } from "pinia";
@@ -27,11 +26,12 @@ const handleAuth = async () => {
           ...data.value,
         }
       : data.value;
-  console.log(formData);
   await trpc.auth.auth
     .mutate({
       passToServer: {
-        ...ctx.urlParsed.search,
+        urlSearchParams: {
+          ...ctx.urlParsed.search,
+        },
         formData,
       },
     })
@@ -47,6 +47,12 @@ const handleAuth = async () => {
 const isEmpty = computed(() => {
   return Object.keys(schema.value).length === 0;
 });
+
+const handleUpdate = (to: JSONType) => {
+  console.log(schema.value);
+  console.log(to);
+  data.value = to;
+};
 
 onMounted(async () => {
   if (!authMethod.value?.providerId) {
@@ -66,7 +72,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="!isEmpty" class="flex flex-col gap-1">
-    <JSONForm :schema :data @update="(to) => (data = to)" />
+    <JSONForm :schema :data @update="handleUpdate" />
     <Button
       full-width
       magic-key="Enter"

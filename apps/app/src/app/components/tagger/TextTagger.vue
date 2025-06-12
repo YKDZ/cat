@@ -21,7 +21,6 @@ const emits = defineEmits<{
 
 const partsData = computed<PartData[]>(() => {
   const parts = recursiveSplit(props.text, clippers.value);
-  console.log(parts);
   return parts;
 });
 

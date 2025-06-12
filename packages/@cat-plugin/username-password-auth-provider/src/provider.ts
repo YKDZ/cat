@@ -30,19 +30,27 @@ export class Provider implements AuthProvider {
     } satisfies JSONSchema.JSONSchema;
   }
 
-  async handleAuth(gotFromClient: unknown, helpers: HTTPHelpers) {
+  async handleAuth(
+    gotFromClient: {
+      urlSearchParams: unknown;
+      formData?: unknown;
+    },
+    helpers: HTTPHelpers,
+  ) {
     if (
       !gotFromClient ||
       typeof gotFromClient !== "object" ||
-      !("username" in gotFromClient) ||
-      !("password" in gotFromClient) ||
-      typeof gotFromClient.username !== "string" ||
-      typeof gotFromClient.password !== "string"
+      !gotFromClient.formData ||
+      typeof gotFromClient.formData !== "object" ||
+      !("username" in gotFromClient.formData) ||
+      !("password" in gotFromClient.formData) ||
+      typeof gotFromClient.formData.username !== "string" ||
+      typeof gotFromClient.formData.password !== "string"
     ) {
-      throw new Error();
+      throw new Error("Incorrect Form Data");
     }
 
-    const { username, password } = gotFromClient;
+    const { username, password } = gotFromClient.formData;
 
     const account = await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
