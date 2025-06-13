@@ -14,7 +14,6 @@ const props = defineProps<{
 const user = ref<User | null>(props.user ?? null);
 const avatar = ref<string>("");
 const avatarExpiresIn = ref<number>(0);
-const interval = ref<number>(-1);
 const isFallback = ref(true);
 
 const containerStyle = computed(() => ({
@@ -45,13 +44,6 @@ const handleImgLoad = () => {
 const handleImgError = () => {
   isFallback.value = true;
 };
-
-watch(avatarExpiresIn, (to) => {
-  if (import.meta.env.SSR) return;
-  if (interval.value !== -1) clearInterval(interval.value);
-
-  interval.value = setInterval(updateAvatar, to * 1000) as unknown as number;
-});
 
 onMounted(async () => {
   if (!props.user && props.userId) {

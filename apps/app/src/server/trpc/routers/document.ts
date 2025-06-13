@@ -1,8 +1,7 @@
 import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { useStorage } from "@/server/utils/storage/useStorage";
 import { prisma } from "@cat/db";
-import type {
-  PrismaError} from "@cat/shared";
+import type { PrismaError } from "@cat/shared";
 import {
   DocumentSchema,
   ElementTranslationStatusSchema,
@@ -10,14 +9,13 @@ import {
   FileSchema,
   TaskSchema,
   TranslatableElementSchema,
-  TranslationSchema,
 } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
-import { readFileSync } from "fs";
 import { join } from "node:path";
 import { z } from "zod/v4";
-import { safeJoinPath, sanitizeFileName } from "../../utils/file";
+import { sanitizeFileName } from "../../utils/file";
 import { authedProcedure, router } from "../server";
+import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile";
 
 export const documentRouter = router({
   fileUploadURL: authedProcedure
@@ -96,6 +94,12 @@ export const documentRouter = router({
           },
         });
 
+        if (!file)
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "File does not exists",
+          });
+
         const parsedFile = FileSchema.parse(file);
 
         const handler = pluginRegistry
@@ -140,38 +144,60 @@ export const documentRouter = router({
           },
         });
 
-        const document = await tx.document.create({
-          data: {
-            Creator: {
-              connect: {
-                id: user.id,
+        let document =
+          (await tx.document.findFirst({
+            where: {
+              Project: {
+                id: project.id,
+              },
+              File: {
+                originName: file.originName,
               },
             },
-            File: {
-              connect: {
-                id: fileId,
+            include: {
+              File: {
+                include: {
+                  Type: true,
+                },
+              },
+              Project: true,
+            },
+          })) ?? null;
+
+        if (!document) {
+          document = await tx.document.create({
+            data: {
+              Creator: {
+                connect: {
+                  id: user.id,
+                },
+              },
+              File: {
+                connect: {
+                  id: fileId,
+                },
+              },
+              Project: {
+                connect: {
+                  id: projectId,
+                },
+              },
+              Tasks: {
+                connect: {
+                  id: task.id,
+                },
               },
             },
-            Project: {
-              connect: {
-                id: projectId,
+            include: {
+              File: {
+                include: {
+                  Type: true,
+                },
               },
+              Project: true,
             },
-            Tasks: {
-              connect: {
-                id: task.id,
-              },
-            },
-          },
-          include: {
-            File: {
-              include: {
-                Type: true,
-              },
-            },
-            Project: true,
-          },
-        });
+          });
+        }
 
         const parsedDocument = DocumentSchema.parse(document);
 
@@ -190,8 +216,8 @@ export const documentRouter = router({
         {
           taskId: taskId,
           sourceLanguageId: document.Project.sourceLanguageId,
-          parsedFile,
-          parsedDocument,
+          file: parsedFile,
+          document: parsedDocument,
           handlerId: handler.getId(),
           vectorizerId: vectorizer.getId(),
         },
@@ -312,7 +338,7 @@ export const documentRouter = router({
 
       return TranslatableElementSchema.nullable().parse(firstTry);
     }),
-  exportFinalFile: authedProcedure
+  exportTranslatedFile: authedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -348,19 +374,9 @@ export const documentRouter = router({
           message: "指定文档不是基于文件的",
         });
 
-      const parsedDocument = DocumentSchema.parse(document);
-      const path = safeJoinPath(
-        import.meta.env.LOCAL_STORAGE_ROOT_DIR ?? "",
-        "uploads",
-        document.File.storedPath,
-      );
-      const fileContent = readFileSync(path, "utf-8");
-
       const handler = pluginRegistry
         .getTranslatableFileHandlers()
-        .find((handler) =>
-          handler.canGenerateTranslated(document.File!, fileContent),
-        );
+        .find((handler) => handler.canGenerateTranslated(document.File!));
 
       if (!handler)
         throw new TRPCError({
@@ -368,33 +384,100 @@ export const documentRouter = router({
           message: "没有可以导出这种文件的文件解析器",
         });
 
-      const translations = z.array(TranslationSchema).parse(
-        await prisma.translation.findMany({
-          where: {
-            TranslatableElement: {
-              documentId: id,
-            },
+      const task = await prisma.task.create({
+        data: {
+          type: "export_translated_file",
+          meta: {
+            projectId: document.projectId,
+            documentId: document.id,
             languageId,
           },
-          include: {
-            TranslatableElement: true,
-          },
-        }),
-      );
+        },
+      });
 
-      try {
-        handler.generateTranslated(
-          parsedDocument.File!,
-          fileContent,
-          translations,
-        );
-      } catch (e) {
+      exportTranslatedFileQueue.add(task.id, {
+        taskId: task.id,
+        handlerId: handler.getId(),
+        documentId: document.id,
+        languageId,
+      });
+    }),
+  downloadTranslatedFile: authedProcedure
+    .input(
+      z.object({
+        taskId: z.cuid2(),
+      }),
+    )
+    .output(
+      z.object({
+        fileName: z.string(),
+        url: z.url(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { taskId } = input;
+
+      const task = await prisma.task.findFirst({
+        where: {
+          type: "export_translated_file",
+          id: taskId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (!task)
+        throw new TRPCError({
+          message: "Do not find export task for this document and language",
+          code: "BAD_REQUEST",
+        });
+      if (task.status !== "completed")
+        throw new TRPCError({
+          message:
+            task.status === "failed"
+              ? "Task failed. Please retry or check console log"
+              : "Do not find export task for this document and language",
+          code: "BAD_REQUEST",
+        });
+
+      const storage = (await useStorage()).storage;
+      const { fileId } = task.meta as {
+        fileId: number;
+      };
+
+      const file = await prisma.file.findUnique({
+        where: {
+          id: fileId,
+        },
+        select: {
+          storedPath: true,
+          originName: true,
+          Type: {
+            select: {
+              mimeType: true,
+            },
+          },
+        },
+      });
+
+      if (!file)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "生成译文时出错",
-          cause: e,
+          message: "File does not exists",
         });
-      }
+
+      const url = await storage.generateDownloadURL(
+        file.storedPath,
+        file.originName,
+        file.Type.mimeType,
+        60,
+      );
+
+      return {
+        url,
+        fileName: file.originName,
+      };
     }),
   countTranslatedElement: authedProcedure
     .input(
@@ -522,7 +605,7 @@ export const documentRouter = router({
                 : undefined,
           },
           orderBy: {
-            id: "asc",
+            value: "asc",
           },
           skip: page * pageSize,
           take: pageSize,

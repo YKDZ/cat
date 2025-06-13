@@ -38,6 +38,12 @@ const items = ref<NavbarItemType[]>([
     icon: "i-mdi:account-group",
   },
   {
+    text: "任务",
+    to: "/tasks",
+    selected: false,
+    icon: "i-mdi:account-hard-hat",
+  },
+  {
     text: "设置",
     to: "/settings",
     selected: false,

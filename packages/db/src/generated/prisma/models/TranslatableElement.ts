@@ -238,6 +238,7 @@ export type TranslatableElementOrderByWithRelationInput = {
 
 export type TranslatableElementWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  value_meta_documentId?: Prisma.TranslatableElementValueMetaDocumentIdCompoundUniqueInput
   AND?: Prisma.TranslatableElementWhereInput | Prisma.TranslatableElementWhereInput[]
   OR?: Prisma.TranslatableElementWhereInput[]
   NOT?: Prisma.TranslatableElementWhereInput | Prisma.TranslatableElementWhereInput[]
@@ -249,7 +250,7 @@ export type TranslatableElementWhereUniqueInput = Prisma.AtLeast<{
   Embedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
   Translations?: Prisma.TranslationListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
-}, "id">
+}, "id" | "value_meta_documentId">
 
 export type TranslatableElementOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -348,6 +349,12 @@ export type TranslatableElementOrderByRelevanceInput = {
   fields: Prisma.TranslatableElementOrderByRelevanceFieldEnum | Prisma.TranslatableElementOrderByRelevanceFieldEnum[]
   sort: Prisma.SortOrder
   search: string
+}
+
+export type TranslatableElementValueMetaDocumentIdCompoundUniqueInput = {
+  value: string
+  meta: runtime.InputJsonValue
+  documentId: string
 }
 
 export type TranslatableElementCountOrderByAggregateInput = {

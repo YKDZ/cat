@@ -25,9 +25,11 @@ export class RedisDB {
   }
 
   static async connect() {
-    await RedisDB.instance.redis.connect();
-    await RedisDB.instance.redisPub.connect();
-    await RedisDB.instance.redisSub.connect();
+    if (!RedisDB.instance.redis.isOpen) await RedisDB.instance.redis.connect();
+    if (!RedisDB.instance.redisPub.isOpen)
+      await RedisDB.instance.redisPub.connect();
+    if (!RedisDB.instance.redisSub.isOpen)
+      await RedisDB.instance.redisSub.connect();
   }
 
   static async disconnect() {

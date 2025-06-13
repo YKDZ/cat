@@ -7,3 +7,4 @@ export * from "./utils/url";
 export * from "./utils/string";
 export * from "./utils/http-helpers";
 export * from "./utils/Logger";
+export * from "./utils/string-template";

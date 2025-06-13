@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared";
 import { navigate } from "vike/client/router";
-import { inject } from "vue";
+import { inject, ref } from "vue";
 import { languageKey, projectKey } from "../utils/provide";
 import DocumentTranslationProgress from "./DocumentTranslationProgress.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
+import { trpc } from "@/server/trpc/client";
+import Button from "./Button.vue";
+import { useToastStore } from "../stores/toast";
 
 const props = defineProps<{
   document: Document;
 }>();
 
+const { info, trpcWarn } = useToastStore();
+
 const project = inject(projectKey);
 const language = inject(languageKey);
+const downloadAEl = ref<HTMLAnchorElement>();
 
 const handleEdit = () => {
   if (!project || !project.value || !language || !language.value) return;
@@ -20,6 +26,20 @@ const handleEdit = () => {
   navigate(
     `/editor/${props.document.id}/${project.value.SourceLanguage?.id}-${language.value.id}/auto`,
   );
+};
+
+const handleExportTranslated = async () => {
+  if (!language || !language.value) return;
+
+  await trpc.document.exportTranslatedFile
+    .query({
+      id: props.document.id,
+      languageId: language.value.id,
+    })
+    .then(() => {
+      info("成功创建导出任务");
+    })
+    .catch(trpcWarn);
 };
 </script>
 
@@ -35,5 +55,12 @@ const handleEdit = () => {
         :document-id="document.id"
         :language-id="language.id"
     /></TableCell>
+    <TableCell>
+      <Button
+        no-text
+        icon="i-mdi:download"
+        @click.stop="handleExportTranslated"
+      />
+    </TableCell>
   </TableRow>
 </template>
