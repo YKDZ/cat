@@ -73,7 +73,7 @@ export const TaskSchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   status: z.enum(["pending", "processing", "completed", "failed"]),
-  result: z.record(z.string(), z.unknown()).nullable(),
+  meta: z.json(),
   type: z.string(),
 });
 

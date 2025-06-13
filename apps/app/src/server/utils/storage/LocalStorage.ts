@@ -1,4 +1,4 @@
-import type { Storage } from "./Storage";
+import type { Storage } from "./useStorage";
 import type { File } from "@cat/shared";
 
 export class LocalStorage implements Storage {
@@ -10,15 +10,24 @@ export class LocalStorage implements Storage {
     return import.meta.env.LOCAL_STORAGE_ROOT_DIR ?? "";
   }
 
-  async getTextContent(file: File) {
-    return "";
+  async getContent(file: File) {
+    return Buffer.from("");
   }
 
   async generateUploadURL(path: string, expiresIn: number) {
     return "";
   }
 
-  async generateURL(file: File, expiresIn: number) {
+  async generateURL(path: string, expiresIn: number, isDownload?: boolean) {
+    return "";
+  }
+
+  async generateDownloadURL(
+    path: string,
+    fileName: string,
+    mimeType: string,
+    expiresIn: number,
+  ) {
     return "";
   }
 

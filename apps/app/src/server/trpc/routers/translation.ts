@@ -268,4 +268,22 @@ export const translationRouter = router({
         }),
       );
     }),
+  updateApproved: authedProcedure
+    .input(
+      z.object({
+        id: z.int(),
+        isApproved: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { id, isApproved } = input;
+      await prisma.translation.update({
+        where: {
+          id,
+        },
+        data: {
+          isApproved,
+        },
+      });
+    }),
 });

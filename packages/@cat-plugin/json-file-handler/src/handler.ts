@@ -18,20 +18,20 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     return file.Type?.mimeType === "application/json";
   }
 
-  extractElement(file: File, fileContent: string): TranslatableElementData[] {
-    return collectTranslatableElement(fileContent);
+  extractElement(file: File, fileContent: Buffer): TranslatableElementData[] {
+    return collectTranslatableElement(fileContent.toString("utf-8"));
   }
 
-  canGenerateTranslated(file: File, fileContent: string) {
+  canGenerateTranslated(file: File) {
     return file.Type?.mimeType === "application/json";
   }
 
-  generateTranslated(
+  async generateTranslated(
     file: File,
-    fileContent: string,
+    fileContent: Buffer,
     translations: Translation[],
-  ): string {
-    const originalObj: unknown = JSON.parse(fileContent);
+  ) {
+    const originalObj: unknown = JSON.parse(fileContent.toString("utf-8"));
     const modifiedObj: unknown = JSON.parse(JSON.stringify(originalObj));
 
     for (const translation of translations) {
@@ -64,11 +64,11 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
           console.warn(`路径 '${pathParts.join(".")}' 无效`);
         }
       } catch (error) {
-        console.error("处理翻译时出错：", error);
+        throw new Error("处理翻译时出错：" + error);
       }
     }
 
-    return JSON.stringify(modifiedObj, null, 2);
+    return Buffer.from(JSON.stringify(modifiedObj, null, 2), "utf-8");
   }
 }
 

@@ -1,7 +1,7 @@
 import { trpc } from "@/server/trpc/client";
 import type { Task } from "@cat/shared";
 import { defineStore } from "pinia";
-import { reactive } from "vue";
+import { reactive, shallowReactive } from "vue";
 
 export type TranslationCount = {
   languageId: string;
@@ -12,7 +12,7 @@ export type TranslationCount = {
 export const useDocumentStore = defineStore("document", () => {
   const translationAmounts = reactive(new Map<string, TranslationCount>());
   const translatableEleAmounts = reactive(new Map<string, number>());
-  const tasks = reactive(new Map<string, Task[]>());
+  const tasks = shallowReactive(new Map<string, Task[]>());
 
   const updateTranslationAmount = async (id: string, languageId: string) => {
     const translatedEleAmount =

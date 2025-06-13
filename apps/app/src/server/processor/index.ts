@@ -1,7 +1,12 @@
 import { documentFromFilePretreatmentQueue } from "./documentFromFilePretreatment";
+import { exportTranslatedFileQueue } from "./exportTranslatedFile";
 import { importPluginQueue } from "./importPlugin";
 
-const queues = [documentFromFilePretreatmentQueue, importPluginQueue];
+const queues = [
+  documentFromFilePretreatmentQueue,
+  importPluginQueue,
+  exportTranslatedFileQueue,
+];
 
 export const pauseAllProcessors = async () => {
   await Promise.all(queues.map((queue) => queue.pause()));

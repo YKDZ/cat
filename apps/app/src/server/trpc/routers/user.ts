@@ -142,7 +142,7 @@ export const userRouter = router({
       const {
         storage: { generateURL },
       } = await useStorage();
-      const url = await generateURL(user.AvatarFile, expiresIn);
+      const url = await generateURL(user.AvatarFile.storedPath, expiresIn);
 
       return {
         url,

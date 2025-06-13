@@ -32,4 +32,6 @@ model TranslatableElement {
 
     Translations Translation[]
     MemoryItems  MemoryItem[]
+
+    @@unique([value, meta, documentId])
 }

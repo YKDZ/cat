@@ -4,11 +4,11 @@ import type { TranslatableElementData } from "@cat/shared";
 export interface TranslatableFileHandler {
   getId(): string;
   canExtractElement(file: File): boolean;
-  extractElement(file: File, fileContent: string): TranslatableElementData[];
-  canGenerateTranslated(file: File, fileContent: string): boolean;
+  extractElement(file: File, fileContent: Buffer): TranslatableElementData[];
+  canGenerateTranslated(file: File): boolean;
   generateTranslated(
     file: File,
-    fileContent: string,
+    fileContent: Buffer,
     translations: Translation[],
-  ): string;
+  ): Promise<Buffer>;
 }

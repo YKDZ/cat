@@ -14,6 +14,13 @@ import {
 import { userFromSessionId } from "./utils/user";
 import { createHTTPHelpers } from "@cat/shared";
 
+(async () => {
+  await initDB();
+  await initSettings();
+  await PluginRegistry.getInstance().loadPlugins();
+  await scanLocalPlugins();
+})();
+
 let server: Server | null = null;
 
 function startServer() {
@@ -44,10 +51,6 @@ function startServer() {
     port,
     onCreate: async (nodeServer) => {
       server = nodeServer as Server;
-      await initDB();
-      await initSettings();
-      await PluginRegistry.getInstance().loadPlugins();
-      await scanLocalPlugins();
 
       if (process.env.NODE_ENV === "production") {
         process.on("SIGTERM", () => shutdownServer(server!));
@@ -59,3 +62,4 @@ function startServer() {
 }
 
 export default startServer();
+export const pluginRegistry = PluginRegistry.getInstance();
