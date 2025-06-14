@@ -45,24 +45,24 @@ export class Provider implements AuthProvider {
 
   async handleAuth(
     gotFromClient: {
-      formData?: unknown;
+      urlSearchParams?: unknown;
     },
     { getCookie, delCookie }: HTTPHelpers,
   ) {
     if (
       !gotFromClient ||
       typeof gotFromClient !== "object" ||
-      !gotFromClient.formData ||
-      typeof gotFromClient.formData !== "object" ||
-      !("state" in gotFromClient.formData) ||
-      !("code" in gotFromClient.formData) ||
-      typeof gotFromClient.formData.code !== "string" ||
-      typeof gotFromClient.formData.state !== "string"
+      !gotFromClient.urlSearchParams ||
+      typeof gotFromClient.urlSearchParams !== "object" ||
+      !("state" in gotFromClient.urlSearchParams) ||
+      !("code" in gotFromClient.urlSearchParams) ||
+      typeof gotFromClient.urlSearchParams.code !== "string" ||
+      typeof gotFromClient.urlSearchParams.state !== "string"
     ) {
-      throw new Error("Incorrect Form Data");
+      throw new Error("Incorrect url search params");
     }
 
-    const { state, code } = gotFromClient.formData;
+    const { state, code } = gotFromClient.urlSearchParams;
 
     // 验证 OIDC 会话
     const preAuthSessionId = getCookie("preAuthSessionId");
