@@ -130,11 +130,11 @@ export const processPretreatment = async (
   const addedElements: (UnvectorizedTextData & { documentId: string })[] = [];
   const removedElements: UnvectorizedTextData[] = [];
 
-  // need diff
   const oldElements = (
     await prisma.translatableElement.findMany({
       where: {
         documentId: document.id,
+        isActive: true,
       },
     })
   ).map((element) => ({
@@ -160,89 +160,64 @@ export const processPretreatment = async (
     }
   });
 
-  try {
-    await deleteRemovedTranslatableElements(document.id, removedElements);
-    await insertNewTranslatableElement(
-      vectorizer,
-      sourceLanguageId,
-      addedElements,
-    );
-  } catch (e) {
-    logger.error("PROCESSER", "Error when document pretreatment", e);
-    throw e;
-  }
-};
-
-const insertNewTranslatableElement = async (
-  vectorizer: TextVectorizer,
-  sourceLanguageId: string,
-  elements: (UnvectorizedTextData & { documentId: string })[],
-) => {
-  const vectors =
-    (await vectorizer.vectorize(sourceLanguageId, elements)) ?? [];
-
+  const vectors = await vectorizer.vectorize(sourceLanguageId, addedElements);
   if (!vectors) return;
 
-  try {
-    await prisma.$transaction(async (tx) => {
-      // 批量插入所有向量数据
-      const vectorLis = vectors
-        .map((vector) => `('[${vector.join(",")}]')`)
-        .join(",");
-      const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
-      INSERT INTO "Vector" (vector)
-      VALUES ${vectorLis}
-      RETURNING id
-    `);
-
-      // 准备可翻译元素数据（与向量 ID 关联）
-      const translatableValues = elements.map(
-        (element, index) =>
-          Prisma.sql`(
-        ${element.value}::text, 
-        ${element.meta}::jsonb,
-        ${element.documentId}::text, 
-        ${vectorInsertResult[index].id}::int
-      )`,
-      );
-
-      // 批量插入所有可翻译元素
-      await tx.$executeRaw`
-      INSERT INTO "TranslatableElement" 
-        (value, meta, "documentId", "embeddingId")
-      VALUES ${Prisma.join(translatableValues, ",")}
-    `;
-    });
-  } catch (e) {
-    logger.error(
-      "PROCESSER",
-      "Error when insert vector and element to database",
-      e,
-    );
-    throw e;
-  }
-};
-
-// TODO 历史
-const deleteRemovedTranslatableElements = async (
-  documentId: string,
-  elements: UnvectorizedTextData[],
-) => {
   await prisma.$transaction(async (tx) => {
+    // 将旧元素（变化的活跃元素）置为非活跃
     await Promise.all(
-      elements.map(async ({ value, meta }) => {
-        await tx.translatableElement.delete({
+      removedElements.map(async ({ meta }) => {
+        await tx.translatableElement.update({
           where: {
-            value_meta_documentId: {
-              value,
+            meta_documentId_isActive: {
               meta: meta as InputJsonValue,
-              documentId,
+              documentId: document.id,
+              isActive: true,
             },
+          },
+          data: {
+            isActive: false,
           },
         });
       }),
     );
+
+    // 插入变化后的元素
+    const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
+      INSERT INTO "Vector" (vector)
+      VALUES ${vectors.map((v) => `('[${v.join(",")}]')`).join(",")}
+      RETURNING id
+    `);
+
+    for (let i = 0; i < addedElements.length; i++) {
+      const element = addedElements[i];
+
+      const existing = await tx.translatableElement.findFirst({
+        where: {
+          documentId: element.documentId,
+          meta: {
+            equals: element.meta as InputJsonValue,
+          },
+          isActive: false,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+      });
+
+      const newVersion = existing ? existing.version + 1 : 1;
+
+      await tx.translatableElement.create({
+        data: {
+          value: element.value,
+          meta: element.meta as InputJsonValue,
+          documentId: element.documentId,
+          embeddingId: vectorInsertResult[i].id,
+          version: newVersion,
+          previousVersionId: existing?.id ?? null,
+          isActive: true,
+        },
+      });
+    }
   });
 };
-
-export const documentFromFilePretreatmentWorker = worker;

@@ -460,10 +460,6 @@ export type PluginOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type PluginCreateNestedOneWithoutVersionsInput = {
   create?: Prisma.XOR<Prisma.PluginCreateWithoutVersionsInput, Prisma.PluginUncheckedCreateWithoutVersionsInput>
   connectOrCreate?: Prisma.PluginCreateOrConnectWithoutVersionsInput

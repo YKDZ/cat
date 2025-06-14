@@ -11,6 +11,8 @@ const seed = async () => {
       ],
     });
 
+    const password = randomBytes(8).toString("hex");
+
     await tx.user.create({
       data: {
         name: "admin",
@@ -20,12 +22,14 @@ const seed = async () => {
             provider: "USERNAME_PASSWORD",
             providedAccountId: "USERNAME_PASSWORD",
             meta: {
-              password: await hashPassword(randomBytes(2).toString("hex")),
+              password: await hashPassword(password),
             },
           },
         },
       },
     });
+
+    console.log(`Default admin password is: ${password}`);
 
     await tx.fileType.createMany({
       data: [

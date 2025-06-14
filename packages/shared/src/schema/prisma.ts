@@ -13,14 +13,14 @@ export const SettingSchema = z.object({
 });
 
 export const PluginTagSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   name: z.string(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
 });
 
 export const PluginConfigSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   key: z.string(),
   value: z.json(),
   schema: z.custom<JSONSchema.JSONSchema>(),
@@ -30,7 +30,7 @@ export const PluginConfigSchema = z.object({
 });
 
 export const PluginPermissionSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   permission: z.string(),
   description: z.string(),
   createdAt: PrimsaDateTime,
@@ -39,7 +39,7 @@ export const PluginPermissionSchema = z.object({
 });
 
 export const PluginVersionSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   version: z.string(),
   pluginId: z.string(),
 });
@@ -78,33 +78,33 @@ export const TaskSchema = z.object({
 });
 
 export const VectorSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   vector: z.array(z.number()),
 });
 
 export const FileTypeSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   name: z.string(),
   mimeType: z.string(),
   icon: z.string(),
 });
 
 export const StorageTypeSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   name: z.string(),
 });
 
 export const FileSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   originName: z.string(),
   storedPath: z.string(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  typeId: z.number().int(),
+  typeId: z.int(),
   get Type() {
     return FileTypeSchema.optional();
   },
-  storageTypeId: z.number().int(),
+  storageTypeId: z.int(),
   get StorageType() {
     return StorageTypeSchema.optional();
   },
@@ -122,12 +122,12 @@ export const PermissionSchema = z.object({
 });
 
 export const TranslationVoteSchema = z.object({
-  id: z.number().int(),
-  value: z.number().int(),
+  id: z.int(),
+  value: z.int(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   voterId: z.cuid2(),
-  translationId: z.number().int(),
+  translationId: z.int(),
 });
 
 export const UserSchema = z.object({
@@ -162,10 +162,13 @@ export const AccountSchema = z.object({
 });
 
 export const TranslatableElementSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   value: z.string(),
   meta: z.json(),
-  embeddingId: z.number().int(),
+  embeddingId: z.int(),
+  version: z.int(),
+  isActive: z.boolean(),
+  previousVersionId: z.int().nullable(),
   get Embedding() {
     return VectorSchema.optional();
   },
@@ -175,7 +178,7 @@ export const TranslatableElementSchema = z.object({
 });
 
 export const TranslationSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   value: z.string(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
@@ -185,7 +188,7 @@ export const TranslationSchema = z.object({
   get Translator() {
     return UserSchema.optional();
   },
-  translatableElementId: z.number().int(),
+  translatableElementId: z.int(),
   get TranslatableElement() {
     return TranslatableElementSchema.optional();
   },
@@ -209,7 +212,7 @@ export const DocumentSchema = z.object({
   get TranslatableElements() {
     return z.array(TranslatableElementSchema).optional();
   },
-  fileId: z.number().int().nullable(),
+  fileId: z.int().nullable(),
   get File() {
     return FileSchema.optional();
   },
@@ -217,7 +220,7 @@ export const DocumentSchema = z.object({
 });
 
 export const MemoryItemSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   source: z.string(),
@@ -230,7 +233,7 @@ export const MemoryItemSchema = z.object({
   get TranslationLanguage() {
     return LanguageSchema.optional();
   },
-  sourceEmbeddingId: z.number().int(),
+  sourceEmbeddingId: z.int(),
   get SourceEmbedding() {
     return z.array(z.number()).optional();
   },
@@ -289,7 +292,7 @@ export const PrismaErrorSchema = z.object({
 });
 
 export const TermSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   value: z.string(),
   context: z.string().optional().nullable(),
   createdAt: PrimsaDateTime,
@@ -306,11 +309,11 @@ export const TermSchema = z.object({
 });
 
 export const TermRelationSchema = z.object({
-  termId: z.number().int(),
+  termId: z.int(),
   get Term() {
     return TermSchema.optional();
   },
-  translationId: z.number().int(),
+  translationId: z.int(),
   get Translation() {
     return TermSchema.optional();
   },
