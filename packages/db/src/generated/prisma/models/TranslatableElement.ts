@@ -29,68 +29,106 @@ export type AggregateTranslatableElement = {
 
 export type TranslatableElementAvgAggregateOutputType = {
   id: number | null
+  version: number | null
   embeddingId: number | null
+  previousVersionId: number | null
 }
 
 export type TranslatableElementSumAggregateOutputType = {
   id: number | null
+  version: number | null
   embeddingId: number | null
+  previousVersionId: number | null
 }
 
 export type TranslatableElementMinAggregateOutputType = {
   id: number | null
+  createdAt: Date | null
+  updatedAt: Date | null
   value: string | null
+  version: number | null
+  isActive: boolean | null
   documentId: string | null
   embeddingId: number | null
+  previousVersionId: number | null
 }
 
 export type TranslatableElementMaxAggregateOutputType = {
   id: number | null
+  createdAt: Date | null
+  updatedAt: Date | null
   value: string | null
+  version: number | null
+  isActive: boolean | null
   documentId: string | null
   embeddingId: number | null
+  previousVersionId: number | null
 }
 
 export type TranslatableElementCountAggregateOutputType = {
   id: number
+  createdAt: number
+  updatedAt: number
   value: number
   meta: number
+  version: number
+  isActive: number
   documentId: number
   embeddingId: number
+  previousVersionId: number
   _all: number
 }
 
 
 export type TranslatableElementAvgAggregateInputType = {
   id?: true
+  version?: true
   embeddingId?: true
+  previousVersionId?: true
 }
 
 export type TranslatableElementSumAggregateInputType = {
   id?: true
+  version?: true
   embeddingId?: true
+  previousVersionId?: true
 }
 
 export type TranslatableElementMinAggregateInputType = {
   id?: true
+  createdAt?: true
+  updatedAt?: true
   value?: true
+  version?: true
+  isActive?: true
   documentId?: true
   embeddingId?: true
+  previousVersionId?: true
 }
 
 export type TranslatableElementMaxAggregateInputType = {
   id?: true
+  createdAt?: true
+  updatedAt?: true
   value?: true
+  version?: true
+  isActive?: true
   documentId?: true
   embeddingId?: true
+  previousVersionId?: true
 }
 
 export type TranslatableElementCountAggregateInputType = {
   id?: true
+  createdAt?: true
+  updatedAt?: true
   value?: true
   meta?: true
+  version?: true
+  isActive?: true
   documentId?: true
   embeddingId?: true
+  previousVersionId?: true
   _all?: true
 }
 
@@ -182,10 +220,15 @@ export type TranslatableElementGroupByArgs<ExtArgs extends runtime.Types.Extensi
 
 export type TranslatableElementGroupByOutputType = {
   id: number
+  createdAt: Date
+  updatedAt: Date
   value: string
   meta: unknown | null
+  version: number
+  isActive: boolean
   documentId: string
   embeddingId: number
+  previousVersionId: number | null
   _count: TranslatableElementCountAggregateOutputType | null
   _avg: TranslatableElementAvgAggregateOutputType | null
   _sum: TranslatableElementSumAggregateOutputType | null
@@ -213,24 +256,38 @@ export type TranslatableElementWhereInput = {
   OR?: Prisma.TranslatableElementWhereInput[]
   NOT?: Prisma.TranslatableElementWhereInput | Prisma.TranslatableElementWhereInput[]
   id?: Prisma.IntFilter<"TranslatableElement"> | number
+  createdAt?: Prisma.DateTimeFilter<"TranslatableElement"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TranslatableElement"> | Date | string
   value?: Prisma.StringFilter<"TranslatableElement"> | string
   meta?: Prisma.JsonNullableFilter<"TranslatableElement">
+  version?: Prisma.IntFilter<"TranslatableElement"> | number
+  isActive?: Prisma.BoolFilter<"TranslatableElement"> | boolean
   documentId?: Prisma.StringFilter<"TranslatableElement"> | string
   embeddingId?: Prisma.IntFilter<"TranslatableElement"> | number
+  previousVersionId?: Prisma.IntNullableFilter<"TranslatableElement"> | number | null
   Document?: Prisma.XOR<Prisma.DocumentScalarRelationFilter, Prisma.DocumentWhereInput>
   Embedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
+  PreviousVersion?: Prisma.XOR<Prisma.TranslatableElementNullableScalarRelationFilter, Prisma.TranslatableElementWhereInput> | null
+  NextVersion?: Prisma.XOR<Prisma.TranslatableElementNullableScalarRelationFilter, Prisma.TranslatableElementWhereInput> | null
   Translations?: Prisma.TranslationListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
 }
 
 export type TranslatableElementOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   value?: Prisma.SortOrder
   meta?: Prisma.SortOrderInput | Prisma.SortOrder
+  version?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
+  previousVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
   Document?: Prisma.DocumentOrderByWithRelationInput
   Embedding?: Prisma.VectorOrderByWithRelationInput
+  PreviousVersion?: Prisma.TranslatableElementOrderByWithRelationInput
+  NextVersion?: Prisma.TranslatableElementOrderByWithRelationInput
   Translations?: Prisma.TranslationOrderByRelationAggregateInput
   MemoryItems?: Prisma.MemoryItemOrderByRelationAggregateInput
   _relevance?: Prisma.TranslatableElementOrderByRelevanceInput
@@ -238,26 +295,38 @@ export type TranslatableElementOrderByWithRelationInput = {
 
 export type TranslatableElementWhereUniqueInput = Prisma.AtLeast<{
   id?: number
-  value_meta_documentId?: Prisma.TranslatableElementValueMetaDocumentIdCompoundUniqueInput
+  previousVersionId?: number
+  meta_documentId_isActive?: Prisma.TranslatableElementMetaDocumentIdIsActiveCompoundUniqueInput
   AND?: Prisma.TranslatableElementWhereInput | Prisma.TranslatableElementWhereInput[]
   OR?: Prisma.TranslatableElementWhereInput[]
   NOT?: Prisma.TranslatableElementWhereInput | Prisma.TranslatableElementWhereInput[]
+  createdAt?: Prisma.DateTimeFilter<"TranslatableElement"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TranslatableElement"> | Date | string
   value?: Prisma.StringFilter<"TranslatableElement"> | string
   meta?: Prisma.JsonNullableFilter<"TranslatableElement">
+  version?: Prisma.IntFilter<"TranslatableElement"> | number
+  isActive?: Prisma.BoolFilter<"TranslatableElement"> | boolean
   documentId?: Prisma.StringFilter<"TranslatableElement"> | string
   embeddingId?: Prisma.IntFilter<"TranslatableElement"> | number
   Document?: Prisma.XOR<Prisma.DocumentScalarRelationFilter, Prisma.DocumentWhereInput>
   Embedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
+  PreviousVersion?: Prisma.XOR<Prisma.TranslatableElementNullableScalarRelationFilter, Prisma.TranslatableElementWhereInput> | null
+  NextVersion?: Prisma.XOR<Prisma.TranslatableElementNullableScalarRelationFilter, Prisma.TranslatableElementWhereInput> | null
   Translations?: Prisma.TranslationListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
-}, "id" | "value_meta_documentId">
+}, "id" | "previousVersionId" | "meta_documentId_isActive">
 
 export type TranslatableElementOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   value?: Prisma.SortOrder
   meta?: Prisma.SortOrderInput | Prisma.SortOrder
+  version?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
+  previousVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TranslatableElementCountOrderByAggregateInput
   _avg?: Prisma.TranslatableElementAvgOrderByAggregateInput
   _max?: Prisma.TranslatableElementMaxOrderByAggregateInput
@@ -270,69 +339,112 @@ export type TranslatableElementScalarWhereWithAggregatesInput = {
   OR?: Prisma.TranslatableElementScalarWhereWithAggregatesInput[]
   NOT?: Prisma.TranslatableElementScalarWhereWithAggregatesInput | Prisma.TranslatableElementScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"TranslatableElement"> | number
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"TranslatableElement"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"TranslatableElement"> | Date | string
   value?: Prisma.StringWithAggregatesFilter<"TranslatableElement"> | string
   meta?: Prisma.JsonNullableWithAggregatesFilter<"TranslatableElement">
+  version?: Prisma.IntWithAggregatesFilter<"TranslatableElement"> | number
+  isActive?: Prisma.BoolWithAggregatesFilter<"TranslatableElement"> | boolean
   documentId?: Prisma.StringWithAggregatesFilter<"TranslatableElement"> | string
   embeddingId?: Prisma.IntWithAggregatesFilter<"TranslatableElement"> | number
+  previousVersionId?: Prisma.IntNullableWithAggregatesFilter<"TranslatableElement"> | number | null
 }
 
 export type TranslatableElementCreateInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
+  PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
+  NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
   Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatableElementInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutSourceElementInput
 }
 
 export type TranslatableElementUncheckedCreateInput = {
   id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   documentId: string
   embeddingId: number
+  previousVersionId?: number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
   Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatableElementInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutSourceElementInput
 }
 
 export type TranslatableElementUpdateInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
+  NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUpdateManyWithoutTranslatableElementNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatableElementNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementCreateManyInput = {
   id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   documentId: string
   embeddingId: number
+  previousVersionId?: number | null
 }
 
 export type TranslatableElementUpdateManyMutationInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type TranslatableElementUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type TranslatableElementListRelationFilter = {
@@ -345,53 +457,72 @@ export type TranslatableElementOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type TranslatableElementNullableScalarRelationFilter = {
+  is?: Prisma.TranslatableElementWhereInput | null
+  isNot?: Prisma.TranslatableElementWhereInput | null
+}
+
 export type TranslatableElementOrderByRelevanceInput = {
   fields: Prisma.TranslatableElementOrderByRelevanceFieldEnum | Prisma.TranslatableElementOrderByRelevanceFieldEnum[]
   sort: Prisma.SortOrder
   search: string
 }
 
-export type TranslatableElementValueMetaDocumentIdCompoundUniqueInput = {
-  value: string
+export type TranslatableElementMetaDocumentIdIsActiveCompoundUniqueInput = {
   meta: runtime.InputJsonValue
   documentId: string
+  isActive: boolean
 }
 
 export type TranslatableElementCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   value?: Prisma.SortOrder
   meta?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
+  previousVersionId?: Prisma.SortOrder
 }
 
 export type TranslatableElementAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
+  previousVersionId?: Prisma.SortOrder
 }
 
 export type TranslatableElementMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   value?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
+  previousVersionId?: Prisma.SortOrder
 }
 
 export type TranslatableElementMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   value?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
+  previousVersionId?: Prisma.SortOrder
 }
 
 export type TranslatableElementSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
-}
-
-export type TranslatableElementNullableScalarRelationFilter = {
-  is?: Prisma.TranslatableElementWhereInput | null
-  isNot?: Prisma.TranslatableElementWhereInput | null
+  previousVersionId?: Prisma.SortOrder
 }
 
 export type TranslatableElementScalarRelationFilter = {
@@ -441,12 +572,64 @@ export type TranslatableElementUncheckedUpdateManyWithoutDocumentNestedInput = {
   deleteMany?: Prisma.TranslatableElementScalarWhereInput | Prisma.TranslatableElementScalarWhereInput[]
 }
 
+export type TranslatableElementCreateNestedOneWithoutNextVersionInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutNextVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutNextVersionInput>
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutNextVersionInput
+  connect?: Prisma.TranslatableElementWhereUniqueInput
+}
+
+export type TranslatableElementCreateNestedOneWithoutPreviousVersionInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutPreviousVersionInput>
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutPreviousVersionInput
+  connect?: Prisma.TranslatableElementWhereUniqueInput
+}
+
+export type TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutPreviousVersionInput>
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutPreviousVersionInput
+  connect?: Prisma.TranslatableElementWhereUniqueInput
+}
+
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type TranslatableElementUpdateOneWithoutNextVersionNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutNextVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutNextVersionInput>
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutNextVersionInput
+  upsert?: Prisma.TranslatableElementUpsertWithoutNextVersionInput
+  disconnect?: Prisma.TranslatableElementWhereInput | boolean
+  delete?: Prisma.TranslatableElementWhereInput | boolean
+  connect?: Prisma.TranslatableElementWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TranslatableElementUpdateToOneWithWhereWithoutNextVersionInput, Prisma.TranslatableElementUpdateWithoutNextVersionInput>, Prisma.TranslatableElementUncheckedUpdateWithoutNextVersionInput>
+}
+
+export type TranslatableElementUpdateOneWithoutPreviousVersionNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutPreviousVersionInput>
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutPreviousVersionInput
+  upsert?: Prisma.TranslatableElementUpsertWithoutPreviousVersionInput
+  disconnect?: Prisma.TranslatableElementWhereInput | boolean
+  delete?: Prisma.TranslatableElementWhereInput | boolean
+  connect?: Prisma.TranslatableElementWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TranslatableElementUpdateToOneWithWhereWithoutPreviousVersionInput, Prisma.TranslatableElementUpdateWithoutPreviousVersionInput>, Prisma.TranslatableElementUncheckedUpdateWithoutPreviousVersionInput>
+}
+
+export type TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutPreviousVersionInput>
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutPreviousVersionInput
+  upsert?: Prisma.TranslatableElementUpsertWithoutPreviousVersionInput
+  disconnect?: Prisma.TranslatableElementWhereInput | boolean
+  delete?: Prisma.TranslatableElementWhereInput | boolean
+  connect?: Prisma.TranslatableElementWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TranslatableElementUpdateToOneWithWhereWithoutPreviousVersionInput, Prisma.TranslatableElementUpdateWithoutPreviousVersionInput>, Prisma.TranslatableElementUncheckedUpdateWithoutPreviousVersionInput>
 }
 
 export type TranslatableElementCreateNestedOneWithoutMemoryItemsInput = {
@@ -508,18 +691,30 @@ export type TranslatableElementUncheckedUpdateManyWithoutEmbeddingNestedInput = 
 }
 
 export type TranslatableElementCreateWithoutDocumentInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
+  PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
+  NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
   Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatableElementInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutSourceElementInput
 }
 
 export type TranslatableElementUncheckedCreateWithoutDocumentInput = {
   id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   embeddingId: number
+  previousVersionId?: number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
   Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatableElementInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutSourceElementInput
 }
@@ -555,26 +750,191 @@ export type TranslatableElementScalarWhereInput = {
   OR?: Prisma.TranslatableElementScalarWhereInput[]
   NOT?: Prisma.TranslatableElementScalarWhereInput | Prisma.TranslatableElementScalarWhereInput[]
   id?: Prisma.IntFilter<"TranslatableElement"> | number
+  createdAt?: Prisma.DateTimeFilter<"TranslatableElement"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TranslatableElement"> | Date | string
   value?: Prisma.StringFilter<"TranslatableElement"> | string
   meta?: Prisma.JsonNullableFilter<"TranslatableElement">
+  version?: Prisma.IntFilter<"TranslatableElement"> | number
+  isActive?: Prisma.BoolFilter<"TranslatableElement"> | boolean
   documentId?: Prisma.StringFilter<"TranslatableElement"> | string
   embeddingId?: Prisma.IntFilter<"TranslatableElement"> | number
+  previousVersionId?: Prisma.IntNullableFilter<"TranslatableElement"> | number | null
+}
+
+export type TranslatableElementCreateWithoutNextVersionInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  value: string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
+  Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
+  PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
+  Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatableElementInput
+  MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutSourceElementInput
+}
+
+export type TranslatableElementUncheckedCreateWithoutNextVersionInput = {
+  id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  value: string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
+  documentId: string
+  embeddingId: number
+  previousVersionId?: number | null
+  Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatableElementInput
+  MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutSourceElementInput
+}
+
+export type TranslatableElementCreateOrConnectWithoutNextVersionInput = {
+  where: Prisma.TranslatableElementWhereUniqueInput
+  create: Prisma.XOR<Prisma.TranslatableElementCreateWithoutNextVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutNextVersionInput>
+}
+
+export type TranslatableElementCreateWithoutPreviousVersionInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  value: string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
+  Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
+  NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
+  Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatableElementInput
+  MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutSourceElementInput
+}
+
+export type TranslatableElementUncheckedCreateWithoutPreviousVersionInput = {
+  id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  value: string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
+  documentId: string
+  embeddingId: number
+  NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
+  Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatableElementInput
+  MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutSourceElementInput
+}
+
+export type TranslatableElementCreateOrConnectWithoutPreviousVersionInput = {
+  where: Prisma.TranslatableElementWhereUniqueInput
+  create: Prisma.XOR<Prisma.TranslatableElementCreateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutPreviousVersionInput>
+}
+
+export type TranslatableElementUpsertWithoutNextVersionInput = {
+  update: Prisma.XOR<Prisma.TranslatableElementUpdateWithoutNextVersionInput, Prisma.TranslatableElementUncheckedUpdateWithoutNextVersionInput>
+  create: Prisma.XOR<Prisma.TranslatableElementCreateWithoutNextVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutNextVersionInput>
+  where?: Prisma.TranslatableElementWhereInput
+}
+
+export type TranslatableElementUpdateToOneWithWhereWithoutNextVersionInput = {
+  where?: Prisma.TranslatableElementWhereInput
+  data: Prisma.XOR<Prisma.TranslatableElementUpdateWithoutNextVersionInput, Prisma.TranslatableElementUncheckedUpdateWithoutNextVersionInput>
+}
+
+export type TranslatableElementUpdateWithoutNextVersionInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutTranslatableElementNestedInput
+  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceElementNestedInput
+}
+
+export type TranslatableElementUncheckedUpdateWithoutNextVersionInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatableElementNestedInput
+  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceElementNestedInput
+}
+
+export type TranslatableElementUpsertWithoutPreviousVersionInput = {
+  update: Prisma.XOR<Prisma.TranslatableElementUpdateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedUpdateWithoutPreviousVersionInput>
+  create: Prisma.XOR<Prisma.TranslatableElementCreateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutPreviousVersionInput>
+  where?: Prisma.TranslatableElementWhereInput
+}
+
+export type TranslatableElementUpdateToOneWithWhereWithoutPreviousVersionInput = {
+  where?: Prisma.TranslatableElementWhereInput
+  data: Prisma.XOR<Prisma.TranslatableElementUpdateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedUpdateWithoutPreviousVersionInput>
+}
+
+export type TranslatableElementUpdateWithoutPreviousVersionInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutTranslatableElementNestedInput
+  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceElementNestedInput
+}
+
+export type TranslatableElementUncheckedUpdateWithoutPreviousVersionInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatableElementNestedInput
+  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementCreateWithoutMemoryItemsInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
+  PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
+  NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
   Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatableElementInput
 }
 
 export type TranslatableElementUncheckedCreateWithoutMemoryItemsInput = {
   id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   documentId: string
   embeddingId: number
+  previousVersionId?: number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
   Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatableElementInput
 }
 
@@ -595,36 +955,60 @@ export type TranslatableElementUpdateToOneWithWhereWithoutMemoryItemsInput = {
 }
 
 export type TranslatableElementUpdateWithoutMemoryItemsInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
+  NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUpdateManyWithoutTranslatableElementNestedInput
 }
 
 export type TranslatableElementUncheckedUpdateWithoutMemoryItemsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatableElementNestedInput
 }
 
 export type TranslatableElementCreateWithoutTranslationsInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
+  PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
+  NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutSourceElementInput
 }
 
 export type TranslatableElementUncheckedCreateWithoutTranslationsInput = {
   id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   documentId: string
   embeddingId: number
+  previousVersionId?: number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutSourceElementInput
 }
 
@@ -645,35 +1029,59 @@ export type TranslatableElementUpdateToOneWithWhereWithoutTranslationsInput = {
 }
 
 export type TranslatableElementUpdateWithoutTranslationsInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
+  NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementUncheckedUpdateWithoutTranslationsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementCreateWithoutEmbeddingInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
+  PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
+  NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
   Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatableElementInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutSourceElementInput
 }
 
 export type TranslatableElementUncheckedCreateWithoutEmbeddingInput = {
   id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   documentId: string
+  previousVersionId?: number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
   Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatableElementInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutSourceElementInput
 }
@@ -706,64 +1114,108 @@ export type TranslatableElementUpdateManyWithWhereWithoutEmbeddingInput = {
 
 export type TranslatableElementCreateManyDocumentInput = {
   id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   embeddingId: number
+  previousVersionId?: number | null
 }
 
 export type TranslatableElementUpdateWithoutDocumentInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
+  NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUpdateManyWithoutTranslatableElementNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementUncheckedUpdateWithoutDocumentInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatableElementNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementUncheckedUpdateManyWithoutDocumentInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type TranslatableElementUpdateWithoutEmbeddingInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
+  NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUpdateManyWithoutTranslatableElementNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementUncheckedUpdateWithoutEmbeddingInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatableElementNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceElementNestedInput
 }
 
 export type TranslatableElementCreateManyEmbeddingInput = {
   id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   value: string
   meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
   documentId: string
+  previousVersionId?: number | null
 }
 
 export type TranslatableElementUncheckedUpdateManyWithoutEmbeddingInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   value?: Prisma.StringFieldUpdateOperationsInput | string
   meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -808,12 +1260,19 @@ export type TranslatableElementCountOutputTypeCountMemoryItemsArgs<ExtArgs exten
 
 export type TranslatableElementSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   value?: boolean
   meta?: boolean
+  version?: boolean
+  isActive?: boolean
   documentId?: boolean
   embeddingId?: boolean
+  previousVersionId?: boolean
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
+  NextVersion?: boolean | Prisma.TranslatableElement$NextVersionArgs<ExtArgs>
   Translations?: boolean | Prisma.TranslatableElement$TranslationsArgs<ExtArgs>
   MemoryItems?: boolean | Prisma.TranslatableElement$MemoryItemsArgs<ExtArgs>
   _count?: boolean | Prisma.TranslatableElementCountOutputTypeDefaultArgs<ExtArgs>
@@ -821,36 +1280,55 @@ export type TranslatableElementSelect<ExtArgs extends runtime.Types.Extensions.I
 
 export type TranslatableElementSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   value?: boolean
   meta?: boolean
+  version?: boolean
+  isActive?: boolean
   documentId?: boolean
   embeddingId?: boolean
+  previousVersionId?: boolean
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
 }, ExtArgs["result"]["translatableElement"]>
 
 export type TranslatableElementSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   value?: boolean
   meta?: boolean
+  version?: boolean
+  isActive?: boolean
   documentId?: boolean
   embeddingId?: boolean
+  previousVersionId?: boolean
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
 }, ExtArgs["result"]["translatableElement"]>
 
 export type TranslatableElementSelectScalar = {
   id?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   value?: boolean
   meta?: boolean
+  version?: boolean
+  isActive?: boolean
   documentId?: boolean
   embeddingId?: boolean
+  previousVersionId?: boolean
 }
 
-export type TranslatableElementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "value" | "meta" | "documentId" | "embeddingId", ExtArgs["result"]["translatableElement"]>
+export type TranslatableElementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "value" | "meta" | "version" | "isActive" | "documentId" | "embeddingId" | "previousVersionId", ExtArgs["result"]["translatableElement"]>
 export type TranslatableElementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
+  NextVersion?: boolean | Prisma.TranslatableElement$NextVersionArgs<ExtArgs>
   Translations?: boolean | Prisma.TranslatableElement$TranslationsArgs<ExtArgs>
   MemoryItems?: boolean | Prisma.TranslatableElement$MemoryItemsArgs<ExtArgs>
   _count?: boolean | Prisma.TranslatableElementCountOutputTypeDefaultArgs<ExtArgs>
@@ -858,10 +1336,12 @@ export type TranslatableElementInclude<ExtArgs extends runtime.Types.Extensions.
 export type TranslatableElementIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
 }
 export type TranslatableElementIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
 }
 
 export type $TranslatableElementPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -869,15 +1349,22 @@ export type $TranslatableElementPayload<ExtArgs extends runtime.Types.Extensions
   objects: {
     Document: Prisma.$DocumentPayload<ExtArgs>
     Embedding: Prisma.$VectorPayload<ExtArgs>
+    PreviousVersion: Prisma.$TranslatableElementPayload<ExtArgs> | null
+    NextVersion: Prisma.$TranslatableElementPayload<ExtArgs> | null
     Translations: Prisma.$TranslationPayload<ExtArgs>[]
     MemoryItems: Prisma.$MemoryItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
+    createdAt: Date
+    updatedAt: Date
     value: string
     meta: unknown | null
+    version: number
+    isActive: boolean
     documentId: string
     embeddingId: number
+    previousVersionId: number | null
   }, ExtArgs["result"]["translatableElement"]>
   composites: {}
 }
@@ -1274,6 +1761,8 @@ export interface Prisma__TranslatableElementClient<T, Null = never, ExtArgs exte
   readonly [Symbol.toStringTag]: "PrismaPromise"
   Document<T extends Prisma.DocumentDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DocumentDefaultArgs<ExtArgs>>): Prisma.Prisma__DocumentClient<runtime.Types.Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   Embedding<T extends Prisma.VectorDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VectorDefaultArgs<ExtArgs>>): Prisma.Prisma__VectorClient<runtime.Types.Result.GetResult<Prisma.$VectorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  PreviousVersion<T extends Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>>): Prisma.Prisma__TranslatableElementClient<runtime.Types.Result.GetResult<Prisma.$TranslatableElementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  NextVersion<T extends Prisma.TranslatableElement$NextVersionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TranslatableElement$NextVersionArgs<ExtArgs>>): Prisma.Prisma__TranslatableElementClient<runtime.Types.Result.GetResult<Prisma.$TranslatableElementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   Translations<T extends Prisma.TranslatableElement$TranslationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TranslatableElement$TranslationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   MemoryItems<T extends Prisma.TranslatableElement$MemoryItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TranslatableElement$MemoryItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1306,10 +1795,15 @@ export interface Prisma__TranslatableElementClient<T, Null = never, ExtArgs exte
  */
 export interface TranslatableElementFieldRefs {
   readonly id: Prisma.FieldRef<"TranslatableElement", 'Int'>
+  readonly createdAt: Prisma.FieldRef<"TranslatableElement", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"TranslatableElement", 'DateTime'>
   readonly value: Prisma.FieldRef<"TranslatableElement", 'String'>
   readonly meta: Prisma.FieldRef<"TranslatableElement", 'Json'>
+  readonly version: Prisma.FieldRef<"TranslatableElement", 'Int'>
+  readonly isActive: Prisma.FieldRef<"TranslatableElement", 'Boolean'>
   readonly documentId: Prisma.FieldRef<"TranslatableElement", 'String'>
   readonly embeddingId: Prisma.FieldRef<"TranslatableElement", 'Int'>
+  readonly previousVersionId: Prisma.FieldRef<"TranslatableElement", 'Int'>
 }
     
 
@@ -1703,6 +2197,44 @@ export type TranslatableElementDeleteManyArgs<ExtArgs extends runtime.Types.Exte
    * Limit how many TranslatableElements to delete.
    */
   limit?: number
+}
+
+/**
+ * TranslatableElement.PreviousVersion
+ */
+export type TranslatableElement$PreviousVersionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TranslatableElement
+   */
+  select?: Prisma.TranslatableElementSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TranslatableElement
+   */
+  omit?: Prisma.TranslatableElementOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TranslatableElementInclude<ExtArgs> | null
+  where?: Prisma.TranslatableElementWhereInput
+}
+
+/**
+ * TranslatableElement.NextVersion
+ */
+export type TranslatableElement$NextVersionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TranslatableElement
+   */
+  select?: Prisma.TranslatableElementSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TranslatableElement
+   */
+  omit?: Prisma.TranslatableElementOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TranslatableElementInclude<ExtArgs> | null
+  where?: Prisma.TranslatableElementWhereInput
 }
 
 /**

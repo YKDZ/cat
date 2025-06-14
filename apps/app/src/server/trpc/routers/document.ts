@@ -1,7 +1,7 @@
 import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { useStorage } from "@/server/utils/storage/useStorage";
 import { prisma } from "@cat/db";
-import type { PrismaError } from "@cat/shared";
+import type { Document, PrismaError } from "@cat/shared";
 import {
   DocumentSchema,
   ElementTranslationStatusSchema,
@@ -147,9 +147,7 @@ export const documentRouter = router({
         let document =
           (await tx.document.findFirst({
             where: {
-              Project: {
-                id: project.id,
-              },
+              projectId: project.id,
               File: {
                 originName: file.originName,
               },
@@ -159,6 +157,12 @@ export const documentRouter = router({
                 include: {
                   Type: true,
                 },
+              },
+              Tasks: {
+                where: {
+                  type: "document_from_file_pretreatment",
+                },
+                take: 1,
               },
               Project: true,
             },
@@ -194,7 +198,29 @@ export const documentRouter = router({
                   Type: true,
                 },
               },
+              Tasks: {
+                where: {
+                  type: "document_from_file_pretreatment",
+                },
+                take: 1,
+              },
               Project: true,
+            },
+          });
+        } else {
+          await tx.document.update({
+            where: {
+              id: document.id,
+            },
+            data: {
+              Tasks: {
+                disconnect: {
+                  id: document.Tasks[0].id,
+                },
+                connect: {
+                  id: task.id,
+                },
+              },
             },
           });
         }
@@ -303,6 +329,7 @@ export const documentRouter = router({
             searchQuery.trim().length !== 0
               ? { contains: searchQuery, mode: "insensitive" }
               : undefined,
+          isActive: true,
         },
       });
     }),
@@ -321,6 +348,7 @@ export const documentRouter = router({
           id: idGreaterThan ? { gt: idGreaterThan } : undefined,
           documentId: id,
           Translations: { none: {} },
+          isActive: true,
         },
         orderBy: { id: "asc" },
       });
@@ -330,6 +358,7 @@ export const documentRouter = router({
           where: {
             documentId: id,
             Translations: { none: {} },
+            isActive: true,
           },
           orderBy: { id: "asc" },
         });
@@ -498,6 +527,7 @@ export const documentRouter = router({
                 languageId,
               },
             },
+            isActive: true,
           },
         })
         .catch((e: PrismaError) => {
@@ -529,6 +559,7 @@ export const documentRouter = router({
                 isApproved,
               },
             },
+            isActive: true,
           },
         })
         .catch((e: PrismaError) => {
@@ -553,6 +584,7 @@ export const documentRouter = router({
       const element = await prisma.translatableElement.findUnique({
         where: {
           id: elementId,
+          isActive: true,
         },
         include: {
           Translations: {
@@ -595,22 +627,21 @@ export const documentRouter = router({
     .query(async ({ input }) => {
       const { documentId, page, pageSize, searchQuery } = input;
 
-      return z.array(TranslatableElementSchema).parse(
-        await prisma.translatableElement.findMany({
-          where: {
-            documentId: documentId,
-            value:
-              searchQuery?.trim().length !== 0
-                ? { contains: searchQuery }
-                : undefined,
-          },
-          orderBy: {
-            value: "asc",
-          },
-          skip: page * pageSize,
-          take: pageSize,
-        }),
-      );
+      const result = await prisma.translatableElement.findMany({
+        where: {
+          documentId: documentId,
+          value:
+            searchQuery?.trim().length !== 0
+              ? { contains: searchQuery }
+              : undefined,
+          isActive: true,
+        },
+        orderBy: { id: "asc" },
+        skip: page * pageSize,
+        take: pageSize,
+      });
+
+      return z.array(TranslatableElementSchema).parse(result);
     }),
   queryPageIndexOfElement: authedProcedure
     .input(
@@ -635,6 +666,7 @@ export const documentRouter = router({
             searchQuery.trim().length !== 0
               ? { contains: searchQuery, mode: "insensitive" }
               : undefined,
+          isActive: true,
         },
       });
 
@@ -668,6 +700,7 @@ export const documentRouter = router({
       return await prisma.translatableElement.count({
         where: {
           documentId: id,
+          isActive: true,
         },
       });
     }),

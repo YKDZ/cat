@@ -2325,10 +2325,15 @@ export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typ
 
 export const TranslatableElementScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   value: 'value',
   meta: 'meta',
+  version: 'version',
+  isActive: 'isActive',
   documentId: 'documentId',
-  embeddingId: 'embeddingId'
+  embeddingId: 'embeddingId',
+  previousVersionId: 'previousVersionId'
 } as const
 
 export type TranslatableElementScalarFieldEnum = (typeof TranslatableElementScalarFieldEnum)[keyof typeof TranslatableElementScalarFieldEnum]

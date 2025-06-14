@@ -19,10 +19,15 @@ model Document {
 }
 
 model TranslatableElement {
-    id Int @id @default(autoincrement())
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 
     value String @db.Text
     meta  Json?
+
+    version  Int     @default(1)
+    isActive Boolean @default(true)
 
     documentId String
     Document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -30,8 +35,14 @@ model TranslatableElement {
     embeddingId Int
     Embedding   Vector @relation(fields: [embeddingId], references: [id])
 
+    previousVersionId Int?                 @unique
+    PreviousVersion   TranslatableElement? @relation("DiffHistory", fields: [previousVersionId], references: [id])
+    NextVersion       TranslatableElement? @relation("DiffHistory")
+
     Translations Translation[]
     MemoryItems  MemoryItem[]
 
-    @@unique([value, meta, documentId])
+    // 手动实现
+    // 因为 prisma 不支持唯一性索引中的 isActive = true
+    // @@unique([meta, documentId, isActive])
 }
