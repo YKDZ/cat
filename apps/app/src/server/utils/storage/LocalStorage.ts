@@ -32,4 +32,10 @@ export class LocalStorage implements Storage {
   }
 
   async delete(file: File) {}
+
+  async ping() {}
+
+  async connect() {}
+
+  async disconnect() {}
 }

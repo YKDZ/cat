@@ -40,7 +40,7 @@ const handlePreAuth = async () => {
         !passToClient.redirectURL ||
         typeof passToClient.redirectURL !== "string"
       )
-        navigate("/auth/oidc.callback");
+        navigate("/auth/callback");
       else window.location.href = passToClient.redirectURL;
     })
     .catch(trpcWarn);

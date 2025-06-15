@@ -1,5 +1,6 @@
 model Vector {
     id     Int                         @id @default(autoincrement())
+    // need to create pgvector plugin manually in init migration file
     vector Unsupported("vector(1024)")
 
     TranslatableElements TranslatableElement[]

@@ -1,11 +1,15 @@
-import { hashPassword, prisma, verifyPassword } from "@cat/db";
+import { prisma, verifyPassword } from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
-import type { HTTPHelpers } from "@cat/shared";
-import type { JSONSchema } from "zod/v4/core";
+import { z } from "zod/v4";
+
+const FormSchema = z.object({
+  email: z.email(),
+  password: z.string().min(6),
+});
 
 export class Provider implements AuthProvider {
   getId() {
-    return "USERNAME_PASSWORD";
+    return "EMAIL_PASSWORD";
   }
 
   getType() {
@@ -13,43 +17,20 @@ export class Provider implements AuthProvider {
   }
 
   getName() {
-    return "用户名 + 密码";
+    return "邮箱 + 密码";
   }
 
   getAuthFormSchema() {
-    return {
-      type: "object",
-      properties: {
-        username: {
-          type: "string",
-        },
-        password: {
-          type: "string",
-        },
-      },
-    } satisfies JSONSchema.JSONSchema;
+    return z.toJSONSchema(FormSchema);
   }
 
   async handleAuth(gotFromClient: { formData?: unknown }) {
-    if (
-      !gotFromClient ||
-      typeof gotFromClient !== "object" ||
-      !gotFromClient.formData ||
-      typeof gotFromClient.formData !== "object" ||
-      !("username" in gotFromClient.formData) ||
-      !("password" in gotFromClient.formData) ||
-      typeof gotFromClient.formData.username !== "string" ||
-      typeof gotFromClient.formData.password !== "string"
-    ) {
-      throw new Error("Incorrect Form Data");
-    }
-
-    const { username, password } = gotFromClient.formData;
+    const { email, password } = FormSchema.parse(gotFromClient.formData);
 
     const account = await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: {
-          name: username,
+          email,
         },
         select: {
           id: true,
@@ -83,9 +64,14 @@ export class Provider implements AuthProvider {
       throw Error("Wrong password");
 
     return {
-      userName: username,
+      email,
+      userName: email,
       providerIssuer: this.getId(),
-      providedAccountId: username,
+      providedAccountId: email,
     } satisfies AuthResult;
+  }
+
+  async isAvaliable() {
+    return true;
   }
 }

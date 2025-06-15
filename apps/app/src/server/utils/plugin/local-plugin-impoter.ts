@@ -9,7 +9,7 @@ const pluginsDir = join(process.cwd(), "plugins");
 const OriginSchema = z.object({
   type: z.literal("LOCAL"),
   data: z.object({
-    name: z.string().min(1),
+    id: z.string().min(1),
   }),
 });
 
@@ -29,10 +29,10 @@ class LocalPluginImporter implements PluginImporter {
 
   async importPlugin(origin: Record<string, unknown>): Promise<PluginData> {
     const {
-      data: { name },
+      data: { id },
     } = OriginSchema.parse(origin);
 
-    const dir = join(pluginsDir, name);
+    const dir = join(pluginsDir, id);
 
     try {
       return await loadPluginData(dir);

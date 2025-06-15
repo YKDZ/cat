@@ -121,11 +121,11 @@ export const pluginRouter = router({
   importFromLocal: authedProcedure
     .input(
       z.object({
-        name: z.string().min(1),
+        id: z.string().min(1),
       }),
     )
     .mutation(async ({ input }) => {
-      const { name } = input;
+      const { id } = input;
 
       const task = await prisma.task.create({
         data: {
@@ -138,7 +138,7 @@ export const pluginRouter = router({
         origin: {
           type: "LOCAL",
           data: {
-            name,
+            id,
           },
         },
       });

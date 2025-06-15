@@ -1,11 +1,16 @@
-import { ESDB, prisma, PrismaDB, RedisDB } from "@cat/db";
+import { ESDB, prisma, PrismaDB, RedisDB, S3DB, setting } from "@cat/db";
 import { logger, SettingSchema } from "@cat/shared";
 import type { Server } from "http";
 import type z from "zod/v4";
 import { closeAllProcessors } from "../processor";
 import { initESIndex } from "./es";
 import { PluginRegistry } from "@cat/plugin-core";
-import { importPluginQueue } from "../processor/importPlugin";
+import {
+  importPluginQueue,
+  importPluginQueueEvents,
+} from "../processor/importPlugin";
+import { useStorage } from "./storage/useStorage";
+import type { Job } from "bullmq";
 
 export const shutdownServer = async (server: Server) => {
   logger.info("SERVER", "About to shutdown server gracefully...");
@@ -20,6 +25,7 @@ export const shutdownServer = async (server: Server) => {
       await PrismaDB.disconnect();
       await RedisDB.disconnect();
       await ESDB.disconnect();
+      await (await useStorage()).storage.disconnect();
     });
   });
 
@@ -31,12 +37,14 @@ export const initDB = async () => {
     await PrismaDB.connect();
     await RedisDB.connect();
     await ESDB.connect();
+    await (await useStorage()).storage.connect();
 
     logger.info("DB", "Successfully connect to all database.");
 
     await PrismaDB.ping();
     await RedisDB.ping();
     await ESDB.ping();
+    await (await useStorage()).storage.ping();
 
     logger.info("DB", "All database is health.");
 
@@ -123,33 +131,58 @@ export const initSettings = async () => {
 };
 
 export const scanLocalPlugins = async () => {
-  const pluginIds = (
-    await prisma.plugin.findMany({
-      select: {
-        id: true,
-      },
-    })
-  ).map((plugin) => plugin.id);
+  const existPluginIds: string[] = [];
+  const jobs: Job[] = [];
 
-  await Promise.all(
-    (await PluginRegistry.getPluginIdInLocalPlugins())
-      .filter((id) => !pluginIds.includes(id))
-      .map(async (id) => {
-        const task = await prisma.task.create({
-          data: {
-            type: "import_plugin",
+  await prisma.$transaction(async (tx) => {
+    existPluginIds.push(
+      ...(
+        await tx.plugin.findMany({
+          select: {
+            id: true,
           },
-        });
+        })
+      ).map((plugin) => plugin.id),
+    );
 
-        importPluginQueue.add(task.id, {
-          taskId: task.id,
-          origin: {
-            type: "LOCAL",
+    await Promise.all(
+      (await PluginRegistry.getPluginIdInLocalPlugins())
+        .filter((id) => !existPluginIds.includes(id))
+        .map(async (id) => {
+          const task = await tx.task.create({
             data: {
-              name: id,
+              type: "import_plugin",
             },
-          },
-        });
-      }),
-  );
+          });
+
+          jobs.push(
+            await importPluginQueue.add(task.id, {
+              taskId: task.id,
+              origin: {
+                type: "LOCAL",
+                data: {
+                  id,
+                },
+              },
+            }),
+          );
+        }),
+    );
+  });
+
+  if (existPluginIds.length === 0) {
+    await importPluginQueueEvents.waitUntilReady();
+
+    await Promise.all(
+      jobs.map(
+        async (job) => await job.waitUntilFinished(importPluginQueueEvents),
+      ),
+    );
+
+    await PluginRegistry.getInstance().reload();
+    logger.info(
+      "SERVER",
+      "Reloaded plugins successfully for there was no plugins registered in the database before",
+    );
+  }
 };

@@ -151,6 +151,8 @@ export const authRouter = router({
         });
 
       const {
+        email,
+        emailVerified,
         userName,
         providerIssuer,
         providedAccountId,
@@ -187,10 +189,12 @@ export const authRouter = router({
               User: {
                 connectOrCreate: {
                   where: {
-                    name: userName,
+                    email,
                   },
                   create: {
                     name: userName,
+                    email,
+                    emailVerified,
                   },
                 },
               },

@@ -8,7 +8,8 @@ import type { TextVectorizer } from "./text-vectorizer";
 import type { TranslatableFileHandler } from "./translatable-file-handler";
 import type { TranslationAdvisor } from "./translation-advisor";
 import type { AuthProvider } from "./auth-provider";
-import { readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
+import { readFile } from "fs/promises";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
@@ -161,8 +162,39 @@ export class PluginRegistry {
   }
 
   public static async getPluginIdInLocalPlugins() {
-    return readdirSync(pluginsDir, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => dirent.name);
+    const dirents = readdirSync(pluginsDir, { withFileTypes: true }).filter(
+      (dirent) => dirent.isDirectory(),
+    );
+
+    const results = [];
+
+    for (const dirent of dirents) {
+      const dirPath = join(pluginsDir, dirent.name);
+      const manifestPath = join(dirPath, "manifest.json");
+
+      if (!existsSync(manifestPath)) {
+        console.error(`Directory ${dirent.name} missing manifest.json`);
+        continue;
+      }
+
+      try {
+        const data = await readFile(manifestPath, "utf8");
+        const manifest = JSON.parse(data);
+
+        if (manifest.id) {
+          results.push(manifest.id);
+        } else {
+          console.error(`manifest.json in ${dirent.name} missing "id" field`);
+        }
+      } catch (err) {
+        logger.error(
+          "PLUGIN",
+          `Error reading manifest.json in ${dirent.name}:`,
+          err,
+        );
+      }
+    }
+
+    return results;
   }
 }

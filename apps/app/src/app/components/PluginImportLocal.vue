@@ -9,7 +9,7 @@ import { useToastStore } from "../stores/toast";
 const { info, trpcWarn } = useToastStore();
 
 const origin = ref({
-  name: "json-file-handler",
+  id: "json-file-handler",
 });
 
 const handleImport = () => {
@@ -26,12 +26,9 @@ const handleImport = () => {
   <h3 class="text-lg font-bold">从本地 plugins 文件夹导入插件</h3>
   <div class="flex flex-col gap-1">
     <InputLabel>插件目录名称</InputLabel>
-    <Input
-      v-model="origin.name"
-      icon="i-mdi:folder"
-      full-width
-      type="text"
-    />
+    <Input v-model="origin.id" icon="i-mdi:folder" full-width type="text" />
   </div>
-  <Button full-width icon="i-mdi:download" @click="handleImport">导入插件</Button>
+  <Button full-width icon="i-mdi:download" @click="handleImport"
+    >导入插件</Button
+  >
 </template>

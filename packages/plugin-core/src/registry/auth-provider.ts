@@ -8,6 +8,8 @@ export type PreAuthResult = {
 };
 
 export type AuthResult = {
+  email: string;
+  emailVerified?: boolean;
   userName: string;
   providerIssuer: string;
   providedAccountId: string;
@@ -36,4 +38,5 @@ export interface AuthProvider {
     helpers: HTTPHelpers,
   ) => Promise<AuthResult>;
   handleLogout?: (sessionId: string) => Promise<void>;
+  isAvaliable: () => Promise<boolean>;
 }

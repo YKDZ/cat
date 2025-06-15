@@ -20,6 +20,9 @@ export interface Storage {
     expiresIn: number,
   ): Promise<string>;
   delete: (file: File) => Promise<void>;
+  ping: () => Promise<void>;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
 }
 
 export const useStorage = async (): Promise<{

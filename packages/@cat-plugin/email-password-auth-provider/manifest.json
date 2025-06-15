@@ -1,5 +1,5 @@
 {
-  "id": "username-password-auth-provider",
+  "id": "email-password-auth-provider",
   "entry": "dist/index.mjs",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [

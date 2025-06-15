@@ -97,4 +97,16 @@ export class S3Storage implements Storage {
   }
 
   async delete(file: File) {}
+
+  async ping() {
+    await S3DB.ping();
+  }
+
+  async connect() {
+    await S3DB.connect();
+  }
+
+  async disconnect() {
+    await S3DB.disconnect();
+  }
 }
