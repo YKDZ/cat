@@ -30,13 +30,7 @@ export class Provider implements AuthProvider {
     } satisfies JSONSchema.JSONSchema;
   }
 
-  async handleAuth(
-    gotFromClient: {
-      urlSearchParams: unknown;
-      formData?: unknown;
-    },
-    helpers: HTTPHelpers,
-  ) {
+  async handleAuth(gotFromClient: { formData?: unknown }) {
     if (
       !gotFromClient ||
       typeof gotFromClient !== "object" ||
@@ -67,7 +61,7 @@ export class Provider implements AuthProvider {
       const account = await prisma.account.findUnique({
         where: {
           userId_provider: {
-            userId: user?.id,
+            userId: user.id,
             provider: this.getId(),
           },
         },
@@ -76,25 +70,22 @@ export class Provider implements AuthProvider {
       return account;
     });
 
+    if (!account) throw new Error("User not exists");
+
     // 仅在密码账户存在时验证密码
-    // 否则就是创建密码账户
-    if (account) {
-      if (
-        !(await verifyPassword(
-          password,
-          (account.meta as { password: string }).password,
-        ))
-      )
-        throw Error("Wrong password");
-    }
+    // 不允许注册
+    if (
+      !(await verifyPassword(
+        password,
+        (account.meta as { password: string }).password,
+      ))
+    )
+      throw Error("Wrong password");
 
     return {
       userName: username,
       providerIssuer: this.getId(),
-      providedAccountId: this.getId(),
-      accountMeta: {
-        password: await hashPassword(password),
-      },
+      providedAccountId: username,
     } satisfies AuthResult;
   }
 }
