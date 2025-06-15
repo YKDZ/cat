@@ -20,7 +20,7 @@ const seed = async () => {
           create: {
             type: "ID_PASSWORD",
             provider: "USERNAME_PASSWORD",
-            providedAccountId: "USERNAME_PASSWORD",
+            providedAccountId: "admin",
             meta: {
               password: await hashPassword(password),
             },

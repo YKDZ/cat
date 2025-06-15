@@ -76,7 +76,7 @@ onMounted(async () => {
         class="text-base-content text-center rounded-full bg-base flex items-center justify-center overflow-hidden"
         :style="imgStyle"
       >
-        <span class="font-bold">{{ user.name.charAt(0) }}</span>
+        <span class="font-bold">{{ user.name.charAt(0).toUpperCase() }}</span>
       </div>
       <span v-if="withName">{{ user.name }}</span>
     </div>
