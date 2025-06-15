@@ -133,6 +133,8 @@ export const TranslationVoteSchema = z.object({
 export const UserSchema = z.object({
   id: z.cuid2(),
   name: z.string(),
+  email: z.email(),
+  emailVerified: z.boolean(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   get WritableLanguages() {

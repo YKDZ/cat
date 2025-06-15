@@ -22,7 +22,7 @@ export const createOIDCAuthURL = async (
   nonce: string,
 ): Promise<string> => {
   const redirecturi = new URL(
-    "/auth/oidc.callback",
+    "/auth/callback",
     (await setting("server.url", "http://localhost:3000")) as string,
   ).toString();
 

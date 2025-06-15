@@ -262,6 +262,40 @@ importers:
         specifier: ^4.5.3
         version: 4.5.4(@types/node@22.15.30)(rollup@4.43.0)(typescript@5.8.3)(vite@6.3.5(@types/node@22.15.30)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
 
+  packages/@cat-plugin/email-password-auth-provider:
+    dependencies:
+      zod:
+        specifier: ^3.25.62
+        version: 3.25.62
+    devDependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: file:packages/db(pg@8.16.0)(prisma@6.9.0(typescript@5.8.3))(tslib@2.8.1)(typescript@5.8.3)
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      '@types/node':
+        specifier: ^22.14.1
+        version: 22.15.30
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.4
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      vite:
+        specifier: ^6.3.3
+        version: 6.3.5(@types/node@22.15.30)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1)
+      vite-plugin-dts:
+        specifier: ^4.5.3
+        version: 4.5.4(@types/node@22.15.30)(rollup@4.43.0)(typescript@5.8.3)(vite@6.3.5(@types/node@22.15.30)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
+
   packages/@cat-plugin/google-cloud-advisor:
     dependencies:
       '@google-cloud/translate':
@@ -387,6 +421,9 @@ importers:
       vite-plugin-dts:
         specifier: ^4.5.3
         version: 4.5.4(@types/node@22.15.30)(rollup@4.43.0)(typescript@5.8.3)(vite@6.3.5(@types/node@22.15.30)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
+      zod:
+        specifier: ^3.25.62
+        version: 3.25.62
 
   packages/@cat-plugin/ollama-vectorizer:
     devDependencies:
@@ -447,40 +484,6 @@ importers:
 
   packages/@cat-plugin/tei-vectorizer:
     devDependencies:
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../../eslint-config
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      '@types/node':
-        specifier: ^22.14.1
-        version: 22.15.30
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.4
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-      vite:
-        specifier: ^6.3.3
-        version: 6.3.5(@types/node@22.15.30)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1)
-      vite-plugin-dts:
-        specifier: ^4.5.3
-        version: 4.5.4(@types/node@22.15.30)(rollup@4.43.0)(typescript@5.8.3)(vite@6.3.5(@types/node@22.15.30)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.7.1))
-
-  packages/@cat-plugin/username-password-auth-provider:
-    dependencies:
-      zod:
-        specifier: ^3.25.62
-        version: 3.25.62
-    devDependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: file:packages/db(pg@8.16.0)(prisma@6.9.0(typescript@5.8.3))(tslib@2.8.1)(typescript@5.8.3)
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../eslint-config

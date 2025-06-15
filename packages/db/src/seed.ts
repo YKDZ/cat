@@ -16,11 +16,13 @@ const seed = async () => {
     await tx.user.create({
       data: {
         name: "admin",
+        email: "admin@encmys.cn",
+        emailVerified: true,
         Accounts: {
           create: {
             type: "ID_PASSWORD",
-            provider: "USERNAME_PASSWORD",
-            providedAccountId: "admin",
+            provider: "EMAIL_PASSWORD",
+            providedAccountId: "admin@encmys.cn",
             meta: {
               password: await hashPassword(password),
             },

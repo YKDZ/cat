@@ -13,7 +13,7 @@ The relating tech and framework are:
 - [vike](https://vike.dev/): SSR framework
 - [vue](https://vuejs.org/): frontend framework
 - [hono](https://hono.dev/): web application framework
-- [trpc](https://trpc.io/): RPC library
+- [tRPC](https://trpc.io/): RPC library
 - [prisma](https://www.prisma.io/): ORM (postgresql)
 - [redis](https://redis.io/): cache database
 - [vite](https://vite.dev/): bundler

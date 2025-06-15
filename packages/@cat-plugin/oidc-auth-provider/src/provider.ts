@@ -6,6 +6,12 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { randomChars } from "./utils/crypto";
 import { createOIDCAuthURL } from "./utils/oidc";
 import type { ProviderConfig } from ".";
+import { z } from "zod/v4";
+
+const SearchParasSchema = z.object({
+  state: z.string(),
+  code: z.string(),
+});
 
 export class Provider implements AuthProvider {
   private config: ProviderConfig;
@@ -49,20 +55,9 @@ export class Provider implements AuthProvider {
     },
     { getCookie, delCookie }: HTTPHelpers,
   ) {
-    if (
-      !gotFromClient ||
-      typeof gotFromClient !== "object" ||
-      !gotFromClient.urlSearchParams ||
-      typeof gotFromClient.urlSearchParams !== "object" ||
-      !("state" in gotFromClient.urlSearchParams) ||
-      !("code" in gotFromClient.urlSearchParams) ||
-      typeof gotFromClient.urlSearchParams.code !== "string" ||
-      typeof gotFromClient.urlSearchParams.state !== "string"
-    ) {
-      throw new Error("Incorrect url search params");
-    }
-
-    const { state, code } = gotFromClient.urlSearchParams;
+    const { state, code } = SearchParasSchema.parse(
+      gotFromClient.urlSearchParams,
+    );
 
     // 验证 OIDC 会话
     const preAuthSessionId = getCookie("preAuthSessionId");
@@ -84,7 +79,7 @@ export class Provider implements AuthProvider {
       code,
       redirect_uri: safeJoinURL(
         await setting("server.url", "http://localhost:3000"),
-        "/auth/oidc.callback",
+        "/auth/callback",
       ),
       grant_type: "authorization_code",
     });
@@ -141,6 +136,8 @@ export class Provider implements AuthProvider {
 
     // 所有验证完成
     return {
+      email,
+      emailVerified,
       userName: preferredUserName ?? nickname ?? name,
       providerIssuer: this.config.issuer,
       providedAccountId: sub,
@@ -153,7 +150,7 @@ export class Provider implements AuthProvider {
   async handleLogout(sessionId: string) {
     const idToken = await redis.hGet(`user:session:${sessionId}`, "idToken");
 
-    if (!idToken) throw new Error("ID Token 不存在");
+    if (!idToken) throw new Error("ID Token do not exists");
 
     const state = randomChars(32);
     const params = new URLSearchParams({
@@ -172,6 +169,10 @@ export class Provider implements AuthProvider {
       },
     });
 
-    if (!res.ok) throw new Error("登出时出现错误");
+    if (!res.ok) throw new Error("Error when oidc logout");
+  }
+
+  async isAvaliable() {
+    return true;
   }
 }

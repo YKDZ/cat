@@ -1,5 +1,5 @@
 import { prisma } from "@cat/db";
-import { Queue, Worker } from "bullmq";
+import { Queue, QueueEvents, Worker } from "bullmq";
 import { config } from "./config";
 import { logger } from "@cat/shared";
 import { PluginImporterRegistry } from "../utils/plugin/plugin-importer-registry";
@@ -34,11 +34,11 @@ const worker = new Worker(
         },
       });
 
+      // 不存在原插件意味着即将创建
       const pluginId = originPlugin?.id ?? data.id;
 
       await tx.plugin.upsert({
         where: {
-          // 不存在原插件意味着即将创建
           id: pluginId,
         },
         update: {
@@ -135,7 +135,7 @@ const worker = new Worker(
   },
   {
     ...config,
-    concurrency: 50,
+    concurrency: 1,
   },
 );
 
@@ -246,3 +246,5 @@ const getDefaultFromSchema = (schema: any): any => {
 
   return {};
 };
+
+export const importPluginQueueEvents = new QueueEvents(queueId);

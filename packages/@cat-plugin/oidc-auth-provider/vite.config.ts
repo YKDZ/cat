@@ -19,7 +19,13 @@ export default defineConfig({
     outDir: "dist",
 
     rollupOptions: {
-      external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "node:crypto"],
+      external: [
+        "@cat/plugin-core",
+        "@cat/shared",
+        "@cat/db",
+        "node:crypto",
+        "zod",
+      ],
       output: {
         entryFileNames: "[name].mjs",
       },
