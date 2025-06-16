@@ -29,7 +29,7 @@
     "@hono/node-server": "^1.14.4",
     "@jsonforms/core": "^3.5.1",
     "@jsonforms/vue": "^3.5.1",
-    "@jsonforms/vue-vanilla": "^3.5.1",
+    "@jsonforms/vue-vanilla": "^3.6.0",
     "@pinia/testing": "^1.0.2",
     "@prisma/adapter-pg": "^6.9.0",
     "@prisma/client": "6.9.0",
