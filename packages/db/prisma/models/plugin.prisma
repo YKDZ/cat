@@ -5,7 +5,7 @@ model Plugin {
     overview   String?
     enabled    Boolean  @default(true)
     isExternal Boolean  @default(false)
-    entry      String
+    entry      String?
     iconURL    String?
     createdAt  DateTime @default(now())
     updatedAt  DateTime @default(now()) @updatedAt
@@ -14,6 +14,7 @@ model Plugin {
     Permissions PluginPermission[]
     Versions    PluginVersion[]
     Tags        PluginTag[]
+    Components  PluginComponent[]
 }
 
 model PluginVersion {
@@ -64,4 +65,15 @@ model PluginTag {
     updatedAt DateTime @default(now()) @updatedAt
 
     Plugin Plugin[]
+}
+
+model PluginComponent {
+    id      String
+    entry   String
+    mountOn String
+
+    pluginId String
+    Plugin   Plugin @relation(fields: [pluginId], references: [id])
+
+    @@unique([id, pluginId])
 }

@@ -44,6 +44,13 @@ export const PluginVersionSchema = z.object({
   pluginId: z.string(),
 });
 
+export const PluginComponentSchema = z.object({
+  id: z.string(),
+  entry: z.string(),
+  mountOn: z.string(),
+  pluginId: z.string(),
+});
+
 export const PluginSchema = z.object({
   id: z.string(),
   origin: z.json(),
@@ -362,3 +369,4 @@ export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 export type PluginTag = z.infer<typeof PluginTagSchema>;
 export type PluginVersion = z.infer<typeof PluginVersionSchema>;
 export type PluginPermission = z.infer<typeof PluginPermissionSchema>;
+export type PluginComponent = z.infer<typeof PluginComponentSchema>;

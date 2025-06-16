@@ -146,7 +146,7 @@ export const scanLocalPlugins = async () => {
     );
 
     await Promise.all(
-      (await PluginRegistry.getPluginIdInLocalPlugins())
+      (await PluginRegistry.getInstance().getPluginIdInLocalPlugins())
         .filter((id) => !existPluginIds.includes(id))
         .map(async (id) => {
           const task = await tx.task.create({

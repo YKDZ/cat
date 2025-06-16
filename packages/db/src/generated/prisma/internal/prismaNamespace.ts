@@ -413,6 +413,7 @@ export const ModelName = {
   PluginPermission: 'PluginPermission',
   PluginConfig: 'PluginConfig',
   PluginTag: 'PluginTag',
+  PluginComponent: 'PluginComponent',
   Project: 'Project',
   Translation: 'Translation',
   TranslationVote: 'TranslationVote',
@@ -434,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginTag" | "project" | "translation" | "translationVote" | "user" | "account" | "vector"
+    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginTag" | "pluginComponent" | "project" | "translation" | "translationVote" | "user" | "account" | "vector"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1844,6 +1845,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PluginComponent: {
+      payload: Prisma.$PluginComponentPayload<ExtArgs>
+      fields: Prisma.PluginComponentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PluginComponentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PluginComponentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        findFirst: {
+          args: Prisma.PluginComponentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PluginComponentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        findMany: {
+          args: Prisma.PluginComponentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>[]
+        }
+        create: {
+          args: Prisma.PluginComponentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        createMany: {
+          args: Prisma.PluginComponentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PluginComponentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>[]
+        }
+        delete: {
+          args: Prisma.PluginComponentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        update: {
+          args: Prisma.PluginComponentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        deleteMany: {
+          args: Prisma.PluginComponentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PluginComponentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PluginComponentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>[]
+        }
+        upsert: {
+          args: Prisma.PluginComponentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        aggregate: {
+          args: Prisma.PluginComponentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePluginComponent>
+        }
+        groupBy: {
+          args: Prisma.PluginComponentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PluginComponentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PluginComponentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PluginComponentCountAggregateOutputType> | number
+        }
+      }
+    }
     Project: {
       payload: Prisma.$ProjectPayload<ExtArgs>
       fields: Prisma.ProjectFieldRefs
@@ -2535,6 +2610,16 @@ export const PluginTagScalarFieldEnum = {
 export type PluginTagScalarFieldEnum = (typeof PluginTagScalarFieldEnum)[keyof typeof PluginTagScalarFieldEnum]
 
 
+export const PluginComponentScalarFieldEnum = {
+  id: 'id',
+  entry: 'entry',
+  mountOn: 'mountOn',
+  pluginId: 'pluginId'
+} as const
+
+export type PluginComponentScalarFieldEnum = (typeof PluginComponentScalarFieldEnum)[keyof typeof PluginComponentScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2815,6 +2900,16 @@ export const PluginTagOrderByRelevanceFieldEnum = {
 export type PluginTagOrderByRelevanceFieldEnum = (typeof PluginTagOrderByRelevanceFieldEnum)[keyof typeof PluginTagOrderByRelevanceFieldEnum]
 
 
+export const PluginComponentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  entry: 'entry',
+  mountOn: 'mountOn',
+  pluginId: 'pluginId'
+} as const
+
+export type PluginComponentOrderByRelevanceFieldEnum = (typeof PluginComponentOrderByRelevanceFieldEnum)[keyof typeof PluginComponentOrderByRelevanceFieldEnum]
+
+
 export const ProjectOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
@@ -3041,6 +3136,7 @@ export type GlobalOmitConfig = {
   pluginPermission?: Prisma.PluginPermissionOmit
   pluginConfig?: Prisma.PluginConfigOmit
   pluginTag?: Prisma.PluginTagOmit
+  pluginComponent?: Prisma.PluginComponentOmit
   project?: Prisma.ProjectOmit
   translation?: Prisma.TranslationOmit
   translationVote?: Prisma.TranslationVoteOmit

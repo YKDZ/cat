@@ -134,6 +134,11 @@ export type PluginConfig = Prisma.PluginConfigModel
  */
 export type PluginTag = Prisma.PluginTagModel
 /**
+ * Model PluginComponent
+ * 
+ */
+export type PluginComponent = Prisma.PluginComponentModel
+/**
  * Model Project
  * 
  */
