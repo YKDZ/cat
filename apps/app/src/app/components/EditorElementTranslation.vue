@@ -5,7 +5,7 @@ import { useToastStore } from "../stores/toast";
 import UserAvatar from "./UserAvatar.vue";
 import type { Translation, TranslationVote } from "@cat/shared";
 import Button from "./Button.vue";
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { trpc } from "@/server/trpc/client";
 import TextTagger from "./tagger/TextTagger.vue";
 
@@ -51,6 +51,15 @@ const handleVote = (value: number) => {
     });
 };
 
+const isApproved = computed(() => {
+  if (!props.translation.Approvments) return false;
+  return (
+    props.translation.Approvments.findIndex(
+      (approvment) => approvment.isActive,
+    ) !== -1
+  );
+});
+
 onMounted(() => {
   trpc.translation.querySelfVote
     .query({
@@ -78,7 +87,11 @@ watch(
 
 <template>
   <div
-    class="px-3 py-2 flex gap-2 w-full cursor-pointer items-center hover:bg-highlight-darker"
+    class="px-3 py-2 flex gap-2 w-full cursor-pointer items-center"
+    :class="{
+      'bg-success hover:bg-success-darker': isApproved,
+      ' bg-highlight hover:bg-highlight-darker': !isApproved,
+    }"
     @click="copy(translation)"
   >
     <UserAvatar

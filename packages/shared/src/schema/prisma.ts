@@ -137,6 +137,15 @@ export const TranslationVoteSchema = z.object({
   translationId: z.int(),
 });
 
+export const TranslationApprovmentSchema = z.object({
+  id: z.int(),
+  isActive: z.boolean(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  translationId: z.int(),
+  userId: z.cuid2().nullable(),
+});
+
 export const UserSchema = z.object({
   id: z.cuid2(),
   name: z.string(),
@@ -191,8 +200,6 @@ export const TranslationSchema = z.object({
   value: z.string(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  isApproved: z.boolean().default(false),
-  lastApprovedAt: PrimsaDateTime.nullable(),
   translatorId: z.cuid2(),
   get Translator() {
     return UserSchema.optional();
@@ -205,8 +212,11 @@ export const TranslationSchema = z.object({
   get Language() {
     return LanguageSchema.optional();
   },
-  get TranslationVotes() {
+  get Votes() {
     return z.array(TranslationVoteSchema).optional();
+  },
+  get Approvments() {
+    return z.array(TranslationApprovmentSchema).optional();
   },
 });
 

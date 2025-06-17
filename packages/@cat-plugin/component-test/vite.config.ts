@@ -2,88 +2,86 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import dts from "vite-plugin-dts";
 import vue from "@vitejs/plugin-vue";
-import { parse } from "vue/compiler-sfc";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
+import type { Plugin, UserConfig } from "vite";
 
-function replaceVueGlobal() {
+function globalizeVueImports(): Plugin {
   return {
-    name: "replace-vue-global",
-    enforce: "post" as "pre" | "post",
+    name: "vite:ssr-globalize-imports",
+    apply: "build",
+    enforce: "post",
 
-    transform(code, id) {
-      // 扩展处理范围：包括 .vue、.js、.ts、.jsx、.tsx
-      if (!/\.(vue|js|ts|jsx|tsx)$/.test(id)) return;
-      if (id.includes("node_modules")) return; // 排除 node_modules
+    generateBundle(_, bundle) {
+      for (const [fileName, chunk] of Object.entries(bundle)) {
+        if (!fileName.endsWith(".mjs") || chunk.type !== "chunk") continue;
 
-      const importRegex = /import\s*{([^}]+)}\s*from\s*['"]vue['"];?/g;
+        let code = chunk.code;
+        let transformed = false;
 
-      // 处理 .vue 文件
-      if (id.endsWith(".vue")) {
-        const { descriptor } = parse(code, { sourceMap: false });
-        const scriptBlock = descriptor.script || descriptor.scriptSetup;
-        if (!scriptBlock) return;
+        // 替换形如 import { a, b as c } from "vue"
+        code = code.replace(
+          /^import\s*{\s*([^}]+)\s*}\s*from\s*['"]([^'"]+)['"];?/gm,
+          (_, importClause: string, source: string) => {
+            const lines = importClause
+              .split(",")
+              .map((part) => {
+                const [orig, alias] = part.trim().split(/\s+as\s+/);
+                const original = orig.trim();
+                const renamed = alias ? alias.trim() : original;
+                return `const ${renamed} = globalThis["${source}"].${original};`;
+              })
+              .join("\n");
 
-        const newContent = scriptBlock.content.replace(
-          importRegex,
-          (_, imports) => {
-            const transformedImports = imports.replace(/\s+as\s+/g, ": ");
-            return `const { ${transformedImports} } = globalThis.vue;`;
+            transformed = true;
+            return lines;
           },
         );
 
-        const start = scriptBlock.loc.start.offset;
-        const end = scriptBlock.loc.end.offset;
-        return {
-          code: code.slice(0, start) + newContent + code.slice(end),
-          map: null,
-        };
-      }
-      // 处理其他 JS/TS 文件
-      else {
-        if (!importRegex.test(code)) return;
-        const newCode = code.replace(importRegex, (_, imports) => {
-          const transformedImports = imports.replace(/\s+as\s+/g, ": ");
-          return `const { ${transformedImports} } = globalThis.vue;`;
-        });
-        return { code: newCode, map: null };
+        if (transformed) {
+          chunk.code = code;
+        }
       }
     },
   };
 }
 
-export default defineConfig({
-  resolve: {
-    alias: {
-      "@": resolve(__dirname, "src"),
-    },
-  },
-
-  build: {
-    lib: {
-      entry: resolve(__dirname, "src/Test.vue"),
-      formats: ["es"],
-      name: "ComponentTest",
-      fileName: () => `index.mjs`,
-    },
-
-    outDir: "dist",
-
-    rollupOptions: {
-      output: {
-        entryFileNames: "Test.mjs",
+export default defineConfig(
+  ({ isSsrBuild }) =>
+    ({
+      resolve: {
+        alias: {
+          "@": resolve(__dirname, "src"),
+        },
       },
-    },
-  },
 
-  plugins: [
-    replaceVueGlobal(),
-    cssInjectedByJsPlugin(),
-    vue({
-      include: [/\.vue$/, /\.md$/],
-    }),
-    dts({
-      outDir: "dist",
-      tsconfigPath: resolve(__dirname, "tsconfig.json"),
-    }),
-  ],
-});
+      build: {
+        lib: {
+          entry: resolve(__dirname, "src/Test.vue"),
+          formats: ["es"],
+          name: "ComponentTest",
+          fileName: () => `index.mjs`,
+        },
+
+        outDir: isSsrBuild ? "dist/ssr" : "dist/client",
+
+        rollupOptions: {
+          external: ["vue"],
+          output: {
+            entryFileNames: "Test.mjs",
+          },
+        },
+      },
+
+      plugins: [
+        globalizeVueImports(),
+        cssInjectedByJsPlugin(),
+        vue({
+          include: [/\.vue$/, /\.md$/],
+        }),
+        dts({
+          outDir: "dist",
+          tsconfigPath: resolve(__dirname, "tsconfig.json"),
+        }),
+      ],
+    }) satisfies UserConfig,
+);

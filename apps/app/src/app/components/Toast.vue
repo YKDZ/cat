@@ -16,8 +16,8 @@ const { toasts } = storeToRefs(useToastStore());
       :key="toast.id"
       :class="{
         'text-highlight-content bg-highlight': toast.type === 'INFO',
-        'text-black bg-yellow-300': toast.type === 'WARNNING',
-        'text-black bg-red-300': toast.type === 'ERROR',
+        'text-warning-content bg-warning': toast.type === 'WARNNING',
+        'text-error-content bg-error': toast.type === 'ERROR',
       }"
       class="p-4 text-right w-fit shadow-lg relative md:min-w-32"
     >

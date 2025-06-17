@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import PluginComponentSlot from "@/app/components/plugin-component/PluginComponentSlot.vue";
+import { trpc } from "@/server/trpc/client";
+import { onMounted } from "vue";
 </script>
 
 <template>
-  <Suspense>
-    <PluginComponentSlot id="index" />
-  </Suspense>
+  <PluginComponentSlot id="index" />
 </template>

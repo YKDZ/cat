@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { type PluginComponent } from "@cat/shared";
+import { safeJoinURL, type PluginComponent } from "@cat/shared";
 import { usePageContext } from "vike-vue/usePageContext";
-import type { Component } from "vue";
 import * as Vue from "vue";
-import {
-  defineAsyncComponent,
-  onMounted,
-  onServerPrefetch,
-  shallowRef,
-} from "vue";
+import * as VueSSR from "vue/server-renderer";
+import { defineAsyncComponent, onServerPrefetch, onBeforeMount } from "vue";
 
-globalThis.vue = Vue;
+globalThis["vue"] = Vue;
+globalThis["vue/server-renderer"] = VueSSR;
 
 const props = defineProps<{
   component: PluginComponent;
@@ -18,30 +14,36 @@ const props = defineProps<{
 
 const ctx = usePageContext();
 
-const AsyncComponent = shallowRef<Component | null>(null);
+// eslint-disable-next-line @typescript-eslint/naming-convention
+let AsyncComponent: Vue.AsyncComponentLoader | null = null;
 
 onServerPrefetch(async () => {
-  if (ctx.isClientSide) return;
-  const path = await ctx.pluginRegistry.getPluginComponentFsPath(
-    props.component.pluginId,
-    props.component.id,
-  );
-  AsyncComponent.value = defineAsyncComponent(
-    () => import(/* @vite-ignore */ path),
-  );
+  console.log("为什么不被触发？");
+  if (!ctx.isClientSide) {
+    const path = await ctx.pluginRegistry.getPluginComponentFsPath(
+      props.component.pluginId,
+      props.component.id,
+    );
+    AsyncComponent = defineAsyncComponent(
+      () => import(/* @vite-ignore */ path),
+    );
+  }
 });
 
-onMounted(async () => {
-  AsyncComponent.value = defineAsyncComponent(
+onBeforeMount(async () => {
+  AsyncComponent = defineAsyncComponent(
     () =>
       import(
         /* @vite-ignore */
-        `http://localhost:3000/api/__plugin/component/${props.component.pluginId}/${props.component.id}`
+        safeJoinURL(
+          window.location.origin,
+          `/api/__plugin/component/${props.component.pluginId}/${props.component.id}`,
+        )
       ),
   );
 });
 </script>
 
 <template>
-  <Suspense> <AsyncComponent /></Suspense>
+  <Suspense> <component :is="AsyncComponent" /></Suspense>
 </template>
