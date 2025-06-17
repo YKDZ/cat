@@ -16,6 +16,7 @@ const FOLDER_INCLUDES = [
   "json-file-handler",
   "oidc-auth-provider",
   "email-password-auth-provider",
+  "component-test",
 ];
 
 async function copyRecursive(srcPath, destPath) {

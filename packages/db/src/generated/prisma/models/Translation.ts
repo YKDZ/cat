@@ -42,8 +42,6 @@ export type TranslationMinAggregateOutputType = {
   value: string | null
   createdAt: Date | null
   updatedAt: Date | null
-  isApproved: boolean | null
-  lastApprovedAt: Date | null
   translatorId: string | null
   translatableElementId: number | null
   languageId: string | null
@@ -54,8 +52,6 @@ export type TranslationMaxAggregateOutputType = {
   value: string | null
   createdAt: Date | null
   updatedAt: Date | null
-  isApproved: boolean | null
-  lastApprovedAt: Date | null
   translatorId: string | null
   translatableElementId: number | null
   languageId: string | null
@@ -66,8 +62,6 @@ export type TranslationCountAggregateOutputType = {
   value: number
   createdAt: number
   updatedAt: number
-  isApproved: number
-  lastApprovedAt: number
   translatorId: number
   translatableElementId: number
   languageId: number
@@ -90,8 +84,6 @@ export type TranslationMinAggregateInputType = {
   value?: true
   createdAt?: true
   updatedAt?: true
-  isApproved?: true
-  lastApprovedAt?: true
   translatorId?: true
   translatableElementId?: true
   languageId?: true
@@ -102,8 +94,6 @@ export type TranslationMaxAggregateInputType = {
   value?: true
   createdAt?: true
   updatedAt?: true
-  isApproved?: true
-  lastApprovedAt?: true
   translatorId?: true
   translatableElementId?: true
   languageId?: true
@@ -114,8 +104,6 @@ export type TranslationCountAggregateInputType = {
   value?: true
   createdAt?: true
   updatedAt?: true
-  isApproved?: true
-  lastApprovedAt?: true
   translatorId?: true
   translatableElementId?: true
   languageId?: true
@@ -213,8 +201,6 @@ export type TranslationGroupByOutputType = {
   value: string
   createdAt: Date
   updatedAt: Date
-  isApproved: boolean
-  lastApprovedAt: Date | null
   translatorId: string
   translatableElementId: number
   languageId: string
@@ -248,16 +234,15 @@ export type TranslationWhereInput = {
   value?: Prisma.StringFilter<"Translation"> | string
   createdAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
-  isApproved?: Prisma.BoolFilter<"Translation"> | boolean
-  lastApprovedAt?: Prisma.DateTimeNullableFilter<"Translation"> | Date | string | null
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
   Translator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   TranslatableElement?: Prisma.XOR<Prisma.TranslatableElementScalarRelationFilter, Prisma.TranslatableElementWhereInput>
   Language?: Prisma.XOR<Prisma.LanguageScalarRelationFilter, Prisma.LanguageWhereInput>
-  TranslationVotes?: Prisma.TranslationVoteListRelationFilter
+  Votes?: Prisma.TranslationVoteListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
+  Approvments?: Prisma.TranslationApprovmentListRelationFilter
 }
 
 export type TranslationOrderByWithRelationInput = {
@@ -265,16 +250,15 @@ export type TranslationOrderByWithRelationInput = {
   value?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  isApproved?: Prisma.SortOrder
-  lastApprovedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
   Translator?: Prisma.UserOrderByWithRelationInput
   TranslatableElement?: Prisma.TranslatableElementOrderByWithRelationInput
   Language?: Prisma.LanguageOrderByWithRelationInput
-  TranslationVotes?: Prisma.TranslationVoteOrderByRelationAggregateInput
+  Votes?: Prisma.TranslationVoteOrderByRelationAggregateInput
   MemoryItems?: Prisma.MemoryItemOrderByRelationAggregateInput
+  Approvments?: Prisma.TranslationApprovmentOrderByRelationAggregateInput
   _relevance?: Prisma.TranslationOrderByRelevanceInput
 }
 
@@ -287,16 +271,15 @@ export type TranslationWhereUniqueInput = Prisma.AtLeast<{
   value?: Prisma.StringFilter<"Translation"> | string
   createdAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
-  isApproved?: Prisma.BoolFilter<"Translation"> | boolean
-  lastApprovedAt?: Prisma.DateTimeNullableFilter<"Translation"> | Date | string | null
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
   Translator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   TranslatableElement?: Prisma.XOR<Prisma.TranslatableElementScalarRelationFilter, Prisma.TranslatableElementWhereInput>
   Language?: Prisma.XOR<Prisma.LanguageScalarRelationFilter, Prisma.LanguageWhereInput>
-  TranslationVotes?: Prisma.TranslationVoteListRelationFilter
+  Votes?: Prisma.TranslationVoteListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
+  Approvments?: Prisma.TranslationApprovmentListRelationFilter
 }, "id" | "noSameTranslation">
 
 export type TranslationOrderByWithAggregationInput = {
@@ -304,8 +287,6 @@ export type TranslationOrderByWithAggregationInput = {
   value?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  isApproved?: Prisma.SortOrder
-  lastApprovedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
@@ -324,8 +305,6 @@ export type TranslationScalarWhereWithAggregatesInput = {
   value?: Prisma.StringWithAggregatesFilter<"Translation"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Translation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Translation"> | Date | string
-  isApproved?: Prisma.BoolWithAggregatesFilter<"Translation"> | boolean
-  lastApprovedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Translation"> | Date | string | null
   translatorId?: Prisma.StringWithAggregatesFilter<"Translation"> | string
   translatableElementId?: Prisma.IntWithAggregatesFilter<"Translation"> | number
   languageId?: Prisma.StringWithAggregatesFilter<"Translation"> | string
@@ -335,13 +314,12 @@ export type TranslationCreateInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
-  TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationUncheckedCreateInput = {
@@ -349,26 +327,24 @@ export type TranslationUncheckedCreateInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatorId: string
   translatableElementId: number
   languageId: string
-  TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationUpdateInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
-  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationUncheckedUpdateInput = {
@@ -376,13 +352,12 @@ export type TranslationUncheckedUpdateInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
-  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationCreateManyInput = {
@@ -390,8 +365,6 @@ export type TranslationCreateManyInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatorId: string
   translatableElementId: number
   languageId: string
@@ -401,8 +374,6 @@ export type TranslationUpdateManyMutationInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type TranslationUncheckedUpdateManyInput = {
@@ -410,8 +381,6 @@ export type TranslationUncheckedUpdateManyInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -450,8 +419,6 @@ export type TranslationCountOrderByAggregateInput = {
   value?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  isApproved?: Prisma.SortOrder
-  lastApprovedAt?: Prisma.SortOrder
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
@@ -467,8 +434,6 @@ export type TranslationMaxOrderByAggregateInput = {
   value?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  isApproved?: Prisma.SortOrder
-  lastApprovedAt?: Prisma.SortOrder
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
@@ -479,8 +444,6 @@ export type TranslationMinOrderByAggregateInput = {
   value?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  isApproved?: Prisma.SortOrder
-  lastApprovedAt?: Prisma.SortOrder
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
@@ -596,22 +559,32 @@ export type TranslationUncheckedUpdateManyWithoutLanguageNestedInput = {
   deleteMany?: Prisma.TranslationScalarWhereInput | Prisma.TranslationScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
-export type TranslationCreateNestedOneWithoutTranslationVotesInput = {
-  create?: Prisma.XOR<Prisma.TranslationCreateWithoutTranslationVotesInput, Prisma.TranslationUncheckedCreateWithoutTranslationVotesInput>
-  connectOrCreate?: Prisma.TranslationCreateOrConnectWithoutTranslationVotesInput
+export type TranslationCreateNestedOneWithoutVotesInput = {
+  create?: Prisma.XOR<Prisma.TranslationCreateWithoutVotesInput, Prisma.TranslationUncheckedCreateWithoutVotesInput>
+  connectOrCreate?: Prisma.TranslationCreateOrConnectWithoutVotesInput
   connect?: Prisma.TranslationWhereUniqueInput
 }
 
-export type TranslationUpdateOneRequiredWithoutTranslationVotesNestedInput = {
-  create?: Prisma.XOR<Prisma.TranslationCreateWithoutTranslationVotesInput, Prisma.TranslationUncheckedCreateWithoutTranslationVotesInput>
-  connectOrCreate?: Prisma.TranslationCreateOrConnectWithoutTranslationVotesInput
-  upsert?: Prisma.TranslationUpsertWithoutTranslationVotesInput
+export type TranslationUpdateOneRequiredWithoutVotesNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslationCreateWithoutVotesInput, Prisma.TranslationUncheckedCreateWithoutVotesInput>
+  connectOrCreate?: Prisma.TranslationCreateOrConnectWithoutVotesInput
+  upsert?: Prisma.TranslationUpsertWithoutVotesInput
   connect?: Prisma.TranslationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TranslationUpdateToOneWithWhereWithoutTranslationVotesInput, Prisma.TranslationUpdateWithoutTranslationVotesInput>, Prisma.TranslationUncheckedUpdateWithoutTranslationVotesInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TranslationUpdateToOneWithWhereWithoutVotesInput, Prisma.TranslationUpdateWithoutVotesInput>, Prisma.TranslationUncheckedUpdateWithoutVotesInput>
+}
+
+export type TranslationCreateNestedOneWithoutApprovmentsInput = {
+  create?: Prisma.XOR<Prisma.TranslationCreateWithoutApprovmentsInput, Prisma.TranslationUncheckedCreateWithoutApprovmentsInput>
+  connectOrCreate?: Prisma.TranslationCreateOrConnectWithoutApprovmentsInput
+  connect?: Prisma.TranslationWhereUniqueInput
+}
+
+export type TranslationUpdateOneRequiredWithoutApprovmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslationCreateWithoutApprovmentsInput, Prisma.TranslationUncheckedCreateWithoutApprovmentsInput>
+  connectOrCreate?: Prisma.TranslationCreateOrConnectWithoutApprovmentsInput
+  upsert?: Prisma.TranslationUpsertWithoutApprovmentsInput
+  connect?: Prisma.TranslationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TranslationUpdateToOneWithWhereWithoutApprovmentsInput, Prisma.TranslationUpdateWithoutApprovmentsInput>, Prisma.TranslationUncheckedUpdateWithoutApprovmentsInput>
 }
 
 export type TranslationCreateNestedManyWithoutTranslatorInput = {
@@ -660,12 +633,11 @@ export type TranslationCreateWithoutTranslatableElementInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
-  TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationUncheckedCreateWithoutTranslatableElementInput = {
@@ -673,12 +645,11 @@ export type TranslationUncheckedCreateWithoutTranslatableElementInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatorId: string
   languageId: string
-  TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationCreateOrConnectWithoutTranslatableElementInput = {
@@ -715,8 +686,6 @@ export type TranslationScalarWhereInput = {
   value?: Prisma.StringFilter<"Translation"> | string
   createdAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
-  isApproved?: Prisma.BoolFilter<"Translation"> | boolean
-  lastApprovedAt?: Prisma.DateTimeNullableFilter<"Translation"> | Date | string | null
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
@@ -726,12 +695,11 @@ export type TranslationCreateWithoutMemoryItemsInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
-  TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationUncheckedCreateWithoutMemoryItemsInput = {
@@ -739,12 +707,11 @@ export type TranslationUncheckedCreateWithoutMemoryItemsInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatorId: string
   translatableElementId: number
   languageId: string
-  TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationCreateOrConnectWithoutMemoryItemsInput = {
@@ -767,12 +734,11 @@ export type TranslationUpdateWithoutMemoryItemsInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
-  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationUncheckedUpdateWithoutMemoryItemsInput = {
@@ -780,24 +746,22 @@ export type TranslationUncheckedUpdateWithoutMemoryItemsInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
-  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationCreateWithoutLanguageInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
-  TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationUncheckedCreateWithoutLanguageInput = {
@@ -805,12 +769,11 @@ export type TranslationUncheckedCreateWithoutLanguageInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatorId: string
   translatableElementId: number
-  TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationCreateOrConnectWithoutLanguageInput = {
@@ -839,69 +802,127 @@ export type TranslationUpdateManyWithWhereWithoutLanguageInput = {
   data: Prisma.XOR<Prisma.TranslationUpdateManyMutationInput, Prisma.TranslationUncheckedUpdateManyWithoutLanguageInput>
 }
 
-export type TranslationCreateWithoutTranslationVotesInput = {
+export type TranslationCreateWithoutVotesInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
 }
 
-export type TranslationUncheckedCreateWithoutTranslationVotesInput = {
+export type TranslationUncheckedCreateWithoutVotesInput = {
   id?: number
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatorId: string
   translatableElementId: number
   languageId: string
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
 }
 
-export type TranslationCreateOrConnectWithoutTranslationVotesInput = {
+export type TranslationCreateOrConnectWithoutVotesInput = {
   where: Prisma.TranslationWhereUniqueInput
-  create: Prisma.XOR<Prisma.TranslationCreateWithoutTranslationVotesInput, Prisma.TranslationUncheckedCreateWithoutTranslationVotesInput>
+  create: Prisma.XOR<Prisma.TranslationCreateWithoutVotesInput, Prisma.TranslationUncheckedCreateWithoutVotesInput>
 }
 
-export type TranslationUpsertWithoutTranslationVotesInput = {
-  update: Prisma.XOR<Prisma.TranslationUpdateWithoutTranslationVotesInput, Prisma.TranslationUncheckedUpdateWithoutTranslationVotesInput>
-  create: Prisma.XOR<Prisma.TranslationCreateWithoutTranslationVotesInput, Prisma.TranslationUncheckedCreateWithoutTranslationVotesInput>
+export type TranslationUpsertWithoutVotesInput = {
+  update: Prisma.XOR<Prisma.TranslationUpdateWithoutVotesInput, Prisma.TranslationUncheckedUpdateWithoutVotesInput>
+  create: Prisma.XOR<Prisma.TranslationCreateWithoutVotesInput, Prisma.TranslationUncheckedCreateWithoutVotesInput>
   where?: Prisma.TranslationWhereInput
 }
 
-export type TranslationUpdateToOneWithWhereWithoutTranslationVotesInput = {
+export type TranslationUpdateToOneWithWhereWithoutVotesInput = {
   where?: Prisma.TranslationWhereInput
-  data: Prisma.XOR<Prisma.TranslationUpdateWithoutTranslationVotesInput, Prisma.TranslationUncheckedUpdateWithoutTranslationVotesInput>
+  data: Prisma.XOR<Prisma.TranslationUpdateWithoutVotesInput, Prisma.TranslationUncheckedUpdateWithoutVotesInput>
 }
 
-export type TranslationUpdateWithoutTranslationVotesInput = {
+export type TranslationUpdateWithoutVotesInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
 }
 
-export type TranslationUncheckedUpdateWithoutTranslationVotesInput = {
+export type TranslationUncheckedUpdateWithoutVotesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
+}
+
+export type TranslationCreateWithoutApprovmentsInput = {
+  value: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
+  TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
+  Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
+  MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
+}
+
+export type TranslationUncheckedCreateWithoutApprovmentsInput = {
+  id?: number
+  value: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  translatorId: string
+  translatableElementId: number
+  languageId: string
+  Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
+  MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
+}
+
+export type TranslationCreateOrConnectWithoutApprovmentsInput = {
+  where: Prisma.TranslationWhereUniqueInput
+  create: Prisma.XOR<Prisma.TranslationCreateWithoutApprovmentsInput, Prisma.TranslationUncheckedCreateWithoutApprovmentsInput>
+}
+
+export type TranslationUpsertWithoutApprovmentsInput = {
+  update: Prisma.XOR<Prisma.TranslationUpdateWithoutApprovmentsInput, Prisma.TranslationUncheckedUpdateWithoutApprovmentsInput>
+  create: Prisma.XOR<Prisma.TranslationCreateWithoutApprovmentsInput, Prisma.TranslationUncheckedCreateWithoutApprovmentsInput>
+  where?: Prisma.TranslationWhereInput
+}
+
+export type TranslationUpdateToOneWithWhereWithoutApprovmentsInput = {
+  where?: Prisma.TranslationWhereInput
+  data: Prisma.XOR<Prisma.TranslationUpdateWithoutApprovmentsInput, Prisma.TranslationUncheckedUpdateWithoutApprovmentsInput>
+}
+
+export type TranslationUpdateWithoutApprovmentsInput = {
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
+  TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
+  Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
+  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
+}
+
+export type TranslationUncheckedUpdateWithoutApprovmentsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  translatorId?: Prisma.StringFieldUpdateOperationsInput | string
+  translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
 }
 
@@ -909,12 +930,11 @@ export type TranslationCreateWithoutTranslatorInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
-  TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationUncheckedCreateWithoutTranslatorInput = {
@@ -922,12 +942,11 @@ export type TranslationUncheckedCreateWithoutTranslatorInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatableElementId: number
   languageId: string
-  TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
 }
 
 export type TranslationCreateOrConnectWithoutTranslatorInput = {
@@ -961,8 +980,6 @@ export type TranslationCreateManyTranslatableElementInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatorId: string
   languageId: string
 }
@@ -971,12 +988,11 @@ export type TranslationUpdateWithoutTranslatableElementInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
-  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationUncheckedUpdateWithoutTranslatableElementInput = {
@@ -984,12 +1000,11 @@ export type TranslationUncheckedUpdateWithoutTranslatableElementInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
-  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationUncheckedUpdateManyWithoutTranslatableElementInput = {
@@ -997,8 +1012,6 @@ export type TranslationUncheckedUpdateManyWithoutTranslatableElementInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1008,8 +1021,6 @@ export type TranslationCreateManyLanguageInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatorId: string
   translatableElementId: number
 }
@@ -1018,12 +1029,11 @@ export type TranslationUpdateWithoutLanguageInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
-  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationUncheckedUpdateWithoutLanguageInput = {
@@ -1031,12 +1041,11 @@ export type TranslationUncheckedUpdateWithoutLanguageInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
-  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationUncheckedUpdateManyWithoutLanguageInput = {
@@ -1044,8 +1053,6 @@ export type TranslationUncheckedUpdateManyWithoutLanguageInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -1055,8 +1062,6 @@ export type TranslationCreateManyTranslatorInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  isApproved?: boolean
-  lastApprovedAt?: Date | string | null
   translatableElementId: number
   languageId: string
 }
@@ -1065,12 +1070,11 @@ export type TranslationUpdateWithoutTranslatorInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
-  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationUncheckedUpdateWithoutTranslatorInput = {
@@ -1078,12 +1082,11 @@ export type TranslationUncheckedUpdateWithoutTranslatorInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
-  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
 }
 
 export type TranslationUncheckedUpdateManyWithoutTranslatorInput = {
@@ -1091,8 +1094,6 @@ export type TranslationUncheckedUpdateManyWithoutTranslatorInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  lastApprovedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1103,13 +1104,15 @@ export type TranslationUncheckedUpdateManyWithoutTranslatorInput = {
  */
 
 export type TranslationCountOutputType = {
-  TranslationVotes: number
+  Votes: number
   MemoryItems: number
+  Approvments: number
 }
 
 export type TranslationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  TranslationVotes?: boolean | TranslationCountOutputTypeCountTranslationVotesArgs
+  Votes?: boolean | TranslationCountOutputTypeCountVotesArgs
   MemoryItems?: boolean | TranslationCountOutputTypeCountMemoryItemsArgs
+  Approvments?: boolean | TranslationCountOutputTypeCountApprovmentsArgs
 }
 
 /**
@@ -1125,7 +1128,7 @@ export type TranslationCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.
 /**
  * TranslationCountOutputType without action
  */
-export type TranslationCountOutputTypeCountTranslationVotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type TranslationCountOutputTypeCountVotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TranslationVoteWhereInput
 }
 
@@ -1136,22 +1139,28 @@ export type TranslationCountOutputTypeCountMemoryItemsArgs<ExtArgs extends runti
   where?: Prisma.MemoryItemWhereInput
 }
 
+/**
+ * TranslationCountOutputType without action
+ */
+export type TranslationCountOutputTypeCountApprovmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TranslationApprovmentWhereInput
+}
+
 
 export type TranslationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   value?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  isApproved?: boolean
-  lastApprovedAt?: boolean
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
   Language?: boolean | Prisma.LanguageDefaultArgs<ExtArgs>
-  TranslationVotes?: boolean | Prisma.Translation$TranslationVotesArgs<ExtArgs>
+  Votes?: boolean | Prisma.Translation$VotesArgs<ExtArgs>
   MemoryItems?: boolean | Prisma.Translation$MemoryItemsArgs<ExtArgs>
+  Approvments?: boolean | Prisma.Translation$ApprovmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TranslationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["translation"]>
 
@@ -1160,8 +1169,6 @@ export type TranslationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   value?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  isApproved?: boolean
-  lastApprovedAt?: boolean
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
@@ -1175,8 +1182,6 @@ export type TranslationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   value?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  isApproved?: boolean
-  lastApprovedAt?: boolean
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
@@ -1190,20 +1195,19 @@ export type TranslationSelectScalar = {
   value?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  isApproved?: boolean
-  lastApprovedAt?: boolean
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
 }
 
-export type TranslationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "value" | "createdAt" | "updatedAt" | "isApproved" | "lastApprovedAt" | "translatorId" | "translatableElementId" | "languageId", ExtArgs["result"]["translation"]>
+export type TranslationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "value" | "createdAt" | "updatedAt" | "translatorId" | "translatableElementId" | "languageId", ExtArgs["result"]["translation"]>
 export type TranslationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
   Language?: boolean | Prisma.LanguageDefaultArgs<ExtArgs>
-  TranslationVotes?: boolean | Prisma.Translation$TranslationVotesArgs<ExtArgs>
+  Votes?: boolean | Prisma.Translation$VotesArgs<ExtArgs>
   MemoryItems?: boolean | Prisma.Translation$MemoryItemsArgs<ExtArgs>
+  Approvments?: boolean | Prisma.Translation$ApprovmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TranslationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TranslationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1223,16 +1227,15 @@ export type $TranslationPayload<ExtArgs extends runtime.Types.Extensions.Interna
     Translator: Prisma.$UserPayload<ExtArgs>
     TranslatableElement: Prisma.$TranslatableElementPayload<ExtArgs>
     Language: Prisma.$LanguagePayload<ExtArgs>
-    TranslationVotes: Prisma.$TranslationVotePayload<ExtArgs>[]
+    Votes: Prisma.$TranslationVotePayload<ExtArgs>[]
     MemoryItems: Prisma.$MemoryItemPayload<ExtArgs>[]
+    Approvments: Prisma.$TranslationApprovmentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     value: string
     createdAt: Date
     updatedAt: Date
-    isApproved: boolean
-    lastApprovedAt: Date | null
     translatorId: string
     translatableElementId: number
     languageId: string
@@ -1633,8 +1636,9 @@ export interface Prisma__TranslationClient<T, Null = never, ExtArgs extends runt
   Translator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   TranslatableElement<T extends Prisma.TranslatableElementDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TranslatableElementDefaultArgs<ExtArgs>>): Prisma.Prisma__TranslatableElementClient<runtime.Types.Result.GetResult<Prisma.$TranslatableElementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   Language<T extends Prisma.LanguageDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LanguageDefaultArgs<ExtArgs>>): Prisma.Prisma__LanguageClient<runtime.Types.Result.GetResult<Prisma.$LanguagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  TranslationVotes<T extends Prisma.Translation$TranslationVotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Translation$TranslationVotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationVotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  Votes<T extends Prisma.Translation$VotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Translation$VotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationVotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   MemoryItems<T extends Prisma.Translation$MemoryItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Translation$MemoryItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  Approvments<T extends Prisma.Translation$ApprovmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Translation$ApprovmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationApprovmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1668,8 +1672,6 @@ export interface TranslationFieldRefs {
   readonly value: Prisma.FieldRef<"Translation", 'String'>
   readonly createdAt: Prisma.FieldRef<"Translation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Translation", 'DateTime'>
-  readonly isApproved: Prisma.FieldRef<"Translation", 'Boolean'>
-  readonly lastApprovedAt: Prisma.FieldRef<"Translation", 'DateTime'>
   readonly translatorId: Prisma.FieldRef<"Translation", 'String'>
   readonly translatableElementId: Prisma.FieldRef<"Translation", 'Int'>
   readonly languageId: Prisma.FieldRef<"Translation", 'String'>
@@ -2069,9 +2071,9 @@ export type TranslationDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
 }
 
 /**
- * Translation.TranslationVotes
+ * Translation.Votes
  */
-export type Translation$TranslationVotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Translation$VotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the TranslationVote
    */
@@ -2114,6 +2116,30 @@ export type Translation$MemoryItemsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.MemoryItemScalarFieldEnum | Prisma.MemoryItemScalarFieldEnum[]
+}
+
+/**
+ * Translation.Approvments
+ */
+export type Translation$ApprovmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TranslationApprovment
+   */
+  select?: Prisma.TranslationApprovmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TranslationApprovment
+   */
+  omit?: Prisma.TranslationApprovmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TranslationApprovmentInclude<ExtArgs> | null
+  where?: Prisma.TranslationApprovmentWhereInput
+  orderBy?: Prisma.TranslationApprovmentOrderByWithRelationInput | Prisma.TranslationApprovmentOrderByWithRelationInput[]
+  cursor?: Prisma.TranslationApprovmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TranslationApprovmentScalarFieldEnum | Prisma.TranslationApprovmentScalarFieldEnum[]
 }
 
 /**
