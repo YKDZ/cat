@@ -556,7 +556,13 @@ export const documentRouter = router({
             Translations: {
               some: {
                 languageId,
-                isApproved,
+                Approvments: isApproved
+                  ? {
+                      some: {
+                        isActive: true,
+                      },
+                    }
+                  : undefined,
               },
             },
             isActive: true,
@@ -592,7 +598,11 @@ export const documentRouter = router({
               languageId,
             },
             select: {
-              isApproved: true,
+              Approvments: {
+                where: {
+                  isActive: true,
+                },
+              },
             },
           },
         },
@@ -609,7 +619,7 @@ export const documentRouter = router({
       }
 
       return element.Translations.findIndex(
-        (translation) => translation.isApproved,
+        (translation) => translation.Approvments.length > 0,
       ) === -1
         ? "TRANSLATED"
         : "APPROVED";

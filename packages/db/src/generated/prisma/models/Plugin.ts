@@ -181,7 +181,7 @@ export type PluginGroupByOutputType = {
   overview: string | null
   enabled: boolean
   isExternal: boolean
-  entry: string
+  entry: string | null
   iconURL: string | null
   createdAt: Date
   updatedAt: Date
@@ -215,7 +215,7 @@ export type PluginWhereInput = {
   overview?: Prisma.StringNullableFilter<"Plugin"> | string | null
   enabled?: Prisma.BoolFilter<"Plugin"> | boolean
   isExternal?: Prisma.BoolFilter<"Plugin"> | boolean
-  entry?: Prisma.StringFilter<"Plugin"> | string
+  entry?: Prisma.StringNullableFilter<"Plugin"> | string | null
   iconURL?: Prisma.StringNullableFilter<"Plugin"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Plugin"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Plugin"> | Date | string
@@ -223,6 +223,7 @@ export type PluginWhereInput = {
   Permissions?: Prisma.PluginPermissionListRelationFilter
   Versions?: Prisma.PluginVersionListRelationFilter
   Tags?: Prisma.PluginTagListRelationFilter
+  Components?: Prisma.PluginComponentListRelationFilter
 }
 
 export type PluginOrderByWithRelationInput = {
@@ -232,7 +233,7 @@ export type PluginOrderByWithRelationInput = {
   overview?: Prisma.SortOrderInput | Prisma.SortOrder
   enabled?: Prisma.SortOrder
   isExternal?: Prisma.SortOrder
-  entry?: Prisma.SortOrder
+  entry?: Prisma.SortOrderInput | Prisma.SortOrder
   iconURL?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -240,6 +241,7 @@ export type PluginOrderByWithRelationInput = {
   Permissions?: Prisma.PluginPermissionOrderByRelationAggregateInput
   Versions?: Prisma.PluginVersionOrderByRelationAggregateInput
   Tags?: Prisma.PluginTagOrderByRelationAggregateInput
+  Components?: Prisma.PluginComponentOrderByRelationAggregateInput
   _relevance?: Prisma.PluginOrderByRelevanceInput
 }
 
@@ -253,7 +255,7 @@ export type PluginWhereUniqueInput = Prisma.AtLeast<{
   overview?: Prisma.StringNullableFilter<"Plugin"> | string | null
   enabled?: Prisma.BoolFilter<"Plugin"> | boolean
   isExternal?: Prisma.BoolFilter<"Plugin"> | boolean
-  entry?: Prisma.StringFilter<"Plugin"> | string
+  entry?: Prisma.StringNullableFilter<"Plugin"> | string | null
   iconURL?: Prisma.StringNullableFilter<"Plugin"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Plugin"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Plugin"> | Date | string
@@ -261,6 +263,7 @@ export type PluginWhereUniqueInput = Prisma.AtLeast<{
   Permissions?: Prisma.PluginPermissionListRelationFilter
   Versions?: Prisma.PluginVersionListRelationFilter
   Tags?: Prisma.PluginTagListRelationFilter
+  Components?: Prisma.PluginComponentListRelationFilter
 }, "id">
 
 export type PluginOrderByWithAggregationInput = {
@@ -270,7 +273,7 @@ export type PluginOrderByWithAggregationInput = {
   overview?: Prisma.SortOrderInput | Prisma.SortOrder
   enabled?: Prisma.SortOrder
   isExternal?: Prisma.SortOrder
-  entry?: Prisma.SortOrder
+  entry?: Prisma.SortOrderInput | Prisma.SortOrder
   iconURL?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -289,7 +292,7 @@ export type PluginScalarWhereWithAggregatesInput = {
   overview?: Prisma.StringNullableWithAggregatesFilter<"Plugin"> | string | null
   enabled?: Prisma.BoolWithAggregatesFilter<"Plugin"> | boolean
   isExternal?: Prisma.BoolWithAggregatesFilter<"Plugin"> | boolean
-  entry?: Prisma.StringWithAggregatesFilter<"Plugin"> | string
+  entry?: Prisma.StringNullableWithAggregatesFilter<"Plugin"> | string | null
   iconURL?: Prisma.StringNullableWithAggregatesFilter<"Plugin"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Plugin"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Plugin"> | Date | string
@@ -302,7 +305,7 @@ export type PluginCreateInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -310,6 +313,7 @@ export type PluginCreateInput = {
   Permissions?: Prisma.PluginPermissionCreateNestedManyWithoutPluginInput
   Versions?: Prisma.PluginVersionCreateNestedManyWithoutPluginInput
   Tags?: Prisma.PluginTagCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentCreateNestedManyWithoutPluginInput
 }
 
 export type PluginUncheckedCreateInput = {
@@ -319,7 +323,7 @@ export type PluginUncheckedCreateInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -327,6 +331,7 @@ export type PluginUncheckedCreateInput = {
   Permissions?: Prisma.PluginPermissionUncheckedCreateNestedManyWithoutPluginInput
   Versions?: Prisma.PluginVersionUncheckedCreateNestedManyWithoutPluginInput
   Tags?: Prisma.PluginTagUncheckedCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentUncheckedCreateNestedManyWithoutPluginInput
 }
 
 export type PluginUpdateInput = {
@@ -336,7 +341,7 @@ export type PluginUpdateInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -344,6 +349,7 @@ export type PluginUpdateInput = {
   Permissions?: Prisma.PluginPermissionUpdateManyWithoutPluginNestedInput
   Versions?: Prisma.PluginVersionUpdateManyWithoutPluginNestedInput
   Tags?: Prisma.PluginTagUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginUncheckedUpdateInput = {
@@ -353,7 +359,7 @@ export type PluginUncheckedUpdateInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -361,6 +367,7 @@ export type PluginUncheckedUpdateInput = {
   Permissions?: Prisma.PluginPermissionUncheckedUpdateManyWithoutPluginNestedInput
   Versions?: Prisma.PluginVersionUncheckedUpdateManyWithoutPluginNestedInput
   Tags?: Prisma.PluginTagUncheckedUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUncheckedUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginCreateManyInput = {
@@ -370,7 +377,7 @@ export type PluginCreateManyInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -383,7 +390,7 @@ export type PluginUpdateManyMutationInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -396,7 +403,7 @@ export type PluginUncheckedUpdateManyInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -540,6 +547,20 @@ export type PluginUncheckedUpdateManyWithoutTagsNestedInput = {
   deleteMany?: Prisma.PluginScalarWhereInput | Prisma.PluginScalarWhereInput[]
 }
 
+export type PluginCreateNestedOneWithoutComponentsInput = {
+  create?: Prisma.XOR<Prisma.PluginCreateWithoutComponentsInput, Prisma.PluginUncheckedCreateWithoutComponentsInput>
+  connectOrCreate?: Prisma.PluginCreateOrConnectWithoutComponentsInput
+  connect?: Prisma.PluginWhereUniqueInput
+}
+
+export type PluginUpdateOneRequiredWithoutComponentsNestedInput = {
+  create?: Prisma.XOR<Prisma.PluginCreateWithoutComponentsInput, Prisma.PluginUncheckedCreateWithoutComponentsInput>
+  connectOrCreate?: Prisma.PluginCreateOrConnectWithoutComponentsInput
+  upsert?: Prisma.PluginUpsertWithoutComponentsInput
+  connect?: Prisma.PluginWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PluginUpdateToOneWithWhereWithoutComponentsInput, Prisma.PluginUpdateWithoutComponentsInput>, Prisma.PluginUncheckedUpdateWithoutComponentsInput>
+}
+
 export type PluginCreateWithoutVersionsInput = {
   id: string
   origin: unknown
@@ -547,13 +568,14 @@ export type PluginCreateWithoutVersionsInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   Configs?: Prisma.PluginConfigCreateNestedManyWithoutPluginInput
   Permissions?: Prisma.PluginPermissionCreateNestedManyWithoutPluginInput
   Tags?: Prisma.PluginTagCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentCreateNestedManyWithoutPluginInput
 }
 
 export type PluginUncheckedCreateWithoutVersionsInput = {
@@ -563,13 +585,14 @@ export type PluginUncheckedCreateWithoutVersionsInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   Configs?: Prisma.PluginConfigUncheckedCreateNestedManyWithoutPluginInput
   Permissions?: Prisma.PluginPermissionUncheckedCreateNestedManyWithoutPluginInput
   Tags?: Prisma.PluginTagUncheckedCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentUncheckedCreateNestedManyWithoutPluginInput
 }
 
 export type PluginCreateOrConnectWithoutVersionsInput = {
@@ -595,13 +618,14 @@ export type PluginUpdateWithoutVersionsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Configs?: Prisma.PluginConfigUpdateManyWithoutPluginNestedInput
   Permissions?: Prisma.PluginPermissionUpdateManyWithoutPluginNestedInput
   Tags?: Prisma.PluginTagUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginUncheckedUpdateWithoutVersionsInput = {
@@ -611,13 +635,14 @@ export type PluginUncheckedUpdateWithoutVersionsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Configs?: Prisma.PluginConfigUncheckedUpdateManyWithoutPluginNestedInput
   Permissions?: Prisma.PluginPermissionUncheckedUpdateManyWithoutPluginNestedInput
   Tags?: Prisma.PluginTagUncheckedUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUncheckedUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginCreateWithoutPermissionsInput = {
@@ -627,13 +652,14 @@ export type PluginCreateWithoutPermissionsInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   Configs?: Prisma.PluginConfigCreateNestedManyWithoutPluginInput
   Versions?: Prisma.PluginVersionCreateNestedManyWithoutPluginInput
   Tags?: Prisma.PluginTagCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentCreateNestedManyWithoutPluginInput
 }
 
 export type PluginUncheckedCreateWithoutPermissionsInput = {
@@ -643,13 +669,14 @@ export type PluginUncheckedCreateWithoutPermissionsInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   Configs?: Prisma.PluginConfigUncheckedCreateNestedManyWithoutPluginInput
   Versions?: Prisma.PluginVersionUncheckedCreateNestedManyWithoutPluginInput
   Tags?: Prisma.PluginTagUncheckedCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentUncheckedCreateNestedManyWithoutPluginInput
 }
 
 export type PluginCreateOrConnectWithoutPermissionsInput = {
@@ -675,13 +702,14 @@ export type PluginUpdateWithoutPermissionsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Configs?: Prisma.PluginConfigUpdateManyWithoutPluginNestedInput
   Versions?: Prisma.PluginVersionUpdateManyWithoutPluginNestedInput
   Tags?: Prisma.PluginTagUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginUncheckedUpdateWithoutPermissionsInput = {
@@ -691,13 +719,14 @@ export type PluginUncheckedUpdateWithoutPermissionsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Configs?: Prisma.PluginConfigUncheckedUpdateManyWithoutPluginNestedInput
   Versions?: Prisma.PluginVersionUncheckedUpdateManyWithoutPluginNestedInput
   Tags?: Prisma.PluginTagUncheckedUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUncheckedUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginCreateWithoutConfigsInput = {
@@ -707,13 +736,14 @@ export type PluginCreateWithoutConfigsInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   Permissions?: Prisma.PluginPermissionCreateNestedManyWithoutPluginInput
   Versions?: Prisma.PluginVersionCreateNestedManyWithoutPluginInput
   Tags?: Prisma.PluginTagCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentCreateNestedManyWithoutPluginInput
 }
 
 export type PluginUncheckedCreateWithoutConfigsInput = {
@@ -723,13 +753,14 @@ export type PluginUncheckedCreateWithoutConfigsInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   Permissions?: Prisma.PluginPermissionUncheckedCreateNestedManyWithoutPluginInput
   Versions?: Prisma.PluginVersionUncheckedCreateNestedManyWithoutPluginInput
   Tags?: Prisma.PluginTagUncheckedCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentUncheckedCreateNestedManyWithoutPluginInput
 }
 
 export type PluginCreateOrConnectWithoutConfigsInput = {
@@ -755,13 +786,14 @@ export type PluginUpdateWithoutConfigsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Permissions?: Prisma.PluginPermissionUpdateManyWithoutPluginNestedInput
   Versions?: Prisma.PluginVersionUpdateManyWithoutPluginNestedInput
   Tags?: Prisma.PluginTagUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginUncheckedUpdateWithoutConfigsInput = {
@@ -771,13 +803,14 @@ export type PluginUncheckedUpdateWithoutConfigsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Permissions?: Prisma.PluginPermissionUncheckedUpdateManyWithoutPluginNestedInput
   Versions?: Prisma.PluginVersionUncheckedUpdateManyWithoutPluginNestedInput
   Tags?: Prisma.PluginTagUncheckedUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUncheckedUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginCreateWithoutTagsInput = {
@@ -787,13 +820,14 @@ export type PluginCreateWithoutTagsInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   Configs?: Prisma.PluginConfigCreateNestedManyWithoutPluginInput
   Permissions?: Prisma.PluginPermissionCreateNestedManyWithoutPluginInput
   Versions?: Prisma.PluginVersionCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentCreateNestedManyWithoutPluginInput
 }
 
 export type PluginUncheckedCreateWithoutTagsInput = {
@@ -803,13 +837,14 @@ export type PluginUncheckedCreateWithoutTagsInput = {
   overview?: string | null
   enabled?: boolean
   isExternal?: boolean
-  entry: string
+  entry?: string | null
   iconURL?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   Configs?: Prisma.PluginConfigUncheckedCreateNestedManyWithoutPluginInput
   Permissions?: Prisma.PluginPermissionUncheckedCreateNestedManyWithoutPluginInput
   Versions?: Prisma.PluginVersionUncheckedCreateNestedManyWithoutPluginInput
+  Components?: Prisma.PluginComponentUncheckedCreateNestedManyWithoutPluginInput
 }
 
 export type PluginCreateOrConnectWithoutTagsInput = {
@@ -843,10 +878,94 @@ export type PluginScalarWhereInput = {
   overview?: Prisma.StringNullableFilter<"Plugin"> | string | null
   enabled?: Prisma.BoolFilter<"Plugin"> | boolean
   isExternal?: Prisma.BoolFilter<"Plugin"> | boolean
-  entry?: Prisma.StringFilter<"Plugin"> | string
+  entry?: Prisma.StringNullableFilter<"Plugin"> | string | null
   iconURL?: Prisma.StringNullableFilter<"Plugin"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Plugin"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Plugin"> | Date | string
+}
+
+export type PluginCreateWithoutComponentsInput = {
+  id: string
+  origin: unknown
+  name: string
+  overview?: string | null
+  enabled?: boolean
+  isExternal?: boolean
+  entry?: string | null
+  iconURL?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  Configs?: Prisma.PluginConfigCreateNestedManyWithoutPluginInput
+  Permissions?: Prisma.PluginPermissionCreateNestedManyWithoutPluginInput
+  Versions?: Prisma.PluginVersionCreateNestedManyWithoutPluginInput
+  Tags?: Prisma.PluginTagCreateNestedManyWithoutPluginInput
+}
+
+export type PluginUncheckedCreateWithoutComponentsInput = {
+  id: string
+  origin: unknown
+  name: string
+  overview?: string | null
+  enabled?: boolean
+  isExternal?: boolean
+  entry?: string | null
+  iconURL?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  Configs?: Prisma.PluginConfigUncheckedCreateNestedManyWithoutPluginInput
+  Permissions?: Prisma.PluginPermissionUncheckedCreateNestedManyWithoutPluginInput
+  Versions?: Prisma.PluginVersionUncheckedCreateNestedManyWithoutPluginInput
+  Tags?: Prisma.PluginTagUncheckedCreateNestedManyWithoutPluginInput
+}
+
+export type PluginCreateOrConnectWithoutComponentsInput = {
+  where: Prisma.PluginWhereUniqueInput
+  create: Prisma.XOR<Prisma.PluginCreateWithoutComponentsInput, Prisma.PluginUncheckedCreateWithoutComponentsInput>
+}
+
+export type PluginUpsertWithoutComponentsInput = {
+  update: Prisma.XOR<Prisma.PluginUpdateWithoutComponentsInput, Prisma.PluginUncheckedUpdateWithoutComponentsInput>
+  create: Prisma.XOR<Prisma.PluginCreateWithoutComponentsInput, Prisma.PluginUncheckedCreateWithoutComponentsInput>
+  where?: Prisma.PluginWhereInput
+}
+
+export type PluginUpdateToOneWithWhereWithoutComponentsInput = {
+  where?: Prisma.PluginWhereInput
+  data: Prisma.XOR<Prisma.PluginUpdateWithoutComponentsInput, Prisma.PluginUncheckedUpdateWithoutComponentsInput>
+}
+
+export type PluginUpdateWithoutComponentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  origin?: unknown
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  Configs?: Prisma.PluginConfigUpdateManyWithoutPluginNestedInput
+  Permissions?: Prisma.PluginPermissionUpdateManyWithoutPluginNestedInput
+  Versions?: Prisma.PluginVersionUpdateManyWithoutPluginNestedInput
+  Tags?: Prisma.PluginTagUpdateManyWithoutPluginNestedInput
+}
+
+export type PluginUncheckedUpdateWithoutComponentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  origin?: unknown
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  Configs?: Prisma.PluginConfigUncheckedUpdateManyWithoutPluginNestedInput
+  Permissions?: Prisma.PluginPermissionUncheckedUpdateManyWithoutPluginNestedInput
+  Versions?: Prisma.PluginVersionUncheckedUpdateManyWithoutPluginNestedInput
+  Tags?: Prisma.PluginTagUncheckedUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginUpdateWithoutTagsInput = {
@@ -856,13 +975,14 @@ export type PluginUpdateWithoutTagsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Configs?: Prisma.PluginConfigUpdateManyWithoutPluginNestedInput
   Permissions?: Prisma.PluginPermissionUpdateManyWithoutPluginNestedInput
   Versions?: Prisma.PluginVersionUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginUncheckedUpdateWithoutTagsInput = {
@@ -872,13 +992,14 @@ export type PluginUncheckedUpdateWithoutTagsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Configs?: Prisma.PluginConfigUncheckedUpdateManyWithoutPluginNestedInput
   Permissions?: Prisma.PluginPermissionUncheckedUpdateManyWithoutPluginNestedInput
   Versions?: Prisma.PluginVersionUncheckedUpdateManyWithoutPluginNestedInput
+  Components?: Prisma.PluginComponentUncheckedUpdateManyWithoutPluginNestedInput
 }
 
 export type PluginUncheckedUpdateManyWithoutTagsInput = {
@@ -888,7 +1009,7 @@ export type PluginUncheckedUpdateManyWithoutTagsInput = {
   overview?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  entry?: Prisma.StringFieldUpdateOperationsInput | string
+  entry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   iconURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -904,6 +1025,7 @@ export type PluginCountOutputType = {
   Permissions: number
   Versions: number
   Tags: number
+  Components: number
 }
 
 export type PluginCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -911,6 +1033,7 @@ export type PluginCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   Permissions?: boolean | PluginCountOutputTypeCountPermissionsArgs
   Versions?: boolean | PluginCountOutputTypeCountVersionsArgs
   Tags?: boolean | PluginCountOutputTypeCountTagsArgs
+  Components?: boolean | PluginCountOutputTypeCountComponentsArgs
 }
 
 /**
@@ -951,6 +1074,13 @@ export type PluginCountOutputTypeCountTagsArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.PluginTagWhereInput
 }
 
+/**
+ * PluginCountOutputType without action
+ */
+export type PluginCountOutputTypeCountComponentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PluginComponentWhereInput
+}
+
 
 export type PluginSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -967,6 +1097,7 @@ export type PluginSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   Permissions?: boolean | Prisma.Plugin$PermissionsArgs<ExtArgs>
   Versions?: boolean | Prisma.Plugin$VersionsArgs<ExtArgs>
   Tags?: boolean | Prisma.Plugin$TagsArgs<ExtArgs>
+  Components?: boolean | Prisma.Plugin$ComponentsArgs<ExtArgs>
   _count?: boolean | Prisma.PluginCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["plugin"]>
 
@@ -1015,6 +1146,7 @@ export type PluginInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   Permissions?: boolean | Prisma.Plugin$PermissionsArgs<ExtArgs>
   Versions?: boolean | Prisma.Plugin$VersionsArgs<ExtArgs>
   Tags?: boolean | Prisma.Plugin$TagsArgs<ExtArgs>
+  Components?: boolean | Prisma.Plugin$ComponentsArgs<ExtArgs>
   _count?: boolean | Prisma.PluginCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PluginIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1027,6 +1159,7 @@ export type $PluginPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     Permissions: Prisma.$PluginPermissionPayload<ExtArgs>[]
     Versions: Prisma.$PluginVersionPayload<ExtArgs>[]
     Tags: Prisma.$PluginTagPayload<ExtArgs>[]
+    Components: Prisma.$PluginComponentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1035,7 +1168,7 @@ export type $PluginPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     overview: string | null
     enabled: boolean
     isExternal: boolean
-    entry: string
+    entry: string | null
     iconURL: string | null
     createdAt: Date
     updatedAt: Date
@@ -1437,6 +1570,7 @@ export interface Prisma__PluginClient<T, Null = never, ExtArgs extends runtime.T
   Permissions<T extends Prisma.Plugin$PermissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Plugin$PermissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PluginPermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Versions<T extends Prisma.Plugin$VersionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Plugin$VersionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PluginVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Tags<T extends Prisma.Plugin$TagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Plugin$TagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PluginTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  Components<T extends Prisma.Plugin$ComponentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Plugin$ComponentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PluginComponentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1957,6 +2091,30 @@ export type Plugin$TagsArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.PluginTagScalarFieldEnum | Prisma.PluginTagScalarFieldEnum[]
+}
+
+/**
+ * Plugin.Components
+ */
+export type Plugin$ComponentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PluginComponent
+   */
+  select?: Prisma.PluginComponentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PluginComponent
+   */
+  omit?: Prisma.PluginComponentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PluginComponentInclude<ExtArgs> | null
+  where?: Prisma.PluginComponentWhereInput
+  orderBy?: Prisma.PluginComponentOrderByWithRelationInput | Prisma.PluginComponentOrderByWithRelationInput[]
+  cursor?: Prisma.PluginComponentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PluginComponentScalarFieldEnum | Prisma.PluginComponentScalarFieldEnum[]
 }
 
 /**

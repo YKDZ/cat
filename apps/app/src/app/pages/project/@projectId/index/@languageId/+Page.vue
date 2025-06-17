@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Button from "@/app/components/Button.vue";
+import ProjectLanguageDocumentAutoApproveBtn from "@/app/components/ProjectLanguageDocumentAutoApproveBtn.vue";
 import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
 import { useLanguageStore } from "@/app/stores/language";

@@ -242,6 +242,7 @@ export type UserWhereInput = {
   Documents?: Prisma.DocumentListRelationFilter
   Permissions?: Prisma.PermissionListRelationFilter
   TranslationVotes?: Prisma.TranslationVoteListRelationFilter
+  TranslationApprovments?: Prisma.TranslationApprovmentListRelationFilter
   Memories?: Prisma.MemoryListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
   Glossaries?: Prisma.GlossaryListRelationFilter
@@ -265,6 +266,7 @@ export type UserOrderByWithRelationInput = {
   Documents?: Prisma.DocumentOrderByRelationAggregateInput
   Permissions?: Prisma.PermissionOrderByRelationAggregateInput
   TranslationVotes?: Prisma.TranslationVoteOrderByRelationAggregateInput
+  TranslationApprovments?: Prisma.TranslationApprovmentOrderByRelationAggregateInput
   Memories?: Prisma.MemoryOrderByRelationAggregateInput
   MemoryItems?: Prisma.MemoryItemOrderByRelationAggregateInput
   Glossaries?: Prisma.GlossaryOrderByRelationAggregateInput
@@ -292,6 +294,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   Documents?: Prisma.DocumentListRelationFilter
   Permissions?: Prisma.PermissionListRelationFilter
   TranslationVotes?: Prisma.TranslationVoteListRelationFilter
+  TranslationApprovments?: Prisma.TranslationApprovmentListRelationFilter
   Memories?: Prisma.MemoryListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
   Glossaries?: Prisma.GlossaryListRelationFilter
@@ -342,6 +345,7 @@ export type UserCreateInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -364,6 +368,7 @@ export type UserUncheckedCreateInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -386,6 +391,7 @@ export type UserUpdateInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -408,6 +414,7 @@ export type UserUncheckedUpdateInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -456,6 +463,11 @@ export type UserListRelationFilter = {
 
 export type UserOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
 }
 
 export type UserOrderByRelevanceInput = {
@@ -746,6 +758,22 @@ export type UserUpdateOneRequiredWithoutTranslationVotesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTranslationVotesInput, Prisma.UserUpdateWithoutTranslationVotesInput>, Prisma.UserUncheckedUpdateWithoutTranslationVotesInput>
 }
 
+export type UserCreateNestedOneWithoutTranslationApprovmentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTranslationApprovmentsInput, Prisma.UserUncheckedCreateWithoutTranslationApprovmentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTranslationApprovmentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutTranslationApprovmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTranslationApprovmentsInput, Prisma.UserUncheckedCreateWithoutTranslationApprovmentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTranslationApprovmentsInput
+  upsert?: Prisma.UserUpsertWithoutTranslationApprovmentsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTranslationApprovmentsInput, Prisma.UserUpdateWithoutTranslationApprovmentsInput>, Prisma.UserUncheckedUpdateWithoutTranslationApprovmentsInput>
+}
+
 export type UserCreateNestedOneWithoutAccountsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAccountsInput, Prisma.UserUncheckedCreateWithoutAccountsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAccountsInput
@@ -775,6 +803,7 @@ export type UserCreateWithoutDocumentsInput = {
   Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -796,6 +825,7 @@ export type UserUncheckedCreateWithoutDocumentsInput = {
   Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -833,6 +863,7 @@ export type UserUpdateWithoutDocumentsInput = {
   Translations?: Prisma.TranslationUpdateManyWithoutTranslatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -854,6 +885,7 @@ export type UserUncheckedUpdateWithoutDocumentsInput = {
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -875,6 +907,7 @@ export type UserCreateWithoutAvatarFileInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -896,6 +929,7 @@ export type UserUncheckedCreateWithoutAvatarFileInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -957,6 +991,7 @@ export type UserCreateWithoutGlossariesInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
@@ -978,6 +1013,7 @@ export type UserUncheckedCreateWithoutGlossariesInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
@@ -1015,6 +1051,7 @@ export type UserUpdateWithoutGlossariesInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
@@ -1036,6 +1073,7 @@ export type UserUncheckedUpdateWithoutGlossariesInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1057,6 +1095,7 @@ export type UserCreateWithoutTermsInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -1078,6 +1117,7 @@ export type UserUncheckedCreateWithoutTermsInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -1115,6 +1155,7 @@ export type UserUpdateWithoutTermsInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -1136,6 +1177,7 @@ export type UserUncheckedUpdateWithoutTermsInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1157,6 +1199,7 @@ export type UserCreateWithoutMemoriesInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
@@ -1178,6 +1221,7 @@ export type UserUncheckedCreateWithoutMemoriesInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
@@ -1215,6 +1259,7 @@ export type UserUpdateWithoutMemoriesInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
@@ -1236,6 +1281,7 @@ export type UserUncheckedUpdateWithoutMemoriesInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1257,6 +1303,7 @@ export type UserCreateWithoutMemoryItemsInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
@@ -1278,6 +1325,7 @@ export type UserUncheckedCreateWithoutMemoryItemsInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
@@ -1315,6 +1363,7 @@ export type UserUpdateWithoutMemoryItemsInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
@@ -1336,6 +1385,7 @@ export type UserUncheckedUpdateWithoutMemoryItemsInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1356,6 +1406,7 @@ export type UserCreateWithoutReadableLanguagesInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -1377,6 +1428,7 @@ export type UserUncheckedCreateWithoutReadableLanguagesInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -1403,6 +1455,7 @@ export type UserCreateWithoutWritableLanguagesInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -1424,6 +1477,7 @@ export type UserUncheckedCreateWithoutWritableLanguagesInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -1482,6 +1536,7 @@ export type UserCreateWithoutPermissionsInput = {
   Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatorInput
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -1503,6 +1558,7 @@ export type UserUncheckedCreateWithoutPermissionsInput = {
   Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatorInput
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -1540,6 +1596,7 @@ export type UserUpdateWithoutPermissionsInput = {
   Translations?: Prisma.TranslationUpdateManyWithoutTranslatorNestedInput
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -1561,6 +1618,7 @@ export type UserUncheckedUpdateWithoutPermissionsInput = {
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatorNestedInput
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1582,6 +1640,7 @@ export type UserCreateWithoutProjectsInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -1603,6 +1662,7 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -1640,6 +1700,7 @@ export type UserUpdateWithoutProjectsInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -1661,6 +1722,7 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1682,6 +1744,7 @@ export type UserCreateWithoutTranslationsInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -1703,6 +1766,7 @@ export type UserUncheckedCreateWithoutTranslationsInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -1740,6 +1804,7 @@ export type UserUpdateWithoutTranslationsInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -1761,6 +1826,7 @@ export type UserUncheckedUpdateWithoutTranslationsInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1782,6 +1848,7 @@ export type UserCreateWithoutTranslationVotesInput = {
   Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatorInput
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -1803,6 +1870,7 @@ export type UserUncheckedCreateWithoutTranslationVotesInput = {
   Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatorInput
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -1840,6 +1908,7 @@ export type UserUpdateWithoutTranslationVotesInput = {
   Translations?: Prisma.TranslationUpdateManyWithoutTranslatorNestedInput
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -1861,6 +1930,111 @@ export type UserUncheckedUpdateWithoutTranslationVotesInput = {
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatorNestedInput
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
+  Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
+  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
+  Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
+  Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+}
+
+export type UserCreateWithoutTranslationApprovmentsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
+  WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
+  Projects?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
+  Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatorInput
+  Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
+  Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
+  MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
+  Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
+  Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+}
+
+export type UserUncheckedCreateWithoutTranslationApprovmentsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  avatarFileId?: number | null
+  Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
+  WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
+  Projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
+  Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatorInput
+  Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
+  Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
+  MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
+  Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
+  Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+}
+
+export type UserCreateOrConnectWithoutTranslationApprovmentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTranslationApprovmentsInput, Prisma.UserUncheckedCreateWithoutTranslationApprovmentsInput>
+}
+
+export type UserUpsertWithoutTranslationApprovmentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTranslationApprovmentsInput, Prisma.UserUncheckedUpdateWithoutTranslationApprovmentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTranslationApprovmentsInput, Prisma.UserUncheckedCreateWithoutTranslationApprovmentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTranslationApprovmentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTranslationApprovmentsInput, Prisma.UserUncheckedUpdateWithoutTranslationApprovmentsInput>
+}
+
+export type UserUpdateWithoutTranslationApprovmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
+  WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
+  Projects?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutTranslatorNestedInput
+  Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
+  Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
+  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
+  Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
+  Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTranslationApprovmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
+  WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
+  Projects?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatorNestedInput
+  Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
+  Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1882,6 +2056,7 @@ export type UserCreateWithoutAccountsInput = {
   Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
@@ -1903,6 +2078,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
   Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
@@ -1940,6 +2116,7 @@ export type UserUpdateWithoutAccountsInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -1961,6 +2138,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1991,6 +2169,7 @@ export type UserUpdateWithoutAvatarFileInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -2012,6 +2191,7 @@ export type UserUncheckedUpdateWithoutAvatarFileInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -2042,6 +2222,7 @@ export type UserUpdateWithoutReadableLanguagesInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -2063,6 +2244,7 @@ export type UserUncheckedUpdateWithoutReadableLanguagesInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -2094,6 +2276,7 @@ export type UserUpdateWithoutWritableLanguagesInput = {
   Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
@@ -2115,6 +2298,7 @@ export type UserUncheckedUpdateWithoutWritableLanguagesInput = {
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
   Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -2145,6 +2329,7 @@ export type UserCountOutputType = {
   Documents: number
   Permissions: number
   TranslationVotes: number
+  TranslationApprovments: number
   Memories: number
   MemoryItems: number
   Glossaries: number
@@ -2160,6 +2345,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   Documents?: boolean | UserCountOutputTypeCountDocumentsArgs
   Permissions?: boolean | UserCountOutputTypeCountPermissionsArgs
   TranslationVotes?: boolean | UserCountOutputTypeCountTranslationVotesArgs
+  TranslationApprovments?: boolean | UserCountOutputTypeCountTranslationApprovmentsArgs
   Memories?: boolean | UserCountOutputTypeCountMemoriesArgs
   MemoryItems?: boolean | UserCountOutputTypeCountMemoryItemsArgs
   Glossaries?: boolean | UserCountOutputTypeCountGlossariesArgs
@@ -2235,6 +2421,13 @@ export type UserCountOutputTypeCountTranslationVotesArgs<ExtArgs extends runtime
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountTranslationApprovmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TranslationApprovmentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountMemoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MemoryWhereInput
 }
@@ -2278,6 +2471,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   Documents?: boolean | Prisma.User$DocumentsArgs<ExtArgs>
   Permissions?: boolean | Prisma.User$PermissionsArgs<ExtArgs>
   TranslationVotes?: boolean | Prisma.User$TranslationVotesArgs<ExtArgs>
+  TranslationApprovments?: boolean | Prisma.User$TranslationApprovmentsArgs<ExtArgs>
   Memories?: boolean | Prisma.User$MemoriesArgs<ExtArgs>
   MemoryItems?: boolean | Prisma.User$MemoryItemsArgs<ExtArgs>
   Glossaries?: boolean | Prisma.User$GlossariesArgs<ExtArgs>
@@ -2328,6 +2522,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   Documents?: boolean | Prisma.User$DocumentsArgs<ExtArgs>
   Permissions?: boolean | Prisma.User$PermissionsArgs<ExtArgs>
   TranslationVotes?: boolean | Prisma.User$TranslationVotesArgs<ExtArgs>
+  TranslationApprovments?: boolean | Prisma.User$TranslationApprovmentsArgs<ExtArgs>
   Memories?: boolean | Prisma.User$MemoriesArgs<ExtArgs>
   MemoryItems?: boolean | Prisma.User$MemoryItemsArgs<ExtArgs>
   Glossaries?: boolean | Prisma.User$GlossariesArgs<ExtArgs>
@@ -2353,6 +2548,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     Documents: Prisma.$DocumentPayload<ExtArgs>[]
     Permissions: Prisma.$PermissionPayload<ExtArgs>[]
     TranslationVotes: Prisma.$TranslationVotePayload<ExtArgs>[]
+    TranslationApprovments: Prisma.$TranslationApprovmentPayload<ExtArgs>[]
     Memories: Prisma.$MemoryPayload<ExtArgs>[]
     MemoryItems: Prisma.$MemoryItemPayload<ExtArgs>[]
     Glossaries: Prisma.$GlossaryPayload<ExtArgs>[]
@@ -2769,6 +2965,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   Documents<T extends Prisma.User$DocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$DocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Permissions<T extends Prisma.User$PermissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$PermissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   TranslationVotes<T extends Prisma.User$TranslationVotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$TranslationVotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationVotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  TranslationApprovments<T extends Prisma.User$TranslationApprovmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$TranslationApprovmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationApprovmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Memories<T extends Prisma.User$MemoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$MemoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   MemoryItems<T extends Prisma.User$MemoryItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$MemoryItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Glossaries<T extends Prisma.User$GlossariesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$GlossariesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GlossaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3413,6 +3610,30 @@ export type User$TranslationVotesArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.TranslationVoteScalarFieldEnum | Prisma.TranslationVoteScalarFieldEnum[]
+}
+
+/**
+ * User.TranslationApprovments
+ */
+export type User$TranslationApprovmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TranslationApprovment
+   */
+  select?: Prisma.TranslationApprovmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TranslationApprovment
+   */
+  omit?: Prisma.TranslationApprovmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TranslationApprovmentInclude<ExtArgs> | null
+  where?: Prisma.TranslationApprovmentWhereInput
+  orderBy?: Prisma.TranslationApprovmentOrderByWithRelationInput | Prisma.TranslationApprovmentOrderByWithRelationInput[]
+  cursor?: Prisma.TranslationApprovmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TranslationApprovmentScalarFieldEnum | Prisma.TranslationApprovmentScalarFieldEnum[]
 }
 
 /**
