@@ -1,6 +1,7 @@
 import type { Pinia, StateTree } from "pinia";
 import type { User, PluginComponent, HTTPHelpers } from "@cat/shared";
 import type { PluginRegistry } from "@cat/plugin-core";
+import type * as Vue from "vue";
 
 declare global {
   namespace Vike {
@@ -20,6 +21,7 @@ declare global {
       pinia?: Pinia;
     }
   }
+  let vue: typeof Vue | undefined;
 }
 
 export {};
