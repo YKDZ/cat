@@ -1,5 +1,5 @@
 import { prisma } from "@cat/db";
-import type { PrismaError} from "@cat/shared";
+import type { PrismaError } from "@cat/shared";
 import { ProjectSchema } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
@@ -365,7 +365,13 @@ export const projectRouter = router({
           Translations: {
             some: {
               languageId,
-              isApproved,
+              Approvments: isApproved
+                ? {
+                    some: {
+                      isActive: true,
+                    },
+                  }
+                : undefined,
             },
           },
         },

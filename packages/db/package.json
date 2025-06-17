@@ -35,7 +35,7 @@
     "@elastic/elasticsearch": "^9.0.1",
     "@prisma/adapter-pg": "^6.9.0",
     "@prisma/client": "6.9.0",
-    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-commonjs": "^28.0.5",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.1.2",
@@ -45,10 +45,10 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "@types/node": "^22.15.23",
+    "@types/node": "^24.0.3",
     "dotenv": "^16.5.0",
     "prisma": "6.9.0",
     "prisma-json-types-generator": "^3.4.2",
-    "tsx": "^4.19.4"
+    "tsx": "^4.20.3"
   }
 }

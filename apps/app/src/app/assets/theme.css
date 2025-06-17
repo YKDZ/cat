@@ -1,14 +1,36 @@
 :root {
+  /* highlight */
   --cat-theme-highlight: #ffffff;
   --cat-theme-highlight-darker: #edf2f7;
   --cat-theme-highlight-darkest: #d7e0ea;
   --cat-theme-highlight-content: #4e5c6e;
   --cat-theme-highlight-content-darker: #000000;
+  /* base */
   --cat-theme-base: #38c800;
   --cat-theme-base-darker: #2da000;
   --cat-theme-base-darkest: #2b9401;
   --cat-theme-base-content: #ffffff;
   --cat-theme-base-content-darker: #ffffff;
+  /* success */
+  --cat-theme-success: #E8F5E9;
+  --cat-theme-success-darker: #C8E6C9;
+  --cat-theme-success-darkest: #388E3C;
+  --cat-theme-success-content: #ffffff;
+  /* warning */
+  --cat-theme-warning: #FFF8E1;
+  --cat-theme-warning-darker: #FFECB3;
+  --cat-theme-warning-darkest: #F57C00;
+  --cat-theme-warning-content: #ffffff;
+  /* error */
+  --cat-theme-error: #FFEBEE;
+  --cat-theme-error-darker: #FFCDD2;
+  --cat-theme-error-darkest: #C62828;
+  --cat-theme-error-content: #ffffff;
+  /* info */
+  --cat-theme-info: #E3F2FD;
+  --cat-theme-info-darker: #BBDEFB;
+  --cat-theme-info-darkest: #1565C0;
+  --cat-theme-info-content: #000000;
 }
 
 .page-transition {
