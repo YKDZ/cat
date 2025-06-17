@@ -417,6 +417,7 @@ export const ModelName = {
   Project: 'Project',
   Translation: 'Translation',
   TranslationVote: 'TranslationVote',
+  TranslationApprovment: 'TranslationApprovment',
   User: 'User',
   Account: 'Account',
   Vector: 'Vector'
@@ -435,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginTag" | "pluginComponent" | "project" | "translation" | "translationVote" | "user" | "account" | "vector"
+    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginTag" | "pluginComponent" | "project" | "translation" | "translationVote" | "translationApprovment" | "user" | "account" | "vector"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2141,6 +2142,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TranslationApprovment: {
+      payload: Prisma.$TranslationApprovmentPayload<ExtArgs>
+      fields: Prisma.TranslationApprovmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TranslationApprovmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TranslationApprovmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        findFirst: {
+          args: Prisma.TranslationApprovmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TranslationApprovmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        findMany: {
+          args: Prisma.TranslationApprovmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>[]
+        }
+        create: {
+          args: Prisma.TranslationApprovmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        createMany: {
+          args: Prisma.TranslationApprovmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TranslationApprovmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>[]
+        }
+        delete: {
+          args: Prisma.TranslationApprovmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        update: {
+          args: Prisma.TranslationApprovmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.TranslationApprovmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TranslationApprovmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TranslationApprovmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.TranslationApprovmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        aggregate: {
+          args: Prisma.TranslationApprovmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTranslationApprovment>
+        }
+        groupBy: {
+          args: Prisma.TranslationApprovmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TranslationApprovmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TranslationApprovmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TranslationApprovmentCountAggregateOutputType> | number
+        }
+      }
+    }
     User: {
       payload: Prisma.$UserPayload<ExtArgs>
       fields: Prisma.UserFieldRefs
@@ -2638,8 +2713,6 @@ export const TranslationScalarFieldEnum = {
   value: 'value',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  isApproved: 'isApproved',
-  lastApprovedAt: 'lastApprovedAt',
   translatorId: 'translatorId',
   translatableElementId: 'translatableElementId',
   languageId: 'languageId'
@@ -2658,6 +2731,18 @@ export const TranslationVoteScalarFieldEnum = {
 } as const
 
 export type TranslationVoteScalarFieldEnum = (typeof TranslationVoteScalarFieldEnum)[keyof typeof TranslationVoteScalarFieldEnum]
+
+
+export const TranslationApprovmentScalarFieldEnum = {
+  id: 'id',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  translationId: 'translationId',
+  userId: 'userId'
+} as const
+
+export type TranslationApprovmentScalarFieldEnum = (typeof TranslationApprovmentScalarFieldEnum)[keyof typeof TranslationApprovmentScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -2937,6 +3022,13 @@ export const TranslationVoteOrderByRelevanceFieldEnum = {
 export type TranslationVoteOrderByRelevanceFieldEnum = (typeof TranslationVoteOrderByRelevanceFieldEnum)[keyof typeof TranslationVoteOrderByRelevanceFieldEnum]
 
 
+export const TranslationApprovmentOrderByRelevanceFieldEnum = {
+  userId: 'userId'
+} as const
+
+export type TranslationApprovmentOrderByRelevanceFieldEnum = (typeof TranslationApprovmentOrderByRelevanceFieldEnum)[keyof typeof TranslationApprovmentOrderByRelevanceFieldEnum]
+
+
 export const UserOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
@@ -3140,6 +3232,7 @@ export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
   translation?: Prisma.TranslationOmit
   translationVote?: Prisma.TranslationVoteOmit
+  translationApprovment?: Prisma.TranslationApprovmentOmit
   user?: Prisma.UserOmit
   account?: Prisma.AccountOmit
   vector?: Prisma.VectorOmit

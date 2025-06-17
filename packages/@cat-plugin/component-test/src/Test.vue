@@ -10,6 +10,12 @@ const count = ref(1);
 
 <style lang="css" scoped>
 .test {
-  color: aqua;
+  color: black;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-items: center;
+  font-size: larger;
+  padding: 20px;
 }
 </style>

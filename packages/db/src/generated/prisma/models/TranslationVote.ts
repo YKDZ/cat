@@ -295,7 +295,7 @@ export type TranslationVoteCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   Voter: Prisma.UserCreateNestedOneWithoutTranslationVotesInput
-  Translation: Prisma.TranslationCreateNestedOneWithoutTranslationVotesInput
+  Translation: Prisma.TranslationCreateNestedOneWithoutVotesInput
 }
 
 export type TranslationVoteUncheckedCreateInput = {
@@ -312,7 +312,7 @@ export type TranslationVoteUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Voter?: Prisma.UserUpdateOneRequiredWithoutTranslationVotesNestedInput
-  Translation?: Prisma.TranslationUpdateOneRequiredWithoutTranslationVotesNestedInput
+  Translation?: Prisma.TranslationUpdateOneRequiredWithoutVotesNestedInput
 }
 
 export type TranslationVoteUncheckedUpdateInput = {
@@ -549,7 +549,7 @@ export type TranslationVoteCreateWithoutVoterInput = {
   value?: number
   createdAt?: Date | string
   updatedAt?: Date | string
-  Translation: Prisma.TranslationCreateNestedOneWithoutTranslationVotesInput
+  Translation: Prisma.TranslationCreateNestedOneWithoutVotesInput
 }
 
 export type TranslationVoteUncheckedCreateWithoutVoterInput = {
@@ -629,7 +629,7 @@ export type TranslationVoteUpdateWithoutVoterInput = {
   value?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Translation?: Prisma.TranslationUpdateOneRequiredWithoutTranslationVotesNestedInput
+  Translation?: Prisma.TranslationUpdateOneRequiredWithoutVotesNestedInput
 }
 
 export type TranslationVoteUncheckedUpdateWithoutVoterInput = {

@@ -154,6 +154,11 @@ export type Translation = Prisma.TranslationModel
  */
 export type TranslationVote = Prisma.TranslationVoteModel
 /**
+ * Model TranslationApprovment
+ * 
+ */
+export type TranslationApprovment = Prisma.TranslationApprovmentModel
+/**
  * Model User
  * 
  */

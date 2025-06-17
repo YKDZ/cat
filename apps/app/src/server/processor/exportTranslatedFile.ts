@@ -58,10 +58,14 @@ const worker = new Worker(
     const translations = z.array(TranslationSchema).parse(
       await prisma.translation.findMany({
         where: {
-          isApproved: true,
           languageId,
           TranslatableElement: {
             documentId,
+          },
+          Approvments: {
+            some: {
+              isActive: true,
+            },
           },
         },
         include: {

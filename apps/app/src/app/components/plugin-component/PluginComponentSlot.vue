@@ -18,11 +18,13 @@ const components = ref<PluginComponentType[]>([
 </script>
 
 <template>
-  <div>
-    <PluginComponent
-      v-for="component in components"
-      :key="component.id"
-      :component
-    />
-  </div>
+  <Suspense>
+    <div>
+      <PluginComponent
+        v-for="component in components"
+        :key="component.id"
+        :component
+      />
+    </div>
+  </Suspense>
 </template>

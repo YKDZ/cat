@@ -73,7 +73,7 @@ model PluginComponent {
     mountOn String
 
     pluginId String
-    Plugin   Plugin @relation(fields: [pluginId], references: [id])
+    Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
     @@unique([id, pluginId])
 }
