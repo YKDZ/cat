@@ -43,6 +43,7 @@ const worker = new Worker(
         },
         update: {
           name: data.name,
+          entry: data.entry ?? null,
           overview: data.overview,
           iconURL: data.iconURL,
           Configs: {
@@ -87,13 +88,30 @@ const worker = new Worker(
               },
             },
           },
+          Components: {
+            connectOrCreate: data.components
+              ? data.components.map((component) => ({
+                  where: {
+                    id_pluginId: {
+                      id: component.id,
+                      pluginId,
+                    },
+                  },
+                  create: {
+                    id: component.id,
+                    entry: component.entry,
+                    mountOn: component.mountOn,
+                  },
+                }))
+              : undefined,
+          },
         },
         create: {
           id: pluginId,
           origin,
           name: data.name,
           overview: data.overview,
-          entry: data.entry,
+          entry: data.entry ?? null,
           iconURL: data.iconURL,
           Configs: {
             connectOrCreate: data.configs
@@ -128,6 +146,23 @@ const worker = new Worker(
             create: {
               version: data.version,
             },
+          },
+          Components: {
+            connectOrCreate: data.components
+              ? data.components.map((component) => ({
+                  where: {
+                    id_pluginId: {
+                      id: component.id,
+                      pluginId,
+                    },
+                  },
+                  create: {
+                    id: component.id,
+                    entry: component.entry,
+                    mountOn: component.mountOn,
+                  },
+                }))
+              : undefined,
           },
         },
       });

@@ -2,13 +2,13 @@ import { pathToFileURL } from "url";
 import { prisma } from "@cat/db";
 import { z } from "zod/v4";
 import type { PluginConfig } from "@cat/shared";
-import { logger, PluginConfigSchema } from "@cat/shared";
+import { logger, PluginConfigSchema, PluginManifestSchema } from "@cat/shared";
 import { join } from "path";
 import type { TextVectorizer } from "./text-vectorizer";
 import type { TranslatableFileHandler } from "./translatable-file-handler";
 import type { TranslationAdvisor } from "./translation-advisor";
 import type { AuthProvider } from "./auth-provider";
-import { existsSync, readdirSync } from "fs";
+import { existsSync, readdirSync, readFileSync } from "fs";
 import { readFile } from "fs/promises";
 
 const pluginsDir = join(process.cwd(), "plugins");
@@ -63,25 +63,33 @@ export class PluginRegistry {
 
     for (const { id, entry } of plugins) {
       try {
-        let pluginObj: CatPlugin;
+        if (entry) {
+          try {
+            const pluginFsPath = this.getPluginEntryFsPath(id, entry);
+            // Vite build will sometimes remove inline /* @vite-ignore */ comments
+            // and cause runtime warning
+            const pluginUrl =
+              /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
+            logger.info(
+              "PLUGIN",
+              `About to load plugin '${id}' from: ${pluginUrl}`,
+            );
+            const imported = await import(/* @vite-ignore */ pluginUrl);
+            const pluginObj = PluginObjectSchema.parse(
+              imported.default ?? imported,
+            );
 
-        try {
-          const pluginFsPath = PluginRegistry.getPluginEntryFsPath(id, entry);
-          // Vite build will sometimes remove inline /* @vite-ignore */ comments
-          // and cause runtime warning
-          const pluginUrl = /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
+            await this.loadPlugin(id, pluginObj);
+          } catch (importErr) {
+            logger.error("PLUGIN", `Failed to load plugin '${id}'`, importErr);
+            continue;
+          }
+        } else {
           logger.info(
             "PLUGIN",
-            `About to load plugin '${id}' from: ${pluginUrl}`,
+            `Successfully loaded plugin ${id} without entry`,
           );
-          const imported = await import(/* @vite-ignore */ pluginUrl);
-          pluginObj = PluginObjectSchema.parse(imported.default ?? imported);
-        } catch (importErr) {
-          logger.error("PLUGIN", `Failed to load plugin '${id}'`, importErr);
-          continue;
         }
-
-        await this.loadPlugin(id, pluginObj);
       } catch (loadErr) {
         logger.error(
           "PLUGIN",
@@ -112,11 +120,11 @@ export class PluginRegistry {
     return this.plugins;
   }
 
-  public static getPluginEntryFsPath(id: string, entry: string): string {
-    return join(PluginRegistry.getPlugiFsPath(id), entry);
+  public getPluginEntryFsPath(id: string, entry: string): string {
+    return join(this.getPlugiFsPath(id), entry);
   }
 
-  public static getPlugiFsPath(id: string): string {
+  public getPlugiFsPath(id: string): string {
     return join(pluginsDir, id);
   }
 
@@ -161,7 +169,20 @@ export class PluginRegistry {
     await this.loadPlugins();
   }
 
-  public static async getPluginIdInLocalPlugins() {
+  public async getPluginManifest(pluginId: string) {
+    const dirPath = this.getPlugiFsPath(pluginId);
+    const manifestPath = join(dirPath, "manifest.json");
+
+    if (!existsSync(manifestPath)) {
+      logger.error("PLUGIN", `Plugin pluginId missing manifest.json`, null);
+      throw new Error(`Plugin pluginId missing manifest.json`);
+    }
+
+    const data = await readFile(manifestPath, "utf8");
+    return PluginManifestSchema.parse(JSON.parse(data));
+  }
+
+  public async getPluginIdInLocalPlugins() {
     const dirents = readdirSync(pluginsDir, { withFileTypes: true }).filter(
       (dirent) => dirent.isDirectory(),
     );
@@ -196,5 +217,24 @@ export class PluginRegistry {
     }
 
     return results;
+  }
+
+  public async getPluginComponentFsPath(
+    pluginId: string,
+    componentId: string,
+  ): Promise<string> {
+    const manifest = await this.getPluginManifest(pluginId);
+    if (!manifest.components)
+      throw new Error(
+        `Plugin ${pluginId} do not have components defined in manifest.json`,
+      );
+    const component = manifest.components.find(
+      (component) => component.id === componentId,
+    );
+    if (!component)
+      throw new Error(
+        `Plugin ${pluginId} do not have component ${componentId} defined in manifest.json`,
+      );
+    return join(this.getPlugiFsPath(pluginId), component.entry);
   }
 }

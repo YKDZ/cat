@@ -54,9 +54,9 @@ onMounted(() => {
     <span
       class="h-2 min-h-2 min-w-2 w-2 block"
       :class="{
-        'bg-red-500': element.status === 'NO',
-        'bg-blue-500': element.status === 'TRANSLATED',
-        'bg-green-500': element.status === 'APPROVED',
+        'bg-error-darkest': element.status === 'NO',
+        'bg-info-darkest': element.status === 'TRANSLATED',
+        'bg-success-darkest': element.status === 'APPROVED',
       }"
     />
     <span class="text-nowrap overflow-x-hidden">{{ element.value }}</span>

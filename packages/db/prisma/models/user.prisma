@@ -13,14 +13,15 @@ model User {
     ReadableLanguages Language[] @relation("ReadableLanguages")
     WritableLanguages Language[] @relation("WritableLanguages")
 
-    Projects         Project[]
-    Translations     Translation[]     @relation("Translator")
-    Documents        Document[]
-    Permissions      Permission[]
-    TranslationVotes TranslationVote[]
-    Memories         Memory[]
-    MemoryItems      MemoryItem[]
-    Glossaries       Glossary[]
+    Projects               Project[]
+    Translations           Translation[]           @relation("Translator")
+    Documents              Document[]
+    Permissions            Permission[]
+    TranslationVotes       TranslationVote[]
+    TranslationApprovments TranslationApprovment[]
+    Memories               Memory[]
+    MemoryItems            MemoryItem[]
+    Glossaries             Glossary[]
 
     Terms Term[]
 }

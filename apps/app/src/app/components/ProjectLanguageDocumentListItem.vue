@@ -9,6 +9,7 @@ import TableRow from "./table/TableRow.vue";
 import { trpc } from "@/server/trpc/client";
 import Button from "./Button.vue";
 import { useToastStore } from "../stores/toast";
+import ProjectLanguageDocumentAutoApproveBtn from "./ProjectLanguageDocumentAutoApproveBtn.vue";
 
 const props = defineProps<{
   document: Document;
@@ -18,7 +19,6 @@ const { info, trpcWarn } = useToastStore();
 
 const project = inject(projectKey);
 const language = inject(languageKey);
-const downloadAEl = ref<HTMLAnchorElement>();
 
 const handleEdit = () => {
   if (!project || !project.value || !language || !language.value) return;
@@ -56,11 +56,14 @@ const handleExportTranslated = async () => {
         :language-id="language.id"
     /></TableCell>
     <TableCell>
-      <Button
-        no-text
-        icon="i-mdi:download"
-        @click.stop="handleExportTranslated"
-      />
+      <div class="flex items-center gap-1">
+        <Button
+          no-text
+          icon="i-mdi:download"
+          @click.stop="handleExportTranslated"
+        />
+        <ProjectLanguageDocumentAutoApproveBtn :document />
+      </div>
     </TableCell>
   </TableRow>
 </template>

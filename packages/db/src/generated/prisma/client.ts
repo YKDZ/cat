@@ -134,6 +134,11 @@ export type PluginConfig = Prisma.PluginConfigModel
  */
 export type PluginTag = Prisma.PluginTagModel
 /**
+ * Model PluginComponent
+ * 
+ */
+export type PluginComponent = Prisma.PluginComponentModel
+/**
  * Model Project
  * 
  */
@@ -148,6 +153,11 @@ export type Translation = Prisma.TranslationModel
  * 
  */
 export type TranslationVote = Prisma.TranslationVoteModel
+/**
+ * Model TranslationApprovment
+ * 
+ */
+export type TranslationApprovment = Prisma.TranslationApprovmentModel
 /**
  * Model User
  * 
