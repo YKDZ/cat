@@ -173,6 +173,7 @@ export const translationRouter = router({
         },
         include: {
           Translator: true,
+          Approvments: true,
         },
       });
 
@@ -268,22 +269,65 @@ export const translationRouter = router({
         }),
       );
     }),
-  updateApproved: authedProcedure
+  autoApprove: authedProcedure
     .input(
       z.object({
-        id: z.int(),
-        isApproved: z.boolean(),
+        documentId: z.cuid2(),
+        languageId: z.string(),
       }),
     )
+    .output(z.number())
     .mutation(async ({ input }) => {
-      const { id, isApproved } = input;
-      await prisma.translation.update({
-        where: {
-          id,
-        },
-        data: {
-          isApproved,
-        },
+      const { documentId, languageId } = input;
+
+      return await prisma.$transaction(async (tx) => {
+        const translationIds = (
+          await prisma.translatableElement.findMany({
+            where: {
+              documentId,
+              // 至少有一个指定语言的翻译
+              Translations: {
+                some: {
+                  languageId,
+                },
+              },
+              // 所有的翻译都没有被采用
+              NOT: {
+                Translations: {
+                  some: {
+                    Approvments: {
+                      some: {
+                        isActive: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            select: {
+              Translations: {
+                select: {
+                  id: true,
+                },
+                orderBy: {
+                  Votes: {
+                    _count: "desc",
+                  },
+                },
+                take: 1,
+              },
+            },
+          })
+        ).map((element) => element.Translations[0].id);
+
+        return (
+          await tx.translationApprovment.createMany({
+            data: translationIds.map((id) => ({
+              translationId: id,
+              isActive: true,
+            })),
+          })
+        ).count;
       });
     }),
 });

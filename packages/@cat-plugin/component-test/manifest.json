@@ -1,0 +1,14 @@
+{
+  "id": "component-test",
+  "iconURL": "https://unocss.dev/logo.svg",
+  "tags": [
+    "组件"
+  ],
+  "components": [
+    {
+      "id": "test",
+      "entry": "dist/Test.mjs",
+      "mountOn": "index"
+    }
+  ]
+}
