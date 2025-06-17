@@ -413,9 +413,11 @@ export const ModelName = {
   PluginPermission: 'PluginPermission',
   PluginConfig: 'PluginConfig',
   PluginTag: 'PluginTag',
+  PluginComponent: 'PluginComponent',
   Project: 'Project',
   Translation: 'Translation',
   TranslationVote: 'TranslationVote',
+  TranslationApprovment: 'TranslationApprovment',
   User: 'User',
   Account: 'Account',
   Vector: 'Vector'
@@ -434,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginTag" | "project" | "translation" | "translationVote" | "user" | "account" | "vector"
+    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginTag" | "pluginComponent" | "project" | "translation" | "translationVote" | "translationApprovment" | "user" | "account" | "vector"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1844,6 +1846,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PluginComponent: {
+      payload: Prisma.$PluginComponentPayload<ExtArgs>
+      fields: Prisma.PluginComponentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PluginComponentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PluginComponentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        findFirst: {
+          args: Prisma.PluginComponentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PluginComponentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        findMany: {
+          args: Prisma.PluginComponentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>[]
+        }
+        create: {
+          args: Prisma.PluginComponentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        createMany: {
+          args: Prisma.PluginComponentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PluginComponentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>[]
+        }
+        delete: {
+          args: Prisma.PluginComponentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        update: {
+          args: Prisma.PluginComponentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        deleteMany: {
+          args: Prisma.PluginComponentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PluginComponentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PluginComponentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>[]
+        }
+        upsert: {
+          args: Prisma.PluginComponentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginComponentPayload>
+        }
+        aggregate: {
+          args: Prisma.PluginComponentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePluginComponent>
+        }
+        groupBy: {
+          args: Prisma.PluginComponentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PluginComponentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PluginComponentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PluginComponentCountAggregateOutputType> | number
+        }
+      }
+    }
     Project: {
       payload: Prisma.$ProjectPayload<ExtArgs>
       fields: Prisma.ProjectFieldRefs
@@ -2063,6 +2139,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TranslationVoteCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TranslationVoteCountAggregateOutputType> | number
+        }
+      }
+    }
+    TranslationApprovment: {
+      payload: Prisma.$TranslationApprovmentPayload<ExtArgs>
+      fields: Prisma.TranslationApprovmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TranslationApprovmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TranslationApprovmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        findFirst: {
+          args: Prisma.TranslationApprovmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TranslationApprovmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        findMany: {
+          args: Prisma.TranslationApprovmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>[]
+        }
+        create: {
+          args: Prisma.TranslationApprovmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        createMany: {
+          args: Prisma.TranslationApprovmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TranslationApprovmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>[]
+        }
+        delete: {
+          args: Prisma.TranslationApprovmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        update: {
+          args: Prisma.TranslationApprovmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.TranslationApprovmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TranslationApprovmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TranslationApprovmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.TranslationApprovmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TranslationApprovmentPayload>
+        }
+        aggregate: {
+          args: Prisma.TranslationApprovmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTranslationApprovment>
+        }
+        groupBy: {
+          args: Prisma.TranslationApprovmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TranslationApprovmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TranslationApprovmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TranslationApprovmentCountAggregateOutputType> | number
         }
       }
     }
@@ -2535,6 +2685,16 @@ export const PluginTagScalarFieldEnum = {
 export type PluginTagScalarFieldEnum = (typeof PluginTagScalarFieldEnum)[keyof typeof PluginTagScalarFieldEnum]
 
 
+export const PluginComponentScalarFieldEnum = {
+  id: 'id',
+  entry: 'entry',
+  mountOn: 'mountOn',
+  pluginId: 'pluginId'
+} as const
+
+export type PluginComponentScalarFieldEnum = (typeof PluginComponentScalarFieldEnum)[keyof typeof PluginComponentScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2553,8 +2713,6 @@ export const TranslationScalarFieldEnum = {
   value: 'value',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  isApproved: 'isApproved',
-  lastApprovedAt: 'lastApprovedAt',
   translatorId: 'translatorId',
   translatableElementId: 'translatableElementId',
   languageId: 'languageId'
@@ -2573,6 +2731,18 @@ export const TranslationVoteScalarFieldEnum = {
 } as const
 
 export type TranslationVoteScalarFieldEnum = (typeof TranslationVoteScalarFieldEnum)[keyof typeof TranslationVoteScalarFieldEnum]
+
+
+export const TranslationApprovmentScalarFieldEnum = {
+  id: 'id',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  translationId: 'translationId',
+  userId: 'userId'
+} as const
+
+export type TranslationApprovmentScalarFieldEnum = (typeof TranslationApprovmentScalarFieldEnum)[keyof typeof TranslationApprovmentScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -2815,6 +2985,16 @@ export const PluginTagOrderByRelevanceFieldEnum = {
 export type PluginTagOrderByRelevanceFieldEnum = (typeof PluginTagOrderByRelevanceFieldEnum)[keyof typeof PluginTagOrderByRelevanceFieldEnum]
 
 
+export const PluginComponentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  entry: 'entry',
+  mountOn: 'mountOn',
+  pluginId: 'pluginId'
+} as const
+
+export type PluginComponentOrderByRelevanceFieldEnum = (typeof PluginComponentOrderByRelevanceFieldEnum)[keyof typeof PluginComponentOrderByRelevanceFieldEnum]
+
+
 export const ProjectOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2840,6 +3020,13 @@ export const TranslationVoteOrderByRelevanceFieldEnum = {
 } as const
 
 export type TranslationVoteOrderByRelevanceFieldEnum = (typeof TranslationVoteOrderByRelevanceFieldEnum)[keyof typeof TranslationVoteOrderByRelevanceFieldEnum]
+
+
+export const TranslationApprovmentOrderByRelevanceFieldEnum = {
+  userId: 'userId'
+} as const
+
+export type TranslationApprovmentOrderByRelevanceFieldEnum = (typeof TranslationApprovmentOrderByRelevanceFieldEnum)[keyof typeof TranslationApprovmentOrderByRelevanceFieldEnum]
 
 
 export const UserOrderByRelevanceFieldEnum = {
@@ -3041,9 +3228,11 @@ export type GlobalOmitConfig = {
   pluginPermission?: Prisma.PluginPermissionOmit
   pluginConfig?: Prisma.PluginConfigOmit
   pluginTag?: Prisma.PluginTagOmit
+  pluginComponent?: Prisma.PluginComponentOmit
   project?: Prisma.ProjectOmit
   translation?: Prisma.TranslationOmit
   translationVote?: Prisma.TranslationVoteOmit
+  translationApprovment?: Prisma.TranslationApprovmentOmit
   user?: Prisma.UserOmit
   account?: Prisma.AccountOmit
   vector?: Prisma.VectorOmit
