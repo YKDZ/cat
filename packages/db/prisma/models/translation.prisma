@@ -1,10 +1,8 @@
 model Translation {
-    id             Int       @id @default(autoincrement())
-    value          String    @db.Text
-    createdAt      DateTime  @default(now())
-    updatedAt      DateTime  @updatedAt
-    isApproved     Boolean   @default(false)
-    lastApprovedAt DateTime?
+    id        Int      @id @default(autoincrement())
+    value     String   @db.Text
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     translatorId String
     Translator   User   @relation("Translator", fields: [translatorId], references: [id], onDelete: Cascade)
@@ -15,8 +13,9 @@ model Translation {
     languageId String
     Language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
-    TranslationVotes TranslationVote[]
-    MemoryItems      MemoryItem[]
+    Votes       TranslationVote[]
+    MemoryItems MemoryItem[]
+    Approvments TranslationApprovment[]
 
     @@unique(name: "noSameTranslation", [translatorId, languageId, translatableElementId, value])
 }
@@ -36,4 +35,18 @@ model TranslationVote {
     @@unique(name: "oneVotePerUserUniqueTranslation", [voterId, translationId])
     @@index([translationId])
     @@index([voterId])
+}
+
+model TranslationApprovment {
+    id       Int     @id @default(autoincrement())
+    isActive Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    translationId Int
+    Translation   Translation @relation(fields: [translationId], references: [id], onDelete: Cascade)
+
+    userId String?
+    User   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

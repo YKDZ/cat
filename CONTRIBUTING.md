@@ -2,7 +2,7 @@
 
 This repo is a monorepo managed by turborepo.
 
-The sub repo is stored under: 
+The sub repo is stored under:
 
 - `apps/`: The main app
 - `packages/`: Some shared packages and plugin-core etc.
@@ -21,13 +21,13 @@ The relating tech and framework are:
 - [zod](https://zod.dev/): validation library
 - [rollup](https://rollupjs.org/): bundler
 
-# Local Development
+## Local Development
 
 You need to have a oidc server for run CAT, as CAT does not provide any username-password login method.
 
 To run `apps/app` locally, you can:
 
-## Through Docker
+### Through Docker
 
 1. run `pnpm build:docker:app` to build app's docker image from `apps/app/Dockerfile`
 2. create `.env` file from `.env.example` in repo root dir `./`
