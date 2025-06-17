@@ -34,7 +34,7 @@
     "@prisma/adapter-pg": "^6.9.0",
     "@prisma/client": "6.9.0",
     "@trpc/client": "^11.4.1",
-    "@trpc/server": "^11.3.1",
+    "@trpc/server": "^11.4.1",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vueuse/components": "^13.1.0",
     "@vueuse/core": "^13.1.0",
