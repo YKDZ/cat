@@ -4,7 +4,9 @@ import type { PageContextServer } from "vike/types";
 export const data = async (ctx: PageContextServer) => {
   const { pluginId } = ctx.routeParams;
 
-  const plugin = await useSSCTRPC(ctx).plugin.query({ id: pluginId });
+  const plugin = await useSSCTRPC(ctx).plugin.queryWithUserOverridableConfig({
+    id: pluginId,
+  });
 
   return { plugin };
 };

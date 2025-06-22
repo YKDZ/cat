@@ -15,12 +15,12 @@
   --cat-theme-success: #E8F5E9;
   --cat-theme-success-darker: #C8E6C9;
   --cat-theme-success-darkest: #388E3C;
-  --cat-theme-success-content: #ffffff;
+  --cat-theme-success-content: #000000;
   /* warning */
   --cat-theme-warning: #FFF8E1;
   --cat-theme-warning-darker: #FFECB3;
   --cat-theme-warning-darkest: #F57C00;
-  --cat-theme-warning-content: #ffffff;
+  --cat-theme-warning-content: #000000;
   /* error */
   --cat-theme-error: #FFEBEE;
   --cat-theme-error-darker: #FFCDD2;
@@ -31,8 +31,4 @@
   --cat-theme-info-darker: #BBDEFB;
   --cat-theme-info-darkest: #1565C0;
   --cat-theme-info-content: #000000;
-}
-
-.page-transition {
-  cursor: wait;
 }

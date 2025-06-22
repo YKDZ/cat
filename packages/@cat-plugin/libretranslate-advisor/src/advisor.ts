@@ -1,28 +1,33 @@
-import type { PluginLoadOptions, TranslationAdvisor } from "@cat/plugin-core";
-import type { TranslatableElement, TranslationSuggestion } from "@cat/shared";
+import type { TranslationAdvisor } from "@cat/plugin-core";
+import type {
+  TermRelation,
+  TranslatableElement,
+  TranslationSuggestion,
+} from "@cat/shared";
 import { safeJoinURL } from "@cat/shared";
 
 const supportedLangages = new Map<string, string[]>();
 let isEnabled = true;
 
 export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
-  private options: PluginLoadOptions;
+  private configs: { key: string; value: unknown }[];
   private tranlateURL: string;
   private languagesURL: string;
 
-  private config = (key: string): unknown => {
-    const config = this.options.configs.find((config) => config.key === key);
-    return config?.value;
+  private config = <T>(key: string, fallback: T): T => {
+    const config = this.configs.find((config) => config.key === key);
+    if (!config) return fallback;
+    return config.value as T;
   };
 
-  constructor(options: PluginLoadOptions) {
-    this.options = options;
+  constructor(configs: { key: string; value: unknown }[]) {
+    this.configs = configs;
     this.tranlateURL = safeJoinURL(
-      this.config("api.url") as string,
+      this.config("api", { url: "http://localhost:3000" }).url,
       "translate",
     );
     this.languagesURL = safeJoinURL(
-      this.config("api.url") as string,
+      this.config("api", { url: "http://localhost:3000" }).url,
       "languages",
     );
     fetchSupportedLanguages(this.languagesURL);
@@ -33,7 +38,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
   }
 
   getName() {
-    return this.config("base.advisor-name") as string;
+    return this.config("base.advisor-name", "LibreTranslate");
   }
 
   isEnabled() {
@@ -55,109 +60,23 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
 
   async getSuggestions(
     element: TranslatableElement,
+    termedValue: string,
+    termRelations: Required<TermRelation>[],
     languageFromId: string,
     languageToId: string,
   ): Promise<TranslationSuggestion[]> {
     const sourceLang = languageFromId.replaceAll("_", "-");
     const targetLang = languageToId.replaceAll("_", "-");
 
-    if (element.value.trim().length === 0) {
-      return [
-        {
-          from: this.getName(),
-          value: "可翻译元素是空白的，LibreTranslate API 不会翻译它。",
-          status: "ERROR",
-        },
-      ];
-    }
-
     try {
-      const res = await fetch(this.tranlateURL, {
-        method: "POST",
-        body: JSON.stringify({
-          q: element.value,
-          source: sourceLang,
-          target: targetLang,
-          format: "text",
-          alternatives: this.config("api.alternatives-amount") as number,
-          api_key: this.config("api.key") as string,
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const body = await res.json();
-
-      if (res.status !== 200) {
-        const msg = (body as { error?: string }).error || "未知错误";
-        switch (res.status) {
-          case 429:
-            return [
-              {
-                from: this.getName(),
-                value: `速率限制：${msg}`,
-                status: "ERROR",
-              },
-            ];
-          case 403:
-            return [
-              {
-                from: this.getName(),
-                value: `访问被禁止：${msg}`,
-                status: "ERROR",
-              },
-            ];
-          case 500:
-            return [
-              {
-                from: this.getName(),
-                value: `LibreTrasnslate API 服务器内部错误：${msg}`,
-                status: "ERROR",
-              },
-            ];
-          case 400:
-            return [
-              {
-                from: this.getName(),
-                value: `请求错误：${msg}`,
-                status: "ERROR",
-              },
-            ];
-          default:
-            return [
-              {
-                from: this.getName(),
-                value: `翻译失败（状态码 ${res.status}）：${msg}`,
-                status: "ERROR",
-              },
-            ];
-        }
+      const raw = await this.translate(element.value, sourceLang, targetLang);
+      const termed = [];
+      if (termedValue !== element.value) {
+        termed.push(
+          ...(await this.translate(termedValue, sourceLang, targetLang)),
+        );
       }
-
-      const successBody = body as {
-        alternatives?: string[];
-        translatedText: string;
-      };
-
-      const result: TranslationSuggestion[] = [
-        {
-          from: this.getName(),
-          value: successBody.translatedText,
-          status: "SUCCESS",
-        },
-      ];
-      if (successBody.alternatives && successBody.alternatives.length > 0) {
-        successBody.alternatives
-          .map(
-            (translation) =>
-              ({
-                from: this.getName(),
-                value: translation,
-                status: "SUCCESS",
-              }) satisfies TranslationSuggestion,
-          )
-          .forEach((translation) => result.push(translation));
-      }
-      return result;
+      return [...termed, ...raw];
     } catch (e) {
       console.error(e);
       return [
@@ -166,8 +85,116 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
           value: "LibreTranslate API 请求或解析错误。",
           status: "ERROR",
         },
-      ];
+      ] satisfies TranslationSuggestion[];
     }
+  }
+
+  private async translate(
+    value: string,
+    sourceLang: string,
+    targetLang: string,
+  ) {
+    if (value.trim().length === 0) {
+      return [
+        {
+          from: this.getName(),
+          value: "可翻译元素是空白的，LibreTranslate API 不会翻译它。",
+          status: "ERROR",
+        },
+      ] satisfies TranslationSuggestion[];
+    }
+
+    const config = this.config("api", {
+      key: "no key",
+      "alternatives-amount": 1,
+    });
+
+    const res = await fetch(this.tranlateURL, {
+      method: "POST",
+      body: JSON.stringify({
+        q: value,
+        source: sourceLang,
+        target: targetLang,
+        format: "text",
+        alternatives: config["alternatives-amount"],
+        api_key: config.key,
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const body = await res.json();
+
+    if (res.status !== 200) {
+      const msg = (body as { error?: string }).error || "未知错误";
+      switch (res.status) {
+        case 429:
+          return [
+            {
+              from: this.getName(),
+              value: `速率限制：${msg}`,
+              status: "ERROR",
+            },
+          ] satisfies TranslationSuggestion[];
+        case 403:
+          return [
+            {
+              from: this.getName(),
+              value: `访问被禁止：${msg}`,
+              status: "ERROR",
+            },
+          ] satisfies TranslationSuggestion[];
+        case 500:
+          return [
+            {
+              from: this.getName(),
+              value: `LibreTrasnslate API 服务器内部错误：${msg}`,
+              status: "ERROR",
+            },
+          ] satisfies TranslationSuggestion[];
+        case 400:
+          return [
+            {
+              from: this.getName(),
+              value: `请求错误：${msg}`,
+              status: "ERROR",
+            },
+          ] satisfies TranslationSuggestion[];
+        default:
+          return [
+            {
+              from: this.getName(),
+              value: `翻译失败（状态码 ${res.status}）：${msg}`,
+              status: "ERROR",
+            },
+          ] satisfies TranslationSuggestion[];
+      }
+    }
+
+    const successBody = body as {
+      alternatives?: string[];
+      translatedText: string;
+    };
+
+    const result: TranslationSuggestion[] = [
+      {
+        from: this.getName(),
+        value: successBody.translatedText,
+        status: "SUCCESS",
+      },
+    ];
+    if (successBody.alternatives && successBody.alternatives.length > 0) {
+      successBody.alternatives
+        .map(
+          (translation) =>
+            ({
+              from: this.getName(),
+              value: translation,
+              status: "SUCCESS",
+            }) satisfies TranslationSuggestion,
+        )
+        .forEach((translation) => result.push(translation));
+    }
+    return result;
   }
 }
 

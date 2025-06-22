@@ -1,6 +1,4 @@
-import { EMPTY_CONTEXT } from "@/server/trpc/context";
-import { documentRouter } from "@/server/trpc/routers/document";
-import { createCallerFactory } from "@/server/trpc/server";
+import { useSSCTRPC } from "@/server/trpc/sscClient";
 import { redirect } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 
@@ -10,19 +8,12 @@ export const guard = async (ctx: PageContextServer) => {
   const { elementId, documentId, languageFromTo } = ctx.routeParams;
   if (elementId !== "auto" || !isNaN(parseInt(elementId))) return;
 
-  const createCaller = createCallerFactory(documentRouter);
-  const caller = createCaller({
-    ...EMPTY_CONTEXT,
-    user: ctx.user,
-    pluginRegistry: ctx.pluginRegistry,
-  });
-
-  let target = await caller.queryFirstUntranslatedElement({
+  let target = await useSSCTRPC(ctx).document.queryFirstUntranslatedElement({
     id: documentId,
   });
 
   if (!target) {
-    const first = await caller.queryElements({
+    const first = await useSSCTRPC(ctx).document.queryElements({
       documentId: documentId,
       page: 0,
       pageSize: 1,

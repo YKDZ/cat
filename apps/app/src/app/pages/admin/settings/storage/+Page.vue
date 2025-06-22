@@ -27,6 +27,24 @@ import { z } from "zod/v4";
       :schema="z.toJSONSchema(z.string().meta({ title: '储存桶区域' }))"
     />
     <AdminSettingForm
+      config-key="s3.acl"
+      :schema="
+        z.toJSONSchema(
+          z
+            .enum([
+              'authenticated-read',
+              'aws-exec-read',
+              'bucket-owner-full-control',
+              'bucket-owner-read',
+              'private',
+              'public-read',
+              'public-read-write',
+            ])
+            .meta({ title: '储存桶 ACL' }),
+        )
+      "
+    />
+    <AdminSettingForm
       config-key="s3.access-key-id"
       :schema="z.toJSONSchema(z.string().meta({ title: '令牌 ID' }))"
     />

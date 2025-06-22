@@ -1,7 +1,7 @@
 import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { useStorage } from "@/server/utils/storage/useStorage";
 import { prisma } from "@cat/db";
-import type { Document, PrismaError } from "@cat/shared";
+import type { PrismaError } from "@cat/shared";
 import {
   DocumentSchema,
   ElementTranslationStatusSchema,
@@ -47,7 +47,7 @@ export const documentRouter = router({
           storedPath: path,
           Type: {
             connect: {
-              mimeType: meta.type,
+              mimeType: meta.mimeType,
             },
           },
           StorageType: {
@@ -141,6 +141,9 @@ export const documentRouter = router({
         const task = await tx.task.create({
           data: {
             type: "document_from_file_pretreatment",
+            meta: {
+              projectId,
+            },
           },
         });
 
@@ -237,7 +240,7 @@ export const documentRouter = router({
         };
       });
 
-      documentFromFilePretreatmentQueue.add(
+      await documentFromFilePretreatmentQueue.add(
         taskId,
         {
           taskId: taskId,
@@ -424,7 +427,7 @@ export const documentRouter = router({
         },
       });
 
-      exportTranslatedFileQueue.add(task.id, {
+      await exportTranslatedFileQueue.add(task.id, {
         taskId: task.id,
         handlerId: handler.getId(),
         documentId: document.id,

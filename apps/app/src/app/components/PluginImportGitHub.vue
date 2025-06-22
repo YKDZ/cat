@@ -5,8 +5,10 @@ import Input from "./Input.vue";
 import InputLabel from "./InputLabel.vue";
 import { trpc } from "@/server/trpc/client";
 import { useToastStore } from "../stores/toast";
+import { useI18n } from "vue-i18n";
 
 const { info, trpcWarn } = useToastStore();
+const { t } = useI18n();
 
 const origin = ref({
   owner: "YKDZ",
@@ -18,25 +20,20 @@ const handleImport = () => {
   trpc.plugin.importFromGitHub
     .mutate({ ...origin.value })
     .then(() => {
-      info("开始在后台导入插件");
+      info(t("开始在后台导入插件"));
     })
     .catch(trpcWarn);
 };
 </script>
 
 <template>
-  <h3 class="text-lg font-bold">从 GitHub 导入插件</h3>
+  <h3 class="text-lg font-bold">{{ $t("从 GitHub 导入插件") }}</h3>
   <div class="flex flex-col gap-1">
-    <InputLabel>仓库主人</InputLabel>
-    <Input
-      v-model="origin.owner"
-      icon="i-mdi:account"
-      full-width
-      type="text"
-    />
-    <InputLabel>仓库名称</InputLabel>
+    <InputLabel>{{ $t("仓库主人") }}</InputLabel>
+    <Input v-model="origin.owner" icon="i-mdi:account" full-width type="text" />
+    <InputLabel>{{ $t("仓库名称") }}</InputLabel>
     <Input v-model="origin.repo" icon="i-mdi:note" full-width type="text" />
-    <InputLabel>仓库分支</InputLabel>
+    <InputLabel>{{ $t("仓库分支") }}</InputLabel>
     <Input
       v-model="origin.ref"
       icon="i-mdi:source-branch"
@@ -44,5 +41,7 @@ const handleImport = () => {
       type="text"
     />
   </div>
-  <Button full-width icon="i-mdi:download" @click="handleImport">导入插件</Button>
+  <Button full-width icon="i-mdi:download" @click="handleImport">{{
+    $t("导入插件")
+  }}</Button>
 </template>

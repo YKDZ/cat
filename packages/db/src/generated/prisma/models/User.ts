@@ -21,18 +21,8 @@ export type UserModel = runtime.Types.Result.DefaultSelection<Prisma.$UserPayloa
 
 export type AggregateUser = {
   _count: UserCountAggregateOutputType | null
-  _avg: UserAvgAggregateOutputType | null
-  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
-}
-
-export type UserAvgAggregateOutputType = {
-  avatarFileId: number | null
-}
-
-export type UserSumAggregateOutputType = {
-  avatarFileId: number | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -42,7 +32,6 @@ export type UserMinAggregateOutputType = {
   emailVerified: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
-  avatarFileId: number | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -52,7 +41,6 @@ export type UserMaxAggregateOutputType = {
   emailVerified: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
-  avatarFileId: number | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -62,18 +50,9 @@ export type UserCountAggregateOutputType = {
   emailVerified: number
   createdAt: number
   updatedAt: number
-  avatarFileId: number
   _all: number
 }
 
-
-export type UserAvgAggregateInputType = {
-  avatarFileId?: true
-}
-
-export type UserSumAggregateInputType = {
-  avatarFileId?: true
-}
 
 export type UserMinAggregateInputType = {
   id?: true
@@ -82,7 +61,6 @@ export type UserMinAggregateInputType = {
   emailVerified?: true
   createdAt?: true
   updatedAt?: true
-  avatarFileId?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -92,7 +70,6 @@ export type UserMaxAggregateInputType = {
   emailVerified?: true
   createdAt?: true
   updatedAt?: true
-  avatarFileId?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -102,7 +79,6 @@ export type UserCountAggregateInputType = {
   emailVerified?: true
   createdAt?: true
   updatedAt?: true
-  avatarFileId?: true
   _all?: true
 }
 
@@ -144,18 +120,6 @@ export type UserAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: UserAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: UserSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: UserMinAggregateInputType
@@ -186,8 +150,6 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: UserCountAggregateInputType | true
-  _avg?: UserAvgAggregateInputType
-  _sum?: UserSumAggregateInputType
   _min?: UserMinAggregateInputType
   _max?: UserMaxAggregateInputType
 }
@@ -199,10 +161,7 @@ export type UserGroupByOutputType = {
   emailVerified: boolean
   createdAt: Date
   updatedAt: Date
-  avatarFileId: number | null
   _count: UserCountAggregateOutputType | null
-  _avg: UserAvgAggregateOutputType | null
-  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
 }
@@ -232,7 +191,6 @@ export type UserWhereInput = {
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  avatarFileId?: Prisma.IntNullableFilter<"User"> | number | null
   AvatarFile?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   Accounts?: Prisma.AccountListRelationFilter
   ReadableLanguages?: Prisma.LanguageListRelationFilter
@@ -247,6 +205,7 @@ export type UserWhereInput = {
   MemoryItems?: Prisma.MemoryItemListRelationFilter
   Glossaries?: Prisma.GlossaryListRelationFilter
   Terms?: Prisma.TermListRelationFilter
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -256,7 +215,6 @@ export type UserOrderByWithRelationInput = {
   emailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  avatarFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   AvatarFile?: Prisma.FileOrderByWithRelationInput
   Accounts?: Prisma.AccountOrderByRelationAggregateInput
   ReadableLanguages?: Prisma.LanguageOrderByRelationAggregateInput
@@ -271,6 +229,7 @@ export type UserOrderByWithRelationInput = {
   MemoryItems?: Prisma.MemoryItemOrderByRelationAggregateInput
   Glossaries?: Prisma.GlossaryOrderByRelationAggregateInput
   Terms?: Prisma.TermOrderByRelationAggregateInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceOrderByRelationAggregateInput
   _relevance?: Prisma.UserOrderByRelevanceInput
 }
 
@@ -284,7 +243,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  avatarFileId?: Prisma.IntNullableFilter<"User"> | number | null
   AvatarFile?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   Accounts?: Prisma.AccountListRelationFilter
   ReadableLanguages?: Prisma.LanguageListRelationFilter
@@ -299,6 +257,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   MemoryItems?: Prisma.MemoryItemListRelationFilter
   Glossaries?: Prisma.GlossaryListRelationFilter
   Terms?: Prisma.TermListRelationFilter
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceListRelationFilter
 }, "id" | "name" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -308,12 +267,9 @@ export type UserOrderByWithAggregationInput = {
   emailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  avatarFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
-  _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
-  _sum?: Prisma.UserSumOrderByAggregateInput
 }
 
 export type UserScalarWhereWithAggregatesInput = {
@@ -326,7 +282,6 @@ export type UserScalarWhereWithAggregatesInput = {
   emailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
-  avatarFileId?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
 }
 
 export type UserCreateInput = {
@@ -336,7 +291,7 @@ export type UserCreateInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -350,6 +305,7 @@ export type UserCreateInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -359,7 +315,7 @@ export type UserUncheckedCreateInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -373,6 +329,7 @@ export type UserUncheckedCreateInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUpdateInput = {
@@ -382,7 +339,7 @@ export type UserUpdateInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -396,6 +353,7 @@ export type UserUpdateInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -405,7 +363,7 @@ export type UserUncheckedUpdateInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -419,6 +377,7 @@ export type UserUncheckedUpdateInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -428,7 +387,6 @@ export type UserCreateManyInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -447,12 +405,16 @@ export type UserUncheckedUpdateManyInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type UserScalarRelationFilter = {
   is?: Prisma.UserWhereInput
   isNot?: Prisma.UserWhereInput
+}
+
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
 }
 
 export type UserListRelationFilter = {
@@ -463,11 +425,6 @@ export type UserListRelationFilter = {
 
 export type UserOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type UserNullableScalarRelationFilter = {
-  is?: Prisma.UserWhereInput | null
-  isNot?: Prisma.UserWhereInput | null
 }
 
 export type UserOrderByRelevanceInput = {
@@ -483,11 +440,6 @@ export type UserCountOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  avatarFileId?: Prisma.SortOrder
-}
-
-export type UserAvgOrderByAggregateInput = {
-  avatarFileId?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -497,7 +449,6 @@ export type UserMaxOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  avatarFileId?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -507,11 +458,6 @@ export type UserMinOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  avatarFileId?: Prisma.SortOrder
-}
-
-export type UserSumOrderByAggregateInput = {
-  avatarFileId?: Prisma.SortOrder
 }
 
 export type UserCreateNestedOneWithoutDocumentsInput = {
@@ -528,46 +474,20 @@ export type UserUpdateOneRequiredWithoutDocumentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDocumentsInput, Prisma.UserUpdateWithoutDocumentsInput>, Prisma.UserUncheckedUpdateWithoutDocumentsInput>
 }
 
-export type UserCreateNestedManyWithoutAvatarFileInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutAvatarFileInput, Prisma.UserUncheckedCreateWithoutAvatarFileInput> | Prisma.UserCreateWithoutAvatarFileInput[] | Prisma.UserUncheckedCreateWithoutAvatarFileInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAvatarFileInput | Prisma.UserCreateOrConnectWithoutAvatarFileInput[]
-  createMany?: Prisma.UserCreateManyAvatarFileInputEnvelope
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+export type UserCreateNestedOneWithoutAvatarFileInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAvatarFileInput, Prisma.UserUncheckedCreateWithoutAvatarFileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAvatarFileInput
+  connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUncheckedCreateNestedManyWithoutAvatarFileInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutAvatarFileInput, Prisma.UserUncheckedCreateWithoutAvatarFileInput> | Prisma.UserCreateWithoutAvatarFileInput[] | Prisma.UserUncheckedCreateWithoutAvatarFileInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAvatarFileInput | Prisma.UserCreateOrConnectWithoutAvatarFileInput[]
-  createMany?: Prisma.UserCreateManyAvatarFileInputEnvelope
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-}
-
-export type UserUpdateManyWithoutAvatarFileNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutAvatarFileInput, Prisma.UserUncheckedCreateWithoutAvatarFileInput> | Prisma.UserCreateWithoutAvatarFileInput[] | Prisma.UserUncheckedCreateWithoutAvatarFileInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAvatarFileInput | Prisma.UserCreateOrConnectWithoutAvatarFileInput[]
-  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutAvatarFileInput | Prisma.UserUpsertWithWhereUniqueWithoutAvatarFileInput[]
-  createMany?: Prisma.UserCreateManyAvatarFileInputEnvelope
-  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  update?: Prisma.UserUpdateWithWhereUniqueWithoutAvatarFileInput | Prisma.UserUpdateWithWhereUniqueWithoutAvatarFileInput[]
-  updateMany?: Prisma.UserUpdateManyWithWhereWithoutAvatarFileInput | Prisma.UserUpdateManyWithWhereWithoutAvatarFileInput[]
-  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
-}
-
-export type UserUncheckedUpdateManyWithoutAvatarFileNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutAvatarFileInput, Prisma.UserUncheckedCreateWithoutAvatarFileInput> | Prisma.UserCreateWithoutAvatarFileInput[] | Prisma.UserUncheckedCreateWithoutAvatarFileInput[]
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAvatarFileInput | Prisma.UserCreateOrConnectWithoutAvatarFileInput[]
-  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutAvatarFileInput | Prisma.UserUpsertWithWhereUniqueWithoutAvatarFileInput[]
-  createMany?: Prisma.UserCreateManyAvatarFileInputEnvelope
-  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
-  update?: Prisma.UserUpdateWithWhereUniqueWithoutAvatarFileInput | Prisma.UserUpdateWithWhereUniqueWithoutAvatarFileInput[]
-  updateMany?: Prisma.UserUpdateManyWithWhereWithoutAvatarFileInput | Prisma.UserUpdateManyWithWhereWithoutAvatarFileInput[]
-  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+export type UserUpdateOneWithoutAvatarFileNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAvatarFileInput, Prisma.UserUncheckedCreateWithoutAvatarFileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAvatarFileInput
+  upsert?: Prisma.UserUpsertWithoutAvatarFileInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAvatarFileInput, Prisma.UserUpdateWithoutAvatarFileInput>, Prisma.UserUncheckedUpdateWithoutAvatarFileInput>
 }
 
 export type UserCreateNestedOneWithoutGlossariesInput = {
@@ -716,6 +636,20 @@ export type UserUpdateOneRequiredWithoutPermissionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPermissionsInput, Prisma.UserUpdateWithoutPermissionsInput>, Prisma.UserUncheckedUpdateWithoutPermissionsInput>
 }
 
+export type UserCreateNestedOneWithoutPluginUserConfigInstancesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPluginUserConfigInstancesInput, Prisma.UserUncheckedCreateWithoutPluginUserConfigInstancesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPluginUserConfigInstancesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPluginUserConfigInstancesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPluginUserConfigInstancesInput, Prisma.UserUncheckedCreateWithoutPluginUserConfigInstancesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPluginUserConfigInstancesInput
+  upsert?: Prisma.UserUpsertWithoutPluginUserConfigInstancesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPluginUserConfigInstancesInput, Prisma.UserUpdateWithoutPluginUserConfigInstancesInput>, Prisma.UserUncheckedUpdateWithoutPluginUserConfigInstancesInput>
+}
+
 export type UserCreateNestedOneWithoutProjectsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutProjectsInput, Prisma.UserUncheckedCreateWithoutProjectsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectsInput
@@ -795,7 +729,7 @@ export type UserCreateWithoutDocumentsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -808,6 +742,7 @@ export type UserCreateWithoutDocumentsInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutDocumentsInput = {
@@ -817,7 +752,7 @@ export type UserUncheckedCreateWithoutDocumentsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -830,6 +765,7 @@ export type UserUncheckedCreateWithoutDocumentsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutDocumentsInput = {
@@ -855,7 +791,7 @@ export type UserUpdateWithoutDocumentsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -868,6 +804,7 @@ export type UserUpdateWithoutDocumentsInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDocumentsInput = {
@@ -877,7 +814,7 @@ export type UserUncheckedUpdateWithoutDocumentsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -890,6 +827,7 @@ export type UserUncheckedUpdateWithoutDocumentsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutAvatarFileInput = {
@@ -912,6 +850,7 @@ export type UserCreateWithoutAvatarFileInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutAvatarFileInput = {
@@ -934,6 +873,7 @@ export type UserUncheckedCreateWithoutAvatarFileInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutAvatarFileInput = {
@@ -941,38 +881,61 @@ export type UserCreateOrConnectWithoutAvatarFileInput = {
   create: Prisma.XOR<Prisma.UserCreateWithoutAvatarFileInput, Prisma.UserUncheckedCreateWithoutAvatarFileInput>
 }
 
-export type UserCreateManyAvatarFileInputEnvelope = {
-  data: Prisma.UserCreateManyAvatarFileInput | Prisma.UserCreateManyAvatarFileInput[]
-  skipDuplicates?: boolean
-}
-
-export type UserUpsertWithWhereUniqueWithoutAvatarFileInput = {
-  where: Prisma.UserWhereUniqueInput
+export type UserUpsertWithoutAvatarFileInput = {
   update: Prisma.XOR<Prisma.UserUpdateWithoutAvatarFileInput, Prisma.UserUncheckedUpdateWithoutAvatarFileInput>
   create: Prisma.XOR<Prisma.UserCreateWithoutAvatarFileInput, Prisma.UserUncheckedCreateWithoutAvatarFileInput>
+  where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateWithWhereUniqueWithoutAvatarFileInput = {
-  where: Prisma.UserWhereUniqueInput
+export type UserUpdateToOneWithWhereWithoutAvatarFileInput = {
+  where?: Prisma.UserWhereInput
   data: Prisma.XOR<Prisma.UserUpdateWithoutAvatarFileInput, Prisma.UserUncheckedUpdateWithoutAvatarFileInput>
 }
 
-export type UserUpdateManyWithWhereWithoutAvatarFileInput = {
-  where: Prisma.UserScalarWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutAvatarFileInput>
+export type UserUpdateWithoutAvatarFileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
+  WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
+  Projects?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutTranslatorNestedInput
+  Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
+  Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
+  Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
+  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
+  Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
+  Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
-export type UserScalarWhereInput = {
-  AND?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
-  OR?: Prisma.UserScalarWhereInput[]
-  NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
-  id?: Prisma.StringFilter<"User"> | string
-  name?: Prisma.StringFilter<"User"> | string
-  email?: Prisma.StringFilter<"User"> | string
-  emailVerified?: Prisma.BoolFilter<"User"> | boolean
-  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  avatarFileId?: Prisma.IntNullableFilter<"User"> | number | null
+export type UserUncheckedUpdateWithoutAvatarFileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
+  WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
+  Projects?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatorNestedInput
+  Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
+  Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
+  Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
+  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
+  Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
+  Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutGlossariesInput = {
@@ -982,7 +945,7 @@ export type UserCreateWithoutGlossariesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -995,6 +958,7 @@ export type UserCreateWithoutGlossariesInput = {
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutGlossariesInput = {
@@ -1004,7 +968,7 @@ export type UserUncheckedCreateWithoutGlossariesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1017,6 +981,7 @@ export type UserUncheckedCreateWithoutGlossariesInput = {
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutGlossariesInput = {
@@ -1042,7 +1007,7 @@ export type UserUpdateWithoutGlossariesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -1055,6 +1020,7 @@ export type UserUpdateWithoutGlossariesInput = {
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGlossariesInput = {
@@ -1064,7 +1030,7 @@ export type UserUncheckedUpdateWithoutGlossariesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -1077,6 +1043,7 @@ export type UserUncheckedUpdateWithoutGlossariesInput = {
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutTermsInput = {
@@ -1086,7 +1053,7 @@ export type UserCreateWithoutTermsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -1099,6 +1066,7 @@ export type UserCreateWithoutTermsInput = {
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutTermsInput = {
@@ -1108,7 +1076,7 @@ export type UserUncheckedCreateWithoutTermsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1121,6 +1089,7 @@ export type UserUncheckedCreateWithoutTermsInput = {
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutTermsInput = {
@@ -1146,7 +1115,7 @@ export type UserUpdateWithoutTermsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -1159,6 +1128,7 @@ export type UserUpdateWithoutTermsInput = {
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTermsInput = {
@@ -1168,7 +1138,7 @@ export type UserUncheckedUpdateWithoutTermsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -1181,6 +1151,7 @@ export type UserUncheckedUpdateWithoutTermsInput = {
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutMemoriesInput = {
@@ -1190,7 +1161,7 @@ export type UserCreateWithoutMemoriesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -1203,6 +1174,7 @@ export type UserCreateWithoutMemoriesInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutMemoriesInput = {
@@ -1212,7 +1184,7 @@ export type UserUncheckedCreateWithoutMemoriesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1225,6 +1197,7 @@ export type UserUncheckedCreateWithoutMemoriesInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutMemoriesInput = {
@@ -1250,7 +1223,7 @@ export type UserUpdateWithoutMemoriesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -1263,6 +1236,7 @@ export type UserUpdateWithoutMemoriesInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMemoriesInput = {
@@ -1272,7 +1246,7 @@ export type UserUncheckedUpdateWithoutMemoriesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -1285,6 +1259,7 @@ export type UserUncheckedUpdateWithoutMemoriesInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutMemoryItemsInput = {
@@ -1294,7 +1269,7 @@ export type UserCreateWithoutMemoryItemsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -1307,6 +1282,7 @@ export type UserCreateWithoutMemoryItemsInput = {
   Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutMemoryItemsInput = {
@@ -1316,7 +1292,7 @@ export type UserUncheckedCreateWithoutMemoryItemsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1329,6 +1305,7 @@ export type UserUncheckedCreateWithoutMemoryItemsInput = {
   Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutMemoryItemsInput = {
@@ -1354,7 +1331,7 @@ export type UserUpdateWithoutMemoryItemsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -1367,6 +1344,7 @@ export type UserUpdateWithoutMemoryItemsInput = {
   Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMemoryItemsInput = {
@@ -1376,7 +1354,7 @@ export type UserUncheckedUpdateWithoutMemoryItemsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -1389,6 +1367,7 @@ export type UserUncheckedUpdateWithoutMemoryItemsInput = {
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutReadableLanguagesInput = {
@@ -1398,7 +1377,7 @@ export type UserCreateWithoutReadableLanguagesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
   Projects?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
@@ -1411,6 +1390,7 @@ export type UserCreateWithoutReadableLanguagesInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutReadableLanguagesInput = {
@@ -1420,7 +1400,7 @@ export type UserUncheckedCreateWithoutReadableLanguagesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
   Projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
@@ -1433,6 +1413,7 @@ export type UserUncheckedCreateWithoutReadableLanguagesInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutReadableLanguagesInput = {
@@ -1447,7 +1428,7 @@ export type UserCreateWithoutWritableLanguagesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   Projects?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
@@ -1460,6 +1441,7 @@ export type UserCreateWithoutWritableLanguagesInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutWritableLanguagesInput = {
@@ -1469,7 +1451,7 @@ export type UserUncheckedCreateWithoutWritableLanguagesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   Projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
@@ -1482,6 +1464,7 @@ export type UserUncheckedCreateWithoutWritableLanguagesInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutWritableLanguagesInput = {
@@ -1503,6 +1486,18 @@ export type UserUpdateWithWhereUniqueWithoutReadableLanguagesInput = {
 export type UserUpdateManyWithWhereWithoutReadableLanguagesInput = {
   where: Prisma.UserScalarWhereInput
   data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutReadableLanguagesInput>
+}
+
+export type UserScalarWhereInput = {
+  AND?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+  OR?: Prisma.UserScalarWhereInput[]
+  NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+  id?: Prisma.StringFilter<"User"> | string
+  name?: Prisma.StringFilter<"User"> | string
+  email?: Prisma.StringFilter<"User"> | string
+  emailVerified?: Prisma.BoolFilter<"User"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
 
 export type UserUpsertWithWhereUniqueWithoutWritableLanguagesInput = {
@@ -1528,7 +1523,7 @@ export type UserCreateWithoutPermissionsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -1541,6 +1536,7 @@ export type UserCreateWithoutPermissionsInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutPermissionsInput = {
@@ -1550,7 +1546,7 @@ export type UserUncheckedCreateWithoutPermissionsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1563,6 +1559,7 @@ export type UserUncheckedCreateWithoutPermissionsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutPermissionsInput = {
@@ -1588,7 +1585,7 @@ export type UserUpdateWithoutPermissionsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -1601,6 +1598,7 @@ export type UserUpdateWithoutPermissionsInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPermissionsInput = {
@@ -1610,13 +1608,122 @@ export type UserUncheckedUpdateWithoutPermissionsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
   Projects?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatorNestedInput
   Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
+  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
+  Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
+  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
+  Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
+  Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
+}
+
+export type UserCreateWithoutPluginUserConfigInstancesInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
+  Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
+  WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
+  Projects?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
+  Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatorInput
+  Documents?: Prisma.DocumentCreateNestedManyWithoutCreatorInput
+  Permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  TranslationVotes?: Prisma.TranslationVoteCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentCreateNestedManyWithoutUserInput
+  Memories?: Prisma.MemoryCreateNestedManyWithoutCreatorInput
+  MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
+  Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
+  Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+}
+
+export type UserUncheckedCreateWithoutPluginUserConfigInstancesInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
+  Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
+  WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
+  Projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
+  Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatorInput
+  Documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatorInput
+  Permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  TranslationVotes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutVoterInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutUserInput
+  Memories?: Prisma.MemoryUncheckedCreateNestedManyWithoutCreatorInput
+  MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
+  Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
+  Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+}
+
+export type UserCreateOrConnectWithoutPluginUserConfigInstancesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPluginUserConfigInstancesInput, Prisma.UserUncheckedCreateWithoutPluginUserConfigInstancesInput>
+}
+
+export type UserUpsertWithoutPluginUserConfigInstancesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPluginUserConfigInstancesInput, Prisma.UserUncheckedUpdateWithoutPluginUserConfigInstancesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPluginUserConfigInstancesInput, Prisma.UserUncheckedCreateWithoutPluginUserConfigInstancesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPluginUserConfigInstancesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPluginUserConfigInstancesInput, Prisma.UserUncheckedUpdateWithoutPluginUserConfigInstancesInput>
+}
+
+export type UserUpdateWithoutPluginUserConfigInstancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
+  Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
+  WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
+  Projects?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutTranslatorNestedInput
+  Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
+  Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
+  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
+  Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
+  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
+  Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
+  Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPluginUserConfigInstancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
+  Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
+  WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
+  Projects?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatorNestedInput
+  Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
+  Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
   TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
   TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
   Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
@@ -1632,7 +1739,7 @@ export type UserCreateWithoutProjectsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -1645,6 +1752,7 @@ export type UserCreateWithoutProjectsInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutProjectsInput = {
@@ -1654,7 +1762,7 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1667,6 +1775,7 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutProjectsInput = {
@@ -1692,7 +1801,7 @@ export type UserUpdateWithoutProjectsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -1705,6 +1814,7 @@ export type UserUpdateWithoutProjectsInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectsInput = {
@@ -1714,7 +1824,7 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -1727,6 +1837,7 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutTranslationsInput = {
@@ -1736,7 +1847,7 @@ export type UserCreateWithoutTranslationsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -1749,6 +1860,7 @@ export type UserCreateWithoutTranslationsInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutTranslationsInput = {
@@ -1758,7 +1870,7 @@ export type UserUncheckedCreateWithoutTranslationsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1771,6 +1883,7 @@ export type UserUncheckedCreateWithoutTranslationsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutTranslationsInput = {
@@ -1796,7 +1909,7 @@ export type UserUpdateWithoutTranslationsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -1809,6 +1922,7 @@ export type UserUpdateWithoutTranslationsInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTranslationsInput = {
@@ -1818,7 +1932,7 @@ export type UserUncheckedUpdateWithoutTranslationsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -1831,6 +1945,7 @@ export type UserUncheckedUpdateWithoutTranslationsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutTranslationVotesInput = {
@@ -1840,7 +1955,7 @@ export type UserCreateWithoutTranslationVotesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -1853,6 +1968,7 @@ export type UserCreateWithoutTranslationVotesInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutTranslationVotesInput = {
@@ -1862,7 +1978,7 @@ export type UserUncheckedCreateWithoutTranslationVotesInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1875,6 +1991,7 @@ export type UserUncheckedCreateWithoutTranslationVotesInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutTranslationVotesInput = {
@@ -1900,7 +2017,7 @@ export type UserUpdateWithoutTranslationVotesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -1913,6 +2030,7 @@ export type UserUpdateWithoutTranslationVotesInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTranslationVotesInput = {
@@ -1922,7 +2040,7 @@ export type UserUncheckedUpdateWithoutTranslationVotesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -1935,6 +2053,7 @@ export type UserUncheckedUpdateWithoutTranslationVotesInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutTranslationApprovmentsInput = {
@@ -1944,7 +2063,7 @@ export type UserCreateWithoutTranslationApprovmentsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
@@ -1957,6 +2076,7 @@ export type UserCreateWithoutTranslationApprovmentsInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutTranslationApprovmentsInput = {
@@ -1966,7 +2086,7 @@ export type UserUncheckedCreateWithoutTranslationApprovmentsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   Accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
@@ -1979,6 +2099,7 @@ export type UserUncheckedCreateWithoutTranslationApprovmentsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutTranslationApprovmentsInput = {
@@ -2004,7 +2125,7 @@ export type UserUpdateWithoutTranslationApprovmentsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
@@ -2017,6 +2138,7 @@ export type UserUpdateWithoutTranslationApprovmentsInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTranslationApprovmentsInput = {
@@ -2026,7 +2148,7 @@ export type UserUncheckedUpdateWithoutTranslationApprovmentsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
@@ -2039,6 +2161,7 @@ export type UserUncheckedUpdateWithoutTranslationApprovmentsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -2048,7 +2171,7 @@ export type UserCreateWithoutAccountsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  AvatarFile?: Prisma.FileCreateNestedOneWithoutUsersInput
+  AvatarFile?: Prisma.FileCreateNestedOneWithoutUserInput
   ReadableLanguages?: Prisma.LanguageCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageCreateNestedManyWithoutWritableUsersInput
   Projects?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
@@ -2061,6 +2184,7 @@ export type UserCreateWithoutAccountsInput = {
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceCreateNestedManyWithoutCreatorInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -2070,7 +2194,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   emailVerified?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  avatarFileId?: number | null
+  AvatarFile?: Prisma.FileUncheckedCreateNestedOneWithoutUserInput
   ReadableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutReadableUsersInput
   WritableLanguages?: Prisma.LanguageUncheckedCreateNestedManyWithoutWritableUsersInput
   Projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
@@ -2083,6 +2207,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutCreatorInput
   Glossaries?: Prisma.GlossaryUncheckedCreateNestedManyWithoutCreatorInput
   Terms?: Prisma.TermUncheckedCreateNestedManyWithoutCreatorInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedCreateNestedManyWithoutCreatorInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -2108,7 +2233,7 @@ export type UserUpdateWithoutAccountsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
   Projects?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
@@ -2121,6 +2246,7 @@ export type UserUpdateWithoutAccountsInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -2130,7 +2256,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
   Projects?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
@@ -2143,68 +2269,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
-}
-
-export type UserCreateManyAvatarFileInput = {
-  id?: string
-  name: string
-  email: string
-  emailVerified?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type UserUpdateWithoutAvatarFileInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
-  ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
-  WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
-  Projects?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
-  Translations?: Prisma.TranslationUpdateManyWithoutTranslatorNestedInput
-  Documents?: Prisma.DocumentUpdateManyWithoutCreatorNestedInput
-  Permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
-  TranslationVotes?: Prisma.TranslationVoteUpdateManyWithoutVoterNestedInput
-  TranslationApprovments?: Prisma.TranslationApprovmentUpdateManyWithoutUserNestedInput
-  Memories?: Prisma.MemoryUpdateManyWithoutCreatorNestedInput
-  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
-  Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
-  Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
-}
-
-export type UserUncheckedUpdateWithoutAvatarFileInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
-  ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
-  WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
-  Projects?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
-  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatorNestedInput
-  Documents?: Prisma.DocumentUncheckedUpdateManyWithoutCreatorNestedInput
-  Permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
-  TranslationVotes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutVoterNestedInput
-  TranslationApprovments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutUserNestedInput
-  Memories?: Prisma.MemoryUncheckedUpdateManyWithoutCreatorNestedInput
-  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
-  Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
-  Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
-}
-
-export type UserUncheckedUpdateManyWithoutAvatarFileInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUpdateWithoutReadableLanguagesInput = {
@@ -2214,7 +2279,7 @@ export type UserUpdateWithoutReadableLanguagesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   WritableLanguages?: Prisma.LanguageUpdateManyWithoutWritableUsersNestedInput
   Projects?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
@@ -2227,6 +2292,7 @@ export type UserUpdateWithoutReadableLanguagesInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReadableLanguagesInput = {
@@ -2236,7 +2302,7 @@ export type UserUncheckedUpdateWithoutReadableLanguagesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   WritableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutWritableUsersNestedInput
   Projects?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
@@ -2249,6 +2315,7 @@ export type UserUncheckedUpdateWithoutReadableLanguagesInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutReadableLanguagesInput = {
@@ -2258,7 +2325,6 @@ export type UserUncheckedUpdateManyWithoutReadableLanguagesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type UserUpdateWithoutWritableLanguagesInput = {
@@ -2268,7 +2334,7 @@ export type UserUpdateWithoutWritableLanguagesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  AvatarFile?: Prisma.FileUpdateOneWithoutUsersNestedInput
+  AvatarFile?: Prisma.FileUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUpdateManyWithoutReadableUsersNestedInput
   Projects?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
@@ -2281,6 +2347,7 @@ export type UserUpdateWithoutWritableLanguagesInput = {
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWritableLanguagesInput = {
@@ -2290,7 +2357,7 @@ export type UserUncheckedUpdateWithoutWritableLanguagesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AvatarFile?: Prisma.FileUncheckedUpdateOneWithoutUserNestedInput
   Accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   ReadableLanguages?: Prisma.LanguageUncheckedUpdateManyWithoutReadableUsersNestedInput
   Projects?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
@@ -2303,6 +2370,7 @@ export type UserUncheckedUpdateWithoutWritableLanguagesInput = {
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutCreatorNestedInput
   Glossaries?: Prisma.GlossaryUncheckedUpdateManyWithoutCreatorNestedInput
   Terms?: Prisma.TermUncheckedUpdateManyWithoutCreatorNestedInput
+  PluginUserConfigInstances?: Prisma.PluginUserConfigInstanceUncheckedUpdateManyWithoutCreatorNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutWritableLanguagesInput = {
@@ -2312,7 +2380,6 @@ export type UserUncheckedUpdateManyWithoutWritableLanguagesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  avatarFileId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -2334,6 +2401,7 @@ export type UserCountOutputType = {
   MemoryItems: number
   Glossaries: number
   Terms: number
+  PluginUserConfigInstances: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2350,6 +2418,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   MemoryItems?: boolean | UserCountOutputTypeCountMemoryItemsArgs
   Glossaries?: boolean | UserCountOutputTypeCountGlossariesArgs
   Terms?: boolean | UserCountOutputTypeCountTermsArgs
+  PluginUserConfigInstances?: boolean | UserCountOutputTypeCountPluginUserConfigInstancesArgs
 }
 
 /**
@@ -2453,6 +2522,13 @@ export type UserCountOutputTypeCountTermsArgs<ExtArgs extends runtime.Types.Exte
   where?: Prisma.TermWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPluginUserConfigInstancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PluginUserConfigInstanceWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2461,7 +2537,6 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   emailVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  avatarFileId?: boolean
   AvatarFile?: boolean | Prisma.User$AvatarFileArgs<ExtArgs>
   Accounts?: boolean | Prisma.User$AccountsArgs<ExtArgs>
   ReadableLanguages?: boolean | Prisma.User$ReadableLanguagesArgs<ExtArgs>
@@ -2476,6 +2551,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   MemoryItems?: boolean | Prisma.User$MemoryItemsArgs<ExtArgs>
   Glossaries?: boolean | Prisma.User$GlossariesArgs<ExtArgs>
   Terms?: boolean | Prisma.User$TermsArgs<ExtArgs>
+  PluginUserConfigInstances?: boolean | Prisma.User$PluginUserConfigInstancesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2486,8 +2562,6 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   emailVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  avatarFileId?: boolean
-  AvatarFile?: boolean | Prisma.User$AvatarFileArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2497,8 +2571,6 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   emailVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  avatarFileId?: boolean
-  AvatarFile?: boolean | Prisma.User$AvatarFileArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -2508,10 +2580,9 @@ export type UserSelectScalar = {
   emailVerified?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  avatarFileId?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "createdAt" | "updatedAt" | "avatarFileId", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   AvatarFile?: boolean | Prisma.User$AvatarFileArgs<ExtArgs>
   Accounts?: boolean | Prisma.User$AccountsArgs<ExtArgs>
@@ -2527,14 +2598,11 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   MemoryItems?: boolean | Prisma.User$MemoryItemsArgs<ExtArgs>
   Glossaries?: boolean | Prisma.User$GlossariesArgs<ExtArgs>
   Terms?: boolean | Prisma.User$TermsArgs<ExtArgs>
+  PluginUserConfigInstances?: boolean | Prisma.User$PluginUserConfigInstancesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  AvatarFile?: boolean | Prisma.User$AvatarFileArgs<ExtArgs>
-}
-export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  AvatarFile?: boolean | Prisma.User$AvatarFileArgs<ExtArgs>
-}
+export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
@@ -2553,6 +2621,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     MemoryItems: Prisma.$MemoryItemPayload<ExtArgs>[]
     Glossaries: Prisma.$GlossaryPayload<ExtArgs>[]
     Terms: Prisma.$TermPayload<ExtArgs>[]
+    PluginUserConfigInstances: Prisma.$PluginUserConfigInstancePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2561,7 +2630,6 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     emailVerified: boolean
     createdAt: Date
     updatedAt: Date
-    avatarFileId: number | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -2970,6 +3038,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   MemoryItems<T extends Prisma.User$MemoryItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$MemoryItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Glossaries<T extends Prisma.User$GlossariesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$GlossariesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GlossaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Terms<T extends Prisma.User$TermsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$TermsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TermPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  PluginUserConfigInstances<T extends Prisma.User$PluginUserConfigInstancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$PluginUserConfigInstancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PluginUserConfigInstancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3005,7 +3074,6 @@ export interface UserFieldRefs {
   readonly emailVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
-  readonly avatarFileId: Prisma.FieldRef<"User", 'Int'>
 }
     
 
@@ -3255,10 +3323,6 @@ export type UserCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions
    */
   data: Prisma.UserCreateManyInput | Prisma.UserCreateManyInput[]
   skipDuplicates?: boolean
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -3329,10 +3393,6 @@ export type UserUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions
    * Limit how many Users to update.
    */
   limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -3730,6 +3790,30 @@ export type User$TermsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.TermScalarFieldEnum | Prisma.TermScalarFieldEnum[]
+}
+
+/**
+ * User.PluginUserConfigInstances
+ */
+export type User$PluginUserConfigInstancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PluginUserConfigInstance
+   */
+  select?: Prisma.PluginUserConfigInstanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PluginUserConfigInstance
+   */
+  omit?: Prisma.PluginUserConfigInstanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PluginUserConfigInstanceInclude<ExtArgs> | null
+  where?: Prisma.PluginUserConfigInstanceWhereInput
+  orderBy?: Prisma.PluginUserConfigInstanceOrderByWithRelationInput | Prisma.PluginUserConfigInstanceOrderByWithRelationInput[]
+  cursor?: Prisma.PluginUserConfigInstanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PluginUserConfigInstanceScalarFieldEnum | Prisma.PluginUserConfigInstanceScalarFieldEnum[]
 }
 
 /**

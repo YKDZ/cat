@@ -12,7 +12,7 @@ const isOpen = ref(false);
 </script>
 
 <template>
-  <Button icon="i-mdi:plus" @click="isOpen = true">插入术语</Button>
+  <Button icon="i-mdi:plus" @click="isOpen = true">{{ $t("插入术语") }}</Button>
   <Modal v-model:is-open="isOpen">
     <div class="px-10 py-6 rounded-sm bg-highlight">
       <GlossaryInsertTermText :glossary-id />

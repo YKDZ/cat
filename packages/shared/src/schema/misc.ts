@@ -1,5 +1,19 @@
 import { z } from "zod/v4";
 
+export const PrismaErrorSchema = z.object({
+  code: z.string(),
+  meta: z.string(),
+  message: z.string(),
+  clientVersion: z.string(),
+});
+
+export const PrimsaDateTime = z.date().or(z.iso.date());
+
+export const TranslationAdvisorDataSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
 export const AuthMethodSchema = z.object({
   providerId: z.string(),
   providerType: z.string(),
@@ -46,6 +60,13 @@ export const TermDataSchema = z.object({
   translationLanguageId: z.string(),
 });
 
+export const FileMetaSchema = z.object({
+  name: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+});
+
+export type FileMeta = z.infer<typeof FileMetaSchema>;
 export type TranslationSuggestion = z.infer<typeof TranslationSuggestionSchema>;
 export type TranslatableElementData = z.infer<
   typeof TranslatableElementDataSchema
@@ -61,3 +82,7 @@ export type UnvectorizedTextData = z.infer<typeof UnvectorizedTextDataSchema>;
 export type TermData = z.infer<typeof TermDataSchema>;
 export type AuthMethod = z.infer<typeof AuthMethodSchema>;
 export type JSONType = z.infer<ReturnType<typeof z.json>>;
+export type PrismaError = z.infer<typeof PrismaErrorSchema>;
+export type TranslationAdvisorData = z.infer<
+  typeof TranslationAdvisorDataSchema
+>;

@@ -22,8 +22,8 @@ const skipNextUpdate = ref(false);
 const value = shallowRef<JSONType[]>(props.data);
 
 const itemsSchema = computed(() => {
-  // TODO 还可能是一个数组
-  return (schema.items as JSONSchema.JSONSchema) ?? [];
+  // Draft 2020-12 以后 items 不再能是数组
+  return schema.items as JSONSchema.JSONSchema;
 });
 
 const prefixItemsSchemas = computed(() => {

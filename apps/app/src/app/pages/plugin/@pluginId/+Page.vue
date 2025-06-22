@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import PluginConfigs from "@/app/components/PluginConfigs.vue";
-import PluginDeleteBtn from "@/app/components/PluginDeleteBtn.vue";
-import { pluginKey } from "@/app/utils/provide";
-import { inject } from "vue";
+import { useData } from "vike-vue/useData";
+import { computed, ref } from "vue";
+import PluginUserConfigs from "@/app/components/PluginUserConfigs.vue";
+import { usePageContext } from "vike-vue/usePageContext";
+import { usePluginStore } from "@/app/stores/plugin";
+import type { Plugin } from "@cat/shared";
+import { storeToRefs } from "pinia";
 
-const plugin = inject(pluginKey);
+const { pluginId } = usePageContext().routeParams;
+const { plugins } = storeToRefs(usePluginStore());
+
+const plugin = computed<Plugin | null>(() => {
+  return plugins.value.find((plugin) => plugin.id === pluginId) ?? null;
+});
 </script>
 
 <template>
-  <PluginConfigs v-if="plugin" :configs="plugin.Configs!" />
-  <PluginDeleteBtn v-if="plugin" :id="plugin.id" />
+  <PluginUserConfigs v-if="plugin" :configs="plugin.Configs!" />
 </template>

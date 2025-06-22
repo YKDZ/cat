@@ -1,9 +1,9 @@
 import type { Plugin } from "@cat/shared";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { shallowRef } from "vue";
 
 export const usePluginStore = defineStore("plugin", () => {
-  const plugins = ref<Plugin[]>([]);
+  const plugins = shallowRef<Plugin[]>([]);
 
   const addPlugins = (...pluginsToAdd: Plugin[]) => {
     for (const plugin of pluginsToAdd) {

@@ -62,6 +62,7 @@ export type TranslationCountAggregateOutputType = {
   value: number
   createdAt: number
   updatedAt: number
+  meta: number
   translatorId: number
   translatableElementId: number
   languageId: number
@@ -104,6 +105,7 @@ export type TranslationCountAggregateInputType = {
   value?: true
   createdAt?: true
   updatedAt?: true
+  meta?: true
   translatorId?: true
   translatableElementId?: true
   languageId?: true
@@ -201,6 +203,7 @@ export type TranslationGroupByOutputType = {
   value: string
   createdAt: Date
   updatedAt: Date
+  meta: unknown | null
   translatorId: string
   translatableElementId: number
   languageId: string
@@ -234,6 +237,7 @@ export type TranslationWhereInput = {
   value?: Prisma.StringFilter<"Translation"> | string
   createdAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
+  meta?: Prisma.JsonNullableFilter<"Translation">
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
@@ -250,6 +254,7 @@ export type TranslationOrderByWithRelationInput = {
   value?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  meta?: Prisma.SortOrderInput | Prisma.SortOrder
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
@@ -271,6 +276,7 @@ export type TranslationWhereUniqueInput = Prisma.AtLeast<{
   value?: Prisma.StringFilter<"Translation"> | string
   createdAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
+  meta?: Prisma.JsonNullableFilter<"Translation">
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
@@ -287,6 +293,7 @@ export type TranslationOrderByWithAggregationInput = {
   value?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  meta?: Prisma.SortOrderInput | Prisma.SortOrder
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
@@ -305,6 +312,7 @@ export type TranslationScalarWhereWithAggregatesInput = {
   value?: Prisma.StringWithAggregatesFilter<"Translation"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Translation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Translation"> | Date | string
+  meta?: Prisma.JsonNullableWithAggregatesFilter<"Translation">
   translatorId?: Prisma.StringWithAggregatesFilter<"Translation"> | string
   translatableElementId?: Prisma.IntWithAggregatesFilter<"Translation"> | number
   languageId?: Prisma.StringWithAggregatesFilter<"Translation"> | string
@@ -314,6 +322,7 @@ export type TranslationCreateInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
@@ -327,6 +336,7 @@ export type TranslationUncheckedCreateInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
   languageId: string
@@ -339,6 +349,7 @@ export type TranslationUpdateInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
@@ -352,6 +363,7 @@ export type TranslationUncheckedUpdateInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -365,6 +377,7 @@ export type TranslationCreateManyInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
   languageId: string
@@ -374,6 +387,7 @@ export type TranslationUpdateManyMutationInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
 }
 
 export type TranslationUncheckedUpdateManyInput = {
@@ -381,6 +395,7 @@ export type TranslationUncheckedUpdateManyInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -419,6 +434,7 @@ export type TranslationCountOrderByAggregateInput = {
   value?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  meta?: Prisma.SortOrder
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
@@ -633,6 +649,7 @@ export type TranslationCreateWithoutTranslatableElementInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
@@ -645,6 +662,7 @@ export type TranslationUncheckedCreateWithoutTranslatableElementInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   languageId: string
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
@@ -686,6 +704,7 @@ export type TranslationScalarWhereInput = {
   value?: Prisma.StringFilter<"Translation"> | string
   createdAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Translation"> | Date | string
+  meta?: Prisma.JsonNullableFilter<"Translation">
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
@@ -695,6 +714,7 @@ export type TranslationCreateWithoutMemoryItemsInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
@@ -707,6 +727,7 @@ export type TranslationUncheckedCreateWithoutMemoryItemsInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
   languageId: string
@@ -734,6 +755,7 @@ export type TranslationUpdateWithoutMemoryItemsInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
@@ -746,6 +768,7 @@ export type TranslationUncheckedUpdateWithoutMemoryItemsInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -757,6 +780,7 @@ export type TranslationCreateWithoutLanguageInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
@@ -769,6 +793,7 @@ export type TranslationUncheckedCreateWithoutLanguageInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
@@ -806,6 +831,7 @@ export type TranslationCreateWithoutVotesInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
@@ -818,6 +844,7 @@ export type TranslationUncheckedCreateWithoutVotesInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
   languageId: string
@@ -845,6 +872,7 @@ export type TranslationUpdateWithoutVotesInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
@@ -857,6 +885,7 @@ export type TranslationUncheckedUpdateWithoutVotesInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -868,6 +897,7 @@ export type TranslationCreateWithoutApprovmentsInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
@@ -880,6 +910,7 @@ export type TranslationUncheckedCreateWithoutApprovmentsInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
   languageId: string
@@ -907,6 +938,7 @@ export type TranslationUpdateWithoutApprovmentsInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
@@ -919,6 +951,7 @@ export type TranslationUncheckedUpdateWithoutApprovmentsInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -930,6 +963,7 @@ export type TranslationCreateWithoutTranslatorInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
@@ -942,6 +976,7 @@ export type TranslationUncheckedCreateWithoutTranslatorInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatableElementId: number
   languageId: string
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
@@ -980,6 +1015,7 @@ export type TranslationCreateManyTranslatableElementInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   languageId: string
 }
@@ -988,6 +1024,7 @@ export type TranslationUpdateWithoutTranslatableElementInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
@@ -1000,6 +1037,7 @@ export type TranslationUncheckedUpdateWithoutTranslatableElementInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
@@ -1012,6 +1050,7 @@ export type TranslationUncheckedUpdateManyWithoutTranslatableElementInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1021,6 +1060,7 @@ export type TranslationCreateManyLanguageInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
 }
@@ -1029,6 +1069,7 @@ export type TranslationUpdateWithoutLanguageInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
@@ -1041,6 +1082,7 @@ export type TranslationUncheckedUpdateWithoutLanguageInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
@@ -1053,6 +1095,7 @@ export type TranslationUncheckedUpdateManyWithoutLanguageInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -1062,6 +1105,7 @@ export type TranslationCreateManyTranslatorInput = {
   value: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatableElementId: number
   languageId: string
 }
@@ -1070,6 +1114,7 @@ export type TranslationUpdateWithoutTranslatorInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
@@ -1082,6 +1127,7 @@ export type TranslationUncheckedUpdateWithoutTranslatorInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
@@ -1094,6 +1140,7 @@ export type TranslationUncheckedUpdateManyWithoutTranslatorInput = {
   value?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1152,6 +1199,7 @@ export type TranslationSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   value?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  meta?: boolean
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
@@ -1169,6 +1217,7 @@ export type TranslationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   value?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  meta?: boolean
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
@@ -1182,6 +1231,7 @@ export type TranslationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   value?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  meta?: boolean
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
@@ -1195,12 +1245,13 @@ export type TranslationSelectScalar = {
   value?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  meta?: boolean
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
 }
 
-export type TranslationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "value" | "createdAt" | "updatedAt" | "translatorId" | "translatableElementId" | "languageId", ExtArgs["result"]["translation"]>
+export type TranslationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "value" | "createdAt" | "updatedAt" | "meta" | "translatorId" | "translatableElementId" | "languageId", ExtArgs["result"]["translation"]>
 export type TranslationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
@@ -1236,6 +1287,7 @@ export type $TranslationPayload<ExtArgs extends runtime.Types.Extensions.Interna
     value: string
     createdAt: Date
     updatedAt: Date
+    meta: unknown | null
     translatorId: string
     translatableElementId: number
     languageId: string
@@ -1672,6 +1724,7 @@ export interface TranslationFieldRefs {
   readonly value: Prisma.FieldRef<"Translation", 'String'>
   readonly createdAt: Prisma.FieldRef<"Translation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Translation", 'DateTime'>
+  readonly meta: Prisma.FieldRef<"Translation", 'Json'>
   readonly translatorId: Prisma.FieldRef<"Translation", 'String'>
   readonly translatableElementId: Prisma.FieldRef<"Translation", 'Int'>
   readonly languageId: Prisma.FieldRef<"Translation", 'String'>

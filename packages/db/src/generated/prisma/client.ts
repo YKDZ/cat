@@ -129,6 +129,11 @@ export type PluginPermission = Prisma.PluginPermissionModel
  */
 export type PluginConfig = Prisma.PluginConfigModel
 /**
+ * Model PluginUserConfigInstance
+ * 
+ */
+export type PluginUserConfigInstance = Prisma.PluginUserConfigInstanceModel
+/**
  * Model PluginTag
  * 
  */

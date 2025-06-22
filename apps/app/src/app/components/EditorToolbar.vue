@@ -7,7 +7,7 @@ import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
 const { translate, jumpToNextUntranslated, replace, clear } = useEditorStore();
 const { undo, redo } = useEditorStore();
 
-const { element } = storeToRefs(useEditorStore());
+const { element, selectedTranslationId } = storeToRefs(useEditorStore());
 
 const handleTranslate = async (jumpToNext: boolean) => {
   await translate();
@@ -55,7 +55,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
         @click="handleTranslate(false)"
         @magic-click="handleTranslate(false)"
       >
-        提交
+        {{ selectedTranslationId ? $t("更新") : $t("提交") }}
       </Button>
       <Button
         transparent
@@ -64,7 +64,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
         @click="handleTranslate(true)"
         @magic-click="handleTranslate(true)"
       >
-        提交并继续
+        {{ selectedTranslationId ? $t("更新并继续") : $t("提交并继续") }}
       </Button>
     </div>
   </div>

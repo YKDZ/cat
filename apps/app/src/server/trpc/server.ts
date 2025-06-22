@@ -1,7 +1,21 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { HttpContext } from "./context";
+import { z, ZodError } from "zod/v4";
 
-const t = initTRPC.context<HttpContext>().create();
+const t = initTRPC.context<HttpContext>().create({
+  errorFormatter({ error, shape }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.code === "BAD_REQUEST" && error.cause instanceof ZodError
+            ? z.treeifyError(error.cause)
+            : null,
+      },
+    };
+  },
+});
 
 export const { createCallerFactory, router } = t;
 export const publicProcedure = t.procedure;
@@ -16,7 +30,6 @@ export const authedProcedure = t.procedure.use(async ({ ctx, next }) => {
   return await next({
     ctx: {
       user,
-      isInited: undefined,
     },
   });
 });

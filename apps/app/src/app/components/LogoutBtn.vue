@@ -4,7 +4,9 @@ import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
 import Button from "./Button.vue";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const { info, trpcWarn } = useToastStore();
 
 const isProcessing = ref<boolean>(false);
@@ -13,13 +15,13 @@ const handleLogout = () => {
   if (isProcessing.value) return;
 
   isProcessing.value = true;
-  info("登出中...");
+  info(t("登出中..."));
 
   trpc.auth.logout
     .mutate()
     .then(() => {
-      info("登出成功");
-      info("即将前往主界面...");
+      info(t("登出成功"));
+      info(t("即将前往主界面..."));
       navigate("/");
     })
     .catch(trpcWarn)
@@ -37,6 +39,6 @@ const handleLogout = () => {
     icon="i-mdi:logout"
     @click="handleLogout"
   >
-    登出
+    {{ $t("登出") }}
   </Button>
 </template>

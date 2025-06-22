@@ -3,6 +3,7 @@ import { authedProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@cat/db";
 import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
+import { autoTranslateQueue } from "@/server/processor/autoTranslate";
 
 export const translationRouter = router({
   delete: authedProcedure
@@ -328,6 +329,85 @@ export const translationRouter = router({
             })),
           })
         ).count;
+      });
+    }),
+  autoTranslate: authedProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        advisorId: z.string().nullable(),
+        languageId: z.string(),
+        minMemorySimilarity: z.number().default(0.72),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { user, pluginRegistry } = ctx;
+      const { documentId, advisorId, languageId, minMemorySimilarity } = input;
+
+      const document = await prisma.document.findUnique({
+        where: {
+          id: documentId,
+          Project: {
+            TargetLanguages: {
+              some: {
+                id: languageId,
+              },
+            },
+          },
+        },
+        select: {
+          Project: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (!document)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Document does not exists or language does not claimed in project",
+        });
+
+      if (advisorId) {
+        const advisor = (
+          await pluginRegistry.getTranslationAdvisors({
+            userId: user.id,
+          })
+        ).find((advisor) => advisor.getId() === advisorId);
+
+        if (!advisor)
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Advisor with given id does not exists",
+          });
+
+        if (!advisor.isEnabled())
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Advisor with given id does not enabled",
+          });
+      }
+
+      const task = await prisma.task.create({
+        data: {
+          type: "auto_translate",
+          meta: {
+            projectId: document.Project.id,
+            documentId,
+          },
+        },
+      });
+
+      await autoTranslateQueue.add(task.id, {
+        taskId: task.id,
+        userId: user.id,
+        documentId,
+        advisorId,
+        languageId,
+        minMemorySimilarity,
       });
     }),
 });

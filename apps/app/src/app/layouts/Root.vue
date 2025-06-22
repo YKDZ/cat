@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import "virtual:uno.css";
 import Toast from "../components/Toast.vue";
-import { onMounted, watch } from "vue";
+import { onBeforeMount, onMounted, watch } from "vue";
 import { useLanguageStore } from "../stores/language";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useUserStore } from "../stores/user";
@@ -29,6 +29,8 @@ watch(
   },
   { immediate: true },
 );
+
+onBeforeMount(() => {});
 
 onMounted(() => {
   useLanguageStore().update();

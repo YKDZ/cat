@@ -23,6 +23,10 @@ const containerStyle = computed(() => ({
 const imgStyle = computed(() => ({
   width: props.size + "px",
   height: props.size + "px",
+  maxWidth: props.size + "px",
+  maxHeight: props.size + "px",
+  minWidth: props.size + "px",
+  minHeight: props.size + "px",
   "font-size": props.size * 0.6 + "px",
 }));
 
@@ -67,7 +71,7 @@ onMounted(async () => {
         v-show="!isFallback"
         :src="avatar"
         :style="imgStyle"
-        class="rounded-full object-cover"
+        class="rounded-full aspect-square object-cover"
         @load="handleImgLoad"
         @error="handleImgError"
       />

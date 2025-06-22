@@ -9,10 +9,19 @@ export const formatSize = (bytes: number): string => {
 };
 
 export const uploadFileToS3PresignedURL = async (file: File, url: string) => {
+  const arrayBuffer = await file.arrayBuffer();
+
+  // 使用 Web Crypto API 计算 SHA-256
+  const digestBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+  const checksumSHA256 = btoa(
+    String.fromCharCode(...new Uint8Array(digestBuffer)),
+  );
+
   await fetch(url, {
     method: "PUT",
     headers: {
       "Content-Type": file.type,
+      "x-amz-checksum-sha256": checksumSHA256,
     },
     body: file,
     mode: "cors",

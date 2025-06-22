@@ -3,7 +3,7 @@
   "entry": "dist/index.mjs",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
-    "机器翻译"
+    "translation-advisor"
   ],
   "configs": [
     {
@@ -14,25 +14,25 @@
       }
     },
     {
-      "key": "api.url",
+      "key": "api",
+      "userOverridable": true,
       "schema": {
-        "type": "string",
-        "format": "url",
-        "default": "http://libreTranslate:5000/"
-      }
-    },
-    {
-      "key": "api.key",
-      "schema": {
-        "type": "string",
-        "default": "your api key"
-      }
-    },
-    {
-      "key": "api.alternatives-amount",
-      "schema": {
-        "type": "number",
-        "default": 2
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "url",
+            "default": "http://libreTranslate:5000/"
+          },
+          "key": {
+            "type": "string",
+            "default": "your api key"
+          },
+          "alternatives-amount": {
+            "type": "number",
+            "default": 2
+          }
+        }
       }
     }
   ]

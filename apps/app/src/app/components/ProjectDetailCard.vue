@@ -12,7 +12,7 @@ const project = inject(projectKey);
     class="px-5 py-4 rounded-xl bg-highlight-darker text-nowrap"
   >
     <h3 class="font-bold pb-4 flex gap-5 w-full items-center justify-between">
-      项目详情
+      {{ $t("项目详情") }}
     </h3>
     <p class="text-sm line-height-loose flex gap-3 justify-between">
       ID <span>{{ project.id }}</span>

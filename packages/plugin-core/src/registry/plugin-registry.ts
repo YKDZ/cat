@@ -1,52 +1,69 @@
-import { pathToFileURL } from "url";
 import { prisma } from "@cat/db";
-import { z } from "zod/v4";
-import type { PluginConfig } from "@cat/shared";
-import { logger, PluginConfigSchema, PluginManifestSchema } from "@cat/shared";
+import { logger, PluginManifestSchema } from "@cat/shared";
+import { existsSync, readdirSync } from "fs";
+import { readFile } from "fs/promises";
 import { join } from "path";
+import { pathToFileURL } from "url";
+import { z } from "zod/v4";
+import type { AuthProvider } from "./auth-provider";
 import type { TextVectorizer } from "./text-vectorizer";
 import type { TranslatableFileHandler } from "./translatable-file-handler";
 import type { TranslationAdvisor } from "./translation-advisor";
-import type { AuthProvider } from "./auth-provider";
-import { existsSync, readdirSync, readFileSync } from "fs";
-import { readFile } from "fs/promises";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
 export type PluginLoadOptions = {
-  configs: PluginConfig[];
+  configs: {
+    key: string;
+    value: unknown;
+  }[];
+};
+
+export type LoadPluginsOptions = {
+  silent?: boolean;
+  tags?: string[];
+};
+
+export type GetTranslationAdvisorsOptions = {
+  userConfigs?: {
+    key: string;
+    value: unknown;
+  }[];
 };
 
 export interface CatPlugin {
   onLoaded: (options: PluginLoadOptions) => Promise<void>;
   getTextVectorizers?: () => TextVectorizer[];
   getTranslatableFileHandlers?: () => TranslatableFileHandler[];
-  getTranslationAdvisors?: () => TranslationAdvisor[];
+  getTranslationAdvisors?: (
+    options?: GetTranslationAdvisorsOptions,
+  ) => TranslationAdvisor[];
   getAuthProviders?: () => AuthProvider[];
 }
 
 const PluginObjectSchema = z.custom<CatPlugin>();
 
 export class PluginRegistry {
-  private static instance: PluginRegistry;
   private plugins: Map<string, CatPlugin> = new Map();
 
-  private constructor() {}
+  public constructor() {}
 
-  public static getInstance(): PluginRegistry {
-    if (!PluginRegistry.instance) {
-      PluginRegistry.instance = new PluginRegistry();
-    }
-    return PluginRegistry.instance;
-  }
-
-  public async loadPlugins() {
+  public async loadPlugins(options?: LoadPluginsOptions) {
     this.plugins.clear();
-    logger.info("PLUGIN", "Prepared to load plugins...");
+    if (!options?.silent) logger.info("PLUGIN", "Prepared to load plugins...");
 
     const plugins = await prisma.plugin.findMany({
       where: {
         enabled: true,
+        Tags: options?.tags
+          ? {
+              some: {
+                name: {
+                  in: options.tags,
+                },
+              },
+            }
+          : undefined,
       },
       select: {
         id: true,
@@ -58,7 +75,7 @@ export class PluginRegistry {
     });
 
     if (plugins.length === 0) {
-      logger.info("PLUGIN", "No plugins to load.");
+      if (!options?.silent) logger.info("PLUGIN", "No plugins to load.");
     }
 
     for (const { id, entry } of plugins) {
@@ -70,25 +87,30 @@ export class PluginRegistry {
             // and cause runtime warning
             const pluginUrl =
               /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
-            logger.info(
-              "PLUGIN",
-              `About to load plugin '${id}' from: ${pluginUrl}`,
-            );
+            if (!options?.silent)
+              logger.info(
+                "PLUGIN",
+                `About to load plugin '${id}' from: ${pluginUrl}`,
+              );
             const imported = await import(/* @vite-ignore */ pluginUrl);
             const pluginObj = PluginObjectSchema.parse(
               imported.default ?? imported,
             );
 
             await this.loadPlugin(id, pluginObj);
+
+            if (!options?.silent)
+              logger.info("PLUGIN", `Successfully loaded plugin: ${id}`);
           } catch (importErr) {
             logger.error("PLUGIN", `Failed to load plugin '${id}'`, importErr);
             continue;
           }
         } else {
-          logger.info(
-            "PLUGIN",
-            `Successfully loaded plugin ${id} without entry`,
-          );
+          if (!options?.silent)
+            logger.info(
+              "PLUGIN",
+              `Successfully loaded plugin ${id} without entry`,
+            );
         }
       } catch (loadErr) {
         logger.error(
@@ -100,20 +122,30 @@ export class PluginRegistry {
     }
   }
 
-  private async loadPlugin(id: string, instance: CatPlugin) {
-    this.plugins.set(id, instance);
+  private async loadPlugin(pluginId: string, instance: CatPlugin) {
+    this.plugins.set(pluginId, instance);
 
-    const configs = z.array(PluginConfigSchema).parse(
-      await prisma.pluginConfig.findMany({
-        where: {
-          pluginId: id,
-        },
-      }),
-    );
+    // 用全局配置做启动加载
+    const configs = z
+      .array(
+        z.object({
+          key: z.string(),
+          value: z.json(),
+        }),
+      )
+      .parse(
+        await prisma.pluginConfig.findMany({
+          where: {
+            pluginId,
+          },
+          select: {
+            key: true,
+            value: true,
+          },
+        }),
+      );
 
     await instance.onLoaded({ configs });
-
-    logger.info("PLUGIN", `Successfully loaded plugin: ${id}`);
   }
 
   public getPlugins(): Map<string, CatPlugin> {
@@ -128,9 +160,42 @@ export class PluginRegistry {
     return join(pluginsDir, id);
   }
 
-  public getTranslationAdvisors(): TranslationAdvisor[] {
-    return Array.from(this.plugins.values())
-      .map((plugin) => plugin.getTranslationAdvisors?.())
+  public async getTranslationAdvisors({
+    userId,
+  }: {
+    userId: string;
+  }): Promise<TranslationAdvisor[]> {
+    return (
+      await Promise.all(
+        Array.from(this.plugins.entries()).map(async ([id, plugin]) => {
+          if (userId) {
+            const userConfigs = (
+              await prisma.pluginUserConfigInstance.findMany({
+                where: {
+                  creatorId: userId,
+                  Config: {
+                    pluginId: id,
+                  },
+                  isActive: true,
+                },
+                select: {
+                  value: true,
+                  Config: {
+                    select: {
+                      key: true,
+                    },
+                  },
+                },
+              })
+            ).map((result) => ({
+              key: result.Config.key,
+              value: result.value,
+            }));
+            return plugin.getTranslationAdvisors?.({ userConfigs });
+          } else return plugin.getTranslationAdvisors?.();
+        }),
+      )
+    )
       .filter(
         (advisors): advisors is TranslationAdvisor[] => advisors !== undefined,
       )
@@ -164,9 +229,9 @@ export class PluginRegistry {
       .flat();
   }
 
-  public async reload() {
+  public async reload(options?: LoadPluginsOptions) {
     this.plugins = new Map();
-    await this.loadPlugins();
+    await this.loadPlugins(options);
   }
 
   public async getPluginManifest(pluginId: string) {

@@ -11,6 +11,7 @@ import {
 } from "../processor/importPlugin";
 import { useStorage } from "./storage/useStorage";
 import type { Job } from "bullmq";
+import getPluginRegistry from "../pluginRegistry";
 
 export const shutdownServer = async (server: Server) => {
   logger.info("SERVER", "About to shutdown server gracefully...");
@@ -85,6 +86,10 @@ const settings: SettingData[] = [
     value: true,
   },
   {
+    key: "s3.acl",
+    value: "private",
+  },
+  {
     key: "server.storage-type",
     value: "LOCAL",
   },
@@ -95,6 +100,10 @@ const settings: SettingData[] = [
   {
     key: "server.name",
     value: "CAT",
+  },
+  {
+    key: "server.default-language",
+    value: process.env.DEFAULT_LANGUAGE ?? "zh_cn",
   },
 ];
 
@@ -146,7 +155,7 @@ export const scanLocalPlugins = async () => {
     );
 
     await Promise.all(
-      (await PluginRegistry.getInstance().getPluginIdInLocalPlugins())
+      (await (await getPluginRegistry()).getPluginIdInLocalPlugins())
         .filter((id) => !existPluginIds.includes(id))
         .map(async (id) => {
           const task = await tx.task.create({
@@ -179,7 +188,7 @@ export const scanLocalPlugins = async () => {
       ),
     );
 
-    await PluginRegistry.getInstance().reload();
+    (await getPluginRegistry()).reload();
     logger.info(
       "SERVER",
       "Reloaded plugins successfully for there was no plugins registered in the database before",

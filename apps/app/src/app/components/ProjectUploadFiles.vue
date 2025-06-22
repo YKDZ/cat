@@ -8,8 +8,9 @@ import { useToastStore } from "@/app/stores/toast";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file";
 import { trpc } from "@/server/trpc/client";
 import type { Document, Project } from "@cat/shared";
-import { computed, ref } from "vue";
+import { computed, ref, shallowRef } from "vue";
 import Icon from "./Icon.vue";
+import { TRPCClientError } from "@trpc/client";
 
 const { info, warn, trpcWarn } = useToastStore();
 
@@ -32,7 +33,7 @@ type TempFile = {
   document?: Document;
 };
 
-const files = ref<TempFile[]>([]);
+const files = shallowRef<TempFile[]>([]);
 
 const selectFile = () => {
   if (!fileInputEl.value || !fileInputEl.value.files) return;
@@ -103,7 +104,7 @@ const upload = async (tempFile: TempFile) => {
       meta: {
         name: tempFile.raw.name,
         size: tempFile.raw.size,
-        type: tempFile.raw.type,
+        mimeType: tempFile.raw.type,
       },
     });
 
@@ -118,9 +119,9 @@ const upload = async (tempFile: TempFile) => {
         project.value.Documents?.push(document);
         tempFile.status = "completed";
         info(`上传 ${tempFile.raw.name} 成功，等待处理完成后即可翻译`);
-      })
-      .catch(trpcWarn);
+      });
   } catch (e) {
+    if (e instanceof TRPCClientError) trpcWarn(e);
     tempFile.status = "failed";
   }
 };
@@ -187,7 +188,9 @@ const upload = async (tempFile: TempFile) => {
         </TableRow>
         <TableRow v-if="files.length === 0">
           <TableCell></TableCell>
-          <TableCell class="text-center">还没有上传任何文件...</TableCell>
+          <TableCell class="text-center">{{
+            $t("还没有上传任何文件...")
+          }}</TableCell>
           <TableCell></TableCell>
         </TableRow>
       </TableBody>
@@ -198,10 +201,10 @@ const upload = async (tempFile: TempFile) => {
         :is-processing
         @click="fileInputEl && fileInputEl.click()"
       >
-        选择文件
+        {{ $t("选择文件") }}
       </Button>
       <Button icon="i-mdi:upload-multiple" :is-processing @click="uploadAll">
-        上传所有
+        {{ $t("上传所有") }}
       </Button>
     </div>
   </div>

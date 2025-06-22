@@ -2,11 +2,14 @@
 import { ref } from "vue";
 import Navbar from "./navbar/Navbar.vue";
 import type { NavbarItemType } from "./navbar";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const items = ref<NavbarItemType[]>([
   {
     icon: "i-mdi:server",
-    text: "基本",
+    text: t("基本"),
     selected: false,
     to: "",
   },
@@ -14,7 +17,7 @@ const items = ref<NavbarItemType[]>([
     icon: "i-mdi:storage-tank",
     text: "储存",
     selected: false,
-    to: "/storage",
+    to: t("/storage"),
   },
 ]);
 </script>

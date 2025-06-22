@@ -2,14 +2,19 @@ import { hash } from "@/server/utils/crypto";
 import { AsyncMessageQueue } from "@/server/utils/queue";
 import { prisma, redis, redisPub, redisSub } from "@cat/db";
 import type {
-  TranslationSuggestion} from "@cat/shared";
+  TranslationAdvisorData,
+  TranslationSuggestion,
+} from "@cat/shared";
 import {
+  logger,
   TranslatableElementSchema,
+  TranslationAdvisorDataSchema,
   TranslationSuggestionSchema,
 } from "@cat/shared";
 import { tracked, TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
+import { termText } from "@/server/utils/es";
 
 export const suggestionRouter = router({
   onNew: authedProcedure
@@ -20,7 +25,7 @@ export const suggestionRouter = router({
       }),
     )
     .subscription(async function* ({ ctx, input }) {
-      const { pluginRegistry } = ctx;
+      const { user, pluginRegistry } = ctx;
       const { elementId, languageId } = input;
 
       const element = await prisma.translatableElement.findUnique({
@@ -58,7 +63,11 @@ export const suggestionRouter = router({
       };
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-      const advisorAmount = pluginRegistry.getTranslationAdvisors().length;
+      const advisors = await pluginRegistry.getTranslationAdvisors({
+        userId: user.id,
+      });
+
+      const advisorAmount = advisors.length;
 
       if (advisorAmount === 0) {
         yield tracked("CAT Admin", {
@@ -69,7 +78,7 @@ export const suggestionRouter = router({
         return;
       }
 
-      pluginRegistry.getTranslationAdvisors().forEach(async (advisor) => {
+      advisors.forEach(async (advisor) => {
         const elementHash = hash({
           ...element,
           targetLanguageId: languageId,
@@ -85,16 +94,41 @@ export const suggestionRouter = router({
         }
 
         const zElement = TranslatableElementSchema.parse(element);
+        const { termedText, translationIds } = await termText(
+          zElement.value,
+          element.Document.Project.sourceLanguageId,
+          languageId,
+        );
+        const relations = await prisma.termRelation.findMany({
+          where: {
+            translationId: {
+              in: translationIds,
+            },
+            Term: {
+              languageId: element.Document.Project.sourceLanguageId,
+            },
+            Translation: {
+              languageId,
+            },
+          },
+          include: {
+            Term: true,
+            Translation: true,
+          },
+        });
         advisor
           .getSuggestions(
             zElement,
+            termedText,
+            relations,
             element.Document.Project.sourceLanguageId,
             languageId,
           )
           .then((suggestions) => {
             if (suggestions.length === 0) {
-              console.error(
-                `翻译建议提供器 ${advisor.getName()} 没有返回任意一条建议，这是不推荐的行为（可能导致用户迷惑）。请在错误时也返回一条携带错误提示信息的建议。`,
+              logger.warn(
+                "PLUGIN",
+                `Translation advisor ${advisor.getName()} does not return any suggestions, which is not recommended. Please at least return a suggestion with error message when error occured.`,
               );
               return;
             }
@@ -122,5 +156,41 @@ export const suggestionRouter = router({
         await redisSub.unsubscribe(suggestionChannelKey);
         suggestionsQueue.clear();
       }
+    }),
+  queryAdvisor: authedProcedure
+    .input(
+      z.object({
+        advisorId: z.string(),
+      }),
+    )
+    .output(TranslationAdvisorDataSchema.nullable())
+    .query(async ({ ctx, input }) => {
+      const { user, pluginRegistry } = ctx;
+      const { advisorId } = input;
+
+      const advisor = (
+        await pluginRegistry.getTranslationAdvisors({ userId: user.id })
+      ).find((advisor) => advisor.getId() === advisorId);
+
+      return advisor
+        ? ({
+            id: advisor.getId(),
+            name: advisor.getName(),
+          } satisfies TranslationAdvisorData)
+        : null;
+    }),
+  listAllAvailableAdvisors: authedProcedure
+    .output(z.array(TranslationAdvisorDataSchema))
+    .query(async ({ ctx }) => {
+      const { user, pluginRegistry } = ctx;
+      return (
+        await pluginRegistry.getTranslationAdvisors({ userId: user.id })
+      ).map(
+        (advisor) =>
+          ({
+            id: advisor.getId(),
+            name: advisor.getName(),
+          }) satisfies TranslationAdvisorData,
+      );
     }),
 });

@@ -22,5 +22,7 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <Button icon="i-mdi:trash-can" @click="handleDelete">删除插件</Button>
+  <Button icon="i-mdi:trash-can" @click="handleDelete">{{
+    $t("删除插件")
+  }}</Button>
 </template>

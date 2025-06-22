@@ -1,8 +1,18 @@
 import { defineConfig } from "unocss";
-import { presetWind4, presetIcons } from "unocss";
+import { presetWind4, presetIcons, presetTypography } from "unocss";
 
 export default defineConfig({
-  presets: [presetWind4(), presetIcons()],
+  presets: [
+    presetWind4(),
+    presetIcons(),
+    presetTypography({
+      cssExtend: {
+        p: {
+          margin: "0.5rem 0",
+        },
+      },
+    }),
+  ],
   theme: {
     colors: {
       base: "var(--cat-theme-base)",

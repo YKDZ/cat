@@ -92,12 +92,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 6.9.0
- * Query Engine version: 81e4af48011447c3cc503a190e86995b66d2a28e
+ * Prisma Client JS version: 6.10.1
+ * Query Engine version: 9b628578b3b7cae625e8c927178f15a170e74a9c
  */
 export const prismaVersion: PrismaVersion = {
-  client: "6.9.0",
-  engine: "81e4af48011447c3cc503a190e86995b66d2a28e"
+  client: "6.10.1",
+  engine: "9b628578b3b7cae625e8c927178f15a170e74a9c"
 }
 
 /**
@@ -412,6 +412,7 @@ export const ModelName = {
   PluginVersion: 'PluginVersion',
   PluginPermission: 'PluginPermission',
   PluginConfig: 'PluginConfig',
+  PluginUserConfigInstance: 'PluginUserConfigInstance',
   PluginTag: 'PluginTag',
   PluginComponent: 'PluginComponent',
   Project: 'Project',
@@ -436,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginTag" | "pluginComponent" | "project" | "translation" | "translationVote" | "translationApprovment" | "user" | "account" | "vector"
+    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginUserConfigInstance" | "pluginTag" | "pluginComponent" | "project" | "translation" | "translationVote" | "translationApprovment" | "user" | "account" | "vector"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1772,6 +1773,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PluginUserConfigInstance: {
+      payload: Prisma.$PluginUserConfigInstancePayload<ExtArgs>
+      fields: Prisma.PluginUserConfigInstanceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PluginUserConfigInstanceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PluginUserConfigInstanceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>
+        }
+        findFirst: {
+          args: Prisma.PluginUserConfigInstanceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PluginUserConfigInstanceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>
+        }
+        findMany: {
+          args: Prisma.PluginUserConfigInstanceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>[]
+        }
+        create: {
+          args: Prisma.PluginUserConfigInstanceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>
+        }
+        createMany: {
+          args: Prisma.PluginUserConfigInstanceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PluginUserConfigInstanceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>[]
+        }
+        delete: {
+          args: Prisma.PluginUserConfigInstanceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>
+        }
+        update: {
+          args: Prisma.PluginUserConfigInstanceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>
+        }
+        deleteMany: {
+          args: Prisma.PluginUserConfigInstanceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PluginUserConfigInstanceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PluginUserConfigInstanceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>[]
+        }
+        upsert: {
+          args: Prisma.PluginUserConfigInstanceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PluginUserConfigInstancePayload>
+        }
+        aggregate: {
+          args: Prisma.PluginUserConfigInstanceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePluginUserConfigInstance>
+        }
+        groupBy: {
+          args: Prisma.PluginUserConfigInstanceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PluginUserConfigInstanceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PluginUserConfigInstanceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PluginUserConfigInstanceCountAggregateOutputType> | number
+        }
+      }
+    }
     PluginTag: {
       payload: Prisma.$PluginTagPayload<ExtArgs>
       fields: Prisma.PluginTagFieldRefs
@@ -2465,7 +2540,6 @@ export const DocumentScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  fileId: 'fileId',
   projectId: 'projectId',
   creatorId: 'creatorId'
 } as const
@@ -2496,7 +2570,9 @@ export const FileScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   typeId: 'typeId',
-  storageTypeId: 'storageTypeId'
+  storageTypeId: 'storageTypeId',
+  documentId: 'documentId',
+  userId: 'userId'
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
@@ -2667,12 +2743,26 @@ export const PluginConfigScalarFieldEnum = {
   key: 'key',
   value: 'value',
   schema: 'schema',
+  userOverridable: 'userOverridable',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   pluginId: 'pluginId'
 } as const
 
 export type PluginConfigScalarFieldEnum = (typeof PluginConfigScalarFieldEnum)[keyof typeof PluginConfigScalarFieldEnum]
+
+
+export const PluginUserConfigInstanceScalarFieldEnum = {
+  id: 'id',
+  value: 'value',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isActive: 'isActive',
+  creatorId: 'creatorId',
+  configId: 'configId'
+} as const
+
+export type PluginUserConfigInstanceScalarFieldEnum = (typeof PluginUserConfigInstanceScalarFieldEnum)[keyof typeof PluginUserConfigInstanceScalarFieldEnum]
 
 
 export const PluginTagScalarFieldEnum = {
@@ -2713,6 +2803,7 @@ export const TranslationScalarFieldEnum = {
   value: 'value',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  meta: 'meta',
   translatorId: 'translatorId',
   translatableElementId: 'translatableElementId',
   languageId: 'languageId'
@@ -2751,8 +2842,7 @@ export const UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  avatarFileId: 'avatarFileId'
+  updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -2809,14 +2899,6 @@ export const QueryMode = {
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
 export const DocumentOrderByRelevanceFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -2835,6 +2917,14 @@ export const JsonNullValueFilter = {
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
 export const TranslatableElementOrderByRelevanceFieldEnum = {
   value: 'value',
   documentId: 'documentId'
@@ -2845,7 +2935,9 @@ export type TranslatableElementOrderByRelevanceFieldEnum = (typeof TranslatableE
 
 export const FileOrderByRelevanceFieldEnum = {
   originName: 'originName',
-  storedPath: 'storedPath'
+  storedPath: 'storedPath',
+  documentId: 'documentId',
+  userId: 'userId'
 } as const
 
 export type FileOrderByRelevanceFieldEnum = (typeof FileOrderByRelevanceFieldEnum)[keyof typeof FileOrderByRelevanceFieldEnum]
@@ -2976,6 +3068,13 @@ export const PluginConfigOrderByRelevanceFieldEnum = {
 } as const
 
 export type PluginConfigOrderByRelevanceFieldEnum = (typeof PluginConfigOrderByRelevanceFieldEnum)[keyof typeof PluginConfigOrderByRelevanceFieldEnum]
+
+
+export const PluginUserConfigInstanceOrderByRelevanceFieldEnum = {
+  creatorId: 'creatorId'
+} as const
+
+export type PluginUserConfigInstanceOrderByRelevanceFieldEnum = (typeof PluginUserConfigInstanceOrderByRelevanceFieldEnum)[keyof typeof PluginUserConfigInstanceOrderByRelevanceFieldEnum]
 
 
 export const PluginTagOrderByRelevanceFieldEnum = {
@@ -3227,6 +3326,7 @@ export type GlobalOmitConfig = {
   pluginVersion?: Prisma.PluginVersionOmit
   pluginPermission?: Prisma.PluginPermissionOmit
   pluginConfig?: Prisma.PluginConfigOmit
+  pluginUserConfigInstance?: Prisma.PluginUserConfigInstanceOmit
   pluginTag?: Prisma.PluginTagOmit
   pluginComponent?: Prisma.PluginComponentOmit
   project?: Prisma.ProjectOmit

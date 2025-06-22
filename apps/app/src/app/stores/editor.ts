@@ -14,7 +14,6 @@ import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref, shallowRef } from "vue";
 import { useToastStore } from "./toast";
-import { useUserStore } from "./user";
 import type { PartData } from "../components/tagger";
 
 export const useEditorStore = defineStore("editor", () => {
@@ -23,7 +22,9 @@ export const useEditorStore = defineStore("editor", () => {
   // 分页与查询
   const elementTotalAmount = ref(0);
   const pageSize = ref(16);
-  const storedElements = shallowRef<TranslatableElement[]>([]);
+  const storedElements = shallowRef<
+    (TranslatableElement & { status?: "NO" | "TRANSLATED" | "APPROVED" })[]
+  >([]);
   const currentPageIndex = ref(-1);
   const loadedPages = ref<number[]>([]);
   const loadedPagesInfo = reactive(
@@ -46,6 +47,7 @@ export const useEditorStore = defineStore("editor", () => {
   const inputDivEl = ref<HTMLDivElement>();
   const sourceParts = ref<PartData[]>([]);
   const translationParts = ref<PartData[]>([]);
+  const selectedTranslationId = ref<number | null>(null);
 
   // 撤回重做
   const inputTextareaEl = ref<HTMLTextAreaElement | null>(null);
@@ -160,7 +162,7 @@ export const useEditorStore = defineStore("editor", () => {
     memories.value = [];
   };
 
-  const element = computed<TranslatableElement | null>(() => {
+  const element = computed(() => {
     const elements = [...storedElements.value];
     return (
       elements.find((e: TranslatableElement) => e.id === elementId.value) ??
@@ -192,21 +194,8 @@ export const useEditorStore = defineStore("editor", () => {
       .query({ elementId, languageId: languageToId.value })
       .then((newTranslations) => {
         translations.value = newTranslations;
-        translationValue.value = selfTranslation.value?.value ?? "";
       });
   };
-
-  const selfTranslation = computed(() => {
-    const { user } = useUserStore();
-
-    if (!user || !translations.value) return null;
-
-    return (
-      translations.value.find((translation: { translatorId: string }) => {
-        return translation.translatorId === user.id;
-      }) ?? null
-    );
-  });
 
   const fetchDocument = async (id: string) => {
     documentId.value = id;
@@ -240,7 +229,7 @@ export const useEditorStore = defineStore("editor", () => {
       element.value.status = "TRANSLATED";
     }
 
-    updateOrInsertTranslation(newTranslation);
+    upsertTranslation(newTranslation);
   };
 
   const jumpToNextUntranslated = async () => {
@@ -250,7 +239,7 @@ export const useEditorStore = defineStore("editor", () => {
       element.value?.id ===
       storedElements.value[storedElements.value.length - 1].id;
     let firstUntranslatedElement: TranslatableElement | null =
-      storedElements.value.find((el: TranslatableElement) => {
+      storedElements.value.find((el) => {
         if (!element.value) return false;
         return el.status === "NO" && (isAtLast || element.value.id < el.id);
       }) ?? null;
@@ -272,10 +261,8 @@ export const useEditorStore = defineStore("editor", () => {
 
   const translate = async () => {
     if (!elementId.value || !languageToId.value || !document.value) return;
-    // 不做无意义的更新
-    if (selfTranslation.value?.value === translationValue.value) return;
 
-    if (!selfTranslation.value) {
+    if (!selectedTranslationId.value) {
       await trpc.translation.create
         .mutate({
           projectId: document.value.projectId,
@@ -287,7 +274,7 @@ export const useEditorStore = defineStore("editor", () => {
     } else {
       await trpc.translation.update
         .mutate({
-          id: selfTranslation.value.id,
+          id: selectedTranslationId.value,
           value: translationValue.value,
         })
         .then(handleNewTranslation);
@@ -305,19 +292,19 @@ export const useEditorStore = defineStore("editor", () => {
     });
   };
 
-  const updateOrInsertTranslation = (translation: Translation) => {
-    const index = translations.value.findIndex(
-      (item: Translation) => item.id === translation.id,
-    );
+  const upsertTranslation = (translation: Translation) => {
+    if (!translation) return;
 
-    if (index === -1) {
+    const currentIndex = translations.value.findIndex(
+      (p) => p.id === translation.id,
+    );
+    if (currentIndex === -1) {
       translations.value.push(translation);
-      return;
+    } else {
+      translations.value.splice(currentIndex, 1, translation);
     }
 
-    translations.value = translations.value.map(
-      (item: Translation, i: number) => (i === index ? translation : item),
-    );
+    translations.value = [...translations.value]
   };
 
   const replace = (value: string) => {
@@ -358,7 +345,6 @@ export const useEditorStore = defineStore("editor", () => {
     currentPageIndex,
     documentId,
     translations,
-    selfTranslation,
     document,
     languageFromId,
     languageToId,
@@ -370,6 +356,7 @@ export const useEditorStore = defineStore("editor", () => {
     memories,
     inputTextareaEl,
     terms,
+    selectedTranslationId,
     totalPageIndex,
     originDivEl,
     inputDivEl,
@@ -388,7 +375,7 @@ export const useEditorStore = defineStore("editor", () => {
     fetchTranslations,
     fetchDocument,
     translate,
-    updateOrInsertTranslation,
+    upsertTranslation,
     replace,
     insert,
     clear,

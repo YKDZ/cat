@@ -4,9 +4,9 @@ import { Queue, Worker } from "bullmq";
 import { randomUUID } from "crypto";
 import { join } from "path";
 import { z } from "zod/v4";
-import { pluginRegistry } from "..";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
+import { PluginRegistry } from "@cat/plugin-core";
 
 const queueId = "exportTranslatedFile";
 
@@ -21,6 +21,13 @@ const worker = new Worker(
       documentId: string;
       languageId: string;
     };
+
+    const pluginRegistry = new PluginRegistry();
+
+    await pluginRegistry.loadPlugins({
+      silent: true,
+      tags: ["translatable-file-handler"],
+    });
 
     const handler = pluginRegistry
       .getTranslatableFileHandlers()

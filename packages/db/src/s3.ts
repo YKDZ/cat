@@ -1,5 +1,6 @@
 import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
 import { setting, settings } from "./utils/setting";
+import { logger } from "@cat/shared";
 
 export class S3DB {
   public static instance: S3DB;
