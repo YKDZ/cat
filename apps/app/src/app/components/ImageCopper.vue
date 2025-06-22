@@ -254,6 +254,8 @@ onMounted(() => {
       step="any"
       class="w-5/6"
     />
-    <Button :is-processing full-width @click="handleSubmit">裁剪</Button>
+    <Button :is-processing full-width @click="handleSubmit">{{
+      $t("裁剪")
+    }}</Button>
   </div>
 </template>

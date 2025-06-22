@@ -63,7 +63,9 @@ const handleNextPage = () => {
           v-if="displayedElements.length === 0"
           class="px-2 py-2 text-start flex gap-3 items-center"
         >
-          <span class="text-nowrap overflow-x-hidden">没有任何可翻译元素</span>
+          <span class="text-nowrap overflow-x-hidden">{{
+            $t("没有任何可翻译元素")
+          }}</span>
         </button>
       </div>
       <div

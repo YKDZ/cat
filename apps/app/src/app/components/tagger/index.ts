@@ -4,6 +4,7 @@ import { h, ref } from "vue";
 
 export type Clipper = {
   id: number | string;
+  name: string;
   splitter: RegExp;
   highlight: boolean;
   /**
@@ -69,7 +70,7 @@ const shouldMatchCount: VerifyHandler = {
       isPass,
       error: isPass
         ? ""
-        : `${clipper.splitter} 数量不匹配（原文：${sourceCount}，译文：${translationCount}）`,
+        : `${clipper.name}数量不匹配（原文：${sourceCount} 个，译文：${translationCount} 个）`,
     } satisfies ClipperVerifyResult;
   },
 };
@@ -96,7 +97,7 @@ const shouldMatchContent: VerifyHandler = {
       isPass,
       error: isPass
         ? ""
-        : `${clipper.splitter} 内容不匹配（原文：${source}，译文：${translation}）`,
+        : `${clipper.name}内容不匹配（原文：${source}，译文：${translation}）`,
     } satisfies ClipperVerifyResult;
   },
 };
@@ -115,6 +116,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 1,
     splitter: /(\n)/g,
+    name: "换行符",
     content: "i-codicon:newline",
     translatable: false,
     highlight: true,
@@ -124,6 +126,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 2,
     splitter: /[%@][A-Za-z]/g,
+    name: "占位符",
     content: null,
     translatable: false,
     highlight: true,
@@ -133,6 +136,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 3,
     splitter: / /g,
+    name: "空格",
     content: () => {
       return h("span", "·");
     },
@@ -144,6 +148,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 4,
     splitter: /\d+/g,
+    name: "数字",
     content: null,
     translatable: false,
     highlight: true,

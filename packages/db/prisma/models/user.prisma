@@ -6,8 +6,7 @@ model User {
     createdAt     DateTime @default(now())
     updatedAt     DateTime @updatedAt
 
-    avatarFileId Int?
-    AvatarFile   File? @relation(fields: [avatarFileId], references: [id])
+    AvatarFile File?
 
     Accounts          Account[]
     ReadableLanguages Language[] @relation("ReadableLanguages")
@@ -23,7 +22,8 @@ model User {
     MemoryItems            MemoryItem[]
     Glossaries             Glossary[]
 
-    Terms Term[]
+    Terms                     Term[]
+    PluginUserConfigInstances PluginUserConfigInstance[]
 }
 
 model Account {

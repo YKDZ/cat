@@ -11,11 +11,13 @@ import Logo from "./Logo.vue";
 import DropdownMenu from "./dropdown/DropdownMenu.vue";
 import LogoutBtn from "./LogoutBtn.vue";
 import AdminBtn from "./AdminBtn.vue";
+import { useI18n } from "vue-i18n";
 
 const mouseInSidebar = ref<boolean>(false);
 
 const ctx = usePageContext();
 
+const { t } = useI18n();
 const { isFree } = storeToRefs(useSidebarStore());
 
 const { user } = usePageContext();
@@ -24,27 +26,27 @@ const items = ref([
   {
     path: "/",
     icon: "i-mdi:home",
-    text: "主页",
+    text: t("主页"),
   },
   {
     path: "/projects",
     icon: "i-mdi:folder",
-    text: "项目",
+    text: t("项目"),
   },
   {
     path: "/glossaries",
     icon: "i-mdi:file-word-box",
-    text: "术语",
+    text: t("术语"),
   },
   {
     path: "/memories",
     icon: "i-mdi:zip-box",
-    text: "记忆",
+    text: t("记忆"),
   },
   {
     path: "/plugins",
     icon: "i-mdi:toy-brick",
-    text: "插件",
+    text: t("插件"),
   },
 ]);
 </script>

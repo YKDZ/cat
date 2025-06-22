@@ -6,7 +6,7 @@ import Root from "../layouts/Root.vue";
 export default {
   Layout: Root,
 
-  passToClient: ["name", "user", "_piniaInitState"],
+  passToClient: ["name", "user", "_piniaInitState", "i18nMessages"],
   extends: [vikeVue, vikeServer],
 
   server: "src/server/index.ts",

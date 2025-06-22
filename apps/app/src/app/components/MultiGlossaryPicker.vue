@@ -5,6 +5,7 @@ import type { Glossary } from "@cat/shared";
 import { trpc } from "@/server/trpc/client";
 import type { PickerOption } from "./picker";
 import { usePageContext } from "vike-vue/usePageContext";
+import { useI18n } from "vue-i18n";
 
 const { user } = usePageContext();
 
@@ -19,6 +20,8 @@ const props = withDefaults(
   },
 );
 
+const { t } = useI18n();
+
 const memoryIds = defineModel<string[]>("glossaryIds", { required: true });
 
 const glossaries = ref<Glossary[]>([]);
@@ -28,7 +31,7 @@ const options = computed(() => {
   if (props.createNew) {
     result.push({
       value: "createNew",
-      content: "创建一个同名术语库",
+      content: t("创建一个同名术语库"),
     });
   }
 
@@ -59,6 +62,6 @@ onMounted(() => {
     v-model="memoryIds"
     :options
     :width
-    placeholder="选择一个或多个术语库"
+    :placeholder="$t('选择一个或多个术语库')"
   />
 </template>

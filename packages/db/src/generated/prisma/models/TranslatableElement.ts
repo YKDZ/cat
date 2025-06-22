@@ -615,6 +615,14 @@ export type TranslatableElementUpdateOneWithoutPreviousVersionNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TranslatableElementUpdateToOneWithWhereWithoutPreviousVersionInput, Prisma.TranslatableElementUpdateWithoutPreviousVersionInput>, Prisma.TranslatableElementUncheckedUpdateWithoutPreviousVersionInput>
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput = {
   create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutPreviousVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutPreviousVersionInput>
   connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutPreviousVersionInput

@@ -1,16 +1,20 @@
-import { PluginRegistry } from "@cat/plugin-core";
+import type { PluginRegistry } from "@cat/plugin-core";
 import { logger } from "@cat/shared";
 import { Hono } from "hono";
 import { readFile } from "node:fs/promises";
 
-const app = new Hono();
+type Variables = {
+  pluginRegistry: PluginRegistry;
+};
+
+const app = new Hono<{ Variables: Variables }>();
 
 app.get("/:pluginId/:componentId", async (c) => {
   try {
     const { pluginId, componentId } = c.req.param();
 
     const componentModuleBuffer = await readFile(
-      await PluginRegistry.getInstance().getPluginComponentFsPath(
+      await c.var.pluginRegistry.getPluginComponentFsPath(
         pluginId,
         componentId,
       ),

@@ -55,9 +55,11 @@ const handleLink = async () => {
   >
   <Modal v-model:is-open="isOpen">
     <div class="p-8 rounded-md bg-highlight flex flex-col gap-3">
-      <h3 class="text-lg font-bold">连接或创建新术语库</h3>
+      <h3 class="text-lg font-bold">{{ $t("连接或创建新术语库") }}</h3>
       <MultiGlossaryPicker v-model:glossary-ids="glossaryIds" create-new />
-      <Button full-width icon="i-mdi:link" @click="handleLink">连接</Button>
+      <Button full-width icon="i-mdi:link" @click="handleLink">{{
+        $t("连接")
+      }}</Button>
     </div></Modal
   >
 </template>

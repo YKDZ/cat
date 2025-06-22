@@ -11,9 +11,9 @@ const project = inject(projectKey);
 </script>
 
 <template>
-  <Button icon="i-mdi:plus" :class="$attrs.class" @click="isOpen = true"
-    >上传文件</Button
-  >
+  <Button icon="i-mdi:plus" :class="$attrs.class" @click="isOpen = true">{{
+    $t("上传文件")
+  }}</Button>
   <Modal v-if="project" v-model:is-open="isOpen"
     ><div class="px-10 py-6 rounded-sm bg-highlight">
       <ProjectUploadFiles v-model:project="project" />

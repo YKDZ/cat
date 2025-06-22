@@ -1,6 +1,5 @@
 import { prisma } from "@cat/db";
-import type {
-  TermRelation} from "@cat/shared";
+import type { TermRelation } from "@cat/shared";
 import {
   GlossarySchema,
   TermDataSchema,

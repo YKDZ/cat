@@ -62,6 +62,6 @@ const langFilter = (option: PickerOption) => {
     icon="i-mdi:plus"
     :disabled="languageId === ``"
     @click="addNewLanguage"
-    >添加新语言并开始翻译</Button
+    >{{ $t("添加新语言并开始翻译") }}</Button
   >
 </template>

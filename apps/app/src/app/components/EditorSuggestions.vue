@@ -4,7 +4,7 @@ import EditorSuggestionList from "./EditorSuggestionList.vue";
 
 <template>
   <div class="flex flex-col gap-2">
-    <h3 class="text-sm font-bold">翻译建议</h3>
+    <h3 class="text-sm font-bold">{{ $t("翻译建议") }}</h3>
     <EditorSuggestionList />
   </div>
 </template>

@@ -83,7 +83,7 @@ export const userRouter = router({
               storedPath: path,
               Type: {
                 connect: {
-                  mimeType: meta.type,
+                  mimeType: meta.mimeType,
                 },
               },
               StorageType: {

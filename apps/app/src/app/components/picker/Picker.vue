@@ -68,7 +68,7 @@ watch(
     <!-- 输入框 -->
     <input
       v-model="searchQuery"
-      class="px-2 py-1 ring-1 ring-highlight-darkest ring-offset-transparent focus:outline-0 focus-visible:ring-base"
+      class="text-highlight-content px-2 py-1 outline-1 outline-highlight-darkest bg-highlight focus-visible:outline-base"
       :class="{
         'min-w-32 w-fit': !fullWidth,
         'w-full': fullWidth,
@@ -81,7 +81,7 @@ watch(
     <!-- 下拉面板 -->
     <div
       v-show="isOpen"
-      class="mt-1 rounded-md bg-white max-h-60 w-full shadow-lg absolute z-50 overflow-auto"
+      class="text-highlight-content mt-1 rounded-md bg-highlight bg-white max-h-60 w-full shadow-lg absolute z-50 overflow-auto"
     >
       <div
         v-for="option in filteredOptions"

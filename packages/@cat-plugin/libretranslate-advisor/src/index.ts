@@ -1,4 +1,8 @@
-import type { CatPlugin, PluginLoadOptions } from "@cat/plugin-core";
+import type {
+  CatPlugin,
+  GetTranslationAdvisorsOptions,
+  PluginLoadOptions,
+} from "@cat/plugin-core";
 import { LibreTranslateTranslationAdvisor } from "./advisor";
 
 class Plugin implements CatPlugin {
@@ -7,8 +11,15 @@ class Plugin implements CatPlugin {
   async onLoaded(options: PluginLoadOptions) {
     this.options = options;
   }
-  getTranslationAdvisors() {
-    return [new LibreTranslateTranslationAdvisor(this.options!)];
+
+  getTranslationAdvisors(options?: GetTranslationAdvisorsOptions) {
+    return [
+      new LibreTranslateTranslationAdvisor(
+        !options || !options.userConfigs || options.userConfigs.length === 0
+          ? this.options!.configs!
+          : options.userConfigs,
+      ),
+    ];
   }
 }
 

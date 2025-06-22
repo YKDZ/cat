@@ -1,4 +1,3 @@
-export * from "./schema/file";
 export * from "./schema/misc";
 export * from "./schema/plugin";
 export * from "./schema/prisma";

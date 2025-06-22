@@ -1,4 +1,4 @@
-import type { TranslatableElement } from "@cat/shared";
+import type { TermRelation, TranslatableElement } from "@cat/shared";
 import type { TranslationSuggestion } from "@cat/shared";
 
 export interface TranslationAdvisor {
@@ -12,6 +12,8 @@ export interface TranslationAdvisor {
   ): boolean;
   getSuggestions(
     element: TranslatableElement,
+    termedValue: string,
+    termRelations: Required<TermRelation>[],
     languageFromId: string,
     languageToId: string,
   ): Promise<TranslationSuggestion[]>;

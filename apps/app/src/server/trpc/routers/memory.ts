@@ -1,14 +1,11 @@
 import { AsyncMessageQueue } from "@/server/utils/queue";
 import { prisma, redisSub } from "@cat/db";
-import type {
-  MemorySuggestion} from "@cat/shared";
-import {
-  MemorySchema,
-  MemorySuggestionSchema,
-} from "@cat/shared";
+import type { MemorySuggestion } from "@cat/shared";
+import { MemorySchema, MemorySuggestionSchema } from "@cat/shared";
 import { tracked } from "@trpc/server";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
+import { queryElementWithEmbedding, searchMemory } from "@/server/utils/memory";
 
 export const memoryRouter = router({
   create: authedProcedure
@@ -61,33 +58,8 @@ export const memoryRouter = router({
         translatorId,
       } = input;
 
-      const result = await prisma.$queryRaw<
-        {
-          id: number;
-          value: string;
-          embedding: number[];
-          projectId: string;
-        }[]
-      >`
-        SELECT
-          te.id AS id,
-          te.value AS value,
-          v.vector::real[] AS embedding,
-          p.id AS "projectId"
-        FROM
-          "TranslatableElement" te
-        JOIN
-          "Vector" v ON te."embeddingId" = v.id
-        JOIN
-          "Document" d ON te."documentId" = d.id
-        JOIN
-          "Project" p ON d."projectId" = p.id
-        WHERE
-          te.id = ${elementId};
-      `;
-
       // 要匹配记忆的元素
-      const element = result[0];
+      const element = await queryElementWithEmbedding(elementId);
 
       const memoryIds = (
         await prisma.memory.findMany({
@@ -121,58 +93,13 @@ export const memoryRouter = router({
       };
       await redisSub.subscribe(memoryChannelKey, onNewMemory);
 
-      // 开始查找记忆
-      const minSimilarity = 0.72;
-      const maxAmount = 3;
-
-      const vectorLiteral = `[${element.embedding.join(",")}]`;
-
-      prisma.$transaction(async (tx) => {
-        const memories = await tx.$queryRaw<
-          {
-            memoryId: string;
-            source: string;
-            translation: string;
-            creatorId: string;
-            similarity: number;
-          }[]
-        >`
-          SELECT 
-            mi."memoryId",
-            mi.source,
-            mi.translation,
-            mi."creatorId",
-            1 - (v.vector <=> ${vectorLiteral}) AS similarity
-          FROM 
-            "MemoryItem" mi
-          JOIN
-            "Vector" v ON mi."sourceEmbeddingId" = v.id
-          WHERE
-            mi."sourceLanguageId" = ${sourceLanguageId} AND
-            mi."translationLanguageId" = ${translationLanguageId} AND
-            mi."memoryId" = ANY(${memoryIds})
-          ORDER BY similarity DESC
-          LIMIT ${maxAmount};
-        `;
-
-        for (const {
-          memoryId,
-          source,
-          translation,
-          creatorId,
-          similarity,
-        } of memories) {
-          if (similarity < minSimilarity) continue;
-
-          memoriesQueue.push({
-            source,
-            translation,
-            memoryId,
-            translatorId: creatorId,
-            similarity,
-          });
-        }
-      });
+      searchMemory(
+        element.embedding,
+        sourceLanguageId,
+        translationLanguageId,
+        memoryIds,
+        0.72,
+      ).then((memories) => memoriesQueue.push(...memories));
 
       try {
         for await (const memory of memoriesQueue.consume()) {

@@ -36,6 +36,6 @@ const options = computed(() => {
     :width
     :options
     :filter
-    placeholder="选择一个或多个语言"
+    :placeholder="$t('选择一个或多个语言')"
   />
 </template>

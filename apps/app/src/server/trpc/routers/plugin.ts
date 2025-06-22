@@ -1,5 +1,10 @@
 import { prisma } from "@cat/db";
-import { logger, PluginConfigSchema, PluginSchema } from "@cat/shared";
+import {
+  logger,
+  PluginConfigSchema,
+  PluginSchema,
+  PluginUserConfigInstanceSchema,
+} from "@cat/shared";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
 import { importPluginQueue } from "@/server/processor/importPlugin";
@@ -22,7 +27,7 @@ export const pluginRouter = router({
         },
       });
     }),
-  queryConfig: authedProcedure
+  queryGlobalConfig: authedProcedure
     .input(z.object({ pluginId: z.string(), key: z.string() }))
     .output(PluginConfigSchema.nullable())
     .query(async ({ input }) => {
@@ -39,7 +44,25 @@ export const pluginRouter = router({
         }),
       );
     }),
-  updateConfig: authedProcedure
+  queryUserConfigInstance: authedProcedure
+    .input(z.object({ configId: z.int() }))
+    .output(PluginUserConfigInstanceSchema.nullable())
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx;
+      const { configId } = input;
+
+      return PluginUserConfigInstanceSchema.nullable().parse(
+        await prisma.pluginUserConfigInstance.findUnique({
+          where: {
+            configId_creatorId: {
+              configId,
+              creatorId: user.id,
+            },
+          },
+        }),
+      );
+    }),
+  updateGlobalConfig: authedProcedure
     .input(z.object({ pluginId: z.string(), key: z.string(), value: z.json() }))
     .mutation(async ({ input }) => {
       const { pluginId, key, value } = input;
@@ -53,6 +76,65 @@ export const pluginRouter = router({
         },
         data: {
           value,
+        },
+      });
+    }),
+  upsertUserConfig: authedProcedure
+    .input(
+      z.object({
+        configId: z.number(),
+        value: z.json(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx;
+      const { configId, value } = input;
+
+      await prisma.pluginUserConfigInstance.upsert({
+        where: {
+          configId_creatorId: {
+            configId,
+            creatorId: user.id,
+          },
+          Config: {
+            userOverridable: true,
+          },
+        },
+        create: {
+          value,
+          creatorId: user.id,
+          configId,
+        },
+        update: {
+          value,
+        },
+      });
+    }),
+  updateUserConfig: authedProcedure
+    .input(
+      z.object({
+        configId: z.number(),
+        value: z.json().optional(),
+        isActive: z.boolean().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { user } = ctx;
+      const { configId, value, isActive } = input;
+
+      await prisma.pluginUserConfigInstance.update({
+        where: {
+          configId_creatorId: {
+            configId,
+            creatorId: user.id,
+          },
+          Config: {
+            userOverridable: true,
+          },
+        },
+        data: {
+          value,
+          isActive,
         },
       });
     }),
@@ -75,9 +157,69 @@ export const pluginRouter = router({
         }),
       );
     }),
+  queryWithUserOverridableConfig: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .output(
+      PluginSchema.omit({ Configs: true })
+        .extend({
+          Configs: z.array(PluginConfigSchema.omit({ value: true })),
+        })
+        .nullable(),
+    )
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      return PluginSchema.omit({ Configs: true })
+        .extend({
+          Configs: z.array(PluginConfigSchema.omit({ value: true })),
+        })
+        .nullable()
+        .parse(
+          await prisma.plugin.findUnique({
+            where: {
+              id,
+            },
+            include: {
+              Configs: {
+                where: {
+                  userOverridable: true,
+                },
+                omit: {
+                  value: true,
+                },
+              },
+            },
+          }),
+        );
+    }),
   listAll: authedProcedure.query(async () => {
     return z.array(PluginSchema).parse(
       await prisma.plugin.findMany({
+        include: {
+          Versions: true,
+          Permissions: true,
+          Tags: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      }),
+    );
+  }),
+  listAllUserConfigurable: authedProcedure.query(async () => {
+    return z.array(PluginSchema).parse(
+      await prisma.plugin.findMany({
+        where: {
+          Configs: {
+            some: {
+              userOverridable: true,
+            },
+          },
+        },
         include: {
           Versions: true,
           Permissions: true,
@@ -106,7 +248,7 @@ export const pluginRouter = router({
         },
       });
 
-      importPluginQueue.add(task.id, {
+      await importPluginQueue.add(task.id, {
         taskId: task.id,
         origin: {
           type: "GITHUB",
@@ -133,7 +275,7 @@ export const pluginRouter = router({
         },
       });
 
-      importPluginQueue.add(task.id, {
+      await importPluginQueue.add(task.id, {
         taskId: task.id,
         origin: {
           type: "LOCAL",

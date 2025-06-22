@@ -7,18 +7,20 @@ import Icon from "./Icon.vue";
 import type { Glossary, Term, TermRelation } from "@cat/shared";
 import { onMounted, ref } from "vue";
 import { trpc } from "@/server/trpc/client";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   term: TermRelation;
 }>();
 
+const { t } = useI18n();
 const { info } = useToastStore();
 const { insert } = useEditorStore();
 const { document } = storeToRefs(useEditorStore());
 
 const handleInsert = (translation: Term) => {
   insert(translation.value);
-  info(`成功插入术语`);
+  info(t("成功插入术语"));
 };
 
 const glossary = ref<Glossary | null>(null);

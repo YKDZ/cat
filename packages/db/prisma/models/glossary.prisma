@@ -42,4 +42,5 @@ model TermRelation {
     Translation   Term @relation(name: "TermTranslaiton", fields: [translationId], references: [id], onDelete: Cascade)
 
     @@id([termId, translationId])
+    @@index([translationId])
 }

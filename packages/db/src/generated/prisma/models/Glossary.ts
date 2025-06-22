@@ -366,10 +366,6 @@ export type GlossaryOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type GlossaryCreateNestedOneWithoutTermsInput = {
   create?: Prisma.XOR<Prisma.GlossaryCreateWithoutTermsInput, Prisma.GlossaryUncheckedCreateWithoutTermsInput>
   connectOrCreate?: Prisma.GlossaryCreateOrConnectWithoutTermsInput

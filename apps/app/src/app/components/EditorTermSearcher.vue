@@ -6,7 +6,9 @@ import { ref, watch } from "vue";
 import Button from "./Button.vue";
 import { trpc } from "@/server/trpc/client";
 import { useToastStore } from "../stores/toast";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const { info, warn } = useToastStore();
 
 const { languageFromId, languageToId, elementId } =
@@ -21,7 +23,7 @@ const handleSearchSelection = async () => {
   const selectionContent = window.getSelection()?.toString() ?? "";
 
   if (selectionContent.trim().length === 0) {
-    warn("不能搜索空术语");
+    warn(t("不能搜索空术语"));
     return;
   }
 
@@ -38,7 +40,7 @@ const handleSearch = async (text: string) => {
   if (!languageFromId.value || !languageToId.value) return 0;
 
   if (text.length === 0) {
-    warn("不能搜索空术语");
+    warn(t("不能搜索空术语"));
     return 0;
   }
 
@@ -66,7 +68,7 @@ watch(elementId, () => (searchQuery.value = ""));
   <Input
     v-model="searchQuery"
     icon="i-mdi:magnify"
-    placeholder="搜索术语"
+    :placeholder="$t('搜索术语')"
     full-width
     @change="handleSearchInput"
   />

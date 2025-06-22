@@ -18,7 +18,7 @@ const handleSearch = async () => {
     v-model="searchQuery"
     icon="i-mdi:magnify"
     full-width
-    placeholder="搜索可翻译元素"
+    :placeholder="$t('搜索可翻译元素')"
     @change="handleSearch"
   />
 </template>

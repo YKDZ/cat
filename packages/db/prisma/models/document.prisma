@@ -3,8 +3,7 @@ model Document {
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
 
-    fileId Int?
-    File   File? @relation(fields: [fileId], references: [id])
+    File File?
 
     projectId String
     Project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

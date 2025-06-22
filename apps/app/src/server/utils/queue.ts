@@ -6,8 +6,8 @@ export class AsyncMessageQueue<T> {
    * Add message to queue
    * @param message Message to add
    */
-  push(message: T) {
-    this.queue.push(message);
+  push(...messages: T[]) {
+    this.queue.push(...messages);
     if (this.resolve) {
       this.resolve();
       this.resolve = null;

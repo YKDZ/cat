@@ -1,5 +1,9 @@
 import { Prisma, prisma } from "@cat/db";
-import type { TextVectorizer, TranslatableFileHandler } from "@cat/plugin-core";
+import {
+  PluginRegistry,
+  type TextVectorizer,
+  type TranslatableFileHandler,
+} from "@cat/plugin-core";
 import type {
   Document,
   File,
@@ -8,7 +12,6 @@ import type {
 } from "@cat/shared";
 import { logger } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
-import { pluginRegistry } from "..";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
 import { diffArrays } from "diff";
@@ -36,6 +39,13 @@ const worker = new Worker(
       handlerId: string;
       vectorizerId: string;
     } = job.data;
+
+    const pluginRegistry = new PluginRegistry();
+
+    await pluginRegistry.loadPlugins({
+      silent: true,
+      tags: ["translatable-file-handler", "text-vectorizer"],
+    });
 
     const handler = pluginRegistry
       .getTranslatableFileHandlers()
@@ -167,18 +177,21 @@ export const processPretreatment = async (
     // 将旧元素（变化的活跃元素）置为非活跃
     await Promise.all(
       removedElements.map(async ({ meta }) => {
-        await tx.translatableElement.update({
+        // 逻辑上应该只能更新到一个元素
+        const result = await tx.translatableElement.updateManyAndReturn({
           where: {
-            meta_documentId_isActive: {
-              meta: meta as InputJsonValue,
-              documentId: document.id,
-              isActive: true,
+            meta: {
+              equals: meta as InputJsonValue,
             },
+            documentId: document.id,
+            isActive: true,
           },
           data: {
             isActive: false,
           },
         });
+        if (result.length > 1)
+          throw new Error("Assert failed. Should update only one element");
       }),
     );
 

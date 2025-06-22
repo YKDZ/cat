@@ -48,7 +48,7 @@ const worker = new Worker(
           iconURL: data.iconURL,
           Configs: {
             connectOrCreate: data.configs
-              ? data.configs.map(({ key, schema }) => ({
+              ? data.configs.map(({ key, schema, userOverridable }) => ({
                   where: {
                     pluginId_key: {
                       pluginId,
@@ -59,6 +59,7 @@ const worker = new Worker(
                     key,
                     schema,
                     value: getDefaultFromSchema(schema),
+                    userOverridable,
                   },
                 }))
               : [],
@@ -115,7 +116,7 @@ const worker = new Worker(
           iconURL: data.iconURL,
           Configs: {
             connectOrCreate: data.configs
-              ? data.configs.map(({ key, schema }) => ({
+              ? data.configs.map(({ key, schema, userOverridable }) => ({
                   where: {
                     pluginId_key: {
                       pluginId,
@@ -126,6 +127,7 @@ const worker = new Worker(
                     key,
                     schema,
                     value: getDefaultFromSchema(schema),
+                    userOverridable,
                   },
                 }))
               : [],

@@ -3,7 +3,7 @@
   "entry": "dist/index.mjs",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
-    "文本向量化"
+    "text-vectorizer"
   ],
   "configs": [
     {

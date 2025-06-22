@@ -1,4 +1,4 @@
-import { CatPlugin, PluginLoadOptions } from "@cat/plugin-core";
+import type { CatPlugin, PluginLoadOptions } from "@cat/plugin-core";
 import { Vectorizer } from "./vectorizer";
 
 class Plugin implements CatPlugin {

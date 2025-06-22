@@ -7,13 +7,14 @@ import { navigate } from "vike/client/router";
 
 const props = defineProps<{
   plugin: Plugin;
+  pathPrefix: string;
 }>();
 
 const iconImgEl = ref<HTMLImageElement>();
 const isIconLoaded = ref(false);
 
 const handleNav = () => {
-  navigate(`/plugin/${props.plugin.id}`);
+  navigate(`${props.pathPrefix}/${props.plugin.id}`);
 };
 
 const simpleName = computed(() => {
@@ -58,12 +59,12 @@ onMounted(() => {
           <span
             v-if="plugin.isExternal"
             class="px-2 py-1 rounded-sm bg-highlight-darkest"
-            >内部插件</span
+            >{{ $t("内部插件") }}</span
           >
           <span
             v-if="plugin.enabled"
             class="px-2 py-1 rounded-sm bg-highlight-darkest"
-            >已安装</span
+            >{{ $t("已安装") }}</span
           >
         </div>
       </div>

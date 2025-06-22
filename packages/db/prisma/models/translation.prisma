@@ -3,6 +3,7 @@ model Translation {
     value     String   @db.Text
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    meta      Json?
 
     translatorId String
     Translator   User   @relation("Translator", fields: [translatorId], references: [id], onDelete: Cascade)

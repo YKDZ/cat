@@ -36,6 +36,6 @@ const options = computed(() => {
     v-model="languageId"
     :full-width
     :options
-    placeholder="选择一个语言"
+    :placeholder="$t('选择一个语言')"
   />
 </template>

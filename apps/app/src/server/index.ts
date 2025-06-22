@@ -1,5 +1,4 @@
 import { setting } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
 import "dotenv/config";
 import type { Server } from "http";
 import { apply } from "vike-server/hono";
@@ -13,11 +12,14 @@ import {
 } from "./utils/server";
 import { userFromSessionId } from "./utils/user";
 import { createHTTPHelpers } from "@cat/shared";
+import getPluginRegistry from "./pluginRegistry";
+import type { PluginRegistry } from "@cat/plugin-core";
+import { parsePreferredLanguage } from "./utils/i18n";
 
 (async () => {
   await initDB();
   await initSettings();
-  await PluginRegistry.getInstance().loadPlugins();
+  await getPluginRegistry();
   await scanLocalPlugins();
 })();
 
@@ -34,6 +36,12 @@ function startServer() {
       );
 
       const sessionId = helpers.getCookie("sessionId");
+      const displayLanguage =
+        helpers.getCookie("displayLanguage") ??
+        parsePreferredLanguage(helpers.getReqHeader("Accept-Language") ?? "")
+          ?.toLocaleLowerCase()
+          .replace("-", "_") ??
+        (await setting("server.default-language", "zh_cn"));
       const user = await userFromSessionId(sessionId ?? "");
       const name = await setting("server.name", "CAT");
 
@@ -41,7 +49,8 @@ function startServer() {
         name,
         user,
         sessionId,
-        pluginRegistry: PluginRegistry.getInstance(),
+        displayLanguage,
+        pluginRegistry: runtime.hono.var.pluginRegistry as PluginRegistry,
         helpers,
       };
     },
@@ -62,4 +71,3 @@ function startServer() {
 }
 
 export default startServer();
-export const pluginRegistry = PluginRegistry.getInstance();

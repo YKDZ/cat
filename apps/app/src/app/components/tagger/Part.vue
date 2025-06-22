@@ -14,8 +14,6 @@ const clipper = computed(() =>
   clippers.value.find((c) => c.id === props.part.clipperId),
 );
 
-// i-codicon:newline
-
 const content = computed(() => {
   if (!clipper.value?.content) {
     return props.part.text;
@@ -70,13 +68,15 @@ const bgHoverColor = computed(() => {
 // hover:bg-gray-700
 // hover:bg-gray-800
 // hover:bg-gray-900
+
+// i-codicon:newline
 </script>
 
 <template>
   <span
     :class="[
       {
-        'cursor-pointer text-highlight-content p-0.5 rounded-md':
+        'cursor-pointer text-highlight-content px-0.5':
           !!clipper && clipper.highlight,
         'cursor-pointer':
           clipper && clipper.clickHandlers.length > 0 && interactable,

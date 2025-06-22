@@ -11,7 +11,7 @@ const props = defineProps<{
 const { info, trpcWarn } = useToastStore();
 
 const handleUpdate = async (to: JSONType) => {
-  await trpc.plugin.updateConfig
+  await trpc.plugin.updateGlobalConfig
     .mutate({
       pluginId: props.config.pluginId,
       key: props.config.key,

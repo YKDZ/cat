@@ -43,19 +43,38 @@ model PluginPermission {
 }
 
 model PluginConfig {
-    id        Int      @id @default(autoincrement())
-    key       String
-    value     Json
-    schema    Json
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+    id              Int      @id @default(autoincrement())
+    key             String
+    value           Json
+    schema          Json
+    userOverridable Boolean  @default(false)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @default(now()) @updatedAt
 
     pluginId String
     Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
+    UserInstances PluginUserConfigInstance[]
+
     @@unique([pluginId, key])
     @@index([pluginId])
     @@index([key])
+}
+
+model PluginUserConfigInstance {
+    id        Int      @id @default(autoincrement())
+    value     Json
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    isActive  Boolean  @default(true)
+
+    creatorId String
+    Creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+    configId Int
+    Config   PluginConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+    @@unique([configId, creatorId])
 }
 
 model PluginTag {

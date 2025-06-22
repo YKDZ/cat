@@ -34,8 +34,8 @@ onMounted(() => {
     <textarea
       ref="inputTextareaEl"
       v-model="translationValue"
-      placeholder="在此输入译文"
-      class="px-5 pt-5 outline-0 h-auto min-h-32 w-full"
+      :placeholder="$t('在此输入译文')"
+      class="px-5 pt-5 outline-0 max-w-1/2 min-h-32 min-w-1/2"
     />
     <EditorTaggedTranslation />
   </div>

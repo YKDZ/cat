@@ -49,8 +49,6 @@ const isEmpty = computed(() => {
 });
 
 const handleUpdate = (to: JSONType) => {
-  console.log(schema.value);
-  console.log(to);
   data.value = to;
 };
 
@@ -78,7 +76,7 @@ onMounted(async () => {
       magic-key="Enter"
       @click="handleAuth"
       @magic-click="handleAuth"
-      >登录</Button
+      >{{ $t("登录") }}</Button
     >
   </div>
   <Loading v-else size="200px" />

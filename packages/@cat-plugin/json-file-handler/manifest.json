@@ -3,7 +3,6 @@
   "entry": "dist/index.mjs",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
-    "文件处理",
-    "JSON"
+    "translatable-file-handler"
   ]
 }

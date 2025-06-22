@@ -1,54 +1,37 @@
 <script setup lang="ts">
+import { trpc } from "@/server/trpc/client";
+import type { Translation, TranslationVote } from "@cat/shared";
 import { storeToRefs } from "pinia";
+import { usePageContext } from "vike-vue/usePageContext";
+import { computed, onMounted, ref, watch } from "vue";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
-import UserAvatar from "./UserAvatar.vue";
-import type { Translation, TranslationVote } from "@cat/shared";
-import Button from "./Button.vue";
-import { computed, onMounted, ref, watch } from "vue";
-import { trpc } from "@/server/trpc/client";
+import EditorElementTranslationMeta from "./EditorElementTranslationMeta.vue";
+import EditorElementTranslationVote from "./EditorElementTranslationVote.vue";
 import TextTagger from "./tagger/TextTagger.vue";
+import UserAvatar from "./UserAvatar.vue";
 
-const { info, trpcWarn } = useToastStore();
-const { translationValue, document } = storeToRefs(useEditorStore());
+const { translationValue, selectedTranslationId } =
+  storeToRefs(useEditorStore());
+const { user } = usePageContext();
 
 const selfVote = ref<TranslationVote | null>(null);
 const vote = ref<number | null>(null);
-const isProcessing = ref<boolean>(false);
 
 const props = defineProps<{
   translation: Translation;
 }>();
 
-const copy = (translation: Translation) => {
-  translationValue.value = props.translation.value;
-  info(`成功复制 ${translation.Translator?.name} 的翻译`);
-};
-
-const handleVote = (value: number) => {
-  if (value === selfVote.value?.value) value = 0;
-  if (vote.value === null) return;
-  if (isProcessing.value) return;
-
-  trpc.translation.vote
-    .mutate({
-      id: props.translation.id,
-      value,
-    })
-    .then((newVote) => {
-      if (selfVote.value === null) {
-        info(`成功投票 ${newVote.value > 0 ? "+" : ""}${newVote.value}`);
-      } else {
-        info(
-          `成功修改投票数从 ${selfVote.value.value > 0 ? "+" : ""}${selfVote.value.value} 到 ${newVote.value > 0 ? "+" : ""}${newVote.value}`,
-        );
-      }
-      selfVote.value = newVote;
-    })
-    .catch(trpcWarn)
-    .finally(() => {
-      isProcessing.value = false;
-    });
+const handleSelect = () => {
+  // TODO 目前只能修改自己的翻译
+  if (
+    selectedTranslationId.value !== props.translation.id &&
+    props.translation.translatorId === user?.id
+  ) {
+    selectedTranslationId.value = props.translation.id;
+    translationValue.value = props.translation.value;
+    return;
+  } else selectedTranslationId.value = null;
 };
 
 const isApproved = computed(() => {
@@ -59,66 +42,27 @@ const isApproved = computed(() => {
     ) !== -1
   );
 });
-
-onMounted(() => {
-  trpc.translation.querySelfVote
-    .query({
-      id: props.translation.id,
-    })
-    .then((self) => {
-      selfVote.value = self;
-    });
-});
-
-watch(
-  selfVote,
-  () => {
-    trpc.translation.countVote
-      .query({
-        id: props.translation.id,
-      })
-      .then((amount) => {
-        vote.value = amount;
-      });
-  },
-  { immediate: true },
-);
 </script>
 
 <template>
   <div
-    class="px-3 py-2 flex gap-2 w-full cursor-pointer items-center"
+    class="px-3 py-2 flex gap-2 w-full cursor-pointer items-center relative"
     :class="{
       'bg-success hover:bg-success-darker': isApproved,
       ' bg-highlight hover:bg-highlight-darker': !isApproved,
+      'border-l-2 border-base': selectedTranslationId === translation.id,
     }"
-    @click="copy(translation)"
+    @click="handleSelect"
   >
     <UserAvatar
       v-if="translation.Translator"
       :user="translation.Translator"
       :size="36"
     />
-    <TextTagger v-if="document" :text="translation.value" />
-    <div class="ml-auto flex gap-1 items-center">
-      <Button
-        icon="i-mdi:minus"
-        no-text
-        transparent
-        :focused="selfVote?.value === -1"
-        @click.stop="handleVote(-1)"
-      />
-      <span class="text-center text-center min-h-24px min-w-24px inline-block">
-        <span v-if="vote !== null">{{ vote }}</span>
-        <span v-else class="i-mdi:help inline-block" />
-      </span>
-      <Button
-        icon="i-mdi:plus"
-        no-text
-        transparent
-        :focused="selfVote?.value === 1"
-        @click.stop="handleVote(1)"
-      />
+    <div class="flex flex-col gap-1 w-full">
+      <TextTagger :text="translation.value" />
+      <EditorElementTranslationMeta :meta="translation.meta" />
     </div>
+    <EditorElementTranslationVote :translation />
   </div>
 </template>

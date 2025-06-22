@@ -28,7 +28,7 @@ const onSubmit = async (blob: Blob | null) => {
 
   const meta = FileMetaSchema.parse({
     name: file.name,
-    type: rawFileMime.value,
+    mimeType: rawFileMime.value,
     size: file.size,
   });
 
@@ -73,9 +73,9 @@ const rawFileMime = computed(() => {
 </script>
 
 <template>
-  <Button icon="i-mdi:upload" :class="$attrs.class" @click="handleStart"
-    >上传新头像</Button
-  >
+  <Button icon="i-mdi:upload" :class="$attrs.class" @click="handleStart">{{
+    $t("上传头像")
+  }}</Button>
   <input
     ref="fileInputEl"
     type="file"

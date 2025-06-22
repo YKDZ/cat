@@ -5,11 +5,13 @@ import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import Button from "@/app/components/Button.vue";
 import { useToastStore } from "@/app/stores/toast";
 import { trpc } from "@/server/trpc/client";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   glossaryId: string;
 }>();
 
+const { t } = useI18n();
 const { info, warn, trpcWarn } = useToastStore();
 
 const termLanguageId = ref("");
@@ -23,14 +25,14 @@ const handleInsert = async () => {
     termLanguageId.value.length === 0 ||
     translationLanguageId.value.length === 0
   ) {
-    warn("必须指定术语语言与翻译语言");
+    warn(t("必须指定术语语言与翻译语言"));
     return;
   }
   if (
     terms.value.trim().length === 0 ||
     translations.value.trim().length === 0
   ) {
-    warn("术语或翻译表不能为空");
+    warn(t("术语或翻译表不能为空"));
     return;
   }
 
@@ -38,7 +40,7 @@ const handleInsert = async () => {
   const translationArr = translations.value.trim().split(/\r?\n/);
 
   if (termArr.length !== translationArr.length) {
-    warn("术语和翻译表行数必须相同");
+    warn(t("术语和翻译表行数必须相同"));
     return;
   }
 
@@ -59,7 +61,7 @@ const handleInsert = async () => {
       canReverse: canReverse.value,
     })
     .then(() => {
-      info("成功插入所有术语");
+      info(t("成功插入所有术语"));
     })
     .catch(trpcWarn);
 };
@@ -67,11 +69,15 @@ const handleInsert = async () => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <h3 class="text-lg font-bold">以文本方式插入术语</h3>
-    <div>
-      <p>选择术语语言与翻译语言并以换行分隔的方式插入一一对应的术语</p>
-      <p>通过箭头方向决定插入的术语是否是双向的</p>
-    </div>
+    <article class="max-w-460px prose prose-highlight-content">
+      <h3 class="text-highlight-content-darker">
+        {{ $t("以文本方式插入术语") }}
+      </h3>
+      <p>
+        {{ $t("选择术语语言与翻译语言并以换行分隔的方式插入一一对应的术语") }}
+      </p>
+      <p>{{ $t("通过箭头方向决定插入的术语是否是双向的") }}</p>
+    </article>
     <div class="flex gap-3 items-start">
       <div class="flex flex-col gap-2">
         <LanguagePicker v-model="termLanguageId" full-width />
@@ -89,6 +95,6 @@ const handleInsert = async () => {
         <Textarea v-model="translations" full-width />
       </div>
     </div>
-    <Button full-width @click="handleInsert">提交</Button>
+    <Button full-width @click="handleInsert">{{ $t("提交") }}</Button>
   </div>
 </template>

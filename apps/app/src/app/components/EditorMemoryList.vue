@@ -46,6 +46,6 @@ watch(elementId, load, { immediate: true });
     :memory-suggestion="memory"
   />
   <div v-if="memories.length === 0" class="px-3 py-2 flex flex-col gap-1">
-    还没有可用的记忆
+    {{ $t("还没有可用的记忆") }}
   </div>
 </template>

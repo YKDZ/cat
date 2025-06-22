@@ -1,8 +1,8 @@
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { userFromSessionId } from "../utils/user";
-import { PluginRegistry } from "@cat/plugin-core";
 import { createHTTPHelpers, getCookieFunc } from "@cat/shared";
+import getPluginRegistry from "../pluginRegistry";
 
 export const createHttpContext = async ({
   req,
@@ -13,10 +13,12 @@ export const createHttpContext = async ({
   const sessionId = helpers.getCookie("sessionId") ?? null;
   const user = await userFromSessionId(sessionId);
 
+  const pluginRegistry = await getPluginRegistry();
+
   return {
     user,
     sessionId,
-    pluginRegistry: PluginRegistry.getInstance(),
+    pluginRegistry,
     helpers,
     ...helpers,
   };
@@ -37,11 +39,23 @@ export type HttpContext = Awaited<ReturnType<typeof createHttpContext>>;
 
 export const EMPTY_CONTEXT = {
   user: null,
-  sessionId: "",
-  setCookie: () => {},
-  getCookie: () => "",
-  getQueryParam: () => "",
-  setResHeader: () => {},
-  delCookie: () => {},
-  getReqHeader: () => "",
+  sessionId: "sessionId not exists in EMPTY_CONTEXT",
+  setCookie: () => {
+    throw new Error("Not implemented in EMPTY_CONTEXT");
+  },
+  getCookie: () => {
+    throw new Error("Not implemented in EMPTY_CONTEXT");
+  },
+  getQueryParam: () => {
+    throw new Error("Not implemented in EMPTY_CONTEXT");
+  },
+  setResHeader: () => {
+    throw new Error("Not implemented in EMPTY_CONTEXT");
+  },
+  delCookie: () => {
+    throw new Error("Not implemented in EMPTY_CONTEXT");
+  },
+  getReqHeader: () => {
+    throw new Error("Not implemented in EMPTY_CONTEXT");
+  },
 };

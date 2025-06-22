@@ -5,7 +5,7 @@ import EditorTermSearcher from "./EditorTermSearcher.vue";
 
 <template>
   <div class="flex flex-col gap-2">
-    <h3 class="text-sm font-bold">术语</h3>
+    <h3 class="text-sm font-bold">{{ $t("术语") }}</h3>
     <EditorTermSearcher />
     <EditorTermList />
   </div>

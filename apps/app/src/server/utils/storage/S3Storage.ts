@@ -1,7 +1,11 @@
 import type { File } from "@cat/shared";
 import type { Storage } from "./useStorage";
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Readable } from "node:stream";
 import { S3DB, setting } from "@cat/db";
@@ -20,17 +24,14 @@ export class S3Storage implements Storage {
   }
 
   async getContent(file: File): Promise<Buffer> {
-    const s3UploadBucketName = (await setting(
-      "s3.bucket-name",
-      "cat",
-    )) as string;
+    const s3UploadBucketName = await setting("s3.bucket-name", "cat");
 
     const command = new GetObjectCommand({
       Bucket: s3UploadBucketName,
       Key: file.storedPath.replaceAll("\\", "/"),
     });
 
-    const response = await S3DB.client!.send(command);
+    const response = await S3DB.client.send(command);
     const stream = response.Body as Readable;
 
     return new Promise<Buffer>((resolve, reject) => {
@@ -44,28 +45,24 @@ export class S3Storage implements Storage {
   }
 
   async generateUploadURL(path: string, expiresIn: number) {
-    const s3UploadBucketName = (await setting(
-      "s3.bucket-name",
-      "cat",
-    )) as string;
+    const s3UploadBucketName = await setting("s3.bucket-name", "cat");
 
     const params: PutObjectCommandInput = {
       Bucket: s3UploadBucketName,
       Key: path.replaceAll("\\", "/"),
-    } as PutObjectCommandInput;
+      ACL: await setting("s3.acl", "private"),
+    };
     const command = new PutObjectCommand(params);
     const presignedUrl = await getSignedUrl(S3DB.client!, command, {
       expiresIn,
+      signableHeaders: new Set(["x-amz-checksum-sha256"]),
     });
 
     return presignedUrl;
   }
 
   async generateURL(path: string, expiresIn: number) {
-    const s3UploadBucketName = (await setting(
-      "s3.bucket-name",
-      "cat",
-    )) as string;
+    const s3UploadBucketName = await setting("s3.bucket-name", "cat");
 
     const command = new GetObjectCommand({
       Bucket: s3UploadBucketName,
@@ -81,10 +78,7 @@ export class S3Storage implements Storage {
     mimeType: string,
     expiresIn: number,
   ) {
-    const s3UploadBucketName = (await setting(
-      "s3.bucket-name",
-      "cat",
-    )) as string;
+    const s3UploadBucketName = await setting("s3.bucket-name", "cat");
 
     const command = new GetObjectCommand({
       Bucket: s3UploadBucketName,
@@ -96,7 +90,16 @@ export class S3Storage implements Storage {
     return await getSignedUrl(S3DB.client!, command, { expiresIn });
   }
 
-  async delete(file: File) {}
+  async delete(file: File) {
+    const s3UploadBucketName = await setting("s3.bucket-name", "cat");
+
+    const command = new DeleteObjectCommand({
+      Bucket: s3UploadBucketName,
+      Key: file.storedPath.replaceAll("\\", "/"),
+    });
+
+    await S3DB.client.send(command);
+  }
 
   async ping() {
     await S3DB.ping();

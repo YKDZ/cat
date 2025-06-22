@@ -3,48 +3,50 @@ import { ref } from "vue";
 import Navbar from "./navbar/Navbar.vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import type { NavbarItemType } from "./navbar";
+import { useI18n } from "vue-i18n";
 
 const ctx = usePageContext();
+const { t } = useI18n();
 
 const items = ref<NavbarItemType[]>([
   {
-    text: "主页",
+    text: t("主页"),
     to: "",
     selected: false,
     icon: "i-mdi:earth",
   },
   {
-    text: "文档",
+    text: t("文档"),
     to: "/documents",
     selected: false,
     icon: "i-mdi:document",
   },
   {
-    text: "记忆",
+    text: t("记忆"),
     to: "/memories",
     selected: false,
     icon: "i-mdi:zip-box",
   },
   {
-    text: "术语",
+    text: t("术语"),
     to: "/glossaries",
     selected: false,
     icon: "i-mdi:file-word-box",
   },
   {
-    text: "成员",
+    text: t("成员"),
     to: "/members",
     selected: false,
     icon: "i-mdi:account-group",
   },
   {
-    text: "任务",
+    text: t("任务"),
     to: "/tasks",
     selected: false,
     icon: "i-mdi:account-hard-hat",
   },
   {
-    text: "设置",
+    text: t("设置"),
     to: "/settings",
     selected: false,
     icon: "i-mdi:cog",

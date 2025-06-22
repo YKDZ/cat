@@ -29,13 +29,6 @@ model Task {
     @@index([meta])
 }
 
-model StorageType {
-    id   Int    @id @default(autoincrement())
-    name String @unique
-
-    Files File[]
-}
-
 model Permission {
     permission String
 
