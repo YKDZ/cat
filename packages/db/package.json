@@ -35,7 +35,7 @@
     "@elastic/elasticsearch": "^9.0.1",
     "@prisma/adapter-pg": "^6.10.1",
     "@prisma/client": "6.10.1",
-    "@rollup/plugin-commonjs": "^28.0.5",
+    "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.1.2",
