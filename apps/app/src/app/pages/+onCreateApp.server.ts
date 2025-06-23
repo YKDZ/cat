@@ -15,7 +15,7 @@ export const onCreateApp = async (ctx: PageContextServer) => {
   app.use(await loadI18n(ctx));
 };
 
-export const loadI18n = async (ctx: PageContextServer) => {
+const loadI18n = async (ctx: PageContextServer) => {
   const i18n = setupI18n();
   const key =
     ctx.helpers.getCookie("displayLanguage") ??

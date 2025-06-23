@@ -57,11 +57,13 @@ onMounted(async () => {
   <div>
     <JSONForm v-if="!isEmpty" :schema :data @update="(to) => (data = to)" />
     <Button
+      :id="method.providerId"
       full-width
       :icon="method.icon"
       @magic-click="handlePreAuth"
       @click="handlePreAuth"
-      >通过 {{ method.name }} 登录</Button
     >
+      {{ $t("通过 {name} 登录", { name: method.name }) }}
+    </Button>
   </div>
 </template>

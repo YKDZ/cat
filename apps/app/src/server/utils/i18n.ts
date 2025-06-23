@@ -10,6 +10,7 @@ export const setupI18n = () =>
   createI18n({
     legacy: false,
     fallbackLocale: "zh_cn",
+    fallbackFormat: true,
     formatFallbackMessages: true,
   });
 
@@ -27,6 +28,7 @@ export const loadLocaleMessagesInServerSide = async (
   const tempI18n = createI18n({
     legacy: false,
     fallbackLocale: "zh_cn",
+    fallbackFormat: true,
     formatFallbackMessages: true,
   });
 
