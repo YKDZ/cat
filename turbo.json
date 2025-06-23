@@ -35,6 +35,10 @@
       "persistent": true,
       "cache": false
     },
+    "test:e2e": {
+      "persistent": true,
+      "cache": false
+    },
     "format": {
       "dependsOn": [
         "^format"

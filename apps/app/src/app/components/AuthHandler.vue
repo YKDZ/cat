@@ -61,6 +61,7 @@ onMounted(async () => {
   schema.value = await trpc.auth.queryAuthFormSchema.query({
     providerId: authMethod.value.providerId,
   });
+
   // 无需填表则直接登录
   // 否则需要手动按钮
   if (isEmpty.value) await handleAuth();
