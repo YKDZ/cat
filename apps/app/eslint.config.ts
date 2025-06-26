@@ -10,6 +10,7 @@ export default tseslint.config(
   {
     rules: {
       "@intlify/vue-i18n/no-dynamic-keys": "error",
+      "@intlify/vue-i18n/no-missing-keys": "off",
       "@intlify/vue-i18n/no-unused-keys": [
         "error",
         {

@@ -6,10 +6,11 @@ import { watch } from "vue";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import EditorMemoryListItem from "./EditorMemoryListItem.vue";
+import { useProfileStore } from "../stores/profile";
 
-const { info, trpcWarn } = useToastStore();
-const { replace } = useEditorStore();
-const { elementId, languageFromId, languageToId, memories, document } =
+const { trpcWarn } = useToastStore();
+const { editorMemoryMinSimilarity } = storeToRefs(useProfileStore());
+const { elementId, languageFromId, languageToId, memories } =
   storeToRefs(useEditorStore());
 
 let memorySub: Unsubscribable;
@@ -26,6 +27,7 @@ const load = () => {
       elementId: elementId.value,
       sourceLanguageId: languageFromId.value,
       translationLanguageId: languageToId.value,
+      minMemorySimilarity: editorMemoryMinSimilarity.value,
     },
     {
       onData: ({ id, data }) => {

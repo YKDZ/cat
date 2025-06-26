@@ -138,13 +138,13 @@ const selectedOptions = computed(() => {
       </div>
 
       <div v-if="options.length === 0" class="text-highlight-content px-3 py-2">
-        无可用选项
+        {{ $t("无可用选项") }}
       </div>
       <div
         v-else-if="filteredOptions.length === 0"
         class="text-highlight-content px-3 py-2"
       >
-        无匹配结果
+        {{ $t("无匹配结果") }}
       </div>
     </div>
   </div>

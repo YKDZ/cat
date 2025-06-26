@@ -6,8 +6,8 @@ import { logger, TranslatableElementSchema } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { z } from "zod/v4";
 import { config } from "./config";
-import { termText } from "../utils/es";
 import { queryElementWithEmbedding, searchMemory } from "../utils/memory";
+import { EsTermIndexService, EsTermStore } from "../utils/es";
 
 const queueId = "autoTranslate";
 
@@ -155,7 +155,7 @@ const worker = new Worker(
           if (!advisor.canSuggest(element, sourceLangugeId, languageId))
             throw new Error("Advisor can not suggest element in document");
 
-          const { termedText, translationIds } = await termText(
+          const { termedText, translationIds } = await EsTermStore.termText(
             element.value,
             sourceLangugeId,
             languageId,

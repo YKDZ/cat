@@ -8,8 +8,9 @@ export const guard = async (ctx: PageContextServer) => {
   const { elementId, documentId, languageFromTo } = ctx.routeParams;
   if (elementId !== "auto" || !isNaN(parseInt(elementId))) return;
 
-  let target = await useSSCTRPC(ctx).document.queryFirstUntranslatedElement({
+  let target = await useSSCTRPC(ctx).document.queryFirstElement({
     id: documentId,
+    isUntranslated: true,
   });
 
   if (!target) {

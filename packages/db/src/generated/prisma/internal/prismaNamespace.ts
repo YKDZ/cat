@@ -396,8 +396,10 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Document: 'Document',
   TranslatableElement: 'TranslatableElement',
+  DocumentVersion: 'DocumentVersion',
   File: 'File',
   FileType: 'FileType',
+  StorageType: 'StorageType',
   Glossary: 'Glossary',
   Term: 'Term',
   TermRelation: 'TermRelation',
@@ -405,7 +407,6 @@ export const ModelName = {
   MemoryItem: 'MemoryItem',
   Language: 'Language',
   Task: 'Task',
-  StorageType: 'StorageType',
   Permission: 'Permission',
   Setting: 'Setting',
   Plugin: 'Plugin',
@@ -437,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "document" | "translatableElement" | "file" | "fileType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "storageType" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginUserConfigInstance" | "pluginTag" | "pluginComponent" | "project" | "translation" | "translationVote" | "translationApprovment" | "user" | "account" | "vector"
+    modelProps: "document" | "translatableElement" | "documentVersion" | "file" | "fileType" | "storageType" | "glossary" | "term" | "termRelation" | "memory" | "memoryItem" | "language" | "task" | "permission" | "setting" | "plugin" | "pluginVersion" | "pluginPermission" | "pluginConfig" | "pluginUserConfigInstance" | "pluginTag" | "pluginComponent" | "project" | "translation" | "translationVote" | "translationApprovment" | "user" | "account" | "vector"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -589,6 +590,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DocumentVersion: {
+      payload: Prisma.$DocumentVersionPayload<ExtArgs>
+      fields: Prisma.DocumentVersionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DocumentVersionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DocumentVersionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>
+        }
+        findFirst: {
+          args: Prisma.DocumentVersionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DocumentVersionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>
+        }
+        findMany: {
+          args: Prisma.DocumentVersionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>[]
+        }
+        create: {
+          args: Prisma.DocumentVersionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>
+        }
+        createMany: {
+          args: Prisma.DocumentVersionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DocumentVersionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>[]
+        }
+        delete: {
+          args: Prisma.DocumentVersionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>
+        }
+        update: {
+          args: Prisma.DocumentVersionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>
+        }
+        deleteMany: {
+          args: Prisma.DocumentVersionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DocumentVersionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DocumentVersionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>[]
+        }
+        upsert: {
+          args: Prisma.DocumentVersionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentVersionPayload>
+        }
+        aggregate: {
+          args: Prisma.DocumentVersionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDocumentVersion>
+        }
+        groupBy: {
+          args: Prisma.DocumentVersionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentVersionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DocumentVersionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentVersionCountAggregateOutputType> | number
+        }
+      }
+    }
     File: {
       payload: Prisma.$FilePayload<ExtArgs>
       fields: Prisma.FileFieldRefs
@@ -734,6 +809,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.FileTypeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.FileTypeCountAggregateOutputType> | number
+        }
+      }
+    }
+    StorageType: {
+      payload: Prisma.$StorageTypePayload<ExtArgs>
+      fields: Prisma.StorageTypeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StorageTypeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StorageTypeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
+        }
+        findFirst: {
+          args: Prisma.StorageTypeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StorageTypeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
+        }
+        findMany: {
+          args: Prisma.StorageTypeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>[]
+        }
+        create: {
+          args: Prisma.StorageTypeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
+        }
+        createMany: {
+          args: Prisma.StorageTypeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StorageTypeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>[]
+        }
+        delete: {
+          args: Prisma.StorageTypeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
+        }
+        update: {
+          args: Prisma.StorageTypeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
+        }
+        deleteMany: {
+          args: Prisma.StorageTypeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StorageTypeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StorageTypeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>[]
+        }
+        upsert: {
+          args: Prisma.StorageTypeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
+        }
+        aggregate: {
+          args: Prisma.StorageTypeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStorageType>
+        }
+        groupBy: {
+          args: Prisma.StorageTypeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StorageTypeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StorageTypeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StorageTypeCountAggregateOutputType> | number
         }
       }
     }
@@ -1252,80 +1401,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TaskCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TaskCountAggregateOutputType> | number
-        }
-      }
-    }
-    StorageType: {
-      payload: Prisma.$StorageTypePayload<ExtArgs>
-      fields: Prisma.StorageTypeFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.StorageTypeFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.StorageTypeFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
-        }
-        findFirst: {
-          args: Prisma.StorageTypeFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.StorageTypeFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
-        }
-        findMany: {
-          args: Prisma.StorageTypeFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>[]
-        }
-        create: {
-          args: Prisma.StorageTypeCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
-        }
-        createMany: {
-          args: Prisma.StorageTypeCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.StorageTypeCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>[]
-        }
-        delete: {
-          args: Prisma.StorageTypeDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
-        }
-        update: {
-          args: Prisma.StorageTypeUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
-        }
-        deleteMany: {
-          args: Prisma.StorageTypeDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.StorageTypeUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.StorageTypeUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>[]
-        }
-        upsert: {
-          args: Prisma.StorageTypeUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorageTypePayload>
-        }
-        aggregate: {
-          args: Prisma.StorageTypeAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateStorageType>
-        }
-        groupBy: {
-          args: Prisma.StorageTypeGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.StorageTypeGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.StorageTypeCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.StorageTypeCountAggregateOutputType> | number
         }
       }
     }
@@ -2555,12 +2630,24 @@ export const TranslatableElementScalarFieldEnum = {
   meta: 'meta',
   version: 'version',
   isActive: 'isActive',
+  documentVersionId: 'documentVersionId',
   documentId: 'documentId',
   embeddingId: 'embeddingId',
   previousVersionId: 'previousVersionId'
 } as const
 
 export type TranslatableElementScalarFieldEnum = (typeof TranslatableElementScalarFieldEnum)[keyof typeof TranslatableElementScalarFieldEnum]
+
+
+export const DocumentVersionScalarFieldEnum = {
+  id: 'id',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  documentId: 'documentId'
+} as const
+
+export type DocumentVersionScalarFieldEnum = (typeof DocumentVersionScalarFieldEnum)[keyof typeof DocumentVersionScalarFieldEnum]
 
 
 export const FileScalarFieldEnum = {
@@ -2586,6 +2673,14 @@ export const FileTypeScalarFieldEnum = {
 } as const
 
 export type FileTypeScalarFieldEnum = (typeof FileTypeScalarFieldEnum)[keyof typeof FileTypeScalarFieldEnum]
+
+
+export const StorageTypeScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type StorageTypeScalarFieldEnum = (typeof StorageTypeScalarFieldEnum)[keyof typeof StorageTypeScalarFieldEnum]
 
 
 export const GlossaryScalarFieldEnum = {
@@ -2670,14 +2765,6 @@ export const TaskScalarFieldEnum = {
 } as const
 
 export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
-
-
-export const StorageTypeScalarFieldEnum = {
-  id: 'id',
-  name: 'name'
-} as const
-
-export type StorageTypeScalarFieldEnum = (typeof StorageTypeScalarFieldEnum)[keyof typeof StorageTypeScalarFieldEnum]
 
 
 export const PermissionScalarFieldEnum = {
@@ -2933,6 +3020,13 @@ export const TranslatableElementOrderByRelevanceFieldEnum = {
 export type TranslatableElementOrderByRelevanceFieldEnum = (typeof TranslatableElementOrderByRelevanceFieldEnum)[keyof typeof TranslatableElementOrderByRelevanceFieldEnum]
 
 
+export const DocumentVersionOrderByRelevanceFieldEnum = {
+  documentId: 'documentId'
+} as const
+
+export type DocumentVersionOrderByRelevanceFieldEnum = (typeof DocumentVersionOrderByRelevanceFieldEnum)[keyof typeof DocumentVersionOrderByRelevanceFieldEnum]
+
+
 export const FileOrderByRelevanceFieldEnum = {
   originName: 'originName',
   storedPath: 'storedPath',
@@ -2950,6 +3044,13 @@ export const FileTypeOrderByRelevanceFieldEnum = {
 } as const
 
 export type FileTypeOrderByRelevanceFieldEnum = (typeof FileTypeOrderByRelevanceFieldEnum)[keyof typeof FileTypeOrderByRelevanceFieldEnum]
+
+
+export const StorageTypeOrderByRelevanceFieldEnum = {
+  name: 'name'
+} as const
+
+export type StorageTypeOrderByRelevanceFieldEnum = (typeof StorageTypeOrderByRelevanceFieldEnum)[keyof typeof StorageTypeOrderByRelevanceFieldEnum]
 
 
 export const GlossaryOrderByRelevanceFieldEnum = {
@@ -3010,13 +3111,6 @@ export const TaskOrderByRelevanceFieldEnum = {
 } as const
 
 export type TaskOrderByRelevanceFieldEnum = (typeof TaskOrderByRelevanceFieldEnum)[keyof typeof TaskOrderByRelevanceFieldEnum]
-
-
-export const StorageTypeOrderByRelevanceFieldEnum = {
-  name: 'name'
-} as const
-
-export type StorageTypeOrderByRelevanceFieldEnum = (typeof StorageTypeOrderByRelevanceFieldEnum)[keyof typeof StorageTypeOrderByRelevanceFieldEnum]
 
 
 export const PermissionOrderByRelevanceFieldEnum = {
@@ -3310,8 +3404,10 @@ export interface PrismaClientOptions {
 export type GlobalOmitConfig = {
   document?: Prisma.DocumentOmit
   translatableElement?: Prisma.TranslatableElementOmit
+  documentVersion?: Prisma.DocumentVersionOmit
   file?: Prisma.FileOmit
   fileType?: Prisma.FileTypeOmit
+  storageType?: Prisma.StorageTypeOmit
   glossary?: Prisma.GlossaryOmit
   term?: Prisma.TermOmit
   termRelation?: Prisma.TermRelationOmit
@@ -3319,7 +3415,6 @@ export type GlobalOmitConfig = {
   memoryItem?: Prisma.MemoryItemOmit
   language?: Prisma.LanguageOmit
   task?: Prisma.TaskOmit
-  storageType?: Prisma.StorageTypeOmit
   permission?: Prisma.PermissionOmit
   setting?: Prisma.SettingOmit
   plugin?: Prisma.PluginOmit

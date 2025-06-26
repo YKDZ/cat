@@ -5,7 +5,7 @@ import type { ProgressBarLine } from "./progress/bar";
 import Dot from "./Dot.vue";
 import { useProjectStore } from "../stores/project";
 import { storeToRefs } from "pinia";
-import { toShortFixed } from "../../../../../packages/shared/src/utils/string";
+import { toShortFixed } from "@cat/shared";
 
 const props = defineProps<{
   projectId: string;
@@ -51,10 +51,14 @@ onMounted(async () => {
     <div
       class="text-xs px-3 py-1 rounded-sm bg-highlight-darkest flex gap-0.5 w-36 items-center justify-center"
     >
-      <span v-if="progressBarLines[0]">{{ toShortFixed(progressBarLines[0].progress * 100) }}%</span>
+      <span v-if="progressBarLines[0]"
+        >{{ toShortFixed(progressBarLines[0].progress * 100) }}%</span
+      >
       <span v-else>0%</span>
       <Dot class="color-highlight-content" />
-      <span v-if="progressBarLines[1]">{{ toShortFixed(progressBarLines[1].progress * 100) }}%</span>
+      <span v-if="progressBarLines[1]"
+        >{{ toShortFixed(progressBarLines[1].progress * 100) }}%</span
+      >
       <span v-else>0%</span>
     </div>
   </div>

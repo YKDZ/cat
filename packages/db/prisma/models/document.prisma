@@ -14,6 +14,8 @@ model Document {
     TranslatableElements TranslatableElement[]
     Tasks                Task[]
 
+    Versions DocumentVersion[] @relation(name: "Version")
+
     @@index([projectId])
 }
 
@@ -27,6 +29,9 @@ model TranslatableElement {
 
     version  Int     @default(1)
     isActive Boolean @default(true)
+
+    documentVersionId Int
+    DocumentVersion   DocumentVersion @relation(fields: [documentVersionId], references: [id])
 
     documentId String
     Document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -44,4 +49,18 @@ model TranslatableElement {
     // 手动实现
     // 因为 prisma 不支持唯一性索引中的 isActive = true
     // @@unique([meta, documentId, isActive])
+}
+
+model DocumentVersion {
+    id        Int      @id @default(autoincrement())
+    isActive  Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    TranslatableElements TranslatableElement[]
+
+    // 一个文档版本可以不活跃
+    // 但不能悬空
+    documentId String
+    Document   Document @relation("Version", fields: [documentId], references: [id], onDelete: Cascade)
 }

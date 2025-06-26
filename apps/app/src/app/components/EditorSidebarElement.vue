@@ -12,16 +12,19 @@ const {
   documentId,
   languageFromId,
   languageToId,
+  storedElements,
   elementId: currentElementId,
 } = storeToRefs(useEditorStore());
 
-const { queryElementTranslationStatus, upsertElements } = useEditorStore();
+const { updateElementStatus } = useEditorStore();
 
 const props = defineProps<{
-  element: TranslatableElement;
+  element: TranslatableElement & { status?: "NO" | "TRANSLATED" | "APPROVED" };
 }>();
 
-const element = ref<TranslatableElement>(props.element);
+const element = ref<
+  TranslatableElement & { status?: "NO" | "TRANSLATED" | "APPROVED" }
+>(props.element);
 
 const handleClick = () => {
   if (!element.value) return;
@@ -32,11 +35,11 @@ const handleClick = () => {
 };
 
 onMounted(() => {
-  queryElementTranslationStatus(element.value.id)
-    .then((queried) => {
-      if (!element.value) return;
-      element.value.status = queried;
-      upsertElements(element.value);
+  updateElementStatus(element.value.id)
+    .then(() => {
+      element.value = storedElements.value.find(
+        (el) => el.id === props.element.id,
+      )!;
     })
     .catch(trpcWarn);
 });

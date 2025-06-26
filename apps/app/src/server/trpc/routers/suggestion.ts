@@ -14,7 +14,7 @@ import {
 import { tracked, TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
-import { termText } from "@/server/utils/es";
+import { EsTermStore } from "../../utils/es";
 
 export const suggestionRouter = router({
   onNew: authedProcedure
@@ -94,7 +94,7 @@ export const suggestionRouter = router({
         }
 
         const zElement = TranslatableElementSchema.parse(element);
-        const { termedText, translationIds } = await termText(
+        const { termedText, translationIds } = await EsTermStore.termText(
           zElement.value,
           element.Document.Project.sourceLanguageId,
           languageId,

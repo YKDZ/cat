@@ -188,6 +188,7 @@ export type DocumentWhereInput = {
   Creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   TranslatableElements?: Prisma.TranslatableElementListRelationFilter
   Tasks?: Prisma.TaskListRelationFilter
+  Versions?: Prisma.DocumentVersionListRelationFilter
 }
 
 export type DocumentOrderByWithRelationInput = {
@@ -201,6 +202,7 @@ export type DocumentOrderByWithRelationInput = {
   Creator?: Prisma.UserOrderByWithRelationInput
   TranslatableElements?: Prisma.TranslatableElementOrderByRelationAggregateInput
   Tasks?: Prisma.TaskOrderByRelationAggregateInput
+  Versions?: Prisma.DocumentVersionOrderByRelationAggregateInput
   _relevance?: Prisma.DocumentOrderByRelevanceInput
 }
 
@@ -218,6 +220,7 @@ export type DocumentWhereUniqueInput = Prisma.AtLeast<{
   Creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   TranslatableElements?: Prisma.TranslatableElementListRelationFilter
   Tasks?: Prisma.TaskListRelationFilter
+  Versions?: Prisma.DocumentVersionListRelationFilter
 }, "id">
 
 export type DocumentOrderByWithAggregationInput = {
@@ -251,6 +254,7 @@ export type DocumentCreateInput = {
   Creator: Prisma.UserCreateNestedOneWithoutDocumentsInput
   TranslatableElements?: Prisma.TranslatableElementCreateNestedManyWithoutDocumentInput
   Tasks?: Prisma.TaskCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentUncheckedCreateInput = {
@@ -262,6 +266,7 @@ export type DocumentUncheckedCreateInput = {
   File?: Prisma.FileUncheckedCreateNestedOneWithoutDocumentInput
   TranslatableElements?: Prisma.TranslatableElementUncheckedCreateNestedManyWithoutDocumentInput
   Tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionUncheckedCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentUpdateInput = {
@@ -273,6 +278,7 @@ export type DocumentUpdateInput = {
   Creator?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
   TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateInput = {
@@ -284,6 +290,7 @@ export type DocumentUncheckedUpdateInput = {
   File?: Prisma.FileUncheckedUpdateOneWithoutDocumentNestedInput
   TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUncheckedUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUncheckedUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentCreateManyInput = {
@@ -378,6 +385,20 @@ export type DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput = {
   upsert?: Prisma.DocumentUpsertWithoutTranslatableElementsInput
   connect?: Prisma.DocumentWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.DocumentUpdateToOneWithWhereWithoutTranslatableElementsInput, Prisma.DocumentUpdateWithoutTranslatableElementsInput>, Prisma.DocumentUncheckedUpdateWithoutTranslatableElementsInput>
+}
+
+export type DocumentCreateNestedOneWithoutVersionsInput = {
+  create?: Prisma.XOR<Prisma.DocumentCreateWithoutVersionsInput, Prisma.DocumentUncheckedCreateWithoutVersionsInput>
+  connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutVersionsInput
+  connect?: Prisma.DocumentWhereUniqueInput
+}
+
+export type DocumentUpdateOneRequiredWithoutVersionsNestedInput = {
+  create?: Prisma.XOR<Prisma.DocumentCreateWithoutVersionsInput, Prisma.DocumentUncheckedCreateWithoutVersionsInput>
+  connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutVersionsInput
+  upsert?: Prisma.DocumentUpsertWithoutVersionsInput
+  connect?: Prisma.DocumentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.DocumentUpdateToOneWithWhereWithoutVersionsInput, Prisma.DocumentUpdateWithoutVersionsInput>, Prisma.DocumentUncheckedUpdateWithoutVersionsInput>
 }
 
 export type DocumentCreateNestedOneWithoutFileInput = {
@@ -526,6 +547,7 @@ export type DocumentCreateWithoutTranslatableElementsInput = {
   Project: Prisma.ProjectCreateNestedOneWithoutDocumentsInput
   Creator: Prisma.UserCreateNestedOneWithoutDocumentsInput
   Tasks?: Prisma.TaskCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentUncheckedCreateWithoutTranslatableElementsInput = {
@@ -536,6 +558,7 @@ export type DocumentUncheckedCreateWithoutTranslatableElementsInput = {
   creatorId: string
   File?: Prisma.FileUncheckedCreateNestedOneWithoutDocumentInput
   Tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionUncheckedCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentCreateOrConnectWithoutTranslatableElementsInput = {
@@ -562,6 +585,7 @@ export type DocumentUpdateWithoutTranslatableElementsInput = {
   Project?: Prisma.ProjectUpdateOneRequiredWithoutDocumentsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
   Tasks?: Prisma.TaskUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateWithoutTranslatableElementsInput = {
@@ -571,6 +595,67 @@ export type DocumentUncheckedUpdateWithoutTranslatableElementsInput = {
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   File?: Prisma.FileUncheckedUpdateOneWithoutDocumentNestedInput
+  Tasks?: Prisma.TaskUncheckedUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUncheckedUpdateManyWithoutDocumentNestedInput
+}
+
+export type DocumentCreateWithoutVersionsInput = {
+  id?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  File?: Prisma.FileCreateNestedOneWithoutDocumentInput
+  Project: Prisma.ProjectCreateNestedOneWithoutDocumentsInput
+  Creator: Prisma.UserCreateNestedOneWithoutDocumentsInput
+  TranslatableElements?: Prisma.TranslatableElementCreateNestedManyWithoutDocumentInput
+  Tasks?: Prisma.TaskCreateNestedManyWithoutDocumentsInput
+}
+
+export type DocumentUncheckedCreateWithoutVersionsInput = {
+  id?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  projectId: string
+  creatorId: string
+  File?: Prisma.FileUncheckedCreateNestedOneWithoutDocumentInput
+  TranslatableElements?: Prisma.TranslatableElementUncheckedCreateNestedManyWithoutDocumentInput
+  Tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutDocumentsInput
+}
+
+export type DocumentCreateOrConnectWithoutVersionsInput = {
+  where: Prisma.DocumentWhereUniqueInput
+  create: Prisma.XOR<Prisma.DocumentCreateWithoutVersionsInput, Prisma.DocumentUncheckedCreateWithoutVersionsInput>
+}
+
+export type DocumentUpsertWithoutVersionsInput = {
+  update: Prisma.XOR<Prisma.DocumentUpdateWithoutVersionsInput, Prisma.DocumentUncheckedUpdateWithoutVersionsInput>
+  create: Prisma.XOR<Prisma.DocumentCreateWithoutVersionsInput, Prisma.DocumentUncheckedCreateWithoutVersionsInput>
+  where?: Prisma.DocumentWhereInput
+}
+
+export type DocumentUpdateToOneWithWhereWithoutVersionsInput = {
+  where?: Prisma.DocumentWhereInput
+  data: Prisma.XOR<Prisma.DocumentUpdateWithoutVersionsInput, Prisma.DocumentUncheckedUpdateWithoutVersionsInput>
+}
+
+export type DocumentUpdateWithoutVersionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  File?: Prisma.FileUpdateOneWithoutDocumentNestedInput
+  Project?: Prisma.ProjectUpdateOneRequiredWithoutDocumentsNestedInput
+  Creator?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
+  TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutDocumentNestedInput
+  Tasks?: Prisma.TaskUpdateManyWithoutDocumentsNestedInput
+}
+
+export type DocumentUncheckedUpdateWithoutVersionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  creatorId?: Prisma.StringFieldUpdateOperationsInput | string
+  File?: Prisma.FileUncheckedUpdateOneWithoutDocumentNestedInput
+  TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUncheckedUpdateManyWithoutDocumentsNestedInput
 }
 
@@ -582,6 +667,7 @@ export type DocumentCreateWithoutFileInput = {
   Creator: Prisma.UserCreateNestedOneWithoutDocumentsInput
   TranslatableElements?: Prisma.TranslatableElementCreateNestedManyWithoutDocumentInput
   Tasks?: Prisma.TaskCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentUncheckedCreateWithoutFileInput = {
@@ -592,6 +678,7 @@ export type DocumentUncheckedCreateWithoutFileInput = {
   creatorId: string
   TranslatableElements?: Prisma.TranslatableElementUncheckedCreateNestedManyWithoutDocumentInput
   Tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionUncheckedCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentCreateOrConnectWithoutFileInput = {
@@ -618,6 +705,7 @@ export type DocumentUpdateWithoutFileInput = {
   Creator?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
   TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateWithoutFileInput = {
@@ -628,6 +716,7 @@ export type DocumentUncheckedUpdateWithoutFileInput = {
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUncheckedUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUncheckedUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentCreateWithoutTasksInput = {
@@ -638,6 +727,7 @@ export type DocumentCreateWithoutTasksInput = {
   Project: Prisma.ProjectCreateNestedOneWithoutDocumentsInput
   Creator: Prisma.UserCreateNestedOneWithoutDocumentsInput
   TranslatableElements?: Prisma.TranslatableElementCreateNestedManyWithoutDocumentInput
+  Versions?: Prisma.DocumentVersionCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentUncheckedCreateWithoutTasksInput = {
@@ -648,6 +738,7 @@ export type DocumentUncheckedCreateWithoutTasksInput = {
   creatorId: string
   File?: Prisma.FileUncheckedCreateNestedOneWithoutDocumentInput
   TranslatableElements?: Prisma.TranslatableElementUncheckedCreateNestedManyWithoutDocumentInput
+  Versions?: Prisma.DocumentVersionUncheckedCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentCreateOrConnectWithoutTasksInput = {
@@ -690,6 +781,7 @@ export type DocumentCreateWithoutProjectInput = {
   Creator: Prisma.UserCreateNestedOneWithoutDocumentsInput
   TranslatableElements?: Prisma.TranslatableElementCreateNestedManyWithoutDocumentInput
   Tasks?: Prisma.TaskCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentUncheckedCreateWithoutProjectInput = {
@@ -700,6 +792,7 @@ export type DocumentUncheckedCreateWithoutProjectInput = {
   File?: Prisma.FileUncheckedCreateNestedOneWithoutDocumentInput
   TranslatableElements?: Prisma.TranslatableElementUncheckedCreateNestedManyWithoutDocumentInput
   Tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionUncheckedCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentCreateOrConnectWithoutProjectInput = {
@@ -736,6 +829,7 @@ export type DocumentCreateWithoutCreatorInput = {
   Project: Prisma.ProjectCreateNestedOneWithoutDocumentsInput
   TranslatableElements?: Prisma.TranslatableElementCreateNestedManyWithoutDocumentInput
   Tasks?: Prisma.TaskCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentUncheckedCreateWithoutCreatorInput = {
@@ -746,6 +840,7 @@ export type DocumentUncheckedCreateWithoutCreatorInput = {
   File?: Prisma.FileUncheckedCreateNestedOneWithoutDocumentInput
   TranslatableElements?: Prisma.TranslatableElementUncheckedCreateNestedManyWithoutDocumentInput
   Tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutDocumentsInput
+  Versions?: Prisma.DocumentVersionUncheckedCreateNestedManyWithoutDocumentInput
 }
 
 export type DocumentCreateOrConnectWithoutCreatorInput = {
@@ -782,6 +877,7 @@ export type DocumentUpdateWithoutTasksInput = {
   Project?: Prisma.ProjectUpdateOneRequiredWithoutDocumentsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
   TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutDocumentNestedInput
+  Versions?: Prisma.DocumentVersionUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateWithoutTasksInput = {
@@ -792,6 +888,7 @@ export type DocumentUncheckedUpdateWithoutTasksInput = {
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   File?: Prisma.FileUncheckedUpdateOneWithoutDocumentNestedInput
   TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutDocumentNestedInput
+  Versions?: Prisma.DocumentVersionUncheckedUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateManyWithoutTasksInput = {
@@ -817,6 +914,7 @@ export type DocumentUpdateWithoutProjectInput = {
   Creator?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
   TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateWithoutProjectInput = {
@@ -827,6 +925,7 @@ export type DocumentUncheckedUpdateWithoutProjectInput = {
   File?: Prisma.FileUncheckedUpdateOneWithoutDocumentNestedInput
   TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUncheckedUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUncheckedUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateManyWithoutProjectInput = {
@@ -851,6 +950,7 @@ export type DocumentUpdateWithoutCreatorInput = {
   Project?: Prisma.ProjectUpdateOneRequiredWithoutDocumentsNestedInput
   TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateWithoutCreatorInput = {
@@ -861,6 +961,7 @@ export type DocumentUncheckedUpdateWithoutCreatorInput = {
   File?: Prisma.FileUncheckedUpdateOneWithoutDocumentNestedInput
   TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutDocumentNestedInput
   Tasks?: Prisma.TaskUncheckedUpdateManyWithoutDocumentsNestedInput
+  Versions?: Prisma.DocumentVersionUncheckedUpdateManyWithoutDocumentNestedInput
 }
 
 export type DocumentUncheckedUpdateManyWithoutCreatorInput = {
@@ -878,11 +979,13 @@ export type DocumentUncheckedUpdateManyWithoutCreatorInput = {
 export type DocumentCountOutputType = {
   TranslatableElements: number
   Tasks: number
+  Versions: number
 }
 
 export type DocumentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   TranslatableElements?: boolean | DocumentCountOutputTypeCountTranslatableElementsArgs
   Tasks?: boolean | DocumentCountOutputTypeCountTasksArgs
+  Versions?: boolean | DocumentCountOutputTypeCountVersionsArgs
 }
 
 /**
@@ -909,6 +1012,13 @@ export type DocumentCountOutputTypeCountTasksArgs<ExtArgs extends runtime.Types.
   where?: Prisma.TaskWhereInput
 }
 
+/**
+ * DocumentCountOutputType without action
+ */
+export type DocumentCountOutputTypeCountVersionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DocumentVersionWhereInput
+}
+
 
 export type DocumentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -921,6 +1031,7 @@ export type DocumentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   Creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElements?: boolean | Prisma.Document$TranslatableElementsArgs<ExtArgs>
   Tasks?: boolean | Prisma.Document$TasksArgs<ExtArgs>
+  Versions?: boolean | Prisma.Document$VersionsArgs<ExtArgs>
   _count?: boolean | Prisma.DocumentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["document"]>
 
@@ -959,6 +1070,7 @@ export type DocumentInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   Creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElements?: boolean | Prisma.Document$TranslatableElementsArgs<ExtArgs>
   Tasks?: boolean | Prisma.Document$TasksArgs<ExtArgs>
+  Versions?: boolean | Prisma.Document$VersionsArgs<ExtArgs>
   _count?: boolean | Prisma.DocumentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DocumentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -978,6 +1090,7 @@ export type $DocumentPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     Creator: Prisma.$UserPayload<ExtArgs>
     TranslatableElements: Prisma.$TranslatableElementPayload<ExtArgs>[]
     Tasks: Prisma.$TaskPayload<ExtArgs>[]
+    Versions: Prisma.$DocumentVersionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1384,6 +1497,7 @@ export interface Prisma__DocumentClient<T, Null = never, ExtArgs extends runtime
   Creator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   TranslatableElements<T extends Prisma.Document$TranslatableElementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Document$TranslatableElementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslatableElementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Tasks<T extends Prisma.Document$TasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Document$TasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  Versions<T extends Prisma.Document$VersionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Document$VersionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1878,6 +1992,30 @@ export type Document$TasksArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.TaskScalarFieldEnum | Prisma.TaskScalarFieldEnum[]
+}
+
+/**
+ * Document.Versions
+ */
+export type Document$VersionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DocumentVersion
+   */
+  select?: Prisma.DocumentVersionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DocumentVersion
+   */
+  omit?: Prisma.DocumentVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DocumentVersionInclude<ExtArgs> | null
+  where?: Prisma.DocumentVersionWhereInput
+  orderBy?: Prisma.DocumentVersionOrderByWithRelationInput | Prisma.DocumentVersionOrderByWithRelationInput[]
+  cursor?: Prisma.DocumentVersionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DocumentVersionScalarFieldEnum | Prisma.DocumentVersionScalarFieldEnum[]
 }
 
 /**

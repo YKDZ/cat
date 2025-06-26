@@ -37,19 +37,18 @@ export const useProjectStore = defineStore("project", () => {
   };
 
   const updateTranslationAmount = async (id: string, languageId: string) => {
-    const translatedEleAmount = await trpc.project.countTranslatedElement.query(
+    const translatedEleAmount = await trpc.project.countElement.query({
+      id,
+      isTranslated: true,
+    });
+
+    const approvedTranslationAmount = await trpc.project.countTranslation.query(
       {
         id,
         languageId,
+        isApproved: true,
       },
     );
-
-    const approvedTranslationAmount =
-      await trpc.project.countTranslatedElementWithApproved.query({
-        id,
-        languageId,
-        isApproved: true,
-      });
 
     translationAmounts.set(id, {
       languageId,
@@ -59,7 +58,7 @@ export const useProjectStore = defineStore("project", () => {
   };
 
   const updateTranslatableEleAmount = async (id: string) => {
-    await trpc.project.countTranslatableElement
+    await trpc.project.countElement
       .query({
         id,
       })

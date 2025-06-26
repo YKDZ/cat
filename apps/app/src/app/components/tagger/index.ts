@@ -18,6 +18,7 @@ export type Clipper = {
    * Define whether the clipped part should be translated
    */
   translatable: boolean;
+  needConfirmation: boolean;
   verifyHandlers: VerifyHandler[];
   clickHandlers: ClickHandler[];
 };
@@ -48,6 +49,7 @@ export type PartData = {
 export type ClipperVerifyResult = {
   isPass: boolean;
   error: string;
+  clipperId: string | number | null;
 };
 
 const shouldMatchCount: VerifyHandler = {
@@ -67,6 +69,7 @@ const shouldMatchCount: VerifyHandler = {
     ).length;
     const isPass = sourceCount === translationCount;
     return {
+      clipperId: clipper.id,
       isPass,
       error: isPass
         ? ""
@@ -94,6 +97,7 @@ const shouldMatchContent: VerifyHandler = {
       .join(", ");
     const isPass = source === translation;
     return {
+      clipperId: clipper.id,
       isPass,
       error: isPass
         ? ""
@@ -120,6 +124,7 @@ export const clippers = ref<Clipper[]>([
     content: "i-codicon:newline",
     translatable: false,
     highlight: true,
+    needConfirmation: true,
     clickHandlers: [copyContent],
     verifyHandlers: [shouldMatchContent],
   },
@@ -130,6 +135,7 @@ export const clippers = ref<Clipper[]>([
     content: null,
     translatable: false,
     highlight: true,
+    needConfirmation: true,
     clickHandlers: [copyContent],
     verifyHandlers: [shouldMatchContent],
   },
@@ -142,6 +148,7 @@ export const clippers = ref<Clipper[]>([
     },
     translatable: false,
     highlight: true,
+    needConfirmation: false,
     clickHandlers: [copyContent],
     verifyHandlers: [shouldMatchCount],
   },
@@ -152,6 +159,7 @@ export const clippers = ref<Clipper[]>([
     content: null,
     translatable: false,
     highlight: true,
+    needConfirmation: true,
     clickHandlers: [copyContent],
     verifyHandlers: [shouldMatchContent],
   },

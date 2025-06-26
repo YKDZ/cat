@@ -7,7 +7,7 @@ export const useMemoryStore = defineStore("memory", () => {
   const memories = ref<Memory[]>([]);
   const memoryItemAmounts = reactive(new Map<string, number>());
 
-  const addMemories = (...memoriesToAdd: Memory[]) => {
+  const upsertMemories = (...memoriesToAdd: Memory[]) => {
     for (const memory of memoriesToAdd) {
       if (!memory) continue;
 
@@ -25,7 +25,7 @@ export const useMemoryStore = defineStore("memory", () => {
   const fetchMemory = (id: string) => {
     trpc.memory.query.query({ id }).then((memory) => {
       if (memory === null) return;
-      addMemories(memory);
+      upsertMemories(memory);
     });
   };
 
@@ -44,6 +44,6 @@ export const useMemoryStore = defineStore("memory", () => {
     memoryItemAmounts,
     fetchMemory,
     updateMemoryItemAmount,
-    addMemories,
+    upsertMemories,
   };
 });

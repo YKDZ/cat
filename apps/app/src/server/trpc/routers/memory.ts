@@ -1,7 +1,11 @@
 import { AsyncMessageQueue } from "@/server/utils/queue";
 import { prisma, redisSub } from "@cat/db";
 import type { MemorySuggestion } from "@cat/shared";
-import { MemorySchema, MemorySuggestionSchema } from "@cat/shared";
+import {
+  MemoryItemSchema,
+  MemorySchema,
+  MemorySuggestionSchema,
+} from "@cat/shared";
 import { tracked } from "@trpc/server";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
@@ -13,12 +17,12 @@ export const memoryRouter = router({
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        projectId: z.cuid2().optional(),
+        projectIds: z.array(z.cuid2()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
-      const { name, description, projectId } = input;
+      const { name, description, projectIds } = input;
 
       await prisma.memory.create({
         data: {
@@ -29,13 +33,13 @@ export const memoryRouter = router({
               id: user.id,
             },
           },
-          Projects: projectId
-            ? {
-                connect: {
+          Projects: {
+            connect: projectIds
+              ? projectIds.map((projectId) => ({
                   id: projectId,
-                },
-              }
-            : undefined,
+                }))
+              : undefined,
+          },
         },
       });
     }),
@@ -45,8 +49,7 @@ export const memoryRouter = router({
         elementId: z.number().int(),
         sourceLanguageId: z.string(),
         translationLanguageId: z.string(),
-        isApproved: z.boolean().optional(),
-        translatorId: z.cuid2().optional(),
+        minMemorySimilarity: z.number().min(0).max(1).default(0.72),
       }),
     )
     .subscription(async function* ({ input }) {
@@ -54,8 +57,7 @@ export const memoryRouter = router({
         elementId,
         sourceLanguageId,
         translationLanguageId,
-        isApproved,
-        translatorId,
+        minMemorySimilarity,
       } = input;
 
       // 要匹配记忆的元素
@@ -98,7 +100,7 @@ export const memoryRouter = router({
         sourceLanguageId,
         translationLanguageId,
         memoryIds,
-        0.72,
+        minMemorySimilarity,
       ).then((memories) => memoriesQueue.push(...memories));
 
       try {
@@ -142,6 +144,9 @@ export const memoryRouter = router({
           where: {
             id,
           },
+          include: {
+            Creator: true,
+          },
         }),
       );
     }),
@@ -152,6 +157,88 @@ export const memoryRouter = router({
       }),
     )
     .output(z.number().int().min(0))
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      return await prisma.memoryItem.count({
+        where: {
+          Memory: {
+            id,
+          },
+        },
+      });
+    }),
+  queryItems: authedProcedure
+    .input(
+      z.object({
+        memoryId: z.cuid2(),
+        sourceLanguageId: z.string().nullable(),
+        translationLanguageId: z.string().nullable(),
+      }),
+    )
+    .output(z.array(MemoryItemSchema))
+    .query(async ({ input }) => {
+      const { memoryId, sourceLanguageId, translationLanguageId } = input;
+
+      const items = await prisma.memoryItem.findMany({
+        where: {
+          sourceLanguageId: sourceLanguageId ?? undefined,
+          translationLanguageId: translationLanguageId ?? undefined,
+          memoryId,
+        },
+      });
+
+      return z.array(MemoryItemSchema).parse(items);
+    }),
+  deleteItems: authedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.int()),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { ids } = input;
+
+      await prisma.memoryItem.deleteMany({
+        where: {
+          id: {
+            in: ids,
+          },
+        },
+      });
+    }),
+  listProjectOwned: authedProcedure
+    .input(
+      z.object({
+        projectId: z.cuid2(),
+      }),
+    )
+    .output(z.array(MemorySchema))
+    .query(async ({ input }) => {
+      const { projectId } = input;
+
+      return z.array(MemorySchema).parse(
+        await prisma.memory.findMany({
+          where: {
+            Projects: {
+              some: {
+                id: projectId,
+              },
+            },
+          },
+          include: {
+            Creator: true,
+          },
+        }),
+      );
+    }),
+  countItem: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+      }),
+    )
+    .output(z.number().int())
     .query(async ({ input }) => {
       const { id } = input;
 

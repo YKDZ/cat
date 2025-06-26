@@ -57,6 +57,9 @@ export const useEditorStore = defineStore("editor", () => {
     Math.floor(elementTotalAmount.value / pageSize.value),
   );
 
+  // 审校模式
+  const isProofreading = ref(false);
+
   const addTerms = (...termsToAdd: TermRelation[]) => {
     termsToAdd.forEach((relation) => {
       const { Term: term, Translation: translation } = relation;
@@ -80,7 +83,11 @@ export const useEditorStore = defineStore("editor", () => {
     });
   };
 
-  const upsertElements = (...elementsToAdd: TranslatableElement[]) => {
+  const upsertElements = (
+    ...elementsToAdd: (TranslatableElement & {
+      status?: "NO" | "TRANSLATED" | "APPROVED";
+    })[]
+  ) => {
     for (const element of elementsToAdd) {
       if (!element) continue;
 
@@ -112,9 +119,11 @@ export const useEditorStore = defineStore("editor", () => {
         documentId: documentId.value,
         pageSize: pageSize.value,
         searchQuery: searchQuery.value,
+        isTranslated: isProofreading.value === false ? undefined : true,
       });
       await toPage(page);
       elementId.value = id;
+      translationValue.value = "";
     } catch (e) {
       trpcWarn(e as TRPCClientError<never>);
     }
@@ -133,6 +142,7 @@ export const useEditorStore = defineStore("editor", () => {
         page: index,
         pageSize: pageSize.value,
         searchQuery: searchQuery.value,
+        isTranslated: isProofreading.value === false ? undefined : true,
       })
       .then((elements) => {
         currentPageIndex.value = index;
@@ -212,8 +222,12 @@ export const useEditorStore = defineStore("editor", () => {
   const fetchElementTotalAmount = async () => {
     if (!documentId.value) return;
 
-    await trpc.document.queryElementTotalAmount
-      .query({ id: documentId.value, searchQuery: searchQuery.value })
+    await trpc.document.countElement
+      .query({
+        id: documentId.value,
+        searchQuery: searchQuery.value,
+        isTranslated: isProofreading.value === false ? undefined : true,
+      })
       .then((amount) => {
         elementTotalAmount.value = amount;
       });
@@ -223,8 +237,8 @@ export const useEditorStore = defineStore("editor", () => {
     // 本地更新元素翻译状态
     if (
       element.value &&
-      element.value?.status !== "TRANSLATED" &&
-      element.value?.status !== "APPROVED"
+      element.value.status !== "TRANSLATED" &&
+      element.value.status !== "APPROVED"
     ) {
       element.value.status = "TRANSLATED";
     }
@@ -244,11 +258,11 @@ export const useEditorStore = defineStore("editor", () => {
         return el.status === "NO" && (isAtLast || element.value.id < el.id);
       }) ?? null;
     if (!firstUntranslatedElement) {
-      firstUntranslatedElement =
-        await trpc.document.queryFirstUntranslatedElement.query({
-          id: documentId.value,
-          idGreaterThan: element.value?.id,
-        });
+      firstUntranslatedElement = await trpc.document.queryFirstElement.query({
+        id: documentId.value,
+        idGreaterThan: element.value?.id,
+        isTranslated: false,
+      });
     }
 
     if (!firstUntranslatedElement) return;
@@ -292,6 +306,21 @@ export const useEditorStore = defineStore("editor", () => {
     });
   };
 
+  const updateElementStatus = async (elementId: number) => {
+    const status = await queryElementTranslationStatus(elementId);
+    const element = storedElements.value.find((el) => el.id === elementId);
+
+    if (!element) return;
+
+    console.log(status);
+
+    const newEl = { ...element, status } satisfies TranslatableElement & {
+      status?: "NO" | "TRANSLATED" | "APPROVED";
+    };
+
+    upsertElements(newEl);
+  };
+
   const upsertTranslation = (translation: Translation) => {
     if (!translation) return;
 
@@ -304,7 +333,7 @@ export const useEditorStore = defineStore("editor", () => {
       translations.value.splice(currentIndex, 1, translation);
     }
 
-    translations.value = [...translations.value]
+    translations.value = [...translations.value];
   };
 
   const replace = (value: string) => {
@@ -363,6 +392,8 @@ export const useEditorStore = defineStore("editor", () => {
     searchQuery,
     sourceParts,
     translationParts,
+    isProofreading,
+    updateElementStatus,
     upsertElements,
     fetchElementTotalAmount,
     refresh,

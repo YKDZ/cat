@@ -21,7 +21,7 @@ export const MemoryItemSchema = z.object({
   get SourceEmbedding() {
     return z.array(z.number()).optional();
   },
-  memoryId: z.number(),
+  memoryId: z.cuid2(),
   creatorId: z.cuid2(),
   get Creator() {
     return UserSchema.optional();

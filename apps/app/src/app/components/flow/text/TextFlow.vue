@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { TextTabItem } from "./index";
+import type { FlowItem } from "./index";
 
 const props = defineProps<{
-  items: TextTabItem[];
+  items: FlowItem[];
   onProgressChange?: (from: number, to: number) => number;
 }>();
 

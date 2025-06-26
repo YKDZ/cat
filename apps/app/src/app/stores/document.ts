@@ -15,18 +15,16 @@ export const useDocumentStore = defineStore("document", () => {
   const tasks = shallowReactive(new Map<string, Task[]>());
 
   const updateTranslationAmount = async (id: string, languageId: string) => {
-    const translatedEleAmount =
-      await trpc.document.countTranslatedElement.query({
-        id,
-        languageId,
-      });
+    const translatedEleAmount = await trpc.document.countElement.query({
+      id,
+      isTranslated: true,
+    });
 
-    const approvedTranslationAmount =
-      await trpc.document.countTranslatedElementWithApproved.query({
-        id,
-        languageId,
-        isApproved: true,
-      });
+    const approvedTranslationAmount = await trpc.document.countElement.query({
+      id,
+      isTranslated: true,
+      isApproved: true,
+    });
 
     translationAmounts.set(id, {
       languageId,
@@ -36,7 +34,7 @@ export const useDocumentStore = defineStore("document", () => {
   };
 
   const updateTranslatableEleAmount = async (id: string) => {
-    await trpc.document.countTranslatableElement
+    await trpc.document.countElement
       .query({
         id,
       })

@@ -49,6 +49,11 @@ export type Document = Prisma.DocumentModel
  */
 export type TranslatableElement = Prisma.TranslatableElementModel
 /**
+ * Model DocumentVersion
+ * 
+ */
+export type DocumentVersion = Prisma.DocumentVersionModel
+/**
  * Model File
  * 
  */
@@ -58,6 +63,11 @@ export type File = Prisma.FileModel
  * 
  */
 export type FileType = Prisma.FileTypeModel
+/**
+ * Model StorageType
+ * 
+ */
+export type StorageType = Prisma.StorageTypeModel
 /**
  * Model Glossary
  * 
@@ -93,11 +103,6 @@ export type Language = Prisma.LanguageModel
  * 
  */
 export type Task = Prisma.TaskModel
-/**
- * Model StorageType
- * 
- */
-export type StorageType = Prisma.StorageTypeModel
 /**
  * Model Permission
  * 

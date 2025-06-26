@@ -1,17 +1,16 @@
-import { ESDB, prisma, PrismaDB, RedisDB, S3DB, setting } from "@cat/db";
+import { ESDB, prisma, PrismaDB, RedisDB } from "@cat/db";
 import { logger, SettingSchema } from "@cat/shared";
+import type { Job } from "bullmq";
 import type { Server } from "http";
 import type z from "zod/v4";
+import getPluginRegistry from "../pluginRegistry";
 import { closeAllProcessors } from "../processor";
-import { initESIndex } from "./es";
-import { PluginRegistry } from "@cat/plugin-core";
 import {
   importPluginQueue,
   importPluginQueueEvents,
 } from "../processor/importPlugin";
+import { EsTermStore } from "./es";
 import { useStorage } from "./storage/useStorage";
-import type { Job } from "bullmq";
-import getPluginRegistry from "../pluginRegistry";
 
 export const shutdownServer = async (server: Server) => {
   logger.info("SERVER", "About to shutdown server gracefully...");
@@ -49,7 +48,7 @@ export const initDB = async () => {
 
     logger.info("DB", "All database is health.");
 
-    await initESIndex();
+    await EsTermStore.init();
   } catch (e) {
     logger.error(
       "DB",

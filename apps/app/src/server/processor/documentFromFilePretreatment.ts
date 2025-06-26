@@ -1,4 +1,4 @@
-import { Prisma, prisma } from "@cat/db";
+import { prisma } from "@cat/db";
 import {
   PluginRegistry,
   type TextVectorizer,
@@ -11,12 +11,12 @@ import type {
   UnvectorizedTextData,
 } from "@cat/shared";
 import { logger } from "@cat/shared";
+import type { InputJsonValue } from "@prisma/client/runtime/client";
 import { Queue, Worker } from "bullmq";
+import { diffArrays } from "diff";
+import { isEqual } from "lodash-es";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
-import { diffArrays } from "diff";
-import type { InputJsonValue } from "@prisma/client/runtime/client";
-import { isEqual } from "lodash-es";
 
 const queueId = "documentFromFilePretreatment";
 
@@ -174,6 +174,16 @@ export const processPretreatment = async (
   if (!vectors) return;
 
   await prisma.$transaction(async (tx) => {
+    const documentVersion = await tx.documentVersion.findFirst({
+      where: {
+        documentId: document.id,
+        isActive: true,
+      },
+    });
+
+    if (!documentVersion)
+      throw new Error("Document do not have any active version. This is a bug");
+
     // 将旧元素（变化的活跃元素）置为非活跃
     await Promise.all(
       removedElements.map(async ({ meta }) => {
@@ -196,41 +206,44 @@ export const processPretreatment = async (
     );
 
     // 插入变化后的元素
-    const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
-      INSERT INTO "Vector" (vector)
-      VALUES ${vectors.map((v) => `('[${v.join(",")}]')`).join(",")}
-      RETURNING id
-    `);
+    if (addedElements.length > 0) {
+      const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
+        INSERT INTO "Vector" (vector)
+        VALUES ${vectors.map((v) => `('[${v.join(",")}]')`).join(",")}
+        RETURNING id
+      `);
 
-    for (let i = 0; i < addedElements.length; i++) {
-      const element = addedElements[i];
+      for (let i = 0; i < addedElements.length; i++) {
+        const element = addedElements[i];
 
-      const existing = await tx.translatableElement.findFirst({
-        where: {
-          documentId: element.documentId,
-          meta: {
-            equals: element.meta as InputJsonValue,
+        const existing = await tx.translatableElement.findFirst({
+          where: {
+            documentId: element.documentId,
+            meta: {
+              equals: element.meta as InputJsonValue,
+            },
+            isActive: false,
           },
-          isActive: false,
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-      });
+          orderBy: {
+            updatedAt: "desc",
+          },
+        });
 
-      const newVersion = existing ? existing.version + 1 : 1;
+        const newVersion = existing ? existing.version + 1 : 1;
 
-      await tx.translatableElement.create({
-        data: {
-          value: element.value,
-          meta: element.meta as InputJsonValue,
-          documentId: element.documentId,
-          embeddingId: vectorInsertResult[i].id,
-          version: newVersion,
-          previousVersionId: existing?.id ?? null,
-          isActive: true,
-        },
-      });
+        await tx.translatableElement.create({
+          data: {
+            value: element.value,
+            meta: element.meta as InputJsonValue,
+            documentId: element.documentId,
+            embeddingId: vectorInsertResult[i].id,
+            version: newVersion,
+            previousVersionId: existing?.id ?? null,
+            isActive: true,
+            documentVersionId: documentVersion.id,
+          },
+        });
+      }
     }
   });
 };

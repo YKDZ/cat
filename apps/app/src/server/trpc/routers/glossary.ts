@@ -8,7 +8,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
-import { insertTerms, searchTerm } from "@/server/utils/es";
+import { EsTermStore } from "@/server/utils/es";
 
 export const glossaryRouter = router({
   deleteTerm: authedProcedure
@@ -290,7 +290,7 @@ export const glossaryRouter = router({
             ),
           );
 
-        await insertTerms(...relations);
+        await EsTermStore.insertTerms(...relations);
       });
     }),
   searchTerm: authedProcedure
@@ -304,7 +304,7 @@ export const glossaryRouter = router({
     .output(z.array(TermRelationSchema))
     .query(async ({ input }) => {
       const { text, termLanguageId, translationLanguageId } = input;
-      const translationIds = await searchTerm(text, termLanguageId);
+      const translationIds = await EsTermStore.searchTerm(text, termLanguageId);
 
       const relations = await prisma.termRelation.findMany({
         where: {
@@ -359,7 +359,10 @@ export const glossaryRouter = router({
 
       const sourceLanguageId = element.Document.Project.sourceLanguageId;
 
-      const translationIds = await searchTerm(element.value, sourceLanguageId);
+      const translationIds = await EsTermStore.searchTerm(
+        element.value,
+        sourceLanguageId,
+      );
       const glossariesIds = element.Document.Project.Glossaries.map(
         (glossary) => glossary.id,
       );
