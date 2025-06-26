@@ -68,7 +68,7 @@ watch(
     <!-- 输入框 -->
     <input
       v-model="searchQuery"
-      class="text-highlight-content px-2 py-1 outline-1 outline-highlight-darkest bg-highlight focus-visible:outline-base"
+      class="text-highlight-content-darker px-2 py-1 outline-1 outline-highlight-darkest bg-highlight focus-visible:outline-base"
       :class="{
         'min-w-32 w-fit': !fullWidth,
         'w-full': fullWidth,
@@ -81,7 +81,7 @@ watch(
     <!-- 下拉面板 -->
     <div
       v-show="isOpen"
-      class="text-highlight-content mt-1 rounded-md bg-highlight bg-white max-h-60 w-full shadow-lg absolute z-50 overflow-auto"
+      class="text-highlight-content-darker mt-1 rounded-md bg-highlight bg-white max-h-60 w-full shadow-lg absolute z-50 overflow-auto"
     >
       <div
         v-for="option in filteredOptions"
@@ -97,18 +97,21 @@ watch(
         <span class="flex-1 truncate">{{ option.content }}</span>
         <span
           v-if="(option.value ?? option.content) === modelValue"
-          class="text-primary-500 i-mdi:check ml-2"
+          class="i-mdi:check text-base ml-2"
         />
       </div>
 
-      <div v-if="options.length === 0" class="text-highlight-content px-3 py-2">
-        无可用选项
+      <div
+        v-if="options.length === 0"
+        class="text-highlight-content-darker px-3 py-2"
+      >
+        {{ $t("无可用选项") }}
       </div>
       <div
         v-else-if="filteredOptions.length === 0"
-        class="text-highlight-content px-3 py-2"
+        class="text-highlight-content-darker px-3 py-2"
       >
-        无匹配结果
+        {{ $t("无匹配结果") }}
       </div>
     </div>
   </div>

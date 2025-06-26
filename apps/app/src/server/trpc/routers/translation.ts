@@ -2,7 +2,11 @@ import { z } from "zod/v4";
 import { authedProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@cat/db";
-import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
+import {
+  TranslationApprovmentSchema,
+  TranslationSchema,
+  TranslationVoteSchema,
+} from "@cat/shared";
 import { autoTranslateQueue } from "@/server/processor/autoTranslate";
 
 export const translationRouter = router({
@@ -41,11 +45,12 @@ export const translationRouter = router({
         elementId: z.number().int(),
         languageId: z.string(),
         value: z.string(),
+        createMemory: z.boolean().default(true),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const { user } = ctx;
-      const { projectId, elementId, languageId, value } = input;
+      const { projectId, elementId, languageId, value, createMemory } = input;
 
       const translation = await prisma.$transaction(async () => {
         const translation = await prisma.translation.create({
@@ -94,7 +99,7 @@ export const translationRouter = router({
           },
         });
 
-        if (projectWithMemories) {
+        if (createMemory && projectWithMemories) {
           // 在项目的每一个记忆库中都创建一个记忆条目
           await prisma.memoryItem.createMany({
             data: projectWithMemories.Memories.map((memory) => {
@@ -330,6 +335,70 @@ export const translationRouter = router({
           })
         ).count;
       });
+    }),
+  approve: authedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.int()),
+      }),
+    )
+    .output(z.array(TranslationApprovmentSchema))
+    .mutation(async ({ input }) => {
+      const { ids } = input;
+
+      return await prisma.$transaction(async (tx) => {
+        const alreayApprovedTranslations = await tx.translation.findMany({
+          where: {
+            id: {
+              in: ids,
+            },
+            Approvments: {
+              some: {
+                isActive: true,
+              },
+            },
+          },
+        });
+
+        if (alreayApprovedTranslations.length > 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Some translations alreay have active approvment",
+          });
+        }
+
+        return z.array(TranslationApprovmentSchema).parse(
+          await tx.translationApprovment.createManyAndReturn({
+            data: ids.map((id) => ({
+              translationId: id,
+              isActive: true,
+            })),
+          }),
+        );
+      });
+    }),
+  unapprove: authedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.int()),
+      }),
+    )
+    .output(z.array(TranslationApprovmentSchema))
+    .mutation(async ({ input }) => {
+      const { ids } = input;
+
+      return z.array(TranslationApprovmentSchema).parse(
+        await prisma.translationApprovment.updateManyAndReturn({
+          where: {
+            translationId: {
+              in: ids,
+            },
+          },
+          data: {
+            isActive: false,
+          },
+        }),
+      );
     }),
   autoTranslate: authedProcedure
     .input(

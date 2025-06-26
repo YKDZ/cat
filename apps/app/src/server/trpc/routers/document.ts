@@ -147,6 +147,8 @@ export const documentRouter = router({
           },
         });
 
+        // 在这里开始选择创建或查找现存文档
+        // 并维护文档版本
         let document =
           (await tx.document.findFirst({
             where: {
@@ -167,6 +169,7 @@ export const documentRouter = router({
                 },
                 take: 1,
               },
+              Versions: true,
               Project: true,
             },
           })) ?? null;
@@ -194,6 +197,11 @@ export const documentRouter = router({
                   id: task.id,
                 },
               },
+              Versions: {
+                create: {
+                  isActive: true,
+                },
+              },
             },
             include: {
               File: {
@@ -207,6 +215,7 @@ export const documentRouter = router({
                 },
                 take: 1,
               },
+              Versions: true,
               Project: true,
             },
           });
@@ -222,6 +231,19 @@ export const documentRouter = router({
                 },
                 connect: {
                   id: task.id,
+                },
+              },
+              Versions: {
+                updateMany: {
+                  where: {
+                    isActive: true,
+                  },
+                  data: {
+                    isActive: false,
+                  },
+                },
+                create: {
+                  isActive: true,
                 },
               },
             },
@@ -320,10 +342,18 @@ export const documentRouter = router({
 
       return DocumentSchema.nullable().parse(document);
     }),
-  queryElementTotalAmount: authedProcedure
-    .input(z.object({ id: z.string(), searchQuery: z.string().default("") }))
+  countElement: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        searchQuery: z.string().default(""),
+        isApproved: z.boolean().optional(),
+        isTranslated: z.boolean().optional(),
+      }),
+    )
+    .output(z.int().min(0))
     .query(async ({ input }) => {
-      const { id, searchQuery } = input;
+      const { id, searchQuery, isApproved, isTranslated } = input;
 
       return await prisma.translatableElement.count({
         where: {
@@ -333,42 +363,70 @@ export const documentRouter = router({
               ? { contains: searchQuery, mode: "insensitive" }
               : undefined,
           isActive: true,
+
+          Translations:
+            isTranslated === undefined && isApproved === undefined
+              ? undefined
+              : {
+                  some: {
+                    ...(isTranslated !== undefined ? {} : undefined),
+                    ...(isApproved !== undefined
+                      ? {
+                          Approvments: {
+                            some: {
+                              isActive: true,
+                            },
+                          },
+                        }
+                      : undefined),
+                  },
+                },
         },
       });
     }),
-  queryFirstUntranslatedElement: authedProcedure
+  queryFirstElement: authedProcedure
     .input(
       z.object({
         id: z.string(),
         idGreaterThan: z.number().optional(),
+        searchQuery: z.string().default(""),
+        isApproved: z.boolean().optional(),
+        isTranslated: z.boolean().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { id, idGreaterThan } = input;
+      const { id, idGreaterThan, searchQuery, isApproved, isTranslated } =
+        input;
 
-      const firstTry = await prisma.translatableElement.findFirst({
+      const element = await prisma.translatableElement.findFirst({
         where: {
           id: idGreaterThan ? { gt: idGreaterThan } : undefined,
           documentId: id,
-          Translations: { none: {} },
+          value:
+            searchQuery.trim().length !== 0
+              ? { contains: searchQuery, mode: "insensitive" }
+              : undefined,
+          Translations: {
+            none: isTranslated === false ? {} : undefined,
+            some: {
+              ...(isTranslated === false ? {} : undefined),
+              ...(isApproved !== undefined
+                ? {
+                    Approvments: {
+                      some: {
+                        isActive: true,
+                      },
+                    },
+                  }
+                : undefined),
+            },
+          },
           isActive: true,
         },
         orderBy: { id: "asc" },
       });
 
-      if (!firstTry && idGreaterThan !== undefined) {
-        const secondTry = await prisma.translatableElement.findFirst({
-          where: {
-            documentId: id,
-            Translations: { none: {} },
-            isActive: true,
-          },
-          orderBy: { id: "asc" },
-        });
-        return TranslatableElementSchema.nullable().parse(secondTry);
-      }
-
-      return TranslatableElementSchema.nullable().parse(firstTry);
+      return TranslatableElementSchema.nullable().parse(element);
     }),
   exportTranslatedFile: authedProcedure
     .input(
@@ -511,74 +569,6 @@ export const documentRouter = router({
         fileName: file.originName,
       };
     }),
-  countTranslatedElement: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        languageId: z.string(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const { id, languageId } = input;
-
-      return await prisma.translatableElement
-        .count({
-          where: {
-            documentId: id,
-            Translations: {
-              some: {
-                languageId,
-              },
-            },
-            isActive: true,
-          },
-        })
-        .catch((e: PrismaError) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: e.message,
-            cause: e,
-          });
-        });
-    }),
-  countTranslatedElementWithApproved: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        languageId: z.string(),
-        isApproved: z.boolean(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const { id, languageId, isApproved } = input;
-
-      return await prisma.translatableElement
-        .count({
-          where: {
-            documentId: id,
-            Translations: {
-              some: {
-                languageId,
-                Approvments: isApproved
-                  ? {
-                      some: {
-                        isActive: true,
-                      },
-                    }
-                  : undefined,
-              },
-            },
-            isActive: true,
-          },
-        })
-        .catch((e: PrismaError) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: e.message,
-            cause: e,
-          });
-        });
-    }),
   queryElementTranslationStatus: authedProcedure
     .input(
       z.object({
@@ -634,11 +624,20 @@ export const documentRouter = router({
         page: z.number().int().int().default(0),
         pageSize: z.number().int().int().default(16),
         searchQuery: z.string().default(""),
+        isApproved: z.boolean().optional(),
+        isTranslated: z.boolean().optional(),
       }),
     )
     .output(z.array(TranslatableElementSchema))
     .query(async ({ input }) => {
-      const { documentId, page, pageSize, searchQuery } = input;
+      const {
+        documentId,
+        page,
+        pageSize,
+        searchQuery,
+        isApproved,
+        isTranslated,
+      } = input;
 
       const result = await prisma.translatableElement.findMany({
         where: {
@@ -648,6 +647,23 @@ export const documentRouter = router({
               ? { contains: searchQuery }
               : undefined,
           isActive: true,
+          Translations:
+            isTranslated === undefined && isApproved === undefined
+              ? undefined
+              : {
+                  some: {
+                    ...(isTranslated !== undefined ? {} : undefined),
+                    ...(isApproved !== undefined
+                      ? {
+                          Approvments: {
+                            some: {
+                              isActive: true,
+                            },
+                          },
+                        }
+                      : undefined),
+                  },
+                },
         },
         orderBy: { id: "asc" },
         skip: page * pageSize,
@@ -663,11 +679,20 @@ export const documentRouter = router({
         documentId: z.string(),
         pageSize: z.number().int().default(16),
         searchQuery: z.string().default(""),
+        isApproved: z.boolean().optional(),
+        isTranslated: z.boolean().optional(),
       }),
     )
     .output(z.number().int())
     .query(async ({ input }) => {
-      const { id, documentId, pageSize, searchQuery } = input;
+      const {
+        id,
+        documentId,
+        pageSize,
+        searchQuery,
+        isApproved,
+        isTranslated,
+      } = input;
 
       const count = await prisma.translatableElement.count({
         where: {
@@ -680,6 +705,24 @@ export const documentRouter = router({
               ? { contains: searchQuery, mode: "insensitive" }
               : undefined,
           isActive: true,
+
+          Translations:
+            isTranslated === undefined && isApproved === undefined
+              ? undefined
+              : {
+                  some: {
+                    ...(isTranslated !== undefined ? {} : undefined),
+                    ...(isApproved !== undefined
+                      ? {
+                          Approvments: {
+                            some: {
+                              isActive: true,
+                            },
+                          },
+                        }
+                      : undefined),
+                  },
+                },
         },
       });
 
@@ -697,23 +740,6 @@ export const documentRouter = router({
       await prisma.document.delete({
         where: {
           id,
-        },
-      });
-    }),
-  countTranslatableElement: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
-    .output(z.number())
-    .query(async ({ input }) => {
-      const { id } = input;
-
-      return await prisma.translatableElement.count({
-        where: {
-          documentId: id,
-          isActive: true,
         },
       });
     }),

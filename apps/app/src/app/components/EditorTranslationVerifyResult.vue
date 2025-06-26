@@ -7,13 +7,15 @@ import { clippers } from "./tagger";
 import Button from "./Button.vue";
 import Collapse from "./Collapse.vue";
 import Icon from "./Icon.vue";
+import Modal from "./Modal.vue";
 
 const { sourceParts, translationParts, translationValue } =
   storeToRefs(useEditorStore());
 
 const clipperVerifyResults = ref<ClipperVerifyResult[]>([]);
 const isProcessing = ref(false);
-const isOpen = ref(false);
+const isCollapseOpen = ref(false);
+const isModalOpen = ref(false);
 
 const isAllPass = computed(
   () => !clipperVerifyResults.value.find((result) => !result.isPass),
@@ -42,6 +44,16 @@ const failedResults = computed(() => {
   return clipperVerifyResults.value.filter((result) => !result.isPass);
 });
 
+const needDoubleCheck = computed(() => {
+  return (
+    failedResults.value.findIndex(
+      (result) =>
+        clippers.value.find((clipper) => clipper.id === result.clipperId)
+          ?.needConfirmation,
+    ) !== -1
+  );
+});
+
 watch([sourceParts, translationValue], async () => {
   isProcessing.value = true;
   await verifyTranslation();
@@ -49,7 +61,7 @@ watch([sourceParts, translationValue], async () => {
 });
 
 watch(isAllPass, (to) => {
-  isOpen.value = !to;
+  isCollapseOpen.value = !to;
 });
 </script>
 
@@ -64,7 +76,7 @@ watch(isAllPass, (to) => {
         'color-red': !isAllPass,
       }"
     />
-    <Collapse v-if="!isAllPass" v-model:is-open="isOpen">
+    <Collapse v-if="!isAllPass" v-model:is-open="isCollapseOpen">
       <ul>
         <li
           v-for="(result, index) in failedResults"
@@ -77,4 +89,7 @@ watch(isAllPass, (to) => {
       </ul></Collapse
     >
   </div>
+  <Modal v-model:is-open="isModalOpen"
+    ><div class="px-10 py-6 rounded-sm bg-highlight"></div>
+  </Modal>
 </template>

@@ -30,6 +30,7 @@ export type AggregateTranslatableElement = {
 export type TranslatableElementAvgAggregateOutputType = {
   id: number | null
   version: number | null
+  documentVersionId: number | null
   embeddingId: number | null
   previousVersionId: number | null
 }
@@ -37,6 +38,7 @@ export type TranslatableElementAvgAggregateOutputType = {
 export type TranslatableElementSumAggregateOutputType = {
   id: number | null
   version: number | null
+  documentVersionId: number | null
   embeddingId: number | null
   previousVersionId: number | null
 }
@@ -48,6 +50,7 @@ export type TranslatableElementMinAggregateOutputType = {
   value: string | null
   version: number | null
   isActive: boolean | null
+  documentVersionId: number | null
   documentId: string | null
   embeddingId: number | null
   previousVersionId: number | null
@@ -60,6 +63,7 @@ export type TranslatableElementMaxAggregateOutputType = {
   value: string | null
   version: number | null
   isActive: boolean | null
+  documentVersionId: number | null
   documentId: string | null
   embeddingId: number | null
   previousVersionId: number | null
@@ -73,6 +77,7 @@ export type TranslatableElementCountAggregateOutputType = {
   meta: number
   version: number
   isActive: number
+  documentVersionId: number
   documentId: number
   embeddingId: number
   previousVersionId: number
@@ -83,6 +88,7 @@ export type TranslatableElementCountAggregateOutputType = {
 export type TranslatableElementAvgAggregateInputType = {
   id?: true
   version?: true
+  documentVersionId?: true
   embeddingId?: true
   previousVersionId?: true
 }
@@ -90,6 +96,7 @@ export type TranslatableElementAvgAggregateInputType = {
 export type TranslatableElementSumAggregateInputType = {
   id?: true
   version?: true
+  documentVersionId?: true
   embeddingId?: true
   previousVersionId?: true
 }
@@ -101,6 +108,7 @@ export type TranslatableElementMinAggregateInputType = {
   value?: true
   version?: true
   isActive?: true
+  documentVersionId?: true
   documentId?: true
   embeddingId?: true
   previousVersionId?: true
@@ -113,6 +121,7 @@ export type TranslatableElementMaxAggregateInputType = {
   value?: true
   version?: true
   isActive?: true
+  documentVersionId?: true
   documentId?: true
   embeddingId?: true
   previousVersionId?: true
@@ -126,6 +135,7 @@ export type TranslatableElementCountAggregateInputType = {
   meta?: true
   version?: true
   isActive?: true
+  documentVersionId?: true
   documentId?: true
   embeddingId?: true
   previousVersionId?: true
@@ -226,6 +236,7 @@ export type TranslatableElementGroupByOutputType = {
   meta: unknown | null
   version: number
   isActive: boolean
+  documentVersionId: number
   documentId: string
   embeddingId: number
   previousVersionId: number | null
@@ -262,9 +273,11 @@ export type TranslatableElementWhereInput = {
   meta?: Prisma.JsonNullableFilter<"TranslatableElement">
   version?: Prisma.IntFilter<"TranslatableElement"> | number
   isActive?: Prisma.BoolFilter<"TranslatableElement"> | boolean
+  documentVersionId?: Prisma.IntFilter<"TranslatableElement"> | number
   documentId?: Prisma.StringFilter<"TranslatableElement"> | string
   embeddingId?: Prisma.IntFilter<"TranslatableElement"> | number
   previousVersionId?: Prisma.IntNullableFilter<"TranslatableElement"> | number | null
+  DocumentVersion?: Prisma.XOR<Prisma.DocumentVersionScalarRelationFilter, Prisma.DocumentVersionWhereInput>
   Document?: Prisma.XOR<Prisma.DocumentScalarRelationFilter, Prisma.DocumentWhereInput>
   Embedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
   PreviousVersion?: Prisma.XOR<Prisma.TranslatableElementNullableScalarRelationFilter, Prisma.TranslatableElementWhereInput> | null
@@ -281,9 +294,11 @@ export type TranslatableElementOrderByWithRelationInput = {
   meta?: Prisma.SortOrderInput | Prisma.SortOrder
   version?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  documentVersionId?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
   previousVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  DocumentVersion?: Prisma.DocumentVersionOrderByWithRelationInput
   Document?: Prisma.DocumentOrderByWithRelationInput
   Embedding?: Prisma.VectorOrderByWithRelationInput
   PreviousVersion?: Prisma.TranslatableElementOrderByWithRelationInput
@@ -305,8 +320,10 @@ export type TranslatableElementWhereUniqueInput = Prisma.AtLeast<{
   meta?: Prisma.JsonNullableFilter<"TranslatableElement">
   version?: Prisma.IntFilter<"TranslatableElement"> | number
   isActive?: Prisma.BoolFilter<"TranslatableElement"> | boolean
+  documentVersionId?: Prisma.IntFilter<"TranslatableElement"> | number
   documentId?: Prisma.StringFilter<"TranslatableElement"> | string
   embeddingId?: Prisma.IntFilter<"TranslatableElement"> | number
+  DocumentVersion?: Prisma.XOR<Prisma.DocumentVersionScalarRelationFilter, Prisma.DocumentVersionWhereInput>
   Document?: Prisma.XOR<Prisma.DocumentScalarRelationFilter, Prisma.DocumentWhereInput>
   Embedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
   PreviousVersion?: Prisma.XOR<Prisma.TranslatableElementNullableScalarRelationFilter, Prisma.TranslatableElementWhereInput> | null
@@ -323,6 +340,7 @@ export type TranslatableElementOrderByWithAggregationInput = {
   meta?: Prisma.SortOrderInput | Prisma.SortOrder
   version?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  documentVersionId?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
   previousVersionId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -344,6 +362,7 @@ export type TranslatableElementScalarWhereWithAggregatesInput = {
   meta?: Prisma.JsonNullableWithAggregatesFilter<"TranslatableElement">
   version?: Prisma.IntWithAggregatesFilter<"TranslatableElement"> | number
   isActive?: Prisma.BoolWithAggregatesFilter<"TranslatableElement"> | boolean
+  documentVersionId?: Prisma.IntWithAggregatesFilter<"TranslatableElement"> | number
   documentId?: Prisma.StringWithAggregatesFilter<"TranslatableElement"> | string
   embeddingId?: Prisma.IntWithAggregatesFilter<"TranslatableElement"> | number
   previousVersionId?: Prisma.IntNullableWithAggregatesFilter<"TranslatableElement"> | number | null
@@ -356,6 +375,7 @@ export type TranslatableElementCreateInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  DocumentVersion: Prisma.DocumentVersionCreateNestedOneWithoutTranslatableElementsInput
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
   PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
@@ -372,6 +392,7 @@ export type TranslatableElementUncheckedCreateInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   documentId: string
   embeddingId: number
   previousVersionId?: number | null
@@ -387,6 +408,7 @@ export type TranslatableElementUpdateInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  DocumentVersion?: Prisma.DocumentVersionUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
   PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
@@ -403,6 +425,7 @@ export type TranslatableElementUncheckedUpdateInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -419,6 +442,7 @@ export type TranslatableElementCreateManyInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   documentId: string
   embeddingId: number
   previousVersionId?: number | null
@@ -441,6 +465,7 @@ export type TranslatableElementUncheckedUpdateManyInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -475,6 +500,7 @@ export type TranslatableElementCountOrderByAggregateInput = {
   meta?: Prisma.SortOrder
   version?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  documentVersionId?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
   previousVersionId?: Prisma.SortOrder
@@ -483,6 +509,7 @@ export type TranslatableElementCountOrderByAggregateInput = {
 export type TranslatableElementAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  documentVersionId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
   previousVersionId?: Prisma.SortOrder
 }
@@ -494,6 +521,7 @@ export type TranslatableElementMaxOrderByAggregateInput = {
   value?: Prisma.SortOrder
   version?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  documentVersionId?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
   previousVersionId?: Prisma.SortOrder
@@ -506,6 +534,7 @@ export type TranslatableElementMinOrderByAggregateInput = {
   value?: Prisma.SortOrder
   version?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  documentVersionId?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
   previousVersionId?: Prisma.SortOrder
@@ -514,6 +543,7 @@ export type TranslatableElementMinOrderByAggregateInput = {
 export type TranslatableElementSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   version?: Prisma.SortOrder
+  documentVersionId?: Prisma.SortOrder
   embeddingId?: Prisma.SortOrder
   previousVersionId?: Prisma.SortOrder
 }
@@ -633,6 +663,48 @@ export type TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInp
   update?: Prisma.XOR<Prisma.XOR<Prisma.TranslatableElementUpdateToOneWithWhereWithoutPreviousVersionInput, Prisma.TranslatableElementUpdateWithoutPreviousVersionInput>, Prisma.TranslatableElementUncheckedUpdateWithoutPreviousVersionInput>
 }
 
+export type TranslatableElementCreateNestedManyWithoutDocumentVersionInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutDocumentVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput> | Prisma.TranslatableElementCreateWithoutDocumentVersionInput[] | Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput[]
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutDocumentVersionInput | Prisma.TranslatableElementCreateOrConnectWithoutDocumentVersionInput[]
+  createMany?: Prisma.TranslatableElementCreateManyDocumentVersionInputEnvelope
+  connect?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+}
+
+export type TranslatableElementUncheckedCreateNestedManyWithoutDocumentVersionInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutDocumentVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput> | Prisma.TranslatableElementCreateWithoutDocumentVersionInput[] | Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput[]
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutDocumentVersionInput | Prisma.TranslatableElementCreateOrConnectWithoutDocumentVersionInput[]
+  createMany?: Prisma.TranslatableElementCreateManyDocumentVersionInputEnvelope
+  connect?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+}
+
+export type TranslatableElementUpdateManyWithoutDocumentVersionNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutDocumentVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput> | Prisma.TranslatableElementCreateWithoutDocumentVersionInput[] | Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput[]
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutDocumentVersionInput | Prisma.TranslatableElementCreateOrConnectWithoutDocumentVersionInput[]
+  upsert?: Prisma.TranslatableElementUpsertWithWhereUniqueWithoutDocumentVersionInput | Prisma.TranslatableElementUpsertWithWhereUniqueWithoutDocumentVersionInput[]
+  createMany?: Prisma.TranslatableElementCreateManyDocumentVersionInputEnvelope
+  set?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+  disconnect?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+  delete?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+  connect?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+  update?: Prisma.TranslatableElementUpdateWithWhereUniqueWithoutDocumentVersionInput | Prisma.TranslatableElementUpdateWithWhereUniqueWithoutDocumentVersionInput[]
+  updateMany?: Prisma.TranslatableElementUpdateManyWithWhereWithoutDocumentVersionInput | Prisma.TranslatableElementUpdateManyWithWhereWithoutDocumentVersionInput[]
+  deleteMany?: Prisma.TranslatableElementScalarWhereInput | Prisma.TranslatableElementScalarWhereInput[]
+}
+
+export type TranslatableElementUncheckedUpdateManyWithoutDocumentVersionNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutDocumentVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput> | Prisma.TranslatableElementCreateWithoutDocumentVersionInput[] | Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput[]
+  connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutDocumentVersionInput | Prisma.TranslatableElementCreateOrConnectWithoutDocumentVersionInput[]
+  upsert?: Prisma.TranslatableElementUpsertWithWhereUniqueWithoutDocumentVersionInput | Prisma.TranslatableElementUpsertWithWhereUniqueWithoutDocumentVersionInput[]
+  createMany?: Prisma.TranslatableElementCreateManyDocumentVersionInputEnvelope
+  set?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+  disconnect?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+  delete?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+  connect?: Prisma.TranslatableElementWhereUniqueInput | Prisma.TranslatableElementWhereUniqueInput[]
+  update?: Prisma.TranslatableElementUpdateWithWhereUniqueWithoutDocumentVersionInput | Prisma.TranslatableElementUpdateWithWhereUniqueWithoutDocumentVersionInput[]
+  updateMany?: Prisma.TranslatableElementUpdateManyWithWhereWithoutDocumentVersionInput | Prisma.TranslatableElementUpdateManyWithWhereWithoutDocumentVersionInput[]
+  deleteMany?: Prisma.TranslatableElementScalarWhereInput | Prisma.TranslatableElementScalarWhereInput[]
+}
+
 export type TranslatableElementCreateNestedOneWithoutMemoryItemsInput = {
   create?: Prisma.XOR<Prisma.TranslatableElementCreateWithoutMemoryItemsInput, Prisma.TranslatableElementUncheckedCreateWithoutMemoryItemsInput>
   connectOrCreate?: Prisma.TranslatableElementCreateOrConnectWithoutMemoryItemsInput
@@ -698,6 +770,7 @@ export type TranslatableElementCreateWithoutDocumentInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  DocumentVersion: Prisma.DocumentVersionCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
   PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
   NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
@@ -713,6 +786,7 @@ export type TranslatableElementUncheckedCreateWithoutDocumentInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   embeddingId: number
   previousVersionId?: number | null
   NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
@@ -757,6 +831,7 @@ export type TranslatableElementScalarWhereInput = {
   meta?: Prisma.JsonNullableFilter<"TranslatableElement">
   version?: Prisma.IntFilter<"TranslatableElement"> | number
   isActive?: Prisma.BoolFilter<"TranslatableElement"> | boolean
+  documentVersionId?: Prisma.IntFilter<"TranslatableElement"> | number
   documentId?: Prisma.StringFilter<"TranslatableElement"> | string
   embeddingId?: Prisma.IntFilter<"TranslatableElement"> | number
   previousVersionId?: Prisma.IntNullableFilter<"TranslatableElement"> | number | null
@@ -769,6 +844,7 @@ export type TranslatableElementCreateWithoutNextVersionInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  DocumentVersion: Prisma.DocumentVersionCreateNestedOneWithoutTranslatableElementsInput
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
   PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
@@ -784,6 +860,7 @@ export type TranslatableElementUncheckedCreateWithoutNextVersionInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   documentId: string
   embeddingId: number
   previousVersionId?: number | null
@@ -803,6 +880,7 @@ export type TranslatableElementCreateWithoutPreviousVersionInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  DocumentVersion: Prisma.DocumentVersionCreateNestedOneWithoutTranslatableElementsInput
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
   NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
@@ -818,6 +896,7 @@ export type TranslatableElementUncheckedCreateWithoutPreviousVersionInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   documentId: string
   embeddingId: number
   NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
@@ -848,6 +927,7 @@ export type TranslatableElementUpdateWithoutNextVersionInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  DocumentVersion?: Prisma.DocumentVersionUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
   PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
@@ -863,6 +943,7 @@ export type TranslatableElementUncheckedUpdateWithoutNextVersionInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -888,6 +969,7 @@ export type TranslatableElementUpdateWithoutPreviousVersionInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  DocumentVersion?: Prisma.DocumentVersionUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
   NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
@@ -903,11 +985,69 @@ export type TranslatableElementUncheckedUpdateWithoutPreviousVersionInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
   Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatableElementNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceElementNestedInput
+}
+
+export type TranslatableElementCreateWithoutDocumentVersionInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  value: string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
+  Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
+  PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
+  NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
+  Translations?: Prisma.TranslationCreateNestedManyWithoutTranslatableElementInput
+  MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutSourceElementInput
+}
+
+export type TranslatableElementUncheckedCreateWithoutDocumentVersionInput = {
+  id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  value: string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
+  documentId: string
+  embeddingId: number
+  previousVersionId?: number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
+  Translations?: Prisma.TranslationUncheckedCreateNestedManyWithoutTranslatableElementInput
+  MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutSourceElementInput
+}
+
+export type TranslatableElementCreateOrConnectWithoutDocumentVersionInput = {
+  where: Prisma.TranslatableElementWhereUniqueInput
+  create: Prisma.XOR<Prisma.TranslatableElementCreateWithoutDocumentVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput>
+}
+
+export type TranslatableElementCreateManyDocumentVersionInputEnvelope = {
+  data: Prisma.TranslatableElementCreateManyDocumentVersionInput | Prisma.TranslatableElementCreateManyDocumentVersionInput[]
+  skipDuplicates?: boolean
+}
+
+export type TranslatableElementUpsertWithWhereUniqueWithoutDocumentVersionInput = {
+  where: Prisma.TranslatableElementWhereUniqueInput
+  update: Prisma.XOR<Prisma.TranslatableElementUpdateWithoutDocumentVersionInput, Prisma.TranslatableElementUncheckedUpdateWithoutDocumentVersionInput>
+  create: Prisma.XOR<Prisma.TranslatableElementCreateWithoutDocumentVersionInput, Prisma.TranslatableElementUncheckedCreateWithoutDocumentVersionInput>
+}
+
+export type TranslatableElementUpdateWithWhereUniqueWithoutDocumentVersionInput = {
+  where: Prisma.TranslatableElementWhereUniqueInput
+  data: Prisma.XOR<Prisma.TranslatableElementUpdateWithoutDocumentVersionInput, Prisma.TranslatableElementUncheckedUpdateWithoutDocumentVersionInput>
+}
+
+export type TranslatableElementUpdateManyWithWhereWithoutDocumentVersionInput = {
+  where: Prisma.TranslatableElementScalarWhereInput
+  data: Prisma.XOR<Prisma.TranslatableElementUpdateManyMutationInput, Prisma.TranslatableElementUncheckedUpdateManyWithoutDocumentVersionInput>
 }
 
 export type TranslatableElementCreateWithoutMemoryItemsInput = {
@@ -917,6 +1057,7 @@ export type TranslatableElementCreateWithoutMemoryItemsInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  DocumentVersion: Prisma.DocumentVersionCreateNestedOneWithoutTranslatableElementsInput
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
   PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
@@ -932,6 +1073,7 @@ export type TranslatableElementUncheckedCreateWithoutMemoryItemsInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   documentId: string
   embeddingId: number
   previousVersionId?: number | null
@@ -962,6 +1104,7 @@ export type TranslatableElementUpdateWithoutMemoryItemsInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  DocumentVersion?: Prisma.DocumentVersionUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
   PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
@@ -977,6 +1120,7 @@ export type TranslatableElementUncheckedUpdateWithoutMemoryItemsInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -991,6 +1135,7 @@ export type TranslatableElementCreateWithoutTranslationsInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  DocumentVersion: Prisma.DocumentVersionCreateNestedOneWithoutTranslatableElementsInput
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   Embedding: Prisma.VectorCreateNestedOneWithoutTranslatableElementsInput
   PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
@@ -1006,6 +1151,7 @@ export type TranslatableElementUncheckedCreateWithoutTranslationsInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   documentId: string
   embeddingId: number
   previousVersionId?: number | null
@@ -1036,6 +1182,7 @@ export type TranslatableElementUpdateWithoutTranslationsInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  DocumentVersion?: Prisma.DocumentVersionUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
   PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
@@ -1051,6 +1198,7 @@ export type TranslatableElementUncheckedUpdateWithoutTranslationsInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1065,6 +1213,7 @@ export type TranslatableElementCreateWithoutEmbeddingInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  DocumentVersion: Prisma.DocumentVersionCreateNestedOneWithoutTranslatableElementsInput
   Document: Prisma.DocumentCreateNestedOneWithoutTranslatableElementsInput
   PreviousVersion?: Prisma.TranslatableElementCreateNestedOneWithoutNextVersionInput
   NextVersion?: Prisma.TranslatableElementCreateNestedOneWithoutPreviousVersionInput
@@ -1080,6 +1229,7 @@ export type TranslatableElementUncheckedCreateWithoutEmbeddingInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   documentId: string
   previousVersionId?: number | null
   NextVersion?: Prisma.TranslatableElementUncheckedCreateNestedOneWithoutPreviousVersionInput
@@ -1121,6 +1271,7 @@ export type TranslatableElementCreateManyDocumentInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   embeddingId: number
   previousVersionId?: number | null
 }
@@ -1132,6 +1283,7 @@ export type TranslatableElementUpdateWithoutDocumentInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  DocumentVersion?: Prisma.DocumentVersionUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
   PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
   NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
@@ -1147,6 +1299,7 @@ export type TranslatableElementUncheckedUpdateWithoutDocumentInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
@@ -1162,6 +1315,64 @@ export type TranslatableElementUncheckedUpdateManyWithoutDocumentInput = {
   meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type TranslatableElementCreateManyDocumentVersionInput = {
+  id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  value: string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: number
+  isActive?: boolean
+  documentId: string
+  embeddingId: number
+  previousVersionId?: number | null
+}
+
+export type TranslatableElementUpdateWithoutDocumentVersionInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput
+  PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
+  NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutTranslatableElementNestedInput
+  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceElementNestedInput
+}
+
+export type TranslatableElementUncheckedUpdateWithoutDocumentVersionInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutTranslatableElementNestedInput
+  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceElementNestedInput
+}
+
+export type TranslatableElementUncheckedUpdateManyWithoutDocumentVersionInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentId?: Prisma.StringFieldUpdateOperationsInput | string
   embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -1173,6 +1384,7 @@ export type TranslatableElementUpdateWithoutEmbeddingInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  DocumentVersion?: Prisma.DocumentVersionUpdateOneRequiredWithoutTranslatableElementsNestedInput
   Document?: Prisma.DocumentUpdateOneRequiredWithoutTranslatableElementsNestedInput
   PreviousVersion?: Prisma.TranslatableElementUpdateOneWithoutNextVersionNestedInput
   NextVersion?: Prisma.TranslatableElementUpdateOneWithoutPreviousVersionNestedInput
@@ -1188,6 +1400,7 @@ export type TranslatableElementUncheckedUpdateWithoutEmbeddingInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   NextVersion?: Prisma.TranslatableElementUncheckedUpdateOneWithoutPreviousVersionNestedInput
@@ -1203,6 +1416,7 @@ export type TranslatableElementCreateManyEmbeddingInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   version?: number
   isActive?: boolean
+  documentVersionId: number
   documentId: string
   previousVersionId?: number | null
 }
@@ -1215,6 +1429,7 @@ export type TranslatableElementUncheckedUpdateManyWithoutEmbeddingInput = {
   meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  documentVersionId?: Prisma.IntFieldUpdateOperationsInput | number
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   previousVersionId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -1267,9 +1482,11 @@ export type TranslatableElementSelect<ExtArgs extends runtime.Types.Extensions.I
   meta?: boolean
   version?: boolean
   isActive?: boolean
+  documentVersionId?: boolean
   documentId?: boolean
   embeddingId?: boolean
   previousVersionId?: boolean
+  DocumentVersion?: boolean | Prisma.DocumentVersionDefaultArgs<ExtArgs>
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
@@ -1287,9 +1504,11 @@ export type TranslatableElementSelectCreateManyAndReturn<ExtArgs extends runtime
   meta?: boolean
   version?: boolean
   isActive?: boolean
+  documentVersionId?: boolean
   documentId?: boolean
   embeddingId?: boolean
   previousVersionId?: boolean
+  DocumentVersion?: boolean | Prisma.DocumentVersionDefaultArgs<ExtArgs>
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
@@ -1303,9 +1522,11 @@ export type TranslatableElementSelectUpdateManyAndReturn<ExtArgs extends runtime
   meta?: boolean
   version?: boolean
   isActive?: boolean
+  documentVersionId?: boolean
   documentId?: boolean
   embeddingId?: boolean
   previousVersionId?: boolean
+  DocumentVersion?: boolean | Prisma.DocumentVersionDefaultArgs<ExtArgs>
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
@@ -1319,13 +1540,15 @@ export type TranslatableElementSelectScalar = {
   meta?: boolean
   version?: boolean
   isActive?: boolean
+  documentVersionId?: boolean
   documentId?: boolean
   embeddingId?: boolean
   previousVersionId?: boolean
 }
 
-export type TranslatableElementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "value" | "meta" | "version" | "isActive" | "documentId" | "embeddingId" | "previousVersionId", ExtArgs["result"]["translatableElement"]>
+export type TranslatableElementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "value" | "meta" | "version" | "isActive" | "documentVersionId" | "documentId" | "embeddingId" | "previousVersionId", ExtArgs["result"]["translatableElement"]>
 export type TranslatableElementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  DocumentVersion?: boolean | Prisma.DocumentVersionDefaultArgs<ExtArgs>
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
@@ -1335,11 +1558,13 @@ export type TranslatableElementInclude<ExtArgs extends runtime.Types.Extensions.
   _count?: boolean | Prisma.TranslatableElementCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TranslatableElementIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  DocumentVersion?: boolean | Prisma.DocumentVersionDefaultArgs<ExtArgs>
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
 }
 export type TranslatableElementIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  DocumentVersion?: boolean | Prisma.DocumentVersionDefaultArgs<ExtArgs>
   Document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
   Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   PreviousVersion?: boolean | Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>
@@ -1348,6 +1573,7 @@ export type TranslatableElementIncludeUpdateManyAndReturn<ExtArgs extends runtim
 export type $TranslatableElementPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TranslatableElement"
   objects: {
+    DocumentVersion: Prisma.$DocumentVersionPayload<ExtArgs>
     Document: Prisma.$DocumentPayload<ExtArgs>
     Embedding: Prisma.$VectorPayload<ExtArgs>
     PreviousVersion: Prisma.$TranslatableElementPayload<ExtArgs> | null
@@ -1363,6 +1589,7 @@ export type $TranslatableElementPayload<ExtArgs extends runtime.Types.Extensions
     meta: unknown | null
     version: number
     isActive: boolean
+    documentVersionId: number
     documentId: string
     embeddingId: number
     previousVersionId: number | null
@@ -1760,6 +1987,7 @@ readonly fields: TranslatableElementFieldRefs;
  */
 export interface Prisma__TranslatableElementClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  DocumentVersion<T extends Prisma.DocumentVersionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DocumentVersionDefaultArgs<ExtArgs>>): Prisma.Prisma__DocumentVersionClient<runtime.Types.Result.GetResult<Prisma.$DocumentVersionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   Document<T extends Prisma.DocumentDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DocumentDefaultArgs<ExtArgs>>): Prisma.Prisma__DocumentClient<runtime.Types.Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   Embedding<T extends Prisma.VectorDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VectorDefaultArgs<ExtArgs>>): Prisma.Prisma__VectorClient<runtime.Types.Result.GetResult<Prisma.$VectorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   PreviousVersion<T extends Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TranslatableElement$PreviousVersionArgs<ExtArgs>>): Prisma.Prisma__TranslatableElementClient<runtime.Types.Result.GetResult<Prisma.$TranslatableElementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -1802,6 +2030,7 @@ export interface TranslatableElementFieldRefs {
   readonly meta: Prisma.FieldRef<"TranslatableElement", 'Json'>
   readonly version: Prisma.FieldRef<"TranslatableElement", 'Int'>
   readonly isActive: Prisma.FieldRef<"TranslatableElement", 'Boolean'>
+  readonly documentVersionId: Prisma.FieldRef<"TranslatableElement", 'Int'>
   readonly documentId: Prisma.FieldRef<"TranslatableElement", 'String'>
   readonly embeddingId: Prisma.FieldRef<"TranslatableElement", 'Int'>
   readonly previousVersionId: Prisma.FieldRef<"TranslatableElement", 'Int'>

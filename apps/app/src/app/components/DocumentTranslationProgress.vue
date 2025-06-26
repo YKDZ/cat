@@ -5,7 +5,7 @@ import { useDocumentStore } from "../stores/document";
 import Dot from "./Dot.vue";
 import type { ProgressBarLine } from "./progress/bar";
 import ProgressBar from "./progress/bar/ProgressBar.vue";
-import { toShortFixed } from "../../../../../packages/shared/src/utils/string";
+import { toShortFixed } from "@cat/shared";
 
 const props = defineProps<{
   documentId: string;

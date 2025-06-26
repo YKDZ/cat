@@ -104,6 +104,29 @@ export const projectRouter = router({
         },
       });
     }),
+  linkMemory: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+        memoryIds: z.array(z.cuid2()),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { id, memoryIds } = input;
+
+      await prisma.project.update({
+        where: {
+          id,
+        },
+        data: {
+          Memories: {
+            connect: memoryIds.map((memoryId) => ({
+              id: memoryId,
+            })),
+          },
+        },
+      });
+    }),
   unlinkGlossary: authedProcedure
     .input(
       z.object({
@@ -122,6 +145,29 @@ export const projectRouter = router({
           Glossaries: {
             disconnect: glossaryIds.map((glossaryId) => ({
               id: glossaryId,
+            })),
+          },
+        },
+      });
+    }),
+  unlinkMemory: authedProcedure
+    .input(
+      z.object({
+        id: z.cuid2(),
+        memoryIds: z.array(z.cuid2()),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { id, memoryIds } = input;
+
+      await prisma.project.update({
+        where: {
+          id,
+        },
+        data: {
+          Memories: {
+            disconnect: memoryIds.map((memoryId) => ({
+              id: memoryId,
             })),
           },
         },
@@ -297,15 +343,17 @@ export const projectRouter = router({
         },
       });
     }),
-  countTranslatableElement: authedProcedure
+  countElement: authedProcedure
     .input(
       z.object({
         id: z.cuid2(),
+        isTranslated: z.boolean().optional(),
+        isApproved: z.boolean().optional(),
       }),
     )
     .output(z.number().int().min(0))
     .query(async ({ input }) => {
-      const { id } = input;
+      const { id, isApproved, isTranslated } = input;
 
       return await prisma.translatableElement.count({
         where: {
@@ -314,66 +362,57 @@ export const projectRouter = router({
               id,
             },
           },
+          Translations:
+            isTranslated === undefined && isApproved === undefined
+              ? undefined
+              : {
+                  some: {
+                    ...(isTranslated !== undefined ? {} : undefined),
+                    ...(isApproved !== undefined
+                      ? {
+                          Approvments: {
+                            some: {
+                              isActive: true,
+                            },
+                          },
+                        }
+                      : undefined),
+                  },
+                },
         },
       });
     }),
-  countTranslatedElement: authedProcedure
+  countTranslation: authedProcedure
     .input(
       z.object({
         id: z.cuid2(),
         languageId: z.string(),
+        isApproved: z.boolean().optional(),
       }),
     )
-    .output(z.number().int().min(0))
-    .query(async ({ input }) => {
-      const { id, languageId } = input;
-
-      return await prisma.translatableElement.count({
-        where: {
-          Document: {
-            Project: {
-              id,
-            },
-          },
-          Translations: {
-            some: {
-              languageId,
-            },
-          },
-        },
-      });
-    }),
-  countTranslatedElementWithApproved: authedProcedure
-    .input(
-      z.object({
-        id: z.cuid2(),
-        languageId: z.string(),
-        isApproved: z.boolean(),
-      }),
-    )
-    .output(z.number().int().min(0))
     .query(async ({ input }) => {
       const { id, languageId, isApproved } = input;
 
-      return await prisma.translatableElement.count({
+      return await prisma.translation.count({
         where: {
-          Document: {
-            Project: {
-              id,
-            },
+          TranslatableElement: {
+            documentId: id,
           },
-          Translations: {
-            some: {
-              languageId,
-              Approvments: isApproved
+          languageId,
+          Approvments:
+            isApproved === undefined
+              ? undefined
+              : isApproved === true
                 ? {
                     some: {
                       isActive: true,
                     },
                   }
-                : undefined,
-            },
-          },
+                : {
+                    none: {
+                      isActive: true,
+                    },
+                  },
         },
       });
     }),

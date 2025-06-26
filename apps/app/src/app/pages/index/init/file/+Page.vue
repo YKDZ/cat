@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { TextTabItem } from "@/test/components/tab/text";
+import type { FlowItem } from "@/app/components/flow";
 import { useToastStore } from "@/app/stores/toast";
 import type { Project } from "@cat/shared";
 import { ref } from "vue";
 import CreateProject from "./CreateProject.vue";
 import UploadFiles from "./UploadFiles.vue";
 import Finish from "./Finish.vue";
-import TextTab from "@/app/components/tab/text/TextTab.vue";
+import TextFlow from "@/app/components/flow/text/TextFlow.vue";
 
 const { info, warn, zWarn, error } = useToastStore();
 
@@ -14,7 +14,7 @@ const progress = ref<number>(0);
 
 const project = ref<Project>();
 
-const items = ref<TextTabItem[]>([
+const items = ref<FlowItem[]>([
   {
     content: `为项目起名`,
   },
@@ -40,13 +40,13 @@ const onProgressChange = (from: number, to: number): number => {
 <template>
   <h1 class="text-2xl font-bold flex gap-2 items-center">
     <div class="i-mdi:cog-outline duration-3000 animate-spin" />
-    初始化项目
+    {{ $t("初始化项目") }}
   </h1>
   <div
     class="pb-2 pr-2 border-b-3 border-highlight-content border-dotted w-full md:max-w-screen-sm"
   >
     你正在创建一个<span class="font-bold">纯文本文件</span
-    >的翻译项目<br />你需要完成以下任务：<TextTab
+    >的翻译项目<br />你需要完成以下任务：<TextFlow
       v-model:progress="progress"
       :on-progress-change
       :items

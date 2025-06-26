@@ -7,9 +7,12 @@ import { toShortFixed } from "../../../../../packages/shared/src/utils/string";
 import UserAvatar from "./UserAvatar.vue";
 import { onMounted, ref } from "vue";
 import { trpc } from "@/server/trpc/client";
+import { useI18n } from "vue-i18n";
 
 const { info } = useToastStore();
 const { replace } = useEditorStore();
+
+const { t } = useI18n();
 
 const props = defineProps<{
   memorySuggestion: MemorySuggestion;
@@ -18,7 +21,9 @@ const props = defineProps<{
 const handleCopy = (suggestion: MemorySuggestion) => {
   replace(suggestion.translation);
   info(
-    `成功复制来自记忆库 ${memory.value?.name ?? props.memorySuggestion.memoryId} 的记忆`,
+    t("成功复制来自记忆库 {name} 的记忆", {
+      name: memory.value?.name ?? props.memorySuggestion.memoryId,
+    }),
   );
 };
 

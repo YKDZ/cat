@@ -1,22 +1,27 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
-import type { Translation, TranslationVote } from "@cat/shared";
+import type { Translation, TranslationApprovment } from "@cat/shared";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed } from "vue";
 import { useEditorStore } from "../stores/editor";
-import { useToastStore } from "../stores/toast";
 import EditorElementTranslationMeta from "./EditorElementTranslationMeta.vue";
 import EditorElementTranslationVote from "./EditorElementTranslationVote.vue";
 import TextTagger from "./tagger/TextTagger.vue";
 import UserAvatar from "./UserAvatar.vue";
+import { trpc } from "@/server/trpc/client";
+import { useToastStore } from "../stores/toast";
+import Button from "./Button.vue";
 
-const { translationValue, selectedTranslationId } =
+const emits = defineEmits<{
+  (e: "approve", approvments: TranslationApprovment[]): void;
+  (e: "unapprove", approvments: TranslationApprovment[]): void;
+}>();
+
+const { info, trpcWarn } = useToastStore();
+
+const { translationValue, selectedTranslationId, isProofreading } =
   storeToRefs(useEditorStore());
 const { user } = usePageContext();
-
-const selfVote = ref<TranslationVote | null>(null);
-const vote = ref<number | null>(null);
 
 const props = defineProps<{
   translation: Translation;
@@ -42,6 +47,34 @@ const isApproved = computed(() => {
     ) !== -1
   );
 });
+
+const handleApprove = async () => {
+  if (isApproved.value) return;
+
+  await trpc.translation.approve
+    .mutate({
+      ids: [props.translation.id],
+    })
+    .then((approvement) => {
+      emits("approve", approvement);
+      info("成功批准");
+    })
+    .catch(trpcWarn);
+};
+
+const handleUnapprove = async () => {
+  if (!isApproved.value) return;
+
+  await trpc.translation.unapprove
+    .mutate({
+      ids: [props.translation.id],
+    })
+    .then((approvement) => {
+      emits("unapprove", approvement);
+      info("成功取消批准");
+    })
+    .catch(trpcWarn);
+};
 </script>
 
 <template>
@@ -63,6 +96,22 @@ const isApproved = computed(() => {
       <TextTagger :text="translation.value" />
       <EditorElementTranslationMeta :meta="translation.meta" />
     </div>
-    <EditorElementTranslationVote :translation />
+    <EditorElementTranslationVote v-if="!isProofreading" :translation />
+    <div v-if="isProofreading" class="flex gap-1 items-center">
+      <Button
+        v-if="!isApproved"
+        no-text
+        transparent
+        icon="i-mdi:check"
+        @click.stop="handleApprove"
+      />
+      <Button
+        v-if="isApproved"
+        no-text
+        transparent
+        icon="i-mdi:close"
+        @click.stop="handleUnapprove"
+      />
+    </div>
   </div>
 </template>

@@ -25,12 +25,18 @@ const handleImport = () => {
 </script>
 
 <template>
-  <h3 class="text-lg font-bold">{{ $t("从本地 plugins 文件夹导入插件") }}</h3>
-  <div class="flex flex-col gap-1">
-    <InputLabel>{{ $t("插件目录名称") }}</InputLabel>
-    <Input v-model="origin.id" icon="i-mdi:folder" full-width type="text" />
+  <div class="flex flex-col gap-2">
+    <article class="max-w-460px prose prose-highlight-content">
+      <h3 class="text-highlight-content-darker">
+        {{ $t("从本地 plugins 文件夹导入插件") }}
+      </h3>
+    </article>
+    <div class="flex flex-col gap-1">
+      <InputLabel>{{ $t("插件目录名称") }}</InputLabel>
+      <Input v-model="origin.id" icon="i-mdi:folder" full-width type="text" />
+    </div>
+    <Button full-width icon="i-mdi:download" @click="handleImport">{{
+      $t("导入插件")
+    }}</Button>
   </div>
-  <Button full-width icon="i-mdi:download" @click="handleImport">{{
-    $t("导入插件")
-  }}</Button>
 </template>

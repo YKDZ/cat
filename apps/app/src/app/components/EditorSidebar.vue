@@ -8,6 +8,7 @@ import { useEditorStore } from "../stores/editor";
 import Logo from "./Logo.vue";
 import EditorSidebarElement from "./EditorSidebarElement.vue";
 import EditorElementSearcher from "./EditorElementSearcher.vue";
+import Slash from "./Slash.vue";
 
 const { displayedElements, currentPageIndex, totalPageIndex } =
   storeToRefs(useEditorStore());
@@ -73,7 +74,9 @@ const handleNextPage = () => {
         class="px-5 pb-2 flex gap-1 w-full items-center justify-between"
       >
         <Button icon="i-mdi:chevron-left" no-text @click="handlePreviousPage" />
-        <span>{{ currentPageIndex + 1 }} / {{ totalPageIndex + 1 }}</span>
+        <span class="inline-flex gap-2 items-center justify-between"
+          >{{ currentPageIndex + 1 }} <Slash /> {{ totalPageIndex + 1 }}</span
+        >
         <Button icon="i-mdi:chevron-right" no-text @click="handleNextPage" />
       </div>
     </div>

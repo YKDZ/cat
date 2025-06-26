@@ -1,4 +1,4 @@
-export type TextTabItem = {
+export type FlowItem = {
   icon?: string;
   content: string;
 };
