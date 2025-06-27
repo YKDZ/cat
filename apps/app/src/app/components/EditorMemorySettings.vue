@@ -14,7 +14,7 @@ const isOpen = ref(false);
 
 <template>
   <button
-    class="i-mdi:cog bg-transparent h-2 w-2 aspect-ratio-square hover:bg-highlight-darker"
+    class="i-mdi:cog bg-highlight-content aspect-ratio-square cursor-pointer hover:bg-highlight-content-darker hover:scale-110"
     @click="isOpen = !isOpen"
   />
   <Modal v-model:is-open="isOpen">

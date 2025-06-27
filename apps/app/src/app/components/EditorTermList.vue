@@ -28,7 +28,12 @@ watch(elementId, load, { immediate: true });
 
 <template>
   <div class="flex flex-col gap-1">
-    <EditorTermListItem v-for="term in terms" :key="term.Term!.id" :term />
+    <EditorTermListItem
+      v-for="(term, index) in terms"
+      :key="term.Term!.id"
+      :index
+      :term
+    />
     <div v-if="terms.length === 0" class="px-3 py-2">
       {{ $t("还没有可用的术语") }}
     </div>
