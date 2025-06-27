@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import type { Memory, MemorySuggestion } from "@cat/shared";
+import { trpc } from "@/server/trpc/client";
+import { toShortFixed, type Memory, type MemorySuggestion } from "@cat/shared";
+import { useMagicKeys, whenever } from "@vueuse/core";
+import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import TextTagger from "./tagger/TextTagger.vue";
-import { toShortFixed } from "../../../../../packages/shared/src/utils/string";
 import UserAvatar from "./UserAvatar.vue";
-import { onMounted, ref } from "vue";
-import { trpc } from "@/server/trpc/client";
-import { useI18n } from "vue-i18n";
+import { useHotKeys } from "../utils/magic-keys";
 
 const { info } = useToastStore();
 const { replace } = useEditorStore();
@@ -16,10 +17,11 @@ const { t } = useI18n();
 
 const props = defineProps<{
   memorySuggestion: MemorySuggestion;
+  index: number;
 }>();
 
-const handleCopy = (suggestion: MemorySuggestion) => {
-  replace(suggestion.translation);
+const handleCopy = () => {
+  replace(props.memorySuggestion.translation);
   info(
     t("成功复制来自记忆库 {name} 的记忆", {
       name: memory.value?.name ?? props.memorySuggestion.memoryId,
@@ -28,6 +30,8 @@ const handleCopy = (suggestion: MemorySuggestion) => {
 };
 
 const memory = ref<Memory | null>(null);
+
+useHotKeys(`M+${props.index + 1}`, handleCopy);
 
 onMounted(() => {
   trpc.memory.query
@@ -41,14 +45,15 @@ onMounted(() => {
 
 <template>
   <div class="px-3 py-2 flex flex-col gap-1 hover:bg-highlight-darker">
-    <button
-      class="text-start cursor-pointer text-wrap"
-      @click="handleCopy(memorySuggestion)"
-    >
+    <button class="text-start cursor-pointer text-wrap" @click="handleCopy">
       <TextTagger :text="memorySuggestion.translation" />
     </button>
     <div class="text-sm text-highlight-content flex gap-2 items-center">
-      <span>{{ toShortFixed(memorySuggestion.similarity * 100, 2) }}%</span>
+      <span>{{
+        $t("{similarity}%", {
+          similarity: toShortFixed(memorySuggestion.similarity * 100, 2),
+        })
+      }}</span>
       <UserAvatar
         :user-id="memorySuggestion.translatorId"
         with-name
