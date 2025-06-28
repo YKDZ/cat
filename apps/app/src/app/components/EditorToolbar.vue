@@ -10,7 +10,7 @@ const { undo, redo } = useEditorStore();
 const { element, selectedTranslationId } = storeToRefs(useEditorStore());
 
 const handleTranslate = async (jumpToNext: boolean) => {
-  await translate();
+  await translate(!jumpToNext);
   if (jumpToNext) await jumpToNextUntranslated();
 };
 </script>

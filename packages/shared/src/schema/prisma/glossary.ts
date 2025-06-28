@@ -9,12 +9,12 @@ export const TermSchema = z.object({
   context: z.string().optional().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  glossaryId: z.cuid2(),
+  glossaryId: z.ulid(),
   languageId: z.string(),
   get Language() {
     return LanguageSchema.optional();
   },
-  creatorId: z.cuid2(),
+  creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();
   },
@@ -32,12 +32,12 @@ export const TermRelationSchema = z.object({
 });
 
 export const GlossarySchema = z.object({
-  id: z.cuid2(),
+  id: z.ulid(),
   name: z.string(),
   description: z.string().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  creatorId: z.cuid2(),
+  creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();
   },

@@ -3,13 +3,14 @@ import { LanguageSchema } from "./misc";
 import { UserSchema } from "./user";
 import { TranslatableElementSchema } from "./document";
 import { PrimsaDateTime } from "../misc";
+import { VectorSchema } from "./vector";
 
 export const TranslationVoteSchema = z.object({
   id: z.int(),
   value: z.int(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  voterId: z.cuid2(),
+  voterId: z.ulid(),
   translationId: z.int(),
 });
 
@@ -19,7 +20,7 @@ export const TranslationApprovmentSchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   translationId: z.int(),
-  userId: z.cuid2().nullable(),
+  userId: z.ulid().nullable(),
 });
 
 export const TranslationSchema = z.object({
@@ -28,7 +29,7 @@ export const TranslationSchema = z.object({
   meta: z.json().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  translatorId: z.cuid2(),
+  translatorId: z.ulid(),
   get Translator() {
     return UserSchema.optional();
   },
@@ -39,6 +40,10 @@ export const TranslationSchema = z.object({
   languageId: z.string(),
   get Language() {
     return LanguageSchema.optional();
+  },
+  embeddingId: z.int().nullable(),
+  get Embedding() {
+    return VectorSchema.nullable().optional();
   },
   get Votes() {
     return z.array(TranslationVoteSchema).optional();

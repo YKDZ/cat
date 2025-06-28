@@ -1,5 +1,5 @@
 model Document {
-    id        String   @id @default(cuid())
+    id        String   @id @default(ulid())
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
 
@@ -14,7 +14,7 @@ model Document {
     TranslatableElements TranslatableElement[]
     Tasks                Task[]
 
-    Versions DocumentVersion[] @relation(name: "Version")
+    Versions DocumentVersion[]
 
     @@index([projectId])
 }
@@ -62,5 +62,5 @@ model DocumentVersion {
     // 一个文档版本可以不活跃
     // 但不能悬空
     documentId String
-    Document   Document @relation("Version", fields: [documentId], references: [id], onDelete: Cascade)
+    Document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 }

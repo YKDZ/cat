@@ -14,7 +14,7 @@
     "start": "cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
     "test": "vitest --typecheck",
-    "test:e2e": "playwright test",
+    "test:type": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --write .",
     "clean": "rimraf dist",

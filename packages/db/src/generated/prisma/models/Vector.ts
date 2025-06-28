@@ -186,13 +186,17 @@ export type VectorWhereInput = {
   NOT?: Prisma.VectorWhereInput | Prisma.VectorWhereInput[]
   id?: Prisma.IntFilter<"Vector"> | number
   TranslatableElements?: Prisma.TranslatableElementListRelationFilter
-  MemoryItems?: Prisma.MemoryItemListRelationFilter
+  SourceMemoryItems?: Prisma.MemoryItemListRelationFilter
+  TranslationMemoryItems?: Prisma.MemoryItemListRelationFilter
+  Translations?: Prisma.TranslationListRelationFilter
 }
 
 export type VectorOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   TranslatableElements?: Prisma.TranslatableElementOrderByRelationAggregateInput
-  MemoryItems?: Prisma.MemoryItemOrderByRelationAggregateInput
+  SourceMemoryItems?: Prisma.MemoryItemOrderByRelationAggregateInput
+  TranslationMemoryItems?: Prisma.MemoryItemOrderByRelationAggregateInput
+  Translations?: Prisma.TranslationOrderByRelationAggregateInput
 }
 
 export type VectorWhereUniqueInput = Prisma.AtLeast<{
@@ -201,7 +205,9 @@ export type VectorWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.VectorWhereInput[]
   NOT?: Prisma.VectorWhereInput | Prisma.VectorWhereInput[]
   TranslatableElements?: Prisma.TranslatableElementListRelationFilter
-  MemoryItems?: Prisma.MemoryItemListRelationFilter
+  SourceMemoryItems?: Prisma.MemoryItemListRelationFilter
+  TranslationMemoryItems?: Prisma.MemoryItemListRelationFilter
+  Translations?: Prisma.TranslationListRelationFilter
 }, "id">
 
 export type VectorOrderByWithAggregationInput = {
@@ -222,13 +228,17 @@ export type VectorScalarWhereWithAggregatesInput = {
 
 export type VectorUpdateInput = {
   TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutEmbeddingNestedInput
-  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceEmbeddingNestedInput
+  SourceMemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceEmbeddingNestedInput
+  TranslationMemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationEmbeddingNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutEmbeddingNestedInput
 }
 
 export type VectorUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutEmbeddingNestedInput
-  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingNestedInput
+  SourceMemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingNestedInput
+  TranslationMemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationEmbeddingNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutEmbeddingNestedInput
 }
 
 export type VectorUpdateManyMutationInput = {
@@ -273,13 +283,31 @@ export type VectorUpdateOneRequiredWithoutTranslatableElementsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.VectorUpdateToOneWithWhereWithoutTranslatableElementsInput, Prisma.VectorUpdateWithoutTranslatableElementsInput>, Prisma.VectorUncheckedUpdateWithoutTranslatableElementsInput>
 }
 
-export type VectorCreateNestedOneWithoutMemoryItemsInput = {
+export type VectorCreateNestedOneWithoutSourceMemoryItemsInput = {
   connect?: Prisma.VectorWhereUniqueInput
 }
 
-export type VectorUpdateOneRequiredWithoutMemoryItemsNestedInput = {
+export type VectorCreateNestedOneWithoutTranslationMemoryItemsInput = {
   connect?: Prisma.VectorWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.VectorUpdateToOneWithWhereWithoutMemoryItemsInput, Prisma.VectorUpdateWithoutMemoryItemsInput>, Prisma.VectorUncheckedUpdateWithoutMemoryItemsInput>
+}
+
+export type VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput = {
+  connect?: Prisma.VectorWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VectorUpdateToOneWithWhereWithoutSourceMemoryItemsInput, Prisma.VectorUpdateWithoutSourceMemoryItemsInput>, Prisma.VectorUncheckedUpdateWithoutSourceMemoryItemsInput>
+}
+
+export type VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput = {
+  connect?: Prisma.VectorWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VectorUpdateToOneWithWhereWithoutTranslationMemoryItemsInput, Prisma.VectorUpdateWithoutTranslationMemoryItemsInput>, Prisma.VectorUncheckedUpdateWithoutTranslationMemoryItemsInput>
+}
+
+export type VectorCreateNestedOneWithoutTranslationsInput = {
+  connect?: Prisma.VectorWhereUniqueInput
+}
+
+export type VectorUpdateOneRequiredWithoutTranslationsNestedInput = {
+  connect?: Prisma.VectorWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VectorUpdateToOneWithWhereWithoutTranslationsInput, Prisma.VectorUpdateWithoutTranslationsInput>, Prisma.VectorUncheckedUpdateWithoutTranslationsInput>
 }
 
 export type VectorUpdateToOneWithWhereWithoutTranslatableElementsInput = {
@@ -288,26 +316,70 @@ export type VectorUpdateToOneWithWhereWithoutTranslatableElementsInput = {
 }
 
 export type VectorUpdateWithoutTranslatableElementsInput = {
-  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceEmbeddingNestedInput
+  SourceMemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceEmbeddingNestedInput
+  TranslationMemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationEmbeddingNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutEmbeddingNestedInput
 }
 
 export type VectorUncheckedUpdateWithoutTranslatableElementsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingNestedInput
+  SourceMemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingNestedInput
+  TranslationMemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationEmbeddingNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutEmbeddingNestedInput
 }
 
-export type VectorUpdateToOneWithWhereWithoutMemoryItemsInput = {
+export type VectorUpdateToOneWithWhereWithoutSourceMemoryItemsInput = {
   where?: Prisma.VectorWhereInput
-  data: Prisma.XOR<Prisma.VectorUpdateWithoutMemoryItemsInput, Prisma.VectorUncheckedUpdateWithoutMemoryItemsInput>
+  data: Prisma.XOR<Prisma.VectorUpdateWithoutSourceMemoryItemsInput, Prisma.VectorUncheckedUpdateWithoutSourceMemoryItemsInput>
 }
 
-export type VectorUpdateWithoutMemoryItemsInput = {
+export type VectorUpdateWithoutSourceMemoryItemsInput = {
   TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutEmbeddingNestedInput
+  TranslationMemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationEmbeddingNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutEmbeddingNestedInput
 }
 
-export type VectorUncheckedUpdateWithoutMemoryItemsInput = {
+export type VectorUncheckedUpdateWithoutSourceMemoryItemsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutEmbeddingNestedInput
+  TranslationMemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationEmbeddingNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutEmbeddingNestedInput
+}
+
+export type VectorUpdateToOneWithWhereWithoutTranslationMemoryItemsInput = {
+  where?: Prisma.VectorWhereInput
+  data: Prisma.XOR<Prisma.VectorUpdateWithoutTranslationMemoryItemsInput, Prisma.VectorUncheckedUpdateWithoutTranslationMemoryItemsInput>
+}
+
+export type VectorUpdateWithoutTranslationMemoryItemsInput = {
+  TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutEmbeddingNestedInput
+  SourceMemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceEmbeddingNestedInput
+  Translations?: Prisma.TranslationUpdateManyWithoutEmbeddingNestedInput
+}
+
+export type VectorUncheckedUpdateWithoutTranslationMemoryItemsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutEmbeddingNestedInput
+  SourceMemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingNestedInput
+  Translations?: Prisma.TranslationUncheckedUpdateManyWithoutEmbeddingNestedInput
+}
+
+export type VectorUpdateToOneWithWhereWithoutTranslationsInput = {
+  where?: Prisma.VectorWhereInput
+  data: Prisma.XOR<Prisma.VectorUpdateWithoutTranslationsInput, Prisma.VectorUncheckedUpdateWithoutTranslationsInput>
+}
+
+export type VectorUpdateWithoutTranslationsInput = {
+  TranslatableElements?: Prisma.TranslatableElementUpdateManyWithoutEmbeddingNestedInput
+  SourceMemoryItems?: Prisma.MemoryItemUpdateManyWithoutSourceEmbeddingNestedInput
+  TranslationMemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationEmbeddingNestedInput
+}
+
+export type VectorUncheckedUpdateWithoutTranslationsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  TranslatableElements?: Prisma.TranslatableElementUncheckedUpdateManyWithoutEmbeddingNestedInput
+  SourceMemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingNestedInput
+  TranslationMemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationEmbeddingNestedInput
 }
 
 
@@ -317,12 +389,16 @@ export type VectorUncheckedUpdateWithoutMemoryItemsInput = {
 
 export type VectorCountOutputType = {
   TranslatableElements: number
-  MemoryItems: number
+  SourceMemoryItems: number
+  TranslationMemoryItems: number
+  Translations: number
 }
 
 export type VectorCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   TranslatableElements?: boolean | VectorCountOutputTypeCountTranslatableElementsArgs
-  MemoryItems?: boolean | VectorCountOutputTypeCountMemoryItemsArgs
+  SourceMemoryItems?: boolean | VectorCountOutputTypeCountSourceMemoryItemsArgs
+  TranslationMemoryItems?: boolean | VectorCountOutputTypeCountTranslationMemoryItemsArgs
+  Translations?: boolean | VectorCountOutputTypeCountTranslationsArgs
 }
 
 /**
@@ -345,15 +421,31 @@ export type VectorCountOutputTypeCountTranslatableElementsArgs<ExtArgs extends r
 /**
  * VectorCountOutputType without action
  */
-export type VectorCountOutputTypeCountMemoryItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type VectorCountOutputTypeCountSourceMemoryItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MemoryItemWhereInput
+}
+
+/**
+ * VectorCountOutputType without action
+ */
+export type VectorCountOutputTypeCountTranslationMemoryItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MemoryItemWhereInput
+}
+
+/**
+ * VectorCountOutputType without action
+ */
+export type VectorCountOutputTypeCountTranslationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TranslationWhereInput
 }
 
 
 export type VectorSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   TranslatableElements?: boolean | Prisma.Vector$TranslatableElementsArgs<ExtArgs>
-  MemoryItems?: boolean | Prisma.Vector$MemoryItemsArgs<ExtArgs>
+  SourceMemoryItems?: boolean | Prisma.Vector$SourceMemoryItemsArgs<ExtArgs>
+  TranslationMemoryItems?: boolean | Prisma.Vector$TranslationMemoryItemsArgs<ExtArgs>
+  Translations?: boolean | Prisma.Vector$TranslationsArgs<ExtArgs>
   _count?: boolean | Prisma.VectorCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["vector"]>
 
@@ -369,7 +461,9 @@ export type VectorSelectScalar = {
 export type VectorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id", ExtArgs["result"]["vector"]>
 export type VectorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   TranslatableElements?: boolean | Prisma.Vector$TranslatableElementsArgs<ExtArgs>
-  MemoryItems?: boolean | Prisma.Vector$MemoryItemsArgs<ExtArgs>
+  SourceMemoryItems?: boolean | Prisma.Vector$SourceMemoryItemsArgs<ExtArgs>
+  TranslationMemoryItems?: boolean | Prisma.Vector$TranslationMemoryItemsArgs<ExtArgs>
+  Translations?: boolean | Prisma.Vector$TranslationsArgs<ExtArgs>
   _count?: boolean | Prisma.VectorCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VectorIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -378,7 +472,9 @@ export type $VectorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   name: "Vector"
   objects: {
     TranslatableElements: Prisma.$TranslatableElementPayload<ExtArgs>[]
-    MemoryItems: Prisma.$MemoryItemPayload<ExtArgs>[]
+    SourceMemoryItems: Prisma.$MemoryItemPayload<ExtArgs>[]
+    TranslationMemoryItems: Prisma.$MemoryItemPayload<ExtArgs>[]
+    Translations: Prisma.$TranslationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -706,7 +802,9 @@ readonly fields: VectorFieldRefs;
 export interface Prisma__VectorClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   TranslatableElements<T extends Prisma.Vector$TranslatableElementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Vector$TranslatableElementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslatableElementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  MemoryItems<T extends Prisma.Vector$MemoryItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Vector$MemoryItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  SourceMemoryItems<T extends Prisma.Vector$SourceMemoryItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Vector$SourceMemoryItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  TranslationMemoryItems<T extends Prisma.Vector$TranslationMemoryItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Vector$TranslationMemoryItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  Translations<T extends Prisma.Vector$TranslationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Vector$TranslationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1067,9 +1165,9 @@ export type Vector$TranslatableElementsArgs<ExtArgs extends runtime.Types.Extens
 }
 
 /**
- * Vector.MemoryItems
+ * Vector.SourceMemoryItems
  */
-export type Vector$MemoryItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Vector$SourceMemoryItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the MemoryItem
    */
@@ -1088,6 +1186,54 @@ export type Vector$MemoryItemsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.MemoryItemScalarFieldEnum | Prisma.MemoryItemScalarFieldEnum[]
+}
+
+/**
+ * Vector.TranslationMemoryItems
+ */
+export type Vector$TranslationMemoryItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MemoryItem
+   */
+  select?: Prisma.MemoryItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MemoryItem
+   */
+  omit?: Prisma.MemoryItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MemoryItemInclude<ExtArgs> | null
+  where?: Prisma.MemoryItemWhereInput
+  orderBy?: Prisma.MemoryItemOrderByWithRelationInput | Prisma.MemoryItemOrderByWithRelationInput[]
+  cursor?: Prisma.MemoryItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MemoryItemScalarFieldEnum | Prisma.MemoryItemScalarFieldEnum[]
+}
+
+/**
+ * Vector.Translations
+ */
+export type Vector$TranslationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Translation
+   */
+  select?: Prisma.TranslationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Translation
+   */
+  omit?: Prisma.TranslationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TranslationInclude<ExtArgs> | null
+  where?: Prisma.TranslationWhereInput
+  orderBy?: Prisma.TranslationOrderByWithRelationInput | Prisma.TranslationOrderByWithRelationInput[]
+  cursor?: Prisma.TranslationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TranslationScalarFieldEnum | Prisma.TranslationScalarFieldEnum[]
 }
 
 /**

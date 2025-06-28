@@ -30,11 +30,13 @@ export type AggregateTranslation = {
 export type TranslationAvgAggregateOutputType = {
   id: number | null
   translatableElementId: number | null
+  embeddingId: number | null
 }
 
 export type TranslationSumAggregateOutputType = {
   id: number | null
   translatableElementId: number | null
+  embeddingId: number | null
 }
 
 export type TranslationMinAggregateOutputType = {
@@ -45,6 +47,7 @@ export type TranslationMinAggregateOutputType = {
   translatorId: string | null
   translatableElementId: number | null
   languageId: string | null
+  embeddingId: number | null
 }
 
 export type TranslationMaxAggregateOutputType = {
@@ -55,6 +58,7 @@ export type TranslationMaxAggregateOutputType = {
   translatorId: string | null
   translatableElementId: number | null
   languageId: string | null
+  embeddingId: number | null
 }
 
 export type TranslationCountAggregateOutputType = {
@@ -66,6 +70,7 @@ export type TranslationCountAggregateOutputType = {
   translatorId: number
   translatableElementId: number
   languageId: number
+  embeddingId: number
   _all: number
 }
 
@@ -73,11 +78,13 @@ export type TranslationCountAggregateOutputType = {
 export type TranslationAvgAggregateInputType = {
   id?: true
   translatableElementId?: true
+  embeddingId?: true
 }
 
 export type TranslationSumAggregateInputType = {
   id?: true
   translatableElementId?: true
+  embeddingId?: true
 }
 
 export type TranslationMinAggregateInputType = {
@@ -88,6 +95,7 @@ export type TranslationMinAggregateInputType = {
   translatorId?: true
   translatableElementId?: true
   languageId?: true
+  embeddingId?: true
 }
 
 export type TranslationMaxAggregateInputType = {
@@ -98,6 +106,7 @@ export type TranslationMaxAggregateInputType = {
   translatorId?: true
   translatableElementId?: true
   languageId?: true
+  embeddingId?: true
 }
 
 export type TranslationCountAggregateInputType = {
@@ -109,6 +118,7 @@ export type TranslationCountAggregateInputType = {
   translatorId?: true
   translatableElementId?: true
   languageId?: true
+  embeddingId?: true
   _all?: true
 }
 
@@ -207,6 +217,7 @@ export type TranslationGroupByOutputType = {
   translatorId: string
   translatableElementId: number
   languageId: string
+  embeddingId: number
   _count: TranslationCountAggregateOutputType | null
   _avg: TranslationAvgAggregateOutputType | null
   _sum: TranslationSumAggregateOutputType | null
@@ -241,9 +252,11 @@ export type TranslationWhereInput = {
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
+  embeddingId?: Prisma.IntFilter<"Translation"> | number
   Translator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   TranslatableElement?: Prisma.XOR<Prisma.TranslatableElementScalarRelationFilter, Prisma.TranslatableElementWhereInput>
   Language?: Prisma.XOR<Prisma.LanguageScalarRelationFilter, Prisma.LanguageWhereInput>
+  Embedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
   Votes?: Prisma.TranslationVoteListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
   Approvments?: Prisma.TranslationApprovmentListRelationFilter
@@ -258,9 +271,11 @@ export type TranslationOrderByWithRelationInput = {
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
+  embeddingId?: Prisma.SortOrder
   Translator?: Prisma.UserOrderByWithRelationInput
   TranslatableElement?: Prisma.TranslatableElementOrderByWithRelationInput
   Language?: Prisma.LanguageOrderByWithRelationInput
+  Embedding?: Prisma.VectorOrderByWithRelationInput
   Votes?: Prisma.TranslationVoteOrderByRelationAggregateInput
   MemoryItems?: Prisma.MemoryItemOrderByRelationAggregateInput
   Approvments?: Prisma.TranslationApprovmentOrderByRelationAggregateInput
@@ -280,9 +295,11 @@ export type TranslationWhereUniqueInput = Prisma.AtLeast<{
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
+  embeddingId?: Prisma.IntFilter<"Translation"> | number
   Translator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   TranslatableElement?: Prisma.XOR<Prisma.TranslatableElementScalarRelationFilter, Prisma.TranslatableElementWhereInput>
   Language?: Prisma.XOR<Prisma.LanguageScalarRelationFilter, Prisma.LanguageWhereInput>
+  Embedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
   Votes?: Prisma.TranslationVoteListRelationFilter
   MemoryItems?: Prisma.MemoryItemListRelationFilter
   Approvments?: Prisma.TranslationApprovmentListRelationFilter
@@ -297,6 +314,7 @@ export type TranslationOrderByWithAggregationInput = {
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
+  embeddingId?: Prisma.SortOrder
   _count?: Prisma.TranslationCountOrderByAggregateInput
   _avg?: Prisma.TranslationAvgOrderByAggregateInput
   _max?: Prisma.TranslationMaxOrderByAggregateInput
@@ -316,6 +334,7 @@ export type TranslationScalarWhereWithAggregatesInput = {
   translatorId?: Prisma.StringWithAggregatesFilter<"Translation"> | string
   translatableElementId?: Prisma.IntWithAggregatesFilter<"Translation"> | number
   languageId?: Prisma.StringWithAggregatesFilter<"Translation"> | string
+  embeddingId?: Prisma.IntWithAggregatesFilter<"Translation"> | number
 }
 
 export type TranslationCreateInput = {
@@ -326,6 +345,7 @@ export type TranslationCreateInput = {
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslationsInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
@@ -340,6 +360,7 @@ export type TranslationUncheckedCreateInput = {
   translatorId: string
   translatableElementId: number
   languageId: string
+  embeddingId: number
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
@@ -353,6 +374,7 @@ export type TranslationUpdateInput = {
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationsNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
@@ -367,6 +389,7 @@ export type TranslationUncheckedUpdateInput = {
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
@@ -381,6 +404,7 @@ export type TranslationCreateManyInput = {
   translatorId: string
   translatableElementId: number
   languageId: string
+  embeddingId: number
 }
 
 export type TranslationUpdateManyMutationInput = {
@@ -399,6 +423,7 @@ export type TranslationUncheckedUpdateManyInput = {
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type TranslationListRelationFilter = {
@@ -438,11 +463,13 @@ export type TranslationCountOrderByAggregateInput = {
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
+  embeddingId?: Prisma.SortOrder
 }
 
 export type TranslationAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
+  embeddingId?: Prisma.SortOrder
 }
 
 export type TranslationMaxOrderByAggregateInput = {
@@ -453,6 +480,7 @@ export type TranslationMaxOrderByAggregateInput = {
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
+  embeddingId?: Prisma.SortOrder
 }
 
 export type TranslationMinOrderByAggregateInput = {
@@ -463,11 +491,13 @@ export type TranslationMinOrderByAggregateInput = {
   translatorId?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
   languageId?: Prisma.SortOrder
+  embeddingId?: Prisma.SortOrder
 }
 
 export type TranslationSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   translatableElementId?: Prisma.SortOrder
+  embeddingId?: Prisma.SortOrder
 }
 
 export type TranslationScalarRelationFilter = {
@@ -645,6 +675,34 @@ export type TranslationUncheckedUpdateManyWithoutTranslatorNestedInput = {
   deleteMany?: Prisma.TranslationScalarWhereInput | Prisma.TranslationScalarWhereInput[]
 }
 
+export type TranslationUpdateManyWithoutEmbeddingNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslationCreateWithoutEmbeddingInput, Prisma.TranslationUncheckedCreateWithoutEmbeddingInput> | Prisma.TranslationCreateWithoutEmbeddingInput[] | Prisma.TranslationUncheckedCreateWithoutEmbeddingInput[]
+  connectOrCreate?: Prisma.TranslationCreateOrConnectWithoutEmbeddingInput | Prisma.TranslationCreateOrConnectWithoutEmbeddingInput[]
+  upsert?: Prisma.TranslationUpsertWithWhereUniqueWithoutEmbeddingInput | Prisma.TranslationUpsertWithWhereUniqueWithoutEmbeddingInput[]
+  createMany?: Prisma.TranslationCreateManyEmbeddingInputEnvelope
+  set?: Prisma.TranslationWhereUniqueInput | Prisma.TranslationWhereUniqueInput[]
+  disconnect?: Prisma.TranslationWhereUniqueInput | Prisma.TranslationWhereUniqueInput[]
+  delete?: Prisma.TranslationWhereUniqueInput | Prisma.TranslationWhereUniqueInput[]
+  connect?: Prisma.TranslationWhereUniqueInput | Prisma.TranslationWhereUniqueInput[]
+  update?: Prisma.TranslationUpdateWithWhereUniqueWithoutEmbeddingInput | Prisma.TranslationUpdateWithWhereUniqueWithoutEmbeddingInput[]
+  updateMany?: Prisma.TranslationUpdateManyWithWhereWithoutEmbeddingInput | Prisma.TranslationUpdateManyWithWhereWithoutEmbeddingInput[]
+  deleteMany?: Prisma.TranslationScalarWhereInput | Prisma.TranslationScalarWhereInput[]
+}
+
+export type TranslationUncheckedUpdateManyWithoutEmbeddingNestedInput = {
+  create?: Prisma.XOR<Prisma.TranslationCreateWithoutEmbeddingInput, Prisma.TranslationUncheckedCreateWithoutEmbeddingInput> | Prisma.TranslationCreateWithoutEmbeddingInput[] | Prisma.TranslationUncheckedCreateWithoutEmbeddingInput[]
+  connectOrCreate?: Prisma.TranslationCreateOrConnectWithoutEmbeddingInput | Prisma.TranslationCreateOrConnectWithoutEmbeddingInput[]
+  upsert?: Prisma.TranslationUpsertWithWhereUniqueWithoutEmbeddingInput | Prisma.TranslationUpsertWithWhereUniqueWithoutEmbeddingInput[]
+  createMany?: Prisma.TranslationCreateManyEmbeddingInputEnvelope
+  set?: Prisma.TranslationWhereUniqueInput | Prisma.TranslationWhereUniqueInput[]
+  disconnect?: Prisma.TranslationWhereUniqueInput | Prisma.TranslationWhereUniqueInput[]
+  delete?: Prisma.TranslationWhereUniqueInput | Prisma.TranslationWhereUniqueInput[]
+  connect?: Prisma.TranslationWhereUniqueInput | Prisma.TranslationWhereUniqueInput[]
+  update?: Prisma.TranslationUpdateWithWhereUniqueWithoutEmbeddingInput | Prisma.TranslationUpdateWithWhereUniqueWithoutEmbeddingInput[]
+  updateMany?: Prisma.TranslationUpdateManyWithWhereWithoutEmbeddingInput | Prisma.TranslationUpdateManyWithWhereWithoutEmbeddingInput[]
+  deleteMany?: Prisma.TranslationScalarWhereInput | Prisma.TranslationScalarWhereInput[]
+}
+
 export type TranslationCreateWithoutTranslatableElementInput = {
   value: string
   createdAt?: Date | string
@@ -652,6 +710,7 @@ export type TranslationCreateWithoutTranslatableElementInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslationsInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
@@ -665,6 +724,7 @@ export type TranslationUncheckedCreateWithoutTranslatableElementInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   languageId: string
+  embeddingId: number
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
@@ -708,6 +768,7 @@ export type TranslationScalarWhereInput = {
   translatorId?: Prisma.StringFilter<"Translation"> | string
   translatableElementId?: Prisma.IntFilter<"Translation"> | number
   languageId?: Prisma.StringFilter<"Translation"> | string
+  embeddingId?: Prisma.IntFilter<"Translation"> | number
 }
 
 export type TranslationCreateWithoutMemoryItemsInput = {
@@ -718,6 +779,7 @@ export type TranslationCreateWithoutMemoryItemsInput = {
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslationsInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
 }
@@ -731,6 +793,7 @@ export type TranslationUncheckedCreateWithoutMemoryItemsInput = {
   translatorId: string
   translatableElementId: number
   languageId: string
+  embeddingId: number
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
 }
@@ -759,6 +822,7 @@ export type TranslationUpdateWithoutMemoryItemsInput = {
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationsNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
 }
@@ -772,6 +836,7 @@ export type TranslationUncheckedUpdateWithoutMemoryItemsInput = {
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
 }
@@ -783,6 +848,7 @@ export type TranslationCreateWithoutLanguageInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslationsInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
@@ -796,6 +862,7 @@ export type TranslationUncheckedCreateWithoutLanguageInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
+  embeddingId: number
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
@@ -835,6 +902,7 @@ export type TranslationCreateWithoutVotesInput = {
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslationsInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
 }
@@ -848,6 +916,7 @@ export type TranslationUncheckedCreateWithoutVotesInput = {
   translatorId: string
   translatableElementId: number
   languageId: string
+  embeddingId: number
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
 }
@@ -876,6 +945,7 @@ export type TranslationUpdateWithoutVotesInput = {
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationsNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
 }
@@ -889,6 +959,7 @@ export type TranslationUncheckedUpdateWithoutVotesInput = {
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
 }
@@ -901,6 +972,7 @@ export type TranslationCreateWithoutApprovmentsInput = {
   Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslationsInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
 }
@@ -914,6 +986,7 @@ export type TranslationUncheckedCreateWithoutApprovmentsInput = {
   translatorId: string
   translatableElementId: number
   languageId: string
+  embeddingId: number
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
 }
@@ -942,6 +1015,7 @@ export type TranslationUpdateWithoutApprovmentsInput = {
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationsNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
 }
@@ -955,6 +1029,7 @@ export type TranslationUncheckedUpdateWithoutApprovmentsInput = {
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
 }
@@ -966,6 +1041,7 @@ export type TranslationCreateWithoutTranslatorInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
   Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
+  Embedding: Prisma.VectorCreateNestedOneWithoutTranslationsInput
   Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
@@ -979,6 +1055,7 @@ export type TranslationUncheckedCreateWithoutTranslatorInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatableElementId: number
   languageId: string
+  embeddingId: number
   Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
   MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
   Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
@@ -1010,6 +1087,59 @@ export type TranslationUpdateManyWithWhereWithoutTranslatorInput = {
   data: Prisma.XOR<Prisma.TranslationUpdateManyMutationInput, Prisma.TranslationUncheckedUpdateManyWithoutTranslatorInput>
 }
 
+export type TranslationCreateWithoutEmbeddingInput = {
+  value: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  Translator: Prisma.UserCreateNestedOneWithoutTranslationsInput
+  TranslatableElement: Prisma.TranslatableElementCreateNestedOneWithoutTranslationsInput
+  Language: Prisma.LanguageCreateNestedOneWithoutTranslationInput
+  Votes?: Prisma.TranslationVoteCreateNestedManyWithoutTranslationInput
+  MemoryItems?: Prisma.MemoryItemCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentCreateNestedManyWithoutTranslationInput
+}
+
+export type TranslationUncheckedCreateWithoutEmbeddingInput = {
+  id?: number
+  value: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  translatorId: string
+  translatableElementId: number
+  languageId: string
+  Votes?: Prisma.TranslationVoteUncheckedCreateNestedManyWithoutTranslationInput
+  MemoryItems?: Prisma.MemoryItemUncheckedCreateNestedManyWithoutTranslationInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedCreateNestedManyWithoutTranslationInput
+}
+
+export type TranslationCreateOrConnectWithoutEmbeddingInput = {
+  where: Prisma.TranslationWhereUniqueInput
+  create: Prisma.XOR<Prisma.TranslationCreateWithoutEmbeddingInput, Prisma.TranslationUncheckedCreateWithoutEmbeddingInput>
+}
+
+export type TranslationUpsertWithWhereUniqueWithoutEmbeddingInput = {
+  where: Prisma.TranslationWhereUniqueInput
+  update: Prisma.XOR<Prisma.TranslationUpdateWithoutEmbeddingInput, Prisma.TranslationUncheckedUpdateWithoutEmbeddingInput>
+  create: Prisma.XOR<Prisma.TranslationCreateWithoutEmbeddingInput, Prisma.TranslationUncheckedCreateWithoutEmbeddingInput>
+}
+
+export type TranslationCreateManyEmbeddingInputEnvelope = {
+  data: Prisma.TranslationCreateManyEmbeddingInput | Prisma.TranslationCreateManyEmbeddingInput[]
+  skipDuplicates?: boolean
+}
+
+export type TranslationUpdateWithWhereUniqueWithoutEmbeddingInput = {
+  where: Prisma.TranslationWhereUniqueInput
+  data: Prisma.XOR<Prisma.TranslationUpdateWithoutEmbeddingInput, Prisma.TranslationUncheckedUpdateWithoutEmbeddingInput>
+}
+
+export type TranslationUpdateManyWithWhereWithoutEmbeddingInput = {
+  where: Prisma.TranslationScalarWhereInput
+  data: Prisma.XOR<Prisma.TranslationUpdateManyMutationInput, Prisma.TranslationUncheckedUpdateManyWithoutEmbeddingInput>
+}
+
 export type TranslationCreateManyTranslatableElementInput = {
   id?: number
   value: string
@@ -1018,6 +1148,7 @@ export type TranslationCreateManyTranslatableElementInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   languageId: string
+  embeddingId: number
 }
 
 export type TranslationUpdateWithoutTranslatableElementInput = {
@@ -1027,6 +1158,7 @@ export type TranslationUpdateWithoutTranslatableElementInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationsNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
@@ -1040,6 +1172,7 @@ export type TranslationUncheckedUpdateWithoutTranslatableElementInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
@@ -1053,6 +1186,7 @@ export type TranslationUncheckedUpdateManyWithoutTranslatableElementInput = {
   meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type TranslationCreateManyLanguageInput = {
@@ -1063,6 +1197,7 @@ export type TranslationCreateManyLanguageInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId: string
   translatableElementId: number
+  embeddingId: number
 }
 
 export type TranslationUpdateWithoutLanguageInput = {
@@ -1072,6 +1207,7 @@ export type TranslationUpdateWithoutLanguageInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationsNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
@@ -1085,6 +1221,7 @@ export type TranslationUncheckedUpdateWithoutLanguageInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
@@ -1098,6 +1235,7 @@ export type TranslationUncheckedUpdateManyWithoutLanguageInput = {
   meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type TranslationCreateManyTranslatorInput = {
@@ -1108,6 +1246,7 @@ export type TranslationCreateManyTranslatorInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatableElementId: number
   languageId: string
+  embeddingId: number
 }
 
 export type TranslationUpdateWithoutTranslatorInput = {
@@ -1117,6 +1256,7 @@ export type TranslationUpdateWithoutTranslatorInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
   Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
+  Embedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationsNestedInput
   Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
@@ -1130,6 +1270,7 @@ export type TranslationUncheckedUpdateWithoutTranslatorInput = {
   meta?: unknown | Prisma.NullableJsonNullValueInput
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
   MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
   Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
@@ -1141,6 +1282,56 @@ export type TranslationUncheckedUpdateManyWithoutTranslatorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  embeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+}
+
+export type TranslationUpdateWithoutEmbeddingInput = {
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  Translator?: Prisma.UserUpdateOneRequiredWithoutTranslationsNestedInput
+  TranslatableElement?: Prisma.TranslatableElementUpdateOneRequiredWithoutTranslationsNestedInput
+  Language?: Prisma.LanguageUpdateOneRequiredWithoutTranslationNestedInput
+  Votes?: Prisma.TranslationVoteUpdateManyWithoutTranslationNestedInput
+  MemoryItems?: Prisma.MemoryItemUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUpdateManyWithoutTranslationNestedInput
+}
+
+export type TranslationUncheckedUpdateWithoutEmbeddingInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  translatorId?: Prisma.StringFieldUpdateOperationsInput | string
+  translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
+  languageId?: Prisma.StringFieldUpdateOperationsInput | string
+  Votes?: Prisma.TranslationVoteUncheckedUpdateManyWithoutTranslationNestedInput
+  MemoryItems?: Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationNestedInput
+  Approvments?: Prisma.TranslationApprovmentUncheckedUpdateManyWithoutTranslationNestedInput
+}
+
+export type TranslationCreateManyEmbeddingInput = {
+  id?: number
+  value: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  meta?: unknown | Prisma.NullableJsonNullValueInput
+  translatorId: string
+  translatableElementId: number
+  languageId: string
+}
+
+export type TranslationUncheckedUpdateManyWithoutEmbeddingInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  value?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  translatorId?: Prisma.StringFieldUpdateOperationsInput | string
   translatableElementId?: Prisma.IntFieldUpdateOperationsInput | number
   languageId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1203,9 +1394,11 @@ export type TranslationSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
+  embeddingId?: boolean
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
   Language?: boolean | Prisma.LanguageDefaultArgs<ExtArgs>
+  Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   Votes?: boolean | Prisma.Translation$VotesArgs<ExtArgs>
   MemoryItems?: boolean | Prisma.Translation$MemoryItemsArgs<ExtArgs>
   Approvments?: boolean | Prisma.Translation$ApprovmentsArgs<ExtArgs>
@@ -1221,9 +1414,11 @@ export type TranslationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
+  embeddingId?: boolean
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
   Language?: boolean | Prisma.LanguageDefaultArgs<ExtArgs>
+  Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["translation"]>
 
 export type TranslationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1235,9 +1430,11 @@ export type TranslationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
+  embeddingId?: boolean
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
   Language?: boolean | Prisma.LanguageDefaultArgs<ExtArgs>
+  Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["translation"]>
 
 export type TranslationSelectScalar = {
@@ -1249,13 +1446,15 @@ export type TranslationSelectScalar = {
   translatorId?: boolean
   translatableElementId?: boolean
   languageId?: boolean
+  embeddingId?: boolean
 }
 
-export type TranslationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "value" | "createdAt" | "updatedAt" | "meta" | "translatorId" | "translatableElementId" | "languageId", ExtArgs["result"]["translation"]>
+export type TranslationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "value" | "createdAt" | "updatedAt" | "meta" | "translatorId" | "translatableElementId" | "languageId" | "embeddingId", ExtArgs["result"]["translation"]>
 export type TranslationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
   Language?: boolean | Prisma.LanguageDefaultArgs<ExtArgs>
+  Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   Votes?: boolean | Prisma.Translation$VotesArgs<ExtArgs>
   MemoryItems?: boolean | Prisma.Translation$MemoryItemsArgs<ExtArgs>
   Approvments?: boolean | Prisma.Translation$ApprovmentsArgs<ExtArgs>
@@ -1265,11 +1464,13 @@ export type TranslationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
   Language?: boolean | Prisma.LanguageDefaultArgs<ExtArgs>
+  Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
 }
 export type TranslationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Translator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   TranslatableElement?: boolean | Prisma.TranslatableElementDefaultArgs<ExtArgs>
   Language?: boolean | Prisma.LanguageDefaultArgs<ExtArgs>
+  Embedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
 }
 
 export type $TranslationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1278,6 +1479,7 @@ export type $TranslationPayload<ExtArgs extends runtime.Types.Extensions.Interna
     Translator: Prisma.$UserPayload<ExtArgs>
     TranslatableElement: Prisma.$TranslatableElementPayload<ExtArgs>
     Language: Prisma.$LanguagePayload<ExtArgs>
+    Embedding: Prisma.$VectorPayload<ExtArgs>
     Votes: Prisma.$TranslationVotePayload<ExtArgs>[]
     MemoryItems: Prisma.$MemoryItemPayload<ExtArgs>[]
     Approvments: Prisma.$TranslationApprovmentPayload<ExtArgs>[]
@@ -1291,6 +1493,7 @@ export type $TranslationPayload<ExtArgs extends runtime.Types.Extensions.Interna
     translatorId: string
     translatableElementId: number
     languageId: string
+    embeddingId: number
   }, ExtArgs["result"]["translation"]>
   composites: {}
 }
@@ -1688,6 +1891,7 @@ export interface Prisma__TranslationClient<T, Null = never, ExtArgs extends runt
   Translator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   TranslatableElement<T extends Prisma.TranslatableElementDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TranslatableElementDefaultArgs<ExtArgs>>): Prisma.Prisma__TranslatableElementClient<runtime.Types.Result.GetResult<Prisma.$TranslatableElementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   Language<T extends Prisma.LanguageDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LanguageDefaultArgs<ExtArgs>>): Prisma.Prisma__LanguageClient<runtime.Types.Result.GetResult<Prisma.$LanguagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  Embedding<T extends Prisma.VectorDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VectorDefaultArgs<ExtArgs>>): Prisma.Prisma__VectorClient<runtime.Types.Result.GetResult<Prisma.$VectorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   Votes<T extends Prisma.Translation$VotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Translation$VotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationVotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   MemoryItems<T extends Prisma.Translation$MemoryItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Translation$MemoryItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemoryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Approvments<T extends Prisma.Translation$ApprovmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Translation$ApprovmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TranslationApprovmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1728,6 +1932,7 @@ export interface TranslationFieldRefs {
   readonly translatorId: Prisma.FieldRef<"Translation", 'String'>
   readonly translatableElementId: Prisma.FieldRef<"Translation", 'Int'>
   readonly languageId: Prisma.FieldRef<"Translation", 'String'>
+  readonly embeddingId: Prisma.FieldRef<"Translation", 'Int'>
 }
     
 

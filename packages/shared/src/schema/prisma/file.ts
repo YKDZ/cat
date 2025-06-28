@@ -18,8 +18,8 @@ export const FileSchema = z.object({
     return StorageTypeSchema.optional();
   },
 
-  documentId: z.cuid2().nullable(),
-  userId: z.cuid2().nullable(),
+  documentId: z.ulid().nullable(),
+  userId: z.ulid().nullable(),
 });
 
 export const FileTypeSchema = z.object({

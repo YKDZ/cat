@@ -2736,6 +2736,7 @@ export const MemoryItemScalarFieldEnum = {
   source: 'source',
   translation: 'translation',
   sourceEmbeddingId: 'sourceEmbeddingId',
+  translationEmbeddingId: 'translationEmbeddingId',
   creatorId: 'creatorId',
   memoryId: 'memoryId',
   sourceElementId: 'sourceElementId',
@@ -2893,7 +2894,8 @@ export const TranslationScalarFieldEnum = {
   meta: 'meta',
   translatorId: 'translatorId',
   translatableElementId: 'translatableElementId',
-  languageId: 'languageId'
+  languageId: 'languageId',
+  embeddingId: 'embeddingId'
 } as const
 
 export type TranslationScalarFieldEnum = (typeof TranslationScalarFieldEnum)[keyof typeof TranslationScalarFieldEnum]

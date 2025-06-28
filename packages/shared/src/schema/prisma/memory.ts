@@ -21,20 +21,24 @@ export const MemoryItemSchema = z.object({
   get SourceEmbedding() {
     return z.array(z.number()).optional();
   },
-  memoryId: z.cuid2(),
-  creatorId: z.cuid2(),
+  translationEmbeddingId: z.int(),
+  get TranslationEmbedding() {
+    return z.array(z.number()).optional();
+  },
+  memoryId: z.ulid(),
+  creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();
   },
 });
 
 export const MemorySchema = z.object({
-  id: z.cuid2(),
+  id: z.ulid(),
   name: z.string(),
   description: z.string().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  creatorId: z.cuid2(),
+  creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();
   },

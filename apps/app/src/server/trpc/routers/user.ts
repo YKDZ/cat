@@ -11,7 +11,7 @@ export const userRouter = router({
   query: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
       }),
     )
     .query(async ({ input }) => {
@@ -101,7 +101,7 @@ export const userRouter = router({
   queryAvatar: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
       }),
     )
     .output(

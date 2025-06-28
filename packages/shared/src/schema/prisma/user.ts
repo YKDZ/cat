@@ -4,7 +4,7 @@ import { LanguageSchema, PermissionSchema } from "./misc";
 import { TranslationVoteSchema } from "./translation";
 
 export const UserSchema = z.object({
-  id: z.cuid2(),
+  id: z.ulid(),
   name: z.string(),
   email: z.email(),
   emailVerified: z.boolean(),
@@ -30,7 +30,7 @@ export const AccountSchema = z.object({
   providedAccountId: z.string(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  userId: z.cuid2(),
+  userId: z.ulid(),
   get User() {
     return UserSchema.optional();
   },

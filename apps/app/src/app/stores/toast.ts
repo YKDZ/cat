@@ -64,6 +64,8 @@ export const useToastStore = defineStore("toast", () => {
 
   const trpcWarn = (e: TRPCClientError<never>, duration = defaultDuration) => {
     if (!e.message) return;
+
+    console.warn(e);
     warn(e.message, duration);
   };
 

@@ -5,10 +5,10 @@ import { UserSchema } from "./user";
 import { VectorSchema } from "./vector";
 
 export const DocumentSchema = z.object({
-  id: z.cuid2(),
+  id: z.ulid(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  creatorId: z.cuid2(),
+  creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();
   },
@@ -31,6 +31,17 @@ export const TranslatableElementSchema = z.object({
   previousVersionId: z.int().nullable(),
   get Embedding() {
     return VectorSchema.optional();
+  },
+});
+
+export const DocumentVersionSchema = z.object({
+  id: z.int(),
+  isActive: z.boolean(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+  documentId: z.ulid(),
+  get Document() {
+    return DocumentSchema.optional();
   },
 });
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
 import type { User } from "@cat/shared";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onBeforeMount, onMounted, ref, watch } from "vue";
 
 const props = defineProps<{
   user?: User;
@@ -49,7 +49,7 @@ const handleImgError = () => {
   isFallback.value = true;
 };
 
-onMounted(async () => {
+onBeforeMount(async () => {
   if (!props.user && props.userId) {
     user.value = await trpc.user.query.query({ id: props.userId });
   }

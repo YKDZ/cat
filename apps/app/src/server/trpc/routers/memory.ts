@@ -17,7 +17,7 @@ export const memoryRouter = router({
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        projectIds: z.array(z.cuid2()).optional(),
+        projectIds: z.array(z.ulid()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -115,7 +115,7 @@ export const memoryRouter = router({
   listUserOwned: authedProcedure
     .input(
       z.object({
-        userId: z.cuid2(),
+        userId: z.ulid(),
       }),
     )
     .query(async ({ input }) => {
@@ -133,7 +133,7 @@ export const memoryRouter = router({
   query: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
       }),
     )
     .query(async ({ input }) => {
@@ -153,7 +153,7 @@ export const memoryRouter = router({
   countMemoryItem: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
       }),
     )
     .output(z.number().int().min(0))
@@ -171,7 +171,7 @@ export const memoryRouter = router({
   queryItems: authedProcedure
     .input(
       z.object({
-        memoryId: z.cuid2(),
+        memoryId: z.ulid(),
         sourceLanguageId: z.string().nullable(),
         translationLanguageId: z.string().nullable(),
       }),
@@ -210,7 +210,7 @@ export const memoryRouter = router({
   listProjectOwned: authedProcedure
     .input(
       z.object({
-        projectId: z.cuid2(),
+        projectId: z.ulid(),
       }),
     )
     .output(z.array(MemorySchema))
@@ -235,7 +235,7 @@ export const memoryRouter = router({
   countItem: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
       }),
     )
     .output(z.number().int())

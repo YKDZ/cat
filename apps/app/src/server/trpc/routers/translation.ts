@@ -8,6 +8,7 @@ import {
   TranslationVoteSchema,
 } from "@cat/shared";
 import { autoTranslateQueue } from "@/server/processor/autoTranslate";
+import { createTranslationQueue } from "@/server/processor/createTranslation";
 
 export const translationRouter = router({
   delete: authedProcedure
@@ -41,56 +42,24 @@ export const translationRouter = router({
   create: authedProcedure
     .input(
       z.object({
-        projectId: z.cuid2(),
+        projectId: z.ulid(),
         elementId: z.number().int(),
         languageId: z.string(),
         value: z.string(),
         createMemory: z.boolean().default(true),
       }),
     )
+    .output(
+      TranslationSchema.extend({
+        status: z.enum(["PROCESSING", "COMPLETED"]),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
-      const { user } = ctx;
+      const { user, pluginRegistry } = ctx;
       const { projectId, elementId, languageId, value, createMemory } = input;
 
-      const translation = await prisma.$transaction(async () => {
-        const translation = await prisma.translation.create({
-          data: {
-            value,
-            TranslatableElement: {
-              connect: {
-                id: elementId,
-              },
-            },
-            Language: {
-              connect: {
-                id: languageId,
-              },
-            },
-            Translator: {
-              connect: {
-                id: user.id,
-              },
-            },
-          },
-          include: {
-            Translator: true,
-          },
-        });
-
-        const element = await prisma.translatableElement.findUniqueOrThrow({
-          where: {
-            id: elementId,
-          },
-          include: {
-            Document: {
-              include: {
-                Project: true,
-              },
-            },
-          },
-        });
-
-        const projectWithMemories = await prisma.project.findUnique({
+      return await prisma.$transaction(async (tx) => {
+        const project = await tx.project.findUnique({
           where: { id: projectId },
           include: {
             Memories: {
@@ -99,29 +68,57 @@ export const translationRouter = router({
           },
         });
 
-        if (createMemory && projectWithMemories) {
-          // 在项目的每一个记忆库中都创建一个记忆条目
-          await prisma.memoryItem.createMany({
-            data: projectWithMemories.Memories.map((memory) => {
-              return {
-                source: element.value,
-                sourceLanguageId: element.Document.Project.sourceLanguageId,
-                translation: translation.value,
-                translationLanguageId: translation.languageId,
-                memoryId: memory.id,
-                sourceEmbeddingId: element?.embeddingId,
-                creatorId: user.id,
-                sourceElementId: element.id,
-                translationId: translation.id,
-              };
-            }),
+        if (!project)
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Project not found",
+          });
+
+        const vectorizer = pluginRegistry
+          .getTextVectorizers()
+          .find((vectorizer) =>
+            vectorizer.canVectorize(project.sourceLanguageId),
+          );
+
+        if (!vectorizer) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "CAT 没有可以处理这种文本的向量化器",
           });
         }
 
-        return translation;
-      });
+        const task = await tx.task.create({
+          data: {
+            type: "create_translation",
+          },
+        });
 
-      return TranslationSchema.parse(translation);
+        await createTranslationQueue.add(task.id, {
+          taskId: task.id,
+          createMemory,
+          elementId: elementId,
+          creatorId: user.id,
+          translationLanguageId: languageId,
+          translationValue: value,
+          vectorizerId: vectorizer.getId(),
+          memoryIds: project.Memories.map((memory) => memory.id),
+        });
+
+        return TranslationSchema.extend({
+          status: z.enum(["PROCESSING", "COMPLETED"]),
+        }).parse({
+          id: 0, // Placeholder ID, will be updated later
+          embeddingId: 0, // Placeholder ID, will be updated later
+          meta: null,
+          value,
+          languageId,
+          translatableElementId: elementId,
+          translatorId: user.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          status: "PROCESSING",
+        });
+      });
     }),
   update: authedProcedure
     .input(
@@ -278,7 +275,7 @@ export const translationRouter = router({
   autoApprove: authedProcedure
     .input(
       z.object({
-        documentId: z.cuid2(),
+        documentId: z.ulid(),
         languageId: z.string(),
       }),
     )

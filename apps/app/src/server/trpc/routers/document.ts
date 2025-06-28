@@ -289,7 +289,7 @@ export const documentRouter = router({
   queryTask: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
         type: z.string(),
       }),
     )
@@ -355,6 +355,13 @@ export const documentRouter = router({
     .query(async ({ input }) => {
       const { id, searchQuery, isApproved, isTranslated } = input;
 
+      if (isApproved !== undefined && isTranslated !== true) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "isTranslated must be true when isApproved is set",
+        });
+      }
+
       return await prisma.translatableElement.count({
         where: {
           documentId: id,
@@ -367,63 +374,96 @@ export const documentRouter = router({
           Translations:
             isTranslated === undefined && isApproved === undefined
               ? undefined
-              : {
-                  some: {
-                    ...(isTranslated !== undefined ? {} : undefined),
-                    ...(isApproved !== undefined
-                      ? {
+              : isTranslated === false && isApproved === undefined
+                ? {
+                    none: {},
+                  }
+                : isTranslated === true && isApproved === undefined
+                  ? {
+                      some: {},
+                    }
+                  : isTranslated === true && isApproved === false
+                    ? {
+                        some: {
                           Approvments: {
-                            some: {
-                              isActive: true,
+                            none: {},
+                          },
+                        },
+                      }
+                    : isTranslated === true && isApproved === true
+                      ? {
+                          some: {
+                            Approvments: {
+                              some: {
+                                isActive: true,
+                              },
                             },
                           },
                         }
-                      : undefined),
-                  },
-                },
+                      : undefined,
         },
       });
     }),
   queryFirstElement: authedProcedure
     .input(
       z.object({
-        id: z.string(),
-        idGreaterThan: z.number().optional(),
+        documentId: z.string(),
         searchQuery: z.string().default(""),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { id, idGreaterThan, searchQuery, isApproved, isTranslated } =
-        input;
+      const { documentId, searchQuery, isApproved, isTranslated } = input;
+
+      if (isApproved !== undefined && isTranslated !== true) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "isTranslated must be true when isApproved is set",
+        });
+      }
 
       const element = await prisma.translatableElement.findFirst({
         where: {
-          id: idGreaterThan ? { gt: idGreaterThan } : undefined,
-          documentId: id,
+          documentId,
           value:
             searchQuery.trim().length !== 0
               ? { contains: searchQuery, mode: "insensitive" }
               : undefined,
-          Translations: {
-            none: isTranslated === false ? {} : undefined,
-            some: {
-              ...(isTranslated === false ? {} : undefined),
-              ...(isApproved !== undefined
-                ? {
-                    Approvments: {
-                      some: {
-                        isActive: true,
-                      },
-                    },
-                  }
-                : undefined),
-            },
-          },
           isActive: true,
+
+          Translations:
+            isTranslated === undefined && isApproved === undefined
+              ? undefined
+              : isTranslated === false && isApproved === undefined
+                ? {
+                    none: {},
+                  }
+                : isTranslated === true && isApproved === undefined
+                  ? {
+                      some: {},
+                    }
+                  : isTranslated === true && isApproved === false
+                    ? {
+                        some: {
+                          Approvments: {
+                            none: {},
+                          },
+                        },
+                      }
+                    : isTranslated === true && isApproved === true
+                      ? {
+                          some: {
+                            Approvments: {
+                              some: {
+                                isActive: true,
+                              },
+                            },
+                          },
+                        }
+                      : undefined,
         },
-        orderBy: { id: "asc" },
+        orderBy: { value: "asc" },
       });
 
       return TranslatableElementSchema.nullable().parse(element);
@@ -495,7 +535,7 @@ export const documentRouter = router({
   downloadTranslatedFile: authedProcedure
     .input(
       z.object({
-        taskId: z.cuid2(),
+        taskId: z.ulid(),
       }),
     )
     .output(
@@ -639,6 +679,13 @@ export const documentRouter = router({
         isTranslated,
       } = input;
 
+      if (isApproved !== undefined && isTranslated !== true) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "isTranslated must be true when isApproved is set",
+        });
+      }
+
       const result = await prisma.translatableElement.findMany({
         where: {
           documentId: documentId,
@@ -647,25 +694,39 @@ export const documentRouter = router({
               ? { contains: searchQuery }
               : undefined,
           isActive: true,
+
           Translations:
             isTranslated === undefined && isApproved === undefined
               ? undefined
-              : {
-                  some: {
-                    ...(isTranslated !== undefined ? {} : undefined),
-                    ...(isApproved !== undefined
-                      ? {
+              : isTranslated === false && isApproved === undefined
+                ? {
+                    none: {},
+                  }
+                : isTranslated === true && isApproved === undefined
+                  ? {
+                      some: {},
+                    }
+                  : isTranslated === true && isApproved === false
+                    ? {
+                        some: {
                           Approvments: {
-                            some: {
-                              isActive: true,
+                            none: {},
+                          },
+                        },
+                      }
+                    : isTranslated === true && isApproved === true
+                      ? {
+                          some: {
+                            Approvments: {
+                              some: {
+                                isActive: true,
+                              },
                             },
                           },
                         }
-                      : undefined),
-                  },
-                },
+                      : undefined,
         },
-        orderBy: { id: "asc" },
+        orderBy: { value: "asc" },
         skip: page * pageSize,
         take: pageSize,
       });
@@ -675,7 +736,7 @@ export const documentRouter = router({
   queryPageIndexOfElement: authedProcedure
     .input(
       z.object({
-        id: z.number(),
+        elementId: z.number(),
         documentId: z.string(),
         pageSize: z.number().int().default(16),
         searchQuery: z.string().default(""),
@@ -686,7 +747,7 @@ export const documentRouter = router({
     .output(z.number().int())
     .query(async ({ input }) => {
       const {
-        id,
+        elementId,
         documentId,
         pageSize,
         searchQuery,
@@ -694,35 +755,66 @@ export const documentRouter = router({
         isTranslated,
       } = input;
 
+      if (isApproved !== undefined && isTranslated !== true) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "isTranslated must be true when isApproved is set",
+        });
+      }
+
+      const target = await prisma.translatableElement.findUnique({
+        where: {
+          id: elementId,
+        },
+      });
+
+      if (!target)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Element with given id does not exists",
+        });
+
       const count = await prisma.translatableElement.count({
         where: {
-          id: {
-            lt: id,
-          },
           documentId,
-          value:
-            searchQuery.trim().length !== 0
+          value: {
+            lt: target.value,
+            ...(searchQuery.trim().length !== 0
               ? { contains: searchQuery, mode: "insensitive" }
-              : undefined,
+              : {}),
+          },
           isActive: true,
 
           Translations:
             isTranslated === undefined && isApproved === undefined
               ? undefined
-              : {
-                  some: {
-                    ...(isTranslated !== undefined ? {} : undefined),
-                    ...(isApproved !== undefined
-                      ? {
+              : isTranslated === false && isApproved === undefined
+                ? {
+                    none: {},
+                  }
+                : isTranslated === true && isApproved === undefined
+                  ? {
+                      some: {},
+                    }
+                  : isTranslated === true && isApproved === false
+                    ? {
+                        some: {
                           Approvments: {
-                            some: {
-                              isActive: true,
+                            none: {},
+                          },
+                        },
+                      }
+                    : isTranslated === true && isApproved === true
+                      ? {
+                          some: {
+                            Approvments: {
+                              some: {
+                                isActive: true,
+                              },
                             },
                           },
                         }
-                      : undefined),
-                  },
-                },
+                      : undefined,
         },
       });
 
@@ -731,7 +823,7 @@ export const documentRouter = router({
   delete: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
       }),
     )
     .mutation(async ({ input }) => {

@@ -19,8 +19,8 @@ const { trpcWarn } = useToastStore();
 const downloadAEl = ref<HTMLAnchorElement>();
 
 const metaSchema = z.object({
-  projectId: z.cuid2(),
-  documentId: z.cuid2(),
+  projectId: z.ulid(),
+  documentId: z.ulid(),
   languageId: z.string(),
 });
 

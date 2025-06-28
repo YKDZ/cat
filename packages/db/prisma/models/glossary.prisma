@@ -1,5 +1,5 @@
 model Glossary {
-    id          String   @id @default(cuid())
+    id          String   @id @default(ulid())
     name        String
     description String?
     createdAt   DateTime @default(now())

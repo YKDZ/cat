@@ -44,7 +44,7 @@ watch(
       v-model="value"
       :type="inputType"
       class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-base"
-      @change="handleUpdate"
+      @input="handleUpdate"
     />
   </div>
 </template>

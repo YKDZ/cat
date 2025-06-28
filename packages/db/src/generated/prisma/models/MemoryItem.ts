@@ -30,6 +30,7 @@ export type AggregateMemoryItem = {
 export type MemoryItemAvgAggregateOutputType = {
   id: number | null
   sourceEmbeddingId: number | null
+  translationEmbeddingId: number | null
   sourceElementId: number | null
   translationId: number | null
 }
@@ -37,6 +38,7 @@ export type MemoryItemAvgAggregateOutputType = {
 export type MemoryItemSumAggregateOutputType = {
   id: number | null
   sourceEmbeddingId: number | null
+  translationEmbeddingId: number | null
   sourceElementId: number | null
   translationId: number | null
 }
@@ -48,6 +50,7 @@ export type MemoryItemMinAggregateOutputType = {
   source: string | null
   translation: string | null
   sourceEmbeddingId: number | null
+  translationEmbeddingId: number | null
   creatorId: string | null
   memoryId: string | null
   sourceElementId: number | null
@@ -63,6 +66,7 @@ export type MemoryItemMaxAggregateOutputType = {
   source: string | null
   translation: string | null
   sourceEmbeddingId: number | null
+  translationEmbeddingId: number | null
   creatorId: string | null
   memoryId: string | null
   sourceElementId: number | null
@@ -78,6 +82,7 @@ export type MemoryItemCountAggregateOutputType = {
   source: number
   translation: number
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: number
   memoryId: number
   sourceElementId: number
@@ -91,6 +96,7 @@ export type MemoryItemCountAggregateOutputType = {
 export type MemoryItemAvgAggregateInputType = {
   id?: true
   sourceEmbeddingId?: true
+  translationEmbeddingId?: true
   sourceElementId?: true
   translationId?: true
 }
@@ -98,6 +104,7 @@ export type MemoryItemAvgAggregateInputType = {
 export type MemoryItemSumAggregateInputType = {
   id?: true
   sourceEmbeddingId?: true
+  translationEmbeddingId?: true
   sourceElementId?: true
   translationId?: true
 }
@@ -109,6 +116,7 @@ export type MemoryItemMinAggregateInputType = {
   source?: true
   translation?: true
   sourceEmbeddingId?: true
+  translationEmbeddingId?: true
   creatorId?: true
   memoryId?: true
   sourceElementId?: true
@@ -124,6 +132,7 @@ export type MemoryItemMaxAggregateInputType = {
   source?: true
   translation?: true
   sourceEmbeddingId?: true
+  translationEmbeddingId?: true
   creatorId?: true
   memoryId?: true
   sourceElementId?: true
@@ -139,6 +148,7 @@ export type MemoryItemCountAggregateInputType = {
   source?: true
   translation?: true
   sourceEmbeddingId?: true
+  translationEmbeddingId?: true
   creatorId?: true
   memoryId?: true
   sourceElementId?: true
@@ -241,6 +251,7 @@ export type MemoryItemGroupByOutputType = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId: number | null
@@ -279,6 +290,7 @@ export type MemoryItemWhereInput = {
   source?: Prisma.StringFilter<"MemoryItem"> | string
   translation?: Prisma.StringFilter<"MemoryItem"> | string
   sourceEmbeddingId?: Prisma.IntFilter<"MemoryItem"> | number
+  translationEmbeddingId?: Prisma.IntFilter<"MemoryItem"> | number
   creatorId?: Prisma.StringFilter<"MemoryItem"> | string
   memoryId?: Prisma.StringFilter<"MemoryItem"> | string
   sourceElementId?: Prisma.IntNullableFilter<"MemoryItem"> | number | null
@@ -286,6 +298,7 @@ export type MemoryItemWhereInput = {
   sourceLanguageId?: Prisma.StringFilter<"MemoryItem"> | string
   translationLanguageId?: Prisma.StringFilter<"MemoryItem"> | string
   SourceEmbedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
+  TranslationEmbedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
   Creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   Memory?: Prisma.XOR<Prisma.MemoryScalarRelationFilter, Prisma.MemoryWhereInput>
   SourceElement?: Prisma.XOR<Prisma.TranslatableElementNullableScalarRelationFilter, Prisma.TranslatableElementWhereInput> | null
@@ -301,6 +314,7 @@ export type MemoryItemOrderByWithRelationInput = {
   source?: Prisma.SortOrder
   translation?: Prisma.SortOrder
   sourceEmbeddingId?: Prisma.SortOrder
+  translationEmbeddingId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
   memoryId?: Prisma.SortOrder
   sourceElementId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -308,6 +322,7 @@ export type MemoryItemOrderByWithRelationInput = {
   sourceLanguageId?: Prisma.SortOrder
   translationLanguageId?: Prisma.SortOrder
   SourceEmbedding?: Prisma.VectorOrderByWithRelationInput
+  TranslationEmbedding?: Prisma.VectorOrderByWithRelationInput
   Creator?: Prisma.UserOrderByWithRelationInput
   Memory?: Prisma.MemoryOrderByWithRelationInput
   SourceElement?: Prisma.TranslatableElementOrderByWithRelationInput
@@ -327,6 +342,7 @@ export type MemoryItemWhereUniqueInput = Prisma.AtLeast<{
   source?: Prisma.StringFilter<"MemoryItem"> | string
   translation?: Prisma.StringFilter<"MemoryItem"> | string
   sourceEmbeddingId?: Prisma.IntFilter<"MemoryItem"> | number
+  translationEmbeddingId?: Prisma.IntFilter<"MemoryItem"> | number
   creatorId?: Prisma.StringFilter<"MemoryItem"> | string
   memoryId?: Prisma.StringFilter<"MemoryItem"> | string
   sourceElementId?: Prisma.IntNullableFilter<"MemoryItem"> | number | null
@@ -334,6 +350,7 @@ export type MemoryItemWhereUniqueInput = Prisma.AtLeast<{
   sourceLanguageId?: Prisma.StringFilter<"MemoryItem"> | string
   translationLanguageId?: Prisma.StringFilter<"MemoryItem"> | string
   SourceEmbedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
+  TranslationEmbedding?: Prisma.XOR<Prisma.VectorScalarRelationFilter, Prisma.VectorWhereInput>
   Creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   Memory?: Prisma.XOR<Prisma.MemoryScalarRelationFilter, Prisma.MemoryWhereInput>
   SourceElement?: Prisma.XOR<Prisma.TranslatableElementNullableScalarRelationFilter, Prisma.TranslatableElementWhereInput> | null
@@ -349,6 +366,7 @@ export type MemoryItemOrderByWithAggregationInput = {
   source?: Prisma.SortOrder
   translation?: Prisma.SortOrder
   sourceEmbeddingId?: Prisma.SortOrder
+  translationEmbeddingId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
   memoryId?: Prisma.SortOrder
   sourceElementId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -372,6 +390,7 @@ export type MemoryItemScalarWhereWithAggregatesInput = {
   source?: Prisma.StringWithAggregatesFilter<"MemoryItem"> | string
   translation?: Prisma.StringWithAggregatesFilter<"MemoryItem"> | string
   sourceEmbeddingId?: Prisma.IntWithAggregatesFilter<"MemoryItem"> | number
+  translationEmbeddingId?: Prisma.IntWithAggregatesFilter<"MemoryItem"> | number
   creatorId?: Prisma.StringWithAggregatesFilter<"MemoryItem"> | string
   memoryId?: Prisma.StringWithAggregatesFilter<"MemoryItem"> | string
   sourceElementId?: Prisma.IntNullableWithAggregatesFilter<"MemoryItem"> | number | null
@@ -385,7 +404,8 @@ export type MemoryItemCreateInput = {
   updatedAt?: Date | string
   source: string
   translation: string
-  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutMemoryItemsInput
+  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutSourceMemoryItemsInput
+  TranslationEmbedding: Prisma.VectorCreateNestedOneWithoutTranslationMemoryItemsInput
   Creator: Prisma.UserCreateNestedOneWithoutMemoryItemsInput
   Memory: Prisma.MemoryCreateNestedOneWithoutMemoryItemsInput
   SourceElement?: Prisma.TranslatableElementCreateNestedOneWithoutMemoryItemsInput
@@ -401,6 +421,7 @@ export type MemoryItemUncheckedCreateInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -414,7 +435,8 @@ export type MemoryItemUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
-  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutMemoryItemsNestedInput
+  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  TranslationEmbedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutMemoryItemsNestedInput
   Memory?: Prisma.MemoryUpdateOneRequiredWithoutMemoryItemsNestedInput
   SourceElement?: Prisma.TranslatableElementUpdateOneWithoutMemoryItemsNestedInput
@@ -430,6 +452,7 @@ export type MemoryItemUncheckedUpdateInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -445,6 +468,7 @@ export type MemoryItemCreateManyInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -467,6 +491,7 @@ export type MemoryItemUncheckedUpdateManyInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -498,6 +523,7 @@ export type MemoryItemCountOrderByAggregateInput = {
   source?: Prisma.SortOrder
   translation?: Prisma.SortOrder
   sourceEmbeddingId?: Prisma.SortOrder
+  translationEmbeddingId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
   memoryId?: Prisma.SortOrder
   sourceElementId?: Prisma.SortOrder
@@ -509,6 +535,7 @@ export type MemoryItemCountOrderByAggregateInput = {
 export type MemoryItemAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sourceEmbeddingId?: Prisma.SortOrder
+  translationEmbeddingId?: Prisma.SortOrder
   sourceElementId?: Prisma.SortOrder
   translationId?: Prisma.SortOrder
 }
@@ -520,6 +547,7 @@ export type MemoryItemMaxOrderByAggregateInput = {
   source?: Prisma.SortOrder
   translation?: Prisma.SortOrder
   sourceEmbeddingId?: Prisma.SortOrder
+  translationEmbeddingId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
   memoryId?: Prisma.SortOrder
   sourceElementId?: Prisma.SortOrder
@@ -535,6 +563,7 @@ export type MemoryItemMinOrderByAggregateInput = {
   source?: Prisma.SortOrder
   translation?: Prisma.SortOrder
   sourceEmbeddingId?: Prisma.SortOrder
+  translationEmbeddingId?: Prisma.SortOrder
   creatorId?: Prisma.SortOrder
   memoryId?: Prisma.SortOrder
   sourceElementId?: Prisma.SortOrder
@@ -546,6 +575,7 @@ export type MemoryItemMinOrderByAggregateInput = {
 export type MemoryItemSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sourceEmbeddingId?: Prisma.SortOrder
+  translationEmbeddingId?: Prisma.SortOrder
   sourceElementId?: Prisma.SortOrder
   translationId?: Prisma.SortOrder
 }
@@ -816,6 +846,20 @@ export type MemoryItemUpdateManyWithoutSourceEmbeddingNestedInput = {
   deleteMany?: Prisma.MemoryItemScalarWhereInput | Prisma.MemoryItemScalarWhereInput[]
 }
 
+export type MemoryItemUpdateManyWithoutTranslationEmbeddingNestedInput = {
+  create?: Prisma.XOR<Prisma.MemoryItemCreateWithoutTranslationEmbeddingInput, Prisma.MemoryItemUncheckedCreateWithoutTranslationEmbeddingInput> | Prisma.MemoryItemCreateWithoutTranslationEmbeddingInput[] | Prisma.MemoryItemUncheckedCreateWithoutTranslationEmbeddingInput[]
+  connectOrCreate?: Prisma.MemoryItemCreateOrConnectWithoutTranslationEmbeddingInput | Prisma.MemoryItemCreateOrConnectWithoutTranslationEmbeddingInput[]
+  upsert?: Prisma.MemoryItemUpsertWithWhereUniqueWithoutTranslationEmbeddingInput | Prisma.MemoryItemUpsertWithWhereUniqueWithoutTranslationEmbeddingInput[]
+  createMany?: Prisma.MemoryItemCreateManyTranslationEmbeddingInputEnvelope
+  set?: Prisma.MemoryItemWhereUniqueInput | Prisma.MemoryItemWhereUniqueInput[]
+  disconnect?: Prisma.MemoryItemWhereUniqueInput | Prisma.MemoryItemWhereUniqueInput[]
+  delete?: Prisma.MemoryItemWhereUniqueInput | Prisma.MemoryItemWhereUniqueInput[]
+  connect?: Prisma.MemoryItemWhereUniqueInput | Prisma.MemoryItemWhereUniqueInput[]
+  update?: Prisma.MemoryItemUpdateWithWhereUniqueWithoutTranslationEmbeddingInput | Prisma.MemoryItemUpdateWithWhereUniqueWithoutTranslationEmbeddingInput[]
+  updateMany?: Prisma.MemoryItemUpdateManyWithWhereWithoutTranslationEmbeddingInput | Prisma.MemoryItemUpdateManyWithWhereWithoutTranslationEmbeddingInput[]
+  deleteMany?: Prisma.MemoryItemScalarWhereInput | Prisma.MemoryItemScalarWhereInput[]
+}
+
 export type MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingNestedInput = {
   create?: Prisma.XOR<Prisma.MemoryItemCreateWithoutSourceEmbeddingInput, Prisma.MemoryItemUncheckedCreateWithoutSourceEmbeddingInput> | Prisma.MemoryItemCreateWithoutSourceEmbeddingInput[] | Prisma.MemoryItemUncheckedCreateWithoutSourceEmbeddingInput[]
   connectOrCreate?: Prisma.MemoryItemCreateOrConnectWithoutSourceEmbeddingInput | Prisma.MemoryItemCreateOrConnectWithoutSourceEmbeddingInput[]
@@ -830,12 +874,27 @@ export type MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingNestedInput = {
   deleteMany?: Prisma.MemoryItemScalarWhereInput | Prisma.MemoryItemScalarWhereInput[]
 }
 
+export type MemoryItemUncheckedUpdateManyWithoutTranslationEmbeddingNestedInput = {
+  create?: Prisma.XOR<Prisma.MemoryItemCreateWithoutTranslationEmbeddingInput, Prisma.MemoryItemUncheckedCreateWithoutTranslationEmbeddingInput> | Prisma.MemoryItemCreateWithoutTranslationEmbeddingInput[] | Prisma.MemoryItemUncheckedCreateWithoutTranslationEmbeddingInput[]
+  connectOrCreate?: Prisma.MemoryItemCreateOrConnectWithoutTranslationEmbeddingInput | Prisma.MemoryItemCreateOrConnectWithoutTranslationEmbeddingInput[]
+  upsert?: Prisma.MemoryItemUpsertWithWhereUniqueWithoutTranslationEmbeddingInput | Prisma.MemoryItemUpsertWithWhereUniqueWithoutTranslationEmbeddingInput[]
+  createMany?: Prisma.MemoryItemCreateManyTranslationEmbeddingInputEnvelope
+  set?: Prisma.MemoryItemWhereUniqueInput | Prisma.MemoryItemWhereUniqueInput[]
+  disconnect?: Prisma.MemoryItemWhereUniqueInput | Prisma.MemoryItemWhereUniqueInput[]
+  delete?: Prisma.MemoryItemWhereUniqueInput | Prisma.MemoryItemWhereUniqueInput[]
+  connect?: Prisma.MemoryItemWhereUniqueInput | Prisma.MemoryItemWhereUniqueInput[]
+  update?: Prisma.MemoryItemUpdateWithWhereUniqueWithoutTranslationEmbeddingInput | Prisma.MemoryItemUpdateWithWhereUniqueWithoutTranslationEmbeddingInput[]
+  updateMany?: Prisma.MemoryItemUpdateManyWithWhereWithoutTranslationEmbeddingInput | Prisma.MemoryItemUpdateManyWithWhereWithoutTranslationEmbeddingInput[]
+  deleteMany?: Prisma.MemoryItemScalarWhereInput | Prisma.MemoryItemScalarWhereInput[]
+}
+
 export type MemoryItemCreateWithoutSourceElementInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   source: string
   translation: string
-  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutMemoryItemsInput
+  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutSourceMemoryItemsInput
+  TranslationEmbedding: Prisma.VectorCreateNestedOneWithoutTranslationMemoryItemsInput
   Creator: Prisma.UserCreateNestedOneWithoutMemoryItemsInput
   Memory: Prisma.MemoryCreateNestedOneWithoutMemoryItemsInput
   Translation?: Prisma.TranslationCreateNestedOneWithoutMemoryItemsInput
@@ -850,6 +909,7 @@ export type MemoryItemUncheckedCreateWithoutSourceElementInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   translationId?: number | null
@@ -893,6 +953,7 @@ export type MemoryItemScalarWhereInput = {
   source?: Prisma.StringFilter<"MemoryItem"> | string
   translation?: Prisma.StringFilter<"MemoryItem"> | string
   sourceEmbeddingId?: Prisma.IntFilter<"MemoryItem"> | number
+  translationEmbeddingId?: Prisma.IntFilter<"MemoryItem"> | number
   creatorId?: Prisma.StringFilter<"MemoryItem"> | string
   memoryId?: Prisma.StringFilter<"MemoryItem"> | string
   sourceElementId?: Prisma.IntNullableFilter<"MemoryItem"> | number | null
@@ -906,7 +967,8 @@ export type MemoryItemCreateWithoutMemoryInput = {
   updatedAt?: Date | string
   source: string
   translation: string
-  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutMemoryItemsInput
+  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutSourceMemoryItemsInput
+  TranslationEmbedding: Prisma.VectorCreateNestedOneWithoutTranslationMemoryItemsInput
   Creator: Prisma.UserCreateNestedOneWithoutMemoryItemsInput
   SourceElement?: Prisma.TranslatableElementCreateNestedOneWithoutMemoryItemsInput
   Translation?: Prisma.TranslationCreateNestedOneWithoutMemoryItemsInput
@@ -921,6 +983,7 @@ export type MemoryItemUncheckedCreateWithoutMemoryInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   sourceElementId?: number | null
   translationId?: number | null
@@ -959,7 +1022,8 @@ export type MemoryItemCreateWithoutSourceLanguageInput = {
   updatedAt?: Date | string
   source: string
   translation: string
-  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutMemoryItemsInput
+  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutSourceMemoryItemsInput
+  TranslationEmbedding: Prisma.VectorCreateNestedOneWithoutTranslationMemoryItemsInput
   Creator: Prisma.UserCreateNestedOneWithoutMemoryItemsInput
   Memory: Prisma.MemoryCreateNestedOneWithoutMemoryItemsInput
   SourceElement?: Prisma.TranslatableElementCreateNestedOneWithoutMemoryItemsInput
@@ -974,6 +1038,7 @@ export type MemoryItemUncheckedCreateWithoutSourceLanguageInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -996,7 +1061,8 @@ export type MemoryItemCreateWithoutTranslationLanguageInput = {
   updatedAt?: Date | string
   source: string
   translation: string
-  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutMemoryItemsInput
+  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutSourceMemoryItemsInput
+  TranslationEmbedding: Prisma.VectorCreateNestedOneWithoutTranslationMemoryItemsInput
   Creator: Prisma.UserCreateNestedOneWithoutMemoryItemsInput
   Memory: Prisma.MemoryCreateNestedOneWithoutMemoryItemsInput
   SourceElement?: Prisma.TranslatableElementCreateNestedOneWithoutMemoryItemsInput
@@ -1011,6 +1077,7 @@ export type MemoryItemUncheckedCreateWithoutTranslationLanguageInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -1065,7 +1132,8 @@ export type MemoryItemCreateWithoutTranslationInput = {
   updatedAt?: Date | string
   source: string
   translation: string
-  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutMemoryItemsInput
+  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutSourceMemoryItemsInput
+  TranslationEmbedding: Prisma.VectorCreateNestedOneWithoutTranslationMemoryItemsInput
   Creator: Prisma.UserCreateNestedOneWithoutMemoryItemsInput
   Memory: Prisma.MemoryCreateNestedOneWithoutMemoryItemsInput
   SourceElement?: Prisma.TranslatableElementCreateNestedOneWithoutMemoryItemsInput
@@ -1080,6 +1148,7 @@ export type MemoryItemUncheckedCreateWithoutTranslationInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -1118,7 +1187,8 @@ export type MemoryItemCreateWithoutCreatorInput = {
   updatedAt?: Date | string
   source: string
   translation: string
-  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutMemoryItemsInput
+  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutSourceMemoryItemsInput
+  TranslationEmbedding: Prisma.VectorCreateNestedOneWithoutTranslationMemoryItemsInput
   Memory: Prisma.MemoryCreateNestedOneWithoutMemoryItemsInput
   SourceElement?: Prisma.TranslatableElementCreateNestedOneWithoutMemoryItemsInput
   Translation?: Prisma.TranslationCreateNestedOneWithoutMemoryItemsInput
@@ -1133,6 +1203,7 @@ export type MemoryItemUncheckedCreateWithoutCreatorInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   memoryId: string
   sourceElementId?: number | null
   translationId?: number | null
@@ -1171,6 +1242,7 @@ export type MemoryItemCreateWithoutSourceEmbeddingInput = {
   updatedAt?: Date | string
   source: string
   translation: string
+  TranslationEmbedding: Prisma.VectorCreateNestedOneWithoutTranslationMemoryItemsInput
   Creator: Prisma.UserCreateNestedOneWithoutMemoryItemsInput
   Memory: Prisma.MemoryCreateNestedOneWithoutMemoryItemsInput
   SourceElement?: Prisma.TranslatableElementCreateNestedOneWithoutMemoryItemsInput
@@ -1185,6 +1257,7 @@ export type MemoryItemUncheckedCreateWithoutSourceEmbeddingInput = {
   updatedAt?: Date | string
   source: string
   translation: string
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -1219,6 +1292,61 @@ export type MemoryItemUpdateManyWithWhereWithoutSourceEmbeddingInput = {
   data: Prisma.XOR<Prisma.MemoryItemUpdateManyMutationInput, Prisma.MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingInput>
 }
 
+export type MemoryItemCreateWithoutTranslationEmbeddingInput = {
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  source: string
+  translation: string
+  SourceEmbedding: Prisma.VectorCreateNestedOneWithoutSourceMemoryItemsInput
+  Creator: Prisma.UserCreateNestedOneWithoutMemoryItemsInput
+  Memory: Prisma.MemoryCreateNestedOneWithoutMemoryItemsInput
+  SourceElement?: Prisma.TranslatableElementCreateNestedOneWithoutMemoryItemsInput
+  Translation?: Prisma.TranslationCreateNestedOneWithoutMemoryItemsInput
+  SourceLanguage: Prisma.LanguageCreateNestedOneWithoutSourceMemoryItemsInput
+  TranslationLanguage: Prisma.LanguageCreateNestedOneWithoutTranslationMemoryItemsInput
+}
+
+export type MemoryItemUncheckedCreateWithoutTranslationEmbeddingInput = {
+  id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  source: string
+  translation: string
+  sourceEmbeddingId: number
+  creatorId: string
+  memoryId: string
+  sourceElementId?: number | null
+  translationId?: number | null
+  sourceLanguageId: string
+  translationLanguageId: string
+}
+
+export type MemoryItemCreateOrConnectWithoutTranslationEmbeddingInput = {
+  where: Prisma.MemoryItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.MemoryItemCreateWithoutTranslationEmbeddingInput, Prisma.MemoryItemUncheckedCreateWithoutTranslationEmbeddingInput>
+}
+
+export type MemoryItemUpsertWithWhereUniqueWithoutTranslationEmbeddingInput = {
+  where: Prisma.MemoryItemWhereUniqueInput
+  update: Prisma.XOR<Prisma.MemoryItemUpdateWithoutTranslationEmbeddingInput, Prisma.MemoryItemUncheckedUpdateWithoutTranslationEmbeddingInput>
+  create: Prisma.XOR<Prisma.MemoryItemCreateWithoutTranslationEmbeddingInput, Prisma.MemoryItemUncheckedCreateWithoutTranslationEmbeddingInput>
+}
+
+export type MemoryItemCreateManyTranslationEmbeddingInputEnvelope = {
+  data: Prisma.MemoryItemCreateManyTranslationEmbeddingInput | Prisma.MemoryItemCreateManyTranslationEmbeddingInput[]
+  skipDuplicates?: boolean
+}
+
+export type MemoryItemUpdateWithWhereUniqueWithoutTranslationEmbeddingInput = {
+  where: Prisma.MemoryItemWhereUniqueInput
+  data: Prisma.XOR<Prisma.MemoryItemUpdateWithoutTranslationEmbeddingInput, Prisma.MemoryItemUncheckedUpdateWithoutTranslationEmbeddingInput>
+}
+
+export type MemoryItemUpdateManyWithWhereWithoutTranslationEmbeddingInput = {
+  where: Prisma.MemoryItemScalarWhereInput
+  data: Prisma.XOR<Prisma.MemoryItemUpdateManyMutationInput, Prisma.MemoryItemUncheckedUpdateManyWithoutTranslationEmbeddingInput>
+}
+
 export type MemoryItemCreateManySourceElementInput = {
   id?: number
   createdAt?: Date | string
@@ -1226,6 +1354,7 @@ export type MemoryItemCreateManySourceElementInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   translationId?: number | null
@@ -1238,7 +1367,8 @@ export type MemoryItemUpdateWithoutSourceElementInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
-  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutMemoryItemsNestedInput
+  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  TranslationEmbedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutMemoryItemsNestedInput
   Memory?: Prisma.MemoryUpdateOneRequiredWithoutMemoryItemsNestedInput
   Translation?: Prisma.TranslationUpdateOneWithoutMemoryItemsNestedInput
@@ -1253,6 +1383,7 @@ export type MemoryItemUncheckedUpdateWithoutSourceElementInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   translationId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1267,6 +1398,7 @@ export type MemoryItemUncheckedUpdateManyWithoutSourceElementInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   translationId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1281,6 +1413,7 @@ export type MemoryItemCreateManyMemoryInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   sourceElementId?: number | null
   translationId?: number | null
@@ -1293,7 +1426,8 @@ export type MemoryItemUpdateWithoutMemoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
-  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutMemoryItemsNestedInput
+  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  TranslationEmbedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutMemoryItemsNestedInput
   SourceElement?: Prisma.TranslatableElementUpdateOneWithoutMemoryItemsNestedInput
   Translation?: Prisma.TranslationUpdateOneWithoutMemoryItemsNestedInput
@@ -1308,6 +1442,7 @@ export type MemoryItemUncheckedUpdateWithoutMemoryInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   translationId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1322,6 +1457,7 @@ export type MemoryItemUncheckedUpdateManyWithoutMemoryInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   translationId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1336,6 +1472,7 @@ export type MemoryItemCreateManySourceLanguageInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -1350,6 +1487,7 @@ export type MemoryItemCreateManyTranslationLanguageInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -1362,7 +1500,8 @@ export type MemoryItemUpdateWithoutSourceLanguageInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
-  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutMemoryItemsNestedInput
+  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  TranslationEmbedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutMemoryItemsNestedInput
   Memory?: Prisma.MemoryUpdateOneRequiredWithoutMemoryItemsNestedInput
   SourceElement?: Prisma.TranslatableElementUpdateOneWithoutMemoryItemsNestedInput
@@ -1377,6 +1516,7 @@ export type MemoryItemUncheckedUpdateWithoutSourceLanguageInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1391,6 +1531,7 @@ export type MemoryItemUncheckedUpdateManyWithoutSourceLanguageInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1403,7 +1544,8 @@ export type MemoryItemUpdateWithoutTranslationLanguageInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
-  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutMemoryItemsNestedInput
+  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  TranslationEmbedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutMemoryItemsNestedInput
   Memory?: Prisma.MemoryUpdateOneRequiredWithoutMemoryItemsNestedInput
   SourceElement?: Prisma.TranslatableElementUpdateOneWithoutMemoryItemsNestedInput
@@ -1418,6 +1560,7 @@ export type MemoryItemUncheckedUpdateWithoutTranslationLanguageInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1432,6 +1575,7 @@ export type MemoryItemUncheckedUpdateManyWithoutTranslationLanguageInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1446,6 +1590,7 @@ export type MemoryItemCreateManyTranslationInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -1458,7 +1603,8 @@ export type MemoryItemUpdateWithoutTranslationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
-  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutMemoryItemsNestedInput
+  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  TranslationEmbedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutMemoryItemsNestedInput
   Memory?: Prisma.MemoryUpdateOneRequiredWithoutMemoryItemsNestedInput
   SourceElement?: Prisma.TranslatableElementUpdateOneWithoutMemoryItemsNestedInput
@@ -1473,6 +1619,7 @@ export type MemoryItemUncheckedUpdateWithoutTranslationInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1487,6 +1634,7 @@ export type MemoryItemUncheckedUpdateManyWithoutTranslationInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1501,6 +1649,7 @@ export type MemoryItemCreateManyCreatorInput = {
   source: string
   translation: string
   sourceEmbeddingId: number
+  translationEmbeddingId: number
   memoryId: string
   sourceElementId?: number | null
   translationId?: number | null
@@ -1513,7 +1662,8 @@ export type MemoryItemUpdateWithoutCreatorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
-  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutMemoryItemsNestedInput
+  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  TranslationEmbedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
   Memory?: Prisma.MemoryUpdateOneRequiredWithoutMemoryItemsNestedInput
   SourceElement?: Prisma.TranslatableElementUpdateOneWithoutMemoryItemsNestedInput
   Translation?: Prisma.TranslationUpdateOneWithoutMemoryItemsNestedInput
@@ -1528,6 +1678,7 @@ export type MemoryItemUncheckedUpdateWithoutCreatorInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   translationId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1542,6 +1693,7 @@ export type MemoryItemUncheckedUpdateManyWithoutCreatorInput = {
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
   sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   translationId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1554,6 +1706,7 @@ export type MemoryItemUpdateWithoutSourceEmbeddingInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
+  TranslationEmbedding?: Prisma.VectorUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
   Creator?: Prisma.UserUpdateOneRequiredWithoutMemoryItemsNestedInput
   Memory?: Prisma.MemoryUpdateOneRequiredWithoutMemoryItemsNestedInput
   SourceElement?: Prisma.TranslatableElementUpdateOneWithoutMemoryItemsNestedInput
@@ -1568,6 +1721,7 @@ export type MemoryItemUncheckedUpdateWithoutSourceEmbeddingInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1582,6 +1736,7 @@ export type MemoryItemCreateManySourceEmbeddingInput = {
   updatedAt?: Date | string
   source: string
   translation: string
+  translationEmbeddingId: number
   creatorId: string
   memoryId: string
   sourceElementId?: number | null
@@ -1596,6 +1751,66 @@ export type MemoryItemUncheckedUpdateManyWithoutSourceEmbeddingInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   translation?: Prisma.StringFieldUpdateOperationsInput | string
+  translationEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  creatorId?: Prisma.StringFieldUpdateOperationsInput | string
+  memoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  translationId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sourceLanguageId?: Prisma.StringFieldUpdateOperationsInput | string
+  translationLanguageId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type MemoryItemUpdateWithoutTranslationEmbeddingInput = {
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  source?: Prisma.StringFieldUpdateOperationsInput | string
+  translation?: Prisma.StringFieldUpdateOperationsInput | string
+  SourceEmbedding?: Prisma.VectorUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  Creator?: Prisma.UserUpdateOneRequiredWithoutMemoryItemsNestedInput
+  Memory?: Prisma.MemoryUpdateOneRequiredWithoutMemoryItemsNestedInput
+  SourceElement?: Prisma.TranslatableElementUpdateOneWithoutMemoryItemsNestedInput
+  Translation?: Prisma.TranslationUpdateOneWithoutMemoryItemsNestedInput
+  SourceLanguage?: Prisma.LanguageUpdateOneRequiredWithoutSourceMemoryItemsNestedInput
+  TranslationLanguage?: Prisma.LanguageUpdateOneRequiredWithoutTranslationMemoryItemsNestedInput
+}
+
+export type MemoryItemUncheckedUpdateWithoutTranslationEmbeddingInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  source?: Prisma.StringFieldUpdateOperationsInput | string
+  translation?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
+  creatorId?: Prisma.StringFieldUpdateOperationsInput | string
+  memoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  translationId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sourceLanguageId?: Prisma.StringFieldUpdateOperationsInput | string
+  translationLanguageId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type MemoryItemCreateManyTranslationEmbeddingInput = {
+  id?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  source: string
+  translation: string
+  sourceEmbeddingId: number
+  creatorId: string
+  memoryId: string
+  sourceElementId?: number | null
+  translationId?: number | null
+  sourceLanguageId: string
+  translationLanguageId: string
+}
+
+export type MemoryItemUncheckedUpdateManyWithoutTranslationEmbeddingInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  source?: Prisma.StringFieldUpdateOperationsInput | string
+  translation?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceEmbeddingId?: Prisma.IntFieldUpdateOperationsInput | number
   creatorId?: Prisma.StringFieldUpdateOperationsInput | string
   memoryId?: Prisma.StringFieldUpdateOperationsInput | string
   sourceElementId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1613,6 +1828,7 @@ export type MemoryItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   source?: boolean
   translation?: boolean
   sourceEmbeddingId?: boolean
+  translationEmbeddingId?: boolean
   creatorId?: boolean
   memoryId?: boolean
   sourceElementId?: boolean
@@ -1620,6 +1836,7 @@ export type MemoryItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   sourceLanguageId?: boolean
   translationLanguageId?: boolean
   SourceEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  TranslationEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   Creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   Memory?: boolean | Prisma.MemoryDefaultArgs<ExtArgs>
   SourceElement?: boolean | Prisma.MemoryItem$SourceElementArgs<ExtArgs>
@@ -1635,6 +1852,7 @@ export type MemoryItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   source?: boolean
   translation?: boolean
   sourceEmbeddingId?: boolean
+  translationEmbeddingId?: boolean
   creatorId?: boolean
   memoryId?: boolean
   sourceElementId?: boolean
@@ -1642,6 +1860,7 @@ export type MemoryItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   sourceLanguageId?: boolean
   translationLanguageId?: boolean
   SourceEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  TranslationEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   Creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   Memory?: boolean | Prisma.MemoryDefaultArgs<ExtArgs>
   SourceElement?: boolean | Prisma.MemoryItem$SourceElementArgs<ExtArgs>
@@ -1657,6 +1876,7 @@ export type MemoryItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   source?: boolean
   translation?: boolean
   sourceEmbeddingId?: boolean
+  translationEmbeddingId?: boolean
   creatorId?: boolean
   memoryId?: boolean
   sourceElementId?: boolean
@@ -1664,6 +1884,7 @@ export type MemoryItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   sourceLanguageId?: boolean
   translationLanguageId?: boolean
   SourceEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  TranslationEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   Creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   Memory?: boolean | Prisma.MemoryDefaultArgs<ExtArgs>
   SourceElement?: boolean | Prisma.MemoryItem$SourceElementArgs<ExtArgs>
@@ -1679,6 +1900,7 @@ export type MemoryItemSelectScalar = {
   source?: boolean
   translation?: boolean
   sourceEmbeddingId?: boolean
+  translationEmbeddingId?: boolean
   creatorId?: boolean
   memoryId?: boolean
   sourceElementId?: boolean
@@ -1687,9 +1909,10 @@ export type MemoryItemSelectScalar = {
   translationLanguageId?: boolean
 }
 
-export type MemoryItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "source" | "translation" | "sourceEmbeddingId" | "creatorId" | "memoryId" | "sourceElementId" | "translationId" | "sourceLanguageId" | "translationLanguageId", ExtArgs["result"]["memoryItem"]>
+export type MemoryItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "source" | "translation" | "sourceEmbeddingId" | "translationEmbeddingId" | "creatorId" | "memoryId" | "sourceElementId" | "translationId" | "sourceLanguageId" | "translationLanguageId", ExtArgs["result"]["memoryItem"]>
 export type MemoryItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   SourceEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  TranslationEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   Creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   Memory?: boolean | Prisma.MemoryDefaultArgs<ExtArgs>
   SourceElement?: boolean | Prisma.MemoryItem$SourceElementArgs<ExtArgs>
@@ -1699,6 +1922,7 @@ export type MemoryItemInclude<ExtArgs extends runtime.Types.Extensions.InternalA
 }
 export type MemoryItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   SourceEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  TranslationEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   Creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   Memory?: boolean | Prisma.MemoryDefaultArgs<ExtArgs>
   SourceElement?: boolean | Prisma.MemoryItem$SourceElementArgs<ExtArgs>
@@ -1708,6 +1932,7 @@ export type MemoryItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.E
 }
 export type MemoryItemIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   SourceEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
+  TranslationEmbedding?: boolean | Prisma.VectorDefaultArgs<ExtArgs>
   Creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   Memory?: boolean | Prisma.MemoryDefaultArgs<ExtArgs>
   SourceElement?: boolean | Prisma.MemoryItem$SourceElementArgs<ExtArgs>
@@ -1720,6 +1945,7 @@ export type $MemoryItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
   name: "MemoryItem"
   objects: {
     SourceEmbedding: Prisma.$VectorPayload<ExtArgs>
+    TranslationEmbedding: Prisma.$VectorPayload<ExtArgs>
     Creator: Prisma.$UserPayload<ExtArgs>
     Memory: Prisma.$MemoryPayload<ExtArgs>
     SourceElement: Prisma.$TranslatableElementPayload<ExtArgs> | null
@@ -1734,6 +1960,7 @@ export type $MemoryItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     source: string
     translation: string
     sourceEmbeddingId: number
+    translationEmbeddingId: number
     creatorId: string
     memoryId: string
     sourceElementId: number | null
@@ -2135,6 +2362,7 @@ readonly fields: MemoryItemFieldRefs;
 export interface Prisma__MemoryItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   SourceEmbedding<T extends Prisma.VectorDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VectorDefaultArgs<ExtArgs>>): Prisma.Prisma__VectorClient<runtime.Types.Result.GetResult<Prisma.$VectorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  TranslationEmbedding<T extends Prisma.VectorDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VectorDefaultArgs<ExtArgs>>): Prisma.Prisma__VectorClient<runtime.Types.Result.GetResult<Prisma.$VectorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   Creator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   Memory<T extends Prisma.MemoryDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MemoryDefaultArgs<ExtArgs>>): Prisma.Prisma__MemoryClient<runtime.Types.Result.GetResult<Prisma.$MemoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   SourceElement<T extends Prisma.MemoryItem$SourceElementArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MemoryItem$SourceElementArgs<ExtArgs>>): Prisma.Prisma__TranslatableElementClient<runtime.Types.Result.GetResult<Prisma.$TranslatableElementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -2176,6 +2404,7 @@ export interface MemoryItemFieldRefs {
   readonly source: Prisma.FieldRef<"MemoryItem", 'String'>
   readonly translation: Prisma.FieldRef<"MemoryItem", 'String'>
   readonly sourceEmbeddingId: Prisma.FieldRef<"MemoryItem", 'Int'>
+  readonly translationEmbeddingId: Prisma.FieldRef<"MemoryItem", 'Int'>
   readonly creatorId: Prisma.FieldRef<"MemoryItem", 'String'>
   readonly memoryId: Prisma.FieldRef<"MemoryItem", 'String'>
   readonly sourceElementId: Prisma.FieldRef<"MemoryItem", 'Int'>

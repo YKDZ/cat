@@ -6,7 +6,7 @@ import { UserSchema } from "./user";
 import { DocumentSchema } from "./document";
 
 export const ProjectSchema = z.object({
-  id: z.cuid2(),
+  id: z.ulid(),
   name: z.string(),
   description: z.string().nullable(),
   createdAt: PrimsaDateTime,
@@ -18,7 +18,7 @@ export const ProjectSchema = z.object({
   get SourceLanguage() {
     return LanguageSchema.optional();
   },
-  creatorId: z.cuid2(),
+  creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();
   },

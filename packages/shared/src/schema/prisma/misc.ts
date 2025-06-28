@@ -8,12 +8,12 @@ export const LanguageSchema = z.object({
 
 export const PermissionSchema = z.object({
   permission: z.string(),
-  projectId: z.cuid2(),
-  userId: z.cuid2(),
+  projectId: z.ulid(),
+  userId: z.ulid(),
 });
 
 export const TaskSchema = z.object({
-  id: z.cuid2(),
+  id: z.ulid(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   status: z.enum(["pending", "processing", "completed", "failed"]),
