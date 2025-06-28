@@ -13,8 +13,8 @@ export const projectRouter = router({
         description: z.string().nullable(),
         sourceLanguageId: z.string(),
         targetLanguageIds: z.array(z.string()),
-        memoryIds: z.array(z.cuid2()),
-        glossaryIds: z.array(z.cuid2()),
+        memoryIds: z.array(z.ulid()),
+        glossaryIds: z.array(z.ulid()),
         createMemory: z.boolean(),
         createGlossary: z.boolean(),
       }),
@@ -84,8 +84,8 @@ export const projectRouter = router({
   linkGlossary: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
-        glossaryIds: z.array(z.cuid2()),
+        id: z.ulid(),
+        glossaryIds: z.array(z.ulid()),
       }),
     )
     .mutation(async ({ input }) => {
@@ -107,8 +107,8 @@ export const projectRouter = router({
   linkMemory: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
-        memoryIds: z.array(z.cuid2()),
+        id: z.ulid(),
+        memoryIds: z.array(z.ulid()),
       }),
     )
     .mutation(async ({ input }) => {
@@ -130,8 +130,8 @@ export const projectRouter = router({
   unlinkGlossary: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
-        glossaryIds: z.array(z.cuid2()),
+        id: z.ulid(),
+        glossaryIds: z.array(z.ulid()),
       }),
     )
     .mutation(async ({ input }) => {
@@ -153,8 +153,8 @@ export const projectRouter = router({
   unlinkMemory: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
-        memoryIds: z.array(z.cuid2()),
+        id: z.ulid(),
+        memoryIds: z.array(z.ulid()),
       }),
     )
     .mutation(async ({ input }) => {
@@ -204,7 +204,7 @@ export const projectRouter = router({
   listUserParticipated: publicProcedure
     .input(
       z.object({
-        userId: z.cuid2(),
+        userId: z.ulid(),
       }),
     )
     .query(async ({ input }) => {
@@ -346,7 +346,7 @@ export const projectRouter = router({
   countElement: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
         isTranslated: z.boolean().optional(),
         isApproved: z.boolean().optional(),
       }),
@@ -385,7 +385,7 @@ export const projectRouter = router({
   countTranslation: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
         languageId: z.string(),
         isApproved: z.boolean().optional(),
       }),

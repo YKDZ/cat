@@ -7,7 +7,7 @@ export const PrismaErrorSchema = z.object({
   clientVersion: z.string(),
 });
 
-export const PrimsaDateTime = z.date().or(z.iso.date());
+export const PrimsaDateTime = z.date().or(z.iso.datetime());
 
 export const TranslationAdvisorDataSchema = z.object({
   id: z.string(),
@@ -43,8 +43,8 @@ export const TranslationSuggestionSchema = z.object({
 export const MemorySuggestionSchema = z.object({
   source: z.string(),
   translation: z.string(),
-  memoryId: z.cuid2(),
-  translatorId: z.cuid2(),
+  memoryId: z.ulid(),
+  translatorId: z.ulid(),
   similarity: z.number().min(0).max(1),
 });
 

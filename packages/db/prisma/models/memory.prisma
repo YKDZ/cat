@@ -1,5 +1,5 @@
 model Memory {
-    id          String   @id @default(cuid())
+    id          String   @id @default(ulid())
     name        String
     description String?
     createdAt   DateTime @default(now())
@@ -21,7 +21,10 @@ model MemoryItem {
     translation String
 
     sourceEmbeddingId Int
-    SourceEmbedding   Vector @relation(fields: [sourceEmbeddingId], references: [id], onDelete: Cascade)
+    SourceEmbedding   Vector @relation(name: "SourceEmbedding", fields: [sourceEmbeddingId], references: [id], onDelete: Cascade)
+
+    translationEmbeddingId Int
+    TranslationEmbedding   Vector @relation(name: "TranslationEmbedding", fields: [translationEmbeddingId], references: [id], onDelete: Cascade)
 
     creatorId String
     Creator   User   @relation(fields: [creatorId], references: [id])

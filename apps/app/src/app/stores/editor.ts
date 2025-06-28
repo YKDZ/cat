@@ -1,12 +1,13 @@
 import { trpc } from "@/server/trpc/client";
-import type {
-  Document,
-  ElementTranslationStatus,
-  MemorySuggestion,
-  TermRelation,
-  TranslatableElement,
-  Translation,
-  TranslationSuggestion,
+import {
+  TranslatableElementSchema,
+  TranslationSchema,
+  type Document,
+  type ElementTranslationStatus,
+  type MemorySuggestion,
+  type TermRelation,
+  type TranslatableElement,
+  type TranslationSuggestion,
 } from "@cat/shared";
 import type { TRPCClientError } from "@trpc/client";
 import { useRefHistory } from "@vueuse/core";
@@ -15,6 +16,29 @@ import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref, shallowRef } from "vue";
 import { useToastStore } from "./toast";
 import type { PartData } from "../components/tagger";
+import z from "zod/v4";
+
+const TranslationStatusSchema = z
+  .enum(["PROCESSING", "COMPLETED"])
+  .default("COMPLETED");
+
+const TranslationWithStatusSchema = TranslationSchema.extend({
+  status: TranslationStatusSchema,
+});
+
+const TranslatableElementStatusSchema = z
+  .enum(["NO", "TRANSLATED", "APPROVED"])
+  .default("NO");
+
+const TranslatableElementWithStatusSchema = TranslatableElementSchema.extend({
+  status: TranslatableElementStatusSchema,
+});
+
+export type TranslatableElementWithStatus = z.infer<
+  typeof TranslatableElementWithStatusSchema
+>;
+
+export type TranslationWithStatus = z.infer<typeof TranslationWithStatusSchema>;
 
 export const useEditorStore = defineStore("editor", () => {
   const { trpcWarn } = useToastStore();
@@ -22,13 +46,14 @@ export const useEditorStore = defineStore("editor", () => {
   // 分页与查询
   const elementTotalAmount = ref(0);
   const pageSize = ref(16);
-  const storedElements = shallowRef<
-    (TranslatableElement & { status?: "NO" | "TRANSLATED" | "APPROVED" })[]
-  >([]);
   const currentPageIndex = ref(-1);
-  const loadedPages = ref<number[]>([]);
-  const loadedPagesInfo = reactive(
-    new Map<number, { fromId: number; toId: number }>(),
+  const loadedPages = reactive(
+    new Map<
+      number,
+      {
+        elements: TranslatableElementWithStatus[];
+      }
+    >(),
   );
   const searchQuery = ref("");
 
@@ -36,7 +61,7 @@ export const useEditorStore = defineStore("editor", () => {
   const documentId = ref<string | null>();
   const languageFromId = ref<string | null>(null);
   const languageToId = ref<string | null>(null);
-  const translations = shallowRef<Translation[]>([]);
+  const translations = shallowRef<TranslationWithStatus[]>([]);
   const document = ref<Document | null>(null);
   const elementId = ref<number | null>(null);
   const translationValue = ref<string>("");
@@ -59,6 +84,10 @@ export const useEditorStore = defineStore("editor", () => {
 
   // 审校模式
   const isProofreading = ref(false);
+
+  const loadedPagesIndex = computed<number[]>(() => {
+    return Array.from(loadedPages.keys());
+  });
 
   const addTerms = (...termsToAdd: TermRelation[]) => {
     termsToAdd.forEach((relation) => {
@@ -83,39 +112,25 @@ export const useEditorStore = defineStore("editor", () => {
     });
   };
 
-  const upsertElements = (
-    ...elementsToAdd: (TranslatableElement & {
-      status?: "NO" | "TRANSLATED" | "APPROVED";
-    })[]
-  ) => {
-    for (const element of elementsToAdd) {
-      if (!element) continue;
+  const storedElements = computed<TranslatableElementWithStatus[]>(() => {
+    // @ts-expect-error: Can not resolve type excessively deep
+    return [...loadedPages.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .flatMap(([, pageInfo]) => pageInfo.elements);
+  });
 
-      const currentIndex = storedElements.value.findIndex(
-        (e: TranslatableElement) => e.id === element.id,
-      );
-
-      if (currentIndex === -1) {
-        storedElements.value.push(element);
-      } else {
-        storedElements.value.splice(currentIndex, 1, element);
-      }
-    }
-
-    // 用于强制触发其他响应式依赖的更新
-    storedElements.value = [
-      ...storedElements.value.sort(
-        (a: TranslatableElement, b: TranslatableElement) => a.id - b.id,
-      ),
-    ];
-  };
+  const displayedElements = computed<TranslatableElement[]>(() => {
+    const info = loadedPages.get(currentPageIndex.value);
+    if (!info) return [];
+    return info.elements;
+  });
 
   const toElement = async (id: number) => {
     if (!documentId.value) return;
 
     try {
       const page = await trpc.document.queryPageIndexOfElement.query({
-        id,
+        elementId: id,
         documentId: documentId.value,
         pageSize: pageSize.value,
         searchQuery: searchQuery.value,
@@ -131,7 +146,7 @@ export const useEditorStore = defineStore("editor", () => {
 
   const toPage = async (index: number) => {
     if (!documentId.value) return;
-    if (loadedPages.value.includes(index)) {
+    if (loadedPagesIndex.value.includes(index)) {
       currentPageIndex.value = index;
       return;
     }
@@ -149,22 +164,18 @@ export const useEditorStore = defineStore("editor", () => {
 
         if (elements.length === 0) return;
 
-        loadedPagesInfo.set(currentPageIndex.value, {
-          fromId: elements[0].id,
-          toId: elements[elements.length - 1].id,
+        loadedPages.set(currentPageIndex.value, {
+          elements: z
+            .array(TranslatableElementWithStatusSchema)
+            .parse(elements),
         });
-
-        upsertElements(...elements);
-        loadedPages.value.push(currentPageIndex.value);
       });
   };
 
   const refresh = () => {
     elementTotalAmount.value = 0;
     currentPageIndex.value = -1;
-    loadedPages.value = [];
-    loadedPagesInfo.clear();
-    storedElements.value = [];
+    loadedPages.clear();
     terms.value = [];
     suggestions.value = [];
     translations.value = [];
@@ -172,29 +183,12 @@ export const useEditorStore = defineStore("editor", () => {
     memories.value = [];
   };
 
-  const element = computed(() => {
-    const elements = [...storedElements.value];
+  const element = computed<TranslatableElementWithStatus | null>(() => {
     return (
-      elements.find((e: TranslatableElement) => e.id === elementId.value) ??
-      null
+      storedElements.value.find(
+        (e: TranslatableElement) => e.id === elementId.value,
+      ) ?? null
     );
-  });
-
-  const displayedElements = computed<TranslatableElement[]>(() => {
-    const info = loadedPagesInfo.get(currentPageIndex.value);
-
-    if (!info) return [];
-
-    const start = storedElements.value.findIndex(
-      (element: TranslatableElement) => element.id >= info.fromId,
-    );
-    const end =
-      storedElements.value.length -
-      [...storedElements.value]
-        .reverse()
-        .findIndex((element) => element.id <= info.toId);
-
-    return storedElements.value.slice(start, end) as TranslatableElement[];
   });
 
   const fetchTranslations = async (elementId: number) => {
@@ -203,7 +197,9 @@ export const useEditorStore = defineStore("editor", () => {
     await trpc.translation.queryAll
       .query({ elementId, languageId: languageToId.value })
       .then((newTranslations) => {
-        translations.value = newTranslations;
+        translations.value = z
+          .array(TranslationWithStatusSchema)
+          .parse(newTranslations);
       });
   };
 
@@ -233,7 +229,10 @@ export const useEditorStore = defineStore("editor", () => {
       });
   };
 
-  const handleNewTranslation = async (newTranslation: Translation) => {
+  const handleNewTranslation = async (
+    newTranslation: TranslationWithStatus,
+    shouldUpsert: boolean = true,
+  ) => {
     // 本地更新元素翻译状态
     if (
       element.value &&
@@ -243,24 +242,33 @@ export const useEditorStore = defineStore("editor", () => {
       element.value.status = "TRANSLATED";
     }
 
-    upsertTranslation(newTranslation);
+    if (shouldUpsert) upsertTranslation(newTranslation);
   };
 
   const jumpToNextUntranslated = async () => {
     if (!documentId.value) return;
 
+    const lastPageIndex = Math.max(...Array.from(loadedPages.keys()));
+    const lastPageElements = loadedPages.get(lastPageIndex)?.elements;
+
+    if (!lastPageElements) return;
+
     const isAtLast =
-      element.value?.id ===
-      storedElements.value[storedElements.value.length - 1].id;
+      element.value?.id === lastPageElements[lastPageElements.length - 1].id;
+
+    const currrentElementIndex = storedElements.value.findIndex(
+      (el) => el.id == elementId.value,
+    );
+
     let firstUntranslatedElement: TranslatableElement | null =
-      storedElements.value.find((el) => {
-        if (!element.value) return false;
-        return el.status === "NO" && (isAtLast || element.value.id < el.id);
-      }) ?? null;
+      storedElements.value.find(
+        (element, index) =>
+          (isAtLast || index > currrentElementIndex) && element.status === "NO",
+      ) ?? null;
+
     if (!firstUntranslatedElement) {
       firstUntranslatedElement = await trpc.document.queryFirstElement.query({
-        id: documentId.value,
-        idGreaterThan: element.value?.id,
+        documentId: documentId.value,
         isTranslated: false,
       });
     }
@@ -273,7 +281,7 @@ export const useEditorStore = defineStore("editor", () => {
     );
   };
 
-  const translate = async () => {
+  const translate = async (shouldInsert: boolean) => {
     if (!elementId.value || !languageToId.value || !document.value) return;
 
     if (!selectedTranslationId.value) {
@@ -284,14 +292,21 @@ export const useEditorStore = defineStore("editor", () => {
           languageId: languageToId.value,
           value: translationValue.value,
         })
-        .then(handleNewTranslation);
+        .then((t) => {
+          handleNewTranslation(t, shouldInsert);
+        });
     } else {
       await trpc.translation.update
         .mutate({
           id: selectedTranslationId.value,
           value: translationValue.value,
         })
-        .then(handleNewTranslation);
+        .then((t) => {
+          handleNewTranslation(
+            TranslationWithStatusSchema.parse(t),
+            shouldInsert,
+          );
+        });
     }
   };
 
@@ -306,22 +321,38 @@ export const useEditorStore = defineStore("editor", () => {
     });
   };
 
+  const updateElement = (updatedElement: TranslatableElement) => {
+    for (const [, pageInfo] of loadedPages.entries()) {
+      const index = pageInfo.elements.findIndex(
+        (el) => el.id === updatedElement.id,
+      );
+
+      if (index !== -1) {
+        pageInfo.elements.splice(
+          index,
+          1,
+          TranslatableElementWithStatusSchema.parse(updatedElement),
+        );
+        break;
+      }
+    }
+  };
+
   const updateElementStatus = async (elementId: number) => {
     const status = await queryElementTranslationStatus(elementId);
     const element = storedElements.value.find((el) => el.id === elementId);
 
     if (!element) return;
 
-    console.log(status);
+    const newEl = TranslatableElementWithStatusSchema.parse({
+      ...element,
+      status,
+    });
 
-    const newEl = { ...element, status } satisfies TranslatableElement & {
-      status?: "NO" | "TRANSLATED" | "APPROVED";
-    };
-
-    upsertElements(newEl);
+    updateElement(newEl);
   };
 
-  const upsertTranslation = (translation: Translation) => {
+  const upsertTranslation = (translation: TranslationWithStatus) => {
     if (!translation) return;
 
     const currentIndex = translations.value.findIndex(
@@ -393,8 +424,8 @@ export const useEditorStore = defineStore("editor", () => {
     sourceParts,
     translationParts,
     isProofreading,
+    loadedPagesIndex,
     updateElementStatus,
-    upsertElements,
     fetchElementTotalAmount,
     refresh,
     addTerms,

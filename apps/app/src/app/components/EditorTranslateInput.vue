@@ -29,7 +29,7 @@ onMounted(() => {
       position: isSticky ? 'sticky' : 'static',
       top: topHeight + 'px',
     }"
-    class="bg-highlight bg-op-50 flex h-fit w-full backdrop-blur-sm"
+    class="bg-highlight bg-op-50 flex h-fit max-w-full w-full backdrop-blur-sm"
   >
     <textarea
       ref="inputTextareaEl"
@@ -37,6 +37,8 @@ onMounted(() => {
       :placeholder="$t('在此输入译文')"
       class="px-5 pt-5 outline-0 max-w-1/2 min-h-32 min-w-1/2"
     />
-    <EditorTaggedTranslation />
+    <div class="px-5 pt-5 flex flex-col gap-5 max-w-1/2 min-h-32 min-w-1/2">
+      <EditorTaggedTranslation />
+    </div>
   </div>
 </template>

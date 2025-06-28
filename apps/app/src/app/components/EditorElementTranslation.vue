@@ -3,6 +3,7 @@ import type { Translation, TranslationApprovment } from "@cat/shared";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
+import type { TranslationWithStatus } from "../stores/editor";
 import { useEditorStore } from "../stores/editor";
 import EditorElementTranslationMeta from "./EditorElementTranslationMeta.vue";
 import EditorElementTranslationVote from "./EditorElementTranslationVote.vue";
@@ -24,7 +25,7 @@ const { translationValue, selectedTranslationId, isProofreading } =
 const { user } = usePageContext();
 
 const props = defineProps<{
-  translation: Translation;
+  translation: TranslationWithStatus;
 }>();
 
 const handleSelect = () => {
@@ -81,18 +82,15 @@ const handleUnapprove = async () => {
   <div
     class="px-3 py-2 flex gap-2 w-full cursor-pointer items-center relative"
     :class="{
+      'bg-warning hover:bg-warning-darker': translation.status === 'PROCESSING',
       'bg-success hover:bg-success-darker': isApproved,
       ' bg-highlight hover:bg-highlight-darker': !isApproved,
       'border-l-2 border-base': selectedTranslationId === translation.id,
     }"
     @click="handleSelect"
   >
-    <UserAvatar
-      v-if="translation.Translator"
-      :user="translation.Translator"
-      :size="36"
-    />
-    <div class="flex flex-col gap-1 w-full">
+    <UserAvatar :user-id="translation.translatorId" :size="36" />
+    <div class="flex flex-col gap-1 max-w-full">
       <TextTagger :text="translation.value" />
       <EditorElementTranslationMeta :meta="translation.meta" />
     </div>

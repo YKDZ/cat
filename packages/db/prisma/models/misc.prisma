@@ -17,7 +17,7 @@ model Language {
 }
 
 model Task {
-    id        String   @id @default(cuid())
+    id        String   @id @default(ulid())
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
     status    String   @default("pending")

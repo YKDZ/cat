@@ -33,11 +33,30 @@
     },
     "test": {
       "persistent": true,
-      "cache": false
+      "inputs": [
+        "src/**",
+        "*.json",
+        "*.ts",
+        ".env"
+      ]
+    },
+    "test:type": {
+      "persistent": true,
+      "inputs": [
+        "src/**",
+        "*.json",
+        "*.ts",
+        ".env"
+      ]
     },
     "test:e2e": {
       "persistent": true,
-      "cache": false
+      "inputs": [
+        "src/**",
+        "*.json",
+        "*.ts",
+        ".env"
+      ]
     },
     "format": {
       "dependsOn": [

@@ -31,7 +31,7 @@ export const glossaryRouter = router({
   queryTerms: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
         sourceLanguageId: z.string().nullable(),
         translationLanguageId: z.string().nullable(),
       }),
@@ -87,7 +87,7 @@ export const glossaryRouter = router({
   query: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
       }),
     )
     .output(GlossarySchema.nullable())
@@ -108,7 +108,7 @@ export const glossaryRouter = router({
   listUserOwned: authedProcedure
     .input(
       z.object({
-        userId: z.cuid2(),
+        userId: z.ulid(),
       }),
     )
     .output(z.array(GlossarySchema))
@@ -129,7 +129,7 @@ export const glossaryRouter = router({
   listProjectOwned: authedProcedure
     .input(
       z.object({
-        projectId: z.cuid2(),
+        projectId: z.ulid(),
       }),
     )
     .output(z.array(GlossarySchema))
@@ -154,7 +154,7 @@ export const glossaryRouter = router({
   countTerm: authedProcedure
     .input(
       z.object({
-        id: z.cuid2(),
+        id: z.ulid(),
       }),
     )
     .output(z.number().int())
@@ -174,7 +174,7 @@ export const glossaryRouter = router({
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        projectIds: z.array(z.cuid2()).optional(),
+        projectIds: z.array(z.ulid()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -205,7 +205,7 @@ export const glossaryRouter = router({
   insertTerm: authedProcedure
     .input(
       z.object({
-        glossaryId: z.cuid2(),
+        glossaryId: z.ulid(),
         termsData: z.array(TermDataSchema),
         canReverse: z.boolean().default(true),
       }),

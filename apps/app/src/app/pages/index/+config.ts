@@ -1,5 +1,5 @@
 import type { Config } from "vike/types";
-import Index from "../../layouts/Index.vue";
+import Index from "@/app/layouts/Index.vue";
 
 export default {
   Layout: Index,

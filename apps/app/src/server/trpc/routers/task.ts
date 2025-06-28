@@ -8,7 +8,7 @@ export const taskRouter = router({
   listProjectExportTranslatedFileTask: authedProcedure
     .input(
       z.object({
-        projectId: z.cuid2(),
+        projectId: z.ulid(),
       }),
     )
     .output(z.array(TaskSchema))

@@ -26,7 +26,7 @@ export const PluginUserConfigInstanceSchema = z.object({
   isActive: z.boolean(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
-  creatorId: z.cuid2(),
+  creatorId: z.ulid(),
   configId: z.int(),
 });
 

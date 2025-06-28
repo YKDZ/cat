@@ -66,21 +66,38 @@ export const searchMemory = async (
         similarity: number;
       }[]
     >`
-      SELECT 
-        mi.id,
-        mi."memoryId",
-        mi.source,
-        mi.translation,
-        mi."creatorId",
-        1 - (v.vector <=> ${vectorLiteral}) AS similarity
-      FROM 
-        "MemoryItem" mi
-      JOIN
-        "Vector" v ON mi."sourceEmbeddingId" = v.id
-      WHERE
-        mi."sourceLanguageId" = ${sourceLanguageId} AND
-        mi."translationLanguageId" = ${translationLanguageId} AND
-        mi."memoryId" = ANY(${memoryIds})
+      SELECT * FROM (
+        SELECT 
+          mi.id,
+          mi."memoryId",
+          mi.source AS source,
+          mi.translation AS translation,
+          mi."creatorId",
+          1 - (v.vector <=> ${vectorLiteral}) AS similarity
+        FROM "MemoryItem" mi
+        JOIN "Vector" v ON mi."sourceEmbeddingId" = v.id
+        WHERE
+          mi."sourceLanguageId" = ${sourceLanguageId} AND
+          mi."translationLanguageId" = ${translationLanguageId} AND
+          mi."memoryId" = ANY(${memoryIds})
+
+        UNION ALL
+
+        SELECT 
+          mi.id,
+          mi."memoryId",
+          mi.translation AS source,
+          mi.source AS translation,
+          mi."creatorId",
+          1 - (v.vector <=> ${vectorLiteral}) AS similarity
+        FROM "MemoryItem" mi
+        JOIN "Vector" v ON mi."translationEmbeddingId" = v.id
+        WHERE
+          mi."sourceLanguageId" = ${translationLanguageId} AND
+          mi."translationLanguageId" = ${sourceLanguageId} AND
+          mi."memoryId" = ANY(${memoryIds})
+      ) AS combined
+       
       ORDER BY similarity DESC
       LIMIT ${maxAmount};
     `;
