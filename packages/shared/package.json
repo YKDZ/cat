@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "@types/node": "^22.15.30",
+    "@types/node": "^24.0.7",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
