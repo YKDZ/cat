@@ -65,7 +65,7 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "@iconify-json/codicon": "^1.2.21",
+    "@iconify-json/codicon": "^1.2.23",
     "@iconify-json/file-icons": "^1.2.1",
     "@iconify-json/flag": "^1.2.5",
     "@iconify-json/fluent": "^1.2.24",
