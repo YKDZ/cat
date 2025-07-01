@@ -68,7 +68,7 @@
     "@iconify-json/codicon": "^1.2.21",
     "@iconify-json/file-icons": "^1.2.1",
     "@iconify-json/flag": "^1.2.5",
-    "@iconify-json/fluent": "^1.2.24",
+    "@iconify-json/fluent": "^1.2.26",
     "@iconify-json/mdi": "^1.2.3",
     "@intlify/eslint-plugin-vue-i18n": "^4.0.1",
     "@types/fs-extra": "^11.0.4",
