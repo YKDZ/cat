@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
 import { setting } from "@cat/db";
+import { expect, test } from "@playwright/test";
 
 test("should have basic outlook", async ({ page }) => {
   await page.goto("/auth");
@@ -20,13 +20,8 @@ test("should login and redirected to index", async ({ page }) => {
 
   const emailPasswordAuthBtn = page.locator("#EMAIL_PASSWORD");
 
-  await expect(emailPasswordAuthBtn).toBeVisible();
-  await expect(emailPasswordAuthBtn).toBeEnabled();
-
-  await expect(async () => {
-    await emailPasswordAuthBtn.click();
-    await expect(page).toHaveURL("/auth/callback");
-  }).toPass({ intervals: [1000], timeout: 5000 });
+  await emailPasswordAuthBtn.click();
+  await expect(page).toHaveURL("/auth/callback");
 
   const emailInput = page.locator('input[type="email"]');
   const passwordInput = page.locator('input[type="text"]');

@@ -13,7 +13,10 @@ const seed = async () => {
       ],
     });
 
-    const password = randomBytes(8).toString("hex");
+    const password =
+      process.env.NODE_ENV !== "production"
+        ? "password"
+        : randomBytes(8).toString("hex");
 
     await tx.user.create({
       data: {

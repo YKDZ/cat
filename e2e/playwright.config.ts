@@ -6,6 +6,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 // import dotenv from 'dotenv';
 // import path from 'path';
+import { beforeEach } from "vitest";
 // dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
@@ -35,26 +36,18 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "reset db",
-      testMatch: /reset-db\.setup\.test\.ts/,
-    },
-
-    {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["reset db"],
     },
 
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
-      dependencies: ["reset db"],
     },
 
     {
       name: "webkit",
       use: { ...devices["Desktop Safari"] },
-      dependencies: ["reset db"],
     },
 
     /* Test against mobile viewports. */

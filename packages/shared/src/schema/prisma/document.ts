@@ -46,4 +46,5 @@ export const DocumentVersionSchema = z.object({
 });
 
 export type Document = z.infer<typeof DocumentSchema>;
+export type DocumentVersion = z.infer<typeof DocumentVersionSchema>;
 export type TranslatableElement = z.infer<typeof TranslatableElementSchema>;
