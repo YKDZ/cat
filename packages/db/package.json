@@ -48,7 +48,7 @@
     "@types/node": "^24.0.7",
     "dotenv": "^17.0.0",
     "prisma": "6.10.1",
-    "prisma-json-types-generator": "^3.5.0",
+    "prisma-json-types-generator": "^3.5.1",
     "tsx": "^4.20.3"
   }
 }
