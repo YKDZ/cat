@@ -1,4 +1,4 @@
-name: Safe Auto-merge Dependabot PRs
+name: Dependabot Auto-merge
 
 on:
   pull_request:
@@ -8,53 +8,76 @@ jobs:
   automerge:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
       pull-requests: write
+      checks: read  # 新增权限
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Analyze PR metadata
-        id: check
+      - name: Calculate dynamic threshold
+        id: threshold
         run: |
-          echo "PR_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
-          echo "CHANGED_FILES=$(gh pr view ${{ github.event.pull_request.html_url }} --json files -q '.files | length')" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_COUNT=$(find packages/ -maxdepth 2 -name package.json | wc -l)
+          echo "FILE_THRESHOLD=$(( PACKAGE_COUNT * 2 + 5 ))" >> $GITHUB_OUTPUT
 
-      - name: Check if safe to auto-merge
-        id: safe
+      - name: Extract PR metadata
+        id: meta
         run: |
-          echo "Title: ${{ steps.check.outputs.PR_TITLE }}"
-          echo "Files changed: ${{ steps.check.outputs.CHANGED_FILES }}"
-
-          TITLE="${{ steps.check.outputs.PR_TITLE }}"
-          FILES_CHANGED=${{ steps.check.outputs.CHANGED_FILES }}
-
-          # Check for major update
-          if echo "$TITLE" | grep -Eiq 'bump .* to v?[0-9]+\.[0-9]+\.0'; then
-            echo "Detected possible major version bump. Skipping."
-            echo "safe=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Skip PRs that touch too many files (e.g. grouped updates)
-          if [ "$FILES_CHANGED" -gt 10 ]; then
-            echo "Too many files changed. Skipping."
-            echo "safe=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "safe=true" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable auto-merge
-        if: steps.safe.outputs.safe == 'true'
-        run: gh pr merge "$PR_URL" --auto --merge
+          TITLE="${{ github.event.pull_request.title }}"
+          FILES=$(gh pr view $PR_URL --json files -q '.files | length')
+          
+          echo "PR_TITLE=$TITLE" >> $GITHUB_OUTPUT
+          echo "FILES_CHANGED=$FILES" >> $GITHUB_OUTPUT
+          echo "PR_URL=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
+
+      - name: Advanced safety checks
+        id: safety
+        run: |
+          # 检测主版本更新
+          if echo "${{ steps.meta.outputs.PR_TITLE }}" | grep -Piq 'bump .* to (v)?\d+\.\d+\.0(\D|$)'; then
+            echo "is_major=true" >> $GITHUB_OUTPUT
+          fi
+
+          # 检查安全标签
+          LABELS=$(gh pr view $PR_URL --json labels -q '.labels[].name' | tr '\n' ',')
+          if [[ $LABELS == *"security"* ]]; then
+            echo "is_security=true" >> $GITHUB_OUTPUT
+          fi
+
+          # 检查CI状态
+          CI_STATUS=$(gh pr view $PR_URL --json statusCheckRollup -q '.statusCheckRollup[0].state')
+          echo "ci_status=$CI_STATUS" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ steps.meta.outputs.PR_URL }}
+
+      - name: Decision logic
+        id: decision
+        run: |
+          safe=false
+          THRESHOLD=${{ steps.threshold.outputs.FILE_THRESHOLD }}
+
+          if [[ "${{ steps.safety.outputs.is_security }}" == "true" && "${{ steps.safety.outputs.ci_status }}" == "SUCCESS" ]]; then
+            safe=true
+          elif [[ "${{ steps.safety.outputs.ci_status }}" == "SUCCESS" ]]; then
+            if [[ "${{ steps.safety.outputs.is_major }}" != "true" ]]; then
+              if [ ${{ steps.meta.outputs.FILES_CHANGED }} -le $THRESHOLD ]; then
+                safe=true
+              fi
+            fi
+          fi
+
+          echo "safe=$safe" >> $GITHUB_OUTPUT
+
+      - name: Auto-merge
+        if: steps.decision.outputs.safe == 'true'
+        run: gh pr merge "$PR_URL" --auto --merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ steps.meta.outputs.PR_URL }}
