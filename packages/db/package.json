@@ -32,7 +32,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.840.0",
     "@cat/shared": "workspace:*",
-    "@elastic/elasticsearch": "^9.0.1",
+    "@elastic/elasticsearch": "^9.0.3",
     "@prisma/adapter-pg": "^6.10.1",
     "@prisma/client": "6.11.1",
     "@rollup/plugin-commonjs": "^28.0.6",
