@@ -45,8 +45,8 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
+    "dotenv": "^17.2.0",
     "@types/node": "^24.0.13",
-    "dotenv": "^17.0.0",
     "prisma": "6.10.1",
     "prisma-json-types-generator": "^3.5.1",
     "tsx": "^4.20.3"
