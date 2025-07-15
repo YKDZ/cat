@@ -60,7 +60,7 @@
     "vike-server": "^1.0.19",
     "vike-vue": "^0.9.2",
     "vue": "^3.5.17",
-    "vue-i18n": "^11.1.7",
+    "vue-i18n": "^11.1.9",
     "zod": "^3.25.67"
   },
   "devDependencies": {
