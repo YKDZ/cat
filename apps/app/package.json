@@ -7,6 +7,9 @@
     "schema": "./prisma",
     "seed": "tsx prisma/seed-docker.ts"
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "vike dev",
     "build": "vike build",
@@ -61,7 +64,7 @@
     "vike-vue": "^0.9.2",
     "vue": "^3.5.17",
     "vue-i18n": "^11.1.9",
-    "zod": "^3.25.67"
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",

@@ -2,7 +2,7 @@ import { prisma } from "@cat/db";
 import type { PrismaError } from "@cat/shared";
 import { ProjectSchema } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { authedProcedure, publicProcedure, router } from "../server";
 
 export const projectRouter = router({

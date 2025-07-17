@@ -7,7 +7,7 @@ import {
   MemorySuggestionSchema,
 } from "@cat/shared";
 import { tracked } from "@trpc/server";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { queryElementWithEmbedding, searchMemory } from "@/server/utils/memory";
 

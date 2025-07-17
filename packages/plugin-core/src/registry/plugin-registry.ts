@@ -4,7 +4,7 @@ import { existsSync, readdirSync } from "fs";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { pathToFileURL } from "url";
-import { z } from "zod/v4";
+import { z } from "zod";
 import type { AuthProvider } from "./auth-provider";
 import type { TextVectorizer } from "./text-vectorizer";
 import type { TranslatableFileHandler } from "./translatable-file-handler";

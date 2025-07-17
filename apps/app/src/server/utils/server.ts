@@ -2,7 +2,7 @@ import { ESDB, prisma, PrismaDB, RedisDB } from "@cat/db";
 import { logger, SettingSchema } from "@cat/shared";
 import type { Job } from "bullmq";
 import type { Server } from "http";
-import type z from "zod/v4";
+import type z from "zod";
 import getPluginRegistry from "../pluginRegistry";
 import { closeAllProcessors } from "../processor";
 import {

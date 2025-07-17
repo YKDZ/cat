@@ -202,7 +202,7 @@ worker.on("failed", async (job) => {
     },
   });
 
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job);
+  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
 });
 
 export const processPretreatment = async (

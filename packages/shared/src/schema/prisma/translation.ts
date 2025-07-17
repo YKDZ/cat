@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import z from "zod";
 import { LanguageSchema } from "./misc";
 import { UserSchema } from "./user";
 import { TranslatableElementSchema } from "./document";

@@ -34,6 +34,6 @@
     "vite-plugin-dts": "^4.5.3"
   },
   "dependencies": {
-    "zod": "^3.25.62"
+    "zod": "^4.0.5"
   }
 }
