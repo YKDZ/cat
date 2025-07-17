@@ -93,6 +93,8 @@ export class Logger {
       let errorInfo: string;
       if (error instanceof Error) {
         errorInfo = `\n${error.message}\n${error.stack}`;
+      } else if (Array.isArray(error)) {
+        errorInfo = error.join("\n");
       } else {
         try {
           errorInfo = JSON.stringify(error, null, 2);

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AdminSettingForm from "@/app/components/AdminSettingForm.vue";
 import AdminSettingsTitle from "@/app/components/AdminSettingsTitle.vue";
-import { z } from "zod/v4";
+import { z } from "zod";
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 import { FileMetaSchema, UserSchema } from "@cat/shared";
 import { authedProcedure, router } from "../server";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { prisma } from "@cat/db";
 import { TRPCError } from "@trpc/server";
 import { useStorage } from "@/server/utils/storage/useStorage";

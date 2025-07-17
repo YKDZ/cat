@@ -3,7 +3,7 @@ import { logger, TranslationSchema, useStringTemplate } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { randomUUID } from "crypto";
 import { join } from "path";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
@@ -214,7 +214,7 @@ worker.on("failed", async (job) => {
     },
   });
 
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job);
+  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
 });
 
 export const exportTranslatedFileWorker = worker;

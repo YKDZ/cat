@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import z from "zod";
 import { PrimsaDateTime } from "../misc";
 import { LanguageSchema, PermissionSchema } from "./misc";
 import { TranslationVoteSchema } from "./translation";

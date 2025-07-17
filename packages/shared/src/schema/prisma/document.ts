@@ -1,4 +1,4 @@
-import z from "zod/v4";
+import z from "zod";
 import { PrimsaDateTime } from "../misc";
 import { FileSchema } from "./file";
 import { UserSchema } from "./user";

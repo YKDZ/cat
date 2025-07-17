@@ -23,11 +23,6 @@ export default defineConfig({
       },
     },
     outDir: "dist",
-    terserOptions: {
-      format: {
-        comments: /@vite-ignore/i,
-      },
-    },
     rollupOptions: {
       input: {
         index: resolve(__dirname, "src/index.ts"),
@@ -43,7 +38,7 @@ export default defineConfig({
         "module",
         "fs/promises",
         "url",
-        "zod/v4",
+        "zod",
         "module",
         "@cat/shared",
         "@cat/db",

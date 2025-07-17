@@ -6,7 +6,7 @@ import {
   TermRelationSchema,
 } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { EsTermStore } from "@/server/utils/es";
 

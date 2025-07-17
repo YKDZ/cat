@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@cat/db";
@@ -457,6 +457,13 @@ export const translationRouter = router({
           });
       }
 
+      const vectorizer = pluginRegistry
+        .getTextVectorizers()
+        .find((vectorizer) => vectorizer.canVectorize(languageId));
+
+      if (!vectorizer)
+        throw new Error(`No vectorizer can vectorize the translation`);
+
       const task = await prisma.task.create({
         data: {
           type: "auto_translate",
@@ -472,6 +479,7 @@ export const translationRouter = router({
         userId: user.id,
         documentId,
         advisorId,
+        vectorizerId: vectorizer.getId(),
         languageId,
         minMemorySimilarity,
       });

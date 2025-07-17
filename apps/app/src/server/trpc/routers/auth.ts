@@ -2,7 +2,7 @@ import { prisma, redis } from "@cat/db";
 import { AuthMethodSchema, type AuthMethod } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { publicProcedure, router } from "../server";
 import type { JSONSchema } from "zod/v4/core";
 
