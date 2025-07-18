@@ -1,4 +1,4 @@
-import { prisma } from "@cat/db";
+import { insertVector, prisma } from "@cat/db";
 import type { TextVectorizer, TranslationAdvisor } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
 import type { TranslationSuggestion, UnvectorizedTextData } from "@cat/shared";
@@ -50,33 +50,14 @@ const worker = new Worker(
       minMemorySimilarity: number;
     };
 
-    let advisor: TranslationAdvisor | null = null;
+    const advisor: TranslationAdvisor | null =
+      await pluginRegistry.getTranslationAdvisor(advisorId);
 
-    if (advisorId) {
-      advisor =
-        (
-          await pluginRegistry.getTranslationAdvisors({
-            userId,
-          })
-        ).find((advisor) => advisor.getId() === advisorId) ?? null;
-
-      if (!advisor) throw new Error("Advisor with given id does not exists");
-
-      if (!advisor.isEnabled())
-        throw new Error("Advisor with given id does not enabled");
+    if (advisor && !advisor.isEnabled()) {
+      throw new Error("Advisor with given id does not enabled");
     }
 
-    let vectorizer: TextVectorizer | null = null;
-
-    if (vectorizerId) {
-      vectorizer =
-        pluginRegistry
-          .getTextVectorizers()
-          .find((vectorizer) => vectorizer.getId() === vectorizerId) ?? null;
-
-      if (!vectorizer)
-        throw new Error("Vectorizer with given id does not exists");
-    }
+    const vectorizer = pluginRegistry.getTextVectorizer(vectorizerId);
 
     if (minMemorySimilarity > 1 || minMemorySimilarity < 0) {
       throw new Error("Min memory similarity should between 0 and 1");
@@ -227,26 +208,20 @@ const worker = new Worker(
 
           if (!vectorizer) throw new Error("Vectorizer does not exists");
 
-          const vector = await vectorizer.vectorize(languageId, [
+          const vectors = await vectorizer.vectorize(languageId, [
             {
               value: translation.value,
               meta: null,
             } satisfies UnvectorizedTextData,
           ]);
 
-          const vectorInsertResult = await prisma.$queryRawUnsafe<
-            { id: number }[]
-          >(`
-            INSERT INTO "Vector" (vector)
-            VAL v UES ('[${vector.join(",")}]')
-            RETURNING id
-          `);
-
-          if (vectorInsertResult.length !== 1) {
-            throw new Error("This query must return one id");
+          if (vectors.length !== 1) {
+            throw new Error("Vectorizer does not return 1 vector");
           }
 
-          const embeddingId = vectorInsertResult.at(0)!.id;
+          const vector = vectors[0];
+
+          const embeddingId = await insertVector(prisma, vector);
 
           if (!embeddingId) throw new Error("Failed to get id of vector");
 

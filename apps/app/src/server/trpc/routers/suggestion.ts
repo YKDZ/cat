@@ -168,9 +168,9 @@ export const suggestionRouter = router({
       const { user, pluginRegistry } = ctx;
       const { advisorId } = input;
 
-      const advisor = (
-        await pluginRegistry.getTranslationAdvisors({ userId: user.id })
-      ).find((advisor) => advisor.getId() === advisorId);
+      const advisor = await pluginRegistry.getTranslationAdvisor(advisorId, {
+        userId: user.id,
+      });
 
       return advisor
         ? ({

@@ -437,25 +437,21 @@ export const translationRouter = router({
             "Document does not exists or language does not claimed in project",
         });
 
-      if (advisorId) {
-        const advisor = (
-          await pluginRegistry.getTranslationAdvisors({
-            userId: user.id,
-          })
-        ).find((advisor) => advisor.getId() === advisorId);
+      const advisor = await pluginRegistry.getTranslationAdvisor(advisorId, {
+        userId: user.id,
+      });
 
-        if (!advisor)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Advisor with given id does not exists",
-          });
+      if (!advisor)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Advisor with given id does not exists",
+        });
 
-        if (!advisor.isEnabled())
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Advisor with given id does not enabled",
-          });
-      }
+      if (!advisor.isEnabled())
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Advisor with given id does not enabled",
+        });
 
       const vectorizer = pluginRegistry
         .getTextVectorizers()

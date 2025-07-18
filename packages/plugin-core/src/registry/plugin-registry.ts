@@ -8,7 +8,10 @@ import { z } from "zod";
 import type { AuthProvider } from "./auth-provider";
 import type { TextVectorizer } from "./text-vectorizer";
 import type { TranslatableFileHandler } from "./translatable-file-handler";
-import type { TranslationAdvisor } from "./translation-advisor";
+import type {
+  TranslationAdvisor,
+  TranslationAdvisorOptions,
+} from "./translation-advisor";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
@@ -160,19 +163,17 @@ export class PluginRegistry {
     return join(pluginsDir, id);
   }
 
-  public async getTranslationAdvisors({
-    userId,
-  }: {
-    userId: string;
-  }): Promise<TranslationAdvisor[]> {
+  public async getTranslationAdvisors(
+    options?: TranslationAdvisorOptions,
+  ): Promise<TranslationAdvisor[]> {
     return (
       await Promise.all(
         Array.from(this.plugins.entries()).map(async ([id, plugin]) => {
-          if (userId) {
+          if (options && options.userId) {
             const userConfigs = (
               await prisma.pluginUserConfigInstance.findMany({
                 where: {
-                  creatorId: userId,
+                  creatorId: options.userId,
                   Config: {
                     pluginId: id,
                   },
@@ -202,6 +203,25 @@ export class PluginRegistry {
       .flat();
   }
 
+  public async hasTranslationAdvisor(id: string | null): Promise<boolean> {
+    if (!id) return false;
+    return !!(await this.getTranslationAdvisors()).find(
+      (advisor) => advisor.getId() === id,
+    );
+  }
+
+  public async getTranslationAdvisor(
+    id: string | null,
+    options?: TranslationAdvisorOptions,
+  ): Promise<TranslationAdvisor | null> {
+    if (!id) return null;
+    return (
+      (await this.getTranslationAdvisors(options)).find(
+        (advisor) => advisor.getId() === id,
+      ) ?? null
+    );
+  }
+
   public getTextVectorizers(): TextVectorizer[] {
     return Array.from(this.plugins.values())
       .map((plugin) => plugin.getTextVectorizers?.())
@@ -210,6 +230,21 @@ export class PluginRegistry {
           vectorizers !== undefined,
       )
       .flat();
+  }
+
+  public hasTextVectorizer(id: string | null): boolean {
+    if (!id) return false;
+    return !!this.getTextVectorizers().find(
+      (vectorizer) => vectorizer.getId() === id,
+    );
+  }
+
+  public getTextVectorizer(id: string | null): TextVectorizer | null {
+    if (!id) return null;
+    return (
+      this.getTextVectorizers().find((advisor) => advisor.getId() === id) ??
+      null
+    );
   }
 
   public getTranslatableFileHandlers(): TranslatableFileHandler[] {
@@ -222,11 +257,44 @@ export class PluginRegistry {
       .flat();
   }
 
+  public hasTranslatableFileHandler(id: string | null): boolean {
+    if (!id) return false;
+    return !!this.getTranslatableFileHandlers().find(
+      (handler) => handler.getId() === id,
+    );
+  }
+
+  public getTranslatableFileHandler(
+    id: string | null,
+  ): TranslatableFileHandler | null {
+    if (!id) return null;
+    return (
+      this.getTranslatableFileHandlers().find(
+        (handler) => handler.getId() === id,
+      ) ?? null
+    );
+  }
+
   public getAuthProviders(): AuthProvider[] {
     return Array.from(this.plugins.values())
       .map((plugin) => plugin.getAuthProviders?.())
       .filter((handlers): handlers is AuthProvider[] => handlers !== undefined)
       .flat();
+  }
+
+  public hasAuthProvider(id: string | null): boolean {
+    if (!id) return false;
+    return !!this.getAuthProviders().find(
+      (provider) => provider.getId() === id,
+    );
+  }
+
+  public getAuthProvider(id: string | null): AuthProvider | null {
+    if (!id) return null;
+    return (
+      this.getAuthProviders().find((provider) => provider.getId() === id) ??
+      null
+    );
   }
 
   public async reload(options?: LoadPluginsOptions) {

@@ -1,4 +1,4 @@
-import { prisma } from "@cat/db";
+import { insertVector, insertVectors, prisma } from "@cat/db";
 import {
   PluginRegistry,
   type TextVectorizer,
@@ -47,16 +47,12 @@ const worker = new Worker(
       tags: ["translatable-file-handler", "text-vectorizer"],
     });
 
-    const handler = pluginRegistry
-      .getTranslatableFileHandlers()
-      .find((handler) => handler.getId() === handlerId);
+    const handler = pluginRegistry.getTranslatableFileHandler(handlerId);
 
     if (!handler)
       throw new Error(`Can not find handler by given id: '${handlerId}'`);
 
-    const vectorizer = pluginRegistry
-      .getTextVectorizers()
-      .find((vectorizer) => vectorizer.getId() === vectorizerId);
+    const vectorizer = pluginRegistry.getTextVectorizer(vectorizerId);
 
     if (!vectorizer)
       throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
@@ -204,11 +200,7 @@ export const processPretreatment = async (
 
     // 插入变化后的元素
     if (addedElements.length > 0) {
-      const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
-        INSERT INTO "Vector" (vector)
-        VALUES ${vectors.map((v) => `('[${v.join(",")}]')`).join(",")}
-        RETURNING id
-      `);
+      const embeddingIds = await insertVectors(tx, vectors);
 
       for (let i = 0; i < addedElements.length; i++) {
         const element = addedElements[i];
@@ -233,7 +225,7 @@ export const processPretreatment = async (
             value: element.value,
             meta: element.meta as InputJsonValue,
             documentId: element.documentId,
-            embeddingId: vectorInsertResult[i].id,
+            embeddingId: embeddingIds[i],
             version: newVersion,
             previousVersionId: existing?.id ?? null,
             isActive: true,

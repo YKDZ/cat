@@ -1,6 +1,10 @@
 import type { TermRelation, TranslatableElement } from "@cat/shared";
 import type { TranslationSuggestion } from "@cat/shared";
 
+export type TranslationAdvisorOptions = {
+  userId: string;
+};
+
 export interface TranslationAdvisor {
   getId(): string;
   getName(): string;
