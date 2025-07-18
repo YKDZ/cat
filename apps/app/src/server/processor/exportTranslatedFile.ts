@@ -29,9 +29,7 @@ const worker = new Worker(
       tags: ["translatable-file-handler"],
     });
 
-    const handler = pluginRegistry
-      .getTranslatableFileHandlers()
-      .find((handler) => handler.getId() === handlerId);
+    const handler = pluginRegistry.getTranslatableFileHandler(handlerId);
 
     if (!handler)
       throw new Error(
