@@ -34,7 +34,7 @@
     "@cat/shared": "workspace:*",
     "@elastic/elasticsearch": "^9.0.3",
     "@prisma/adapter-pg": "^6.10.1",
-    "@prisma/client": "6.11.1",
+    "@prisma/client": "6.12.0",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
