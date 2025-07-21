@@ -3,7 +3,7 @@ import { logger, TranslationSchema, useStringTemplate } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { randomUUID } from "crypto";
 import { join } from "path";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
@@ -29,9 +29,7 @@ const worker = new Worker(
       tags: ["translatable-file-handler"],
     });
 
-    const handler = pluginRegistry
-      .getTranslatableFileHandlers()
-      .find((handler) => handler.getId() === handlerId);
+    const handler = pluginRegistry.getTranslatableFileHandler(handlerId);
 
     if (!handler)
       throw new Error(
@@ -214,7 +212,7 @@ worker.on("failed", async (job) => {
     },
   });
 
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job);
+  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
 });
 
 export const exportTranslatedFileWorker = worker;

@@ -1,6 +1,6 @@
 import type { PluginData } from "@cat/shared";
 import { Octokit } from "octokit";
-import { z } from "zod/v4";
+import { z } from "zod";
 import type { PluginImporter } from "./plugin-importer-registry";
 import { tarGZURLImporter } from "./tar-gz-url-plugin-importer";
 

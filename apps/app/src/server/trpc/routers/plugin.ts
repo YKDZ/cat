@@ -5,7 +5,7 @@ import {
   PluginSchema,
   PluginUserConfigInstanceSchema,
 } from "@cat/shared";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { importPluginQueue } from "@/server/processor/importPlugin";
 import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";

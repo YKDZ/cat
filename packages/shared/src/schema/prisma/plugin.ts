@@ -1,6 +1,6 @@
-import z from "zod/v4";
-import type { JSONSchema } from "zod/v4/core";
+import z from "zod";
 import { PrimsaDateTime } from "../misc";
+import type { JSONSchema } from "zod/v4/core";
 
 export const PluginTagSchema = z.object({
   id: z.int(),

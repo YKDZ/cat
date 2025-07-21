@@ -16,7 +16,7 @@ import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref, shallowRef } from "vue";
 import { useToastStore } from "./toast";
 import type { PartData } from "../components/tagger";
-import z from "zod/v4";
+import z from "zod";
 
 const TranslationStatusSchema = z
   .enum(["PROCESSING", "COMPLETED"])

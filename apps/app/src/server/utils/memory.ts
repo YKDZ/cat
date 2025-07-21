@@ -7,6 +7,7 @@ export type SearchedMemory = {
   memoryId: string;
   translatorId: string;
   similarity: number;
+  translationEmbeddingId: number;
 };
 
 export const queryElementWithEmbedding = async (
@@ -64,6 +65,7 @@ export const searchMemory = async (
         translation: string;
         creatorId: string;
         similarity: number;
+        translationEmbeddingId: number;
       }[]
     >`
       SELECT * FROM (
@@ -72,6 +74,7 @@ export const searchMemory = async (
           mi."memoryId",
           mi.source AS source,
           mi.translation AS translation,
+          mi."translationEmbeddingId",
           mi."creatorId",
           1 - (v.vector <=> ${vectorLiteral}) AS similarity
         FROM "MemoryItem" mi
@@ -88,6 +91,7 @@ export const searchMemory = async (
           mi."memoryId",
           mi.translation AS source,
           mi.source AS translation,
+          mi."translationEmbeddingId",
           mi."creatorId",
           1 - (v.vector <=> ${vectorLiteral}) AS similarity
         FROM "MemoryItem" mi
@@ -104,13 +108,24 @@ export const searchMemory = async (
 
     return memories
       .filter(({ similarity }) => similarity >= minSimilarity)
-      .map(({ id, memoryId, source, translation, creatorId, similarity }) => ({
-        id,
-        source,
-        translation,
-        memoryId,
-        translatorId: creatorId,
-        similarity,
-      }));
+      .map(
+        ({
+          id,
+          memoryId,
+          source,
+          translation,
+          creatorId,
+          similarity,
+          translationEmbeddingId,
+        }) => ({
+          id,
+          source,
+          translation,
+          memoryId,
+          translatorId: creatorId,
+          similarity,
+          translationEmbeddingId,
+        }),
+      );
   });
 };

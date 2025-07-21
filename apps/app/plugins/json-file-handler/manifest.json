@@ -1,8 +1,0 @@
-{
-  "id": "json-file-handler",
-  "entry": "dist/index.mjs",
-  "iconURL": "https://unocss.dev/logo.svg",
-  "tags": [
-    "translatable-file-handler"
-  ]
-}

@@ -3,7 +3,7 @@ import type { Task } from "@cat/shared";
 import TableRow from "./table/TableRow.vue";
 import TableCell from "./table/TableCell.vue";
 import Button from "./Button.vue";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { trpc } from "@/server/trpc/client";
 import { computed, ref } from "vue";
 import { useToastStore } from "../stores/toast";

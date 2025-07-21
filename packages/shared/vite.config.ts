@@ -24,7 +24,7 @@ export default defineConfig({
         "module",
         "fs/promises",
         "url",
-        "zod/v4",
+        "zod",
         "crypto",
       ],
     },

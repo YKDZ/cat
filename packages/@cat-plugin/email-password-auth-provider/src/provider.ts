@@ -1,6 +1,6 @@
 import { prisma, verifyPassword } from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 const FormSchema = z.object({
   email: z.email(),

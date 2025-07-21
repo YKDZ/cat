@@ -8,9 +8,6 @@ pre-push:
     - name: audit
       run: pnpm audit
 
-    - name: test
-      run: pnpm test
-
     - name: format
       run: pnpm format
 

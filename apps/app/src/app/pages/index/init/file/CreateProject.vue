@@ -11,7 +11,7 @@ import { useToastStore } from "@/app/stores/toast";
 import { trpc } from "@/server/trpc/client";
 import type { Project } from "@cat/shared";
 import { ref } from "vue";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 const { info, zWarn, trpcWarn } = useToastStore();
 
