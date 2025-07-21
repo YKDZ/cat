@@ -12,7 +12,7 @@ import {
   TranslationSuggestionSchema,
 } from "@cat/shared";
 import { tracked, TRPCError } from "@trpc/server";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { EsTermStore } from "../../utils/es";
 
@@ -168,9 +168,9 @@ export const suggestionRouter = router({
       const { user, pluginRegistry } = ctx;
       const { advisorId } = input;
 
-      const advisor = (
-        await pluginRegistry.getTranslationAdvisors({ userId: user.id })
-      ).find((advisor) => advisor.getId() === advisorId);
+      const advisor = await pluginRegistry.getTranslationAdvisor(advisorId, {
+        userId: user.id,
+      });
 
       return advisor
         ? ({

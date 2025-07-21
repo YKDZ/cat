@@ -1,4 +1,4 @@
-import { prisma } from "@cat/db";
+import { insertVector, insertVectors, prisma } from "@cat/db";
 import {
   PluginRegistry,
   type TextVectorizer,
@@ -50,9 +50,7 @@ const worker = new Worker(
       tags: ["text-vectorizer"],
     });
 
-    const vectorizer = pluginRegistry
-      .getTextVectorizers()
-      .find((vectorizer) => vectorizer.getId() === vectorizerId);
+    const vectorizer = pluginRegistry.getTextVectorizer(vectorizerId);
 
     if (!vectorizer)
       throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
@@ -91,17 +89,7 @@ const worker = new Worker(
     const vector = vectors[0];
 
     await prisma.$transaction(async (tx) => {
-      const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
-        INSERT INTO "Vector" (vector)
-        VALUES ('[${vector.join(",")}]')
-        RETURNING id
-      `);
-
-      if (vectorInsertResult.length !== 1) {
-        throw new Error("This query must return one id");
-      }
-
-      const embeddingId = vectorInsertResult.at(0)!.id;
+      const embeddingId = await insertVector(tx, vector);
 
       if (!embeddingId) throw new Error("Failed to get id of vector");
 
@@ -202,7 +190,7 @@ worker.on("failed", async (job) => {
     },
   });
 
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job);
+  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
 });
 
 export const processPretreatment = async (
@@ -290,11 +278,7 @@ export const processPretreatment = async (
 
     // 插入变化后的元素
     if (addedElements.length > 0) {
-      const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
-        INSERT INTO "Vector" (vector)
-        VALUES ${vectors.map((v) => `('[${v.join(",")}]')`).join(",")}
-        RETURNING id
-      `);
+      const elementIds = await insertVectors(tx, vectors);
 
       for (let i = 0; i < addedElements.length; i++) {
         const element = addedElements[i];
@@ -319,7 +303,7 @@ export const processPretreatment = async (
             value: element.value,
             meta: element.meta as InputJsonValue,
             documentId: element.documentId,
-            embeddingId: vectorInsertResult[i].id,
+            embeddingId: elementIds[i],
             version: newVersion,
             previousVersionId: existing?.id ?? null,
             isActive: true,

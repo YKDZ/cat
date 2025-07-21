@@ -3,7 +3,7 @@ import { trpc } from "@/server/trpc/client";
 import type { Memory, TranslationAdvisorData } from "@cat/shared";
 import { toShortFixed, type JSONType } from "@cat/shared";
 import { computed, onMounted, ref } from "vue";
-import z from "zod/v4";
+import z from "zod";
 import EditorElementTranslationMetaTag from "./EditorElementTranslationMetaTag.vue";
 
 const props = defineProps<{

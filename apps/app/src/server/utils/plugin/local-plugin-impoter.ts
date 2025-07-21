@@ -1,6 +1,6 @@
 import type { PluginData } from "@cat/shared";
 import { join } from "path";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { loadPluginData } from "../plugin";
 import type { PluginImporter } from "./plugin-importer-registry";
 

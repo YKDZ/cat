@@ -2,7 +2,7 @@ import { prisma, redis } from "@cat/db";
 import { AuthMethodSchema, type AuthMethod } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { publicProcedure, router } from "../server";
 import type { JSONSchema } from "zod/v4/core";
 
@@ -18,9 +18,7 @@ export const authRouter = router({
       const { pluginRegistry } = ctx;
       const { providerId } = input;
 
-      const provider = pluginRegistry
-        .getAuthProviders()
-        .find((provider) => provider.getId() === providerId);
+      const provider = pluginRegistry.getAuthProvider(providerId);
 
       if (!provider)
         throw new TRPCError({
@@ -48,9 +46,7 @@ export const authRouter = router({
       if (user)
         throw new TRPCError({ code: "CONFLICT", message: "Already login" });
 
-      const provider = pluginRegistry
-        .getAuthProviders()
-        .find((provider) => provider.getId() === providerId);
+      const provider = pluginRegistry.getAuthProvider(providerId);
 
       if (!provider)
         throw new TRPCError({
@@ -98,9 +94,7 @@ export const authRouter = router({
       const { pluginRegistry } = ctx;
       const { providerId } = input;
 
-      const provider = pluginRegistry
-        .getAuthProviders()
-        .find((provider) => provider.getId() === providerId);
+      const provider = pluginRegistry.getAuthProvider(providerId);
 
       if (!provider)
         throw new TRPCError({
@@ -140,9 +134,7 @@ export const authRouter = router({
           message: "Provider ID not found in session",
         });
 
-      const provider = pluginRegistry
-        .getAuthProviders()
-        .find((provider) => provider.getId() === providerId);
+      const provider = pluginRegistry.getAuthProvider(providerId);
 
       if (!provider)
         throw new TRPCError({
@@ -246,9 +238,7 @@ export const authRouter = router({
         message: "Provider ID not found in session",
       });
 
-    const provider = pluginRegistry
-      .getAuthProviders()
-      .find((provider) => provider.getId() === providerId);
+    const provider = pluginRegistry.getAuthProvider(providerId);
 
     if (!provider)
       throw new TRPCError({

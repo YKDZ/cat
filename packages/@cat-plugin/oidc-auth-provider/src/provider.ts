@@ -6,7 +6,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { randomChars } from "./utils/crypto";
 import { createOIDCAuthURL } from "./utils/oidc";
 import type { ProviderConfig } from ".";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 const SearchParasSchema = z.object({
   state: z.string(),

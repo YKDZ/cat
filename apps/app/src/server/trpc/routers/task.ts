@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { TaskSchema } from "@cat/shared";
 import { prisma } from "@cat/db";

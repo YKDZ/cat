@@ -1,7 +1,7 @@
 import type { TRPCClientError } from "@trpc/client";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import type { ZodError } from "zod/v4";
+import type { ZodError } from "zod";
 
 const defaultDuration = 3;
 

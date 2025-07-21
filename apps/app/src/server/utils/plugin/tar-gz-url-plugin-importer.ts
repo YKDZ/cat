@@ -2,7 +2,7 @@ import type { PluginData } from "@cat/shared";
 import { randomUUID } from "crypto";
 import { copy, remove } from "fs-extra/esm";
 import { join } from "path";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { loadPluginData } from "../plugin";
 import { downloadAndExtract } from "../tar";
 import type { PluginImporter } from "./plugin-importer-registry";

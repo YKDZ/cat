@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@cat/db";
@@ -437,25 +437,28 @@ export const translationRouter = router({
             "Document does not exists or language does not claimed in project",
         });
 
-      if (advisorId) {
-        const advisor = (
-          await pluginRegistry.getTranslationAdvisors({
-            userId: user.id,
-          })
-        ).find((advisor) => advisor.getId() === advisorId);
+      const advisor = await pluginRegistry.getTranslationAdvisor(advisorId, {
+        userId: user.id,
+      });
 
-        if (!advisor)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Advisor with given id does not exists",
-          });
+      if (!advisor)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Advisor with given id does not exists",
+        });
 
-        if (!advisor.isEnabled())
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Advisor with given id does not enabled",
-          });
-      }
+      if (!advisor.isEnabled())
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Advisor with given id does not enabled",
+        });
+
+      const vectorizer = pluginRegistry
+        .getTextVectorizers()
+        .find((vectorizer) => vectorizer.canVectorize(languageId));
+
+      if (!vectorizer)
+        throw new Error(`No vectorizer can vectorize the translation`);
 
       const task = await prisma.task.create({
         data: {
@@ -472,6 +475,7 @@ export const translationRouter = router({
         userId: user.id,
         documentId,
         advisorId,
+        vectorizerId: vectorizer.getId(),
         languageId,
         minMemorySimilarity,
       });

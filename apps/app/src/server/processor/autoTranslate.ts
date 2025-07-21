@@ -1,13 +1,24 @@
-import { prisma } from "@cat/db";
-import type { TranslationAdvisor } from "@cat/plugin-core";
+import { insertVector, prisma } from "@cat/db";
+import type { TextVectorizer, TranslationAdvisor } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
-import type { TranslationSuggestion } from "@cat/shared";
+import type { TranslationSuggestion, UnvectorizedTextData } from "@cat/shared";
 import { logger, TranslatableElementSchema } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { config } from "./config";
 import { queryElementWithEmbedding, searchMemory } from "../utils/memory";
-import { EsTermIndexService, EsTermStore } from "../utils/es";
+import { EsTermStore } from "../utils/es";
+
+type TranslationData = {
+  translation: TranslationSuggestion;
+  isMemory: boolean;
+  isAdvisor: boolean;
+  advisorId?: string;
+  memorySimilarity?: number;
+  memoryId?: string;
+  memoryItemId?: number;
+  embeddingId?: number;
+};
 
 const queueId = "autoTranslate";
 
@@ -20,17 +31,33 @@ const worker = new Worker(
 
     await pluginRegistry.loadPlugins({
       silent: true,
-      tags: ["translation-advisor"],
+      tags: ["translation-advisor", "text-vectorizer"],
     });
 
-    const { documentId, advisorId, userId, languageId, minMemorySimilarity } =
-      job.data as {
-        userId: string;
-        documentId: string;
-        advisorId: string;
-        languageId: string;
-        minMemorySimilarity: number;
-      };
+    const {
+      documentId,
+      advisorId,
+      vectorizerId,
+      userId,
+      languageId,
+      minMemorySimilarity,
+    } = job.data as {
+      userId: string;
+      documentId: string;
+      advisorId: string;
+      vectorizerId: string;
+      languageId: string;
+      minMemorySimilarity: number;
+    };
+
+    const advisor: TranslationAdvisor | null =
+      await pluginRegistry.getTranslationAdvisor(advisorId);
+
+    if (advisor && !advisor.isEnabled()) {
+      throw new Error("Advisor with given id does not enabled");
+    }
+
+    const vectorizer = pluginRegistry.getTextVectorizer(vectorizerId);
 
     if (minMemorySimilarity > 1 || minMemorySimilarity < 0) {
       throw new Error("Min memory similarity should between 0 and 1");
@@ -72,24 +99,9 @@ const worker = new Worker(
 
     const sourceLangugeId = document.Project.SourceLanguage.id;
 
-    let advisor: TranslationAdvisor | null = null;
+    // 开自动始翻译
 
-    if (advisorId) {
-      advisor =
-        (
-          await pluginRegistry.getTranslationAdvisors({
-            userId,
-          })
-        ).find((advisor) => advisor.getId() === advisorId) ?? null;
-
-      if (!advisor) throw new Error("Advisor with given id does not exists");
-
-      if (!advisor.isEnabled())
-        throw new Error("Advisor with given id does not enabled");
-    }
-
-    // 开始翻译
-
+    // 收集可翻译元素
     const elements = z.array(TranslatableElementSchema).parse(
       await prisma.translatableElement.findMany({
         where: {
@@ -101,15 +113,9 @@ const worker = new Worker(
       }),
     );
 
-    const translations: {
-      translation: TranslationSuggestion;
-      isMemory: boolean;
-      isAdvisor: boolean;
-      advisorId?: string;
-      memorySimilarity?: number;
-      memoryId?: string;
-      memoryItemId?: number;
-    }[] = await Promise.all(
+    // 自动翻译数据
+    // 只有翻译记忆和建议器两个来源
+    const translations: TranslationData[] = await Promise.all(
       elements.map(async (element) => {
         const embededElement = await queryElementWithEmbedding(element.id);
         const memories = await searchMemory(
@@ -137,6 +143,7 @@ const worker = new Worker(
             memorySimilarity: memory.similarity,
             memoryId: memory.memoryId,
             memoryItemId: memory.id,
+            embeddingId: memory.translationEmbeddingId,
           };
         }
         // 建议器
@@ -199,16 +206,37 @@ const worker = new Worker(
               isMemory: false,
             };
 
+          if (!vectorizer) throw new Error("Vectorizer does not exists");
+
+          const vectors = await vectorizer.vectorize(languageId, [
+            {
+              value: translation.value,
+              meta: null,
+            } satisfies UnvectorizedTextData,
+          ]);
+
+          if (vectors.length !== 1) {
+            throw new Error("Vectorizer does not return 1 vector");
+          }
+
+          const vector = vectors[0];
+
+          const embeddingId = await insertVector(prisma, vector);
+
+          if (!embeddingId) throw new Error("Failed to get id of vector");
+
           return {
             translation,
             advisorId: advisor.getId(),
             isAdvisor: true,
             isMemory: false,
-          };
+            embeddingId,
+          } satisfies TranslationData;
         }
       }),
     );
 
+    // 创建翻译
     await prisma.translation.createMany({
       data: translations
         .map((data, index) => ({ data, index }))
@@ -224,6 +252,7 @@ const worker = new Worker(
                 memoryItemId,
                 memorySimilarity,
                 memoryId,
+                embeddingId,
               },
             },
             index,
@@ -239,6 +268,7 @@ const worker = new Worker(
                 memoryId,
                 memoryItemId,
               },
+              embeddingId: embeddingId!,
               languageId,
               translatorId: userId,
               translatableElementId: elements[index].id,
@@ -297,7 +327,7 @@ worker.on("failed", async (job) => {
     },
   });
 
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job);
+  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
 });
 
 export const autoTranslateWorker = worker;

@@ -12,7 +12,7 @@ import {
 } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { join } from "node:path";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { sanitizeFileName } from "../../utils/file";
 import { authedProcedure, router } from "../server";
 import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile";

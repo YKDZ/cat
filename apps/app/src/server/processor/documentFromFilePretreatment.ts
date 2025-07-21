@@ -1,4 +1,4 @@
-import { prisma } from "@cat/db";
+import { insertVector, insertVectors, prisma } from "@cat/db";
 import {
   PluginRegistry,
   type TextVectorizer,
@@ -47,16 +47,12 @@ const worker = new Worker(
       tags: ["translatable-file-handler", "text-vectorizer"],
     });
 
-    const handler = pluginRegistry
-      .getTranslatableFileHandlers()
-      .find((handler) => handler.getId() === handlerId);
+    const handler = pluginRegistry.getTranslatableFileHandler(handlerId);
 
     if (!handler)
       throw new Error(`Can not find handler by given id: '${handlerId}'`);
 
-    const vectorizer = pluginRegistry
-      .getTextVectorizers()
-      .find((vectorizer) => vectorizer.getId() === vectorizerId);
+    const vectorizer = pluginRegistry.getTextVectorizer(vectorizerId);
 
     if (!vectorizer)
       throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
@@ -119,7 +115,7 @@ worker.on("failed", async (job) => {
     },
   });
 
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job);
+  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
 });
 
 export const processPretreatment = async (
@@ -173,45 +169,38 @@ export const processPretreatment = async (
   const vectors = await vectorizer.vectorize(sourceLanguageId, addedElements);
   if (!vectors) return;
 
+  const documentVersion = await prisma.documentVersion.findFirst({
+    where: {
+      documentId: document.id,
+      isActive: true,
+    },
+  });
+
+  if (!documentVersion)
+    throw new Error("Document do not have any active version. This is a bug");
+
   await prisma.$transaction(async (tx) => {
-    const documentVersion = await tx.documentVersion.findFirst({
-      where: {
-        documentId: document.id,
-        isActive: true,
-      },
-    });
-
-    if (!documentVersion)
-      throw new Error("Document do not have any active version. This is a bug");
-
-    // 将旧元素（变化的活跃元素）置为非活跃
-    await Promise.all(
-      removedElements.map(async ({ meta }) => {
-        // 逻辑上应该只能更新到一个元素
-        const result = await tx.translatableElement.updateManyAndReturn({
-          where: {
-            meta: {
-              equals: meta as InputJsonValue,
-            },
-            documentId: document.id,
-            isActive: true,
+    for (const { meta } of removedElements) {
+      // 逻辑上应该只能更新到一个元素
+      const result = await tx.translatableElement.updateManyAndReturn({
+        where: {
+          meta: {
+            equals: meta as InputJsonValue,
           },
-          data: {
-            isActive: false,
-          },
-        });
-        if (result.length > 1)
-          throw new Error("Assert failed. Should update only one element");
-      }),
-    );
+          documentId: document.id,
+          isActive: true,
+        },
+        data: {
+          isActive: false,
+        },
+      });
+      if (result.length > 1)
+        throw new Error("Assert failed. Should update only one element");
+    }
 
     // 插入变化后的元素
     if (addedElements.length > 0) {
-      const vectorInsertResult = await tx.$queryRawUnsafe<{ id: number }[]>(`
-        INSERT INTO "Vector" (vector)
-        VALUES ${vectors.map((v) => `('[${v.join(",")}]')`).join(",")}
-        RETURNING id
-      `);
+      const embeddingIds = await insertVectors(tx, vectors);
 
       for (let i = 0; i < addedElements.length; i++) {
         const element = addedElements[i];
@@ -236,7 +225,7 @@ export const processPretreatment = async (
             value: element.value,
             meta: element.meta as InputJsonValue,
             documentId: element.documentId,
-            embeddingId: vectorInsertResult[i].id,
+            embeddingId: embeddingIds[i],
             version: newVersion,
             previousVersionId: existing?.id ?? null,
             isActive: true,
