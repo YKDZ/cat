@@ -22,9 +22,9 @@
   --cat-theme-warning-darkest: #F57C00;
   --cat-theme-warning-content: #000000;
   /* error */
-  --cat-theme-error: #FFEBEE;
-  --cat-theme-error-darker: #FFCDD2;
-  --cat-theme-error-darkest: #C62828;
+  --cat-theme-error: #ff8fa0;
+  --cat-theme-error-darker: #ff5768;
+  --cat-theme-error-darkest: #d41717;
   --cat-theme-error-content: #ffffff;
   /* info */
   --cat-theme-info: #E3F2FD;
