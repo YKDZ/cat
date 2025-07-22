@@ -1,6 +1,6 @@
 import type { DefaultArgs } from "@prisma/client/runtime/client";
-import type { PrismaClient } from "../generated/prisma";
 import type { PrismaClientOptions } from "../generated/prisma/internal/prismaNamespace";
+import type { PrismaClient } from "../generated/prisma/client";
 
 export const insertVector = async (
   prisma: Pick<
