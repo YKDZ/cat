@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
+import { mimeFromFileName } from "../utils/file";
 
 const queueId = "exportTranslatedFile";
 
@@ -41,11 +42,7 @@ const worker = new Worker(
         id: documentId,
       },
       include: {
-        File: {
-          include: {
-            Type: true,
-          },
-        },
+        File: true,
       },
     });
 
@@ -91,6 +88,7 @@ const worker = new Worker(
     const template = await setting(
       "storage.template.exported-tranlated-file",
       "exported/document/translated/{year}/{month}/{date}/{uuid}-{languageId}-{fileName}",
+      prisma,
     );
     const path = useStringTemplate(template, {
       date,
@@ -107,11 +105,6 @@ const worker = new Worker(
         originName: fileName,
         createdAt: date,
         updatedAt: date,
-        Type: {
-          connect: {
-            mimeType: document.File.Type.mimeType,
-          },
-        },
         StorageType: {
           connect: {
             name: type,
@@ -125,7 +118,7 @@ const worker = new Worker(
     const response = await fetch(uploadURL, {
       method: "PUT",
       headers: {
-        "Content-Type": document.File.Type.mimeType,
+        "Content-Type": await mimeFromFileName(fileName, prisma),
       },
       body: new Uint8Array(translated),
       mode: "cors",

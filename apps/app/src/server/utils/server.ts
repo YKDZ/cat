@@ -1,4 +1,5 @@
-import { ESDB, prisma, PrismaDB, RedisDB } from "@cat/db";
+import type { PrismaClient } from "@cat/db";
+import { ESDB, PrismaDB, RedisDB } from "@cat/db";
 import { logger, SettingSchema } from "@cat/shared";
 import type { Job } from "bullmq";
 import type { Server } from "http";
@@ -22,9 +23,6 @@ export const shutdownServer = async (server: Server) => {
 
       await closeAllProcessors();
 
-      await PrismaDB.disconnect();
-      await RedisDB.disconnect();
-      await ESDB.disconnect();
       await (await useStorage()).storage.disconnect();
     });
   });
@@ -32,113 +30,45 @@ export const shutdownServer = async (server: Server) => {
   logger.info("SERVER", "Successfully shutdown gracefully. Goodbye");
 };
 
-export const initDB = async () => {
+export const initPrismaDB = async () => {
   try {
-    await PrismaDB.connect();
-    await RedisDB.connect();
-    await ESDB.connect();
-    await (await useStorage()).storage.connect();
-
-    logger.info("DB", "Successfully connect to all database.");
-
-    await PrismaDB.ping();
-    await RedisDB.ping();
-    await ESDB.ping();
-    await (await useStorage()).storage.ping();
-
-    logger.info("DB", "All database is health.");
-
-    await EsTermStore.init();
+    const db = new PrismaDB();
+    await db.connect();
+    await db.ping();
+    logger.info("DB", "Successfully connected to PrismaDB.");
+    return db;
   } catch (e) {
-    logger.error(
-      "DB",
-      "Database init failed. CAT process will exit with code 1 now.",
-      e,
-    );
-    process.exit(1);
+    logger.error("DB", "Failed to connect to PrismaDB.", e);
+    throw e;
   }
 };
 
-const settings: SettingData[] = [
-  {
-    key: "s3.region",
-    value: "cn-south-1",
-  },
-  {
-    key: "s3.access-key-id",
-    value: "your key id",
-  },
-  {
-    key: "s3.secret-access-key",
-    value: "your key",
-  },
-  {
-    key: "s3.bucket-name",
-    value: "cat",
-  },
-  {
-    key: "s3.endpoint-url",
-    value: "http://localhost:9001",
-  },
-  {
-    key: "s3.force-path-style",
-    value: true,
-  },
-  {
-    key: "s3.acl",
-    value: "private",
-  },
-  {
-    key: "server.storage-type",
-    value: "LOCAL",
-  },
-  {
-    key: "server.url",
-    value: "http://localhost:3000",
-  },
-  {
-    key: "server.name",
-    value: "CAT",
-  },
-  {
-    key: "server.default-language",
-    value: process.env.DEFAULT_LANGUAGE ?? "zh_cn",
-  },
-];
-
-const SettingDataSchema = SettingSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-type SettingData = z.infer<typeof SettingDataSchema>;
-
-export const initSettings = async () => {
-  await prisma.$transaction(async (tx) => {
-    await Promise.all(
-      settings
-        .map((setting) => SettingDataSchema.parse(setting))
-        .map(async ({ key, value }) => {
-          const current = await tx.setting.findUnique({
-            where: {
-              key,
-            },
-          });
-
-          if (current) return;
-
-          await tx.setting.create({
-            data: {
-              key,
-              value,
-            },
-          });
-        }),
-    );
-  });
+export const initRedisDB = async () => {
+  try {
+    await RedisDB.connect();
+    await RedisDB.ping();
+    logger.info("DB", "Successfully connected to RedisDB.");
+    return RedisDB;
+  } catch (e) {
+    logger.error("DB", "Failed to connect to RedisDB.", e);
+    throw e;
+  }
 };
 
-export const scanLocalPlugins = async () => {
+export const initESDB = async () => {
+  try {
+    const db = new ESDB();
+    await ESDB.connect();
+    await ESDB.ping();
+    logger.info("DB", "Successfully connected to ESDB.");
+    return;
+  } catch (e) {
+    logger.error("DB", "Failed to connect to ESDB.", e);
+    throw e;
+  }
+};
+
+export const scanLocalPlugins = async (prisma: PrismaClient) => {
   const existPluginIds: string[] = [];
   const jobs: Job[] = [];
 

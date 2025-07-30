@@ -3,6 +3,8 @@ import { Queue, QueueEvents, Worker } from "bullmq";
 import { config } from "./config";
 import { logger } from "@cat/shared";
 import { PluginImporterRegistry } from "../utils/plugin/plugin-importer-registry";
+import type { InputJsonValue } from "@prisma/client/runtime/client";
+import { Input } from "hono";
 
 const queueId = "importPlugin";
 
@@ -57,7 +59,7 @@ const worker = new Worker(
                   },
                   create: {
                     key,
-                    schema,
+                    schema: schema as InputJsonValue,
                     value: getDefaultFromSchema(schema),
                     userOverridable,
                   },
@@ -109,7 +111,7 @@ const worker = new Worker(
         },
         create: {
           id: pluginId,
-          origin,
+          origin: origin as InputJsonValue,
           name: data.name,
           overview: data.overview,
           entry: data.entry ?? null,
@@ -125,7 +127,7 @@ const worker = new Worker(
                   },
                   create: {
                     key,
-                    schema,
+                    schema: schema as InputJsonValue,
                     value: getDefaultFromSchema(schema),
                     userOverridable,
                   },

@@ -6,7 +6,6 @@ import {
   Project,
   TranslatableElement,
   File,
-  FileType,
   StorageType,
   Glossary,
   TermRelation,

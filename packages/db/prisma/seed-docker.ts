@@ -1,10 +1,11 @@
 // @boundaries-ignore root config inheritance
 // This script will never run in this package
 // but in built apps/app docker container where have @cat/db denpendency
-import { prisma, PrismaDB, hashPassword } from "@cat/db";
+import type { PrismaClient } from "@cat/db";
+import { PrismaDB, hashPassword } from "@cat/db";
 import { randomBytes } from "crypto";
 
-const seed = async () => {
+const seed = async (prisma: PrismaClient) => {
   await prisma.$transaction(async (tx) => {
     await tx.language.createMany({
       data: [
@@ -38,44 +39,32 @@ const seed = async () => {
 
     console.log(`Default admin password is: ${password}`);
 
-    await tx.fileType.createMany({
-      data: [
-        {
-          name: "PNG",
-          mimeType: "image/png",
-        },
-        {
-          name: "JSON",
-          mimeType: "application/json",
-        },
-      ],
-    });
-
     await tx.storageType.createMany({
       data: [{ name: "LOCAL" }, { name: "S3" }],
     });
   });
 };
 
-PrismaDB.connect().then(async () => {
+(async () => {
+  const db = new PrismaDB();
+  await db.connect();
+  await db.ping();
+
+  const prisma = db.client;
+
   const languages = await prisma.language.findMany();
-  const fileTypes = await prisma.fileType.findMany();
   const storageTypes = await prisma.storageType.findMany();
 
-  if (
-    languages.length !== 0 ||
-    fileTypes.length !== 0 ||
-    storageTypes.length !== 0
-  ) {
+  if (languages.length !== 0 || storageTypes.length !== 0) {
     console.log("Skipping seeding due to existing basic data");
     return;
   }
 
-  await seed()
+  await seed(prisma)
     .catch(async (e) => {
       console.error(e);
     })
     .finally(async () => {
-      await PrismaDB.disconnect();
+      await db.disconnect();
     });
-});
+})();

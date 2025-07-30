@@ -3,7 +3,7 @@ import {
   parsePreferredLanguage,
   setupI18n,
 } from "@/server/utils/i18n";
-import { setting } from "@cat/db";
+import { prisma, setting } from "@cat/db";
 import type { PageContextServer } from "vike/types";
 
 export const onCreateApp = async (ctx: PageContextServer) => {
@@ -22,7 +22,7 @@ const loadI18n = async (ctx: PageContextServer) => {
     parsePreferredLanguage(ctx.helpers.getReqHeader("Accept-Language") ?? "")
       ?.toLocaleLowerCase()
       .replace("-", "_") ??
-    (await setting("server.default-language", "zh_cn"));
+    (await setting("server.default-language", "zh_cn", prisma));
 
   // 未加载过客户端指定语言时
   // 进行懒加载

@@ -1,4 +1,4 @@
-import { redis, setting } from "@cat/db";
+import { prisma, redis, setting } from "@cat/db";
 import { randomChars } from "./crypto";
 import type { ProviderConfig } from "..";
 
@@ -23,7 +23,7 @@ export const createOIDCAuthURL = async (
 ): Promise<string> => {
   const redirecturi = new URL(
     "/auth/callback",
-    (await setting("server.url", "http://localhost:3000")) as string,
+    await setting("server.url", "http://localhost:3000", prisma),
   ).toString();
 
   const url = new URL("", config.authURI);

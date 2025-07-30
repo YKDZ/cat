@@ -35,6 +35,7 @@ export default [
       "node:path",
       "node:url",
       "node:crypto",
+      "@cat/shared"
     ],
   },
 

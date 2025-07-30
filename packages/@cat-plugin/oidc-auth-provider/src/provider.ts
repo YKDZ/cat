@@ -1,4 +1,4 @@
-import { redis, setting } from "@cat/db";
+import { prisma, redis, setting } from "@cat/db";
 import type { AuthProvider, AuthResult, PreAuthResult } from "@cat/plugin-core";
 import type { HTTPHelpers } from "@cat/shared";
 import { safeJoinURL } from "@cat/shared";
@@ -78,7 +78,7 @@ export class Provider implements AuthProvider {
       client_secret: this.config.clientSecret,
       code,
       redirect_uri: safeJoinURL(
-        await setting("server.url", "http://localhost:3000"),
+        await setting("server.url", "http://localhost:3000", prisma),
         "/auth/callback",
       ),
       grant_type: "authorization_code",
@@ -158,6 +158,7 @@ export class Provider implements AuthProvider {
       post_logout_redirect_uri: await setting(
         "server.url",
         "http://localhost:3000",
+        prisma,
       ),
       state,
     });

@@ -1,6 +1,10 @@
-import { prisma } from "../prisma";
+import type { PrismaClient } from "../generated/prisma/client";
 
-export const setting = async <T>(key: string, fallback: T): Promise<T> => {
+export const setting = async <T>(
+  key: string,
+  fallback: T,
+  prisma: Pick<PrismaClient, "setting">,
+): Promise<T> => {
   const data = await prisma.setting.findUnique({
     where: {
       key,
@@ -14,6 +18,7 @@ export const setting = async <T>(key: string, fallback: T): Promise<T> => {
 
 export const settings = async (
   prefix: string,
+  prisma: Pick<PrismaClient, "setting">,
 ): Promise<Record<string, unknown>> => {
   const datas = await prisma.setting.findMany({
     where: {

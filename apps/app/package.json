@@ -17,7 +17,7 @@
     "start": "cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
     "test": "vitest --typecheck",
-    "test:type": "tsc --noEmit",
+    "test:type": "tsc --noEmit & vue-tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --write .",
     "clean": "rimraf dist",
@@ -64,6 +64,7 @@
     "vike-vue": "^0.9.2",
     "vue": "^3.5.17",
     "vue-i18n": "^11.1.10",
+    "vue-tsc": "^3.0.4",
     "zod": "^4.0.5"
   },
   "devDependencies": {
@@ -81,8 +82,8 @@
     "cross-env": "^7.0.3",
     "happy-dom": "^18.0.1",
     "typescript": "^5.8.3",
-    "unocss": "^66.3.3",
     "typescript-eslint": "^8.37.0",
+    "unocss": "^66.3.3",
     "vite": "^7.0.0",
     "vitest": "^3.2.4"
   }

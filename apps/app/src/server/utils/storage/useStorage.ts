@@ -1,3 +1,4 @@
+import type { Prisma, PrismaClient } from "@cat/db";
 import { setting } from "@cat/db";
 import { LocalStorage } from "./LocalStorage";
 import { S3Storage } from "./S3Storage";
@@ -16,7 +17,6 @@ export interface Storage {
   generateDownloadURL(
     path: string,
     fileName: string,
-    mimeType: string,
     expiresIn: number,
   ): Promise<string>;
   delete: (file: File) => Promise<void>;
@@ -25,11 +25,13 @@ export interface Storage {
   disconnect: () => Promise<void>;
 }
 
-export const useStorage = async (): Promise<{
+export const useStorage = async (
+  prisma: PrismaClient,
+): Promise<{
   storage: Storage;
   type: string;
 }> => {
-  const type = (await setting("server.storage-type", "local")) as string;
+  const type = await setting("server.storage-type", "local", prisma);
   return {
     storage: type === "S3" ? new S3Storage() : new LocalStorage(),
     type,

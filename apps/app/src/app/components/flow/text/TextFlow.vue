@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FlowItem } from "./index";
+import type { FlowItem } from "../index";
 
 const props = defineProps<{
   items: FlowItem[];

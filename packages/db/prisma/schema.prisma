@@ -9,7 +9,3 @@ generator client {
     output          = "../src/generated/prisma"
     moduleFormat    = "esm"
 }
-
-generator json {
-    provider = "prisma-json-types-generator"
-}
