@@ -1,9 +1,9 @@
 import type { Queue } from "bullmq";
+import { autoTranslateQueue } from "./autoTranslate";
+import { cleanDanglingFilesQueue } from "./cleanDanglingFiles";
 import { documentFromFilePretreatmentQueue } from "./documentFromFilePretreatment";
 import { exportTranslatedFileQueue } from "./exportTranslatedFile";
-import { autoTranslateQueue } from "./autoTranslate";
 import { importPluginQueue } from "./importPlugin";
-import { cleanDanglingFilesQueue } from "./cleanDanglingFiles";
 
 const queues: Queue[] = [
   documentFromFilePretreatmentQueue,

@@ -5,6 +5,7 @@ import { randomBytes } from "crypto";
 import { z } from "zod";
 import { publicProcedure, router } from "../server";
 import type { JSONSchema } from "zod/v4/core";
+import type { InputJsonValue } from "@prisma/client/runtime/client";
 
 export const authRouter = router({
   queryPreAuthFormSchema: publicProcedure
@@ -177,7 +178,7 @@ export const authRouter = router({
               type: provider.getType(),
               provider: providerIssuer,
               providedAccountId,
-              meta: accountMeta,
+              meta: accountMeta as InputJsonValue,
               User: {
                 connectOrCreate: {
                   where: {

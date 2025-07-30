@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import vue from "@vitejs/plugin-vue";
 import { resolve } from "path";
 import UnoCSS from "unocss/vite";
@@ -29,16 +28,6 @@ export default defineConfig({
     target: "es2022",
     rollupOptions: {
       external: ["cloudflare:sockets", /\.prisma\/client\/.*$/],
-    },
-  },
-  test: {
-    globals: true,
-    environment: "happy-dom",
-    deps: {
-      moduleDirectories: ["../../packages"],
-    },
-    alias: {
-      "@": resolve(__dirname, "src"),
     },
   },
 });

@@ -1,10 +1,10 @@
-import { setting } from "@cat/db";
+import { prisma, setting } from "@cat/db";
 import { expect, test } from "@playwright/test";
 
 test("should have basic outlook", async ({ page }) => {
   await page.goto("/auth");
 
-  const name = await setting("server.name", "CAT");
+  const name = await setting("server.name", "CAT", prisma);
 
   await expect(page).toHaveTitle(`${name} | Auth`);
   await expect(page.locator("#app")).toMatchAriaSnapshot(`

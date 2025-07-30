@@ -5,9 +5,6 @@ model File {
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 
-    typeId Int
-    Type   FileType @relation(fields: [typeId], references: [id])
-
     storageTypeId Int
     StorageType   StorageType @relation(fields: [storageTypeId], references: [id])
 
@@ -16,15 +13,6 @@ model File {
 
     userId String? @unique
     User   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-}
-
-model FileType {
-    id       Int    @id @default(autoincrement())
-    name     String
-    mimeType String @unique
-    icon     String @default("i-mdi:file")
-
-    Files File[]
 }
 
 model StorageType {

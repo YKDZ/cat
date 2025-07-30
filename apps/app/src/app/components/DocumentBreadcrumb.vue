@@ -6,7 +6,8 @@ const props = defineProps<{
   document: Document;
 }>();
 
-const icon = computed(() => props.document.File?.Type?.icon ?? "i-mdi:file");
+// TODO 文件名 -> 图标
+const icon = computed(() => "i-mdi:file");
 </script>
 
 <template>

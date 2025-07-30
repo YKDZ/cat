@@ -45,11 +45,6 @@ export const documentRouter = router({
         data: {
           originName: meta.name,
           storedPath: path,
-          Type: {
-            connect: {
-              mimeType: meta.mimeType,
-            },
-          },
           StorageType: {
             connect: {
               name: getId(),
@@ -88,9 +83,6 @@ export const documentRouter = router({
         const file = await prisma.file.findUnique({
           where: {
             id: fileId,
-          },
-          include: {
-            Type: true,
           },
         });
 
@@ -158,11 +150,6 @@ export const documentRouter = router({
               },
             },
             include: {
-              File: {
-                include: {
-                  Type: true,
-                },
-              },
               Tasks: {
                 where: {
                   type: "document_from_file_pretreatment",
@@ -204,11 +191,7 @@ export const documentRouter = router({
               },
             },
             include: {
-              File: {
-                include: {
-                  Type: true,
-                },
-              },
+              File: true,
               Tasks: {
                 where: {
                   type: "document_from_file_pretreatment",
@@ -273,7 +256,7 @@ export const documentRouter = router({
           vectorizerId: vectorizer.getId(),
         },
         {
-          attempts: 3,
+          attempts: 1,
           removeOnComplete: {
             age: 60 * 60,
             count: 1000,
@@ -325,11 +308,7 @@ export const documentRouter = router({
             id,
           },
           include: {
-            File: {
-              include: {
-                Type: true,
-              },
-            },
+            File: true,
           },
         })
         .catch((e: PrismaError) => {
@@ -484,11 +463,7 @@ export const documentRouter = router({
           id,
         },
         include: {
-          File: {
-            include: {
-              Type: true,
-            },
-          },
+          File: true,
         },
       });
 
@@ -583,11 +558,6 @@ export const documentRouter = router({
         select: {
           storedPath: true,
           originName: true,
-          Type: {
-            select: {
-              mimeType: true,
-            },
-          },
         },
       });
 
@@ -600,7 +570,6 @@ export const documentRouter = router({
       const url = await storage.generateDownloadURL(
         file.storedPath,
         file.originName,
-        file.Type.mimeType,
         60,
       );
 

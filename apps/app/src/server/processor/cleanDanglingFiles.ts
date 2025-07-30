@@ -10,7 +10,7 @@ export const cleanDanglingFilesQueue = new Queue(queueId, config);
 
 const worker = new Worker(
   queueId,
-  async (job) => {
+  async () => {
     // 所有外键都悬空的且一个月内没有更新的文件被视为悬空文件
     // TODO 配置定时
     const oneMonthAgo = new Date();

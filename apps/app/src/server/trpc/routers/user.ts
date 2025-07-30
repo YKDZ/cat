@@ -81,11 +81,6 @@ export const userRouter = router({
             create: {
               originName: meta.name,
               storedPath: path,
-              Type: {
-                connect: {
-                  mimeType: meta.mimeType,
-                },
-              },
               StorageType: {
                 connect: {
                   name: getId(),
@@ -118,11 +113,7 @@ export const userRouter = router({
           id,
         },
         select: {
-          AvatarFile: {
-            include: {
-              Type: true,
-            },
-          },
+          AvatarFile: true,
         },
       });
 

@@ -16,7 +16,7 @@ test("should return exists value", async () => {
 
   prisma.setting.findUnique.mockResolvedValue(existSetting);
 
-  const name = await setting("server.name", "CAT");
+  const name = await setting("server.name", "CAT", prisma);
 
   expect(name).toStrictEqual(existSetting.value);
 });
@@ -26,7 +26,7 @@ test("should return default value if setting not exists", async () => {
 
   const defaultValue = "CAT";
 
-  const name = await setting("server.name", defaultValue);
+  const name = await setting("server.name", defaultValue, prisma);
 
   expect(name).toStrictEqual(defaultValue);
 });
@@ -49,7 +49,7 @@ test("should return key: value record", async () => {
     },
   ]);
 
-  const result = await settings("server.");
+  const result = await settings("server.", prisma);
 
   expect(result).toStrictEqual({
     "server.name": "CAT",

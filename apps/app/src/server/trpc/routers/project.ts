@@ -244,11 +244,7 @@ export const projectRouter = router({
             TargetLanguages: true,
             Documents: {
               include: {
-                File: {
-                  include: {
-                    Type: true,
-                  },
-                },
+                File: true,
               },
             },
           },
@@ -278,11 +274,7 @@ export const projectRouter = router({
             SourceLanguage: true,
             Documents: {
               include: {
-                File: {
-                  include: {
-                    Type: true,
-                  },
-                },
+                File: true,
               },
             },
           },

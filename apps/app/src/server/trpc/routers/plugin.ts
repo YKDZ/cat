@@ -10,6 +10,7 @@ import { authedProcedure, router } from "../server";
 import { importPluginQueue } from "@/server/processor/importPlugin";
 import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
 import { TRPCError } from "@trpc/server";
+import type { InputJsonValue } from "@prisma/client/runtime/client";
 
 export const pluginRouter = router({
   delete: authedProcedure
@@ -75,7 +76,7 @@ export const pluginRouter = router({
           },
         },
         data: {
-          value,
+          value: value as InputJsonValue,
         },
       });
     }),
@@ -101,12 +102,12 @@ export const pluginRouter = router({
           },
         },
         create: {
-          value,
+          value: value as InputJsonValue,
           creatorId: user.id,
           configId,
         },
         update: {
-          value,
+          value: value as InputJsonValue,
         },
       });
     }),
@@ -133,7 +134,7 @@ export const pluginRouter = router({
           },
         },
         data: {
-          value,
+          value: value as InputJsonValue,
           isActive,
         },
       });

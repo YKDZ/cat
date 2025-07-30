@@ -1,7 +1,10 @@
+import type { PrismaClient } from "@cat/db";
 import type { Storage } from "./useStorage";
 import type { File } from "@cat/shared";
 
 export class LocalStorage implements Storage {
+  async init(prisma: PrismaClient) {}
+
   getId() {
     return "LOCAL";
   }
@@ -22,12 +25,7 @@ export class LocalStorage implements Storage {
     return "";
   }
 
-  async generateDownloadURL(
-    path: string,
-    fileName: string,
-    mimeType: string,
-    expiresIn: number,
-  ) {
+  async generateDownloadURL(path: string, fileName: string, expiresIn: number) {
     return "";
   }
 

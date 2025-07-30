@@ -1,6 +1,8 @@
+import type { PrismaClient } from "@cat/db";
+import { prisma, setting } from "@cat/db";
 import { Blob } from "buffer";
 import { mkdirSync, writeFileSync } from "fs";
-import { normalize, resolve, sep } from "path";
+import { extname, normalize, resolve, sep } from "path";
 
 export const base64ToBlob = (base64: string, mimeType: string): Blob => {
   return new Blob([Buffer.from(base64, "base64")], { type: mimeType });
@@ -63,4 +65,16 @@ export const findStringValues = (
 
 export const sanitizeFileName = (name: string) => {
   return name.replace(/[^\w.-]/g, "_");
+};
+
+export const mimeFromFileName = async (
+  fileName: string,
+  prisma: Pick<PrismaClient, "setting">,
+): Promise<string> => {
+  const mimeMapping = await setting(
+    "file-system.mime-mapping",
+    { ext: "mime" } as Record<string, string>,
+    prisma,
+  );
+  return mimeMapping[extname(fileName)] || "application/octet-stream";
 };

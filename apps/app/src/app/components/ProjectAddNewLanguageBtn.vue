@@ -50,7 +50,7 @@ const langFilter = (option: PickerOption) => {
   return (
     option.value !== project.value.SourceLanguage?.id &&
     !project.value.TargetLanguages?.map((language) => language.id).includes(
-      option.value,
+      `${option.value}`,
     )
   );
 };

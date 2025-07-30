@@ -18,7 +18,6 @@ const ctx = usePageContext();
 let AsyncComponent: Vue.AsyncComponentLoader | null = null;
 
 onServerPrefetch(async () => {
-  console.log("为什么不被触发？");
   if (!ctx.isClientSide) {
     const path = await ctx.pluginRegistry.getPluginComponentFsPath(
       props.component.pluginId,
