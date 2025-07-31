@@ -1,10 +1,11 @@
-import { prisma } from "@cat/db";
 import { Queue, QueueEvents, Worker } from "bullmq";
 import { config } from "./config";
 import { logger } from "@cat/shared";
 import { PluginImporterRegistry } from "../utils/plugin/plugin-importer-registry";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
-import { Input } from "hono";
+import { getPrismaDB } from "@cat/db";
+
+const { client: prisma } = await getPrismaDB();
 
 const queueId = "importPlugin";
 

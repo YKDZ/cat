@@ -1,7 +1,6 @@
 import { FileMetaSchema, UserSchema } from "@cat/shared";
 import { authedProcedure, router } from "../server";
 import { z } from "zod";
-import { prisma } from "@cat/db";
 import { TRPCError } from "@trpc/server";
 import { useStorage } from "@/server/utils/storage/useStorage";
 import { randomUUID } from "crypto";
@@ -14,7 +13,10 @@ export const userRouter = router({
         id: z.ulid(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return UserSchema.nullable().parse(
@@ -32,8 +34,11 @@ export const userRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { user: newUser } = input;
-      const { user } = ctx;
 
       if (user.id !== newUser.id)
         throw new TRPCError({
@@ -60,7 +65,10 @@ export const userRouter = router({
     )
     .output(z.url())
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { meta } = input;
 
       const {
@@ -105,7 +113,10 @@ export const userRouter = router({
         expiresIn: z.number().int(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       const user = await prisma.user.findUnique({

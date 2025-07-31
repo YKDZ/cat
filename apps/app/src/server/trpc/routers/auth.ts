@@ -1,4 +1,3 @@
-import { prisma, redis } from "@cat/db";
 import { AuthMethodSchema, type AuthMethod } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
@@ -41,7 +40,13 @@ export const authRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { user, pluginRegistry, setCookie, helpers } = ctx;
+      const {
+        redisDB: { redis },
+        user,
+        pluginRegistry,
+        setCookie,
+        helpers,
+      } = ctx;
       const { providerId, gotFromClient } = input;
 
       if (user)
@@ -117,7 +122,15 @@ export const authRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { getCookie, setCookie, delCookie, pluginRegistry, helpers } = ctx;
+      const {
+        redisDB: { redis },
+        prismaDB: { client: prisma },
+        getCookie,
+        setCookie,
+        delCookie,
+        pluginRegistry,
+        helpers,
+      } = ctx;
       const { passToServer } = input;
 
       if (ctx.user)
@@ -224,7 +237,13 @@ export const authRouter = router({
       setCookie("sessionId", sessionId);
     }),
   logout: publicProcedure.mutation(async ({ ctx }) => {
-    const { user, sessionId, pluginRegistry, delCookie } = ctx;
+    const {
+      redisDB: { redis },
+      user,
+      sessionId,
+      pluginRegistry,
+      delCookie,
+    } = ctx;
 
     if (!user || !sessionId)
       throw new TRPCError({ code: "CONFLICT", message: "Currently not login" });

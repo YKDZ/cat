@@ -1,6 +1,5 @@
 import { hash } from "@/server/utils/crypto";
 import { AsyncMessageQueue } from "@/server/utils/queue";
-import { prisma, redis, redisPub, redisSub } from "@cat/db";
 import type {
   TranslationAdvisorData,
   TranslationSuggestion,
@@ -25,7 +24,12 @@ export const suggestionRouter = router({
       }),
     )
     .subscription(async function* ({ ctx, input }) {
-      const { user, pluginRegistry } = ctx;
+      const {
+        redisDB: { redis, redisPub, redisSub },
+        prismaDB: { client: prisma },
+        user,
+        pluginRegistry,
+      } = ctx;
       const { elementId, languageId } = input;
 
       const element = await prisma.translatableElement.findUnique({

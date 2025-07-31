@@ -3,7 +3,7 @@ import type { Storage } from "./useStorage";
 import type { File } from "@cat/shared";
 
 export class LocalStorage implements Storage {
-  async init(prisma: PrismaClient) {}
+  async init() {}
 
   getId() {
     return "LOCAL";

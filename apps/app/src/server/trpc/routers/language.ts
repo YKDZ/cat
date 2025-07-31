@@ -2,17 +2,21 @@ import { publicProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { LanguageSchema } from "@cat/shared";
-import { prisma } from "@cat/db";
 
 export const languageRouter = router({
-  listAll: publicProcedure.output(z.array(LanguageSchema)).query(async () => {
-    return await z
-      .array(LanguageSchema)
-      .parseAsync(await prisma.language.findMany())
-      .catch((e) => {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", cause: e });
-      });
-  }),
+  listAll: publicProcedure
+    .output(z.array(LanguageSchema))
+    .query(async ({ ctx }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
+      return await z
+        .array(LanguageSchema)
+        .parseAsync(await prisma.language.findMany())
+        .catch((e) => {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", cause: e });
+        });
+    }),
   query: publicProcedure
     .input(
       z.object({
@@ -20,7 +24,10 @@ export const languageRouter = router({
       }),
     )
     .output(LanguageSchema.nullable())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return LanguageSchema.nullable().parse(

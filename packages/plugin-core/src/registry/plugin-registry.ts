@@ -1,4 +1,3 @@
-import { prisma } from "@cat/db";
 import { logger, PluginManifestSchema } from "@cat/shared";
 import { existsSync, readdirSync } from "fs";
 import { readFile } from "fs/promises";
@@ -12,6 +11,7 @@ import type {
   TranslationAdvisor,
   TranslationAdvisorOptions,
 } from "./translation-advisor";
+import type { PrismaClient } from "@cat/db";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
@@ -51,7 +51,7 @@ export class PluginRegistry {
 
   public constructor() {}
 
-  public async loadPlugins(options?: LoadPluginsOptions) {
+  public async loadPlugins(prisma: PrismaClient, options?: LoadPluginsOptions) {
     this.plugins.clear();
     if (!options?.silent) logger.info("PLUGIN", "Prepared to load plugins...");
 
@@ -100,7 +100,7 @@ export class PluginRegistry {
               imported.default ?? imported,
             );
 
-            await this.loadPlugin(id, pluginObj);
+            await this.loadPlugin(prisma, id, pluginObj);
 
             if (!options?.silent)
               logger.info("PLUGIN", `Successfully loaded plugin: ${id}`);
@@ -125,7 +125,11 @@ export class PluginRegistry {
     }
   }
 
-  private async loadPlugin(pluginId: string, instance: CatPlugin) {
+  private async loadPlugin(
+    prisma: PrismaClient,
+    pluginId: string,
+    instance: CatPlugin,
+  ) {
     this.plugins.set(pluginId, instance);
 
     // 用全局配置做启动加载
@@ -164,6 +168,7 @@ export class PluginRegistry {
   }
 
   public async getTranslationAdvisors(
+    prisma: PrismaClient,
     options?: TranslationAdvisorOptions,
   ): Promise<TranslationAdvisor[]> {
     return (
@@ -203,20 +208,24 @@ export class PluginRegistry {
       .flat();
   }
 
-  public async hasTranslationAdvisor(id: string | null): Promise<boolean> {
+  public async hasTranslationAdvisor(
+    prisma: PrismaClient,
+    id: string | null,
+  ): Promise<boolean> {
     if (!id) return false;
-    return !!(await this.getTranslationAdvisors()).find(
+    return !!(await this.getTranslationAdvisors(prisma)).find(
       (advisor) => advisor.getId() === id,
     );
   }
 
   public async getTranslationAdvisor(
+    prisma: PrismaClient,
     id: string | null,
     options?: TranslationAdvisorOptions,
   ): Promise<TranslationAdvisor | null> {
     if (!id) return null;
     return (
-      (await this.getTranslationAdvisors(options)).find(
+      (await this.getTranslationAdvisors(prisma, options)).find(
         (advisor) => advisor.getId() === id,
       ) ?? null
     );
@@ -297,9 +306,9 @@ export class PluginRegistry {
     );
   }
 
-  public async reload(options?: LoadPluginsOptions) {
+  public async reload(prisma: PrismaClient, options?: LoadPluginsOptions) {
     this.plugins = new Map();
-    await this.loadPlugins(options);
+    await this.loadPlugins(prisma, options);
   }
 
   public async getPluginManifest(pluginId: string) {

@@ -2,26 +2,13 @@
   "$schema": "https://turborepo.com/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "inputs": [
-        ".env",
-        "*.json",
-        "src/**",
-        "docs/**"
-      ],
-      "outputs": [
-        "dist/**"
-      ]
+      "dependsOn": ["^build"],
+      "inputs": [".env", "*.json", "src/**", "docs/**"],
+      "outputs": ["dist/**"]
     },
     "lint": {
-      "dependsOn": [
-        "^lint"
-      ],
-      "inputs": [
-        "src/**"
-      ]
+      "dependsOn": ["^lint"],
+      "inputs": ["src/**"]
     },
     "start": {
       "persistent": true,
@@ -33,52 +20,23 @@
     },
     "test": {
       "persistent": true,
-      "inputs": [
-        "src/**",
-        "*.json",
-        "*.ts",
-        ".env"
-      ]
+      "inputs": ["src/**", "*.json", "*.ts", ".env"]
     },
     "test:type": {
       "persistent": true,
-      "inputs": [
-        "src/**",
-        "*.json",
-        "*.ts",
-        ".env"
-      ]
+      "inputs": ["src/**", "*.json", "*.ts", ".env"]
     },
     "test:e2e": {
       "persistent": true,
-      "inputs": [
-        "src/**",
-        "*.json",
-        "*.ts",
-        ".env"
-      ]
+      "inputs": ["src/**", "*.json", "*.ts", ".env"]
     },
     "format": {
-      "dependsOn": [
-        "^format"
-      ],
-      "inputs": [
-        "src/**",
-        "*.json",
-        "*.ts",
-        ".env"
-      ]
+      "dependsOn": ["^format"],
+      "inputs": ["src/**", "*.json", "*.ts", ".env"]
     },
     "format:check": {
-      "dependsOn": [
-        "^format:check"
-      ],
-      "inputs": [
-        "src/**",
-        "*.json",
-        "*.ts",
-        ".env"
-      ]
+      "dependsOn": ["^format:check"],
+      "inputs": ["src/**", "*.json", "*.ts", ".env"]
     },
     "clean": {
       "persistent": true,

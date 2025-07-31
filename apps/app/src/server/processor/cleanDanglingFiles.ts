@@ -1,8 +1,10 @@
-import { prisma } from "@cat/db";
 import { logger } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
+import { getPrismaDB } from "@cat/db";
+
+const { client: prisma } = await getPrismaDB();
 
 const queueId = "cleanDanglingFiles";
 

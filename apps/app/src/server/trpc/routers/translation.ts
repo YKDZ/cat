@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
-import { prisma } from "@cat/db";
 import {
   TranslationApprovmentSchema,
   TranslationSchema,
@@ -18,7 +17,10 @@ export const translationRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { id } = input;
 
       const project = await prisma.project.findUnique({
@@ -55,7 +57,11 @@ export const translationRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { user, pluginRegistry } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+        pluginRegistry,
+      } = ctx;
       const { projectId, elementId, languageId, value, createMemory } = input;
 
       return await prisma.$transaction(async (tx) => {
@@ -128,7 +134,10 @@ export const translationRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { id, value } = input;
 
       const translation = await prisma.$transaction(async (tx) => {
@@ -166,7 +175,10 @@ export const translationRouter = router({
         languageId: z.string(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { elementId, languageId } = input;
 
       const translations = await prisma.translation.findMany({
@@ -190,7 +202,10 @@ export const translationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { id, value } = input;
 
       return TranslationVoteSchema.parse(
@@ -237,7 +252,10 @@ export const translationRouter = router({
       }),
     )
     .output(z.number().int())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       const votes = await prisma.translationVote.findMany({
@@ -258,7 +276,10 @@ export const translationRouter = router({
     )
     .output(TranslationVoteSchema.nullable())
     .query(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { id } = input;
 
       return TranslationVoteSchema.nullable().parse(
@@ -280,7 +301,10 @@ export const translationRouter = router({
       }),
     )
     .output(z.number())
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { documentId, languageId } = input;
 
       return await prisma.$transaction(async (tx) => {
@@ -340,7 +364,10 @@ export const translationRouter = router({
       }),
     )
     .output(z.array(TranslationApprovmentSchema))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { ids } = input;
 
       return await prisma.$transaction(async (tx) => {
@@ -381,7 +408,10 @@ export const translationRouter = router({
       }),
     )
     .output(z.array(TranslationApprovmentSchema))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { ids } = input;
 
       return z.array(TranslationApprovmentSchema).parse(
@@ -407,7 +437,11 @@ export const translationRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { user, pluginRegistry } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+        pluginRegistry,
+      } = ctx;
       const { documentId, advisorId, languageId, minMemorySimilarity } = input;
 
       const document = await prisma.document.findUnique({
@@ -437,9 +471,13 @@ export const translationRouter = router({
             "Document does not exists or language does not claimed in project",
         });
 
-      const advisor = await pluginRegistry.getTranslationAdvisor(advisorId, {
-        userId: user.id,
-      });
+      const advisor = await pluginRegistry.getTranslationAdvisor(
+        prisma,
+        advisorId,
+        {
+          userId: user.id,
+        },
+      );
 
       if (!advisor)
         throw new TRPCError({

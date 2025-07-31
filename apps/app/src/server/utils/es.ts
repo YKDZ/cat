@@ -1,9 +1,9 @@
 import type { TermRelation } from "@cat/shared";
 import type { TermStore } from "./term/term-store";
-import { es, prisma } from "@cat/db";
 import type { TermFormatter } from "./term/term-formatter";
 import type { TermIndexService } from "./term/term-index-service";
 import type { TermMatcher } from "./term/term-matcher";
+import { getEsDB, getPrismaDB } from "../db";
 
 export const DefaultFormatter: TermFormatter = {
   format(originalText, matches) {
@@ -18,6 +18,7 @@ export const DefaultFormatter: TermFormatter = {
 
 export const EsTermIndexService: TermIndexService = {
   async ensureIndex(languageId: string) {
+    const { client: es } = await getEsDB();
     const index = `terms_${languageId.toLowerCase()}`;
     const exists = await es.indices.exists({ index });
     if (!exists) {
@@ -57,6 +58,7 @@ export const EsTermIndexService: TermIndexService = {
   },
 
   async analyzeText(languageId, text) {
+    const { client: es } = await getEsDB();
     const index = `terms_${languageId.toLowerCase()}`;
     const res = await es.indices.analyze({ index, text });
     return res.tokens?.map((t) => t.token) ?? [];
@@ -65,6 +67,7 @@ export const EsTermIndexService: TermIndexService = {
 
 export const FuzzyTermMatcher: TermMatcher = {
   async search(text, languageId) {
+    const { client: es } = await getEsDB();
     const index = `terms_${languageId.toLowerCase()}`;
     const tokens = await EsTermIndexService.analyzeText(languageId, text);
 
@@ -102,6 +105,7 @@ export const FuzzyTermMatcher: TermMatcher = {
 
 export const EsTermStore: TermStore = {
   async insertTerm(relation: TermRelation) {
+    const { client: es } = await getEsDB();
     const { Term: term, Translation: translation } = relation;
     if (!term || !translation) return;
     const index = `terms_${term.languageId.toLowerCase()}`;
@@ -124,6 +128,7 @@ export const EsTermStore: TermStore = {
   },
 
   async termText(text, sourceLang, targetLang) {
+    const { client: prisma } = await getPrismaDB();
     const matches = await FuzzyTermMatcher.search(text, sourceLang);
     const textLower = text.toLowerCase();
     const allMatches = [];
@@ -189,6 +194,7 @@ export const EsTermStore: TermStore = {
   },
 
   async init() {
+    const { client: prisma } = await getPrismaDB();
     const langs = await prisma.language.findMany({ select: { id: true } });
     await Promise.all(
       langs.map(({ id }) => EsTermIndexService.ensureIndex(id.toLowerCase())),
