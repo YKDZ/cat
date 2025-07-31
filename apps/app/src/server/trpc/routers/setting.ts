@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
-import { prisma } from "@cat/db";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
 
 export const settingRouter = router({
@@ -11,7 +10,10 @@ export const settingRouter = router({
         value: z.json(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { key, value } = input;
       await prisma.setting.update({
         where: {
@@ -29,7 +31,10 @@ export const settingRouter = router({
       }),
     )
     .output(z.json().nullable())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { key } = input;
 
       return z

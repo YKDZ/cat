@@ -1,4 +1,4 @@
-import { prisma, setting } from "@cat/db";
+import { setting } from "@cat/db";
 import { logger, TranslationSchema, useStringTemplate } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { randomUUID } from "crypto";
@@ -8,6 +8,9 @@ import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
 import { mimeFromFileName } from "../utils/file";
+import { getPrismaDB } from "@cat/db";
+
+const { client: prisma } = await getPrismaDB();
 
 const queueId = "exportTranslatedFile";
 
@@ -25,7 +28,7 @@ const worker = new Worker(
 
     const pluginRegistry = new PluginRegistry();
 
-    await pluginRegistry.loadPlugins({
+    await pluginRegistry.loadPlugins(prisma, {
       silent: true,
       tags: ["translatable-file-handler"],
     });

@@ -3,6 +3,7 @@ import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { userFromSessionId } from "../utils/user";
 import { createHTTPHelpers, getCookieFunc } from "@cat/shared";
 import getPluginRegistry from "../pluginRegistry";
+import { getEsDB, getPrismaDB, getRedisDB } from "@cat/db";
 
 export const createHttpContext = async ({
   req,
@@ -13,12 +14,18 @@ export const createHttpContext = async ({
   const sessionId = helpers.getCookie("sessionId") ?? null;
   const user = await userFromSessionId(sessionId);
 
-  const pluginRegistry = await getPluginRegistry();
+  const prismaDB = await getPrismaDB();
+  const redisDB = await getRedisDB();
+  const esDB = await getEsDB();
+  const pluginRegistry = await getPluginRegistry(prismaDB.client);
 
   return {
     user,
     sessionId,
     pluginRegistry,
+    prismaDB,
+    redisDB,
+    esDB,
     helpers,
     ...helpers,
   };

@@ -1,4 +1,5 @@
-import { prisma, verifyPassword } from "@cat/db";
+import type { PrismaClient } from "@cat/db";
+import { getPrismaDB, verifyPassword } from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
 import { z } from "zod";
 
@@ -25,6 +26,7 @@ export class Provider implements AuthProvider {
   }
 
   async handleAuth(gotFromClient: { formData?: unknown }) {
+    const { client: prisma } = await getPrismaDB();
     const { email, password } = FormSchema.parse(gotFromClient.formData);
 
     const account = await prisma.$transaction(async (tx) => {

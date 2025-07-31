@@ -1,5 +1,4 @@
 import { AsyncMessageQueue } from "@/server/utils/queue";
-import { prisma, redisSub } from "@cat/db";
 import type { MemorySuggestion } from "@cat/shared";
 import {
   MemoryItemSchema,
@@ -21,7 +20,10 @@ export const memoryRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { name, description, projectIds } = input;
 
       await prisma.memory.create({
@@ -52,7 +54,11 @@ export const memoryRouter = router({
         minMemorySimilarity: z.number().min(0).max(1).default(0.72),
       }),
     )
-    .subscription(async function* ({ input }) {
+    .subscription(async function* ({ ctx, input }) {
+      const {
+        redisDB: { redisSub },
+        prismaDB: { client: prisma },
+      } = ctx;
       const {
         elementId,
         sourceLanguageId,
@@ -118,7 +124,10 @@ export const memoryRouter = router({
         userId: z.ulid(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { userId } = input;
 
       // TODO 按权限选择
@@ -136,7 +145,10 @@ export const memoryRouter = router({
         id: z.ulid(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return MemorySchema.nullable().parse(
@@ -157,7 +169,10 @@ export const memoryRouter = router({
       }),
     )
     .output(z.number().int().min(0))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return await prisma.memoryItem.count({
@@ -177,7 +192,10 @@ export const memoryRouter = router({
       }),
     )
     .output(z.array(MemoryItemSchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { memoryId, sourceLanguageId, translationLanguageId } = input;
 
       const items = await prisma.memoryItem.findMany({
@@ -196,7 +214,10 @@ export const memoryRouter = router({
         ids: z.array(z.int()),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { ids } = input;
 
       await prisma.memoryItem.deleteMany({
@@ -214,7 +235,10 @@ export const memoryRouter = router({
       }),
     )
     .output(z.array(MemorySchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { projectId } = input;
 
       return z.array(MemorySchema).parse(
@@ -239,7 +263,10 @@ export const memoryRouter = router({
       }),
     )
     .output(z.number().int())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return await prisma.memoryItem.count({

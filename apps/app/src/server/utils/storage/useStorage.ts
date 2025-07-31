@@ -1,5 +1,4 @@
-import type { Prisma, PrismaClient } from "@cat/db";
-import { setting } from "@cat/db";
+import { setting, getPrismaDB } from "@cat/db";
 import { LocalStorage } from "./LocalStorage";
 import { S3Storage } from "./S3Storage";
 import type { File } from "@cat/shared";
@@ -25,13 +24,15 @@ export interface Storage {
   disconnect: () => Promise<void>;
 }
 
-export const useStorage = async (
-  prisma: PrismaClient,
-): Promise<{
+export const useStorage = async (): Promise<{
   storage: Storage;
   type: string;
 }> => {
-  const type = await setting("server.storage-type", "local", prisma);
+  const type = await setting(
+    "server.storage-type",
+    "local",
+    (await getPrismaDB()).client,
+  );
   return {
     storage: type === "S3" ? new S3Storage() : new LocalStorage(),
     type,

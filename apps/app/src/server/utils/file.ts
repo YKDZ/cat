@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@cat/db";
-import { prisma, setting } from "@cat/db";
+import { setting } from "@cat/db";
 import { Blob } from "buffer";
 import { mkdirSync, writeFileSync } from "fs";
 import { extname, normalize, resolve, sep } from "path";

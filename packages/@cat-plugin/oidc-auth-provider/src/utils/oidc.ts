@@ -1,8 +1,9 @@
-import { prisma, redis, setting } from "@cat/db";
+import { getPrismaDB, getRedisDB, setting } from "@cat/db";
 import { randomChars } from "./crypto";
 import type { ProviderConfig } from "..";
 
 export const createOIDCSession = async (state: string, nonce: string) => {
+  const { redis } = await getRedisDB();
   const sessionId = randomChars();
   const sessionKey = `auth:oidc:session:${sessionId}`;
 
@@ -21,6 +22,7 @@ export const createOIDCAuthURL = async (
   state: string,
   nonce: string,
 ): Promise<string> => {
+  const { client: prisma } = await getPrismaDB();
   const redirecturi = new URL(
     "/auth/callback",
     await setting("server.url", "http://localhost:3000", prisma),

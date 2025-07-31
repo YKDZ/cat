@@ -2,13 +2,9 @@ import { Client } from "@elastic/elasticsearch";
 import "dotenv/config";
 
 export class ESDB {
-  public static instance: ESDB;
   public client: Client;
 
   constructor() {
-    if (ESDB.instance) throw Error("ESDB can only have a single instance");
-
-    ESDB.instance = this;
     this.client = new Client({
       node: process.env.ES_URL,
       auth: {
@@ -21,17 +17,13 @@ export class ESDB {
     });
   }
 
-  static async connect() {}
+  async connect() {}
 
-  static async disconnect() {
-    ESDB.instance.client.close();
+  async disconnect() {
+    this.client.close();
   }
 
-  static async ping() {
-    await es.ping();
+  async ping() {
+    await this.client.ping();
   }
 }
-
-new ESDB();
-
-export const es: Client = ESDB.instance.client;

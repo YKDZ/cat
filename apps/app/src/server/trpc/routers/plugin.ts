@@ -1,4 +1,3 @@
-import { prisma } from "@cat/db";
 import {
   logger,
   PluginConfigSchema,
@@ -19,7 +18,10 @@ export const pluginRouter = router({
         id: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       await prisma.plugin.delete({
@@ -31,7 +33,10 @@ export const pluginRouter = router({
   queryGlobalConfig: authedProcedure
     .input(z.object({ pluginId: z.string(), key: z.string() }))
     .output(PluginConfigSchema.nullable())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { pluginId, key } = input;
 
       return PluginConfigSchema.nullable().parse(
@@ -49,7 +54,10 @@ export const pluginRouter = router({
     .input(z.object({ configId: z.int() }))
     .output(PluginUserConfigInstanceSchema.nullable())
     .query(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { configId } = input;
 
       return PluginUserConfigInstanceSchema.nullable().parse(
@@ -65,7 +73,10 @@ export const pluginRouter = router({
     }),
   updateGlobalConfig: authedProcedure
     .input(z.object({ pluginId: z.string(), key: z.string(), value: z.json() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { pluginId, key, value } = input;
 
       await prisma.pluginConfig.update({
@@ -88,7 +99,10 @@ export const pluginRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { configId, value } = input;
 
       await prisma.pluginUserConfigInstance.upsert({
@@ -120,7 +134,10 @@ export const pluginRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { configId, value, isActive } = input;
 
       await prisma.pluginUserConfigInstance.update({
@@ -145,7 +162,10 @@ export const pluginRouter = router({
         id: z.string(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
       return PluginSchema.nullable().parse(
         await prisma.plugin.findUnique({
@@ -171,7 +191,10 @@ export const pluginRouter = router({
         })
         .nullable(),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return PluginSchema.omit({ Configs: true })
@@ -197,7 +220,10 @@ export const pluginRouter = router({
           }),
         );
     }),
-  listAll: authedProcedure.query(async () => {
+  listAll: authedProcedure.query(async ({ ctx }) => {
+    const {
+      prismaDB: { client: prisma },
+    } = ctx;
     return z.array(PluginSchema).parse(
       await prisma.plugin.findMany({
         include: {
@@ -211,7 +237,10 @@ export const pluginRouter = router({
       }),
     );
   }),
-  listAllUserConfigurable: authedProcedure.query(async () => {
+  listAllUserConfigurable: authedProcedure.query(async ({ ctx }) => {
+    const {
+      prismaDB: { client: prisma },
+    } = ctx;
     return z.array(PluginSchema).parse(
       await prisma.plugin.findMany({
         where: {
@@ -240,7 +269,10 @@ export const pluginRouter = router({
         ref: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { owner, repo, ref } = input;
 
       const task = await prisma.task.create({
@@ -267,7 +299,10 @@ export const pluginRouter = router({
         id: z.string().min(1),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       const task = await prisma.task.create({

@@ -1,4 +1,4 @@
-import { insertVectors, prisma } from "@cat/db";
+import { insertVectors } from "@cat/db";
 import {
   PluginRegistry,
   type TextVectorizer,
@@ -24,6 +24,9 @@ import {
   type DistributedTask,
 } from "./chunk";
 import { config } from "./config";
+import { getPrismaDB } from "@cat/db";
+
+const { client: prisma } = await getPrismaDB();
 
 const queueId = "documentFromFilePretreatment";
 
@@ -49,7 +52,7 @@ const worker = new Worker(
 
     const pluginRegistry = new PluginRegistry();
 
-    await pluginRegistry.loadPlugins({
+    await pluginRegistry.loadPlugins(prisma, {
       silent: true,
       tags: ["translatable-file-handler", "text-vectorizer"],
     });

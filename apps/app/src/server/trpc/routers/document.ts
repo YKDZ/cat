@@ -1,6 +1,5 @@
 import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { useStorage } from "@/server/utils/storage/useStorage";
-import { prisma } from "@cat/db";
 import type { PrismaError } from "@cat/shared";
 import {
   DocumentSchema,
@@ -30,7 +29,10 @@ export const documentRouter = router({
         file: FileSchema,
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { meta } = input;
       const {
         storage: { getId, getBasicPath, generateUploadURL },
@@ -70,7 +72,11 @@ export const documentRouter = router({
     .output(DocumentSchema)
     .mutation(async ({ input, ctx }) => {
       const { projectId, fileId } = input;
-      const { user, pluginRegistry } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+        pluginRegistry,
+      } = ctx;
 
       const {
         parsedFile,
@@ -277,7 +283,10 @@ export const documentRouter = router({
       }),
     )
     .output(TaskSchema.nullable())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, type } = input;
 
       const task = await prisma.document.findUnique({
@@ -299,7 +308,10 @@ export const documentRouter = router({
     }),
   query: authedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       const document = await prisma.document
@@ -331,7 +343,10 @@ export const documentRouter = router({
       }),
     )
     .output(z.int().min(0))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, searchQuery, isApproved, isTranslated } = input;
 
       if (isApproved !== undefined && isTranslated !== true) {
@@ -392,7 +407,10 @@ export const documentRouter = router({
         isTranslated: z.boolean().optional(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { documentId, searchQuery, isApproved, isTranslated } = input;
 
       if (isApproved !== undefined && isTranslated !== true) {
@@ -455,7 +473,10 @@ export const documentRouter = router({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { pluginRegistry } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        pluginRegistry,
+      } = ctx;
       const { id, languageId } = input;
 
       const document = await prisma.document.findFirst({
@@ -519,7 +540,10 @@ export const documentRouter = router({
         url: z.url(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { taskId } = input;
 
       const task = await prisma.task.findFirst({
@@ -586,7 +610,10 @@ export const documentRouter = router({
       }),
     )
     .output(ElementTranslationStatusSchema)
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { elementId, languageId } = input;
 
       const element = await prisma.translatableElement.findUnique({
@@ -638,7 +665,10 @@ export const documentRouter = router({
       }),
     )
     .output(z.array(TranslatableElementSchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const {
         documentId,
         page,
@@ -714,7 +744,10 @@ export const documentRouter = router({
       }),
     )
     .output(z.number().int())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const {
         elementId,
         documentId,
@@ -795,7 +828,10 @@ export const documentRouter = router({
         id: z.ulid(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       await prisma.document.delete({

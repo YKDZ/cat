@@ -1,9 +1,12 @@
-import { prisma, redisPub, redisSub } from "@cat/db";
 import { Queue, Worker } from "bullmq";
 import { config } from "./config";
 import z from "zod";
 import { randomUUID } from "crypto";
 import { logger, type JSONType } from "@cat/shared";
+import { getPrismaDB, getRedisDB } from "@cat/db";
+
+const { client: prisma } = await getPrismaDB();
+const { redisPub, redisSub } = await getRedisDB();
 
 export type ChunkData<T> = {
   chunkIndex: number;

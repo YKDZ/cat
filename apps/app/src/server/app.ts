@@ -4,6 +4,7 @@ import { healthHandler } from "./handler/health";
 import { pluginComponentHandler } from "./handler/plugin-component";
 import type { PluginRegistry } from "@cat/plugin-core";
 import getPluginRegistry from "./pluginRegistry";
+import { getPrismaDB } from "@cat/db";
 
 type Variables = {
   pluginRegistry: PluginRegistry;
@@ -12,7 +13,8 @@ type Variables = {
 const app = new Hono<{ Variables: Variables }>();
 
 app.use("*", async (c, next) => {
-  c.set("pluginRegistry", await getPluginRegistry());
+  const { client: prisma } = await getPrismaDB();
+  c.set("pluginRegistry", await getPluginRegistry(prisma));
   await next();
 });
 

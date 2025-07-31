@@ -1,5 +1,5 @@
-import { insertVector, prisma } from "@cat/db";
-import type { TextVectorizer, TranslationAdvisor } from "@cat/plugin-core";
+import { getPrismaDB, insertVector } from "@cat/db";
+import type { TranslationAdvisor } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
 import type { TranslationSuggestion, UnvectorizedTextData } from "@cat/shared";
 import { logger, TranslatableElementSchema } from "@cat/shared";
@@ -8,6 +8,8 @@ import { z } from "zod";
 import { config } from "./config";
 import { queryElementWithEmbedding, searchMemory } from "../utils/memory";
 import { EsTermStore } from "../utils/es";
+
+const { client: prisma } = await getPrismaDB();
 
 type TranslationData = {
   translation: TranslationSuggestion;
@@ -29,7 +31,7 @@ const worker = new Worker(
   async (job) => {
     const pluginRegistry = new PluginRegistry();
 
-    await pluginRegistry.loadPlugins({
+    await pluginRegistry.loadPlugins(prisma, {
       silent: true,
       tags: ["translation-advisor", "text-vectorizer"],
     });
@@ -51,7 +53,7 @@ const worker = new Worker(
     };
 
     const advisor: TranslationAdvisor | null =
-      await pluginRegistry.getTranslationAdvisor(advisorId);
+      await pluginRegistry.getTranslationAdvisor(prisma, advisorId);
 
     if (advisor && !advisor.isEnabled()) {
       throw new Error("Advisor with given id does not enabled");

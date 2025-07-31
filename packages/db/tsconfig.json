@@ -19,6 +19,7 @@
     "prisma/*.ts"
   ],
   "exclude": [
-    "dist"
+    "dist",
+    "prisma/seed-docker.ts"
   ]
 }

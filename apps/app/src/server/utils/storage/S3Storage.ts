@@ -11,7 +11,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Readable } from "node:stream";
 import type { PrismaClient } from "@cat/db";
-import { setting, settings } from "@cat/db";
+import { getPrismaDB, setting, settings } from "@cat/db";
 import { mimeFromFileName } from "../file";
 
 class S3DB {
@@ -55,7 +55,11 @@ export class S3Storage implements Storage {
   }
 
   async getContent(file: File): Promise<Buffer> {
-    const s3UploadBucketName = await setting("s3.bucket-name", "cat", prisma);
+    const s3UploadBucketName = await setting(
+      "s3.bucket-name",
+      "cat",
+      (await getPrismaDB()).client,
+    );
 
     const command = new GetObjectCommand({
       Bucket: s3UploadBucketName,
@@ -76,12 +80,16 @@ export class S3Storage implements Storage {
   }
 
   async generateUploadURL(path: string, expiresIn: number) {
-    const s3UploadBucketName = await setting("s3.bucket-name", "cat", prisma);
+    const s3UploadBucketName = await setting(
+      "s3.bucket-name",
+      "cat",
+      (await getPrismaDB()).client,
+    );
 
     const params: PutObjectCommandInput = {
       Bucket: s3UploadBucketName,
       Key: path.replaceAll("\\", "/"),
-      ACL: await setting("s3.acl", "private", prisma),
+      ACL: await setting("s3.acl", "private", (await getPrismaDB()).client),
     };
     const command = new PutObjectCommand(params);
     const presignedUrl = await getSignedUrl(S3DB.client!, command, {
@@ -93,7 +101,11 @@ export class S3Storage implements Storage {
   }
 
   async generateURL(path: string, expiresIn: number) {
-    const s3UploadBucketName = await setting("s3.bucket-name", "cat", prisma);
+    const s3UploadBucketName = await setting(
+      "s3.bucket-name",
+      "cat",
+      (await getPrismaDB()).client,
+    );
 
     const command = new GetObjectCommand({
       Bucket: s3UploadBucketName,
@@ -104,20 +116,31 @@ export class S3Storage implements Storage {
   }
 
   async generateDownloadURL(path: string, fileName: string, expiresIn: number) {
-    const s3UploadBucketName = await setting("s3.bucket-name", "cat", prisma);
+    const s3UploadBucketName = await setting(
+      "s3.bucket-name",
+      "cat",
+      (await getPrismaDB()).client,
+    );
 
     const command = new GetObjectCommand({
       Bucket: s3UploadBucketName,
       Key: path.replaceAll("\\", "/"),
       ResponseContentDisposition: `attachment; filename="${fileName}"`,
-      ResponseContentType: await mimeFromFileName(fileName, prisma),
+      ResponseContentType: await mimeFromFileName(
+        fileName,
+        (await getPrismaDB()).client,
+      ),
     });
 
     return await getSignedUrl(S3DB.client!, command, { expiresIn });
   }
 
   async delete(file: File) {
-    const s3UploadBucketName = await setting("s3.bucket-name", "cat", prisma);
+    const s3UploadBucketName = await setting(
+      "s3.bucket-name",
+      "cat",
+      (await getPrismaDB()).client,
+    );
 
     const command = new DeleteObjectCommand({
       Bucket: s3UploadBucketName,
@@ -128,14 +151,14 @@ export class S3Storage implements Storage {
   }
 
   async ping() {
-    await S3DB.ping(prisma);
+    await S3DB.ping((await getPrismaDB()).client);
   }
 
   async connect() {
-    if (!S3DB.client) S3DB.connect(prisma);
+    if (!S3DB.client) S3DB.connect((await getPrismaDB()).client);
   }
 
   async disconnect() {
-    await S3DB.disconnect(prisma);
+    await S3DB.disconnect();
   }
 }

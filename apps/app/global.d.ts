@@ -8,6 +8,7 @@ import type {
   VueMessageType,
   RemoveIndexSignature,
 } from "vue-i18n";
+import type { ESDB, PrismaDB, RedisDB } from "@cat/db";
 
 declare global {
   namespace Vike {
@@ -24,6 +25,9 @@ declare global {
     interface PageContextServer {
       pinia?: Pinia;
       pluginRegistry: PluginRegistry;
+      prismaDB: PrismaDB;
+      redisDB: RedisDB;
+      esDB: ESDB;
       helpers: HTTPHelpers;
       displayLanguage: string;
     }

@@ -1,4 +1,4 @@
-import { insertVector, insertVectors, prisma } from "@cat/db";
+import { insertVector, insertVectors } from "@cat/db";
 import {
   PluginRegistry,
   type TextVectorizer,
@@ -17,6 +17,9 @@ import { diffArrays } from "diff";
 import { isEqual } from "lodash-es";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
+import { getPrismaDB } from "@cat/db";
+
+const { client: prisma } = await getPrismaDB();
 
 const queueId = "createTranslation";
 
@@ -45,7 +48,7 @@ const worker = new Worker(
 
     const pluginRegistry = new PluginRegistry();
 
-    await pluginRegistry.loadPlugins({
+    await pluginRegistry.loadPlugins(prisma, {
       silent: true,
       tags: ["text-vectorizer"],
     });

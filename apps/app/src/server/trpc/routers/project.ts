@@ -1,4 +1,3 @@
-import { prisma } from "@cat/db";
 import type { PrismaError } from "@cat/shared";
 import { ProjectSchema } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
@@ -21,6 +20,10 @@ export const projectRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
+      const {
         name,
         description,
         sourceLanguageId,
@@ -30,7 +33,6 @@ export const projectRouter = router({
         createMemory,
         createGlossary,
       } = input;
-      const { user } = ctx;
 
       const project = await prisma.project
         .create({
@@ -88,7 +90,10 @@ export const projectRouter = router({
         glossaryIds: z.array(z.ulid()),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, glossaryIds } = input;
 
       await prisma.project.update({
@@ -111,7 +116,10 @@ export const projectRouter = router({
         memoryIds: z.array(z.ulid()),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, memoryIds } = input;
 
       await prisma.project.update({
@@ -134,7 +142,10 @@ export const projectRouter = router({
         glossaryIds: z.array(z.ulid()),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, glossaryIds } = input;
 
       await prisma.project.update({
@@ -157,7 +168,10 @@ export const projectRouter = router({
         memoryIds: z.array(z.ulid()),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, memoryIds } = input;
 
       await prisma.project.update({
@@ -179,7 +193,10 @@ export const projectRouter = router({
         id: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { user } = ctx;
       const { id } = input;
 
@@ -207,7 +224,10 @@ export const projectRouter = router({
         userId: z.ulid(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { userId } = input;
 
       return await prisma.$transaction(async (tx) => {
@@ -260,7 +280,10 @@ export const projectRouter = router({
       }),
     )
     .output(ProjectSchema.nullable())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return ProjectSchema.nullable().parse(
@@ -289,8 +312,11 @@ export const projectRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { projectId, languageId } = input;
-      const { user } = ctx;
 
       return ProjectSchema.parse(
         await prisma.project
@@ -325,8 +351,11 @@ export const projectRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { id } = input;
-      const { user } = ctx;
 
       await prisma.permission.create({
         data: {
@@ -344,7 +373,10 @@ export const projectRouter = router({
       }),
     )
     .output(z.number().int().min(0))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, isApproved, isTranslated } = input;
 
       return await prisma.translatableElement.count({
@@ -382,7 +414,10 @@ export const projectRouter = router({
         isApproved: z.boolean().optional(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, languageId, isApproved } = input;
 
       return await prisma.translation.count({

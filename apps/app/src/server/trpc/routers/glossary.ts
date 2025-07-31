@@ -1,4 +1,3 @@
-import { prisma } from "@cat/db";
 import type { TermRelation } from "@cat/shared";
 import {
   GlossarySchema,
@@ -17,7 +16,10 @@ export const glossaryRouter = router({
         ids: z.array(z.number().int()),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { ids } = input;
 
       await prisma.term.deleteMany({
@@ -37,7 +39,10 @@ export const glossaryRouter = router({
       }),
     )
     .output(z.array(TermRelationSchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id, sourceLanguageId, translationLanguageId } = input;
 
       const relations = await prisma.termRelation.findMany({
@@ -91,7 +96,10 @@ export const glossaryRouter = router({
       }),
     )
     .output(GlossarySchema.nullable())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return GlossarySchema.nullable().parse(
@@ -112,7 +120,10 @@ export const glossaryRouter = router({
       }),
     )
     .output(z.array(GlossarySchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { userId } = input;
 
       return z.array(GlossarySchema).parse(
@@ -133,7 +144,10 @@ export const glossaryRouter = router({
       }),
     )
     .output(z.array(GlossarySchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { projectId } = input;
 
       return z.array(GlossarySchema).parse(
@@ -158,7 +172,10 @@ export const glossaryRouter = router({
       }),
     )
     .output(z.number().int())
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { id } = input;
 
       return await prisma.term.count({
@@ -178,7 +195,10 @@ export const glossaryRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { name, description, projectIds } = input;
 
       return GlossarySchema.parse(
@@ -211,7 +231,10 @@ export const glossaryRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+      } = ctx;
       const { glossaryId, termsData, canReverse } = input;
 
       await prisma.$transaction(async (tx) => {
@@ -302,7 +325,10 @@ export const glossaryRouter = router({
       }),
     )
     .output(z.array(TermRelationSchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { text, termLanguageId, translationLanguageId } = input;
       const translationIds = await EsTermStore.searchTerm(text, termLanguageId);
 
@@ -331,7 +357,10 @@ export const glossaryRouter = router({
       }),
     )
     .output(z.array(TermRelationSchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
       const { elementId, translationLanguageId } = input;
 
       const element = await prisma.translatableElement.findUnique({

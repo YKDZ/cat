@@ -1,4 +1,4 @@
-import { prisma } from "@cat/db";
+import { getPrismaDB } from "@cat/db";
 
 export type SearchedMemory = {
   id: number;
@@ -18,6 +18,7 @@ export const queryElementWithEmbedding = async (
   embedding: number[];
   projectId: string;
 }> => {
+  const { client: prisma } = await getPrismaDB();
   const result = await prisma.$queryRaw<
     {
       id: number;
@@ -54,6 +55,7 @@ export const searchMemory = async (
   minSimilarity: number = 0.8,
   maxAmount: number = 3,
 ): Promise<SearchedMemory[]> => {
+  const { client: prisma } = await getPrismaDB();
   const vectorLiteral = `[${embedding.join(",")}]`;
 
   return await prisma.$transaction(async (tx) => {
