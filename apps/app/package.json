@@ -45,7 +45,7 @@
     "dotenv": "^16.5.0",
     "execa": "^9.5.3",
     "fs-extra": "^11.3.0",
-    "hono": "^4.7.11",
+    "hono": "^4.8.12",
     "jose": "^6.0.11",
     "jsonschema": "^1.5.0",
     "jsonwebtoken": "^9.0.2",
