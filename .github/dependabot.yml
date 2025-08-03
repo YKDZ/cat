@@ -7,6 +7,18 @@ updates:
     security-updates: true
 
   - package-ecosystem: "npm"
+    directory: "/apps/docs"
+    schedule:
+      interval: "weekly"
+    security-updates: true
+
+  - package-ecosystem: "npm"
+    directory: "/e2e"
+    schedule:
+      interval: "weekly"
+    security-updates: true
+
+  - package-ecosystem: "npm"
     directory: "/packages/db"
     schedule:
       interval: "weekly"
