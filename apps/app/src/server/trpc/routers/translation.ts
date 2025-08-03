@@ -2,12 +2,14 @@ import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
 import {
+  logger,
   TranslationApprovmentSchema,
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared";
 import { autoTranslateQueue } from "@/server/processor/autoTranslate";
 import { createTranslationQueue } from "@/server/processor/createTranslation";
+import { updateTranslationQueue } from "@/server/processor/updateTranslation";
 
 export const translationRouter = router({
   delete: authedProcedure
@@ -100,7 +102,6 @@ export const translationRouter = router({
         });
 
         await createTranslationQueue.add(task.id, {
-          taskId: task.id,
           createMemory,
           elementId: elementId,
           creatorId: user.id,
@@ -136,37 +137,79 @@ export const translationRouter = router({
     .mutation(async ({ input, ctx }) => {
       const {
         prismaDB: { client: prisma },
-        user,
+        pluginRegistry,
       } = ctx;
       const { id, value } = input;
 
-      const translation = await prisma.$transaction(async (tx) => {
-        const translation = await tx.translation.update({
-          where: {
-            id,
-            translatorId: user.id,
-          },
-          data: {
-            value,
-          },
-          include: {
-            Translator: true,
-          },
-        });
-
-        await tx.memoryItem.updateMany({
-          where: {
-            translationId: translation.id,
-          },
-          data: {
-            translation: translation.value,
-          },
-        });
-
-        return translation;
+      const translation = await prisma.translation.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          id: true,
+          embeddingId: true,
+          languageId: true,
+          translatableElementId: true,
+          translatorId: true,
+          createdAt: true,
+        },
       });
 
-      return TranslationSchema.parse(translation);
+      if (!translation)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Translation with given id not found",
+        });
+
+      const vectorizer = pluginRegistry
+        .getTextVectorizers()
+        .find((vectorizer) => vectorizer.canVectorize(translation.languageId));
+
+      if (!vectorizer) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "CAT 没有可以处理这种文本的向量化器",
+        });
+      }
+
+      const task = await prisma.task.create({
+        data: {
+          type: "update_translation",
+        },
+      });
+
+      await updateTranslationQueue
+        .add(task.id, {
+          translationId: id,
+          translationValue: value,
+          vectorizerId: vectorizer.getId(),
+        })
+        .catch(async (e) => {
+          logger.error(
+            "RPC",
+            "Failed to add update translation job to queue",
+            e,
+          );
+          await prisma.task.update({
+            where: { id: task.id },
+            data: { status: "failed" },
+          });
+        });
+
+      return TranslationSchema.extend({
+        status: z.enum(["PROCESSING", "COMPLETED"]),
+      }).parse({
+        id: translation.id,
+        embeddingId: translation.embeddingId,
+        meta: null,
+        value,
+        languageId: translation.languageId,
+        translatableElementId: translation.translatableElementId,
+        translatorId: translation.translatorId,
+        createdAt: translation.createdAt,
+        updatedAt: new Date(),
+        status: "PROCESSING",
+      });
     }),
   queryAll: authedProcedure
     .input(
@@ -509,7 +552,6 @@ export const translationRouter = router({
       });
 
       await autoTranslateQueue.add(task.id, {
-        taskId: task.id,
         userId: user.id,
         documentId,
         advisorId,

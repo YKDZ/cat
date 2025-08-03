@@ -24,7 +24,7 @@ export const scanLocalPlugins = async () => {
     );
 
     await Promise.all(
-      (await (await getPluginRegistry(prisma)).getPluginIdInLocalPlugins())
+      (await (await getPluginRegistry()).getPluginIdInLocalPlugins())
         .filter((id) => !existPluginIds.includes(id))
         .map(async (id) => {
           const task = await tx.task.create({
@@ -35,7 +35,6 @@ export const scanLocalPlugins = async () => {
 
           jobs.push(
             await importPluginQueue.add(task.id, {
-              taskId: task.id,
               origin: {
                 type: "LOCAL",
                 data: {
@@ -57,7 +56,7 @@ export const scanLocalPlugins = async () => {
       ),
     );
 
-    (await getPluginRegistry(prisma)).reload(prisma);
+    (await getPluginRegistry()).reload(prisma);
     logger.info(
       "SERVER",
       "Reloaded plugins successfully for there was no plugins registered in the database before",

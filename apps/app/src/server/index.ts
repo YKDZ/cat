@@ -4,7 +4,6 @@ import "dotenv/config";
 import type { Server } from "http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
-import app from "./app";
 import { getEsDB, getPrismaDB, getRedisDB } from "@cat/db";
 import getPluginRegistry from "./pluginRegistry";
 import { closeAllProcessors } from "./processor";
@@ -12,17 +11,7 @@ import { parsePreferredLanguage } from "./utils/i18n";
 import { scanLocalPlugins } from "./utils/server";
 import { useStorage } from "./utils/storage/useStorage";
 import { userFromSessionId } from "./utils/user";
-
-const prismaDB = await getPrismaDB();
-const redisDB = await getRedisDB();
-// 也应该作为抽象层后的具体实现
-const esDB = await getEsDB();
-
-await syncSettings(prismaDB.client);
-
-const pluginRegistry = await getPluginRegistry(prismaDB.client);
-
-await scanLocalPlugins();
+import app from "./app";
 
 let server: Server | null = null;
 
@@ -36,17 +25,30 @@ const shutdownServer = async () => {
 
       await closeAllProcessors();
       await (await useStorage()).storage.disconnect();
-      await esDB.disconnect();
-      await redisDB.disconnect();
-      await prismaDB.disconnect();
+      await (await getEsDB()).disconnect();
+      await (await getRedisDB()).disconnect();
+      await (await getPrismaDB()).disconnect();
     });
   });
 
   logger.info("SERVER", "Successfully shutdown gracefully. Goodbye");
 };
 
-const startServer = () => {
+const startServer = async () => {
   const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+
+  const prismaDB = await getPrismaDB();
+  const redisDB = await getRedisDB();
+  // 也应该作为抽象层后的具体实现
+  const esDB = await getEsDB();
+
+  await syncSettings(prismaDB.client);
+
+  const pluginRegistry = await getPluginRegistry();
+  await pluginRegistry.loadPlugins(prismaDB.client);
+
+  await scanLocalPlugins();
+  (await useStorage()).storage.connect();
 
   apply(app, {
     pageContext: async (runtime) => {

@@ -17,7 +17,7 @@ export const createHttpContext = async ({
   const prismaDB = await getPrismaDB();
   const redisDB = await getRedisDB();
   const esDB = await getEsDB();
-  const pluginRegistry = await getPluginRegistry(prismaDB.client);
+  const pluginRegistry = await getPluginRegistry();
 
   return {
     user,

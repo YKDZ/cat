@@ -26,8 +26,6 @@ import {
 import { config } from "./config";
 import { getPrismaDB } from "@cat/db";
 
-const { client: prisma } = await getPrismaDB();
-
 const queueId = "documentFromFilePretreatment";
 
 export const documentFromFilePretreatmentQueue = new Queue(queueId, config);
@@ -35,6 +33,8 @@ export const documentFromFilePretreatmentQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
+    const { client: prisma } = await getPrismaDB();
+
     const {
       sourceLanguageId,
       file,
@@ -82,7 +82,8 @@ const worker = new Worker(
 );
 
 worker.on("active", async (job) => {
-  const id = job.data.taskId as string;
+  const { client: prisma } = await getPrismaDB();
+  const id = job.name;
 
   await prisma.task.update({
     where: {
@@ -97,7 +98,8 @@ worker.on("active", async (job) => {
 });
 
 worker.on("completed", async (job) => {
-  const id = job.data.taskId as string;
+  const { client: prisma } = await getPrismaDB();
+  const id = job.name;
 
   await prisma.task.update({
     where: {
@@ -112,9 +114,10 @@ worker.on("completed", async (job) => {
 });
 
 worker.on("failed", async (job) => {
+  const { client: prisma } = await getPrismaDB();
   if (!job) return;
 
-  const id = job.data.taskId as string;
+  const id = job.name;
 
   await prisma.task.update({
     where: {
@@ -135,6 +138,7 @@ export const processPretreatment = async (
   handler: TranslatableFileHandler,
   vectorizer: TextVectorizer,
 ) => {
+  const { client: prisma } = await getPrismaDB();
   const {
     storage: { getContent },
   } = await useStorage();
@@ -299,6 +303,7 @@ const handleRemovedElements = async (
   elements: UnvectorizedTextData[],
   documentId: string,
 ): Promise<number[]> => {
+  const { client: prisma } = await getPrismaDB();
   return await prisma.$transaction(async (tx) => {
     const ids = [];
     for (const { meta } of elements) {
@@ -324,6 +329,7 @@ const handleRemovedElements = async (
 };
 
 const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
+  const { client: prisma } = await getPrismaDB();
   await prisma.translatableElement.updateMany({
     where: {
       id: {
@@ -345,6 +351,7 @@ const handleAddedElements = async (
   embeddingIds: number[];
   elementIds: number[];
 }> => {
+  const { client: prisma } = await getPrismaDB();
   return await prisma.$transaction(async (tx) => {
     const elementIds = [];
 
@@ -395,6 +402,7 @@ const rollbackAddedElements = async (
   elementIds: number[],
   embeddingIds: number[],
 ) => {
+  const { client: prisma } = await getPrismaDB();
   await prisma.$transaction(async (tx) => {
     await tx.translatableElement.deleteMany({
       where: {

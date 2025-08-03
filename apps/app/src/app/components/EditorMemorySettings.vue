@@ -6,8 +6,10 @@ import RangeInput from "./RangeInput.vue";
 import { storeToRefs } from "pinia";
 import { useProfileStore } from "../stores/profile";
 import { toShortFixed } from "@cat/shared";
+import Toggler from "./Toggler.vue";
 
-const { editorMemoryMinSimilarity } = storeToRefs(useProfileStore());
+const { editorMemoryMinSimilarity, editorMemoryAutoCreateMemory } =
+  storeToRefs(useProfileStore());
 
 const isOpen = ref(false);
 </script>
@@ -31,6 +33,10 @@ const isOpen = ref(false);
           :max="1"
           :step="0.001"
         />
+      </div>
+      <div class="flex flex-col gap-1">
+        <InputLabel>{{ $t("翻译时自动创建记忆") }}</InputLabel>
+        <Toggler v-model="editorMemoryAutoCreateMemory" />
       </div></div
   ></Modal>
 </template>

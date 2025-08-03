@@ -17,6 +17,7 @@ import { computed, nextTick, reactive, ref, shallowRef } from "vue";
 import { useToastStore } from "./toast";
 import type { PartData } from "../components/tagger";
 import z from "zod";
+import { useProfileStore } from "./profile";
 
 const TranslationStatusSchema = z
   .enum(["PROCESSING", "COMPLETED"])
@@ -34,6 +35,8 @@ const TranslatableElementWithStatusSchema = TranslatableElementSchema.extend({
   status: TranslatableElementStatusSchema,
 });
 
+export type TranslationStatus = z.infer<typeof TranslationStatusSchema>;
+
 export type TranslatableElementWithStatus = z.infer<
   typeof TranslatableElementWithStatusSchema
 >;
@@ -42,6 +45,7 @@ export type TranslationWithStatus = z.infer<typeof TranslationWithStatusSchema>;
 
 export const useEditorStore = defineStore("editor", () => {
   const { trpcWarn } = useToastStore();
+  const { editorMemoryAutoCreateMemory } = useProfileStore();
 
   // 分页与查询
   const elementTotalAmount = ref(0);
@@ -281,7 +285,7 @@ export const useEditorStore = defineStore("editor", () => {
     );
   };
 
-  const translate = async (shouldInsert: boolean) => {
+  const translate = async (shouldUpsert: boolean) => {
     if (!elementId.value || !languageToId.value || !document.value) return;
 
     if (!selectedTranslationId.value) {
@@ -291,9 +295,13 @@ export const useEditorStore = defineStore("editor", () => {
           elementId: elementId.value,
           languageId: languageToId.value,
           value: translationValue.value,
+          createMemory: editorMemoryAutoCreateMemory,
         })
         .then((t) => {
-          handleNewTranslation(t, shouldInsert);
+          handleNewTranslation(
+            TranslationWithStatusSchema.parse(t),
+            shouldUpsert,
+          );
         });
     } else {
       await trpc.translation.update
@@ -302,10 +310,8 @@ export const useEditorStore = defineStore("editor", () => {
           value: translationValue.value,
         })
         .then((t) => {
-          handleNewTranslation(
-            TranslationWithStatusSchema.parse(t),
-            shouldInsert,
-          );
+          upsertTranslation(t);
+          setTranslationStatus(t.translatableElementId, "PROCESSING");
         });
     }
   };
@@ -339,10 +345,11 @@ export const useEditorStore = defineStore("editor", () => {
   };
 
   const updateElementStatus = async (elementId: number) => {
-    const status = await queryElementTranslationStatus(elementId);
     const element = storedElements.value.find((el) => el.id === elementId);
 
     if (!element) return;
+
+    const status = await queryElementTranslationStatus(elementId);
 
     const newEl = TranslatableElementWithStatusSchema.parse({
       ...element,
@@ -350,6 +357,22 @@ export const useEditorStore = defineStore("editor", () => {
     });
 
     updateElement(newEl);
+  };
+
+  const setTranslationStatus = async (
+    id: number,
+    status: TranslationStatus,
+  ) => {
+    const translation = translations.value.find((t) => t.id === id);
+
+    if (!translation) return;
+
+    const newTranslation = TranslationWithStatusSchema.parse({
+      ...translation,
+      status,
+    });
+
+    upsertTranslation(newTranslation);
   };
 
   const upsertTranslation = (translation: TranslationWithStatus) => {
@@ -365,6 +388,8 @@ export const useEditorStore = defineStore("editor", () => {
     }
 
     translations.value = [...translations.value];
+
+    updateElementStatus(translation.translatableElementId);
   };
 
   const replace = (value: string) => {
@@ -425,6 +450,7 @@ export const useEditorStore = defineStore("editor", () => {
     translationParts,
     isProofreading,
     loadedPagesIndex,
+    setTranslationStatus,
     updateElementStatus,
     fetchElementTotalAmount,
     refresh,

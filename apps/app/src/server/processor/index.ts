@@ -4,6 +4,8 @@ import { cleanDanglingFilesQueue } from "./cleanDanglingFiles";
 import { documentFromFilePretreatmentQueue } from "./documentFromFilePretreatment";
 import { exportTranslatedFileQueue } from "./exportTranslatedFile";
 import { importPluginQueue } from "./importPlugin";
+import { createTranslationQueue } from "./createTranslation";
+import { updateTranslationQueue } from "./updateTranslation";
 
 const queues: Queue[] = [
   documentFromFilePretreatmentQueue,
@@ -11,6 +13,8 @@ const queues: Queue[] = [
   exportTranslatedFileQueue,
   autoTranslateQueue,
   cleanDanglingFilesQueue,
+  createTranslationQueue,
+  updateTranslationQueue,
 ];
 
 export const pauseAllProcessors = async () => {

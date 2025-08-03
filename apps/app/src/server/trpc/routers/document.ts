@@ -107,7 +107,7 @@ export const documentRouter = router({
         if (!handler) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "CAT 没有可以处理这种文件的文件解析器",
+            message: "没有可以处理这种文件的文件解析器",
           });
         }
 
@@ -254,7 +254,6 @@ export const documentRouter = router({
       await documentFromFilePretreatmentQueue.add(
         taskId,
         {
-          taskId: taskId,
           sourceLanguageId: document.Project.sourceLanguageId,
           file: parsedFile,
           document: parsedDocument,
@@ -522,7 +521,6 @@ export const documentRouter = router({
       });
 
       await exportTranslatedFileQueue.add(task.id, {
-        taskId: task.id,
         handlerId: handler.getId(),
         documentId: document.id,
         languageId,
@@ -726,7 +724,7 @@ export const documentRouter = router({
                       : undefined,
         },
         orderBy: { value: "asc" },
-        skip: page * pageSize,
+        skip: page * pageSize + 1,
         take: pageSize,
       });
 

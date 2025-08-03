@@ -6,6 +6,7 @@ import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import ArrayRenderer from "./renderers/ArrayRenderer.vue";
 import type { JSONSchema } from "zod/v4/core";
+import SecretRenderer from "./renderers/SecretRenderer.vue";
 
 export const schemaKey = Symbol() as InjectionKey<JSONSchema.JSONSchema>;
 
@@ -37,6 +38,12 @@ const renderers: Renderer[] = [
     renderer: ConstRenderer,
     matcher: ({ schema }) => {
       return !!schema.const;
+    },
+  },
+  {
+    renderer: SecretRenderer,
+    matcher: ({ schema }) => {
+      return schema["x-secret"] === true && schema.type === "string";
     },
   },
   {

@@ -11,7 +11,7 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: "update", to: JSONType): void;
+  (e: "update", to: JSONType, key?: string): void;
   (e: "_update", to: JSONType, key: string): void;
 }>();
 
@@ -45,7 +45,7 @@ const handleUpdate = (to: JSONType, key?: string) => {
   if (props.propertyKey) {
     emits("_update", newData, props.propertyKey);
   } else {
-    emits("update", newData);
+    emits("update", newData, key);
   }
 };
 

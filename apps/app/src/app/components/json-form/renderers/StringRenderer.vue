@@ -32,6 +32,7 @@ watch(
   (newData) => {
     value.value = transferDataToString(newData);
   },
+  { deep: true },
 );
 </script>
 

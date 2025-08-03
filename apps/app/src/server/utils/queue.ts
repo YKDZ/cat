@@ -1,5 +1,3 @@
-import { getRedisDB } from "../db";
-
 export class AsyncMessageQueue<T> {
   private queue: T[] = [];
   private resolve: (() => void) | null = null;

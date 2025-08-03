@@ -10,8 +10,6 @@ import { PluginRegistry } from "@cat/plugin-core";
 import { mimeFromFileName } from "../utils/file";
 import { getPrismaDB } from "@cat/db";
 
-const { client: prisma } = await getPrismaDB();
-
 const queueId = "exportTranslatedFile";
 
 export const exportTranslatedFileQueue = new Queue(queueId, config);
@@ -19,6 +17,7 @@ export const exportTranslatedFileQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
+    const { client: prisma } = await getPrismaDB();
     const { taskId, handlerId, documentId, languageId } = job.data as {
       taskId: string;
       handlerId: string;
@@ -165,7 +164,8 @@ const worker = new Worker(
 );
 
 worker.on("active", async (job) => {
-  const id = job.data.taskId as string;
+  const { client: prisma } = await getPrismaDB();
+  const id = job.name;
 
   await prisma.task.update({
     where: {
@@ -180,7 +180,8 @@ worker.on("active", async (job) => {
 });
 
 worker.on("completed", async (job) => {
-  const id = job.data.taskId as string;
+  const { client: prisma } = await getPrismaDB();
+  const id = job.name;
 
   await prisma.task.update({
     where: {
@@ -196,12 +197,13 @@ worker.on("completed", async (job) => {
 
 worker.on("failed", async (job) => {
   if (!job) return;
+  const { client: prisma } = await getPrismaDB();
 
-  const id = job.data.taskId as string;
+  const id = job.name;
 
   await prisma.task.update({
     where: {
-      id: job.data.taskId as string,
+      id: job.name,
     },
     data: {
       status: "failed",

@@ -282,7 +282,6 @@ export const pluginRouter = router({
       });
 
       await importPluginQueue.add(task.id, {
-        taskId: task.id,
         origin: {
           type: "GITHUB",
           data: {
@@ -312,7 +311,6 @@ export const pluginRouter = router({
       });
 
       await importPluginQueue.add(task.id, {
-        taskId: task.id,
         origin: {
           type: "LOCAL",
           data: {
@@ -322,7 +320,10 @@ export const pluginRouter = router({
       });
     }),
   reload: authedProcedure.mutation(async ({ ctx }) => {
-    const { pluginRegistry } = ctx;
+    const {
+      prismaDB: { client: prisma },
+      pluginRegistry,
+    } = ctx;
 
     logger.info("PROCESSER", "About to pause all processors to reload plugin");
     await pauseAllProcessors()
@@ -338,7 +339,7 @@ export const pluginRouter = router({
         });
       });
 
-    await pluginRegistry.reload();
+    await pluginRegistry.reload(prisma);
 
     logger.info(
       "PROCESSER",

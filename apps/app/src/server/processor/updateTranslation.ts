@@ -19,31 +19,22 @@ import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
 import { getPrismaDB } from "@cat/db";
 
-const queueId = "createTranslation";
+const queueId = "updateTranslation";
 
-export const createTranslationQueue = new Queue(queueId, config);
+export const updateTranslationQueue = new Queue(queueId, config);
 
 const worker = new Worker(
   queueId,
   async (job) => {
     const { client: prisma } = await getPrismaDB();
-
     const {
+      translationId,
       translationValue,
-      translationLanguageId,
-      elementId,
-      creatorId,
       vectorizerId,
-      createMemory,
-      memoryIds,
     }: {
+      translationId: number;
       translationValue: string;
-      translationLanguageId: string;
-      elementId: number;
-      creatorId: string;
-      createMemory: boolean;
       vectorizerId: string;
-      memoryIds: string[];
     } = job.data;
 
     const pluginRegistry = new PluginRegistry();
@@ -58,30 +49,21 @@ const worker = new Worker(
     if (!vectorizer)
       throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
 
-    const element = await prisma.translatableElement.findUnique({
+    const translation = await prisma.translation.findUnique({
       where: {
-        id: elementId,
+        id: translationId,
       },
       select: {
         value: true,
-        embeddingId: true,
-        Document: {
-          select: {
-            Project: {
-              select: {
-                sourceLanguageId: true,
-              },
-            },
-          },
-        },
+        Language: true,
       },
     });
 
-    if (!element)
-      throw new Error("TranslatableElement with given id doest not exists");
+    if (!translation)
+      throw new Error("Translation with given id doest not exists");
 
     // 开始处理翻译的嵌入并插入
-    const vectors = await vectorizer.vectorize(translationLanguageId, [
+    const vectors = await vectorizer.vectorize(translation.Language.id, [
       { value: translationValue, meta: null },
     ]);
 
@@ -96,51 +78,25 @@ const worker = new Worker(
 
       if (!embeddingId) throw new Error("Failed to get id of vector");
 
-      const translation = await tx.translation.create({
+      await tx.translation.update({
+        where: {
+          id: translationId,
+        },
         data: {
           value: translationValue,
-          TranslatableElement: {
-            connect: {
-              id: elementId,
-            },
-          },
-          Language: {
-            connect: {
-              id: translationLanguageId,
-            },
-          },
-          Translator: {
-            connect: {
-              id: creatorId,
-            },
-          },
-          Embedding: {
-            connect: {
-              id: embeddingId,
-            },
-          },
-        },
-        include: {
-          Translator: true,
+          embeddingId,
         },
       });
 
-      if (createMemory) {
-        await tx.memoryItem.createMany({
-          data: memoryIds.map((memoryId) => ({
-            source: element.value,
-            sourceLanguageId: element.Document.Project.sourceLanguageId,
-            translation: translation.value,
-            translationLanguageId,
-            sourceElementId: elementId,
-            translationId: translation.id,
-            memoryId,
-            creatorId,
-            sourceEmbeddingId: element.embeddingId,
-            translationEmbeddingId: translation.embeddingId,
-          })),
-        });
-      }
+      await tx.memoryItem.updateMany({
+        where: {
+          translationId,
+        },
+        data: {
+          translation: translationValue,
+          translationEmbeddingId: embeddingId,
+        },
+      });
     });
   },
   {
