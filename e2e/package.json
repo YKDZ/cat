@@ -14,7 +14,7 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "@playwright/test": "^1.53.1",
-    "@types/node": "^24.0.3",
+    "@types/node": "^24.1.0",
     "prisma": "6.13.0",
     "tsx": "^4.20.3"
   },
