@@ -5,9 +5,6 @@ import { randomUUID } from "crypto";
 import { logger, type JSONType } from "@cat/shared";
 import { getPrismaDB, getRedisDB } from "@cat/db";
 
-const { client: prisma } = await getPrismaDB();
-const { redisPub, redisSub } = await getRedisDB();
-
 export type ChunkData<T> = {
   chunkIndex: number;
   data: T[];
@@ -58,6 +55,7 @@ export class DistributedTaskHandler<T> {
   }
 
   public async run() {
+    const { client: prisma } = await getPrismaDB();
     const task = await prisma.task.create({
       data: {
         type: "distributed_" + this.task.type,
@@ -79,6 +77,8 @@ const createWorker = <T>(task: DistributedTaskWithId<T>) => {
   return new Worker(
     task.id,
     async (job) => {
+      const { redisPub } = await getRedisDB();
+
       const chunk = ChunkContextSchema<T>()
         .extend({
           jobId: z.string(),
@@ -123,6 +123,8 @@ const createWorker = <T>(task: DistributedTaskWithId<T>) => {
 const runDistributedTask = async <T>(
   task: DistributedTaskWithId<T>,
 ): Promise<void> => {
+  const { redisSub } = await getRedisDB();
+
   const queue = new Queue(task.id);
   const jobId = `task:${task.id}:job:${randomUUID()}`;
   const successfulChunks: FinishedChunkData[] = [];
@@ -240,6 +242,8 @@ const updateTaskStatus = async <T>(
   task: DistributedTaskWithId<T>,
   status: "pending" | "processing" | "completed" | "failed",
 ) => {
+  const { client: prisma } = await getPrismaDB();
+
   await prisma.task.update({
     where: { id: task.id },
     data: {

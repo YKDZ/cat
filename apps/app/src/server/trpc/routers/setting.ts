@@ -5,23 +5,26 @@ import type { InputJsonValue } from "@prisma/client/runtime/client";
 export const settingRouter = router({
   set: authedProcedure
     .input(
-      z.object({
-        key: z.string(),
-        value: z.json(),
-      }),
+      z.array(
+        z.object({
+          key: z.string(),
+          value: z.json(),
+        }),
+      ),
     )
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      const { key, value } = input;
-      await prisma.setting.update({
-        where: {
-          key,
-        },
-        data: {
-          value: value as InputJsonValue,
-        },
+      const arr = input;
+      await prisma.$transaction(async (tx) => {
+        for (const item of arr) {
+          const { key, value } = item;
+          await tx.setting.update({
+            where: { key },
+            data: { value: value as InputJsonValue },
+          });
+        }
       });
     }),
   get: authedProcedure

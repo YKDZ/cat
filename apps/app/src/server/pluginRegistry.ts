@@ -6,12 +6,9 @@ declare global {
   var __PLUGIN_REGISTRY__: PluginRegistry | undefined;
 }
 
-const getPluginRegistry = async (
-  prisma: PrismaClient,
-): Promise<PluginRegistry> => {
+const getPluginRegistry = async (): Promise<PluginRegistry> => {
   if (!globalThis["__PLUGIN_REGISTRY__"]) {
     const pluginRegistry = new PluginRegistry();
-    await pluginRegistry.loadPlugins(prisma);
     globalThis["__PLUGIN_REGISTRY__"] = pluginRegistry;
   }
   return globalThis["__PLUGIN_REGISTRY__"]!;

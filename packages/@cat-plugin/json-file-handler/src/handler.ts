@@ -1,5 +1,6 @@
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 import type { File, TranslatableElementData, Translation } from "@cat/shared";
+import { extname } from "node:path";
 
 type JSONValue =
   | string
@@ -15,7 +16,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
   }
 
   canExtractElement(file: File): boolean {
-    return file.Type?.mimeType === "application/json";
+    return extname(file.originName) === ".json";
   }
 
   extractElement(file: File, fileContent: Buffer): TranslatableElementData[] {
@@ -23,7 +24,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
   }
 
   canGenerateTranslated(file: File) {
-    return file.Type?.mimeType === "application/json";
+    return extname(file.originName) === ".json";
   }
 
   async generateTranslated(

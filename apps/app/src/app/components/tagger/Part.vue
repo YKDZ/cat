@@ -74,6 +74,7 @@ const bgHoverColor = computed(() => {
 
 <template>
   <span
+    class="inline-block"
     :class="[
       {
         'cursor-pointer text-highlight-content px-0.5':

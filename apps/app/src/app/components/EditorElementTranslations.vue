@@ -52,7 +52,7 @@ const handleChangeApprovment = (
       v-if="translations.length === 0"
       class="px-3 py-2 flex gap-2 select-none"
     >
-      {{ $t("还没有任何翻译") }}
+      {{ $t("还没有任何翻译或翻译仍在处理") }}
     </div>
   </div>
 </template>

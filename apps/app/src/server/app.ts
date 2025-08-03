@@ -13,8 +13,7 @@ type Variables = {
 const app = new Hono<{ Variables: Variables }>();
 
 app.use("*", async (c, next) => {
-  const { client: prisma } = await getPrismaDB();
-  c.set("pluginRegistry", await getPluginRegistry(prisma));
+  c.set("pluginRegistry", await getPluginRegistry());
   await next();
 });
 

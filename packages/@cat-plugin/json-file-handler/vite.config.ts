@@ -20,7 +20,7 @@ export default defineConfig({
     outDir: "dist",
 
     rollupOptions: {
-      external: ["@cat/plugin-core", "@cat/shared", "vue"],
+      external: ["@cat/plugin-core", "@cat/shared", "vue", "node:path"],
       output: {
         entryFileNames: "[name].mjs",
         chunkFileNames: "[name].js",

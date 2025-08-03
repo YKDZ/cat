@@ -3,7 +3,7 @@ import type { TermStore } from "./term/term-store";
 import type { TermFormatter } from "./term/term-formatter";
 import type { TermIndexService } from "./term/term-index-service";
 import type { TermMatcher } from "./term/term-matcher";
-import { getEsDB, getPrismaDB } from "../db";
+import { getEsDB, getPrismaDB } from "@cat/db";
 
 export const DefaultFormatter: TermFormatter = {
   format(originalText, matches) {

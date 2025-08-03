@@ -28,7 +28,7 @@ watch(partsData, (to, from) => emits("update", from, to), { immediate: true });
 </script>
 
 <template>
-  <div class="block whitespace-normal break-words">
+  <div class="block select-text whitespace-pre-wrap break-words">
     <Empty v-if="text.length === 0" />
     <Part
       v-for="part in partsData"

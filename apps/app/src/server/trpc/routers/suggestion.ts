@@ -67,7 +67,7 @@ export const suggestionRouter = router({
       };
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-      const advisors = await pluginRegistry.getTranslationAdvisors({
+      const advisors = await pluginRegistry.getTranslationAdvisors(prisma, {
         userId: user.id,
       });
 
@@ -169,12 +169,20 @@ export const suggestionRouter = router({
     )
     .output(TranslationAdvisorDataSchema.nullable())
     .query(async ({ ctx, input }) => {
-      const { user, pluginRegistry } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+        pluginRegistry,
+      } = ctx;
       const { advisorId } = input;
 
-      const advisor = await pluginRegistry.getTranslationAdvisor(advisorId, {
-        userId: user.id,
-      });
+      const advisor = await pluginRegistry.getTranslationAdvisor(
+        prisma,
+        advisorId,
+        {
+          userId: user.id,
+        },
+      );
 
       return advisor
         ? ({
@@ -186,9 +194,13 @@ export const suggestionRouter = router({
   listAllAvailableAdvisors: authedProcedure
     .output(z.array(TranslationAdvisorDataSchema))
     .query(async ({ ctx }) => {
-      const { user, pluginRegistry } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        user,
+        pluginRegistry,
+      } = ctx;
       return (
-        await pluginRegistry.getTranslationAdvisors({ userId: user.id })
+        await pluginRegistry.getTranslationAdvisors(prisma, { userId: user.id })
       ).map(
         (advisor) =>
           ({
