@@ -24,13 +24,6 @@ export class Logger {
 
     this.pinoLogger = pino({
       level: options.level ?? "error",
-      transport: {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          ignore: "pid,hostname",
-        },
-      },
     });
   }
 
