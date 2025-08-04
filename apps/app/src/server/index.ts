@@ -1,11 +1,11 @@
+import "dotenv/config";
 import { setting, syncSettings } from "@cat/db";
 import { createHTTPHelpers, logger } from "@cat/shared";
-import "dotenv/config";
 import type { Server } from "http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import { getEsDB, getPrismaDB, getRedisDB } from "@cat/db";
-import getPluginRegistry from "./pluginRegistry";
+import { getPluginRegistry } from "./pluginRegistry";
 import { closeAllProcessors } from "./processor";
 import { parsePreferredLanguage } from "./utils/i18n";
 import { scanLocalPlugins } from "./utils/server";
@@ -35,12 +35,12 @@ const shutdownServer = async () => {
 };
 
 const startServer = async () => {
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-
   const prismaDB = await getPrismaDB();
   const redisDB = await getRedisDB();
   // 也应该作为抽象层后的具体实现
   const esDB = await getEsDB();
+
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
   await syncSettings(prismaDB.client);
 
@@ -49,6 +49,7 @@ const startServer = async () => {
 
   await scanLocalPlugins();
   (await useStorage()).storage.connect();
+  (await useStorage()).storage.ping();
 
   apply(app, {
     pageContext: async (runtime) => {

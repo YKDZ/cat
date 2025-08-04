@@ -3,14 +3,16 @@ import { trpcHandler } from "./handler/trpc";
 import { healthHandler } from "./handler/health";
 import { pluginComponentHandler } from "./handler/plugin-component";
 import type { PluginRegistry } from "@cat/plugin-core";
-import getPluginRegistry from "./pluginRegistry";
-import { getPrismaDB } from "@cat/db";
+import { getPluginRegistry } from "./pluginRegistry";
+import { pinoLoggerMiddleware } from "./middleware/logger";
 
 type Variables = {
   pluginRegistry: PluginRegistry;
 };
 
 const app = new Hono<{ Variables: Variables }>();
+
+app.use("*", pinoLoggerMiddleware);
 
 app.use("*", async (c, next) => {
   c.set("pluginRegistry", await getPluginRegistry());

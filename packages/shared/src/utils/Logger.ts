@@ -1,10 +1,4 @@
-export enum LogLevel {
-  DEBUG = 10,
-  INFO = 20,
-  WARN = 30,
-  ERROR = 40,
-  OFF = 50,
-}
+import pino from "pino";
 
 export type Situation =
   | "PLUGIN"
@@ -15,26 +9,29 @@ export type Situation =
   | "SERVER";
 
 export interface LoggerOptions {
-  level?: LogLevel;
+  level?: pino.Level;
   filterKeywords?: string[];
-  outputFn?: (...args: unknown[]) => void;
 }
 
 export class Logger {
-  private level: LogLevel;
+  private pinoLogger: pino.Logger;
   private filterKeywords: Set<string>;
-  private outputFn: (...args: unknown[]) => void;
 
   constructor(options: LoggerOptions = {}) {
-    this.level = options.level ?? LogLevel.DEBUG;
     this.filterKeywords = new Set(
       (options.filterKeywords ?? []).map((k) => k.toLowerCase()),
     );
-    this.outputFn = options.outputFn ?? console.log.bind(console);
-  }
 
-  public setLevel(level: LogLevel) {
-    this.level = level;
+    this.pinoLogger = pino({
+      level: options.level ?? "error",
+      transport: {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+          ignore: "pid,hostname",
+        },
+      },
+    });
   }
 
   public addFilterKeywords(...keywords: string[]) {
@@ -45,40 +42,28 @@ export class Logger {
     keywords.forEach((k) => this.filterKeywords.delete(k.toLowerCase()));
   }
 
-  private shouldLog(level: LogLevel, msg: string): boolean {
-    if (level < this.level) return false;
+  private shouldLog(msg: string): boolean {
     if (!this.filterKeywords.size) return true;
     const text = msg.toLowerCase();
     for (const kw of this.filterKeywords) {
-      if (text.includes(kw)) {
-        return false;
-      }
+      if (text.includes(kw)) return false;
     }
     return true;
   }
 
-  private format(situation: Situation, level: LogLevel, msg: string): string {
-    const ts = new Date().toISOString();
-    const lvl = LogLevel[level];
-    return `[${ts}] [${lvl}] [${situation.toLocaleString()}] ${msg}`;
-  }
-
   public debug(situation: Situation, msg: string, ...args: unknown[]) {
-    if (this.shouldLog(LogLevel.DEBUG, msg)) {
-      this.outputFn(this.format(situation, LogLevel.DEBUG, msg), ...args);
-    }
+    if (!this.shouldLog(msg)) return;
+    this.pinoLogger.debug({ situation }, msg, ...args);
   }
 
   public info(situation: Situation, msg: string, ...args: unknown[]) {
-    if (this.shouldLog(LogLevel.INFO, msg)) {
-      this.outputFn(this.format(situation, LogLevel.INFO, msg), ...args);
-    }
+    if (!this.shouldLog(msg)) return;
+    this.pinoLogger.info({ situation }, msg, ...args);
   }
 
   public warn(situation: Situation, msg: string, ...args: unknown[]) {
-    if (this.shouldLog(LogLevel.WARN, msg)) {
-      this.outputFn(this.format(situation, LogLevel.WARN, msg), ...args);
-    }
+    if (!this.shouldLog(msg)) return;
+    this.pinoLogger.warn({ situation }, msg, ...args);
   }
 
   public error(
@@ -87,25 +72,21 @@ export class Logger {
     error: unknown,
     ...args: unknown[]
   ) {
-    if (this.shouldLog(LogLevel.ERROR, msg)) {
-      const prefix = this.format(situation, LogLevel.ERROR, msg);
+    if (!this.shouldLog(msg)) return;
 
-      let errorInfo: string;
-      if (error instanceof Error) {
-        errorInfo = `${error.message}\n${error.stack}`;
-      } else if (Array.isArray(error)) {
-        errorInfo = error.join("\n");
-      } else {
-        try {
-          errorInfo = JSON.stringify(error, null, 2);
-        } catch {
-          errorInfo = String(error);
-        }
-      }
+    const errorInfo =
+      error instanceof Error
+        ? { message: error.message, stack: error.stack }
+        : Array.isArray(error)
+          ? { arrayError: error }
+          : typeof error === "object"
+            ? error
+            : { raw: error };
 
-      this.outputFn(prefix, "\n" + errorInfo, ...args);
-    }
+    this.pinoLogger.error({ situation, ...errorInfo }, msg, ...args);
   }
 }
 
-export const logger = new Logger();
+export const logger = new Logger({
+  level: "debug",
+});

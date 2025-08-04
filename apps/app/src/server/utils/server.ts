@@ -1,7 +1,7 @@
 import { getPrismaDB } from "@cat/db";
 import { logger } from "@cat/shared";
 import type { Job } from "bullmq";
-import getPluginRegistry from "../pluginRegistry";
+import { getPluginRegistry } from "../pluginRegistry";
 import {
   importPluginQueue,
   importPluginQueueEvents,
