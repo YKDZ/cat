@@ -29,6 +29,8 @@ const hydrateI18n = async (ctx: PageContextClient) => {
     legacy: false,
     fallbackLocale: "zh_cn",
     fallbackFormat: true,
+    missingWarn: false,
+    fallbackWarn: false,
     formatFallbackMessages: true,
   });
   ctx.i18n = i18n;

@@ -2,9 +2,7 @@
   "id": "libretranslate-advisor",
   "entry": "dist/index.mjs",
   "iconURL": "https://unocss.dev/logo.svg",
-  "tags": [
-    "translation-advisor"
-  ],
+  "tags": ["translation-advisor"],
   "configs": [
     {
       "key": "base.advisor-name",
@@ -26,7 +24,8 @@
           },
           "key": {
             "type": "string",
-            "default": "your api key"
+            "default": "your api key",
+            "x-secret": true
           },
           "alternatives-amount": {
             "type": "number",

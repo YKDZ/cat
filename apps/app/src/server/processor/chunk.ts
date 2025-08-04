@@ -56,11 +56,13 @@ export class DistributedTaskHandler<T> {
 
   public async run() {
     const { client: prisma } = await getPrismaDB();
+
     const task = await prisma.task.create({
       data: {
         type: "distributed_" + this.task.type,
       },
     });
+
     const taskWithId = {
       id: task.id,
       ...this.task,
@@ -116,7 +118,7 @@ const createWorker = <T>(task: DistributedTaskWithId<T>) => {
         throw err;
       }
     },
-    config,
+    { ...config },
   );
 };
 
@@ -125,7 +127,9 @@ const runDistributedTask = async <T>(
 ): Promise<void> => {
   const { redisSub } = await getRedisDB();
 
-  const queue = new Queue(task.id);
+  const queue = new Queue(task.id, { ...config });
+  await queue.waitUntilReady();
+
   const jobId = `task:${task.id}:job:${randomUUID()}`;
   const successfulChunks: FinishedChunkData[] = [];
   const failedChunks: FinishedChunkData[] = [];
@@ -186,6 +190,7 @@ const runDistributedTask = async <T>(
             }
           }
         } catch (error) {
+          logger.error("PROCESSER", `Error in task ${task.id}`, error);
           await redisSub.unsubscribe(`${jobId}:events`).catch(() => {});
           reject(error);
         }
@@ -210,6 +215,7 @@ const runDistributedTask = async <T>(
           );
         }
       } catch (error) {
+        logger.error("PROCESSER", `Error in task ${task.id}`, error);
         await redisSub.unsubscribe(`${jobId}:events`).catch(() => {});
         await updateTaskStatus(task, "failed");
         reject(error);

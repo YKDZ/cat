@@ -54,6 +54,18 @@ export class S3Storage implements Storage {
     return "uploads";
   }
 
+  async ping() {
+    await S3DB.ping((await getPrismaDB()).client);
+  }
+
+  async connect() {
+    if (!S3DB.client) await S3DB.connect((await getPrismaDB()).client);
+  }
+
+  async disconnect() {
+    await S3DB.disconnect();
+  }
+
   async getContent(file: File): Promise<Buffer> {
     const s3UploadBucketName = await setting(
       "s3.bucket-name",
@@ -148,17 +160,5 @@ export class S3Storage implements Storage {
     });
 
     await S3DB.client.send(command);
-  }
-
-  async ping() {
-    await S3DB.ping((await getPrismaDB()).client);
-  }
-
-  async connect() {
-    if (!S3DB.client) S3DB.connect((await getPrismaDB()).client);
-  }
-
-  async disconnect() {
-    await S3DB.disconnect();
   }
 }

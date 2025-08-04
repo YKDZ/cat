@@ -8,7 +8,7 @@ import type {
   Document,
   File,
   JSONType,
-  UnvectorizedTextData,
+  TranslatableElementData,
 } from "@cat/shared";
 import { logger } from "@cat/shared";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
@@ -26,6 +26,8 @@ import {
 import { config } from "./config";
 import { getPrismaDB } from "@cat/db";
 
+const { client: prisma } = await getPrismaDB();
+
 const queueId = "documentFromFilePretreatment";
 
 export const documentFromFilePretreatmentQueue = new Queue(queueId, config);
@@ -33,8 +35,6 @@ export const documentFromFilePretreatmentQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const { client: prisma } = await getPrismaDB();
-
     const {
       sourceLanguageId,
       file,
@@ -81,56 +81,6 @@ const worker = new Worker(
   },
 );
 
-worker.on("active", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "processing",
-    },
-  });
-
-  logger.info("PROCESSER", `Active ${queueId} task: ${id}`);
-});
-
-worker.on("completed", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "completed",
-    },
-  });
-
-  logger.info("PROCESSER", `Completed ${queueId} task: ${id}`);
-});
-
-worker.on("failed", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  if (!job) return;
-
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "failed",
-    },
-  });
-
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
-});
-
 export const processPretreatment = async (
   sourceLanguageId: string,
   file: File,
@@ -138,17 +88,23 @@ export const processPretreatment = async (
   handler: TranslatableFileHandler,
   vectorizer: TextVectorizer,
 ) => {
-  const { client: prisma } = await getPrismaDB();
   const {
     storage: { getContent },
   } = await useStorage();
 
   const fileContent = await getContent(file);
 
-  const newElements = handler.extractElement(file, fileContent);
+  const newElements = sortAndAssignIndex(
+    handler.extractElement(file, fileContent),
+  );
 
-  const addedElements: (UnvectorizedTextData & { documentId: string })[] = [];
-  const removedElements: UnvectorizedTextData[] = [];
+  const addedElements: (TranslatableElementData & {
+    sortIndex: number;
+    documentId: string;
+  })[] = [];
+  const removedElements: (TranslatableElementData & {
+    sortIndex: number;
+  })[] = [];
 
   const oldElements = (
     await prisma.translatableElement.findMany({
@@ -156,9 +112,15 @@ export const processPretreatment = async (
         documentId: document.id,
         isActive: true,
       },
+      select: {
+        value: true,
+        sortIndex: true,
+        meta: true,
+      },
     })
   ).map((element) => ({
     value: element.value,
+    sortIndex: element.sortIndex,
     meta: element.meta,
   }));
 
@@ -171,12 +133,17 @@ export const processPretreatment = async (
       addedElements.push(
         ...object.value.map((element) => ({
           value: element.value,
+          sortIndex: element.sortIndex,
           meta: element.meta as JSONType,
           documentId: document.id,
         })),
       );
     } else if (object.removed) {
-      removedElements.push(...(object.value as UnvectorizedTextData[]));
+      removedElements.push(
+        ...(object.value as (TranslatableElementData & {
+          sortIndex: number;
+        })[]),
+      );
     }
   });
 
@@ -203,24 +170,15 @@ export const processPretreatment = async (
 
   // 移除元素
 
-  // for (const elements of chunkGenerator(removedElements, 100)) {
-  //   try {
-  //     const result = await handleRemovedElements(elements, document.id);
-  //     handledRemovedElementIds.push(...result);
-  //   } catch {
-  //     await rollbackRemovedElements(handledRemovedElementIds);
-  //   }
-  // }
-
-  await new DistributedTaskHandler<UnvectorizedTextData>(
+  await new DistributedTaskHandler<TranslatableElementData>(
     "documentFromFilePretreatment_removeElements",
     {
-      chunks: chunk<UnvectorizedTextData>(removedElements, 100).map(
+      chunks: chunk<TranslatableElementData>(removedElements, 100).map(
         ({ index, chunk }) => {
           return {
             chunkIndex: index,
             data: chunk,
-          } satisfies ChunkData<UnvectorizedTextData>;
+          } satisfies ChunkData<TranslatableElementData>;
         },
       ),
       run: async ({ data }) => {
@@ -230,23 +188,22 @@ export const processPretreatment = async (
         const result = z.array(z.int()).parse(data);
         await rollbackRemovedElements(result);
       },
-    } satisfies DistributedTask<UnvectorizedTextData>,
+    } satisfies DistributedTask<TranslatableElementData>,
   ).run();
 
   // 添加元素
   type ChunkElement = {
-    element: UnvectorizedTextData;
+    element: TranslatableElementData & { sortIndex: number };
     embedding: number[];
   };
 
   await new DistributedTaskHandler<ChunkElement>(
     "documentFromFilePretreatment_addElement",
     {
-      chunks: chunkDual<UnvectorizedTextData, number[]>(
-        addedElements,
-        vectors,
-        100,
-      ).map(({ index, chunk }) => {
+      chunks: chunkDual<
+        TranslatableElementData & { sortIndex: number },
+        number[]
+      >(addedElements, vectors, 100).map(({ index, chunk }) => {
         return {
           chunkIndex: index,
           data: chunk.arr1.map((el, index) => ({
@@ -254,11 +211,12 @@ export const processPretreatment = async (
             embedding: chunk.arr2[index],
           })),
         } satisfies ChunkData<{
-          element: UnvectorizedTextData;
+          element: TranslatableElementData & { sortIndex: number };
           embedding: number[];
         }>;
       }),
       run: async ({ data }) => {
+        console.log(JSON.stringify(data));
         const { embeddingIds, elementIds } = await handleAddedElements(
           data.map((element) => element.element),
           data.map((element) => element.embedding),
@@ -278,32 +236,12 @@ export const processPretreatment = async (
       },
     } satisfies DistributedTask<ChunkElement>,
   ).run();
-
-  // for (const [elements, embeddings] of dualChunkGenerator(
-  //   addedElements,
-  //   vectors,
-  //   100,
-  // )) {
-  //   try {
-  //     const { embeddingIds, elementIds } = await handleAddedElements(
-  //       elements,
-  //       embeddings,
-  //       document.id,
-  //       documentVersion.id,
-  //     );
-  //     addedElementIds.push(...elementIds);
-  //     addedElementIds.push(...embeddingIds);
-  //   } catch {
-  //     await rollbackAddedElements(addedElementIds, addedEmbeddingIds);
-  //   }
-  // }
 };
 
 const handleRemovedElements = async (
-  elements: UnvectorizedTextData[],
+  elements: TranslatableElementData[],
   documentId: string,
 ): Promise<number[]> => {
-  const { client: prisma } = await getPrismaDB();
   return await prisma.$transaction(async (tx) => {
     const ids = [];
     for (const { meta } of elements) {
@@ -329,7 +267,6 @@ const handleRemovedElements = async (
 };
 
 const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
-  const { client: prisma } = await getPrismaDB();
   await prisma.translatableElement.updateMany({
     where: {
       id: {
@@ -343,7 +280,7 @@ const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
 };
 
 const handleAddedElements = async (
-  elements: UnvectorizedTextData[],
+  elements: (TranslatableElementData & { sortIndex: number })[],
   vectors: number[][],
   documentId: string,
   documentVersionId: number,
@@ -351,7 +288,6 @@ const handleAddedElements = async (
   embeddingIds: number[];
   elementIds: number[];
 }> => {
-  const { client: prisma } = await getPrismaDB();
   return await prisma.$transaction(async (tx) => {
     const elementIds = [];
 
@@ -378,6 +314,7 @@ const handleAddedElements = async (
       const createdElement = await tx.translatableElement.create({
         data: {
           value: element.value,
+          sortIndex: element.sortIndex,
           meta: element.meta as InputJsonValue,
           documentId,
           embeddingId: embeddingIds[i],
@@ -402,7 +339,6 @@ const rollbackAddedElements = async (
   elementIds: number[],
   embeddingIds: number[],
 ) => {
-  const { client: prisma } = await getPrismaDB();
   await prisma.$transaction(async (tx) => {
     await tx.translatableElement.deleteMany({
       where: {
@@ -420,3 +356,91 @@ const rollbackAddedElements = async (
     });
   });
 };
+
+const sortAndAssignIndex = (
+  elements: TranslatableElementData[],
+): (TranslatableElementData & { sortIndex: number })[] => {
+  const withSortIndex: (TranslatableElementData & { sortIndex: number })[] = [];
+  const withoutSortIndex: {
+    item: TranslatableElementData;
+    originalIndex: number;
+  }[] = [];
+
+  elements.forEach((item, idx) => {
+    if (typeof item.sortIndex === "number") {
+      withSortIndex.push(
+        item as TranslatableElementData & { sortIndex: number },
+      );
+    } else {
+      withoutSortIndex.push({ item, originalIndex: idx });
+    }
+  });
+
+  withSortIndex.sort((a, b) => a.sortIndex! - b.sortIndex!);
+
+  const maxSortIndex =
+    withSortIndex.length > 0
+      ? Math.max(...withSortIndex.map((i) => i.sortIndex!))
+      : -1;
+
+  let currentIndex = maxSortIndex + 1;
+  const assignedWithoutSortIndex = withoutSortIndex
+    .sort((a, b) => a.originalIndex - b.originalIndex)
+    .map(({ item }) => ({
+      ...item,
+      sortIndex: currentIndex++,
+    }));
+
+  return [...withSortIndex, ...assignedWithoutSortIndex];
+};
+
+worker.on("active", async (job) => {
+  const id = job.name;
+
+  await prisma.task.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "processing",
+    },
+  });
+
+  logger.info("PROCESSER", `Active ${queueId} task: ${id}`);
+});
+
+worker.on("completed", async (job) => {
+  const id = job.name;
+
+  await prisma.task.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "completed",
+    },
+  });
+
+  logger.info("PROCESSER", `Completed ${queueId} task: ${id}`);
+});
+
+worker.on("failed", async (job) => {
+  if (!job) return;
+
+  const id = job.name;
+
+  await prisma.task.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "failed",
+    },
+  });
+
+  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
+});
+
+worker.on("error", async (error) => {
+  logger.error("PROCESSER", `Worker throw error`, error);
+});
