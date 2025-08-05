@@ -13,7 +13,7 @@
     "@eslint/js": "^9.31.0",
     "@intlify/eslint-plugin-vue-i18n": "^4.1.0",
     "@typescript-eslint/parser": "^8.39.0",
-    "@typescript-eslint/utils": "^8.37.0",
+    "@typescript-eslint/utils": "^8.39.0",
     "@unocss/eslint-config": "^66.4.1",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.2",
