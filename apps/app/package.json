@@ -37,7 +37,7 @@
     "@trpc/client": "^11.4.3",
     "@trpc/server": "^11.4.3",
     "@vitejs/plugin-vue": "^6.0.1",
-    "@vueuse/components": "^13.4.0",
+    "@vueuse/components": "^13.6.0",
     "@vueuse/core": "^13.5.0",
     "@vueuse/integrations": "^13.5.0",
     "bullmq": "^5.56.0",
