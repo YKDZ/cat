@@ -36,7 +36,7 @@
     "@cat/db": "workspace:*",
     "@cat/eslint-config": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.2.0",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",
     "vite": "^7.0.6",
