@@ -40,7 +40,7 @@
     "@vueuse/components": "^13.4.0",
     "@vueuse/core": "^13.5.0",
     "@vueuse/integrations": "^13.5.0",
-    "bullmq": "^5.56.0",
+    "bullmq": "^5.56.9",
     "diff": "^8.0.2",
     "dotenv": "^16.5.0",
     "execa": "^9.5.3",
