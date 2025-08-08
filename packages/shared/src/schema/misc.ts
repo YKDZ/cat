@@ -31,6 +31,7 @@ export const TranslationSuggestionStatusSchema = z.enum(["ERROR", "SUCCESS"]);
 
 export const TranslatableElementDataSchema = z.object({
   value: z.string(),
+  sortIndex: z.int().optional(),
   meta: z.json(),
 });
 

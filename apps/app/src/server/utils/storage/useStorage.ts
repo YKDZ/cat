@@ -33,6 +33,9 @@ export const useStorage = async (): Promise<{
     "local",
     (await getPrismaDB()).client,
   );
+  const storage = type === "S3" ? new S3Storage() : new LocalStorage();
+  await storage.connect();
+  await storage.ping();
   return {
     storage: type === "S3" ? new S3Storage() : new LocalStorage(),
     type,

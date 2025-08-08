@@ -53,7 +53,8 @@ export class PluginRegistry {
 
   public async loadPlugins(prisma: PrismaClient, options?: LoadPluginsOptions) {
     this.plugins.clear();
-    if (!options?.silent) logger.info("PLUGIN", "Prepared to load plugins...");
+    if (!options?.silent)
+      logger.info("PLUGIN", { msg: "Prepared to load plugins..." });
 
     const plugins = await prisma.plugin.findMany({
       where: {
@@ -78,7 +79,8 @@ export class PluginRegistry {
     });
 
     if (plugins.length === 0) {
-      if (!options?.silent) logger.info("PLUGIN", "No plugins to load.");
+      if (!options?.silent)
+        logger.info("PLUGIN", { msg: "No plugins to load." });
     }
 
     for (const { id, entry } of plugins) {
@@ -91,10 +93,9 @@ export class PluginRegistry {
             const pluginUrl =
               /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
             if (!options?.silent)
-              logger.info(
-                "PLUGIN",
-                `About to load plugin '${id}' from: ${pluginUrl}`,
-              );
+              logger.info("PLUGIN", {
+                msg: `About to load plugin '${id}' from: ${pluginUrl}`,
+              });
             const imported = await import(/* @vite-ignore */ pluginUrl);
             const pluginObj = PluginObjectSchema.parse(
               imported.default ?? imported,
@@ -103,22 +104,27 @@ export class PluginRegistry {
             await this.loadPlugin(prisma, id, pluginObj);
 
             if (!options?.silent)
-              logger.info("PLUGIN", `Successfully loaded plugin: ${id}`);
+              logger.info("PLUGIN", {
+                msg: `Successfully loaded plugin: ${id}`,
+              });
           } catch (importErr) {
-            logger.error("PLUGIN", `Failed to load plugin '${id}'`, importErr);
+            logger.error(
+              "PLUGIN",
+              { msg: `Failed to load plugin '${id}'` },
+              importErr,
+            );
             continue;
           }
         } else {
           if (!options?.silent)
-            logger.info(
-              "PLUGIN",
-              `Successfully loaded plugin ${id} without entry`,
-            );
+            logger.info("PLUGIN", {
+              msg: `Successfully loaded plugin ${id} without entry`,
+            });
         }
       } catch (loadErr) {
         logger.error(
           "PLUGIN",
-          `Unexpected error loading plugin '${id}'`,
+          { msg: `Unexpected error loading plugin '${id}'` },
           loadErr,
         );
       }
@@ -316,7 +322,7 @@ export class PluginRegistry {
     const manifestPath = join(dirPath, "manifest.json");
 
     if (!existsSync(manifestPath)) {
-      logger.error("PLUGIN", `Plugin pluginId missing manifest.json`, null);
+      logger.debug("PLUGIN", { msg: `Plugin pluginId missing manifest.json` });
       throw new Error(`Plugin pluginId missing manifest.json`);
     }
 
@@ -352,7 +358,7 @@ export class PluginRegistry {
       } catch (err) {
         logger.error(
           "PLUGIN",
-          `Error reading manifest.json in ${dirent.name}:`,
+          { msg: `Error reading manifest.json in ${dirent.name}:` },
           err,
         );
       }

@@ -28,7 +28,9 @@ app.get("/:pluginId/:componentId", async (c) => {
   } catch (e) {
     logger.error(
       "PLUGIN",
-      "Error when client request plugin component module",
+      {
+        msg: "Error when client request plugin component module",
+      },
       e,
     );
     return c.status(404);

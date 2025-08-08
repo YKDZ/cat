@@ -2,31 +2,41 @@ import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { TaskSchema } from "@cat/shared";
 import { cleanDanglingFilesQueue } from "@/server/processor/cleanDanglingFiles";
+import type { InputJsonValue } from "@prisma/client/runtime/client";
 
 export const taskRouter = router({
-  listProjectExportTranslatedFileTask: authedProcedure
+  query: authedProcedure
     .input(
       z.object({
-        projectId: z.ulid(),
+        type: z.string(),
+        meta: z
+          .array(
+            z.object({
+              path: z.array(z.string()),
+              value: z.json(),
+            }),
+          )
+          .optional(),
       }),
     )
-    .output(z.array(TaskSchema))
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      const { projectId } = input;
+      const { type, meta } = input;
 
       return z.array(TaskSchema).parse(
         await prisma.task.findMany({
           where: {
-            meta: {
-              path: ["projectId"],
-              equals: projectId,
-            },
-          },
-          orderBy: {
-            updatedAt: "desc",
+            type,
+            AND: meta
+              ? meta.map(({ path, value }) => ({
+                  meta: {
+                    path,
+                    equals: value as InputJsonValue,
+                  },
+                }))
+              : undefined,
           },
         }),
       );

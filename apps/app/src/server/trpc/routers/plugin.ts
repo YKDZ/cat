@@ -325,13 +325,13 @@ export const pluginRouter = router({
       pluginRegistry,
     } = ctx;
 
-    logger.info("PROCESSER", "About to pause all processors to reload plugin");
+    logger.info("PROCESSOR", "About to pause all processors to reload plugin");
     await pauseAllProcessors()
       .then(() => {
-        logger.info("PROCESSER", "Successfully paused all processors");
+        logger.info("PROCESSOR", "Successfully paused all processors");
       })
       .catch((e) => {
-        logger.info("PROCESSER", "Error when pausing all processors", e);
+        logger.info("PROCESSOR", "Error when pausing all processors", e);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -342,15 +342,15 @@ export const pluginRouter = router({
     await pluginRegistry.reload(prisma);
 
     logger.info(
-      "PROCESSER",
+      "PROCESSOR",
       "About to resume all processors after plugin reloaded",
     );
     await resumeAllProcessors()
       .then(() => {
-        logger.info("PROCESSER", "Successfully resumed all processors");
+        logger.info("PROCESSOR", "Successfully resumed all processors");
       })
       .catch((e) => {
-        logger.info("PROCESSER", "Error when resuming all processors", e);
+        logger.info("PROCESSOR", "Error when resuming all processors", e);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
