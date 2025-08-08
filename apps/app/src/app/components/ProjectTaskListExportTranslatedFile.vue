@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
 import type { Task } from "@cat/shared";
-import { onMounted, ref } from "vue";
-import ProjectTaskListItemExportTranslatedFile from "./ProjectTaskListItemExportTranslatedFile.vue";
-import Table from "./table/Table.vue";
-import TableBody from "./table/TableBody.vue";
+import { computed, onMounted, ref } from "vue";
+import TaskTable from "./TaskTable.vue";
+import Button from "./Button.vue";
+import { useLanguageStore } from "../stores/language";
+import z from "zod";
+import { useToastStore } from "../stores/toast";
+import type { Cell } from "@tanstack/vue-table";
 
 const props = defineProps<{
   projectId: string;
@@ -13,11 +16,54 @@ const props = defineProps<{
 const tasks = ref<Task[]>([]);
 
 const updateTasks = async () => {
-  await trpc.task.listProjectExportTranslatedFileTask
+  await trpc.task.query
     .query({
-      projectId: props.projectId,
+      type: "export_translated_file",
+      meta: [
+        {
+          path: ["projectId"],
+          value: props.projectId,
+        },
+      ],
     })
     .then((ts) => (tasks.value = ts));
+};
+
+const { trpcWarn } = useToastStore();
+
+const downloadAEl = ref<HTMLAnchorElement>();
+
+const MetaSchema = z.object({
+  projectId: z.ulid(),
+  documentId: z.ulid(),
+  languageId: z.string(),
+});
+
+type Meta = z.infer<typeof MetaSchema>;
+
+const meta = (cell: Cell<Task, Meta>) => {
+  return cell.getValue();
+};
+
+const task = (cell: Cell<Task, Meta>) => {
+  return cell.row.original;
+};
+
+const handleDownload = async (cell: Cell<Task, Meta>) => {
+  if (task(cell).status !== "completed") return;
+
+  await trpc.document.downloadTranslatedFile
+    .query({
+      taskId: task(cell).id,
+    })
+    .then(({ url, fileName }) => {
+      if (!downloadAEl.value) return;
+
+      downloadAEl.value.href = url;
+      downloadAEl.value.download = fileName;
+      downloadAEl.value.click();
+    })
+    .catch(trpcWarn);
 };
 
 onMounted(() => {
@@ -26,13 +72,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <Table>
-    <TableBody>
-      <ProjectTaskListItemExportTranslatedFile
-        v-for="task in tasks"
-        :key="task.id"
-        :task
-      />
-    </TableBody>
-  </Table>
+  <TaskTable v-slot="{ cell }" :data="tasks">
+    <Button
+      :disabled="task(cell).status !== 'completed'"
+      no-text
+      icon="i-mdi:download"
+      @click.stop="handleDownload(cell)"
+    />
+    <a ref="downloadAEl" target="_blank" class="hidden" />
+  </TaskTable>
 </template>

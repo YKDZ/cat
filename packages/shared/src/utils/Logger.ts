@@ -1,82 +1,74 @@
 import pino from "pino";
 
+const situations = [
+  "PLUGIN",
+  "RPC",
+  "WEB",
+  "PROCESSOR",
+  "DB",
+  "SERVER",
+] as const;
+
 export type Situation =
   | "PLUGIN"
   | "RPC"
   | "WEB"
-  | "PROCESSER"
+  | "PROCESSOR"
   | "DB"
   | "SERVER";
 
 export interface LoggerOptions {
   level?: pino.Level;
-  filterKeywords?: string[];
 }
 
 export class Logger {
-  private pinoLogger: pino.Logger;
-  private filterKeywords: Set<string>;
+  public baseLogger: pino.Logger;
 
   constructor(options: LoggerOptions = {}) {
-    this.filterKeywords = new Set(
-      (options.filterKeywords ?? []).map((k) => k.toLowerCase()),
-    );
-
-    this.pinoLogger = pino({
-      level: options.level ?? "error",
+    this.baseLogger = pino({
+      level: options.level || "info",
     });
   }
 
-  public addFilterKeywords(...keywords: string[]) {
-    keywords.forEach((k) => this.filterKeywords.add(k.toLowerCase()));
+  public debug(
+    situation: Situation,
+    obj: object,
+    msg?: string,
+    ...args: unknown[]
+  ) {
+    if (!msg) this.baseLogger.debug({ ...obj, situation });
+    else this.baseLogger.debug({ ...obj, situation }, msg, ...args);
   }
 
-  public removeFilterKeywords(...keywords: string[]) {
-    keywords.forEach((k) => this.filterKeywords.delete(k.toLowerCase()));
+  public info(
+    situation: Situation,
+    obj: object,
+    msg?: string,
+    ...args: unknown[]
+  ) {
+    if (!msg) this.baseLogger.info({ ...obj, situation });
+    else this.baseLogger.info({ ...obj, situation }, msg, ...args);
   }
 
-  private shouldLog(msg: string): boolean {
-    if (!this.filterKeywords.size) return true;
-    const text = msg.toLowerCase();
-    for (const kw of this.filterKeywords) {
-      if (text.includes(kw)) return false;
-    }
-    return true;
-  }
-
-  public debug(situation: Situation, msg: string, ...args: unknown[]) {
-    if (!this.shouldLog(msg)) return;
-    this.pinoLogger.debug({ situation }, msg, ...args);
-  }
-
-  public info(situation: Situation, msg: string, ...args: unknown[]) {
-    if (!this.shouldLog(msg)) return;
-    this.pinoLogger.info({ situation }, msg, ...args);
-  }
-
-  public warn(situation: Situation, msg: string, ...args: unknown[]) {
-    if (!this.shouldLog(msg)) return;
-    this.pinoLogger.warn({ situation }, msg, ...args);
+  public warn(
+    situation: Situation,
+    obj: object,
+    msg?: string,
+    ...args: unknown[]
+  ) {
+    if (!msg) this.baseLogger.warn({ ...obj, situation });
+    else this.baseLogger.warn({ ...obj, situation }, msg, ...args);
   }
 
   public error(
     situation: Situation,
-    msg: string,
+    obj: object,
     error: unknown,
+    msg?: string,
     ...args: unknown[]
   ) {
-    if (!this.shouldLog(msg)) return;
-
-    const errorInfo =
-      error instanceof Error
-        ? { message: error.message, stack: error.stack }
-        : Array.isArray(error)
-          ? { arrayError: error }
-          : typeof error === "object"
-            ? error
-            : { raw: error };
-
-    this.pinoLogger.error({ situation, ...errorInfo }, msg, ...args);
+    if (!msg) this.baseLogger.error({ ...obj, situation });
+    else this.baseLogger.error({ error, situation, ...obj }, msg, ...args);
   }
 }
 

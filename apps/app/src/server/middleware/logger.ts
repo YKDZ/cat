@@ -9,12 +9,6 @@ export const pinoLoggerMiddleware = createMiddleware(async (c, next) => {
       level: "debug",
       quietResLogger: true,
       quietReqLogger: true,
-      transport: {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-        },
-      },
     })(c.env.incoming, c.env.outgoing, () => resolve()),
   );
 

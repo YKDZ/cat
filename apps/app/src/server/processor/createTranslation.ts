@@ -3,6 +3,7 @@ import { PluginRegistry } from "@cat/plugin-core";
 import { logger } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { config } from "./config";
+import { registerTaskUpdateHandlers } from "../utils/worker";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -134,53 +135,4 @@ const worker = new Worker(
   },
 );
 
-worker.on("active", async (job) => {
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "processing",
-    },
-  });
-
-  logger.info("PROCESSER", `Active ${queueId} task: ${id}`);
-});
-
-worker.on("completed", async (job) => {
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "completed",
-    },
-  });
-
-  logger.info("PROCESSER", `Completed ${queueId} task: ${id}`);
-});
-
-worker.on("failed", async (job) => {
-  if (!job) return;
-
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "failed",
-    },
-  });
-
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
-});
-
-worker.on("error", async (error) => {
-  logger.error("PROCESSER", `Worker throw error`, error);
-});
+registerTaskUpdateHandlers(prisma, worker, queueId);

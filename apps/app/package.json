@@ -34,6 +34,7 @@
     "@pinia/testing": "^1.0.2",
     "@prisma/adapter-pg": "^6.10.1",
     "@prisma/client": "6.13.0",
+    "@tanstack/vue-table": "^8.21.3",
     "@trpc/client": "^11.4.3",
     "@trpc/server": "^11.4.3",
     "@vitejs/plugin-vue": "^6.0.1",
