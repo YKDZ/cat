@@ -402,6 +402,7 @@ export const documentRouter = router({
       z.object({
         documentId: z.string(),
         searchQuery: z.string().default(""),
+        greaterThan: z.int().optional(),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
       }),
@@ -410,7 +411,8 @@ export const documentRouter = router({
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      const { documentId, searchQuery, isApproved, isTranslated } = input;
+      const { documentId, searchQuery, greaterThan, isApproved, isTranslated } =
+        input;
 
       if (isApproved !== undefined && isTranslated !== true) {
         throw new TRPCError({
@@ -425,7 +427,10 @@ export const documentRouter = router({
           value:
             searchQuery.trim().length !== 0
               ? { contains: searchQuery, mode: "insensitive" }
-              : undefined,
+              : {},
+          sortIndex: {
+            gt: greaterThan,
+          },
           isActive: true,
 
           Translations:
@@ -459,7 +464,9 @@ export const documentRouter = router({
                         }
                       : undefined,
         },
-        orderBy: { value: "asc" },
+        orderBy: {
+          sortIndex: "asc",
+        },
       });
 
       return TranslatableElementSchema.nullable().parse(element);
@@ -723,8 +730,10 @@ export const documentRouter = router({
                         }
                       : undefined,
         },
-        orderBy: { value: "asc" },
-        skip: page * pageSize + 1,
+        orderBy: {
+          sortIndex: "asc",
+        },
+        skip: page * pageSize,
         take: pageSize,
       });
 
@@ -746,6 +755,7 @@ export const documentRouter = router({
       const {
         prismaDB: { client: prisma },
       } = ctx;
+
       const {
         elementId,
         documentId,
@@ -766,6 +776,9 @@ export const documentRouter = router({
         where: {
           id: elementId,
         },
+        select: {
+          sortIndex: true,
+        },
       });
 
       if (!target)
@@ -777,11 +790,12 @@ export const documentRouter = router({
       const count = await prisma.translatableElement.count({
         where: {
           documentId,
-          value: {
-            lt: target.value,
-            ...(searchQuery.trim().length !== 0
+          value:
+            searchQuery.trim().length !== 0
               ? { contains: searchQuery, mode: "insensitive" }
-              : {}),
+              : {},
+          sortIndex: {
+            lt: target.sortIndex,
           },
           isActive: true,
 

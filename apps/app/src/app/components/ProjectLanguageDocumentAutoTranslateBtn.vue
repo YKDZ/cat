@@ -93,11 +93,11 @@ onMounted(updateAvailableAdvisor);
       </article>
       <form class="flex flex-col gap-1 w-full">
         <div class="flex flex-col gap-1">
-          <InputLabel
-            >记忆最低匹配度：{{
-              toShortFixed(minMemorySimilarity * 100)
-            }}%</InputLabel
-          >
+          <InputLabel>{{
+            $t("记忆最低匹配度：{similarity}%", {
+              similarity: toShortFixed(minMemorySimilarity * 100),
+            })
+          }}</InputLabel>
           <RangeInput
             v-model="minMemorySimilarity"
             :min="0"
@@ -110,7 +110,9 @@ onMounted(updateAvailableAdvisor);
           <Picker v-model="advisorId" :options="advisorOptions" />
         </div>
       </form>
-      <Button full-width @click="handleFillWithAdvisor">确认</Button>
+      <Button full-width @click="handleFillWithAdvisor">{{
+        $t("确认")
+      }}</Button>
     </div>
   </Modal>
 </template>

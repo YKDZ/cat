@@ -7,9 +7,11 @@ import {
 } from "@trpc/client";
 import type { AppRouter } from "./_app";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export const trpc = createTRPCClient<AppRouter>({
   links: [
-    loggerLink(),
+    ...(isDev ? [loggerLink()] : []),
     splitLink({
       condition: (op) => op.type === "subscription",
       true: httpSubscriptionLink({

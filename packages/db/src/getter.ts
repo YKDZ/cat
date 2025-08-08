@@ -14,7 +14,7 @@ declare global {
 
 export const getPrismaDB = async (): Promise<PrismaDB> => {
   if (!globalThis["__PRISMA_DB__"]) {
-    logger.debug("DB", "new PrismaDB instance");
+    logger.debug("DB", { msg: "new PrismaDB instance" });
     const db = new PrismaDB();
     await db.connect();
     await db.ping();
@@ -25,7 +25,7 @@ export const getPrismaDB = async (): Promise<PrismaDB> => {
 
 export const getRedisDB = async (): Promise<RedisDB> => {
   if (!globalThis["__REDIS_DB__"]) {
-    logger.debug("DB", "new RedisDB instance");
+    logger.debug("DB", { msg: "new RedisDB instance" });
     const db = new RedisDB();
     await db.connect();
     await db.ping();
@@ -36,7 +36,7 @@ export const getRedisDB = async (): Promise<RedisDB> => {
 
 export const getEsDB = async (): Promise<ESDB> => {
   if (!globalThis["__ES_DB__"]) {
-    logger.debug("DB", "new EsDB instance");
+    logger.debug("DB", { msg: "new EsDB instance" });
     const db = new ESDB();
     await db.connect();
     await db.ping();

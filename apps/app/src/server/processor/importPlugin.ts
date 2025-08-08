@@ -4,6 +4,9 @@ import { logger } from "@cat/shared";
 import { PluginImporterRegistry } from "../utils/plugin/plugin-importer-registry";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
 import { getPrismaDB } from "@cat/db";
+import { registerTaskUpdateHandlers } from "../utils/worker";
+
+const { client: prisma } = await getPrismaDB();
 
 const queueId = "importPlugin";
 
@@ -12,8 +15,6 @@ export const importPluginQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const { client: prisma } = await getPrismaDB();
-
     const {
       origin,
     }: {
@@ -179,55 +180,7 @@ const worker = new Worker(
   },
 );
 
-worker.on("active", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "processing",
-    },
-  });
-
-  logger.info("PROCESSER", `Active import_plugin task: ${id}`);
-});
-
-worker.on("completed", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "completed",
-    },
-  });
-
-  logger.info("PROCESSER", `Completed import_plugin task: ${id}`);
-});
-
-worker.on("failed", async (job) => {
-  if (!job) return;
-  const { client: prisma } = await getPrismaDB();
-
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id: job.name,
-    },
-    data: {
-      status: "failed",
-    },
-  });
-
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
-});
+registerTaskUpdateHandlers(prisma, worker, queueId);
 
 export const importPluginWorker = worker;
 

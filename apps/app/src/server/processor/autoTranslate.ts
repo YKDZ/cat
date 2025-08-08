@@ -8,6 +8,9 @@ import { z } from "zod";
 import { config } from "./config";
 import { queryElementWithEmbedding, searchMemory } from "../utils/memory";
 import { EsTermStore } from "../utils/es";
+import { registerTaskUpdateHandlers } from "../utils/worker";
+
+const { client: prisma } = await getPrismaDB();
 
 type TranslationData = {
   translation: TranslationSuggestion;
@@ -27,7 +30,6 @@ export const autoTranslateQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const { client: prisma } = await getPrismaDB();
     const pluginRegistry = new PluginRegistry();
 
     await pluginRegistry.loadPlugins(prisma, {
@@ -284,54 +286,6 @@ const worker = new Worker(
   },
 );
 
-worker.on("active", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "processing",
-    },
-  });
-
-  logger.info("PROCESSER", `Active ${queueId} task: ${id}`);
-});
-
-worker.on("completed", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "completed",
-    },
-  });
-
-  logger.info("PROCESSER", `Completed ${queueId} task: ${id}`);
-});
-
-worker.on("failed", async (job) => {
-  if (!job) return;
-  const { client: prisma } = await getPrismaDB();
-
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id: job.name,
-    },
-    data: {
-      status: "failed",
-    },
-  });
-
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
-});
+registerTaskUpdateHandlers(prisma, worker, queueId);
 
 export const autoTranslateWorker = worker;
