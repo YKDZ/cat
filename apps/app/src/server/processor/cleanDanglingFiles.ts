@@ -3,6 +3,9 @@ import { Queue, Worker } from "bullmq";
 import { useStorage } from "../utils/storage/useStorage";
 import { config } from "./config";
 import { getPrismaDB } from "@cat/db";
+import { registerTaskUpdateHandlers } from "../utils/worker";
+
+const { client: prisma } = await getPrismaDB();
 
 const queueId = "cleanDanglingFiles";
 
@@ -11,8 +14,6 @@ export const cleanDanglingFilesQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async () => {
-    const { client: prisma } = await getPrismaDB();
-
     // 所有外键都悬空的且一个月内没有更新的文件被视为悬空文件
     // TODO 配置定时
     const oneMonthAgo = new Date();
@@ -44,52 +45,4 @@ const worker = new Worker(
   },
 );
 
-worker.on("active", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "processing",
-    },
-  });
-
-  logger.info("PROCESSER", `Active ${queueId} task: ${id}`);
-});
-
-worker.on("completed", async (job) => {
-  const { client: prisma } = await getPrismaDB();
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "completed",
-    },
-  });
-
-  logger.info("PROCESSER", `Completed ${queueId} task: ${id}`);
-});
-
-worker.on("failed", async (job) => {
-  if (!job) return;
-  const { client: prisma } = await getPrismaDB();
-
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "failed",
-    },
-  });
-
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
-});
+registerTaskUpdateHandlers(prisma, worker, queueId);

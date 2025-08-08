@@ -11,6 +11,8 @@ export const setupI18n = () =>
     legacy: false,
     fallbackLocale: "zh_cn",
     fallbackFormat: true,
+    missingWarn: false,
+    fallbackWarn: false,
     formatFallbackMessages: true,
   });
 

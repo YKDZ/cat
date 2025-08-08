@@ -26,6 +26,6 @@ export const syncSettings = async (prisma: PrismaClient) => {
   });
 
   if (added.length > 0) {
-    logger.debug("DB", "Added settings:", added);
+    logger.debug("DB", { msg: "Added settings", added });
   }
 };

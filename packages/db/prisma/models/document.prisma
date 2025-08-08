@@ -25,6 +25,7 @@ model TranslatableElement {
     updatedAt DateTime @default(now()) @updatedAt
 
     value String @db.Text
+    sortIndex Int
     meta  Json?
 
     version  Int     @default(1)

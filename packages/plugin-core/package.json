@@ -32,19 +32,15 @@
     "format:check": "prettier --write .",
     "clean": "rimraf dist"
   },
-  "dependencies": {
-    "execa": "^9.5.3"
-  },
   "devDependencies": {
     "@cat/db": "workspace:*",
     "@cat/eslint-config": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.2.0",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",
     "vite": "^7.0.6",
     "vite-plugin-dts": "^4.5.4",
-    "vue": "^3.5.15",
     "zod": "^4.0.14"
   }
 }
