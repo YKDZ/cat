@@ -5,6 +5,56 @@ import { z } from "zod";
 import { authedProcedure, publicProcedure, router } from "../server";
 
 export const projectRouter = router({
+  delete: authedProcedure
+    .input(
+      z.object({
+        id: z.ulid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
+      const { id } = input;
+
+      await prisma.project.delete({
+        where: {
+          id,
+        },
+      });
+    }),
+  update: authedProcedure
+    .input(
+      z.object({
+        id: z.ulid(),
+        name: z.string().min(1).optional(),
+        sourceLanguageId: z.string().optional(),
+        description: z.string().min(0).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
+      const { id, name, sourceLanguageId, description } = input;
+
+      return ProjectSchema.parse(
+        await prisma.project.update({
+          where: {
+            id,
+          },
+          data: {
+            name,
+            description,
+            SourceLanguage: {
+              connect: {
+                id: sourceLanguageId,
+              },
+            },
+          },
+        }),
+      );
+    }),
   create: authedProcedure
     .input(
       z.object({
@@ -184,37 +234,6 @@ export const projectRouter = router({
               id: memoryId,
             })),
           },
-        },
-      });
-    }),
-  delete: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const { user } = ctx;
-      const { id } = input;
-
-      const project = await prisma.project.findUnique({
-        where: {
-          id,
-        },
-      });
-
-      if (!project || project.creatorId != user.id)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Do not have permission to delete this project",
-        });
-
-      await prisma.project.delete({
-        where: {
-          id,
         },
       });
     }),

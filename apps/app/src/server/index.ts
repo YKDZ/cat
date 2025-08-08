@@ -16,7 +16,7 @@ import app from "./app";
 let server: Server | null = null;
 
 const shutdownServer = async () => {
-  logger.info("SERVER", "About to shutdown server gracefully...");
+  logger.info("SERVER", { msg: "About to shutdown server gracefully..." });
 
   await new Promise<void>((resolve, reject) => {
     server!.close(async (err) => {
@@ -31,7 +31,7 @@ const shutdownServer = async () => {
     });
   });
 
-  logger.info("SERVER", "Successfully shutdown gracefully. Goodbye");
+  logger.info("SERVER", { msg: "Successfully shutdown gracefully. Goodbye" });
 };
 
 const startServer = async () => {

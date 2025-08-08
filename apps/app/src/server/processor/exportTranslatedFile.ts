@@ -9,6 +9,7 @@ import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
 import { mimeFromFileName } from "../utils/file";
 import { getPrismaDB } from "@cat/db";
+import { registerTaskUpdateHandlers } from "../utils/worker";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -19,12 +20,12 @@ export const exportTranslatedFileQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const { taskId, handlerId, documentId, languageId } = job.data as {
-      taskId: string;
+    const { handlerId, documentId, languageId } = job.data as {
       handlerId: string;
       documentId: string;
       languageId: string;
     };
+    const taskId = job.name;
 
     const pluginRegistry = new PluginRegistry();
 
@@ -147,7 +148,7 @@ const worker = new Worker(
 
       await tx.task.update({
         where: {
-          id: job.data.taskId,
+          id: taskId,
         },
         data: {
           meta: {
@@ -164,55 +165,6 @@ const worker = new Worker(
   },
 );
 
-worker.on("active", async (job) => {
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "processing",
-    },
-  });
-
-  logger.info("PROCESSER", `Active ${queueId} task: ${id}`);
-});
-
-worker.on("completed", async (job) => {
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "completed",
-    },
-  });
-
-  logger.info("PROCESSER", `Completed ${queueId} task: ${id}`);
-});
-
-worker.on("failed", async (job) => {
-  if (!job) return;
-
-  const id = job.name;
-
-  await prisma.task.update({
-    where: {
-      id: job.name,
-    },
-    data: {
-      status: "failed",
-    },
-  });
-
-  logger.error("PROCESSER", `Failed ${queueId} task: ${id}`, job.stacktrace);
-});
-
-worker.on("error", async (error) => {
-  logger.error("PROCESSER", `Worker throw error`, error);
-});
+registerTaskUpdateHandlers(prisma, worker, queueId);
 
 export const exportTranslatedFileWorker = worker;

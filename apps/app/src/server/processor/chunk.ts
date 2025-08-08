@@ -101,8 +101,10 @@ const createWorker = <T>(task: DistributedTaskWithId<T>) => {
         );
       } catch (err) {
         logger.error(
-          "PROCESSER",
-          `Error when processing chunk ${chunk.chunkIndex} of task ${task.id}. Rollback will be called`,
+          "PROCESSOR",
+          {
+            msg: `Error when processing chunk ${chunk.chunkIndex} of task ${task.id}. Rollback will be called`,
+          },
           err,
         );
         await redisPub.publish(
@@ -138,8 +140,10 @@ const runDistributedTask = async <T>(
     await updateTaskStatus(task, "processing");
   } catch (error) {
     logger.error(
-      "PROCESSER",
-      `Failed to update task status for task ${task.id}. Task will not be processed.`,
+      "PROCESSOR",
+      {
+        msg: `Failed to update task status for task ${task.id}. Task will not be processed.`,
+      },
       error,
     );
     return;
@@ -157,10 +161,9 @@ const runDistributedTask = async <T>(
             });
           } else if (event.type === "chunk:error") {
             failedChunks.push({ index: event.chunkIndex, data: event.data });
-            logger.debug(
-              "PROCESSER",
-              `Error in chunk ${event.chunkIndex}, task will be rollbacked when all finished.`,
-            );
+            logger.debug("PROCESSOR", {
+              msg: `Error in chunk ${event.chunkIndex}, task will be rollbacked when all finished.`,
+            });
           } else {
             reject(new Error("Invalid event type: " + event.type));
           }
@@ -190,7 +193,7 @@ const runDistributedTask = async <T>(
             }
           }
         } catch (error) {
-          logger.error("PROCESSER", `Error in task ${task.id}`, error);
+          logger.error("PROCESSOR", { msg: `Error in task ${task.id}` }, error);
           await redisSub.unsubscribe(`${jobId}:events`).catch(() => {});
           reject(error);
         }
@@ -209,13 +212,12 @@ const runDistributedTask = async <T>(
         for (const ctx of task.chunks) {
           Object.assign(ctx, { jobId });
           await queue.add(task.id, ctx);
-          logger.debug(
-            "PROCESSER",
-            `Add chunk ${ctx.chunkIndex + 1}/${task.chunks.length} of task ${task.id} to queue`,
-          );
+          logger.debug("PROCESSOR", {
+            msg: `Add chunk ${ctx.chunkIndex + 1}/${task.chunks.length} of task ${task.id} to queue`,
+          });
         }
       } catch (error) {
-        logger.error("PROCESSER", `Error in task ${task.id}`, error);
+        logger.error("PROCESSOR", { msg: `Error in task ${task.id}` }, error);
         await redisSub.unsubscribe(`${jobId}:events`).catch(() => {});
         await updateTaskStatus(task, "failed");
         reject(error);
@@ -228,16 +230,18 @@ const rollbackAll = async <T>(
   task: DistributedTaskWithId<T>,
   successfulChunks: FinishedChunkData[],
 ) => {
-  logger.debug("PROCESSER", `Task ${task.id} is about to be rollbacked`);
+  logger.debug("PROCESSOR", {
+    msg: `Task ${task.id} is about to be rollbacked`,
+  });
   for (const { index, data } of successfulChunks.reverse()) {
     const ctx = task.chunks[index];
     try {
-      logger.debug("PROCESSER", `Rolling back chunk ${index}`);
+      logger.debug("PROCESSOR", { msg: `Rolling back chunk ${index}` });
       await task.rollback(ctx, data);
     } catch (err) {
       logger.error(
-        "PROCESSER",
-        `Failed to rollback chunk ${index} of task ${task.id}`,
+        "PROCESSOR",
+        { msg: `Failed to rollback chunk ${index} of task ${task.id}` },
         err,
       );
     }

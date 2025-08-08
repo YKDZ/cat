@@ -20,6 +20,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  small: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const modalValue = defineModel({ type: String });
@@ -33,14 +37,27 @@ const modalValue = defineModel({ type: String });
       'w-full': fullWidth,
     }"
   >
-    <div v-if="icon" :class="icon" class="text-lg left-2 absolute"></div>
+    <div
+      v-if="icon"
+      class="absolute"
+      :class="[
+        icon,
+        {
+          'text-lg left-2': !small,
+          'left-1': small,
+        },
+      ]"
+    />
     <input
       v-model="modalValue"
       :type
       :placeholder
-      class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent file:text-black file:font-bold file:font-medium file:mr-2 file:px-3 file:py-2 file:bg-neutral disabled:opacity-50 file:cursor-text disabled:cursor-not-allowed focus-visible:ring-base file:-ml-2.5"
+      class="text-highlight-content-darker outline-0 bg-transparent w-full select-none ring-highlight-darkest ring-offset-transparent disabled:cursor-not-allowed focus-visible:ring-base"
       :class="{
-        'pl-8': icon,
+        'px-3 h-10 ring-1': !small,
+        'px-2 h-8 ring-0.5': small,
+        'pl-8': icon && !small,
+        'pl-6': icon && small,
         'rounded-md': !noRound,
       }"
     />
