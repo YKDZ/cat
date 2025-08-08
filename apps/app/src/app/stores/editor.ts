@@ -249,33 +249,16 @@ export const useEditorStore = defineStore("editor", () => {
     if (shouldUpsert) upsertTranslation(newTranslation);
   };
 
+  // 永远从当前元素开始找未被翻译的元素
   const jumpToNextUntranslated = async () => {
-    if (!documentId.value) return;
+    if (!documentId.value || !element.value) return;
 
-    const lastPageIndex = Math.max(...Array.from(loadedPages.keys()));
-    const lastPageElements = loadedPages.get(lastPageIndex)?.elements;
-
-    if (!lastPageElements) return;
-
-    const isAtLast =
-      element.value?.id === lastPageElements[lastPageElements.length - 1].id;
-
-    const currrentElementIndex = storedElements.value.findIndex(
-      (el) => el.id == elementId.value,
-    );
-
-    let firstUntranslatedElement: TranslatableElement | null =
-      storedElements.value.find(
-        (element, index) =>
-          (isAtLast || index > currrentElementIndex) && element.status === "NO",
-      ) ?? null;
-
-    if (!firstUntranslatedElement) {
-      firstUntranslatedElement = await trpc.document.queryFirstElement.query({
+    const firstUntranslatedElement =
+      await trpc.document.queryFirstElement.query({
         documentId: documentId.value,
+        greaterThan: element.value.sortIndex,
         isTranslated: false,
       });
-    }
 
     if (!firstUntranslatedElement) return;
 

@@ -24,6 +24,7 @@ export const DocumentSchema = z.object({
 export const TranslatableElementSchema = z.object({
   id: z.int(),
   value: z.string(),
+  sortIndex: z.int(),
   meta: z.json(),
   embeddingId: z.int(),
   version: z.int(),
