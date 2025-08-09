@@ -14,6 +14,7 @@ const FOLDER_INCLUDES = [
   "ollama-vectorizer",
   "libretranslate-advisor",
   "json-file-handler",
+  "yaml-file-handler",
   "oidc-auth-provider",
   "email-password-auth-provider",
   "component-test",
