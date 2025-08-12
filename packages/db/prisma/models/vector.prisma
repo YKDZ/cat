@@ -7,4 +7,6 @@ model Vector {
     SourceMemoryItems      MemoryItem[]          @relation("SourceEmbedding")
     TranslationMemoryItems MemoryItem[]          @relation("TranslationEmbedding")
     Translations           Translation[]
+
+    Answer Answer[]
 }

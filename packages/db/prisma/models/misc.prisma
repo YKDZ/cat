@@ -29,15 +29,6 @@ model Task {
     @@index([meta])
 }
 
-model Permission {
-    permission String
-
-    userId String
-    User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@id([permission, userId])
-}
-
 model Setting {
     id        Int      @id @default(autoincrement())
     key       String   @unique

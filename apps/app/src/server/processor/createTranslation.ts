@@ -1,6 +1,5 @@
 import { getPrismaDB, insertVector } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import { logger } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { config } from "./config";
 import { registerTaskUpdateHandlers } from "../utils/worker";

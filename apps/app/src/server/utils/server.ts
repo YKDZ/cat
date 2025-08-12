@@ -34,14 +34,20 @@ export const scanLocalPlugins = async () => {
           });
 
           jobs.push(
-            await importPluginQueue.add(task.id, {
-              origin: {
-                type: "LOCAL",
-                data: {
-                  id,
+            await importPluginQueue.add(
+              task.id,
+              {
+                origin: {
+                  type: "LOCAL",
+                  data: {
+                    id,
+                  },
                 },
               },
-            }),
+              {
+                jobId: task.id,
+              },
+            ),
           );
         }),
     );
@@ -57,9 +63,8 @@ export const scanLocalPlugins = async () => {
     );
 
     (await getPluginRegistry()).reload(prisma);
-    logger.info(
-      "SERVER",
-      "Reloaded plugins successfully for there was no plugins registered in the database before",
-    );
+    logger.info("SERVER", {
+      msg: "Reloaded plugins successfully for there was no plugins registered in the database before",
+    });
   }
 };

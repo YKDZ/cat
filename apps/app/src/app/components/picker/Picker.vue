@@ -48,8 +48,18 @@ const handleFocus = () => {
 
 watch(
   modelValue,
-  (val) => {
-    const selected = props.options.find((o) => (o.value ?? o.content) === val);
+  (to) => {
+    const selected = props.options.find((o) => o.value === to);
+    if (selected) selectOption(selected);
+  },
+  { immediate: true },
+);
+
+watch(
+  () => props.options,
+  (to) => {
+    if (to.length === 0) return;
+    const selected = to.find((o) => o.value === modelValue.value);
     if (selected) searchQuery.value = selected.content;
   },
   { immediate: true },

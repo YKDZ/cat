@@ -12,6 +12,10 @@ const seed = async (prisma: PrismaClient) => {
       ],
     });
 
+    await tx.storageType.createMany({
+      data: [{ name: "LOCAL" }, { name: "S3" }],
+    });
+
     const password =
       process.env.NODE_ENV !== "production"
         ? "password"
@@ -22,6 +26,27 @@ const seed = async (prisma: PrismaClient) => {
         name: "admin",
         email: "admin@encmys.cn",
         emailVerified: true,
+        UserRoles: {
+          create: {
+            Role: {
+              create: {
+                name: "Root Admin",
+                RolePermissions: {
+                  create: [
+                    {
+                      Permission: {
+                        create: {
+                          resource: "*",
+                          action: "*",
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
         Accounts: {
           create: {
             type: "ID_PASSWORD",
@@ -36,10 +61,6 @@ const seed = async (prisma: PrismaClient) => {
     });
 
     console.log(`Default admin password is: ${password}`);
-
-    await tx.storageType.createMany({
-      data: [{ name: "LOCAL" }, { name: "S3" }],
-    });
   });
 };
 

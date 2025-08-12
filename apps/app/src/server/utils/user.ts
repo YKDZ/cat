@@ -20,7 +20,19 @@ export const userFromSessionId = async (
         id: userId,
       },
       include: {
-        Permissions: true,
+        UserRoles: {
+          include: {
+            Role: {
+              include: {
+                RolePermissions: {
+                  include: {
+                    Permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         ReadableLanguages: true,
         WritableLanguages: true,
       },

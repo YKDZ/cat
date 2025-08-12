@@ -281,16 +281,22 @@ export const pluginRouter = router({
         },
       });
 
-      await importPluginQueue.add(task.id, {
-        origin: {
-          type: "GITHUB",
-          data: {
-            owner,
-            repo,
-            ref,
+      await importPluginQueue.add(
+        task.id,
+        {
+          origin: {
+            type: "GITHUB",
+            data: {
+              owner,
+              repo,
+              ref,
+            },
           },
         },
-      });
+        {
+          jobId: task.id,
+        },
+      );
     }),
   importFromLocal: authedProcedure
     .input(
@@ -310,14 +316,20 @@ export const pluginRouter = router({
         },
       });
 
-      await importPluginQueue.add(task.id, {
-        origin: {
-          type: "LOCAL",
-          data: {
-            id,
+      await importPluginQueue.add(
+        task.id,
+        {
+          origin: {
+            type: "LOCAL",
+            data: {
+              id,
+            },
           },
         },
-      });
+        {
+          jobId: task.id,
+        },
+      );
     }),
   reload: authedProcedure.mutation(async ({ ctx }) => {
     const {
@@ -325,13 +337,19 @@ export const pluginRouter = router({
       pluginRegistry,
     } = ctx;
 
-    logger.info("PROCESSOR", "About to pause all processors to reload plugin");
+    logger.info("PROCESSOR", {
+      msg: "About to pause all processors to reload plugin",
+    });
     await pauseAllProcessors()
       .then(() => {
-        logger.info("PROCESSOR", "Successfully paused all processors");
+        logger.info("PROCESSOR", { msg: "Successfully paused all processors" });
       })
       .catch((e) => {
-        logger.info("PROCESSOR", "Error when pausing all processors", e);
+        logger.info(
+          "PROCESSOR",
+          { msg: "Error when pausing all processors" },
+          e,
+        );
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -341,16 +359,21 @@ export const pluginRouter = router({
 
     await pluginRegistry.reload(prisma);
 
-    logger.info(
-      "PROCESSOR",
-      "About to resume all processors after plugin reloaded",
-    );
+    logger.info("PROCESSOR", {
+      msg: "About to resume all processors after plugin reloaded",
+    });
     await resumeAllProcessors()
       .then(() => {
-        logger.info("PROCESSOR", "Successfully resumed all processors");
+        logger.info("PROCESSOR", {
+          msg: "Successfully resumed all processors",
+        });
       })
       .catch((e) => {
-        logger.info("PROCESSOR", "Error when resuming all processors", e);
+        logger.info(
+          "PROCESSOR",
+          { msg: "Error when resuming all processors" },
+          e,
+        );
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
