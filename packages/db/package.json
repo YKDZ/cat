@@ -30,7 +30,7 @@
     "format:check": "prettier --write ."
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.859.0",
+    "@aws-sdk/client-s3": "^3.864.0",
     "@cat/shared": "workspace:*",
     "@prisma/adapter-pg": "^6.13.0",
     "@rollup/plugin-commonjs": "^28.0.6",
