@@ -29,7 +29,7 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.2",
     "vite": "^6.3.3",
     "vite-plugin-dts": "^4.5.3"
   }
