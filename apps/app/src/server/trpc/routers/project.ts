@@ -29,6 +29,7 @@ export const projectRouter = router({
         id: z.ulid(),
         name: z.string().min(1).optional(),
         sourceLanguageId: z.string().optional(),
+        targetLanguageIds: z.array(z.string()).optional(),
         description: z.string().min(0).optional(),
       }),
     )
@@ -36,7 +37,8 @@ export const projectRouter = router({
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      const { id, name, sourceLanguageId, description } = input;
+      const { id, name, sourceLanguageId, targetLanguageIds, description } =
+        input;
 
       return ProjectSchema.parse(
         await prisma.project.update({
@@ -46,11 +48,20 @@ export const projectRouter = router({
           data: {
             name,
             description,
-            SourceLanguage: {
-              connect: {
-                id: sourceLanguageId,
-              },
-            },
+            SourceLanguage: sourceLanguageId
+              ? {
+                  connect: {
+                    id: sourceLanguageId,
+                  },
+                }
+              : undefined,
+            TargetLanguages: targetLanguageIds
+              ? {
+                  set: targetLanguageIds.map((id) => ({
+                    id,
+                  })),
+                }
+              : undefined,
           },
         }),
       );
@@ -237,6 +248,30 @@ export const projectRouter = router({
         },
       });
     }),
+  listUserOwned: authedProcedure.query(async ({ ctx }) => {
+    const {
+      prismaDB: { client: prisma },
+      user: creator,
+    } = ctx;
+
+    return z.array(ProjectSchema).parse(
+      await prisma.project.findMany({
+        where: {
+          creatorId: creator.id,
+        },
+        include: {
+          Creator: true,
+          SourceLanguage: true,
+          TargetLanguages: true,
+          Documents: {
+            include: {
+              File: true,
+            },
+          },
+        },
+      }),
+    );
+  }),
   listUserParticipated: publicProcedure
     .input(
       z.object({
@@ -249,33 +284,14 @@ export const projectRouter = router({
       } = ctx;
       const { userId } = input;
 
-      return await prisma.$transaction(async (tx) => {
-        const projectIds = (
-          await tx.permission.findMany({
-            where: {
-              userId: userId,
-              permission: {
-                startsWith: "project.translate.",
-              },
-            },
-            select: {
-              permission: true,
-            },
-          })
-        ).map((result) => result.permission.split(".")[2]);
-
-        const projects = await tx.project.findMany({
+      return z.array(ProjectSchema).parse(
+        await prisma.project.findMany({
           where: {
-            OR: [
-              {
-                creatorId: userId,
+            Members: {
+              some: {
+                id: userId,
               },
-              {
-                id: {
-                  in: projectIds,
-                },
-              },
-            ],
+            },
           },
           include: {
             Creator: true,
@@ -287,10 +303,8 @@ export const projectRouter = router({
               },
             },
           },
-        });
-
-        return z.array(ProjectSchema).parse(projects);
-      });
+        }),
+      );
     }),
   query: authedProcedure
     .input(
@@ -376,10 +390,44 @@ export const projectRouter = router({
       } = ctx;
       const { id } = input;
 
-      await prisma.permission.create({
+      await prisma.project.update({
+        where: {
+          id,
+        },
         data: {
-          userId: user.id,
-          permission: `project.translate.${id}`,
+          Members: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
+      });
+    }),
+  invite: authedProcedure
+    .input(
+      z.object({
+        projectId: z.ulid(),
+        userId: z.ulid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+        user: creator,
+      } = ctx;
+      const { projectId, userId } = input;
+
+      await prisma.project.update({
+        where: {
+          id: projectId,
+          creatorId: creator.id,
+        },
+        data: {
+          Members: {
+            connect: {
+              id: userId,
+            },
+          },
         },
       });
     }),

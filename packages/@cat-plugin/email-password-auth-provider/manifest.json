@@ -2,7 +2,5 @@
   "id": "email-password-auth-provider",
   "entry": "dist/index.mjs",
   "iconURL": "https://unocss.dev/logo.svg",
-  "tags": [
-    "登录服务"
-  ]
+  "tags": ["auth-provider"]
 }

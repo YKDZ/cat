@@ -16,6 +16,9 @@ export const registerTaskUpdateHandlers = (
       },
       data: {
         status: "processing",
+        meta: {
+          job,
+        },
       },
     });
 
@@ -31,6 +34,9 @@ export const registerTaskUpdateHandlers = (
       },
       data: {
         status: "completed",
+        meta: {
+          job,
+        },
       },
     });
 
@@ -48,6 +54,9 @@ export const registerTaskUpdateHandlers = (
       },
       data: {
         status: "failed",
+        meta: {
+          job,
+        },
       },
     });
 

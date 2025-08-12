@@ -1,6 +1,6 @@
 import z from "zod";
 import { PrimsaDateTime } from "../misc";
-import { LanguageSchema, PermissionSchema } from "./misc";
+import { LanguageSchema } from "./misc";
 import { TranslationVoteSchema } from "./translation";
 
 export const UserSchema = z.object({
@@ -10,14 +10,12 @@ export const UserSchema = z.object({
   emailVerified: z.boolean(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
+
   get WritableLanguages() {
     return z.array(LanguageSchema).optional();
   },
   get ReadableLanguages() {
     return z.array(LanguageSchema).optional();
-  },
-  get Permissions() {
-    return z.array(PermissionSchema).optional();
   },
   get TranslationVotes() {
     return z.array(TranslationVoteSchema).optional();

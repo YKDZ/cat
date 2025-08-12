@@ -13,6 +13,7 @@ model Document {
 
     TranslatableElements TranslatableElement[]
     Tasks                Task[]
+    Exams                Exam[]
 
     Versions DocumentVersion[]
 
@@ -24,9 +25,9 @@ model TranslatableElement {
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
 
-    value String @db.Text
+    value     String @db.Text
     sortIndex Int
-    meta  Json?
+    meta      Json?
 
     version  Int     @default(1)
     isActive Boolean @default(true)
@@ -50,6 +51,8 @@ model TranslatableElement {
     // 手动实现
     // 因为 prisma 不支持唯一性索引中的 isActive = true
     // @@unique([meta, documentId, isActive])
+
+    Answer Answer[]
 }
 
 model DocumentVersion {

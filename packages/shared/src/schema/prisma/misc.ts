@@ -6,12 +6,6 @@ export const LanguageSchema = z.object({
   name: z.string(),
 });
 
-export const PermissionSchema = z.object({
-  permission: z.string(),
-  projectId: z.ulid(),
-  userId: z.ulid(),
-});
-
 export const TaskSchema = z.object({
   id: z.ulid(),
   createdAt: PrimsaDateTime,
@@ -30,6 +24,5 @@ export const SettingSchema = z.object({
 });
 
 export type Language = z.infer<typeof LanguageSchema>;
-export type Permission = z.infer<typeof PermissionSchema>;
 export type Task = z.infer<typeof TaskSchema>;
 export type Setting = z.infer<typeof SettingSchema>;

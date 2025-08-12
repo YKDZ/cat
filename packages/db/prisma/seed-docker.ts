@@ -1,6 +1,6 @@
 // @boundaries-ignore root config inheritance
 // This script will never run in this package
-// but in built apps/app docker container where have @cat/db denpendency
+// but in built apps/app docker container where have @cat/db dependency
 import type { PrismaClient } from "@cat/db";
 import { PrismaDB, hashPassword } from "@cat/db";
 import { randomBytes } from "crypto";
@@ -14,6 +14,10 @@ const seed = async (prisma: PrismaClient) => {
       ],
     });
 
+    await tx.storageType.createMany({
+      data: [{ name: "LOCAL" }, { name: "S3" }],
+    });
+
     const password =
       process.env.NODE_ENV !== "production"
         ? "password"
@@ -24,6 +28,27 @@ const seed = async (prisma: PrismaClient) => {
         name: "admin",
         email: "admin@encmys.cn",
         emailVerified: true,
+        UserRoles: {
+          create: {
+            Role: {
+              create: {
+                name: "Root Admin",
+                RolePermissions: {
+                  create: [
+                    {
+                      Permission: {
+                        create: {
+                          resource: "*",
+                          action: "*",
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
         Accounts: {
           create: {
             type: "ID_PASSWORD",
@@ -38,10 +63,6 @@ const seed = async (prisma: PrismaClient) => {
     });
 
     console.log(`Default admin password is: ${password}`);
-
-    await tx.storageType.createMany({
-      data: [{ name: "LOCAL" }, { name: "S3" }],
-    });
   });
 };
 

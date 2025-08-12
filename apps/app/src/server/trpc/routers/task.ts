@@ -51,6 +51,12 @@ export const taskRouter = router({
       },
     });
 
-    await cleanDanglingFilesQueue.add(task.id, {});
+    await cleanDanglingFilesQueue.add(
+      task.id,
+      {},
+      {
+        jobId: task.id,
+      },
+    );
   }),
 });

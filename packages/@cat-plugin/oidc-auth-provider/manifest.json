@@ -2,9 +2,7 @@
   "id": "oidc-auth-provider",
   "entry": "dist/index.mjs",
   "iconURL": "https://unocss.dev/logo.svg",
-  "tags": [
-    "auth-provider"
-  ],
+  "tags": ["auth-provider"],
   "configs": [
     {
       "key": "base.oidc-providers",

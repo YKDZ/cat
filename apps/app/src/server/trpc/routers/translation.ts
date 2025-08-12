@@ -101,15 +101,21 @@ export const translationRouter = router({
           },
         });
 
-        await createTranslationQueue.add(task.id, {
-          createMemory,
-          elementId: elementId,
-          creatorId: user.id,
-          translationLanguageId: languageId,
-          translationValue: value,
-          vectorizerId: vectorizer.getId(),
-          memoryIds: project.Memories.map((memory) => memory.id),
-        });
+        await createTranslationQueue.add(
+          task.id,
+          {
+            createMemory,
+            elementId: elementId,
+            creatorId: user.id,
+            translationLanguageId: languageId,
+            translationValue: value,
+            vectorizerId: vectorizer.getId(),
+            memoryIds: project.Memories.map((memory) => memory.id),
+          },
+          {
+            jobId: task.id,
+          },
+        );
 
         return TranslationSchema.extend({
           status: z.enum(["PROCESSING", "COMPLETED"]),
@@ -179,15 +185,21 @@ export const translationRouter = router({
       });
 
       await updateTranslationQueue
-        .add(task.id, {
-          translationId: id,
-          translationValue: value,
-          vectorizerId: vectorizer.getId(),
-        })
+        .add(
+          task.id,
+          {
+            translationId: id,
+            translationValue: value,
+            vectorizerId: vectorizer.getId(),
+          },
+          {
+            jobId: task.id,
+          },
+        )
         .catch(async (e) => {
           logger.error(
             "RPC",
-            "Failed to add update translation job to queue",
+            { msg: "Failed to add update translation job to queue" },
             e,
           );
           await prisma.task.update({
@@ -551,13 +563,19 @@ export const translationRouter = router({
         },
       });
 
-      await autoTranslateQueue.add(task.id, {
-        userId: user.id,
-        documentId,
-        advisorId,
-        vectorizerId: vectorizer.getId(),
-        languageId,
-        minMemorySimilarity,
-      });
+      await autoTranslateQueue.add(
+        task.id,
+        {
+          userId: user.id,
+          documentId,
+          advisorId,
+          vectorizerId: vectorizer.getId(),
+          languageId,
+          minMemorySimilarity,
+        },
+        {
+          jobId: task.id,
+        },
+      );
     }),
 });

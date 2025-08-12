@@ -1,0 +1,57 @@
+model Role {
+    id          Int      @id @default(autoincrement())
+    name        String   @unique
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    parentId Int?
+    Parent   Role? @relation("RoleHierarchy", fields: [parentId], references: [id])
+
+    Childrens       Role[]           @relation("RoleHierarchy")
+    UserRoles       UserRole[]
+    RolePermissions RolePermission[]
+}
+
+model Permission {
+    id          Int      @id @default(autoincrement())
+    resource    String
+    action      String
+    description String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    RolePermissions RolePermission[]
+}
+
+model RolePermission {
+    id         Int      @id @default(autoincrement())
+    isAllowed  Boolean  @default(true)
+    conditions Json? // 可选：条件 / scope / attribute-based rules
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    roleId Int
+    Role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+    permissionId Int
+    Permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+}
+
+model UserRole {
+    id        Int       @id @default(autoincrement())
+    scope     Json?
+    isEnabled Boolean   @default(true)
+    expiresAt DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    userId String
+    User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    roleId Int
+    Role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([roleId])
+}

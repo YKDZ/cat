@@ -1,11 +1,13 @@
-import type { PrismaClient } from "@cat/db";
 import { getPrismaDB, verifyPassword } from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
 import { z } from "zod";
 
 const FormSchema = z.object({
-  email: z.email(),
-  password: z.string().min(6),
+  email: z.email().meta({ "x-autocomplete": "email" }),
+  password: z
+    .string()
+    .min(6)
+    .meta({ "x-secret": true, "x-autocomplete": "current-password" }),
 });
 
 export class Provider implements AuthProvider {

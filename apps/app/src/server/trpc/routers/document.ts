@@ -261,14 +261,7 @@ export const documentRouter = router({
           vectorizerId: vectorizer.getId(),
         },
         {
-          attempts: 1,
-          removeOnComplete: {
-            age: 60 * 60,
-            count: 1000,
-          },
-          removeOnFail: {
-            age: 24 * 60 * 60,
-          },
+          jobId: taskId,
         },
       );
 
@@ -527,11 +520,17 @@ export const documentRouter = router({
         },
       });
 
-      await exportTranslatedFileQueue.add(task.id, {
-        handlerId: handler.getId(),
-        documentId: document.id,
-        languageId,
-      });
+      await exportTranslatedFileQueue.add(
+        task.id,
+        {
+          handlerId: handler.getId(),
+          documentId: document.id,
+          languageId,
+        },
+        {
+          jobId: task.id,
+        },
+      );
     }),
   downloadTranslatedFile: authedProcedure
     .input(

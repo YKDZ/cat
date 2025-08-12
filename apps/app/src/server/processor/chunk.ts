@@ -211,7 +211,9 @@ const runDistributedTask = async <T>(
 
         for (const ctx of task.chunks) {
           Object.assign(ctx, { jobId });
-          await queue.add(task.id, ctx);
+          await queue.add(task.id, ctx, {
+            jobId: `${task.id}&${ctx.chunkIndex}`,
+          });
           logger.debug("PROCESSOR", {
             msg: `Add chunk ${ctx.chunkIndex + 1}/${task.chunks.length} of task ${task.id} to queue`,
           });

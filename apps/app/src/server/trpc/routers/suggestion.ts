@@ -130,10 +130,9 @@ export const suggestionRouter = router({
           )
           .then((suggestions) => {
             if (suggestions.length === 0) {
-              logger.warn(
-                "PLUGIN",
-                `Translation advisor ${advisor.getName()} does not return any suggestions, which is not recommended. Please at least return a suggestion with error message when error occured.`,
-              );
+              logger.warn("PLUGIN", {
+                msg: `Translation advisor ${advisor.getName()} does not return any suggestions, which is not recommended. Please at least return a suggestion with error message when error occured.`,
+              });
               return;
             }
             suggestions.forEach((suggestion) => {
