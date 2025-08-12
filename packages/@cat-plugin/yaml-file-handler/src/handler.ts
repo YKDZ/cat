@@ -1,4 +1,12 @@
-import { parse, stringify } from "yaml";
+import type { Pair, Scalar } from "yaml";
+import {
+  isScalar,
+  parse,
+  parseDocument,
+  stringify,
+  YAMLMap,
+  YAMLSeq,
+} from "yaml";
 import type { File, Translation } from "@cat/shared";
 import type { TranslatableElementData } from "@cat/shared";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
@@ -36,25 +44,49 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
 
   extractElement(file: File, fileContent: Buffer): TranslatableElementData[] {
     const content = fileContent.toString("utf8");
-    const doc = parse(content) as YamlValue;
+    const doc = parseDocument(content);
     const elements: TranslatableElementData[] = [];
 
-    function traverse(obj: YamlValue, path: (string | number)[] = []): void {
-      if (isString(obj)) {
+    function traverseNode(
+      node: unknown,
+      path: (string | number)[] = [],
+      parentComments: string | undefined = undefined,
+    ): void {
+      if (isScalar(node) && typeof (node as Scalar).value === "string") {
+        const scalarNode = node as Scalar;
+        const comment = scalarNode.commentBefore || parentComments;
         elements.push({
-          value: obj,
-          meta: { path: path.join(".") },
+          value: scalarNode.value as string,
+          meta: {
+            path: path.join("."),
+            comment: comment ?? null,
+          },
         });
-      } else if (isArray(obj)) {
-        obj.forEach((item, idx) => traverse(item, [...path, idx]));
-      } else if (isObject(obj)) {
-        for (const key in obj) {
-          traverse(obj[key], [...path, key]);
-        }
+      } else if (node instanceof YAMLSeq) {
+        node.items.forEach((item, idx) =>
+          traverseNode(
+            item,
+            [...path, idx],
+            (item as Scalar)?.commentBefore ?? parentComments,
+          ),
+        );
+      } else if (node instanceof YAMLMap) {
+        node.items.forEach((pair: Pair) => {
+          const key = isScalar(pair.key)
+            ? (pair.key as Scalar).value
+            : pair.key;
+          traverseNode(
+            pair.value,
+            [...path, key as string],
+            (pair.value as Scalar)?.commentBefore ?? parentComments,
+          );
+        });
       }
     }
 
-    traverse(doc);
+    if (doc.contents) {
+      traverseNode(doc.contents);
+    }
     return elements;
   }
 
