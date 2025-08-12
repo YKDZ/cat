@@ -63,7 +63,7 @@
     "vue": "^3.5.18",
     "vue-i18n": "^11.1.11",
     "vue-tsc": "^3.0.5",
-    "zod": "^4.0.14"
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
