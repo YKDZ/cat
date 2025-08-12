@@ -37,7 +37,7 @@
     "typescript": "^5.9.2",
     "vite": "^7.0.6",
     "vite-plugin-dts": "^4.5.4",
-    "zod": "^4.0.14"
+    "zod": "^4.0.17"
   },
   "dependencies": {
     "pino": "^9.8.0"
