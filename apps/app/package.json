@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.859.0",
-    "@aws-sdk/s3-request-presigner": "^3.859.0",
+    "@aws-sdk/s3-request-presigner": "^3.864.0",
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
@@ -52,7 +52,7 @@
     "pinia-plugin-persistedstate": "^4.4.1",
     "pino": "^9.7.0",
     "pino-http": "^10.5.0",
-    "prisma": "6.12.0",
+    "prisma": "6.13.0",
     "tar": "^7.4.3",
     "tsx": "^4.20.3",
     "universal-cookie": "^8.0.1",
@@ -63,12 +63,12 @@
     "vue": "^3.5.18",
     "vue-i18n": "^11.1.11",
     "vue-tsc": "^3.0.5",
-    "zod": "^4.0.14"
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@iconify-json/codicon": "^1.2.25",
-    "@iconify-json/file-icons": "^1.2.1",
+    "@iconify-json/file-icons": "^1.2.2",
     "@iconify-json/flag": "^1.2.6",
     "@iconify-json/fluent": "^1.2.28",
     "@iconify-json/mdi": "^1.2.3",
@@ -80,7 +80,7 @@
     "cross-env": "^10.0.0",
     "happy-dom": "^18.0.1",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.37.0",
+    "typescript-eslint": "^8.39.1",
     "unocss": "^66.4.1",
     "vite": "^7.1.1",
     "vitest": "^3.2.4"
