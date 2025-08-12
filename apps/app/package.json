@@ -52,7 +52,7 @@
     "pinia-plugin-persistedstate": "^4.4.1",
     "pino": "^9.7.0",
     "pino-http": "^10.5.0",
-    "prisma": "6.12.0",
+    "prisma": "6.13.0",
     "tar": "^7.4.3",
     "tsx": "^4.20.3",
     "universal-cookie": "^8.0.1",
