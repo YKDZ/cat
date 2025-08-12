@@ -63,12 +63,12 @@
     "vue": "^3.5.18",
     "vue-i18n": "^11.1.11",
     "vue-tsc": "^3.0.5",
-    "zod": "^4.0.14"
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@iconify-json/codicon": "^1.2.25",
-    "@iconify-json/file-icons": "^1.2.1",
+    "@iconify-json/file-icons": "^1.2.2",
     "@iconify-json/flag": "^1.2.6",
     "@iconify-json/fluent": "^1.2.28",
     "@iconify-json/mdi": "^1.2.3",
