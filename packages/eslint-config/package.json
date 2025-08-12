@@ -14,7 +14,7 @@
     "@intlify/eslint-plugin-vue-i18n": "^4.1.0",
     "@typescript-eslint/parser": "^8.39.0",
     "@typescript-eslint/utils": "^8.39.0",
-    "@unocss/eslint-config": "^66.4.1",
+    "@unocss/eslint-config": "^66.4.2",
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-vue": "^10.4.0",
