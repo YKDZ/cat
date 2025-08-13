@@ -59,7 +59,7 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
           value: scalarNode.value as string,
           meta: {
             path: path.join("."),
-            comment: comment ?? null,
+            ...(comment ? { comment } : {}),
           },
         });
       } else if (node instanceof YAMLSeq) {

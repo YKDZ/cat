@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import type { JSONType, PluginConfig } from "@cat/shared";
+import type { JSONType, PluginConfig, PluginConfigInstance } from "@cat/shared";
 import JSONForm from "./json-form/JSONForm.vue";
 import { trpc } from "@/server/trpc/client";
 import { useToastStore } from "../stores/toast";
 
 const props = defineProps<{
   config: PluginConfig;
+  instance: PluginConfigInstance;
 }>();
 
 const { info, trpcWarn } = useToastStore();
 
 const handleUpdate = async (to: JSONType) => {
-  await trpc.plugin.updateGlobalConfig
+  await trpc.plugin.upsertConfigInstance
     .mutate({
-      pluginId: props.config.pluginId,
-      key: props.config.key,
+      scopeType: "GLOBAL",
+      scopeId: "",
+      scopeMeta: {},
+      configId: props.config.id,
       value: to,
     })
     .then(() => {
@@ -28,7 +31,7 @@ const handleUpdate = async (to: JSONType) => {
   <div class="flex flex-col gap-0.5">
     <span>{{ config.key }}</span>
     <JSONForm
-      :data="config.value"
+      :data="instance.value"
       :schema="config.schema"
       @update="handleUpdate"
     />

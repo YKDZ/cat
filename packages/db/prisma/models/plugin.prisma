@@ -43,38 +43,39 @@ model PluginPermission {
 }
 
 model PluginConfig {
-    id              Int      @id @default(autoincrement())
-    key             String
-    value           Json
-    schema          Json
-    userOverridable Boolean  @default(false)
-    createdAt       DateTime @default(now())
-    updatedAt       DateTime @default(now()) @updatedAt
+    id          Int      @id @default(autoincrement())
+    key         String
+    schema      Json
+    overridable Boolean  @default(false)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @default(now()) @updatedAt
 
     pluginId String
     Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
-    UserInstances PluginUserConfigInstance[]
+    Instances PluginConfigInstance[]
 
     @@unique([pluginId, key])
     @@index([pluginId])
     @@index([key])
 }
 
-model PluginUserConfigInstance {
-    id        Int      @id @default(autoincrement())
+model PluginConfigInstance {
+    id        Int                            @id @default(autoincrement())
     value     Json
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
-    isActive  Boolean  @default(true)
+    scopeType PluginConfigInstatnceScopeType
+    scopeId   String
+    scopeMeta Json?
+    createdAt DateTime                       @default(now())
+    updatedAt DateTime                       @default(now()) @updatedAt
 
-    creatorId String
-    Creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+    creatorId String?
+    Creator   User?   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
     configId Int
     Config   PluginConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
 
-    @@unique([configId, creatorId])
+    @@unique([configId, scopeType, scopeId])
 }
 
 model PluginTag {
@@ -95,4 +96,10 @@ model PluginComponent {
     Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
     @@unique([id, pluginId])
+}
+
+enum PluginConfigInstatnceScopeType {
+    GLOBAL
+    USER
+    PROJECT
 }

@@ -3,7 +3,7 @@ import { PluginComponentSchema, PluginConfigSchema } from "./prisma";
 
 export const PluginConfigDataSchema = PluginConfigSchema.pick({
   key: true,
-  userOverridable: true,
+  overridable: true,
   schema: true,
 });
 
