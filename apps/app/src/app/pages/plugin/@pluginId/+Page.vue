@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useData } from "vike-vue/useData";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import PluginUserConfigs from "@/app/components/PluginUserConfigs.vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { usePluginStore } from "@/app/stores/plugin";

@@ -1,8 +1,8 @@
 import {
   logger,
+  PluginConfigInstanceSchema,
   PluginConfigSchema,
   PluginSchema,
-  PluginUserConfigInstanceSchema,
 } from "@cat/shared";
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
@@ -10,6 +10,7 @@ import { importPluginQueue } from "@/server/processor/importPlugin";
 import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
 import { TRPCError } from "@trpc/server";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
+import type { PluginConfigInstatnceScopeType } from "@cat/db";
 
 export const pluginRouter = router({
   delete: authedProcedure
@@ -50,51 +51,40 @@ export const pluginRouter = router({
         }),
       );
     }),
-  queryUserConfigInstance: authedProcedure
-    .input(z.object({ configId: z.int() }))
-    .output(PluginUserConfigInstanceSchema.nullable())
+  queryConfigInstance: authedProcedure
+    .input(
+      z.object({
+        configId: z.int(),
+        scopeType: z.custom<PluginConfigInstatnceScopeType>(),
+        scopeId: z.string(),
+      }),
+    )
+    .output(PluginConfigInstanceSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
-        user,
       } = ctx;
-      const { configId } = input;
+      const { configId, scopeType, scopeId } = input;
 
-      return PluginUserConfigInstanceSchema.nullable().parse(
-        await prisma.pluginUserConfigInstance.findUnique({
+      return PluginConfigInstanceSchema.nullable().parse(
+        await prisma.pluginConfigInstance.findUnique({
           where: {
-            configId_creatorId: {
+            configId_scopeType_scopeId: {
               configId,
-              creatorId: user.id,
+              scopeType,
+              scopeId,
             },
           },
         }),
       );
     }),
-  updateGlobalConfig: authedProcedure
-    .input(z.object({ pluginId: z.string(), key: z.string(), value: z.json() }))
-    .mutation(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const { pluginId, key, value } = input;
-
-      await prisma.pluginConfig.update({
-        where: {
-          pluginId_key: {
-            pluginId,
-            key,
-          },
-        },
-        data: {
-          value: value as InputJsonValue,
-        },
-      });
-    }),
-  upsertUserConfig: authedProcedure
+  upsertConfigInstance: authedProcedure
     .input(
       z.object({
         configId: z.number(),
+        scopeType: z.custom<PluginConfigInstatnceScopeType>(),
+        scopeId: z.string(),
+        scopeMeta: z.json().nullable(),
         value: z.json(),
       }),
     )
@@ -103,19 +93,20 @@ export const pluginRouter = router({
         prismaDB: { client: prisma },
         user,
       } = ctx;
-      const { configId, value } = input;
+      const { configId, scopeType, scopeId, scopeMeta, value } = input;
 
-      await prisma.pluginUserConfigInstance.upsert({
+      await prisma.pluginConfigInstance.upsert({
         where: {
-          configId_creatorId: {
+          configId_scopeType_scopeId: {
             configId,
-            creatorId: user.id,
-          },
-          Config: {
-            userOverridable: true,
+            scopeType,
+            scopeId,
           },
         },
         create: {
+          scopeType,
+          scopeId,
+          scopeMeta: scopeMeta as InputJsonValue,
           value: value as InputJsonValue,
           creatorId: user.id,
           configId,
@@ -125,43 +116,13 @@ export const pluginRouter = router({
         },
       });
     }),
-  updateUserConfig: authedProcedure
-    .input(
-      z.object({
-        configId: z.number(),
-        value: z.json().optional(),
-        isActive: z.boolean().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-        user,
-      } = ctx;
-      const { configId, value, isActive } = input;
-
-      await prisma.pluginUserConfigInstance.update({
-        where: {
-          configId_creatorId: {
-            configId,
-            creatorId: user.id,
-          },
-          Config: {
-            userOverridable: true,
-          },
-        },
-        data: {
-          value: value as InputJsonValue,
-          isActive,
-        },
-      });
-    }),
   query: authedProcedure
     .input(
       z.object({
         id: z.string(),
       }),
     )
+    .output(PluginSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -177,48 +138,6 @@ export const pluginRouter = router({
           },
         }),
       );
-    }),
-  queryWithUserOverridableConfig: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
-    .output(
-      PluginSchema.omit({ Configs: true })
-        .extend({
-          Configs: z.array(PluginConfigSchema.omit({ value: true })),
-        })
-        .nullable(),
-    )
-    .query(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const { id } = input;
-
-      return PluginSchema.omit({ Configs: true })
-        .extend({
-          Configs: z.array(PluginConfigSchema.omit({ value: true })),
-        })
-        .nullable()
-        .parse(
-          await prisma.plugin.findUnique({
-            where: {
-              id,
-            },
-            include: {
-              Configs: {
-                where: {
-                  userOverridable: true,
-                },
-                omit: {
-                  value: true,
-                },
-              },
-            },
-          }),
-        );
     }),
   listAll: authedProcedure.query(async ({ ctx }) => {
     const {
@@ -237,30 +156,33 @@ export const pluginRouter = router({
       }),
     );
   }),
-  listAllUserConfigurable: authedProcedure.query(async ({ ctx }) => {
-    const {
-      prismaDB: { client: prisma },
-    } = ctx;
-    return z.array(PluginSchema).parse(
-      await prisma.plugin.findMany({
-        where: {
-          Configs: {
-            some: {
-              userOverridable: true,
+  listAllWithOverridableConfig: authedProcedure
+    .output(z.array(PluginSchema))
+    .query(async ({ ctx }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
+      return z.array(PluginSchema).parse(
+        await prisma.plugin.findMany({
+          where: {
+            Configs: {
+              some: {
+                overridable: true,
+              },
             },
           },
-        },
-        include: {
-          Versions: true,
-          Permissions: true,
-          Tags: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      }),
-    );
-  }),
+          include: {
+            Configs: true,
+            Versions: true,
+            Permissions: true,
+            Tags: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        }),
+      );
+    }),
   importFromGitHub: authedProcedure
     .input(
       z.object({

@@ -12,10 +12,6 @@
   "files": [
     "dist"
   ],
-  "prisma": {
-    "schema": "./prisma",
-    "seed": "tsx src/seed.ts"
-  },
   "scripts": {
     "build": "rollup --config",
     "lint": "eslint . --fix",
@@ -41,7 +37,6 @@
     "@prisma/client": "6.13.0",
     "@rollup/plugin-typescript": "^12.1.4",
     "redis": "^5.8.0",
-    "rollup": "^4.46.2",
     "rollup-plugin-dts": "^6.2.1"
   },
   "devDependencies": {

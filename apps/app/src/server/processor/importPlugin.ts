@@ -52,7 +52,7 @@ const worker = new Worker(
           iconURL: data.iconURL,
           Configs: {
             connectOrCreate: data.configs
-              ? data.configs.map(({ key, schema, userOverridable }) => ({
+              ? data.configs.map(({ key, schema, overridable }) => ({
                   where: {
                     pluginId_key: {
                       pluginId,
@@ -62,8 +62,14 @@ const worker = new Worker(
                   create: {
                     key,
                     schema: schema as InputJsonValue,
-                    value: getDefaultFromSchema(schema),
-                    userOverridable,
+                    overridable,
+                    Instances: {
+                      create: {
+                        value: getDefaultFromSchema(schema),
+                        scopeType: "GLOBAL",
+                        scopeId: "",
+                      },
+                    },
                   },
                 }))
               : [],
@@ -120,7 +126,7 @@ const worker = new Worker(
           iconURL: data.iconURL,
           Configs: {
             connectOrCreate: data.configs
-              ? data.configs.map(({ key, schema, userOverridable }) => ({
+              ? data.configs.map(({ key, schema, overridable }) => ({
                   where: {
                     pluginId_key: {
                       pluginId,
@@ -130,8 +136,14 @@ const worker = new Worker(
                   create: {
                     key,
                     schema: schema as InputJsonValue,
-                    value: getDefaultFromSchema(schema),
-                    userOverridable,
+                    overridable,
+                    Instances: {
+                      create: {
+                        value: getDefaultFromSchema(schema),
+                        scopeType: "GLOBAL",
+                        scopeId: "",
+                      },
+                    },
                   },
                 }))
               : [],
