@@ -26,13 +26,13 @@
     "@cat/db": "workspace:*",
     "@cat/eslint-config": "workspace:*",
     "@cat/plugin-core": "workspace:*",
-    "@types/node": "^22.14.1",
+    "@types/node": "^24.2.1",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.2",
     "vite": "^6.3.3",
     "vite-plugin-dts": "^4.5.3"
   },
   "dependencies": {
-    "zod": "^4.0.5"
+    "zod": "^4.0.17"
   }
 }
