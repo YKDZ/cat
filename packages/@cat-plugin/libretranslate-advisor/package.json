@@ -26,10 +26,10 @@
     "@cat/eslint-config": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@types/node": "^22.14.1",
+    "@types/node": "^24.2.1",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
-    "vite": "^6.3.3",
+    "vite": "^7.1.2",
     "vite-plugin-dts": "^4.5.3"
   }
 }
