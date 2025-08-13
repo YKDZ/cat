@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "@types/node": "^22.14.1",
+    "@types/node": "^24.2.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "tsx": "^4.19.3",
     "typescript": "^5.9.2",
