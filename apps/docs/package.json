@@ -21,7 +21,7 @@
     "vue": "^3.5.16"
   },
   "devDependencies": {
-    "vitepress": "^1.6.3",
+    "vitepress": "^1.6.4",
     "@cat/eslint-config": "workspace:*"
   }
 }
