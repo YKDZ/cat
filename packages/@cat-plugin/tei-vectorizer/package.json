@@ -25,11 +25,6 @@
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "@types/node": "^24.2.1",
-    "tsx": "^4.19.3",
-    "typescript": "^5.9.2",
-    "vite": "^7.1.2",
-    "vite-plugin-dts": "^4.5.3"
+    "@cat/shared": "workspace:*"
   }
 }

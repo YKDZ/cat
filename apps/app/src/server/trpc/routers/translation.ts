@@ -82,11 +82,11 @@ export const translationRouter = router({
             message: "Project not found",
           });
 
-        const vectorizer = pluginRegistry
-          .getTextVectorizers()
-          .find((vectorizer) =>
-            vectorizer.canVectorize(project.sourceLanguageId),
-          );
+        const vectorizer = (
+          await pluginRegistry.getTextVectorizers(prisma)
+        ).find((vectorizer) =>
+          vectorizer.canVectorize(project.sourceLanguageId),
+        );
 
         if (!vectorizer) {
           throw new TRPCError({
@@ -167,9 +167,9 @@ export const translationRouter = router({
           message: "Translation with given id not found",
         });
 
-      const vectorizer = pluginRegistry
-        .getTextVectorizers()
-        .find((vectorizer) => vectorizer.canVectorize(translation.languageId));
+      const vectorizer = (await pluginRegistry.getTextVectorizers(prisma)).find(
+        (vectorizer) => vectorizer.canVectorize(translation.languageId),
+      );
 
       if (!vectorizer) {
         throw new TRPCError({
@@ -526,13 +526,11 @@ export const translationRouter = router({
             "Document does not exists or language does not claimed in project",
         });
 
-      const advisor = await pluginRegistry.getTranslationAdvisor(
-        prisma,
-        advisorId,
-        {
+      const advisor = (
+        await pluginRegistry.getTranslationAdvisors(prisma, {
           userId: user.id,
-        },
-      );
+        })
+      ).find((advisor) => advisor.getId() === advisorId);
 
       if (!advisor)
         throw new TRPCError({
@@ -546,8 +544,8 @@ export const translationRouter = router({
           message: "Advisor with given id does not enabled",
         });
 
-      const vectorizer = pluginRegistry
-        .getTextVectorizers()
+      const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
+        .values()
         .find((vectorizer) => vectorizer.canVectorize(languageId));
 
       if (!vectorizer)

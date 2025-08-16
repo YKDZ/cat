@@ -13,7 +13,7 @@
     },
     {
       "key": "api",
-      "userOverridable": true,
+      "overridable": true,
       "schema": {
         "type": "object",
         "properties": {

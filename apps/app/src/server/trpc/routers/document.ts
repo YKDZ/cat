@@ -100,9 +100,9 @@ export const documentRouter = router({
 
         const parsedFile = FileSchema.parse(file);
 
-        const handler = pluginRegistry
-          .getTranslatableFileHandlers()
-          .find((handler) => handler.canExtractElement(parsedFile));
+        const handler = (
+          await pluginRegistry.getTranslatableFileHandlers(prisma)
+        ).find((handler) => handler.canExtractElement(parsedFile));
 
         if (!handler) {
           throw new TRPCError({
@@ -123,11 +123,11 @@ export const documentRouter = router({
             message: "Project with given id does not exists",
           });
 
-        const vectorizer = pluginRegistry
-          .getTextVectorizers()
-          .find((vectorizer) =>
-            vectorizer.canVectorize(project.sourceLanguageId),
-          );
+        const vectorizer = (
+          await pluginRegistry.getTextVectorizers(prisma)
+        ).find((vectorizer) =>
+          vectorizer.canVectorize(project.sourceLanguageId),
+        );
 
         if (!vectorizer) {
           throw new TRPCError({
@@ -499,9 +499,9 @@ export const documentRouter = router({
           message: "指定文档不是基于文件的",
         });
 
-      const handler = pluginRegistry
-        .getTranslatableFileHandlers()
-        .find((handler) => handler.canGenerateTranslated(document.File!));
+      const handler = (
+        await pluginRegistry.getTranslatableFileHandlers(prisma)
+      ).find((handler) => handler.canGenerateTranslated(document.File!));
 
       if (!handler)
         throw new TRPCError({

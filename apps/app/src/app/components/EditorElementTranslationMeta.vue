@@ -34,11 +34,6 @@ onMounted(() => {
       if (!mem) return;
       memory.value = mem;
     });
-  if (meta.value && meta.value.advisorId) {
-    trpc.suggestion.queryAdvisor
-      .query({ advisorId: meta.value.advisorId })
-      .then((a) => (advisor.value = a));
-  }
 });
 </script>
 

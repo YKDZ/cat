@@ -160,36 +160,6 @@ export const suggestionRouter = router({
         suggestionsQueue.clear();
       }
     }),
-  queryAdvisor: authedProcedure
-    .input(
-      z.object({
-        advisorId: z.string(),
-      }),
-    )
-    .output(TranslationAdvisorDataSchema.nullable())
-    .query(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-        user,
-        pluginRegistry,
-      } = ctx;
-      const { advisorId } = input;
-
-      const advisor = await pluginRegistry.getTranslationAdvisor(
-        prisma,
-        advisorId,
-        {
-          userId: user.id,
-        },
-      );
-
-      return advisor
-        ? ({
-            id: advisor.getId(),
-            name: advisor.getName(),
-          } satisfies TranslationAdvisorData)
-        : null;
-    }),
   listAllAvailableAdvisors: authedProcedure
     .output(z.array(TranslationAdvisorDataSchema))
     .query(async ({ ctx }) => {

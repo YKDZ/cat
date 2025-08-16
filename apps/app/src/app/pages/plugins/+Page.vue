@@ -14,7 +14,7 @@ const { trpcWarn } = useToastStore();
 const plugins = ref<Plugin[]>(useData<Data>().plugins);
 
 const updatePlugins = async () => {
-  await trpc.plugin.listAllUserConfigurable
+  await trpc.plugin.listAllWithOverridableConfig
     .query()
     .then((pls) => {
       plugins.value = pls;

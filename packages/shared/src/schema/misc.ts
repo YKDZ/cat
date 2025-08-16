@@ -15,6 +15,7 @@ export const TranslationAdvisorDataSchema = z.object({
 });
 
 export const AuthMethodSchema = z.object({
+  pluginId: z.string(),
   providerId: z.string(),
   providerType: z.string(),
   name: z.string(),
