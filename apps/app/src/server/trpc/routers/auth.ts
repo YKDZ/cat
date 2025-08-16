@@ -10,15 +10,21 @@ export const authRouter = router({
   queryPreAuthFormSchema: publicProcedure
     .input(
       z.object({
+        pluginId: z.string(),
         providerId: z.string(),
       }),
     )
     .output(z.custom<JSONSchema.JSONSchema>())
     .query(async ({ ctx, input }) => {
-      const { pluginRegistry } = ctx;
-      const { providerId } = input;
+      const {
+        pluginRegistry,
+        prismaDB: { client: prisma },
+      } = ctx;
+      const { providerId, pluginId } = input;
 
-      const provider = pluginRegistry.getAuthProvider(providerId);
+      const provider = (
+        await pluginRegistry.getAuthProvider(prisma, pluginId)
+      ).find((provider) => provider.getId() === providerId);
 
       if (!provider)
         throw new TRPCError({
@@ -42,6 +48,7 @@ export const authRouter = router({
     .mutation(async ({ ctx, input }) => {
       const {
         redisDB: { redis },
+        prismaDB: { client: prisma },
         user,
         pluginRegistry,
         setCookie,
@@ -52,7 +59,9 @@ export const authRouter = router({
       if (user)
         throw new TRPCError({ code: "CONFLICT", message: "Already login" });
 
-      const provider = pluginRegistry.getAuthProvider(providerId);
+      const provider = (await pluginRegistry.getAuthProviders(prisma)).find(
+        (provider) => provider.getId() === providerId,
+      );
 
       if (!provider)
         throw new TRPCError({
@@ -97,10 +106,15 @@ export const authRouter = router({
     )
     .output(z.custom<JSONSchema.JSONSchema>())
     .query(async ({ ctx, input }) => {
-      const { pluginRegistry } = ctx;
+      const {
+        prismaDB: { client: prisma },
+        pluginRegistry,
+      } = ctx;
       const { providerId } = input;
 
-      const provider = pluginRegistry.getAuthProvider(providerId);
+      const provider = (await pluginRegistry.getAuthProviders(prisma)).find(
+        (provider) => provider.getId() === providerId,
+      );
 
       if (!provider)
         throw new TRPCError({
@@ -148,7 +162,9 @@ export const authRouter = router({
           message: "Provider ID not found in session",
         });
 
-      const provider = pluginRegistry.getAuthProvider(providerId);
+      const provider = (await pluginRegistry.getAuthProviders(prisma)).find(
+        (provider) => provider.getId() === providerId,
+      );
 
       if (!provider)
         throw new TRPCError({
@@ -238,6 +254,7 @@ export const authRouter = router({
     }),
   logout: publicProcedure.mutation(async ({ ctx }) => {
     const {
+      prismaDB: { client: prisma },
       redisDB: { redis },
       user,
       sessionId,
@@ -258,7 +275,9 @@ export const authRouter = router({
         message: "Provider ID not found in session",
       });
 
-    const provider = pluginRegistry.getAuthProvider(providerId);
+    const provider = (await pluginRegistry.getAuthProviders(prisma)).find(
+      (provider) => provider.getId() === providerId,
+    );
 
     if (!provider)
       throw new TRPCError({
@@ -276,10 +295,15 @@ export const authRouter = router({
   availableAuthMethod: publicProcedure
     .output(z.array(AuthMethodSchema))
     .query(async ({ ctx }) => {
-      const { pluginRegistry } = ctx;
-      return pluginRegistry.getAuthProviders().map(
-        (provider) =>
+      const {
+        prismaDB: { client: prisma },
+        pluginRegistry,
+      } = ctx;
+
+      return (await pluginRegistry.getAuthProviders(prisma)).map(
+        ({ provider, pluginId }) =>
           ({
+            pluginId,
             providerId: provider.getId(),
             providerType: provider.getType(),
             name: provider.getName(),

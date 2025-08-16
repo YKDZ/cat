@@ -1,5 +1,5 @@
 import { setting } from "@cat/db";
-import { logger, TranslationSchema, useStringTemplate } from "@cat/shared";
+import { TranslationSchema, useStringTemplate } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { randomUUID } from "crypto";
 import { join } from "path";
@@ -34,7 +34,9 @@ const worker = new Worker(
       tags: ["translatable-file-handler"],
     });
 
-    const handler = pluginRegistry.getTranslatableFileHandler(handlerId);
+    const handler = (await pluginRegistry.getTranslatableFileHandlers(prisma))
+      .map((d) => d.handler)
+      .find((handler) => handler.getId() === handlerId);
 
     if (!handler)
       throw new Error(

@@ -2,7 +2,7 @@ import { getPrismaDB, insertVector } from "@cat/db";
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
 import type { TranslationSuggestion, UnvectorizedTextData } from "@cat/shared";
-import { logger, TranslatableElementSchema } from "@cat/shared";
+import { TranslatableElementSchema } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { z } from "zod";
 import { config } from "./config";
@@ -54,13 +54,17 @@ const worker = new Worker(
     };
 
     const advisor: TranslationAdvisor | null =
-      await pluginRegistry.getTranslationAdvisor(prisma, advisorId);
+      (await pluginRegistry.getTranslationAdvisors(prisma))
+        .map((d) => d.advisor)
+        .find((advisor) => advisor.getId() === advisorId) ?? null;
 
     if (advisor && !advisor.isEnabled()) {
       throw new Error("Advisor with given id does not enabled");
     }
 
-    const vectorizer = pluginRegistry.getTextVectorizer(vectorizerId);
+    const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
+      .map((d) => d.vectorizer)
+      .find((vectorizer) => vectorizer.getId() === vectorizerId);
 
     if (minMemorySimilarity > 1 || minMemorySimilarity < 0) {
       throw new Error("Min memory similarity should between 0 and 1");

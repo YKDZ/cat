@@ -1,3 +1,4 @@
+import type { JSONType } from "@cat/shared";
 import { logger, PluginManifestSchema } from "@cat/shared";
 import { existsSync, readdirSync } from "fs";
 import { readFile } from "fs/promises";
@@ -7,19 +8,14 @@ import { z } from "zod";
 import type { AuthProvider } from "./auth-provider";
 import type { TextVectorizer } from "./text-vectorizer";
 import type { TranslatableFileHandler } from "./translatable-file-handler";
-import type {
-  TranslationAdvisor,
-  TranslationAdvisorOptions,
-} from "./translation-advisor";
+import type { TranslationAdvisor } from "./translation-advisor";
 import type { PrismaClient } from "@cat/db";
+import { getMergedPluginConfigs } from "../utils/config";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
 export type PluginLoadOptions = {
-  configs: {
-    key: string;
-    value: unknown;
-  }[];
+  configs: Record<string, JSONType>;
 };
 
 export type LoadPluginsOptions = {
@@ -27,21 +23,25 @@ export type LoadPluginsOptions = {
   tags?: string[];
 };
 
-export type GetTranslationAdvisorsOptions = {
-  userConfigs?: {
-    key: string;
-    value: unknown;
-  }[];
+export type PluginGetterOptions = {
+  configs?: Record<string, JSONType>;
+};
+
+export type GetterOptions = {
+  projectId?: string;
+  userId?: string;
 };
 
 export interface CatPlugin {
   onLoaded: (options: PluginLoadOptions) => Promise<void>;
-  getTextVectorizers?: () => TextVectorizer[];
-  getTranslatableFileHandlers?: () => TranslatableFileHandler[];
+  getTextVectorizers?: (options: PluginGetterOptions) => TextVectorizer[];
+  getTranslatableFileHandlers?: (
+    options: PluginGetterOptions,
+  ) => TranslatableFileHandler[];
   getTranslationAdvisors?: (
-    options?: GetTranslationAdvisorsOptions,
+    options: PluginGetterOptions,
   ) => TranslationAdvisor[];
-  getAuthProviders?: () => AuthProvider[];
+  getAuthProviders?: (options: PluginGetterOptions) => AuthProvider[];
 }
 
 const PluginObjectSchema = z.custom<CatPlugin>();
@@ -138,27 +138,9 @@ export class PluginRegistry {
   ) {
     this.plugins.set(pluginId, instance);
 
-    // 用全局配置做启动加载
-    const configs = z
-      .array(
-        z.object({
-          key: z.string(),
-          value: z.json(),
-        }),
-      )
-      .parse(
-        await prisma.pluginConfig.findMany({
-          where: {
-            pluginId,
-          },
-          select: {
-            key: true,
-            value: true,
-          },
-        }),
-      );
-
-    await instance.onLoaded({ configs });
+    await instance.onLoaded({
+      configs: await getMergedPluginConfigs(prisma, pluginId),
+    });
   }
 
   public getPlugins(): Map<string, CatPlugin> {
@@ -175,141 +157,118 @@ export class PluginRegistry {
 
   public async getTranslationAdvisors(
     prisma: PrismaClient,
-    options?: TranslationAdvisorOptions,
-  ): Promise<TranslationAdvisor[]> {
-    return (
-      await Promise.all(
-        Array.from(this.plugins.entries()).map(async ([id, plugin]) => {
-          if (options && options.userId) {
-            const userConfigs = (
-              await prisma.pluginUserConfigInstance.findMany({
-                where: {
-                  creatorId: options.userId,
-                  Config: {
-                    pluginId: id,
-                  },
-                  isActive: true,
-                },
-                select: {
-                  value: true,
-                  Config: {
-                    select: {
-                      key: true,
-                    },
-                  },
-                },
-              })
-            ).map((result) => ({
-              key: result.Config.key,
-              value: result.value,
-            }));
-            return plugin.getTranslationAdvisors?.({ userConfigs });
-          } else return plugin.getTranslationAdvisors?.();
-        }),
-      )
-    )
-      .filter(
-        (advisors): advisors is TranslationAdvisor[] => advisors !== undefined,
-      )
-      .flat();
+    options?: GetterOptions,
+  ): Promise<Array<{ pluginId: string; advisor: TranslationAdvisor }>> {
+    const ids = Array.from(this.plugins.keys());
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        const advisors = await this.getTranslationAdvisor(prisma, id, options);
+        return advisors.map((advisor) => ({ pluginId: id, advisor }));
+      }),
+    );
+    return results.flat();
   }
 
-  public async hasTranslationAdvisor(
+  public async getTextVectorizers(
     prisma: PrismaClient,
-    id: string | null,
-  ): Promise<boolean> {
-    if (!id) return false;
-    return !!(await this.getTranslationAdvisors(prisma)).find(
-      (advisor) => advisor.getId() === id,
+    options?: GetterOptions,
+  ): Promise<Array<{ pluginId: string; vectorizer: TextVectorizer }>> {
+    const ids = Array.from(this.plugins.keys());
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        const vectorizers = await this.getTextVectorizer(prisma, id, options);
+        return vectorizers.map((vectorizer) => ({ pluginId: id, vectorizer }));
+      }),
     );
+    return results.flat();
+  }
+
+  public async getTranslatableFileHandlers(
+    prisma: PrismaClient,
+    options?: GetterOptions,
+  ): Promise<Array<{ pluginId: string; handler: TranslatableFileHandler }>> {
+    const ids = Array.from(this.plugins.keys());
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        const handlers = await this.getTranslatableFileHandler(
+          prisma,
+          id,
+          options,
+        );
+        return handlers.map((handler) => ({ pluginId: id, handler }));
+      }),
+    );
+    return results.flat();
+  }
+
+  public async getAuthProviders(
+    prisma: PrismaClient,
+    options?: GetterOptions,
+  ): Promise<Array<{ pluginId: string; provider: AuthProvider }>> {
+    const ids = Array.from(this.plugins.keys());
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        const providers = await this.getAuthProvider(prisma, id, options);
+        return providers.map((provider) => ({ pluginId: id, provider }));
+      }),
+    );
+    return results.flat();
   }
 
   public async getTranslationAdvisor(
     prisma: PrismaClient,
-    id: string | null,
-    options?: TranslationAdvisorOptions,
-  ): Promise<TranslationAdvisor | null> {
-    if (!id) return null;
-    return (
-      (await this.getTranslationAdvisors(prisma, options)).find(
-        (advisor) => advisor.getId() === id,
-      ) ?? null
-    );
+    pluginId: string,
+    options?: GetterOptions,
+  ): Promise<TranslationAdvisor[]> {
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin || !plugin.getTranslationAdvisors) return [];
+    const configs = await getMergedPluginConfigs(prisma, pluginId, {
+      projectId: options?.projectId,
+      userId: options?.userId,
+    });
+    return plugin.getTranslationAdvisors({ configs }) ?? [];
   }
 
-  public getTextVectorizers(): TextVectorizer[] {
-    return Array.from(this.plugins.values())
-      .map((plugin) => plugin.getTextVectorizers?.())
-      .filter(
-        (vectorizers): vectorizers is TextVectorizer[] =>
-          vectorizers !== undefined,
-      )
-      .flat();
+  public async getTextVectorizer(
+    prisma: PrismaClient,
+    pluginId: string,
+    options?: GetterOptions,
+  ): Promise<TextVectorizer[]> {
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin || !plugin.getTextVectorizers) return [];
+    const configs = await getMergedPluginConfigs(prisma, pluginId, {
+      projectId: options?.projectId,
+      userId: options?.userId,
+    });
+    return plugin.getTextVectorizers({ configs }) ?? [];
   }
 
-  public hasTextVectorizer(id: string | null): boolean {
-    if (!id) return false;
-    return !!this.getTextVectorizers().find(
-      (vectorizer) => vectorizer.getId() === id,
-    );
+  public async getTranslatableFileHandler(
+    prisma: PrismaClient,
+    pluginId: string,
+    options?: GetterOptions,
+  ): Promise<TranslatableFileHandler[]> {
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin || !plugin.getTranslatableFileHandlers) return [];
+    const configs = await getMergedPluginConfigs(prisma, pluginId, {
+      projectId: options?.projectId,
+      userId: options?.userId,
+    });
+    return plugin.getTranslatableFileHandlers({ configs }) ?? [];
   }
 
-  public getTextVectorizer(id: string | null): TextVectorizer | null {
-    if (!id) return null;
-    return (
-      this.getTextVectorizers().find((advisor) => advisor.getId() === id) ??
-      null
-    );
-  }
-
-  public getTranslatableFileHandlers(): TranslatableFileHandler[] {
-    return Array.from(this.plugins.values())
-      .map((plugin) => plugin.getTranslatableFileHandlers?.())
-      .filter(
-        (handlers): handlers is TranslatableFileHandler[] =>
-          handlers !== undefined,
-      )
-      .flat();
-  }
-
-  public hasTranslatableFileHandler(id: string | null): boolean {
-    if (!id) return false;
-    return !!this.getTranslatableFileHandlers().find(
-      (handler) => handler.getId() === id,
-    );
-  }
-
-  public getTranslatableFileHandler(
-    id: string | null,
-  ): TranslatableFileHandler | null {
-    if (!id) return null;
-    return (
-      this.getTranslatableFileHandlers().find(
-        (handler) => handler.getId() === id,
-      ) ?? null
-    );
-  }
-
-  public getAuthProviders(): AuthProvider[] {
-    return Array.from(this.plugins.values())
-      .map((plugin) => plugin.getAuthProviders?.())
-      .filter((handlers): handlers is AuthProvider[] => handlers !== undefined)
-      .flat();
-  }
-
-  public hasAuthProvider(id: string | null): boolean {
-    if (!id) return false;
-    return !!this.getAuthProviders().find(
-      (provider) => provider.getId() === id,
-    );
-  }
-
-  public getAuthProvider(id: string | null): AuthProvider | null {
-    if (!id) return null;
-    return (
-      this.getAuthProviders().find((provider) => provider.getId() === id) ??
-      null
-    );
+  public async getAuthProvider(
+    prisma: PrismaClient,
+    pluginId: string,
+    options?: GetterOptions,
+  ): Promise<AuthProvider[]> {
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin || !plugin.getAuthProviders) return [];
+    const configs = await getMergedPluginConfigs(prisma, pluginId, {
+      projectId: options?.projectId,
+      userId: options?.userId,
+    });
+    return plugin.getAuthProviders({ configs }) ?? [];
   }
 
   public async reload(prisma: PrismaClient, options?: LoadPluginsOptions) {

@@ -38,7 +38,9 @@ const worker = new Worker(
       tags: ["text-vectorizer"],
     });
 
-    const vectorizer = pluginRegistry.getTextVectorizer(vectorizerId);
+    const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
+      .map((d) => d.vectorizer)
+      .find((vectorizer) => vectorizer.getId() === vectorizerId);
 
     if (!vectorizer)
       throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
