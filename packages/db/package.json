@@ -16,7 +16,7 @@
     "build": "rollup --config",
     "lint": "eslint . --fix",
     "clean": "rimraf dist",
-    "test": "vitest --typecheck",
+    "test": "nx vite:test --typecheck",
     "db:generate": "prisma generate",
     "db:push": "prisma db push --accept-data-loss",
     "db:migrate": "prisma migrate dev",
