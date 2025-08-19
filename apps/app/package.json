@@ -54,7 +54,7 @@
     "pino-http": "^10.5.0",
     "prisma": "6.13.0",
     "tar": "^7.4.3",
-    "tsx": "^4.20.3",
+    "tsx": "^4.20.4",
     "universal-cookie": "^8.0.1",
     "unplugin-vue-markdown": "^29.1.0",
     "vike": "^0.4.236",
