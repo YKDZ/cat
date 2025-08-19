@@ -33,7 +33,7 @@
     "@hono/node-server": "^1.14.4",
     "@pinia/testing": "^1.0.2",
     "@prisma/adapter-pg": "^6.13.0",
-    "@prisma/client": "6.13.0",
+    "@prisma/client": "6.14.0",
     "@tanstack/vue-table": "^8.21.3",
     "@trpc/client": "^11.4.4",
     "@trpc/server": "^11.4.4",
