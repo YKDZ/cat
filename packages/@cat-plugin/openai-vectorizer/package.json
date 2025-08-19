@@ -26,7 +26,7 @@
     "@cat/eslint-config": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@types/node": "^24.2.1",
+    "@types/node": "^24.3.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
     "vite": "^7.1.2",
