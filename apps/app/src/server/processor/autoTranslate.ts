@@ -17,6 +17,7 @@ type TranslationData = {
   isMemory: boolean;
   isAdvisor: boolean;
   advisorId?: string;
+  advisorPluginId?: string;
   memorySimilarity?: number;
   memoryId?: string;
   memoryItemId?: number;
@@ -40,6 +41,7 @@ const worker = new Worker(
     const {
       documentId,
       advisorId,
+      advisorPluginId,
       vectorizerId,
       userId,
       languageId,
@@ -48,19 +50,16 @@ const worker = new Worker(
       userId: string;
       documentId: string;
       advisorId: string;
+      advisorPluginId: string;
       vectorizerId: string;
       languageId: string;
       minMemorySimilarity: number;
     };
 
     const advisor: TranslationAdvisor | null =
-      (await pluginRegistry.getTranslationAdvisors(prisma))
-        .map((d) => d.advisor)
-        .find((advisor) => advisor.getId() === advisorId) ?? null;
-
-    if (advisor && !advisor.isEnabled()) {
-      throw new Error("Advisor with given id does not enabled");
-    }
+      (
+        await pluginRegistry.getTranslationAdvisor(prisma, advisorPluginId)
+      ).find((advisor) => advisor.getId() === advisorId) ?? null;
 
     const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
       .map((d) => d.vectorizer)
@@ -235,6 +234,7 @@ const worker = new Worker(
           return {
             translation,
             advisorId: advisor.getId(),
+            advisorPluginId,
             isAdvisor: true,
             isMemory: false,
             embeddingId,
@@ -274,6 +274,7 @@ const worker = new Worker(
                 memorySimilarity,
                 memoryId,
                 memoryItemId,
+                advisorPluginId,
               },
               embeddingId: embeddingId!,
               languageId,

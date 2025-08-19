@@ -67,9 +67,11 @@ export const suggestionRouter = router({
       };
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-      const advisors = await pluginRegistry.getTranslationAdvisors(prisma, {
-        userId: user.id,
-      });
+      const advisors = (
+        await pluginRegistry.getTranslationAdvisors(prisma, {
+          userId: user.id,
+        })
+      ).map((d) => d.advisor);
 
       const advisorAmount = advisors.length;
 
@@ -146,8 +148,11 @@ export const suggestionRouter = router({
             });
           })
           .catch((e) => {
-            console.error("Error when generate translation suggestions: ");
-            console.error(e);
+            logger.error(
+              "RPC",
+              { msg: "Error when generate translation suggestions" },
+              e,
+            );
           });
       });
 
@@ -171,10 +176,11 @@ export const suggestionRouter = router({
       return (
         await pluginRegistry.getTranslationAdvisors(prisma, { userId: user.id })
       ).map(
-        (advisor) =>
+        ({ advisor, pluginId }) =>
           ({
             id: advisor.getId(),
             name: advisor.getName(),
+            pluginId,
           }) satisfies TranslationAdvisorData,
       );
     }),

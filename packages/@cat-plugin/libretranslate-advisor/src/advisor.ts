@@ -1,26 +1,26 @@
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import type {
+  JSONType,
   TermRelation,
   TranslatableElement,
   TranslationSuggestion,
 } from "@cat/shared";
-import { safeJoinURL } from "@cat/shared";
+import { logger, safeJoinURL } from "@cat/shared";
 
 const supportedLangages = new Map<string, string[]>();
-let isEnabled = true;
 
 export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
-  private configs: { key: string; value: unknown }[];
+  private configs: Record<string, JSONType>;
   private tranlateURL: string;
   private languagesURL: string;
 
   private config = <T>(key: string, fallback: T): T => {
-    const config = this.configs.find((config) => config.key === key);
+    const config = this.configs[key];
     if (!config) return fallback;
-    return config.value as T;
+    return config as T;
   };
 
-  constructor(configs: { key: string; value: unknown }[]) {
+  constructor(configs: Record<string, JSONType>) {
     this.configs = configs;
     this.tranlateURL = safeJoinURL(
       this.config("api", { url: "http://localhost:3000" }).url,
@@ -39,10 +39,6 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
 
   getName() {
     return this.config("base.advisor-name", "LibreTranslate");
-  }
-
-  isEnabled() {
-    return isEnabled;
   }
 
   canSuggest(
@@ -78,7 +74,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
       }
       return [...termed, ...raw];
     } catch (e) {
-      console.error(e);
+      logger.error("PLUGIN", { msg: `LibreTranslate API 请求或解析错误` }, e);
       return [
         {
           from: this.getName(),
@@ -216,19 +212,22 @@ const fetchSupportedLanguages = async (languagesURL: string) => {
           });
         })
         .catch((e) => {
-          console.error(
-            "Can not parse all supported languages response body. LibreTranslate suggestion will be disabled.",
+          logger.error(
+            "PLUGIN",
+            {
+              msg: "Can not parse all supported languages response body. LibreTranslate suggestion will be disabled.",
+            },
+            e,
           );
-          console.error(e);
         });
     })
     .catch((e) => {
-      isEnabled = false;
-      console.error(
-        "Can not query all supported language from LibreTranslate service through " +
-          languagesURL +
-          ". LibreTranslate suggestion will be disabled.",
+      logger.error(
+        "PLUGIN",
+        {
+          msg: `Can not query all supported language from LibreTranslate service through ${languagesURL}`,
+        },
+        e,
       );
-      console.error(e);
     });
 };

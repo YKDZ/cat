@@ -7,7 +7,7 @@ import {
   YAMLMap,
   YAMLSeq,
 } from "yaml";
-import type { File, Translation } from "@cat/shared";
+import type { File, TranslatableElement } from "@cat/shared";
 import type { TranslatableElementData } from "@cat/shared";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 
@@ -94,22 +94,22 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
     return this.canExtractElement(file);
   }
 
-  async generateTranslated(
+  async getReplacedFileContent(
     file: File,
     fileContent: Buffer,
-    translations: Translation[],
+    elements: Pick<TranslatableElement, "meta" | "value" | "sortIndex">[],
   ): Promise<Buffer> {
     const content = fileContent.toString("utf8");
     const doc = parse(content) as YamlValue;
 
     const translationMap = new Map<string, string>();
-    for (const t of translations) {
-      const meta = t.TranslatableElement?.meta as { path?: string };
+    for (const e of elements) {
+      const meta = e.meta as { path?: string };
 
       if (!meta) throw new Error("Translation meta is required");
 
       if (meta.path) {
-        translationMap.set(meta.path, t.value);
+        translationMap.set(meta.path, e.value);
       }
     }
 

@@ -30,11 +30,11 @@
     "format:check": "prettier --write .",
     "clean": "rimraf dist"
   },
+  "dependencies": {
+    "pino": "^9.8.0"
+  },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "zod": "^4.0.17"
-  },
-  "dependencies": {
-    "pino": "^9.8.0"
   }
 }

@@ -1,6 +1,6 @@
 import type {
   CatPlugin,
-  GetTranslationAdvisorsOptions,
+  PluginGetterOptions,
   PluginLoadOptions,
 } from "@cat/plugin-core";
 import { LibreTranslateTranslationAdvisor } from "./advisor";
@@ -12,12 +12,12 @@ class Plugin implements CatPlugin {
     this.options = options;
   }
 
-  getTranslationAdvisors(options?: GetTranslationAdvisorsOptions) {
+  getTranslationAdvisors(options?: PluginGetterOptions) {
     return [
       new LibreTranslateTranslationAdvisor(
-        !options || !options.userConfigs || options.userConfigs.length === 0
+        !options || !options.configs || options.configs.length === 0
           ? this.options!.configs!
-          : options.userConfigs,
+          : options.configs,
       ),
     ];
   }

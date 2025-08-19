@@ -59,9 +59,9 @@ export const authRouter = router({
       if (user)
         throw new TRPCError({ code: "CONFLICT", message: "Already login" });
 
-      const provider = (await pluginRegistry.getAuthProviders(prisma)).find(
-        (provider) => provider.getId() === providerId,
-      );
+      const provider = (await pluginRegistry.getAuthProviders(prisma))
+        .map((d) => d.provider)
+        .find((provider) => provider.getId() === providerId);
 
       if (!provider)
         throw new TRPCError({
@@ -112,9 +112,9 @@ export const authRouter = router({
       } = ctx;
       const { providerId } = input;
 
-      const provider = (await pluginRegistry.getAuthProviders(prisma)).find(
-        (provider) => provider.getId() === providerId,
-      );
+      const provider = (await pluginRegistry.getAuthProviders(prisma))
+        .map((d) => d.provider)
+        .find((provider) => provider.getId() === providerId);
 
       if (!provider)
         throw new TRPCError({
@@ -162,9 +162,9 @@ export const authRouter = router({
           message: "Provider ID not found in session",
         });
 
-      const provider = (await pluginRegistry.getAuthProviders(prisma)).find(
-        (provider) => provider.getId() === providerId,
-      );
+      const provider = (await pluginRegistry.getAuthProviders(prisma))
+        .map((d) => d.provider)
+        .find((provider) => provider.getId() === providerId);
 
       if (!provider)
         throw new TRPCError({
@@ -275,9 +275,9 @@ export const authRouter = router({
         message: "Provider ID not found in session",
       });
 
-    const provider = (await pluginRegistry.getAuthProviders(prisma)).find(
-      (provider) => provider.getId() === providerId,
-    );
+    const provider = (await pluginRegistry.getAuthProviders(prisma))
+      .map((d) => d.provider)
+      .find((provider) => provider.getId() === providerId);
 
     if (!provider)
       throw new TRPCError({

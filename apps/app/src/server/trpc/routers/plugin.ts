@@ -3,6 +3,7 @@ import {
   PluginConfigInstanceSchema,
   PluginConfigSchema,
   PluginSchema,
+  TranslationAdvisorDataSchema,
 } from "@cat/shared";
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
@@ -303,4 +304,28 @@ export const pluginRouter = router({
         });
       });
   }),
+  queryAdvisor: authedProcedure
+    .input(z.object({ advisorId: z.string(), advisorPluginId: z.string() }))
+    .output(TranslationAdvisorDataSchema.nullable())
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+        pluginRegistry,
+      } = ctx;
+      const { advisorId, advisorPluginId } = input;
+
+      const advisor = (
+        await pluginRegistry.getTranslationAdvisor(prisma, advisorPluginId)
+      ).find((a) => a.getId() === advisorId);
+
+      if (!advisor) {
+        return null;
+      }
+
+      return TranslationAdvisorDataSchema.parse({
+        id: advisor.getId(),
+        name: advisor.getName(),
+        pluginId: advisorPluginId,
+      });
+    }),
 });

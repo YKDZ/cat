@@ -4,7 +4,6 @@ import type { TranslationSuggestion } from "@cat/shared";
 export interface TranslationAdvisor {
   getId(): string;
   getName(): string;
-  isEnabled(): boolean;
   canSuggest(
     element: TranslatableElement,
     languageFromId: string,

@@ -42,6 +42,8 @@ const worker = new Worker(
       document,
       handlerId,
       vectorizerId,
+      handlerPluginId,
+      vectorizerPluginId,
     }: {
       id: string;
       sourceLanguageId: string;
@@ -49,6 +51,8 @@ const worker = new Worker(
       document: Document;
       handlerId: string;
       vectorizerId: string;
+      handlerPluginId: string;
+      vectorizerPluginId: string;
     } = job.data;
 
     const pluginRegistry = new PluginRegistry();
@@ -58,19 +62,23 @@ const worker = new Worker(
       tags: ["translatable-file-handler", "text-vectorizer"],
     });
 
-    const handler = (await pluginRegistry.getTranslatableFileHandlers(prisma))
-      .map((d) => d.handler)
-      .find((handler) => handler.getId() === handlerId);
+    const handler = (
+      await pluginRegistry.getTranslatableFileHandler(prisma, handlerPluginId)
+    ).find((handler) => handler.getId() === handlerId);
 
     if (!handler)
-      throw new Error(`Can not find handler by given id: '${handlerId}'`);
+      throw new Error(
+        `Plugin '${handlerPluginId}' has no handler by given id: '${handlerId}'`,
+      );
 
-    const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
-      .map((d) => d.vectorizer)
-      .find((vectorizer) => vectorizer.getId() === vectorizerId);
+    const vectorizer = (
+      await pluginRegistry.getTextVectorizer(prisma, vectorizerPluginId)
+    ).find((vectorizer) => vectorizer.getId() === vectorizerId);
 
     if (!vectorizer)
-      throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
+      throw new Error(
+        `Plugin '${vectorizerId}' has no vectorizer by given id: '${vectorizer}'`,
+      );
 
     await processPretreatment(
       sourceLanguageId,
@@ -222,7 +230,6 @@ export const processPretreatment = async (
         }>;
       }),
       run: async ({ data }) => {
-        console.log(JSON.stringify(data));
         const { embeddingIds, elementIds } = await handleAddedElements(
           data.map((element) => element.element),
           data.map((element) => element.embedding),

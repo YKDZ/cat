@@ -1,6 +1,7 @@
 import { AsyncMessageQueue } from "@/server/utils/queue";
 import type { MemorySuggestion } from "@cat/shared";
 import {
+  logger,
   MemoryItemSchema,
   MemorySchema,
   MemorySuggestionSchema,
@@ -96,7 +97,11 @@ export const memoryRouter = router({
           );
           memoriesQueue.push(suggestion);
         } catch (err) {
-          console.error("Invalid suggestion format: ", err);
+          logger.error(
+            "PROCESSOR",
+            { msg: "Invalid suggestion format: " },
+            err,
+          );
         }
       };
       await redisSub.subscribe(memoryChannelKey, onNewMemory);

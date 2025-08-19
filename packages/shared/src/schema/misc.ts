@@ -12,6 +12,7 @@ export const PrimsaDateTime = z.date().or(z.iso.datetime());
 export const TranslationAdvisorDataSchema = z.object({
   id: z.string(),
   name: z.string(),
+  pluginId: z.string(),
 });
 
 export const AuthMethodSchema = z.object({
