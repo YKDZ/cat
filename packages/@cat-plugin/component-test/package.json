@@ -29,7 +29,7 @@
     "@cat/eslint-config": "workspace:*",
     "@types/node": "^24.2.1",
     "@vitejs/plugin-vue": "^6.0.1",
-    "tsx": "^4.19.3",
+    "tsx": "^4.20.4",
     "typescript": "^5.9.2",
     "vite": "^7.1.2",
     "vite-plugin-css-injected-by-js": "^3.5.2",
