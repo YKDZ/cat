@@ -16,7 +16,7 @@
     "@playwright/test": "^1.54.2",
     "@types/node": "^24.2.1",
     "prisma": "6.13.0",
-    "tsx": "^4.20.3"
+    "tsx": "^4.20.4"
   },
   "dependencies": {
     "typescript": "^5.9.2"
