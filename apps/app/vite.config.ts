@@ -1,7 +1,6 @@
 import vue from "@vitejs/plugin-vue";
 import { resolve } from "path";
 import UnoCSS from "unocss/vite";
-import md from "unplugin-vue-markdown/vite";
 import vike from "vike/plugin";
 import { defineConfig } from "vite";
 
@@ -22,7 +21,6 @@ export default defineConfig({
     vue({
       include: [/\.vue$/, /\.md$/],
     }),
-    md({}),
   ],
   build: {
     target: "es2022",
