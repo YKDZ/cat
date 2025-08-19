@@ -23,8 +23,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build",
-    "test": "vitest --typecheck",
+    "build": "nx vite:build",
+    "test": "nx vite:test --typecheck",
     "lint": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --write .",

@@ -8,14 +8,14 @@
     "types",
     "cat"
   ],
-  "type": "commonjs",
+  "type": "module",
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "nx vite:build",
     "lint": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --write .",
