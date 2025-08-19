@@ -1,4 +1,4 @@
-import type { TranslationSuggestion } from "@cat/shared";
+import { logger, type TranslationSuggestion } from "@cat/shared";
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import { v2 } from "@google-cloud/translate";
 import type { TranslatableElement } from "@cat/shared";
@@ -21,10 +21,6 @@ export class Advisor implements TranslationAdvisor {
 
   getName() {
     return process.env.PLUGIN_GOOGLE_CLOUD_NAME ?? "Google Cloud Translate";
-  }
-
-  isEnabled() {
-    return process.env.PLUGIN_GOOGLE_CLOUD_ENABLE !== "false";
   }
 
   canSuggest() {
@@ -50,7 +46,7 @@ export class Advisor implements TranslationAdvisor {
         },
       ];
     } catch (e) {
-      console.error(e);
+      logger.error("PLUGIN", {}, e);
       return [
         {
           from: this.getName(),

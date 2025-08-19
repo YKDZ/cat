@@ -3,6 +3,7 @@ import { trpc } from "@/server/trpc/client";
 import Button from "./Button.vue";
 import { computed, inject, onMounted, ref } from "vue";
 import { languageKey } from "../utils/provide";
+import type { TranslationAdvisorData } from "@cat/shared";
 import { toShortFixed, type Document } from "@cat/shared";
 import Modal from "./Modal.vue";
 import { useToastStore } from "../stores/toast";
@@ -22,7 +23,7 @@ const { t } = useI18n();
 const language = inject(languageKey);
 const isOpen = ref(false);
 const minMemorySimilarity = ref(0.72);
-const availableAdvisors = ref<{ id: string; name: string }[]>([]);
+const availableAdvisors = ref<TranslationAdvisorData[]>([]);
 const advisorId = ref<string | null>(null);
 
 const advisorOptions = computed<PickerOption[]>(() => {
@@ -35,7 +36,7 @@ const advisorOptions = computed<PickerOption[]>(() => {
   );
 });
 
-const handleFillWithAdvisor = async () => {
+const handleAutoTranslate = async () => {
   if (!language || !language.value) return;
   if (!advisorId.value) {
     warn(t("必须选择一个可用的翻译建议器"));
@@ -60,6 +61,10 @@ const updateAvailableAdvisor = async () => {
   await trpc.suggestion.listAllAvailableAdvisors
     .query()
     .then((advisors) => (availableAdvisors.value = advisors));
+
+  if (availableAdvisors.value.length > 0 && !advisorId.value) {
+    advisorId.value = availableAdvisors.value[0].id;
+  }
 };
 
 onMounted(updateAvailableAdvisor);
@@ -110,9 +115,7 @@ onMounted(updateAvailableAdvisor);
           <Picker v-model="advisorId" :options="advisorOptions" />
         </div>
       </form>
-      <Button full-width @click="handleFillWithAdvisor">{{
-        $t("确认")
-      }}</Button>
+      <Button full-width @click="handleAutoTranslate">{{ $t("确认") }}</Button>
     </div>
   </Modal>
 </template>

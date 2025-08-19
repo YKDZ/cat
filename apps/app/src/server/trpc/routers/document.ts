@@ -82,8 +82,8 @@ export const documentRouter = router({
         parsedFile,
         document,
         parsedDocument,
-        handler,
-        vectorizer,
+        handlerData: { handler, pluginId: handlerPluginId },
+        vectorizerData: { vectorizer, pluginId: vectorizerPluginId },
         taskId,
       } = await prisma.$transaction(async (tx) => {
         const file = await prisma.file.findUnique({
@@ -100,11 +100,11 @@ export const documentRouter = router({
 
         const parsedFile = FileSchema.parse(file);
 
-        const handler = (
+        const handlerData = (
           await pluginRegistry.getTranslatableFileHandlers(prisma)
-        ).find((handler) => handler.canExtractElement(parsedFile));
+        ).find(({ handler }) => handler.canExtractElement(parsedFile));
 
-        if (!handler) {
+        if (!handlerData) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "没有可以处理这种文件的文件解析器",
@@ -123,13 +123,13 @@ export const documentRouter = router({
             message: "Project with given id does not exists",
           });
 
-        const vectorizer = (
+        const vectorizerData = (
           await pluginRegistry.getTextVectorizers(prisma)
-        ).find((vectorizer) =>
+        ).find(({ vectorizer }) =>
           vectorizer.canVectorize(project.sourceLanguageId),
         );
 
-        if (!vectorizer) {
+        if (!vectorizerData) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "CAT 没有可以处理这种文本的向量化器",
@@ -245,8 +245,8 @@ export const documentRouter = router({
           parsedFile,
           document,
           parsedDocument,
-          handler,
-          vectorizer,
+          handlerData,
+          vectorizerData,
           taskId: task.id,
         };
       });
@@ -259,6 +259,8 @@ export const documentRouter = router({
           document: parsedDocument,
           handlerId: handler.getId(),
           vectorizerId: vectorizer.getId(),
+          handlerPluginId,
+          vectorizerPluginId,
         },
         {
           jobId: taskId,
@@ -499,9 +501,9 @@ export const documentRouter = router({
           message: "指定文档不是基于文件的",
         });
 
-      const handler = (
-        await pluginRegistry.getTranslatableFileHandlers(prisma)
-      ).find((handler) => handler.canGenerateTranslated(document.File!));
+      const handler = (await pluginRegistry.getTranslatableFileHandlers(prisma))
+        .map((d) => d.handler)
+        .find((handler) => handler.canGenerateTranslated(document.File!));
 
       if (!handler)
         throw new TRPCError({

@@ -137,9 +137,14 @@ export class PluginRegistry {
     instance: CatPlugin,
   ) {
     this.plugins.set(pluginId, instance);
+    const configs = await getMergedPluginConfigs(prisma, pluginId);
+
+    logger.debug("PLUGIN", {
+      msg: `About to load plugin '${pluginId}' with configs: ${JSON.stringify(configs)}`,
+    });
 
     await instance.onLoaded({
-      configs: await getMergedPluginConfigs(prisma, pluginId),
+      configs,
     });
   }
 
@@ -301,7 +306,9 @@ export class PluginRegistry {
       const manifestPath = join(dirPath, "manifest.json");
 
       if (!existsSync(manifestPath)) {
-        console.error(`Directory ${dirent.name} missing manifest.json`);
+        logger.warn("PLUGIN", {
+          msg: `Directory ${dirent.name} missing manifest.json}`,
+        });
         continue;
       }
 
@@ -312,7 +319,9 @@ export class PluginRegistry {
         if (manifest.id) {
           results.push(manifest.id);
         } else {
-          console.error(`manifest.json in ${dirent.name} missing "id" field`);
+          logger.warn("PLUGIN", {
+            msg: `manifest.json in ${dirent.name} missing "id" field`,
+          });
         }
       } catch (err) {
         logger.error(

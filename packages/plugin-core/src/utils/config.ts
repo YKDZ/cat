@@ -35,12 +35,12 @@ export const getConfigInstance = async (
   scopeType: PluginConfigInstatnceScopeType,
   scopeId?: string,
 ) => {
-  if (!scopeType || !scopeId) return {};
+  if (scopeId === undefined) return {};
 
   const data = await prisma.pluginConfigInstance.findMany({
     where: {
-      scopeType: "GLOBAL",
-      scopeId: "",
+      scopeType,
+      scopeId,
       Config: {
         pluginId,
       },
