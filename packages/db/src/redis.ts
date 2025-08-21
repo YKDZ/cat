@@ -1,6 +1,6 @@
+import "dotenv/config";
 import type { RedisClientType } from "redis";
 import { createClient } from "redis";
-import "dotenv/config";
 
 export class RedisDB {
   public redis: RedisClientType;
