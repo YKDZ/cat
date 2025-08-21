@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import PluginUserConfigs from "@/app/components/PluginUserConfigs.vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { usePluginStore } from "@/app/stores/plugin";
 import type { Plugin } from "@cat/shared";
@@ -14,6 +13,4 @@ const plugin = computed<Plugin | null>(() => {
 });
 </script>
 
-<template>
-  <PluginUserConfigs v-if="plugin" :configs="plugin.Configs!" />
-</template>
+<template></template>

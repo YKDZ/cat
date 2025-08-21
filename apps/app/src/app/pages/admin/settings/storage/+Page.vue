@@ -33,8 +33,6 @@ const s3 = z.toJSONSchema(
     "s3.force-path-style": z.boolean().meta({ title: "强制路径样式" }),
   }),
 );
-
-onMounted(() => console.log(s3));
 </script>
 
 <template>

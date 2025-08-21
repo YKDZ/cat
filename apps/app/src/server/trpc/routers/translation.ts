@@ -82,8 +82,8 @@ export const translationRouter = router({
             message: "Project not found",
           });
 
-        const vectorizer = pluginRegistry
-          .getTextVectorizers()
+        const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
+          .map((d) => d.vectorizer)
           .find((vectorizer) =>
             vectorizer.canVectorize(project.sourceLanguageId),
           );
@@ -167,8 +167,8 @@ export const translationRouter = router({
           message: "Translation with given id not found",
         });
 
-      const vectorizer = pluginRegistry
-        .getTextVectorizers()
+      const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
+        .map((d) => d.vectorizer)
         .find((vectorizer) => vectorizer.canVectorize(translation.languageId));
 
       if (!vectorizer) {
@@ -359,6 +359,7 @@ export const translationRouter = router({
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
+        user,
       } = ctx;
       const { documentId, languageId } = input;
 
@@ -407,6 +408,7 @@ export const translationRouter = router({
             data: translationIds.map((id) => ({
               translationId: id,
               isActive: true,
+              creatorId: user.id,
             })),
           })
         ).count;
@@ -415,43 +417,49 @@ export const translationRouter = router({
   approve: authedProcedure
     .input(
       z.object({
-        ids: z.array(z.int()),
+        id: z.int(),
       }),
     )
-    .output(z.array(TranslationApprovmentSchema))
+    .output(TranslationApprovmentSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
+        user,
       } = ctx;
-      const { ids } = input;
+      const { id } = input;
 
       return await prisma.$transaction(async (tx) => {
-        const alreayApprovedTranslations = await tx.translation.findMany({
+        const exists = await tx.translation.count({
           where: {
-            id: {
-              in: ids,
-            },
-            Approvments: {
-              some: {
-                isActive: true,
+            id,
+            TranslatableElement: {
+              Translations: {
+                some: {
+                  Approvments: {
+                    some: {
+                      isActive: true,
+                    },
+                  },
+                },
               },
             },
           },
         });
 
-        if (alreayApprovedTranslations.length > 0) {
+        if (exists > 0) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Some translations alreay have active approvment",
+            message: "Some translations already have active approvment",
           });
         }
 
-        return z.array(TranslationApprovmentSchema).parse(
-          await tx.translationApprovment.createManyAndReturn({
-            data: ids.map((id) => ({
+        return TranslationApprovmentSchema.parse(
+          await tx.translationApprovment.create({
+            data: {
               translationId: id,
               isActive: true,
-            })),
+              creatorId: user.id,
+            },
           }),
         );
       });
@@ -459,22 +467,20 @@ export const translationRouter = router({
   unapprove: authedProcedure
     .input(
       z.object({
-        ids: z.array(z.int()),
+        id: z.int(),
       }),
     )
-    .output(z.array(TranslationApprovmentSchema))
+    .output(TranslationApprovmentSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      const { ids } = input;
+      const { id } = input;
 
-      return z.array(TranslationApprovmentSchema).parse(
-        await prisma.translationApprovment.updateManyAndReturn({
+      return TranslationApprovmentSchema.parse(
+        await prisma.translationApprovment.update({
           where: {
-            translationId: {
-              in: ids,
-            },
+            id,
           },
           data: {
             isActive: false,
@@ -526,28 +532,20 @@ export const translationRouter = router({
             "Document does not exists or language does not claimed in project",
         });
 
-      const advisor = await pluginRegistry.getTranslationAdvisor(
-        prisma,
-        advisorId,
-        {
+      const advisorData = (
+        await pluginRegistry.getTranslationAdvisors(prisma, {
           userId: user.id,
-        },
-      );
+        })
+      ).find(({ advisor }) => advisor.getId() === advisorId);
 
-      if (!advisor)
+      if (!advisorData)
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Advisor with given id does not exists",
         });
 
-      if (!advisor.isEnabled())
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Advisor with given id does not enabled",
-        });
-
-      const vectorizer = pluginRegistry
-        .getTextVectorizers()
+      const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
+        .map((d) => d.vectorizer)
         .find((vectorizer) => vectorizer.canVectorize(languageId));
 
       if (!vectorizer)
@@ -569,6 +567,7 @@ export const translationRouter = router({
           userId: user.id,
           documentId,
           advisorId,
+          advisorPluginId: advisorData.pluginId,
           vectorizerId: vectorizer.getId(),
           languageId,
           minMemorySimilarity,

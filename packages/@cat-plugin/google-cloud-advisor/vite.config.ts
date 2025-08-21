@@ -1,18 +1,18 @@
 import { defineConfig } from "vite";
-import path from "path";
+import { resolve } from "path";
 import dts from "vite-plugin-dts";
 import { builtinModules } from "node:module";
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": resolve(__dirname, "src"),
     },
   },
 
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
+      entry: resolve(__dirname, "src/index.ts"),
       formats: ["cjs"],
       fileName: () => `index.cjs`,
     },
@@ -36,7 +36,7 @@ export default defineConfig({
   plugins: [
     dts({
       outDir: "dist",
-      tsconfigPath: path.resolve(__dirname, "tsconfig.json"),
+      tsconfigPath: resolve(__dirname, "tsconfig.json"),
     }),
   ],
 });

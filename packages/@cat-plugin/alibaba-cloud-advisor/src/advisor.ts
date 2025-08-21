@@ -1,4 +1,4 @@
-import type { TranslationSuggestion } from "@cat/shared";
+import { logger, type TranslationSuggestion } from "@cat/shared";
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import type { TranslatableElement } from "@cat/shared";
 import Sender from "./sender";
@@ -18,10 +18,6 @@ export class Advisor implements TranslationAdvisor {
 
   getName() {
     return process.env.PLUGIN_ALIBABA_CLOUD_NAME ?? "Alibaba Cloud Translation";
-  }
-
-  isEnabled() {
-    return process.env.PLUGIN_ALIBABA_CLOUD_ENABLE !== "false";
   }
 
   canSuggest() {
@@ -67,7 +63,7 @@ export class Advisor implements TranslationAdvisor {
         },
       ];
     } catch (e) {
-      console.error(e);
+      logger.error("PLUGIN", { msg: `调用 API 时出错` }, e);
       return [
         {
           from: this.getName(),

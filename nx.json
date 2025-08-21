@@ -1,0 +1,103 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "sharedGlobals": [
+      "{workspaceRoot}/.env",
+      "{workspaceRoot}/tsconfig.json",
+      "{workspaceRoot}/*.d.ts",
+      "{workspaceRoot}/*.config.ts",
+      "{workspaceRoot}/src/**/*.ts"
+    ],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"]
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "{projectRoot}/.env",
+        "{projectRoot}/*.json",
+        "{projectRoot}/src/**",
+        "{projectRoot}/docs/**"
+      ],
+      "outputs": ["{projectRoot}/dist/**"],
+      "cache": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "inputs": ["{projectRoot}/src/**"],
+      "cache": true
+    },
+    "start": {
+      "cache": false
+    },
+    "dev": {
+      "cache": false
+    },
+    "test": {
+      "inputs": [
+        "{projectRoot}/src/**",
+        "{projectRoot}/*.json",
+        "{projectRoot}/*.ts",
+        "{projectRoot}/.env"
+      ],
+      "cache": true
+    },
+    "test:type": {
+      "inputs": [
+        "{projectRoot}/src/**",
+        "{projectRoot}/*.json",
+        "{projectRoot}/*.ts",
+        "{projectRoot}/.env"
+      ],
+      "cache": true
+    },
+    "test:e2e": {
+      "inputs": [
+        "{projectRoot}/src/**",
+        "{projectRoot}/*.json",
+        "{projectRoot}/*.ts",
+        "{projectRoot}/.env"
+      ],
+      "cache": true
+    },
+    "format": {
+      "dependsOn": ["^format"],
+      "inputs": [
+        "{projectRoot}/src/**",
+        "{projectRoot}/*.json",
+        "{projectRoot}/*.ts",
+        "{projectRoot}/.env"
+      ],
+      "cache": true
+    },
+    "format:check": {
+      "dependsOn": ["^format:check"],
+      "inputs": [
+        "{projectRoot}/src/**",
+        "{projectRoot}/*.json",
+        "{projectRoot}/*.ts",
+        "{projectRoot}/.env"
+      ],
+      "cache": true
+    },
+    "clean": {
+      "cache": false
+    }
+  },
+  "plugins": [
+    {
+      "plugin": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "vite:build",
+        "testTargetName": "vite:test",
+        "serveTargetName": "serve",
+        "devTargetName": "vite:dev",
+        "previewTargetName": "vite:preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "typecheck",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
+    }
+  ]
+}
