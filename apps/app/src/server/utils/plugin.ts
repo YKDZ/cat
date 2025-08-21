@@ -1,9 +1,5 @@
-import type {
-  PluginData} from "@cat/shared";
-import {
-  PluginDataSchema,
-  PluginManifestSchema,
-} from "@cat/shared";
+import type { PluginData } from "@cat/shared";
+import { PluginDataSchema, PluginManifestSchema } from "@cat/shared";
 import { readFile } from "fs/promises";
 import { join } from "path";
 

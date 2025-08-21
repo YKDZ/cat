@@ -49,18 +49,16 @@ const handleFocus = () => {
 watch(
   modelValue,
   (to) => {
-    const selected = props.options.find((o) => o.value === to);
-    if (selected) selectOption(selected);
-  },
-  { immediate: true },
-);
-
-watch(
-  () => props.options,
-  (to) => {
-    if (to.length === 0) return;
-    const selected = to.find((o) => o.value === modelValue.value);
-    if (selected) searchQuery.value = selected.content;
+    if (to) {
+      const option = props.options.find((o) => o.value === to);
+      if (option) {
+        searchQuery.value = option.content;
+      } else {
+        searchQuery.value = "";
+      }
+    } else {
+      searchQuery.value = "";
+    }
   },
   { immediate: true },
 );
@@ -75,7 +73,6 @@ watch(
       'w-full': fullWidth,
     }"
   >
-    <!-- 输入框 -->
     <input
       v-model="searchQuery"
       class="text-highlight-content-darker px-2 py-1 outline-1 outline-highlight-darkest bg-highlight focus-visible:outline-base"
@@ -88,14 +85,13 @@ watch(
       @keydown.esc="isOpen = false"
     />
 
-    <!-- 下拉面板 -->
     <div
       v-show="isOpen"
       class="text-highlight-content-darker mt-1 rounded-md bg-highlight bg-white max-h-60 w-full shadow-lg absolute z-50 overflow-auto"
     >
       <div
         v-for="option in filteredOptions"
-        :key="option.content"
+        :key="JSON.stringify(option.value)"
         class="px-3 py-2 flex cursor-pointer items-center hover:bg-highlight-darker"
         @click="selectOption(option)"
       >

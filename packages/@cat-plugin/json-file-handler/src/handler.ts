@@ -1,5 +1,9 @@
 import type { TranslatableFileHandler } from "@cat/plugin-core";
-import type { File, TranslatableElementData, Translation } from "@cat/shared";
+import type {
+  File,
+  TranslatableElement,
+  TranslatableElementData,
+} from "@cat/shared";
 import { extname } from "node:path";
 
 type JSONValue =
@@ -27,17 +31,17 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     return extname(file.originName) === ".json";
   }
 
-  async generateTranslated(
+  async getReplacedFileContent(
     file: File,
     fileContent: Buffer,
-    translations: Translation[],
+    elements: Pick<TranslatableElement, "meta" | "value" | "sortIndex">[],
   ) {
     const originalObj: unknown = JSON.parse(fileContent.toString("utf-8"));
     const modifiedObj: unknown = JSON.parse(JSON.stringify(originalObj));
 
-    for (const translation of translations) {
+    for (const e of elements) {
       try {
-        const meta = translation.TranslatableElement?.meta as {
+        const meta = e.meta as {
           key: string[];
         };
         const pathParts: string[] = meta.key;
@@ -55,7 +59,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
           const currentObj = current as Record<string, unknown>;
 
           if (i === pathParts.length - 1) {
-            currentObj[part] = translation.value;
+            currentObj[part] = e.value;
           } else {
             current = currentObj[part];
           }

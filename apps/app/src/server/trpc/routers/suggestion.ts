@@ -67,9 +67,11 @@ export const suggestionRouter = router({
       };
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-      const advisors = await pluginRegistry.getTranslationAdvisors(prisma, {
-        userId: user.id,
-      });
+      const advisors = (
+        await pluginRegistry.getTranslationAdvisors(prisma, {
+          userId: user.id,
+        })
+      ).map((d) => d.advisor);
 
       const advisorAmount = advisors.length;
 
@@ -146,8 +148,11 @@ export const suggestionRouter = router({
             });
           })
           .catch((e) => {
-            console.error("Error when generate translation suggestions: ");
-            console.error(e);
+            logger.error(
+              "RPC",
+              { msg: "Error when generate translation suggestions" },
+              e,
+            );
           });
       });
 
@@ -160,36 +165,6 @@ export const suggestionRouter = router({
         suggestionsQueue.clear();
       }
     }),
-  queryAdvisor: authedProcedure
-    .input(
-      z.object({
-        advisorId: z.string(),
-      }),
-    )
-    .output(TranslationAdvisorDataSchema.nullable())
-    .query(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-        user,
-        pluginRegistry,
-      } = ctx;
-      const { advisorId } = input;
-
-      const advisor = await pluginRegistry.getTranslationAdvisor(
-        prisma,
-        advisorId,
-        {
-          userId: user.id,
-        },
-      );
-
-      return advisor
-        ? ({
-            id: advisor.getId(),
-            name: advisor.getName(),
-          } satisfies TranslationAdvisorData)
-        : null;
-    }),
   listAllAvailableAdvisors: authedProcedure
     .output(z.array(TranslationAdvisorDataSchema))
     .query(async ({ ctx }) => {
@@ -201,10 +176,11 @@ export const suggestionRouter = router({
       return (
         await pluginRegistry.getTranslationAdvisors(prisma, { userId: user.id })
       ).map(
-        (advisor) =>
+        ({ advisor, pluginId }) =>
           ({
             id: advisor.getId(),
             name: advisor.getName(),
+            pluginId,
           }) satisfies TranslationAdvisorData,
       );
     }),

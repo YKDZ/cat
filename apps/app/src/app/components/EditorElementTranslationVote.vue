@@ -67,7 +67,7 @@ watch(
 </script>
 
 <template>
-  <div class="ml-auto flex gap-1 items-center">
+  <div class="flex gap-1 items-center">
     <Button
       icon="i-mdi:minus"
       no-text

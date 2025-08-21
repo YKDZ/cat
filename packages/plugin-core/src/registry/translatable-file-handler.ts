@@ -1,4 +1,4 @@
-import type { File, Translation } from "@cat/shared";
+import type { File, TranslatableElement } from "@cat/shared";
 import type { TranslatableElementData } from "@cat/shared";
 
 export interface TranslatableFileHandler {
@@ -6,9 +6,9 @@ export interface TranslatableFileHandler {
   canExtractElement(file: File): boolean;
   extractElement(file: File, fileContent: Buffer): TranslatableElementData[];
   canGenerateTranslated(file: File): boolean;
-  generateTranslated(
+  getReplacedFileContent(
     file: File,
     fileContent: Buffer,
-    translations: Translation[],
+    elements: Pick<TranslatableElement, "meta" | "value" | "sortIndex">[],
   ): Promise<Buffer>;
 }
