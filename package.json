@@ -2,25 +2,26 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "nx run start",
-    "test": "nx run test",
-    "test:type": "nx run test:type",
-    "build": "nx run build",
-    "dev": "nx run dev",
-    "lint": "nx run lint",
-    "clean": "nx run clean --concurrency 20",
-    "load-internal-plugins": "node scripts/load-internal-plugins.js",
-    "build:docker:app": "docker build -f apps/app/Dockerfile . -t ykdz/cat",
-    "docker:push:app": "docker push ykdz/cat"
+    "load-internal-plugins": "node scripts/load-internal-plugins.js"
   },
   "dependencies": {
     "dotenv": "^17.2.1",
     "tsc": "^2.0.4",
-    "tsx": "^4.20.4"
+    "tsx": "^4.20.4",
+    "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@nx/eslint": "21.4.0",
+    "@nx/eslint-plugin": "21.4.0",
+    "@nx/js": "21.4.0",
+    "@nx/playwright": "21.4.0",
     "@nx/vite": "21.4.0",
+    "@nx/vue": "21.4.0",
     "@nx/web": "21.4.0",
+    "@playwright/test": "^1.36.0",
+    "@swc-node/register": "~1.9.1",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
     "@types/node": "^24.2.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/ui": "^3.0.0",

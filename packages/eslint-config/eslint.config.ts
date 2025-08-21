@@ -6,6 +6,7 @@ import type { ConfigArray } from "typescript-eslint";
 import tseslint from "typescript-eslint";
 import vueParser from "vue-eslint-parser";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
+import nxPlugin from "@nx/eslint-plugin";
 
 export default tseslint.config(
   {
@@ -99,4 +100,11 @@ export default tseslint.config(
 
   unocss,
   eslintConfigPrettier,
+
+  {
+    plugins: { nxPlugin },
+    rules: {
+      "nx/enforce-module-boundaries": ["error"],
+    },
+  },
 ) as ConfigArray;

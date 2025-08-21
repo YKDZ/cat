@@ -1,5 +1,5 @@
-import { Client } from "@elastic/elasticsearch";
 import "dotenv/config";
+import { Client } from "@elastic/elasticsearch";
 
 export class ESDB {
   public client: Client;

@@ -13,15 +13,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup --config",
-    "lint": "eslint . --fix",
+    "build": "prisma generate && rollup --config",
+    "lint": "nx eslint:lint --fix",
     "clean": "rimraf dist",
     "test": "nx vite:test --typecheck",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push --accept-data-loss",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:seed": "prisma db seed",
     "format": "prettier --write .",
     "format:check": "prettier --write ."
   },

@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "type": "module",
   "license": "GPL-3.0-only",
+  "files": [
+    "plugins",
+    "dist",
+    "node_modules",
+    "package.json"
+  ],
   "prisma": {
-    "schema": "./prisma",
     "seed": "tsx prisma/seed-docker.ts"
   },
   "engines": {
@@ -21,6 +26,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --write .",
     "clean": "rimraf dist",
+    "docker:build": "docker buildx build ../../ -f ../../app.Dockerfile -t ykdz/cat",
+    "docker:push": "docker push ykdz/cat",
     "docker-entrypoint": "prisma migrate deploy && prisma db seed && node dist/server/index.js"
   },
   "dependencies": {
