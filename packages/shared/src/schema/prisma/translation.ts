@@ -20,7 +20,11 @@ export const TranslationApprovmentSchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   translationId: z.int(),
-  userId: z.ulid().nullable(),
+
+  creatorId: z.ulid(),
+  get Creator() {
+    return UserSchema.optional();
+  },
 });
 
 export const TranslationSchema = z.object({

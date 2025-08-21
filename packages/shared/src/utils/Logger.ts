@@ -1,14 +1,5 @@
 import pino from "pino";
 
-const situations = [
-  "PLUGIN",
-  "RPC",
-  "WEB",
-  "PROCESSOR",
-  "DB",
-  "SERVER",
-] as const;
-
 export type Situation =
   | "PLUGIN"
   | "RPC"
@@ -37,7 +28,7 @@ export class Logger {
     ...args: unknown[]
   ) {
     if (!msg) this.baseLogger.debug({ ...obj, situation });
-    else this.baseLogger.debug({ ...obj, situation }, msg, ...args);
+    else this.baseLogger.debug({ ...obj, situation }, msg, ...(args as []));
   }
 
   public info(
@@ -47,7 +38,7 @@ export class Logger {
     ...args: unknown[]
   ) {
     if (!msg) this.baseLogger.info({ ...obj, situation });
-    else this.baseLogger.info({ ...obj, situation }, msg, ...args);
+    else this.baseLogger.info({ ...obj, situation }, msg, ...(args as []));
   }
 
   public warn(
@@ -57,7 +48,7 @@ export class Logger {
     ...args: unknown[]
   ) {
     if (!msg) this.baseLogger.warn({ ...obj, situation });
-    else this.baseLogger.warn({ ...obj, situation }, msg, ...args);
+    else this.baseLogger.warn({ ...obj, situation }, msg, ...(args as []));
   }
 
   public error(
@@ -68,7 +59,8 @@ export class Logger {
     ...args: unknown[]
   ) {
     if (!msg) this.baseLogger.error({ ...obj, situation, error });
-    else this.baseLogger.error({ error, situation, ...obj }, msg, ...args);
+    else
+      this.baseLogger.error({ error, situation, ...obj }, msg, ...(args as []));
   }
 }
 

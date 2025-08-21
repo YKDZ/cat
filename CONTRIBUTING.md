@@ -1,12 +1,13 @@
 # How to contribute
 
-This repo is a monorepo managed by turborepo.
+This repo is a monorepo managed by nx.
 
 The sub repo is stored under:
 
 - `apps/`: The main app
 - `packages/`: Some shared packages and plugin-core etc.
 - `packages/@cat-plugin/`: Internal CAT plugin
+- `e2e/`: e2e test packages
 
 The relating tech and framework are:
 
@@ -20,6 +21,7 @@ The relating tech and framework are:
 - [unocss](https://unocss.dev/): atom css library
 - [zod](https://zod.dev/): validation library
 - [rollup](https://rollupjs.org/): bundler
+- [nx](https://nx.dev/): monorepo manager
 
 ## Local Development
 

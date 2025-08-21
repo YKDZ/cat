@@ -5,9 +5,9 @@ export class Vectorizer implements TextVectorizer {
   private options: PluginLoadOptions;
 
   private config = (key: string): unknown => {
-    const config = this.options.configs.find((config) => config.key === key);
+    const config = this.options.configs[key];
     if (!config) return null;
-    return config.value;
+    return config;
   };
 
   constructor(options: PluginLoadOptions) {
