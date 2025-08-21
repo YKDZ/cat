@@ -35,7 +35,7 @@ const isOpen = ref(false);
         />
       </div>
       <div class="flex flex-col gap-1">
-        <InputLabel>{{ $t("翻译时自动创建记忆") }}</InputLabel>
+        <InputLabel>{{ $t("翻译时保留记忆") }}</InputLabel>
         <Toggler v-model="editorMemoryAutoCreateMemory" />
       </div></div
   ></Modal>

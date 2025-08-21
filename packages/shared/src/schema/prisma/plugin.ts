@@ -35,7 +35,7 @@ export const PluginConfigInstanceSchema = z.object({
 
   configId: z.int(),
   get Config() {
-    return PluginConfigSchema;
+    return PluginConfigSchema.optional();
   },
 
   creatorId: z.string().nullable(),

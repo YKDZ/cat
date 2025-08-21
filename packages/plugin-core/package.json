@@ -26,21 +26,20 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "nx vite:build",
     "lint": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --write .",
     "clean": "rimraf dist"
   },
+  "dependencies": {
+    "lodash-es": "^4.17.21"
+  },
   "devDependencies": {
     "@cat/db": "workspace:*",
     "@cat/eslint-config": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@types/node": "^24.2.1",
-    "tsx": "^4.20.3",
-    "typescript": "^5.9.2",
-    "vite": "^7.1.2",
-    "vite-plugin-dts": "^4.5.4",
+    "@types/lodash-es": "^4.17.12",
     "zod": "^4.0.17"
   }
 }
