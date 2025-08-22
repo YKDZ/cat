@@ -35,55 +35,62 @@ const shutdownServer = async () => {
 };
 
 const startServer = async () => {
-  const prismaDB = await getPrismaDB();
-  const redisDB = await getRedisDB();
-  // 也应该作为抽象层后的具体实现
-  const esDB = await getEsDB();
+  try {
+    const prismaDB = await getPrismaDB();
+    const redisDB = await getRedisDB();
+    // TODO 也应该作为抽象层后的具体实现
+    const esDB = await getEsDB();
 
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+    await syncSettings(prismaDB.client);
 
-  await syncSettings(prismaDB.client);
+    const pluginRegistry = await getPluginRegistry();
+    await pluginRegistry.loadPlugins(prismaDB.client);
 
-  const pluginRegistry = await getPluginRegistry();
-  await pluginRegistry.loadPlugins(prismaDB.client);
+    await scanLocalPlugins();
+    (await useStorage()).storage.connect();
+    (await useStorage()).storage.ping();
 
-  await scanLocalPlugins();
-  (await useStorage()).storage.connect();
-  (await useStorage()).storage.ping();
+    apply(app, {
+      pageContext: async (runtime) => {
+        const helpers = createHTTPHelpers(
+          runtime.hono.req.raw,
+          runtime.hono.res.headers,
+        );
 
-  apply(app, {
-    pageContext: async (runtime) => {
-      const helpers = createHTTPHelpers(
-        runtime.hono.req.raw,
-        runtime.hono.res.headers,
-      );
+        const sessionId = helpers.getCookie("sessionId");
+        const displayLanguage =
+          helpers.getCookie("displayLanguage") ??
+          parsePreferredLanguage(helpers.getReqHeader("Accept-Language") ?? "")
+            ?.toLocaleLowerCase()
+            .replace("-", "_") ??
+          (await setting("server.default-language", "zh_cn", prismaDB.client));
+        const user = await userFromSessionId(sessionId ?? "");
+        const name = await setting("server.name", "CAT", prismaDB.client);
 
-      const sessionId = helpers.getCookie("sessionId");
-      const displayLanguage =
-        helpers.getCookie("displayLanguage") ??
-        parsePreferredLanguage(helpers.getReqHeader("Accept-Language") ?? "")
-          ?.toLocaleLowerCase()
-          .replace("-", "_") ??
-        (await setting("server.default-language", "zh_cn", prismaDB.client));
-      const user = await userFromSessionId(sessionId ?? "");
-      const name = await setting("server.name", "CAT", prismaDB.client);
-
-      return {
-        name,
-        user,
-        sessionId,
-        displayLanguage,
-        pluginRegistry,
-        prismaDB,
-        redisDB,
-        esDB,
-        helpers,
-      };
-    },
-  });
+        return {
+          name,
+          user,
+          sessionId,
+          displayLanguage,
+          pluginRegistry,
+          prismaDB,
+          redisDB,
+          esDB,
+          helpers,
+        };
+      },
+    });
+  } catch (e) {
+    logger.error(
+      "SERVER",
+      { msg: "Failed to start server. Process will exit with code 1" },
+      e,
+    );
+    process.exit(1);
+  }
 
   return serve(app, {
-    port,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
     onCreate: async (nodeServer) => {
       server = nodeServer as Server;
 

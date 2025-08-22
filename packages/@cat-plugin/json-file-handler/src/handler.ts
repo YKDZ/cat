@@ -34,7 +34,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
   async getReplacedFileContent(
     file: File,
     fileContent: Buffer,
-    elements: Pick<TranslatableElement, "meta" | "value" | "sortIndex">[],
+    elements: Pick<TranslatableElement, "meta" | "value">[],
   ) {
     const originalObj: unknown = JSON.parse(fileContent.toString("utf-8"));
     const modifiedObj: unknown = JSON.parse(JSON.stringify(originalObj));

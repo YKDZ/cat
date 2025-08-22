@@ -13,7 +13,6 @@ import type {
 import { logger } from "@cat/shared";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
 import { Queue, Worker } from "bullmq";
-import { diffArrays } from "diff";
 import { isEqual } from "lodash-es";
 import z from "zod";
 import { chunk, chunkDual } from "../utils/array";
@@ -26,6 +25,7 @@ import {
 import { config } from "./config";
 import { getPrismaDB } from "@cat/db";
 import { registerTaskUpdateHandlers } from "../utils/worker";
+import { diffArraysAndSeparate } from "../utils/diff";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -111,14 +111,6 @@ export const processPretreatment = async (
     handler.extractElement(file, fileContent),
   );
 
-  const addedElements: (TranslatableElementData & {
-    sortIndex: number;
-    documentId: string;
-  })[] = [];
-  const removedElements: (TranslatableElementData & {
-    sortIndex: number;
-  })[] = [];
-
   const oldElements = (
     await prisma.translatableElement.findMany({
       where: {
@@ -137,28 +129,21 @@ export const processPretreatment = async (
     meta: element.meta,
   }));
 
-  const result = diffArrays(oldElements, newElements, {
-    comparator: (a, b) => a.value === b.value && isEqual(a.meta, b.meta),
-  });
+  const { added, removed: removedElements } = diffArraysAndSeparate(
+    oldElements,
+    newElements,
+    (a, b) => a.value === b.value && isEqual(a.meta, b.meta),
+  ) as {
+    added: (TranslatableElementData & { sortIndex: number })[];
+    removed: TranslatableElementData[];
+  };
 
-  result.forEach((object) => {
-    if (object.added) {
-      addedElements.push(
-        ...object.value.map((element) => ({
-          value: element.value,
-          sortIndex: element.sortIndex,
-          meta: element.meta as JSONType,
-          documentId: document.id,
-        })),
-      );
-    } else if (object.removed) {
-      removedElements.push(
-        ...(object.value as (TranslatableElementData & {
-          sortIndex: number;
-        })[]),
-      );
-    }
-  });
+  const addedElements = added.map((element) => ({
+    value: element.value,
+    sortIndex: element.sortIndex,
+    meta: element.meta as JSONType,
+    documentId: document.id,
+  }));
 
   const vectors = await vectorizer.vectorize(sourceLanguageId, addedElements);
   if (!vectors) {

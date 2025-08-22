@@ -10,13 +10,13 @@ import SecretRenderer from "./renderers/SecretRenderer.vue";
 
 export const schemaKey = Symbol() as InjectionKey<JSONSchema.JSONSchema>;
 
-export type RendererMatcherContenxt = {
+export type RendererMatcherContext = {
   schema: JSONSchema.JSONSchema;
 };
 
 export type Renderer = {
   renderer: Component;
-  matcher: (ctx: RendererMatcherContenxt) => boolean;
+  matcher: (ctx: RendererMatcherContext) => boolean;
 };
 
 export class RendererRegistry {

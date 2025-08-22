@@ -162,7 +162,7 @@ const runDistributedTask = async <T>(
           } else if (event.type === "chunk:error") {
             failedChunks.push({ index: event.chunkIndex, data: event.data });
             logger.debug("PROCESSOR", {
-              msg: `Error in chunk ${event.chunkIndex}, task will be rollbacked when all finished.`,
+              msg: `Error in chunk ${event.chunkIndex}, task will be rollback when all finished.`,
             });
           } else {
             reject(new Error("Invalid event type: " + event.type));
@@ -233,7 +233,7 @@ const rollbackAll = async <T>(
   successfulChunks: FinishedChunkData[],
 ) => {
   logger.debug("PROCESSOR", {
-    msg: `Task ${task.id} is about to be rollbacked`,
+    msg: `Task ${task.id} is about to be rollback`,
   });
   for (const { index, data } of successfulChunks.reverse()) {
     const ctx = task.chunks[index];

@@ -373,7 +373,7 @@ export const documentRouter = router({
                   : isTranslated === true && isApproved === false
                     ? {
                         some: {
-                          Approvments: {
+                          Approvements: {
                             none: {},
                           },
                         },
@@ -381,7 +381,7 @@ export const documentRouter = router({
                     : isTranslated === true && isApproved === true
                       ? {
                           some: {
-                            Approvments: {
+                            Approvements: {
                               some: {
                                 isActive: true,
                               },
@@ -442,7 +442,7 @@ export const documentRouter = router({
                   : isTranslated === true && isApproved === false
                     ? {
                         some: {
-                          Approvments: {
+                          Approvements: {
                             none: {},
                           },
                         },
@@ -450,7 +450,7 @@ export const documentRouter = router({
                     : isTranslated === true && isApproved === true
                       ? {
                           some: {
-                            Approvments: {
+                            Approvements: {
                               some: {
                                 isActive: true,
                               },
@@ -633,7 +633,7 @@ export const documentRouter = router({
               languageId,
             },
             select: {
-              Approvments: {
+              Approvements: {
                 where: {
                   isActive: true,
                 },
@@ -654,7 +654,7 @@ export const documentRouter = router({
       }
 
       return element.Translations.findIndex(
-        (translation) => translation.Approvments.length > 0,
+        (translation) => translation.Approvements.length > 0,
       ) === -1
         ? "TRANSLATED"
         : "APPROVED";
@@ -714,7 +714,7 @@ export const documentRouter = router({
                   : isTranslated === true && isApproved === false
                     ? {
                         some: {
-                          Approvments: {
+                          Approvements: {
                             none: {},
                           },
                         },
@@ -722,7 +722,7 @@ export const documentRouter = router({
                     : isTranslated === true && isApproved === true
                       ? {
                           some: {
-                            Approvments: {
+                            Approvements: {
                               some: {
                                 isActive: true,
                               },
@@ -814,7 +814,7 @@ export const documentRouter = router({
                   : isTranslated === true && isApproved === false
                     ? {
                         some: {
-                          Approvments: {
+                          Approvements: {
                             none: {},
                           },
                         },
@@ -822,7 +822,7 @@ export const documentRouter = router({
                     : isTranslated === true && isApproved === true
                       ? {
                           some: {
-                            Approvments: {
+                            Approvements: {
                               some: {
                                 isActive: true,
                               },

@@ -1,6 +1,5 @@
 import { Queue, QueueEvents, Worker } from "bullmq";
 import { config } from "./config";
-import { logger } from "@cat/shared";
 import { PluginImporterRegistry } from "../utils/plugin/plugin-importer-registry";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
 import { getPrismaDB } from "@cat/db";

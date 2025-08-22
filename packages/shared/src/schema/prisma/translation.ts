@@ -14,7 +14,7 @@ export const TranslationVoteSchema = z.object({
   translationId: z.int(),
 });
 
-export const TranslationApprovmentSchema = z.object({
+export const TranslationApprovementSchema = z.object({
   id: z.int(),
   isActive: z.boolean(),
   createdAt: PrimsaDateTime,
@@ -52,11 +52,13 @@ export const TranslationSchema = z.object({
   get Votes() {
     return z.array(TranslationVoteSchema).optional();
   },
-  get Approvments() {
-    return z.array(TranslationApprovmentSchema).optional();
+  get Approvements() {
+    return z.array(TranslationApprovementSchema).optional();
   },
 });
 
 export type Translation = z.infer<typeof TranslationSchema>;
-export type TranslationApprovment = z.infer<typeof TranslationApprovmentSchema>;
+export type TranslationApprovement = z.infer<
+  typeof TranslationApprovementSchema
+>;
 export type TranslationVote = z.infer<typeof TranslationVoteSchema>;

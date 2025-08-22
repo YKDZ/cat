@@ -8,23 +8,23 @@ model User {
 
     AvatarFile File?
 
-    Accounts               Account[]
-    ReadableLanguages      Language[]              @relation("ReadableLanguages")
-    WritableLanguages      Language[]              @relation("WritableLanguages")
-    Projects               Project[]
-    Translations           Translation[]           @relation("Translator")
-    Documents              Document[]
-    TranslationVotes       TranslationVote[]
-    TranslationApprovments TranslationApprovment[]
-    Memories               Memory[]
-    MemoryItems            MemoryItem[]
-    Glossaries             Glossary[]
-    Terms                  Term[]
-    Exams                  Exam[]
-    Answers                Answer[]
-    UserRoles              UserRole[]
-    MemberedProjects       Project[]               @relation("ProjectMembers")
-    PluginConfigInstance   PluginConfigInstance[]
+    Accounts                Account[]
+    ReadableLanguages       Language[]               @relation("ReadableLanguages")
+    WritableLanguages       Language[]               @relation("WritableLanguages")
+    Projects                Project[]
+    Translations            Translation[]            @relation("Translator")
+    Documents               Document[]
+    TranslationVotes        TranslationVote[]
+    TranslationApprovements TranslationApprovement[]
+    Memories                Memory[]
+    MemoryItems             MemoryItem[]
+    Glossaries              Glossary[]
+    Terms                   Term[]
+    Exams                   Exam[]
+    Answers                 Answer[]
+    UserRoles               UserRole[]
+    MemberedProjects        Project[]                @relation("ProjectMembers")
+    PluginConfigInstance    PluginConfigInstance[]
 }
 
 model Account {

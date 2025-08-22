@@ -21,7 +21,7 @@ app.use("*", async (c, next) => {
 
 app.route("/api/trpc", trpcHandler);
 
-// app.route("/doc/openapi", openapiHander);
+// app.route("/doc/openapi", openapiHandler);
 app.route("/api/__health", healthHandler);
 app.route("/api/__plugin/component", pluginComponentHandler);
 

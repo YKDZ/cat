@@ -97,7 +97,7 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
   async getReplacedFileContent(
     file: File,
     fileContent: Buffer,
-    elements: Pick<TranslatableElement, "meta" | "value" | "sortIndex">[],
+    elements: Pick<TranslatableElement, "meta" | "value">[],
   ): Promise<Buffer> {
     const content = fileContent.toString("utf8");
     const doc = parse(content) as YamlValue;

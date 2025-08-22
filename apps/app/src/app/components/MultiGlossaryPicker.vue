@@ -51,8 +51,8 @@ onMounted(() => {
     .query({
       userId: user.id,
     })
-    .then((glos) => {
-      glossaries.value = glos;
+    .then((glo) => {
+      glossaries.value = glo;
     });
 });
 </script>

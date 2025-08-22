@@ -17,7 +17,7 @@ const updateGlossaries = async () => {
     .query({
       projectId: project.value.id,
     })
-    .then((glos) => (glossaries.value = glos));
+    .then((glo) => (glossaries.value = glo));
 };
 
 watch(project ?? {}, updateGlossaries);
