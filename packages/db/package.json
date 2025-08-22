@@ -15,10 +15,8 @@
   "scripts": {
     "build": "prisma generate && rollup --config",
     "lint": "nx eslint:lint --fix",
-    "clean": "rimraf dist",
     "test": "nx vite:test --typecheck",
-    "format": "prettier --write .",
-    "format:check": "prettier --write ."
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.864.0",

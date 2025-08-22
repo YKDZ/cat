@@ -26,9 +26,7 @@
     "build": "nx vite:build",
     "test": "nx vite:test --typecheck",
     "lint": "nx eslint:lint --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --write .",
-    "clean": "rimraf dist"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "pino": "^9.8.0"
