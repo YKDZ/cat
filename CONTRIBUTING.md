@@ -25,14 +25,26 @@ The relating tech and framework are:
 
 ## Local Development
 
-To run `apps/app` locally, you can:
+To run CAT APP in `apps/app` locally, you can:
+
+### Through vite development server
+
+1. install Nodejs 22
+2. create `/apps/app/.env` file from `/apps/app/.env.example`
+3. run `pnpm install`
+4. run `pnpm nx dev --project=@cat/app`
+5. visit `http://localhost:${your_port}`.
 
 ### Through Docker
 
-1. run `pnpm docker:build` to build app's docker image from `apps/app/Dockerfile`
-2. create `.env` file from `.env.example` in repo root dir `./`
+1. run `pnpm nx docker:build --project=@cat/app` to build app's docker image from `apps/app/Dockerfile`
+2. create `/apps/app/.env` file from `/apps/app/.env.example`
 3. run `docker compose up` for `docker-compose.yml`
-4. Visit `http://localhost:${your_port}`. Default admin email-password account is:
+4. visit `http://localhost:${your_port}`.
+
+### Email & Password
+
+Default admin email-password account is:
 
 ```txt
 Email: admin@encmys.cn
