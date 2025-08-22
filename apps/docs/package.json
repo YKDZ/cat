@@ -12,9 +12,7 @@
     "build": "vitepress build docs",
     "preview": "vitepress preview docs",
     "lint": "eslint ./docs --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --write .",
-    "clean": "rimraf dist"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "cross-env": "^10.0.0",

@@ -24,8 +24,6 @@
     "test": "nx vite:test --typecheck",
     "test:type": "tsc --noEmit & vue-tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --write .",
-    "clean": "rimraf dist",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat",
     "docker-entrypoint": "prisma migrate deploy && prisma db seed && node dist/server/index.js"
@@ -47,6 +45,7 @@
     "@vueuse/components": "^13.6.0",
     "@vueuse/core": "^13.7.0",
     "@vueuse/integrations": "^13.6.0",
+    "@wdns/vue-code-block": "^2.3.5",
     "bullmq": "^5.58.0",
     "diff": "^8.0.2",
     "dotenv": "^17.2.1",

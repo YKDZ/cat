@@ -18,9 +18,7 @@
   "scripts": {
     "build": "nx vite:build",
     "lint": "nx eslint:lint --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --write .",
-    "clean": "rimraf dist"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@cat/plugin-core": "workspace:*",
