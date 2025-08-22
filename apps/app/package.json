@@ -26,7 +26,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --write .",
     "clean": "rimraf dist",
-    "docker:build": "docker buildx build ../../ -f ../../app.Dockerfile -t ykdz/cat",
+    "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat",
     "docker-entrypoint": "prisma migrate deploy && prisma db seed && node dist/server/index.js"
   },
