@@ -25,13 +25,16 @@ The relating tech and framework are:
 
 ## Local Development
 
-You need to have a oidc server for run CAT, as CAT does not provide any username-password login method.
-
 To run `apps/app` locally, you can:
 
 ### Through Docker
 
-1. run `pnpm build:docker:app` to build app's docker image from `apps/app/Dockerfile`
+1. run `pnpm docker:build` to build app's docker image from `apps/app/Dockerfile`
 2. create `.env` file from `.env.example` in repo root dir `./`
-3. run `docker compose up`
-4. Visit `http://localhost:${your_port}`.
+3. run `docker compose up` for `docker-compose.yml`
+4. Visit `http://localhost:${your_port}`. Default admin email-password account is:
+
+```txt
+Email: admin@encmys.cn
+Password: password
+```

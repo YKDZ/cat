@@ -1,6 +1,4 @@
 import type { PluginData } from "@cat/shared";
-import { githubPluginImporter } from "./github-plugin-importer";
-import { tarGZURLImporter } from "./tar-gz-url-plugin-importer";
 import { localImporter } from "./local-plugin-impoter";
 
 export interface PluginImporter {
@@ -11,11 +9,7 @@ export interface PluginImporter {
 
 export class PluginImporterRegistry {
   private static instance: PluginImporterRegistry;
-  private importers: PluginImporter[] = [
-    tarGZURLImporter,
-    githubPluginImporter,
-    localImporter,
-  ];
+  private importers: PluginImporter[] = [localImporter];
 
   constructor() {
     if (!PluginImporterRegistry.instance)
