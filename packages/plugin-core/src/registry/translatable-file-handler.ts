@@ -9,6 +9,6 @@ export interface TranslatableFileHandler {
   getReplacedFileContent(
     file: File,
     fileContent: Buffer,
-    elements: Pick<TranslatableElement, "meta" | "value" | "sortIndex">[],
+    elements: Pick<TranslatableElement, "meta" | "value">[],
   ): Promise<Buffer>;
 }

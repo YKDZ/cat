@@ -3,7 +3,7 @@ import { authedProcedure, router } from "../server";
 import { TRPCError } from "@trpc/server";
 import {
   logger,
-  TranslationApprovmentSchema,
+  TranslationApprovementSchema,
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared";
@@ -243,7 +243,7 @@ export const translationRouter = router({
         },
         include: {
           Translator: true,
-          Approvments: true,
+          Approvements: true,
         },
       });
 
@@ -378,7 +378,7 @@ export const translationRouter = router({
               NOT: {
                 Translations: {
                   some: {
-                    Approvments: {
+                    Approvements: {
                       some: {
                         isActive: true,
                       },
@@ -404,7 +404,7 @@ export const translationRouter = router({
         ).map((element) => element.Translations[0].id);
 
         return (
-          await tx.translationApprovment.createMany({
+          await tx.translationApprovement.createMany({
             data: translationIds.map((id) => ({
               translationId: id,
               isActive: true,
@@ -420,7 +420,7 @@ export const translationRouter = router({
         id: z.int(),
       }),
     )
-    .output(TranslationApprovmentSchema)
+    .output(TranslationApprovementSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -435,7 +435,7 @@ export const translationRouter = router({
             TranslatableElement: {
               Translations: {
                 some: {
-                  Approvments: {
+                  Approvements: {
                     some: {
                       isActive: true,
                     },
@@ -453,8 +453,8 @@ export const translationRouter = router({
           });
         }
 
-        return TranslationApprovmentSchema.parse(
-          await tx.translationApprovment.create({
+        return TranslationApprovementSchema.parse(
+          await tx.translationApprovement.create({
             data: {
               translationId: id,
               isActive: true,
@@ -470,15 +470,15 @@ export const translationRouter = router({
         id: z.int(),
       }),
     )
-    .output(TranslationApprovmentSchema)
+    .output(TranslationApprovementSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
       const { id } = input;
 
-      return TranslationApprovmentSchema.parse(
-        await prisma.translationApprovment.update({
+      return TranslationApprovementSchema.parse(
+        await prisma.translationApprovement.update({
           where: {
             id,
           },

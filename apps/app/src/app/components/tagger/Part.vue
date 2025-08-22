@@ -4,7 +4,7 @@ import type { PartData } from ".";
 import { clippers } from ".";
 
 const props = withDefaults(
-  defineProps<{ part: PartData; interactable: boolean; layerIndex?: number }>(),
+  defineProps<{ part: PartData; interactive: boolean; layerIndex?: number }>(),
   {
     layerIndex: 0,
   },
@@ -33,7 +33,7 @@ const isString = computed(() => typeof content.value === "string");
 
 const handleClick = () => {
   if (
-    !props.interactable ||
+    !props.interactive ||
     !clipper.value ||
     clipper.value?.clickHandlers.length === 0
   )
@@ -80,13 +80,13 @@ const bgHoverColor = computed(() => {
         'cursor-pointer text-highlight-content px-0.5':
           !!clipper && clipper.highlight,
         'cursor-pointer':
-          clipper && clipper.clickHandlers.length > 0 && interactable,
-        'pointer-events-none': !interactable,
+          clipper && clipper.clickHandlers.length > 0 && interactive,
+        'pointer-events-none': !interactive,
       },
       !!clipper && clipper.highlight && bgColor,
       clipper &&
         clipper.clickHandlers.length > 0 &&
-        interactable &&
+        interactive &&
         bgHoverColor,
     ]"
     :style="{
@@ -102,7 +102,7 @@ const bgHoverColor = computed(() => {
         v-for="subPart in part.subParts"
         :key="subPart.text"
         :part="subPart"
-        :interactable
+        :interactive
         :layer-index="layerIndex + 1"
     /></span>
   </span>

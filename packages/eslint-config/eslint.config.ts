@@ -6,7 +6,7 @@ import type { ConfigArray } from "typescript-eslint";
 import tseslint from "typescript-eslint";
 import vueParser from "vue-eslint-parser";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
-import nxPlugin from "@nx/eslint-plugin";
+import cspellPlugin from "@cspell/eslint-plugin";
 
 export default tseslint.config(
   {
@@ -100,11 +100,27 @@ export default tseslint.config(
 
   unocss,
   eslintConfigPrettier,
-
   {
-    plugins: { nxPlugin },
+    plugins: { "@cspell": cspellPlugin },
     rules: {
-      "nx/enforce-module-boundaries": ["error"],
+      "@cspell/spellchecker": [
+        "warn",
+        {
+          cspell: {
+            words: [
+              "ykdz",
+              "unocss",
+              "ngram",
+              "vectorizer",
+              "vectorizers",
+              "approvements",
+              "unsubscribable",
+              "vike",
+              "unapprove",
+            ],
+          },
+        },
+      ],
     },
   },
 ) as ConfigArray;

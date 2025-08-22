@@ -15,7 +15,7 @@ export type ToastItem = {
   endAt: Date;
 };
 
-export type ToastType = "INFO" | "ERROR" | "WARNNING";
+export type ToastType = "INFO" | "ERROR" | "WARNING";
 
 export const useToastStore = defineStore("toast", () => {
   const toasts = ref<ToastItem[]>([]);

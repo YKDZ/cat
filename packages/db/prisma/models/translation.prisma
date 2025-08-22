@@ -17,9 +17,9 @@ model Translation {
     embeddingId Int
     Embedding   Vector @relation(fields: [embeddingId], references: [id])
 
-    Votes       TranslationVote[]
-    MemoryItems MemoryItem[]
-    Approvments TranslationApprovment[]
+    Votes        TranslationVote[]
+    MemoryItems  MemoryItem[]
+    Approvements TranslationApprovement[]
 
     @@unique(name: "noSameTranslation", [translatorId, languageId, translatableElementId, value])
 }
@@ -41,7 +41,7 @@ model TranslationVote {
     @@index([voterId])
 }
 
-model TranslationApprovment {
+model TranslationApprovement {
     id       Int     @id @default(autoincrement())
     isActive Boolean @default(false)
 

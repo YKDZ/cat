@@ -8,7 +8,7 @@ import EditorElementTranslationVote from "./EditorElementTranslationVote.vue";
 import TextTagger from "./tagger/TextTagger.vue";
 import UserAvatar from "./UserAvatar.vue";
 import { computed } from "vue";
-import EditorElementTranslationApprovmentBtn from "./EditorElementTranslationApprovmentBtn.vue";
+import EditorElementTranslationApprovementBtn from "./EditorElementTranslationApprovementBtn.vue";
 import { useDateFormat } from "@vueuse/core";
 import Icon from "./Icon.vue";
 
@@ -33,17 +33,17 @@ const handleSelect = () => {
 };
 
 const isApproved = computed(() => {
-  if (!props.translation.Approvments) return false;
+  if (!props.translation.Approvements) return false;
   return (
-    props.translation.Approvments.findIndex(
+    props.translation.Approvements.findIndex(
       (approvment) => approvment.isActive,
     ) !== -1
   );
 });
 
 const approvement = computed(() => {
-  if (!props.translation.Approvments) return null;
-  return props.translation.Approvments.find((a) => a.isActive);
+  if (!props.translation.Approvements) return null;
+  return props.translation.Approvements.find((a) => a.isActive);
 });
 </script>
 
@@ -64,7 +64,7 @@ const approvement = computed(() => {
       </div>
     </div>
     <div class="flex gap-2 items-center">
-      <EditorElementTranslationApprovmentBtn
+      <EditorElementTranslationApprovementBtn
         class="ml-auto"
         :translation="translation"
       />

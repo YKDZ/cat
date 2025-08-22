@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
 import Button from "./Button.vue";
-import type { Translation, TranslationApprovment } from "@cat/shared";
+import type { Translation, TranslationApprovement } from "@cat/shared";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import { computed } from "vue";
@@ -18,17 +18,17 @@ const { upsertTranslation, updateElementStatus } = useEditorStore();
 const { translations } = storeToRefs(useEditorStore());
 
 const isApproved = computed(() => {
-  if (!props.translation.Approvments) return false;
+  if (!props.translation.Approvements) return false;
   return (
-    props.translation.Approvments.findIndex(
+    props.translation.Approvements.findIndex(
       (approvment) => approvment.isActive,
     ) !== -1
   );
 });
 
-const handleChangeApprovment = (
+const handleChangeApprovement = (
   id: number,
-  approvment: TranslationApprovment,
+  approvement: TranslationApprovement,
 ) => {
   const originIndex = translations.value.findIndex(
     (translation) => translation.id === id,
@@ -40,13 +40,13 @@ const handleChangeApprovment = (
 
   if (!origin) return;
 
-  const newTransaltion = {
+  const newTranslation = {
     ...origin,
-    Approvments: [...origin.Approvments!, approvment],
+    Approvements: [...origin.Approvements!, approvement],
   } satisfies Translation;
 
-  upsertTranslation(newTransaltion);
-  updateElementStatus(newTransaltion.translatableElementId).catch(trpcWarn);
+  upsertTranslation(newTranslation);
+  updateElementStatus(newTranslation.translatableElementId).catch(trpcWarn);
 };
 
 const handleApprove = async () => {
@@ -57,7 +57,7 @@ const handleApprove = async () => {
       id: props.translation.id,
     })
     .then((approvement) => {
-      handleChangeApprovment(props.translation.id, approvement);
+      handleChangeApprovement(props.translation.id, approvement);
       info(t("成功批准"));
     })
     .catch(trpcWarn);
@@ -71,7 +71,7 @@ const handleUnapprove = async () => {
       id: props.translation.id,
     })
     .then((approvement) => {
-      handleChangeApprovment(props.translation.id, approvement);
+      handleChangeApprovement(props.translation.id, approvement);
       info(t("成功取消批准"));
     })
     .catch(trpcWarn);

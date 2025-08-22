@@ -8,10 +8,10 @@ import Part from "./Part.vue";
 const props = withDefaults(
   defineProps<{
     text: string;
-    interactable?: boolean;
+    interactive?: boolean;
   }>(),
   {
-    interactable: false,
+    interactive: false,
   },
 );
 
@@ -34,7 +34,7 @@ watch(partsData, (to, from) => emits("update", from, to), { immediate: true });
       v-for="part in partsData"
       :key="part.index + part.text"
       :part
-      :interactable
+      :interactive
     />
   </div>
 </template>

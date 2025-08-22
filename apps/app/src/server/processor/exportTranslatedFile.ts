@@ -70,7 +70,7 @@ const worker = new Worker(
           TranslatableElement: {
             documentId,
           },
-          Approvments: {
+          Approvements: {
             some: {
               isActive: true,
             },
@@ -82,17 +82,20 @@ const worker = new Worker(
       }),
     );
 
-    const translated = await handler.generateTranslated(
+    const translated = await handler.getReplacedFileContent(
       document.File,
       fileContent,
-      translations,
+      translations.map(({ value, meta }) => ({
+        value,
+        meta,
+      })),
     );
 
     const fileName = document.File.originName;
     const uuid = randomUUID();
     const date = new Date();
     const template = await setting(
-      "storage.template.exported-tranlated-file",
+      "storage.template.exported-translated-file",
       "exported/document/translated/{year}/{month}/{date}/{uuid}-{languageId}-{fileName}",
       prisma,
     );

@@ -103,7 +103,7 @@ const worker = new Worker(
         "Document does not exists or language does not claimed in project",
       );
 
-    const sourceLangugeId = document.Project.SourceLanguage.id;
+    const sourceLanguageId = document.Project.SourceLanguage.id;
 
     // 开自动始翻译
 
@@ -123,10 +123,10 @@ const worker = new Worker(
     // 只有翻译记忆和建议器两个来源
     const translations: TranslationData[] = await Promise.all(
       elements.map(async (element) => {
-        const embededElement = await queryElementWithEmbedding(element.id);
+        const embeddedElement = await queryElementWithEmbedding(element.id);
         const memories = await searchMemory(
-          embededElement.embedding,
-          sourceLangugeId,
+          embeddedElement.embedding,
+          sourceLanguageId,
           languageId,
           document.Project.Memories.map((memory) => memory.id),
           minMemorySimilarity,
@@ -165,12 +165,12 @@ const worker = new Worker(
               isMemory: false,
             };
 
-          if (!advisor.canSuggest(element, sourceLangugeId, languageId))
+          if (!advisor.canSuggest(element, sourceLanguageId, languageId))
             throw new Error("Advisor can not suggest element in document");
 
           const { termedText, translationIds } = await EsTermStore.termText(
             element.value,
-            sourceLangugeId,
+            sourceLanguageId,
             languageId,
           );
           const relations = await prisma.termRelation.findMany({
@@ -179,7 +179,7 @@ const worker = new Worker(
                 in: translationIds,
               },
               Term: {
-                languageId: sourceLangugeId,
+                languageId: sourceLanguageId,
               },
               Translation: {
                 languageId,
@@ -196,7 +196,7 @@ const worker = new Worker(
               element,
               termedText,
               relations,
-              sourceLangugeId,
+              sourceLanguageId,
               languageId,
             )
           ).find(({ status }) => status === "SUCCESS");

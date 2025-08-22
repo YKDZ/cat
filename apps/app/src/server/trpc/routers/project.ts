@@ -461,7 +461,7 @@ export const projectRouter = router({
                     ...(isTranslated !== undefined ? {} : undefined),
                     ...(isApproved !== undefined
                       ? {
-                          Approvments: {
+                          Approvements: {
                             some: {
                               isActive: true,
                             },
@@ -493,7 +493,7 @@ export const projectRouter = router({
             documentId: id,
           },
           languageId,
-          Approvments:
+          Approvements:
             isApproved === undefined
               ? undefined
               : isApproved === true
