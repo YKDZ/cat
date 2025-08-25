@@ -7,14 +7,20 @@ import tseslint from "typescript-eslint";
 import vueParser from "vue-eslint-parser";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import cspellPlugin from "@cspell/eslint-plugin";
+import cspellWords from "./cspell.words.json" assert { type: "json" };
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/generated/prisma/**", "*.js", "*.cjs"],
+    ignores: ["dist/**/*", "generated/prisma/**/*", "*.js", "*.cjs"],
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
   },
 
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommendedTypeChecked,
 
   {
     languageOptions: {
@@ -107,17 +113,7 @@ export default tseslint.config(
         "warn",
         {
           cspell: {
-            words: [
-              "ykdz",
-              "unocss",
-              "ngram",
-              "vectorizer",
-              "vectorizers",
-              "approvements",
-              "unsubscribable",
-              "vike",
-              "unapprove",
-            ],
+            words: cspellWords,
           },
         },
       ],

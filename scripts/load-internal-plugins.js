@@ -3,10 +3,10 @@ import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const import.meta.dirname = dirname(__filename);
 
-const SRC_DIR = resolve(__dirname, "../packages/@cat-plugin");
-const DEST_DIR = resolve(__dirname, "../apps/app/plugins");
+const SRC_DIR = resolve(import.meta.dirname, "../packages/@cat-plugin");
+const DEST_DIR = resolve(import.meta.dirname, "../apps/app/plugins");
 
 const FILE_INCLUDES = ["dist", "package.json", "manifest.json"];
 

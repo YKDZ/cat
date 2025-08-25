@@ -1,0 +1,55 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "types": ["vite/client", "vitest/globals"],
+    "rootDir": "src",
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "exclude": [
+    "out-tsc",
+    "dist",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.vue",
+    "src/**/*.test.vue",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx",
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    "src/**/*.test.jsx",
+    "src/**/*.spec.jsx",
+    "eslint.config.ts"
+  ],
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "global.d.ts"
+  ],
+  "references": [
+    {
+      "path": "../../packages/db/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/plugin-core/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/eslint-config/tsconfig.lib.json"
+    }
+  ]
+}

@@ -14,8 +14,7 @@ model Document {
     TranslatableElements TranslatableElement[]
     Tasks                Task[]
     Exams                Exam[]
-
-    Versions DocumentVersion[]
+    Versions             DocumentVersion[]
 
     @@index([projectId])
 }
@@ -47,12 +46,11 @@ model TranslatableElement {
 
     Translations Translation[]
     MemoryItems  MemoryItem[]
+    Answer       Answer[]
 
     // 手动实现
-    // 因为 prisma 不支持唯一性索引中的 isActive = true
-    // @@unique([meta, documentId, isActive])
-
-    Answer Answer[]
+    // 因为 prisma 不支持谓词索引
+    // @@unique([meta, documentId, isActive = true])
 }
 
 model DocumentVersion {
@@ -61,10 +59,10 @@ model DocumentVersion {
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
 
-    TranslatableElements TranslatableElement[]
-
     // 一个文档版本可以不活跃
     // 但不能悬空
     documentId String
     Document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+    TranslatableElements TranslatableElement[]
 }

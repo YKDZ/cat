@@ -90,7 +90,7 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
     return elements;
   }
 
-  canGenerateTranslated(file: File): boolean {
+  canGetReplacedFileContent(file: File): boolean {
     return this.canExtractElement(file);
   }
 

@@ -5,18 +5,19 @@ import dts from "vite-plugin-dts";
 export default defineConfig({
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"),
+      "@": resolve(import.meta.dirname, "src"),
     },
   },
 
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: resolve(import.meta.dirname, "src/index.ts"),
       formats: ["es"],
       fileName: () => `index.mjs`,
     },
 
     outDir: "dist",
+    emptyOutDir: true,
 
     rollupOptions: {
       external: ["@cat/plugin-core", "@cat/shared", "vue", "node:path"],
@@ -31,7 +32,7 @@ export default defineConfig({
   plugins: [
     dts({
       outDir: "dist",
-      tsconfigPath: resolve(__dirname, "tsconfig.json"),
+      tsconfigPath: resolve(import.meta.dirname, "tsconfig.json"),
     }),
   ],
 });

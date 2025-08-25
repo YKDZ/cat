@@ -11,11 +11,11 @@
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@nx/devkit": "21.4.0",
     "@nx/eslint": "21.4.0",
     "@nx/eslint-plugin": "21.4.0",
     "@nx/js": "21.4.0",
     "@nx/playwright": "21.4.0",
-    "@nx/vite": "21.4.0",
     "@nx/vue": "21.4.0",
     "@nx/web": "21.4.0",
     "@playwright/test": "^1.36.0",

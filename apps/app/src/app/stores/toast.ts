@@ -53,12 +53,12 @@ export const useToastStore = defineStore("toast", () => {
   };
 
   const warn = (message: string, duration = defaultDuration) => {
-    push(message, undefined, duration, "WARNNING");
+    push(message, undefined, duration, "WARNING");
   };
 
   const zWarn = (e: ZodError, duration = defaultDuration) => {
     e.issues.forEach((issue) =>
-      push(issue.message, undefined, duration, "WARNNING"),
+      push(issue.message, undefined, duration, "WARNING"),
     );
   };
 

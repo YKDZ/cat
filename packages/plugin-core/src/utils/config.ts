@@ -1,4 +1,4 @@
-import type { PluginConfigInstatnceScopeType, PrismaClient } from "@cat/db";
+import type { PluginConfigInstanceScopeType, PrismaClient } from "@cat/db";
 import { merge } from "lodash-es";
 import z from "zod";
 
@@ -32,7 +32,7 @@ export const getMergedPluginConfigs = async (
 export const getConfigInstance = async (
   prisma: PrismaClient,
   pluginId: string,
-  scopeType: PluginConfigInstatnceScopeType,
+  scopeType: PluginConfigInstanceScopeType,
   scopeId?: string,
 ) => {
   if (scopeId === undefined) return {};

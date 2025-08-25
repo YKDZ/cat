@@ -5,6 +5,6 @@ import { defineConfig } from "prisma/config";
 export default defineConfig({
   schema: join("prisma"),
   migrations: {
-    seed: join("src", "seed.ts"),
+    seed: "tsx ./src/seed.ts",
   },
 });

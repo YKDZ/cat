@@ -7,15 +7,16 @@ import { defineConfig } from "vite";
 export default defineConfig({
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"),
+      "@": resolve(import.meta.dirname, "src"),
     },
   },
   server: {
     watch: {
-      ignored: ["**/.history/**", "plugins/**"],
+      ignored: ["plugins/**"],
     },
   },
   plugins: [
+    // @ts-expect-error UnoCSS Plugin types are not compatible with Vite 7 yet
     UnoCSS(),
     vike(),
     vue({
@@ -24,6 +25,7 @@ export default defineConfig({
   ],
   build: {
     target: "es2022",
+    emptyOutDir: true,
     rollupOptions: {
       external: ["cloudflare:sockets", /\.prisma\/client\/.*$/],
     },

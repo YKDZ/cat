@@ -4,12 +4,12 @@ import { Queue, Worker } from "bullmq";
 import { randomUUID } from "crypto";
 import { join } from "path";
 import { z } from "zod";
-import { useStorage } from "../utils/storage/useStorage";
+import { useStorage } from "@/server/utils/storage/useStorage";
 import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
-import { mimeFromFileName } from "../utils/file";
+import { mimeFromFileName } from "@/server/utils/file";
 import { getPrismaDB } from "@cat/db";
-import { registerTaskUpdateHandlers } from "../utils/worker";
+import { registerTaskUpdateHandlers } from "@/server/utils/worker";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -54,11 +54,6 @@ const worker = new Worker(
 
     if (!document || !document.File)
       throw new Error(`Document with id ${documentId} do not exists`);
-
-    if (!handler.canGenerateTranslated(document.File))
-      throw new Error(
-        `Translatable File Handler with id ${handlerId} can not generate translated file`,
-      );
 
     const { storage, type } = await useStorage();
     const fileContent = await storage.getContent(document.File);

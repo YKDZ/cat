@@ -5,6 +5,7 @@ import { onBeforeMount, onMounted, watch } from "vue";
 import { useLanguageStore } from "../stores/language";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useUserStore } from "../stores/user";
+import { storeToRefs } from "pinia";
 
 // i-mdi:numeric-1-circle-outline
 // i-mdi:numeric-2-circle-outline
@@ -25,7 +26,7 @@ const ctx = usePageContext();
 watch(
   () => ctx.user,
   (to) => {
-    useUserStore().user = to;
+    storeToRefs(useUserStore()).user.value = to;
   },
   { immediate: true },
 );

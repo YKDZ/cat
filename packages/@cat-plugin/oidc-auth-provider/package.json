@@ -11,12 +11,12 @@
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
@@ -25,7 +25,7 @@
     "@cat/eslint-config": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "zod": "^4.0.17"
+    "zod": "^4.1.1"
   },
   "dependencies": {
     "jose": "^6.0.11"

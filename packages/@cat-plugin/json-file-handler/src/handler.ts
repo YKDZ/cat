@@ -27,7 +27,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     return collectTranslatableElement(fileContent.toString("utf-8"));
   }
 
-  canGenerateTranslated(file: File) {
+  canGetReplacedFileContent(file: File) {
     return extname(file.originName) === ".json";
   }
 

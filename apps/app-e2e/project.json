@@ -1,0 +1,8 @@
+{
+  "implicitDependencies": ["@cat/app"],
+  "targets": {
+    "e2e": {
+      "dependsOn": ["^build"]
+    }
+  }
+}

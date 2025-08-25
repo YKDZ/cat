@@ -1,0 +1,17 @@
+{
+  "name": "@cat/app-e2e",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "tsx": "^4.20.5"
+  },
+  "devDependencies": {
+    "@cat/db": "workspace:*",
+    "@cat/eslint-config": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@playwright/test": "^1.54.2",
+    "prisma": "6.14.0"
+  }
+}

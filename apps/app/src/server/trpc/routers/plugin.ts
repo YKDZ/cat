@@ -11,7 +11,7 @@ import { importPluginQueue } from "@/server/processor/importPlugin";
 import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
 import { TRPCError } from "@trpc/server";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
-import type { PluginConfigInstatnceScopeType } from "@cat/db";
+import type { PluginConfigInstanceScopeType } from "@cat/db";
 
 export const pluginRouter = router({
   delete: authedProcedure
@@ -56,7 +56,7 @@ export const pluginRouter = router({
     .input(
       z.object({
         configId: z.int(),
-        scopeType: z.custom<PluginConfigInstatnceScopeType>(),
+        scopeType: z.custom<PluginConfigInstanceScopeType>(),
         scopeId: z.string(),
       }),
     )
@@ -83,7 +83,7 @@ export const pluginRouter = router({
     .input(
       z.object({
         configId: z.number(),
-        scopeType: z.custom<PluginConfigInstatnceScopeType>(),
+        scopeType: z.custom<PluginConfigInstanceScopeType>(),
         scopeId: z.string(),
         scopeMeta: z.json().nullable(),
         value: z.json(),

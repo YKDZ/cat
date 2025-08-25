@@ -3,22 +3,30 @@ import { PrimsaDateTime } from "../misc";
 import { FileSchema } from "./file";
 import { UserSchema } from "./user";
 import { VectorSchema } from "./vector";
+import { ProjectSchema } from "./project";
 
 export const DocumentSchema = z.object({
   id: z.ulid(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
+
+  get File() {
+    return FileSchema.optional();
+  },
+
   creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();
   },
+
+  projectId: z.string(),
+  get Project() {
+    return ProjectSchema.optional();
+  },
+
   get TranslatableElements() {
     return z.array(TranslatableElementSchema).optional();
   },
-  get File() {
-    return FileSchema.optional();
-  },
-  projectId: z.string(),
 });
 
 export const TranslatableElementSchema = z.object({
@@ -29,9 +37,15 @@ export const TranslatableElementSchema = z.object({
   embeddingId: z.int(),
   version: z.int(),
   isActive: z.boolean(),
+
   previousVersionId: z.int().nullable(),
   get Embedding() {
     return VectorSchema.optional();
+  },
+
+  documentVersionId: z.int(),
+  get DocumentVersion() {
+    return DocumentVersionSchema.optional();
   },
 });
 
@@ -40,6 +54,7 @@ export const DocumentVersionSchema = z.object({
   isActive: z.boolean(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
+
   documentId: z.ulid(),
   get Document() {
     return DocumentSchema.optional();

@@ -1,25 +1,19 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "declaration": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "target": "ES2022",
-    "outDir": "./dist",
-    "rootDir": "./"
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/*.ts",
-    "prisma/*.ts"
-  ],
-  "exclude": [
-    "dist",
-    "prisma/seed-docker.ts"
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../shared"
+    },
+    {
+      "path": "../eslint-config"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
   ]
 }

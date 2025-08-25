@@ -1,6 +1,3 @@
-// @boundaries-ignore root config inheritance
-// This script will never run in this package
-// but in built apps/app docker container where have @cat/db dependency
 import type { PrismaClient } from "@cat/db";
 import { PrismaDB, hashPassword } from "@cat/db";
 import { randomBytes } from "crypto";
@@ -72,14 +69,6 @@ const seed = async (prisma: PrismaClient) => {
   await db.ping();
 
   const prisma = db.client;
-
-  const languages = await prisma.language.findMany();
-  const storageTypes = await prisma.storageType.findMany();
-
-  if (languages.length !== 0 || storageTypes.length !== 0) {
-    console.log("Skipping seeding due to existing basic data");
-    return;
-  }
 
   await seed(prisma)
     .catch(async (e) => {

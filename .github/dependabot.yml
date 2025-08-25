@@ -41,11 +41,6 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "npm"
-    directory: "/packages/@cat-plugin/component-test"
-    schedule:
-      interval: "weekly"
-
-  - package-ecosystem: "npm"
     directory: "/packages/@cat-plugin/email-password-auth-provider"
     schedule:
       interval: "weekly"

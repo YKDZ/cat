@@ -140,6 +140,9 @@ export const translationRouter = router({
         value: z.string(),
       }),
     )
+    .output(
+      TranslationSchema.extend({ status: z.enum(["PROCESSING", "COMPLETED"]) }),
+    )
     .mutation(async ({ input, ctx }) => {
       const {
         prismaDB: { client: prisma },

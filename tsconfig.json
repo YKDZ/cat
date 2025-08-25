@@ -1,0 +1,55 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/@cat-plugin/email-password-auth-provider"
+    },
+    {
+      "path": "./packages/@cat-plugin/libretranslate-advisor"
+    },
+    {
+      "path": "./packages/@cat-plugin/alibaba-cloud-advisor"
+    },
+    {
+      "path": "./packages/@cat-plugin/google-cloud-advisor"
+    },
+    {
+      "path": "./packages/@cat-plugin/oidc-auth-provider"
+    },
+    {
+      "path": "./packages/@cat-plugin/json-file-handler"
+    },
+    {
+      "path": "./packages/@cat-plugin/ollama-vectorizer"
+    },
+    {
+      "path": "./packages/@cat-plugin/openai-vectorizer"
+    },
+    {
+      "path": "./packages/@cat-plugin/yaml-file-handler"
+    },
+    {
+      "path": "./packages/@cat-plugin/tei-vectorizer"
+    },
+    {
+      "path": "./packages/eslint-config"
+    },
+    {
+      "path": "./packages/plugin-core"
+    },
+    {
+      "path": "./packages/shared"
+    },
+    {
+      "path": "./packages/db"
+    },
+    {
+      "path": "./apps/app"
+    },
+    {
+      "path": "./apps/app-e2e"
+    }
+  ]
+}

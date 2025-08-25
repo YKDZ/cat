@@ -1,32 +1,19 @@
 <script setup lang="ts">
-import { usePageContext } from "vike-vue/usePageContext";
-import Header from "./Header.vue";
-import { ref, watch } from "vue";
-import Button from "./Button.vue";
 import { storeToRefs } from "pinia";
+import { usePageContext } from "vike-vue/usePageContext";
 import { useSidebarStore } from "../stores/sidebar";
-import { useProjectStore } from "../stores/project";
-import type { Project } from "@cat/shared";
+import Button from "./Button.vue";
+import Header from "./Header.vue";
 import ProjectBreadcrumb from "./ProjectBreadcrumb.vue";
+import type { Project } from "@cat/shared";
 
 const { isFolding } = storeToRefs(useSidebarStore());
 
 const ctx = usePageContext();
 
-const { projects } = storeToRefs(useProjectStore());
-
-const project = ref<Project | null>(null);
-
-watch(
-  () => ctx.routeParams,
-  () => {
-    project.value =
-      projects.value.find(
-        (project) => project.id === ctx.routeParams.projectId,
-      ) ?? null;
-  },
-  { immediate: true },
-);
+const props = defineProps<{
+  project: Project;
+}>();
 </script>
 
 <template>

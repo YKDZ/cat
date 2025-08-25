@@ -13,7 +13,7 @@ import type { TRPCClientError } from "@trpc/client";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
-import { computed, nextTick, reactive, ref, shallowRef } from "vue";
+import { computed, nextTick, reactive, ref } from "vue";
 import { useToastStore } from "./toast";
 import type { PartData } from "../components/tagger";
 import z from "zod";
@@ -52,12 +52,7 @@ export const useEditorStore = defineStore("editor", () => {
   const pageSize = ref(16);
   const currentPageIndex = ref(-1);
   const loadedPages = reactive(
-    new Map<
-      number,
-      {
-        elements: TranslatableElementWithStatus[];
-      }
-    >(),
+    new Map<number, TranslatableElementWithStatus[]>(),
   );
   const searchQuery = ref("");
 
@@ -65,7 +60,7 @@ export const useEditorStore = defineStore("editor", () => {
   const documentId = ref<string | null>();
   const languageFromId = ref<string | null>(null);
   const languageToId = ref<string | null>(null);
-  const translations = shallowRef<TranslationWithStatus[]>([]);
+  const translations = ref<TranslationWithStatus[]>([]);
   const document = ref<Document | null>(null);
   const elementId = ref<number | null>(null);
   const translationValue = ref<string>("");
@@ -82,14 +77,14 @@ export const useEditorStore = defineStore("editor", () => {
   const inputTextareaEl = ref<HTMLTextAreaElement | null>(null);
   const { undo, redo } = useRefHistory(translationValue);
 
-  const totalPageIndex = computed<number>(() =>
+  const totalPageIndex = computed(() =>
     Math.floor(elementTotalAmount.value / pageSize.value),
   );
 
   // 审校模式
   const isProofreading = ref(false);
 
-  const loadedPagesIndex = computed<number[]>(() => {
+  const loadedPagesIndex = computed(() => {
     return Array.from(loadedPages.keys());
   });
 
@@ -116,17 +111,17 @@ export const useEditorStore = defineStore("editor", () => {
     });
   };
 
-  const storedElements = computed<TranslatableElementWithStatus[]>(() => {
-    // @ts-expect-error: Can not resolve type excessively deep
+  const storedElements = computed(() => {
+    // @ts-expect-error unsolvable
     return [...loadedPages.entries()]
       .sort((a, b) => a[0] - b[0])
-      .flatMap(([, pageInfo]) => pageInfo.elements);
+      .flatMap(([, elements]) => elements);
   });
 
-  const displayedElements = computed<TranslatableElement[]>(() => {
-    const info = loadedPages.get(currentPageIndex.value);
-    if (!info) return [];
-    return info.elements;
+  const displayedElements = computed(() => {
+    const elements = loadedPages.get(currentPageIndex.value);
+    if (!elements) return [];
+    return elements;
   });
 
   const toElement = async (id: number) => {
@@ -168,11 +163,10 @@ export const useEditorStore = defineStore("editor", () => {
 
         if (elements.length === 0) return;
 
-        loadedPages.set(currentPageIndex.value, {
-          elements: z
-            .array(TranslatableElementWithStatusSchema)
-            .parse(elements),
-        });
+        loadedPages.set(
+          currentPageIndex.value,
+          z.array(TranslatableElementWithStatusSchema).parse(elements),
+        );
       });
   };
 
@@ -187,7 +181,7 @@ export const useEditorStore = defineStore("editor", () => {
     memories.value = [];
   };
 
-  const element = computed<TranslatableElementWithStatus | null>(() => {
+  const element = computed(() => {
     return (
       storedElements.value.find(
         (e: TranslatableElement) => e.id === elementId.value,
@@ -311,13 +305,11 @@ export const useEditorStore = defineStore("editor", () => {
   };
 
   const updateElement = (updatedElement: TranslatableElement) => {
-    for (const [, pageInfo] of loadedPages.entries()) {
-      const index = pageInfo.elements.findIndex(
-        (el) => el.id === updatedElement.id,
-      );
+    for (const [, elements] of loadedPages.entries()) {
+      const index = elements.findIndex((el) => el.id === updatedElement.id);
 
       if (index !== -1) {
-        pageInfo.elements.splice(
+        elements.splice(
           index,
           1,
           TranslatableElementWithStatusSchema.parse(updatedElement),

@@ -1,7 +1,7 @@
 import z from "zod";
 import { LanguageSchema } from "./misc";
 import { PrimsaDateTime } from "../misc";
-import { UserSchema } from "./user";
+import { UserSchema } from "./user.js";
 
 export const MemoryItemSchema = z.object({
   id: z.int(),

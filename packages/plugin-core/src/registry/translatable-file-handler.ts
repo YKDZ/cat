@@ -5,7 +5,7 @@ export interface TranslatableFileHandler {
   getId(): string;
   canExtractElement(file: File): boolean;
   extractElement(file: File, fileContent: Buffer): TranslatableElementData[];
-  canGenerateTranslated(file: File): boolean;
+  canGetReplacedFileContent(file: File): boolean;
   getReplacedFileContent(
     file: File,
     fileContent: Buffer,

@@ -53,7 +53,7 @@ export const MemorySuggestionSchema = z.object({
 
 export const UnvectorizedTextDataSchema = z.object({
   value: z.string(),
-  meta: z.json().nullable(),
+  meta: z.any().nullable(),
 });
 
 export const TermDataSchema = z.object({

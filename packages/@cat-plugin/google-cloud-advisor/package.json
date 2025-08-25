@@ -10,12 +10,12 @@
   ],
   "type": "module",
   "main": "./dist/index.cjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
