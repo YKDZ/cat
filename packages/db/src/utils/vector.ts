@@ -1,12 +1,8 @@
 import type { DefaultArgs } from "@prisma/client/runtime/client";
-import type { PrismaClientOptions } from "../generated/prisma/internal/prismaNamespace";
 import type { PrismaClient } from "../generated/prisma/client";
 
 export const insertVector = async (
-  prisma: Pick<
-    PrismaClient<PrismaClientOptions, never, DefaultArgs>,
-    "$queryRawUnsafe"
-  >,
+  prisma: Pick<PrismaClient<never, never, DefaultArgs>, "$queryRawUnsafe">,
   vector: number[],
 ): Promise<number> => {
   const ids = await insertVectors(prisma, [vector]);
@@ -16,10 +12,7 @@ export const insertVector = async (
 };
 
 export const insertVectors = async (
-  prisma: Pick<
-    PrismaClient<PrismaClientOptions, never, DefaultArgs>,
-    "$queryRawUnsafe"
-  >,
+  prisma: Pick<PrismaClient<never, never, DefaultArgs>, "$queryRawUnsafe">,
   vectors: number[][],
 ): Promise<number[]> => {
   const result = await prisma.$queryRawUnsafe<{ id: number }[]>(`

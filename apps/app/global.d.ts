@@ -5,8 +5,8 @@ import type * as Vue from "vue";
 import type {
   I18n,
   LocaleMessageValue,
+  RemovedIndexResources,
   VueMessageType,
-  RemoveIndexSignature,
 } from "vue-i18n";
 import type { ESDB, PrismaDB, RedisDB } from "@cat/db";
 
@@ -18,7 +18,7 @@ declare global {
       sessionId: string | null;
       _piniaInitState?: StateTree;
       i18n?: I18n;
-      i18nMessages?: RemoveIndexSignature<{
+      i18nMessages?: RemovedIndexResources<{
         [x: string]: LocaleMessageValue<VueMessageType>;
       }>;
     }
@@ -33,7 +33,7 @@ declare global {
     }
     interface GlobalContextServer {
       pinia?: Pinia;
-      i18nMessages?: RemoveIndexSignature<{
+      i18nMessages?: RemovedIndexResources<{
         [x: string]: LocaleMessageValue<VueMessageType>;
       }>;
     }

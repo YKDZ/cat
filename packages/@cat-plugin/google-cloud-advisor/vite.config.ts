@@ -6,18 +6,19 @@ import { builtinModules } from "node:module";
 export default defineConfig({
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"),
+      "@": resolve(import.meta.dirname, "src"),
     },
   },
 
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: resolve(import.meta.dirname, "src/index.ts"),
       formats: ["cjs"],
       fileName: () => `index.cjs`,
     },
 
     outDir: "dist",
+    emptyOutDir: true,
 
     rollupOptions: {
       external: (id) => {
@@ -36,7 +37,7 @@ export default defineConfig({
   plugins: [
     dts({
       outDir: "dist",
-      tsconfigPath: resolve(__dirname, "tsconfig.json"),
+      tsconfigPath: resolve(import.meta.dirname, "tsconfig.json"),
     }),
   ],
 });

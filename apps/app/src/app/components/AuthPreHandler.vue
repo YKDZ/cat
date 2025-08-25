@@ -7,8 +7,8 @@ import { storeToRefs } from "pinia";
 import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
 import JSONForm from "./json-form/JSONForm.vue";
-import Button from "./Button.vue";
 import type { JSONSchema } from "zod/v4/core";
+import Button from "./Button.vue";
 
 const props = defineProps<{
   method: AuthMethod;
@@ -41,12 +41,13 @@ const handlePreAuth = async () => {
         typeof passToClient.redirectURL !== "string"
       )
         navigate("/auth/callback");
-      else window.location.href = passToClient.redirectURL;
+      else navigate(passToClient.redirectURL);
     })
     .catch(trpcWarn);
 };
 
 onMounted(async () => {
+  console.log("fetching schema for", props.method);
   schema.value = await trpc.auth.queryPreAuthFormSchema.query({
     providerId: props.method.providerId,
     pluginId: props.method.pluginId,
@@ -55,16 +56,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
-    <JSONForm v-if="!isEmpty" :schema :data @update="(to) => (data = to)" />
-    <Button
-      :id="method.providerId"
-      full-width
-      :icon="method.icon"
-      @magic-click="handlePreAuth"
-      @click="handlePreAuth"
-    >
-      {{ $t("通过 {name} 登录", { name: method.name }) }}
-    </Button>
-  </div>
+  <JSONForm v-if="!isEmpty" :schema :data @update="(to) => (data = to)" />
+  <Button
+    :data-testid="method.providerId"
+    full-width
+    :icon="method.icon"
+    @magic-click="handlePreAuth"
+    @click="handlePreAuth"
+  >
+    {{ $t("通过 {name} 登录", { name: method.name }) }}
+  </Button>
 </template>

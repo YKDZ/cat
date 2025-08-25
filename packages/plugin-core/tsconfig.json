@@ -1,19 +1,22 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "declaration": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "target": "ES2022",
-    "outDir": "./dist",
-    "removeComments": false
-  },
-  "types": ["vite/client"],
-  "include": ["./src/**/*.ts"],
-  "exclude": ["dist"]
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../shared"
+    },
+    {
+      "path": "../db"
+    },
+    {
+      "path": "../eslint-config"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
 }

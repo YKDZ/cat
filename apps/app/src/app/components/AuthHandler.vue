@@ -9,13 +9,11 @@ import Loading from "@/app/components/Loading.vue";
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
 import Button from "@/app/components/Button.vue";
 import { storeToRefs } from "pinia";
-import { useToastStore } from "../stores/toast";
 import type { JSONSchema } from "zod/v4/core";
 import type { JSONType } from "@cat/shared";
 
 const ctx = usePageContext();
 const { error, authMethod } = storeToRefs(useAuthStore());
-const { warn, info, trpcWarn } = useToastStore();
 const schema = ref<JSONSchema.JSONSchema>({});
 const data = shallowRef<JSONType>({});
 

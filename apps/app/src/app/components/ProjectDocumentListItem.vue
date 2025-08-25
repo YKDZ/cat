@@ -8,6 +8,7 @@ import Button from "./Button.vue";
 import Icon from "./Icon.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
+import { navigate } from "vike/client/router";
 
 const props = defineProps<{
   document: Document;
@@ -52,7 +53,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <TableRow class="cursor-pointer hover:bg-highlight-darker">
+  <TableRow
+    class="cursor-pointer hover:bg-highlight-darker"
+    @click="navigate(`/document/${document.id}`)"
+  >
     <TableCell>{{ document.File?.originName }}</TableCell>
     <TableCell>
       <span v-if="translatableEleAmounts.get(document.id) === -1"

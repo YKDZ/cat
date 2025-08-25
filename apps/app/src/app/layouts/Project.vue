@@ -15,25 +15,26 @@ const project = ref<Project | null>(null);
 
 provide(projectKey, project);
 
-const { projects } = storeToRefs(useProjectStore());
+const { projects } = useProjectStore();
 
-watch(
-  () => ctx.routeParams,
-  () => {
-    project.value =
-      projects.value.find(
-        (project) => project.id === ctx.routeParams.projectId,
-      ) ?? null;
-  },
-  { immediate: true },
-);
+const updateProject = () => {
+  project.value =
+    projects.find((project) => project.id === ctx.routeParams.projectId) ??
+    null;
+};
+
+watch(() => ctx.routeParams, updateProject, { immediate: true });
+
+watch(storeToRefs(useProjectStore()).projects, updateProject, {
+  immediate: true,
+});
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full md:flex-row">
     <IndexSidebar />
     <div class="flex flex-col h-full w-full overflow-y-auto">
-      <ProjectHeader />
+      <ProjectHeader v-if="project" :project />
       <!-- Content -->
       <div class="p-4 pt-0 flex flex-col">
         <ProjectNavbar />

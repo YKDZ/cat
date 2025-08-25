@@ -42,7 +42,7 @@ export const PermissionSchema = z.object({
 export const RolePermissionSchema = z.object({
   id: z.int(),
   isAllowed: z.boolean(),
-  conditions: z.json().nullable(),
+  conditions: z.any().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
 
@@ -59,7 +59,7 @@ export const RolePermissionSchema = z.object({
 
 export const UserRoleSchema = z.object({
   id: z.int(),
-  scope: z.json().nullable(),
+  scope: z.any().nullable(),
   isEnabled: z.boolean(),
   expiresAt: PrimsaDateTime.nullable(),
   createdAt: PrimsaDateTime,

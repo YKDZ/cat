@@ -1,34 +1,30 @@
 {
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
   "compilerOptions": {
-    "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "module": "ESNext",
-    "noEmit": true,
-    "moduleResolution": "Bundler",
-    "target": "ES2022",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext",
-    ],
-    "types": [
-      "vite/client",
-      "vitest/globals"
-    ],
-    "jsx": "react-jsx",
-    "jsxImportSource": "vue",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "exclude": [
-    "dist"
+  "references": [
+    {
+      "path": "../../packages/db"
+    },
+    {
+      "path": "../../packages/plugin-core"
+    },
+    {
+      "path": "../../packages/shared"
+    },
+    {
+      "path": "../../packages/eslint-config"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
   ]
 }

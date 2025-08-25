@@ -16,13 +16,10 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "vike dev",
+    "dev": "cross-env NODE_ENV=development && vike dev",
     "build": "vike build",
-    "preview": "vike preview",
     "start": "cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
-    "test": "nx vite:test --typecheck",
-    "test:type": "tsc --noEmit & vue-tsc --noEmit",
     "format": "prettier --write .",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat",
@@ -37,15 +34,14 @@
     "@elastic/elasticsearch": "^9.1.1",
     "@hono/node-server": "^1.19.0",
     "@pinia/testing": "^1.0.2",
-    "@prisma/adapter-pg": "^6.13.0",
-    "@prisma/client": "6.13.0",
+    "@prisma/adapter-pg": "^6.14.0",
+    "@prisma/client": "6.14.0",
     "@tanstack/vue-table": "^8.21.3",
-    "@trpc/client": "^11.4.4",
-    "@trpc/server": "^11.4.4",
+    "@trpc/client": "^11.5.0",
+    "@trpc/server": "^11.5.0",
     "@vueuse/components": "^13.6.0",
     "@vueuse/core": "^13.7.0",
     "@vueuse/integrations": "^13.6.0",
-    "@wdns/vue-code-block": "^2.3.5",
     "bullmq": "^5.58.0",
     "diff": "^8.0.2",
     "dotenv": "^17.2.1",
@@ -57,16 +53,16 @@
     "pinia-plugin-persistedstate": "^4.5.0",
     "pino": "^9.7.0",
     "pino-http": "^10.5.0",
-    "prisma": "6.13.0",
+    "prisma": "6.14.0",
     "tar": "^7.4.3",
     "universal-cookie": "^8.0.1",
-    "vike": "^0.4.236",
-    "vike-server": "^1.0.22",
+    "vike": "^0.4.237",
+    "vike-server": "^1.0.23",
     "vike-vue": "^0.9.2",
     "vue": "^3.5.18",
     "vue-i18n": "^11.1.11",
     "vue-tsc": "^3.0.5",
-    "zod": "^4.0.17"
+    "zod": "^4.1.1"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
@@ -82,6 +78,6 @@
     "cross-env": "^10.0.0",
     "happy-dom": "^18.0.1",
     "typescript-eslint": "^8.39.1",
-    "unocss": "^66.4.1"
+    "unocss": "^66.4.2"
   }
 }

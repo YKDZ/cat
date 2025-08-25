@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import Loading from "./Loading.vue";
 import MagicKeys from "./magickey/MagicKeys.vue";
 import { storeToRefs } from "pinia";
 import { useProfileStore } from "../stores/profile";
@@ -90,8 +89,7 @@ const dynIconClasses = computed(() => {
     class="rounded-md flex gap-1 select-none items-center"
     :class="dynBtnClasses"
   >
-    <div v-if="icon && !isProcessing" :class="dynIconClasses" />
-    <Loading v-else-if="isProcessing" size="1rem" />
+    <span v-if="icon" :class="dynIconClasses" />
     <span v-if="!noText" class="font-bold text-nowrap" :class="dynTextClasses">
       <slot />
     </span>

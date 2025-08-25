@@ -61,13 +61,13 @@ model PluginConfig {
 }
 
 model PluginConfigInstance {
-    id        Int                            @id @default(autoincrement())
+    id        Int                           @id @default(autoincrement())
     value     Json
-    scopeType PluginConfigInstatnceScopeType
+    scopeType PluginConfigInstanceScopeType
     scopeId   String
     scopeMeta Json?
-    createdAt DateTime                       @default(now())
-    updatedAt DateTime                       @default(now()) @updatedAt
+    createdAt DateTime                      @default(now())
+    updatedAt DateTime                      @default(now()) @updatedAt
 
     creatorId String?
     Creator   User?   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -98,7 +98,7 @@ model PluginComponent {
     @@unique([id, pluginId])
 }
 
-enum PluginConfigInstatnceScopeType {
+enum PluginConfigInstanceScopeType {
     GLOBAL
     USER
     PROJECT

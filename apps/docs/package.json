@@ -3,10 +3,6 @@
   "version": "0.1.0",
   "type": "module",
   "license": "GPL-3.0-only",
-  "prisma": {
-    "schema": "./prisma",
-    "seed": "tsx prisma/seed-docker.ts"
-  },
   "scripts": {
     "dev": "vitepress dev docs",
     "build": "vitepress build docs",

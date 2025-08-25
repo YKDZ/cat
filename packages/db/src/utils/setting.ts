@@ -20,7 +20,7 @@ export const settings = async (
   prefix: string,
   prisma: Pick<PrismaClient, "setting">,
 ): Promise<Record<string, unknown>> => {
-  const datas = await prisma.setting.findMany({
+  const data = await prisma.setting.findMany({
     where: {
       key: {
         startsWith: prefix,
@@ -33,7 +33,7 @@ export const settings = async (
   });
 
   const settings: Record<string, unknown> = {};
-  datas.forEach(({ key, value }) => {
+  data.forEach(({ key, value }) => {
     settings[key] = value;
   });
   return settings;

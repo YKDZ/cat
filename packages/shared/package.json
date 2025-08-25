@@ -11,10 +11,10 @@
   "type": "module",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js"
     }
@@ -23,8 +23,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "nx vite:build",
-    "test": "nx vite:test --typecheck",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
@@ -33,6 +32,6 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "zod": "^4.0.17"
+    "zod": "^4.1.1"
   }
 }

@@ -1,5 +1,5 @@
-<script setup>
-import { computed, ref, onMounted, onUnmounted } from "vue";
+<script setup lang="ts">
+import { computed, ref } from "vue";
 
 const props = defineProps({
   size: {
@@ -20,25 +20,7 @@ const props = defineProps({
   },
 });
 
-const containerRef = ref(null);
 const containerSize = ref(0);
-
-onMounted(() => {
-  if (props.size === "auto") {
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        containerSize.value = Math.min(width, height);
-      }
-    });
-    if (containerRef.value) {
-      observer.observe(containerRef.value);
-    }
-    onUnmounted(() => {
-      observer.disconnect();
-    });
-  }
-});
 
 const parsedSize = computed(() => {
   if (props.size === "auto") {

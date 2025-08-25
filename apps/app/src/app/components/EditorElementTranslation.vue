@@ -12,7 +12,7 @@ import EditorElementTranslationApprovementBtn from "./EditorElementTranslationAp
 import { useDateFormat } from "@vueuse/core";
 import Icon from "./Icon.vue";
 
-const { translationValue, selectedTranslationId, isProofreading } =
+const { translationValue, selectedTranslationId } =
   storeToRefs(useEditorStore());
 const { user } = usePageContext();
 
@@ -31,15 +31,6 @@ const handleSelect = () => {
     return;
   } else selectedTranslationId.value = null;
 };
-
-const isApproved = computed(() => {
-  if (!props.translation.Approvements) return false;
-  return (
-    props.translation.Approvements.findIndex(
-      (approvment) => approvment.isActive,
-    ) !== -1
-  );
-});
 
 const approvement = computed(() => {
   if (!props.translation.Approvements) return null;

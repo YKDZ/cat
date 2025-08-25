@@ -1,8 +1,9 @@
 import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { useStorage } from "@/server/utils/storage/useStorage";
-import type { PrismaError } from "@cat/shared";
+import type { JSONType, PrismaError } from "@cat/shared";
 import {
   DocumentSchema,
+  DocumentVersionSchema,
   ElementTranslationStatusSchema,
   FileMetaSchema,
   FileSchema,
@@ -503,7 +504,7 @@ export const documentRouter = router({
 
       const handler = (await pluginRegistry.getTranslatableFileHandlers(prisma))
         .map((d) => d.handler)
-        .find((handler) => handler.canGenerateTranslated(document.File!));
+        .find((handler) => handler.canGetReplacedFileContent(document.File!));
 
       if (!handler)
         throw new TRPCError({
@@ -852,5 +853,102 @@ export const documentRouter = router({
           id,
         },
       });
+    }),
+  getDocumentVersions: authedProcedure
+    .input(
+      z.object({
+        documentId: z.ulid(),
+      }),
+    )
+    .output(z.array(DocumentVersionSchema))
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
+      const { documentId } = input;
+
+      return z.array(DocumentVersionSchema).parse(
+        await prisma.documentVersion.findMany({
+          where: {
+            documentId,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+      );
+    }),
+  getDocumentContent: authedProcedure
+    .input(
+      z.object({
+        documentId: z.ulid(),
+        documentVersionId: z.number().int().optional(),
+      }),
+    )
+    .output(z.string())
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+        pluginRegistry,
+        user,
+      } = ctx;
+      const { documentId, documentVersionId } = input;
+
+      const document = await prisma.document.findUnique({
+        where: {
+          id: documentId,
+          Versions: {
+            some: {
+              id: documentVersionId,
+            },
+          },
+        },
+        select: {
+          File: true,
+        },
+      });
+
+      if (!document || !document.File)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Document with given version and id does not exists",
+        });
+
+      const handler = (
+        await pluginRegistry.getTranslatableFileHandlers(prisma, {
+          userId: user.id,
+        })
+      ).find(({ handler }) =>
+        handler.canGetReplacedFileContent(document.File!),
+      );
+
+      if (!handler) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "没有可以处理这种文件的文件解析器",
+        });
+      }
+
+      const storage = (await useStorage()).storage;
+      const content = await storage.getContent(document.File);
+
+      const elements = await prisma.translatableElement.findMany({
+        where: {
+          documentId,
+          documentVersionId,
+          isActive: !documentVersionId ? true : undefined,
+        },
+      });
+
+      return (
+        await handler.handler.getReplacedFileContent(
+          document.File,
+          content,
+          elements.map(({ value, meta }) => ({
+            value,
+            meta: meta as JSONType,
+          })),
+        )
+      ).toString();
     }),
 });

@@ -4,12 +4,15 @@
     "sharedGlobals": [
       "{workspaceRoot}/.env",
       "{workspaceRoot}/tsconfig.json",
+      "{workspaceRoot}/vite.config.ts",
+      "{workspaceRoot}/package.json",
       "{workspaceRoot}/*.d.ts",
       "{workspaceRoot}/*.config.ts",
       "{workspaceRoot}/src/**/*.ts"
     ],
     "default": ["{projectRoot}/**/*", "sharedGlobals"]
   },
+  "useDaemonProcess": true,
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
@@ -23,20 +26,6 @@
     }
   },
   "plugins": [
-    {
-      "plugin": "@nx/vite/plugin",
-      "options": {
-        "buildTargetName": "vite:build",
-        "testTargetName": "vite:test",
-        "serveTargetName": "serve",
-        "devTargetName": "vite:dev",
-        "previewTargetName": "vite:preview",
-        "serveStaticTargetName": "serve-static",
-        "typecheckTargetName": "typecheck",
-        "buildDepsTargetName": "build-deps",
-        "watchDepsTargetName": "watch-deps"
-      }
-    },
     {
       "plugin": "@nx/js/typescript",
       "options": {
