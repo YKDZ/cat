@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "cross-env": "^10.0.0",
-    "vue": "^3.5.16"
+    "vue": "^3.5.20"
   },
   "devDependencies": {
     "vitepress": "^1.6.4",
