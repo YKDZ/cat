@@ -7,7 +7,8 @@
     "plugins",
     "dist",
     "node_modules",
-    "package.json"
+    "package.json",
+    "locales"
   ],
   "prisma": {
     "seed": "tsx prisma/seed-docker.ts"
@@ -16,8 +17,9 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development && vike dev",
+    "dev": "cross-env NODE_ENV=development vike dev",
     "build": "vike build",
+    "preview": "cross-env NODE_ENV=production node dist/server/index.js",
     "start": "cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
     "format": "prettier --write .",

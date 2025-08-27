@@ -32,6 +32,7 @@ const hydrateI18n = async (ctx: PageContextClient) => {
     missingWarn: false,
     fallbackWarn: false,
     formatFallbackMessages: true,
+    globalInjection: true,
   });
   ctx.i18n = i18n;
 

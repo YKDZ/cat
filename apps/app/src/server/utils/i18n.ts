@@ -14,6 +14,7 @@ export const setupI18n = () =>
     missingWarn: false,
     fallbackWarn: false,
     formatFallbackMessages: true,
+    globalInjection: true,
   });
 
 export const loadLocaleMessagesInServerSide = async (

@@ -4,13 +4,15 @@ import { pinoHttp } from "pino-http";
 export const pinoLoggerMiddleware = createMiddleware(async (c, next) => {
   c.env.incoming.id = c.var.requestId;
 
-  await new Promise<void>((resolve) =>
-    pinoHttp({
-      level: "debug",
-      quietResLogger: true,
-      quietReqLogger: true,
-    })(c.env.incoming, c.env.outgoing, () => resolve()),
-  );
+  if (process.env.NODE_ENV === "production") {
+    await new Promise<void>((resolve) =>
+      pinoHttp({
+        level: "debug",
+        quietResLogger: true,
+        quietReqLogger: true,
+      })(c.env.incoming, c.env.outgoing, () => resolve()),
+    );
+  }
 
   c.set("logger", c.env.incoming.log);
 

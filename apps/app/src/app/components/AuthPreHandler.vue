@@ -34,20 +34,19 @@ const handlePreAuth = async () => {
         formData: data.value,
       },
     })
-    .then((passToClient) => {
+    .then(async (passToClient) => {
       if (
         !passToClient ||
         !passToClient.redirectURL ||
         typeof passToClient.redirectURL !== "string"
       )
-        navigate("/auth/callback");
-      else navigate(passToClient.redirectURL);
+        await navigate("/auth/callback");
+      else await navigate(passToClient.redirectURL);
     })
     .catch(trpcWarn);
 };
 
 onMounted(async () => {
-  console.log("fetching schema for", props.method);
   schema.value = await trpc.auth.queryPreAuthFormSchema.query({
     providerId: props.method.providerId,
     pluginId: props.method.pluginId,
@@ -58,10 +57,10 @@ onMounted(async () => {
 <template>
   <JSONForm v-if="!isEmpty" :schema :data @update="(to) => (data = to)" />
   <Button
+    id="test"
     :data-testid="method.providerId"
     full-width
     :icon="method.icon"
-    @magic-click="handlePreAuth"
     @click="handlePreAuth"
   >
     {{ $t("通过 {name} 登录", { name: method.name }) }}
