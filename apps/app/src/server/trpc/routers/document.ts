@@ -303,6 +303,7 @@ export const documentRouter = router({
     }),
   query: authedProcedure
     .input(z.object({ id: z.string() }))
+    .output(DocumentSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -403,6 +404,7 @@ export const documentRouter = router({
         isTranslated: z.boolean().optional(),
       }),
     )
+    .output(TranslatableElementSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -474,6 +476,7 @@ export const documentRouter = router({
         languageId: z.string(),
       }),
     )
+    .output(z.void())
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -842,6 +845,7 @@ export const documentRouter = router({
         id: z.ulid(),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

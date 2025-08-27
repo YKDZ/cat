@@ -16,9 +16,9 @@ const { info, trpcWarn } = useToastStore();
 const handleDelete = async () => {
   await trpc.plugin.delete
     .mutate({ id: props.id })
-    .then(() => {
+    .then(async () => {
       info(`成功删除插件 ${props.id}`);
-      navigate(`/plugins`);
+      await navigate(`/plugins`);
     })
     .catch(trpcWarn);
 };

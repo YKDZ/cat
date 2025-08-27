@@ -20,6 +20,7 @@ export const memoryRouter = router({
         projectIds: z.array(z.ulid()).optional(),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -129,6 +130,7 @@ export const memoryRouter = router({
         userId: z.ulid(),
       }),
     )
+    .output(z.array(MemorySchema))
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -150,6 +152,7 @@ export const memoryRouter = router({
         id: z.ulid(),
       }),
     )
+    .output(MemorySchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -219,6 +222,7 @@ export const memoryRouter = router({
         ids: z.array(z.int()),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

@@ -1,6 +1,5 @@
 import z from "zod";
 import { PrimsaDateTime } from "../misc";
-import type { JSONSchema } from "zod/v4/core";
 import { UserSchema } from "./user";
 
 export const PluginTagSchema = z.object({
@@ -14,7 +13,7 @@ export const PluginConfigSchema = z.object({
   id: z.int(),
   key: z.string(),
   overridable: z.boolean().default(false),
-  schema: z.custom<JSONSchema.JSONSchema>(),
+  schema: z.json(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   pluginId: z.string(),

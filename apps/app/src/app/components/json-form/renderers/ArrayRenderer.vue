@@ -3,7 +3,6 @@ import { computed, inject, ref, shallowRef, watch } from "vue";
 import { schemaKey } from "..";
 import JSONForm from "../JSONForm.vue";
 import Button from "../../Button.vue";
-import type { JSONSchema } from "zod/v4/core";
 import type { JSONType } from "@cat/shared";
 
 const props = defineProps<{
@@ -23,12 +22,12 @@ const value = shallowRef<JSONType[]>(props.data);
 
 const itemsSchema = computed(() => {
   // Draft 2020-12 以后 items 不再能是数组
-  return schema.items as JSONSchema.JSONSchema;
+  return schema.items as z.infer<typeof z.json>;
 });
 
 const prefixItemsSchemas = computed(() => {
   return schema.prefixItems
-    ? (schema.prefixItems as JSONSchema.JSONSchema[])
+    ? (schema.prefixItems as z.infer<typeof z.json>[])
     : [];
 });
 

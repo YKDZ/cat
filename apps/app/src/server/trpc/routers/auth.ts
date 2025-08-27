@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 import { publicProcedure, router } from "../server";
-import type { JSONSchema } from "zod/v4/core";
 import type { InputJsonValue } from "@prisma/client/runtime/client";
 
 export const authRouter = router({
@@ -14,7 +13,7 @@ export const authRouter = router({
         providerId: z.string(),
       }),
     )
-    .output(z.custom<JSONSchema.JSONSchema>())
+    .output(z.json())
     .query(async ({ ctx, input }) => {
       const {
         pluginRegistry,
@@ -34,7 +33,7 @@ export const authRouter = router({
 
       if (typeof provider.getPreAuthFormSchema !== "function") return {};
 
-      return provider.getPreAuthFormSchema();
+      return z.json().parse(provider.getPreAuthFormSchema());
     }),
   preAuth: publicProcedure
     .input(
@@ -104,7 +103,7 @@ export const authRouter = router({
         providerId: z.string(),
       }),
     )
-    .output(z.custom<JSONSchema.JSONSchema>())
+    .output(z.json())
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -124,7 +123,7 @@ export const authRouter = router({
 
       if (typeof provider.getAuthFormSchema !== "function") return {};
 
-      return provider.getAuthFormSchema();
+      return z.json().parse(provider.getAuthFormSchema());
     }),
   auth: publicProcedure
     .input(
@@ -135,6 +134,7 @@ export const authRouter = router({
         }),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         redisDB: { redis },
@@ -252,7 +252,7 @@ export const authRouter = router({
 
       setCookie("sessionId", sessionId);
     }),
-  logout: publicProcedure.mutation(async ({ ctx }) => {
+  logout: publicProcedure.output(z.void()).mutation(async ({ ctx }) => {
     const {
       prismaDB: { client: prisma },
       redisDB: { redis },

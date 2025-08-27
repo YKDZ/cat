@@ -11,18 +11,18 @@ const { info, trpcWarn } = useToastStore();
 
 const isProcessing = ref<boolean>(false);
 
-const handleLogout = () => {
+const handleLogout = async () => {
   if (isProcessing.value) return;
 
   isProcessing.value = true;
   info(t("登出中..."));
 
-  trpc.auth.logout
+  await trpc.auth.logout
     .mutate()
-    .then(() => {
+    .then(async () => {
       info(t("登出成功"));
       info(t("即将前往主界面..."));
-      navigate("/");
+      await navigate("/");
     })
     .catch(trpcWarn)
     .finally(() => (isProcessing.value = false));

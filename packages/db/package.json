@@ -2,10 +2,10 @@
   "name": "@cat/db",
   "version": "0.1.0",
   "type": "module",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
@@ -19,7 +19,9 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*",
+    "@cat/eslint-config": "workspace:*"
+  },
+  "peerDependencies": {
     "dotenv": "^17.2.1",
     "prisma": "6.14.0",
     "zod": "^4.1.1",

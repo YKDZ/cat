@@ -111,7 +111,7 @@ importers:
         version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../packages/shared
       '@elastic/elasticsearch':
         specifier: ^9.1.1
         version: 9.1.1
@@ -269,7 +269,7 @@ importers:
         version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../packages/shared
       '@playwright/test':
         specifier: ^1.54.2
         version: 1.54.2
@@ -294,35 +294,51 @@ importers:
         version: 1.6.4(@algolia/client-search@5.34.1)(@types/node@24.2.1)(axios@1.11.0)(postcss@8.5.6)(search-insights@2.17.3)(typescript@5.9.2)
 
   packages/@cat-plugin/alibaba-cloud-advisor:
-    devDependencies:
-      '@cat/eslint-config':
+    dependencies:
+      '@cat/db':
         specifier: workspace:*
-        version: link:../../eslint-config
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
 
   packages/@cat-plugin/email-password-auth-provider:
     dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
       zod:
         specifier: ^4.1.1
         version: 4.1.1
     devDependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../eslint-config
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
 
   packages/@cat-plugin/google-cloud-advisor:
     dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
       '@google-cloud/translate':
         specifier: ^9.0.1
         version: 9.2.0
@@ -330,104 +346,120 @@ importers:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../eslint-config
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: file:packages/shared
 
   packages/@cat-plugin/json-file-handler:
     dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../shared
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../eslint-config
 
   packages/@cat-plugin/libretranslate-advisor:
-    devDependencies:
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../../eslint-config
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: file:packages/shared
-
-  packages/@cat-plugin/oidc-auth-provider:
     dependencies:
-      jose:
-        specifier: ^6.0.13
-        version: 6.0.13
-    devDependencies:
       '@cat/db':
         specifier: workspace:*
         version: link:../../db
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../../eslint-config
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+
+  packages/@cat-plugin/oidc-auth-provider:
+    dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      jose:
+        specifier: ^6.0.13
+        version: 6.0.13
       zod:
         specifier: ^4.1.1
         version: 4.1.1
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
 
   packages/@cat-plugin/ollama-vectorizer:
-    devDependencies:
-      '@cat/eslint-config':
+    dependencies:
+      '@cat/db':
         specifier: workspace:*
-        version: link:../../eslint-config
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
 
   packages/@cat-plugin/openai-vectorizer:
-    devDependencies:
-      '@cat/eslint-config':
+    dependencies:
+      '@cat/db':
         specifier: workspace:*
-        version: link:../../eslint-config
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
 
   packages/@cat-plugin/tei-vectorizer:
-    devDependencies:
-      '@cat/eslint-config':
+    dependencies:
+      '@cat/db':
         specifier: workspace:*
-        version: link:../../eslint-config
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
 
   packages/@cat-plugin/yaml-file-handler:
     dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../../shared
       yaml:
         specifier: ^2.8.1
         version: 2.8.1
@@ -437,16 +469,13 @@ importers:
         version: link:../../eslint-config
 
   packages/db:
-    devDependencies:
+    dependencies:
       '@aws-sdk/client-s3':
         specifier: ^3.873.0
         version: 3.876.0
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../shared
       '@elastic/elasticsearch':
         specifier: ^9.1.1
         version: 9.1.1
@@ -468,6 +497,10 @@ importers:
       zod:
         specifier: ^4.1.1
         version: 4.1.1
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
 
   packages/eslint-config:
     devDependencies:
@@ -507,38 +540,38 @@ importers:
 
   packages/plugin-core:
     dependencies:
-      lodash-es:
-        specifier: ^4.17.21
-        version: 4.17.21
-    devDependencies:
       '@cat/db':
         specifier: workspace:*
         version: link:../db
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared
+        version: link:../shared
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.17.21
       zod:
         specifier: ^4.1.1
         version: 4.1.1
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
 
   packages/shared:
     dependencies:
       pino:
         specifier: ^9.8.0
         version: 9.8.0
+      zod:
+        specifier: ^4.1.1
+        version: 4.1.1
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      zod:
-        specifier: ^4.1.1
-        version: 4.1.1
 
 packages:
 
@@ -1334,9 +1367,6 @@ packages:
 
   '@brillout/vite-plugin-server-entry@0.7.12':
     resolution: {integrity: sha512-yh+tsIl2qpStgj1JofxC6tb1WoDYHGnth7XZtHou5baRkBE7DgmoCRIE+kw6S3511KwCMOcuBQSUszrYg5dLUw==}
-
-  '@cat/shared@file:packages/shared':
-    resolution: {directory: packages/shared, type: directory}
 
   '@cspell/cspell-bundled-dicts@9.2.0':
     resolution: {integrity: sha512-e4qb78SQWqHkRw47W8qFJ3RPijhSLkADF+T0oH8xl3r/golq1RGp2/KrWOqGRRofUSTiIKYqaMX7mbAyFnOxyA==}
@@ -5502,10 +5532,6 @@ packages:
     resolution: {integrity: sha512-L5+rV1wL7vGAcxXP7sPpN5lrJ07Piruka6ArXr7EWBXxdVWjJshGVX8suFsiusJVcGKDGUFfbgbnKdg+VAC+0g==}
     hasBin: true
 
-  pino@9.9.0:
-    resolution: {integrity: sha512-zxsRIQG9HzG+jEljmvmZupOMDUQ0Jpj0yAgE28jQvvrdYTlEaiGwelJpdndMl/MBuRr70heIj83QyqJUWaU8mQ==}
-    hasBin: true
-
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
@@ -7867,10 +7893,6 @@ snapshots:
     dependencies:
       '@brillout/import': 0.2.6
       '@brillout/picocolors': 1.0.28
-
-  '@cat/shared@file:packages/shared':
-    dependencies:
-      pino: 9.9.0
 
   '@cspell/cspell-bundled-dicts@9.2.0':
     dependencies:
@@ -12658,20 +12680,6 @@ snapshots:
   pino-std-serializers@7.0.0: {}
 
   pino@9.8.0:
-    dependencies:
-      atomic-sleep: 1.0.0
-      fast-redact: 3.5.0
-      on-exit-leak-free: 2.1.2
-      pino-abstract-transport: 2.0.0
-      pino-std-serializers: 7.0.0
-      process-warning: 5.0.0
-      quick-format-unescaped: 4.0.4
-      real-require: 0.2.0
-      safe-stable-stringify: 2.5.0
-      sonic-boom: 4.2.0
-      thread-stream: 3.1.0
-
-  pino@9.9.0:
     dependencies:
       atomic-sleep: 1.0.0
       fast-redact: 3.5.0

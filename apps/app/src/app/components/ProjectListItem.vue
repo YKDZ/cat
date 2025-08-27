@@ -8,8 +8,8 @@ const props = defineProps<{
   project: Project;
 }>();
 
-const handleCheck = () => {
-  navigate(`/project/${props.project.id}`);
+const handleCheck = async () => {
+  await navigate(`/project/${props.project.id}`);
 };
 </script>
 

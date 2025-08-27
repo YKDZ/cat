@@ -11,9 +11,10 @@ import cspellWords from "./cspell.words.json" assert { type: "json" };
 
 export default tseslint.config(
   {
-    ignores: ["dist/**/*", "generated/prisma/**/*", "*.js", "*.cjs"],
+    ignores: ["**/dist/**/*", "**/generated/prisma/**", "*.js", "*.cjs"],
     languageOptions: {
       parserOptions: {
+        projectServices: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },

@@ -3,8 +3,8 @@ import NewProjectCard from "@/app/components/NewProjectCard.vue";
 import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
 import { navigate } from "vike/client/router";
 
-const handleClick = () => {
-  navigate(`/init/file`);
+const handleClick = async () => {
+  await navigate(`/init/file`);
 };
 </script>
 

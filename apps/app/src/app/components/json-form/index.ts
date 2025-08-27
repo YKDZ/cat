@@ -5,13 +5,12 @@ import BooleanRenderer from "./renderers/BooleanRenderer.vue";
 import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import ArrayRenderer from "./renderers/ArrayRenderer.vue";
-import type { JSONSchema } from "zod/v4/core";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
 
-export const schemaKey = Symbol() as InjectionKey<JSONSchema.JSONSchema>;
+export const schemaKey = Symbol() as InjectionKey<z.infer<typeof z.json>>;
 
 export type RendererMatcherContext = {
-  schema: JSONSchema.JSONSchema;
+  schema: z.infer<typeof z.json>;
 };
 
 export type Renderer = {

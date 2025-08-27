@@ -12,6 +12,12 @@ const props = defineProps<{
 }>();
 
 const project = inject(projectKey);
+
+const handleCheck = async () => {
+  if (!project || !project.value) return;
+
+  await navigate(`/project/${project.value.id}/${props.language.id}`);
+};
 </script>
 
 <template>
@@ -19,7 +25,7 @@ const project = inject(projectKey);
     v-if="project"
     :key="language.id"
     class="cursor-pointer hover:bg-highlight-darker"
-    @click="navigate(`/project/${project.id}/${language.id}`)"
+    @click="handleCheck"
   >
     <TableCell>{{ language.name }}</TableCell>
     <TableCell>

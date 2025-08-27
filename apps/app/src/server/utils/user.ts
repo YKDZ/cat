@@ -14,8 +14,8 @@ export const userFromSessionId = async (
 
   const { client: prisma } = await getPrismaDB();
 
-  return await prisma.user
-    .findFirst({
+  return UserSchema.nullable().parse(
+    await prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -36,9 +36,6 @@ export const userFromSessionId = async (
         ReadableLanguages: true,
         WritableLanguages: true,
       },
-    })
-    .then((user) => {
-      return UserSchema.parse(user);
-    })
-    .catch(() => null);
+    }),
+  );
 };

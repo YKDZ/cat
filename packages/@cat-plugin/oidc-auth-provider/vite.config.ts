@@ -35,9 +35,7 @@ export default defineConfig({
 
   plugins: [
     dts({
-      outDir: "dist/types",
       tsconfigPath: resolve(import.meta.dirname, "tsconfig.lib.json"),
-      insertTypesEntry: true,
     }),
   ],
 });

@@ -257,7 +257,7 @@ export const useEditorStore = defineStore("editor", () => {
     if (!firstUntranslatedElement) return;
 
     await toElement(firstUntranslatedElement.id);
-    navigate(
+    await navigate(
       `/editor/${documentId.value}/${languageFromId.value}-${languageToId.value}/${firstUntranslatedElement.id}`,
     );
   };

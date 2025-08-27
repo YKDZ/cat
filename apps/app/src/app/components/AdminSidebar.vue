@@ -40,6 +40,10 @@ const items = ref([
     text: t("插件"),
   },
 ]);
+
+const handleNavigate = async (path: string) => {
+  await navigate(path);
+};
 </script>
 
 <template>
@@ -68,7 +72,7 @@ const items = ref([
             transparent
             left
             :icon="item.icon"
-            @click="navigate(item.path)"
+            @click="handleNavigate(item.path)"
           >
             {{ item.text }}
           </Button>

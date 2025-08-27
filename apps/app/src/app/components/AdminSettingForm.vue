@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { JSONSchema } from "zod/v4/core";
 import { trpc } from "@/server/trpc/client";
 import type { JSONType } from "@cat/shared";
 import SettingForm from "./SettingForm.vue";
 
 const props = defineProps<{
-  schema: JSONSchema.JSONSchema;
+  schema: z.infer<typeof z.json>;
 }>();
 
 const configSetter = async (updated: Map<string, JSONType>) => {

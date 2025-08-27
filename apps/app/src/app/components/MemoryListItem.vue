@@ -21,8 +21,8 @@ const props = defineProps<{
   memory: Memory;
 }>();
 
-const handleCheck = () => {
-  navigate(`/memory/${props.memory.id}`);
+const handleCheck = async () => {
+  await navigate(`/memory/${props.memory.id}`);
 };
 
 watch(

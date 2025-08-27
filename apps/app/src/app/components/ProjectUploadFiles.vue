@@ -77,13 +77,10 @@ const removeFile = async (file: TempFile) => {
 };
 
 const uploadAll = async () => {
-  files.value
-    .filter(
-      (file) => file.status !== "completed" && file.status !== "processing",
-    )
-    .forEach(async (file) => {
-      await upload(file);
-    });
+  for (const file of files.value) {
+    if (!(file.status !== "completed" && file.status !== "processing")) return;
+    await upload(file);
+  }
 };
 
 const upload = async (tempFile: TempFile) => {

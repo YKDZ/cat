@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "types": ["vite/client", "vitest/globals"],
     "rootDir": "src",
     "lib": ["ESNext", "DOM"],
     "jsx": "preserve",

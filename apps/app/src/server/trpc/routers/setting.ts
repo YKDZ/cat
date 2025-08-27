@@ -12,6 +12,7 @@ export const settingRouter = router({
         }),
       ),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

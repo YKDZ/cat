@@ -2,7 +2,6 @@
 import { onBeforeMount, shallowReactive, shallowRef } from "vue";
 import type { JSONType } from "@cat/shared";
 import JSONForm from "./json-form/JSONForm.vue";
-import type { JSONSchema } from "zod/v4/core";
 import Button from "./Button.vue";
 import { useI18n } from "vue-i18n";
 
@@ -11,7 +10,7 @@ const { t } = useI18n();
 const props = defineProps<{
   configGetter: (key: string) => Promise<JSONType>;
   configSetter: (updated: Map<string, JSONType>) => Promise<void>;
-  schema: JSONSchema.JSONSchema;
+  schema: z.infer<typeof z.json>;
 }>();
 
 const data = shallowRef<JSONType>({});
@@ -29,7 +28,7 @@ const handleUpdate = (value: JSONType, key?: string) => {
 
 // 不处理递归
 const dataFromSchema = async (
-  schema: JSONSchema.JSONSchema,
+  schema: z.infer<typeof z.json>,
 ): Promise<JSONType> => {
   if (schema.type !== "object" || !schema.properties) return {};
 

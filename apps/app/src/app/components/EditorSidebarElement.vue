@@ -26,10 +26,10 @@ const element = ref<
   TranslatableElement & { status?: "NO" | "TRANSLATED" | "APPROVED" }
 >(props.element);
 
-const handleClick = () => {
+const handleClick = async () => {
   if (!element.value) return;
 
-  navigate(
+  await navigate(
     `/editor/${documentId.value}/${languageFromId.value}-${languageToId.value}/${element.value.id}`,
   );
 };

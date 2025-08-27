@@ -13,6 +13,7 @@ export const userRouter = router({
         id: z.ulid(),
       }),
     )
+    .output(UserSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -33,6 +34,7 @@ export const userRouter = router({
         user: UserSchema,
       }),
     )
+    .output(UserSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
