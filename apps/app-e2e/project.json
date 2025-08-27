@@ -3,6 +3,9 @@
   "targets": {
     "e2e": {
       "dependsOn": ["^build"]
+    },
+    "e2e-ui": {
+      "dependsOn": ["^build"]
     }
   }
 }

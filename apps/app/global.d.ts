@@ -18,7 +18,7 @@ declare global {
       sessionId: string | null;
       _piniaInitState?: StateTree;
       i18n?: I18n;
-      i18nMessages?: RemovedIndexResources<{
+      i18nMessages?: RemoveIndexSignature<{
         [x: string]: LocaleMessageValue<VueMessageType>;
       }>;
     }
@@ -33,7 +33,7 @@ declare global {
     }
     interface GlobalContextServer {
       pinia?: Pinia;
-      i18nMessages?: RemovedIndexResources<{
+      i18nMessages?: RemoveIndexSignature<{
         [x: string]: LocaleMessageValue<VueMessageType>;
       }>;
     }
