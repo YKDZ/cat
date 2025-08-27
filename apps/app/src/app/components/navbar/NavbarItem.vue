@@ -19,8 +19,8 @@ const emits = defineEmits<{
   (e: "select", from: boolean, to: boolean): void;
 }>();
 
-const handleNav = () => {
-  navigate(url.value);
+const handleNav = async () => {
+  await navigate(url.value);
 };
 
 const url = computed(() => {

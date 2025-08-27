@@ -31,8 +31,8 @@ const updateTermAmount = async () => {
     .then((amount) => (termAmount.value = amount));
 };
 
-const handleCheck = () => {
-  navigate(`/glossary/${props.glossary.id}`);
+const handleCheck = async () => {
+  await navigate(`/glossary/${props.glossary.id}`);
 };
 
 const handleUnlink = async () => {

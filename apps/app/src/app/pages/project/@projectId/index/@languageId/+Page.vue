@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Button from "@/app/components/Button.vue";
-import ProjectLanguageDocumentAutoApproveBtn from "@/app/components/ProjectLanguageDocumentAutoApproveBtn.vue";
 import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
 import { useLanguageStore } from "@/app/stores/language";
@@ -25,9 +24,9 @@ const language = computed(() => {
 
 provide(languageKey, language);
 
-const handleBack = () => {
+const handleBack = async () => {
   if (!project || !project.value) return;
-  navigate(`/project/${project.value.id}`);
+  await navigate(`/project/${project.value.id}`);
 };
 
 watch(

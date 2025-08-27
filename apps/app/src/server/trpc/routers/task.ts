@@ -19,6 +19,7 @@ export const taskRouter = router({
           .optional(),
       }),
     )
+    .output(z.array(TaskSchema))
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -41,22 +42,24 @@ export const taskRouter = router({
         }),
       );
     }),
-  triggerCleanDanglingFiles: authedProcedure.mutation(async ({ ctx }) => {
-    const {
-      prismaDB: { client: prisma },
-    } = ctx;
-    const task = await prisma.task.create({
-      data: {
-        type: "clean_dangling_files",
-      },
-    });
+  triggerCleanDanglingFiles: authedProcedure
+    .output(z.void())
+    .mutation(async ({ ctx }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
+      const task = await prisma.task.create({
+        data: {
+          type: "clean_dangling_files",
+        },
+      });
 
-    await cleanDanglingFilesQueue.add(
-      task.id,
-      {},
-      {
-        jobId: task.id,
-      },
-    );
-  }),
+      await cleanDanglingFilesQueue.add(
+        task.id,
+        {},
+        {
+          jobId: task.id,
+        },
+      );
+    }),
 });

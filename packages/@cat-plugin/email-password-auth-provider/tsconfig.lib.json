@@ -5,17 +5,19 @@
     "rootDir": "src",
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
-    "emitDeclarationOnly": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "vite/client"]
   },
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../../plugin-core/tsconfig.lib.json"
+      "path": "../../shared/tsconfig.lib.json"
     },
     {
       "path": "../../db/tsconfig.lib.json"
+    },
+    {
+      "path": "../../plugin-core/tsconfig.lib.json"
     },
     {
       "path": "../../eslint-config/tsconfig.lib.json"

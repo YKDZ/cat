@@ -23,10 +23,10 @@ const { t } = useI18n();
 const project = inject(projectKey);
 const language = inject(languageKey);
 
-const handleEdit = () => {
+const handleEdit = async () => {
   if (!project || !project.value || !language || !language.value) return;
 
-  navigate(
+  await navigate(
     `/editor/${props.document.id}/${project.value.SourceLanguage?.id}-${language.value.id}/auto`,
   );
 };

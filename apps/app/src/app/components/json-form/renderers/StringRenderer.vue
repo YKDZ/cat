@@ -2,7 +2,6 @@
 import { computed, inject, ref, watch } from "vue";
 import { schemaKey, transferDataToString } from "..";
 import type { JSONType } from "@cat/shared";
-import type { JSONSchema } from "zod/v4/core";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -14,7 +13,7 @@ const emits = defineEmits<{
 }>();
 
 const schema = inject<
-  JSONSchema.JSONSchema & {
+  z.infer<typeof z.json> & {
     "x-autocomplete"?: string;
   }
 >(schemaKey)!;

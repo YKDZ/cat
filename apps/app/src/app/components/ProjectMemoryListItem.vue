@@ -31,8 +31,8 @@ const updateTermAmount = async () => {
     .then((amount) => (itemAmount.value = amount));
 };
 
-const handleCheck = () => {
-  navigate(`/memory/${props.memory.id}`);
+const handleCheck = async () => {
+  await navigate(`/memory/${props.memory.id}`);
 };
 
 const handleUnlink = async () => {

@@ -8,8 +8,8 @@ const { t } = useI18n();
 
 const isProcessing = ref<boolean>(false);
 
-const handleNav = () => {
-  navigate("/admin");
+const handleNav = async () => {
+  await navigate("/admin");
 };
 </script>
 

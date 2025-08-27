@@ -16,6 +16,7 @@ export const glossaryRouter = router({
         ids: z.array(z.number().int()),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -194,6 +195,7 @@ export const glossaryRouter = router({
         projectIds: z.array(z.ulid()).optional(),
       }),
     )
+    .output(GlossarySchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -230,6 +232,7 @@ export const glossaryRouter = router({
         canReverse: z.boolean().default(true),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

@@ -18,6 +18,7 @@ export const translationRouter = router({
         id: z.string(),
       }),
     )
+    .output(z.void())
     .mutation(async ({ input, ctx }) => {
       const {
         prismaDB: { client: prisma },
@@ -233,6 +234,7 @@ export const translationRouter = router({
         languageId: z.string(),
       }),
     )
+    .output(z.array(TranslationSchema))
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -259,6 +261,7 @@ export const translationRouter = router({
         value: z.number().int(),
       }),
     )
+    .output(TranslationVoteSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -500,6 +503,7 @@ export const translationRouter = router({
         minMemorySimilarity: z.number().default(0.72),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

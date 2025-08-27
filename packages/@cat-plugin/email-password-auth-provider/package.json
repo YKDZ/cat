@@ -11,7 +11,7 @@
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -21,11 +21,12 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@cat/db": "workspace:*",
-    "@cat/eslint-config": "workspace:*",
-    "@cat/plugin-core": "workspace:*"
+    "@cat/eslint-config": "workspace:*"
   },
-  "dependencies": {
-    "zod": "^4.1.1"
+  "peerDependencies": {
+    "zod": "^4.1.1",
+    "@cat/plugin-core": "workspace:*",
+    "@cat/db": "workspace:*",
+    "@cat/shared": "workspace:*"
   }
 }

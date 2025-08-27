@@ -7,7 +7,6 @@ import { storeToRefs } from "pinia";
 import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
 import JSONForm from "./json-form/JSONForm.vue";
-import type { JSONSchema } from "zod/v4/core";
 import Button from "./Button.vue";
 import { useI18n } from "vue-i18n";
 
@@ -20,7 +19,7 @@ const props = defineProps<{
 const { trpcWarn } = useToastStore();
 const { authMethod } = storeToRefs(useAuthStore());
 
-const schema = ref<JSONSchema.JSONSchema>({});
+const schema = ref<z.infer<typeof z.json>>({});
 const data = shallowRef<JSONType>({});
 
 const isEmpty = computed(() => {

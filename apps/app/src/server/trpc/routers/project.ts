@@ -11,6 +11,7 @@ export const projectRouter = router({
         id: z.ulid(),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -33,6 +34,7 @@ export const projectRouter = router({
         description: z.string().min(0).optional(),
       }),
     )
+    .output(ProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -79,6 +81,7 @@ export const projectRouter = router({
         createGlossary: z.boolean(),
       }),
     )
+    .output(ProjectSchema)
     .mutation(async ({ input, ctx }) => {
       const {
         prismaDB: { client: prisma },
@@ -151,6 +154,7 @@ export const projectRouter = router({
         glossaryIds: z.array(z.ulid()),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -177,6 +181,7 @@ export const projectRouter = router({
         memoryIds: z.array(z.ulid()),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -203,6 +208,7 @@ export const projectRouter = router({
         glossaryIds: z.array(z.ulid()),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -229,6 +235,7 @@ export const projectRouter = router({
         memoryIds: z.array(z.ulid()),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -248,36 +255,39 @@ export const projectRouter = router({
         },
       });
     }),
-  listUserOwned: authedProcedure.query(async ({ ctx }) => {
-    const {
-      prismaDB: { client: prisma },
-      user: creator,
-    } = ctx;
+  listUserOwned: authedProcedure
+    .output(z.array(ProjectSchema))
+    .query(async ({ ctx }) => {
+      const {
+        prismaDB: { client: prisma },
+        user: creator,
+      } = ctx;
 
-    return z.array(ProjectSchema).parse(
-      await prisma.project.findMany({
-        where: {
-          creatorId: creator.id,
-        },
-        include: {
-          Creator: true,
-          SourceLanguage: true,
-          TargetLanguages: true,
-          Documents: {
-            include: {
-              File: true,
+      return z.array(ProjectSchema).parse(
+        await prisma.project.findMany({
+          where: {
+            creatorId: creator.id,
+          },
+          include: {
+            Creator: true,
+            SourceLanguage: true,
+            TargetLanguages: true,
+            Documents: {
+              include: {
+                File: true,
+              },
             },
           },
-        },
-      }),
-    );
-  }),
+        }),
+      );
+    }),
   listUserParticipated: publicProcedure
     .input(
       z.object({
         userId: z.ulid(),
       }),
     )
+    .output(z.array(ProjectSchema))
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -344,6 +354,7 @@ export const projectRouter = router({
         languageId: z.string(),
       }),
     )
+    .output(ProjectSchema)
     .mutation(async ({ input, ctx }) => {
       const {
         prismaDB: { client: prisma },
@@ -383,6 +394,7 @@ export const projectRouter = router({
         id: z.string(),
       }),
     )
+    .output(z.void())
     .mutation(async ({ input, ctx }) => {
       const {
         prismaDB: { client: prisma },
@@ -410,6 +422,7 @@ export const projectRouter = router({
         userId: z.ulid(),
       }),
     )
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -439,7 +452,7 @@ export const projectRouter = router({
         isApproved: z.boolean().optional(),
       }),
     )
-    .output(z.number().int().min(0))
+    .output(z.int().min(0))
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -481,6 +494,7 @@ export const projectRouter = router({
         isApproved: z.boolean().optional(),
       }),
     )
+    .output(z.int().min(0))
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

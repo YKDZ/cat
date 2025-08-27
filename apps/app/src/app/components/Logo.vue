@@ -8,6 +8,12 @@ const props = defineProps({
 });
 
 const ctx = usePageContext();
+
+const handleClick = async () => {
+  if (props.link) {
+    await navigate(`/`);
+  }
+};
 </script>
 
 <template>
@@ -17,7 +23,7 @@ const ctx = usePageContext();
     :class="{
       'cursor-pointer hover:bg-highlight-darker': link,
     }"
-    @click="link && navigate(`/`)"
+    @click="handleClick"
   >
     <img :src="logoURL" alt="Logo" class="h-6 w-6" />
     <span class="font-bold">{{ ctx.name }}</span>

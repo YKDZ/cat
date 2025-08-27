@@ -21,8 +21,8 @@ const props = defineProps<{
   glossary: Glossary;
 }>();
 
-const handleCheck = () => {
-  navigate(`/glossary/${props.glossary.id}`);
+const handleCheck = async () => {
+  await navigate(`/glossary/${props.glossary.id}`);
 };
 
 watch(

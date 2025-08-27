@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, provide } from "vue";
 import { RendererRegistry, schemaKey } from ".";
-import type { JSONSchema } from "zod/v4/core";
 import type { JSONType } from "@cat/shared";
 
 const props = defineProps<{
   propertyKey?: string;
-  schema: JSONSchema.JSONSchema;
+  schema: z.infer<typeof z.json>;
   data: JSONType;
 }>();
 
@@ -21,7 +20,7 @@ const objectProperties = computed(() => {
   return Object.keys(props.schema.properties!).map((key) => {
     return {
       key,
-      schema: props.schema.properties![key] as JSONSchema.JSONSchema,
+      schema: z.json(props.schema.properties![key]),
     };
   });
 });

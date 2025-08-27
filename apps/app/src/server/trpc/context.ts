@@ -1,7 +1,7 @@
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { userFromSessionId } from "@/server/utils/user";
-import { createHTTPHelpers, getCookieFunc } from "@cat/shared";
+import { createHTTPHelpers, getCookieFunc, User } from "@cat/shared";
 import { getPluginRegistry } from "@/server/pluginRegistry";
 import { getEsDB, getPrismaDB, getRedisDB } from "@cat/db";
 

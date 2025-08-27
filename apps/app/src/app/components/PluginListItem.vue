@@ -16,8 +16,8 @@ const props = defineProps<{
 const iconImgEl = ref<HTMLImageElement>();
 const isIconLoaded = ref(false);
 
-const handleNav = () => {
-  navigate(`${props.pathPrefix}/${props.plugin.id}`);
+const handleNav = async () => {
+  await navigate(`${props.pathPrefix}/${props.plugin.id}`);
 };
 
 const simpleName = computed(() => {

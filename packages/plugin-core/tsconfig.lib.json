@@ -5,9 +5,9 @@
     "rootDir": "src",
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
-    "emitDeclarationOnly": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "vite/client"]
+    "declaration": true,
+    "declarationMap": true
   },
   "include": ["src/**/*.ts"],
   "references": [

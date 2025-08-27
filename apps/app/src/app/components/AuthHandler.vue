@@ -9,7 +9,6 @@ import Loading from "@/app/components/Loading.vue";
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
 import Button from "@/app/components/Button.vue";
 import { storeToRefs } from "pinia";
-import type { JSONSchema } from "zod/v4/core";
 import type { JSONType } from "@cat/shared";
 import { useI18n } from "vue-i18n";
 
@@ -17,7 +16,7 @@ const { t } = useI18n();
 
 const ctx = usePageContext();
 const { error, authMethod } = storeToRefs(useAuthStore());
-const schema = ref<JSONSchema.JSONSchema>({});
+const schema = ref<z.infer<typeof z.json>>({});
 const data = shallowRef<JSONType>({});
 
 const handleAuth = async () => {
@@ -36,12 +35,12 @@ const handleAuth = async () => {
         formData,
       },
     })
-    .then(() => {
-      navigate("/");
+    .then(async () => {
+      await navigate("/");
     })
-    .catch((e: TRPCError) => {
+    .catch(async (e: TRPCError) => {
       error.value = e;
-      navigate("/auth");
+      await navigate("/auth");
     });
 };
 
@@ -55,7 +54,7 @@ const handleUpdate = (to: JSONType) => {
 
 onMounted(async () => {
   if (!authMethod.value?.providerId) {
-    navigate("/auth");
+    await navigate("/auth");
     return;
   }
 

@@ -46,6 +46,10 @@ const fileEmbeddingTask = computed(() => {
     ?.find((task) => task.type === "document_from_file_pretreatment");
 });
 
+const handleClick = async () => {
+  await navigate(`/document/${props.document.id}`);
+};
+
 onMounted(() => {
   updateTranslatableEleAmount(props.document.id);
   updateDocumentFromFilePretreatmentTask(props.document.id);
@@ -55,7 +59,7 @@ onMounted(() => {
 <template>
   <TableRow
     class="cursor-pointer hover:bg-highlight-darker"
-    @click="navigate(`/document/${document.id}`)"
+    @click="handleClick"
   >
     <TableCell>{{ document.File?.originName }}</TableCell>
     <TableCell>

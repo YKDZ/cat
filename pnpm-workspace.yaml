@@ -3,6 +3,7 @@ packages:
   - e2e
   - packages/*
   - packages/@cat-plugin/*
+  - "!**/dist/**"
 
 onlyBuiltDependencies:
   - "@prisma/client"

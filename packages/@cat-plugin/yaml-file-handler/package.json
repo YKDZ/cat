@@ -11,7 +11,7 @@
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -20,9 +20,10 @@
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
-  "dependencies": {
+  "peerDependencies": {
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@cat/db": "workspace:*",
     "yaml": "^2.8.1"
   },
   "devDependencies": {

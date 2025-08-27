@@ -9,10 +9,10 @@
     "cat"
   ],
   "type": "module",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js"
     },
@@ -30,14 +30,14 @@
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
-  "dependencies": {
-    "lodash-es": "^4.17.21"
-  },
   "devDependencies": {
+    "@cat/eslint-config": "workspace:*"
+  },
+  "peerDependencies": {
     "@cat/db": "workspace:*",
-    "@cat/eslint-config": "workspace:*",
     "@cat/shared": "workspace:*",
     "@types/lodash-es": "^4.17.12",
+    "lodash-es": "^4.17.21",
     "zod": "^4.1.1"
   }
 }

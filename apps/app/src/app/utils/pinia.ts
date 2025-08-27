@@ -3,7 +3,12 @@ import type { PageContextServer } from "vike/types";
 
 export const injectPiniaData = <T>(
   handler: (pinia: Pinia, data: T) => void,
-) => {
+): ((
+  ctx: Pick<
+    PageContextServer & { data?: T },
+    "data" | "pinia" | "isPrerendering"
+  >,
+) => void) => {
   return (
     ctx: Pick<
       PageContextServer & { data?: T },
