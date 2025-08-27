@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useToastStore } from "../stores/toast";
@@ -10,7 +9,6 @@ import Tabs from "./tab/Tabs.vue";
 import type { TabItem } from "./tab";
 import PluginImportGitHub from "./PluginImportGitHub.vue";
 
-const { info, trpcWarn } = useToastStore();
 const { t } = useI18n();
 
 const isOpen = ref(false);
@@ -39,7 +37,7 @@ const tabs = ref<TabItem[]>([
 
 <template>
   <Button icon="i-mdi:download" @click="handleClick">{{
-    $t("导入插件")
+    t("导入插件")
   }}</Button>
   <Modal v-model:is-open="isOpen">
     <div class="p-8 rounded-md bg-highlight flex flex-col gap-2">

@@ -30,20 +30,20 @@ const handleImport = () => {
   <div class="flex flex-col gap-2">
     <article class="max-w-460px prose prose-highlight-content">
       <h3 class="text-highlight-content-darker">
-        {{ $t("从 GitHub 导入插件") }}
+        {{ t("从 GitHub 导入插件") }}
       </h3>
     </article>
     <div class="flex flex-col gap-1">
-      <InputLabel>{{ $t("仓库主人") }}</InputLabel>
+      <InputLabel>{{ t("仓库主人") }}</InputLabel>
       <Input
         v-model="origin.owner"
         icon="i-mdi:account"
         full-width
         type="text"
       />
-      <InputLabel>{{ $t("仓库名称") }}</InputLabel>
+      <InputLabel>{{ t("仓库名称") }}</InputLabel>
       <Input v-model="origin.repo" icon="i-mdi:note" full-width type="text" />
-      <InputLabel>{{ $t("仓库分支") }}</InputLabel>
+      <InputLabel>{{ t("仓库分支") }}</InputLabel>
       <Input
         v-model="origin.ref"
         icon="i-mdi:source-branch"
@@ -52,7 +52,7 @@ const handleImport = () => {
       />
     </div>
     <Button full-width icon="i-mdi:download" @click="handleImport">{{
-      $t("导入插件")
+      t("导入插件")
     }}</Button>
   </div>
 </template>

@@ -23,6 +23,6 @@ const handleNav = () => {
     icon="i-mdi:cog"
     @click="handleNav"
   >
-    {{ $t("管理") }}
+    {{ t("管理") }}
   </Button>
 </template>

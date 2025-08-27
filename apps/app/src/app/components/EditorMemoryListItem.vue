@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
 import { toShortFixed, type Memory, type MemorySuggestion } from "@cat/shared";
-import { useMagicKeys, whenever } from "@vueuse/core";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEditorStore } from "../stores/editor";
@@ -12,7 +11,6 @@ import { useHotKeys } from "../utils/magic-keys";
 
 const { info } = useToastStore();
 const { replace } = useEditorStore();
-
 const { t } = useI18n();
 
 const props = defineProps<{
@@ -50,7 +48,7 @@ onMounted(() => {
     </button>
     <div class="text-sm text-highlight-content flex gap-2 items-center">
       <span>{{
-        $t("{similarity}%", {
+        t("{similarity}%", {
           similarity: toShortFixed(memorySuggestion.similarity * 100, 2),
         })
       }}</span>

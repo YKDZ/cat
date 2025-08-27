@@ -2,6 +2,9 @@
 import { ref, computed, watch } from "vue";
 import { vOnClickOutside } from "@vueuse/components";
 import type { PickerOption } from ".";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   options: PickerOption[];
@@ -111,13 +114,13 @@ watch(
         v-if="options.length === 0"
         class="text-highlight-content-darker px-3 py-2"
       >
-        {{ $t("无可用选项") }}
+        {{ t("无可用选项") }}
       </div>
       <div
         v-else-if="filteredOptions.length === 0"
         class="text-highlight-content-darker px-3 py-2"
       >
-        {{ $t("无匹配结果") }}
+        {{ t("无匹配结果") }}
       </div>
     </div>
   </div>

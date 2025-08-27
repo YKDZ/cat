@@ -7,6 +7,9 @@ import { storeToRefs } from "pinia";
 import { useProfileStore } from "../stores/profile";
 import { toShortFixed } from "@cat/shared";
 import Toggler from "./Toggler.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { editorMemoryMinSimilarity, editorMemoryAutoCreateMemory } =
   storeToRefs(useProfileStore());
@@ -23,7 +26,7 @@ const isOpen = ref(false);
     <div class="px-10 py-6 rounded-sm bg-highlight">
       <div class="flex flex-col gap-1">
         <InputLabel>{{
-          $t("最低记忆匹配度 {similarity}%", {
+          t("最低记忆匹配度 {similarity}%", {
             similarity: toShortFixed(editorMemoryMinSimilarity * 100),
           })
         }}</InputLabel>
@@ -35,7 +38,7 @@ const isOpen = ref(false);
         />
       </div>
       <div class="flex flex-col gap-1">
-        <InputLabel>{{ $t("翻译时保留记忆") }}</InputLabel>
+        <InputLabel>{{ t("翻译时保留记忆") }}</InputLabel>
         <Toggler v-model="editorMemoryAutoCreateMemory" />
       </div></div
   ></Modal>

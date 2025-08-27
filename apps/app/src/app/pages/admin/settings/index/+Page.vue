@@ -17,7 +17,7 @@ const site = z.toJSONSchema(
 
 <template>
   <div class="py-6 flex flex-col gap-2">
-    <AdminSettingsTitle>{{ $t("站点设置") }}</AdminSettingsTitle>
+    <AdminSettingsTitle>{{ t("站点设置") }}</AdminSettingsTitle>
     <AdminSettingForm :schema="site" />
   </div>
 </template>

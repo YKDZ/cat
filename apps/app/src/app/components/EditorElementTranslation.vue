@@ -11,6 +11,9 @@ import { computed } from "vue";
 import EditorElementTranslationApprovementBtn from "./EditorElementTranslationApprovementBtn.vue";
 import { useDateFormat } from "@vueuse/core";
 import Icon from "./Icon.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { translationValue, selectedTranslationId } =
   storeToRefs(useEditorStore());
@@ -72,7 +75,7 @@ const approvement = computed(() => {
     >
       <Icon icon="i-mdi:check" small class="bg-success-darkest" />
     </div>
-    <span class="text-success-darkest">{{ $t("已批准") }}</span>
+    <span class="text-success-darkest">{{ t("已批准") }}</span>
     <UserAvatar :user-id="approvement.creatorId" :size="36" />
     <span>{{
       useDateFormat(approvement.createdAt, "YYYY-MM-DD HH:mm:ss")

@@ -9,7 +9,9 @@ export default {
   passToClient: ["name", "user", "_piniaInitState", "i18nMessages"],
   extends: [vikeVue, vikeServer],
 
-  server: "src/server/index.ts",
+  server: {
+    entry: "src/server/index.ts",
+  },
 
   filesystemRoutingRoot: "/",
 } as Config;

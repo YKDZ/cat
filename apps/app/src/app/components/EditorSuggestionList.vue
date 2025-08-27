@@ -6,6 +6,9 @@ import { watch } from "vue";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import EditorSuggestionListItem from "./EditorSuggestionListItem.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { trpcWarn } = useToastStore();
 const { elementId, languageToId, suggestions } = storeToRefs(useEditorStore());
@@ -44,6 +47,6 @@ watch(elementId, load, { immediate: true });
     :index
   />
   <div v-if="suggestions.length === 0" class="px-3 py-2 flex flex-col gap-1">
-    {{ $t("还没有可用的翻译建议") }}
+    {{ t("还没有可用的翻译建议") }}
   </div>
 </template>

@@ -11,6 +11,9 @@ import Button from "@/app/components/Button.vue";
 import { storeToRefs } from "pinia";
 import type { JSONSchema } from "zod/v4/core";
 import type { JSONType } from "@cat/shared";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const ctx = usePageContext();
 const { error, authMethod } = storeToRefs(useAuthStore());
@@ -75,7 +78,7 @@ onMounted(async () => {
       magic-key="Enter"
       @click="handleAuth"
       @magic-click="handleAuth"
-      >{{ $t("登录") }}</Button
+      >{{ t("登录") }}</Button
     >
   </div>
   <Loading v-else size="200px" />

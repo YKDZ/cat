@@ -6,6 +6,9 @@ import { languageKey } from "../utils/provide";
 import { useToastStore } from "../stores/toast";
 import Modal from "./Modal.vue";
 import Button from "./Button.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   document: Document;
@@ -37,10 +40,10 @@ const handleAutoApprove = async () => {
   <Modal v-model:is-open="isOpen">
     <div class="p-10 pt-0 rounded-md bg-highlight flex flex-col gap-2">
       <article class="max-w-460px prose prose-highlight-content">
-        <h3 class="text-highlight-content-darker">{{ $t("自动批准") }}</h3>
+        <h3 class="text-highlight-content-darker">{{ t("自动批准") }}</h3>
         <p>
           {{
-            $t(
+            t(
               "这将自动选出各个可翻译元素的翻译中得票数最高的那一个，并自动批准它。",
             )
           }}

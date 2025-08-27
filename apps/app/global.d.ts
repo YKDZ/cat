@@ -18,9 +18,6 @@ declare global {
       sessionId: string | null;
       _piniaInitState?: StateTree;
       i18n?: I18n;
-      i18nMessages?: RemoveIndexSignature<{
-        [x: string]: LocaleMessageValue<VueMessageType>;
-      }>;
     }
     interface PageContextServer {
       pinia?: Pinia;
@@ -39,6 +36,9 @@ declare global {
     }
     interface GlobalContextClient {
       pinia?: Pinia;
+      i18nMessages?: RemoveIndexSignature<{
+        [x: string]: LocaleMessageValue<VueMessageType>;
+      }>;
     }
   }
   let vue: typeof Vue | undefined;

@@ -6,6 +6,9 @@ import { trpc } from "@/server/trpc/client";
 import { projectKey } from "../utils/provide";
 import { useToastStore } from "../stores/toast";
 import Modal from "./Modal.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { info, trpcWarn } = useToastStore();
 
@@ -51,18 +54,18 @@ const handleLink = async () => {
 
 <template>
   <Button icon="i-mdi:link" :class="$attrs.class" @click="handleOpen">{{
-    $t("连接术语库")
+    t("连接术语库")
   }}</Button>
   <Modal v-model:is-open="isOpen">
     <div class="p-8 rounded-md bg-highlight flex flex-col gap-3">
-      <h3 class="text-lg font-bold">{{ $t("连接或创建新术语库") }}</h3>
+      <h3 class="text-lg font-bold">{{ t("连接或创建新术语库") }}</h3>
       <MultiGlossaryPicker
         v-model:glossary-ids="glossaryIds"
         full-width
         create-new
       />
       <Button full-width icon="i-mdi:link" @click="handleLink">{{
-        $t("连接")
+        t("连接")
       }}</Button>
     </div></Modal
   >

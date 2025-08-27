@@ -6,6 +6,9 @@ import { useToastStore } from "../stores/toast";
 import { projectKey } from "../utils/provide";
 import type { PickerOption } from "./picker";
 import { useProjectStore } from "../stores/project";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { trpcWarn } = useToastStore();
 const { addProjects } = useProjectStore();
@@ -62,6 +65,6 @@ const langFilter = (option: PickerOption) => {
     icon="i-mdi:plus"
     :disabled="languageId === ``"
     @click="addNewLanguage"
-    >{{ $t("添加新语言并开始翻译") }}</Button
+    >{{ t("添加新语言并开始翻译") }}</Button
   >
 </template>

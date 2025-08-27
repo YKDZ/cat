@@ -3,6 +3,9 @@ import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
 import Button from "./Button.vue";
 import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { translate, jumpToNextUntranslated, replace, clear } = useEditorStore();
 const { undo, redo } = useEditorStore();
@@ -55,7 +58,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
         @click="handleTranslate(false)"
         @magic-click="handleTranslate(false)"
       >
-        {{ selectedTranslationId ? $t("更新") : $t("提交") }}
+        {{ selectedTranslationId ? t("更新") : t("提交") }}
       </Button>
       <Button
         transparent
@@ -64,7 +67,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
         @click="handleTranslate(true)"
         @magic-click="handleTranslate(true)"
       >
-        {{ selectedTranslationId ? $t("更新并继续") : $t("提交并继续") }}
+        {{ selectedTranslationId ? t("更新并继续") : t("提交并继续") }}
       </Button>
     </div>
   </div>

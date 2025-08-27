@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import AdminSettingForm from "@/app/components/AdminSettingForm.vue";
 import AdminSettingsTitle from "@/app/components/AdminSettingsTitle.vue";
-import { onMounted } from "vue";
 import { z } from "zod";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const storage = z.toJSONSchema(
   z.object({
@@ -37,9 +39,9 @@ const s3 = z.toJSONSchema(
 
 <template>
   <div class="py-6 flex flex-col gap-2">
-    <AdminSettingsTitle>{{ $t("储存设置") }}</AdminSettingsTitle>
+    <AdminSettingsTitle>{{ t("储存设置") }}</AdminSettingsTitle>
     <AdminSettingForm :schema="storage" />
-    <AdminSettingsTitle>{{ $t("S3 设置") }}</AdminSettingsTitle>
+    <AdminSettingsTitle>{{ t("S3 设置") }}</AdminSettingsTitle>
     <AdminSettingForm :schema="s3" />
   </div>
 </template>

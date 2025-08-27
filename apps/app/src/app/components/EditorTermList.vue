@@ -5,6 +5,9 @@ import { watch } from "vue";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import EditorTermListItem from "./EditorTermListItem.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { trpcWarn } = useToastStore();
 const { elementId, languageToId, terms } = storeToRefs(useEditorStore());
@@ -35,7 +38,7 @@ watch(elementId, load, { immediate: true });
       :term
     />
     <div v-if="terms.length === 0" class="px-3 py-2">
-      {{ $t("还没有可用的术语") }}
+      {{ t("还没有可用的术语") }}
     </div>
   </div>
 </template>

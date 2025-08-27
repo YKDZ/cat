@@ -42,10 +42,11 @@ const hydrateI18n = async (ctx: PageContextClient) => {
     "zh_cn";
 
   if (
-    typeof ctx.i18nMessages === "object" &&
-    Object.keys(ctx.i18nMessages).findIndex((k) => k === key) !== -1
+    typeof ctx.globalContext.i18nMessages === "object" &&
+    Object.keys(ctx.globalContext.i18nMessages).findIndex((k) => k === key) !==
+      -1
   ) {
-    i18n.global.setLocaleMessage(key, ctx.i18nMessages[key]);
+    i18n.global.setLocaleMessage(key, ctx.globalContext.i18nMessages[key]);
     i18n.global.locale.value = key;
   }
 
