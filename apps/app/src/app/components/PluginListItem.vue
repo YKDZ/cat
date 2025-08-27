@@ -4,6 +4,9 @@ import PluginTags from "./PluginTags.vue";
 import { computed, onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   plugin: Plugin;
@@ -59,12 +62,12 @@ onMounted(() => {
           <span
             v-if="plugin.isExternal"
             class="px-2 py-1 rounded-sm bg-highlight-darkest"
-            >{{ $t("内部插件") }}</span
+            >{{ t("内部插件") }}</span
           >
           <span
             v-if="plugin.enabled"
             class="px-2 py-1 rounded-sm bg-highlight-darkest"
-            >{{ $t("已安装") }}</span
+            >{{ t("已安装") }}</span
           >
         </div>
       </div>

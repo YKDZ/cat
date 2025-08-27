@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
-import { useToastStore } from "../stores/toast";
 import { onBeforeMount, shallowReactive, shallowRef } from "vue";
 import type { JSONType } from "@cat/shared";
 import JSONForm from "./json-form/JSONForm.vue";
 import type { JSONSchema } from "zod/v4/core";
 import Button from "./Button.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   configGetter: (key: string) => Promise<JSONType>;
@@ -14,8 +15,6 @@ const props = defineProps<{
 }>();
 
 const data = shallowRef<JSONType>({});
-
-const { info, trpcWarn } = useToastStore();
 
 const updated = shallowReactive(new Map<string, JSONType>());
 
@@ -57,7 +56,7 @@ onBeforeMount(async () => {
   />
   <div v-if="updated.size > 0" class="flex gap-2">
     <Button icon="i-mdi:content-save" @click="handleSave">{{
-      $t("保存")
+      t("保存")
     }}</Button>
   </div>
 </template>

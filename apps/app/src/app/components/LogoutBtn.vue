@@ -39,6 +39,6 @@ const handleLogout = () => {
     icon="i-mdi:logout"
     @click="handleLogout"
   >
-    {{ $t("登出") }}
+    {{ t("登出") }}
   </Button>
 </template>

@@ -11,6 +11,9 @@ import type { Document, Project } from "@cat/shared";
 import { computed, ref, shallowRef } from "vue";
 import Icon from "./Icon.vue";
 import { TRPCClientError } from "@trpc/client";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { info, warn, trpcWarn } = useToastStore();
 
@@ -189,7 +192,7 @@ const upload = async (tempFile: TempFile) => {
         <TableRow v-if="files.length === 0">
           <TableCell></TableCell>
           <TableCell class="text-center">{{
-            $t("还没有上传任何文件...")
+            t("还没有上传任何文件...")
           }}</TableCell>
           <TableCell></TableCell>
         </TableRow>
@@ -201,10 +204,10 @@ const upload = async (tempFile: TempFile) => {
         :is-processing
         @click="fileInputEl && fileInputEl.click()"
       >
-        {{ $t("选择文件") }}
+        {{ t("选择文件") }}
       </Button>
       <Button icon="i-mdi:upload-multiple" :is-processing @click="uploadAll">
-        {{ $t("上传所有") }}
+        {{ t("上传所有") }}
       </Button>
     </div>
   </div>

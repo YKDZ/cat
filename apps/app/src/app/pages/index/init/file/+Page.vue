@@ -7,8 +7,11 @@ import CreateProject from "./CreateProject.vue";
 import UploadFiles from "./UploadFiles.vue";
 import Finish from "./Finish.vue";
 import TextFlow from "@/app/components/flow/text/TextFlow.vue";
+import { useI18n } from "vue-i18n";
 
-const { info, warn, zWarn, error } = useToastStore();
+const { t } = useI18n();
+
+const { warn } = useToastStore();
 
 const progress = ref<number>(0);
 
@@ -40,7 +43,7 @@ const onProgressChange = (from: number, to: number): number => {
 <template>
   <h1 class="text-2xl font-bold flex gap-2 items-center">
     <div class="i-mdi:cog-outline duration-3000 animate-spin" />
-    {{ $t("初始化项目") }}
+    {{ t("初始化项目") }}
   </h1>
   <div
     class="pb-2 pr-2 border-b-3 border-highlight-content border-dotted w-full md:max-w-screen-sm"

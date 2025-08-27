@@ -9,6 +9,9 @@ import { navigate } from "vike/client/router";
 import JSONForm from "./json-form/JSONForm.vue";
 import type { JSONSchema } from "zod/v4/core";
 import Button from "./Button.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   method: AuthMethod;
@@ -63,6 +66,6 @@ onMounted(async () => {
     :icon="method.icon"
     @click="handlePreAuth"
   >
-    {{ $t("通过 {name} 登录", { name: method.name }) }}
+    {{ t("通过 {name} 登录", { name: method.name }) }}
   </Button>
 </template>

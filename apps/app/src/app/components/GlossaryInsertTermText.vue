@@ -7,11 +7,12 @@ import { useToastStore } from "@/app/stores/toast";
 import { trpc } from "@/server/trpc/client";
 import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
+
 const props = defineProps<{
   glossaryId: string;
 }>();
 
-const { t } = useI18n();
 const { info, warn, trpcWarn } = useToastStore();
 
 const termLanguageId = ref("");
@@ -71,12 +72,12 @@ const handleInsert = async () => {
   <div class="flex flex-col gap-4">
     <article class="max-w-460px prose prose-highlight-content">
       <h3 class="text-highlight-content-darker">
-        {{ $t("以文本方式插入术语") }}
+        {{ t("以文本方式插入术语") }}
       </h3>
       <p>
-        {{ $t("选择术语语言与翻译语言并以换行分隔的方式插入一一对应的术语") }}
+        {{ t("选择术语语言与翻译语言并以换行分隔的方式插入一一对应的术语") }}
       </p>
-      <p>{{ $t("通过箭头方向决定插入的术语是否是双向的") }}</p>
+      <p>{{ t("通过箭头方向决定插入的术语是否是双向的") }}</p>
     </article>
     <div class="flex gap-3 items-start">
       <div class="flex flex-col gap-2">
@@ -95,6 +96,6 @@ const handleInsert = async () => {
         <Textarea v-model="translations" full-width />
       </div>
     </div>
-    <Button full-width @click="handleInsert">{{ $t("提交") }}</Button>
+    <Button full-width @click="handleInsert">{{ t("提交") }}</Button>
   </div>
 </template>

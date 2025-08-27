@@ -9,6 +9,9 @@ import { computed, ref, shallowRef } from "vue";
 import Button from "./Button.vue";
 import { useToastStore } from "../stores/toast";
 import { useObjectUrl } from "@vueuse/core";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const ctx = usePageContext();
 
@@ -74,7 +77,7 @@ const rawFileMime = computed(() => {
 
 <template>
   <Button icon="i-mdi:upload" :class="$attrs.class" @click="handleStart">{{
-    $t("上传头像")
+    t("上传头像")
   }}</Button>
   <input
     ref="fileInputEl"

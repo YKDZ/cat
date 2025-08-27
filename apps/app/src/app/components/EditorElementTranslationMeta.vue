@@ -6,6 +6,9 @@ import { computed, onMounted, ref } from "vue";
 import z from "zod";
 import EditorElementTranslationMetaTag from "./EditorElementTranslationMetaTag.vue";
 import { useDateFormat } from "@vueuse/core";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   translation: Translation;
@@ -55,17 +58,17 @@ onMounted(() => {
       useDateFormat(translation.createdAt, "YYYY-MM-DD HH:mm:ss")
     }}</EditorElementTranslationMetaTag>
     <EditorElementTranslationMetaTag v-if="meta.isAutoTranslation">{{
-      $t("自动翻译")
+      t("自动翻译")
     }}</EditorElementTranslationMetaTag>
     <EditorElementTranslationMetaTag v-if="meta.isMemory && memory">{{
-      $t("来自记忆库 {name}", { name: memory.name })
+      t("来自记忆库 {name}", { name: memory.name })
     }}</EditorElementTranslationMetaTag>
     <EditorElementTranslationMetaTag v-if="meta.isAdvisor && advisor">{{
-      $t("来自建议器 {name}", { name: advisor.name })
+      t("来自建议器 {name}", { name: advisor.name })
     }}</EditorElementTranslationMetaTag>
     <EditorElementTranslationMetaTag v-if="meta.isMemory"
       >{{
-        $t("记忆匹配度：{similarity}%", {
+        t("记忆匹配度：{similarity}%", {
           similarity: toShortFixed(meta.memorySimilarity * 100),
         })
       }}

@@ -2,6 +2,9 @@
 import { computed, onMounted, ref, watch } from "vue";
 import RangeInput from "./RangeInput.vue";
 import Button from "./Button.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   src: string;
@@ -255,7 +258,7 @@ onMounted(() => {
       class="w-5/6"
     />
     <Button :is-processing full-width @click="handleSubmit">{{
-      $t("裁剪")
+      t("裁剪")
     }}</Button>
   </div>
 </template>

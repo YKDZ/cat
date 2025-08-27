@@ -9,6 +9,9 @@ import Logo from "./Logo.vue";
 import EditorSidebarElement from "./EditorSidebarElement.vue";
 import EditorElementSearcher from "./EditorElementSearcher.vue";
 import Slash from "./Slash.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const { displayedElements, currentPageIndex, totalPageIndex } =
   storeToRefs(useEditorStore());
@@ -65,7 +68,7 @@ const handleNextPage = () => {
           class="px-2 py-2 text-start flex gap-3 items-center"
         >
           <span class="text-nowrap overflow-x-hidden">{{
-            $t("没有任何可翻译元素")
+            t("没有任何可翻译元素")
           }}</span>
         </button>
       </div>

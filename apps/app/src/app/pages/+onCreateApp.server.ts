@@ -12,7 +12,9 @@ export const onCreateApp = async (ctx: PageContextServer) => {
   if (!app) return;
 
   app.use(ctx.pinia!);
-  app.use(await loadI18n(ctx));
+
+  const i18n = await loadI18n(ctx);
+  app.use(i18n);
 };
 
 const loadI18n = async (ctx: PageContextServer) => {

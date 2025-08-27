@@ -1,7 +1,7 @@
 import { exists } from "fs-extra";
+import { readFile } from "fs/promises";
 import { join } from "path";
-import { pathToFileURL } from "url";
-import type { GlobalContextServer } from "vike/types";
+import type { GlobalContextServer, PageContextServer } from "vike/types";
 import type { ComputedRef } from "vue";
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
@@ -24,22 +24,24 @@ export const loadLocaleMessagesInServerSide = async (
   if (locale === "zh_cn") {
     if (!ctx.i18nMessages) ctx.i18nMessages = {};
     ctx.i18nMessages[locale] = {};
-    return;
+    return nextTick();
   }
-  if (ctx.i18nMessages && ctx.i18nMessages[locale]) return;
+  if (ctx.i18nMessages && ctx.i18nMessages[locale]) return nextTick();
 
+  const path = join(process.cwd(), `./locales/${locale}.json`);
+  if (!(await exists(path))) return nextTick();
+  const fileContent = await readFile(path, "utf-8");
+  const messages = JSON.parse(fileContent);
   const tempI18n = createI18n({
     legacy: false,
     fallbackLocale: "zh_cn",
     fallbackFormat: true,
+    missingWarn: false,
+    fallbackWarn: false,
     formatFallbackMessages: true,
+    globalInjection: true,
   });
-
-  const path = join(process.cwd(), `./locales/${locale}.json`);
-  if (!(await exists(path)))
-    throw new Error(`Locales file ./locales/${locale}.json does not exists`);
-  const messages = await import(/* @vite-ignore */ pathToFileURL(path).href);
-  tempI18n.global.setLocaleMessage(locale, messages.default);
+  tempI18n.global.setLocaleMessage(locale, messages);
 
   // 将语言加载到全局上下文
   if (!ctx.i18nMessages) ctx.i18nMessages = {};

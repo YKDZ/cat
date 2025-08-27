@@ -3,18 +3,17 @@ import Button from "@/app/components/Button.vue";
 import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
 import { projectKey } from "@/app/utils/provide";
 import { trpc } from "@/server/trpc/client";
 import { inject, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const project = inject(projectKey);
 
 const name = ref(project!.value!.name);
 const sourceLanguageId = ref(project!.value!.sourceLanguageId);
-const targetLanguageIds = ref(
-  project!.value!.TargetLanguages?.map((lang) => lang.id) || [],
-);
 
 const updateName = async () => {
   if (!project || !project.value) return;
@@ -24,13 +23,6 @@ const updateName = async () => {
 const updateSourceLanguageId = async () => {
   if (!project || !project.value) return;
   updateProject(project.value.id, { sourceLanguageId: sourceLanguageId.value });
-};
-
-const updateTargetLanguageIds = async () => {
-  if (!project || !project.value) return;
-  updateProject(project.value.id, {
-    targetLanguageIds: targetLanguageIds.value,
-  });
 };
 
 const updateProject = async (
@@ -57,21 +49,21 @@ const updateProject = async (
 </script>
 
 <template>
-  <h1>{{ $t("通用") }}</h1>
-  <h2>{{ $t("项目信息") }}</h2>
+  <h1>{{ t("通用") }}</h1>
+  <h2>{{ t("项目信息") }}</h2>
   <div>
-    <InputLabel>{{ $t("项目名称") }}</InputLabel>
+    <InputLabel>{{ t("项目名称") }}</InputLabel>
     <div class="flex gap-1 items-center">
       <Input v-model="name" small />
       <Button @click="updateName">
-        {{ $t("重命名") }}
+        {{ t("重命名") }}
       </Button>
     </div>
-    <InputLabel>{{ $t("项目源语言") }}</InputLabel>
+    <InputLabel>{{ t("项目源语言") }}</InputLabel>
     <div class="flex gap-1 items-center">
       <LanguagePicker v-model="sourceLanguageId" />
       <Button @click="updateSourceLanguageId">
-        {{ $t("更改") }}
+        {{ t("更改") }}
       </Button>
     </div>
   </div>
