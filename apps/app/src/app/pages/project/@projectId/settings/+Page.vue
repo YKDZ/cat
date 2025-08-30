@@ -3,29 +3,32 @@ import Button from "@/app/components/Button.vue";
 import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
+import { useProjectStore } from "@/app/stores/project";
 import { projectKey } from "@/app/utils/provide";
 import { trpc } from "@/server/trpc/client";
+import { navigate } from "vike/client/router";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 const project = inject(projectKey);
+const { deleteProject } = useProjectStore();
 
 const name = ref(project!.value!.name);
 const sourceLanguageId = ref(project!.value!.sourceLanguageId);
 
 const updateName = async () => {
   if (!project || !project.value) return;
-  updateProject(project.value.id, { name: name.value });
+  update(project.value.id, { name: name.value });
 };
 
 const updateSourceLanguageId = async () => {
   if (!project || !project.value) return;
-  updateProject(project.value.id, { sourceLanguageId: sourceLanguageId.value });
+  update(project.value.id, { sourceLanguageId: sourceLanguageId.value });
 };
 
-const updateProject = async (
+const update = async (
   id: string,
   {
     name,
@@ -45,6 +48,15 @@ const updateProject = async (
     sourceLanguageId,
     targetLanguageIds,
   });
+};
+
+const remove = async () => {
+  if (!project || !project.value) return;
+
+  await trpc.project.delete.mutate({ id: project.value.id });
+  deleteProject(project.value.id);
+
+  await navigate("/projects");
 };
 </script>
 
@@ -66,5 +78,6 @@ const updateProject = async (
         {{ t("更改") }}
       </Button>
     </div>
+    <Button @click="remove">{{ t("删除项目") }}</Button>
   </div>
 </template>

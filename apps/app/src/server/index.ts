@@ -4,7 +4,7 @@ import { createHTTPHelpers, logger } from "@cat/shared";
 import type { Server } from "http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
-import { getEsDB, getPrismaDB, getRedisDB } from "@cat/db";
+import { getPrismaDB, getRedisDB } from "@cat/db";
 import { getPluginRegistry } from "./pluginRegistry";
 import { closeAllProcessors } from "./processor";
 import { parsePreferredLanguage } from "./utils/i18n";
@@ -12,6 +12,7 @@ import { scanLocalPlugins } from "./utils/server";
 import { useStorage } from "./utils/storage/useStorage";
 import { userFromSessionId } from "./utils/user";
 import app from "./app";
+import { initTermService } from "./utils/term";
 
 let server: Server | null = null;
 
@@ -25,7 +26,6 @@ const shutdownServer = async () => {
 
       await closeAllProcessors();
       await (await useStorage()).storage.disconnect();
-      await (await getEsDB()).disconnect();
       await (await getRedisDB()).disconnect();
       await (await getPrismaDB()).disconnect();
     });
@@ -38,8 +38,6 @@ const startServer = async () => {
   try {
     const prismaDB = await getPrismaDB();
     const redisDB = await getRedisDB();
-    // TODO 也应该作为抽象层后的具体实现
-    const esDB = await getEsDB();
 
     await syncSettings(prismaDB.client);
 
@@ -49,6 +47,7 @@ const startServer = async () => {
     await scanLocalPlugins();
     (await useStorage()).storage.connect();
     (await useStorage()).storage.ping();
+    await initTermService(prismaDB.client, pluginRegistry);
 
     apply(app, {
       pageContext: async (runtime) => {
@@ -75,7 +74,6 @@ const startServer = async () => {
           pluginRegistry,
           prismaDB,
           redisDB,
-          esDB,
           helpers,
         };
       },

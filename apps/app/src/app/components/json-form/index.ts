@@ -6,11 +6,12 @@ import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import ArrayRenderer from "./renderers/ArrayRenderer.vue";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
+import { JSONSchema } from "@cat/shared";
 
-export const schemaKey = Symbol() as InjectionKey<z.infer<typeof z.json>>;
+export const schemaKey = Symbol() as InjectionKey<JSONSchema>;
 
 export type RendererMatcherContext = {
-  schema: z.infer<typeof z.json>;
+  schema: any;
 };
 
 export type Renderer = {
@@ -73,7 +74,7 @@ const renderers: Renderer[] = [
 
 renderers.forEach((renderer) => RendererRegistry.register(renderer));
 
-export const transferDataToString = (data: unknown) => {
+export const transferDataToString = (data: unknown): string => {
   if (typeof data === "string") {
     return data;
   } else {

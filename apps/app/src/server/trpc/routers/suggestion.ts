@@ -13,7 +13,6 @@ import {
 import { tracked, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
-import { EsTermStore } from "../../utils/es";
 
 export const suggestionRouter = router({
   onNew: authedProcedure
@@ -31,6 +30,10 @@ export const suggestionRouter = router({
         pluginRegistry,
       } = ctx;
       const { elementId, languageId } = input;
+
+      const termService = (await pluginRegistry.getTermServices(prisma))[0];
+
+      if (!termService) throw new Error("Term service does not exists");
 
       const element = await prisma.translatableElement.findUnique({
         where: {
@@ -100,11 +103,12 @@ export const suggestionRouter = router({
         }
 
         const zElement = TranslatableElementSchema.parse(element);
-        const { termedText, translationIds } = await EsTermStore.termText(
-          zElement.value,
-          element.Document.Project.sourceLanguageId,
-          languageId,
-        );
+        const { termedText, translationIds } =
+          await termService.service.termStore.termText(
+            zElement.value,
+            element.Document.Project.sourceLanguageId,
+            languageId,
+          );
         const relations = await prisma.termRelation.findMany({
           where: {
             translationId: {

@@ -1,9 +1,9 @@
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { userFromSessionId } from "@/server/utils/user";
-import { createHTTPHelpers, getCookieFunc, User } from "@cat/shared";
+import { createHTTPHelpers, getCookieFunc } from "@cat/shared";
 import { getPluginRegistry } from "@/server/pluginRegistry";
-import { getEsDB, getPrismaDB, getRedisDB } from "@cat/db";
+import { getPrismaDB, getRedisDB } from "@cat/db";
 
 export const createHttpContext = async ({
   req,
@@ -16,7 +16,6 @@ export const createHttpContext = async ({
 
   const prismaDB = await getPrismaDB();
   const redisDB = await getRedisDB();
-  const esDB = await getEsDB();
   const pluginRegistry = await getPluginRegistry();
 
   return {
@@ -25,7 +24,6 @@ export const createHttpContext = async ({
     pluginRegistry,
     prismaDB,
     redisDB,
-    esDB,
     helpers,
     ...helpers,
   };

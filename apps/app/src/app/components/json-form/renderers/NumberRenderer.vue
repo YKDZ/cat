@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { inject, ref, watch } from "vue";
 import { schemaKey } from "..";
 
 const props = defineProps<{

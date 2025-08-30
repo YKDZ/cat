@@ -22,13 +22,11 @@ const value = shallowRef<JSONType[]>(props.data);
 
 const itemsSchema = computed(() => {
   // Draft 2020-12 以后 items 不再能是数组
-  return schema.items as z.infer<typeof z.json>;
+  return schema.items as any;
 });
 
 const prefixItemsSchemas = computed(() => {
-  return schema.prefixItems
-    ? (schema.prefixItems as z.infer<typeof z.json>[])
-    : [];
+  return schema.prefixItems ? (schema.prefixItems as any[]) : [];
 });
 
 const handleUpdate = (to: JSONType, index: number) => {

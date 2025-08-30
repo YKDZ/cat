@@ -29,6 +29,12 @@ export const useProjectStore = defineStore("project", () => {
     }
   };
 
+  const deleteProject = (id: string) => {
+    projects.value = projects.value.filter((p) => p.id !== id);
+    translationAmounts.delete(id);
+    translatableEleAmounts.delete(id);
+  };
+
   const fetchProject = (id: string) => {
     trpc.project.query.query({ id }).then((project) => {
       if (project === null) return;
@@ -71,6 +77,7 @@ export const useProjectStore = defineStore("project", () => {
     projects,
     translatableEleAmounts,
     translationAmounts,
+    deleteProject,
     addProjects,
     fetchProject,
     updateTranslationAmount,

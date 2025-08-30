@@ -7,7 +7,6 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
-import { EsTermStore } from "@/server/utils/es";
 
 export const glossaryRouter = router({
   deleteTerm: authedProcedure
@@ -236,9 +235,14 @@ export const glossaryRouter = router({
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
+        pluginRegistry,
         user,
       } = ctx;
       const { glossaryId, termsData, canReverse } = input;
+
+      const termService = (await pluginRegistry.getTermServices(prisma))[0];
+
+      if (!termService) throw new Error("Term service does not exists");
 
       await prisma.$transaction(async (tx) => {
         const terms = await Promise.all(
@@ -316,7 +320,7 @@ export const glossaryRouter = router({
             ),
           );
 
-        await EsTermStore.insertTerms(...relations);
+        await termService.service.termStore.insertTerms(...relations);
       });
     }),
   searchTerm: authedProcedure
@@ -331,9 +335,18 @@ export const glossaryRouter = router({
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
+        pluginRegistry,
       } = ctx;
       const { text, termLanguageId, translationLanguageId } = input;
-      const translationIds = await EsTermStore.searchTerm(text, termLanguageId);
+
+      const termService = (await pluginRegistry.getTermServices(prisma))[0];
+
+      if (!termService) throw new Error("Term service does not exists");
+
+      const translationIds = await termService.service.termStore.searchTerm(
+        text,
+        termLanguageId,
+      );
 
       const relations = await prisma.termRelation.findMany({
         where: {
@@ -363,8 +376,13 @@ export const glossaryRouter = router({
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
+        pluginRegistry,
       } = ctx;
       const { elementId, translationLanguageId } = input;
+
+      const termService = (await pluginRegistry.getTermServices(prisma))[0];
+
+      if (!termService) throw new Error("Term service does not exists");
 
       const element = await prisma.translatableElement.findUnique({
         where: {
@@ -391,7 +409,7 @@ export const glossaryRouter = router({
 
       const sourceLanguageId = element.Document.Project.sourceLanguageId;
 
-      const translationIds = await EsTermStore.searchTerm(
+      const translationIds = await termService.service.termStore.searchTerm(
         element.value,
         sourceLanguageId,
       );

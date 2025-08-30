@@ -1,9 +1,5 @@
 import { promises as fs } from "fs";
-import { dirname, join, resolve } from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const import.meta.dirname = dirname(__filename);
+import { join, resolve } from "path";
 
 const SRC_DIR = resolve(import.meta.dirname, "../packages/@cat-plugin");
 const DEST_DIR = resolve(import.meta.dirname, "../apps/app/plugins");
@@ -17,10 +13,10 @@ const FOLDER_INCLUDES = [
   "yaml-file-handler",
   "oidc-auth-provider",
   "email-password-auth-provider",
-  "component-test",
+  "es-term-service",
 ];
 
-async function copyRecursive(srcPath, destPath) {
+const copyRecursive = async (srcPath, destPath) => {
   const stats = await fs.stat(srcPath);
 
   if (stats.isDirectory()) {
@@ -32,7 +28,7 @@ async function copyRecursive(srcPath, destPath) {
   } else if (stats.isFile()) {
     await fs.copyFile(srcPath, destPath);
   }
-}
+};
 
 (async () => {
   try {

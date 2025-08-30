@@ -1,4 +1,3 @@
-import type { PrismaClient } from "@cat/db";
 import type { Storage } from "./useStorage";
 import type { File } from "@cat/shared";
 
@@ -10,7 +9,7 @@ export class LocalStorage implements Storage {
   }
 
   getBasicPath() {
-    return import.meta.env.LOCAL_STORAGE_ROOT_DIR ?? "";
+    return "";
   }
 
   async getContent(file: File) {

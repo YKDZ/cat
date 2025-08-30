@@ -4,7 +4,7 @@ import type { JSONType } from "@cat/shared";
 import SettingForm from "./SettingForm.vue";
 
 const props = defineProps<{
-  schema: z.infer<typeof z.json>;
+  schema: JSONType;
 }>();
 
 const configSetter = async (updated: Map<string, JSONType>) => {

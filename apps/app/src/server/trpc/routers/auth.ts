@@ -1,4 +1,9 @@
-import { AuthMethodSchema, type AuthMethod } from "@cat/shared";
+import {
+  AuthMethodSchema,
+  JSONSchema,
+  JSONSchemaSchema,
+  type AuthMethod,
+} from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
 import { z } from "zod";
@@ -13,7 +18,7 @@ export const authRouter = router({
         providerId: z.string(),
       }),
     )
-    .output(z.json())
+    .output(JSONSchemaSchema)
     .query(async ({ ctx, input }) => {
       const {
         pluginRegistry,
@@ -33,7 +38,9 @@ export const authRouter = router({
 
       if (typeof provider.getPreAuthFormSchema !== "function") return {};
 
-      return z.json().parse(provider.getPreAuthFormSchema());
+      return JSONSchemaSchema.parse(
+        provider.getPreAuthFormSchema(),
+      ) satisfies JSONSchema;
     }),
   preAuth: publicProcedure
     .input(
@@ -44,6 +51,7 @@ export const authRouter = router({
         }),
       }),
     )
+    .output(z.record(z.string(), z.unknown()).nullable())
     .mutation(async ({ ctx, input }) => {
       const {
         redisDB: { redis },
@@ -103,7 +111,7 @@ export const authRouter = router({
         providerId: z.string(),
       }),
     )
-    .output(z.json())
+    .output(JSONSchemaSchema)
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -123,7 +131,9 @@ export const authRouter = router({
 
       if (typeof provider.getAuthFormSchema !== "function") return {};
 
-      return z.json().parse(provider.getAuthFormSchema());
+      return JSONSchemaSchema.parse(
+        provider.getAuthFormSchema(),
+      ) satisfies JSONSchema;
     }),
   auth: publicProcedure
     .input(

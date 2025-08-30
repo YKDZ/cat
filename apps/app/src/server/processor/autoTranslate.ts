@@ -7,7 +7,6 @@ import { Queue, Worker } from "bullmq";
 import { z } from "zod";
 import { config } from "./config";
 import { queryElementWithEmbedding, searchMemory } from "../utils/memory";
-import { EsTermStore } from "../utils/es";
 import { registerTaskUpdateHandlers } from "../utils/worker";
 
 const { client: prisma } = await getPrismaDB();
@@ -35,7 +34,7 @@ const worker = new Worker(
 
     await pluginRegistry.loadPlugins(prisma, {
       silent: true,
-      tags: ["translation-advisor", "text-vectorizer"],
+      tags: ["translation-advisor", "text-vectorizer", "term-service"],
     });
 
     const {
@@ -56,15 +55,6 @@ const worker = new Worker(
       minMemorySimilarity: number;
     };
 
-    const advisor: TranslationAdvisor | null =
-      (
-        await pluginRegistry.getTranslationAdvisor(prisma, advisorPluginId)
-      ).find((advisor) => advisor.getId() === advisorId) ?? null;
-
-    const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
-      .map((d) => d.vectorizer)
-      .find((vectorizer) => vectorizer.getId() === vectorizerId);
-
     if (minMemorySimilarity > 1 || minMemorySimilarity < 0) {
       throw new Error("Min memory similarity should between 0 and 1");
     }
@@ -81,9 +71,15 @@ const worker = new Worker(
         },
       },
       select: {
+        projectId: true,
         Project: {
           select: {
             Memories: {
+              select: {
+                id: true,
+              },
+            },
+            Glossaries: {
               select: {
                 id: true,
               },
@@ -102,6 +98,32 @@ const worker = new Worker(
       throw new Error(
         "Document does not exists or language does not claimed in project",
       );
+
+    const advisor: TranslationAdvisor | null =
+      (
+        await pluginRegistry.getTranslationAdvisor(prisma, advisorPluginId, {
+          userId,
+          projectId: document.projectId,
+        })
+      ).find((advisor) => advisor.getId() === advisorId) ?? null;
+
+    const vectorizer = (
+      await pluginRegistry.getTextVectorizers(prisma, {
+        userId,
+        projectId: document.projectId,
+      })
+    )
+      .map((d) => d.vectorizer)
+      .find((vectorizer) => vectorizer.getId() === vectorizerId);
+
+    const termService = (
+      await pluginRegistry.getTermServices(prisma, {
+        userId,
+        projectId: document.projectId,
+      })
+    )[0];
+
+    if (!termService) throw new Error("Term service does not exists");
 
     const sourceLanguageId = document.Project.SourceLanguage.id;
 
@@ -168,11 +190,12 @@ const worker = new Worker(
           if (!advisor.canSuggest(element, sourceLanguageId, languageId))
             throw new Error("Advisor can not suggest element in document");
 
-          const { termedText, translationIds } = await EsTermStore.termText(
-            element.value,
-            sourceLanguageId,
-            languageId,
-          );
+          const { termedText, translationIds } =
+            await termService.service.termStore.termText(
+              element.value,
+              sourceLanguageId,
+              languageId,
+            );
           const relations = await prisma.termRelation.findMany({
             where: {
               translationId: {
@@ -180,6 +203,9 @@ const worker = new Worker(
               },
               Term: {
                 languageId: sourceLanguageId,
+                glossaryId: {
+                  in: document.Project.Glossaries.map((g) => g.id),
+                },
               },
               Translation: {
                 languageId,
