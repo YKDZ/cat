@@ -9,14 +9,14 @@ import Loading from "@/app/components/Loading.vue";
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
 import Button from "@/app/components/Button.vue";
 import { storeToRefs } from "pinia";
-import type { JSONType } from "@cat/shared";
+import type { JSONSchema, JSONType } from "@cat/shared";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 const ctx = usePageContext();
 const { error, authMethod } = storeToRefs(useAuthStore());
-const schema = ref<z.infer<typeof z.json>>({});
+const schema = ref<JSONSchema>({});
 const data = shallowRef<JSONType>({});
 
 const handleAuth = async () => {

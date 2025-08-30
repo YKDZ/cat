@@ -29,6 +29,10 @@ const worker = new Worker(
     });
     const storage = (await useStorage()).storage;
 
+    logger.info("PROCESSOR", {
+      msg: `Cleaning ${files.length} dangling files`,
+    });
+
     await Promise.all(files.map(async (file) => await storage.delete(file)));
 
     await prisma.file.deleteMany({

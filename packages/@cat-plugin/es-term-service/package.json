@@ -1,0 +1,35 @@
+{
+  "name": "@cat-plugin/es-term-service",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": [
+    "plugins",
+    "typescript",
+    "types",
+    "cat"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "lint": "nx eslint:lint --fix",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "^9.1.1"
+  },
+  "peerDependencies": {
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@cat/db": "workspace:*",
+    "zod": "^4.1.1"
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*"
+  }
+}

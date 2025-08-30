@@ -1,0 +1,31 @@
+{
+  "id": "es-term-service",
+  "entry": "dist/index.mjs",
+  "iconURL": "https://unocss.dev/logo.svg",
+  "tags": ["term-service"],
+  "configs": [
+    {
+      "key": "connection",
+      "overridable": false,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "url",
+            "default": "http://localhost:9200/"
+          },
+          "username": {
+            "type": "string",
+            "default": "elastic"
+          },
+          "password": {
+            "type": "string",
+            "default": "elastic",
+            "x-secret": true
+          }
+        }
+      }
+    }
+  ]
+}

@@ -328,6 +328,28 @@ importers:
         specifier: workspace:*
         version: link:../../eslint-config
 
+  packages/@cat-plugin/es-term-service:
+    dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      '@elastic/elasticsearch':
+        specifier: ^9.1.1
+        version: 9.1.1
+      zod:
+        specifier: ^4.1.1
+        version: 4.1.1
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+
   packages/@cat-plugin/google-cloud-advisor:
     dependencies:
       '@cat/db':

@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { JSONType, PluginConfig, PluginConfigInstance } from "@cat/shared";
+import {
+  JSONSchemaSchema,
+  type JSONType,
+  type PluginConfig,
+  type PluginConfigInstance,
+} from "@cat/shared";
 import JSONForm from "./json-form/JSONForm.vue";
 import { trpc } from "@/server/trpc/client";
 import { useToastStore } from "../stores/toast";
@@ -38,8 +43,8 @@ const getInstance = async () => {
     .catch(trpcWarn);
 };
 
-onMounted(() => {
-  getInstance().then((instanceData) => {
+onMounted(async () => {
+  await getInstance().then((instanceData) => {
     instance.value = instanceData || null;
   });
 });
@@ -50,7 +55,7 @@ onMounted(() => {
     <span>{{ config.key }}</span>
     <JSONForm
       :data="instance?.value ?? {}"
-      :schema="config.schema"
+      :schema="JSONSchemaSchema.parse(config.schema)"
       @update="handleUpdate"
     />
   </div>

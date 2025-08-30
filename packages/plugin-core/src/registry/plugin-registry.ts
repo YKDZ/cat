@@ -11,6 +11,7 @@ import type { TranslatableFileHandler } from "./translatable-file-handler";
 import type { TranslationAdvisor } from "./translation-advisor";
 import type { PrismaClient } from "@cat/db";
 import { getMergedPluginConfigs } from "../utils/config";
+import { TermService } from "./term-service";
 
 const pluginsDir = join(process.cwd(), "plugins");
 
@@ -42,6 +43,7 @@ export interface CatPlugin {
     options: PluginGetterOptions,
   ) => TranslationAdvisor[];
   getAuthProviders?: (options: PluginGetterOptions) => AuthProvider[];
+  getTermServices?: (options: PluginGetterOptions) => TermService[];
 }
 
 const PluginObjectSchema = z.custom<CatPlugin>();
@@ -220,6 +222,20 @@ export class PluginRegistry {
     return results.flat();
   }
 
+  public async getTermServices(
+    prisma: PrismaClient,
+    options?: GetterOptions,
+  ): Promise<Array<{ pluginId: string; service: TermService }>> {
+    const ids = Array.from(this.plugins.keys());
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        const services = await this.getTermService(prisma, id, options);
+        return services.map((service) => ({ pluginId: id, service }));
+      }),
+    );
+    return results.flat();
+  }
+
   public async getTranslationAdvisor(
     prisma: PrismaClient,
     pluginId: string,
@@ -274,6 +290,20 @@ export class PluginRegistry {
       userId: options?.userId,
     });
     return plugin.getAuthProviders({ configs }) ?? [];
+  }
+
+  public async getTermService(
+    prisma: PrismaClient,
+    pluginId: string,
+    options?: GetterOptions,
+  ): Promise<TermService[]> {
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin || !plugin.getTermServices) return [];
+    const configs = await getMergedPluginConfigs(prisma, pluginId, {
+      projectId: options?.projectId,
+      userId: options?.userId,
+    });
+    return plugin.getTermServices({ configs }) ?? [];
   }
 
   public async reload(prisma: PrismaClient, options?: LoadPluginsOptions) {

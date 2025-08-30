@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { AuthMethod, JSONType } from "@cat/shared";
+import type { AuthMethod, JSONSchema, JSONType } from "@cat/shared";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { useAuthStore } from "../stores/auth";
 import { storeToRefs } from "pinia";
@@ -9,6 +9,8 @@ import { navigate } from "vike/client/router";
 import JSONForm from "./json-form/JSONForm.vue";
 import Button from "./Button.vue";
 import { useI18n } from "vue-i18n";
+import { TRPCClientError } from "@trpc/client";
+import { TRPCError } from "@trpc/server";
 
 const { t } = useI18n();
 
@@ -19,7 +21,7 @@ const props = defineProps<{
 const { trpcWarn } = useToastStore();
 const { authMethod } = storeToRefs(useAuthStore());
 
-const schema = ref<z.infer<typeof z.json>>({});
+const schema = ref<JSONSchema>({});
 const data = shallowRef<JSONType>({});
 
 const isEmpty = computed(() => {
@@ -45,7 +47,10 @@ const handlePreAuth = async () => {
         await navigate("/auth/callback");
       else await navigate(passToClient.redirectURL);
     })
-    .catch(trpcWarn);
+    .catch(async (e: TRPCError) => {
+      if (e.code === "CONFLICT") await navigate("/auth/callback");
+      else trpcWarn(e);
+    });
 };
 
 onMounted(async () => {

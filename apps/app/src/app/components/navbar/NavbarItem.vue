@@ -46,15 +46,17 @@ watch(selected, (to, from) => emits("select", from ?? false, to), {
 </script>
 
 <template>
-  <li
-    class="px-3 py-0.5 pb-1 border-b-2 flex gap-1 cursor-pointer items-center"
-    :class="{
-      'border-base': selected,
-      'border-highlight-darker': !selected,
-    }"
-    @click="handleNav"
-  >
-    <Icon small :icon />
-    <span>{{ text }}</span>
+  <li>
+    <button
+      class="px-3 py-0.5 pb-1 border-b-2 flex gap-1 cursor-pointer items-center"
+      :class="{
+        'border-base': selected,
+        'border-highlight-darker': !selected,
+      }"
+      @click="handleNav"
+    >
+      <Icon small :icon />
+      <span>{{ text }}</span>
+    </button>
   </li>
 </template>

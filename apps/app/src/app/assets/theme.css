@@ -12,14 +12,14 @@
   --cat-theme-base-content: #ffffff;
   --cat-theme-base-content-darker: #ffffff;
   /* success */
-  --cat-theme-success: #E8F5E9;
-  --cat-theme-success-darker: #C8E6C9;
-  --cat-theme-success-darkest: #388E3C;
+  --cat-theme-success: #e8f5e9;
+  --cat-theme-success-darker: #c8e6c9;
+  --cat-theme-success-darkest: #388e3c;
   --cat-theme-success-content: #000000;
   /* warning */
-  --cat-theme-warning: #FFF8E1;
-  --cat-theme-warning-darker: #FFECB3;
-  --cat-theme-warning-darkest: #F57C00;
+  --cat-theme-warning: #fff8e1;
+  --cat-theme-warning-darker: #ffecb3;
+  --cat-theme-warning-darkest: #f57c00;
   --cat-theme-warning-content: #000000;
   /* error */
   --cat-theme-error: #ff8fa0;
@@ -27,8 +27,17 @@
   --cat-theme-error-darkest: #d41717;
   --cat-theme-error-content: #ffffff;
   /* info */
-  --cat-theme-info: #E3F2FD;
-  --cat-theme-info-darker: #BBDEFB;
-  --cat-theme-info-darkest: #1565C0;
+  --cat-theme-info: #e3f2fd;
+  --cat-theme-info-darker: #bbdefb;
+  --cat-theme-info-darkest: #1565c0;
   --cat-theme-info-content: #000000;
+}
+
+body:not(.hydrated) button,
+body:not(.hydrated) a,
+body:not(.hydrated) input,
+body:not(.hydrated) select,
+body:not(.hydrated) textarea {
+  pointer-events: none;
+  cursor: not-allowed;
 }
