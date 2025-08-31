@@ -6,12 +6,12 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "npm"
-    directory: "/apps/docs"
+    directory: "/apps/app-e2e"
     schedule:
       interval: "weekly"
 
   - package-ecosystem: "npm"
-    directory: "/e2e"
+    directory: "/apps/docs"
     schedule:
       interval: "weekly"
 
@@ -82,5 +82,10 @@ updates:
 
   - package-ecosystem: "npm"
     directory: "/packages/@cat-plugin/yaml-file-handler"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/@cat-plugin/es-term-service"
     schedule:
       interval: "weekly"
