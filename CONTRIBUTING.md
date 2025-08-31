@@ -7,7 +7,6 @@ The sub repo is stored under:
 - `apps/`: The main app
 - `packages/`: Some shared packages and plugin-core etc.
 - `packages/@cat-plugin/`: Internal CAT plugin
-- `e2e/`: e2e test packages
 
 The relating tech and framework are:
 
