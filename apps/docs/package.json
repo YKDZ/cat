@@ -10,12 +10,14 @@
     "lint": "eslint ./docs --fix",
     "format": "prettier --write ."
   },
-  "dependencies": {
-    "cross-env": "^10.0.0",
-    "vue": "^3.5.20"
-  },
   "devDependencies": {
+    "@cat/eslint-config": "workspace:*",
+    "@vueuse/core": "^13.7.0",
+    "@zenuml/core": "^3.36.0",
+    "cross-env": "^10.0.0",
+    "mermaid": "^11.10.1",
+    "unocss": "^66.4.2",
     "vitepress": "^1.6.4",
-    "@cat/eslint-config": "workspace:*"
+    "vue": "^3.5.20"
   }
 }
