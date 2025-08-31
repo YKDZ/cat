@@ -1,6 +1,7 @@
 .history
 .yarn
 .vscode
+.qoder
 .npmrc
 dist
 packages/db/src/generated/prisma/
