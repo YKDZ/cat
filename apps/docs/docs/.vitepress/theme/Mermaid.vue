@@ -17,10 +17,11 @@ const props = defineProps({
   },
 });
 
+const { isDark } = useData();
+
 const svg = ref("");
 const code = ref(decodeURIComponent(props.graph));
 const showModal = ref(false);
-const { isDark } = useData();
 const init = mermaid.registerExternalDiagrams([zenuml]);
 // This is a hack to force v-html to re-render, otherwise the diagram disappears
 // when **switching themes** or **reloading the page**.
@@ -31,7 +32,7 @@ const renderKey = ref(0);
 
 mermaid.registerIconPacks([
   {
-    name: "logos",
+    name: "@iconify/logos",
     loader: () =>
       fetch("https://unpkg.com/@iconify-json/logos/icons.json").then((res) =>
         res.json(),
@@ -62,7 +63,7 @@ const renderChart = async () => {
   const mermaidConfig = {
     securityLevel: "loose",
     startOnLoad: false,
-    theme: isDark.value ? "dark" : "default",
+    theme: isDark.value ? "dark" : "null",
   } satisfies MermaidConfig;
   let svgCode = await render(props.id, code.value, mermaidConfig);
   svg.value = svgCode;
