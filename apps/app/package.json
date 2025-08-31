@@ -36,7 +36,7 @@
     "@elastic/elasticsearch": "^9.1.1",
     "@hono/node-server": "^1.19.0",
     "@pinia/testing": "^1.0.2",
-    "@prisma/adapter-pg": "^6.14.0",
+    "@prisma/adapter-pg": "^6.15.0",
     "@prisma/client": "6.14.0",
     "@tanstack/vue-table": "^8.21.3",
     "@trpc/client": "^11.5.0",
