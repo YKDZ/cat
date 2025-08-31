@@ -21,7 +21,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "jose": "^6.0.13"
+    "jose": "^6.1.0"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*"
