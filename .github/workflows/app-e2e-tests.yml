@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "22"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -42,8 +42,16 @@ jobs:
 
       - name: Show project structure (ignore node_modules)
         run: |
-          echo "📂 Project structure:"
-          tree -I "node_modules" -L 5
+          # 1. 能否被 Node 解析（最关键）
+          node -e "try{console.log('require.resolve ->', require.resolve('@cat/db'))}catch(e){console.error('require.resolve failed:', e.message)}"
+
+          # 2. 如果上面成功，打印实际被解析到的 package.json 路径和内容
+          node -e "try{const p=require.resolve('@cat/db/package.json'); console.log('pkg json resolved:', p); console.log(require('fs').readFileSync(p,'utf8'))}catch(e){console.error(e.message)}"
+
+          # 3. 在仓库里确认 packages/db 的产物和大小写
+          ls -la packages/db
+          ls -la packages/db/dist || true
+          git ls-files | grep -i 'packages/db' || true
 
       - name: Load plugins
         run: pnpm load-internal-plugins
