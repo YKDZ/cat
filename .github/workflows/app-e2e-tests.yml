@@ -40,6 +40,11 @@ jobs:
       - name: Build plugins
         run: pnpm nx run-many --target=build --projects=@cat-plugin/*
 
+      - name: Show project structure (ignore node_modules)
+        run: |
+          echo "📂 Project structure:"
+          tree -I "node_modules" -L 5
+
       - name: Load plugins
         run: pnpm load-internal-plugins
 
