@@ -253,10 +253,6 @@ importers:
         version: 66.4.2(postcss@8.5.6)(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
 
   apps/app-e2e:
-    dependencies:
-      tsx:
-        specifier: ^4.20.5
-        version: 4.20.5
     devDependencies:
       '@cat/db':
         specifier: workspace:*
@@ -276,6 +272,9 @@ importers:
       prisma:
         specifier: 6.15.0
         version: 6.15.0(typescript@5.9.2)
+      tsx:
+        specifier: ^4.20.5
+        version: 4.20.5
 
   apps/docs:
     devDependencies:
