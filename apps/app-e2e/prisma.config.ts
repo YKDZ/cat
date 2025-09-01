@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({
-  schema: join("..", "packages", "db", "prisma", "schema.prisma"),
+  schema: join("..", "..", "packages", "db", "prisma", "schema.prisma"),
   migrations: {
     seed: "tsx scripts/seed-db.ts",
   },

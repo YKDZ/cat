@@ -1,11 +1,3 @@
 {
-  "implicitDependencies": ["@cat/app"],
-  "targets": {
-    "e2e": {
-      "dependsOn": ["^build"]
-    },
-    "e2e-ui": {
-      "dependsOn": ["^build"]
-    }
-  }
+  "implicitDependencies": ["@cat/app"]
 }

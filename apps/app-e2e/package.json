@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
-  "dependencies": {
-    "tsx": "^4.20.5"
+  "scripts": {
+    "start": "prisma migrate reset --force && nx preview @cat/app"
   },
   "devDependencies": {
     "@cat/db": "workspace:*",
@@ -12,6 +12,7 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "@playwright/test": "^1.55.0",
+    "tsx": "^4.20.5",
     "prisma": "6.15.0"
   }
 }

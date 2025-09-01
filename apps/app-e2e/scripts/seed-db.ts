@@ -39,17 +39,6 @@ const seed = async () => {
   });
 };
 
-await (async () => {
-  const { client: prisma } = await getPrismaDB();
-  const languages = await prisma.language.findMany();
-  const storageTypes = await prisma.storageType.findMany();
-
-  if (languages.length !== 0 || storageTypes.length !== 0) {
-    console.log("Skipping seeding due to existing basic data");
-    return;
-  }
-
-  await seed().catch(async (e) => {
-    console.error(e);
-  });
-})();
+await seed().catch(async (e) => {
+  console.error(e);
+});

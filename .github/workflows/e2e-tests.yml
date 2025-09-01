@@ -1,0 +1,89 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:24-dind
+        options: --privileged
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all projects
+        run: pnpm nx run-many --target=build --projects=@cat-plugin/* --parallel=3
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install Playwright Browsers
+        run: pnpm playwright install --with-deps
+        working-directory: apps/app-e2e
+
+      - name: Start Docker services
+        run: |
+          echo "🐳 启动Docker服务..."
+          docker compose up -d --wait
+        working-directory: apps/app-e2e
+
+      - name: Wait for services to be ready
+        run: |
+          echo "⏳ 等待服务就绪..."
+          sleep 10
+
+      - name: Start application
+        run: |
+          echo "🚀 启动应用..."
+          pnpm start
+          echo "⏳ 等待应用启动..."
+          sleep 15
+
+          # 验证应用是否启动成功
+          timeout 60s bash -c 'until curl -f http://localhost:3000/api/__health || curl -f http://localhost:3000/api/__health; do sleep 2; done' || {
+            echo "❌ 应用启动失败"
+            echo "显示应用日志:"
+            jobs
+            exit 1
+          }
+
+          echo "✅ 应用启动成功"
+        working-directory: apps/app-e2e
+
+      - name: Run E2E tests
+        run: |
+          echo "🧪 运行端到端测试..."
+          pnpm playwright test
+        working-directory: apps/app-e2e
+        env:
+          CI: true
+
+      - name: Cleanup Docker services
+        if: always()
+        run: |
+          echo "🛑 清理环境..."
+          docker compose down --rmi all -v || true
+          docker system prune -af || true
+        working-directory: apps/app-e2e
