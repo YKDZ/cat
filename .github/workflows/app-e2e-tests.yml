@@ -53,6 +53,23 @@ jobs:
           ls -la packages/db/dist || true
           git ls-files | grep -i 'packages/db' || true
 
+          pnpm -v
+          pnpm -w ls --depth 0
+
+          # 2) node_modules 下是否有 @cat 文件夹（很直接）
+          ls -la node_modules/@cat || true
+
+          # 3) pnpm 的 .pnpm 中是否存在 @cat/db 记录（pnpm独有结构）
+          ls -la node_modules/.pnpm | grep cat || true
+          ls -la node_modules/.pnpm/*@cat* || true
+
+          # 4) packages/db 的 package.json 中 name 字段确认
+          cat packages/db/package.json
+
+          # 5) 显示 workspace 配置（看看 root package.json 或 pnpm-workspace.yaml）
+          cat package.json
+          cat pnpm-workspace.yaml || true
+
       - name: Load plugins
         run: pnpm load-internal-plugins
 

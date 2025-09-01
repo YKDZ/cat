@@ -2,9 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "load-internal-plugins": "nx run-many --target=build --projects=@cat-plugin/* && node scripts/load-internal-plugins.js",
-    "e2e": "nx e2e @cat/app-e2e",
-    "e2e:ui": "nx e2e-ui @cat/app-e2e"
+    "load-internal-plugins": "nx run-many --target=build --projects=@cat-plugin/* && node scripts/load-internal-plugins.js"
   },
   "dependencies": {
     "dotenv": "^17.2.1",
