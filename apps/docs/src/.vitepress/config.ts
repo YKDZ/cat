@@ -2,11 +2,8 @@ import { defineConfig } from "vitepress";
 import MermaidExample from "./mermaid-markdown-all.js";
 import type { MarkdownOptions } from "vitepress";
 import UnoCSS from "unocss/vite";
-import { Plugin } from "vite";
-import { PluginOption } from "vite";
 
 const allMarkdownTransformers: MarkdownOptions = {
-  // the shiki theme to highlight code blocks
   theme: {
     light: "github-light",
     dark: "github-dark",
@@ -23,6 +20,7 @@ export default defineConfig({
   description: "Official doc for CAT",
 
   outDir: "../dist/",
+  cacheDir: "../.cache/",
 
   markdown: allMarkdownTransformers,
 
@@ -55,18 +53,14 @@ export default defineConfig({
   ],
 
   themeConfig: {
-    // https://vitepress.dev/reference/default-theme-config
-    nav: [
-      { text: "Home", link: "/" },
-      { text: "Examples", link: "/markdown-examples" },
-    ],
+    nav: [{ text: "Developer", link: "/developer/" }],
 
     sidebar: [
       {
-        text: "Examples",
+        text: "Developer",
         items: [
-          { text: "Markdown Examples", link: "/markdown-examples" },
-          { text: "Runtime API Examples", link: "/api-examples" },
+          { text: "Overview", link: "/developer/" },
+          { text: "ER", link: "/developer/db-er" },
         ],
       },
     ],
