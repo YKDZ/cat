@@ -9,6 +9,7 @@ export default defineConfig({
     },
   },
   build: {
+    ssr: true,
     emptyOutDir: true,
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
@@ -32,18 +33,7 @@ export default defineConfig({
       output: {
         dir: resolve(import.meta.dirname, "dist"),
       },
-      external: [
-        "path",
-        "fs",
-        "vm",
-        "module",
-        "fs/promises",
-        "url",
-        "zod",
-        "module",
-        "@cat/shared",
-        "@cat/db",
-      ],
+      external: ["@cat/shared", "@cat/db"],
     },
   },
   plugins: [

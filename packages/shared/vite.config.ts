@@ -9,6 +9,7 @@ export default defineConfig({
     },
   },
   build: {
+    ssr: true,
     emptyOutDir: true,
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
@@ -17,18 +18,6 @@ export default defineConfig({
       formats: ["es", "cjs"],
     },
     outDir: "dist",
-    rollupOptions: {
-      external: [
-        "path",
-        "fs",
-        "vm",
-        "module",
-        "fs/promises",
-        "url",
-        "zod",
-        "crypto",
-      ],
-    },
   },
   plugins: [
     dts({
