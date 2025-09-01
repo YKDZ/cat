@@ -10,6 +10,10 @@ jobs:
   app-e2e-tests:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [22]
+
     services:
       docker:
         image: docker:24-dind
@@ -31,7 +35,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Install Playwright Browsers
         run: pnpm playwright install --with-deps
@@ -39,36 +43,6 @@ jobs:
 
       - name: Build plugins
         run: pnpm nx run-many --target=build --projects=@cat-plugin/*
-
-      - name: Show project structure (ignore node_modules)
-        run: |
-          # 1. 能否被 Node 解析（最关键）
-          node -e "try{console.log('require.resolve ->', require.resolve('@cat/db'))}catch(e){console.error('require.resolve failed:', e.message)}"
-
-          # 2. 如果上面成功，打印实际被解析到的 package.json 路径和内容
-          node -e "try{const p=require.resolve('@cat/db/package.json'); console.log('pkg json resolved:', p); console.log(require('fs').readFileSync(p,'utf8'))}catch(e){console.error(e.message)}"
-
-          # 3. 在仓库里确认 packages/db 的产物和大小写
-          ls -la packages/db
-          ls -la packages/db/dist || true
-          git ls-files | grep -i 'packages/db' || true
-
-          pnpm -v
-          pnpm -w ls --depth 0
-
-          # 2) node_modules 下是否有 @cat 文件夹（很直接）
-          ls -la node_modules/@cat || true
-
-          # 3) pnpm 的 .pnpm 中是否存在 @cat/db 记录（pnpm独有结构）
-          ls -la node_modules/.pnpm | grep cat || true
-          ls -la node_modules/.pnpm/*@cat* || true
-
-          # 4) packages/db 的 package.json 中 name 字段确认
-          cat packages/db/package.json
-
-          # 5) 显示 workspace 配置（看看 root package.json 或 pnpm-workspace.yaml）
-          cat package.json
-          cat pnpm-workspace.yaml || true
 
       - name: Load plugins
         run: pnpm load-internal-plugins
