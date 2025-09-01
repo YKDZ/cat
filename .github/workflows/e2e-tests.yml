@@ -52,11 +52,6 @@ jobs:
           docker compose up -d --wait
         working-directory: apps/app-e2e
 
-      - name: Wait for services to be ready
-        run: |
-          echo "⏳ Wait for docker compose..."
-          sleep 10
-
       - name: Start application
         run: |
           echo "🚀 Prepare db enviroment for app preview..."
@@ -74,6 +69,8 @@ jobs:
 
           echo "✅ app preview start successfully"
         working-directory: apps/app-e2e
+        env:
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
 
       - name: Run E2E tests
         run: |
