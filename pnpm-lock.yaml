@@ -256,7 +256,7 @@ importers:
     devDependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../packages/db
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
@@ -310,7 +310,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -326,7 +326,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -345,7 +345,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -367,7 +367,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -386,7 +386,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -402,7 +402,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -418,7 +418,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -440,7 +440,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -456,7 +456,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -472,7 +472,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -488,7 +488,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -515,17 +515,17 @@ importers:
         specifier: ^9.1.1
         version: 9.1.1
       '@prisma/adapter-pg':
-        specifier: ^6.14.0
-        version: 6.14.0
+        specifier: ^6.15.0
+        version: 6.15.0
       '@prisma/client':
-        specifier: 6.14.0
-        version: 6.14.0(prisma@6.14.0(typescript@5.9.2))(typescript@5.9.2)
+        specifier: 6.15.0
+        version: 6.15.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)
       dotenv:
         specifier: ^17.2.1
         version: 17.2.1
       prisma:
-        specifier: 6.14.0
-        version: 6.14.0(typescript@5.9.2)
+        specifier: 6.15.0
+        version: 6.15.0(typescript@5.9.2)
       redis:
         specifier: ^5.8.2
         version: 5.8.2
@@ -577,7 +577,7 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
+        version: link:../db
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
@@ -1428,10 +1428,10 @@ packages:
       '@aws-sdk/client-s3': ^3.873.0
       '@cat/shared': workspace:*
       '@elastic/elasticsearch': ^9.1.1
-      '@prisma/adapter-pg': ^6.14.0
-      '@prisma/client': 6.14.0
+      '@prisma/adapter-pg': ^6.15.0
+      '@prisma/client': 6.15.0
       dotenv: ^17.2.1
-      prisma: 6.14.0
+      prisma: 6.15.0
       redis: ^5.8.2
       zod: ^4.1.1
 
@@ -2581,14 +2581,23 @@ packages:
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
 
-  '@prisma/adapter-pg@6.14.0':
-    resolution: {integrity: sha512-heUCNPZ3f2Iv/JId280HCoN7NECWkYckC3K1cOKpTRRjiJv0mN0w99V91vBq7aHHTtlOVpfDPQbUMNAjMegIWg==}
-
   '@prisma/adapter-pg@6.15.0':
     resolution: {integrity: sha512-UDqysvOwrSLUDgSnLOKPmTvIrXhod5bMOBwb4GzSR/b6qqSO/SEb3Fq2ddGi1hZt6fAOSp+sXmdaQBy5Sakvkw==}
 
   '@prisma/client@6.14.0':
     resolution: {integrity: sha512-8E/Nk3eL5g7RQIg/LUj1ICyDmhD053STjxrPxUtCRybs2s/2sOEcx9NpITuAOPn07HEpWBfhAVe1T/HYWXUPOw==}
+    engines: {node: '>=18.18'}
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.1.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
+
+  '@prisma/client@6.15.0':
+    resolution: {integrity: sha512-wR2LXUbOH4cL/WToatI/Y2c7uzni76oNFND7+23ypLllBmIS8e3ZHhO+nud9iXSXKFt1SoM3fTZvHawg63emZw==}
     engines: {node: '>=18.18'}
     peerDependencies:
       prisma: '*'
@@ -2610,9 +2619,6 @@ packages:
 
   '@prisma/debug@6.15.0':
     resolution: {integrity: sha512-y7cSeLuQmyt+A3hstAs6tsuAiVXSnw9T55ra77z0nbNkA8Lcq9rNcQg6PI00by/+WnE/aMRJ/W7sZWn2cgIy1g==}
-
-  '@prisma/driver-adapter-utils@6.14.0':
-    resolution: {integrity: sha512-On9vTNiJ7J/O1kVqedLtfdhhrfRYprkUOhxjlmmWEv12WNdG6v5x4PsrfZXdBtZqRZaqK1i1TigO6IdtYh8z+A==}
 
   '@prisma/driver-adapter-utils@6.15.0':
     resolution: {integrity: sha512-tzcMG1eEBM3IJ8TBHo4jGeoUaalctqGXbrvxIoZb8jSEtgR82IUhdVyHHLVTlT8MdrHovcQJJ3jfcQfJARRnaQ==}
@@ -8893,18 +8899,6 @@ snapshots:
       redis: 5.8.2
       zod: 4.1.1
 
-  '@cat/db@file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)':
-    dependencies:
-      '@aws-sdk/client-s3': 3.876.0
-      '@cat/shared': file:packages/shared(pino@9.8.0)(zod@4.1.1)
-      '@elastic/elasticsearch': 9.1.1
-      '@prisma/adapter-pg': 6.15.0
-      '@prisma/client': 6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)
-      dotenv: 17.2.1
-      prisma: 6.15.0(typescript@5.9.2)
-      redis: 5.8.2
-      zod: 4.1.1
-
   '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.14.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)':
     dependencies:
       '@cat/db': file:packages/db(@aws-sdk/client-s3@3.876.0)(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@elastic/elasticsearch@9.1.1)(@prisma/adapter-pg@6.15.0)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.2))(typescript@5.9.2))(dotenv@17.2.1)(prisma@6.14.0(typescript@5.9.2))(redis@5.8.2)(zod@4.1.1)
@@ -10174,14 +10168,6 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
-  '@prisma/adapter-pg@6.14.0':
-    dependencies:
-      '@prisma/driver-adapter-utils': 6.14.0
-      pg: 8.16.3
-      postgres-array: 3.0.4
-    transitivePeerDependencies:
-      - pg-native
-
   '@prisma/adapter-pg@6.15.0':
     dependencies:
       '@prisma/driver-adapter-utils': 6.15.0
@@ -10195,7 +10181,7 @@ snapshots:
       prisma: 6.14.0(typescript@5.9.2)
       typescript: 5.9.2
 
-  '@prisma/client@6.14.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)':
+  '@prisma/client@6.15.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)':
     optionalDependencies:
       prisma: 6.15.0(typescript@5.9.2)
       typescript: 5.9.2
@@ -10221,10 +10207,6 @@ snapshots:
   '@prisma/debug@6.14.0': {}
 
   '@prisma/debug@6.15.0': {}
-
-  '@prisma/driver-adapter-utils@6.14.0':
-    dependencies:
-      '@prisma/debug': 6.14.0
 
   '@prisma/driver-adapter-utils@6.15.0':
     dependencies:

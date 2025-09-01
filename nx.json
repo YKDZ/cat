@@ -2,13 +2,9 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
     "sharedGlobals": [
-      "{workspaceRoot}/.env",
       "{workspaceRoot}/tsconfig.json",
-      "{workspaceRoot}/vite.config.ts",
-      "{workspaceRoot}/package.json",
-      "{workspaceRoot}/*.d.ts",
-      "{workspaceRoot}/*.config.ts",
-      "{workspaceRoot}/src/**/*.ts"
+      "{workspaceRoot}/tsconfig.base.json",
+      "{workspaceRoot}/package.json"
     ],
     "default": ["{projectRoot}/**/*", "sharedGlobals"]
   },
@@ -19,7 +15,9 @@
       "inputs": [
         "{projectRoot}/.env",
         "{projectRoot}/*.json",
-        "{projectRoot}/src/**"
+        "{projectRoot}/src/**",
+        "{projectRoot}/*.config.ts",
+        "{projectRoot}/*.d.ts"
       ],
       "outputs": ["{projectRoot}/dist/**"],
       "cache": true
