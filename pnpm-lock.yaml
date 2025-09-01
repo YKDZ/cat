@@ -282,6 +282,9 @@ importers:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
+      '@iconify-json/mdi':
+        specifier: ^1.2.3
+        version: 1.2.3
       '@vueuse/core':
         specifier: ^13.7.0
         version: 13.7.0(vue@3.5.20(typescript@5.9.2))
