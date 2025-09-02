@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "prisma migrate reset --force && nx preview @cat/app"
+    "reset-db": "prisma migrate reset --force"
   },
   "devDependencies": {
     "@cat/db": "workspace:*",
