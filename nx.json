@@ -8,7 +8,6 @@
     ],
     "default": ["{projectRoot}/**/*", "sharedGlobals"]
   },
-  "useDaemonProcess": true,
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
