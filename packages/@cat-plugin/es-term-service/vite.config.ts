@@ -4,7 +4,8 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig({
   ssr: {
-    noExternal: true,
+    external: ["@cat/shared", "@cat/db", "@cat/plugin-core"],
+    noExternal: ["@elastic/elasticsearch"],
   },
 
   resolve: {
@@ -25,7 +26,6 @@ export default defineConfig({
     outDir: "dist",
 
     rollupOptions: {
-      external: ["@cat/plugin-core", "@cat/shared", "@cat/db"],
       output: {
         entryFileNames: "[name].mjs",
         chunkFileNames: "[name].js",

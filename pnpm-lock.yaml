@@ -115,9 +115,6 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@elastic/elasticsearch':
-        specifier: ^9.1.1
-        version: 9.1.1
       '@hono/node-server':
         specifier: ^1.19.0
         version: 1.19.0(hono@4.9.2)
@@ -505,9 +502,6 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
-      '@elastic/elasticsearch':
-        specifier: ^9.1.1
-        version: 9.1.1
       '@prisma/adapter-pg':
         specifier: 6.15.0
         version: 6.15.0

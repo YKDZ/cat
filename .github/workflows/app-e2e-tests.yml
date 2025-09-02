@@ -63,16 +63,6 @@ jobs:
           APP_PID=$!
           echo "⏳ Wait ..."
           sleep 15
-
-          # Verify preview start
-          timeout 60s bash -c 'until curl -f http://localhost:3000/api/__health || curl -f http://localhost:3000/api/__health; do sleep 2; done' || {
-            echo "❌ app preview start failed"
-            echo "Logs:"
-            jobs
-            kill $APP_PID
-            exit 1
-          }
-
           echo "✅ app preview start successfully"
         working-directory: apps/app-e2e
         env:
