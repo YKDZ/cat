@@ -54,22 +54,12 @@ jobs:
         run: |
           echo "🐳 Start docker..."
           docker compose up -d --wait
-
-          echo "Waiting for database to be ready..."
-          for i in {1..30}; do
-            if docker exec cat_postgresql pg_isready -U user -d cat >/dev/null 2>&1; then
-              echo "✅ Database is ready"
-              break
-            fi
-            echo "Waiting for database... ($i/30)"
-            sleep 2
-          done
         working-directory: apps/app-e2e
 
       - name: Prestart application
         run: |
           echo "🚀 Prepare db environment for app preview..."
-          pnpm prestart
+          pnpm run reset-db
         working-directory: apps/app-e2e
         env:
           DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
@@ -81,6 +71,7 @@ jobs:
         working-directory: apps/app-e2e
         env:
           CI: true
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
 
       - name: Down Docker services
         if: always()

@@ -25,7 +25,7 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "pnpm run start",
+    command: "nx preview @cat/app",
     url: "http://localhost:3000",
   },
 
