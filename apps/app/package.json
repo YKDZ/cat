@@ -80,6 +80,6 @@
     "cross-env": "^10.0.0",
     "happy-dom": "^18.0.1",
     "typescript-eslint": "^8.39.1",
-    "unocss": "^66.4.2"
+    "unocss": "^66.5.0"
   }
 }
