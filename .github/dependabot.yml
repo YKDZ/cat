@@ -1,9 +1,10 @@
 version: 2
+
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     versioning-strategy: increase
     groups:
       trpc:
