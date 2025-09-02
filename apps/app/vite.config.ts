@@ -5,6 +5,10 @@ import vike from "vike/plugin";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  ssr: {
+    noExternal: ["vue-i18n"],
+  },
+
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),
@@ -26,8 +30,5 @@ export default defineConfig({
   build: {
     target: "es2022",
     emptyOutDir: true,
-    rollupOptions: {
-      external: ["cloudflare:sockets", /\.prisma\/client\/.*$/],
-    },
   },
 });
