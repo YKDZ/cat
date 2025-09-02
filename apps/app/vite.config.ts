@@ -26,8 +26,5 @@ export default defineConfig({
   build: {
     target: "es2022",
     emptyOutDir: true,
-    rollupOptions: {
-      external: ["cloudflare:sockets", /\.prisma\/client\/.*$/],
-    },
   },
 });
