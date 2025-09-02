@@ -1,7 +1,10 @@
 name: APP E2E Tests
 
 on:
-  workflow_dispatch: {}
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   app-e2e-tests:
