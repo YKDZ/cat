@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "prisma generate && vite build",
+    "build": "prisma generate && nx vite:build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
