@@ -59,7 +59,8 @@ jobs:
       - name: Start application
         run: |
           echo "🚀 Prepare db enviroment for app preview..."
-          pnpm start
+          pnpm start &
+          APP_PID=$!
           echo "⏳ Wait ..."
           sleep 15
 
@@ -68,6 +69,7 @@ jobs:
             echo "❌ app preview start failed"
             echo "Logs:"
             jobs
+            kill $APP_PID
             exit 1
           }
 
