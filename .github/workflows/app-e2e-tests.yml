@@ -66,58 +66,21 @@ jobs:
           done
         working-directory: apps/app-e2e
 
-      - name: Start application
+      - name: Prestart application
         run: |
           echo "🚀 Prepare db environment for app preview..."
-          pnpm start &
-          APP_PID=$!
-          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
-          echo "⏳ Waiting for application to start..."
-
-          for i in {1..60}; do
-            if curl -f http://localhost:3000 >/dev/null 2>&1; then
-              echo "✅ Application is ready at http://localhost:3000"
-              break
-            fi
-            echo "Waiting for app to start... ($i/60)"
-            sleep 1
-          done
-
-          if ! curl -f http://localhost:3000 >/dev/null 2>&1; then
-            echo "❌ Application failed to start"
-            exit 1
-          fi
+          pnpm prestart
         working-directory: apps/app-e2e
         env:
           DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
 
       - name: Run E2E tests
         run: |
-          echo "🔍 Verifying application accessibility..."
-          curl -f http://localhost:3000 || {
-            echo "❌ Application is not accessible at http://localhost:3000"
-            echo "Checking if application process is running..."
-            ps aux | grep node || true
-            echo "Checking port 3000..."
-            netstat -tlnp | grep 3000 || true
-            exit 1
-          }
-          echo "✅ Application is accessible"
-
           echo "🧪 Run E2E..."
           pnpm playwright test
         working-directory: apps/app-e2e
         env:
           CI: true
-
-      - name: Stop application
-        if: always()
-        run: |
-          echo "🛑 Stopping application..."
-          if [ ! -z "$APP_PID" ]; then
-            kill $APP_PID || true
-            echo "Application stopped"
-          fi
 
       - name: Down Docker services
         if: always()

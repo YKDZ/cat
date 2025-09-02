@@ -15,26 +15,18 @@ const baseURL = process.env["BASE_URL"] || "http://localhost:3000";
 export default defineConfig({
   testDir: "./src",
 
-  reporter: [["html", { open: process.env.CI ? "never" : "on-failure" }]],
-
   workers: process.env.CI ? 1 : 3,
-
-  fullyParallel: !process.env.CI,
 
   retries: process.env.CI ? 2 : 0,
 
   use: {
     baseURL,
-    trace: "on-first-retry",
-    screenshot: "only-on-failure",
-    video: process.env.CI ? "retain-on-failure" : "retain-on-failure",
     actionTimeout: process.env.CI ? 10 * 1000 : 5 * 1000,
   },
 
   webServer: {
-    command: "",
+    command: "pnpm run start",
     url: "http://localhost:3000",
-    reuseExistingServer: true,
   },
 
   projects: [
