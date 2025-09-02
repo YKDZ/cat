@@ -91,7 +91,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
 
-      - name: Verify application is accessible
+      - name: Run E2E tests
         run: |
           echo "🔍 Verifying application accessibility..."
           curl -f http://localhost:3000 || {
@@ -104,8 +104,6 @@ jobs:
           }
           echo "✅ Application is accessible"
 
-      - name: Run E2E tests
-        run: |
           echo "🧪 Run E2E..."
           pnpm playwright test
         working-directory: apps/app-e2e
