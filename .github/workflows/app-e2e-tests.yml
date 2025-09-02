@@ -44,6 +44,15 @@ jobs:
         run: pnpm playwright install --with-deps
         working-directory: apps/app-e2e
 
+      - name: Build db
+        run: pnpm nx build db
+
+      - name: Build shared
+        run: pnpm nx build shared
+
+      - name: Build plugin-core
+        run: pnpm nx build plugin-core
+
       - name: Build plugins
         run: pnpm nx run-many --target=build --projects=@cat-plugin/*
 
