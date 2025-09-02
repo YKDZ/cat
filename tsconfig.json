@@ -50,6 +50,9 @@
     },
     {
       "path": "./apps/app-e2e"
+    },
+    {
+      "path": "./packages/@cat-plugin/es-term-service"
     }
   ]
 }

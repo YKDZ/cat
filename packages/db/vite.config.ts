@@ -3,6 +3,10 @@ import { resolve } from "path";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
+  ssr: {
+    external: ["@cat/shared"],
+    noExternal: ["@prisma/adapter-pg", "@prisma/client"],
+  },
   build: {
     ssr: true,
     emptyOutDir: true,
@@ -13,20 +17,6 @@ export default defineConfig({
     },
     outDir: "dist",
     sourcemap: true,
-    rollupOptions: {
-      external: [
-        "@cat/shared",
-        "@prisma/client",
-        "@aws-sdk/s3-request-presigner",
-        "@aws-sdk/client-s3",
-        "@elastic/elasticsearch",
-        "@prisma/client/runtime/library",
-        "@prisma/adapter-pg",
-        "@prisma/client/runtime/client",
-        "@prisma/client/runtime/query_compiler_bg.postgresql.mjs",
-        "dotenv/config",
-      ],
-    },
     target: "esnext",
   },
   plugins: [
