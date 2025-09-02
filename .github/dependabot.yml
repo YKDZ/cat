@@ -4,3 +4,18 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    versioning-strategy: increase
+    groups:
+      trpc:
+        patterns:
+          - "@trpc/*"
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+      aws-sdk:
+        patterns:
+          - "@aws-sdk/*"
+      vueuse:
+        patterns:
+          - "@vueuse/*"
