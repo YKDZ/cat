@@ -11,5 +11,8 @@ onlyBuiltDependencies:
   - esbuild
   - prisma
   - protobufjs
+  - "@swc/core"
+  - "msgpackr-extract"
+  - "nx"
 
 injectWorkspacePackages: true

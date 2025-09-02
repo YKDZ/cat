@@ -1,10 +1,13 @@
 name: APP E2E Tests
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   app-e2e-tests:
@@ -37,18 +40,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install Playwright Browsers
-        run: pnpm playwright install --with-deps
-        working-directory: apps/app-e2e
+      - name: Check whether nx workspace sync
+        run: pnpm nx sync:check
 
-      - name: Build plugins
-        run: pnpm nx run-many --target=build --projects=@cat-plugin/*
-
-      - name: Load plugins
+      - name: Build and load plugins
         run: pnpm load-internal-plugins
 
       - name: Build app
         run: pnpm nx build app
+
+      - name: Install Playwright Browsers
+        run: pnpm playwright install --with-deps
+        working-directory: apps/app-e2e
 
       - name: Start Docker services
         run: |
@@ -56,22 +59,10 @@ jobs:
           docker compose up -d --wait
         working-directory: apps/app-e2e
 
-      - name: Start application
+      - name: Prestart application
         run: |
-          echo "🚀 Prepare db enviroment for app preview..."
-          pnpm start
-          echo "⏳ Wait ..."
-          sleep 15
-
-          # Verify preview start
-          timeout 60s bash -c 'until curl -f http://localhost:3000/api/__health || curl -f http://localhost:3000/api/__health; do sleep 2; done' || {
-            echo "❌ app preview start failed"
-            echo "Logs:"
-            jobs
-            exit 1
-          }
-
-          echo "✅ app preview start successfully"
+          echo "🚀 Prepare db environment for app preview..."
+          pnpm run reset-db
         working-directory: apps/app-e2e
         env:
           DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
@@ -83,11 +74,4 @@ jobs:
         working-directory: apps/app-e2e
         env:
           CI: true
-
-      - name: Cleanup Docker services
-        if: always()
-        run: |
-          echo "🛑 Cleaup..."
-          docker compose down --rmi all -v || true
-          docker system prune -af || true
-        working-directory: apps/app-e2e
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
