@@ -38,7 +38,7 @@ jobs:
         run: pnpm install
 
       - name: Check whether nx workspace sync
-        run: nx sync:check
+        run: pnpm nx sync:check
 
       - name: Install Playwright Browsers
         run: pnpm playwright install --with-deps
