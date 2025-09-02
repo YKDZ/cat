@@ -40,30 +40,15 @@ jobs:
       - name: Check whether nx workspace sync
         run: pnpm nx sync:check
 
-      - name: Install Playwright Browsers
-        run: pnpm playwright install --with-deps
-        working-directory: apps/app-e2e
-
-      - name: Build db
-        run: pnpm nx build db
-
-      - name: Build shared
-        run: pnpm nx build shared
-
-      - name: Build plugin-core
-        run: pnpm nx build plugin-core
-
-      - name: Install dependencies
-        run: pnpm install
-
       - name: Build and load plugins
         run: pnpm load-internal-plugins
 
-      - name: Install dependencies
-        run: pnpm install
-
       - name: Build app
         run: pnpm nx build app
+
+      - name: Install Playwright Browsers
+        run: pnpm playwright install --with-deps
+        working-directory: apps/app-e2e
 
       - name: Start Docker services
         run: |
