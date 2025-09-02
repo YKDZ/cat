@@ -13,13 +13,13 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./browser": {
       "types": "./dist/types/index-browser.d.ts",
-      "import": "./dist/browser.es.js",
-      "require": "./dist/browser.cjs.js"
+      "import": "./dist/browser.js",
+      "require": "./dist/browser.cjs"
     }
   },
   "files": [
