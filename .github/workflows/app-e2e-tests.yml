@@ -54,19 +54,55 @@ jobs:
         run: |
           echo "🐳 Start docker..."
           docker compose up -d --wait
+
+          echo "Waiting for database to be ready..."
+          for i in {1..30}; do
+            if docker exec cat_postgresql pg_isready -U user -d cat >/dev/null 2>&1; then
+              echo "✅ Database is ready"
+              break
+            fi
+            echo "Waiting for database... ($i/30)"
+            sleep 2
+          done
         working-directory: apps/app-e2e
 
       - name: Start application
         run: |
-          echo "🚀 Prepare db enviroment for app preview..."
+          echo "🚀 Prepare db environment for app preview..."
           pnpm start &
           APP_PID=$!
-          echo "⏳ Wait ..."
-          sleep 15
-          echo "✅ app preview start successfully"
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          echo "⏳ Waiting for application to start..."
+
+          for i in {1..60}; do
+            if curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✅ Application is ready at http://localhost:3000"
+              break
+            fi
+            echo "Waiting for app to start... ($i/60)"
+            sleep 1
+          done
+
+          if ! curl -f http://localhost:3000 >/dev/null 2>&1; then
+            echo "❌ Application failed to start"
+            exit 1
+          fi
         working-directory: apps/app-e2e
         env:
           DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
+
+      - name: Verify application is accessible
+        run: |
+          echo "🔍 Verifying application accessibility..."
+          curl -f http://localhost:3000 || {
+            echo "❌ Application is not accessible at http://localhost:3000"
+            echo "Checking if application process is running..."
+            ps aux | grep node || true
+            echo "Checking port 3000..."
+            netstat -tlnp | grep 3000 || true
+            exit 1
+          }
+          echo "✅ Application is accessible"
 
       - name: Run E2E tests
         run: |
@@ -76,10 +112,18 @@ jobs:
         env:
           CI: true
 
-      - name: Cleanup Docker services
+      - name: Stop application
         if: always()
         run: |
-          echo "🛑 Cleaup..."
+          echo "🛑 Stopping application..."
+          if [ ! -z "$APP_PID" ]; then
+            kill $APP_PID || true
+            echo "Application stopped"
+          fi
+
+      - name: Down Docker services
+        if: always()
+        run: |
+          echo "🛑 Down..."
           docker compose down --rmi all -v || true
-          docker system prune -af || true
         working-directory: apps/app-e2e

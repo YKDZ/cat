@@ -1,6 +1,4 @@
 import { defineConfig, devices } from "@playwright/test";
-import { workspaceRoot } from "@nx/devkit";
-import { join } from "path";
 
 // For CI, you may want to set BASE_URL to the deployed application.
 const baseURL = process.env["BASE_URL"] || "http://localhost:3000";
@@ -17,10 +15,7 @@ const baseURL = process.env["BASE_URL"] || "http://localhost:3000";
 export default defineConfig({
   testDir: "./src",
 
-  reporter: [
-    ["html", { open: process.env.CI ? "never" : "on-failure" }],
-    ["github"],
-  ],
+  reporter: [["html", { open: process.env.CI ? "never" : "on-failure" }]],
 
   workers: process.env.CI ? 1 : 3,
 
@@ -28,10 +23,6 @@ export default defineConfig({
 
   retries: process.env.CI ? 2 : 0,
 
-  timeout: 30 * 1000,
-  expect: {
-    timeout: 5 * 1000,
-  },
   use: {
     baseURL,
     trace: "on-first-retry",
@@ -39,12 +30,13 @@ export default defineConfig({
     video: process.env.CI ? "retain-on-failure" : "retain-on-failure",
     actionTimeout: process.env.CI ? 10 * 1000 : 5 * 1000,
   },
+
   webServer: {
     command: "",
     url: "http://localhost:3000",
     reuseExistingServer: true,
-    cwd: join(workspaceRoot, "apps", "app-e2e"),
   },
+
   projects: [
     {
       name: "chromium",
