@@ -53,10 +53,10 @@ jobs:
       - name: Build plugin-core
         run: pnpm nx build plugin-core
 
-      - name: Build plugins
-        run: pnpm nx run-many --target=build --projects=@cat-plugin/*
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Load plugins
+      - name: Build and load plugins
         run: pnpm load-internal-plugins
 
       - name: Build app
