@@ -43,7 +43,10 @@ jobs:
       - name: Check whether nx workspace sync
         run: pnpm nx sync:check
 
-      - name: Build and load plugins
+      - name: Build plugins
+        run: pnpm nx run-many --target=build --projects=@cat-plugin/*
+
+      - name: Load plugins
         run: pnpm load-internal-plugins
 
       - name: Build app

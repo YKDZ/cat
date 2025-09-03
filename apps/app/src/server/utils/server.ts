@@ -1,11 +1,11 @@
 import { getPrismaDB } from "@cat/db";
 import { logger } from "@cat/shared";
 import type { Job } from "bullmq";
-import { getPluginRegistry } from "../pluginRegistry";
 import {
   importPluginQueue,
   importPluginQueueEvents,
 } from "../processor/importPlugin";
+import { PluginRegistry } from "@cat/plugin-core";
 
 export const scanLocalPlugins = async () => {
   const { client: prisma } = await getPrismaDB();
@@ -24,7 +24,7 @@ export const scanLocalPlugins = async () => {
     );
 
     await Promise.all(
-      (await (await getPluginRegistry()).getPluginIdInLocalPlugins())
+      (await PluginRegistry.get().getPluginIdInLocalPlugins())
         .filter((id) => !existPluginIds.includes(id))
         .map(async (id) => {
           const task = await tx.task.create({
@@ -62,7 +62,7 @@ export const scanLocalPlugins = async () => {
       ),
     );
 
-    (await getPluginRegistry()).reload(prisma);
+    PluginRegistry.get().reload(prisma);
     logger.info("SERVER", {
       msg: "Reloaded plugins successfully for there was no plugins registered in the database before",
     });
