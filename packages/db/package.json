@@ -22,17 +22,16 @@
   },
   "dependencies": {
     "@prisma/client": "6.15.0",
-    "@prisma/adapter-pg": "6.15.0"
+    "@prisma/adapter-pg": "6.15.0",
+    "redis": "^5.8.2"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*"
+    "@cat/eslint-config": "workspace:*",
+    "prisma": "6.15.0"
   },
   "peerDependencies": {
     "dotenv": "^17.2.1",
-    "prisma": "6.15.0",
     "zod": "^4.1.1",
-    "@aws-sdk/client-s3": "^3.873.0",
-    "@cat/shared": "workspace:*",
-    "redis": "^5.8.2"
+    "@cat/shared": "workspace:*"
   }
 }

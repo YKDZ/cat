@@ -5,7 +5,7 @@ import dts from "vite-plugin-dts";
 export default defineConfig({
   ssr: {
     external: ["@cat/shared"],
-    noExternal: ["@prisma/adapter-pg", "@prisma/client"],
+    noExternal: ["@prisma/adapter-pg", "@prisma/client", "redis"],
   },
   build: {
     ssr: true,

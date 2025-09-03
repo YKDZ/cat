@@ -496,9 +496,6 @@ importers:
 
   packages/db:
     dependencies:
-      '@aws-sdk/client-s3':
-        specifier: ^3.873.0
-        version: 3.876.0
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
@@ -511,9 +508,6 @@ importers:
       dotenv:
         specifier: ^17.2.1
         version: 17.2.1
-      prisma:
-        specifier: 6.15.0
-        version: 6.15.0(typescript@5.9.2)
       redis:
         specifier: ^5.8.2
         version: 5.8.2
@@ -524,6 +518,9 @@ importers:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
+      prisma:
+        specifier: 6.15.0
+        version: 6.15.0(typescript@5.9.2)
 
   packages/eslint-config:
     devDependencies:
