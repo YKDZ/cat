@@ -66,7 +66,7 @@
     "@cat/eslint-config": "workspace:*",
     "@iconify-json/codicon": "^1.2.27",
     "@iconify-json/file-icons": "^1.2.2",
-    "@iconify-json/flag": "^1.2.6",
+    "@iconify-json/flag": "^1.2.9",
     "@iconify-json/fluent": "^1.2.30",
     "@iconify-json/mdi": "^1.2.3",
     "@intlify/eslint-plugin-vue-i18n": "^4.1.0",
