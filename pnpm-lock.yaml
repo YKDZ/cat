@@ -131,8 +131,8 @@ importers:
         specifier: ^11.5.0
         version: 11.5.0(typescript@5.9.2)
       '@vueuse/components':
-        specifier: ^13.6.0
-        version: 13.6.0(vue@3.5.20(typescript@5.9.2))
+        specifier: ^13.9.0
+        version: 13.9.0(vue@3.5.20(typescript@5.9.2))
       '@vueuse/core':
         specifier: ^13.7.0
         version: 13.7.0(vue@3.5.20(typescript@5.9.2))
@@ -3853,8 +3853,8 @@ packages:
   '@vue/test-utils@2.4.6':
     resolution: {integrity: sha512-FMxEjOpYNYiFe0GkaHsnJPXFHxQ6m4t8vI/ElPGpMWxZKpmRvQ33OIrvRXemy6yha03RxhOlQuy+gZMC3CQSow==}
 
-  '@vueuse/components@13.6.0':
-    resolution: {integrity: sha512-wJmXlQhCRWBqpnRW4KVbbKqCW28AZ/5hoA/gy7cvTXJUiRdKKfjHFo+7MGwn80dFfIkCA5253T7Y3fbNK4/lUw==}
+  '@vueuse/components@13.9.0':
+    resolution: {integrity: sha512-0DDFpjG3hEEK+3YgSzE/OzOGqpo/KmxcXWzW2YdmgahZvaoUdegn68GmbdcHRJE7CH55dDj13Cz47iN8QoI3jQ==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -11661,10 +11661,10 @@ snapshots:
       js-beautify: 1.15.4
       vue-component-type-helpers: 2.2.12
 
-  '@vueuse/components@13.6.0(vue@3.5.20(typescript@5.9.2))':
+  '@vueuse/components@13.9.0(vue@3.5.20(typescript@5.9.2))':
     dependencies:
-      '@vueuse/core': 13.6.0(vue@3.5.20(typescript@5.9.2))
-      '@vueuse/shared': 13.6.0(vue@3.5.20(typescript@5.9.2))
+      '@vueuse/core': 13.9.0(vue@3.5.20(typescript@5.9.2))
+      '@vueuse/shared': 13.9.0(vue@3.5.20(typescript@5.9.2))
       vue: 3.5.20(typescript@5.9.2)
 
   '@vueuse/core@12.8.2(typescript@5.9.2)':
