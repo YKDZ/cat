@@ -1,6 +1,23 @@
 version: 2
+
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+    versioning-strategy: widen
+    open-pull-requests-limit: 32
+    groups:
+      trpc:
+        patterns:
+          - "@trpc/*"
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+      aws-sdk:
+        patterns:
+          - "@aws-sdk/*"
+      vueuse:
+        patterns:
+          - "@vueuse/*"

@@ -5,7 +5,6 @@ import type { Server } from "http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import { getPrismaDB, getRedisDB } from "@cat/db";
-import { getPluginRegistry } from "./pluginRegistry";
 import { closeAllProcessors } from "./processor";
 import { parsePreferredLanguage } from "./utils/i18n";
 import { scanLocalPlugins } from "./utils/server";
@@ -13,6 +12,7 @@ import { useStorage } from "./utils/storage/useStorage";
 import { userFromSessionId } from "./utils/user";
 import app from "./app";
 import { initTermService } from "./utils/term";
+import { PluginRegistry } from "@cat/plugin-core";
 
 let server: Server | null = null;
 
@@ -41,7 +41,7 @@ const startServer = async () => {
 
     await syncSettings(prismaDB.client);
 
-    const pluginRegistry = await getPluginRegistry();
+    const pluginRegistry = PluginRegistry.get();
     await pluginRegistry.loadPlugins(prismaDB.client);
 
     await scanLocalPlugins();
