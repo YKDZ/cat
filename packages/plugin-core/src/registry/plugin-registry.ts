@@ -13,6 +13,11 @@ import type { PrismaClient } from "@cat/db";
 import { getMergedPluginConfigs } from "../utils/config";
 import { TermService } from "./term-service";
 
+declare global {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  var __PLUGIN_REGISTRY__: PluginRegistry | undefined;
+}
+
 const pluginsDir = join(process.cwd(), "plugins");
 
 export type PluginLoadOptions = {
@@ -52,6 +57,14 @@ export class PluginRegistry {
   private plugins: Map<string, CatPlugin> = new Map();
 
   public constructor() {}
+
+  public static get() {
+    if (!globalThis["__PLUGIN_REGISTRY__"]) {
+      const pluginRegistry = new PluginRegistry();
+      globalThis["__PLUGIN_REGISTRY__"] = pluginRegistry;
+    }
+    return globalThis["__PLUGIN_REGISTRY__"]!;
+  }
 
   public async loadPlugins(prisma: PrismaClient, options?: LoadPluginsOptions) {
     this.plugins.clear();
