@@ -38,7 +38,7 @@
     "@tanstack/vue-table": "^8.21.3",
     "@trpc/client": "^11.5.0",
     "@trpc/server": "^11.5.0",
-    "@vueuse/components": "^13.6.0",
+    "@vueuse/components": "^13.9.0",
     "@vueuse/core": "^13.7.0",
     "@vueuse/integrations": "^13.6.0",
     "bullmq": "^5.58.4",
