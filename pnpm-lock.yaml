@@ -137,8 +137,8 @@ importers:
         specifier: ^13.7.0
         version: 13.7.0(vue@3.5.20(typescript@5.9.2))
       '@vueuse/integrations':
-        specifier: ^13.6.0
-        version: 13.6.0(axios@1.11.0)(focus-trap@7.6.5)(universal-cookie@8.0.1)(vue@3.5.20(typescript@5.9.2))
+        specifier: ^13.9.0
+        version: 13.9.0(axios@1.11.0)(focus-trap@7.6.5)(universal-cookie@8.0.1)(vue@3.5.20(typescript@5.9.2))
       bullmq:
         specifier: ^5.58.4
         version: 5.58.4
@@ -3893,8 +3893,8 @@ packages:
       universal-cookie:
         optional: true
 
-  '@vueuse/integrations@13.6.0':
-    resolution: {integrity: sha512-dVFdgwYvkYjdizRL3ESdUW+Hg84i9Yhuzs+Ec3kEcuzJmT5xhiL/IGdw4z394qSBngUQvFi+wbHwhHX3EGbAxQ==}
+  '@vueuse/integrations@13.9.0':
+    resolution: {integrity: sha512-SDobKBbPIOe0cVL7QxMzGkuUGHvWTdihi9zOrrWaWUgFKe15cwEcwfWmgrcNzjT6kHnNmWuTajPHoIzUjYNYYQ==}
     peerDependencies:
       async-validator: ^4
       axios: ^1
@@ -11605,10 +11605,10 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@vueuse/integrations@13.6.0(axios@1.11.0)(focus-trap@7.6.5)(universal-cookie@8.0.1)(vue@3.5.20(typescript@5.9.2))':
+  '@vueuse/integrations@13.9.0(axios@1.11.0)(focus-trap@7.6.5)(universal-cookie@8.0.1)(vue@3.5.20(typescript@5.9.2))':
     dependencies:
-      '@vueuse/core': 13.6.0(vue@3.5.20(typescript@5.9.2))
-      '@vueuse/shared': 13.6.0(vue@3.5.20(typescript@5.9.2))
+      '@vueuse/core': 13.9.0(vue@3.5.20(typescript@5.9.2))
+      '@vueuse/shared': 13.9.0(vue@3.5.20(typescript@5.9.2))
       vue: 3.5.20(typescript@5.9.2)
     optionalDependencies:
       axios: 1.11.0
