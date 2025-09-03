@@ -117,7 +117,7 @@ importers:
         version: link:../../packages/shared
       '@hono/node-server':
         specifier: ^1.19.1
-        version: 1.19.1(hono@4.9.2)
+        version: 1.19.1(hono@4.9.5)
       '@pinia/testing':
         specifier: ^1.0.2
         version: 1.0.2(pinia@3.0.3(typescript@5.9.2)(vue@3.5.20(typescript@5.9.2)))
@@ -152,8 +152,8 @@ importers:
         specifier: ^11.3.0
         version: 11.3.0
       hono:
-        specifier: ^4.9.2
-        version: 4.9.2
+        specifier: ^4.9.5
+        version: 4.9.5
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -183,7 +183,7 @@ importers:
         version: 0.4.237(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
       vike-server:
         specifier: ^1.0.23
-        version: 1.0.23(hono@4.9.2)(vike@0.4.237(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
+        version: 1.0.23(hono@4.9.5)(vike@0.4.237(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
       vike-vue:
         specifier: ^0.9.2
         version: 0.9.2(vike@0.4.237(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vue@3.5.20(typescript@5.9.2))
@@ -5299,8 +5299,8 @@ packages:
   highlight.js@10.7.3:
     resolution: {integrity: sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==}
 
-  hono@4.9.2:
-    resolution: {integrity: sha512-UG2jXGS/gkLH42l/1uROnwXpkjvvxkl3kpopL3LBo27NuaDPI6xHNfuUSilIHcrBkPfl4y0z6y2ByI455TjNRw==}
+  hono@4.9.5:
+    resolution: {integrity: sha512-aLAVl5/67ifNnoFVxnhR89dpmSLsgwBprw/PT671ASwUpJqmd7Ne8KPTQo37DbRZfgpHaHeZ4bPVUvbOkeedMw==}
     engines: {node: '>=16.9.0'}
 
   hookable@5.5.3:
@@ -9292,9 +9292,9 @@ snapshots:
     dependencies:
       tailwindcss: 3.4.17
 
-  '@hono/node-server@1.19.1(hono@4.9.2)':
+  '@hono/node-server@1.19.1(hono@4.9.5)':
     dependencies:
-      hono: 4.9.2
+      hono: 4.9.5
 
   '@humanfs/core@0.19.1': {}
 
@@ -11153,16 +11153,16 @@ snapshots:
 
   '@universal-middleware/compress@0.2.30': {}
 
-  '@universal-middleware/core@0.4.9(hono@4.9.2)':
+  '@universal-middleware/core@0.4.9(hono@4.9.5)':
     dependencies:
       regexparam: 3.0.0
       tough-cookie: 5.1.2
     optionalDependencies:
-      hono: 4.9.2
+      hono: 4.9.5
 
-  '@universal-middleware/elysia@0.4.8(hono@4.9.2)':
+  '@universal-middleware/elysia@0.4.8(hono@4.9.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.9(hono@4.9.2)
+      '@universal-middleware/core': 0.4.9(hono@4.9.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -11172,9 +11172,9 @@ snapshots:
       - h3
       - hono
 
-  '@universal-middleware/express@0.4.19(hono@4.9.2)':
+  '@universal-middleware/express@0.4.19(hono@4.9.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.9(hono@4.9.2)
+      '@universal-middleware/core': 0.4.9(hono@4.9.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -11184,10 +11184,10 @@ snapshots:
       - h3
       - hono
 
-  '@universal-middleware/fastify@0.5.20(hono@4.9.2)':
+  '@universal-middleware/fastify@0.5.20(hono@4.9.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.9(hono@4.9.2)
-      '@universal-middleware/express': 0.4.19(hono@4.9.2)
+      '@universal-middleware/core': 0.4.9(hono@4.9.5)
+      '@universal-middleware/express': 0.4.19(hono@4.9.5)
       fastify-raw-body: 5.0.0
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
@@ -11198,9 +11198,9 @@ snapshots:
       - h3
       - hono
 
-  '@universal-middleware/h3@0.4.12(hono@4.9.2)':
+  '@universal-middleware/h3@0.4.12(hono@4.9.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.9(hono@4.9.2)
+      '@universal-middleware/core': 0.4.9(hono@4.9.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -11210,9 +11210,9 @@ snapshots:
       - h3
       - hono
 
-  '@universal-middleware/hattip@0.4.12(hono@4.9.2)':
+  '@universal-middleware/hattip@0.4.12(hono@4.9.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.9(hono@4.9.2)
+      '@universal-middleware/core': 0.4.9(hono@4.9.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -11222,9 +11222,9 @@ snapshots:
       - h3
       - hono
 
-  '@universal-middleware/hono@0.4.16(hono@4.9.2)':
+  '@universal-middleware/hono@0.4.16(hono@4.9.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.9(hono@4.9.2)
+      '@universal-middleware/core': 0.4.9(hono@4.9.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13244,7 +13244,7 @@ snapshots:
 
   highlight.js@10.7.3: {}
 
-  hono@4.9.2: {}
+  hono@4.9.5: {}
 
   hookable@5.5.3: {}
 
@@ -15036,18 +15036,18 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vike-server@1.0.23(hono@4.9.2)(vike@0.4.237(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)):
+  vike-server@1.0.23(hono@4.9.5)(vike@0.4.237(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)):
     dependencies:
       '@brillout/picocolors': 1.0.28
       '@brillout/vite-plugin-server-entry': 0.7.12
       '@universal-middleware/compress': 0.2.30
-      '@universal-middleware/core': 0.4.9(hono@4.9.2)
-      '@universal-middleware/elysia': 0.4.8(hono@4.9.2)
-      '@universal-middleware/express': 0.4.19(hono@4.9.2)
-      '@universal-middleware/fastify': 0.5.20(hono@4.9.2)
-      '@universal-middleware/h3': 0.4.12(hono@4.9.2)
-      '@universal-middleware/hattip': 0.4.12(hono@4.9.2)
-      '@universal-middleware/hono': 0.4.16(hono@4.9.2)
+      '@universal-middleware/core': 0.4.9(hono@4.9.5)
+      '@universal-middleware/elysia': 0.4.8(hono@4.9.5)
+      '@universal-middleware/express': 0.4.19(hono@4.9.5)
+      '@universal-middleware/fastify': 0.5.20(hono@4.9.5)
+      '@universal-middleware/h3': 0.4.12(hono@4.9.5)
+      '@universal-middleware/hattip': 0.4.12(hono@4.9.5)
+      '@universal-middleware/hono': 0.4.16(hono@4.9.5)
       '@universal-middleware/sirv': 0.1.20
       esbuild: 0.25.8
       vike: 0.4.237(vite@7.1.2(@types/node@24.2.1)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
