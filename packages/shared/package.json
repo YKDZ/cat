@@ -31,7 +31,7 @@
     "@cat/eslint-config": "workspace:*"
   },
   "peerDependencies": {
-    "pino": "^9.8.0",
+    "pino": "^9.9.2",
     "zod": "^4.1.1"
   }
 }
