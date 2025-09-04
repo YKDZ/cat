@@ -2,6 +2,7 @@ import {
   logger,
   PluginConfigInstanceSchema,
   PluginConfigSchema,
+  PluginInstallationSchema,
   PluginSchema,
   TranslationAdvisorDataSchema,
 } from "@cat/shared";
@@ -10,7 +11,7 @@ import { authedProcedure, router } from "../server";
 import { importPluginQueue } from "@/server/processor/importPlugin";
 import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
 import { TRPCError } from "@trpc/server";
-import type { InputJsonValue } from "@prisma/client/runtime/client";
+import { ScopeType } from "@cat/db";
 
 export const pluginRouter = router({
   delete: authedProcedure
@@ -32,31 +33,12 @@ export const pluginRouter = router({
         },
       });
     }),
-  queryGlobalConfig: authedProcedure
-    .input(z.object({ pluginId: z.string(), key: z.string() }))
-    .output(PluginConfigSchema.nullable())
-    .query(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const { pluginId, key } = input;
-
-      return PluginConfigSchema.nullable().parse(
-        await prisma.pluginConfig.findUnique({
-          where: {
-            pluginId_key: {
-              pluginId,
-              key,
-            },
-          },
-        }),
-      );
-    }),
   queryConfigInstance: authedProcedure
     .input(
       z.object({
         configId: z.int(),
-        scopeType: z.custom<"GLOBAL" | "PROJECT" | "USER">(),
+        pluginId: z.string(),
+        scopeType: z.enum(["GLOBAL", "USER", "PROJECT"]),
         scopeId: z.string(),
       }),
     )
@@ -65,15 +47,24 @@ export const pluginRouter = router({
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      const { configId, scopeType, scopeId } = input;
+      const { configId, pluginId, scopeId, scopeType } = input;
+
+      const installation = await prisma.pluginInstallation.findUnique({
+        where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
+      });
+
+      if (!installation)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Plugin ${pluginId} not installed in scope ${scopeType} ${scopeId}`,
+        });
 
       return PluginConfigInstanceSchema.nullable().parse(
         await prisma.pluginConfigInstance.findUnique({
           where: {
-            configId_scopeType_scopeId: {
+            pluginInstallationId_configId: {
               configId,
-              scopeType,
-              scopeId,
+              pluginInstallationId: installation.id,
             },
           },
         }),
@@ -82,10 +73,10 @@ export const pluginRouter = router({
   upsertConfigInstance: authedProcedure
     .input(
       z.object({
-        configId: z.number(),
-        scopeType: z.custom<"GLOBAL" | "PROJECT" | "USER">(),
+        pluginId: z.string(),
+        configId: z.int(),
+        scopeType: z.enum(["GLOBAL", "USER", "PROJECT"]),
         scopeId: z.string(),
-        scopeMeta: z.json().nullable(),
         value: z.json(),
       }),
     )
@@ -95,26 +86,33 @@ export const pluginRouter = router({
         prismaDB: { client: prisma },
         user,
       } = ctx;
-      const { configId, scopeType, scopeId, scopeMeta, value } = input;
+      const { configId, pluginId, scopeType, scopeId, value } = input;
+
+      const installation = await prisma.pluginInstallation.findUnique({
+        where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
+      });
+
+      if (!installation)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Plugin not installed",
+        });
 
       await prisma.pluginConfigInstance.upsert({
         where: {
-          configId_scopeType_scopeId: {
+          pluginInstallationId_configId: {
+            pluginInstallationId: installation.id,
             configId,
-            scopeType,
-            scopeId,
           },
         },
         create: {
-          scopeType,
-          scopeId,
-          scopeMeta: scopeMeta as InputJsonValue,
-          value: value as InputJsonValue,
+          value: z.json().parse(value) ?? {},
           creatorId: user.id,
           configId,
+          pluginInstallationId: installation.id,
         },
         update: {
-          value: value as InputJsonValue,
+          value: z.json().parse(value) ?? {},
         },
       });
     }),
@@ -124,22 +122,33 @@ export const pluginRouter = router({
         id: z.string(),
       }),
     )
-    .output(PluginSchema.nullable())
+    .output(
+      PluginSchema.extend({
+        Configs: z.array(PluginConfigSchema),
+        PluginInstallations: z.array(PluginInstallationSchema),
+      }).nullable(),
+    )
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
       const { id } = input;
-      return PluginSchema.nullable().parse(
-        await prisma.plugin.findUnique({
-          where: {
-            id,
-          },
-          include: {
-            Configs: true,
-          },
-        }),
-      );
+      return PluginSchema.extend({
+        Configs: z.array(PluginConfigSchema),
+        PluginInstallations: z.array(PluginInstallationSchema),
+      })
+        .nullable()
+        .parse(
+          await prisma.plugin.findUnique({
+            where: {
+              id,
+            },
+            include: {
+              Configs: true,
+              PluginInstallations: true,
+            },
+          }),
+        );
     }),
   listAll: authedProcedure
     .output(z.array(PluginSchema))

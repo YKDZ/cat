@@ -2,6 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build-internal-plugins": "nx run-many --target=build --projects=@cat-plugin/*",
     "load-internal-plugins": "node scripts/load-internal-plugins.js"
   },
   "dependencies": {

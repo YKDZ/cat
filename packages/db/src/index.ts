@@ -3,6 +3,8 @@ export * from "./redis";
 export * from "./utils/setting";
 export * from "./utils/password";
 export * from "./utils/vector";
+export * from "./utils/file";
 export * from "./settings";
 export * from "./getter";
 export * from "./generated/prisma/client";
+export * from "./types/prisma";

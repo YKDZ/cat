@@ -1,9 +1,9 @@
 import { Queue, QueueEvents, Worker } from "bullmq";
 import { config } from "./config";
 import { PluginImporterRegistry } from "../utils/plugin/plugin-importer-registry";
-import type { InputJsonValue } from "@prisma/client/runtime/client";
 import { getPrismaDB } from "@cat/db";
 import { registerTaskUpdateHandlers } from "../utils/worker";
+import z from "zod";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -60,15 +60,8 @@ const worker = new Worker(
                   },
                   create: {
                     key,
-                    schema: schema as InputJsonValue,
+                    schema: schema ?? {},
                     overridable,
-                    Instances: {
-                      create: {
-                        value: getDefaultFromSchema(schema),
-                        scopeType: "GLOBAL",
-                        scopeId: "",
-                      },
-                    },
                   },
                 }))
               : [],
@@ -118,7 +111,7 @@ const worker = new Worker(
         },
         create: {
           id: pluginId,
-          origin: origin as InputJsonValue,
+          origin: z.json().parse(origin) ?? {},
           name: data.name,
           overview: data.overview,
           entry: data.entry ?? null,
@@ -134,15 +127,8 @@ const worker = new Worker(
                   },
                   create: {
                     key,
-                    schema: schema as InputJsonValue,
+                    schema: schema ?? {},
                     overridable,
-                    Instances: {
-                      create: {
-                        value: getDefaultFromSchema(schema),
-                        scopeType: "GLOBAL",
-                        scopeId: "",
-                      },
-                    },
                   },
                 }))
               : [],
@@ -194,64 +180,5 @@ const worker = new Worker(
 registerTaskUpdateHandlers(prisma, worker, queueId);
 
 export const importPluginWorker = worker;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getDefaultFromSchema = (schema: any): any => {
-  if (schema.default !== undefined) {
-    return schema.default;
-  }
-
-  if (schema.type === "object" || schema.properties) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const obj: Record<string, any> = {};
-    const properties = schema.properties || {};
-
-    for (const [key, propSchema] of Object.entries(properties)) {
-      const value = getDefaultFromSchema(propSchema);
-      if (value !== undefined) {
-        obj[key] = value;
-      }
-    }
-    return Object.keys(obj).length > 0 ? obj : undefined;
-  }
-
-  if (schema.type === "array" || schema.items) {
-    if (schema.default !== undefined) return schema.default;
-
-    const itemsSchema = schema.items;
-    if (Array.isArray(itemsSchema)) {
-      const arr = itemsSchema
-        .map((item) => getDefaultFromSchema(item))
-        .filter((val) => val !== undefined);
-      return arr.length > 0 ? arr : undefined;
-    } else if (itemsSchema) {
-      const itemDefault = getDefaultFromSchema(itemsSchema);
-      return itemDefault !== undefined ? [itemDefault] : undefined;
-    }
-    return undefined;
-  }
-
-  if (schema.oneOf || schema.anyOf) {
-    const candidates = schema.oneOf || schema.anyOf;
-    for (const candidate of candidates) {
-      const result = getDefaultFromSchema(candidate);
-      if (result !== undefined) return result;
-    }
-    return undefined;
-  }
-
-  if (schema.if && schema.then) {
-    const ifResult = getDefaultFromSchema(schema.if);
-    if (ifResult !== undefined) {
-      const thenResult = getDefaultFromSchema(schema.then);
-      if (thenResult !== undefined) return thenResult;
-    }
-    if (schema.else) {
-      return getDefaultFromSchema(schema.else);
-    }
-  }
-
-  return {};
-};
 
 export const importPluginQueueEvents = new QueueEvents(queueId);

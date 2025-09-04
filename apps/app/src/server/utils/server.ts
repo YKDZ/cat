@@ -1,4 +1,4 @@
-import { getPrismaDB } from "@cat/db";
+import { PrismaClient } from "@cat/db";
 import { logger } from "@cat/shared";
 import type { Job } from "bullmq";
 import {
@@ -6,9 +6,9 @@ import {
   importPluginQueueEvents,
 } from "../processor/importPlugin";
 import { PluginRegistry } from "@cat/plugin-core";
+import { installPlugin } from "./plugin";
 
-export const scanLocalPlugins = async () => {
-  const { client: prisma } = await getPrismaDB();
+export const importLocalPlugins = async (prisma: PrismaClient) => {
   const existPluginIds: string[] = [];
   const jobs: Job[] = [];
 
@@ -53,18 +53,44 @@ export const scanLocalPlugins = async () => {
     );
   });
 
-  if (existPluginIds.length === 0) {
-    await importPluginQueueEvents.waitUntilReady();
+  await importPluginQueueEvents.waitUntilReady();
 
-    await Promise.all(
-      jobs.map(
-        async (job) => await job.waitUntilFinished(importPluginQueueEvents),
-      ),
-    );
+  await Promise.all(
+    jobs.map(
+      async (job) => await job.waitUntilFinished(importPluginQueueEvents),
+    ),
+  );
+};
 
-    PluginRegistry.get().reload(prisma);
+export const installDefaultPlugins = async (prisma: PrismaClient) => {
+  const localPlugins = [
+    "email-password-auth-provider",
+    "es-term-service",
+    "json-file-handler",
+    "libretranslate-advisor",
+    "ollama-vectorizer",
+    "yaml-file-handler",
+    "s3-storage-provider",
+  ];
+
+  const installedPlugins = (
+    await prisma.pluginInstallation.findMany({
+      where: {
+        scopeType: "GLOBAL",
+        scopeId: "",
+      },
+      select: { pluginId: true },
+    })
+  ).map((i) => i.pluginId);
+
+  const needToBeInstalled = localPlugins.filter(
+    (p) => !installedPlugins.includes(p),
+  );
+
+  for (const pluginId of needToBeInstalled) {
     logger.info("SERVER", {
-      msg: "Reloaded plugins successfully for there was no plugins registered in the database before",
+      msg: `About to install default plugin ${pluginId} to global scope...`,
     });
+    await installPlugin(prisma, pluginId, "GLOBAL", "");
   }
 };

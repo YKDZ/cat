@@ -53,6 +53,9 @@
     },
     {
       "path": "./packages/@cat-plugin/es-term-service"
+    },
+    {
+      "path": "./packages/@cat-plugin/s3-storage-provider"
     }
   ]
 }

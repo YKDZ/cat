@@ -20,13 +20,12 @@
     "start": "cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
     "format": "prettier --write .",
+    "typecheck": "tsc --noEmit && vue-tsc --noEmit",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat",
     "docker-entrypoint": "prisma migrate deploy && prisma db seed && node dist/server/index.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.873.0",
-    "@aws-sdk/s3-request-presigner": "^3.873.0",
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",

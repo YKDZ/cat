@@ -1,43 +1,57 @@
-import { setting, getPrismaDB } from "@cat/db";
-import { LocalStorage } from "./LocalStorage";
-import { S3Storage } from "./S3Storage";
-import type { File } from "@cat/shared";
+import { OverallPrismaClient, ScopeType } from "@cat/db";
+import { PluginRegistry, StorageProvider } from "@cat/plugin-core";
 
-export interface Storage {
-  getId: () => string;
-  getBasicPath: () => string;
-  getContent: (file: File) => Promise<Buffer>;
-  generateUploadURL: (path: string, expiresIn: number) => Promise<string>;
-  generateURL: (
-    path: string,
-    expiresIn: number,
-    isDownload?: boolean,
-  ) => Promise<string>;
-  generateDownloadURL(
-    path: string,
-    fileName: string,
-    expiresIn: number,
-  ): Promise<string>;
-  delete: (file: File) => Promise<void>;
-  ping: () => Promise<void>;
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-}
-
-export const useStorage = async (): Promise<{
-  storage: Storage;
-  type: string;
+export const useStorage = async (
+  prisma: OverallPrismaClient,
+  storageServiceId: string,
+  scopeType: ScopeType,
+  scopeId: string,
+): Promise<{
+  provider: StorageProvider;
+  pluginId: string;
+  id: number;
 }> => {
-  const type = await setting(
-    "server.storage-type",
-    "local",
-    (await getPrismaDB()).client,
-  );
-  const storage = type === "S3" ? new S3Storage() : new LocalStorage();
-  await storage.connect();
-  await storage.ping();
+  const storage = (await PluginRegistry.get().getStorageProviders(prisma))
+    .filter(({ provider }) => provider.getId() === storageServiceId)
+    .at(0);
+
+  if (!storage)
+    throw new Error(
+      `Storage provider ${storageServiceId} does not exists found`,
+    );
+
+  const installation = await prisma.pluginInstallation.findUnique({
+    where: {
+      scopeId_scopeType_pluginId: {
+        scopeId,
+        scopeType,
+        pluginId: storage.pluginId,
+      },
+    },
+  });
+
+  if (!installation)
+    throw new Error(
+      `Storage provider ${storageServiceId} does not installed in scope ${scopeType} ${scopeId}`,
+    );
+
+  const dbStorage = await prisma.storageProvider.findUnique({
+    where: {
+      serviceId_pluginInstallationId: {
+        serviceId: storageServiceId,
+        pluginInstallationId: installation.id,
+      },
+    },
+  });
+
+  if (!dbStorage)
+    throw new Error(
+      `Storage provider ${storageServiceId} does not exists in db. This should not happen.`,
+    );
+
   return {
-    storage: type === "S3" ? new S3Storage() : new LocalStorage(),
-    type,
+    provider: storage.provider,
+    pluginId: storage.pluginId,
+    id: dbStorage.id,
   };
 };

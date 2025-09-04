@@ -1,0 +1,6 @@
+{
+  "id": "s3-storage-provider",
+  "entry": "dist/index.mjs",
+  "iconURL": "https://unocss.dev/logo.svg",
+  "tags": ["storage-provider"]
+}

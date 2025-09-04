@@ -1,9 +1,9 @@
-import type { PluginConfigInstanceScopeType, PrismaClient } from "@cat/db";
+import type { OverallPrismaClient, ScopeType } from "@cat/db";
 import { merge } from "lodash-es";
 import z from "zod";
 
-export const getMergedPluginConfigs = async (
-  prisma: PrismaClient,
+export const getPluginConfigs = async (
+  prisma: OverallPrismaClient,
   pluginId: string,
   options?: {
     projectId?: string;
@@ -26,23 +26,26 @@ export const getMergedPluginConfigs = async (
     options?.userId,
   );
 
+  // TODO 继承方案应该更可控
   return merge(user, project, global);
 };
 
 export const getConfigInstance = async (
-  prisma: PrismaClient,
+  prisma: OverallPrismaClient,
   pluginId: string,
-  scopeType: PluginConfigInstanceScopeType,
+  scopeType: ScopeType,
   scopeId?: string,
 ) => {
   if (scopeId === undefined) return {};
 
   const data = await prisma.pluginConfigInstance.findMany({
     where: {
-      scopeType,
-      scopeId,
       Config: {
         pluginId,
+      },
+      PluginInstallation: {
+        scopeType,
+        scopeId: scopeId,
       },
     },
     select: {

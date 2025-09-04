@@ -8,7 +8,6 @@ import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 import { publicProcedure, router } from "../server";
-import type { InputJsonValue } from "@prisma/client/runtime/client";
 
 export const authRouter = router({
   queryPreAuthFormSchema: publicProcedure
@@ -58,8 +57,8 @@ export const authRouter = router({
         prismaDB: { client: prisma },
         user,
         pluginRegistry,
-        setCookie,
         helpers,
+        setCookie,
       } = ctx;
       const { providerId, gotFromClient } = input;
 
@@ -130,10 +129,7 @@ export const authRouter = router({
         });
 
       if (typeof provider.getAuthFormSchema !== "function") return {};
-
-      return JSONSchemaSchema.parse(
-        provider.getAuthFormSchema(),
-      ) satisfies JSONSchema;
+      return JSONSchemaSchema.parse(provider.getAuthFormSchema());
     }),
   auth: publicProcedure
     .input(
@@ -217,7 +213,7 @@ export const authRouter = router({
               type: provider.getType(),
               provider: providerIssuer,
               providedAccountId,
-              meta: accountMeta as InputJsonValue,
+              meta: z.json().parse(accountMeta) ?? {},
               User: {
                 connectOrCreate: {
                   where: {
@@ -310,15 +306,38 @@ export const authRouter = router({
         pluginRegistry,
       } = ctx;
 
-      return (await pluginRegistry.getAuthProviders(prisma)).map(
-        ({ provider, pluginId }) =>
-          ({
-            pluginId,
-            providerId: provider.getId(),
-            providerType: provider.getType(),
-            name: provider.getName(),
-            icon: "i-mdi:ssh",
-          }) satisfies AuthMethod,
-      );
+      const providersDatas = await prisma.authProvider.findMany({
+        select: {
+          serviceId: true,
+          PluginInstallation: {
+            select: {
+              pluginId: true,
+            },
+          },
+        },
+      });
+
+      const methods: AuthMethod[] = [];
+      for (const {
+        serviceId,
+        PluginInstallation: { pluginId },
+      } of providersDatas) {
+        const providers = await pluginRegistry.getAuthProvider(
+          prisma,
+          pluginId,
+        );
+        providers
+          .filter((provider) => serviceId === provider.getId())
+          .forEach((provider) => {
+            methods.push({
+              pluginId,
+              providerId: provider.getId(),
+              name: provider.getName(),
+              icon: provider.getIcon(),
+            });
+          });
+      }
+
+      return methods;
     }),
 });

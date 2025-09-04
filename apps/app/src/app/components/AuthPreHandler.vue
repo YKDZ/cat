@@ -9,7 +9,6 @@ import { navigate } from "vike/client/router";
 import JSONForm from "./json-form/JSONForm.vue";
 import Button from "./Button.vue";
 import { useI18n } from "vue-i18n";
-import { TRPCClientError } from "@trpc/client";
 import { TRPCError } from "@trpc/server";
 
 const { t } = useI18n();

@@ -11,10 +11,6 @@ const seed = async (prisma: PrismaClient) => {
       ],
     });
 
-    await tx.storageType.createMany({
-      data: [{ name: "LOCAL" }, { name: "S3" }],
-    });
-
     const password =
       process.env.NODE_ENV !== "production"
         ? "password"

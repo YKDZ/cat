@@ -14,6 +14,7 @@ const FOLDER_INCLUDES = [
   "oidc-auth-provider",
   "email-password-auth-provider",
   "es-term-service",
+  "s3-storage-provider",
 ];
 
 const copyRecursive = async (srcPath, destPath) => {

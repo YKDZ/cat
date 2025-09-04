@@ -9,11 +9,14 @@ import JSONForm from "./json-form/JSONForm.vue";
 import { trpc } from "@/server/trpc/client";
 import { useToastStore } from "../stores/toast";
 import { onMounted, ref } from "vue";
+import { ScopeType } from "@cat/db";
 
 const { info, trpcWarn } = useToastStore();
 
 const props = defineProps<{
   config: PluginConfig;
+  scopeType: ScopeType;
+  scopeId: string;
 }>();
 
 const instance = ref<PluginConfigInstance | null>(null);
@@ -21,9 +24,9 @@ const instance = ref<PluginConfigInstance | null>(null);
 const handleUpdate = async (to: JSONType) => {
   await trpc.plugin.upsertConfigInstance
     .mutate({
-      scopeType: "GLOBAL",
-      scopeId: "",
-      scopeMeta: {},
+      pluginId: props.config.pluginId,
+      scopeType: props.scopeType,
+      scopeId: props.scopeId,
       configId: props.config.id,
       value: to,
     })
@@ -36,8 +39,9 @@ const handleUpdate = async (to: JSONType) => {
 const getInstance = async () => {
   return await trpc.plugin.queryConfigInstance
     .query({
-      scopeType: "GLOBAL",
-      scopeId: "",
+      pluginId: props.config.pluginId,
+      scopeType: props.scopeType,
+      scopeId: props.scopeId,
       configId: props.config.id,
     })
     .catch(trpcWarn);

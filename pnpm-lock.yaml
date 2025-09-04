@@ -100,12 +100,6 @@ importers:
 
   apps/app:
     dependencies:
-      '@aws-sdk/client-s3':
-        specifier: ^3.873.0
-        version: 3.876.0
-      '@aws-sdk/s3-request-presigner':
-        specifier: ^3.873.0
-        version: 3.876.0
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -445,6 +439,28 @@ importers:
 
   packages/@cat-plugin/openai-vectorizer:
     dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+
+  packages/@cat-plugin/s3-storage-provider:
+    dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.873.0
+        version: 3.876.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.873.0
+        version: 3.876.0
       '@cat/db':
         specifier: workspace:*
         version: link:../../db

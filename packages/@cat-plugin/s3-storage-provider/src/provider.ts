@@ -1,5 +1,4 @@
-import type { File } from "@cat/shared";
-import type { Storage } from "./useStorage";
+import type { File, JSONType } from "@cat/shared";
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
 import { S3Client } from "@aws-sdk/client-s3";
 import {
@@ -11,8 +10,8 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Readable } from "node:stream";
 import type { PrismaClient } from "@cat/db";
-import { getPrismaDB, setting, settings } from "@cat/db";
-import { mimeFromFileName } from "../file";
+import { getPrismaDB, mimeFromFileName, setting, settings } from "@cat/db";
+import { StorageProvider } from "@cat/plugin-core";
 
 class S3DB {
   public static client: S3Client;
@@ -45,7 +44,19 @@ class S3DB {
   }
 }
 
-export class S3Storage implements Storage {
+export class S3StorageProvider implements StorageProvider {
+  private configs: Record<string, JSONType>;
+
+  private config = <T>(key: string, fallback: T): T => {
+    const config = this.configs[key];
+    if (!config) return fallback;
+    return config as T;
+  };
+
+  constructor(configs: Record<string, JSONType>) {
+    this.configs = configs;
+  }
+
   getId() {
     return "S3";
   }

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
-import type { InputJsonValue } from "@prisma/client/runtime/client";
 
 export const settingRouter = router({
   set: authedProcedure
@@ -23,7 +22,7 @@ export const settingRouter = router({
           const { key, value } = item;
           await tx.setting.update({
             where: { key },
-            data: { value: value as InputJsonValue },
+            data: { value: z.json().parse(value) ?? {} },
           });
         }
       });

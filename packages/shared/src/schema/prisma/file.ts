@@ -1,5 +1,6 @@
 import z from "zod";
 import { PrimsaDateTime } from "../misc";
+import { StorageProviderSchema } from "./plugin";
 
 export const FileSchema = z.object({
   id: z.int(),
@@ -8,9 +9,9 @@ export const FileSchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
 
-  storageTypeId: z.int(),
-  get StorageType() {
-    return StorageTypeSchema.optional();
+  storageProviderId: z.int(),
+  get StorageProvider() {
+    return StorageProviderSchema.optional();
   },
 
   documentId: z.ulid().nullable(),

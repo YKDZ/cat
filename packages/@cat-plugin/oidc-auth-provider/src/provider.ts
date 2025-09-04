@@ -32,6 +32,10 @@ export class Provider implements AuthProvider {
     return this.config.displayName;
   }
 
+  getIcon() {
+    return "i-mdi:ssh";
+  }
+
   async handlePreAuth(sessionId: string) {
     if (!this.config.clientId) throw new Error("Config invalid");
 
@@ -99,7 +103,11 @@ export class Provider implements AuthProvider {
       throw new Error(`Failed to exchange token`);
     }
 
-    const body = await response.json();
+    const body = (await response.json()) as {
+      error: unknown | undefined;
+      error_description: string;
+      id_token: string;
+    };
 
     if (body.error) {
       throw new Error(`Failed to exchange token: ${body.error_description}`);

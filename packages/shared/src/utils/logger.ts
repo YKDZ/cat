@@ -58,9 +58,18 @@ export class Logger {
     msg?: string,
     ...args: unknown[]
   ) {
-    if (!msg) this.baseLogger.error({ ...obj, situation, error });
+    if (!msg)
+      this.baseLogger.error({
+        ...obj,
+        situation,
+        error: JSON.stringify(error),
+      });
     else
-      this.baseLogger.error({ error, situation, ...obj }, msg, ...(args as []));
+      this.baseLogger.error(
+        { error: JSON.stringify(error), situation, ...obj },
+        msg,
+        ...(args as []),
+      );
   }
 }
 

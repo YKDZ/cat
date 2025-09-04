@@ -143,3 +143,4 @@ export const JSONSchemaSchema = z
 export const BooleanAbleJSONSchemaSchema = JSONSchemaSchema.or(z.boolean());
 
 export type JSONSchema = z.infer<typeof JSONSchemaSchema>;
+export type JSONType = z.infer<ReturnType<typeof z.json>>;

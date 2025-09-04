@@ -12,10 +12,6 @@ const seed = async (prisma: PrismaClient) => {
       ],
     });
 
-    await tx.storageType.createMany({
-      data: [{ name: "LOCAL" }, { name: "S3" }],
-    });
-
     const password =
       process.env.NODE_ENV !== "production"
         ? "password"
@@ -72,9 +68,8 @@ const seed = async (prisma: PrismaClient) => {
   const prisma = db.client;
 
   const languages = await prisma.language.findMany();
-  const storageTypes = await prisma.storageType.findMany();
 
-  if (languages.length !== 0 || storageTypes.length !== 0) {
+  if (languages.length !== 0) {
     console.log("Skipping seeding due to existing basic data");
     return;
   }

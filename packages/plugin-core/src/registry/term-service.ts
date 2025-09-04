@@ -37,6 +37,7 @@ export interface TermStore {
 }
 
 export interface TermService {
+  getId: () => string;
   termFormatter: TermFormatter;
   termIndexer: TermIndexer;
   termMatcher: TermMatcher;
