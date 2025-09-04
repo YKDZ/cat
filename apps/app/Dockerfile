@@ -12,7 +12,7 @@ WORKDIR /builder
 COPY . .
 
 RUN pnpm install --frozen-lockfile \
-    && nx run-many --target=build --projects=@cat-plugin/* \
+    && pnpm build-internal-plugins \
     && pnpm load-internal-plugins \
     && nx build @cat/app
 

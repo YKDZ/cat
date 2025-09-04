@@ -44,7 +44,7 @@ jobs:
         run: pnpm nx sync:check
 
       - name: Build plugins
-        run: pnpm nx run-many --target=build --projects=@cat-plugin/*
+        run: pnpm build-internal-plugins
 
       - name: Load plugins
         run: pnpm load-internal-plugins
