@@ -2,11 +2,9 @@ name: APP E2E Tests
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -40,6 +38,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Check workspace structure
+        run: |
+          echo "🔍 pnpm workspace info"
+          pnpm list -r --depth 0
+          echo "🔍 Workspace packages"
+          pnpm m ls || true
+          echo "🔍 Check node_modules links"
+          ls -l node_modules/@cat || true
+
       - name: Check whether nx workspace sync
         run: pnpm nx sync:check
 
@@ -49,8 +56,20 @@ jobs:
       - name: Load plugins
         run: pnpm load-internal-plugins
 
+      - name: List shared package details
+        run: |
+          echo "🔍 @cat/shared package.json"
+          cat libs/shared/package.json || true
+          echo "🔍 List dist folder"
+          ls -la libs/shared/dist || ls -la dist/libs/shared || true
+          echo "🔍 Node resolution test"
+          node -e "console.log('package.json path', require.resolve('@cat/shared/package.json'))" || true
+          node -e "console.log('module entry', require.resolve('@cat/shared'))" || true
+
       - name: Build app
-        run: pnpm nx build app
+        run: |
+          echo "🚧 Building app..."
+          pnpm nx build app --verbose
 
       - name: Install Playwright Browsers
         run: pnpm playwright install --with-deps
