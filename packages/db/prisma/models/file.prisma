@@ -5,19 +5,12 @@ model File {
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 
-    storageTypeId Int
-    StorageType   StorageType @relation(fields: [storageTypeId], references: [id])
+    storageProviderId Int
+    StorageProvider   StorageProvider @relation(fields: [storageProviderId], references: [id])
 
     documentId String?   @unique
     Document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
     userId String? @unique
     User   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-}
-
-model StorageType {
-    id   Int    @id @default(autoincrement())
-    name String @unique
-
-    Files File[]
 }

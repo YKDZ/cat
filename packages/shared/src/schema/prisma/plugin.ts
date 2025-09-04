@@ -2,6 +2,20 @@ import z from "zod";
 import { PrimsaDateTime } from "../misc";
 import { UserSchema } from "./user";
 
+export const PluginInstallationSchema = z.object({
+  id: z.int(),
+  scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
+  scopeId: z.string().nullable(),
+  scopeMeta: z.json().nullable(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+
+  pluginId: z.string(),
+  get Plugin() {
+    return PluginSchema.optional();
+  },
+});
+
 export const PluginTagSchema = z.object({
   id: z.int(),
   name: z.string(),
@@ -18,7 +32,7 @@ export const PluginConfigSchema = z.object({
   updatedAt: PrimsaDateTime,
   pluginId: z.string(),
 
-  get Instances() {
+  get PluginConfigInstances() {
     return z.array(PluginConfigInstanceSchema).optional();
   },
 });
@@ -26,9 +40,6 @@ export const PluginConfigSchema = z.object({
 export const PluginConfigInstanceSchema = z.object({
   id: z.int(),
   value: z.json(),
-  scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
-  scopeId: z.string().nullable(),
-  scopeMeta: z.json().nullable(),
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
 
@@ -40,6 +51,11 @@ export const PluginConfigInstanceSchema = z.object({
   creatorId: z.string().nullable(),
   get Creator() {
     return UserSchema.optional().nullable();
+  },
+
+  pluginInstallationId: z.int().nullable(),
+  get PluginInstallation() {
+    return PluginInstallationSchema.optional();
   },
 });
 
@@ -70,7 +86,6 @@ export const PluginSchema = z.object({
   origin: z.json(),
   name: z.string(),
   overview: z.string().nullable(),
-  enabled: z.boolean(),
   iconURL: z.url().nullable(),
   isExternal: z.boolean(),
   createdAt: PrimsaDateTime,
@@ -92,8 +107,20 @@ export const PluginSchema = z.object({
     return z.array(PluginTagSchema).optional();
   },
 
-  get components() {
+  get Components() {
     return z.array(PluginTagSchema).optional();
+  },
+});
+
+export const StorageProviderSchema = z.object({
+  id: z.int(),
+  serviceId: z.string(),
+  createdAt: PrimsaDateTime,
+  updatedAt: PrimsaDateTime,
+
+  pluginInstallationId: z.int(),
+  get PluginInstallation() {
+    return PluginInstallationSchema.optional();
   },
 });
 
@@ -103,4 +130,6 @@ export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 export type PluginConfigInstance = z.infer<typeof PluginConfigInstanceSchema>;
 export type PluginPermission = z.infer<typeof PluginPermissionSchema>;
 export type PluginComponent = z.infer<typeof PluginComponentSchema>;
+export type PluginInstallation = z.infer<typeof PluginInstallationSchema>;
 export type Plugin = z.infer<typeof PluginSchema>;
+export type StorageProvider = z.infer<typeof StorageProviderSchema>;

@@ -20,9 +20,8 @@ class Plugin implements CatPlugin {
 
   async onLoaded(options: PluginLoadOptions) {
     this.options = options;
-    this.providerConfigs = options.configs[
-      "base.oidc-providers"
-    ] as ProviderConfig[];
+    this.providerConfigs = (options.configs["base.oidc-providers"] ??
+      []) as ProviderConfig[];
   }
 
   getAuthProviders() {

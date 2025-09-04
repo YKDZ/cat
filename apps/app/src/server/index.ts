@@ -7,7 +7,7 @@ import { serve } from "vike-server/hono/serve";
 import { getPrismaDB, getRedisDB } from "@cat/db";
 import { closeAllProcessors } from "./processor";
 import { parsePreferredLanguage } from "./utils/i18n";
-import { scanLocalPlugins } from "./utils/server";
+import { importLocalPlugins, installDefaultPlugins } from "./utils/server";
 import { useStorage } from "./utils/storage/useStorage";
 import { userFromSessionId } from "./utils/user";
 import app from "./app";
@@ -25,7 +25,9 @@ const shutdownServer = async () => {
       else resolve();
 
       await closeAllProcessors();
-      await (await useStorage()).storage.disconnect();
+      await (
+        await useStorage((await getPrismaDB()).client, "S3", "GLOBAL", "")
+      ).provider.disconnect();
       await (await getRedisDB()).disconnect();
       await (await getPrismaDB()).disconnect();
     });
@@ -39,14 +41,19 @@ const startServer = async () => {
     const prismaDB = await getPrismaDB();
     const redisDB = await getRedisDB();
 
+    await prismaDB.ping();
+    await redisDB.ping();
+
     await syncSettings(prismaDB.client);
 
     const pluginRegistry = PluginRegistry.get();
+
+    await importLocalPlugins(prismaDB.client);
+
     await pluginRegistry.loadPlugins(prismaDB.client);
 
-    await scanLocalPlugins();
-    (await useStorage()).storage.connect();
-    (await useStorage()).storage.ping();
+    await installDefaultPlugins(prismaDB.client);
+
     await initTermService(prismaDB.client, pluginRegistry);
 
     apply(app, {
@@ -79,6 +86,7 @@ const startServer = async () => {
       },
     });
   } catch (e) {
+    console.log(e);
     logger.error(
       "SERVER",
       { msg: "Failed to start server. Process will exit with code 1" },

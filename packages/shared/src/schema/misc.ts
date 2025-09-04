@@ -18,7 +18,6 @@ export const TranslationAdvisorDataSchema = z.object({
 export const AuthMethodSchema = z.object({
   pluginId: z.string(),
   providerId: z.string(),
-  providerType: z.string(),
   name: z.string(),
   icon: z.string(),
 });
@@ -84,7 +83,6 @@ export type TranslationSuggestionStatus = z.infer<
 export type UnvectorizedTextData = z.infer<typeof UnvectorizedTextDataSchema>;
 export type TermData = z.infer<typeof TermDataSchema>;
 export type AuthMethod = z.infer<typeof AuthMethodSchema>;
-export type JSONType = z.infer<ReturnType<typeof z.json>>;
 export type PrismaError = z.infer<typeof PrismaErrorSchema>;
 export type TranslationAdvisorData = z.infer<
   typeof TranslationAdvisorDataSchema

@@ -1,6 +1,6 @@
-import type { PrismaClient } from "@cat/db";
-import { setting } from "@cat/db";
 import { extname } from "path";
+import { setting } from "./setting";
+import { OverallPrismaClient } from "../types/prisma";
 
 export const sanitizeFileName = (name: string) => {
   return name.replace(/[^\w.-]/g, "_");
@@ -8,7 +8,7 @@ export const sanitizeFileName = (name: string) => {
 
 export const mimeFromFileName = async (
   fileName: string,
-  prisma: Pick<PrismaClient, "setting">,
+  prisma: Pick<OverallPrismaClient, "setting">,
 ): Promise<string> => {
   const mimeMapping = await setting(
     "file-system.mime-mapping",

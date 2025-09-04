@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import type { PluginConfig } from "@cat/shared";
-import PluginGlobalConfigForm from "./PluginGlobalConfigForm.vue";
+import PluginConfigForm from "./PluginConfigForm.vue";
+import { ScopeType } from "@cat/db";
 
 const props = defineProps<{
   configs: PluginConfig[];
+  scopeType: ScopeType;
+  scopeId: string;
 }>();
 </script>
 
 <template>
   <div class="flex flex-col gap-1">
-    <PluginGlobalConfigForm
+    <PluginConfigForm
       v-for="config in configs"
       :key="config.id"
       :config
+      :scopeType
+      :scopeId
     />
   </div>
 </template>

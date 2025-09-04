@@ -13,7 +13,11 @@ app.all("*", (c) => {
     router: appRouter,
     createContext: createHttpContext,
     onError: ({ error, ctx, input }) => {
-      logger.error("RPC", { ctx, input }, error);
+      logger.error(
+        "RPC",
+        { input: JSON.stringify(input), url: c.req.url },
+        error,
+      );
     },
   });
 });

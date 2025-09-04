@@ -23,6 +23,10 @@ export class Provider implements AuthProvider {
     return "邮箱 + 密码";
   }
 
+  getIcon() {
+    return "i-mdi:ssh";
+  }
+
   getAuthFormSchema() {
     return z.toJSONSchema(FormSchema);
   }

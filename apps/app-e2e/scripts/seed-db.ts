@@ -32,10 +32,6 @@ const seed = async () => {
     });
 
     console.log(`Default admin password is: ${password}`);
-
-    await tx.storageType.createMany({
-      data: [{ name: "LOCAL" }, { name: "S3" }],
-    });
   });
 };
 

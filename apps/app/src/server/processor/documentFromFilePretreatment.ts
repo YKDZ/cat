@@ -11,7 +11,6 @@ import type {
   TranslatableElementData,
 } from "@cat/shared";
 import { logger } from "@cat/shared";
-import type { InputJsonValue } from "@prisma/client/runtime/client";
 import { Queue, Worker } from "bullmq";
 import { isEqual } from "lodash-es";
 import z from "zod";
@@ -102,8 +101,8 @@ export const processPretreatment = async (
   vectorizer: TextVectorizer,
 ) => {
   const {
-    storage: { getContent },
-  } = await useStorage();
+    provider: { getContent },
+  } = await useStorage(prisma, "S3", "GLOBAL", "");
 
   const fileContent = await getContent(file);
 
@@ -247,7 +246,7 @@ const handleRemovedElements = async (
       const result = await tx.translatableElement.updateManyAndReturn({
         where: {
           meta: {
-            equals: meta as InputJsonValue,
+            equals: z.json().parse(meta) ?? {},
           },
           documentId,
           isActive: true,
@@ -298,7 +297,7 @@ const handleAddedElements = async (
         where: {
           documentId,
           meta: {
-            equals: element.meta as InputJsonValue,
+            equals: z.json().parse(element.meta) ?? {},
           },
           isActive: false,
         },
@@ -313,7 +312,7 @@ const handleAddedElements = async (
         data: {
           value: element.value,
           sortIndex: element.sortIndex,
-          meta: element.meta as InputJsonValue,
+          meta: z.json().parse(element.meta) ?? {},
           documentId,
           embeddingId: embeddingIds[i],
           version: newVersion,

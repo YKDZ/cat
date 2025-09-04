@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import PluginConfigs from "@/app/components/PluginConfigs.vue";
 import PluginDeleteBtn from "@/app/components/PluginDeleteBtn.vue";
-import PluginGlobalConfigs from "@/app/components/PluginGlobalConfigs.vue";
 import { usePluginStore } from "@/app/stores/plugin";
 import type { Plugin } from "@cat/shared";
 import { storeToRefs } from "pinia";
@@ -16,6 +16,11 @@ const plugin = computed<Plugin | null>(() => {
 </script>
 
 <template>
-  <PluginGlobalConfigs v-if="plugin" :configs="plugin.Configs!" />
+  <PluginConfigs
+    v-if="plugin"
+    :configs="plugin.Configs!"
+    scope-type="GLOBAL"
+    scope-id=""
+  />
   <PluginDeleteBtn v-if="plugin" :id="plugin.id" />
 </template>

@@ -43,7 +43,7 @@ export class Vectorizer implements TextVectorizer {
       throw new Error(`Server responded with ${response.status}`);
     }
 
-    const data = await response.json();
-    return data.embeddings as number[][];
+    const data = (await response.json()) as { embeddings: number[][] };
+    return data.embeddings;
   }
 }

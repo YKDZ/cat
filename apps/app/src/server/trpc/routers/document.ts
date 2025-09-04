@@ -13,9 +13,9 @@ import {
 import { TRPCError } from "@trpc/server";
 import { join } from "node:path";
 import { z } from "zod";
-import { sanitizeFileName } from "../../utils/file";
 import { authedProcedure, router } from "../server";
 import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile";
+import { sanitizeFileName } from "@cat/db";
 
 export const documentRouter = router({
   fileUploadURL: authedProcedure
@@ -36,8 +36,9 @@ export const documentRouter = router({
       } = ctx;
       const { meta } = input;
       const {
-        storage: { getId, getBasicPath, generateUploadURL },
-      } = await useStorage();
+        id: storageProviderId,
+        provider: { getBasicPath, generateUploadURL },
+      } = await useStorage(prisma, "S3", "GLOBAL", "");
 
       const name = sanitizeFileName(meta.name);
 
@@ -48,11 +49,7 @@ export const documentRouter = router({
         data: {
           originName: meta.name,
           storedPath: path,
-          StorageType: {
-            connect: {
-              name: getId(),
-            },
-          },
+          storageProviderId,
         },
       });
 
@@ -580,7 +577,9 @@ export const documentRouter = router({
           code: "BAD_REQUEST",
         });
 
-      const storage = (await useStorage()).storage;
+      const {
+        provider: { generateDownloadURL },
+      } = await useStorage(prisma, "S3", "GLOBAL", "");
       const { fileId } = task.meta as {
         fileId: number;
       };
@@ -601,7 +600,7 @@ export const documentRouter = router({
           message: "File does not exists",
         });
 
-      const url = await storage.generateDownloadURL(
+      const url = await generateDownloadURL(
         file.storedPath,
         file.originName,
         60,
@@ -933,8 +932,10 @@ export const documentRouter = router({
         });
       }
 
-      const storage = (await useStorage()).storage;
-      const content = await storage.getContent(document.File);
+      const {
+        provider: { getContent },
+      } = await useStorage(prisma, "S3", "GLOBAL", "");
+      const content = await getContent(document.File);
 
       const elements = await prisma.translatableElement.findMany({
         where: {

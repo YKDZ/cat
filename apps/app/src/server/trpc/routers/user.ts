@@ -74,8 +74,9 @@ export const userRouter = router({
       const { meta } = input;
 
       const {
-        storage: { getId, getBasicPath, generateUploadURL },
-      } = await useStorage();
+        id: storageProviderId,
+        provider: { getBasicPath, generateUploadURL },
+      } = await useStorage(prisma, "S3", "GLOBAL", "");
 
       const sanitizedName = meta.name.replace(/[^\w.-]/g, "_");
       const name = `${randomUUID()}-${sanitizedName}`;
@@ -91,11 +92,7 @@ export const userRouter = router({
             create: {
               originName: meta.name,
               storedPath: path,
-              StorageType: {
-                connect: {
-                  name: getId(),
-                },
-              },
+              storageProviderId,
             },
           },
         },
@@ -126,7 +123,17 @@ export const userRouter = router({
           id,
         },
         select: {
-          AvatarFile: true,
+          AvatarFile: {
+            select: {
+              storedPath: true,
+              StorageProvider: {
+                select: {
+                  id: true,
+                  serviceId: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -144,8 +151,13 @@ export const userRouter = router({
       const expiresIn = 120;
 
       const {
-        storage: { generateURL },
-      } = await useStorage();
+        provider: { generateURL },
+      } = await useStorage(
+        prisma,
+        user.AvatarFile.StorageProvider.serviceId,
+        "GLOBAL",
+        "",
+      );
       const url = await generateURL(user.AvatarFile.storedPath, expiresIn);
 
       return {

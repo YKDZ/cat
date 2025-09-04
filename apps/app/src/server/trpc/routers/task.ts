@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { TaskSchema } from "@cat/shared";
-import { cleanDanglingFilesQueue } from "@/server/processor/cleanDanglingFiles";
-import type { InputJsonValue } from "@prisma/client/runtime/client";
 
 export const taskRouter = router({
   query: authedProcedure
@@ -34,32 +32,12 @@ export const taskRouter = router({
               ? meta.map(({ path, value }) => ({
                   meta: {
                     path,
-                    equals: value as InputJsonValue,
+                    equals: z.json().parse(value) ?? {},
                   },
                 }))
               : undefined,
           },
         }),
-      );
-    }),
-  triggerCleanDanglingFiles: authedProcedure
-    .output(z.void())
-    .mutation(async ({ ctx }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const task = await prisma.task.create({
-        data: {
-          type: "clean_dangling_files",
-        },
-      });
-
-      await cleanDanglingFilesQueue.add(
-        task.id,
-        {},
-        {
-          jobId: task.id,
-        },
       );
     }),
 });

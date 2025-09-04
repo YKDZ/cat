@@ -3,18 +3,40 @@ model Plugin {
     origin     Json
     name       String
     overview   String?
-    enabled    Boolean  @default(true)
     isExternal Boolean  @default(false)
     entry      String?
     iconURL    String?
     createdAt  DateTime @default(now())
     updatedAt  DateTime @default(now()) @updatedAt
 
-    Configs     PluginConfig[]
-    Permissions PluginPermission[]
-    Versions    PluginVersion[]
-    Tags        PluginTag[]
-    Components  PluginComponent[]
+    Configs             PluginConfig[]
+    Permissions         PluginPermission[]
+    Versions            PluginVersion[]
+    Tags                PluginTag[]
+    Components          PluginComponent[]
+    PluginInstallations PluginInstallation[]
+}
+
+model PluginInstallation {
+    id        Int       @id @default(autoincrement())
+    scopeType ScopeType
+    scopeId   String
+    scopeMeta Json?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    pluginId String
+    plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+    TranslationAdvisors      TranslationAdvisor[]
+    StorageProviders         StorageProvider[]
+    AuthProviders            AuthProvider[]
+    TermServices             TermService[]
+    TranslatableFileHandlers TranslatableFileHandler[]
+    TextVectorizers          TextVectorizer[]
+    PluginConfigInstances    PluginConfigInstance[]
+
+    @@unique([scopeId, scopeType, pluginId])
 }
 
 model PluginVersion {
@@ -53,7 +75,7 @@ model PluginConfig {
     pluginId String
     Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
-    Instances PluginConfigInstance[]
+    PluginConfigInstances PluginConfigInstance[]
 
     @@unique([pluginId, key])
     @@index([pluginId])
@@ -61,13 +83,10 @@ model PluginConfig {
 }
 
 model PluginConfigInstance {
-    id        Int                           @id @default(autoincrement())
+    id        Int      @id @default(autoincrement())
     value     Json
-    scopeType PluginConfigInstanceScopeType
-    scopeId   String
-    scopeMeta Json?
-    createdAt DateTime                      @default(now())
-    updatedAt DateTime                      @default(now()) @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 
     creatorId String?
     Creator   User?   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -75,7 +94,10 @@ model PluginConfigInstance {
     configId Int
     Config   PluginConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
 
-    @@unique([configId, scopeType, scopeId])
+    pluginInstallationId Int
+    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
+
+    @@unique([pluginInstallationId, configId])
 }
 
 model PluginTag {
@@ -88,9 +110,11 @@ model PluginTag {
 }
 
 model PluginComponent {
-    id      String
-    entry   String
-    mountOn String
+    id        String
+    entry     String
+    mountOn   String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     pluginId String
     Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
@@ -98,8 +122,88 @@ model PluginComponent {
     @@unique([id, pluginId])
 }
 
-enum PluginConfigInstanceScopeType {
+enum ScopeType {
     GLOBAL
     USER
     PROJECT
+}
+
+model TranslationAdvisor {
+    id Int @id @default(autoincrement())
+
+    serviceId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    pluginInstallationId Int
+    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
+
+    @@unique([serviceId, pluginInstallationId])
+}
+
+model StorageProvider {
+    id Int @id @default(autoincrement())
+
+    serviceId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    pluginInstallationId Int
+    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
+
+    Files File[]
+
+    @@unique([serviceId, pluginInstallationId])
+}
+
+model AuthProvider {
+    id Int @id @default(autoincrement())
+
+    serviceId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    pluginInstallationId Int
+    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
+
+    @@unique([serviceId, pluginInstallationId])
+}
+
+model TermService {
+    id Int @id @default(autoincrement())
+
+    serviceId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    pluginInstallationId Int
+    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
+
+    @@unique([serviceId, pluginInstallationId])
+}
+
+model TranslatableFileHandler {
+    id Int @id @default(autoincrement())
+
+    serviceId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    pluginInstallationId Int
+    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
+
+    @@unique([serviceId, pluginInstallationId])
+}
+
+model TextVectorizer {
+    id Int @id @default(autoincrement())
+
+    serviceId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    pluginInstallationId Int
+    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
+
+    @@unique([serviceId, pluginInstallationId])
 }

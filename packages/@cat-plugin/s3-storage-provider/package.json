@@ -1,0 +1,35 @@
+{
+  "name": "@cat-plugin/s3-storage-provider",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": [
+    "plugins",
+    "typescript",
+    "types",
+    "cat"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "nx vite:build",
+    "lint": "nx eslint:lint --fix",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.873.0",
+    "@aws-sdk/s3-request-presigner": "^3.873.0"
+  },
+  "peerDependencies": {
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@cat/db": "workspace:*"
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*"
+  }
+}

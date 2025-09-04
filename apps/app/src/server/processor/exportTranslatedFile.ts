@@ -1,4 +1,4 @@
-import { setting } from "@cat/db";
+import { mimeFromFileName, setting } from "@cat/db";
 import { TranslationSchema, useStringTemplate } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { randomUUID } from "crypto";
@@ -7,7 +7,6 @@ import { z } from "zod";
 import { useStorage } from "@/server/utils/storage/useStorage";
 import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
-import { mimeFromFileName } from "@/server/utils/file";
 import { getPrismaDB } from "@cat/db";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker";
 
@@ -55,8 +54,11 @@ const worker = new Worker(
     if (!document || !document.File)
       throw new Error(`Document with id ${documentId} do not exists`);
 
-    const { storage, type } = await useStorage();
-    const fileContent = await storage.getContent(document.File);
+    const {
+      id,
+      provider: { getContent, getBasicPath, generateUploadURL },
+    } = await useStorage(prisma, "S3", "GLOBAL", "");
+    const fileContent = await getContent(document.File);
 
     const translations = z.array(TranslationSchema).parse(
       await prisma.translation.findMany({
@@ -101,7 +103,7 @@ const worker = new Worker(
       uuid,
       fileName,
     });
-    const storedPath = join(storage.getBasicPath(), path);
+    const storedPath = join(getBasicPath(), path);
 
     const file = await prisma.file.create({
       data: {
@@ -109,15 +111,11 @@ const worker = new Worker(
         originName: fileName,
         createdAt: date,
         updatedAt: date,
-        StorageType: {
-          connect: {
-            name: type,
-          },
-        },
+        storageProviderId: id,
       },
     });
 
-    const uploadURL = await storage.generateUploadURL(storedPath, 60);
+    const uploadURL = await generateUploadURL(storedPath, 60);
 
     const response = await fetch(uploadURL, {
       method: "PUT",

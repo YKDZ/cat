@@ -218,6 +218,9 @@ export const getESTermService = (config: Config): TermService => {
   };
 
   return {
+    getId() {
+      return "ES";
+    },
     termFormatter: Formatter,
     termIndexer: Indexer,
     termMatcher: Matcher,
