@@ -180,13 +180,13 @@ importers:
         version: 8.0.1
       vike:
         specifier: ^0.4.237
-        version: 0.4.237(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
+        version: 0.4.239(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
       vike-server:
         specifier: ^1.0.23
-        version: 1.0.23(hono@4.9.5)(vike@0.4.237(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
+        version: 1.0.23(hono@4.9.5)(vike@0.4.239(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
       vike-vue:
         specifier: ^0.9.2
-        version: 0.9.2(vike@0.4.237(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vue@3.5.21(typescript@5.9.2))
+        version: 0.9.2(vike@0.4.239(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vue@3.5.21(typescript@5.9.2))
       vue:
         specifier: ^3.5.20
         version: 3.5.21(typescript@5.9.2)
@@ -1406,6 +1406,9 @@ packages:
 
   '@brillout/vite-plugin-server-entry@0.7.12':
     resolution: {integrity: sha512-yh+tsIl2qpStgj1JofxC6tb1WoDYHGnth7XZtHou5baRkBE7DgmoCRIE+kw6S3511KwCMOcuBQSUszrYg5dLUw==}
+
+  '@brillout/vite-plugin-server-entry@0.7.14':
+    resolution: {integrity: sha512-VSbiBAykItiXLK/CS9B9XZ1hmRkfgJ3nMJXOZt+mjeumhH4Vct17zQYG/Wcp/HDY1xEtxIxSOanxyM5upwaf8A==}
 
   '@cat/db@file:packages/db':
     resolution: {directory: packages/db, type: directory}
@@ -5316,14 +5319,6 @@ packages:
   fastq@1.19.1:
     resolution: {integrity: sha512-GwLTyxkCXjXbxqIhTsMI2Nui8huMPtnxg7krajPJAjnEG/iiOS7i+zCtWGZR9G0NBKbXKh6X9m9UIsYX/N6vvQ==}
 
-  fdir@6.4.6:
-    resolution: {integrity: sha512-hiFoqpyZcfNm1yc4u8oWCf9A2c4D3QjCrks3zmoVKVxpQRzmPNar1hUJcBG2RQHvEVGDN+Jm81ZheVLAQMK6+w==}
-    peerDependencies:
-      picomatch: ^3 || ^4
-    peerDependenciesMeta:
-      picomatch:
-        optional: true
-
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
     engines: {node: '>=12.0.0'}
@@ -6842,6 +6837,10 @@ packages:
     resolution: {integrity: sha512-FoqMu0NCGBLCcAkS1qA+XJIQTR6/JHfQXl+uGteNCQ76T91DMUjPa9xfmeqMY3z80nLSg9yQmNjK0Px6RWsH/A==}
     engines: {node: '>=18'}
 
+  sirv@3.0.2:
+    resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
+    engines: {node: '>=18'}
+
   smol-toml@1.4.2:
     resolution: {integrity: sha512-rInDH6lCNiEyn3+hH8KVGFdbjc099j47+OSgbMrfDYX1CmXLfdKd7qi6IfcWj2wFxvSVkuI46M+wPGYfEOEj6g==}
     engines: {node: '>= 18'}
@@ -7276,13 +7275,13 @@ packages:
       vike: '>=0.4.191'
       vue: '>=3.0.0'
 
-  vike@0.4.237:
-    resolution: {integrity: sha512-+Fro/OPiu3X8LOKCQ640hGKcLr7luyi6euWwixsxE/ow9VFxpcU+i0IaUaVkcH7njvWLACay0lv45UkiyeP8TA==}
-    engines: {node: '>=18.0.0'}
+  vike@0.4.239:
+    resolution: {integrity: sha512-/rxBqxVtQION6ZyDauqKcsktOiZgwXj7qZ62KwxuRq/PoipglhSvupEP7BHrPocNQ2WbXgGSXeLw3d2X4dd9ow==}
+    engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
       react-streaming: '>=0.3.42'
-      vite: '>=5.1.0'
+      vite: '>=6.0.0'
     peerDependenciesMeta:
       react-streaming:
         optional: true
@@ -8925,6 +8924,11 @@ snapshots:
   '@brillout/require-shim@0.1.2': {}
 
   '@brillout/vite-plugin-server-entry@0.7.12':
+    dependencies:
+      '@brillout/import': 0.2.6
+      '@brillout/picocolors': 1.0.28
+
+  '@brillout/vite-plugin-server-entry@0.7.14':
     dependencies:
       '@brillout/import': 0.2.6
       '@brillout/picocolors': 1.0.28
@@ -11691,7 +11695,7 @@ snapshots:
       '@unocss/rule-utils': 66.5.0
       colorette: 2.0.20
       gzip-size: 6.0.0
-      sirv: 3.0.1
+      sirv: 3.0.2
       vue-flow-layout: 0.2.0
 
   '@unocss/postcss@66.5.0(postcss@8.5.6)':
@@ -13253,10 +13257,6 @@ snapshots:
   fastq@1.19.1:
     dependencies:
       reusify: 1.1.0
-
-  fdir@6.4.6(picomatch@4.0.3):
-    optionalDependencies:
-      picomatch: 4.0.3
 
   fdir@6.5.0(picomatch@4.0.3):
     optionalDependencies:
@@ -14904,6 +14904,12 @@ snapshots:
       mrmime: 2.0.1
       totalist: 3.0.1
 
+  sirv@3.0.2:
+    dependencies:
+      '@polka/url': 1.0.0-next.29
+      mrmime: 2.0.1
+      totalist: 3.0.1
+
   smol-toml@1.4.2: {}
 
   sonic-boom@3.8.1:
@@ -15114,7 +15120,7 @@ snapshots:
 
   tinyglobby@0.2.14:
     dependencies:
-      fdir: 6.4.6(picomatch@4.0.3)
+      fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
 
   tinypool@1.1.1: {}
@@ -15330,7 +15336,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vike-server@1.0.23(hono@4.9.5)(vike@0.4.237(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)):
+  vike-server@1.0.23(hono@4.9.5)(vike@0.4.239(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)):
     dependencies:
       '@brillout/picocolors': 1.0.28
       '@brillout/vite-plugin-server-entry': 0.7.12
@@ -15344,7 +15350,7 @@ snapshots:
       '@universal-middleware/hono': 0.4.16(hono@4.9.5)
       '@universal-middleware/sirv': 0.1.20
       esbuild: 0.25.8
-      vike: 0.4.237(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
+      vike: 0.4.239(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
     optionalDependencies:
       vite: 7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)
     transitivePeerDependencies:
@@ -15356,27 +15362,27 @@ snapshots:
       - h3
       - hono
 
-  vike-vue@0.9.2(vike@0.4.237(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vue@3.5.21(typescript@5.9.2)):
+  vike-vue@0.9.2(vike@0.4.239(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)))(vue@3.5.21(typescript@5.9.2)):
     dependencies:
-      vike: 0.4.237(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
+      vike: 0.4.239(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
       vue: 3.5.21(typescript@5.9.2)
 
-  vike@0.4.237(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)):
+  vike@0.4.239(vite@7.1.4(@types/node@24.3.0)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)):
     dependencies:
       '@brillout/import': 0.2.6
       '@brillout/json-serializer': 0.5.20
       '@brillout/picocolors': 1.0.28
       '@brillout/require-shim': 0.1.2
-      '@brillout/vite-plugin-server-entry': 0.7.12
+      '@brillout/vite-plugin-server-entry': 0.7.14
       acorn: 8.15.0
       cac: 6.7.14
       es-module-lexer: 1.7.0
-      esbuild: 0.25.8
+      esbuild: 0.25.9
       json5: 2.2.3
-      magic-string: 0.30.17
+      magic-string: 0.30.18
       picomatch: 4.0.3
       semver: 7.7.2
-      sirv: 3.0.1
+      sirv: 3.0.2
       source-map-support: 0.5.21
       tinyglobby: 0.2.14
     optionalDependencies:
