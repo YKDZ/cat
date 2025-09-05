@@ -45,7 +45,7 @@ jobs:
           echo "🔍 Workspace packages"
           pnpm m ls || true
           echo "🔍 Check node_modules links"
-          ls -l node_modules/@cat || true
+          ls -l node_modules/.pnpm/@cat || true
 
       - name: Check whether nx workspace sync
         run: pnpm nx sync:check
