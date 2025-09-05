@@ -3,7 +3,7 @@ import AuthError from "@/app/components/AuthError.vue";
 import type { AuthMethod } from "@cat/shared";
 import { useData } from "vike-vue/useData";
 import { ref } from "vue";
-import logoUrl from "../../assets/logo.png";
+import logoUrl from "@/app/assets/logo.png";
 import type { Data } from "./+data";
 import { usePageContext } from "vike-vue/usePageContext";
 import AuthPreHandler from "@/app/components/AuthPreHandler.vue";
