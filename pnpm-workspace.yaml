@@ -4,6 +4,8 @@ packages:
   - packages/*
   - packages/@cat-plugin/*
 
+injectWorkspacePackages: true
+
 onlyBuiltDependencies:
   - "@prisma/client"
   - "@prisma/engines"
@@ -11,7 +13,6 @@ onlyBuiltDependencies:
   - prisma
   - protobufjs
   - "@swc/core"
-  - "msgpackr-extract"
-  - "nx"
-
-injectWorkspacePackages: true
+  - msgpackr-extract
+  - nx
+  - oxc-resolver
