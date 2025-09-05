@@ -61,6 +61,7 @@ export default defineConfig({
         items: [
           { text: "Overview", link: "/developer/" },
           { text: "ER", link: "/developer/db-er" },
+          { text: "Plugin System", link: "/developer/plugin-system" },
         ],
       },
     ],
