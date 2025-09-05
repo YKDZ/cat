@@ -59,9 +59,9 @@ jobs:
       - name: List shared package details
         run: |
           echo "🔍 @cat/shared package.json"
-          cat libs/shared/package.json || true
+          cat packages/shared/package.json || true
           echo "🔍 List dist folder"
-          ls -la libs/shared/dist || ls -la dist/libs/shared || true
+          ls -la packages/shared/dist || true
           echo "🔍 Node resolution test"
           node -e "console.log('package.json path', require.resolve('@cat/shared/package.json'))" || true
           node -e "console.log('module entry', require.resolve('@cat/shared'))" || true
