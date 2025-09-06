@@ -8,10 +8,8 @@ import {
 } from "@cat/shared";
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
-import { importPluginQueue } from "@/server/processor/importPlugin";
 import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
 import { TRPCError } from "@trpc/server";
-import { ScopeType } from "@cat/db";
 
 export const pluginRouter = router({
   delete: authedProcedure
@@ -194,78 +192,6 @@ export const pluginRouter = router({
             id: "asc",
           },
         }),
-      );
-    }),
-  importFromGitHub: authedProcedure
-    .input(
-      z.object({
-        owner: z.string(),
-        repo: z.string(),
-        ref: z.string(),
-      }),
-    )
-    .output(z.void())
-    .mutation(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const { owner, repo, ref } = input;
-
-      const task = await prisma.task.create({
-        data: {
-          type: "import_plugin",
-        },
-      });
-
-      await importPluginQueue.add(
-        task.id,
-        {
-          origin: {
-            type: "GITHUB",
-            data: {
-              owner,
-              repo,
-              ref,
-            },
-          },
-        },
-        {
-          jobId: task.id,
-        },
-      );
-    }),
-  importFromLocal: authedProcedure
-    .input(
-      z.object({
-        id: z.string().min(1),
-      }),
-    )
-    .output(z.void())
-    .mutation(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const { id } = input;
-
-      const task = await prisma.task.create({
-        data: {
-          type: "import_plugin",
-        },
-      });
-
-      await importPluginQueue.add(
-        task.id,
-        {
-          origin: {
-            type: "LOCAL",
-            data: {
-              id,
-            },
-          },
-        },
-        {
-          jobId: task.id,
-        },
       );
     }),
   reload: authedProcedure.output(z.void()).mutation(async ({ ctx }) => {

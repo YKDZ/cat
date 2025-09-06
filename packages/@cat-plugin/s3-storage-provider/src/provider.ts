@@ -9,36 +9,63 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Readable } from "node:stream";
-import type { PrismaClient } from "@cat/db";
-import { getPrismaDB, mimeFromFileName, setting, settings } from "@cat/db";
+import { getPrismaDB, mimeFromFileName } from "@cat/db";
 import { StorageProvider } from "@cat/plugin-core";
+import { z } from "zod";
+
+const S3ConfigSchema = z.object({
+  "endpoint-url": z.url(),
+  "bucket-name": z.string(),
+  region: z.string(),
+  acl: z.enum([
+    "authenticated-read",
+    "aws-exec-read",
+    "bucket-owner-full-control",
+    "bucket-owner-read",
+    "private",
+    "public-read",
+    "public-read-write",
+  ]),
+  "access-key-id": z.string(),
+  "secret-access-key": z.string(),
+  "force-path-style": z.boolean(),
+});
+
+const StorageConfigSchema = z.object({
+  "basic-path": z.string(),
+});
+
+type S3Config = z.infer<typeof S3ConfigSchema>;
+type StorageConfig = z.infer<typeof StorageConfigSchema>;
 
 class S3DB {
   public static client: S3Client;
+  private config: S3Config;
 
-  static async connect(prisma: PrismaClient) {
-    const setting = await settings("s3.", prisma);
+  constructor(config: S3Config) {
+    this.config = config;
+  }
 
+  async connect() {
     S3DB.client = new S3Client({
-      region: (setting["s3.region"] as string) ?? "auto",
-      endpoint: (setting["s3.endpoint-url"] as string) ?? "",
+      region: this.config.region,
+      endpoint: this.config["endpoint-url"],
       credentials: {
-        accessKeyId: (setting["s3.access-key-id"] as string) ?? "",
-        secretAccessKey: (setting["s3.secret-access-key"] as string) ?? "",
+        accessKeyId: this.config["access-key-id"],
+        secretAccessKey: this.config["secret-access-key"],
       },
-      forcePathStyle: Boolean(setting["s3.force-path-style"]),
+      forcePathStyle: this.config["force-path-style"],
     });
   }
 
-  static async disconnect() {
+  async disconnect() {
     S3DB.client.destroy();
   }
 
-  static async ping(prisma: PrismaClient) {
-    const bucket = await setting("s3.bucket-name", "cat", prisma);
+  async ping() {
     await S3DB.client.send(
       new HeadBucketCommand({
-        Bucket: bucket,
+        Bucket: this.config["bucket-name"],
       }),
     );
   }
@@ -46,6 +73,9 @@ class S3DB {
 
 export class S3StorageProvider implements StorageProvider {
   private configs: Record<string, JSONType>;
+  private s3Config: S3Config;
+  private storageConfig: StorageConfig;
+  private db: S3DB;
 
   private config = <T>(key: string, fallback: T): T => {
     const config = this.configs[key];
@@ -55,6 +85,9 @@ export class S3StorageProvider implements StorageProvider {
 
   constructor(configs: Record<string, JSONType>) {
     this.configs = configs;
+    this.s3Config = S3ConfigSchema.parse(this.config("s3", {}));
+    this.storageConfig = StorageConfigSchema.parse(this.config("storage", {}));
+    this.db = new S3DB(this.s3Config);
   }
 
   getId() {
@@ -62,30 +95,24 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   getBasicPath() {
-    return "uploads";
+    return this.config("storage", { "basic-path": "uploads" })["basic-path"];
   }
 
   async ping() {
-    await S3DB.ping((await getPrismaDB()).client);
+    await this.db.ping();
   }
 
   async connect() {
-    if (!S3DB.client) await S3DB.connect((await getPrismaDB()).client);
+    if (!S3DB.client) await this.db.connect();
   }
 
   async disconnect() {
-    await S3DB.disconnect();
+    await this.db.disconnect();
   }
 
   async getContent(file: File): Promise<Buffer> {
-    const s3UploadBucketName = await setting(
-      "s3.bucket-name",
-      "cat",
-      (await getPrismaDB()).client,
-    );
-
     const command = new GetObjectCommand({
-      Bucket: s3UploadBucketName,
+      Bucket: this.s3Config["bucket-name"],
       Key: file.storedPath.replaceAll("\\", "/"),
     });
 
@@ -103,16 +130,10 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   async generateUploadURL(path: string, expiresIn: number) {
-    const s3UploadBucketName = await setting(
-      "s3.bucket-name",
-      "cat",
-      (await getPrismaDB()).client,
-    );
-
     const params: PutObjectCommandInput = {
-      Bucket: s3UploadBucketName,
+      Bucket: this.s3Config["bucket-name"],
       Key: path.replaceAll("\\", "/"),
-      ACL: await setting("s3.acl", "private", (await getPrismaDB()).client),
+      ACL: this.s3Config["acl"],
     };
     const command = new PutObjectCommand(params);
     const presignedUrl = await getSignedUrl(S3DB.client!, command, {
@@ -124,14 +145,8 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   async generateURL(path: string, expiresIn: number) {
-    const s3UploadBucketName = await setting(
-      "s3.bucket-name",
-      "cat",
-      (await getPrismaDB()).client,
-    );
-
     const command = new GetObjectCommand({
-      Bucket: s3UploadBucketName,
+      Bucket: this.s3Config["bucket-name"],
       Key: path.replaceAll("\\", "/"),
     });
 
@@ -139,14 +154,8 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   async generateDownloadURL(path: string, fileName: string, expiresIn: number) {
-    const s3UploadBucketName = await setting(
-      "s3.bucket-name",
-      "cat",
-      (await getPrismaDB()).client,
-    );
-
     const command = new GetObjectCommand({
-      Bucket: s3UploadBucketName,
+      Bucket: this.s3Config["bucket-name"],
       Key: path.replaceAll("\\", "/"),
       ResponseContentDisposition: `attachment; filename="${fileName}"`,
       ResponseContentType: await mimeFromFileName(
@@ -159,14 +168,8 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   async delete(file: File) {
-    const s3UploadBucketName = await setting(
-      "s3.bucket-name",
-      "cat",
-      (await getPrismaDB()).client,
-    );
-
     const command = new DeleteObjectCommand({
-      Bucket: s3UploadBucketName,
+      Bucket: this.s3Config["bucket-name"],
       Key: file.storedPath.replaceAll("\\", "/"),
     });
 

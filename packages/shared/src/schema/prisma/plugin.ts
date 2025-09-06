@@ -74,16 +74,8 @@ export const PluginVersionSchema = z.object({
   pluginId: z.string(),
 });
 
-export const PluginComponentSchema = z.object({
-  id: z.string(),
-  entry: z.string(),
-  mountOn: z.string(),
-  pluginId: z.string(),
-});
-
 export const PluginSchema = z.object({
   id: z.string(),
-  origin: z.json(),
   name: z.string(),
   overview: z.string().nullable(),
   iconURL: z.url().nullable(),
@@ -107,8 +99,8 @@ export const PluginSchema = z.object({
     return z.array(PluginTagSchema).optional();
   },
 
-  get Components() {
-    return z.array(PluginTagSchema).optional();
+  get Installations() {
+    return z.array(PluginInstallationSchema).optional();
   },
 });
 
@@ -129,7 +121,6 @@ export type PluginVersion = z.infer<typeof PluginVersionSchema>;
 export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 export type PluginConfigInstance = z.infer<typeof PluginConfigInstanceSchema>;
 export type PluginPermission = z.infer<typeof PluginPermissionSchema>;
-export type PluginComponent = z.infer<typeof PluginComponentSchema>;
 export type PluginInstallation = z.infer<typeof PluginInstallationSchema>;
 export type Plugin = z.infer<typeof PluginSchema>;
 export type StorageProvider = z.infer<typeof StorageProviderSchema>;

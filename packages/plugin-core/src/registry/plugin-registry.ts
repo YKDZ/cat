@@ -407,7 +407,7 @@ export class PluginRegistry {
     return PluginManifestSchema.parse(JSON.parse(data));
   }
 
-  public async getPluginIdInLocalPlugins() {
+  public async getPluginIdInLocalPlugins(): Promise<string[]> {
     const dirents = readdirSync(pluginsDir, { withFileTypes: true }).filter(
       (dirent) => dirent.isDirectory(),
     );
