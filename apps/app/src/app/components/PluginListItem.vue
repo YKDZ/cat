@@ -65,7 +65,7 @@ onMounted(() => {
             >{{ t("内部插件") }}</span
           >
           <span
-            v-if="plugin.enabled"
+            v-if="plugin"
             class="px-2 py-1 rounded-sm bg-highlight-darkest"
             >{{ t("已安装") }}</span
           >

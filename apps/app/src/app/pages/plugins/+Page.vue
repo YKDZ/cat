@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import PluginImportBtn from "@/app/components/PluginImportBtn.vue";
 import PluginList from "@/app/components/PluginList.vue";
-import PluginReloadBtn from "@/app/components/PluginReloadBtn.vue";
 import { useToastStore } from "@/app/stores/toast";
 import { trpc } from "@/server/trpc/client";
 import type { Plugin } from "@cat/shared";

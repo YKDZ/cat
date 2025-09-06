@@ -1,16 +1,10 @@
 import { PrismaClient } from "@cat/db";
 import { logger } from "@cat/shared";
-import type { Job } from "bullmq";
-import {
-  importPluginQueue,
-  importPluginQueueEvents,
-} from "../processor/importPlugin";
 import { PluginRegistry } from "@cat/plugin-core";
-import { installPlugin } from "./plugin";
+import { importPlugin, installPlugin } from "./plugin";
 
 export const importLocalPlugins = async (prisma: PrismaClient) => {
   const existPluginIds: string[] = [];
-  const jobs: Job[] = [];
 
   await prisma.$transaction(async (tx) => {
     existPluginIds.push(
@@ -27,39 +21,10 @@ export const importLocalPlugins = async (prisma: PrismaClient) => {
       (await PluginRegistry.get().getPluginIdInLocalPlugins())
         .filter((id) => !existPluginIds.includes(id))
         .map(async (id) => {
-          const task = await tx.task.create({
-            data: {
-              type: "import_plugin",
-            },
-          });
-
-          jobs.push(
-            await importPluginQueue.add(
-              task.id,
-              {
-                origin: {
-                  type: "LOCAL",
-                  data: {
-                    id,
-                  },
-                },
-              },
-              {
-                jobId: task.id,
-              },
-            ),
-          );
+          await importPlugin(prisma, id);
         }),
     );
   });
-
-  await importPluginQueueEvents.waitUntilReady();
-
-  await Promise.all(
-    jobs.map(
-      async (job) => await job.waitUntilFinished(importPluginQueueEvents),
-    ),
-  );
 };
 
 export const installDefaultPlugins = async (prisma: PrismaClient) => {

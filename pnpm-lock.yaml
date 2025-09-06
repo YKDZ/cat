@@ -470,6 +470,9 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../../shared
+      zod:
+        specifier: ^4.1.1
+        version: 4.1.1
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*

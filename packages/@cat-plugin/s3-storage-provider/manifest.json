@@ -2,5 +2,65 @@
   "id": "s3-storage-provider",
   "entry": "dist/index.mjs",
   "iconURL": "https://unocss.dev/logo.svg",
-  "tags": ["storage-provider"]
+  "tags": ["storage-provider"],
+  "configs": [
+    {
+      "key": "s3",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "endpoint-url": {
+            "type": "string",
+            "default": "https://s3.amazonaws.com"
+          },
+          "bucket-name": {
+            "type": "string",
+            "default": "cat"
+          },
+          "region": {
+            "type": "string",
+            "default": "auto"
+          },
+          "acl": {
+            "type": "string",
+            "enum": [
+              "authenticated-read",
+              "aws-exec-read",
+              "bucket-owner-full-control",
+              "bucket-owner-read",
+              "private",
+              "public-read",
+              "public-read-write"
+            ],
+            "default": "private"
+          },
+          "access-key-id": {
+            "type": "string",
+            "default": "admin"
+          },
+          "secret-access-key": {
+            "type": "string",
+            "default": "secret",
+            "x-secret": true
+          },
+          "force-path-style": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    },
+    {
+      "key": "storage",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "basic-path": {
+            "type": "string",
+            "default": "uploads"
+          }
+        }
+      }
+    }
+  ]
 }

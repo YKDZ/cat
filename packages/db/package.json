@@ -18,7 +18,8 @@
   "scripts": {
     "build": "prisma generate && nx vite:build",
     "lint": "nx eslint:lint --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@prisma/client": "6.15.0",

@@ -2,7 +2,7 @@
 import PluginConfigs from "@/app/components/PluginConfigs.vue";
 import PluginDeleteBtn from "@/app/components/PluginDeleteBtn.vue";
 import { usePluginStore } from "@/app/stores/plugin";
-import type { Plugin } from "@cat/shared";
+import type { Plugin, PluginConfig } from "@cat/shared";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
@@ -18,7 +18,7 @@ const plugin = computed<Plugin | null>(() => {
 <template>
   <PluginConfigs
     v-if="plugin"
-    :configs="plugin.Configs!"
+    :configs="plugin.Configs! as PluginConfig[]"
     scope-type="GLOBAL"
     scope-id=""
   />

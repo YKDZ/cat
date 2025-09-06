@@ -1,6 +1,5 @@
 model Plugin {
     id         String   @id
-    origin     Json
     name       String
     overview   String?
     isExternal Boolean  @default(false)
@@ -9,12 +8,11 @@ model Plugin {
     createdAt  DateTime @default(now())
     updatedAt  DateTime @default(now()) @updatedAt
 
-    Configs             PluginConfig[]
-    Permissions         PluginPermission[]
-    Versions            PluginVersion[]
-    Tags                PluginTag[]
-    Components          PluginComponent[]
-    PluginInstallations PluginInstallation[]
+    Configs       PluginConfig[]
+    Permissions   PluginPermission[]
+    Versions      PluginVersion[]
+    Tags          PluginTag[]
+    Installations PluginInstallation[]
 }
 
 model PluginInstallation {
@@ -107,19 +105,6 @@ model PluginTag {
     updatedAt DateTime @default(now()) @updatedAt
 
     Plugin Plugin[]
-}
-
-model PluginComponent {
-    id        String
-    entry     String
-    mountOn   String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    pluginId String
-    Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
-
-    @@unique([id, pluginId])
 }
 
 enum ScopeType {
