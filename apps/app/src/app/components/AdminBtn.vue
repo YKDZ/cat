@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { navigate } from "vike/client/router";
-import Button from "./Button.vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
-
-const isProcessing = ref<boolean>(false);
 
 const handleNav = async () => {
   await navigate("/admin");
@@ -14,15 +12,14 @@ const handleNav = async () => {
 </script>
 
 <template>
-  <Button
-    :is-processing
-    transparent
-    full-width
-    large
-    left
+  <HButton
+    :classes="{
+      base: 'btn btn-md btn-left btn-w-full btn-transparent btn-none-rounded',
+      icon: 'btn-icon btn-icon-lg',
+    }"
     icon="i-mdi:cog"
     @click="handleNav"
   >
     {{ t("管理") }}
-  </Button>
+  </HButton>
 </template>

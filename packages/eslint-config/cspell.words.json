@@ -15,5 +15,6 @@
   "vueuse",
   "persistedstate",
   "iconify",
-  "SSCTRPC"
+  "SSCTRPC",
+  "intlify"
 ]

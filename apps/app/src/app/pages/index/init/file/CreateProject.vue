@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from "@/app/components/Button.vue";
+import HButton from "@/app/components/headless/HButton.vue";
 import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
@@ -123,8 +123,15 @@ const createProject = () => {
       create-new
       placeholder="选择一个或多个术语库"
     />
-    <Button icon="i-mdi:plus" :is-processing @click="createProject">
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-base',
+      }"
+      icon="i-mdi:plus"
+      :loading="isProcessing"
+      @click="createProject"
+    >
       创建项目
-    </Button>
+    </HButton>
   </div>
 </template>

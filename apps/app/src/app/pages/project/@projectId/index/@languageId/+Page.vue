@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import Button from "@/app/components/Button.vue";
+import HButton from "@/app/components/headless/HButton.vue";
 import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
 import { useLanguageStore } from "@/app/stores/language";
 import { languageKey, projectKey } from "@/app/utils/provide";
+import { Document } from "@cat/shared";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
@@ -44,7 +45,13 @@ onMounted(update);
   <div class="flex flex-col w-full">
     <div class="py-4 flex gap-4 w-full items-center justify-between">
       <div class="flex gap-4 items-center">
-        <Button icon="i-mdi:arrow-left" no-text @click="handleBack" />
+        <HButton
+          :classes="{
+            base: 'btn btn-md btn-base btn-square',
+          }"
+          icon="i-mdi:arrow-left"
+          @click="handleBack"
+        />
         <h3 v-if="language" class="text-xl font-bold">{{ language.name }}</h3>
       </div>
       <ProjectTranslationProgress
@@ -55,7 +62,7 @@ onMounted(update);
     </div>
     <ProjectLanguageDocumentList
       v-if="project && project.Documents"
-      :documents="project.Documents"
+      :documents="project.Documents as Document[]"
     />
   </div>
 </template>

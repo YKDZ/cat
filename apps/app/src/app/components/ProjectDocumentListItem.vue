@@ -4,11 +4,11 @@ import { trpc } from "@/server/trpc/client";
 import type { Document } from "@cat/shared";
 import { computed, onMounted } from "vue";
 import { useDocumentStore } from "../stores/document";
-import Button from "./Button.vue";
 import Icon from "./Icon.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
 import { navigate } from "vike/client/router";
+import HButton from "./headless/HButton.vue";
 
 const props = defineProps<{
   document: Document;
@@ -83,7 +83,13 @@ onMounted(() => {
         class="color-red"
     /></TableCell>
     <TableCell>
-      <Button icon="i-mdi:trash-can" no-text @click="handleDelete" />
+      <HButton
+        icon="i-mdi:trash-can"
+        :classes="{
+          base: 'btn btn-md btn-base btn-square',
+        }"
+        @click="handleDelete"
+      />
     </TableCell>
   </TableRow>
 </template>

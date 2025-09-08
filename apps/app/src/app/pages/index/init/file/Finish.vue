@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from "@/app/components/Button.vue";
+import HButton from "@/app/components/headless/HButton.vue";
 import type { Project } from "@cat/shared";
 import { navigate } from "vike/client/router";
 
@@ -15,6 +15,13 @@ const handleClick = async () => {
   <div class="flex flex-col">
     <h2 class="text-lg font-bold">成功创建项目！</h2>
     <p>现在你可以开始翻译工作了</p>
-    <Button icon="i-mdi:check" @click="handleClick">前往项目界面</Button>
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-base',
+      }"
+      icon="i-mdi:check"
+      @click="handleClick"
+      >前往项目界面</HButton
+    >
   </div>
 </template>

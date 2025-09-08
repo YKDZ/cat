@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import Button from "./Button.vue";
 import { useToastStore } from "../stores/toast";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { info, trpcWarn } = useToastStore();
 const { t } = useI18n();
@@ -18,5 +18,12 @@ const handleReload = async () => {
 </script>
 
 <template>
-  <Button icon="i-mdi:reload" @click="handleReload">重载插件</Button>
+  <HButton
+    icon="i-mdi:reload"
+    @click="handleReload"
+    :classes="{
+      base: 'btn btn-md btn-base',
+    }"
+    >{{ t("重载插件") }}</HButton
+  >
 </template>

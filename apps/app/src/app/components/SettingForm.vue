@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, shallowRef } from "vue";
+import { onBeforeMount, ref, shallowRef } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 import type { JSONSchema, JSONType } from "@cat/shared";
 import JSONForm from "./json-form/JSONForm.vue";
-import Icon from "./Icon.vue";
 
 const props = defineProps<{
   configGetter: () => Promise<JSONType>;
@@ -17,26 +17,10 @@ const props = defineProps<{
 const data = shallowRef<JSONType>({});
 const isPending = ref(false);
 
-// 节流器 Map，为每个配置项创建独立的节流器
-const throttlers = new Map<
-  string,
-  {
-    timer: NodeJS.Timeout | null;
-    latestValue: JSONType;
-  }
->();
+const debouncedFunctions = new Map<string, ReturnType<typeof useDebounceFn>>();
 
-const title = computed(() => {
-  return props.schema.title;
-});
-
-const description = computed(() => {
-  return props.schema.description;
-});
-
-// 根据 JSON Schema 类型获取延迟时间
 const getDelayByType = (schema: JSONSchema): number => {
-  if (schema.enum || schema.const) return 0; // 枚举和常量类型
+  if (schema.enum || schema.const) return 0;
 
   switch (schema.type) {
     case "string":
@@ -66,44 +50,38 @@ const handleUpdate = async (
   }
 
   const delay = getDelayByType(schema);
-  const throttlerKey = key;
+  const debouncedKey = key;
 
-  // 获取或创建节流器
-  let throttler = throttlers.get(throttlerKey);
-  if (!throttler) {
-    throttler = { timer: null, latestValue: value };
-    throttlers.set(throttlerKey, throttler);
+  let debouncedFn = debouncedFunctions.get(debouncedKey);
+  if (!debouncedFn) {
+    if (delay === 0) {
+      // 无延迟，创建立即执行的函数
+      debouncedFn = async (v: JSONType, s: JSONSchema, k?: string) => {
+        isPending.value = true;
+        try {
+          await props.configSetter(v, s, k);
+        } finally {
+          isPending.value = false;
+        }
+      };
+    } else {
+      debouncedFn = useDebounceFn(
+        async (v: JSONType, s: JSONSchema, k?: string) => {
+          try {
+            await props.configSetter(v, s, k);
+          } finally {
+            isPending.value = false;
+          }
+        },
+        delay,
+      );
+    }
+    debouncedFunctions.set(debouncedKey, debouncedFn);
   }
 
-  // 清除之前的定时器
-  if (throttler.timer) {
-    clearTimeout(throttler.timer);
-  }
-
-  // 保存最新值
-  throttler.latestValue = value;
-
-  // 设置状态为 pending
   isPending.value = true;
 
-  if (delay === 0) {
-    // 无延迟，立即执行
-    await props.configSetter(value, schema, key);
-    isPending.value = false;
-  } else {
-    // 设置新的定时器
-    throttler.timer = setTimeout(async () => {
-      try {
-        await props.configSetter(throttler!.latestValue, schema, key);
-      } finally {
-        isPending.value = false;
-        // 清理定时器引用
-        if (throttler) {
-          throttler.timer = null;
-        }
-      }
-    }, delay);
-  }
+  await debouncedFn(value, schema, key);
 };
 
 onBeforeMount(async () => {
@@ -112,26 +90,5 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-1">
-    <div class="flex flex-col gap-0.5">
-      <div class="flex items-center gap-2">
-        <h3 class="text-lg text-highlight-content-darker font-bold mt-4">
-          {{ title }}
-        </h3>
-        <Icon
-          v-if="isPending"
-          icon="i-mdi:circle"
-          class="bg-warning-darkest animate-bounce"
-        />
-        <Icon v-else icon="i-mdi:check" class="bg-success-darkest" />
-      </div>
-      <p class="text-sm text-highlight-content">{{ description }}</p>
-    </div>
-    <JSONForm
-      v-if="Object.keys(data ?? {}).length !== 0"
-      v-model:data="data"
-      :schema
-      @update="handleUpdate"
-    />
-  </div>
+  <JSONForm v-model:data="data" :schema @update="handleUpdate" />
 </template>

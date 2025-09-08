@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Button from "@/app/components/Button.vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
@@ -12,6 +11,7 @@ import { computed, ref, shallowRef } from "vue";
 import Icon from "./Icon.vue";
 import { TRPCClientError } from "@trpc/client";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -168,18 +168,22 @@ const upload = async (tempFile: TempFile) => {
           </TableCell>
           <TableCell>
             <div class="flex gap-2 items-center">
-              <Button
-                no-text
+              <HButton
+                :classes="{
+                  base: 'btn btn-md btn-base btn-square',
+                }"
                 :disabled="
                   file.status !== `completed` && file.status !== `pending`
                 "
                 icon="i-mdi:trash-can"
                 @click="removeFile(file)"
-              /><Button
+              /><HButton
                 :disabled="
                   file.status === `completed` || file.status === `processing`
                 "
-                no-text
+                :classes="{
+                  base: 'btn btn-md btn-base btn-square',
+                }"
                 icon="i-mdi:upload"
                 @click="upload(file)"
               />
@@ -196,16 +200,26 @@ const upload = async (tempFile: TempFile) => {
       </TableBody>
     </Table>
     <div class="flex gap-4 items-center">
-      <Button
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-base',
+        }"
         icon="i-mdi:folder"
         :is-processing
         @click="fileInputEl && fileInputEl.click()"
       >
         {{ t("选择文件") }}
-      </Button>
-      <Button icon="i-mdi:upload-multiple" :is-processing @click="uploadAll">
+      </HButton>
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-base',
+        }"
+        icon="i-mdi:upload-multiple"
+        :loading="isProcessing"
+        @click="uploadAll"
+      >
         {{ t("上传所有") }}
-      </Button>
+      </HButton>
     </div>
   </div>
 </template>

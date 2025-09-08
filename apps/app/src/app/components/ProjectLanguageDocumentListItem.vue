@@ -7,11 +7,11 @@ import DocumentTranslationProgress from "./DocumentTranslationProgress.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
 import { trpc } from "@/server/trpc/client";
-import Button from "./Button.vue";
 import { useToastStore } from "../stores/toast";
 import ProjectLanguageDocumentAutoApproveBtn from "./ProjectLanguageDocumentAutoApproveBtn.vue";
 import ProjectLanguageDocumentAutoTranslateBtn from "./ProjectLanguageDocumentAutoTranslateBtn.vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const props = defineProps<{
   document: Document;
@@ -60,8 +60,10 @@ const handleExportTranslated = async () => {
     /></TableCell>
     <TableCell>
       <div class="flex gap-1 items-center">
-        <Button
-          no-text
+        <HButton
+          :classes="{
+            base: 'btn btn-md btn-base btn-square',
+          }"
           icon="i-mdi:download"
           @click.stop="handleExportTranslated"
         />

@@ -2,9 +2,9 @@
 import { trpc } from "@/server/trpc/client";
 import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
-import Button from "./Button.vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 const { info, trpcWarn } = useToastStore();
@@ -30,15 +30,15 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <Button
-    :is-processing
-    full-width
-    large
-    left
-    transparent
+  <HButton
+    :classes="{
+      base: 'btn btn-md btn-left btn-w-full btn-transparent btn-none-rounded',
+      icon: 'btn-icon btn-icon-lg',
+    }"
     icon="i-mdi:logout"
+    :loading="isProcessing"
     @click="handleLogout"
   >
     {{ t("登出") }}
-  </Button>
+  </HButton>
 </template>

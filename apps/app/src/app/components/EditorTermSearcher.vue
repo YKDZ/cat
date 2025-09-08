@@ -3,7 +3,6 @@ import { storeToRefs } from "pinia";
 import Input from "./Input.vue";
 import { useEditorStore } from "../stores/editor";
 import { ref, watch } from "vue";
-import Button from "./Button.vue";
 import { trpc } from "@/server/trpc/client";
 import { useToastStore } from "../stores/toast";
 import { useI18n } from "vue-i18n";
@@ -71,10 +70,5 @@ watch(elementId, () => (searchQuery.value = ""));
     :placeholder="$t('搜索术语')"
     full-width
     @change="handleSearchInput"
-  />
-  <Button
-    magic-key="Shift+T"
-    class="hidden"
-    @magic-click="handleSearchSelection"
   />
 </template>

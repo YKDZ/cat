@@ -1,51 +1,79 @@
 <script setup lang="ts">
-import DiffBox from "@/app/components/diff/DiffBox.vue";
-import { onMounted } from "vue";
+import HButton from "@/app/components/headless/HButton.vue";
+import { ref } from "vue";
 
-const old = {
-  app: {
-    name: "测试应用",
-    version: "1.0.0",
-    features: ["登录", "搜索", "导出"],
-    settings: {
-      theme: "light",
-      itemsPerPage: 10,
-    },
-  },
-  users: [
-    { id: "u1", name: "张三" },
-    { id: "u2", name: "李四" },
-  ],
-  notes: "这是老版本的文案。",
+const isLoading = ref(false);
+const isDisabled = ref(false);
+
+const handleClick = () => {
+  console.log("Button clicked!");
+  window.alert("clicked");
 };
 
-const now = {
-  app: {
-    name: "测试应用",
-    version: "1.1.0",
-    features: ["登录", "搜索", "导出PDF", "分享"],
-    settings: {
-      theme: "dark",
-      itemsPerPage: 20,
-    },
-  },
-  users: [
-    { id: "u1", name: "张三（已更新）" },
-    { id: "u2", name: "李四" },
-    { id: "u3", name: "王五" },
-  ],
-  notes: "这是新版的文案，包含若干改动与新功能说明。",
+const toggleLoading = () => {
+  isLoading.value = !isLoading.value;
 };
 
-onMounted(() => {
-  console.log("Old Data:", JSON.stringify(old, null, 2));
-  console.log("New Data:", JSON.stringify(now, null, 2));
-});
+const toggleDisabled = () => {
+  isDisabled.value = !isDisabled.value;
+};
 </script>
 
 <template>
-  <DiffBox
-    :old="JSON.stringify(old, null, 2)"
-    :now="JSON.stringify(now, null, 2)"
-  />
+  <div class="p-8 space-y-4">
+    <h1 class="text-2xl font-bold mb-6">HButton 组件测试</h1>
+
+    <!-- 控制按钮 -->
+    <div class="flex gap-4 mb-8">
+      <button
+        @click="toggleLoading"
+        class="px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        {{ isLoading ? "停止加载" : "开始加载" }}
+      </button>
+      <button
+        @click="toggleDisabled"
+        class="px-4 py-2 bg-gray-500 text-white rounded"
+      >
+        {{ isDisabled ? "启用按钮" : "禁用按钮" }}
+      </button>
+    </div>
+
+    <!-- 基础用法 -->
+    <div class="space-y-4">
+      <h2 class="text-lg font-semibold">基础用法</h2>
+      <HButton
+        :classes="{
+          base: 'btn btn-lg btn-base',
+          'base-disabled': 'btn btn-lg btn-disabled',
+          loading: 'animate-spin mr-2',
+        }"
+        :loading="isLoading"
+        :disabled="isDisabled"
+        @click="handleClick"
+      >
+        保存
+        <template #loading> <div class="i-mdi:dots-circle" /> </template>
+      </HButton>
+    </div>
+
+    <!-- 自定义加载内容 -->
+    <div class="space-y-4">
+      <h2 class="text-lg font-semibold">自定义加载内容</h2>
+      <HButton
+        :classes="{
+          base: 'bg-purple-500 text-white px-6 py-3 rounded-lg',
+          loading: 'mr-2',
+        }"
+        :loading="isLoading"
+        :disabled="isDisabled"
+        @click="handleClick"
+      >
+        <template #loading>
+          <span class="inline-block animate-pulse">⏳</span>
+        </template>
+        提交表单
+      </HButton>
+    </div>
+  </div>
 </template>

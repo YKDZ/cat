@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import Sidebar from "./Sidebar.vue";
-import Button from "./Button.vue";
 import { storeToRefs } from "pinia";
 import { useSidebarStore } from "../stores/sidebar";
 import { useEditorStore } from "../stores/editor";
@@ -10,6 +9,7 @@ import EditorSidebarElement from "./EditorSidebarElement.vue";
 import EditorElementSearcher from "./EditorElementSearcher.vue";
 import Slash from "./Slash.vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -44,9 +44,10 @@ const handleNextPage = () => {
       >
         <Logo link />
         <!-- Button for free sidebar -->
-        <Button
-          transparent
-          no-text
+        <HButton
+          :classes="{
+            base: 'btn btn-md btn-transparent btn-square',
+          }"
           :icon="isFree ? 'i-mdi:card-outline' : 'i-mdi:card-off-outline'"
           class="hidden md:flex"
           @click="isFree = !isFree"
@@ -76,11 +77,25 @@ const handleNextPage = () => {
         v-if="currentPageIndex !== -1"
         class="px-5 pb-2 flex gap-1 w-full items-center justify-between"
       >
-        <Button icon="i-mdi:chevron-left" no-text @click="handlePreviousPage" />
+        <HButton
+          icon="i-mdi:chevron-left"
+          class="hidden md:flex"
+          :classes="{
+            base: 'btn btn-md btn-transparent btn-square',
+            icon: 'btn-icon',
+          }"
+          @click="handlePreviousPage"
+        />
         <span class="inline-flex gap-2 items-center justify-between"
           >{{ currentPageIndex + 1 }} <Slash /> {{ totalPageIndex + 1 }}</span
         >
-        <Button icon="i-mdi:chevron-right" no-text @click="handleNextPage" />
+        <HButton
+          icon="i-mdi:chevron-right"
+          :classes="{
+            base: 'btn btn-md btn-base btn-square',
+          }"
+          @click="handleNextPage"
+        />
       </div>
     </div>
   </Sidebar>

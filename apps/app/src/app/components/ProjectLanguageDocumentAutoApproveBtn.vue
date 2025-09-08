@@ -5,8 +5,8 @@ import { inject, ref } from "vue";
 import { languageKey } from "../utils/provide";
 import { useToastStore } from "../stores/toast";
 import Modal from "./Modal.vue";
-import Button from "./Button.vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -36,7 +36,13 @@ const handleAutoApprove = async () => {
 </script>
 
 <template>
-  <Button no-text icon="i-mdi:auto-fix" @click.stop="isOpen = true" />
+  <HButton
+    :classes="{
+      base: 'btn btn-md btn-color-base btn-square',
+    }"
+    icon="i-mdi:auto-fix"
+    @click.stop="isOpen = true"
+  />
   <Modal v-model:is-open="isOpen">
     <div class="p-10 pt-0 rounded-md bg-highlight flex flex-col gap-2">
       <article class="max-w-460px prose prose-highlight-content">
@@ -49,7 +55,13 @@ const handleAutoApprove = async () => {
           }}
         </p>
       </article>
-      <Button full-width @click="handleAutoApprove">确认</Button>
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-base btn-w-full',
+        }"
+        @click="handleAutoApprove"
+        >确认</HButton
+      >
     </div>
   </Modal>
 </template>

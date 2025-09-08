@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import RangeInput from "./RangeInput.vue";
-import Button from "./Button.vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -257,8 +257,13 @@ onMounted(() => {
       step="any"
       class="w-5/6"
     />
-    <Button :is-processing full-width @click="handleSubmit">{{
-      t("裁剪")
-    }}</Button>
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-base btn-w-full',
+      }"
+      :loading="isProcessing"
+      @click="handleSubmit"
+      >{{ t("裁剪") }}</HButton
+    >
   </div>
 </template>

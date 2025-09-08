@@ -2,13 +2,13 @@
 import type { Task } from "@cat/shared";
 import TableRow from "./table/TableRow.vue";
 import TableCell from "./table/TableCell.vue";
-import Button from "./Button.vue";
 import { z } from "zod";
 import { trpc } from "@/server/trpc/client";
 import { computed, ref } from "vue";
 import { useToastStore } from "../stores/toast";
 import { useLanguageStore } from "../stores/language";
 import { useDateFormat } from "@vueuse/core";
+import HButton from "./headless/HButton.vue";
 
 const props = defineProps<{
   task: Task;
@@ -62,7 +62,13 @@ const handleDownload = async () => {
     }}</TableCell>
     <TableCell v-if="language">{{ language?.name }}</TableCell>
     <TableCell>
-      <Button no-text icon="i-mdi:download" @click.stop="handleDownload" />
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-base btn-square',
+        }"
+        icon="i-mdi:download"
+        @click.stop="handleDownload"
+      />
       <a ref="downloadAEl" target="_blank" class="hidden" /> </TableCell
   ></TableRow>
 </template>

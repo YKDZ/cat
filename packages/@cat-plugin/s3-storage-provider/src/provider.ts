@@ -95,7 +95,7 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   getBasicPath() {
-    return this.config("storage", { "basic-path": "uploads" })["basic-path"];
+    return this.storageConfig["basic-path"];
   }
 
   async ping() {
