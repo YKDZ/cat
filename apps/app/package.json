@@ -30,6 +30,7 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "@hono/node-server": "^1.19.1",
+    "@intlify/unplugin-vue-i18n": "^11.0.0",
     "@pinia/testing": "^1.0.2",
     "@tanstack/vue-table": "^8.21.3",
     "@trpc/client": "^11.5.0",
