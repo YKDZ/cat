@@ -74,7 +74,7 @@ onMounted(async () => {
     <JSONForm :schema :data @update="handleUpdate" />
     <HButton
       :classes="{
-        base: 'btn btn-md btn-w-full btn-base',
+        base: 'btn btn-md btn-w-full btn-base btn-center',
       }"
       magic-key="Enter"
       @click="handleAuth"
