@@ -65,7 +65,7 @@ onMounted(async () => {
   <HButton
     :data-testid="method.providerId"
     :classes="{
-      base: 'btn btn-w-full btn-base btn-md',
+      base: 'btn btn-w-full btn-base btn-md btn-center',
     }"
     :icon="method.icon"
     @click="handlePreAuth"

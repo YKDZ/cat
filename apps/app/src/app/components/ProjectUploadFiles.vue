@@ -171,6 +171,7 @@ const upload = async (tempFile: TempFile) => {
               <HButton
                 :classes="{
                   base: 'btn btn-md btn-base btn-square',
+                  icon: 'btn-icon btn-icon-md',
                 }"
                 :disabled="
                   file.status !== `completed` && file.status !== `pending`
@@ -183,6 +184,7 @@ const upload = async (tempFile: TempFile) => {
                 "
                 :classes="{
                   base: 'btn btn-md btn-base btn-square',
+                  icon: 'btn-icon btn-icon-md',
                 }"
                 icon="i-mdi:upload"
                 @click="upload(file)"

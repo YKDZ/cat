@@ -100,7 +100,7 @@ defineExpose({ classes, state });
     <span v-if="state.loading" :class="classes.loading" aria-hidden="true">
       <slot name="loading" />
     </span>
-    <div v-if="props.icon" :class="[icon, classes.icon]" />
+    <div :class="[icon, classes.icon]" />
     <span :class="classes.label">
       <slot />
     </span>
