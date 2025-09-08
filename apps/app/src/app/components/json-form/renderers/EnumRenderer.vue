@@ -4,6 +4,7 @@ import { schemaKey, transferDataToString } from "..";
 import Picker from "../../picker/Picker.vue";
 import type { PickerOption } from "../../picker";
 import type { JSONType } from "@cat/shared";
+import RendererLabel from "../utils/RendererLabel.vue";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -51,9 +52,7 @@ watch(value, (newVal) => {
 
 <template>
   <div class="flex flex-col gap-0.5">
-    <label class="text-highlight-content">{{
-      schema.title ?? propertyKey
-    }}</label>
+    <RendererLabel :schema :property-key />
     <Picker v-model="value" :options />
   </div>
 </template>

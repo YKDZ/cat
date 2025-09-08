@@ -2,6 +2,7 @@
 import { inject, ref, watch } from "vue";
 import { schemaKey } from "..";
 import Toggler from "../../Toggler.vue";
+import RendererLabel from "../utils/RendererLabel.vue";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -36,9 +37,7 @@ watch(
 
 <template>
   <div class="flex flex-col gap-0.5">
-    <label class="text-highlight-content">{{
-      schema.title ?? propertyKey
-    }}</label>
+    <RendererLabel :schema :property-key />
     <Toggler v-model="value" />
   </div>
 </template>

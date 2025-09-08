@@ -1,4 +1,4 @@
-import type { Component, InjectionKey } from "vue";
+import type { Component, InjectionKey, DefineComponent } from "vue";
 import StringRenderer from "./renderers/StringRenderer.vue";
 import NumberRenderer from "./renderers/NumberRenderer.vue";
 import BooleanRenderer from "./renderers/BooleanRenderer.vue";
@@ -6,16 +6,27 @@ import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import ArrayRenderer from "./renderers/ArrayRenderer.vue";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
-import { JSONSchema } from "@cat/shared";
+import { JSONSchema, JSONType } from "@cat/shared";
 
 export const schemaKey = Symbol() as InjectionKey<JSONSchema>;
 
 export type RendererMatcherContext = {
-  schema: any;
+  schema: JSONSchema;
 };
 
+export interface RendererProps {
+  propertyKey?: string;
+  data: JSONType;
+}
+
+export type RendererEmits = {
+  _update: [to: JSONType];
+};
+
+export type RendererComponent = Component<RendererProps>;
+
 export type Renderer = {
-  renderer: Component;
+  renderer: RendererComponent;
   matcher: (ctx: RendererMatcherContext) => boolean;
 };
 

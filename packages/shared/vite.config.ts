@@ -13,7 +13,6 @@ export default defineConfig({
     emptyOutDir: true,
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
-      name: "shared",
       fileName: (format) => `index.${format}` + (format === "es" ? ".js" : ""),
       formats: ["es", "cjs"],
     },

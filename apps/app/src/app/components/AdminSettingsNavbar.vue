@@ -13,12 +13,6 @@ const items = ref<NavbarItemType[]>([
     selected: false,
     to: "",
   },
-  {
-    icon: "i-mdi:storage-tank",
-    text: "储存",
-    selected: false,
-    to: t("/storage"),
-  },
 ]);
 </script>
 

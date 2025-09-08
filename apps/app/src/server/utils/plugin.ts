@@ -205,6 +205,7 @@ export const installPlugin = async (
     });
 
     for (const pluginConfig of pluginConfigs) {
+      console.log(pluginConfig.schema);
       await tx.pluginConfigInstance.create({
         data: {
           configId: pluginConfig.id,

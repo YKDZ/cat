@@ -2,13 +2,15 @@ import type { CatPlugin, PluginGetterOptions } from "@cat/plugin-core";
 import { getESTermService } from "./service";
 import { z } from "zod";
 
-export const ConfigSchema = z.object({
-  connection: z.object({
-    url: z.url(),
-    username: z.string(),
-    password: z.string(),
-  }),
-});
+export const ConfigSchema = z
+  .object({
+    connection: z.object({
+      url: z.url(),
+      username: z.string(),
+      password: z.string(),
+    }),
+  })
+  .optional();
 
 export type Config = z.infer<typeof ConfigSchema>;
 

@@ -168,10 +168,10 @@ export class PluginRegistry {
   }
 
   public getPluginEntryFsPath(id: string, entry: string): string {
-    return join(this.getPlugiFsPath(id), entry);
+    return join(this.getPluginFsPath(id), entry);
   }
 
-  public getPlugiFsPath(id: string): string {
+  public getPluginFsPath(id: string): string {
     return join(pluginsDir, id);
   }
 
@@ -395,7 +395,7 @@ export class PluginRegistry {
   }
 
   public async getPluginManifest(pluginId: string) {
-    const dirPath = this.getPlugiFsPath(pluginId);
+    const dirPath = this.getPluginFsPath(pluginId);
     const manifestPath = join(dirPath, "manifest.json");
 
     if (!existsSync(manifestPath)) {
@@ -446,24 +446,5 @@ export class PluginRegistry {
     }
 
     return results;
-  }
-
-  public async getPluginComponentFsPath(
-    pluginId: string,
-    componentId: string,
-  ): Promise<string> {
-    const manifest = await this.getPluginManifest(pluginId);
-    if (!manifest.components)
-      throw new Error(
-        `Plugin ${pluginId} do not have components defined in manifest.json`,
-      );
-    const component = manifest.components.find(
-      (component) => component.id === componentId,
-    );
-    if (!component)
-      throw new Error(
-        `Plugin ${pluginId} do not have component ${componentId} defined in manifest.json`,
-      );
-    return join(this.getPlugiFsPath(pluginId), component.entry);
   }
 }

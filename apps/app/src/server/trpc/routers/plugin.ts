@@ -123,7 +123,7 @@ export const pluginRouter = router({
     .output(
       PluginSchema.extend({
         Configs: z.array(PluginConfigSchema),
-        PluginInstallations: z.array(PluginInstallationSchema),
+        Installations: z.array(PluginInstallationSchema),
       }).nullable(),
     )
     .query(async ({ ctx, input }) => {
@@ -133,7 +133,7 @@ export const pluginRouter = router({
       const { id } = input;
       return PluginSchema.extend({
         Configs: z.array(PluginConfigSchema),
-        PluginInstallations: z.array(PluginInstallationSchema),
+        Installations: z.array(PluginInstallationSchema),
       })
         .nullable()
         .parse(
@@ -143,7 +143,7 @@ export const pluginRouter = router({
             },
             include: {
               Configs: true,
-              PluginInstallations: true,
+              Installations: true,
             },
           }),
         );

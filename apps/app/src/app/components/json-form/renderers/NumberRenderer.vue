@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { inject, ref, watch } from "vue";
 import { schemaKey } from "..";
+import RendererLabel from "../utils/RendererLabel.vue";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -28,9 +29,7 @@ watch(
 
 <template>
   <div class="flex flex-col gap-0.5">
-    <label class="text-highlight-content">{{
-      schema.title ?? propertyKey
-    }}</label>
+    <RendererLabel :schema :property-key />
     <input
       v-model.number="value"
       type="number"
