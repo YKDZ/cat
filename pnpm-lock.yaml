@@ -199,7 +199,7 @@ importers:
         version: link:../../packages/eslint-config
       '@iconify-json/codicon':
         specifier: ^1.2.27
-        version: 1.2.27
+        version: 1.2.28
       '@iconify-json/file-icons':
         specifier: ^1.2.2
         version: 1.2.2
@@ -241,16 +241,16 @@ importers:
     devDependencies:
       '@cat/db':
         specifier: workspace:*
-        version: link:../../packages/db
+        version: file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../packages/plugin-core
+        version: file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: file:packages/shared(pino@9.9.2)(zod@4.1.1)
       '@playwright/test':
         specifier: ^1.55.0
         version: 1.55.0
@@ -2161,8 +2161,8 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
-  '@iconify-json/codicon@1.2.27':
-    resolution: {integrity: sha512-yFPO4TlrlIeg4j+I8dqNEN/A/HcU0WoNjGmWHRf2QUQkf0Mwy8DQYVshKHIkiOGmRKJkn+rF64uuH+Q8ky4LjA==}
+  '@iconify-json/codicon@1.2.28':
+    resolution: {integrity: sha512-NfIAmI0YQfoSgB4gdPyfvPMqy9Ex8SwSMDTf1YLIKv4Q5hWqQjH+dZyhoJ0x2xO+tr9JgFAmK2oZ2+UMVTJDfw==}
 
   '@iconify-json/file-icons@1.2.2':
     resolution: {integrity: sha512-ajk44wYGTiu79EAyrfNHNaxZ1/2Z1xuSOAvYUT/pAPWHc+P6n9TUZP/ccnPG18kx0WMBxmkHHQ9/zkm6ENhk+Q==}
@@ -8777,6 +8777,19 @@ snapshots:
       - prisma
       - typescript
 
+  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)':
+    dependencies:
+      '@cat/shared': file:packages/shared(pino@9.9.2)(zod@4.1.1)
+      '@prisma/adapter-pg': 6.15.0
+      '@prisma/client': 6.15.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)
+      dotenv: 17.2.1
+      redis: 5.8.2
+      zod: 4.1.1
+    transitivePeerDependencies:
+      - pg-native
+      - prisma
+      - typescript
+
   '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)':
     dependencies:
       '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
@@ -8785,9 +8798,22 @@ snapshots:
       lodash-es: 4.17.21
       zod: 4.1.1
 
+  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)':
+    dependencies:
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
+      '@cat/shared': file:packages/shared(pino@9.9.2)(zod@4.1.1)
+      '@types/lodash-es': 4.17.12
+      lodash-es: 4.17.21
+      zod: 4.1.1
+
   '@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1)':
     dependencies:
       pino: 9.8.0
+      zod: 4.1.1
+
+  '@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1)':
+    dependencies:
+      pino: 9.9.2
       zod: 4.1.1
 
   '@chevrotain/cst-dts-gen@11.0.3':
@@ -9390,7 +9416,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@iconify-json/codicon@1.2.27':
+  '@iconify-json/codicon@1.2.28':
     dependencies:
       '@iconify/types': 2.0.0
 
