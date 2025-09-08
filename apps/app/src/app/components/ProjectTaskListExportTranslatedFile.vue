@@ -3,11 +3,11 @@ import { trpc } from "@/server/trpc/client";
 import type { Task } from "@cat/shared";
 import { computed, onMounted, ref } from "vue";
 import TaskTable from "./TaskTable.vue";
-import Button from "./Button.vue";
 import { useLanguageStore } from "../stores/language";
 import z from "zod";
 import { useToastStore } from "../stores/toast";
 import type { Cell } from "@tanstack/vue-table";
+import HButton from "./headless/HButton.vue";
 
 const props = defineProps<{
   projectId: string;
@@ -73,9 +73,11 @@ onMounted(() => {
 
 <template>
   <TaskTable v-slot="{ cell }" :data="tasks">
-    <Button
+    <HButton
       :disabled="task(cell).status !== 'completed'"
-      no-text
+      :classes="{
+        base: 'btn btn-md btn-base btn-square',
+      }"
       icon="i-mdi:download"
       @click.stop="handleDownload(cell)"
     />

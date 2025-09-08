@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import Button from "./Button.vue";
 import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -25,7 +25,13 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <Button icon="i-mdi:trash-can" @click="handleDelete">{{
-    t("删除插件")
-  }}</Button>
+  <HButton
+    :classes="{
+      base: 'btn btn-md btn-base',
+      icon: 'btn-icon',
+    }"
+    icon="i-mdi:trash-can"
+    @click="handleDelete"
+    >{{ t("删除插件") }}</HButton
+  >
 </template>

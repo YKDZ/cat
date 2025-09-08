@@ -6,8 +6,8 @@ import { inject, onMounted, ref, watch } from "vue";
 import { trpc } from "@/server/trpc/client";
 import { projectKey } from "@/app/utils/provide";
 import { navigate } from "vike/client/router";
-import Button from "./Button.vue";
 import { useToastStore } from "../stores/toast";
+import HButton from "./headless/HButton.vue";
 
 const { info, trpcWarn } = useToastStore();
 
@@ -64,7 +64,13 @@ onMounted(updateTermAmount);
     <TableCell>{{ memory.description }}</TableCell>
     <TableCell>{{ itemAmount }}</TableCell>
     <TableCell>
-      <Button no-text icon="i-mdi:link-off" @click.stop="handleUnlink" />
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-base btn-square',
+        }"
+        icon="i-mdi:link-off"
+        @click.stop="handleUnlink"
+      />
     </TableCell>
   </TableRow>
 </template>

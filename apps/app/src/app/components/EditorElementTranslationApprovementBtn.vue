@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import Button from "./Button.vue";
 import type { Translation, TranslationApprovement } from "@cat/shared";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const props = defineProps<{
   translation: Translation;
@@ -80,17 +80,19 @@ const handleUnapprove = async () => {
 
 <template>
   <div class="flex gap-1 items-center">
-    <Button
+    <HButton
       v-if="!isApproved"
-      no-text
-      transparent
+      :classes="{
+        base: 'btn btn-md btn-transparent btn-square',
+      }"
       icon="i-mdi:check"
       @click.stop="handleApprove"
     />
-    <Button
+    <HButton
       v-if="isApproved"
-      no-text
-      transparent
+      :classes="{
+        base: 'btn btn-md btn-transparent btn-square',
+      }"
       icon="i-mdi:close"
       @click.stop="handleUnapprove"
     />

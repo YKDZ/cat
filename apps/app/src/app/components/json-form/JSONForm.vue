@@ -68,14 +68,24 @@ provide(schemaKey, props.schema);
     :property-key="propertyKey"
     @_update="handleUpdate"
   />
-  <form v-else-if="props.schema.type === 'object'">
-    <JSONForm
-      v-for="property in objectProperties"
-      :key="property.key"
-      :data="(data as Record<string, JSONType>)[property.key]"
-      :property-key="property.key"
-      :schema="property.schema"
-      @_update="handleUpdate"
-    />
-  </form>
+  <div v-if="props.schema.type === 'object'">
+    <label class="flex flex-col gap-0.5">
+      <span class="text-highlight-content-darker text-lg font-bold">
+        {{ schema.title ?? propertyKey }}</span
+      >
+      <span class="text-highlight-content text-sm">
+        {{ schema.description }}</span
+      >
+    </label>
+    <form>
+      <JSONForm
+        v-for="property in objectProperties"
+        :key="property.key"
+        :data="(data as Record<string, JSONType>)[property.key]"
+        :property-key="property.key"
+        :schema="property.schema"
+        @_update="handleUpdate"
+      />
+    </form>
+  </div>
 </template>

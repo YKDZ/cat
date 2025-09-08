@@ -2,9 +2,10 @@
 import { trpc } from "@/server/trpc/client";
 import type { TermRelation } from "@cat/shared";
 import { useToastStore } from "@/app/stores/toast";
-import Button from "@/app/components/Button.vue";
+
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
+import HButton from "../headless/HButton.vue";
 
 const { info, trpcWarn } = useToastStore();
 
@@ -34,7 +35,13 @@ const handleDelete = async () => {
     <TableCell>{{ term.Term?.value }}</TableCell>
     <TableCell>{{ term.Translation?.value }}</TableCell>
     <TableCell
-      ><Button icon="i-mdi:trash-can" no-text @click="handleDelete"
+      ><HButton
+        :classes="{
+          base: 'btn btn-md btn-base btn-square',
+        }"
+        icon="i-mdi:trash-can"
+        no-text
+        @click="handleDelete"
     /></TableCell>
   </TableRow>
 </template>

@@ -3,7 +3,7 @@ import { trpc } from "@/server/trpc/client";
 import type { Translation, TranslationVote } from "@cat/shared";
 import { onMounted, ref, watch } from "vue";
 import { useToastStore } from "../stores/toast";
-import Button from "./Button.vue";
+import HButton from "./headless/HButton.vue";
 
 const props = defineProps<{
   translation: Translation;
@@ -68,10 +68,11 @@ watch(
 
 <template>
   <div class="flex gap-1 items-center">
-    <Button
+    <HButton
       icon="i-mdi:minus"
-      no-text
-      transparent
+      :classes="{
+        base: 'btn btn-md btn-transparent btn-square',
+      }"
       :focused="selfVote?.value === -1"
       @click.stop="handleVote(-1)"
     />
@@ -79,10 +80,11 @@ watch(
       <span v-if="vote !== null">{{ vote }}</span>
       <span v-else class="i-mdi:help inline-block" />
     </span>
-    <Button
+    <HButton
       icon="i-mdi:plus"
-      no-text
-      transparent
+      :classes="{
+        base: 'btn btn-md btn-transparent btn-square',
+      }"
       :focused="selfVote?.value === 1"
       @click.stop="handleVote(1)"
     />

@@ -2,10 +2,11 @@
 import { trpc } from "@/server/trpc/client";
 import type { MemoryItem } from "@cat/shared";
 import { useToastStore } from "@/app/stores/toast";
-import Button from "@/app/components/Button.vue";
+
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import { useI18n } from "vue-i18n";
+import HButton from "../headless/HButton.vue";
 
 const { info, trpcWarn } = useToastStore();
 const { t } = useI18n();
@@ -38,7 +39,13 @@ const handleDelete = async () => {
     <TableCell>{{ item.source }}</TableCell>
     <TableCell>{{ item.translation }}</TableCell>
     <TableCell
-      ><Button icon="i-mdi:trash-can" no-text @click="handleDelete"
+      ><HButton
+        :classes="{
+          base: 'btn btn-md btn-base btn-square',
+        }"
+        icon="i-mdi:trash-can"
+        no-text
+        @click="handleDelete"
     /></TableCell>
   </TableRow>
 </template>

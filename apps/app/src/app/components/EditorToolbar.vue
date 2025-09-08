@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useEditorStore } from "../stores/editor";
-import Button from "./Button.vue";
 import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -21,28 +21,33 @@ const handleTranslate = async (jumpToNext: boolean) => {
 <template>
   <div class="px-2 pb-4 pt-1 flex w-full items-center justify-between">
     <div class="flex gap-1 items-center">
-      <Button
-        transparent
-        no-text
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-transparent btn-square',
+        }"
         icon="i-mdi:content-copy"
         @click="replace(element?.value ?? ``)"
       />
-      <Button
-        transparent
-        no-text
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-transparent btn-square',
+        }"
         icon="i-mdi:trash-can"
-        class="text-red"
         @click="clear"
       />
-      <Button
-        transparent
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-transparent btn-square',
+        }"
         icon="i-mdi:undo"
         magic-key="Control+Z"
         @click="undo"
         @magic-click="undo"
       />
-      <Button
-        transparent
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-transparent btn-square',
+        }"
         icon="i-mdi:redo"
         magic-key="Control+Shift+Z"
         @click="redo"
@@ -51,24 +56,28 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <EditorTranslationVerifyResult />
     </div>
     <div class="flex gap-1 items-center">
-      <Button
-        transparent
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-transparent',
+        }"
         icon="i-mdi:check"
         magic-key="Control+Shift+Enter"
         @click="handleTranslate(false)"
         @magic-click="handleTranslate(false)"
       >
         {{ selectedTranslationId ? t("更新") : t("提交") }}
-      </Button>
-      <Button
-        transparent
+      </HButton>
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-transparent',
+        }"
         icon="i-mdi:arrow-right"
         magic-key="Control+Enter"
         @click="handleTranslate(true)"
         @magic-click="handleTranslate(true)"
       >
         {{ selectedTranslationId ? t("更新并继续") : t("提交并继续") }}
-      </Button>
+      </HButton>
     </div>
   </div>
 </template>

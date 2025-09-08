@@ -6,10 +6,10 @@ import { FileMetaSchema } from "@cat/shared";
 import { trpc } from "@/server/trpc/client";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed, ref, shallowRef } from "vue";
-import Button from "./Button.vue";
 import { useToastStore } from "../stores/toast";
 import { useObjectUrl } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -76,9 +76,15 @@ const rawFileMime = computed(() => {
 </script>
 
 <template>
-  <Button icon="i-mdi:upload" :class="$attrs.class" @click="handleStart">{{
-    t("上传头像")
-  }}</Button>
+  <HButton
+    :classes="{
+      base: 'btn btn-md btn-base',
+    }"
+    icon="i-mdi:upload"
+    :class="$attrs.class"
+    @click="handleStart"
+    >{{ t("上传头像") }}</HButton
+  >
   <input
     ref="fileInputEl"
     type="file"

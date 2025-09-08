@@ -2,10 +2,10 @@
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useSidebarStore } from "../stores/sidebar";
-import Button from "./Button.vue";
 import Header from "./Header.vue";
 import ProjectBreadcrumb from "./ProjectBreadcrumb.vue";
 import type { Project } from "@cat/shared";
+import HButton from "./headless/HButton.vue";
 
 const { isFolding } = storeToRefs(useSidebarStore());
 
@@ -18,9 +18,10 @@ const props = defineProps<{
 
 <template>
   <Header>
-    <Button
-      transparent
-      no-text
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-transparent btn-square',
+      }"
       icon="i-mdi:menu"
       class="font-bold md:hidden"
       @click.stop="isFolding = !isFolding"

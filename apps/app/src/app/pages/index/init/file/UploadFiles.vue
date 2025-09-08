@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import Button from "@/app/components/Button.vue";
+import HButton from "@/app/components/headless/HButton.vue";
 import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
 import type { Project } from "@cat/shared";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const progress = defineModel("progress", { type: Number, required: true });
 const project = defineModel<Project>("project");
@@ -13,11 +16,13 @@ const isProcessing = ref<boolean>(false);
 <template>
   <!-- Upload File -->
   <ProjectUploadFiles v-if="project" v-model:project="project" />
-  <Button
+  <HButton
     icon="i-mdi:clock"
-    class="justify-self-stretch"
-    :is-processing
+    :classes="{
+      base: 'btn btn-md btn-base',
+    }"
+    :loading="isProcessing"
     @click="progress += 1"
-    >先不上传文件</Button
+    >{{ t("先不上传文件") }}</HButton
   >
 </template>

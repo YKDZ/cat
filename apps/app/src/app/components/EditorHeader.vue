@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Header from "./Header.vue";
-import Button from "./Button.vue";
 import { storeToRefs } from "pinia";
 import { useSidebarStore } from "../stores/sidebar";
 import { useEditorStore } from "../stores/editor";
@@ -8,6 +7,7 @@ import type { Project } from "@cat/shared";
 import { ref, watch } from "vue";
 import { useProjectStore } from "../stores/project";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";
+import HButton from "./headless/HButton.vue";
 
 const { isFolding } = storeToRefs(useSidebarStore());
 
@@ -29,9 +29,10 @@ watch(
 
 <template>
   <Header>
-    <Button
-      transparent
-      no-text
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-transparent btn-square',
+      }"
       icon="i-mdi:menu"
       class="font-bold md:hidden"
       @click.stop="isFolding = !isFolding"

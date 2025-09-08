@@ -2,10 +2,11 @@
 import { ref } from "vue";
 import Textarea from "@/app/components/Textarea.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import Button from "@/app/components/Button.vue";
+
 import { useToastStore } from "@/app/stores/toast";
 import { trpc } from "@/server/trpc/client";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -84,10 +85,11 @@ const handleInsert = async () => {
         <LanguagePicker v-model="termLanguageId" full-width />
         <Textarea v-model="terms" full-width />
       </div>
-      <Button
+      <HButton
         class="self-center"
-        no-text
-        transparent
+        :classes="{
+          base: 'btn btn-md btn-transparent btn-square',
+        }"
         :icon="canReverse ? `i-mdi:arrow-left-right` : `i-mdi:arrow-right`"
         @click="canReverse = !canReverse"
       />
@@ -96,6 +98,12 @@ const handleInsert = async () => {
         <Textarea v-model="translations" full-width />
       </div>
     </div>
-    <Button full-width @click="handleInsert">{{ t("提交") }}</Button>
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-base btn-w-full',
+      }"
+      @click="handleInsert"
+      >{{ t("提交") }}</HButton
+    >
   </div>
 </template>

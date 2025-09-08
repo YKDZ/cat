@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from "@/app/components/Button.vue";
+import HButton from "@/app/components/headless/HButton.vue";
 import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
@@ -67,17 +67,33 @@ const remove = async () => {
     <InputLabel>{{ t("项目名称") }}</InputLabel>
     <div class="flex gap-1 items-center">
       <Input v-model="name" small />
-      <Button @click="updateName">
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-base',
+        }"
+        @click="updateName"
+      >
         {{ t("重命名") }}
-      </Button>
+      </HButton>
     </div>
     <InputLabel>{{ t("项目源语言") }}</InputLabel>
     <div class="flex gap-1 items-center">
       <LanguagePicker v-model="sourceLanguageId" />
-      <Button @click="updateSourceLanguageId">
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-base',
+        }"
+        @click="updateSourceLanguageId"
+      >
         {{ t("更改") }}
-      </Button>
+      </HButton>
     </div>
-    <Button @click="remove">{{ t("删除项目") }}</Button>
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-base',
+      }"
+      @click="remove"
+      >{{ t("删除项目") }}</HButton
+    >
   </div>
 </template>

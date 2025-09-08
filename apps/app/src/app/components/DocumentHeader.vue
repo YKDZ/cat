@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared";
-import Button from "./Button.vue";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";
 import Header from "./Header.vue";
 import { ref } from "vue";
+import HButton from "./headless/HButton.vue";
 
 const isFolding = ref(false);
 
@@ -14,11 +14,12 @@ const props = defineProps<{
 
 <template>
   <Header>
-    <Button
-      transparent
-      no-text
+    <HButton
+      :classes="{
+        base: 'btn btn-transparent btn-md btn-square',
+      }"
       icon="i-mdi:menu"
-      class="font-bold md:hidden"
+      class="md:hidden"
       @click="isFolding = !isFolding"
     />
     <DocumentBreadcrumb :document />

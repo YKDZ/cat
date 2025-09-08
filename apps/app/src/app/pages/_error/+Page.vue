@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import Button from "@/app/components/Button.vue";
+import HButton from "@/app/components/headless/HButton.vue";
 import { usePageContext } from "vike-vue/usePageContext";
 
 const ctx = usePageContext();
@@ -17,5 +17,12 @@ const handleBack = () => {
 
 <template>
   <p>{{ abortReason }}</p>
-  <Button icon="i-mdi:arrow-left" @click="handleBack">返回上一页</Button>
+  <HButton
+    :classes="{
+      base: 'btn btn-md btn-base',
+    }"
+    icon="i-mdi:arrow-left"
+    @click="handleBack"
+    >返回上一页</HButton
+  >
 </template>

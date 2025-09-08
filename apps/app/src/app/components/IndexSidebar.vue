@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Button from "./Button.vue";
 import Sidebar from "./Sidebar.vue";
 import UserAvatar from "./UserAvatar.vue";
 import { usePageContext } from "vike-vue/usePageContext";
@@ -12,6 +11,7 @@ import DropdownMenu from "./dropdown/DropdownMenu.vue";
 import LogoutBtn from "./LogoutBtn.vue";
 import AdminBtn from "./AdminBtn.vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const mouseInSidebar = ref<boolean>(false);
 
@@ -63,29 +63,31 @@ const handleNavigate = async (path: string) => {
           class="px-4.5 pt-5 flex gap-1 h-fit w-full select-none items-center justify-between"
         >
           <Logo link />
-          <Button
-            transparent
-            no-text
-            :icon="isFree ? 'i-mdi:card-outline' : 'i-mdi:card-off-outline'"
+          <HButton
             class="hidden md:flex"
+            :classes="{
+              base: 'btn btn-md btn-transparent btn-square',
+              icon: 'btn-icon',
+            }"
+            :icon="isFree ? 'i-mdi:card-outline' : 'i-mdi:card-off-outline'"
             @click="isFree = !isFree"
           />
         </div>
         <!-- Middle -->
         <div class="px-2 pt-6 flex flex-col gap-1 w-full">
-          <Button
+          <HButton
             v-for="item in items"
             :key="item.path"
             :focused="ctx.urlParsed.pathname === item.path"
-            full-width
-            transparent
-            left
-            large
+            :classes="{
+              base: 'btn btn-lg btn-left btn-w-full btn-transparent',
+              icon: 'btn-icon btn-icon-lg',
+            }"
             :icon="item.icon"
             @click="handleNavigate(item.path)"
           >
             {{ item.text }}
-          </Button>
+          </HButton>
         </div>
       </div>
       <!-- Bottom -->

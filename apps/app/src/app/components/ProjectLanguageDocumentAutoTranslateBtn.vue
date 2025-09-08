@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import Button from "./Button.vue";
 import { computed, inject, onMounted, ref } from "vue";
 import { languageKey } from "../utils/provide";
 import type { TranslationAdvisorData } from "@cat/shared";
@@ -12,6 +11,7 @@ import RangeInput from "./RangeInput.vue";
 import type { PickerOption } from "./picker";
 import Picker from "./picker/Picker.vue";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const props = defineProps<{
   document: Document;
@@ -71,7 +71,14 @@ onMounted(updateAvailableAdvisor);
 </script>
 
 <template>
-  <Button no-text icon="i-mdi:translate" @click.stop="isOpen = true" />
+  <HButton
+    n
+    :classes="{
+      base: 'btn btn-md btn-base btn-square',
+    }"
+    icon="i-mdi:translate"
+    @click.stop="isOpen = true"
+  />
   <Modal v-model:is-open="isOpen">
     <div
       class="text-highlight-content p-10 pt-0 rounded-md bg-highlight flex flex-col gap-2"
@@ -115,7 +122,13 @@ onMounted(updateAvailableAdvisor);
           <Picker v-model="advisorId" :options="advisorOptions" />
         </div>
       </form>
-      <Button full-width @click="handleAutoTranslate">{{ t("确认") }}</Button>
+      <HButton
+        :classes="{
+          base: 'btn btn-md btn-base btn-w-full',
+        }"
+        @click="handleAutoTranslate"
+        >{{ t("确认") }}</HButton
+      >
     </div>
   </Modal>
 </template>

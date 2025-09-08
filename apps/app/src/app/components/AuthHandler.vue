@@ -7,10 +7,10 @@ import type { TRPCError } from "@trpc/server";
 import { useAuthStore } from "@/app/stores/auth";
 import Loading from "@/app/components/Loading.vue";
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
-import Button from "@/app/components/Button.vue";
 import { storeToRefs } from "pinia";
 import type { JSONSchema, JSONType } from "@cat/shared";
 import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -72,12 +72,14 @@ onMounted(async () => {
 <template>
   <div v-if="!isEmpty" class="flex flex-col gap-1">
     <JSONForm :schema :data @update="handleUpdate" />
-    <Button
-      full-width
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-w-full btn-base',
+      }"
       magic-key="Enter"
       @click="handleAuth"
       @magic-click="handleAuth"
-      >{{ t("登录") }}</Button
+      >{{ t("登录") }}</HButton
     >
   </div>
   <Loading v-else size="200px" />

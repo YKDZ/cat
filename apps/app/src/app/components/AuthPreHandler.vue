@@ -7,9 +7,9 @@ import { storeToRefs } from "pinia";
 import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
 import JSONForm from "./json-form/JSONForm.vue";
-import Button from "./Button.vue";
 import { useI18n } from "vue-i18n";
 import { TRPCError } from "@trpc/server";
+import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
@@ -62,13 +62,14 @@ onMounted(async () => {
 
 <template>
   <JSONForm v-if="!isEmpty" :schema :data @update="(to) => (data = to)" />
-  <Button
-    id="test"
+  <HButton
     :data-testid="method.providerId"
-    full-width
+    :classes="{
+      base: 'btn btn-w-full btn-base btn-md',
+    }"
     :icon="method.icon"
     @click="handlePreAuth"
   >
     {{ t("通过 {name} 登录", { name: method.name }) }}
-  </Button>
+  </HButton>
 </template>

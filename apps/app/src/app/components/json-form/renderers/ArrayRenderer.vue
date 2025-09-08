@@ -2,8 +2,9 @@
 import { computed, inject, ref, shallowRef, watch } from "vue";
 import { schemaKey } from "..";
 import JSONForm from "../JSONForm.vue";
-import Button from "../../Button.vue";
+
 import type { JSONSchema, JSONType } from "@cat/shared";
+import HButton from "../../headless/HButton.vue";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -50,9 +51,15 @@ watch(
 </script>
 
 <template>
-  <Button no-text icon="i-mdi:plus" @click="count++" />
+  <HButton
+    :classes="{
+      base: 'btn btn-md btn-base btn-square',
+    }"
+    icon="i-mdi:plus"
+    @click="count++"
+  />
   <div v-for="index in count" :key="index">
-    <Button no-text icon="i-mdi:trash-can" @click="handleDelete(index - 1)" />
+    <HButton no-text icon="i-mdi:trash-can" @click="handleDelete(index - 1)" />
     <JSONForm
       :schema="
         index > prefixItemsSchemas.length

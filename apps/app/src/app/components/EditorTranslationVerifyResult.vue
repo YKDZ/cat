@@ -4,10 +4,10 @@ import { useEditorStore } from "../stores/editor";
 import { computed, ref, watch } from "vue";
 import type { ClipperVerifyResult } from "./tagger";
 import { clippers } from "./tagger";
-import Button from "./Button.vue";
 import Collapse from "./Collapse.vue";
 import Icon from "./Icon.vue";
 import Modal from "./Modal.vue";
+import HButton from "./headless/HButton.vue";
 
 const { sourceParts, translationParts, translationValue } =
   storeToRefs(useEditorStore());
@@ -67,9 +67,10 @@ watch(isAllPass, (to) => {
 
 <template>
   <div class="flex gap-1 items-center">
-    <Button
-      no-text
-      transparent
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-transparent btn-square',
+      }"
       :icon="isAllPass ? 'i-mdi:check' : 'i-mdi:close'"
       :class="{
         'color-green': isAllPass,
