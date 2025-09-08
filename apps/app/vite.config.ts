@@ -3,12 +3,9 @@ import { resolve } from "path";
 import UnoCSS from "unocss/vite";
 import vike from "vike/plugin";
 import { defineConfig } from "vite";
+import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 
 export default defineConfig({
-  ssr: {
-    noExternal: ["vue-i18n"],
-  },
-
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),
@@ -23,6 +20,7 @@ export default defineConfig({
     // @ts-expect-error UnoCSS Plugin types are not compatible with Vite 7 yet
     UnoCSS(),
     vike(),
+    VueI18nPlugin({ ssr: true }),
     vue({
       include: [/\.vue$/, /\.md$/],
     }),
