@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, provide } from "vue";
-import { RendererRegistry, schemaKey } from ".";
+import { RendererRegistry, schemaKey, type RendererComponent } from ".";
 import { JSONSchemaSchema, type JSONSchema, type JSONType } from "@cat/shared";
-import z from "zod";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -11,8 +10,8 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: "update", to: JSONType, key?: string): void;
-  (e: "_update", to: JSONType, key: string): void;
+  (e: "update", to: JSONType, schema: JSONSchema, key?: string): void;
+  (e: "_update", to: JSONType, schema: JSONSchema, key: string): void;
 }>();
 
 const objectProperties = computed(() => {
@@ -26,7 +25,7 @@ const objectProperties = computed(() => {
   });
 });
 
-const handleUpdate = (to: JSONType, key?: string) => {
+const handleUpdate = (to: JSONType, schema: JSONSchema, key?: string) => {
   let newData: JSONType;
 
   if (
@@ -42,14 +41,15 @@ const handleUpdate = (to: JSONType, key?: string) => {
     newData = to;
   }
 
+  // 有 propertyKey 代表未达到最顶层 JSONForm
   if (props.propertyKey) {
-    emits("_update", newData, props.propertyKey);
+    emits("_update", newData, schema ?? props.schema, props.propertyKey);
   } else {
-    emits("update", newData, key);
+    emits("update", newData, schema ?? props.schema, key);
   }
 };
 
-const matchedRenderer = computed(() => {
+const matchedRenderer = computed<RendererComponent | null>(() => {
   return (
     RendererRegistry.renderers.find(({ matcher }) => {
       return matcher({ schema: props.schema });
@@ -62,21 +62,20 @@ provide(schemaKey, props.schema);
 
 <template>
   <component
+    v-if="matchedRenderer"
     :is="matchedRenderer"
     :data="props.data ?? schema.default"
     :property-key="propertyKey"
     @_update="handleUpdate"
   />
-  <div v-if="props.schema.type === 'object'">
-    <form>
-      <JSONForm
-        v-for="property in objectProperties"
-        :key="property.key"
-        :data="(data as Record<string, JSONType>)[property.key]"
-        :property-key="property.key"
-        :schema="property.schema"
-        @_update="handleUpdate"
-      />
-    </form>
-  </div>
+  <form v-else-if="props.schema.type === 'object'">
+    <JSONForm
+      v-for="property in objectProperties"
+      :key="property.key"
+      :data="(data as Record<string, JSONType>)[property.key]"
+      :property-key="property.key"
+      :schema="property.schema"
+      @_update="handleUpdate"
+    />
+  </form>
 </template>

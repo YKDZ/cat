@@ -1,30 +1,40 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { JSONType } from "@cat/shared";
+import type { JSONSchema, JSONType } from "@cat/shared";
 import SettingForm from "./SettingForm.vue";
 
 const props = defineProps<{
-  schema: JSONType;
+  schema: JSONSchema;
 }>();
 
-const configSetter = async (updated: Map<string, JSONType>) => {
-  await trpc.setting.set.mutate(
-    Array.from(updated)
-      .map(([key, value]) => {
-        if (!value) {
-          return null;
-        }
-        return {
-          key,
-          value,
-        };
-      })
-      .filter((item) => item !== null),
-  );
+const configSetter = async (
+  value: JSONType,
+  schema: JSONSchema,
+  key?: string,
+) => {
+  if (!key) return;
+  if (
+    Object.keys(value as object).length === 0 ||
+    !Object.keys(value as object).includes(key)
+  )
+    return;
+
+  await trpc.setting.set.mutate([
+    { key, value: (value as Record<string, JSONType>)[key] },
+  ]);
 };
 
-const configGetter = async (key: string) => {
-  return await trpc.setting.get.query({ key });
+const configGetter = async () => {
+  if (props.schema.type !== "object")
+    throw new Error("schema type must be object");
+
+  const data: Record<string, JSONType> = {};
+  for (const key in props.schema.properties) {
+    const value = await trpc.setting.get.query({ key });
+    data[key] = value;
+  }
+
+  return data as JSONType;
 };
 </script>
 

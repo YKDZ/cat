@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import {
-  JSONSchemaSchema,
+  JSONSchema,
   type JSONType,
   type PluginConfig,
   type PluginConfigInstance,
 } from "@cat/shared";
-import JSONForm from "./json-form/JSONForm.vue";
 import { trpc } from "@/server/trpc/client";
-import { useToastStore } from "../stores/toast";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { ScopeType } from "@cat/db";
-
-const { info, trpcWarn } = useToastStore();
+import SettingForm from "./SettingForm.vue";
+import { navigate } from "vike/client/router";
 
 const props = defineProps<{
   config: PluginConfig;
@@ -21,22 +19,21 @@ const props = defineProps<{
 
 const instance = ref<PluginConfigInstance | null>(null);
 
-const handleUpdate = async (to: JSONType) => {
-  await trpc.plugin.upsertConfigInstance
-    .mutate({
-      pluginId: props.config.pluginId,
-      scopeType: props.scopeType,
-      scopeId: props.scopeId,
-      configId: props.config.id,
-      value: to,
-    })
-    .then(() => {
-      info(`成功将配置 ${props.config.key} 修改为 ${to}`);
-    })
-    .catch(trpcWarn);
+const configSetter = async (
+  value: JSONType,
+  schema: JSONSchema,
+  key?: string,
+) => {
+  await trpc.plugin.upsertConfigInstance.mutate({
+    pluginId: props.config.pluginId,
+    scopeType: props.scopeType,
+    scopeId: props.scopeId,
+    configId: props.config.id,
+    value,
+  });
 };
 
-const getInstance = async () => {
+const configGetter = async () => {
   return await trpc.plugin.queryConfigInstance
     .query({
       pluginId: props.config.pluginId,
@@ -44,23 +41,21 @@ const getInstance = async () => {
       scopeId: props.scopeId,
       configId: props.config.id,
     })
-    .catch(trpcWarn);
+    .then(async (data) => {
+      if (!data) {
+        await navigate("/");
+        return {};
+      }
+      instance.value = data;
+      return data.value;
+    });
 };
-
-onMounted(async () => {
-  await getInstance().then((instanceData) => {
-    instance.value = instanceData || null;
-  });
-});
 </script>
 
 <template>
-  <div class="flex flex-col gap-0.5">
-    <span>{{ config.key }}</span>
-    <JSONForm
-      :data="instance?.value ?? {}"
-      :schema="JSONSchemaSchema.parse(config.schema)"
-      @update="handleUpdate"
-    />
-  </div>
+  <SettingForm
+    :schema="config.schema"
+    :config-setter="configSetter"
+    :config-getter="configGetter"
+  />
 </template>

@@ -4,6 +4,7 @@ import { schemaKey, transferDataToString } from "..";
 import type { JSONType } from "@cat/shared";
 import Icon from "../../Icon.vue";
 import z from "zod";
+import RendererLabel from "../utils/RendererLabel.vue";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -42,9 +43,7 @@ watch(
 
 <template>
   <div class="flex flex-col gap-0.5">
-    <label class="text-highlight-content">{{
-      schema.title ?? propertyKey
-    }}</label>
+    <RendererLabel :schema :property-key />
     <div class="flex items-center justify-between relative">
       <input
         v-model="value"

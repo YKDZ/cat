@@ -2,6 +2,7 @@
 import { computed, inject } from "vue";
 import { schemaKey, transferDataToString } from "..";
 import type { JSONType } from "@cat/shared";
+import RendererLabel from "../utils/RendererLabel.vue";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -17,9 +18,7 @@ const constValue = computed(() => {
 
 <template>
   <div class="flex flex-col gap-0.5">
-    <label class="text-highlight-content">{{
-      schema.title ?? propertyKey
-    }}</label>
+    <RendererLabel :schema :property-key />
     <span>{{ transferDataToString(constValue) }}</span>
   </div>
 </template>

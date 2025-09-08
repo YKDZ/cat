@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import PluginImportBtn from "@/app/components/PluginImportBtn.vue";
 import PluginList from "@/app/components/PluginList.vue";
 import PluginReloadBtn from "@/app/components/PluginReloadBtn.vue";
 import { useToastStore } from "@/app/stores/toast";
@@ -27,7 +26,6 @@ onMounted(updatePlugins);
 
 <template>
   <div class="flex gap-2 items-center">
-    <PluginImportBtn />
     <PluginReloadBtn />
   </div>
   <PluginList :plugins path-prefix="/admin/plugin" />

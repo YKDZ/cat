@@ -1,6 +1,7 @@
 import z from "zod";
 import { PrimsaDateTime } from "../misc";
 import { UserSchema } from "./user";
+import { JSONSchemaSchema } from "../json";
 
 export const PluginInstallationSchema = z.object({
   id: z.int(),
@@ -27,7 +28,7 @@ export const PluginConfigSchema = z.object({
   id: z.int(),
   key: z.string(),
   overridable: z.boolean().default(false),
-  schema: z.json(),
+  schema: JSONSchemaSchema,
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
   pluginId: z.string(),
@@ -111,7 +112,7 @@ export const StorageProviderSchema = z.object({
   updatedAt: PrimsaDateTime,
 
   pluginInstallationId: z.int(),
-  get PluginInstallation() {
+  get Installation() {
     return PluginInstallationSchema.optional();
   },
 });
