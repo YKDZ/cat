@@ -120,10 +120,10 @@ importers:
         version: 8.21.3(vue@3.5.20(typescript@5.9.2))
       '@trpc/client':
         specifier: ^11.5.0
-        version: 11.5.0(@trpc/server@11.5.0(typescript@5.9.2))(typescript@5.9.2)
+        version: 11.5.1(@trpc/server@11.5.1(typescript@5.9.2))(typescript@5.9.2)
       '@trpc/server':
         specifier: ^11.5.0
-        version: 11.5.0(typescript@5.9.2)
+        version: 11.5.1(typescript@5.9.2)
       '@vueuse/components':
         specifier: ^13.9.0
         version: 13.9.0(vue@3.5.20(typescript@5.9.2))
@@ -241,16 +241,16 @@ importers:
     devDependencies:
       '@cat/db':
         specifier: workspace:*
-        version: link:../../packages/db
+        version: file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../packages/plugin-core
+        version: file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: file:packages/shared(pino@9.9.2)(zod@4.1.1)
       '@playwright/test':
         specifier: ^1.55.0
         version: 1.55.0
@@ -3407,14 +3407,14 @@ packages:
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
     engines: {node: '>= 10'}
 
-  '@trpc/client@11.5.0':
-    resolution: {integrity: sha512-32oH+KOAdo73jJKjU9tyG+vCjID6A28NgXwUNr691O5HjpF5yyTX51Zzyee8YtGzU89Nw/drCHdfA4gD7BN2eg==}
+  '@trpc/client@11.5.1':
+    resolution: {integrity: sha512-7I6JJ1I1lxv3S87ht3FAIZi0XxQa7hnQ9K+Oo5BH7cGO8ZtWe9Ftq6ItdkuDfpsnsRPcR2h158AMWbNs/iptqg==}
     peerDependencies:
-      '@trpc/server': 11.5.0
+      '@trpc/server': 11.5.1
       typescript: '>=5.7.2'
 
-  '@trpc/server@11.5.0':
-    resolution: {integrity: sha512-0IBtkmUCeO2ycn4K45/cqsujnlCQrSvkCo7lFDpg3kGMIPiLyLRciID5IiS7prEjRjeITa+od2aaHTIwONApVw==}
+  '@trpc/server@11.5.1':
+    resolution: {integrity: sha512-KIDzHRS5m8U1ncPwjgtOtPWK9lNO0kYL7b+lnvKXRqowSAQIEC/z6y7g/dkt4Aqv3DKI/STLydt2/afrP1QrxQ==}
     peerDependencies:
       typescript: '>=5.7.2'
 
@@ -8777,6 +8777,19 @@ snapshots:
       - prisma
       - typescript
 
+  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)':
+    dependencies:
+      '@cat/shared': file:packages/shared(pino@9.9.2)(zod@4.1.1)
+      '@prisma/adapter-pg': 6.15.0
+      '@prisma/client': 6.15.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)
+      dotenv: 17.2.1
+      redis: 5.8.2
+      zod: 4.1.1
+    transitivePeerDependencies:
+      - pg-native
+      - prisma
+      - typescript
+
   '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)':
     dependencies:
       '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
@@ -8785,9 +8798,22 @@ snapshots:
       lodash-es: 4.17.21
       zod: 4.1.1
 
+  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)':
+    dependencies:
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
+      '@cat/shared': file:packages/shared(pino@9.9.2)(zod@4.1.1)
+      '@types/lodash-es': 4.17.12
+      lodash-es: 4.17.21
+      zod: 4.1.1
+
   '@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1)':
     dependencies:
       pino: 9.8.0
+      zod: 4.1.1
+
+  '@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1)':
+    dependencies:
+      pino: 9.9.2
       zod: 4.1.1
 
   '@chevrotain/cst-dts-gen@11.0.3':
@@ -10893,12 +10919,12 @@ snapshots:
 
   '@tootallnate/once@2.0.0': {}
 
-  '@trpc/client@11.5.0(@trpc/server@11.5.0(typescript@5.9.2))(typescript@5.9.2)':
+  '@trpc/client@11.5.1(@trpc/server@11.5.1(typescript@5.9.2))(typescript@5.9.2)':
     dependencies:
-      '@trpc/server': 11.5.0(typescript@5.9.2)
+      '@trpc/server': 11.5.1(typescript@5.9.2)
       typescript: 5.9.2
 
-  '@trpc/server@11.5.0(typescript@5.9.2)':
+  '@trpc/server@11.5.1(typescript@5.9.2)':
     dependencies:
       typescript: 5.9.2
 
