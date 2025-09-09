@@ -14,9 +14,6 @@
       "path": "../../db/tsconfig.lib.json"
     },
     {
-      "path": "../../shared/tsconfig.lib.json"
-    },
-    {
       "path": "../../plugin-core/tsconfig.lib.json"
     },
     {

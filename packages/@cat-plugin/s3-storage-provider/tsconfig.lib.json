@@ -11,13 +11,10 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../../db/tsconfig.lib.json"
-    },
-    {
-      "path": "../../shared/tsconfig.lib.json"
-    },
-    {
       "path": "../../plugin-core/tsconfig.lib.json"
+    },
+    {
+      "path": "../../db/tsconfig.lib.json"
     },
     {
       "path": "../../eslint-config/tsconfig.lib.json"

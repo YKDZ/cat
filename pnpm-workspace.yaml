@@ -4,17 +4,15 @@ packages:
   - packages/*
   - packages/@cat-plugin/*
 
-injectWorkspacePackages: true
-nodeLinker: "pnp"
-symlink: false
-
-onlyBuiltDependencies:
-  - "@prisma/client"
-  - "@prisma/engines"
+ignoredBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
   - esbuild
+  - msgpackr-extract
+  - oxc-resolver
   - prisma
   - protobufjs
-  - "@swc/core"
-  - msgpackr-extract
+
+onlyBuiltDependencies:
+  - '@swc/core'
   - nx
-  - oxc-resolver
