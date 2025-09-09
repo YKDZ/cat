@@ -7,9 +7,6 @@
       "path": "../../db"
     },
     {
-      "path": "../../shared"
-    },
-    {
       "path": "../../plugin-core"
     },
     {
