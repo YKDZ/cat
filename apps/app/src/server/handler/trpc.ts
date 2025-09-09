@@ -16,7 +16,7 @@ app.all("*", (c) => {
       logger.error(
         "RPC",
         { input: JSON.stringify(input), url: c.req.url },
-        error,
+        error.cause,
       );
     },
   });
