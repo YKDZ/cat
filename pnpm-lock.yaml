@@ -102,13 +102,13 @@ importers:
     dependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
+        version: file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5)
       '@cat/plugin-core':
         specifier: workspace:*
-        version: file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)
+        version: file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5))(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.5))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.5)
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared(pino@9.8.0)(zod@4.1.1)
+        version: file:packages/shared(pino@9.8.0)(zod@4.1.5)
       '@hono/node-server':
         specifier: ^1.19.1
         version: 1.19.1(hono@4.9.6)
@@ -192,7 +192,7 @@ importers:
         version: 3.0.6(typescript@5.9.2)
       zod:
         specifier: ^4.1.1
-        version: 4.1.1
+        version: 4.1.5
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
@@ -241,16 +241,16 @@ importers:
     devDependencies:
       '@cat/db':
         specifier: workspace:*
-        version: file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
+        version: file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5)
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@cat/plugin-core':
         specifier: workspace:*
-        version: file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)
+        version: file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5))(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.5))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.5)
       '@cat/shared':
         specifier: workspace:*
-        version: file:packages/shared(pino@9.9.2)(zod@4.1.1)
+        version: file:packages/shared(pino@9.9.2)(zod@4.1.5)
       '@playwright/test':
         specifier: ^1.55.0
         version: 1.55.0
@@ -7648,6 +7648,9 @@ packages:
   zod@4.1.1:
     resolution: {integrity: sha512-SgMZK/h8Tigt9nnKkfJMvB/mKjiJXaX26xegP4sa+0wHIFVFWVlsQGdhklDmuargBD3Hsi3rsQRIzwJIhTPJHA==}
 
+  zod@4.1.5:
+    resolution: {integrity: sha512-rcUUZqlLJgBC33IT3PNMgsCq6TzLQEG/Ei/KTCU0PedSWRMAXoOUN+4t/0H+Q8bdnLPdqUYnvboJT0bn/229qg==}
+
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
@@ -9004,57 +9007,57 @@ snapshots:
       '@brillout/import': 0.2.6
       '@brillout/picocolors': 1.0.28
 
-  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)':
+  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5)':
     dependencies:
-      '@cat/shared': file:packages/shared(pino@9.8.0)(zod@4.1.1)
+      '@cat/shared': file:packages/shared(pino@9.8.0)(zod@4.1.5)
       '@prisma/adapter-pg': 6.15.0
       '@prisma/client': 6.15.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)
       dotenv: 17.2.1
       redis: 5.8.2
-      zod: 4.1.1
+      zod: 4.1.5
     transitivePeerDependencies:
       - pg-native
       - prisma
       - typescript
 
-  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)':
+  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5)':
     dependencies:
-      '@cat/shared': file:packages/shared(pino@9.9.2)(zod@4.1.1)
+      '@cat/shared': file:packages/shared(pino@9.9.2)(zod@4.1.5)
       '@prisma/adapter-pg': 6.15.0
       '@prisma/client': 6.15.0(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)
       dotenv: 17.2.1
       redis: 5.8.2
-      zod: 4.1.1
+      zod: 4.1.5
     transitivePeerDependencies:
       - pg-native
       - prisma
       - typescript
 
-  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)':
+  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5))(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.5))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.5)':
     dependencies:
-      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
-      '@cat/shared': file:packages/shared(pino@9.8.0)(zod@4.1.1)
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5)
+      '@cat/shared': file:packages/shared(pino@9.8.0)(zod@4.1.5)
       '@types/lodash-es': 4.17.12
       lodash-es: 4.17.21
-      zod: 4.1.1
+      zod: 4.1.5
 
-  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1))(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.1)':
+  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5))(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.5))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.5)':
     dependencies:
-      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.1)
-      '@cat/shared': file:packages/shared(pino@9.9.2)(zod@4.1.1)
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.5))(dotenv@17.2.1)(prisma@6.15.0(typescript@5.9.2))(typescript@5.9.2)(zod@4.1.5)
+      '@cat/shared': file:packages/shared(pino@9.9.2)(zod@4.1.5)
       '@types/lodash-es': 4.17.12
       lodash-es: 4.17.21
-      zod: 4.1.1
+      zod: 4.1.5
 
-  '@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.1)':
+  '@cat/shared@file:packages/shared(pino@9.8.0)(zod@4.1.5)':
     dependencies:
       pino: 9.8.0
-      zod: 4.1.1
+      zod: 4.1.5
 
-  '@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.1)':
+  '@cat/shared@file:packages/shared(pino@9.9.2)(zod@4.1.5)':
     dependencies:
       pino: 9.9.2
-      zod: 4.1.1
+      zod: 4.1.5
 
   '@chevrotain/cst-dts-gen@11.0.3':
     dependencies:
@@ -15998,5 +16001,7 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zod@4.1.1: {}
+
+  zod@4.1.5: {}
 
   zwitch@2.0.4: {}
