@@ -10,6 +10,7 @@ import {
 } from "@cat/shared";
 import { readFile } from "fs/promises";
 import { join } from "path";
+import z from "zod";
 
 const loadPluginData = async (dir: string): Promise<PluginData> => {
   const manifestPath = join(dir, "manifest.json");
@@ -34,7 +35,7 @@ const loadPluginData = async (dir: string): Promise<PluginData> => {
 };
 
 export const importPlugin = async (
-  prisma: PrismaClient,
+  prisma: OverallPrismaClient,
   id: string,
   pluginsDir: string = join(process.cwd(), "plugins"),
 ) => {
@@ -43,93 +44,90 @@ export const importPlugin = async (
   const dir = join(pluginsDir, id);
   const data = await loadPluginData(dir);
 
-  await prisma.$transaction(async (tx) => {
-    const originPlugin = await tx.plugin.findUnique({
-      where: {
-        id: data.id,
-      },
-    });
+  const originPlugin = await prisma.plugin.findUnique({
+    where: {
+      id: data.id,
+    },
+  });
 
-    // 不存在原插件意味着即将创建
-    const pluginId = originPlugin?.id ?? data.id;
+  const pluginId = originPlugin?.id ?? data.id;
 
-    await tx.plugin.upsert({
-      where: {
-        id: pluginId,
-      },
-      update: {
-        name: data.name,
-        entry: data.entry ?? null,
-        overview: data.overview,
-        iconURL: data.iconURL,
-        Configs: {
-          connectOrCreate: data.configs
-            ? data.configs.map(({ key, schema, overridable }) => ({
-                where: {
-                  pluginId_key: {
-                    pluginId,
-                    key,
-                  },
-                },
-                create: {
+  await prisma.plugin.upsert({
+    where: {
+      id: pluginId,
+    },
+    update: {
+      name: data.name,
+      entry: data.entry ?? null,
+      overview: data.overview,
+      iconURL: data.iconURL,
+      Configs: {
+        connectOrCreate: data.configs
+          ? data.configs.map(({ key, schema, overridable }) => ({
+              where: {
+                pluginId_key: {
+                  pluginId,
                   key,
-                  schema: schema ?? {},
-                  overridable,
                 },
-              }))
-            : [],
-        },
-        Tags: {
-          connectOrCreate: data.tags
-            ? data.tags.map((tag) => ({
-                where: {
-                  name: tag,
-                },
-                create: {
-                  name: tag,
-                },
-              }))
-            : undefined,
-        },
-        Versions: {
-          connectOrCreate: {
-            where: {
-              pluginId_version: {
-                pluginId,
-                version: data.version,
               },
-            },
-            create: {
+              create: {
+                key,
+                schema: z.json().parse(schema) ?? {},
+                overridable,
+              },
+            }))
+          : [],
+      },
+      Tags: {
+        connectOrCreate: data.tags
+          ? data.tags.map((tag) => ({
+              where: {
+                name: tag,
+              },
+              create: {
+                name: tag,
+              },
+            }))
+          : undefined,
+      },
+      Versions: {
+        connectOrCreate: {
+          where: {
+            pluginId_version: {
+              pluginId,
               version: data.version,
             },
           },
-        },
-      },
-      create: {
-        id: pluginId,
-        name: data.name,
-        overview: data.overview,
-        entry: data.entry ?? null,
-        iconURL: data.iconURL,
-        Tags: {
-          connectOrCreate: data.tags
-            ? data.tags.map((tag) => ({
-                where: {
-                  name: tag,
-                },
-                create: {
-                  name: tag,
-                },
-              }))
-            : undefined,
-        },
-        Versions: {
           create: {
             version: data.version,
           },
         },
       },
-    });
+    },
+    create: {
+      id: pluginId,
+      name: data.name,
+      overview: data.overview,
+      entry: data.entry ?? null,
+      iconURL: data.iconURL,
+      Tags: {
+        connectOrCreate: data.tags
+          ? data.tags.map((tag) => ({
+              where: {
+                name: tag,
+              },
+              create: {
+                name: tag,
+              },
+            }))
+          : undefined,
+      },
+      Versions: {
+        create: {
+          version: data.version,
+        },
+      },
+    },
   });
 };
 
