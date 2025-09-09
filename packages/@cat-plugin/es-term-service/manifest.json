@@ -1,8 +1,10 @@
 {
   "id": "es-term-service",
-  "entry": "dist/index.mjs",
+  "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
-  "tags": ["term-service"],
+  "tags": [
+    "term-service"
+  ],
   "configs": [
     {
       "key": "connection",
