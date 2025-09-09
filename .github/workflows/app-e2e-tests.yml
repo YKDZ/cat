@@ -85,5 +85,6 @@ jobs:
           pnpm playwright test
         working-directory: apps/app-e2e
         env:
+          DEBUG: pw:webserver
           CI: true
           DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
