@@ -25,7 +25,7 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "nx preview @cat/app",
+    command: "npx nx preview @cat/app",
     url: "http://localhost:3000",
   },
 
