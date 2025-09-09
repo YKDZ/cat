@@ -66,6 +66,9 @@ jobs:
           node -e "console.log('package.json path', require.resolve('@cat/shared/package.json'))" || true
           node -e "console.log('module entry', require.resolve('@cat/shared'))" || true
 
+      - name: Prune Store
+        run: pnpm store prune
+
       - name: Build app
         run: |
           echo "🚧 Building app..."
