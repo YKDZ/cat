@@ -1,8 +1,10 @@
 {
   "id": "libretranslate-advisor",
-  "entry": "dist/index.mjs",
+  "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
-  "tags": ["translation-advisor"],
+  "tags": [
+    "translation-advisor"
+  ],
   "configs": [
     {
       "key": "base.advisor-name",

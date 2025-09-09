@@ -1,6 +1,6 @@
 {
   "id": "ollama-vectorizer",
-  "entry": "dist/index.mjs",
+  "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
     "text-vectorizer"
