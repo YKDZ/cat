@@ -21,7 +21,7 @@ export const importLocalPlugins = async (prisma: PrismaClient) => {
       (await PluginRegistry.get().getPluginIdInLocalPlugins())
         .filter((id) => !existPluginIds.includes(id))
         .map(async (id) => {
-          await importPlugin(prisma, id);
+          await importPlugin(tx, id);
         }),
     );
   });
