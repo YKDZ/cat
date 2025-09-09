@@ -25,9 +25,6 @@ const shutdownServer = async () => {
       else resolve();
 
       await closeAllProcessors();
-      await (
-        await useStorage((await getPrismaDB()).client, "S3", "GLOBAL", "")
-      ).provider.disconnect();
       await (await getRedisDB()).disconnect();
       await (await getPrismaDB()).disconnect();
     });
@@ -86,13 +83,12 @@ const startServer = async () => {
       },
     });
   } catch (e) {
-    console.log(e);
     logger.error(
       "SERVER",
       { msg: "Failed to start server. Process will exit with code 1" },
       e,
     );
-    process.exit(1);
+    process.exit(6);
   }
 
   return serve(app, {
