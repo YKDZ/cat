@@ -3,6 +3,9 @@ import { resolve } from "path";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
+  ssr: {
+    external: ["pino", "zod"],
+  },
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),
@@ -11,12 +14,13 @@ export default defineConfig({
   build: {
     ssr: true,
     emptyOutDir: true,
+    sourcemap: true,
+
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
-      fileName: (format) => `index.${format}` + (format === "es" ? ".js" : ""),
-      formats: ["es", "cjs"],
+      fileName: "index.js",
+      formats: ["es"],
     },
-    outDir: "dist",
   },
   plugins: [
     dts({

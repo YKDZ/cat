@@ -1,9 +1,12 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import dts from "vite-plugin-dts";
-import { builtinModules } from "node:module";
 
 export default defineConfig({
+  ssr: {
+    external: ["@cat/plugin-core", "@cat/shared"],
+  },
+
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),
@@ -11,26 +14,13 @@ export default defineConfig({
   },
 
   build: {
-    lib: {
-      entry: resolve(import.meta.dirname, "src/index.ts"),
-      formats: ["cjs"],
-      fileName: () => `index.cjs`,
-    },
-
-    outDir: "dist",
+    ssr: true,
     emptyOutDir: true,
 
-    rollupOptions: {
-      external: (id) => {
-        const isNodeBuiltin =
-          builtinModules.includes(id.replace(/^node:/, "")) ||
-          id.startsWith("node:");
-
-        return id.startsWith("@cat/") || isNodeBuiltin;
-      },
-      output: {
-        entryFileNames: "[name].cjs",
-      },
+    lib: {
+      entry: resolve(import.meta.dirname, "src/index.ts"),
+      formats: ["es"],
+      fileName: `index.js`,
     },
   },
 

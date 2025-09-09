@@ -27,6 +27,9 @@
   ],
   "references": [
     {
+      "path": "../../packages/shared"
+    },
+    {
       "path": "../../packages/plugin-core"
     },
     {

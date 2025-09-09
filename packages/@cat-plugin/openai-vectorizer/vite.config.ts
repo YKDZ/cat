@@ -3,6 +3,10 @@ import { resolve } from "path";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
+  ssr: {
+    external: ["@cat/plugin-core", "@cat/shared"],
+  },
+
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),
@@ -10,21 +14,16 @@ export default defineConfig({
   },
 
   build: {
+    ssr: true,
+
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
       formats: ["es"],
-      fileName: () => `index.mjs`,
+      fileName: `index.js`,
     },
 
     outDir: "dist",
     emptyOutDir: true,
-
-    rollupOptions: {
-      external: ["@cat/plugin-core", "@cat/shared"],
-      output: {
-        entryFileNames: "[name].mjs",
-      },
-    },
   },
 
   plugins: [

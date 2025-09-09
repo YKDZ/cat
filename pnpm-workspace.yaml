@@ -1,12 +1,11 @@
 packages:
   - apps/*
-  - e2e
   - packages/*
   - packages/@cat-plugin/*
 
 ignoredBuiltDependencies:
-  - '@prisma/client'
-  - '@prisma/engines'
+  - "@prisma/client"
+  - "@prisma/engines"
   - esbuild
   - msgpackr-extract
   - oxc-resolver
@@ -14,5 +13,5 @@ ignoredBuiltDependencies:
   - protobufjs
 
 onlyBuiltDependencies:
-  - '@swc/core'
+  - "@swc/core"
   - nx
