@@ -21,3 +21,7 @@ updates:
       vueuse:
         patterns:
           - "@vueuse/*"
+      nx:
+        patterns:
+          - "nx"
+          - "@nx/*"
