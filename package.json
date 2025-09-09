@@ -17,7 +17,7 @@
     "@nx/eslint-plugin": "21.4.1",
     "@nx/js": "21.4.1",
     "@nx/playwright": "21.4.1",
-    "@nx/vite": "21.4.1",
+    "@nx/vite": "21.5.1",
     "@nx/vue": "21.4.1",
     "@nx/web": "21.4.1",
     "@playwright/test": "^1.36.0",
