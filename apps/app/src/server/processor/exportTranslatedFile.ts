@@ -54,11 +54,8 @@ const worker = new Worker(
     if (!document || !document.File)
       throw new Error(`Document with id ${documentId} do not exists`);
 
-    const {
-      id,
-      provider: { getContent, getBasicPath, generateUploadURL },
-    } = await useStorage(prisma, "S3", "GLOBAL", "");
-    const fileContent = await getContent(document.File);
+    const { id, provider } = await useStorage(prisma, "S3", "GLOBAL", "");
+    const fileContent = await provider.getContent(document.File);
 
     const translations = z.array(TranslationSchema).parse(
       await prisma.translation.findMany({
@@ -103,7 +100,7 @@ const worker = new Worker(
       uuid,
       fileName,
     });
-    const storedPath = join(getBasicPath(), path);
+    const storedPath = join(provider.getBasicPath(), path);
 
     const file = await prisma.file.create({
       data: {
@@ -115,7 +112,7 @@ const worker = new Worker(
       },
     });
 
-    const uploadURL = await generateUploadURL(storedPath, 60);
+    const uploadURL = await provider.generateUploadURL(storedPath, 60);
 
     const response = await fetch(uploadURL, {
       method: "PUT",

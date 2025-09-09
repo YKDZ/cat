@@ -73,15 +73,17 @@ export const userRouter = router({
       } = ctx;
       const { meta } = input;
 
-      const {
-        id: storageProviderId,
-        provider: { getBasicPath, generateUploadURL },
-      } = await useStorage(prisma, "S3", "GLOBAL", "");
+      const { id: storageProviderId, provider } = await useStorage(
+        prisma,
+        "S3",
+        "GLOBAL",
+        "",
+      );
 
       const sanitizedName = meta.name.replace(/[^\w.-]/g, "_");
       const name = `${randomUUID()}-${sanitizedName}`;
-      const path = join(getBasicPath(), "avatars", name);
-      const url = await generateUploadURL(path, 120);
+      const path = join(provider.getBasicPath(), "avatars", name);
+      const url = await provider.generateUploadURL(path, 120);
 
       await prisma.user.update({
         where: {
@@ -150,15 +152,16 @@ export const userRouter = router({
 
       const expiresIn = 120;
 
-      const {
-        provider: { generateURL },
-      } = await useStorage(
+      const { provider } = await useStorage(
         prisma,
         user.AvatarFile.StorageProvider.serviceId,
         "GLOBAL",
         "",
       );
-      const url = await generateURL(user.AvatarFile.storedPath, expiresIn);
+      const url = await provider.generateURL(
+        user.AvatarFile.storedPath,
+        expiresIn,
+      );
 
       return {
         url,

@@ -79,11 +79,12 @@ const handleNextPage = () => {
       >
         <HButton
           icon="i-mdi:chevron-left"
-          class="hidden md:flex"
           :classes="{
-            base: 'btn btn-md btn-transparent btn-square',
-            icon: 'btn-icon',
+            base: 'btn btn-md btn-base btn-square',
+            'base-disabled': 'btn btn-square btn-disabled',
+            icon: 'btn-icon btn-icon-md',
           }"
+          :disabled="currentPageIndex === 0"
           @click="handlePreviousPage"
         />
         <span class="inline-flex gap-2 items-center justify-between"
@@ -93,7 +94,10 @@ const handleNextPage = () => {
           icon="i-mdi:chevron-right"
           :classes="{
             base: 'btn btn-md btn-base btn-square',
+            'base-disabled': 'btn btn-square btn-disabled',
+            icon: 'btn-icon btn-icon-md',
           }"
+          :disabled="currentPageIndex >= totalPageIndex"
           @click="handleNextPage"
         />
       </div>

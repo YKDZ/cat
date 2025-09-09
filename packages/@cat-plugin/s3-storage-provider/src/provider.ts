@@ -39,15 +39,12 @@ type S3Config = z.infer<typeof S3ConfigSchema>;
 type StorageConfig = z.infer<typeof StorageConfigSchema>;
 
 class S3DB {
-  public static client: S3Client;
+  public client: S3Client;
   private config: S3Config;
 
   constructor(config: S3Config) {
     this.config = config;
-  }
-
-  async connect() {
-    S3DB.client = new S3Client({
+    this.client = new S3Client({
       region: this.config.region,
       endpoint: this.config["endpoint-url"],
       credentials: {
@@ -58,12 +55,14 @@ class S3DB {
     });
   }
 
+  async connect() {}
+
   async disconnect() {
-    S3DB.client.destroy();
+    this.client.destroy();
   }
 
   async ping() {
-    await S3DB.client.send(
+    await this.client.send(
       new HeadBucketCommand({
         Bucket: this.config["bucket-name"],
       }),
@@ -72,21 +71,13 @@ class S3DB {
 }
 
 export class S3StorageProvider implements StorageProvider {
-  private configs: Record<string, JSONType>;
   private s3Config: S3Config;
   private storageConfig: StorageConfig;
   private db: S3DB;
 
-  private config = <T>(key: string, fallback: T): T => {
-    const config = this.configs[key];
-    if (!config) return fallback;
-    return config as T;
-  };
-
   constructor(configs: Record<string, JSONType>) {
-    this.configs = configs;
-    this.s3Config = S3ConfigSchema.parse(this.config("s3", {}));
-    this.storageConfig = StorageConfigSchema.parse(this.config("storage", {}));
+    this.s3Config = S3ConfigSchema.parse(configs["s3"]);
+    this.storageConfig = StorageConfigSchema.parse(configs["storage"]);
     this.db = new S3DB(this.s3Config);
   }
 
@@ -103,7 +94,7 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   async connect() {
-    if (!S3DB.client) await this.db.connect();
+    if (!this.db.client) await this.db.connect();
   }
 
   async disconnect() {
@@ -116,7 +107,7 @@ export class S3StorageProvider implements StorageProvider {
       Key: file.storedPath.replaceAll("\\", "/"),
     });
 
-    const response = await S3DB.client.send(command);
+    const response = await this.db.client.send(command);
     const stream = response.Body as Readable;
 
     return new Promise<Buffer>((resolve, reject) => {
@@ -136,7 +127,7 @@ export class S3StorageProvider implements StorageProvider {
       ACL: this.s3Config["acl"],
     };
     const command = new PutObjectCommand(params);
-    const presignedUrl = await getSignedUrl(S3DB.client!, command, {
+    const presignedUrl = await getSignedUrl(this.db.client!, command, {
       expiresIn,
       signableHeaders: new Set(["x-amz-checksum-sha256"]),
     });
@@ -150,7 +141,7 @@ export class S3StorageProvider implements StorageProvider {
       Key: path.replaceAll("\\", "/"),
     });
 
-    return await getSignedUrl(S3DB.client!, command, { expiresIn });
+    return await getSignedUrl(this.db.client!, command, { expiresIn });
   }
 
   async generateDownloadURL(path: string, fileName: string, expiresIn: number) {
@@ -164,7 +155,7 @@ export class S3StorageProvider implements StorageProvider {
       ),
     });
 
-    return await getSignedUrl(S3DB.client!, command, { expiresIn });
+    return await getSignedUrl(this.db.client!, command, { expiresIn });
   }
 
   async delete(file: File) {
@@ -173,6 +164,6 @@ export class S3StorageProvider implements StorageProvider {
       Key: file.storedPath.replaceAll("\\", "/"),
     });
 
-    await S3DB.client.send(command);
+    await this.db.client.send(command);
   }
 }

@@ -44,16 +44,6 @@ const failedResults = computed(() => {
   return clipperVerifyResults.value.filter((result) => !result.isPass);
 });
 
-const needDoubleCheck = computed(() => {
-  return (
-    failedResults.value.findIndex(
-      (result) =>
-        clippers.value.find((clipper) => clipper.id === result.clipperId)
-          ?.needConfirmation,
-    ) !== -1
-  );
-});
-
 watch([sourceParts, translationValue], async () => {
   isProcessing.value = true;
   await verifyTranslation();
