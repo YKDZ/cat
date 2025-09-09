@@ -7,11 +7,11 @@ import type {
 } from "@cat/shared";
 import { logger, safeJoinURL } from "@cat/shared";
 
-const supportedLangages = new Map<string, string[]>();
+const supportedLanguages = new Map<string, string[]>();
 
 export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
   private configs: Record<string, JSONType>;
-  private tranlateURL: string;
+  private translateURL: string;
   private languagesURL: string;
 
   private config = <T>(key: string, fallback: T): T => {
@@ -22,7 +22,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
 
   constructor(configs: Record<string, JSONType>) {
     this.configs = configs;
-    this.tranlateURL = safeJoinURL(
+    this.translateURL = safeJoinURL(
       this.config("api", { url: "http://localhost:3000" }).url,
       "translate",
     );
@@ -49,8 +49,8 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
     const sourceLang = languageFromId.replaceAll("_", "-");
     const targetLang = languageToId.replaceAll("_", "-");
     return (
-      supportedLangages.size === 0 ||
-      (supportedLangages.get(sourceLang) ?? []).includes(targetLang)
+      supportedLanguages.size === 0 ||
+      (supportedLanguages.get(sourceLang) ?? []).includes(targetLang)
     );
   }
 
@@ -105,7 +105,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
       "alternatives-amount": 1,
     });
 
-    const res = await fetch(this.tranlateURL, {
+    const res = await fetch(this.translateURL, {
       method: "POST",
       body: JSON.stringify({
         q: value,
@@ -143,7 +143,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
           return [
             {
               from: this.getName(),
-              value: `LibreTrasnslate API 服务器内部错误：${msg}`,
+              value: `LibreTranslate API 服务器内部错误：${msg}`,
               status: "ERROR",
             },
           ] satisfies TranslationSuggestion[];
@@ -208,7 +208,7 @@ const fetchSupportedLanguages = async (languagesURL: string) => {
             targets: string[];
           }[];
           successBody.forEach((item) => {
-            supportedLangages.set(item.code, item.targets);
+            supportedLanguages.set(item.code, item.targets);
           });
         })
         .catch((e) => {

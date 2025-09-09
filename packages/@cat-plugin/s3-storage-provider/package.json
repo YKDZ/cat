@@ -9,11 +9,18 @@
     "cat"
   ],
   "type": "module",
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "files": [
-    "dist"
+    "dist",
+    "package.json",
+    "manifest.json"
   ],
   "scripts": {
     "build": "nx vite:build",
@@ -25,8 +32,8 @@
     "@aws-sdk/s3-request-presigner": "^3.879.0"
   },
   "peerDependencies": {
-    "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
+    "@cat/db": "workspace:*",
     "@cat/shared": "workspace:*",
     "zod": "^4.1.1"
   },

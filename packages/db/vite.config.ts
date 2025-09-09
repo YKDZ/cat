@@ -4,21 +4,22 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/shared"],
+    external: ["@cat/shared", "zod", "dotenv"],
     noExternal: ["@prisma/adapter-pg", "@prisma/client", "redis"],
   },
+
   build: {
     ssr: true,
     emptyOutDir: true,
+    sourcemap: true,
+
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
-      fileName: (format) => `index.${format}` + (format === "es" ? ".js" : ""),
-      formats: ["es", "cjs"],
+      fileName: "index.js",
+      formats: ["es"],
     },
-    outDir: "dist",
-    sourcemap: true,
-    target: "esnext",
   },
+
   plugins: [
     dts({
       tsconfigPath: resolve(import.meta.dirname, "tsconfig.lib.json"),
