@@ -5,6 +5,8 @@ packages:
   - packages/@cat-plugin/*
 
 injectWorkspacePackages: true
+nodeLinker: "pnp"
+symlink: false
 
 onlyBuiltDependencies:
   - "@prisma/client"
