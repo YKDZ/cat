@@ -100,11 +100,9 @@ export const processPretreatment = async (
   handler: TranslatableFileHandler,
   vectorizer: TextVectorizer,
 ) => {
-  const {
-    provider: { getContent },
-  } = await useStorage(prisma, "S3", "GLOBAL", "");
+  const { provider } = await useStorage(prisma, "S3", "GLOBAL", "");
 
-  const fileContent = await getContent(file);
+  const fileContent = await provider.getContent(file);
 
   const newElements = sortAndAssignIndex(
     handler.extractElement(file, fileContent),

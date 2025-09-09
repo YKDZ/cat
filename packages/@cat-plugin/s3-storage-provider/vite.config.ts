@@ -5,6 +5,7 @@ import dts from "vite-plugin-dts";
 export default defineConfig({
   ssr: {
     noExternal: ["@aws-sdk/s3-request-presigner", "@aws-sdk/client-s3"],
+    external: ["@cat/shared", "@cat/db"],
   },
 
   resolve: {

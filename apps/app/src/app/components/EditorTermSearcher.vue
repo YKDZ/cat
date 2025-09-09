@@ -16,19 +16,6 @@ const { addTerms } = useEditorStore();
 
 const searchQuery = ref("");
 
-const handleSearchSelection = async () => {
-  if (!languageFromId.value || !languageToId.value) return;
-
-  const selectionContent = window.getSelection()?.toString() ?? "";
-
-  if (selectionContent.trim().length === 0) {
-    warn(t("不能搜索空术语"));
-    return;
-  }
-
-  await handleSearch(selectionContent);
-};
-
 const handleSearchInput = async () => {
   handleSearch(searchQuery.value).then((amount) => {
     if (amount !== 0) searchQuery.value = "";

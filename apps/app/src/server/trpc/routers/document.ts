@@ -35,14 +35,16 @@ export const documentRouter = router({
         prismaDB: { client: prisma },
       } = ctx;
       const { meta } = input;
-      const {
-        id: storageProviderId,
-        provider: { getBasicPath, generateUploadURL },
-      } = await useStorage(prisma, "S3", "GLOBAL", "");
+      const { id: storageProviderId, provider } = await useStorage(
+        prisma,
+        "S3",
+        "GLOBAL",
+        "",
+      );
 
       const name = sanitizeFileName(meta.name);
 
-      const path = join(getBasicPath(), "documents", name);
+      const path = join(provider.getBasicPath(), "documents", name);
 
       // TODO 校验文件类型
       const file = await prisma.file.create({
@@ -53,8 +55,7 @@ export const documentRouter = router({
         },
       });
 
-      const url = await generateUploadURL(path, 120);
-
+      const url = await provider.generateUploadURL(path, 120);
       return {
         url,
         file: FileSchema.parse(file),
@@ -577,9 +578,7 @@ export const documentRouter = router({
           code: "BAD_REQUEST",
         });
 
-      const {
-        provider: { generateDownloadURL },
-      } = await useStorage(prisma, "S3", "GLOBAL", "");
+      const { provider } = await useStorage(prisma, "S3", "GLOBAL", "");
       const { fileId } = task.meta as {
         fileId: number;
       };
@@ -600,7 +599,7 @@ export const documentRouter = router({
           message: "File does not exists",
         });
 
-      const url = await generateDownloadURL(
+      const url = await provider.generateDownloadURL(
         file.storedPath,
         file.originName,
         60,
@@ -932,10 +931,8 @@ export const documentRouter = router({
         });
       }
 
-      const {
-        provider: { getContent },
-      } = await useStorage(prisma, "S3", "GLOBAL", "");
-      const content = await getContent(document.File);
+      const { provider } = await useStorage(prisma, "S3", "GLOBAL", "");
+      const content = await provider.getContent(document.File);
 
       const elements = await prisma.translatableElement.findMany({
         where: {
