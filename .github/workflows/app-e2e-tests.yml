@@ -50,19 +50,6 @@ jobs:
       - name: Check whether nx workspace sync
         run: pnpm nx sync:check
 
-      - name: Build shared
-        run: pnpm nx build shared
-
-      - name: List shared package details
-        run: |
-          echo "🔍 @cat/shared package.json"
-          cat packages/shared/package.json || true
-          echo "🔍 List dist folder"
-          ls -la packages/shared/dist || true
-          echo "🔍 Node resolution test"
-          node -e "console.log('package.json path', require.resolve('@cat/shared/package.json'))" || true
-          node -e "console.log('module entry', require.resolve('@cat/shared'))" || true
-
       - name: Build plugins
         run: pnpm build-internal-plugins
 
