@@ -1,6 +1,6 @@
 import { exists } from "fs-extra";
-import { readFile } from "fs/promises";
-import { join } from "path";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { GlobalContextServer, PageContextServer } from "vike/types";
 import type { ComputedRef } from "vue";
 import { nextTick } from "vue";

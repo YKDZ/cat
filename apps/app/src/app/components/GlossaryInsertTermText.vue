@@ -71,7 +71,7 @@ const handleInsert = async () => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <article class="max-w-460px prose prose-highlight-content">
+    <article class="prose-highlight-content max-w-460px prose">
       <h3 class="text-highlight-content-darker">
         {{ t("以文本方式插入术语") }}
       </h3>

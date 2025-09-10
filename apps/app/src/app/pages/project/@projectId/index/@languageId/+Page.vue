@@ -4,7 +4,7 @@ import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumen
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
 import { useLanguageStore } from "@/app/stores/language";
 import { languageKey, projectKey } from "@/app/utils/provide";
-import { Document } from "@cat/shared";
+import type { Document } from "@cat/shared";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";

@@ -1,4 +1,4 @@
-import { publicProcedure, router } from "../server";
+import { publicProcedure, router } from "@/server/trpc/server.ts";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { LanguageSchema } from "@cat/shared";

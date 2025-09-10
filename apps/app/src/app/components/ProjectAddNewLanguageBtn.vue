@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import { warn } from "console";
+import { warn } from "node:console";
 import { inject, ref } from "vue";
 import { useToastStore } from "../stores/toast";
 import { projectKey } from "../utils/provide";

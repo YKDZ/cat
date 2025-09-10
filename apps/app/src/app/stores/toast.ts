@@ -1,5 +1,5 @@
 import type { TRPCClientError } from "@trpc/client";
-import { TRPCError } from "@trpc/server";
+import type { TRPCError } from "@trpc/server";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import type { ZodError } from "zod";

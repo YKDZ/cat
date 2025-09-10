@@ -1,4 +1,4 @@
-import { OverallPrismaClient, PrismaClient, ScopeType } from "@cat/db";
+import type { OverallPrismaClient, PrismaClient, ScopeType } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import type { PluginData } from "@cat/shared";
 import {
@@ -8,8 +8,8 @@ import {
   PluginDataSchema,
   PluginManifestSchema,
 } from "@cat/shared";
-import { readFile } from "fs/promises";
-import { join } from "path";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import z from "zod";
 
 const loadPluginData = async (dir: string): Promise<PluginData> => {

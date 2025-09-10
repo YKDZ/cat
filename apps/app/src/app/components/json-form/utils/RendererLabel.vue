@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { JSONSchema } from "@cat/shared";
+import type { JSONSchema } from "@cat/shared";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -8,7 +8,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="flex gap-0.5 flex-col text-highlight-content">
+  <div class="text-highlight-content flex flex-col gap-0.5">
     <label>{{ schema.title ?? propertyKey }}</label>
     <label class="text-xs">{{ schema.description }}</label>
   </div>

@@ -73,6 +73,7 @@
     "cross-env": "^10.0.0",
     "happy-dom": "^18.0.1",
     "typescript-eslint": "^8.41.0",
-    "unocss": "^66.5.0"
+    "unocss": "^66.5.0",
+    "vite": "npm:rolldown-vite@latest"
   }
 }

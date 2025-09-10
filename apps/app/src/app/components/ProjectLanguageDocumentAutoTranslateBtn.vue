@@ -83,7 +83,7 @@ onMounted(updateAvailableAdvisor);
     <div
       class="text-highlight-content p-10 pt-0 rounded-md bg-highlight flex flex-col gap-2"
     >
-      <article class="max-w-460px prose prose-highlight-content">
+      <article class="prose-highlight-content max-w-460px prose">
         <h3 class="text-highlight-content-darker">{{ t("自动翻译") }}</h3>
         <p>
           {{

@@ -46,7 +46,7 @@ const handleAutoApprove = async () => {
   />
   <Modal v-model:is-open="isOpen">
     <div class="p-10 pt-0 rounded-md bg-highlight flex flex-col gap-2">
-      <article class="max-w-460px prose prose-highlight-content">
+      <article class="prose-highlight-content max-w-460px prose">
         <h3 class="text-highlight-content-darker">{{ t("自动批准") }}</h3>
         <p>
           {{

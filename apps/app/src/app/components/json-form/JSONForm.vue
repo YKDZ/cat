@@ -62,18 +62,18 @@ provide(schemaKey, props.schema);
 
 <template>
   <component
-    v-if="matchedRenderer"
     :is="matchedRenderer"
+    v-if="matchedRenderer"
     :data="props.data ?? schema.default"
     :property-key="propertyKey"
     @_update="handleUpdate"
   />
   <div v-if="props.schema.type === 'object'">
     <label class="flex flex-col gap-0.5">
-      <span class="text-highlight-content-darker text-lg font-bold">
+      <span class="text-lg text-highlight-content-darker font-bold">
         {{ schema.title ?? propertyKey }}</span
       >
-      <span class="text-highlight-content text-sm">
+      <span class="text-sm text-highlight-content">
         {{ schema.description }}</span
       >
     </label>

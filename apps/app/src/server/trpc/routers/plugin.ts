@@ -7,8 +7,11 @@ import {
   TranslationAdvisorDataSchema,
 } from "@cat/shared";
 import { z } from "zod";
-import { authedProcedure, router } from "../server";
-import { pauseAllProcessors, resumeAllProcessors } from "@/server/processor";
+import { authedProcedure, router } from "@/server/trpc/server.ts";
+import {
+  pauseAllProcessors,
+  resumeAllProcessors,
+} from "@/server/processor/index.ts";
 import { TRPCError } from "@trpc/server";
 
 export const pluginRouter = router({

@@ -1,5 +1,5 @@
-import type { BinaryToTextEncoding} from "crypto";
-import { createHash } from "crypto";
+import type { BinaryToTextEncoding} from "node:crypto";
+import { createHash } from "node:crypto";
 
 export const hash = (
   obj: object,

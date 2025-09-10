@@ -134,9 +134,6 @@ export const JSONSchemaSchema = z
     get contentSchema() {
       return JSONSchemaSchema.optional();
     },
-
-    /* ---- extension slot as in your type ---- */
-    _prefault: z.any().optional(),
   })
   .catchall(z.unknown());
 

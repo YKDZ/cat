@@ -1,4 +1,4 @@
-import { AsyncMessageQueue } from "@/server/utils/queue";
+import { AsyncMessageQueue } from "@/server/utils/queue.ts";
 import type { MemorySuggestion } from "@cat/shared";
 import {
   logger,
@@ -8,8 +8,11 @@ import {
 } from "@cat/shared";
 import { tracked } from "@trpc/server";
 import { z } from "zod";
-import { authedProcedure, router } from "../server";
-import { queryElementWithEmbedding, searchMemory } from "@/server/utils/memory";
+import { authedProcedure, router } from "@/server/trpc/server.ts";
+import {
+  queryElementWithEmbedding,
+  searchMemory,
+} from "@/server/utils/memory.ts";
 
 export const memoryRouter = router({
   create: authedProcedure
@@ -91,7 +94,7 @@ export const memoryRouter = router({
       const memoriesQueue = new AsyncMessageQueue<MemorySuggestion>();
       const memoryChannelKey = `memories:channel:${elementId}`;
 
-      const onNewMemory = async (suggestionData: string) => {
+      const onNewMemory = async (suggestionData: string): Promise<void> => {
         try {
           const suggestion = await MemorySuggestionSchema.parseAsync(
             JSON.parse(suggestionData),
