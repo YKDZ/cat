@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import type {
+  JSONSchema} from "@cat/shared";
 import {
-  JSONSchema,
   type JSONType,
   type PluginConfig,
   type PluginConfigInstance,
 } from "@cat/shared";
 import { trpc } from "@/server/trpc/client";
 import { ref } from "vue";
-import { ScopeType } from "@cat/db";
+import type { ScopeType } from "@cat/db";
 import SettingForm from "./SettingForm.vue";
 import { navigate } from "vike/client/router";
 

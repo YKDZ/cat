@@ -1,5 +1,5 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
-import { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared";
 import type { PageContextServer } from "vike/types";
 
 export const data = async (

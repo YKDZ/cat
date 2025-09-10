@@ -8,6 +8,7 @@ import vueParser from "vue-eslint-parser";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import cspellPlugin from "@cspell/eslint-plugin";
 import cspellWords from "./cspell.words.json" assert { type: "json" };
+import importPlugin from "eslint-plugin-import";
 
 export default tseslint.config(
   {
@@ -21,7 +22,22 @@ export default tseslint.config(
   },
 
   eslint.configs.recommended,
-  tseslint.configs.recommendedTypeChecked,
+  tseslint.configs.recommended,
+
+  {
+    plugins: { import: importPlugin },
+    rules: {
+      "import/enforce-node-protocol-usage": ["error", "always"],
+      "import/extensions": [
+        "error",
+        "always",
+        {
+          ignorePackages: true,
+          checkTypeImports: true,
+        },
+      ],
+    },
+  },
 
   {
     languageOptions: {

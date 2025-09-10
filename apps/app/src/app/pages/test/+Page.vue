@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
+import { trpc } from "@/server/trpc/client.ts";
 import { onMounted } from "vue";
 
 onMounted(() => {

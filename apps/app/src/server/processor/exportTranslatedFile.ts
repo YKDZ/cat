@@ -1,8 +1,8 @@
 import { mimeFromFileName, setting } from "@cat/db";
 import { useStringTemplate } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
-import { randomUUID } from "crypto";
-import { join } from "path";
+import { randomUUID } from "node:crypto";
+import { join } from "node:path";
 import { z } from "zod";
 import { useStorage } from "@/server/utils/storage/useStorage";
 import { config } from "./config";

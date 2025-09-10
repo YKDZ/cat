@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PluginConfig } from "@cat/shared";
 import PluginConfigForm from "./PluginConfigForm.vue";
-import { ScopeType } from "@cat/db";
+import type { ScopeType } from "@cat/db";
 
 const props = defineProps<{
   configs: PluginConfig[];
@@ -16,8 +16,8 @@ const props = defineProps<{
       v-for="config in configs"
       :key="config.id"
       :config
-      :scopeType
-      :scopeId
+      :scope-type
+      :scope-id
     />
   </div>
 </template>

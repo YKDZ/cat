@@ -17,16 +17,18 @@ export default defineConfig({
     },
   },
   plugins: [
-    // @ts-expect-error UnoCSS Plugin types are not compatible with Vite 7 yet
     UnoCSS(),
     vike(),
-    VueI18nPlugin({ ssr: true }),
+    VueI18nPlugin({
+      ssr: true,
+      include: [resolve(import.meta.dirname, "./locales/**")],
+    }),
     vue({
       include: [/\.vue$/, /\.md$/],
     }),
   ],
   build: {
-    target: "es2022",
+    target: "esnext",
     emptyOutDir: true,
   },
 });

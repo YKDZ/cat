@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { Component } from "vue";
-import { JSX } from "vue/jsx-runtime";
+import type { JSX } from "vue/jsx-runtime";
 
 type Classes = {
   base?: string;

@@ -20,10 +20,10 @@ const handleReload = async () => {
 <template>
   <HButton
     icon="i-mdi:reload"
-    @click="handleReload"
     :classes="{
       base: 'btn btn-md btn-base',
     }"
+    @click="handleReload"
     >{{ t("重载插件") }}</HButton
   >
 </template>

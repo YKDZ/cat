@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { setting, syncSettings } from "@cat/db";
 import { createHTTPHelpers, logger } from "@cat/shared";
-import type { Server } from "http";
+import type { Server } from "node:http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import { getPrismaDB, getRedisDB } from "@cat/db";

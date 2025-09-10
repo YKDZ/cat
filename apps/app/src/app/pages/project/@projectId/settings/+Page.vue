@@ -3,9 +3,9 @@ import HButton from "@/app/components/headless/HButton.vue";
 import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { useProjectStore } from "@/app/stores/project";
-import { projectKey } from "@/app/utils/provide";
-import { trpc } from "@/server/trpc/client";
+import { useProjectStore } from "@/app/stores/project.ts";
+import { projectKey } from "@/app/utils/provide.ts";
+import { trpc } from "@/server/trpc/client.ts";
 import { navigate } from "vike/client/router";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -18,12 +18,12 @@ const { deleteProject } = useProjectStore();
 const name = ref(project!.value!.name);
 const sourceLanguageId = ref(project!.value!.sourceLanguageId);
 
-const updateName = async () => {
+const updateName = async (): Promise<void> => {
   if (!project || !project.value) return;
   update(project.value.id, { name: name.value });
 };
 
-const updateSourceLanguageId = async () => {
+const updateSourceLanguageId = async (): Promise<void> => {
   if (!project || !project.value) return;
   update(project.value.id, { sourceLanguageId: sourceLanguageId.value });
 };
@@ -39,7 +39,7 @@ const update = async (
     sourceLanguageId?: string;
     targetLanguageIds?: string[];
   } = {},
-) => {
+): Promise<void> => {
   if (!project || !project.value) return;
 
   await trpc.project.update.mutate({
@@ -50,7 +50,7 @@ const update = async (
   });
 };
 
-const remove = async () => {
+const remove = async (): Promise<void> => {
   if (!project || !project.value) return;
 
   await trpc.project.delete.mutate({ id: project.value.id });

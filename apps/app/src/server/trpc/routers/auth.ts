@@ -1,13 +1,13 @@
+import type { JSONSchema } from "@cat/shared";
 import {
   AuthMethodSchema,
-  JSONSchema,
   JSONSchemaSchema,
   type AuthMethod,
 } from "@cat/shared";
 import { TRPCError } from "@trpc/server";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { z } from "zod";
-import { publicProcedure, router } from "../server";
+import { publicProcedure, router } from "@/server/trpc/server.ts";
 
 export const authRouter = router({
   queryPreAuthFormSchema: publicProcedure

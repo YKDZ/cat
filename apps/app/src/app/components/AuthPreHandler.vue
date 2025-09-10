@@ -8,7 +8,7 @@ import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
 import JSONForm from "./json-form/JSONForm.vue";
 import { useI18n } from "vue-i18n";
-import { TRPCError } from "@trpc/server";
+import type { TRPCError } from "@trpc/server";
 import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();

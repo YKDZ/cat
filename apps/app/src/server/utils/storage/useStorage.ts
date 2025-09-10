@@ -1,5 +1,6 @@
-import { OverallPrismaClient, ScopeType } from "@cat/db";
-import { PluginRegistry, StorageProvider } from "@cat/plugin-core";
+import type { OverallPrismaClient, ScopeType } from "@cat/db";
+import type { StorageProvider } from "@cat/plugin-core";
+import { PluginRegistry } from "@cat/plugin-core";
 
 export const useStorage = async (
   prisma: OverallPrismaClient,

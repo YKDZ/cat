@@ -1,4 +1,4 @@
-import { trpc } from "@/server/trpc/client";
+import { trpc } from "@/server/trpc/client.ts";
 import type { Glossary } from "@cat/shared";
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
@@ -7,7 +7,7 @@ export const useGlossaryStore = defineStore("glossary", () => {
   const glossaries = ref<Glossary[]>([]);
   const termAmounts = reactive(new Map<string, number>());
 
-  const upsertGlossaries = (...glossariesToAdd: Glossary[]) => {
+  const upsertGlossaries = (...glossariesToAdd: Glossary[]): void => {
     for (const glossary of glossariesToAdd) {
       if (!glossary) continue;
 
@@ -22,14 +22,14 @@ export const useGlossaryStore = defineStore("glossary", () => {
     }
   };
 
-  const fetchGlossary = (id: string) => {
+  const fetchGlossary = (id: string): void => {
     trpc.glossary.query.query({ id }).then((glossary) => {
       if (glossary === null) return;
       upsertGlossaries(glossary);
     });
   };
 
-  const updateTermAmount = async (id: string) => {
+  const updateTermAmount = async (id: string): Promise<void> => {
     await trpc.glossary.countTerm
       .query({
         id,

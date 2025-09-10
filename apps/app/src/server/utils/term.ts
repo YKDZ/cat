@@ -1,5 +1,5 @@
-import { PrismaClient } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import type { PrismaClient } from "@cat/db";
+import type { PluginRegistry } from "@cat/plugin-core";
 
 export const initTermService = async (
   prisma: PrismaClient,

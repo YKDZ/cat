@@ -1,4 +1,4 @@
-import { trpc } from "@/server/trpc/client";
+import { trpc } from "@/server/trpc/client.ts";
 import type { Document, Task } from "@cat/shared";
 import { defineStore } from "pinia";
 import { shallowReactive, shallowRef } from "vue";
