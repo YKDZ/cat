@@ -32,6 +32,7 @@
   },
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
     "yaml": "^2.8.1"
   }
 }

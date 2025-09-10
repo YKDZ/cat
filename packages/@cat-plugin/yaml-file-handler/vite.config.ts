@@ -4,7 +4,7 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/plugin-core"],
+    external: ["@cat/plugin-core", "@cat/shared"],
     noExternal: ["yaml"],
   },
 
