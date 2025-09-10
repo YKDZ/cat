@@ -63,6 +63,7 @@ const handleExportTranslated = async () => {
         <HButton
           :classes="{
             base: 'btn btn-md btn-base btn-square',
+            icon: 'btn-icon btn-icon-md',
           }"
           icon="i-mdi:download"
           @click.stop="handleExportTranslated"

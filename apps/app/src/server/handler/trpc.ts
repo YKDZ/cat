@@ -12,12 +12,8 @@ app.all("*", (c) => {
     req: c.req.raw,
     router: appRouter,
     createContext: createHttpContext,
-    onError: ({ error, ctx, input }) => {
-      logger.error(
-        "RPC",
-        { input: JSON.stringify(input), url: c.req.url },
-        error.cause,
-      );
+    onError: ({ error, ctx, input, path }) => {
+      logger.error("RPC", { input: JSON.stringify(input), path }, error.cause);
     },
   });
 });

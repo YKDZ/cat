@@ -38,7 +38,8 @@ const handleAutoApprove = async () => {
 <template>
   <HButton
     :classes="{
-      base: 'btn btn-md btn-color-base btn-square',
+      base: 'btn btn-md btn-base btn-square',
+      icon: 'btn-icon btn-icon-md',
     }"
     icon="i-mdi:auto-fix"
     @click.stop="isOpen = true"
@@ -57,7 +58,7 @@ const handleAutoApprove = async () => {
       </article>
       <HButton
         :classes="{
-          base: 'btn btn-md btn-base btn-w-full',
+          base: 'btn btn-md btn-base btn-center btn-w-full',
         }"
         @click="handleAutoApprove"
         >确认</HButton
