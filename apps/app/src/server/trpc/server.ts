@@ -1,7 +1,15 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { HttpContext } from "./context";
+import { logger } from "@cat/shared";
 
-const t = initTRPC.context<HttpContext>().create({});
+const t = initTRPC.context<HttpContext>().create({
+  errorFormatter: ({ shape }) => {
+    logger.debug("RPC", { stack: JSON.stringify(shape.data.stack) });
+    return {
+      ...shape,
+    };
+  },
+});
 
 export const { createCallerFactory, router } = t;
 export const publicProcedure = t.procedure;

@@ -1,5 +1,5 @@
 import { mimeFromFileName, setting } from "@cat/db";
-import { TranslationSchema, useStringTemplate } from "@cat/shared";
+import { useStringTemplate } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { randomUUID } from "crypto";
 import { join } from "path";
@@ -57,31 +57,34 @@ const worker = new Worker(
     const { id, provider } = await useStorage(prisma, "S3", "GLOBAL", "");
     const fileContent = await provider.getContent(document.File);
 
-    const translations = z.array(TranslationSchema).parse(
-      await prisma.translation.findMany({
-        where: {
-          languageId,
-          TranslatableElement: {
-            documentId,
-          },
-          Approvements: {
-            some: {
-              isActive: true,
-            },
+    const translationData = await prisma.translation.findMany({
+      where: {
+        languageId,
+        TranslatableElement: {
+          documentId,
+        },
+        Approvements: {
+          some: {
+            isActive: true,
           },
         },
-        include: {
-          TranslatableElement: true,
+      },
+      select: {
+        value: true,
+        TranslatableElement: {
+          select: {
+            meta: true,
+          },
         },
-      }),
-    );
+      },
+    });
 
     const translated = await handler.getReplacedFileContent(
       document.File,
       fileContent,
-      translations.map(({ value, meta }) => ({
+      translationData.map(({ value, TranslatableElement: { meta } }) => ({
         value,
-        meta,
+        meta: z.json().parse(meta),
       })),
     );
 

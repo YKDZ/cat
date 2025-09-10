@@ -34,6 +34,63 @@ const loadPluginData = async (dir: string): Promise<PluginData> => {
   });
 };
 
+export const importLocalPlugins = async (prisma: PrismaClient) => {
+  await prisma.$transaction(async (tx) => {
+    const existPluginIds: string[] = [];
+
+    existPluginIds.push(
+      ...(
+        await tx.plugin.findMany({
+          select: {
+            id: true,
+          },
+        })
+      ).map((plugin) => plugin.id),
+    );
+
+    await Promise.all(
+      (await PluginRegistry.get().getPluginIdInLocalPlugins())
+        .filter((id) => !existPluginIds.includes(id))
+        .map(async (id) => {
+          await importPlugin(tx, id);
+        }),
+    );
+  });
+};
+
+export const installDefaultPlugins = async (prisma: PrismaClient) => {
+  const localPlugins = [
+    "email-password-auth-provider",
+    "es-term-service",
+    "json-file-handler",
+    "libretranslate-advisor",
+    "ollama-vectorizer",
+    "yaml-file-handler",
+    "s3-storage-provider",
+  ];
+
+  const installedPlugins = (
+    await prisma.pluginInstallation.findMany({
+      where: {
+        scopeType: "GLOBAL",
+        scopeId: "",
+      },
+      select: { pluginId: true },
+    })
+  ).map((i) => i.pluginId);
+
+  const needToBeInstalled = localPlugins.filter(
+    (p) => !installedPlugins.includes(p),
+  );
+
+  for (const pluginId of needToBeInstalled) {
+    logger.info("SERVER", {
+      msg: `About to install default plugin ${pluginId} to global scope...`,
+    });
+    await installPlugin(prisma, pluginId, "GLOBAL", "");
+  }
+};
+
 export const importPlugin = async (
   prisma: OverallPrismaClient,
   id: string,
@@ -50,6 +107,7 @@ export const importPlugin = async (
     },
   });
 
+  // 不存在原插件意味着即将创建
   const pluginId = originPlugin?.id ?? data.id;
 
   await prisma.plugin.upsert({
@@ -202,22 +260,36 @@ export const installPlugin = async (
       select: { id: true, schema: true },
     });
 
-    for (const pluginConfig of pluginConfigs) {
-      console.log(pluginConfig.schema);
-      await tx.pluginConfigInstance.create({
-        data: {
-          configId: pluginConfig.id,
-          pluginInstallationId: installation.id,
-          value:
-            getDefaultFromSchema(JSONSchemaSchema.parse(pluginConfig.schema)) ??
-            {},
-        },
-      });
-    }
+    await Promise.all(
+      pluginConfigs.map(async ({ id, schema }) => {
+        const defaultValue =
+          getDefaultFromSchema(JSONSchemaSchema.parse(schema)) ?? {};
 
-    for (const { getter, key } of serviceConfigs) {
-      await importPluginServices(tx, pluginId, installation.id, getter, key);
-    }
+        console.log(schema, defaultValue);
+
+        return await tx.pluginConfigInstance.create({
+          data: {
+            configId: id,
+            pluginInstallationId: installation.id,
+            value: defaultValue,
+          },
+        });
+      }),
+    );
+
+    console.log(await tx.pluginConfigInstance.findMany());
+
+    await Promise.all(
+      serviceConfigs.map(async ({ getter, key }) => {
+        return await importPluginServices(
+          tx,
+          pluginId,
+          installation.id,
+          getter,
+          key,
+        );
+      }),
+    );
   });
 };
 

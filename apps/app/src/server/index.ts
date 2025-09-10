@@ -7,12 +7,11 @@ import { serve } from "vike-server/hono/serve";
 import { getPrismaDB, getRedisDB } from "@cat/db";
 import { closeAllProcessors } from "./processor";
 import { parsePreferredLanguage } from "./utils/i18n";
-import { importLocalPlugins, installDefaultPlugins } from "./utils/server";
-import { useStorage } from "./utils/storage/useStorage";
 import { userFromSessionId } from "./utils/user";
 import app from "./app";
 import { initTermService } from "./utils/term";
 import { PluginRegistry } from "@cat/plugin-core";
+import { importLocalPlugins, installDefaultPlugins } from "./utils/plugin";
 
 let server: Server | null = null;
 

@@ -11,6 +11,7 @@ import { glossaryRouter } from "./routers/glossary";
 import { pluginRouter } from "./routers/plugin";
 import { settingRouter } from "./routers/setting";
 import { taskRouter } from "./routers/task";
+import { testRouter } from "./routers/test";
 
 export const appRouter = router({
   auth: authRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   plugin: pluginRouter,
   setting: settingRouter,
   task: taskRouter,
+  test: testRouter,
 });
 
 export type AppRouter = typeof appRouter;
