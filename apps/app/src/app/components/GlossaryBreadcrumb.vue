@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Glossary } from "@cat/shared";
+import type { Glossary } from "@cat/shared/schema/prisma/glossary";
 import Slash from "./Slash.vue";
 import UserAvatar from "./UserAvatar.vue";
 

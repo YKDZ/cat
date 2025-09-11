@@ -1,6 +1,6 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc";
-import { StorageProviderSchema } from "./plugin";
+import { PrimsaDateTime } from "../misc.ts";
+import { StorageProviderSchema } from "./plugin.ts";
 
 export const FileSchema = z.object({
   id: z.int(),

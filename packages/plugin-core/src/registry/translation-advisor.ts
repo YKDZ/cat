@@ -1,5 +1,6 @@
-import type { TermRelation, TranslatableElement } from "@cat/shared";
-import type { TranslationSuggestion } from "@cat/shared";
+import type { TranslationSuggestion } from "@cat/shared/schema/misc";
+import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
 
 export interface TranslationAdvisor {
   getId(): string;

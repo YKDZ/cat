@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { Document } from "@cat/shared";
+import type { Document } from "@cat/shared/schema/prisma/document";
 import { inject, ref } from "vue";
 import { languageKey } from "../utils/provide";
 import { useToastStore } from "../stores/toast";

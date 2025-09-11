@@ -1,9 +1,9 @@
 import z from "zod";
-import { MemorySchema } from "./memory";
-import { LanguageSchema } from "./misc";
-import { PrimsaDateTime } from "../misc";
-import { UserSchema } from "./user";
-import { DocumentSchema } from "./document";
+import { MemorySchema } from "./memory.ts";
+import { LanguageSchema } from "./misc.ts";
+import { PrimsaDateTime } from "../misc.ts";
+import { UserSchema } from "./user.ts";
+import { DocumentSchema } from "./document.ts";
 
 export const ProjectSchema = z.object({
   id: z.ulid(),

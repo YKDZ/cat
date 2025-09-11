@@ -1,10 +1,8 @@
 import type { TranslatableFileHandler } from "@cat/plugin-core";
-import type {
-  File,
-  TranslatableElement,
-  TranslatableElementData,
-} from "@cat/shared";
 import { extname } from "node:path";
+import { File } from "@cat/shared/schema/prisma/file";
+import { TranslatableElementData } from "@cat/shared/schema/misc";
+import { TranslatableElement } from "@cat/shared/schema/prisma/document";
 
 type JSONValue =
   | string

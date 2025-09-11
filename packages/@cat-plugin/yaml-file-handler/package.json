@@ -23,7 +23,7 @@
     "manifest.json"
   ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
@@ -31,6 +31,11 @@
     "@cat/eslint-config": "workspace:*"
   },
   "peerDependencies": {
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "yaml": "^2.8.1"
+  },
+  "dependencies": {
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "yaml": "^2.8.1"

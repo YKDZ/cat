@@ -1,18 +1,16 @@
 import { hash } from "@/server/utils/crypto";
 import { AsyncMessageQueue } from "@/server/utils/queue";
-import type {
-  TranslationAdvisorData,
-  TranslationSuggestion,
-} from "@cat/shared";
-import {
-  logger,
-  TranslatableElementSchema,
-  TranslationAdvisorDataSchema,
-  TranslationSuggestionSchema,
-} from "@cat/shared";
 import { tracked, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
+import {
+  TranslationAdvisorDataSchema,
+  TranslationSuggestionSchema,
+  type TranslationAdvisorData,
+  type TranslationSuggestion,
+} from "@cat/shared/schema/misc";
+import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
+import { logger } from "@cat/shared/utils";
 
 export const suggestionRouter = router({
   onNew: authedProcedure
@@ -94,7 +92,9 @@ export const suggestionRouter = router({
           advisorName: advisor.getName(),
         });
         const cacheKey = `cache:suggestions:${elementHash}`;
-        const cachedSuggestion = await redis.sMembers(cacheKey);
+        const cachedSuggestion = z
+          .array(TranslationSuggestionSchema)
+          .parse(await redis.sMembers(cacheKey));
         if (cachedSuggestion.length > 0) {
           cachedSuggestion.forEach((suggestion) => {
             redisPub.publish(suggestionChannelKey, suggestion);

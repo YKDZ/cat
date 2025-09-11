@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { Task } from "@cat/shared";
+import type { Task } from "@cat/shared/schema/prisma/misc";
 import { computed, onMounted, ref } from "vue";
 import TaskTable from "./TaskTable.vue";
 import { useLanguageStore } from "../stores/language";

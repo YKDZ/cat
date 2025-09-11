@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { AuthMethod, JSONSchema, JSONType } from "@cat/shared";
+import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
+import type { AuthMethod } from "@cat/shared/schema/misc";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { useAuthStore } from "../stores/auth";
 import { storeToRefs } from "pinia";

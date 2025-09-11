@@ -1,13 +1,19 @@
 import { getPrismaDB, insertVector } from "@cat/db";
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
-import type { TranslationSuggestion, UnvectorizedTextData } from "@cat/shared";
-import { TranslatableElementSchema } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { z } from "zod";
-import { config } from "./config";
-import { queryElementWithEmbedding, searchMemory } from "../utils/memory";
-import { registerTaskUpdateHandlers } from "../utils/worker";
+import { config } from "./config.ts";
+import {
+  queryElementWithEmbedding,
+  searchMemory,
+} from "@/server/utils/memory.ts";
+import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
+import type {
+  TranslationSuggestion,
+  UnvectorizedTextData,
+} from "@cat/shared/schema/misc";
+import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
 
 const { client: prisma } = await getPrismaDB();
 

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { TranslationSuggestion } from "@cat/shared";
+import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
-import { useToastStore } from "../stores/toast";
+import { useEditorStore } from "@/app/stores/editor";
+import { useToastStore } from "@/app/stores/toast";
 import TextTagger from "./tagger/TextTagger.vue";
-import { useHotKeys } from "../utils/magic-keys";
+import { useHotKeys } from "@/app/utils/magic-keys";
 
 const { info } = useToastStore();
 const { replace } = useEditorStore();

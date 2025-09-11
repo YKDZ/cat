@@ -1,14 +1,16 @@
 import { trpc } from "@/server/trpc/client.ts";
 import {
-  TranslatableElementSchema,
-  TranslationSchema,
-  type Document,
   type ElementTranslationStatus,
   type MemorySuggestion,
-  type TermRelation,
-  type TranslatableElement,
   type TranslationSuggestion,
-} from "@cat/shared";
+} from "@cat/shared/schema/misc";
+import {
+  TranslatableElementSchema,
+  type TranslatableElement,
+  type Document,
+} from "@cat/shared/schema/prisma/document";
+import { type TermRelation } from "@cat/shared/schema/prisma/glossary";
+import { TranslationSchema } from "@cat/shared/schema/prisma/translation";
 import type { TRPCClientError } from "@trpc/client";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore } from "pinia";

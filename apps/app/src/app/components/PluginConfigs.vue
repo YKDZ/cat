@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PluginConfig } from "@cat/shared";
+import type { PluginConfig } from "@cat/shared/schema/prisma/plugin";
 import PluginConfigForm from "./PluginConfigForm.vue";
 import type { ScopeType } from "@cat/db";
 

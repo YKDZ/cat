@@ -8,7 +8,7 @@ import { useAuthStore } from "@/app/stores/auth";
 import Loading from "@/app/components/Loading.vue";
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
 import { storeToRefs } from "pinia";
-import type { JSONSchema, JSONType } from "@cat/shared";
+import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
 

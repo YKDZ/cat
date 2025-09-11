@@ -2,7 +2,7 @@
 import { trpc } from "@/server/trpc/client";
 import { computed, onMounted, ref, watch } from "vue";
 import DiffBox from "./diff/DiffBox.vue";
-import type { DocumentVersion } from "@cat/shared";
+import type { DocumentVersion } from "@cat/shared/schema/prisma/document";
 import Picker from "./picker/Picker.vue";
 import type { PickerOption } from "./picker";
 import { useDateFormat } from "@vueuse/core";

@@ -1,6 +1,6 @@
-import { logger } from "@cat/shared";
-import { PrismaDB } from "./prisma";
-import { RedisDB } from "./redis";
+import { logger } from "@cat/shared/utils";
+import { PrismaDB } from "./prisma.ts";
+import { RedisDB } from "./redis.ts";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention

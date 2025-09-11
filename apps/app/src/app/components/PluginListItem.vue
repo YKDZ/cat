@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import PluginTags from "./PluginTags.vue";
 import { computed, onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";

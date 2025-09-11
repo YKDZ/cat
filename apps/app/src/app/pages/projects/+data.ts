@@ -1,5 +1,5 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
-import { logger } from "@cat/shared";
+import { logger } from "@cat/shared/utils";
 import { redirect } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 

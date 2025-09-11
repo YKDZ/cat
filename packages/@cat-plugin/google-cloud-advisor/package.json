@@ -23,11 +23,13 @@
     "manifest.json"
   ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
     "@google-cloud/translate": "^9.0.1"
   },
   "devDependencies": {

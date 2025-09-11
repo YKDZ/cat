@@ -3,7 +3,7 @@ import PluginList from "@/app/components/PluginList.vue";
 import PluginReloadBtn from "@/app/components/PluginReloadBtn.vue";
 import { useToastStore } from "@/app/stores/toast";
 import { trpc } from "@/server/trpc/client";
-import type { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import { onMounted, ref } from "vue";
 import type { Data } from "./+data";
 import { useData } from "vike-vue/useData";

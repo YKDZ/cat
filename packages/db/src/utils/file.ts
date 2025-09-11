@@ -1,8 +1,8 @@
-import { extname } from "path";
-import { setting } from "./setting";
-import { OverallPrismaClient } from "../types/prisma";
+import { extname } from "node:path";
+import { setting } from "./setting.ts";
+import type { OverallPrismaClient } from "../types/prisma.ts";
 
-export const sanitizeFileName = (name: string) => {
+export const sanitizeFileName = (name: string): string => {
   return name.replace(/[^\w.-]/g, "_");
 };
 

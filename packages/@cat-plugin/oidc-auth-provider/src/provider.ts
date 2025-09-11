@@ -1,10 +1,10 @@
 import { getPrismaDB, getRedisDB, setting } from "@cat/db";
 import type { AuthProvider, AuthResult, PreAuthResult } from "@cat/plugin-core";
-import type { HTTPHelpers } from "@cat/shared";
-import { safeJoinURL } from "@cat/shared";
+import type { HTTPHelpers } from "@cat/shared/utils";
+import { safeJoinURL } from "@cat/sharedutils";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { randomChars } from "./utils/crypto";
-import { createOIDCAuthURL } from "./utils/oidc";
+import { randomChars } from "./utils/crypto.ts";
+import { createOIDCAuthURL } from "./utils/oidc.ts";
 import type { ProviderConfig } from ".";
 import { z } from "zod";
 

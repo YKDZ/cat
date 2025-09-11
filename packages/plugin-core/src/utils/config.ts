@@ -1,4 +1,5 @@
 import type { OverallPrismaClient, ScopeType } from "@cat/db";
+import type { JSONType } from "@cat/shared/schema/json";
 import { merge } from "lodash-es";
 import z from "zod";
 
@@ -9,7 +10,7 @@ export const getPluginConfigs = async (
     projectId?: string;
     userId?: string;
   },
-) => {
+): Promise<Record<string, JSONType>> => {
   const global = await getConfigInstance(prisma, pluginId, "GLOBAL", "");
 
   const project = await getConfigInstance(
@@ -35,7 +36,7 @@ export const getConfigInstance = async (
   pluginId: string,
   scopeType: ScopeType,
   scopeId?: string,
-) => {
+): Promise<Record<string, JSONType>> => {
   if (scopeId === undefined) return {};
 
   const data = await prisma.pluginConfigInstance.findMany({

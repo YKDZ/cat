@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { computed, provide } from "vue";
 import { RendererRegistry, schemaKey, type RendererComponent } from ".";
-import { JSONSchemaSchema, type JSONSchema, type JSONType } from "@cat/shared";
+import {
+  JSONSchemaSchema,
+  type JSONSchema,
+  type JSONType,
+} from "@cat/shared/schema/json";
 
 const props = defineProps<{
   propertyKey?: string;

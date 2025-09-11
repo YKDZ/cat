@@ -1,7 +1,7 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc";
-import { LanguageSchema } from "./misc";
-import { UserSchema } from "./user";
+import { PrimsaDateTime } from "../misc.ts";
+import { LanguageSchema } from "./misc.ts";
+import { UserSchema } from "./user.ts";
 
 export const TermSchema = z.object({
   id: z.int(),

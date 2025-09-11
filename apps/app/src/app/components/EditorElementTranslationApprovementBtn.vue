@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { Translation, TranslationApprovement } from "@cat/shared";
+import type {
+  Translation,
+  TranslationApprovement,
+} from "@cat/shared/schema/prisma/translation";
 import { useEditorStore } from "../stores/editor";
 import { useToastStore } from "../stores/toast";
 import { computed } from "vue";

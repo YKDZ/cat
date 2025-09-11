@@ -1,11 +1,9 @@
 import type { TranslationAdvisor } from "@cat/plugin-core";
-import type {
-  JSONType,
-  TermRelation,
-  TranslatableElement,
-  TranslationSuggestion,
-} from "@cat/shared";
-import { logger, safeJoinURL } from "@cat/shared";
+import { JSONType } from "@cat/shared/schema/json";
+import { TranslationSuggestion } from "@cat/shared/schema/misc";
+import { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import { TermRelation } from "@cat/shared/schema/prisma/glossary";
+import { logger, safeJoinURL } from "@cat/shared/utils";
 
 const supportedLanguages = new Map<string, string[]>();
 

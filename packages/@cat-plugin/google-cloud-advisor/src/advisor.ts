@@ -1,7 +1,8 @@
-import { logger, type TranslationSuggestion } from "@cat/shared";
+import { type TranslationSuggestion } from "@cat/shared/schema/misc";
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import { v2 } from "@google-cloud/translate";
-import type { TranslatableElement } from "@cat/shared";
+import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import { logger } from "@cat/shared/utils";
 
 export class Advisor implements TranslationAdvisor {
   private client: v2.Translate | null = null;

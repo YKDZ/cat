@@ -1,4 +1,4 @@
-import { SettingSchema } from "@cat/shared";
+import { SettingSchema } from "@cat/shared/schema/prisma/misc";
 import type z from "zod";
 
 export const DefaultSettingDataSchema = SettingSchema.omit({

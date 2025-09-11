@@ -1,4 +1,5 @@
-import type { HTTPHelpers, JSONSchema, JSONType } from "@cat/shared";
+import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
+import type { HTTPHelpers } from "@cat/shared/utils";
 
 export type PreAuthResult = {
   sessionId: string;
@@ -38,5 +39,5 @@ export interface AuthProvider {
     helpers: HTTPHelpers,
   ) => Promise<AuthResult>;
   handleLogout?: (sessionId: string) => Promise<void>;
-  isAvaliable: () => Promise<boolean>;
+  isAvailable: () => Promise<boolean>;
 }

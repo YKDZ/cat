@@ -1,11 +1,9 @@
-import type {
-  Glossary,
-  Language,
-  Memory,
-  Plugin,
-  Project,
-  Document,
-} from "@cat/shared";
+import { Document } from "@cat/shared/schema/prisma/document";
+import { Glossary } from "@cat/shared/schema/prisma/glossary";
+import { Memory } from "@cat/shared/schema/prisma/memory";
+import { Language } from "@cat/shared/schema/prisma/misc";
+import { Plugin } from "@cat/shared/schema/prisma/plugin";
+import { Project } from "@cat/shared/schema/prisma/project";
 import type { InjectionKey, Ref } from "vue";
 
 export const projectKey = Symbol() as InjectionKey<Ref<Project | null>>;

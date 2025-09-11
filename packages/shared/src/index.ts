@@ -1,10 +1,3 @@
-export * from "./schema/misc";
-export * from "./schema/plugin";
-export * from "./schema/prisma";
-export * from "./schema/json";
-export * from "./utils/url";
-export * from "./utils/string";
-export * from "./utils/http-helpers";
-export * from "./utils/logger";
-export * from "./utils/string-template";
-export * from "./utils/json-schema";
+throw new Error(
+  "@cat/shared does not provider index export. Please refer to subpath exports defined inside package.json",
+);

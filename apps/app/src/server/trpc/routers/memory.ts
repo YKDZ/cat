@@ -1,11 +1,4 @@
 import { AsyncMessageQueue } from "@/server/utils/queue.ts";
-import type { MemorySuggestion } from "@cat/shared";
-import {
-  logger,
-  MemoryItemSchema,
-  MemorySchema,
-  MemorySuggestionSchema,
-} from "@cat/shared";
 import { tracked } from "@trpc/server";
 import { z } from "zod";
 import { authedProcedure, router } from "@/server/trpc/server.ts";
@@ -13,6 +6,15 @@ import {
   queryElementWithEmbedding,
   searchMemory,
 } from "@/server/utils/memory.ts";
+import {
+  MemorySuggestionSchema,
+  type MemorySuggestion,
+} from "@cat/shared/schema/misc";
+import { logger } from "@cat/shared/utils";
+import {
+  MemoryItemSchema,
+  MemorySchema,
+} from "@cat/shared/schema/prisma/memory";
 
 export const memoryRouter = router({
   create: authedProcedure

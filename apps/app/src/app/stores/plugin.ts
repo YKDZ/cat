@@ -1,4 +1,4 @@
-import type { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import { defineStore } from "pinia";
 import { shallowRef, type ShallowRef } from "vue";
 

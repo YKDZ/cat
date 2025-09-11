@@ -1,5 +1,6 @@
-import type { File, TranslatableElement } from "@cat/shared";
-import type { TranslatableElementData } from "@cat/shared";
+import type { TranslatableElementData } from "@cat/shared/schema/misc";
+import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import type { File } from "@cat/shared/schema/prisma/file";
 
 export interface TranslatableFileHandler {
   getId(): string;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import HButton from "@/app/components/headless/HButton.vue";
 import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
-import type { Project } from "@cat/shared";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 

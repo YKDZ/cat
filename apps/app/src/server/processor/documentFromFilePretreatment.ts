@@ -4,18 +4,11 @@ import {
   type TextVectorizer,
   type TranslatableFileHandler,
 } from "@cat/plugin-core";
-import type {
-  Document,
-  File,
-  JSONType,
-  TranslatableElementData,
-} from "@cat/shared";
-import { logger } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { isEqual } from "lodash-es";
 import z from "zod";
-import { chunk, chunkDual } from "../utils/array";
-import { useStorage } from "../utils/storage/useStorage";
+import { chunk, chunkDual } from "@/server/utils/array";
+import { useStorage } from "@/server/utils/storage/useStorage";
 import {
   DistributedTaskHandler,
   type ChunkData,
@@ -23,8 +16,13 @@ import {
 } from "./chunk";
 import { config } from "./config";
 import { getPrismaDB } from "@cat/db";
-import { registerTaskUpdateHandlers } from "../utils/worker";
-import { diffArraysAndSeparate } from "../utils/diff";
+import { registerTaskUpdateHandlers } from "@/server/utils/worker";
+import { diffArraysAndSeparate } from "@/server/utils/diff";
+import type { File } from "@cat/shared/schema/prisma/file";
+import type { TranslatableElementData } from "@cat/shared/schema/misc";
+import type { JSONType } from "@cat/shared/schema/json";
+import { logger } from "@cat/shared/utils";
+import type { Document } from "@cat/shared/schema/prisma/document";
 
 const { client: prisma } = await getPrismaDB();
 

@@ -16,9 +16,10 @@ export const JSONSchemaSchema = z
     $dynamicAnchor: z.string().optional(),
     $vocabulary: z.record(z.string(), z.boolean()).optional(),
     $comment: z.string().optional(),
-    get $defs() {
-      return z.record(z.string(), JSONSchemaSchema).optional();
-    },
+    // get $defs() {
+    //   // @ts-expect-error unsolvable
+    //   return z.lazy(() => z.record(z.string(), JSONSchemaSchema)).optional();
+    // },
     type: z
       .enum([
         "object",
@@ -30,64 +31,71 @@ export const JSONSchemaSchema = z
         "integer",
       ])
       .optional(),
-    get additionalItems() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
-    get unevaluatedItems() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
-    get prefixItems() {
-      return z.array(BooleanAbleJSONSchemaSchema).optional();
-    },
-    get items() {
-      return z
-        .array(BooleanAbleJSONSchemaSchema)
-        .or(BooleanAbleJSONSchemaSchema)
+    // get additionalItems() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
+    // get unevaluatedItems() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
+    // get prefixItems() {
+    //   return z.lazy(() => z.array(BooleanAbleJSONSchemaSchema)).optional();
+    // },
+    // get items() {
+    //   return z
+    //     .lazy(() =>
+    //       z.array(BooleanAbleJSONSchemaSchema).or(BooleanAbleJSONSchemaSchema),
+    //     )
+    //     .optional();
+    // },
+    // get contains() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
+    // get additionalProperties() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
+    // get unevaluatedProperties() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
+    get properties() {
+      return z // @ts-expect-error unsolvable
+        .lazy(() => z.record(z.string(), BooleanAbleJSONSchemaSchema))
         .optional();
     },
-    get contains() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
-    get additionalProperties() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
-    get unevaluatedProperties() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
-    get properties() {
-      return z.record(z.string(), BooleanAbleJSONSchemaSchema).optional();
-    },
-    get patternProperties() {
-      return z.record(z.string(), BooleanAbleJSONSchemaSchema).optional();
-    },
-    get dependentSchemas() {
-      return z.record(z.string(), BooleanAbleJSONSchemaSchema).optional();
-    },
-    get propertyNames() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
-    get if() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
+    // get patternProperties() {
+    //   return z
+    //     .lazy(() => z.record(z.string(), BooleanAbleJSONSchemaSchema))
+    //     .optional();
+    // },
+    // get dependentSchemas() {
+    //   return z
+    //     .lazy(() => z.record(z.string(), BooleanAbleJSONSchemaSchema))
+    //     .optional();
+    // },
+    // get propertyNames() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
+    // get if() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
 
-    get then() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
-    get else() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
-    get allOf() {
-      return z.array(JSONSchemaSchema).optional();
-    },
-    get anyOf() {
-      return z.array(JSONSchemaSchema).optional();
-    },
-    get oneOf() {
-      return z.array(JSONSchemaSchema).optional();
-    },
-    get not() {
-      return BooleanAbleJSONSchemaSchema.optional();
-    },
+    // get then() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
+    // get else() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
+    // get allOf() {
+    //   return z.array(JSONSchemaSchema).optional();
+    // },
+    // get anyOf() {
+    //   return z.array(JSONSchemaSchema).optional();
+    // },
+    // get oneOf() {
+    //   return z.array(JSONSchemaSchema).optional();
+    // },
+    // get not() {
+    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    // },
 
     multipleOf: z.number().optional(),
     maximum: z.number().optional(),
@@ -108,9 +116,9 @@ export const JSONSchemaSchema = z
     maxProperties: z.number().optional(),
     minProperties: z.number().optional(),
     required: z.array(z.string()).optional(),
-    get dependentRequired() {
-      return z.record(z.string(), z.array(z.string())).optional();
-    },
+    // get dependentRequired() {
+    //   return z.record(z.string(), z.array(z.string())).optional();
+    // },
 
     enum: z
       .array(z.union([z.string(), z.number(), z.boolean(), z.null()]))
@@ -131,9 +139,9 @@ export const JSONSchemaSchema = z
     /* ---- content encoding / media ---- */
     contentMediaType: z.string().optional(),
     contentEncoding: z.string().optional(),
-    get contentSchema() {
-      return JSONSchemaSchema.optional();
-    },
+    // get contentSchema() {
+    //   return JSONSchemaSchema.optional();
+    // },
   })
   .catchall(z.unknown());
 

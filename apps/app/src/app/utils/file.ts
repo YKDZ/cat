@@ -1,4 +1,4 @@
-import { toShortFixed } from "@cat/shared";
+import { toShortFixed } from "@cat/shared/utils";
 
 export const formatSize = (bytes: number): string => {
   if (bytes === 0) return "0 Bytes";

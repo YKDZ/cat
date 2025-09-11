@@ -1,9 +1,9 @@
 import type { Queue } from "bullmq";
-import { autoTranslateQueue } from "./autoTranslate";
-import { documentFromFilePretreatmentQueue } from "./documentFromFilePretreatment";
-import { exportTranslatedFileQueue } from "./exportTranslatedFile";
-import { createTranslationQueue } from "./createTranslation";
-import { updateTranslationQueue } from "./updateTranslation";
+import { autoTranslateQueue } from "./autoTranslate.ts";
+import { documentFromFilePretreatmentQueue } from "./documentFromFilePretreatment.ts";
+import { exportTranslatedFileQueue } from "./exportTranslatedFile.ts";
+import { createTranslationQueue } from "./createTranslation.ts";
+import { updateTranslationQueue } from "./updateTranslation.ts";
 
 const queues: Queue[] = [
   documentFromFilePretreatmentQueue,

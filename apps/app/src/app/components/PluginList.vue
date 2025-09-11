@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import PluginListItem from "./PluginListItem.vue";
 
 const props = defineProps<{

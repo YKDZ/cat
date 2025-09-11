@@ -1,21 +1,24 @@
 import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
 import { useStorage } from "@/server/utils/storage/useStorage";
-import type { JSONType, PrismaError } from "@cat/shared";
-import {
-  DocumentSchema,
-  DocumentVersionSchema,
-  ElementTranslationStatusSchema,
-  FileMetaSchema,
-  FileSchema,
-  TaskSchema,
-  TranslatableElementSchema,
-} from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { join } from "node:path";
 import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile";
 import { sanitizeFileName } from "@cat/db";
+import {
+  ElementTranslationStatusSchema,
+  FileMetaSchema,
+  PrismaError,
+} from "@cat/shared/schema/misc";
+import { FileSchema } from "@cat/shared/schema/prisma/file";
+import {
+  DocumentSchema,
+  DocumentVersionSchema,
+  TranslatableElementSchema,
+} from "@cat/shared/schema/prisma/document";
+import { TaskSchema } from "@cat/shared/schema/prisma/misc";
+import { JSONType } from "@cat/shared/schema/json";
 
 export const documentRouter = router({
   fileUploadURL: authedProcedure

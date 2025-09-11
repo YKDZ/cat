@@ -1,10 +1,10 @@
-import { logger } from "@cat/shared";
-import type { PrismaClient } from "../generated/prisma/client";
-import type { InputJsonValue } from "../generated/prisma/internal/prismaNamespace";
-import { DEFAULT_SETTINGS } from "./default";
+import { logger } from "@cat/shared/utils";
+import type { PrismaClient } from "../generated/prisma/client.ts";
+import type { InputJsonValue } from "../generated/prisma/internal/prismaNamespace.ts";
+import { DEFAULT_SETTINGS } from "./default.ts";
 
-export const syncSettings = async (prisma: PrismaClient) => {
-  const existings = (
+export const syncSettings = async (prisma: PrismaClient): Promise<void> => {
+  const existing = (
     await prisma.setting.findMany({
       select: {
         key: true,
@@ -12,10 +12,10 @@ export const syncSettings = async (prisma: PrismaClient) => {
     })
   ).map((el) => el.key);
 
-  const existingsSet = new Set(existings);
+  const existingSet = new Set(existing);
 
   const added = DEFAULT_SETTINGS.filter(
-    (setting) => !existingsSet.has(setting.key),
+    (setting) => !existingSet.has(setting.key),
   );
 
   await prisma.setting.createMany({

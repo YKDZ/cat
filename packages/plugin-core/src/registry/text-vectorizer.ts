@@ -1,4 +1,4 @@
-import type { UnvectorizedTextData } from "@cat/shared";
+import type { UnvectorizedTextData } from "@cat/shared/schema/misc";
 
 export interface TextVectorizer {
   getId(): string;

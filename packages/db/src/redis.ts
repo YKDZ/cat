@@ -19,19 +19,19 @@ export class RedisDB {
     });
   }
 
-  async connect() {
+  async connect(): Promise<void> {
     if (!this.redis.isOpen) await this.redis.connect();
     if (!this.redisPub.isOpen) await this.redisPub.connect();
     if (!this.redisSub.isOpen) await this.redisSub.connect();
   }
 
-  async disconnect() {
+  async disconnect(): Promise<void> {
     this.redis.destroy();
     this.redisPub.destroy();
     this.redisSub.destroy();
   }
 
-  async ping() {
+  async ping(): Promise<void> {
     await this.redis.ping();
     await this.redisPub.ping();
     await this.redisSub.ping();

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Task } from "@cat/shared";
+import type { Task } from "@cat/shared/schema/prisma/misc";
 import TableRow from "./table/TableRow.vue";
 import TableCell from "./table/TableCell.vue";
 import { z } from "zod";

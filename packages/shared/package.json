@@ -9,12 +9,70 @@
     "cat"
   ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils.js"
+    },
+    "./schema/json": {
+      "types": "./dist/schema/json.d.ts",
+      "import": "./dist/schema/json.js"
+    },
+    "./schema/misc": {
+      "types": "./dist/schema/misc.d.ts",
+      "import": "./dist/schema/misc.js"
+    },
+    "./schema/plugin": {
+      "types": "./dist/schema/plugin.d.ts",
+      "import": "./dist/schema/plugin.js"
+    },
+    "./schema/prisma/document": {
+      "types": "./dist/schema/prisma/document.d.ts",
+      "import": "./dist/schema/prisma/document.js"
+    },
+    "./schema/prisma/file": {
+      "types": "./dist/schema/prisma/file.d.ts",
+      "import": "./dist/schema/prisma/file.js"
+    },
+    "./schema/prisma/glossary": {
+      "types": "./dist/schema/prisma/glossary.d.ts",
+      "import": "./dist/schema/prisma/glossary.js"
+    },
+    "./schema/prisma/memory": {
+      "types": "./dist/schema/prisma/memory.d.ts",
+      "import": "./dist/schema/prisma/memory.js"
+    },
+    "./schema/prisma/misc": {
+      "types": "./dist/schema/prisma/misc.d.ts",
+      "import": "./dist/schema/prisma/misc.js"
+    },
+    "./schema/prisma/plugin": {
+      "types": "./dist/schema/prisma/plugin.d.ts",
+      "import": "./dist/schema/prisma/plugin.js"
+    },
+    "./schema/prisma/project": {
+      "types": "./dist/schema/prisma/project.d.ts",
+      "import": "./dist/schema/prisma/project.js"
+    },
+    "./schema/prisma/role": {
+      "types": "./dist/schema/prisma/role.d.ts",
+      "import": "./dist/schema/prisma/role.js"
+    },
+    "./schema/prisma/translation": {
+      "types": "./dist/schema/prisma/translation.d.ts",
+      "import": "./dist/schema/prisma/translation.js"
+    },
+    "./schema/prisma/user": {
+      "types": "./dist/schema/prisma/user.d.ts",
+      "import": "./dist/schema/prisma/user.js"
+    },
+    "./schema/prisma/vector": {
+      "types": "./dist/schema/prisma/vector.d.ts",
+      "import": "./dist/schema/prisma/vector.js"
     }
   },
   "files": [
@@ -22,7 +80,7 @@
     "package.json"
   ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
@@ -31,6 +89,10 @@
   },
   "peerDependencies": {
     "pino": "^9.9.2",
-    "zod": "^4.1.1"
+    "zod": "^4.1.5"
+  },
+  "dependencies": {
+    "pino": "^9.9.2",
+    "zod": "^4.1.5"
   }
 }

@@ -1,7 +1,7 @@
 import { publicProcedure, router } from "@/server/trpc/server.ts";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { LanguageSchema } from "@cat/shared";
+import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
 
 export const languageRouter = router({
   listAll: publicProcedure

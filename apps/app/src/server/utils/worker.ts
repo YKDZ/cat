@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@cat/db";
-import { logger } from "@cat/shared";
+import { logger } from "@cat/shared/utils";
 import type { Job, Worker } from "bullmq";
 
 export const registerTaskUpdateHandlers = (

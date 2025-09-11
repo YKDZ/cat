@@ -5,7 +5,7 @@ import InputLabel from "@/app/components/InputLabel.vue";
 import RangeInput from "./RangeInput.vue";
 import { storeToRefs } from "pinia";
 import { useProfileStore } from "../stores/profile";
-import { toShortFixed } from "@cat/shared";
+import { toShortFixed } from "@cat/shared/utils";
 import Toggler from "./Toggler.vue";
 import { useI18n } from "vue-i18n";
 

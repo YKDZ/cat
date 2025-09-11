@@ -5,7 +5,7 @@ import { provide, ref, watch } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { documentKey } from "../utils/provide";
 import { useDocumentStore } from "../stores/document";
-import type { Document } from "@cat/shared";
+import type { Document } from "@cat/shared/schema/prisma/document";
 import DocumentHeader from "../components/DocumentHeader.vue";
 import { storeToRefs } from "pinia";
 

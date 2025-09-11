@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import { toShortFixed, type Memory, type MemorySuggestion } from "@cat/shared";
+import { toShortFixed } from "@cat/shared/utils";
+import { type Memory } from "@cat/shared/schema/prisma/memory";
+import { type MemorySuggestion } from "@cat/shared/schema/misc";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useEditorStore } from "../stores/editor";
-import { useToastStore } from "../stores/toast";
+import { useEditorStore } from "@/app/stores/editor";
+import { useToastStore } from "@/app/stores/toast";
 import TextTagger from "./tagger/TextTagger.vue";
 import UserAvatar from "./UserAvatar.vue";
-import { useHotKeys } from "../utils/magic-keys";
+import { useHotKeys } from "@/app/utils/magic-keys";
 
 const { info } = useToastStore();
 const { replace } = useEditorStore();

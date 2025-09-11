@@ -1,5 +1,4 @@
 import type { Pinia, StateTree } from "pinia";
-import type { User, HTTPHelpers } from "@cat/shared";
 import type { PluginRegistry } from "@cat/plugin-core";
 import type * as Vue from "vue";
 import type {
@@ -9,6 +8,8 @@ import type {
   VueMessageType,
 } from "vue-i18n";
 import type { ESDB, PrismaDB, RedisDB } from "@cat/db";
+import type { User } from "@cat/shared/schema/prisma/user";
+import type { HTTPHelpers } from "@cat/shared/utils";
 
 declare global {
   namespace Vike {

@@ -1,7 +1,7 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc";
-import { LanguageSchema } from "./misc";
-import { TranslationVoteSchema } from "./translation";
+import { PrimsaDateTime } from "../misc.ts";
+import { LanguageSchema } from "./misc.ts";
+import { TranslationVoteSchema } from "./translation.ts";
 
 export const UserSchema = z.object({
   id: z.ulid(),

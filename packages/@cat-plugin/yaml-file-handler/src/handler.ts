@@ -7,8 +7,9 @@ import {
   YAMLMap,
   YAMLSeq,
 } from "yaml";
-import type { File, TranslatableElement } from "@cat/shared";
-import type { TranslatableElementData } from "@cat/shared";
+import type { File } from "@cat/shared/schema/prisma/file";
+import type { TranslatableElementData } from "@cat/shared/schema/misc";
+import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 
 type YamlValue = string | number | boolean | null | YamlObject | YamlArray;

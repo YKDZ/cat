@@ -1,4 +1,4 @@
-import type { PrismaClient } from "../generated/prisma/client";
+import type { PrismaClient } from "../generated/prisma/client.ts";
 
 export const setting = async <T>(
   key: string,

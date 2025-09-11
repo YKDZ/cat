@@ -3,7 +3,7 @@ import { computed, inject, ref, watch } from "vue";
 import { schemaKey, transferDataToString } from "..";
 import Picker from "../../picker/Picker.vue";
 import type { PickerOption } from "../../picker";
-import type { JSONType } from "@cat/shared";
+import type { JSONType } from "@cat/shared/schema/json";
 import RendererLabel from "../utils/RendererLabel.vue";
 
 const props = defineProps<{

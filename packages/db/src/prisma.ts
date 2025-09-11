@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "./generated/prisma/client";
+import { PrismaClient } from "./generated/prisma/client.ts";
 
 export class PrismaDB {
   public client: PrismaClient;
@@ -12,15 +12,15 @@ export class PrismaDB {
     this.client = new PrismaClient({ adapter });
   }
 
-  async connect() {
+  async connect(): Promise<void> {
     await this.client.$connect();
   }
 
-  async disconnect() {
+  async disconnect(): Promise<void> {
     await this.client.$disconnect();
   }
 
-  async ping() {
+  async ping(): Promise<void> {
     await this.client.$queryRaw`SELECT 1`;
   }
 }

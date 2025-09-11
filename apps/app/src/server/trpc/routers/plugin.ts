@@ -1,11 +1,3 @@
-import {
-  logger,
-  PluginConfigInstanceSchema,
-  PluginConfigSchema,
-  PluginInstallationSchema,
-  PluginSchema,
-  TranslationAdvisorDataSchema,
-} from "@cat/shared";
 import { z } from "zod";
 import { authedProcedure, router } from "@/server/trpc/server.ts";
 import {
@@ -13,6 +5,14 @@ import {
   resumeAllProcessors,
 } from "@/server/processor/index.ts";
 import { TRPCError } from "@trpc/server";
+import {
+  PluginConfigInstanceSchema,
+  PluginConfigSchema,
+  PluginInstallationSchema,
+  PluginSchema,
+} from "@cat/shared/schema/prisma/plugin";
+import { logger } from "@cat/shared/utils";
+import { TranslationAdvisorDataSchema } from "@cat/shared/schema/misc";
 
 export const pluginRouter = router({
   delete: authedProcedure

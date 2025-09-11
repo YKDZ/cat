@@ -1,13 +1,9 @@
-import type { JSONSchema } from "@cat/shared";
-import {
-  AuthMethodSchema,
-  JSONSchemaSchema,
-  type AuthMethod,
-} from "@cat/shared";
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { publicProcedure, router } from "@/server/trpc/server.ts";
+import { JSONSchemaSchema } from "@cat/shared/schema/json";
+import { AuthMethodSchema, type AuthMethod } from "@cat/shared/schema/misc";
 
 export const authRouter = router({
   queryPreAuthFormSchema: publicProcedure
@@ -37,9 +33,7 @@ export const authRouter = router({
 
       if (typeof provider.getPreAuthFormSchema !== "function") return {};
 
-      return JSONSchemaSchema.parse(
-        provider.getPreAuthFormSchema(),
-      ) satisfies JSONSchema;
+      return JSONSchemaSchema.parse(provider.getPreAuthFormSchema());
     }),
   preAuth: publicProcedure
     .input(

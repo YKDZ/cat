@@ -1,5 +1,5 @@
 import { trpc } from "@/server/trpc/client";
-import type { Project } from "@cat/shared";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
 

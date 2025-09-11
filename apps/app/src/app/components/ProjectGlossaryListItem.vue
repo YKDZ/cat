@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Glossary } from "@cat/shared";
+import type { Glossary } from "@cat/shared/schema/prisma/glossary";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
 import { inject, onMounted, ref, watch } from "vue";

@@ -23,18 +23,22 @@
     "manifest.json"
   ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@elastic/elasticsearch": "^9.1.1"
-  },
-  "peerDependencies": {
+    "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@elastic/elasticsearch": "^9.1.1",
+    "zod": "^4.1.5"
+  },
+  "peerDependencies": {
     "@cat/db": "workspace:*",
-    "zod": "^4.1.1"
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*"

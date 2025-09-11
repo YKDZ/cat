@@ -2,7 +2,7 @@
 import { inject, onMounted, ref } from "vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
-import type { MemoryItem } from "@cat/shared";
+import type { MemoryItem } from "@cat/shared/schema/prisma/memory";
 import { memoryKey } from "@/app/utils/provide";
 import { trpc } from "@/server/trpc/client";
 import type { TermListFilterOptions } from ".";

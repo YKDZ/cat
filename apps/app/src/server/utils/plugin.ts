@@ -1,13 +1,12 @@
 import type { OverallPrismaClient, PrismaClient, ScopeType } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import type { PluginData } from "@cat/shared";
+import { JSONSchemaSchema } from "@cat/shared/schema/json";
 import {
-  getDefaultFromSchema,
-  JSONSchemaSchema,
-  logger,
   PluginDataSchema,
   PluginManifestSchema,
-} from "@cat/shared";
+  type PluginData,
+} from "@cat/shared/schema/plugin";
+import { getDefaultFromSchema, logger } from "@cat/shared/utils";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import z from "zod";
@@ -34,7 +33,9 @@ const loadPluginData = async (dir: string): Promise<PluginData> => {
   });
 };
 
-export const importLocalPlugins = async (prisma: PrismaClient) => {
+export const importLocalPlugins = async (
+  prisma: PrismaClient,
+): Promise<void> => {
   await prisma.$transaction(async (tx) => {
     const existPluginIds: string[] = [];
 
@@ -58,7 +59,9 @@ export const importLocalPlugins = async (prisma: PrismaClient) => {
   });
 };
 
-export const installDefaultPlugins = async (prisma: PrismaClient) => {
+export const installDefaultPlugins = async (
+  prisma: PrismaClient,
+): Promise<void> => {
   const localPlugins = [
     "email-password-auth-provider",
     "es-term-service",
@@ -95,7 +98,7 @@ export const importPlugin = async (
   prisma: OverallPrismaClient,
   id: string,
   pluginsDir: string = join(process.cwd(), "plugins"),
-) => {
+): Promise<void> => {
   logger.info("PLUGIN", { msg: "Importing plugin...", id });
 
   const dir = join(pluginsDir, id);
@@ -190,7 +193,10 @@ export const importPlugin = async (
 };
 
 type ServiceConfig = {
-  getter: (prisma: OverallPrismaClient, pluginId: string) => Promise<any[]>;
+  getter: (
+    prisma: OverallPrismaClient,
+    pluginId: string,
+  ) => Promise<{ getId: () => string }[]>;
   key: Services;
 };
 
@@ -238,7 +244,7 @@ export const installPlugin = async (
   pluginId: string,
   scopeType: ScopeType,
   scopeId: string,
-) => {
+): Promise<void> => {
   const dbPlugin = await prisma.plugin.findUnique({
     where: { id: pluginId },
   });
@@ -298,7 +304,7 @@ export const uninstallPlugin = async (
   pluginId: string,
   scopeType: ScopeType,
   scopeId: string,
-) => {
+): Promise<void> => {
   const dbPlugin = await prisma.plugin.findUnique({
     where: { id: pluginId },
   });
@@ -326,7 +332,7 @@ const importPluginServices = async <
   pluginInstallationId: number,
   getServices: (prisma: OverallPrismaClient, pluginId: string) => Promise<T[]>,
   key: Services,
-) => {
+): Promise<void> => {
   const ids = (await getServices(prisma, pluginId)).map((service) => {
     return service.getId();
   });

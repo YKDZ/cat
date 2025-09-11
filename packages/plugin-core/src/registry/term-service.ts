@@ -1,4 +1,4 @@
-import type { TermRelation } from "@cat/shared";
+import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
 
 export interface TermFormatter {
   format(

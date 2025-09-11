@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AuthError from "@/app/components/AuthError.vue";
-import type { AuthMethod } from "@cat/shared";
+import type { MemoryItem } from "@cat/shared/schema/misc";
 import { useData } from "vike-vue/useData";
 import { ref } from "vue";
 import logoUrl from "@/app/assets/logo.png";

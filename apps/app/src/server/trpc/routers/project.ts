@@ -1,8 +1,8 @@
-import type { PrismaError } from "@cat/shared";
-import { ProjectSchema } from "@cat/shared";
+import type { PrismaError } from "@cat/shared/schema/misc";
+import { ProjectSchema } from "@cat/shared/schema/prisma/project";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { authedProcedure, publicProcedure, router } from "../server";
+import { authedProcedure, publicProcedure, router } from "../server.ts";
 
 export const projectRouter = router({
   delete: authedProcedure

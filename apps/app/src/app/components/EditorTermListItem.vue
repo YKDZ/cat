@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
-import { useToastStore } from "../stores/toast";
+import { useEditorStore } from "@/app/stores/editor";
+import { useToastStore } from "@/app/stores/toast";
 import TextTagger from "./tagger/TextTagger.vue";
 import Icon from "./Icon.vue";
-import type { Glossary, Term, TermRelation } from "@cat/shared";
+import type {
+  Glossary,
+  Term,
+  TermRelation,
+} from "@cat/shared/schema/prisma/glossary";
 import { onMounted, ref } from "vue";
 import { trpc } from "@/server/trpc/client";
 import { useI18n } from "vue-i18n";
-import { useHotKeys } from "../utils/magic-keys";
+import { useHotKeys } from "@/app/utils/magic-keys";
 
 const props = defineProps<{
   term: TermRelation;
