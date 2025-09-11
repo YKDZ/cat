@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
-import type { Project } from "@cat/shared";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import { navigate } from "vike/client/router";
 
 const props = defineProps<{

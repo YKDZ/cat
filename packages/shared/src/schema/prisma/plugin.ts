@@ -1,7 +1,7 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc";
-import { UserSchema } from "./user";
-import { JSONSchemaSchema } from "../json";
+import { PrimsaDateTime } from "../misc.ts";
+import { UserSchema } from "./user.ts";
+import { JSONSchemaSchema } from "../json.ts";
 
 export const PluginInstallationSchema = z.object({
   id: z.int(),

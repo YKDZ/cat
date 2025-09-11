@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PluginTag } from "@cat/shared";
+import type { PluginTag } from "@cat/shared/schema/prisma/plugin";
 import PluginTagItem from "./PluginTagItem.vue";
 
 const props = defineProps<{

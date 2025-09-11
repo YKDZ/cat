@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { MemoryItem } from "@cat/shared";
+import type { MemoryItem } from "@cat/shared/schema/prisma/memory";
 import { useToastStore } from "@/app/stores/toast";
 
 import TableCell from "@/app/components/table/TableCell.vue";

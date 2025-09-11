@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { Document } from "@cat/shared/schema/prisma/document";
 import { navigate } from "vike/client/router";
 import { inject } from "vue";
 import { languageKey, projectKey } from "../utils/provide";

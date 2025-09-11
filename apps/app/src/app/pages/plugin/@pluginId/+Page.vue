@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { usePluginStore } from "@/app/stores/plugin";
-import type { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import { storeToRefs } from "pinia";
 
 const { pluginId } = usePageContext().routeParams;

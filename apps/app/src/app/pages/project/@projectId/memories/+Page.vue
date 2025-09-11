@@ -3,7 +3,7 @@ import ProjectMemoryList from "@/app/components/ProjectMemoryList.vue";
 import ProjectMemoryLinkerBtn from "@/app/components/ProjectMemoryLinkerBtn.vue";
 import { projectKey } from "@/app/utils/provide";
 import { trpc } from "@/server/trpc/client";
-import type { Memory } from "@cat/shared";
+import type { Memory } from "@cat/shared/schema/prisma/memory";
 import { inject, onMounted, ref, watch } from "vue";
 
 const project = inject(projectKey);

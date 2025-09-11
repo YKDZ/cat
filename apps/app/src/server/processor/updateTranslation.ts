@@ -1,8 +1,8 @@
 import { getPrismaDB, insertVector } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
-import { config } from "./config";
-import { registerTaskUpdateHandlers } from "../utils/worker";
+import { config } from "./config.ts";
+import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
 
 const { client: prisma } = await getPrismaDB();
 

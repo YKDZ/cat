@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { trpc } from "@/server/trpc/client";
-import type { TermRelation } from "@cat/shared";
+import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
 import { useToastStore } from "@/app/stores/toast";
 
 import TableCell from "@/app/components/table/TableCell.vue";

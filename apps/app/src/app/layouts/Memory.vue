@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared";
+import type { Memory } from "@cat/shared/schema/prisma/memory";
 import IndexSidebar from "../components/IndexSidebar.vue";
 import { provide, ref, watch } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";

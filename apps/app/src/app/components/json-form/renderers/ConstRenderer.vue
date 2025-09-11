@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { schemaKey, transferDataToString } from "..";
-import type { JSONType } from "@cat/shared";
+import type { JSONType } from "@cat/shared/schema/json";
 import RendererLabel from "../utils/RendererLabel.vue";
 
 const props = defineProps<{

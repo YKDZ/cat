@@ -1,5 +1,4 @@
 import { mimeFromFileName, setting } from "@cat/db";
-import { useStringTemplate } from "@cat/shared";
 import { Queue, Worker } from "bullmq";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
@@ -9,6 +8,7 @@ import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
 import { getPrismaDB } from "@cat/db";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker";
+import { useStringTemplate } from "@cat/shared/utils";
 
 const { client: prisma } = await getPrismaDB();
 

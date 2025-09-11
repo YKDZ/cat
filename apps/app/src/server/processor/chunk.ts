@@ -2,8 +2,9 @@ import { Queue, Worker } from "bullmq";
 import { config } from "./config";
 import z from "zod";
 import { randomUUID } from "node:crypto";
-import { logger, type JSONType } from "@cat/shared";
 import { getPrismaDB, getRedisDB } from "@cat/db";
+import { logger } from "@cat/shared/utils";
+import type { JSONType } from "@cat/shared/schema/json";
 
 export type ChunkData<T> = {
   chunkIndex: number;
@@ -151,7 +152,7 @@ const runDistributedTask = async <T>(
 
   return new Promise((resolve, reject) => {
     void (async () => {
-      await redisSub.subscribe(`${jobId}:events`, async (message) => {
+      await redisSub.subscribe(`${jobId}:events`, async (message: string) => {
         try {
           const event = TaskEventSchema.parse(JSON.parse(message));
           if (event.type === "chunk:done") {

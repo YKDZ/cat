@@ -1,10 +1,11 @@
-import { FileMetaSchema, UserSchema } from "@cat/shared";
 import { authedProcedure, router } from "../server.ts";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { useStorage } from "@/server/utils/storage/useStorage.ts";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
+import { UserSchema } from "@cat/shared/schema/prisma/user";
+import { FileMetaSchema } from "@cat/shared/schema/misc";
 
 export const userRouter = router({
   query: authedProcedure

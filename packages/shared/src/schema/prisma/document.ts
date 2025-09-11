@@ -1,9 +1,9 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc";
-import { FileSchema } from "./file";
-import { UserSchema } from "./user";
-import { VectorSchema } from "./vector";
-import { ProjectSchema } from "./project";
+import { PrimsaDateTime } from "../misc.ts";
+import { FileSchema } from "./file.ts";
+import { UserSchema } from "./user.ts";
+import { VectorSchema } from "./vector.ts";
+import { ProjectSchema } from "./project.ts";
 
 export const DocumentSchema = z.object({
   id: z.ulid(),

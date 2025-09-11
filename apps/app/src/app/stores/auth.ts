@@ -1,4 +1,4 @@
-import type { AuthMethod } from "@cat/shared";
+import type { AuthMethod } from "@cat/shared/schema/misc";
 import type { TRPCError } from "@trpc/server";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";

@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import type { HttpContext } from "./context";
-import { logger } from "@cat/shared";
+import type { HttpContext } from "./context.ts";
+import { logger } from "@cat/shared/utils";
 
 const t = initTRPC.context<HttpContext>().create({
   errorFormatter: ({ shape }) => {

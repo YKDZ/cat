@@ -1,4 +1,4 @@
-import type { TermRelation } from "@cat/shared";
+import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
 import { getPrismaDB } from "@cat/db";
 import {
   TermFormatter,

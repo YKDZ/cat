@@ -2,7 +2,7 @@
 import Modal from "@/app/components/Modal.vue";
 import ImageCopper from "@/app/components/ImageCopper.vue";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file";
-import { FileMetaSchema } from "@cat/shared";
+import { FileMetaSchema } from "@cat/shared/schema/misc";
 import { trpc } from "@/server/trpc/client";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed, ref, shallowRef } from "vue";

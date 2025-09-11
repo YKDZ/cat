@@ -1,7 +1,7 @@
 import type { PageContextServer } from "vike/types";
-import { appRouter } from "./_app";
-import type { HttpContext } from "./context";
-import { EMPTY_CONTEXT } from "./context";
+import { appRouter } from "./_app.ts";
+import type { HttpContext } from "./context.ts";
+import { EMPTY_CONTEXT } from "./context.ts";
 
 export const useSSCTRPC = (
   ctx: PageContextServer,

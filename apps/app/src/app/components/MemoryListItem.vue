@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared";
+import type { Memory } from "@cat/shared/schema/prisma/memory";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
 import { computed, onMounted, watch } from "vue";

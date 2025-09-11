@@ -1,5 +1,5 @@
 import type { TextVectorizer } from "@cat/plugin-core";
-import type { UnvectorizedTextData } from "@cat/shared";
+import type { UnvectorizedTextData } from "@cat/shared/schema/misc";
 
 export const embed = async (text: string): Promise<number[]> => {
   const url = new URL(process.env.PLUGIN_TEI_VECTORIZER_API_URL ?? "");

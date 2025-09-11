@@ -1,9 +1,9 @@
-import { PrismaDB } from "./prisma";
-import { randomBytes } from "crypto";
-import { hashPassword } from "./utils/password";
-import type { PrismaClient } from "./generated/prisma/client";
+import { PrismaDB } from "./prisma.ts";
+import { randomBytes } from "node:crypto";
+import { hashPassword } from "./utils/password.ts";
+import type { PrismaClient } from "./generated/prisma/client.ts";
 
-const seed = async (prisma: PrismaClient) => {
+const seed = async (prisma: PrismaClient): Promise<void> => {
   await prisma.$transaction(async (tx) => {
     await tx.language.createMany({
       data: [

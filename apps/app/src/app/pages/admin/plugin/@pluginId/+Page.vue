@@ -2,7 +2,7 @@
 import PluginConfigs from "@/app/components/PluginConfigs.vue";
 import PluginDeleteBtn from "@/app/components/PluginDeleteBtn.vue";
 import { usePluginStore } from "@/app/stores/plugin";
-import type { Plugin, PluginConfig } from "@cat/shared";
+import type { Plugin, PluginConfig } from "@cat/shared/schema/prisma/plugin";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";

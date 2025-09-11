@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
 import { schemaKey, transferDataToString } from "..";
-import type { JSONType } from "@cat/shared";
+import type { JSONType } from "@cat/shared/schema/json";
 import Icon from "../../Icon.vue";
 import z from "zod";
 import RendererLabel from "../utils/RendererLabel.vue";

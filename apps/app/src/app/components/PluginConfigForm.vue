@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import type {
-  JSONSchema} from "@cat/shared";
+import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import {
-  type JSONType,
   type PluginConfig,
   type PluginConfigInstance,
-} from "@cat/shared";
+} from "@cat/shared/schema/prisma/plugin";
 import { trpc } from "@/server/trpc/client";
 import { ref } from "vue";
 import type { ScopeType } from "@cat/db";

@@ -15,23 +15,26 @@
     "package.json"
   ],
   "scripts": {
-    "build": "prisma generate && nx vite:build",
+    "build": "prisma generate && vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write .",
     "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
-    "@prisma/client": "6.15.0",
+    "@cat/shared": "workspace:*",
     "@prisma/adapter-pg": "6.15.0",
-    "redis": "^5.8.2"
+    "@prisma/client": "6.15.0",
+    "dotenv": "^17.2.1",
+    "redis": "^5.8.2",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "prisma": "6.15.0"
   },
   "peerDependencies": {
+    "@cat/shared": "workspace:*",
     "dotenv": "^17.2.1",
-    "zod": "^4.1.1",
-    "@cat/shared": "workspace:*"
+    "zod": "^4.1.5"
   }
 }

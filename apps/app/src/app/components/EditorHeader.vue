@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import Header from "./Header.vue";
 import { storeToRefs } from "pinia";
-import { useSidebarStore } from "../stores/sidebar";
-import { useEditorStore } from "../stores/editor";
-import type { Project } from "@cat/shared";
+import { useSidebarStore } from "@/app/stores/sidebar";
+import { useEditorStore } from "@/app/stores/editor";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import { ref, watch } from "vue";
-import { useProjectStore } from "../stores/project";
+import { useProjectStore } from "@/app/stores/project";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
 

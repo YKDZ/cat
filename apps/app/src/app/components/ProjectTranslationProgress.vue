@@ -5,7 +5,7 @@ import type { ProgressBarLine } from "./progress/bar";
 import Dot from "./Dot.vue";
 import { useProjectStore } from "../stores/project";
 import { storeToRefs } from "pinia";
-import { toShortFixed } from "@cat/shared";
+import { toShortFixed } from "@cat/shared/utils";
 
 const props = defineProps<{
   projectId: string;

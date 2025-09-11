@@ -1,5 +1,5 @@
+import { PluginConfigSchema } from "@/schema/prisma/plugin.ts";
 import { z } from "zod";
-import { PluginConfigSchema } from "./prisma";
 
 export const PluginConfigDataSchema = PluginConfigSchema.pick({
   key: true,
@@ -21,6 +21,6 @@ export const PluginDataSchema = PluginManifestSchema.extend({
   overview: z.string().nullable(),
 });
 
-export type PluginManifestSchema = z.infer<typeof PluginManifestSchema>;
+export type PluginManifest = z.infer<typeof PluginManifestSchema>;
 export type PluginData = z.infer<typeof PluginDataSchema>;
 export type PluginConfigData = z.infer<typeof PluginConfigDataSchema>;

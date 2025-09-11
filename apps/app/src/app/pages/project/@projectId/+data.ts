@@ -1,5 +1,5 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
-import type { Project } from "@cat/shared";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import { redirect } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 

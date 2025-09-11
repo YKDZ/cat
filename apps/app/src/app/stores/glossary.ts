@@ -1,5 +1,5 @@
 import { trpc } from "@/server/trpc/client.ts";
-import type { Glossary } from "@cat/shared";
+import type { Glossary } from "@cat/shared/schema/prisma/glossary";
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
 

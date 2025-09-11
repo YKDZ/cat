@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlowItem } from "@/app/components/flow";
 import { useToastStore } from "@/app/stores/toast";
-import type { Project } from "@cat/shared";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import { ref } from "vue";
 import CreateProject from "./CreateProject.vue";
 import UploadFiles from "./UploadFiles.vue";

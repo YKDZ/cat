@@ -1,4 +1,4 @@
-import type { User } from "@cat/shared";
+import type { User } from "@cat/shared/schema/prisma/user";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 

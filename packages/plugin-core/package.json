@@ -22,7 +22,7 @@
     "package.json"
   ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
@@ -34,6 +34,13 @@
     "@cat/shared": "workspace:*",
     "@types/lodash-es": "^4.17.12",
     "lodash-es": "^4.17.21",
-    "zod": "^4.1.1"
+    "zod": "^4.1.5"
+  },
+  "dependencies": {
+    "@cat/db": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@types/lodash-es": "^4.17.12",
+    "lodash-es": "^4.17.21",
+    "zod": "^4.1.5"
   }
 }

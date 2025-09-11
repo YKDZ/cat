@@ -1,7 +1,7 @@
 import { createPinia } from "pinia";
 import type { PageContextClient } from "vike/types";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
-import { getCookieFunc } from "@cat/shared";
+import { getCookieFunc } from "@cat/shared/utils";
 import { usePreferredLanguages } from "@vueuse/core";
 import { createI18n } from "vue-i18n";
 

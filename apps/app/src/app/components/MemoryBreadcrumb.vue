@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared";
+import type { Memory } from "@cat/shared/schema/prisma/memory";
 import Slash from "./Slash.vue";
 import UserAvatar from "./UserAvatar.vue";
 

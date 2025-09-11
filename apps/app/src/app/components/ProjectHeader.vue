@@ -4,7 +4,7 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { useSidebarStore } from "../stores/sidebar";
 import Header from "./Header.vue";
 import ProjectBreadcrumb from "./ProjectBreadcrumb.vue";
-import type { Project } from "@cat/shared";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import HButton from "./headless/HButton.vue";
 
 const { isFolding } = storeToRefs(useSidebarStore());

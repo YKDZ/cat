@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { authedProcedure, router } from "../server";
+import { authedProcedure, router } from "../server.ts";
 
 export const settingRouter = router({
   set: authedProcedure

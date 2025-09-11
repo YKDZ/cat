@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
-import { setting, settings } from "./setting";
-import { prisma } from "../__mocks__/prisma";
-import type { Setting } from "@cat/shared";
+import { setting, settings } from "./setting.ts";
+import { prisma } from "../__mocks__/prisma.ts";
+import type { Setting } from "@cat/shared/schema/prisma/misc";
 
 vi.mock("../prisma");
 

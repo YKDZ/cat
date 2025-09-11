@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { Document } from "@cat/shared/prisma/schema/document";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";
 import Header from "./Header.vue";
 import { ref } from "vue";

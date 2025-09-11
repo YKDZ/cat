@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { JSONSchema } from "@cat/shared";
+import type { JSONSchema } from "@cat/shared/schema/json";
 
 const props = defineProps<{
   propertyKey?: string;

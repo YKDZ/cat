@@ -23,7 +23,7 @@
     "manifest.json"
   ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
@@ -31,8 +31,13 @@
     "@cat/eslint-config": "workspace:*"
   },
   "peerDependencies": {
-    "@cat/plugin-core": "workspace:*",
     "@cat/db": "workspace:*",
-    "zod": "^4.1.1"
+    "@cat/plugin-core": "workspace:*",
+    "zod": "^4.1.5"
+  },
+  "dependencies": {
+    "@cat/db": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
+    "zod": "^4.1.5"
   }
 }

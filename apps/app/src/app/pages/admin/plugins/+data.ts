@@ -1,5 +1,5 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
-import type { Plugin } from "@cat/shared";
+import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import type { PageContextServer } from "vike/types";
 
 export const data = async (

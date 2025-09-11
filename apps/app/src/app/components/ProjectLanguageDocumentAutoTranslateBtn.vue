@@ -2,8 +2,9 @@
 import { trpc } from "@/server/trpc/client";
 import { computed, inject, onMounted, ref } from "vue";
 import { languageKey } from "../utils/provide";
-import type { TranslationAdvisorData } from "@cat/shared";
-import { toShortFixed, type Document } from "@cat/shared";
+import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
+import { toShortFixed } from "@cat/shared/utils";
+import { type Document } from "@cat/shared/schema/prisma/document";
 import Modal from "./Modal.vue";
 import { useToastStore } from "../stores/toast";
 import InputLabel from "./InputLabel.vue";

@@ -1,5 +1,5 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc";
+import { PrimsaDateTime } from "../misc.ts";
 
 export const RoleSchema = z.object({
   id: z.int(),

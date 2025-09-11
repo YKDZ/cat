@@ -1,6 +1,6 @@
 import { getPrismaDB, getRedisDB } from "@cat/db";
-import type { User } from "@cat/shared";
-import { UserSchema } from "@cat/shared";
+import type { User } from "@cat/shared/schema/prisma/user";
+import { UserSchema } from "@cat/shared/schema/prisma/user";
 
 export const userFromSessionId = async (
   sessionId: string | null,

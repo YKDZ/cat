@@ -6,7 +6,7 @@ import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import ArrayRenderer from "./renderers/ArrayRenderer.vue";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
-import type { JSONSchema, JSONType } from "@cat/shared";
+import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 
 export const schemaKey = Symbol() as InjectionKey<JSONSchema>;
 

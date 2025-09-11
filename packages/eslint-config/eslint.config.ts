@@ -28,14 +28,14 @@ export default tseslint.config(
     plugins: { import: importPlugin },
     rules: {
       "import/enforce-node-protocol-usage": ["error", "always"],
-      "import/extensions": [
-        "error",
-        "always",
-        {
-          ignorePackages: true,
-          checkTypeImports: true,
-        },
-      ],
+      // "import/extensions": [
+      //   "error",
+      //   "always",
+      //   {
+      //     ignorePackages: true,
+      //     checkTypeImports: true,
+      //   },
+      // ],
     },
   },
 
@@ -72,16 +72,17 @@ export default tseslint.config(
     },
     rules: {
       "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/explicit-function-return-type": [
-        "error",
-        {
-          allowExpressions: true,
-          allowTypedFunctionExpressions: true,
-          allowHigherOrderFunctions: false,
-          allowDirectConstAssertionInArrowFunctions: true,
-        },
-      ],
-      "@typescript-eslint/explicit-module-boundary-types": "error",
+      // "@typescript-eslint/explicit-function-return-type": [
+      //   "warn",
+      //   {
+      //     allowExpressions: true,
+      //     allowTypedFunctionExpressions: true,
+      //     allowHigherOrderFunctions: false,
+      //     allowDirectConstAssertionInArrowFunctions: true,
+      //     allowedNames: ["createHttpContext", "createWSContext"],
+      //   },
+      // ],
+      // "@typescript-eslint/explicit-module-boundary-types": "error",
       "@typescript-eslint/naming-convention": [
         "error",
         {

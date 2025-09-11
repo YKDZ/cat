@@ -1,18 +1,20 @@
-import type { JSONType } from "@cat/shared";
-import { logger, PluginManifestSchema } from "@cat/shared";
-import { existsSync, readdirSync } from "fs";
-import { readFile } from "fs/promises";
-import { join } from "path";
-import { pathToFileURL } from "url";
+import type { AuthProvider } from "@/registry/auth-provider.ts";
+import type { StorageProvider } from "@/registry/storage-provider.ts";
+import type { TermService } from "@/registry/term-service.ts";
+import type { TextVectorizer } from "@/registry/text-vectorizer.ts";
+import type { TranslatableFileHandler } from "@/registry/translatable-file-handler.ts";
+import type { TranslationAdvisor } from "@/registry/translation-advisor.ts";
+import { existsSync, readdirSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { z } from "zod";
-import type { AuthProvider } from "./auth-provider";
-import type { TextVectorizer } from "./text-vectorizer";
-import type { TranslatableFileHandler } from "./translatable-file-handler";
-import type { TranslationAdvisor } from "./translation-advisor";
+import type { JSONType } from "@cat/shared/schema/json";
 import type { OverallPrismaClient } from "@cat/db";
-import { getPluginConfigs } from "../utils/config";
-import { TermService } from "./term-service";
-import { StorageProvider } from "./storage-provider";
+import { logger } from "@cat/shared/utils";
+import { getPluginConfigs } from "@/utils/config.ts";
+import { PluginManifestSchema } from "@cat/shared/schema/plugin";
+import type { PluginManifest } from "@cat/shared/schema/plugin";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -60,7 +62,7 @@ export class PluginRegistry {
 
   public constructor() {}
 
-  public static get() {
+  public static get(): PluginRegistry {
     if (!globalThis["__PLUGIN_REGISTRY__"]) {
       const pluginRegistry = new PluginRegistry();
       globalThis["__PLUGIN_REGISTRY__"] = pluginRegistry;
@@ -71,7 +73,7 @@ export class PluginRegistry {
   public async loadPlugins(
     prisma: OverallPrismaClient,
     options?: LoadPluginsOptions,
-  ) {
+  ): Promise<void> {
     this.plugins.clear();
     if (!options?.silent)
       logger.info("PLUGIN", { msg: "Prepared to load plugins..." });
@@ -154,7 +156,7 @@ export class PluginRegistry {
     prisma: OverallPrismaClient,
     pluginId: string,
     instance: CatPlugin,
-  ) {
+  ): Promise<void> {
     this.plugins.set(pluginId, instance);
     const configs = await getPluginConfigs(prisma, pluginId);
 
@@ -389,12 +391,12 @@ export class PluginRegistry {
   public async reload(
     prisma: OverallPrismaClient,
     options?: LoadPluginsOptions,
-  ) {
+  ): Promise<void> {
     this.plugins = new Map();
     await this.loadPlugins(prisma, options);
   }
 
-  public async getPluginManifest(pluginId: string) {
+  public async getPluginManifest(pluginId: string): Promise<PluginManifest> {
     const dirPath = this.getPluginFsPath(pluginId);
     const manifestPath = join(dirPath, "manifest.json");
 

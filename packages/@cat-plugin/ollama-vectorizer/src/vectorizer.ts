@@ -1,5 +1,5 @@
 import type { PluginLoadOptions, TextVectorizer } from "@cat/plugin-core";
-import type { UnvectorizedTextData } from "@cat/shared";
+import type { UnvectorizedTextData } from "@cat/shared/schema/misc";
 
 export class Vectorizer implements TextVectorizer {
   private options: PluginLoadOptions;
