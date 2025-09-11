@@ -6,9 +6,14 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "vite/client"]
+    "types": [
+      "node",
+      "rolldown-vite/client"
+    ]
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts"
+  ],
   "references": [
     {
       "path": "../../shared/tsconfig.lib.json"
