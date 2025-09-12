@@ -1,4 +1,4 @@
-import type { Component, InjectionKey, DefineComponent } from "vue";
+import type { Component, InjectionKey } from "vue";
 import StringRenderer from "./renderers/StringRenderer.vue";
 import NumberRenderer from "./renderers/NumberRenderer.vue";
 import BooleanRenderer from "./renderers/BooleanRenderer.vue";

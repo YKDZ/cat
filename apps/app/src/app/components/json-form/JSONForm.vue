@@ -67,6 +67,12 @@ const dataOfPropertyKey = <T,>(key: string, fallback: T) => {
   return (props.data as Record<string, JSONType>)[key] as T;
 };
 
+const providedData = computed(() => {
+  const data = props.data ?? props.schema.default;
+  if (!data) throw new Error("No data provided");
+  return data;
+});
+
 provide(schemaKey, props.schema);
 </script>
 
@@ -74,7 +80,7 @@ provide(schemaKey, props.schema);
   <component
     :is="matchedRenderer"
     v-if="matchedRenderer"
-    :data="props.data ?? schema.default"
+    :data="providedData"
     :property-key="propertyKey"
     @_update="handleUpdate"
   />
