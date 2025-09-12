@@ -7,8 +7,6 @@ import {
 import { TRPCError } from "@trpc/server";
 import {
   PluginConfigInstanceSchema,
-  PluginConfigSchema,
-  PluginInstallationSchema,
   PluginSchema,
 } from "@cat/shared/schema/prisma/plugin";
 import { logger } from "@cat/shared/utils";
@@ -124,9 +122,8 @@ export const pluginRouter = router({
       }),
     )
     .output(
-      PluginSchema.extend({
-        Configs: z.array(PluginConfigSchema),
-        Installations: z.array(PluginInstallationSchema),
+      PluginSchema.required({
+        Installations: true,
       }).nullable(),
     )
     .query(async ({ ctx, input }) => {
@@ -134,9 +131,8 @@ export const pluginRouter = router({
         prismaDB: { client: prisma },
       } = ctx;
       const { id } = input;
-      return PluginSchema.extend({
-        Configs: z.array(PluginConfigSchema),
-        Installations: z.array(PluginInstallationSchema),
+      return PluginSchema.required({
+        Installations: true,
       })
         .nullable()
         .parse(
@@ -145,7 +141,7 @@ export const pluginRouter = router({
               id,
             },
             include: {
-              Configs: true,
+              Config: true,
               Installations: true,
             },
           }),
@@ -160,33 +156,6 @@ export const pluginRouter = router({
       return z.array(PluginSchema).parse(
         await prisma.plugin.findMany({
           include: {
-            Versions: true,
-            Permissions: true,
-            Tags: true,
-          },
-          orderBy: {
-            id: "asc",
-          },
-        }),
-      );
-    }),
-  listAllWithOverridableConfig: authedProcedure
-    .output(z.array(PluginSchema))
-    .query(async ({ ctx }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      return z.array(PluginSchema).parse(
-        await prisma.plugin.findMany({
-          where: {
-            Configs: {
-              some: {
-                overridable: true,
-              },
-            },
-          },
-          include: {
-            Configs: true,
             Versions: true,
             Permissions: true,
             Tags: true,

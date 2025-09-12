@@ -5,7 +5,7 @@ import { useLanguageStore } from "../stores/language";
 import type { PickerOption } from "./picker";
 import MultiPicker from "./picker/MultiPicker.vue";
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     filter?: (option: PickerOption) => boolean;
     width?: string;

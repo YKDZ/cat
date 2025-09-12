@@ -3,7 +3,7 @@ import type { Memory } from "@cat/shared/schema/prisma/memory";
 import Slash from "./Slash.vue";
 import UserAvatar from "./UserAvatar.vue";
 
-const props = defineProps<{
+defineProps<{
   memory: Memory;
 }>();
 </script>

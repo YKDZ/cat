@@ -1,5 +1,5 @@
 import { getPrismaDB, getRedisDB, setting } from "@cat/db";
-import { randomChars } from "./crypto";
+import { randomChars } from "./crypto.ts";
 import type { ProviderConfig } from "..";
 
 export const createOIDCSession = async (state: string, nonce: string) => {

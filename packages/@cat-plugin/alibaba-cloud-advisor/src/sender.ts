@@ -1,4 +1,5 @@
-import { createHash, createHmac } from "crypto";
+import { createHash, createHmac } from "node:crypto";
+import { request } from "undici";
 
 class Sender {
   /**
@@ -70,13 +71,13 @@ class Sender {
 
     // 5. 发送请求
     try {
-      const response = await fetch(url, {
+      const response = await request(url, {
         method: "POST",
         headers,
         body: bodyStr,
       });
 
-      return await response.json();
+      return await response.body.json();
     } catch (error) {
       throw new Error(`发送 POST 请求出现异常：${error}`);
     }

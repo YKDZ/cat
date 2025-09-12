@@ -4,6 +4,7 @@ import UnoCSS from "unocss/vite";
 import vike from "vike/plugin";
 import { defineConfig } from "rolldown-vite";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
+import vueDevTools from "vite-plugin-vue-devtools";
 
 export default defineConfig({
   resolve: {
@@ -26,6 +27,7 @@ export default defineConfig({
     vue({
       include: [/\.vue$/, /\.md$/],
     }),
+    vueDevTools(),
   ],
   build: {
     target: "esnext",

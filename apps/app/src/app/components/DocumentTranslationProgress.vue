@@ -6,6 +6,9 @@ import Dot from "./Dot.vue";
 import type { ProgressBarLine } from "./progress/bar";
 import ProgressBar from "./progress/bar/ProgressBar.vue";
 import { toShortFixed } from "@cat/shared/utils";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   documentId: string;
@@ -54,12 +57,12 @@ onMounted(async () => {
       <span v-if="progressBarLines[0]"
         >{{ toShortFixed(progressBarLines[0].progress * 100) }}%</span
       >
-      <span v-else>0%</span>
+      <span v-else>{{ t("0%") }}</span>
       <Dot class="color-highlight-content" />
       <span v-if="progressBarLines[1]"
         >{{ toShortFixed(progressBarLines[1].progress * 100) }}%</span
       >
-      <span v-else>0%</span>
+      <span v-else>{{ t("0%") }}</span>
     </div>
   </div>
 </template>

@@ -1,14 +1,15 @@
 {
+  "$schema": "../../plugin-core/manifest-schema.json",
   "id": "s3-storage-provider",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
     "storage-provider"
   ],
-  "configs": [
-    {
-      "key": "s3",
-      "schema": {
+  "config": {
+    "type": "object",
+    "properties": {
+      "s3": {
         "type": "object",
         "properties": {
           "endpoint-url": {
@@ -50,11 +51,8 @@
             "default": true
           }
         }
-      }
-    },
-    {
-      "key": "storage",
-      "schema": {
+      },
+      "storage": {
         "type": "object",
         "properties": {
           "basic-path": {
@@ -64,5 +62,5 @@
         }
       }
     }
-  ]
+  }
 }

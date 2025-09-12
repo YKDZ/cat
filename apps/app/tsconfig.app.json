@@ -1,17 +1,10 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": [
+    "../../tsconfig.base.json",
+    "@vue/tsconfig/tsconfig.dom.json"
+  ],
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "jsx": "preserve",
-    "jsxImportSource": "vue",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "emitDeclarationOnly": true,
+    "composite": true,
     "resolveJsonModule": true,
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "paths": {

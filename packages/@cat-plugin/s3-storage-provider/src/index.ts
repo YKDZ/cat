@@ -3,23 +3,13 @@ import type {
   PluginGetterOptions,
   PluginLoadOptions,
 } from "@cat/plugin-core";
-import { S3StorageProvider } from "./provider";
+import { S3StorageProvider } from "./provider.ts";
 
 class Plugin implements CatPlugin {
-  public options: PluginLoadOptions | null = null;
-
-  async onLoaded(options: PluginLoadOptions) {
-    this.options = options;
-  }
+  async onLoaded(options: PluginLoadOptions) {}
 
   getStorageProviders(options: PluginGetterOptions) {
-    return [
-      new S3StorageProvider(
-        !options || !options.configs || options.configs.length === 0
-          ? this.options!.configs!
-          : options.configs,
-      ),
-    ];
+    return [new S3StorageProvider(options.config ?? {})];
   }
 }
 

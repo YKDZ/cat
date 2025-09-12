@@ -9,31 +9,29 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
-import type { JSONType } from "@cat/shared/schema/json";
-import type { OverallPrismaClient } from "@cat/db";
-import { logger } from "@cat/shared/utils";
-import { getPluginConfigs } from "@/utils/config.ts";
+import { JSONSchemaSchema, type JSONType } from "@cat/shared/schema/json";
+import { OverallPrismaClient, PrismaClient, ScopeType } from "@cat/db";
+import { getDefaultFromSchema, logger } from "@cat/shared/utils";
+import { getPluginConfig } from "@/utils/config.ts";
 import { PluginManifestSchema } from "@cat/shared/schema/plugin";
 import type { PluginManifest } from "@cat/shared/schema/plugin";
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   var __PLUGIN_REGISTRY__: PluginRegistry | undefined;
 }
 
 const pluginsDir = join(process.cwd(), "plugins");
 
 export type PluginLoadOptions = {
-  configs: Record<string, JSONType>;
+  config: JSONType;
 };
 
 export type LoadPluginsOptions = {
-  silent?: boolean;
   tags?: string[];
 };
 
 export type PluginGetterOptions = {
-  configs?: Record<string, JSONType>;
+  config?: JSONType;
 };
 
 export type GetterOptions = {
@@ -42,7 +40,8 @@ export type GetterOptions = {
 };
 
 export interface CatPlugin {
-  onLoaded: (options: PluginLoadOptions) => Promise<void>;
+  onInstalled?: () => Promise<void>;
+  onLoaded?: (options: PluginLoadOptions) => Promise<void>;
   getTextVectorizers?: (options: PluginGetterOptions) => TextVectorizer[];
   getTranslatableFileHandlers?: (
     options: PluginGetterOptions,
@@ -54,6 +53,79 @@ export interface CatPlugin {
   getTermServices?: (options: PluginGetterOptions) => TermService[];
   getStorageProviders?: (options: PluginGetterOptions) => StorageProvider[];
 }
+
+type ServiceConfig = {
+  getter: (
+    prisma: OverallPrismaClient,
+    pluginId: string,
+    plugin: CatPlugin,
+  ) => Promise<{ getId: () => string }[]>;
+  key: Services;
+};
+
+type Services = keyof Pick<
+  OverallPrismaClient,
+  | "authProvider"
+  | "termService"
+  | "translationAdvisor"
+  | "storageProvider"
+  | "textVectorizer"
+  | "translatableFileHandler"
+>;
+
+const createServiceConfigs = (
+  pluginRegistry: PluginRegistry,
+): ServiceConfig[] => [
+  {
+    getter: pluginRegistry.getAuthProviderFromObject.bind(pluginRegistry),
+    key: "authProvider",
+  },
+  {
+    getter: pluginRegistry.getStorageProviderFromObject.bind(pluginRegistry),
+    key: "storageProvider",
+  },
+  {
+    getter:
+      pluginRegistry.getTranslatableFileHandlerFromObject.bind(pluginRegistry),
+    key: "translatableFileHandler",
+  },
+  {
+    getter: pluginRegistry.getTextVectorizerFromObject.bind(pluginRegistry),
+    key: "textVectorizer",
+  },
+  {
+    getter: pluginRegistry.getTranslationAdvisorFromObject.bind(pluginRegistry),
+    key: "translationAdvisor",
+  },
+  {
+    getter: pluginRegistry.getTermServiceFromObject.bind(pluginRegistry),
+    key: "termService",
+  },
+];
+
+const importPluginServices = async <
+  T extends {
+    getId(): string;
+  },
+>(
+  prisma: OverallPrismaClient,
+  pluginId: string,
+  plugin: CatPlugin,
+  pluginInstallationId: number,
+  getServices: (
+    prisma: OverallPrismaClient,
+    pluginId: string,
+    plugin: CatPlugin,
+  ) => Promise<T[]>,
+  key: Services,
+): Promise<void> => {
+  const ids = (await getServices(prisma, pluginId, plugin)).map((service) => {
+    return service.getId();
+  });
+  await prisma[key].createMany({
+    data: ids.map((id) => ({ serviceId: id, pluginInstallationId })),
+  });
+};
 
 const PluginObjectSchema = z.custom<CatPlugin>();
 
@@ -70,13 +142,99 @@ export class PluginRegistry {
     return globalThis["__PLUGIN_REGISTRY__"]!;
   }
 
+  public async installPlugin(
+    prisma: PrismaClient,
+    pluginId: string,
+    scopeType: ScopeType,
+    scopeId: string,
+  ) {
+    const dbPlugin = await prisma.plugin.findUnique({
+      where: { id: pluginId },
+      select: {
+        entry: true,
+      },
+    });
+
+    if (!dbPlugin) throw new Error(`Plugin ${pluginId} not found`);
+
+    const serviceConfigs = createServiceConfigs(this);
+
+    logger.info("PLUGIN", {
+      msg: `About to install plugin ${pluginId} in ${scopeType} ${scopeId}`,
+    });
+
+    const pluginObj = await this.getPluginObject(pluginId, dbPlugin.entry);
+    if (pluginObj.onInstalled) await pluginObj.onInstalled();
+
+    await prisma.$transaction(async (tx) => {
+      const installation = await tx.pluginInstallation.create({
+        data: { pluginId, scopeType, scopeId },
+      });
+
+      const pluginConfigs = await tx.pluginConfig.findMany({
+        where: {
+          pluginId,
+        },
+        select: { id: true, schema: true },
+      });
+
+      for (const { id, schema } of pluginConfigs) {
+        const defaultValue =
+          getDefaultFromSchema(JSONSchemaSchema.parse(schema)) ?? {};
+
+        console.log(defaultValue);
+
+        await tx.pluginConfigInstance.create({
+          data: {
+            configId: id,
+            pluginInstallationId: installation.id,
+            value: defaultValue,
+          },
+        });
+      }
+
+      for (const { getter, key } of serviceConfigs) {
+        await importPluginServices(
+          tx,
+          pluginId,
+          pluginObj,
+          installation.id,
+          getter,
+          key,
+        );
+      }
+    });
+  }
+
+  public async uninstallPlugin(
+    prisma: PrismaClient,
+    pluginId: string,
+    scopeType: ScopeType,
+    scopeId: string,
+  ) {
+    const dbPlugin = await prisma.plugin.findUnique({
+      where: { id: pluginId },
+    });
+
+    if (!dbPlugin) throw new Error(`Plugin ${pluginId} not found`);
+
+    const installation = await prisma.pluginInstallation.findUnique({
+      where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
+    });
+
+    if (!installation) throw new Error(`Plugin ${pluginId} not installed`);
+
+    await prisma.pluginInstallation.delete({
+      where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
+    });
+  }
+
   public async loadPlugins(
     prisma: OverallPrismaClient,
     options?: LoadPluginsOptions,
   ): Promise<void> {
     this.plugins.clear();
-    if (!options?.silent)
-      logger.info("PLUGIN", { msg: "Prepared to load plugins..." });
+    logger.info("PLUGIN", { msg: "Prepared to load plugins..." });
 
     const plugins = await prisma.plugin.findMany({
       where: {
@@ -100,56 +258,37 @@ export class PluginRegistry {
     });
 
     if (plugins.length === 0) {
-      if (!options?.silent)
-        logger.info("PLUGIN", { msg: "No plugins to load." });
+      logger.info("PLUGIN", { msg: "No plugins to load." });
+      return;
     }
 
     for (const { id, entry } of plugins) {
       try {
-        if (entry) {
-          try {
-            const pluginFsPath = this.getPluginEntryFsPath(id, entry);
-            // Vite build will sometimes remove inline /* @vite-ignore */ comments
-            // and cause runtime warning
-            const pluginUrl =
-              /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
-            if (!options?.silent)
-              logger.info("PLUGIN", {
-                msg: `About to load plugin '${id}' from: ${pluginUrl}`,
-              });
-            const imported = await import(/* @vite-ignore */ pluginUrl);
-            const pluginObj = PluginObjectSchema.parse(
-              imported.default ?? imported,
-            );
+        logger.info("PLUGIN", {
+          msg: `About to load plugin '${id}'`,
+        });
 
-            await this.loadPlugin(prisma, id, pluginObj);
+        const pluginObj = await this.getPluginObject(id, entry);
 
-            if (!options?.silent)
-              logger.info("PLUGIN", {
-                msg: `Successfully loaded plugin: ${id}`,
-              });
-          } catch (importErr) {
-            logger.error(
-              "PLUGIN",
-              { msg: `Failed to load plugin '${id}'` },
-              importErr,
-            );
-            continue;
-          }
-        } else {
-          if (!options?.silent)
-            logger.info("PLUGIN", {
-              msg: `Successfully loaded plugin ${id} without entry`,
-            });
-        }
-      } catch (loadErr) {
-        logger.error(
-          "PLUGIN",
-          { msg: `Unexpected error loading plugin '${id}'` },
-          loadErr,
-        );
+        await this.loadPlugin(prisma, id, pluginObj);
+
+        logger.info("PLUGIN", {
+          msg: `Successfully loaded plugin: ${id}`,
+        });
+      } catch (err) {
+        logger.error("PLUGIN", { msg: `Failed to load plugin '${id}'` }, err);
+        continue;
       }
     }
+  }
+
+  private async getPluginObject(pluginId: string, entry: string) {
+    const pluginFsPath = this.getPluginEntryFsPath(pluginId, entry);
+    // Vite build will sometimes remove inline /* @vite-ignore */ comments
+    // and cause runtime warning
+    const pluginUrl = /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
+    const imported = await import(/* @vite-ignore */ pluginUrl);
+    return PluginObjectSchema.parse(imported.default ?? imported);
   }
 
   private async loadPlugin(
@@ -158,15 +297,26 @@ export class PluginRegistry {
     instance: CatPlugin,
   ): Promise<void> {
     this.plugins.set(pluginId, instance);
-    const configs = await getPluginConfigs(prisma, pluginId);
+    const config = await getPluginConfig(prisma, pluginId);
 
     logger.debug("PLUGIN", {
-      msg: `About to load plugin '${pluginId}' with configs: ${JSON.stringify(configs)}`,
+      msg: `About to load plugin '${pluginId}' with configs: ${JSON.stringify(config)}`,
     });
 
-    await instance.onLoaded({
-      configs,
-    });
+    try {
+      if (instance.onLoaded)
+        await instance.onLoaded({
+          config,
+        });
+    } catch (err) {
+      logger.error(
+        "PLUGIN",
+        {
+          msg: `Error when running plugin '${pluginId}''s 'onLoaded' hook`,
+        },
+        err,
+      );
+    }
   }
 
   public getPluginEntryFsPath(id: string, entry: string): string {
@@ -276,28 +426,25 @@ export class PluginRegistry {
 
   private async getPluginService<T>(
     prisma: OverallPrismaClient,
+    plugin: CatPlugin,
     pluginId: string,
     getterMethodName: keyof CatPlugin,
     options?: GetterOptions,
   ): Promise<T[]> {
-    const plugin = this.plugins.get(pluginId);
-
-    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
-
     const getter = plugin[getterMethodName] as
       | ((options: PluginGetterOptions) => T[])
       | undefined;
 
     if (!plugin || !getter) return [];
 
-    const configs =
-      (await getPluginConfigs(prisma, pluginId, {
+    const config =
+      (await getPluginConfig(prisma, pluginId, {
         projectId: options?.projectId,
         userId: options?.userId,
       })) ?? {};
 
     try {
-      return getter.bind(plugin)({ configs }) ?? [];
+      return getter.bind(plugin)({ config }) ?? [];
     } catch (e) {
       logger.error(
         "PLUGIN",
@@ -310,15 +457,47 @@ export class PluginRegistry {
     }
   }
 
+  public async getTranslationAdvisorFromObject(
+    prisma: OverallPrismaClient,
+    pluginId: string,
+    plugin: CatPlugin,
+    options?: GetterOptions,
+  ): Promise<TranslationAdvisor[]> {
+    return this.getPluginService<TranslationAdvisor>(
+      prisma,
+      plugin,
+      pluginId,
+      "getTranslationAdvisors",
+      options,
+    );
+  }
+
   public async getTranslationAdvisor(
     prisma: OverallPrismaClient,
     pluginId: string,
     options?: GetterOptions,
   ): Promise<TranslationAdvisor[]> {
-    return this.getPluginService<TranslationAdvisor>(
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+    return this.getTranslationAdvisorFromObject(
       prisma,
       pluginId,
-      "getTranslationAdvisors",
+      plugin,
+      options,
+    );
+  }
+
+  public async getTextVectorizerFromObject(
+    prisma: OverallPrismaClient,
+    pluginId: string,
+    plugin: CatPlugin,
+    options?: GetterOptions,
+  ): Promise<TextVectorizer[]> {
+    return this.getPluginService<TextVectorizer>(
+      prisma,
+      plugin,
+      pluginId,
+      "getTextVectorizers",
       options,
     );
   }
@@ -328,10 +507,22 @@ export class PluginRegistry {
     pluginId: string,
     options?: GetterOptions,
   ): Promise<TextVectorizer[]> {
-    return this.getPluginService<TextVectorizer>(
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+    return this.getTextVectorizerFromObject(prisma, pluginId, plugin, options);
+  }
+
+  public async getTranslatableFileHandlerFromObject(
+    prisma: OverallPrismaClient,
+    pluginId: string,
+    plugin: CatPlugin,
+    options?: GetterOptions,
+  ): Promise<TranslatableFileHandler[]> {
+    return this.getPluginService<TranslatableFileHandler>(
       prisma,
+      plugin,
       pluginId,
-      "getTextVectorizers",
+      "getTranslatableFileHandlers",
       options,
     );
   }
@@ -341,10 +532,27 @@ export class PluginRegistry {
     pluginId: string,
     options?: GetterOptions,
   ): Promise<TranslatableFileHandler[]> {
-    return this.getPluginService<TranslatableFileHandler>(
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+    return this.getTranslatableFileHandlerFromObject(
       prisma,
       pluginId,
-      "getTranslatableFileHandlers",
+      plugin,
+      options,
+    );
+  }
+
+  public async getAuthProviderFromObject(
+    prisma: OverallPrismaClient,
+    pluginId: string,
+    plugin: CatPlugin,
+    options?: GetterOptions,
+  ): Promise<AuthProvider[]> {
+    return this.getPluginService<AuthProvider>(
+      prisma,
+      plugin,
+      pluginId,
+      "getAuthProviders",
       options,
     );
   }
@@ -354,10 +562,22 @@ export class PluginRegistry {
     pluginId: string,
     options?: GetterOptions,
   ): Promise<AuthProvider[]> {
-    return this.getPluginService<AuthProvider>(
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+    return this.getAuthProviderFromObject(prisma, pluginId, plugin, options);
+  }
+
+  public async getTermServiceFromObject(
+    prisma: OverallPrismaClient,
+    pluginId: string,
+    plugin: CatPlugin,
+    options?: GetterOptions,
+  ): Promise<TermService[]> {
+    return this.getPluginService<TermService>(
       prisma,
+      plugin,
       pluginId,
-      "getAuthProviders",
+      "getTermServices",
       options,
     );
   }
@@ -367,10 +587,22 @@ export class PluginRegistry {
     pluginId: string,
     options?: GetterOptions,
   ): Promise<TermService[]> {
-    return this.getPluginService<TermService>(
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+    return this.getTermServiceFromObject(prisma, pluginId, plugin, options);
+  }
+
+  public async getStorageProviderFromObject(
+    prisma: OverallPrismaClient,
+    pluginId: string,
+    plugin: CatPlugin,
+    options?: GetterOptions,
+  ): Promise<StorageProvider[]> {
+    return this.getPluginService<StorageProvider>(
       prisma,
+      plugin,
       pluginId,
-      "getTermServices",
+      "getStorageProviders",
       options,
     );
   }
@@ -380,12 +612,9 @@ export class PluginRegistry {
     pluginId: string,
     options?: GetterOptions,
   ): Promise<StorageProvider[]> {
-    return this.getPluginService<StorageProvider>(
-      prisma,
-      pluginId,
-      "getStorageProviders",
-      options,
-    );
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin) throw new Error(`Plugin ${pluginId} not found`);
+    return this.getStorageProviderFromObject(prisma, pluginId, plugin, options);
   }
 
   public async reload(
@@ -401,8 +630,10 @@ export class PluginRegistry {
     const manifestPath = join(dirPath, "manifest.json");
 
     if (!existsSync(manifestPath)) {
-      logger.debug("PLUGIN", { msg: `Plugin pluginId missing manifest.json` });
-      throw new Error(`Plugin pluginId missing manifest.json`);
+      logger.debug("PLUGIN", {
+        msg: `Plugin ${pluginId} missing manifest.json`,
+      });
+      throw new Error(`Plugin ${pluginId} missing manifest.json`);
     }
 
     const data = await readFile(manifestPath, "utf8");
@@ -429,15 +660,9 @@ export class PluginRegistry {
 
       try {
         const data = await readFile(manifestPath, "utf8");
-        const manifest = JSON.parse(data);
+        const manifest = PluginManifestSchema.parse(JSON.parse(data));
 
-        if (manifest.id) {
-          results.push(manifest.id);
-        } else {
-          logger.warn("PLUGIN", {
-            msg: `manifest.json in ${dirent.name} missing "id" field`,
-          });
-        }
+        results.push(manifest.id);
       } catch (err) {
         logger.error(
           "PLUGIN",

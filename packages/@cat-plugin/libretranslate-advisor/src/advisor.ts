@@ -1,34 +1,79 @@
 import type { TranslationAdvisor } from "@cat/plugin-core";
-import { JSONType } from "@cat/shared/schema/json";
-import { TranslationSuggestion } from "@cat/shared/schema/misc";
-import { TranslatableElement } from "@cat/shared/schema/prisma/document";
-import { TermRelation } from "@cat/shared/schema/prisma/glossary";
-import { logger, safeJoinURL } from "@cat/shared/utils";
+import type { JSONType } from "@cat/shared/schema/json";
+import type { TranslationSuggestion } from "@cat/shared/schema/misc";
+import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
+import { logger } from "@cat/shared/utils";
+import { Pool } from "undici";
+import { z } from "zod";
+
+const ApiConfigSchema = z.object({
+  url: z.url(),
+  key: z.string(),
+  "alternatives-amount": z.int().min(0),
+});
+
+const BaseConfigSchema = z.object({
+  "advisor-name": z.string(),
+});
+
+const ConfigSchema = z.object({
+  api: ApiConfigSchema,
+  base: BaseConfigSchema,
+});
+
+type Config = z.infer<typeof ConfigSchema>;
 
 const supportedLanguages = new Map<string, string[]>();
 
 export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
-  private configs: Record<string, JSONType>;
-  private translateURL: string;
-  private languagesURL: string;
+  private pool: Pool;
+  private config: Config;
 
-  private config = <T>(key: string, fallback: T): T => {
-    const config = this.configs[key];
-    if (!config) return fallback;
-    return config as T;
-  };
+  constructor(config: JSONType) {
+    this.config = ConfigSchema.parse(config);
+    this.pool = new Pool(this.config.api.url);
+    this.fetchSupportedLanguages();
+  }
 
-  constructor(configs: Record<string, JSONType>) {
-    this.configs = configs;
-    this.translateURL = safeJoinURL(
-      this.config("api", { url: "http://localhost:3000" }).url,
-      "translate",
-    );
-    this.languagesURL = safeJoinURL(
-      this.config("api", { url: "http://localhost:3000" }).url,
-      "languages",
-    );
-    fetchSupportedLanguages(this.languagesURL);
+  async fetchSupportedLanguages() {
+    await this.pool
+      .request({
+        method: "GET",
+        path: "/languages",
+      })
+      .then(async (res) => {
+        await res.body
+          .json()
+          .then((body) => {
+            const successBody = body as {
+              code: string;
+              name: string;
+              targets: string[];
+            }[];
+            successBody.forEach((item) => {
+              supportedLanguages.set(item.code, item.targets);
+            });
+          })
+          .catch((e) => {
+            logger.error(
+              "PLUGIN",
+              {
+                msg: "Can not parse all supported languages response body.",
+              },
+              e,
+            );
+          });
+      })
+      .catch((e) => {
+        logger.error(
+          "PLUGIN",
+          {
+            msg: `Can not query all supported language from LibreTranslate service`,
+          },
+          e,
+        );
+      });
   }
 
   getId(): string {
@@ -36,7 +81,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
   }
 
   getName() {
-    return this.config("base.advisor-name", "LibreTranslate");
+    return this.config.base["advisor-name"];
   }
 
   canSuggest(
@@ -98,29 +143,25 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
       ] satisfies TranslationSuggestion[];
     }
 
-    const config = this.config("api", {
-      key: "no key",
-      "alternatives-amount": 1,
-    });
-
-    const res = await fetch(this.translateURL, {
+    const res = await this.pool.request({
       method: "POST",
+      path: "/translate",
       body: JSON.stringify({
         q: value,
         source: sourceLang,
         target: targetLang,
         format: "text",
-        alternatives: config["alternatives-amount"],
-        api_key: config.key,
+        alternatives: this.config.api["alternatives-amount"],
+        api_key: this.config.api.key,
       }),
       headers: { "Content-Type": "application/json" },
     });
 
-    const body = await res.json();
+    const body = await res.body.json();
 
-    if (res.status !== 200) {
+    if (res.statusCode !== 200) {
       const msg = (body as { error?: string }).error || "未知错误";
-      switch (res.status) {
+      switch (res.statusCode) {
         case 429:
           return [
             {
@@ -157,7 +198,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
           return [
             {
               from: this.getName(),
-              value: `翻译失败（状态码 ${res.status}）：${msg}`,
+              value: `翻译失败（状态码 ${res.statusCode}）：${msg}`,
               status: "ERROR",
             },
           ] satisfies TranslationSuggestion[];
@@ -191,41 +232,3 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
     return result;
   }
 }
-
-const fetchSupportedLanguages = async (languagesURL: string) => {
-  await fetch(languagesURL, {
-    method: "GET",
-  })
-    .then(async (res) => {
-      await res
-        .json()
-        .then((body) => {
-          const successBody = body as {
-            code: string;
-            name: string;
-            targets: string[];
-          }[];
-          successBody.forEach((item) => {
-            supportedLanguages.set(item.code, item.targets);
-          });
-        })
-        .catch((e) => {
-          logger.error(
-            "PLUGIN",
-            {
-              msg: "Can not parse all supported languages response body. LibreTranslate suggestion will be disabled.",
-            },
-            e,
-          );
-        });
-    })
-    .catch((e) => {
-      logger.error(
-        "PLUGIN",
-        {
-          msg: `Can not query all supported language from LibreTranslate service through ${languagesURL}`,
-        },
-        e,
-      );
-    });
-};

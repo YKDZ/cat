@@ -11,7 +11,7 @@ export const DocumentSchema = z.object({
   updatedAt: PrimsaDateTime,
 
   get File() {
-    return FileSchema.optional();
+    return FileSchema.nullable().optional();
   },
 
   creatorId: z.ulid(),

@@ -1,17 +1,23 @@
-import type { PluginLoadOptions, TextVectorizer } from "@cat/plugin-core";
+import type { TextVectorizer } from "@cat/plugin-core";
+import type { JSONType } from "@cat/shared/schema/json";
 import type { UnvectorizedTextData } from "@cat/shared/schema/misc";
+import { Pool } from "undici";
+import { z } from "zod";
+
+const ConfigSchema = z.object({
+  url: z.url(),
+  "model-id": z.string(),
+});
+
+type Config = z.infer<typeof ConfigSchema>;
 
 export class Vectorizer implements TextVectorizer {
-  private options: PluginLoadOptions;
+  private config: Config;
+  private pool: Pool;
 
-  private config = (key: string): unknown => {
-    const config = this.options.configs[key];
-    if (!config) return null;
-    return config;
-  };
-
-  constructor(options: PluginLoadOptions) {
-    this.options = options;
+  constructor(config: JSONType) {
+    this.config = ConfigSchema.parse(config);
+    this.pool = new Pool(new URL(this.config.url));
   }
 
   getId(): string {
@@ -28,22 +34,23 @@ export class Vectorizer implements TextVectorizer {
   ): Promise<number[][]> {
     const values: string[] = elements.map((element) => element.value);
 
-    const response = await fetch(new URL(this.config("api.url") as string), {
+    const response = await this.pool.request({
+      path: "/api/embed",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         input: values,
-        model: this.config("api.model-id") as string,
+        model: this.config["model-id"],
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}`);
+    if (response.statusCode !== 200) {
+      throw new Error(`Server responded with ${response.statusCode}`);
     }
 
-    const data = (await response.json()) as { embeddings: number[][] };
+    const data = (await response.body.json()) as { embeddings: number[][] };
     return data.embeddings;
   }
 }

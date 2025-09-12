@@ -1,6 +1,6 @@
 import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
 import { getPrismaDB } from "@cat/db";
-import {
+import type {
   TermFormatter,
   TermIndexer,
   TermMatcher,
@@ -8,7 +8,19 @@ import {
   TermStore,
 } from "@cat/plugin-core";
 import { Client } from "@elastic/elasticsearch";
-import { Config } from "./index";
+import { z } from "zod";
+
+const ConnectionConfigSchema = z.object({
+  url: z.url(),
+  username: z.string(),
+  password: z.string(),
+});
+
+export const ConfigSchema = z.object({
+  connection: ConnectionConfigSchema,
+});
+
+type Config = z.infer<typeof ConfigSchema>;
 
 export const getESTermService = (config: Config): TermService => {
   const es = new Client({
