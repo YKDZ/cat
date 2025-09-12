@@ -2,9 +2,8 @@
 import { computed, inject, ref, shallowRef, watch } from "vue";
 import { schemaKey } from "..";
 import JSONForm from "../JSONForm.vue";
-
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
-import HButton from "../../headless/HButton.vue";
+import type { JSONType } from "@cat/shared/schema/json";
+import HButton from "@/app/components/headless/HButton.vue";
 
 const props = defineProps<{
   propertyKey?: string;
