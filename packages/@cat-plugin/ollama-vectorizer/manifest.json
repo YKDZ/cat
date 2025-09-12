@@ -1,25 +1,23 @@
 {
+  "$schema": "../../plugin-core/manifest-schema.json",
   "id": "ollama-vectorizer",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
     "text-vectorizer"
   ],
-  "configs": [
-    {
-      "key": "api.model-id",
-      "schema": {
+  "config": {
+    "type": "object",
+    "properties": {
+      "model-id": {
         "type": "string",
         "default": "snowflake-arctic-embed2"
-      }
-    },
-    {
-      "key": "api.url",
-      "schema": {
+      },
+      "url": {
         "type": "string",
         "format": "url",
-        "default": "http://localhost:11434/api/embed"
+        "default": "http://localhost:11434"
       }
     }
-  ]
+  }
 }

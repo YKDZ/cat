@@ -3,14 +3,14 @@ import type { JSONType } from "@cat/shared/schema/json";
 import { merge } from "lodash-es";
 import z from "zod";
 
-export const getPluginConfigs = async (
+export const getPluginConfig = async (
   prisma: OverallPrismaClient,
   pluginId: string,
   options?: {
     projectId?: string;
     userId?: string;
   },
-): Promise<Record<string, JSONType>> => {
+): Promise<JSONType> => {
   const global = await getConfigInstance(prisma, pluginId, "GLOBAL", "");
 
   const project = await getConfigInstance(
@@ -36,34 +36,48 @@ export const getConfigInstance = async (
   pluginId: string,
   scopeType: ScopeType,
   scopeId?: string,
-): Promise<Record<string, JSONType>> => {
+): Promise<JSONType> => {
   if (scopeId === undefined) return {};
 
-  const data = await prisma.pluginConfigInstance.findMany({
+  const installation = await prisma.pluginInstallation.findUnique({
     where: {
-      Config: {
-        pluginId,
-      },
-      PluginInstallation: {
+      scopeId_scopeType_pluginId: {
+        scopeId,
         scopeType,
-        scopeId: scopeId,
+        pluginId,
       },
     },
     select: {
-      Config: {
-        select: {
-          key: true,
-        },
+      id: true,
+    },
+  });
+
+  if (!installation) return {};
+
+  const config = await prisma.pluginConfig.findUnique({
+    where: {
+      pluginId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!config) return {};
+
+  const data = await prisma.pluginConfigInstance.findUnique({
+    where: {
+      pluginInstallationId_configId: {
+        pluginInstallationId: installation.id,
+        configId: config.id,
       },
+    },
+    select: {
       value: true,
     },
   });
 
   if (!data) return {};
 
-  return z
-    .record(z.string(), z.json())
-    .parse(
-      Object.fromEntries(data.map((item) => [item.Config.key, item.value])),
-    );
+  return z.json().parse(data.value);
 };

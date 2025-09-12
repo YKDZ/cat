@@ -3,12 +3,13 @@ model Plugin {
     name       String
     overview   String?
     isExternal Boolean  @default(false)
-    entry      String?
+    entry      String
     iconURL    String?
     createdAt  DateTime @default(now())
     updatedAt  DateTime @default(now()) @updatedAt
 
-    Configs       PluginConfig[]
+    Config PluginConfig?
+
     Permissions   PluginPermission[]
     Versions      PluginVersion[]
     Tags          PluginTag[]
@@ -63,21 +64,15 @@ model PluginPermission {
 }
 
 model PluginConfig {
-    id          Int      @id @default(autoincrement())
-    key         String
-    schema      Json
-    overridable Boolean  @default(false)
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @default(now()) @updatedAt
+    id        Int      @id @default(autoincrement())
+    schema    Json
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 
-    pluginId String
-    Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+    pluginId String @unique
+    plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
     PluginConfigInstances PluginConfigInstance[]
-
-    @@unique([pluginId, key])
-    @@index([pluginId])
-    @@index([key])
 }
 
 model PluginConfigInstance {

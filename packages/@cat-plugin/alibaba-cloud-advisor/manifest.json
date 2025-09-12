@@ -1,42 +1,44 @@
 {
   "$schema": "../../plugin-core/manifest-schema.json",
-  "id": "libretranslate-advisor",
+  "id": "alibaba-cloud-advisor",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
     "translation-advisor"
   ],
-  "config": {
-    "type": "object",
-    "properties": {
-      "api": {
+  "configs": [
+    {
+      "key": "advisor-name",
+      "schema": {
+        "type": "string",
+        "default": "LibreTranslate"
+      }
+    },
+    {
+      "key": "api",
+      "schema": {
         "type": "object",
         "properties": {
-          "url": {
+          "endpoint": {
             "type": "string",
             "format": "url",
             "default": "http://libreTranslate:5000/"
           },
-          "key": {
+          "version": {
+            "type": "string",
+            "default": "v2"
+          },
+          "key-id": {
             "type": "string",
             "default": "your api key",
             "x-secret": true
           },
-          "alternatives-amount": {
+          "key-secret": {
             "type": "number",
             "default": 2
           }
         }
-      },
-      "base": {
-        "type": "object",
-        "properties": {
-          "advisor-name": {
-            "type": "string",
-            "default": "LibreTranslate"
-          }
-        }
       }
     }
-  }
+  ]
 }

@@ -1,12 +1,11 @@
-import type { OverallPrismaClient, PrismaClient, ScopeType } from "@cat/db";
+import type { OverallPrismaClient, PrismaClient } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import { JSONSchemaSchema } from "@cat/shared/schema/json";
 import {
   PluginDataSchema,
   PluginManifestSchema,
   type PluginData,
 } from "@cat/shared/schema/plugin";
-import { getDefaultFromSchema, logger } from "@cat/shared/utils";
+import { logger } from "@cat/shared/utils";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import z from "zod";
@@ -49,18 +48,17 @@ export const importLocalPlugins = async (
       ).map((plugin) => plugin.id),
     );
 
-    await Promise.all(
-      (await PluginRegistry.get().getPluginIdInLocalPlugins())
-        .filter((id) => !existPluginIds.includes(id))
-        .map(async (id) => {
-          await importPlugin(tx, id);
-        }),
-    );
+    for (const id of (
+      await PluginRegistry.get().getPluginIdInLocalPlugins()
+    ).filter((id) => !existPluginIds.includes(id))) {
+      await importPlugin(tx, id);
+    }
   });
 };
 
 export const installDefaultPlugins = async (
   prisma: PrismaClient,
+  pluginRegistry: PluginRegistry,
 ): Promise<void> => {
   const localPlugins = [
     "email-password-auth-provider",
@@ -87,10 +85,7 @@ export const installDefaultPlugins = async (
   );
 
   for (const pluginId of needToBeInstalled) {
-    logger.info("SERVER", {
-      msg: `About to install default plugin ${pluginId} to global scope...`,
-    });
-    await installPlugin(prisma, pluginId, "GLOBAL", "");
+    await pluginRegistry.installPlugin(prisma, pluginId, "GLOBAL", "");
   }
 };
 
@@ -122,23 +117,23 @@ export const importPlugin = async (
       entry: data.entry ?? null,
       overview: data.overview,
       iconURL: data.iconURL,
-      Configs: {
-        connectOrCreate: data.configs
-          ? data.configs.map(({ key, schema, overridable }) => ({
+
+      Config: data.config
+        ? {
+            connectOrCreate: {
               where: {
-                pluginId_key: {
-                  pluginId,
-                  key,
+                pluginId,
+                schema: {
+                  equals: z.json().parse(data.config) ?? {},
                 },
               },
               create: {
-                key,
-                schema: z.json().parse(schema) ?? {},
-                overridable,
+                schema: z.json().parse(data.config) ?? {},
               },
-            }))
-          : [],
-      },
+            },
+          }
+        : undefined,
+
       Tags: {
         connectOrCreate: data.tags
           ? data.tags.map((tag) => ({
@@ -151,6 +146,7 @@ export const importPlugin = async (
             }))
           : undefined,
       },
+
       Versions: {
         connectOrCreate: {
           where: {
@@ -165,12 +161,22 @@ export const importPlugin = async (
         },
       },
     },
+
     create: {
       id: pluginId,
       name: data.name,
       overview: data.overview,
       entry: data.entry ?? null,
       iconURL: data.iconURL,
+
+      Config: data.config
+        ? {
+            create: {
+              schema: z.json().parse(data.config) ?? {},
+            },
+          }
+        : undefined,
+
       Tags: {
         connectOrCreate: data.tags
           ? data.tags.map((tag) => ({
@@ -183,160 +189,12 @@ export const importPlugin = async (
             }))
           : undefined,
       },
+
       Versions: {
         create: {
           version: data.version,
         },
       },
     },
-  });
-};
-
-type ServiceConfig = {
-  getter: (
-    prisma: OverallPrismaClient,
-    pluginId: string,
-  ) => Promise<{ getId: () => string }[]>;
-  key: Services;
-};
-
-type Services = keyof Pick<
-  OverallPrismaClient,
-  | "authProvider"
-  | "termService"
-  | "translationAdvisor"
-  | "storageProvider"
-  | "textVectorizer"
-  | "translatableFileHandler"
->;
-
-const createServiceConfigs = (
-  pluginRegistry: PluginRegistry,
-): ServiceConfig[] => [
-  {
-    getter: pluginRegistry.getAuthProvider.bind(pluginRegistry),
-    key: "authProvider",
-  },
-  {
-    getter: pluginRegistry.getStorageProvider.bind(pluginRegistry),
-    key: "storageProvider",
-  },
-  {
-    getter: pluginRegistry.getTranslatableFileHandler.bind(pluginRegistry),
-    key: "translatableFileHandler",
-  },
-  {
-    getter: pluginRegistry.getTextVectorizer.bind(pluginRegistry),
-    key: "textVectorizer",
-  },
-  {
-    getter: pluginRegistry.getTranslationAdvisor.bind(pluginRegistry),
-    key: "translationAdvisor",
-  },
-  {
-    getter: pluginRegistry.getTermService.bind(pluginRegistry),
-    key: "termService",
-  },
-];
-
-export const installPlugin = async (
-  prisma: PrismaClient,
-  pluginId: string,
-  scopeType: ScopeType,
-  scopeId: string,
-): Promise<void> => {
-  const dbPlugin = await prisma.plugin.findUnique({
-    where: { id: pluginId },
-  });
-
-  if (!dbPlugin) throw new Error(`Plugin ${pluginId} not found`);
-
-  const pluginRegistry = PluginRegistry.get();
-  const serviceConfigs = createServiceConfigs(pluginRegistry);
-
-  await prisma.$transaction(async (tx) => {
-    const installation = await tx.pluginInstallation.create({
-      data: { pluginId, scopeType, scopeId },
-    });
-
-    const pluginConfigs = await tx.pluginConfig.findMany({
-      where: {
-        pluginId,
-      },
-      select: { id: true, schema: true },
-    });
-
-    await Promise.all(
-      pluginConfigs.map(async ({ id, schema }) => {
-        const defaultValue =
-          getDefaultFromSchema(JSONSchemaSchema.parse(schema)) ?? {};
-
-        console.log(schema, defaultValue);
-
-        return await tx.pluginConfigInstance.create({
-          data: {
-            configId: id,
-            pluginInstallationId: installation.id,
-            value: defaultValue,
-          },
-        });
-      }),
-    );
-
-    console.log(await tx.pluginConfigInstance.findMany());
-
-    await Promise.all(
-      serviceConfigs.map(async ({ getter, key }) => {
-        return await importPluginServices(
-          tx,
-          pluginId,
-          installation.id,
-          getter,
-          key,
-        );
-      }),
-    );
-  });
-};
-
-export const uninstallPlugin = async (
-  prisma: PrismaClient,
-  pluginId: string,
-  scopeType: ScopeType,
-  scopeId: string,
-): Promise<void> => {
-  const dbPlugin = await prisma.plugin.findUnique({
-    where: { id: pluginId },
-  });
-
-  if (!dbPlugin) throw new Error(`Plugin ${pluginId} not found`);
-
-  const installation = await prisma.pluginInstallation.findUnique({
-    where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
-  });
-
-  if (!installation) throw new Error(`Plugin ${pluginId} not installed`);
-
-  await prisma.pluginInstallation.delete({
-    where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
-  });
-};
-
-const importPluginServices = async <
-  T extends {
-    getId(): string;
-  },
->(
-  prisma: OverallPrismaClient,
-  pluginId: string,
-  pluginInstallationId: number,
-  getServices: (prisma: OverallPrismaClient, pluginId: string) => Promise<T[]>,
-  key: Services,
-): Promise<void> => {
-  const ids = (await getServices(prisma, pluginId)).map((service) => {
-    return service.getId();
-  });
-  await prisma[key].createMany({
-    data: ids.map((id) => ({ serviceId: id, pluginInstallationId })),
   });
 };

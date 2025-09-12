@@ -1,27 +1,19 @@
 {
+  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "composite": true,
+    "declaration": true,
     "declarationMap": true,
     "importHelpers": true,
     "isolatedModules": true,
-    "lib": [
-      "es2022"
-    ],
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": true,
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
-    "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "target": "esnext",
-    "preserveSymlinks": true,
-    "customConditions": [
-      "development"
-    ]
+    "noImplicitThis": true,
+    "strict": true
   }
 }

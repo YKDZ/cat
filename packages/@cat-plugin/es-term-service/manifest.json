@@ -1,15 +1,15 @@
 {
+  "$schema": "../../plugin-core/manifest-schema.json",
   "id": "es-term-service",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
   "tags": [
     "term-service"
   ],
-  "configs": [
-    {
-      "key": "connection",
-      "overridable": false,
-      "schema": {
+  "config": {
+    "type": "object",
+    "properties": {
+      "connection": {
         "type": "object",
         "properties": {
           "url": {
@@ -29,5 +29,5 @@
         }
       }
     }
-  ]
+  }
 }

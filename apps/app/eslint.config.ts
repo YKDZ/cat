@@ -1,10 +1,26 @@
 import config from "@cat/eslint-config";
-import type { ConfigArray } from "typescript-eslint";
-import tseslint from "typescript-eslint";
 import vueI18n from "@intlify/eslint-plugin-vue-i18n";
+import {
+  defineConfigWithVueTs,
+  vueTsConfigs,
+} from "@vue/eslint-config-typescript";
+import pluginVue from "eslint-plugin-vue";
+import skipFormatting from "@vue/eslint-config-prettier/skip-formatting";
+import unocss from "@unocss/eslint-config/flat";
 
-export default tseslint.config(
-  { extends: [config] },
+export default defineConfigWithVueTs(
+  {
+    extends: [config],
+  },
+
+  pluginVue.configs["flat/essential"],
+  vueTsConfigs.recommended,
+  skipFormatting,
+  {
+    rules: {
+      "vue/multi-word-component-names": "off",
+    },
+  },
 
   ...vueI18n.configs.recommended,
   {
@@ -25,4 +41,6 @@ export default tseslint.config(
       },
     },
   },
-) as ConfigArray;
+
+  unocss,
+);

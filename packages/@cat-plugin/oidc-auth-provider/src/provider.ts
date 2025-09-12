@@ -1,12 +1,13 @@
 import { getPrismaDB, getRedisDB, setting } from "@cat/db";
 import type { AuthProvider, AuthResult, PreAuthResult } from "@cat/plugin-core";
 import type { HTTPHelpers } from "@cat/shared/utils";
-import { safeJoinURL } from "@cat/sharedutils";
+import { safeJoinURL } from "@cat/shared/utils";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { randomChars } from "./utils/crypto.ts";
 import { createOIDCAuthURL } from "./utils/oidc.ts";
-import type { ProviderConfig } from ".";
+import type { ProviderConfig } from "./index.ts";
 import { z } from "zod";
+import { request, fetch } from "undici";
 
 const SearchParasSchema = z.object({
   state: z.string(),
@@ -91,19 +92,19 @@ export class Provider implements AuthProvider {
       grant_type: "authorization_code",
     });
 
-    const response = await fetch(this.config.tokenURI, {
+    const response = await request(this.config.tokenURI, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: params,
+      body: params.toString(),
     });
 
-    if (!response.ok) {
+    if (response.statusCode !== 200) {
       throw new Error(`Failed to exchange token`);
     }
 
-    const body = (await response.json()) as {
+    const body = (await response.body.json()) as {
       error: unknown | undefined;
       error_description: string;
       id_token: string;
@@ -186,7 +187,7 @@ export class Provider implements AuthProvider {
     if (!res.ok) throw new Error("Error when oidc logout");
   }
 
-  async isAvaliable() {
+  async isAvailable() {
     return true;
   }
 }

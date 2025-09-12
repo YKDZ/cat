@@ -4,11 +4,8 @@ import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
 import { computed, onMounted, watch } from "vue";
 import { navigate } from "vike/client/router";
-import { useToastStore } from "../stores/toast";
 import { useMemoryStore } from "../stores/memory";
 import { storeToRefs } from "pinia";
-
-const { info, trpcWarn } = useToastStore();
 
 const { updateMemoryItemAmount } = useMemoryStore();
 const { memoryItemAmounts } = storeToRefs(useMemoryStore());

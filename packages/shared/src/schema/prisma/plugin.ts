@@ -26,8 +26,6 @@ export const PluginTagSchema = z.object({
 
 export const PluginConfigSchema = z.object({
   id: z.int(),
-  key: z.string(),
-  overridable: z.boolean().default(false),
   schema: JSONSchemaSchema,
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
@@ -84,8 +82,8 @@ export const PluginSchema = z.object({
   createdAt: PrimsaDateTime,
   updatedAt: PrimsaDateTime,
 
-  get Configs() {
-    return z.array(PluginConfigSchema).optional();
+  get Config() {
+    return PluginConfigSchema.nullable().optional();
   },
 
   get Permissions() {

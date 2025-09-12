@@ -61,6 +61,12 @@ const matchedRenderer = computed<RendererComponent | null>(() => {
   );
 });
 
+const dataOfPropertyKey = <T,>(key: string, fallback: T) => {
+  if (!props.data || !Object.keys(props.data as object).includes(key))
+    return fallback;
+  return (props.data as Record<string, JSONType>)[key] as T;
+};
+
 provide(schemaKey, props.schema);
 </script>
 
@@ -85,7 +91,7 @@ provide(schemaKey, props.schema);
       <JSONForm
         v-for="property in objectProperties"
         :key="property.key"
-        :data="(data as Record<string, JSONType>)[property.key]"
+        :data="dataOfPropertyKey(property.key, property.schema.default)"
         :property-key="property.key"
         :schema="property.schema"
         @_update="handleUpdate"

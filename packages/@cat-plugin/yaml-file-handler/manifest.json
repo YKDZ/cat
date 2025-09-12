@@ -1,4 +1,5 @@
 {
+  "$schema": "../../plugin-core/manifest-schema.json",
   "id": "yaml-file-handler",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",

@@ -1,5 +1,5 @@
 import { Queue, Worker } from "bullmq";
-import { config } from "./config";
+import { config } from "./config.ts";
 import z from "zod";
 import { randomUUID } from "node:crypto";
 import { getPrismaDB, getRedisDB } from "@cat/db";

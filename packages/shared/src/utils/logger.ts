@@ -54,7 +54,7 @@ export class Logger {
   public error(
     situation: Situation,
     obj: object,
-    error: unknown,
+    err: unknown,
     msg?: string,
     ...args: unknown[]
   ) {
@@ -62,14 +62,10 @@ export class Logger {
       this.baseLogger.error({
         ...obj,
         situation,
-        error: JSON.stringify(error),
+        err,
       });
     else
-      this.baseLogger.error(
-        { error: JSON.stringify(error), situation, ...obj },
-        msg,
-        ...(args as []),
-      );
+      this.baseLogger.error({ err, situation, ...obj }, msg, ...(args as []));
   }
 }
 

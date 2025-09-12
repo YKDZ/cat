@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared/schema/json";
 import {
   type PluginConfig,
   type PluginConfigInstance,
@@ -18,11 +18,7 @@ const props = defineProps<{
 
 const instance = ref<PluginConfigInstance | null>(null);
 
-const configSetter = async (
-  value: JSONType,
-  schema: JSONSchema,
-  key?: string,
-) => {
+const configSetter = async (value: JSONType) => {
   await trpc.plugin.upsertConfigInstance.mutate({
     pluginId: props.config.pluginId,
     scopeType: props.scopeType,

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import PluginConfigs from "@/app/components/PluginConfigs.vue";
+import PluginConfig from "@/app/components/PluginConfig.vue";
 import PluginDeleteBtn from "@/app/components/PluginDeleteBtn.vue";
 import { usePluginStore } from "@/app/stores/plugin";
-import type { Plugin, PluginConfig } from "@cat/shared/schema/prisma/plugin";
+import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
@@ -16,9 +16,9 @@ const plugin = computed<Plugin | null>(() => {
 </script>
 
 <template>
-  <PluginConfigs
-    v-if="plugin"
-    :configs="plugin.Configs! as PluginConfig[]"
+  <PluginConfig
+    v-if="plugin?.Config"
+    :config="plugin.Config"
     scope-type="GLOBAL"
     scope-id=""
   />

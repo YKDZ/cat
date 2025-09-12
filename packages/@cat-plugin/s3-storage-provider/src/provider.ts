@@ -36,8 +36,13 @@ const StorageConfigSchema = z.object({
   "basic-path": z.string(),
 });
 
+const ConfigSchema = z.object({
+  s3: S3ConfigSchema,
+  storage: StorageConfigSchema,
+});
+
 type S3Config = z.infer<typeof S3ConfigSchema>;
-type StorageConfig = z.infer<typeof StorageConfigSchema>;
+type Config = z.infer<typeof ConfigSchema>;
 
 class S3DB {
   public client: S3Client;
@@ -72,14 +77,12 @@ class S3DB {
 }
 
 export class S3StorageProvider implements StorageProvider {
-  private s3Config: S3Config;
-  private storageConfig: StorageConfig;
+  private config: Config;
   private db: S3DB;
 
-  constructor(configs: Record<string, JSONType>) {
-    this.s3Config = S3ConfigSchema.parse(configs["s3"]);
-    this.storageConfig = StorageConfigSchema.parse(configs["storage"]);
-    this.db = new S3DB(this.s3Config);
+  constructor(config: JSONType) {
+    this.config = ConfigSchema.parse(config);
+    this.db = new S3DB(this.config.s3);
   }
 
   getId() {
@@ -87,7 +90,7 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   getBasicPath() {
-    return this.storageConfig["basic-path"];
+    return this.config.storage["basic-path"];
   }
 
   async ping() {
@@ -104,7 +107,7 @@ export class S3StorageProvider implements StorageProvider {
 
   async getContent(file: File): Promise<Buffer> {
     const command = new GetObjectCommand({
-      Bucket: this.s3Config["bucket-name"],
+      Bucket: this.config.s3["bucket-name"],
       Key: file.storedPath.replaceAll("\\", "/"),
     });
 
@@ -123,9 +126,9 @@ export class S3StorageProvider implements StorageProvider {
 
   async generateUploadURL(path: string, expiresIn: number) {
     const params: PutObjectCommandInput = {
-      Bucket: this.s3Config["bucket-name"],
+      Bucket: this.config.s3["bucket-name"],
       Key: path.replaceAll("\\", "/"),
-      ACL: this.s3Config["acl"],
+      ACL: this.config.s3["acl"],
     };
     const command = new PutObjectCommand(params);
     const presignedUrl = await getSignedUrl(this.db.client!, command, {
@@ -138,7 +141,7 @@ export class S3StorageProvider implements StorageProvider {
 
   async generateURL(path: string, expiresIn: number) {
     const command = new GetObjectCommand({
-      Bucket: this.s3Config["bucket-name"],
+      Bucket: this.config.s3["bucket-name"],
       Key: path.replaceAll("\\", "/"),
     });
 
@@ -147,7 +150,7 @@ export class S3StorageProvider implements StorageProvider {
 
   async generateDownloadURL(path: string, fileName: string, expiresIn: number) {
     const command = new GetObjectCommand({
-      Bucket: this.s3Config["bucket-name"],
+      Bucket: this.config.s3["bucket-name"],
       Key: path.replaceAll("\\", "/"),
       ResponseContentDisposition: `attachment; filename="${fileName}"`,
       ResponseContentType: await mimeFromFileName(
@@ -161,7 +164,7 @@ export class S3StorageProvider implements StorageProvider {
 
   async delete(file: File) {
     const command = new DeleteObjectCommand({
-      Bucket: this.s3Config["bucket-name"],
+      Bucket: this.config.s3["bucket-name"],
       Key: file.storedPath.replaceAll("\\", "/"),
     });
 

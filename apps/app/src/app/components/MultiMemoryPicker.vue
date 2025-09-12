@@ -7,7 +7,7 @@ import type { PickerOption } from "./picker";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     width?: string;
   }>(),

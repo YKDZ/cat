@@ -57,9 +57,7 @@ export const JSONSchemaSchema = z
     //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
     // },
     get properties() {
-      return z // @ts-expect-error unsolvable
-        .lazy(() => z.record(z.string(), BooleanAbleJSONSchemaSchema))
-        .optional();
+      return z.record(z.string(), BooleanAbleJSONSchemaSchema).optional();
     },
     // get patternProperties() {
     //   return z

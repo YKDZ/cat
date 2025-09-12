@@ -1,31 +1,31 @@
-import type { CatPlugin, PluginLoadOptions } from "@cat/plugin-core";
-import { Provider } from "./provider";
+import type { CatPlugin, PluginGetterOptions } from "@cat/plugin-core";
+import { Provider } from "./provider.ts";
+import { z } from "zod";
 
-export type ProviderConfig = {
-  displayName: string;
-  scopes: string;
-  clientId: string;
-  clientSecret: string;
-  issuer: string;
-  authURI: string;
-  tokenURI: string;
-  userInfoURI: string;
-  logoutURI: string;
-  jwksURI: string;
-};
+export const ProviderConfigSchema = z.object({
+  displayName: z.string(),
+  scopes: z.string(),
+  clientId: z.string(),
+  clientSecret: z.string(),
+  issuer: z.string(),
+  authURI: z.url(),
+  tokenURI: z.url(),
+  userInfoURI: z.url(),
+  logoutURI: z.url(),
+  jwksURI: z.url(),
+});
+
+export const ConfigSchema = z.array(ProviderConfigSchema);
+
+export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 
 class Plugin implements CatPlugin {
-  private options: PluginLoadOptions | null = null;
-  private providerConfigs: ProviderConfig[] = [];
+  async onLoaded() {}
 
-  async onLoaded(options: PluginLoadOptions) {
-    this.options = options;
-    this.providerConfigs = (options.configs["base.oidc-providers"] ??
-      []) as ProviderConfig[];
-  }
-
-  getAuthProviders() {
-    return this.providerConfigs.map((config) => new Provider(config));
+  getAuthProviders(options: PluginGetterOptions) {
+    return ConfigSchema.parse(options.config).map(
+      (config) => new Provider(config),
+    );
   }
 }
 

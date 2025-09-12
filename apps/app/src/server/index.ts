@@ -46,9 +46,9 @@ const startServer = async () => {
 
     await importLocalPlugins(prismaDB.client);
 
-    await pluginRegistry.loadPlugins(prismaDB.client);
+    await installDefaultPlugins(prismaDB.client, pluginRegistry);
 
-    await installDefaultPlugins(prismaDB.client);
+    await pluginRegistry.loadPlugins(prismaDB.client);
 
     await initTermService(prismaDB.client, pluginRegistry);
 

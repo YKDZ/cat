@@ -9,7 +9,7 @@
     "dotenv": "^17.2.1",
     "tsc": "^2.0.4",
     "tsx": "^4.20.4",
-    "vue": "^3.5.13"
+    "undici": "^7.16.0"
   },
   "devDependencies": {
     "@nx/devkit": "21.5.1",
@@ -27,16 +27,19 @@
     "@types/node": "^24.2.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/ui": "^3.0.0",
+    "@tsconfig/node22": "^22.0.2",
     "eslint": "^9.26.0",
     "jiti": "2.5.1",
     "nx": "21.5.1",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
+    "rolldown-vite": "^7.1.9",
     "typescript": "^5.9.2",
     "unplugin-dts": "1.0.0-beta.6",
+    "vite-plugin-vue-devtools": "^8.0.1",
     "vitest": "^3.2.2",
     "vitest-mock-extended": "^3.1.0",
-    "rolldown-vite": "^7.1.9"
+    "oxlint": "^1.14.0"
   },
   "packageManager": "pnpm@10.15.0"
 }

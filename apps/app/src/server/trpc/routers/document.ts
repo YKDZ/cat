@@ -6,10 +6,10 @@ import { z } from "zod";
 import { authedProcedure, router } from "../server";
 import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile";
 import { sanitizeFileName } from "@cat/db";
+import type { PrismaError } from "@cat/shared/schema/misc";
 import {
   ElementTranslationStatusSchema,
   FileMetaSchema,
-  PrismaError,
 } from "@cat/shared/schema/misc";
 import { FileSchema } from "@cat/shared/schema/prisma/file";
 import {
@@ -18,7 +18,7 @@ import {
   TranslatableElementSchema,
 } from "@cat/shared/schema/prisma/document";
 import { TaskSchema } from "@cat/shared/schema/prisma/misc";
-import { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared/schema/json";
 
 export const documentRouter = router({
   fileUploadURL: authedProcedure
