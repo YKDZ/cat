@@ -45,22 +45,22 @@ export type HttpContext = Awaited<ReturnType<typeof createHttpContext>>;
 export const EMPTY_CONTEXT = {
   user: null,
   sessionId: "sessionId not exists in EMPTY_CONTEXT",
-  setCookie: (): void => {
+  setCookie: (): string => {
     throw new Error("Not implemented in EMPTY_CONTEXT");
   },
-  getCookie: (): void => {
+  getCookie: (): string => {
     throw new Error("Not implemented in EMPTY_CONTEXT");
   },
-  getQueryParam: (): void => {
+  getQueryParam: (): string => {
     throw new Error("Not implemented in EMPTY_CONTEXT");
   },
-  setResHeader: (): void => {
+  setResHeader: (): string => {
     throw new Error("Not implemented in EMPTY_CONTEXT");
   },
-  delCookie: (): void => {
+  delCookie: (): string => {
     throw new Error("Not implemented in EMPTY_CONTEXT");
   },
-  getReqHeader: (): void => {
+  getReqHeader: (): string => {
     throw new Error("Not implemented in EMPTY_CONTEXT");
   },
 };

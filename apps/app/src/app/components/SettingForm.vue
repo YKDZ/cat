@@ -90,5 +90,14 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <JSONForm v-model:data="data" :schema @update="handleUpdate" />
+  <JSONForm
+    :data
+    :schema
+    @update="handleUpdate"
+    :classes="{
+      label: 'flex flex-col gap-0.5 not-first:mt-2',
+      'label-title': 'text-lg text-highlight-content-darker font-bold',
+      'label-description': 'text-sm text-highlight-content',
+    }"
+  />
 </template>

@@ -7,11 +7,20 @@ import {
   type JSONType,
 } from "@cat/shared/schema/json";
 
-const props = defineProps<{
+type Classes = {
+  label?: string;
+  "label-title"?: string;
+  "label-description"?: string;
+};
+
+type JSONFormProps = {
   propertyKey?: string;
   schema: JSONSchema;
   data: JSONType;
-}>();
+  classes?: Classes;
+};
+
+const props = defineProps<JSONFormProps>();
 
 const emits = defineEmits<{
   (e: "update", to: JSONType, schema: JSONSchema, key?: string): void;
@@ -28,6 +37,12 @@ const objectProperties = computed(() => {
     };
   });
 });
+
+const classes = computed(() => ({
+  label: props.classes?.label ?? "",
+  "label-title": props.classes?.["label-title"] ?? "",
+  "label-description": props.classes?.["label-description"] ?? "",
+}));
 
 const handleUpdate = (to: JSONType, schema: JSONSchema, key?: string) => {
   let newData: JSONType;
@@ -82,13 +97,15 @@ provide(schemaKey, props.schema);
     @_update="(to) => handleUpdate(to, props.schema)"
   />
   <div v-if="props.schema.type === 'object'">
-    <label class="flex flex-col gap-0.5">
-      <span class="text-lg text-highlight-content-darker font-bold">
-        {{ schema.title ?? propertyKey }}</span
-      >
-      <span class="text-sm text-highlight-content">
-        {{ schema.description }}</span
-      >
+    <label :class="classes.label">
+      <slot name="form-label" :props>
+        <span :class="[classes['label-title']]">
+          {{ schema.title ?? propertyKey }}</span
+        >
+        <span :class="[classes['label-description']]">
+          {{ schema.description }}</span
+        >
+      </slot>
     </label>
     <form>
       <JSONForm
@@ -101,4 +118,5 @@ provide(schemaKey, props.schema);
       />
     </form>
   </div>
+  <slot name="custom" :props :classes />
 </template>

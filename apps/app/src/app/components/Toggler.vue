@@ -1,7 +1,9 @@
 <script setup lang="ts">
 const isChecked = defineModel<boolean>({ required: true });
 
-const emits = defineEmits(["change"]);
+const emits = defineEmits<{
+  (e: "change", $event: Event): void;
+}>();
 </script>
 
 <template>
@@ -13,7 +15,7 @@ const emits = defineEmits(["change"]);
           v-model="isChecked"
           type="checkbox"
           class="hidden"
-          @change="emits('change')"
+          @change="emits('change', $event)"
         />
         <div
           class="rounded-sm h-6 w-12 transition-colors duration-100 ease-in-out"

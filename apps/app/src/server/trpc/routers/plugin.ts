@@ -52,11 +52,7 @@ export const pluginRouter = router({
         where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
       });
 
-      if (!installation)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Plugin ${pluginId} not installed in scope ${scopeType} ${scopeId}`,
-        });
+      if (!installation) return null;
 
       return PluginConfigInstanceSchema.nullable().parse(
         await prisma.pluginConfigInstance.findUnique({
@@ -148,23 +144,36 @@ export const pluginRouter = router({
         );
     }),
   listAll: authedProcedure
-    .output(z.array(PluginSchema))
+    .output(
+      z.array(
+        PluginSchema.required({
+          Installations: true,
+        }),
+      ),
+    )
     .query(async ({ ctx }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      return z.array(PluginSchema).parse(
-        await prisma.plugin.findMany({
-          include: {
-            Versions: true,
-            Permissions: true,
-            Tags: true,
-          },
-          orderBy: {
-            id: "asc",
-          },
-        }),
-      );
+      return z
+        .array(
+          PluginSchema.required({
+            Installations: true,
+          }),
+        )
+        .parse(
+          await prisma.plugin.findMany({
+            include: {
+              Versions: true,
+              Permissions: true,
+              Tags: true,
+              Installations: true,
+            },
+            orderBy: {
+              id: "asc",
+            },
+          }),
+        );
     }),
   reload: authedProcedure.output(z.void()).mutation(async ({ ctx }) => {
     const {

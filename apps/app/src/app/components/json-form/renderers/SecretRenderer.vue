@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, ref } from "vue";
 import { schemaKey, transferDataToString } from "..";
 import Icon from "../../Icon.vue";
 import z from "zod";
@@ -12,12 +12,14 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: '_update', to: JSONType): void;
+  (e: "_update", to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
 
-const value = ref<string>(transferDataToString(props.data ?? schema.default));
+const value = computed(() =>
+  transferDataToString(props.data ?? schema.default),
+);
 
 const visible = ref(false);
 
@@ -26,17 +28,10 @@ const inputType = computed(() => {
   else return "password";
 });
 
-const handleUpdate = () => {
-  emits("_update", value.value);
+const handleUpdate = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  emits("_update", input.value);
 };
-
-watch(
-  () => props.data,
-  (newData) => {
-    value.value = transferDataToString(newData);
-  },
-  { deep: true },
-);
 </script>
 
 <template>
@@ -44,7 +39,7 @@ watch(
     <RendererLabel :schema :property-key />
     <div class="flex items-center justify-between relative">
       <input
-        v-model="value"
+        :value
         :autocomplete="z.string().optional().parse(schema['x-autocomplete'])"
         :type="inputType"
         class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-base"

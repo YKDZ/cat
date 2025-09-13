@@ -37,16 +37,16 @@ export const JSONSchemaSchema = z
     // get unevaluatedItems() {
     //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
     // },
-    // get prefixItems() {
-    //   return z.lazy(() => z.array(BooleanAbleJSONSchemaSchema)).optional();
-    // },
-    // get items() {
-    //   return z
-    //     .lazy(() =>
-    //       z.array(BooleanAbleJSONSchemaSchema).or(BooleanAbleJSONSchemaSchema),
-    //     )
-    //     .optional();
-    // },
+    get prefixItems() {
+      return z.lazy(() => z.array(BooleanAbleJSONSchemaSchema)).optional();
+    },
+    get items() {
+      return z
+        .lazy(() =>
+          z.array(BooleanAbleJSONSchemaSchema).or(BooleanAbleJSONSchemaSchema),
+        )
+        .optional();
+    },
     // get contains() {
     //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
     // },

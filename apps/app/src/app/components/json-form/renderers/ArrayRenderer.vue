@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, shallowRef, watch } from "vue";
+import { computed, inject, ref } from "vue";
 import { schemaKey } from "..";
 import JSONForm from "../JSONForm.vue";
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
@@ -16,15 +16,20 @@ const emits = defineEmits<{
 }>();
 
 const schema = inject(schemaKey)!;
-const value = shallowRef<JSONType[]>(
+const value = computed(() =>
   z.array(z.json()).parse(props.data ?? schema.default),
 );
 const count = ref(value.value.length);
-const skipNextUpdate = ref(false);
 
-const itemsSchema = computed(() => {
+const itemsSchema = computed<JSONSchema>(() => {
   // TODO Draft 2020-12 以后 items 不再能是数组
-  return schema.items as JSONSchema[];
+  // 确保返回的是单个 JSONSchema 对象，而不是数组
+  const items = schema.items;
+  if (Array.isArray(items)) {
+    // 如果是数组，返回第一个元素或者创建一个通用的 schema
+    return (items[0] as JSONSchema) || { type: "string" };
+  }
+  return items as JSONSchema;
 });
 
 const prefixItemsSchemas = computed(() => {
@@ -38,17 +43,11 @@ const handleUpdate = (to: JSONType, index: number) => {
 
 const handleDelete = (index: number) => {
   count.value--;
-  value.value = value.value.filter((_, i) => i !== index);
-  emits("_update", value.value);
+  emits(
+    "_update",
+    value.value.filter((_, i) => i !== index),
+  );
 };
-
-watch(
-  () => props.data,
-  (newData) => {
-    skipNextUpdate.value = true;
-    value.value = z.array(z.json()).parse(newData);
-  },
-);
 </script>
 
 <template>
@@ -63,9 +62,9 @@ watch(
     <HButton no-text icon="i-mdi:trash-can" @click="handleDelete(index - 1)" />
     <JSONForm
       :schema="
-        index > prefixItemsSchemas.length
+        index - 1 >= prefixItemsSchemas.length
           ? itemsSchema
-          : prefixItemsSchemas[index]
+          : prefixItemsSchemas[index - 1]
       "
       :data="value[index - 1]"
       :property-key
