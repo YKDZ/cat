@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject } from "vue";
 import { schemaKey, transferDataToString } from "..";
 import Picker from "../../picker/Picker.vue";
 import type { PickerOption } from "../../picker";
 import type { JSONType } from "@cat/shared/schema/json";
 import RendererLabel from "../utils/RendererLabel.vue";
+import z from "zod";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -12,13 +13,12 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: '_update', to: JSONType): void;
+  (e: "_update", to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
-const skipNextUpdate = ref(false);
 
-const value = ref(props.data ?? schema.defaults);
+const value = computed(() => props.data ?? schema.defaults);
 
 const enumValues = computed(() => {
   return schema.enum as unknown[];
@@ -33,26 +33,14 @@ const options = computed(() => {
   });
 });
 
-watch(
-  () => props.data,
-  (newData) => {
-    skipNextUpdate.value = true;
-    value.value = newData;
-  },
-);
-
-watch(value, (newVal) => {
-  if (skipNextUpdate.value) {
-    skipNextUpdate.value = false;
-    return;
-  }
-  emits("_update", newVal as JSONType);
-});
+const handleChange = (_: unknown, to: unknown) => {
+  emits("_update", z.json().parse(to));
+};
 </script>
 
 <template>
   <div class="flex flex-col gap-0.5">
     <RendererLabel :schema :property-key />
-    <Picker v-model="value" :options />
+    <Picker v-model="value" :options @change="handleChange" />
   </div>
 </template>

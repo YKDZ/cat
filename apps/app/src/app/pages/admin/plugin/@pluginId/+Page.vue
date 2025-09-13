@@ -17,7 +17,7 @@ const plugin = computed<Plugin | null>(() => {
 
 <template>
   <PluginConfig
-    v-if="plugin?.Config"
+    v-if="plugin && plugin.Config"
     :config="plugin.Config"
     scope-type="GLOBAL"
     scope-id=""

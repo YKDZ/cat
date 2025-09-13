@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, watch } from "vue";
+import { computed, inject } from "vue";
 import { schemaKey } from "..";
 import RendererLabel from "../utils/RendererLabel.vue";
 import type { JSONType } from "@cat/shared/schema/json";
@@ -10,29 +10,23 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: '_update', to: JSONType): void;
+  (e: "_update", to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
-const value = ref(Number(props.data ?? schema.default));
+const value = computed(() => Number(props.data ?? schema.default));
 
-const handleUpdate = () => {
-  emits("_update", value.value);
+const handleUpdate = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  emits("_update", input.value);
 };
-
-watch(
-  () => props.data,
-  (newData) => {
-    value.value = Number(newData);
-  },
-);
 </script>
 
 <template>
   <div class="flex flex-col gap-0.5">
     <RendererLabel :schema :property-key />
     <input
-      v-model.number="value"
+      :value
       type="number"
       class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-base"
       @input="handleUpdate"

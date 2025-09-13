@@ -2,8 +2,8 @@
 import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import PluginListItem from "./PluginListItem.vue";
 
-const props = defineProps<{
-  plugins: Plugin[];
+defineProps<{
+  plugins: WithRequired<Plugin, "Installations">[];
   pathPrefix: string;
 }>();
 </script>

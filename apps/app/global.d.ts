@@ -43,6 +43,7 @@ declare global {
     }
   }
   let vue: typeof Vue | undefined;
+  type WithRequired<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
 }
 
 export {};

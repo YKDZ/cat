@@ -1,10 +1,11 @@
 import { defineConfig } from "rolldown-vite";
-import { resolve } from "path";
+import { resolve } from "node:path";
 import dts from "unplugin-dts/vite";
 
 export default defineConfig({
   ssr: {
     external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "zod"],
+    noExternal: ["jose"],
   },
 
   resolve: {

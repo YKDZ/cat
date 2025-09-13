@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import PluginTags from "./PluginTags.vue";
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
@@ -9,7 +9,7 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 const props = defineProps<{
-  plugin: Plugin;
+  plugin: WithRequired<Plugin, "Installations">;
   pathPrefix: string;
 }>();
 
@@ -24,9 +24,7 @@ const simpleName = computed(() => {
   return props.plugin.name.replace("@cat-plugin/", "");
 });
 
-onMounted(() => {
-  useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
-});
+useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
 </script>
 
 <template>
@@ -65,7 +63,7 @@ onMounted(() => {
             >{{ t("内部插件") }}</span
           >
           <span
-            v-if="plugin"
+            v-if="plugin.Installations.length > 0"
             class="px-2 py-1 rounded-sm bg-highlight-darkest"
             >{{ t("已安装") }}</span
           >
