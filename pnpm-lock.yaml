@@ -492,16 +492,6 @@ importers:
         specifier: workspace:*
         version: link:../../eslint-config
 
-  packages/@cat-plugin/tei-vectorizer:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-    devDependencies:
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../../eslint-config
-
   packages/@cat-plugin/yaml-file-handler:
     dependencies:
       '@cat/plugin-core':

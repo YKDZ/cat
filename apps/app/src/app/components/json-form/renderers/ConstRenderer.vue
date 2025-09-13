@@ -4,9 +4,13 @@ import { schemaKey, transferDataToString } from "..";
 import type { JSONType } from "@cat/shared/schema/json";
 import RendererLabel from "../utils/RendererLabel.vue";
 
-const props = defineProps<{
+defineProps<{
   propertyKey?: string;
   data: JSONType;
+}>();
+
+defineEmits<{
+  (e: '_update', to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;

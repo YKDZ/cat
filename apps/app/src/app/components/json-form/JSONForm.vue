@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, provide } from "vue";
-import { RendererRegistry, schemaKey, type RendererComponent } from ".";
+import { MatcherRegistry, schemaKey, type RendererComponent } from ".";
 import {
   JSONSchemaSchema,
   type JSONSchema,
@@ -47,18 +47,16 @@ const handleUpdate = (to: JSONType, schema: JSONSchema, key?: string) => {
 
   // 有 propertyKey 代表未达到最顶层 JSONForm
   if (props.propertyKey) {
-    emits("_update", newData, schema ?? props.schema, props.propertyKey);
+    emits("_update", newData, schema, props.propertyKey);
   } else {
-    emits("update", newData, schema ?? props.schema, key);
+    emits("update", newData, schema, key);
   }
 };
 
 const matchedRenderer = computed<RendererComponent | null>(() => {
-  return (
-    RendererRegistry.renderers.find(({ matcher }) => {
-      return matcher({ schema: props.schema });
-    })?.renderer ?? null
-  );
+  const matcher = MatcherRegistry.match(props.schema);
+  if (!matcher) return null;
+  return matcher.renderer;
 });
 
 const dataOfPropertyKey = <T,>(key: string, fallback: T) => {
@@ -69,7 +67,6 @@ const dataOfPropertyKey = <T,>(key: string, fallback: T) => {
 
 const providedData = computed(() => {
   const data = props.data ?? props.schema.default;
-  if (!data) throw new Error("No data provided");
   return data;
 });
 
@@ -82,7 +79,7 @@ provide(schemaKey, props.schema);
     v-if="matchedRenderer"
     :data="providedData"
     :property-key="propertyKey"
-    @_update="handleUpdate"
+    @_update="(to) => handleUpdate(to, props.schema)"
   />
   <div v-if="props.schema.type === 'object'">
     <label class="flex flex-col gap-0.5">

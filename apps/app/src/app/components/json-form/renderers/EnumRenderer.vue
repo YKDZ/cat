@@ -12,7 +12,7 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: JSONType): void;
+  (e: '_update', to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
