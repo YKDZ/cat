@@ -3,20 +3,21 @@ import { inject, ref, watch } from "vue";
 import { schemaKey } from "..";
 import Toggler from "../../Toggler.vue";
 import RendererLabel from "../utils/RendererLabel.vue";
+import type { JSONType } from "@cat/shared/schema/json";
 
 const props = defineProps<{
   propertyKey?: string;
-  data: boolean;
+  data: JSONType;
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: boolean): void;
+  (e: '_update', to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
 const skipNextUpdate = ref(false);
 
-const value = ref(props.data ?? schema.default);
+const value = ref<boolean>(Boolean(props.data ?? schema.default));
 
 watch(value, (newVal) => {
   if (skipNextUpdate.value) {
@@ -30,7 +31,7 @@ watch(
   () => props.data,
   (newData) => {
     skipNextUpdate.value = true;
-    value.value = newData;
+    value.value = Boolean(newData);
   },
 );
 </script>

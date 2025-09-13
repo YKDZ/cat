@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
 import { schemaKey, transferDataToString } from "..";
-import type { JSONType } from "@cat/shared/schema/json";
 import Icon from "../../Icon.vue";
 import z from "zod";
 import RendererLabel from "../utils/RendererLabel.vue";
+import type { JSONType } from "@cat/shared/schema/json";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -12,14 +12,12 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: string): void;
+  (e: '_update', to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
 
-const value = ref(
-  transferDataToString(props.data) ?? transferDataToString(schema.default),
-);
+const value = ref<string>(transferDataToString(props.data ?? schema.default));
 
 const visible = ref(false);
 

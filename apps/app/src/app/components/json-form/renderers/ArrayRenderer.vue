@@ -2,31 +2,33 @@
 import { computed, inject, ref, shallowRef, watch } from "vue";
 import { schemaKey } from "..";
 import JSONForm from "../JSONForm.vue";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import HButton from "@/app/components/headless/HButton.vue";
+import z from "zod";
 
 const props = defineProps<{
   propertyKey?: string;
-  data: JSONType[];
+  data: JSONType;
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: JSONType[]): void;
+  (e: "_update", to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
-const count = ref(props.data.length);
+const value = shallowRef<JSONType[]>(
+  z.array(z.json()).parse(props.data ?? schema.default),
+);
+const count = ref(value.value.length);
 const skipNextUpdate = ref(false);
 
-const value = shallowRef<JSONType[]>(props.data);
-
 const itemsSchema = computed(() => {
-  // Draft 2020-12 以后 items 不再能是数组
-  return schema.items as any;
+  // TODO Draft 2020-12 以后 items 不再能是数组
+  return schema.items as JSONSchema[];
 });
 
 const prefixItemsSchemas = computed(() => {
-  return schema.prefixItems ? (schema.prefixItems as any[]) : [];
+  return (schema.prefixItems ? schema.prefixItems : []) as JSONSchema[];
 });
 
 const handleUpdate = (to: JSONType, index: number) => {
@@ -44,7 +46,7 @@ watch(
   () => props.data,
   (newData) => {
     skipNextUpdate.value = true;
-    value.value = newData;
+    value.value = z.array(z.json()).parse(newData);
   },
 );
 </script>

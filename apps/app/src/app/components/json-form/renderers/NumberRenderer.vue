@@ -2,18 +2,19 @@
 import { inject, ref, watch } from "vue";
 import { schemaKey } from "..";
 import RendererLabel from "../utils/RendererLabel.vue";
+import type { JSONType } from "@cat/shared/schema/json";
 
 const props = defineProps<{
   propertyKey?: string;
-  data: number;
+  data: JSONType;
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: number): void;
+  (e: '_update', to: JSONType): void;
 }>();
 
-const value = ref(props.data);
 const schema = inject(schemaKey)!;
+const value = ref(Number(props.data ?? schema.default));
 
 const handleUpdate = () => {
   emits("_update", value.value);
@@ -22,7 +23,7 @@ const handleUpdate = () => {
 watch(
   () => props.data,
   (newData) => {
-    value.value = newData;
+    value.value = Number(newData);
   },
 );
 </script>

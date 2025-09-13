@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject } from "vue";
 import { schemaKey, transferDataToString } from "..";
-import type { JSONType } from "@cat/shared/schema/json";
 import z from "zod";
 import RendererLabel from "../utils/RendererLabel.vue";
+import type { JSONType } from "@cat/shared/schema/json";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -11,38 +11,32 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: string): void;
+  (e: '_update', to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
 
-const value = ref(
-  transferDataToString(props.data) ?? transferDataToString(schema.default),
-);
+const value = computed(() => {
+  return transferDataToString(props.data ?? schema.default);
+});
 
 const inputType = computed(() => {
   if (schema.format === "email") return "email";
   else return "text";
 });
 
-const handleUpdate = () => {
-  emits("_update", value.value);
+const handleUpdate = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  emits("_update", input.value);
 };
-
-watch(
-  () => props.data,
-  (newData) => {
-    value.value = transferDataToString(newData);
-  },
-  { deep: true },
-);
 </script>
 
 <template>
   <div class="flex flex-col gap-0.5">
     <RendererLabel :schema :property-key />
     <input
-      v-model="value"
+      @change="handleUpdate"
+      :value
       :type="inputType"
       :autocomplete="z.string().optional().parse(schema['x-autocomplete'])"
       class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-base"
