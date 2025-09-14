@@ -1,5 +1,5 @@
-import { JSONSchemaSchema } from "@/schema/json.ts";
 import { z } from "zod";
+import { JSONSchemaSchema } from "@/schema/json.ts";
 
 export const PluginManifestSchema = z.object({
   id: z.string(),

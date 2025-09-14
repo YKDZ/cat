@@ -5,8 +5,8 @@ import {
 } from "@cat/shared/schema/prisma/glossary";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { authedProcedure, router } from "../server.ts";
 import { TermDataSchema } from "@cat/shared/schema/misc";
+import { authedProcedure, router } from "../server.ts";
 
 export const glossaryRouter = router({
   deleteTerm: authedProcedure

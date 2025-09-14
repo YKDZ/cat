@@ -1,24 +1,15 @@
 <script setup lang="ts">
-import PluginList from "@/app/components/PluginList.vue";
-import { useToastStore } from "@/app/stores/toast";
-import { trpc } from "@/server/trpc/client";
 import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import { onMounted, ref } from "vue";
-import type { Data } from "./+data";
 import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
+import PluginList from "@/app/components/PluginList.vue";
 
-const { trpcWarn } = useToastStore();
+const plugins = ref<WithRequired<Plugin, "Installations">[]>(
+  useData<Data>().plugins,
+);
 
-const plugins = ref<Plugin[]>(useData<Data>().plugins);
-
-const updatePlugins = async () => {
-  await trpc.plugin.listAllWithOverridableConfig
-    .query()
-    .then((pls) => {
-      plugins.value = pls;
-    })
-    .catch(trpcWarn);
-};
+const updatePlugins = async () => {};
 
 onMounted(updatePlugins);
 </script>

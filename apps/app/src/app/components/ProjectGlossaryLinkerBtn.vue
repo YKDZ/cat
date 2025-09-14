@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { inject, ref } from "vue";
-import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
-import { trpc } from "@/server/trpc/client";
-import { projectKey } from "../utils/provide";
-import { useToastStore } from "../stores/toast";
-import Modal from "./Modal.vue";
 import { useI18n } from "vue-i18n";
+import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
+import Modal from "./Modal.vue";
 import HButton from "./headless/HButton.vue";
+import { trpc } from "@/server/trpc/client.ts";
+import { projectKey } from "@/app/utils/provide.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
 

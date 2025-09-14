@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
-import type { PartData } from ".";
-import { clippers, recursiveSplit } from ".";
 import Empty from "./Empty.vue";
 import Part from "./Part.vue";
+import type { PartData } from "./index.ts";
+import { clippers, recursiveSplit } from "./index.ts";
 
 const props = withDefaults(
   defineProps<{

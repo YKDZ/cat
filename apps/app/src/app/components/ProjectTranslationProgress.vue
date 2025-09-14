@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
-import type { ProgressBarLine } from "./progress/bar";
-import Dot from "./Dot.vue";
 import { toShortFixed } from "@cat/shared/utils";
+import type { ProgressBarLine } from "./progress/bar/index.ts";
+import Dot from "./Dot.vue";
+import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
 
 const props = defineProps<{
   projectId: string;

@@ -1,9 +1,3 @@
-import type { AuthProvider } from "@/registry/auth-provider.ts";
-import type { StorageProvider } from "@/registry/storage-provider.ts";
-import type { TermService } from "@/registry/term-service.ts";
-import type { TextVectorizer } from "@/registry/text-vectorizer.ts";
-import type { TranslatableFileHandler } from "@/registry/translatable-file-handler.ts";
-import type { TranslationAdvisor } from "@/registry/translation-advisor.ts";
 import { existsSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -12,9 +6,15 @@ import { z } from "zod";
 import { JSONSchemaSchema, type JSONType } from "@cat/shared/schema/json";
 import { OverallPrismaClient, PrismaClient, ScopeType } from "@cat/db";
 import { getDefaultFromSchema, logger } from "@cat/shared/utils";
-import { getPluginConfig } from "@/utils/config.ts";
 import { PluginManifestSchema } from "@cat/shared/schema/plugin";
 import type { PluginManifest } from "@cat/shared/schema/plugin";
+import { getPluginConfig } from "@/utils/config.ts";
+import type { TranslationAdvisor } from "@/registry/translation-advisor.ts";
+import type { TranslatableFileHandler } from "@/registry/translatable-file-handler.ts";
+import type { TextVectorizer } from "@/registry/text-vectorizer.ts";
+import type { TermService } from "@/registry/term-service.ts";
+import type { StorageProvider } from "@/registry/storage-provider.ts";
+import type { AuthProvider } from "@/registry/auth-provider.ts";
 
 declare global {
   var __PLUGIN_REGISTRY__: PluginRegistry | undefined;

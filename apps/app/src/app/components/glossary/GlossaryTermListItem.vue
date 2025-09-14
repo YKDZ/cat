@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
-import { useToastStore } from "@/app/stores/toast";
-
+import { trpc } from "@/server/trpc/client.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
-import HButton from "../headless/HButton.vue";
+import HButton from "@/app/components/headless/HButton.vue";
 
 const { info, trpcWarn } = useToastStore();
 

@@ -1,17 +1,17 @@
 import "dotenv/config";
+import type { Server } from "node:http";
 import { setting, syncSettings } from "@cat/db";
 import { createHTTPHelpers, logger } from "@cat/shared/utils";
-import type { Server } from "node:http";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import { getPrismaDB, getRedisDB } from "@cat/db";
-import { closeAllProcessors } from "./processor";
-import { parsePreferredLanguage } from "./utils/i18n";
-import { userFromSessionId } from "./utils/user";
-import app from "./app";
-import { initTermService } from "./utils/term";
 import { PluginRegistry } from "@cat/plugin-core";
-import { importLocalPlugins, installDefaultPlugins } from "./utils/plugin";
+import { closeAllProcessors } from "./processor/index.ts";
+import { parsePreferredLanguage } from "./utils/i18n.ts";
+import { userFromSessionId } from "./utils/user.ts";
+import app from "./app.ts";
+import { initTermService } from "./utils/term.ts";
+import { importLocalPlugins, installDefaultPlugins } from "./utils/plugin.ts";
 
 let server: Server | null = null;
 

@@ -1,5 +1,5 @@
 import type { DefaultArgs } from "@prisma/client/runtime/client";
-import type { PrismaClient } from "../generated/prisma/client.ts";
+import type { PrismaClient } from "@/generated/prisma/client.ts";
 
 export const insertVector = async (
   prisma: Pick<PrismaClient<never, never, DefaultArgs>, "$queryRawUnsafe">,
@@ -8,7 +8,7 @@ export const insertVector = async (
   const ids = await insertVectors(prisma, [vector]);
   if (ids.length !== 1)
     throw new Error("insert vector did not return one of id");
-  return ids.at(0)!;
+  return ids[0]!;
 };
 
 export const insertVectors = async (

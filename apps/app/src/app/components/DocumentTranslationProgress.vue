@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { computed, onMounted } from "vue";
-import { useDocumentStore } from "../stores/document";
-import Dot from "./Dot.vue";
-import type { ProgressBarLine } from "./progress/bar";
-import ProgressBar from "./progress/bar/ProgressBar.vue";
 import { toShortFixed } from "@cat/shared/utils";
 import { useI18n } from "vue-i18n";
+import Dot from "./Dot.vue";
+import ProgressBar from "./progress/bar/ProgressBar.vue";
+import { useDocumentStore } from "@/app/stores/document.ts";
+import type { ProgressBarLine } from "@/app/components/progress/bar/index.ts";
 
 const { t } = useI18n();
 

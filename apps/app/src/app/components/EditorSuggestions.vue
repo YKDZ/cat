@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import EditorSuggestionList from "./EditorSuggestionList.vue";
 import { useI18n } from "vue-i18n";
+import EditorSuggestionList from "./EditorSuggestionList.vue";
 
 const { t } = useI18n();
 </script>

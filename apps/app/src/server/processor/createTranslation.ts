@@ -1,8 +1,8 @@
 import { getPrismaDB, insertVector } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
-import { config } from "./config";
 import { registerTaskUpdateHandlers } from "../utils/worker";
+import { config } from "./config";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -34,7 +34,6 @@ const worker = new Worker(
     const pluginRegistry = new PluginRegistry();
 
     await pluginRegistry.loadPlugins(prisma, {
-      silent: true,
       tags: ["text-vectorizer"],
     });
 

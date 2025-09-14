@@ -1,11 +1,5 @@
-import { AsyncMessageQueue } from "@/server/utils/queue.ts";
 import { tracked } from "@trpc/server";
 import { z } from "zod";
-import { authedProcedure, router } from "@/server/trpc/server.ts";
-import {
-  queryElementWithEmbedding,
-  searchMemory,
-} from "@/server/utils/memory.ts";
 import {
   MemorySuggestionSchema,
   type MemorySuggestion,
@@ -15,6 +9,12 @@ import {
   MemoryItemSchema,
   MemorySchema,
 } from "@cat/shared/schema/prisma/memory";
+import {
+  queryElementWithEmbedding,
+  searchMemory,
+} from "@/server/utils/memory.ts";
+import { authedProcedure, router } from "@/server/trpc/server.ts";
+import { AsyncMessageQueue } from "@/server/utils/queue.ts";
 
 export const memoryRouter = router({
   create: authedProcedure

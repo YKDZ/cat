@@ -4,11 +4,11 @@ import {
   type PluginConfig,
   type PluginConfigInstance,
 } from "@cat/shared/schema/prisma/plugin";
-import { trpc } from "@/server/trpc/client";
 import { ref } from "vue";
 import type { ScopeType } from "@cat/db";
-import SettingForm from "./SettingForm.vue";
 import { navigate } from "vike/client/router";
+import SettingForm from "./SettingForm.vue";
+import { trpc } from "@/server/trpc/client.ts";
 
 const props = defineProps<{
   config: PluginConfig;

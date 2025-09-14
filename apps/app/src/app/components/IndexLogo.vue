@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import logoURL from "@/assets/logo.png";
 import { usePageContext } from "vike-vue/usePageContext";
+import logoURL from "@/assets/logo.png";
 
 const ctx = usePageContext();
 </script>

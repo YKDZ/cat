@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { inject } from "vue";
-import { projectKey } from "../utils/provide";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
+import { projectKey } from "@/app/utils/provide.ts";
 
 const { t } = useI18n();
 

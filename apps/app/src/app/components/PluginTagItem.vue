@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PluginTag } from "@cat/shared/schema/prisma/plugin";
 
-const props = defineProps<{
+defineProps<{
   tag: PluginTag;
 }>();
 </script>

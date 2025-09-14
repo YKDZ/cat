@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { Document } from "@cat/shared/schema/prisma/document";
 import { inject, ref } from "vue";
-import { languageKey } from "../utils/provide";
-import { useToastStore } from "../stores/toast";
-import Modal from "./Modal.vue";
 import { useI18n } from "vue-i18n";
+import Modal from "./Modal.vue";
 import HButton from "./headless/HButton.vue";
+import { languageKey } from "@/app/utils/provide.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { t } = useI18n();
 

@@ -1,4 +1,3 @@
-import { trpc } from "@/server/trpc/client.ts";
 import {
   type ElementTranslationStatus,
   type MemorySuggestion,
@@ -17,6 +16,7 @@ import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref } from "vue";
 import z from "zod";
+import { trpc } from "@/server/trpc/client.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 import type { PartData } from "@/app/components/tagger/index.ts";

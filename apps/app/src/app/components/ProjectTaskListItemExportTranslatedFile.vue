@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { Task } from "@cat/shared/schema/prisma/misc";
+import { z } from "zod";
+import { computed, ref } from "vue";
+import { useDateFormat } from "@vueuse/core";
 import TableRow from "./table/TableRow.vue";
 import TableCell from "./table/TableCell.vue";
-import { z } from "zod";
-import { trpc } from "@/server/trpc/client";
-import { computed, ref } from "vue";
-import { useToastStore } from "../stores/toast";
-import { useLanguageStore } from "../stores/language";
-import { useDateFormat } from "@vueuse/core";
 import HButton from "./headless/HButton.vue";
+import { trpc } from "@/server/trpc/client.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { useLanguageStore } from "@/app/stores/language.ts";
 
 const props = defineProps<{
   task: Task;

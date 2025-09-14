@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import HButton from "@/app/components/headless/HButton.vue";
-import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
-import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
-import { useLanguageStore } from "@/app/stores/language";
-import { languageKey } from "@/app/utils/provide";
 import type { Document } from "@cat/shared/schema/prisma/document";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { computed, onMounted, provide, ref, watch } from "vue";
-import type { Data } from "./+data.ts";
 import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
+import { languageKey } from "@/app/utils/provide.ts";
+import { useLanguageStore } from "@/app/stores/language.ts";
+import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
+import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
+import HButton from "@/app/components/headless/HButton.vue";
 
 const ctx = usePageContext();
 const { project } = useData<Data>();

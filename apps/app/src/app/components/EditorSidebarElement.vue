@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { navigate } from "vike/client/router";
-import { useEditorStore } from "@/app/stores/editor";
 import { storeToRefs } from "pinia";
 import { onMounted, ref } from "vue";
-import { useToastStore } from "@/app/stores/toast";
 import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { useEditorStore } from "@/app/stores/editor.ts";
 
 const { trpcWarn } = useToastStore();
 

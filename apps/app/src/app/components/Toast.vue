@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useToastStore } from "../stores/toast";
 import { watch } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const ctx = usePageContext();
 

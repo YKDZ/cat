@@ -1,8 +1,8 @@
-import { trpc } from "@/server/trpc/client.ts";
 import { defineStore } from "pinia";
 import { shallowReactive, shallowRef } from "vue";
 import type { Task } from "@cat/shared/schema/prisma/misc";
 import type { Document } from "@cat/shared/schema/prisma/document";
+import { trpc } from "@/server/trpc/client.ts";
 
 export type TranslationCount = {
   languageId: string;

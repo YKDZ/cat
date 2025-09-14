@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import ProjectLanguageList from "@/app/components/ProjectLanguageList.vue";
-import ProjectDetailCard from "@/app/components/ProjectDetailCard.vue";
-import type { Data } from "./+data.ts";
 import { useData } from "vike-vue/useData";
 import { provide } from "vue";
+import type { Data } from "./+data.ts";
+import ProjectLanguageList from "@/app/components/ProjectLanguageList.vue";
+import ProjectDetailCard from "@/app/components/ProjectDetailCard.vue";
 import { projectKey } from "@/app/utils/provide.ts";
 
 const { project } = useData<Data>();

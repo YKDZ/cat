@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import ProjectGlossaryLinkerBtn from "@/app/components/ProjectGlossaryLinkerBtn.vue";
-import ProjectGlossaryList from "@/app/components/ProjectGlossaryList.vue";
-import { trpc } from "@/server/trpc/client";
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
 import { onMounted, ref, watch } from "vue";
-import type { Data } from "./+data.ts";
 import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
+import ProjectGlossaryLinkerBtn from "@/app/components/ProjectGlossaryLinkerBtn.vue";
+import ProjectGlossaryList from "@/app/components/ProjectGlossaryList.vue";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { project } = useData<Data>();
 

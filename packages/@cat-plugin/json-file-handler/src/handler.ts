@@ -1,5 +1,5 @@
-import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { extname } from "node:path";
+import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { File } from "@cat/shared/schema/prisma/file";
 import { TranslatableElementData } from "@cat/shared/schema/misc";
 import { TranslatableElement } from "@cat/shared/schema/prisma/document";

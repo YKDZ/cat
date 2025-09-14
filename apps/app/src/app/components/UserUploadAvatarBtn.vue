@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import Modal from "@/app/components/Modal.vue";
-import ImageCopper from "@/app/components/ImageCopper.vue";
-import { uploadFileToS3PresignedURL } from "@/app/utils/file";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
-import { trpc } from "@/server/trpc/client";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed, ref, shallowRef } from "vue";
-import { useToastStore } from "../stores/toast";
 import { useObjectUrl } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { trpc } from "@/server/trpc/client.ts";
+import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
+import ImageCopper from "@/app/components/ImageCopper.vue";
+import Modal from "@/app/components/Modal.vue";
 
 const { t } = useI18n();
 

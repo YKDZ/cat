@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
-import type { TranslationWithStatus } from "../stores/editor";
-import { useEditorStore } from "../stores/editor";
+import { computed } from "vue";
+import { useDateFormat } from "@vueuse/core";
+import { useI18n } from "vue-i18n";
 import EditorElementTranslationMeta from "./EditorElementTranslationMeta.vue";
 import EditorElementTranslationVote from "./EditorElementTranslationVote.vue";
 import TextTagger from "./tagger/TextTagger.vue";
 import UserAvatar from "./UserAvatar.vue";
-import { computed } from "vue";
 import EditorElementTranslationApprovementBtn from "./EditorElementTranslationApprovementBtn.vue";
-import { useDateFormat } from "@vueuse/core";
 import Icon from "./Icon.vue";
-import { useI18n } from "vue-i18n";
+import { useEditorStore } from "@/app/stores/editor.ts";
+import type { TranslationWithStatus } from "@/app/stores/editor.ts";
 
 const { t } = useI18n();
 

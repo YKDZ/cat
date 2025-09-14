@@ -3,11 +3,11 @@ import type { AuthProvider, AuthResult, PreAuthResult } from "@cat/plugin-core";
 import type { HTTPHelpers } from "@cat/shared/utils";
 import { safeJoinURL } from "@cat/shared/utils";
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { z } from "zod";
+import { request, fetch } from "undici";
 import { randomChars } from "./utils/crypto.ts";
 import { createOIDCAuthURL } from "./utils/oidc.ts";
 import type { ProviderConfig } from "./index.ts";
-import { z } from "zod";
-import { request, fetch } from "undici";
 
 const SearchParasSchema = z.object({
   state: z.string(),

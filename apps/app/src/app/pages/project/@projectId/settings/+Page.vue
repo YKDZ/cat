@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import { navigate } from "vike/client/router";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
 import HButton from "@/app/components/headless/HButton.vue";
 import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { trpc } from "@/server/trpc/client.ts";
-import { navigate } from "vike/client/router";
-import { ref } from "vue";
-import { useI18n } from "vue-i18n";
-import type { Data } from "./+data.ts";
-import { useData } from "vike-vue/useData";
 
 const { t } = useI18n();
 const { project } = useData<Data>();

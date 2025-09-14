@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from "vue";
-import Table from "@/app/components/table/Table.vue";
-import TableBody from "@/app/components/table/TableBody.vue";
 import type { MemoryItem } from "@cat/shared/schema/prisma/memory";
-import { memoryKey } from "@/app/utils/provide";
-import { trpc } from "@/server/trpc/client";
-import type { TermListFilterOptions } from ".";
 import MemoryItemListFilter from "./MemoryItemListFilter.vue";
 import MemoryItemListItem from "./MemoryItemListItem.vue";
+import type { TermListFilterOptions } from "./index.ts";
+import Table from "@/app/components/table/Table.vue";
+import TableBody from "@/app/components/table/TableBody.vue";
+import { memoryKey } from "@/app/utils/provide.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const items = ref<MemoryItem[]>([]);
 

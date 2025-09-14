@@ -1,9 +1,9 @@
 import { createGunzip } from "node:zlib";
-import { x } from "tar";
 import { mkdir } from "node:fs/promises";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { Readable } from "node:stream";
+import { x } from "tar";
 
 export async function downloadAndExtract(
   url: string,

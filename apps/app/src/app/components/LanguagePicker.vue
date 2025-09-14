@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import Picker from "./picker/Picker.vue";
 import { storeToRefs } from "pinia";
-import { useLanguageStore } from "../stores/language";
-import type { PickerOption } from "./picker";
+import Picker from "./picker/Picker.vue";
+import type { PickerOption } from "./picker/index.ts";
+import { useLanguageStore } from "@/app/stores/language.ts";
 
 interface Props {
   filter?: (option: PickerOption) => boolean;

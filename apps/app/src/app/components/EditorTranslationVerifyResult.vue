@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
 import { computed, ref, watch } from "vue";
-import type { ClipperVerifyResult } from "./tagger";
-import { clippers } from "./tagger";
+import type { ClipperVerifyResult } from "./tagger/index.ts";
+import { clippers } from "./tagger/index.ts";
 import Collapse from "./Collapse.vue";
 import Icon from "./Icon.vue";
 import Modal from "./Modal.vue";
 import HButton from "./headless/HButton.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
 
 const { sourceParts, translationParts, translationValue } =
   storeToRefs(useEditorStore());

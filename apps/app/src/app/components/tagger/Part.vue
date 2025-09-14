@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, h } from "vue";
-import type { PartData } from ".";
-import { clippers } from ".";
+import type { PartData } from "./index.ts";
+import { clippers } from "./index.ts";
 
 const props = withDefaults(
   defineProps<{ part: PartData; interactive: boolean; layerIndex?: number }>(),

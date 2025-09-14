@@ -1,6 +1,6 @@
-import { useSSCTRPC } from "@/server/trpc/sscClient";
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
+import { useSSCTRPC } from "@/server/trpc/sscClient.ts";
 
 export const guard = async (ctx: PageContextServer) => {
   if (!ctx.user) throw render("/auth", `You must login to access`);

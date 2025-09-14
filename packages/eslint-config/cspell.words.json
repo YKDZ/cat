@@ -16,5 +16,8 @@
   "persistedstate",
   "iconify",
   "SSCTRPC",
-  "intlify"
+  "intlify",
+  "oxlint",
+  "libretranslate",
+  "ollama"
 ]

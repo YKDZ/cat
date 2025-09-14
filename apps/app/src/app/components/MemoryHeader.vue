@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { inject } from "vue";
+import MemoryBreadcrumb from "./MemoryBreadcrumb.vue";
+import HButton from "./headless/HButton.vue";
 import Header from "@/app/components/Header.vue";
 
-import { storeToRefs } from "pinia";
-import { useSidebarStore } from "@/app/stores/sidebar";
-import MemoryBreadcrumb from "./MemoryBreadcrumb.vue";
-import { memoryKey } from "@/app/utils/provide";
-import { inject } from "vue";
-import HButton from "./headless/HButton.vue";
+import { useSidebarStore } from "@/app/stores/sidebar.ts";
+import { memoryKey } from "@/app/utils/provide.ts";
 
 const { isFolding } = storeToRefs(useSidebarStore());
 

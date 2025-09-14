@@ -1,6 +1,6 @@
+import { randomBytes } from "node:crypto";
 import type { PrismaClient } from "@cat/db";
 import { PrismaDB, hashPassword } from "@cat/db";
-import { randomBytes } from "crypto";
 
 const seed = async (prisma: PrismaClient) => {
   await prisma.$transaction(async (tx) => {

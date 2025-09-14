@@ -12,9 +12,9 @@ export const useStorage = async (
   pluginId: string;
   id: number;
 }> => {
-  const storage = (await PluginRegistry.get().getStorageProviders(prisma))
-    .filter(({ provider }) => provider.getId() === storageServiceId)
-    .at(0);
+  const storage = (
+    await PluginRegistry.get().getStorageProviders(prisma)
+  ).filter(({ provider }) => provider.getId() === storageServiceId)[0];
 
   if (!storage)
     throw new Error(

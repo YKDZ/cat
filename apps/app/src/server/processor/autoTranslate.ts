@@ -3,17 +3,17 @@ import type { TranslationAdvisor } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import { z } from "zod";
+import type {
+  TranslationSuggestion,
+  UnvectorizedTextData,
+} from "@cat/shared/schema/misc";
+import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
 import { config } from "./config.ts";
 import {
   queryElementWithEmbedding,
   searchMemory,
 } from "@/server/utils/memory.ts";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
-import type {
-  TranslationSuggestion,
-  UnvectorizedTextData,
-} from "@cat/shared/schema/misc";
-import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -39,7 +39,6 @@ const worker = new Worker(
     const pluginRegistry = new PluginRegistry();
 
     await pluginRegistry.loadPlugins(prisma, {
-      silent: true,
       tags: ["translation-advisor", "text-vectorizer", "term-service"],
     });
 

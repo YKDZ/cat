@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { NavbarItemType } from ".";
 import NavbarItem from "./NavbarItem.vue";
+import type { NavbarItemType } from "./index.ts";
 
 const props = defineProps<{
   pathPrefix: string;

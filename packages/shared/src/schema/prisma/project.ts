@@ -1,7 +1,7 @@
 import z from "zod";
+import { PrimsaDateTime } from "../misc.ts";
 import { MemorySchema } from "./memory.ts";
 import { LanguageSchema } from "./misc.ts";
-import { PrimsaDateTime } from "../misc.ts";
 import { UserSchema } from "./user.ts";
 import { DocumentSchema } from "./document.ts";
 

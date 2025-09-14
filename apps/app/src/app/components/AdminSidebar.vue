@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Sidebar from "./Sidebar.vue";
-import UserAvatar from "./UserAvatar.vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { storeToRefs } from "pinia";
-import { useSidebarStore } from "../stores/sidebar";
+import { useI18n } from "vue-i18n";
 import Logo from "./Logo.vue";
 import DropdownMenu from "./dropdown/DropdownMenu.vue";
 import LogoutBtn from "./LogoutBtn.vue";
 import AdminBtn from "./AdminBtn.vue";
-import { useI18n } from "vue-i18n";
+import UserAvatar from "./UserAvatar.vue";
+import Sidebar from "./Sidebar.vue";
 import HButton from "./headless/HButton.vue";
+import { useSidebarStore } from "@/app/stores/sidebar.ts";
 
 const mouseInSidebar = ref<boolean>(false);
 

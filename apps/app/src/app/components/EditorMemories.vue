@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import EditorMemoryList from "./EditorMemoryList.vue";
 import EditorMemorySettings from "./EditorMemorySettings.vue";
-import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 </script>

@@ -1,8 +1,8 @@
 import { type TranslationSuggestion } from "@cat/shared/schema/misc";
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
-import Sender from "./sender";
 import { logger } from "@cat/shared/utils";
+import Sender from "./sender";
 
 const languageCodeMap = new Map<string, string>([["zh_hans", "zh"]]);
 

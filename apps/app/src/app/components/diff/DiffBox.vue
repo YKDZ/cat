@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { diffLines } from "diff";
 import { computed, ref } from "vue";
-import type { DiffedLine } from ".";
 import DiffBoxSplit from "./DiffBoxSplit.vue";
 import DiffBoxUnified from "./DiffBoxUnified.vue";
+import type { DiffedLine } from "./index.ts";
 
 const props = defineProps<{
   old: string;

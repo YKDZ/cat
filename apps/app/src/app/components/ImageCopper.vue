@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import RangeInput from "./RangeInput.vue";
 import { useI18n } from "vue-i18n";
+import RangeInput from "./RangeInput.vue";
 import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();

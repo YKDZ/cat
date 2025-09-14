@@ -1,18 +1,18 @@
 <script setup lang="ts">
+import type { Document } from "@cat/shared/schema/prisma/document";
+import type { Project } from "@cat/shared/schema/prisma/project";
+import { computed, ref, shallowRef } from "vue";
+import { TRPCClientError } from "@trpc/client";
+import { useI18n } from "vue-i18n";
+import Icon from "./Icon.vue";
+import HButton from "./headless/HButton.vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
-import { useToastStore } from "@/app/stores/toast";
-import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file";
-import { trpc } from "@/server/trpc/client";
-import type { Document } from "@cat/shared/schema/prisma/document";
-import type { Project } from "@cat/shared/schema/prisma/project";
-import { computed, ref, shallowRef } from "vue";
-import Icon from "./Icon.vue";
-import { TRPCClientError } from "@trpc/client";
-import { useI18n } from "vue-i18n";
-import HButton from "./headless/HButton.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { t } = useI18n();
 

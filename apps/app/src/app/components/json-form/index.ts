@@ -1,4 +1,5 @@
 import type { DefineComponent, InjectionKey } from "vue";
+import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import StringRenderer from "./renderers/StringRenderer.vue";
 import NumberRenderer from "./renderers/NumberRenderer.vue";
 import BooleanRenderer from "./renderers/BooleanRenderer.vue";
@@ -6,7 +7,6 @@ import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import ArrayRenderer from "./renderers/ArrayRenderer.vue";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 
 export const schemaKey = Symbol() as InjectionKey<JSONSchema>;
 

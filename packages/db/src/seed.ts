@@ -1,5 +1,5 @@
-import { PrismaDB } from "./prisma.ts";
 import { randomBytes } from "node:crypto";
+import { PrismaDB } from "./prisma.ts";
 import { hashPassword } from "./utils/password.ts";
 import type { PrismaClient } from "./generated/prisma/client.ts";
 

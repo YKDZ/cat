@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { User } from "@cat/shared/schema/prisma/user";
 import { computed, onBeforeMount, onMounted, ref, watch } from "vue";
+import { trpc } from "@/server/trpc/client.ts";
 
 const props = defineProps<{
   user?: User;

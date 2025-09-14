@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { isLowWidth } from "../utils/window";
+import { isLowWidth } from "@/app/utils/window.ts";
 
 export const useSidebarStore = defineStore("sidebar", () => {
   const isFree = ref<boolean>(false);

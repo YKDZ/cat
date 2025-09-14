@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import type { AuthMethod } from "@cat/shared/schema/misc";
 import { computed, onMounted, ref, shallowRef } from "vue";
-import { useAuthStore } from "../stores/auth";
 import { storeToRefs } from "pinia";
-import { useToastStore } from "../stores/toast";
 import { navigate } from "vike/client/router";
-import JSONForm from "./json-form/JSONForm.vue";
 import { useI18n } from "vue-i18n";
 import type { TRPCError } from "@trpc/server";
+import JSONForm from "./json-form/JSONForm.vue";
 import HButton from "./headless/HButton.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { useAuthStore } from "@/app/stores/auth.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { t } = useI18n();
 

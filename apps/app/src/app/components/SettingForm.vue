@@ -2,7 +2,7 @@
 import { onBeforeMount, ref, shallowRef } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
-import JSONForm from "./json-form/JSONForm.vue";
+import JSONForm from "@/app/components/json-form/JSONForm.vue";
 
 const props = defineProps<{
   configGetter: () => Promise<JSONType>;

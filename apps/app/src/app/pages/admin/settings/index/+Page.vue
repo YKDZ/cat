@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import AdminSettingForm from "@/app/components/AdminSettingForm.vue";
 import { z } from "zod";
 import { useI18n } from "vue-i18n";
+import AdminSettingForm from "@/app/components/AdminSettingForm.vue";
 
 const { t } = useI18n();
 

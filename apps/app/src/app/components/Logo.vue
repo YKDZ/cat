@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import logoURL from "@/app/assets/logo.png";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
+import logoURL from "@/app/assets/logo.png";
 
 const props = defineProps({
   link: Boolean,

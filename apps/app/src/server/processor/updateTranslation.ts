@@ -26,7 +26,6 @@ const worker = new Worker(
     const pluginRegistry = new PluginRegistry();
 
     await pluginRegistry.loadPlugins(prisma, {
-      silent: true,
       tags: ["text-vectorizer"],
     });
 

@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { Task } from "@cat/shared/schema/prisma/misc";
-import { computed, onMounted, ref } from "vue";
-import TaskTable from "./TaskTable.vue";
-import { useLanguageStore } from "../stores/language";
+import { onMounted, ref } from "vue";
 import z from "zod";
-import { useToastStore } from "../stores/toast";
 import type { Cell } from "@tanstack/vue-table";
+import TaskTable from "./TaskTable.vue";
 import HButton from "./headless/HButton.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const props = defineProps<{
   projectId: string;

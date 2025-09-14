@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
-import { schemaKey, transferDataToString } from "..";
-import Icon from "../../Icon.vue";
 import z from "zod";
-import RendererLabel from "../utils/RendererLabel.vue";
 import type { JSONType } from "@cat/shared/schema/json";
+import { schemaKey, transferDataToString } from "..";
+import RendererLabel from "@/app/utils/RendererLabel.vue";
+import Icon from "@/app/components/Icon.vue";
 
 const props = defineProps<{
   propertyKey?: string;

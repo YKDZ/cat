@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { useData } from "vike-vue/useData";
+import { provide } from "vue";
+import type { Data } from "./+data.ts";
 import IndexSidebar from "@/app/components/IndexSidebar.vue";
 import MemoryHeader from "@/app/components/MemoryHeader.vue";
-import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
-import { provide } from "vue";
 import { memoryKey } from "@/app/utils/provide.ts";
 
 const { memory } = useData<Data>();

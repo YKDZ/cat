@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type {
   Translation,
   TranslationApprovement,
 } from "@cat/shared/schema/prisma/translation";
-import { useEditorStore } from "../stores/editor";
-import { useToastStore } from "../stores/toast";
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { useEditorStore } from "@/app/stores/editor.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const props = defineProps<{
   translation: Translation;
@@ -24,7 +24,7 @@ const isApproved = computed(() => {
   if (!props.translation.Approvements) return false;
   return (
     props.translation.Approvements.findIndex(
-      (approvment) => approvment.isActive,
+      (approvement) => approvement.isActive,
     ) !== -1
   );
 });
@@ -39,7 +39,7 @@ const handleChangeApprovement = (
 
   if (originIndex === -1) return;
 
-  const origin = translations.value.at(originIndex);
+  const origin = translations.value[originIndex];
 
   if (!origin) return;
 

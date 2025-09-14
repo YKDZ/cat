@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { FlowItem } from "@/app/components/flow";
-import { useToastStore } from "@/app/stores/toast";
 import type { Project } from "@cat/shared/schema/prisma/project";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import CreateProject from "./CreateProject.vue";
 import UploadFiles from "./UploadFiles.vue";
 import Finish from "./Finish.vue";
-import TextFlow from "@/app/components/flow/text/TextFlow.vue";
-import { useI18n } from "vue-i18n";
+import type { FlowItem } from "@/app/components/flow/index.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
+import TextFlow from "@/app/components/flow/TextFlow.vue";
 
 const { t } = useI18n();
 

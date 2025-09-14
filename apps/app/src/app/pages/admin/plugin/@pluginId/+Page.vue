@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { useData } from "vike-vue/useData";
+import { provide } from "vue";
+import type { Data } from "./+data.ts";
 import PluginConfig from "@/app/components/PluginConfig.vue";
 import PluginDeleteBtn from "@/app/components/PluginDeleteBtn.vue";
-import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
-import { provide } from "vue";
 import { pluginKey } from "@/app/utils/provide.ts";
 
 const { plugin } = useData<Data>();

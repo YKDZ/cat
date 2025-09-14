@@ -4,7 +4,7 @@ import Table from "./table/Table.vue";
 import TableBody from "./table/TableBody.vue";
 import ProjectLanguageDocumentListItem from "./ProjectLanguageDocumentListItem.vue";
 
-const props = defineProps<{
+defineProps<{
   documents: Document[];
 }>();
 </script>
