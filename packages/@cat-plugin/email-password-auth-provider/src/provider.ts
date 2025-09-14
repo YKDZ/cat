@@ -79,7 +79,7 @@ export class Provider implements AuthProvider {
     } satisfies AuthResult;
   }
 
-  async isAvaliable() {
+  async isAvailable() {
     return true;
   }
 }
