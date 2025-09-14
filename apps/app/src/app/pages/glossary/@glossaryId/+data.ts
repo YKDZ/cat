@@ -1,5 +1,5 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
-import { redirect } from "vike/abort";
+import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 
 export const data = async (ctx: PageContextServer) => {
@@ -7,7 +7,8 @@ export const data = async (ctx: PageContextServer) => {
 
   const glossary = await useSSCTRPC(ctx).glossary.query({ id: glossaryId });
 
-  if (!glossary) throw redirect("/project");
+  if (!glossary)
+    throw render(`/glossaries/`, `Glossary ${glossaryId} does not exists`);
 
   return {
     glossary,

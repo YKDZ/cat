@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useToastStore } from "../stores/toast";
+import { watch } from "vue";
+import { usePageContext } from "vike-vue/usePageContext";
+
+const ctx = usePageContext();
 
 const { toasts } = storeToRefs(useToastStore());
+const { error } = useToastStore();
+
+watch(
+  () => ctx.abortReason,
+  (to) => error(to as string),
+);
 </script>
 
 <template>
@@ -16,7 +26,7 @@ const { toasts } = storeToRefs(useToastStore());
       :key="toast.id"
       :class="{
         'text-highlight-content bg-highlight': toast.type === 'INFO',
-        'text-warning-content bg-warning': toast.type === 'WARNNING',
+        'text-warning-content bg-warning': toast.type === 'WARNING',
         'text-error-content bg-error': toast.type === 'ERROR',
       }"
       class="p-4 text-right w-fit shadow-lg relative md:min-w-32"

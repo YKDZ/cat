@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import ProjectDocumentList from "@/app/components/ProjectDocumentList.vue";
 import ProjectUploadFileBtn from "@/app/components/ProjectUploadFileBtn.vue";
-import { projectKey } from "@/app/utils/provide";
-import { inject } from "vue";
+import type { Data } from "./+data.ts";
+import { useData } from "vike-vue/useData";
 
-const project = inject(projectKey);
+const { project } = useData<Data>();
 
-const handleDeleteDocument = (id: string) => {
-  if (!project || !project.value || !project.value.Documents) return;
-
-  const index = project.value.Documents.findIndex(
-    (document) => document.id === id,
-  );
-  project.value.Documents.splice(index, 1);
+const handleDeleteDocument = () => {
+  if (!project || !project.Documents) return;
 };
 </script>
 

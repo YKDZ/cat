@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
 import type { ProgressBarLine } from "./progress/bar";
 import Dot from "./Dot.vue";
-import { useProjectStore } from "../stores/project";
-import { storeToRefs } from "pinia";
 import { toShortFixed } from "@cat/shared/utils";
 
 const props = defineProps<{
@@ -12,17 +10,9 @@ const props = defineProps<{
   languageId: string;
 }>();
 
-const { updateTranslatableEleAmount, updateTranslationAmount } =
-  useProjectStore();
-
-const { translationAmounts, translatableEleAmounts } =
-  storeToRefs(useProjectStore());
-
 const progressBarLines = computed<ProgressBarLine[]>(() => {
-  const translationCount = translationAmounts.value.get(props.projectId);
-  const translatableEleAmount = translatableEleAmounts.value.get(
-    props.projectId,
-  );
+  const translationCount = new Map().get(props.projectId);
+  const translatableEleAmount = new Map().get(props.projectId);
 
   if (!translationCount || !translatableEleAmount) return [];
 
@@ -37,11 +27,6 @@ const progressBarLines = computed<ProgressBarLine[]>(() => {
         translationCount.approvedTranslationAmount / translatableEleAmount,
     },
   ];
-});
-
-onMounted(async () => {
-  await updateTranslatableEleAmount(props.projectId);
-  await updateTranslationAmount(props.projectId, props.languageId);
 });
 </script>
 

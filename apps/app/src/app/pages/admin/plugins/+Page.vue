@@ -10,7 +10,9 @@ import { useData } from "vike-vue/useData";
 
 const { trpcWarn } = useToastStore();
 
-const plugins = ref<Plugin[]>(useData<Data>().plugins);
+const plugins = ref<WithRequired<Plugin, "Installations">[]>(
+  useData<Data>().plugins,
+);
 
 const updatePlugins = async () => {
   await trpc.plugin.listAll

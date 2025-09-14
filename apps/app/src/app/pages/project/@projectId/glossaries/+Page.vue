@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import ProjectGlossaryLinkerBtn from "@/app/components/ProjectGlossaryLinkerBtn.vue";
 import ProjectGlossaryList from "@/app/components/ProjectGlossaryList.vue";
-import { projectKey } from "@/app/utils/provide";
 import { trpc } from "@/server/trpc/client";
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
-import { inject, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
+import type { Data } from "./+data.ts";
+import { useData } from "vike-vue/useData";
 
-const project = inject(projectKey);
+const { project } = useData<Data>();
 
 const glossaries = ref<Glossary[]>([]);
 
 const updateGlossaries = async () => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
   await trpc.glossary.listProjectOwned
     .query({
-      projectId: project.value.id,
+      projectId: project.id,
     })
     .then((glo) => (glossaries.value = glo));
 };

@@ -4,7 +4,7 @@ import type { PageContextServer } from "vike/types";
 
 export const data = async (
   ctx: PageContextServer,
-): Promise<{ plugins: Plugin[] }> => {
+): Promise<{ plugins: WithRequired<Plugin, "Installations">[] }> => {
   const plugins = await useSSCTRPC(ctx).plugin.listAll();
   return { plugins };
 };

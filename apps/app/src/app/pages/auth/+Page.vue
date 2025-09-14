@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import AuthError from "@/app/components/AuthError.vue";
-import type { MemoryItem } from "@cat/shared/schema/misc";
 import { useData } from "vike-vue/useData";
-import { ref } from "vue";
 import logoUrl from "@/app/assets/logo.png";
 import type { Data } from "./+data";
 import { usePageContext } from "vike-vue/usePageContext";
@@ -10,9 +8,7 @@ import AuthPreHandler from "@/app/components/AuthPreHandler.vue";
 
 const ctx = usePageContext();
 
-const data = useData<Data>();
-
-const methods = ref<AuthMethod[]>(data.methods);
+const { methods } = useData<Data>();
 </script>
 
 <template>

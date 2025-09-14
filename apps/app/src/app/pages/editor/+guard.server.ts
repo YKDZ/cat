@@ -1,9 +1,9 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
-import { redirect } from "vike/abort";
+import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 
 export const guard = async (ctx: PageContextServer) => {
-  if (!ctx.user) throw redirect("/auth");
+  if (!ctx.user) throw render("/auth", `You must login to access`);
 
   const { elementId, documentId, languageFromTo } = ctx.routeParams;
   if (elementId !== "auto" || !isNaN(parseInt(elementId))) return;
@@ -23,8 +23,8 @@ export const guard = async (ctx: PageContextServer) => {
   }
 
   if (!target) {
-    throw redirect(`/editor/${documentId}/${languageFromTo}/empty`);
+    throw render(`/editor/${documentId}/${languageFromTo}/empty`);
   }
 
-  throw redirect(`/editor/${documentId}/${languageFromTo}/${target.id}`);
+  throw render(`/editor/${documentId}/${languageFromTo}/${target.id}`);
 };

@@ -1,17 +1,20 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
-import { redirect } from "vike/abort";
+import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
+import type { Document } from "@cat/shared/schema/prisma/document";
 
-export const data = async (ctx: PageContextServer) => {
+export const data = async (
+  ctx: PageContextServer,
+): Promise<{ document: Document }> => {
   const { documentId } = ctx.routeParams;
 
-  if (!documentId) throw redirect("/");
+  if (!documentId) throw render("/", `Document id not provided`);
 
   const document = await useSSCTRPC(ctx).document.query({
     id: documentId,
   });
 
-  if (!document) throw redirect("/");
+  if (!document) throw render("/", `Document ${documentId} not found`);
 
   return { document };
 };

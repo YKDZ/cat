@@ -5,14 +5,12 @@ import { inject, ref } from "vue";
 import { useToastStore } from "../stores/toast";
 import { projectKey } from "../utils/provide";
 import type { PickerOption } from "./picker";
-import { useProjectStore } from "../stores/project";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
 
 const { t } = useI18n();
 
 const { trpcWarn } = useToastStore();
-const { addProjects } = useProjectStore();
 
 const project = inject(projectKey);
 const languageId = ref<string>("");
@@ -39,9 +37,6 @@ const addNewLanguage = () => {
     .mutate({
       projectId: project.value.id,
       languageId: languageId.value,
-    })
-    .then((newProject) => {
-      addProjects(newProject);
     })
     .catch(trpcWarn);
 };

@@ -2,9 +2,8 @@
 import { ref } from "vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import Icon from "@/app/components/Icon.vue";
-
-import type { TermListFilterOptions } from ".";
-import HButton from "../headless/HButton.vue";
+import type { TermListFilterOptions } from "./index.ts";
+import HButton from "@/app/components/headless/HButton.vue";
 
 const emits = defineEmits<{
   (e: "filter", options: TermListFilterOptions): void;

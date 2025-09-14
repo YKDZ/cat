@@ -4,7 +4,7 @@ import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 import GlossaryListItem from "@/app/components/GlossaryListItem.vue";
 
-const glossaries = defineModel<Glossary[]>({ required: true });
+defineProps<{ glossaries: Glossary[] }>();
 </script>
 
 <template>

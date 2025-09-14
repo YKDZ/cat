@@ -2,17 +2,7 @@
 import type { Memory } from "@cat/shared/schema/prisma/memory";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
-import { computed, onMounted, watch } from "vue";
 import { navigate } from "vike/client/router";
-import { useMemoryStore } from "../stores/memory";
-import { storeToRefs } from "pinia";
-
-const { updateMemoryItemAmount } = useMemoryStore();
-const { memoryItemAmounts } = storeToRefs(useMemoryStore());
-
-const memoryItemAmount = computed(() => {
-  return memoryItemAmounts.value.get(props.memory.id) ?? 0;
-});
 
 const props = defineProps<{
   memory: Memory;
@@ -21,15 +11,6 @@ const props = defineProps<{
 const handleCheck = async () => {
   await navigate(`/memory/${props.memory.id}`);
 };
-
-watch(
-  () => props.memory.id,
-  (to) => updateMemoryItemAmount(to),
-);
-
-onMounted(() => {
-  updateMemoryItemAmount(props.memory.id);
-});
 </script>
 
 <template>
@@ -39,6 +20,6 @@ onMounted(() => {
   >
     <TableCell>{{ memory.name }}</TableCell>
     <TableCell>{{ memory.description }}</TableCell>
-    <TableCell>{{ memoryItemAmount }}</TableCell>
+    <TableCell>0</TableCell>
   </TableRow>
 </template>

@@ -312,19 +312,6 @@ graph LR
 
 ### 3. 前端状态管理
 
-```typescript
-// 插件状态管理 Store
-export const usePluginStore = defineStore("plugin", () => {
-  const plugins = shallowRef<Plugin[]>([]);
-
-  const addPlugins = (...pluginsToAdd: Plugin[]) => {
-    // 添加或更新插件逻辑
-  };
-
-  return { plugins, addPlugins };
-});
-```
-
 ## 插件实现示例
 
 ### 1. 认证提供者插件

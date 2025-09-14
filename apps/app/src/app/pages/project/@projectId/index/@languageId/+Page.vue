@@ -3,16 +3,17 @@ import HButton from "@/app/components/headless/HButton.vue";
 import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
 import { useLanguageStore } from "@/app/stores/language";
-import { languageKey, projectKey } from "@/app/utils/provide";
+import { languageKey } from "@/app/utils/provide";
 import type { Document } from "@cat/shared/schema/prisma/document";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { computed, inject, onMounted, provide, ref, watch } from "vue";
+import { computed, onMounted, provide, ref, watch } from "vue";
+import type { Data } from "./+data.ts";
+import { useData } from "vike-vue/useData";
 
 const ctx = usePageContext();
-
-const project = inject(projectKey);
+const { project } = useData<Data>();
 const languageId = ref<string>(ctx.routeParams.languageId);
 const { update } = useLanguageStore();
 const { languages } = storeToRefs(useLanguageStore());
@@ -26,8 +27,8 @@ const language = computed(() => {
 provide(languageKey, language);
 
 const handleBack = async () => {
-  if (!project || !project.value) return;
-  await navigate(`/project/${project.value.id}`);
+  if (!project) return;
+  await navigate(`/project/${project.id}`);
 };
 
 watch(

@@ -14,11 +14,11 @@ const items = ref<MemoryItem[]>([]);
 const memory = inject(memoryKey);
 
 const updateTerms = async (options: TermListFilterOptions) => {
-  if (!memory || !memory.value) return;
+  if (!memory) return;
 
   await trpc.memory.queryItems
     .query({
-      memoryId: memory.value.id,
+      memoryId: memory.id,
       ...options,
     })
     .then((is) => (items.value = is));

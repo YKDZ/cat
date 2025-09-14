@@ -3,29 +3,26 @@ import HButton from "@/app/components/headless/HButton.vue";
 import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { useProjectStore } from "@/app/stores/project.ts";
-import { projectKey } from "@/app/utils/provide.ts";
 import { trpc } from "@/server/trpc/client.ts";
 import { navigate } from "vike/client/router";
-import { inject, ref } from "vue";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import type { Data } from "./+data.ts";
+import { useData } from "vike-vue/useData";
 
 const { t } = useI18n();
-
-const project = inject(projectKey);
-const { deleteProject } = useProjectStore();
-
-const name = ref(project!.value!.name);
-const sourceLanguageId = ref(project!.value!.sourceLanguageId);
+const { project } = useData<Data>();
+const name = ref(project!.name);
+const sourceLanguageId = ref(project!.sourceLanguageId);
 
 const updateName = async (): Promise<void> => {
-  if (!project || !project.value) return;
-  update(project.value.id, { name: name.value });
+  if (!project) return;
+  update(project.id, { name: name.value });
 };
 
 const updateSourceLanguageId = async (): Promise<void> => {
-  if (!project || !project.value) return;
-  update(project.value.id, { sourceLanguageId: sourceLanguageId.value });
+  if (!project) return;
+  update(project.id, { sourceLanguageId: sourceLanguageId.value });
 };
 
 const update = async (
@@ -40,7 +37,7 @@ const update = async (
     targetLanguageIds?: string[];
   } = {},
 ): Promise<void> => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
   await trpc.project.update.mutate({
     id,
@@ -51,10 +48,9 @@ const update = async (
 };
 
 const remove = async (): Promise<void> => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
-  await trpc.project.delete.mutate({ id: project.value.id });
-  deleteProject(project.value.id);
+  await trpc.project.delete.mutate({ id: project.id });
 
   await navigate("/projects");
 };

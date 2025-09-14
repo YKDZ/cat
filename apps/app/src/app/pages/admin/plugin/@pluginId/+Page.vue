@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import PluginConfig from "@/app/components/PluginConfig.vue";
 import PluginDeleteBtn from "@/app/components/PluginDeleteBtn.vue";
-import { usePluginStore } from "@/app/stores/plugin";
-import type { Plugin } from "@cat/shared/schema/prisma/plugin";
-import { storeToRefs } from "pinia";
-import { usePageContext } from "vike-vue/usePageContext";
-import { computed } from "vue";
+import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
+import { provide } from "vue";
+import { pluginKey } from "@/app/utils/provide.ts";
 
-const { pluginId } = usePageContext().routeParams;
-const { plugins } = storeToRefs(usePluginStore());
+const { plugin } = useData<Data>();
 
-const plugin = computed<Plugin | null>(() => {
-  return plugins.value.find((plugin) => plugin.id === pluginId) ?? null;
-});
+provide(pluginKey, plugin);
 </script>
 
 <template>
