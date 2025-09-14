@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Navbar from "./navbar/Navbar.vue";
-import type { NavbarItemType } from "./navbar";
 import { useI18n } from "vue-i18n";
+import Navbar from "./navbar/Navbar.vue";
+import type { NavbarItemType } from "./navbar/index.ts";
 
 const { t } = useI18n();
 

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
+import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
+import z from "zod";
 import { schemaKey } from "..";
 import JSONForm from "../JSONForm.vue";
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import HButton from "@/app/components/headless/HButton.vue";
-import z from "zod";
 
 const props = defineProps<{
   propertyKey?: string;

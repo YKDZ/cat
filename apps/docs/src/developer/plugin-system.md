@@ -448,7 +448,7 @@ export const useStorage = async (
 ) => {
   const storage = (await PluginRegistry.get().getStorageProviders(prisma))
     .filter(({ provider }) => provider.getId() === storageServiceId)
-    .at(0);
+    [0];
 
   if (!storage) throw new Error(`Storage provider not found`);
 

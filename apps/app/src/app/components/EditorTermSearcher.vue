@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import Input from "./Input.vue";
-import { useEditorStore } from "../stores/editor";
 import { ref, watch } from "vue";
-import { trpc } from "@/server/trpc/client";
-import { useToastStore } from "../stores/toast";
 import { useI18n } from "vue-i18n";
+import Input from "./Input.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
+import { trpc } from "@/server/trpc/client.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
 const { info, warn } = useToastStore();

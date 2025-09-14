@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
-import { useLanguageStore } from "../stores/language";
-import type { PickerOption } from "./picker";
+import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
+import { useLanguageStore } from "@/app/stores/language.ts";
 
 withDefaults(
   defineProps<{

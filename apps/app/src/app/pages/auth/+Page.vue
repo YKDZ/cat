@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import AuthError from "@/app/components/AuthError.vue";
 import { useData } from "vike-vue/useData";
-import logoUrl from "@/app/assets/logo.png";
-import type { Data } from "./+data";
 import { usePageContext } from "vike-vue/usePageContext";
+import type { Data } from "./+data.ts";
+import AuthError from "@/app/components/AuthError.vue";
+import logoUrl from "@/app/assets/logo.png";
 import AuthPreHandler from "@/app/components/AuthPreHandler.vue";
 
 const ctx = usePageContext();

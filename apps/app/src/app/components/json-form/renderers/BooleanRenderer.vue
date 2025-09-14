@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { schemaKey } from "..";
-import Toggler from "../../Toggler.vue";
-import RendererLabel from "../utils/RendererLabel.vue";
 import type { JSONType } from "@cat/shared/schema/json";
+import { schemaKey } from "..";
+import RendererLabel from "@/app/utils/RendererLabel.vue";
+import Toggler from "@/app/components/Toggler.vue";
 
 const props = defineProps<{
   propertyKey?: string;

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
-import TextTagger from "./tagger/TextTagger.vue";
 import { onMounted, ref, watch } from "vue";
-import type { PartData } from "./tagger";
+import TextTagger from "./tagger/TextTagger.vue";
+import type { PartData } from "./tagger/index.ts";
+import { useEditorStore } from "@/app/stores/editor.ts";
 
 const {
   translationValue,

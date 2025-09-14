@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Modal from "./Modal.vue";
-import InputLabel from "@/app/components/InputLabel.vue";
-import RangeInput from "./RangeInput.vue";
 import { storeToRefs } from "pinia";
-import { useProfileStore } from "../stores/profile";
 import { toShortFixed } from "@cat/shared/utils";
-import Toggler from "./Toggler.vue";
 import { useI18n } from "vue-i18n";
+import Modal from "./Modal.vue";
+import RangeInput from "./RangeInput.vue";
+import Toggler from "./Toggler.vue";
+import InputLabel from "@/app/components/InputLabel.vue";
+import { useProfileStore } from "@/app/stores/profile.ts";
 
 const { t } = useI18n();
 

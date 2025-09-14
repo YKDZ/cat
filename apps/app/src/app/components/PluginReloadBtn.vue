@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
-import { useToastStore } from "../stores/toast";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
+import { trpc } from "@/server/trpc/client.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const { info, trpcWarn } = useToastStore();
 const { t } = useI18n();

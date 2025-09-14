@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import IndexHeader from "../components/IndexHeader.vue";
-import IndexSidebar from "../components/IndexSidebar.vue";
 import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
 import { provide } from "vue";
+import type { Data } from "./+data.ts";
+import IndexSidebar from "@/app/components/IndexSidebar.vue";
+import IndexHeader from "@/app/components/IndexHeader.vue";
 import { pluginKey } from "@/app/utils/provide.ts";
 
 const { plugin } = useData<Data>();

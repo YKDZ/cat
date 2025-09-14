@@ -1,15 +1,15 @@
 import { z } from "zod";
-import { authedProcedure, router } from "../server.ts";
 import { TRPCError } from "@trpc/server";
-import { autoTranslateQueue } from "@/server/processor/autoTranslate.ts";
-import { createTranslationQueue } from "@/server/processor/createTranslation.ts";
-import { updateTranslationQueue } from "@/server/processor/updateTranslation.ts";
 import {
   TranslationApprovementSchema,
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/prisma/translation";
 import { logger } from "@cat/shared/utils";
+import { authedProcedure, router } from "../server.ts";
+import { autoTranslateQueue } from "@/server/processor/autoTranslate.ts";
+import { createTranslationQueue } from "@/server/processor/createTranslation.ts";
+import { updateTranslationQueue } from "@/server/processor/updateTranslation.ts";
 
 export const translationRouter = router({
   delete: authedProcedure

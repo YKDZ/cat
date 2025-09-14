@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
-import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
 import { useI18n } from "vue-i18n";
+import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
 import HButton from "./headless/HButton.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
 
 const { t } = useI18n();
 

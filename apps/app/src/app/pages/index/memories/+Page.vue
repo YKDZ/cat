@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import MemoryList from "@/app/components/MemoryList.vue";
-import type { Data } from "./+data.ts";
 import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
+import MemoryList from "@/app/components/MemoryList.vue";
 
 const { memories } = useData<Data>();
 </script>

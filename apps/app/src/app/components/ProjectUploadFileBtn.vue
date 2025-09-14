@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { inject, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
 import ProjectUploadFiles from "./ProjectUploadFiles.vue";
-import { projectKey } from "../utils/provide";
-import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
+import { projectKey } from "@/app/utils/provide.ts";
 
 const { t } = useI18n();
 

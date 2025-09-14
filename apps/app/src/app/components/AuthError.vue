@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useAuthStore } from "../stores/auth";
 import { useI18n } from "vue-i18n";
+import { useAuthStore } from "@/app/stores/auth.ts";
 
 const { t } = useI18n();
 

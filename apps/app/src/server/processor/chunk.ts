@@ -1,10 +1,10 @@
-import { Queue, Worker } from "bullmq";
-import { config } from "./config.ts";
-import z from "zod";
 import { randomUUID } from "node:crypto";
+import z from "zod";
+import { Queue, Worker } from "bullmq";
 import { getPrismaDB, getRedisDB } from "@cat/db";
 import { logger } from "@cat/shared/utils";
 import type { JSONType } from "@cat/shared/schema/json";
+import { config } from "./config.ts";
 
 export type ChunkData<T> = {
   chunkIndex: number;

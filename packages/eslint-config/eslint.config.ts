@@ -2,14 +2,16 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import cspellPlugin from "@cspell/eslint-plugin";
-import cspellWords from "./cspell.words.json" assert { type: "json" };
+import type { Options } from "@cspell/eslint-plugin";
 import importPlugin from "eslint-plugin-import";
 import pluginOxlint from "eslint-plugin-oxlint";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
+import cspellWords from "./cspell.words.json" assert { type: "json" };
 
 export default defineConfig(
+  globalIgnores(["dist/", "**/generated/prisma/"]),
+
   {
-    ignores: ["**/dist/**/*", "**/generated/prisma/**", "*.js", "*.cjs"],
     languageOptions: {
       parserOptions: {
         projectServices: true,
@@ -25,15 +27,18 @@ export default defineConfig(
   {
     plugins: { import: importPlugin },
     rules: {
+      "import/no-namespace": "error",
+      "import/order": "warn",
+      "import/no-relative-parent-imports": "error",
       "import/enforce-node-protocol-usage": ["error", "always"],
-      // "import/extensions": [
-      //   "error",
-      //   "always",
-      //   {
-      //     ignorePackages: true,
-      //     checkTypeImports: true,
-      //   },
-      // ],
+      "import/extensions": [
+        "warn",
+        "always",
+        {
+          ignorePackages: true,
+          checkTypeImports: true,
+        },
+      ],
     },
   },
 
@@ -51,10 +56,13 @@ export default defineConfig(
       "@cspell/spellchecker": [
         "warn",
         {
+          numSuggestions: 5,
+          autoFix: false,
+          generateSuggestions: true,
           cspell: {
             words: cspellWords,
           },
-        },
+        } satisfies Options,
       ],
     },
   },

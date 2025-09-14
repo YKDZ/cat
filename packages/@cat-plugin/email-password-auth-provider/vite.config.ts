@@ -1,5 +1,5 @@
+import { resolve } from "node:path";
 import { defineConfig } from "rolldown-vite";
-import { resolve } from "path";
 import dts from "unplugin-dts/vite";
 
 export default defineConfig({

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
 import { onMounted, ref, watch } from "vue";
 import EditorTaggedTranslation from "./EditorTaggedTranslation.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
 
 const { translationValue, inputTextareaEl, originDivEl } =
   storeToRefs(useEditorStore());

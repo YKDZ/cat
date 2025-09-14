@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import EditorTermList from "./EditorTermList.vue";
 import EditorTermSearcher from "./EditorTermSearcher.vue";
-import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 </script>

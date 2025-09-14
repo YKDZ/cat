@@ -3,9 +3,8 @@ import { PrismaDB } from "./prisma.ts";
 import { RedisDB } from "./redis.ts";
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   var __PRISMA_DB__: PrismaDB | undefined;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   var __REDIS_DB__: RedisDB | undefined;
 }
 

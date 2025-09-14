@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import EditorSidebar from "../components/EditorSidebar.vue";
-import { useEditorStore } from "../../stores/editor";
 import { watch } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
-import { useToastStore } from "../../stores/toast";
-import EditorHeader from "../components/EditorHeader.vue";
+import EditorHeader from "@/app/components/components/EditorHeader.vue";
+import EditorSidebar from "@/app/components/components/EditorSidebar.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const ctx = usePageContext();
 

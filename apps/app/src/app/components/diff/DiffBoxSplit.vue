@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { diffChars } from "diff";
-import type { DiffedLine } from ".";
+import type { DiffedLine } from "./index.ts";
 
 const props = defineProps<{
   diffedLines: DiffedLine[];

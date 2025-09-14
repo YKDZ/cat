@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { MemoryItem } from "@cat/shared/schema/prisma/memory";
+import { useI18n } from "vue-i18n";
+import { trpc } from "@/server/trpc/client.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
-import { useI18n } from "vue-i18n";
 import HButton from "@/app/components/headless/HButton.vue";
 
 const { info, trpcWarn } = useToastStore();

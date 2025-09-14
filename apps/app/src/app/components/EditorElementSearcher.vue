@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import Input from "./Input.vue";
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
+import Input from "./Input.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
 
 const { searchQuery } = storeToRefs(useEditorStore());
 const { refresh, fetchElementTotalAmount, toPage } = useEditorStore();

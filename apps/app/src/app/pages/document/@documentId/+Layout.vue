@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import IndexSidebar from "@/app/components/IndexSidebar.vue";
 import { provide } from "vue";
-import { documentKey } from "@/app/utils/provide";
-import DocumentHeader from "@/app/components/DocumentHeader.vue";
 import { useData } from "vike-vue/useData";
 import type { Data } from "./+data.ts";
+import IndexSidebar from "@/app/components/IndexSidebar.vue";
+import { documentKey } from "@/app/utils/provide.ts";
+import DocumentHeader from "@/app/components/DocumentHeader.vue";
 
 const { document } = useData<Data>();
 

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { appRouter } from "@/server/trpc/_app.ts";
-import { createHttpContext } from "@/server/trpc/context.ts";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { logger } from "@cat/shared/utils";
+import { appRouter } from "@/server/trpc/_app.ts";
+import { createHttpContext } from "@/server/trpc/context.ts";
 
 const app = new Hono();
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import HButton from "@/app/components/headless/HButton.vue";
 import type { Project } from "@cat/shared/schema/prisma/project";
 import { navigate } from "vike/client/router";
+import HButton from "@/app/components/headless/HButton.vue";
 
 const project = defineModel<Project>("project");
 

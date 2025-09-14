@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
 import EditorTranslatableElementMeta from "./EditorTranslatableElementMeta.vue";
 import EditorOriginElementValue from "./EditorOriginElementValue.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
 
 const { originDivEl } = storeToRefs(useEditorStore());
 </script>

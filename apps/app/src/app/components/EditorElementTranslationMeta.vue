@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { Memory } from "@cat/shared/schema/prisma/memory";
 import type { Translation } from "@cat/shared/schema/prisma/translation";
 import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
 import { toShortFixed } from "@cat/shared/utils";
 import { computed, onMounted, ref } from "vue";
 import z from "zod";
-import EditorElementTranslationMetaTag from "./EditorElementTranslationMetaTag.vue";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
+import EditorElementTranslationMetaTag from "./EditorElementTranslationMetaTag.vue";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { t } = useI18n();
 

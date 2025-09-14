@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
-import { computed, onMounted, ref, watch } from "vue";
-import DiffBox from "./diff/DiffBox.vue";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import type { DocumentVersion } from "@cat/shared/schema/prisma/document";
-import Picker from "./picker/Picker.vue";
-import type { PickerOption } from "./picker";
 import { useDateFormat } from "@vueuse/core";
+import DiffBox from "./diff/DiffBox.vue";
+import Picker from "./picker/Picker.vue";
+import type { PickerOption } from "./picker/index.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const props = defineProps<{
   documentId: string;
 }>();
 
-const versions = ref<DocumentVersion[]>([]);
+const versions = shallowRef<DocumentVersion[]>([]);
 const oldVersionId = ref(-1);
 const nowVersionId = ref(-1);
 const oldContent = ref<string | null>(null);
@@ -32,7 +32,7 @@ const loadVersions = async () => {
   oldVersionId.value = versions.value[0].id;
 };
 
-const versionOptions = computed<PickerOption[]>(() => {
+const versionOptions = computed(() => {
   return versions.value.map(
     ({ createdAt, id }) =>
       ({

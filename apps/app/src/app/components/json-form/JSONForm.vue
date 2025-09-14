@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, provide } from "vue";
-import { MatcherRegistry, schemaKey, type RendererComponent } from ".";
 import {
   JSONSchemaSchema,
   type JSONSchema,
   type JSONType,
 } from "@cat/shared/schema/json";
+import { MatcherRegistry, schemaKey, type RendererComponent } from "./index.ts";
 
 type Classes = {
   label?: string;

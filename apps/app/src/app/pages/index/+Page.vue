@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { navigate } from "vike/client/router";
 import NewProjectCard from "@/app/components/NewProjectCard.vue";
 import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
-import { navigate } from "vike/client/router";
 
 const handleClick = async () => {
   await navigate(`/init/file`);

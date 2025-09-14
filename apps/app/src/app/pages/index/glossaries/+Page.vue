@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import GlossaryList from "@/app/components/GlossaryList.vue";
 import { useData } from "vike-vue/useData";
 import type { Data } from "./+data.ts";
+import GlossaryList from "@/app/components/GlossaryList.vue";
 
 const { glossaries } = useData<Data>();
 </script>

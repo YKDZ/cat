@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { inject, ref } from "vue";
-import { trpc } from "@/server/trpc/client";
-import { projectKey } from "../utils/provide";
-import { useToastStore } from "../stores/toast";
+import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
 import MultiMemoryPicker from "./MultiMemoryPicker.vue";
-import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
+import { trpc } from "@/server/trpc/client.ts";
+import { projectKey } from "@/app/utils/provide.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
 
@@ -25,21 +25,21 @@ const handleOpen = () => {
 };
 
 const handleLink = async () => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
   const createNewIndex = memoryIds.value.findIndex((id) => id === "createNew");
   const realIds = memoryIds.value.splice(createNewIndex, 1);
 
   if (createNewIndex !== -1) {
     await trpc.memory.create.mutate({
-      name: project.value.name,
-      projectIds: [project.value.id],
+      name: project.name,
+      projectIds: [project.id],
     });
   }
 
   await trpc.project.linkMemory
     .mutate({
-      id: project.value.id,
+      id: project.id,
       memoryIds: realIds,
     })
     .then(() => {

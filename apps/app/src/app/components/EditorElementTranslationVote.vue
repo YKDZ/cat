@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type {
   Translation,
   TranslationVote,
 } from "@cat/shared/schema/prisma/translation";
 import { onMounted, ref, watch } from "vue";
-import { useToastStore } from "@/app/stores/toast.ts";
 import HButton from "./headless/HButton.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const props = defineProps<{
   translation: Translation;

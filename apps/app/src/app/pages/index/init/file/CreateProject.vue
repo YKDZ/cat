@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { Project } from "@cat/shared/schema/prisma/project";
+import { ref } from "vue";
+import { z } from "zod";
 import HButton from "@/app/components/headless/HButton.vue";
 import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
@@ -7,11 +10,8 @@ import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
 import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
 import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
 import Textarea from "@/app/components/Textarea.vue";
-import { useToastStore } from "@/app/stores/toast";
-import { trpc } from "@/server/trpc/client";
-import type { Project } from "@cat/shared/schema/prisma/project";
-import { ref } from "vue";
-import { z } from "zod";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { info, zWarn, trpcWarn } = useToastStore();
 

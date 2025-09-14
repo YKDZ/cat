@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { Unsubscribable } from "@trpc/server/observable";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
-import { useEditorStore } from "../stores/editor";
-import { useToastStore } from "../stores/toast";
-import EditorSuggestionListItem from "./EditorSuggestionListItem.vue";
 import { useI18n } from "vue-i18n";
+import EditorSuggestionListItem from "./EditorSuggestionListItem.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { t } = useI18n();
 
@@ -28,7 +28,7 @@ const load = () => {
       languageId: languageToId.value,
     },
     {
-      onData: ({ id, data }) => {
+      onData: ({ data }) => {
         suggestions.value.push(data);
       },
       onError: trpcWarn,

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { schemaKey, transferDataToString } from "..";
 import z from "zod";
-import RendererLabel from "../utils/RendererLabel.vue";
 import type { JSONType } from "@cat/shared/schema/json";
+import { schemaKey, transferDataToString } from "..";
+import RendererLabel from "../utils/RendererLabel.vue";
 
 const props = defineProps<{
   propertyKey?: string;

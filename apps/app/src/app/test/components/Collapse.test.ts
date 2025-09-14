@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
+import { nextTick } from "vue";
 import Collapse from "@/app/components/Collapse.vue";
-import { defineComponent, h, nextTick } from "vue";
 
 describe("Collapse.vue", () => {
   it("should hide text when click outside", async () => {

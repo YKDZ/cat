@@ -1,9 +1,4 @@
 import { z } from "zod";
-import { authedProcedure, router } from "@/server/trpc/server.ts";
-import {
-  pauseAllProcessors,
-  resumeAllProcessors,
-} from "@/server/processor/index.ts";
 import { TRPCError } from "@trpc/server";
 import {
   PluginConfigInstanceSchema,
@@ -11,6 +6,11 @@ import {
 } from "@cat/shared/schema/prisma/plugin";
 import { logger } from "@cat/shared/utils";
 import { TranslationAdvisorDataSchema } from "@cat/shared/schema/misc";
+import {
+  pauseAllProcessors,
+  resumeAllProcessors,
+} from "@/server/processor/index.ts";
+import { authedProcedure, router } from "@/server/trpc/server.ts";
 
 export const pluginRouter = router({
   delete: authedProcedure

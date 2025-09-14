@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
-import { useSidebarStore } from "../stores/sidebar";
+import { inject } from "vue";
 import Header from "./Header.vue";
 import ProjectBreadcrumb from "./ProjectBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
-import { inject } from "vue";
+import { useSidebarStore } from "@/app/stores/sidebar.ts";
 import { projectKey } from "@/app/utils/provide.ts";
 
 const { isFolding } = storeToRefs(useSidebarStore());

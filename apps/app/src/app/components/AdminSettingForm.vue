@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import SettingForm from "./SettingForm.vue";
+import { trpc } from "@/server/trpc/client.ts";
 
 const props = defineProps<{
   schema: JSONSchema;

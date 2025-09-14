@@ -1,8 +1,5 @@
-import { hash } from "@/server/utils/crypto";
-import { AsyncMessageQueue } from "@/server/utils/queue";
 import { tracked, TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { authedProcedure, router } from "../server";
 import {
   TranslationAdvisorDataSchema,
   TranslationSuggestionSchema,
@@ -11,6 +8,9 @@ import {
 } from "@cat/shared/schema/misc";
 import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
 import { logger } from "@cat/shared/utils";
+import { authedProcedure, router } from "@/server/trpc/server.ts";
+import { AsyncMessageQueue } from "@/server/utils/queue.ts";
+import { hash } from "@/server/utils/crypto.ts";
 
 export const suggestionRouter = router({
   onNew: authedProcedure
@@ -97,7 +97,7 @@ export const suggestionRouter = router({
           .parse(await redis.sMembers(cacheKey));
         if (cachedSuggestion.length > 0) {
           cachedSuggestion.forEach((suggestion) => {
-            redisPub.publish(suggestionChannelKey, suggestion);
+            redisPub.publish(suggestionChannelKey, JSON.stringify(suggestion));
           });
           return;
         }

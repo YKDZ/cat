@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { schemaKey, transferDataToString } from "..";
-import Picker from "../../picker/Picker.vue";
-import type { PickerOption } from "../../picker";
 import type { JSONType } from "@cat/shared/schema/json";
-import RendererLabel from "../utils/RendererLabel.vue";
 import z from "zod";
+import { schemaKey, transferDataToString } from "..";
+import type { PickerOption } from "@/app/components/picker/index.ts";
+import RendererLabel from "@/app/utils/RendererLabel.vue";
+import Picker from "@/app/components/picker/Picker.vue";
 
 const props = defineProps<{
   propertyKey?: string;

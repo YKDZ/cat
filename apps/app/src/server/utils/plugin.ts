@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { OverallPrismaClient, PrismaClient } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import {
@@ -6,8 +8,6 @@ import {
   type PluginData,
 } from "@cat/shared/schema/plugin";
 import { logger } from "@cat/shared/utils";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import z from "zod";
 
 const loadPluginData = async (dir: string): Promise<PluginData> => {

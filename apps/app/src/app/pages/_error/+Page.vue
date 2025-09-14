@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-import HButton from "@/app/components/headless/HButton.vue";
 import { usePageContext } from "vike-vue/usePageContext";
+import { useI18n } from "vue-i18n";
+import HButton from "@/app/components/headless/HButton.vue";
 
 const ctx = usePageContext();
 
-let { is404, abortReason } = ctx;
+const { t } = useI18n();
 
-if (!abortReason) {
-  abortReason = is404 ? "页面不存在" : "出错了";
-}
+const { is404, abortReason } = ctx;
 
 const handleBack = () => {
   window.history.back();
@@ -16,13 +15,13 @@ const handleBack = () => {
 </script>
 
 <template>
-  <p>{{ abortReason }}</p>
+  <p>{{ (abortReason ?? is404) ? t("页面不存在") : t("页面出错了") }}</p>
   <HButton
     :classes="{
       base: 'btn btn-md btn-base',
     }"
     icon="i-mdi:arrow-left"
     @click="handleBack"
-    >返回上一页</HButton
+    >{{ t("返回上一页") }}</HButton
   >
 </template>

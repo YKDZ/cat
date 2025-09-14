@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { authedProcedure, router } from "../server";
 import { TaskSchema } from "@cat/shared/schema/prisma/misc";
+import { authedProcedure, router } from "@/server/trpc/server.ts";
 
 export const taskRouter = router({
   query: authedProcedure

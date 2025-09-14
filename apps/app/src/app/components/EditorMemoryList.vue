@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import type { Unsubscribable } from "@trpc/server/observable";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
-import { useEditorStore } from "../stores/editor";
-import { useToastStore } from "../stores/toast";
-import EditorMemoryListItem from "./EditorMemoryListItem.vue";
-import { useProfileStore } from "../stores/profile";
 import { useI18n } from "vue-i18n";
+import EditorMemoryListItem from "./EditorMemoryListItem.vue";
+import { trpc } from "@/server/trpc/client.ts";
+import { useEditorStore } from "@/app/stores/editor.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { useProfileStore } from "@/app/stores/profile.ts";
 
 const { t } = useI18n();
 

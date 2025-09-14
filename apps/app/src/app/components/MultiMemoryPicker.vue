@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import MultiPicker from "./picker/MultiPicker.vue";
 import type { Memory } from "@cat/shared/schema/prisma/memory";
-import { trpc } from "@/server/trpc/client";
-import type { PickerOption } from "./picker";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
+import type { PickerOption } from "./picker/index.ts";
+import MultiPicker from "./picker/MultiPicker.vue";
+import { trpc } from "@/server/trpc/client.ts";
 
 withDefaults(
   defineProps<{

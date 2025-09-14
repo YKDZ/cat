@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { trpc } from "@/server/trpc/client";
 import { warn } from "node:console";
 import { inject, ref } from "vue";
-import { useToastStore } from "../stores/toast";
-import { projectKey } from "../utils/provide";
-import type { PickerOption } from "./picker";
 import { useI18n } from "vue-i18n";
+import type { PickerOption } from "./picker/index.ts";
 import HButton from "./headless/HButton.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { projectKey } from "@/app/utils/provide.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { t } = useI18n();
 

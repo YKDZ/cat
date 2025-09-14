@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useToastStore } from "@/app/stores/toast";
-import { trpc } from "@/server/trpc/client";
 import type { Document } from "@cat/shared/schema/prisma/document";
 import { computed, onMounted } from "vue";
-import { useDocumentStore } from "../stores/document";
+import { navigate } from "vike/client/router";
 import Icon from "./Icon.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
-import { navigate } from "vike/client/router";
 import HButton from "./headless/HButton.vue";
+import { useDocumentStore } from "@/app/stores/document.ts";
+import { trpc } from "@/server/trpc/client.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const props = defineProps<{
   document: Document;

@@ -1,8 +1,8 @@
 import z from "zod";
+import { PrimsaDateTime } from "../misc.ts";
 import { LanguageSchema } from "./misc.ts";
 import { UserSchema } from "./user.ts";
 import { TranslatableElementSchema } from "./document.ts";
-import { PrimsaDateTime } from "../misc.ts";
 import { VectorSchema } from "./vector.ts";
 
 export const TranslationVoteSchema = z.object({

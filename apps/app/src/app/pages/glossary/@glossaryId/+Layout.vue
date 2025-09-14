@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { provide } from "vue";
+import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
 import IndexSidebar from "@/app/components/IndexSidebar.vue";
 import GlossaryHeader from "@/app/components/GlossaryHeader.vue";
 import { glossaryKey } from "@/app/utils/provide.ts";
-import { provide } from "vue";
-import type { Data } from "./+data.ts";
-import { useData } from "vike-vue/useData";
 
 const { glossary } = useData<Data>();
 

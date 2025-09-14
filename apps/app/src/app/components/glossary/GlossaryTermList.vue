@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from "vue";
+import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
+import type { TermListFilterOptions } from "./index.ts";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
-import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
-import { glossaryKey } from "@/app/utils/provide";
-import { trpc } from "@/server/trpc/client";
+import { glossaryKey } from "@/app/utils/provide.ts";
+import { trpc } from "@/server/trpc/client.ts";
 import GlossaryTermListItem from "@/app/components/glossary/GlossaryTermListItem.vue";
 import GlossaryInsertTermBtn from "@/app/components/GlossaryInsertTermBtn.vue";
 import GlossaryTermListFilter from "@/app/components/glossary/GlossaryTermListFilter.vue";
-import type { TermListFilterOptions } from ".";
 
 const terms = ref<TermRelation[]>([]);
 

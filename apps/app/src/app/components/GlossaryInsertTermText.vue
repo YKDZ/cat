@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import HButton from "./headless/HButton.vue";
 import Textarea from "@/app/components/Textarea.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 
-import { useToastStore } from "@/app/stores/toast";
-import { trpc } from "@/server/trpc/client";
-import { useI18n } from "vue-i18n";
-import HButton from "./headless/HButton.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { trpc } from "@/server/trpc/client.ts";
 
 const { t } = useI18n();
 

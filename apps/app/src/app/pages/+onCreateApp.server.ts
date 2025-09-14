@@ -1,10 +1,10 @@
+import { setting } from "@cat/db";
+import type { PageContextServer } from "vike/types";
 import {
   loadLocaleMessagesInServerSide,
   parsePreferredLanguage,
   setupI18n,
-} from "@/server/utils/i18n";
-import { setting } from "@cat/db";
-import type { PageContextServer } from "vike/types";
+} from "@/server/utils/i18n.ts";
 
 export const onCreateApp = async (ctx: PageContextServer) => {
   const { app } = ctx;

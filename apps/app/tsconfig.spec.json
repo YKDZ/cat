@@ -14,6 +14,10 @@
     }
   },
   "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.vue",
     "vite.config.ts",
     "vite.config.mts",
     "vitest.config.ts",

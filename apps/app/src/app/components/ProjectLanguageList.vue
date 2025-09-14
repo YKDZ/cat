@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { inject } from "vue";
+import ProjectLanguageListItem from "./ProjectLanguageListItem.vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
-import { inject } from "vue";
-import { projectKey } from "../utils/provide";
-import ProjectLanguageListItem from "./ProjectLanguageListItem.vue";
+import { projectKey } from "@/app/utils/provide.ts";
 
 const project = inject(projectKey);
 </script>

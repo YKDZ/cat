@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/prisma/memory";
+import ProjectMemoryListItem from "./ProjectMemoryListItem.vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
-import ProjectMemoryListItem from "./ProjectMemoryListItem.vue";
 
 const memories = defineModel<Memory[]>({ required: true });
 

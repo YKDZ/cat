@@ -1,4 +1,4 @@
-import { authedProcedure, router } from "../server";
+import { authedProcedure, router } from "@/server/trpc/server.ts";
 
 export const testRouter = router({
   testErr: authedProcedure.mutation(() => {

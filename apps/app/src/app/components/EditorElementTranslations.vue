@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useEditorStore } from "../stores/editor";
-import EditorElementTranslation from "./EditorElementTranslation.vue";
 import { useI18n } from "vue-i18n";
+import EditorElementTranslation from "./EditorElementTranslation.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
 
 const { t } = useI18n();
 

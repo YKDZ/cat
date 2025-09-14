@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
-import { useSidebarStore } from "../stores/sidebar";
-import { isLowWidth } from "../utils/window";
+import { useSidebarStore } from "@/app/stores/sidebar.ts";
+import { isLowWidth } from "@/app/utils/window.ts";
 
 const props = defineProps({
   minWidth: {

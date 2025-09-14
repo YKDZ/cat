@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { trpcHandler } from "./handler/trpc";
-import { healthHandler } from "./handler/health";
 import { PluginRegistry } from "@cat/plugin-core";
-import { pinoLoggerMiddleware } from "./middleware/logger";
+import { trpcHandler } from "./handler/trpc.ts";
+import { healthHandler } from "./handler/health.ts";
+import { pinoLoggerMiddleware } from "./middleware/logger.ts";
 
 type Variables = {
   pluginRegistry: PluginRegistry;

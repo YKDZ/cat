@@ -1,14 +1,14 @@
-import { mimeFromFileName, setting } from "@cat/db";
-import { Queue, Worker } from "bullmq";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
+import { Queue, Worker } from "bullmq";
+import { mimeFromFileName, setting } from "@cat/db";
 import { z } from "zod";
-import { useStorage } from "@/server/utils/storage/useStorage";
-import { config } from "./config";
 import { PluginRegistry } from "@cat/plugin-core";
 import { getPrismaDB } from "@cat/db";
-import { registerTaskUpdateHandlers } from "@/server/utils/worker";
 import { useStringTemplate } from "@cat/shared/utils";
+import { config } from "./config.ts";
+import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
+import { useStorage } from "@/server/utils/storage/useStorage.ts";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -29,7 +29,6 @@ const worker = new Worker(
     const pluginRegistry = new PluginRegistry();
 
     await pluginRegistry.loadPlugins(prisma, {
-      silent: true,
       tags: ["translatable-file-handler"],
     });
 

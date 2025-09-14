@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { Plugin } from "@cat/shared/schema/prisma/plugin";
-import PluginTags from "./PluginTags.vue";
 import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
+import PluginTags from "./PluginTags.vue";
 
 const { t } = useI18n();
 

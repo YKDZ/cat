@@ -1,7 +1,7 @@
 import { createPinia, defineStore } from "pinia";
 import { assertType, expect, test } from "vitest";
 import { ref } from "vue";
-import { injectPiniaData } from "./pinia";
+import { injectPiniaData } from "./pinia.ts";
 
 test("should inject data properly", () => {
   const pinia = createPinia();

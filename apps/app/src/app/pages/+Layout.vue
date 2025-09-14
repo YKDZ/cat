@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import "virtual:uno.css";
-import Toast from "@/app/components/Toast.vue";
 import { onBeforeMount, onMounted, watch } from "vue";
-import { useLanguageStore } from "@/app/stores/language";
 import { usePageContext } from "vike-vue/usePageContext";
-import { useUserStore } from "@/app/stores/user";
 import { storeToRefs } from "pinia";
+import Toast from "@/app/components/Toast.vue";
+import { useLanguageStore } from "@/app/stores/language.ts";
+import { useUserStore } from "@/app/stores/user.ts";
 
 // i-mdi:numeric-1-circle-outline
 // i-mdi:numeric-2-circle-outline

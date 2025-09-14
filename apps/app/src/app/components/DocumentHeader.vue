@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { inject, ref } from "vue";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";
 import Header from "./Header.vue";
-import { inject, ref } from "vue";
 import HButton from "./headless/HButton.vue";
 import { documentKey } from "@/app/utils/provide.ts";
 

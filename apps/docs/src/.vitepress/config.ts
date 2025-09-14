@@ -1,7 +1,7 @@
 import { defineConfig } from "vitepress";
-import MermaidExample from "./mermaid-markdown-all.js";
 import type { MarkdownOptions } from "vitepress";
 import UnoCSS from "unocss/vite";
+import MermaidExample from "./mermaid-markdown-all.js";
 
 const allMarkdownTransformers: MarkdownOptions = {
   theme: {

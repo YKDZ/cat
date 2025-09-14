@@ -1,7 +1,7 @@
-import { exists } from "fs-extra";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { GlobalContextServer, PageContextServer } from "vike/types";
+import { exists } from "fs-extra";
+import type { GlobalContextServer } from "vike/types";
 import type { ComputedRef } from "vue";
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";

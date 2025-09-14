@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
+import { inject, onMounted, ref, watch } from "vue";
+import { navigate } from "vike/client/router";
+import HButton from "./headless/HButton.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
-import { inject, onMounted, ref, watch } from "vue";
-import { trpc } from "@/server/trpc/client";
-import { projectKey } from "@/app/utils/provide";
-import { navigate } from "vike/client/router";
-import { useToastStore } from "../stores/toast";
-import HButton from "./headless/HButton.vue";
+import { trpc } from "@/server/trpc/client.ts";
+import { projectKey } from "@/app/utils/provide.ts";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const { info, trpcWarn } = useToastStore();
 
@@ -36,11 +36,11 @@ const handleCheck = async () => {
 };
 
 const handleUnlink = async () => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
   await trpc.project.unlinkGlossary
     .mutate({
-      id: project.value.id,
+      id: project.id,
       glossaryIds: [props.glossary.id],
     })
     .then(() => {

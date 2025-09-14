@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { pluginKey } from "@/app/utils/provide.ts";
 import { inject } from "vue";
+import { pluginKey } from "@/app/utils/provide.ts";
 
 const plugin = inject(pluginKey);
 </script>

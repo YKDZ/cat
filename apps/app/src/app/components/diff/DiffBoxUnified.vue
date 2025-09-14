@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { DiffedLine } from ".";
+import type { DiffedLine } from "./index.ts";
 
-const props = defineProps<{
+defineProps<{
   diffedLines: DiffedLine[];
 }>();
 </script>

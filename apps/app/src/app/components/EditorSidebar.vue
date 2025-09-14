@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Sidebar from "./Sidebar.vue";
 import { storeToRefs } from "pinia";
-import { useSidebarStore } from "../stores/sidebar";
-import { useEditorStore } from "../stores/editor";
+import { useI18n } from "vue-i18n";
+import Sidebar from "./Sidebar.vue";
 import Logo from "./Logo.vue";
 import EditorSidebarElement from "./EditorSidebarElement.vue";
 import EditorElementSearcher from "./EditorElementSearcher.vue";
 import Slash from "./Slash.vue";
-import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
+import { useEditorStore } from "@/app/stores/editor.ts";
+import { useSidebarStore } from "@/app/stores/sidebar.ts";
 
 const { t } = useI18n();
 

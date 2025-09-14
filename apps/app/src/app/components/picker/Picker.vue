@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { vOnClickOutside } from "@vueuse/components";
-import type { PickerOption } from ".";
 import { useI18n } from "vue-i18n";
+import type { PickerOption } from "./index.ts";
 
 const { t } = useI18n();
 

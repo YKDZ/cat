@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import Header from "./Header.vue";
 import { storeToRefs } from "pinia";
-import { useSidebarStore } from "../stores/sidebar";
+import Header from "./Header.vue";
 import HButton from "./headless/HButton.vue";
+import { useSidebarStore } from "@/app/stores/sidebar.ts";
 
 const { isFolding } = storeToRefs(useSidebarStore());
 </script>

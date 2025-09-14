@@ -2,10 +2,10 @@
 import type { Language } from "@cat/shared/schema/prisma/misc";
 import { navigate } from "vike/client/router";
 import { inject } from "vue";
-import { projectKey } from "../utils/provide";
 import ProjectTranslationProgress from "./ProjectTranslationProgress.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
+import { projectKey } from "@/app/utils/provide.ts";
 
 const props = defineProps<{
   language: Language;
@@ -14,9 +14,9 @@ const props = defineProps<{
 const project = inject(projectKey);
 
 const handleCheck = async () => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
-  await navigate(`/project/${project.value.id}/${props.language.id}`);
+  await navigate(`/project/${project.id}/${props.language.id}`);
 };
 </script>
 

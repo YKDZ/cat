@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import DocumentDiffBox from "@/app/components/DocumentDiffBox.vue";
 import { inject } from "vue";
-import { documentKey } from "@/app/utils/provide";
+import DocumentDiffBox from "@/app/components/DocumentDiffBox.vue";
+import { documentKey } from "@/app/utils/provide.ts";
 
 const document = inject(documentKey);
 </script>

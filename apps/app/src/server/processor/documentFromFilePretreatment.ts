@@ -7,22 +7,22 @@ import {
 import { Queue, Worker } from "bullmq";
 import { isEqual } from "lodash-es";
 import z from "zod";
-import { chunk, chunkDual } from "@/server/utils/array";
-import { useStorage } from "@/server/utils/storage/useStorage";
-import {
-  DistributedTaskHandler,
-  type ChunkData,
-  type DistributedTask,
-} from "./chunk";
-import { config } from "./config";
 import { getPrismaDB } from "@cat/db";
-import { registerTaskUpdateHandlers } from "@/server/utils/worker";
-import { diffArraysAndSeparate } from "@/server/utils/diff";
 import type { File } from "@cat/shared/schema/prisma/file";
 import type { TranslatableElementData } from "@cat/shared/schema/misc";
 import type { JSONType } from "@cat/shared/schema/json";
 import { logger } from "@cat/shared/utils";
 import type { Document } from "@cat/shared/schema/prisma/document";
+import { config } from "./config.ts";
+import {
+  DistributedTaskHandler,
+  type ChunkData,
+  type DistributedTask,
+} from "./chunk.ts";
+import { diffArraysAndSeparate } from "@/server/utils/diff.ts";
+import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
+import { useStorage } from "@/server/utils/storage/useStorage.ts";
+import { chunk, chunkDual } from "@/server/utils/array.ts";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -55,7 +55,6 @@ const worker = new Worker(
     const pluginRegistry = new PluginRegistry();
 
     await pluginRegistry.loadPlugins(prisma, {
-      silent: true,
       tags: ["translatable-file-handler", "text-vectorizer"],
     });
 
