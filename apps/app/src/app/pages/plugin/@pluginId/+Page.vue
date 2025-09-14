@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { usePageContext } from "vike-vue/usePageContext";
-import { usePluginStore } from "@/app/stores/plugin";
-import type { Plugin } from "@cat/shared/schema/prisma/plugin";
-import { storeToRefs } from "pinia";
+import { pluginKey } from "@/app/utils/provide.ts";
+import { inject } from "vue";
 
-const { pluginId } = usePageContext().routeParams;
-const { plugins } = storeToRefs(usePluginStore());
-
-const plugin = computed<Plugin | null>(() => {
-  return plugins.value.find((plugin) => plugin.id === pluginId) ?? null;
-});
+const plugin = inject(pluginKey);
 </script>
 
-<template></template>
+<template>
+  <span>插件 {{ plugin?.name }} 的用户层页面</span>
+</template>

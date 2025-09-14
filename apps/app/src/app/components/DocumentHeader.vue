@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/prisma/schema/document";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";
 import Header from "./Header.vue";
-import { ref } from "vue";
+import { inject, ref } from "vue";
 import HButton from "./headless/HButton.vue";
+import { documentKey } from "@/app/utils/provide.ts";
 
 const isFolding = ref(false);
 
-const props = defineProps<{
-  document: Document;
-}>();
+const document = inject(documentKey)!;
 </script>
 
 <template>

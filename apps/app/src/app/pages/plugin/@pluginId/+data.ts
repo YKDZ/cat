@@ -1,6 +1,6 @@
 import { useSSCTRPC } from "@/server/trpc/sscClient";
 import type { Plugin } from "@cat/shared/schema/prisma/plugin";
-import { redirect } from "vike/abort";
+import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 
 export const data = async (
@@ -12,7 +12,7 @@ export const data = async (
     id: pluginId,
   });
 
-  if (!plugin) throw redirect("/");
+  if (!plugin) throw render("/", `Plugin ${pluginId} does not exists`);
 
   return { plugin };
 };

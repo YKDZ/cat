@@ -15,11 +15,11 @@ const terms = ref<TermRelation[]>([]);
 const glossary = inject(glossaryKey);
 
 const updateTerms = async (options: TermListFilterOptions) => {
-  if (!glossary || !glossary.value) return;
+  if (!glossary) return;
 
   await trpc.glossary.queryTerms
     .query({
-      id: glossary.value.id,
+      id: glossary.id,
       ...options,
     })
     .then((ts) => (terms.value = ts));

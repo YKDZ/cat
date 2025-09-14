@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import ProjectMemoryList from "@/app/components/ProjectMemoryList.vue";
 import ProjectMemoryLinkerBtn from "@/app/components/ProjectMemoryLinkerBtn.vue";
-import { projectKey } from "@/app/utils/provide";
-import { trpc } from "@/server/trpc/client";
+import { trpc } from "@/server/trpc/client.ts";
 import type { Memory } from "@cat/shared/schema/prisma/memory";
-import { inject, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
+import type { Data } from "./+data.ts";
+import { useData } from "vike-vue/useData";
 
-const project = inject(projectKey);
-
+const { project } = useData<Data>();
 const memories = ref<Memory[]>([]);
 
 const updateMemories = async () => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
   await trpc.memory.listProjectOwned
     .query({
-      projectId: project.value.id,
+      projectId: project.id,
     })
     .then((mems) => (memories.value = mems));
 };

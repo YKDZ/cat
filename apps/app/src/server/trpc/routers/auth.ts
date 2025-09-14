@@ -300,7 +300,7 @@ export const authRouter = router({
         pluginRegistry,
       } = ctx;
 
-      const providersDatas = await prisma.authProvider.findMany({
+      const providersData = await prisma.authProvider.findMany({
         select: {
           serviceId: true,
           PluginInstallation: {
@@ -315,7 +315,7 @@ export const authRouter = router({
       for (const {
         serviceId,
         PluginInstallation: { pluginId },
-      } of providersDatas) {
+      } of providersData) {
         const providers = await pluginRegistry.getAuthProvider(
           prisma,
           pluginId,
