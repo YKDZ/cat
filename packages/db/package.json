@@ -22,13 +22,13 @@
   },
   "dependencies": {
     "@cat/shared": "workspace:*",
-    "@prisma/adapter-pg": "6.15.0",
-    "@prisma/client": "6.15.0",
+    "@prisma/adapter-pg": "6.16.1",
+    "@prisma/client": "6.16.1",
     "redis": "^5.8.2"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "prisma": "6.15.0"
+    "prisma": "6.16.1"
   },
   "peerDependencies": {
     "@cat/shared": "workspace:*",
