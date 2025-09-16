@@ -1,5 +1,5 @@
-import vue from "@vitejs/plugin-vue";
 import { resolve } from "node:path";
+import vue from "@vitejs/plugin-vue";
 import UnoCSS from "unocss/vite";
 import vike from "vike/plugin";
 import { defineConfig } from "rolldown-vite";
