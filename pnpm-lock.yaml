@@ -210,7 +210,7 @@ importers:
         version: link:../../packages/eslint-config
       '@iconify-json/codicon':
         specifier: ^1.2.27
-        version: 1.2.29
+        version: 1.2.30
       '@iconify-json/file-icons':
         specifier: ^1.2.2
         version: 1.2.2
@@ -1897,8 +1897,8 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
-  '@iconify-json/codicon@1.2.29':
-    resolution: {integrity: sha512-WyJ7hm8PvyGKJHifLO6zrwufXt5jdyzHnRs9jcn/HjVThRn0+S9k/ZJJ+t9Jztz240u80X9shmCCaPT/arWiWQ==}
+  '@iconify-json/codicon@1.2.30':
+    resolution: {integrity: sha512-45Qsu3ok07kPx066kYQOSyb2abSS+Yej4SmKRLRho3srVf76v79/JqeVvm/n1HuYuXBS8pL4HAGMvLIY5opHmQ==}
 
   '@iconify-json/file-icons@1.2.2':
     resolution: {integrity: sha512-ajk44wYGTiu79EAyrfNHNaxZ1/2Z1xuSOAvYUT/pAPWHc+P6n9TUZP/ccnPG18kx0WMBxmkHHQ9/zkm6ENhk+Q==}
@@ -5211,6 +5211,10 @@ packages:
 
   fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
+
+  fs-extra@11.3.2:
+    resolution: {integrity: sha512-Xr9F6z6up6Ws+NjzMCZc6WXg2YFRlrLP9NQDO3VQrWrfiojdhS56TzueT88ze0uBdCTwEIhQ3ptnmKeWGFAe0A==}
+    engines: {node: '>=14.14'}
 
   fs-extra@11.3.2:
     resolution: {integrity: sha512-Xr9F6z6up6Ws+NjzMCZc6WXg2YFRlrLP9NQDO3VQrWrfiojdhS56TzueT88ze0uBdCTwEIhQ3ptnmKeWGFAe0A==}
@@ -9596,7 +9600,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@iconify-json/codicon@1.2.29':
+  '@iconify-json/codicon@1.2.30':
     dependencies:
       '@iconify/types': 2.0.0
 
