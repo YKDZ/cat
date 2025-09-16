@@ -4,7 +4,7 @@ import type { JSONType } from "@cat/shared/schema/json";
 import z from "zod";
 import { schemaKey, transferDataToString } from "..";
 import type { PickerOption } from "@/app/components/picker/index.ts";
-import RendererLabel from "@/app/utils/RendererLabel.vue";
+import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";
 import Picker from "@/app/components/picker/Picker.vue";
 
 const props = defineProps<{

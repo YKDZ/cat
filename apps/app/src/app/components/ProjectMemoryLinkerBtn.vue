@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import Modal from "./Modal.vue";
+import Modal from "./headless/HModal.vue";
 import MultiMemoryPicker from "./MultiMemoryPicker.vue";
 import HButton from "./headless/HButton.vue";
 import { trpc } from "@/server/trpc/client.ts";
@@ -60,18 +60,22 @@ const handleLink = async () => {
     @click="handleOpen"
     >{{ t("连接记忆库") }}</HButton
   >
-  <Modal v-model:is-open="isOpen">
-    <div class="p-8 rounded-md bg-highlight flex flex-col gap-3">
-      <h3 class="text-lg font-bold">{{ t("连接或创建新记忆库") }}</h3>
-      <MultiMemoryPicker v-model:memory-ids="memoryIds" full-width create-new />
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-base btn-w-full',
-        }"
-        icon="i-mdi:link"
-        @click="handleLink"
-        >{{ t("连接") }}</HButton
-      >
-    </div></Modal
+  <Modal
+    v-model="isOpen"
+    :classes="{
+      modal: 'modal',
+      'modal-backdrop': 'modal-backdrop',
+    }"
   >
+    <h3 class="text-lg font-bold">{{ t("连接或创建新记忆库") }}</h3>
+    <MultiMemoryPicker v-model:memory-ids="memoryIds" full-width create-new />
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-base btn-w-full',
+      }"
+      icon="i-mdi:link"
+      @click="handleLink"
+      >{{ t("连接") }}</HButton
+    >
+  </Modal>
 </template>

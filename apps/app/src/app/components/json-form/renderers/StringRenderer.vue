@@ -3,7 +3,7 @@ import { computed, inject } from "vue";
 import z from "zod";
 import type { JSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "..";
-import RendererLabel from "../utils/RendererLabel.vue";
+import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";
 
 const props = defineProps<{
   propertyKey?: string;
@@ -11,7 +11,7 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: '_update', to: JSONType): void;
+  (e: "_update", to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
@@ -33,10 +33,11 @@ const handleUpdate = (event: Event) => {
 
 <template>
   <div class="flex flex-col gap-0.5">
-    <RendererLabel :schema :property-key />
+    <RendererLabel :for="propertyKey" :schema :property-key />
     <input
       @change="handleUpdate"
       :value
+      :id="propertyKey"
       :type="inputType"
       :autocomplete="z.string().optional().parse(schema['x-autocomplete'])"
       class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-base"

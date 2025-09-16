@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { inject } from "vue";
-import Header from "./Header.vue";
+import Header from "./headless/HHeader.vue";
 import ProjectBreadcrumb from "./ProjectBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
 import { useSidebarStore } from "@/app/stores/sidebar.ts";
@@ -16,7 +16,11 @@ const project = inject(projectKey);
 </script>
 
 <template>
-  <Header>
+  <Header
+    :classes="{
+      header: 'header',
+    }"
+  >
     <HButton
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',

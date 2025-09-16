@@ -16,7 +16,6 @@ provide(documentKey, document);
     <IndexSidebar />
     <div class="flex flex-col h-full w-full overflow-y-auto">
       <DocumentHeader />
-      <!-- Content -->
       <div class="p-4 pt-0 flex flex-col">
         <slot />
       </div>

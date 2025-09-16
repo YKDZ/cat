@@ -1,12 +1,12 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
+import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const RoleSchema = z.object({
   id: z.int(),
   name: z.string(),
   description: z.string().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   parentId: z.int().nullable(),
   get Parent() {
@@ -31,8 +31,8 @@ export const PermissionSchema = z.object({
   resource: z.string(),
   action: z.string(),
   description: z.string().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   get RolePermissions() {
     return z.array(RolePermissionSchema).optional();
@@ -43,8 +43,8 @@ export const RolePermissionSchema = z.object({
   id: z.int(),
   isAllowed: z.boolean(),
   conditions: z.any().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   roleId: z.int(),
   get Role() {
@@ -61,9 +61,9 @@ export const UserRoleSchema = z.object({
   id: z.int(),
   scope: z.any().nullable(),
   isEnabled: z.boolean(),
-  expiresAt: PrimsaDateTime.nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  expiresAt: PrismaDateTime.nullable(),
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   userId: z.ulid(),
   get User() {

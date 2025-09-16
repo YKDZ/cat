@@ -1,15 +1,15 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
 import { LanguageSchema } from "./misc.ts";
 import { TranslationVoteSchema } from "./translation.ts";
+import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const UserSchema = z.object({
   id: z.ulid(),
   name: z.string(),
   email: z.email(),
   emailVerified: z.boolean(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   get WritableLanguages() {
     return z.array(LanguageSchema).optional();
@@ -26,8 +26,8 @@ export const AccountSchema = z.object({
   type: z.string(),
   provider: z.string(),
   providedAccountId: z.string(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   userId: z.ulid(),
   get User() {
     return UserSchema.optional();

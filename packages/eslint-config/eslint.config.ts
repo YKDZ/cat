@@ -29,7 +29,6 @@ export default defineConfig(
     rules: {
       "import/no-namespace": "error",
       "import/order": "warn",
-      "import/no-relative-parent-imports": "error",
       "import/enforce-node-protocol-usage": ["error", "always"],
       "import/extensions": [
         "warn",

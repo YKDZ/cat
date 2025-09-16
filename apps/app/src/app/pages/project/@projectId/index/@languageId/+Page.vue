@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/schema/prisma/document";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
@@ -62,8 +61,8 @@ onMounted(update);
       />
     </div>
     <ProjectLanguageDocumentList
-      v-if="project && project.Documents"
-      :documents="project.Documents as Document[]"
+      v-if="project.Documents"
+      :documents="project.Documents"
     />
   </div>
 </template>

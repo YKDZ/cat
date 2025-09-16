@@ -7,20 +7,18 @@ import {
 } from "@cat/shared/schema/json";
 import { MatcherRegistry, schemaKey, type RendererComponent } from "./index.ts";
 
-type Classes = {
+type LabelClasses = {
   label?: string;
   "label-title"?: string;
   "label-description"?: string;
 };
 
-type JSONFormProps = {
+const props = defineProps<{
   propertyKey?: string;
   schema: JSONSchema;
   data: JSONType;
-  classes?: Classes;
-};
-
-const props = defineProps<JSONFormProps>();
+  classes?: LabelClasses;
+}>();
 
 const emits = defineEmits<{
   (e: "update", to: JSONType, schema: JSONSchema, key?: string): void;
@@ -38,10 +36,10 @@ const objectProperties = computed(() => {
   });
 });
 
-const classes = computed(() => ({
-  label: props.classes?.label ?? "",
-  "label-title": props.classes?.["label-title"] ?? "",
-  "label-description": props.classes?.["label-description"] ?? "",
+const labelClasses = computed(() => ({
+  label: props.classes?.label,
+  "label-title": props.classes?.["label-title"],
+  "label-description": props.classes?.["label-description"],
 }));
 
 const handleUpdate = (to: JSONType, schema: JSONSchema, key?: string) => {
@@ -96,17 +94,17 @@ provide(schemaKey, props.schema);
     :property-key="propertyKey"
     @_update="(to) => handleUpdate(to, props.schema)"
   />
-  <div v-if="props.schema.type === 'object'">
-    <label :class="classes.label">
-      <slot name="form-label" :props>
-        <span :class="[classes['label-title']]">
+  <div v-if="schema.type === 'object'">
+    <slot name="label" :propertyKey :schema :labelClasses>
+      <h3 :class="labelClasses.label">
+        <span :class="labelClasses['label-title']">
           {{ schema.title ?? propertyKey }}</span
         >
-        <span :class="[classes['label-description']]">
+        <span :class="labelClasses['label-description']">
           {{ schema.description }}</span
         >
-      </slot>
-    </label>
+      </h3></slot
+    >
     <form>
       <JSONForm
         v-for="property in objectProperties"
@@ -114,6 +112,7 @@ provide(schemaKey, props.schema);
         :data="dataOfPropertyKey(property.key, property.schema.default)"
         :property-key="property.key"
         :schema="property.schema"
+        :classes
         @_update="handleUpdate"
       />
     </form>

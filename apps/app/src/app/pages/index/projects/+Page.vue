@@ -7,5 +7,5 @@ const { projects } = useData<Data>();
 </script>
 
 <template>
-  <ProjectList v-model="projects" />
+  <ProjectList :projects />
 </template>

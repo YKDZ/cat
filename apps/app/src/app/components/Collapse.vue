@@ -2,7 +2,7 @@
 import { vOnClickOutside } from "@vueuse/components";
 import Icon from "./Icon.vue";
 
-const props = defineProps({
+defineProps({
   text: {
     type: String,
     default: "",

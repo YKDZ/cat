@@ -1,15 +1,15 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
 import { LanguageSchema } from "./misc.ts";
 import { UserSchema } from "./user.ts";
 import { TranslatableElementSchema } from "./document.ts";
 import { VectorSchema } from "./vector.ts";
+import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const TranslationVoteSchema = z.object({
   id: z.int(),
   value: z.int(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   voterId: z.ulid(),
   translationId: z.int(),
 });
@@ -17,8 +17,8 @@ export const TranslationVoteSchema = z.object({
 export const TranslationApprovementSchema = z.object({
   id: z.int(),
   isActive: z.boolean(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   translationId: z.int(),
 
   creatorId: z.ulid(),
@@ -31,8 +31,8 @@ export const TranslationSchema = z.object({
   id: z.int(),
   value: z.string(),
   meta: z.json().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   translatorId: z.ulid(),
   get Translator() {
     return UserSchema.optional();

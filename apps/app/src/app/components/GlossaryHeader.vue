@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { inject } from "vue";
 import GlossaryBreadcrumb from "./GlossaryBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
-import Header from "@/app/components/Header.vue";
+import Header from "@/app/components/headless/HHeader.vue";
 import { useSidebarStore } from "@/app/stores/sidebar.ts";
 import { glossaryKey } from "@/app/utils/provide.ts";
 
@@ -13,7 +13,11 @@ const glossary = inject(glossaryKey);
 </script>
 
 <template>
-  <Header>
+  <Header
+    :classes="{
+      header: 'header',
+    }"
+  >
     <HButton
       :classes="{
         base: 'btn btn-transparent btn-square',

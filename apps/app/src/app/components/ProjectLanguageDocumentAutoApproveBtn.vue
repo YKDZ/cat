@@ -2,7 +2,7 @@
 import type { Document } from "@cat/shared/schema/prisma/document";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import Modal from "./Modal.vue";
+import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";
 import { languageKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
@@ -44,25 +44,29 @@ const handleAutoApprove = async () => {
     icon="i-mdi:auto-fix"
     @click.stop="isOpen = true"
   />
-  <Modal v-model:is-open="isOpen">
-    <div class="p-10 pt-0 rounded-md bg-highlight flex flex-col gap-2">
-      <article class="prose-highlight-content max-w-460px prose">
-        <h3 class="text-highlight-content-darker">{{ t("自动批准") }}</h3>
-        <p>
-          {{
-            t(
-              "这将自动选出各个可翻译元素的翻译中得票数最高的那一个，并自动批准它。",
-            )
-          }}
-        </p>
-      </article>
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-base btn-center btn-w-full',
-        }"
-        @click="handleAutoApprove"
-        >确认</HButton
-      >
-    </div>
+  <Modal
+    v-model="isOpen"
+    :classes="{
+      modal: 'modal',
+      'modal-backdrop': 'modal-backdrop',
+    }"
+  >
+    <article class="prose-highlight-content max-w-460px prose">
+      <h3 class="text-highlight-content-darker">{{ t("自动批准") }}</h3>
+      <p>
+        {{
+          t(
+            "这将自动选出各个可翻译元素的翻译中得票数最高的那一个，并自动批准它。",
+          )
+        }}
+      </p>
+    </article>
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-base btn-center btn-w-full',
+      }"
+      @click="handleAutoApprove"
+      >确认</HButton
+    >
   </Modal>
 </template>

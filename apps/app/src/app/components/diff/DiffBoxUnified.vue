@@ -18,12 +18,12 @@ defineProps<{
       }"
     >
       <span
-        class="font-semibold pr-2 text-right max-w-12 min-w-12 w-12 inline-block select-none"
+        class="font-semibold my-auto pr-2 text-right max-w-12 min-w-12 w-12 inline-block select-none"
       >
         {{ line.newLineNumber }}
       </span>
       <span
-        class="font-semibold text-left max-w-4 min-w-4 w-4 inline-block select-none"
+        class="font-semibold my-auto text-left max-w-4 min-w-4 w-4 inline-block select-none"
       >
         <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
         {{ line.type === "added" ? "+" : line.type === "removed" ? "-" : "" }}

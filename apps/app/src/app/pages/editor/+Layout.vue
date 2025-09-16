@@ -2,8 +2,8 @@
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
-import EditorHeader from "@/app/components/components/EditorHeader.vue";
-import EditorSidebar from "@/app/components/components/EditorSidebar.vue";
+import EditorHeader from "@/app/components/EditorHeader.vue";
+import EditorSidebar from "@/app/components/EditorSidebar.vue";
 import { useEditorStore } from "@/app/stores/editor.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 

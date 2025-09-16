@@ -4,7 +4,9 @@ import ProjectListItem from "./ProjectListItem.vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 
-const projects = defineModel<Project[]>();
+defineProps<{
+  projects: Project[];
+}>();
 </script>
 
 <template>

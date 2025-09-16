@@ -85,12 +85,12 @@ export const JSONSchemaSchema = z
     // get allOf() {
     //   return z.array(JSONSchemaSchema).optional();
     // },
-    // get anyOf() {
-    //   return z.array(JSONSchemaSchema).optional();
-    // },
-    // get oneOf() {
-    //   return z.array(JSONSchemaSchema).optional();
-    // },
+    get anyOf() {
+      return z.array(JSONSchemaSchema).optional();
+    },
+    get oneOf() {
+      return z.array(JSONSchemaSchema).optional();
+    },
     // get not() {
     //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
     // },

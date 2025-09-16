@@ -2,7 +2,7 @@
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
-import Modal from "./Modal.vue";
+import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";
 import { trpc } from "@/server/trpc/client.ts";
 import { projectKey } from "@/app/utils/provide.ts";
@@ -25,7 +25,7 @@ const handleOpen = () => {
 };
 
 const handleLink = async () => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
   const createNewIndex = glossaryIds.value.findIndex(
     (id) => id === "createNew",
@@ -34,14 +34,14 @@ const handleLink = async () => {
 
   if (createNewIndex !== -1) {
     await trpc.glossary.create.mutate({
-      name: project.value.name,
-      projectIds: [project.value.id],
+      name: project.name,
+      projectIds: [project.id],
     });
   }
 
   await trpc.project.linkGlossary
     .mutate({
-      id: project.value.id,
+      id: project.id,
       glossaryIds: realIds,
     })
     .then(() => {
@@ -62,22 +62,26 @@ const handleLink = async () => {
     @click="handleOpen"
     >{{ t("连接术语库") }}</HButton
   >
-  <Modal v-model:is-open="isOpen">
-    <div class="p-8 rounded-md bg-highlight flex flex-col gap-3">
-      <h3 class="text-lg font-bold">{{ t("连接或创建新术语库") }}</h3>
-      <MultiGlossaryPicker
-        v-model:glossary-ids="glossaryIds"
-        full-width
-        create-new
-      />
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-base btn-w-full',
-        }"
-        icon="i-mdi:link"
-        @click="handleLink"
-        >{{ t("连接") }}</HButton
-      >
-    </div></Modal
+  <Modal
+    v-model="isOpen"
+    :classes="{
+      modal: 'modal',
+      'modal-backdrop': 'modal-backdrop',
+    }"
   >
+    <h3 class="text-lg font-bold">{{ t("连接或创建新术语库") }}</h3>
+    <MultiGlossaryPicker
+      v-model:glossary-ids="glossaryIds"
+      full-width
+      create-new
+    />
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-base btn-w-full',
+      }"
+      icon="i-mdi:link"
+      @click="handleLink"
+      >{{ t("连接") }}</HButton
+    >
+  </Modal>
 </template>

@@ -24,10 +24,10 @@ const project = inject(projectKey);
 const language = inject(languageKey);
 
 const handleEdit = async () => {
-  if (!project || !project.value || !language || !language.value) return;
+  if (!project || !language || !language.value) return;
 
   await navigate(
-    `/editor/${props.document.id}/${project.value.SourceLanguage?.id}-${language.value.id}/auto`,
+    `/editor/${props.document.id}/${project.SourceLanguage?.id}-${language.value.id}/auto`,
   );
 };
 

@@ -1,12 +1,12 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
 import { LanguageSchema } from "./misc.ts";
 import { UserSchema } from "./user.ts";
+import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const MemoryItemSchema = z.object({
   id: z.int(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   source: z.string(),
   sourceLanguageId: z.string(),
   get SourceLanguage() {
@@ -36,8 +36,8 @@ export const MemorySchema = z.object({
   id: z.ulid(),
   name: z.string(),
   description: z.string().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();

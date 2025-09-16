@@ -2,7 +2,7 @@
 import { computed, inject } from "vue";
 import type { JSONType } from "@cat/shared/schema/json";
 import { schemaKey } from "..";
-import RendererLabel from "@/app/utils/RendererLabel.vue";
+import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";
 
 const props = defineProps<{
   propertyKey?: string;

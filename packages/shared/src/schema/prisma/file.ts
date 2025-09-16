@@ -1,13 +1,13 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
+import { PrismaDateTime } from "./misc.ts";
 import { StorageProviderSchema } from "./plugin.ts";
 
 export const FileSchema = z.object({
   id: z.int(),
   originName: z.string(),
   storedPath: z.string(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   storageProviderId: z.int(),
   get StorageProvider() {

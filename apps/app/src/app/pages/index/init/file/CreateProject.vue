@@ -3,7 +3,6 @@ import type { Project } from "@cat/shared/schema/prisma/project";
 import { ref } from "vue";
 import { z } from "zod";
 import HButton from "@/app/components/headless/HButton.vue";
-import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
@@ -12,6 +11,7 @@ import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
 import Textarea from "@/app/components/Textarea.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { trpc } from "@/server/trpc/client.ts";
+import HInput from "@/app/components/headless/HInput.vue";
 
 const { info, zWarn, trpcWarn } = useToastStore();
 
@@ -100,11 +100,16 @@ const createProject = () => {
   <!-- Create Project -->
   <div class="flex flex-col gap-2">
     <InputLabel required>名称</InputLabel>
-    <Input
+    <HInput
       v-model="name"
       type="text"
       placeholder="项目名称"
       icon="i-mdi:book"
+      :classes="{
+        input: 'input input-md',
+        'input-container': 'input-container rounded-md',
+        'input-icon': 'input-icon',
+      }"
     />
     <InputLabel>简介</InputLabel>
     <Textarea v-model="description" placeholder="用于描述项目的简短文本" />

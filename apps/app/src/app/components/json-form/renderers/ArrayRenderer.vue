@@ -3,7 +3,7 @@ import { computed, inject, ref } from "vue";
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import z from "zod";
 import { schemaKey } from "..";
-import JSONForm from "../JSONForm.vue";
+import JSONForm from "@/app/components/json-form/JSONForm.vue";
 import HButton from "@/app/components/headless/HButton.vue";
 
 const props = defineProps<{

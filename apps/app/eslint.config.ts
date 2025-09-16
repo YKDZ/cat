@@ -15,6 +15,11 @@ export default defineConfigWithVueTs(
 
   pluginVue.configs["flat/essential"],
   vueTsConfigs.recommended,
+  {
+    rules: {
+      "vue/attributes-order": "warn",
+    },
+  },
   skipFormatting,
   {
     rules: {

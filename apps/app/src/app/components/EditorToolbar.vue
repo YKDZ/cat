@@ -24,6 +24,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <HButton
         :classes="{
           base: 'btn btn-md btn-transparent btn-square',
+          icon: 'btn-icon btn-icon-sm',
         }"
         icon="i-mdi:content-copy"
         @click="replace(element?.value ?? ``)"
@@ -31,6 +32,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <HButton
         :classes="{
           base: 'btn btn-md btn-transparent btn-square',
+          icon: 'btn-icon btn-icon-sm',
         }"
         icon="i-mdi:trash-can"
         @click="clear"
@@ -38,6 +40,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <HButton
         :classes="{
           base: 'btn btn-md btn-transparent btn-square',
+          icon: 'btn-icon btn-icon-sm',
         }"
         icon="i-mdi:undo"
         magic-key="Control+Z"
@@ -47,6 +50,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <HButton
         :classes="{
           base: 'btn btn-md btn-transparent btn-square',
+          icon: 'btn-icon btn-icon-sm',
         }"
         icon="i-mdi:redo"
         magic-key="Control+Shift+Z"
@@ -59,6 +63,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <HButton
         :classes="{
           base: 'btn btn-md btn-transparent',
+          icon: 'btn-icon btn-icon-sm',
         }"
         icon="i-mdi:check"
         magic-key="Control+Shift+Enter"
@@ -70,6 +75,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <HButton
         :classes="{
           base: 'btn btn-md btn-transparent',
+          icon: 'btn-icon btn-icon-sm',
         }"
         icon="i-mdi:arrow-right"
         magic-key="Control+Enter"

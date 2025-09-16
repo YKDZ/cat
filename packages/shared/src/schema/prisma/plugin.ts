@@ -1,15 +1,15 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
-import { JSONSchemaSchema } from "../json.ts";
 import { UserSchema } from "./user.ts";
+import { PrismaDateTime } from "@/schema/misc.ts";
+import { JSONSchemaSchema } from "@/schema/json.ts";
 
 export const PluginInstallationSchema = z.object({
   id: z.int(),
   scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
   scopeId: z.string().nullable(),
   scopeMeta: z.json().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   pluginId: z.string(),
   get Plugin() {
@@ -20,15 +20,15 @@ export const PluginInstallationSchema = z.object({
 export const PluginTagSchema = z.object({
   id: z.int(),
   name: z.string(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 });
 
 export const PluginConfigSchema = z.object({
   id: z.int(),
   schema: JSONSchemaSchema,
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   pluginId: z.string(),
 
   get PluginConfigInstances() {
@@ -39,8 +39,8 @@ export const PluginConfigSchema = z.object({
 export const PluginConfigInstanceSchema = z.object({
   id: z.int(),
   value: z.json(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   configId: z.int(),
   get Config() {
@@ -62,8 +62,8 @@ export const PluginPermissionSchema = z.object({
   id: z.int(),
   permission: z.string(),
   description: z.string(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   pluginId: z.string(),
 });
 
@@ -79,8 +79,8 @@ export const PluginSchema = z.object({
   overview: z.string().nullable(),
   iconURL: z.url().nullable(),
   isExternal: z.boolean(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   get Config() {
     return PluginConfigSchema.nullable().optional();
@@ -106,8 +106,8 @@ export const PluginSchema = z.object({
 export const StorageProviderSchema = z.object({
   id: z.int(),
   serviceId: z.string(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   pluginInstallationId: z.int(),
   get Installation() {

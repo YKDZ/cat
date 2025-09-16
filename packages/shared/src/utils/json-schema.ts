@@ -1,5 +1,5 @@
-import type { JSONSchema, JSONType } from "../schema/json.ts";
-import { JSONSchemaSchema } from "../schema/json.ts";
+import { JSONSchemaSchema } from "@/schema/json.ts";
+import type { JSONSchema, JSONType } from "@/schema/json.ts";
 
 export const getDefaultFromSchema = (schema: JSONSchema): JSONType => {
   if (schema.default !== undefined) {
@@ -40,9 +40,12 @@ export const getDefaultFromSchema = (schema: JSONSchema): JSONType => {
 
   if (schema.oneOf || schema.anyOf) {
     const candidates = schema.oneOf || schema.anyOf || [];
-    for (const candidate of candidates) {
-      const result = getDefaultFromSchema(candidate);
-      if (result !== undefined) return result;
+    // 确保 candidates 是数组后再进行迭代
+    if (Array.isArray(candidates)) {
+      for (const candidate of candidates) {
+        const result = getDefaultFromSchema(candidate);
+        if (result !== undefined) return result;
+      }
     }
     return null;
   }
