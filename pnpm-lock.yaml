@@ -300,7 +300,7 @@ importers:
         version: 13.9.0(vue@3.5.21(typescript@5.9.2))
       '@zenuml/core':
         specifier: ^3.36.0
-        version: 3.40.1(@babel/core@7.28.4)(@babel/template@7.27.2)
+        version: 3.41.4(@babel/core@7.28.4)(@babel/template@7.27.2)
       cross-env:
         specifier: ^10.0.0
         version: 10.0.0
@@ -1862,8 +1862,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  '@headlessui/react@2.2.7':
-    resolution: {integrity: sha512-WKdTymY8Y49H8/gUc/lIyYK1M+/6dq0Iywh4zTZVAaiTDprRfioxSgD0wnXTQTBpjpGJuTL1NO/mqEvc//5SSg==}
+  '@headlessui/react@2.2.8':
+    resolution: {integrity: sha512-vkiZulDC0lFeTrZTbA4tHvhZHvkUb2PFh5xJ1BvWAZdRK0fayMKO1QEO4inWkXxK1i0I1rcwwu1d6mo0K7Pcbw==}
     engines: {node: '>=10'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -3903,8 +3903,8 @@ packages:
     resolution: {integrity: sha512-/HcYgtUSiJiot/XWGLOlGxPYUG65+/31V8oqk17vZLW1xlCoR4PampyePljOxY2n8/3jz9+tIFzICsyGujJZoA==}
     engines: {node: '>=18.12.0'}
 
-  '@zenuml/core@3.40.1':
-    resolution: {integrity: sha512-YhhQcxHcXzW8rcW5bzJfU67y4zDIojK3MEL9aSF7G/8zPlfAFdzZhkl0WWHhxdmE/yK4zZ6f7dqjgImw/jJrYA==}
+  '@zenuml/core@3.41.4':
+    resolution: {integrity: sha512-C3Cr1tqKHKZ0lCuEgjfnCb8+9K/nwQpKrFzDxWVvWP4g60naTpE4bjr355J015uofoiZtWZDAkdTuD9gS2vXRw==}
     engines: {node: '>=20'}
 
   '@zkochan/js-yaml@0.0.7':
@@ -4315,12 +4315,12 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
-  color-name@2.0.0:
-    resolution: {integrity: sha512-SbtvAMWvASO5TE2QP07jHBMXKafgdZz8Vrsrn96fiL+O92/FN/PLARzUW5sKt013fjAprK2d2iCn2hk2Xb5oow==}
+  color-name@2.0.2:
+    resolution: {integrity: sha512-9vEt7gE16EW7Eu7pvZnR0abW9z6ufzhXxGXZEVU9IqPdlsUiMwJeJfRtq0zePUmnbHGT9zajca7mX8zgoayo4A==}
     engines: {node: '>=12.20'}
 
-  color-string@2.1.0:
-    resolution: {integrity: sha512-gNVoDzpaSwvftp6Y8nqk97FtZoXP9Yj7KGYB8yIXuv0JcfqbYihTrd1OU5iZW9btfXde4YAOCRySBHT7O910MA==}
+  color-string@2.1.2:
+    resolution: {integrity: sha512-RxmjYxbWemV9gKu4zPgiZagUxbH3RQpEIO77XoSSX0ivgABDZ+h8Zuash/EMFLTI4N9QgFPOJ6JQpPZKFxa+dA==}
     engines: {node: '>=18'}
 
   colorette@2.0.20:
@@ -5211,6 +5211,10 @@ packages:
 
   fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
+
+  fs-extra@11.3.2:
+    resolution: {integrity: sha512-Xr9F6z6up6Ws+NjzMCZc6WXg2YFRlrLP9NQDO3VQrWrfiojdhS56TzueT88ze0uBdCTwEIhQ3ptnmKeWGFAe0A==}
+    engines: {node: '>=14.14'}
 
   fs-extra@11.3.2:
     resolution: {integrity: sha512-Xr9F6z6up6Ws+NjzMCZc6WXg2YFRlrLP9NQDO3VQrWrfiojdhS56TzueT88ze0uBdCTwEIhQ3ptnmKeWGFAe0A==}
@@ -9563,7 +9567,7 @@ snapshots:
       protobufjs: 7.5.4
       yargs: 17.7.2
 
-  '@headlessui/react@2.2.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+  '@headlessui/react@2.2.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       '@floating-ui/react': 0.26.28(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@react-aria/focus': 3.21.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -12069,15 +12073,15 @@ snapshots:
       js-yaml: 3.14.1
       tslib: 2.8.1
 
-  '@zenuml/core@3.40.1(@babel/core@7.28.4)(@babel/template@7.27.2)':
+  '@zenuml/core@3.41.4(@babel/core@7.28.4)(@babel/template@7.27.2)':
     dependencies:
       '@floating-ui/react': 0.27.16(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@headlessui/react': 2.2.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@headlessui/react': 2.2.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@headlessui/tailwindcss': 0.2.2(tailwindcss@3.4.17)
       antlr4: 4.11.0
       class-variance-authority: 0.7.1
       clsx: 2.1.1
-      color-string: 2.1.0
+      color-string: 2.1.2
       dompurify: 3.2.6
       highlight.js: 10.7.3
       html-to-image: 1.11.13
@@ -12555,11 +12559,11 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  color-name@2.0.0: {}
+  color-name@2.0.2: {}
 
-  color-string@2.1.0:
+  color-string@2.1.2:
     dependencies:
-      color-name: 2.0.0
+      color-name: 2.0.2
 
   colorette@2.0.20: {}
 
