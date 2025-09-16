@@ -8,8 +8,7 @@ import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
-import Loading from "@/app/components/Loading.vue";
-import { useAuthStore } from "@/app/stores/auth";
+import { useAuthStore } from "@/app/stores/auth.ts";
 import { trpc } from "@/server/trpc/client.ts";
 
 const { t } = useI18n();
@@ -82,5 +81,4 @@ onMounted(async () => {
       >{{ t("登录") }}</HButton
     >
   </div>
-  <Loading v-else size="200px" />
 </template>

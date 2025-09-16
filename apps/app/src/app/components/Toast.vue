@@ -11,7 +11,9 @@ const { error } = useToastStore();
 
 watch(
   () => ctx.abortReason,
-  (to) => error(to as string),
+  (reason) => {
+    if (reason && reason.length > 0) error(reason);
+  },
 );
 </script>
 

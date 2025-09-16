@@ -1,12 +1,6 @@
 import type { Pinia, StateTree } from "pinia";
 import type { PluginRegistry } from "@cat/plugin-core";
-import type * as Vue from "vue";
-import type {
-  I18n,
-  LocaleMessageValue,
-  RemovedIndexResources,
-  VueMessageType,
-} from "vue-i18n";
+import type { I18n, LocaleMessageValue, VueMessageType } from "vue-i18n";
 import type { ESDB, PrismaDB, RedisDB } from "@cat/db";
 import type { User } from "@cat/shared/schema/prisma/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
@@ -19,6 +13,7 @@ declare global {
       sessionId: string | null;
       _piniaInitState?: StateTree;
       i18n?: I18n;
+      abortReason: string | undefined;
     }
     interface PageContextServer {
       pinia?: Pinia;

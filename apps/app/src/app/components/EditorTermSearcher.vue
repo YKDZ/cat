@@ -2,10 +2,10 @@
 import { storeToRefs } from "pinia";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import Input from "./Input.vue";
 import { useEditorStore } from "@/app/stores/editor.ts";
 import { trpc } from "@/server/trpc/client.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
+import HInput from "@/app/components/headless/HInput.vue";
 
 const { t } = useI18n();
 const { info, warn } = useToastStore();
@@ -51,11 +51,15 @@ watch(elementId, () => (searchQuery.value = ""));
 </script>
 
 <template>
-  <Input
+  <HInput
     v-model="searchQuery"
     icon="i-mdi:magnify"
     :placeholder="$t('搜索术语')"
-    full-width
+    :classes="{
+      input: 'input input-md',
+      'input-container': 'input-container rounded-md',
+      'input-icon': 'input-icon',
+    }"
     @change="handleSearchInput"
   />
 </template>

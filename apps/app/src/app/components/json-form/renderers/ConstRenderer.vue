@@ -2,7 +2,7 @@
 import { computed, inject } from "vue";
 import type { JSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "..";
-import RendererLabel from "../utils/RendererLabel.vue";
+import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";
 
 defineProps<{
   propertyKey?: string;
@@ -10,7 +10,7 @@ defineProps<{
 }>();
 
 defineEmits<{
-  (e: '_update', to: JSONType): void;
+  (e: "_update", to: JSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;

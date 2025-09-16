@@ -1,0 +1,13 @@
+import type { PageContextServer } from "vike/types";
+import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
+import { z } from "zod";
+import { getPrismaDB } from "@cat/db";
+import { useLanguageStore } from "@/app/stores/language.ts";
+
+export const onBeforeRender = async (ctx: PageContextServer) => {
+  const languages = z
+    .array(LanguageSchema)
+    .parse(await (await getPrismaDB()).client.language.findMany());
+
+  useLanguageStore(ctx.pinia).languages = languages;
+};

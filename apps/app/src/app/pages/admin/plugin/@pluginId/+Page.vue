@@ -13,7 +13,7 @@ provide(pluginKey, plugin);
 
 <template>
   <PluginConfig
-    v-if="plugin && plugin.Config"
+    v-if="plugin.Config"
     :config="plugin.Config"
     scope-type="GLOBAL"
     scope-id=""

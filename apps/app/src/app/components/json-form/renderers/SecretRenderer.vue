@@ -3,7 +3,7 @@ import { computed, inject, ref } from "vue";
 import z from "zod";
 import type { JSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "..";
-import RendererLabel from "@/app/utils/RendererLabel.vue";
+import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";
 import Icon from "@/app/components/Icon.vue";
 
 const props = defineProps<{
@@ -36,9 +36,10 @@ const handleUpdate = (event: Event) => {
 
 <template>
   <div class="flex flex-col gap-0.5">
-    <RendererLabel :schema :property-key />
+    <RendererLabel :for="propertyKey" :schema :property-key />
     <div class="flex items-center justify-between relative">
       <input
+        :id="propertyKey"
         :value
         :autocomplete="z.string().optional().parse(schema['x-autocomplete'])"
         :type="inputType"

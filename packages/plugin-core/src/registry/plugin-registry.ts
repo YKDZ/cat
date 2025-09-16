@@ -182,8 +182,6 @@ export class PluginRegistry {
         const defaultValue =
           getDefaultFromSchema(JSONSchemaSchema.parse(schema)) ?? {};
 
-        console.log(defaultValue);
-
         await tx.pluginConfigInstance.create({
           data: {
             configId: id,

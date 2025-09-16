@@ -7,7 +7,7 @@ export const PrismaErrorSchema = z.object({
   clientVersion: z.string(),
 });
 
-export const PrimsaDateTime = z.date().or(z.iso.datetime());
+export const PrismaDateTime = z.date().or(z.iso.datetime());
 
 export const TranslationAdvisorDataSchema = z.object({
   id: z.string(),

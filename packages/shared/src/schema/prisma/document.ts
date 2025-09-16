@@ -1,5 +1,5 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
+import { PrismaDateTime } from "./misc.ts";
 import { FileSchema } from "./file.ts";
 import { UserSchema } from "./user.ts";
 import { VectorSchema } from "./vector.ts";
@@ -7,8 +7,8 @@ import { ProjectSchema } from "./project.ts";
 
 export const DocumentSchema = z.object({
   id: z.ulid(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   get File() {
     return FileSchema.nullable().optional();
@@ -29,6 +29,7 @@ export const DocumentSchema = z.object({
   },
 });
 
+// 使用 Omit 和 z.infer 来避免循环引用
 export const TranslatableElementSchema = z.object({
   id: z.int(),
   value: z.string(),
@@ -44,20 +45,22 @@ export const TranslatableElementSchema = z.object({
   },
 
   documentVersionId: z.int(),
+  // 避免直接引用 DocumentVersionSchema 来防止循环引用
   get DocumentVersion() {
-    return DocumentVersionSchema.optional();
+    return z.unknown().optional();
   },
 });
 
 export const DocumentVersionSchema = z.object({
   id: z.int(),
   isActive: z.boolean(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   documentId: z.ulid(),
+  // 避免直接引用 DocumentSchema 来防止循环引用
   get Document() {
-    return DocumentSchema.optional();
+    return z.unknown().optional();
   },
 });
 

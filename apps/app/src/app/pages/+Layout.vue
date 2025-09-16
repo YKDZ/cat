@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import "virtual:uno.css";
-import { onBeforeMount, onMounted, watch } from "vue";
-import { usePageContext } from "vike-vue/usePageContext";
-import { storeToRefs } from "pinia";
 import Toast from "@/app/components/Toast.vue";
-import { useLanguageStore } from "@/app/stores/language.ts";
-import { useUserStore } from "@/app/stores/user.ts";
 
 // i-mdi:numeric-1-circle-outline
 // i-mdi:numeric-2-circle-outline
@@ -20,22 +15,6 @@ import { useUserStore } from "@/app/stores/user.ts";
 // i-file-icons:markdownlint
 // i-file-icons:yaml-alt4
 // i-mdi:code-json
-
-const ctx = usePageContext();
-
-watch(
-  () => ctx.user,
-  (to) => {
-    storeToRefs(useUserStore()).user.value = to;
-  },
-  { immediate: true },
-);
-
-onBeforeMount(() => {});
-
-onMounted(() => {
-  useLanguageStore().update();
-});
 </script>
 
 <template>

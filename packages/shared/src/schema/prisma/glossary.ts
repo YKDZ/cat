@@ -1,14 +1,14 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
 import { LanguageSchema } from "./misc.ts";
 import { UserSchema } from "./user.ts";
+import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const TermSchema = z.object({
   id: z.int(),
   value: z.string(),
   context: z.string().optional().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   glossaryId: z.ulid(),
   languageId: z.string(),
   get Language() {
@@ -35,8 +35,8 @@ export const GlossarySchema = z.object({
   id: z.ulid(),
   name: z.string(),
   description: z.string().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
   creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import Header from "./Header.vue";
+import Header from "./headless/HHeader.vue";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
 import { useSidebarStore } from "@/app/stores/sidebar.ts";
@@ -12,7 +12,11 @@ const { document } = storeToRefs(useEditorStore());
 </script>
 
 <template>
-  <Header>
+  <Header
+    :classes="{
+      header: 'header',
+    }"
+  >
     <HButton
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',

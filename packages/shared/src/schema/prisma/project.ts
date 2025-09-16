@@ -1,16 +1,16 @@
 import z from "zod";
-import { PrimsaDateTime } from "../misc.ts";
 import { MemorySchema } from "./memory.ts";
 import { LanguageSchema } from "./misc.ts";
 import { UserSchema } from "./user.ts";
 import { DocumentSchema } from "./document.ts";
+import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const ProjectSchema = z.object({
   id: z.ulid(),
   name: z.string(),
   description: z.string().nullable(),
-  createdAt: PrimsaDateTime,
-  updatedAt: PrimsaDateTime,
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 
   sourceLanguageId: z.string(),
   get SourceLanguage() {

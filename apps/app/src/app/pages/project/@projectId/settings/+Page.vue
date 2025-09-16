@@ -5,10 +5,10 @@ import { useI18n } from "vue-i18n";
 import { useData } from "vike-vue/useData";
 import type { Data } from "./+data.ts";
 import HButton from "@/app/components/headless/HButton.vue";
-import Input from "@/app/components/Input.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { trpc } from "@/server/trpc/client.ts";
+import HInput from "@/app/components/headless/HInput.vue";
 
 const { t } = useI18n();
 const { project } = useData<Data>();
@@ -62,7 +62,17 @@ const remove = async (): Promise<void> => {
   <div>
     <InputLabel>{{ t("项目名称") }}</InputLabel>
     <div class="flex gap-1 items-center">
-      <Input v-model="name" small />
+      <HInput
+        v-model="name"
+        type="text"
+        placeholder="项目名称"
+        icon="i-mdi:book"
+        :classes="{
+          input: 'input input-sm',
+          'input-container': 'input-container rounded-md',
+          'input-icon': 'input-icon',
+        }"
+      />
       <HButton
         :classes="{
           base: 'btn btn-md btn-base',

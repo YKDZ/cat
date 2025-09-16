@@ -5,7 +5,6 @@ import type { ClipperVerifyResult } from "./tagger/index.ts";
 import { clippers } from "./tagger/index.ts";
 import Collapse from "./Collapse.vue";
 import Icon from "./Icon.vue";
-import Modal from "./Modal.vue";
 import HButton from "./headless/HButton.vue";
 import { useEditorStore } from "@/app/stores/editor.ts";
 
@@ -15,7 +14,6 @@ const { sourceParts, translationParts, translationValue } =
 const clipperVerifyResults = ref<ClipperVerifyResult[]>([]);
 const isProcessing = ref(false);
 const isCollapseOpen = ref(false);
-const isModalOpen = ref(false);
 
 const isAllPass = computed(
   () => !clipperVerifyResults.value.find((result) => !result.isPass),
@@ -60,6 +58,7 @@ watch(isAllPass, (to) => {
     <HButton
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',
+        icon: 'btn-icon btn-icon-sm',
       }"
       :icon="isAllPass ? 'i-mdi:check' : 'i-mdi:close'"
       :class="{
@@ -67,7 +66,7 @@ watch(isAllPass, (to) => {
         'color-red': !isAllPass,
       }"
     />
-    <Collapse v-if="!isAllPass" v-model:is-open="isCollapseOpen">
+    <Collapse v-if="!isAllPass" v-model="isCollapseOpen">
       <ul>
         <li
           v-for="(result, index) in failedResults"
@@ -80,7 +79,4 @@ watch(isAllPass, (to) => {
       </ul></Collapse
     >
   </div>
-  <Modal v-model:is-open="isModalOpen"
-    ><div class="px-10 py-6 rounded-sm bg-highlight"></div>
-  </Modal>
 </template>
