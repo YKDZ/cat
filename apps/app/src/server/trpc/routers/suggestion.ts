@@ -1,9 +1,7 @@
 import { tracked, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
-  TranslationAdvisorDataSchema,
   TranslationSuggestionSchema,
-  type TranslationAdvisorData,
   type TranslationSuggestion,
 } from "@cat/shared/schema/misc";
 import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
@@ -24,12 +22,17 @@ export const suggestionRouter = router({
       const {
         redisDB: { redis, redisPub, redisSub },
         prismaDB: { client: prisma },
-        user,
         pluginRegistry,
       } = ctx;
       const { elementId, languageId } = input;
 
-      const termService = (await pluginRegistry.getTermServices(prisma))[0];
+      // TODO 选择安装的服务或者继承
+      const { service: termService } = (await pluginRegistry.getPluginService(
+        prisma,
+        "es-term-service",
+        "TERM_SERVICE",
+        "ES",
+      ))!;
 
       if (!termService) throw new Error("Term service does not exists");
 
@@ -63,16 +66,14 @@ export const suggestionRouter = router({
           );
           suggestionsQueue.push(suggestion);
         } catch (err) {
-          console.error("Invalid suggestion format: ", err);
+          logger.error("RPC", { msg: "Invalid suggestion format: " }, err);
         }
       };
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
       const advisors = (
-        await pluginRegistry.getTranslationAdvisors(prisma, {
-          userId: user.id,
-        })
-      ).map((d) => d.advisor);
+        await pluginRegistry.getPluginServices(prisma, "TRANSLATION_ADVISOR")
+      ).map(({ service }) => service);
 
       const advisorAmount = advisors.length;
 
@@ -104,7 +105,7 @@ export const suggestionRouter = router({
 
         const zElement = TranslatableElementSchema.parse(element);
         const { termedText, translationIds } =
-          await termService.service.termStore.termText(
+          await termService.termStore.termText(
             zElement.value,
             element.Document.Project.sourceLanguageId,
             languageId,
@@ -168,24 +169,5 @@ export const suggestionRouter = router({
         await redisSub.unsubscribe(suggestionChannelKey);
         suggestionsQueue.clear();
       }
-    }),
-  listAllAvailableAdvisors: authedProcedure
-    .output(z.array(TranslationAdvisorDataSchema))
-    .query(async ({ ctx }) => {
-      const {
-        prismaDB: { client: prisma },
-        user,
-        pluginRegistry,
-      } = ctx;
-      return (
-        await pluginRegistry.getTranslationAdvisors(prisma, { userId: user.id })
-      ).map(
-        ({ advisor, pluginId }) =>
-          ({
-            id: advisor.getId(),
-            name: advisor.getName(),
-            pluginId,
-          }) satisfies TranslationAdvisorData,
-      );
     }),
 });

@@ -127,7 +127,7 @@ export class MatcherRegistry {
         continue;
       }
 
-      const cmp = specificityComparer(spec, bestMatchers[0].spec);
+      const cmp = specificityComparer(spec, bestMatchers[0]!.spec);
       if (cmp > 0) {
         bestMatchers = [{ matcher: m, spec }];
       } else if (cmp === 0) {
@@ -136,7 +136,7 @@ export class MatcherRegistry {
     }
 
     if (bestMatchers.length === 0) return null;
-    if (bestMatchers.length === 1) return bestMatchers[0].matcher;
+    if (bestMatchers.length === 1) return bestMatchers[0]!.matcher;
 
     throw new Error(
       `MatcherRegistry.match: ambiguous match — multiple equally-specific matchers: ${bestMatchers.map((b) => b.matcher.name)}`,

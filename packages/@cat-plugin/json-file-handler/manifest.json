@@ -3,6 +3,12 @@
   "id": "json-file-handler",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "JSON",
+      "type": "TRANSLATABLE_FILE_HANDLER"
+    }
+  ],
   "tags": [
     "translatable-file-handler"
   ]

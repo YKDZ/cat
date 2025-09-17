@@ -1,8 +1,10 @@
 import { getPrismaDB, insertVector } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
+import { getServiceFromDBId } from "@/server/utils/plugin.ts";
+import { z } from "zod";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -13,28 +15,14 @@ export const updateTranslationQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const {
-      translationId,
-      translationValue,
-      vectorizerId,
-    }: {
-      translationId: number;
-      translationValue: string;
-      vectorizerId: string;
-    } = job.data;
+    const { translationId, translationValue } = z
+      .object({
+        translationId: z.int(),
+        translationValue: z.string(),
+      })
+      .parse(job.data);
 
-    const pluginRegistry = new PluginRegistry();
-
-    await pluginRegistry.loadPlugins(prisma, {
-      tags: ["text-vectorizer"],
-    });
-
-    const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
-      .map((d) => d.vectorizer)
-      .find((vectorizer) => vectorizer.getId() === vectorizerId);
-
-    if (!vectorizer)
-      throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
+    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
     const translation = await prisma.translation.findUnique({
       where: {
@@ -43,11 +31,18 @@ const worker = new Worker(
       select: {
         value: true,
         Language: true,
+        vectorizerId: true,
       },
     });
 
     if (!translation)
       throw new Error("Translation with given id doest not exists");
+
+    const vectorizer = await getServiceFromDBId<TextVectorizer>(
+      prisma,
+      pluginRegistry,
+      translation.vectorizerId,
+    );
 
     // 开始处理翻译的嵌入并插入
     const vectors = await vectorizer.vectorize(translation.Language.id, [

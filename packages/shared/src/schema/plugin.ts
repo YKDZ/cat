@@ -6,6 +6,21 @@ export const PluginManifestSchema = z.object({
   entry: z.string(),
   iconURL: z.url().optional(),
   tags: z.array(z.string()).optional(),
+  services: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.enum([
+          "TRANSLATION_ADVISOR",
+          "STORAGE_PROVIDER",
+          "AUTH_PROVIDER",
+          "TERM_SERVICE",
+          "TRANSLATABLE_FILE_HANDLER",
+          "TEXT_VECTORIZER",
+        ]),
+      }),
+    )
+    .optional(),
   config: JSONSchemaSchema.optional(),
 });
 

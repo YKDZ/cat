@@ -8,11 +8,14 @@ import { Queue, Worker } from "bullmq";
 import { isEqual } from "lodash-es";
 import z from "zod";
 import { getPrismaDB } from "@cat/db";
-import type { File } from "@cat/shared/schema/prisma/file";
+import { FileSchema, type File } from "@cat/shared/schema/prisma/file";
 import type { TranslatableElementData } from "@cat/shared/schema/misc";
 import type { JSONType } from "@cat/shared/schema/json";
 import { logger } from "@cat/shared/utils";
-import type { Document } from "@cat/shared/schema/prisma/document";
+import {
+  DocumentSchema,
+  type Document,
+} from "@cat/shared/schema/prisma/document";
 import { config } from "./config.ts";
 import {
   DistributedTaskHandler,
@@ -23,6 +26,7 @@ import { diffArraysAndSeparate } from "@/server/utils/diff.ts";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
 import { useStorage } from "@/server/utils/storage/useStorage.ts";
 import { chunk, chunkDual } from "@/server/utils/array.ts";
+import { getServiceFromDBId } from "@/server/utils/plugin.ts";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -33,48 +37,28 @@ export const documentFromFilePretreatmentQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const {
-      sourceLanguageId,
-      file,
-      document,
+    const { sourceLanguageId, file, document, handlerId, vectorizerId } = z
+      .object({
+        sourceLanguageId: z.string(),
+        file: FileSchema,
+        document: DocumentSchema,
+        handlerId: z.int(),
+        vectorizerId: z.int(),
+      })
+      .parse(job.data);
+
+    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+
+    const handler = await getServiceFromDBId<TranslatableFileHandler>(
+      prisma,
+      pluginRegistry,
       handlerId,
+    );
+    const vectorizer = await getServiceFromDBId<TextVectorizer>(
+      prisma,
+      pluginRegistry,
       vectorizerId,
-      handlerPluginId,
-      vectorizerPluginId,
-    }: {
-      id: string;
-      sourceLanguageId: string;
-      file: File;
-      document: Document;
-      handlerId: string;
-      vectorizerId: string;
-      handlerPluginId: string;
-      vectorizerPluginId: string;
-    } = job.data;
-
-    const pluginRegistry = new PluginRegistry();
-
-    await pluginRegistry.loadPlugins(prisma, {
-      tags: ["translatable-file-handler", "text-vectorizer"],
-    });
-
-    const handler = (
-      await pluginRegistry.getTranslatableFileHandler(prisma, handlerPluginId)
-    ).find((handler) => handler.getId() === handlerId);
-
-    if (!handler)
-      throw new Error(
-        `Plugin '${handlerPluginId}' has no handler by given id: '${handlerId}'`,
-      );
-
-    const vectorizer = (
-      await pluginRegistry.getTextVectorizer(prisma, vectorizerPluginId)
-    ).find((vectorizer) => vectorizer.getId() === vectorizerId);
-
-    if (!vectorizer)
-      throw new Error(
-        `Plugin '${vectorizerId}' has no vectorizer by given id: '${vectorizer}'`,
-      );
+    );
 
     await processPretreatment(
       sourceLanguageId,
@@ -97,7 +81,13 @@ export const processPretreatment = async (
   handler: TranslatableFileHandler,
   vectorizer: TextVectorizer,
 ) => {
-  const { provider } = await useStorage(prisma, "S3", "GLOBAL", "");
+  const { provider } = await useStorage(
+    prisma,
+    "s3-storage-provider",
+    "S3",
+    "GLOBAL",
+    "",
+  );
 
   const fileContent = await provider.getContent(file);
 

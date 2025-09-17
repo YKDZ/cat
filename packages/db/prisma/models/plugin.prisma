@@ -25,15 +25,10 @@ model PluginInstallation {
     updatedAt DateTime  @updatedAt
 
     pluginId String
-    plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+    Plugin   Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
 
-    TranslationAdvisors      TranslationAdvisor[]
-    StorageProviders         StorageProvider[]
-    AuthProviders            AuthProvider[]
-    TermServices             TermService[]
-    TranslatableFileHandlers TranslatableFileHandler[]
-    TextVectorizers          TextVectorizer[]
-    PluginConfigInstances    PluginConfigInstance[]
+    PluginServices        PluginService[]
+    PluginConfigInstances PluginConfigInstance[]
 
     @@unique([scopeId, scopeType, pluginId])
 }
@@ -108,82 +103,30 @@ enum ScopeType {
     PROJECT
 }
 
-model TranslationAdvisor {
-    id Int @id @default(autoincrement())
-
-    serviceId String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    pluginInstallationId Int
-    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
-
-    @@unique([serviceId, pluginInstallationId])
+enum PluginServiceType {
+    TRANSLATION_ADVISOR
+    STORAGE_PROVIDER
+    AUTH_PROVIDER
+    TERM_SERVICE
+    TRANSLATABLE_FILE_HANDLER
+    TEXT_VECTORIZER
 }
 
-model StorageProvider {
+model PluginService {
     id Int @id @default(autoincrement())
 
-    serviceId String
+    serviceId   String
+    serviceType PluginServiceType
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     pluginInstallationId Int
     PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
 
-    Files File[]
+    Files        File[]
+    Documents    Document[]
+    Translations Translation[]
 
-    @@unique([serviceId, pluginInstallationId])
-}
-
-model AuthProvider {
-    id Int @id @default(autoincrement())
-
-    serviceId String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    pluginInstallationId Int
-    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
-
-    @@unique([serviceId, pluginInstallationId])
-}
-
-model TermService {
-    id Int @id @default(autoincrement())
-
-    serviceId String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    pluginInstallationId Int
-    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
-
-    @@unique([serviceId, pluginInstallationId])
-}
-
-model TranslatableFileHandler {
-    id Int @id @default(autoincrement())
-
-    serviceId String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    pluginInstallationId Int
-    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
-
-    @@unique([serviceId, pluginInstallationId])
-}
-
-model TextVectorizer {
-    id Int @id @default(autoincrement())
-
-    serviceId String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    pluginInstallationId Int
-    PluginInstallation   PluginInstallation @relation(fields: [pluginInstallationId], references: [id], onDelete: Cascade)
-
-    @@unique([serviceId, pluginInstallationId])
+    @@unique([serviceType, serviceId, pluginInstallationId])
 }

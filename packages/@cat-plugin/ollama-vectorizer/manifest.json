@@ -3,6 +3,12 @@
   "id": "ollama-vectorizer",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "ollama",
+      "type": "TEXT_VECTORIZER"
+    }
+  ],
   "tags": [
     "text-vectorizer"
   ],

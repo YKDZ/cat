@@ -25,7 +25,7 @@ const language = inject(languageKey);
 const isOpen = ref(false);
 const minMemorySimilarity = ref(0.72);
 const availableAdvisors = ref<TranslationAdvisorData[]>([]);
-const advisorId = ref<string | null>(null);
+const advisorId = ref<number | null>(null);
 
 const advisorOptions = computed<PickerOption[]>(() => {
   return availableAdvisors.value.map(
@@ -59,7 +59,7 @@ const handleAutoTranslate = async () => {
 };
 
 const updateAvailableAdvisor = async () => {
-  await trpc.suggestion.listAllAvailableAdvisors
+  await trpc.plugin.listAllAvailableAdvisors
     .query()
     .then((advisors) => (availableAdvisors.value = advisors));
 

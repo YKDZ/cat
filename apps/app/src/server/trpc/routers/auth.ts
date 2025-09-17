@@ -21,9 +21,12 @@ export const authRouter = router({
       } = ctx;
       const { providerId, pluginId } = input;
 
-      const provider = (
-        await pluginRegistry.getAuthProvider(prisma, pluginId)
-      ).find((provider) => provider.getId() === providerId);
+      const { service: provider } = (await pluginRegistry.getPluginService(
+        prisma,
+        pluginId,
+        "AUTH_PROVIDER",
+        providerId,
+      ))!;
 
       if (!provider)
         throw new TRPCError({
@@ -38,6 +41,7 @@ export const authRouter = router({
   preAuth: publicProcedure
     .input(
       z.object({
+        pluginId: z.string(),
         providerId: z.string(),
         gotFromClient: z.object({
           formData: z.json().optional(),
@@ -54,14 +58,17 @@ export const authRouter = router({
         helpers,
         setCookie,
       } = ctx;
-      const { providerId, gotFromClient } = input;
+      const { pluginId, providerId, gotFromClient } = input;
 
       if (user)
         throw new TRPCError({ code: "CONFLICT", message: "Already login" });
 
-      const provider = (await pluginRegistry.getAuthProviders(prisma))
-        .map((d) => d.provider)
-        .find((provider) => provider.getId() === providerId);
+      const { service: provider } = (await pluginRegistry.getPluginService(
+        prisma,
+        pluginId,
+        "AUTH_PROVIDER",
+        providerId,
+      ))!;
 
       if (!provider)
         throw new TRPCError({
@@ -80,6 +87,7 @@ export const authRouter = router({
 
         const sessionKey = `auth:preAuth:session:${sessionId}`;
         await redis.hSet(sessionKey, {
+          _pluginId: pluginId,
           _providerId: providerId,
           ...sessionMeta,
         });
@@ -90,6 +98,7 @@ export const authRouter = router({
       } else {
         const sessionKey = `auth:preAuth:session:${sessionId}`;
         await redis.hSet(sessionKey, {
+          _pluginId: pluginId,
           _providerId: providerId,
         });
 
@@ -101,6 +110,7 @@ export const authRouter = router({
   queryAuthFormSchema: publicProcedure
     .input(
       z.object({
+        pluginId: z.string(),
         providerId: z.string(),
       }),
     )
@@ -110,11 +120,14 @@ export const authRouter = router({
         prismaDB: { client: prisma },
         pluginRegistry,
       } = ctx;
-      const { providerId } = input;
+      const { pluginId, providerId } = input;
 
-      const provider = (await pluginRegistry.getAuthProviders(prisma))
-        .map((d) => d.provider)
-        .find((provider) => provider.getId() === providerId);
+      const { service: provider } = (await pluginRegistry.getPluginService(
+        prisma,
+        pluginId,
+        "AUTH_PROVIDER",
+        providerId,
+      ))!;
 
       if (!provider)
         throw new TRPCError({
@@ -155,16 +168,20 @@ export const authRouter = router({
       delCookie("preAuthSessionId");
 
       const providerId = await redis.hGet(preAuthSessionKey, "_providerId");
+      const pluginId = await redis.hGet(preAuthSessionKey, "_pluginId");
 
-      if (!providerId)
+      if (!providerId || !pluginId)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Provider ID not found in session",
         });
 
-      const provider = (await pluginRegistry.getAuthProviders(prisma))
-        .map((d) => d.provider)
-        .find((provider) => provider.getId() === providerId);
+      const { service: provider } = (await pluginRegistry.getPluginService(
+        prisma,
+        pluginId,
+        "AUTH_PROVIDER",
+        providerId,
+      ))!;
 
       if (!provider)
         throw new TRPCError({
@@ -246,6 +263,7 @@ export const authRouter = router({
         providerType: account.type,
         providedAccountId: account.providedAccountId,
         _providerId: providerId,
+        _pluginId: pluginId,
         ...sessionMeta,
       });
       await redis.expire(sessionKey, 24 * 60 * 60);
@@ -268,16 +286,20 @@ export const authRouter = router({
     const sessionKey = `user:session:${sessionId}`;
 
     const providerId = await redis.hGet(sessionKey, "_providerId");
+    const pluginId = await redis.hGet(sessionKey, "_pluginId");
 
-    if (!providerId)
+    if (!providerId || !pluginId)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Provider ID not found in session",
       });
 
-    const provider = (await pluginRegistry.getAuthProviders(prisma))
-      .map((d) => d.provider)
-      .find((provider) => provider.getId() === providerId);
+    const { service: provider } = (await pluginRegistry.getPluginService(
+      prisma,
+      pluginId,
+      "AUTH_PROVIDER",
+      providerId,
+    ))!;
 
     if (!provider)
       throw new TRPCError({
@@ -292,46 +314,4 @@ export const authRouter = router({
     await redis.del(`user:session:${sessionId}`);
     delCookie("sessionId");
   }),
-  availableAuthMethod: publicProcedure
-    .output(z.array(AuthMethodSchema))
-    .query(async ({ ctx }) => {
-      const {
-        prismaDB: { client: prisma },
-        pluginRegistry,
-      } = ctx;
-
-      const providersData = await prisma.authProvider.findMany({
-        select: {
-          serviceId: true,
-          PluginInstallation: {
-            select: {
-              pluginId: true,
-            },
-          },
-        },
-      });
-
-      const methods: AuthMethod[] = [];
-      for (const {
-        serviceId,
-        PluginInstallation: { pluginId },
-      } of providersData) {
-        const providers = await pluginRegistry.getAuthProvider(
-          prisma,
-          pluginId,
-        );
-        providers
-          .filter((provider) => serviceId === provider.getId())
-          .forEach((provider) => {
-            methods.push({
-              pluginId,
-              providerId: provider.getId(),
-              name: provider.getName(),
-              icon: provider.getIcon(),
-            });
-          });
-      }
-
-      return methods;
-    }),
 });

@@ -8,6 +8,8 @@ export const data: {
 } = async (ctx: PageContextServer) => {
   const { pluginId } = ctx.routeParams;
 
+  if (!pluginId) throw render("/", "Plugin id is required");
+
   const plugin = await useSSCTRPC(ctx).plugin.query({ id: pluginId });
 
   if (!plugin) throw render("/", `Plugin ${pluginId} does not exists`);

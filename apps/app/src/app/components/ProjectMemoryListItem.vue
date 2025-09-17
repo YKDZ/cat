@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Glossary } from "@cat/shared/schema/prisma/glossary";
 import type { Memory } from "@cat/shared/schema/prisma/memory";
 import { inject, onMounted, ref, watch } from "vue";
 import { navigate } from "vike/client/router";
@@ -37,11 +36,11 @@ const handleCheck = async () => {
 };
 
 const handleUnlink = async () => {
-  if (!project || !project.value) return;
+  if (!project) return;
 
   await trpc.project.unlinkMemory
     .mutate({
-      id: project.value.id,
+      id: project.id,
       memoryIds: [props.memory.id],
     })
     .then(() => {

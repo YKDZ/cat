@@ -240,7 +240,13 @@ export const glossaryRouter = router({
       } = ctx;
       const { glossaryId, termsData, canReverse } = input;
 
-      const termService = (await pluginRegistry.getTermServices(prisma))[0];
+      // TODO 选择安装的服务或者继承
+      const { service: termService } = (await pluginRegistry.getPluginService(
+        prisma,
+        "es-term-service",
+        "TERM_SERVICE",
+        "ES",
+      ))!;
 
       if (!termService) throw new Error("Term service does not exists");
 
@@ -320,7 +326,7 @@ export const glossaryRouter = router({
             ),
           );
 
-        await termService.service.termStore.insertTerms(...relations);
+        await termService.termStore.insertTerms(...relations);
       });
     }),
   searchTerm: authedProcedure
@@ -339,11 +345,17 @@ export const glossaryRouter = router({
       } = ctx;
       const { text, termLanguageId, translationLanguageId } = input;
 
-      const termService = (await pluginRegistry.getTermServices(prisma))[0];
+      // TODO 选择安装的服务或者继承
+      const { service: termService } = (await pluginRegistry.getPluginService(
+        prisma,
+        "es-term-service",
+        "TERM_SERVICE",
+        "ES",
+      ))!;
 
       if (!termService) throw new Error("Term service does not exists");
 
-      const translationIds = await termService.service.termStore.searchTerm(
+      const translationIds = await termService.termStore.searchTerm(
         text,
         termLanguageId,
       );
@@ -380,7 +392,13 @@ export const glossaryRouter = router({
       } = ctx;
       const { elementId, translationLanguageId } = input;
 
-      const termService = (await pluginRegistry.getTermServices(prisma))[0];
+      // TODO 选择安装的服务或者继承
+      const { service: termService } = (await pluginRegistry.getPluginService(
+        prisma,
+        "es-term-service",
+        "TERM_SERVICE",
+        "ES",
+      ))!;
 
       if (!termService) throw new Error("Term service does not exists");
 
@@ -409,7 +427,7 @@ export const glossaryRouter = router({
 
       const sourceLanguageId = element.Document.Project.sourceLanguageId;
 
-      const translationIds = await termService.service.termStore.searchTerm(
+      const translationIds = await termService.termStore.searchTerm(
         element.value,
         sourceLanguageId,
       );

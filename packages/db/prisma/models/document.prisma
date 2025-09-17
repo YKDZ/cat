@@ -5,6 +5,9 @@ model Document {
 
     File File?
 
+    fileHandlerId Int?
+    FileHandler   PluginService? @relation(fields: [fileHandlerId], references: [id])
+
     projectId String
     Project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 

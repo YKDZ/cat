@@ -19,41 +19,61 @@ export const exportTranslatedFileQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const { handlerId, documentId, languageId } = job.data as {
-      handlerId: string;
-      documentId: string;
-      languageId: string;
-    };
-    const taskId = job.name;
-
-    const pluginRegistry = new PluginRegistry();
-
-    await pluginRegistry.loadPlugins(prisma, {
-      tags: ["translatable-file-handler"],
-    });
-
-    const handler = (await pluginRegistry.getTranslatableFileHandlers(prisma))
-      .map((d) => d.handler)
-      .find((handler) => handler.getId() === handlerId);
-
-    if (!handler)
-      throw new Error(
-        `Translatable File Handler with id ${handlerId} do not exists`,
-      );
+    const { documentId, languageId } = z
+      .object({
+        documentId: z.string(),
+        languageId: z.string(),
+      })
+      .parse(job.data);
+    const taskId = job.id;
+    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
     const document = await prisma.document.findUnique({
       where: {
         id: documentId,
       },
-      include: {
+      select: {
         File: true,
+        FileHandler: {
+          select: {
+            serviceId: true,
+            PluginInstallation: {
+              select: {
+                pluginId: true,
+              },
+            },
+          },
+        },
       },
     });
+
+    if (!document) throw new Error("Document not found");
+
+    if (!document.File || !document.FileHandler)
+      throw new Error("File not found");
+
+    const { service: handler } = (await pluginRegistry.getPluginService(
+      prisma,
+      document.FileHandler.PluginInstallation.pluginId,
+      "TRANSLATABLE_FILE_HANDLER",
+      document.FileHandler.serviceId,
+    ))!;
+
+    if (!handler)
+      throw new Error(
+        `Translatable File Handler with id ${document.FileHandler.serviceId} do not exists`,
+      );
 
     if (!document || !document.File)
       throw new Error(`Document with id ${documentId} do not exists`);
 
-    const { id, provider } = await useStorage(prisma, "S3", "GLOBAL", "");
+    const { id, provider } = await useStorage(
+      prisma,
+      "s3-storage-provider",
+      "S3",
+      "GLOBAL",
+      "",
+    );
     const fileContent = await provider.getContent(document.File);
 
     const translationData = await prisma.translation.findMany({

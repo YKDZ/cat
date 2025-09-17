@@ -1,6 +1,9 @@
 import { getPrismaDB, insertVector } from "@cat/db";
-import type { TranslationAdvisor } from "@cat/plugin-core";
-import { PluginRegistry } from "@cat/plugin-core";
+import {
+  PluginRegistry,
+  type TextVectorizer,
+  type TranslationAdvisor,
+} from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import { z } from "zod";
 import type {
@@ -14,6 +17,7 @@ import {
   searchMemory,
 } from "@/server/utils/memory.ts";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
+import { getServiceFromDBId } from "@/server/utils/plugin.ts";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -21,8 +25,7 @@ type TranslationData = {
   translation: TranslationSuggestion;
   isMemory: boolean;
   isAdvisor: boolean;
-  advisorId?: string;
-  advisorPluginId?: string;
+  advisorId?: number;
   memorySimilarity?: number;
   memoryId?: string;
   memoryItemId?: number;
@@ -36,29 +39,36 @@ export const autoTranslateQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const pluginRegistry = new PluginRegistry();
-
-    await pluginRegistry.loadPlugins(prisma, {
-      tags: ["translation-advisor", "text-vectorizer", "term-service"],
-    });
-
     const {
       documentId,
       advisorId,
-      advisorPluginId,
       vectorizerId,
       userId,
       languageId,
       minMemorySimilarity,
-    } = job.data as {
-      userId: string;
-      documentId: string;
-      advisorId: string;
-      advisorPluginId: string;
-      vectorizerId: string;
-      languageId: string;
-      minMemorySimilarity: number;
-    };
+    } = z
+      .object({
+        userId: z.ulid(),
+        documentId: z.ulid(),
+        advisorId: z.int(),
+        vectorizerId: z.int(),
+        languageId: z.string(),
+        minMemorySimilarity: z.number().min(0).max(1),
+      })
+      .parse(job.data);
+
+    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+
+    const advisor = await getServiceFromDBId<TranslationAdvisor>(
+      prisma,
+      pluginRegistry,
+      advisorId,
+    );
+    const vectorizer = await getServiceFromDBId<TextVectorizer>(
+      prisma,
+      pluginRegistry,
+      vectorizerId,
+    );
 
     if (minMemorySimilarity > 1 || minMemorySimilarity < 0) {
       throw new Error("Min memory similarity should between 0 and 1");
@@ -104,29 +114,13 @@ const worker = new Worker(
         "Document does not exists or language does not claimed in project",
       );
 
-    const advisor: TranslationAdvisor | null =
-      (
-        await pluginRegistry.getTranslationAdvisor(prisma, advisorPluginId, {
-          userId,
-          projectId: document.projectId,
-        })
-      ).find((advisor) => advisor.getId() === advisorId) ?? null;
-
-    const vectorizer = (
-      await pluginRegistry.getTextVectorizers(prisma, {
-        userId,
-        projectId: document.projectId,
-      })
-    )
-      .map((d) => d.vectorizer)
-      .find((vectorizer) => vectorizer.getId() === vectorizerId);
-
-    const termService = (
-      await pluginRegistry.getTermServices(prisma, {
-        userId,
-        projectId: document.projectId,
-      })
-    )[0];
+    // TODO 选择安装的服务或者继承
+    const { service: termService } = (await pluginRegistry.getPluginService(
+      prisma,
+      "es-term-service",
+      "TERM_SERVICE",
+      "ES",
+    ))!;
 
     if (!termService) throw new Error("Term service does not exists");
 
@@ -196,7 +190,7 @@ const worker = new Worker(
             throw new Error("Advisor can not suggest element in document");
 
           const { termedText, translationIds } =
-            await termService.service.termStore.termText(
+            await termService.termStore.termText(
               element.value,
               sourceLanguageId,
               languageId,
@@ -264,8 +258,7 @@ const worker = new Worker(
 
           return {
             translation,
-            advisorId: advisor.getId(),
-            advisorPluginId,
+            advisorId,
             isAdvisor: true,
             isMemory: false,
             embeddingId,
@@ -301,13 +294,13 @@ const worker = new Worker(
                 isAutoTranslation: true,
                 isAdvisor,
                 isMemory,
-                advisorId,
                 memorySimilarity,
                 memoryId,
                 memoryItemId,
-                advisorPluginId,
+                advisorId,
               },
               embeddingId: embeddingId!,
+              vectorizerId,
               languageId,
               translatorId: userId,
               translatableElementId: elements[index].id,

@@ -17,6 +17,9 @@ model Translation {
     embeddingId Int
     Embedding   Vector @relation(fields: [embeddingId], references: [id])
 
+    vectorizerId Int
+    Vectorizer   PluginService @relation(fields: [vectorizerId], references: [id])
+
     Votes        TranslationVote[]
     MemoryItems  MemoryItem[]
     Approvements TranslationApprovement[]

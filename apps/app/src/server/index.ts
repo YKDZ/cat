@@ -42,13 +42,11 @@ const startServer = async () => {
 
     await syncSettings(prismaDB.client);
 
-    const pluginRegistry = PluginRegistry.get();
+    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
     await importLocalPlugins(prismaDB.client);
 
     await installDefaultPlugins(prismaDB.client, pluginRegistry);
-
-    await pluginRegistry.loadPlugins(prismaDB.client);
 
     await initTermService(prismaDB.client, pluginRegistry);
 

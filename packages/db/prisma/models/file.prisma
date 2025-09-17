@@ -6,7 +6,7 @@ model File {
     updatedAt  DateTime @updatedAt
 
     storageProviderId Int
-    StorageProvider   StorageProvider @relation(fields: [storageProviderId], references: [id])
+    StorageProvider   PluginService @relation(fields: [storageProviderId], references: [id])
 
     documentId String?   @unique
     Document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)

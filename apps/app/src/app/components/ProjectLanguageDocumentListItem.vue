@@ -36,7 +36,7 @@ const handleExportTranslated = async () => {
 
   await trpc.document.exportTranslatedFile
     .query({
-      id: props.document.id,
+      documentId: props.document.id,
       languageId: language.value.id,
     })
     .then(() => {

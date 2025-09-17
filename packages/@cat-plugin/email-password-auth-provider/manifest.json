@@ -3,6 +3,12 @@
   "id": "email-password-auth-provider",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "EMAIL_PASSWORD",
+      "type": "AUTH_PROVIDER"
+    }
+  ],
   "tags": [
     "auth-provider"
   ]

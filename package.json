@@ -2,8 +2,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build-internal-plugins": "nx run-many --target=build --projects=@cat-plugin/*",
-    "load-internal-plugins": "node scripts/load-internal-plugins.js"
+    "build-plugins": "nx run-many --target=build --projects=@cat-plugin/*",
+    "load-plugins": "node scripts/load-internal-plugins.js"
   },
   "dependencies": {
     "dotenv": "^17.2.1",
