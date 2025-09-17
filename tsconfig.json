@@ -31,9 +31,6 @@
       "path": "./packages/@cat-plugin/yaml-file-handler"
     },
     {
-      "path": "./packages/@cat-plugin/tei-vectorizer"
-    },
-    {
       "path": "./packages/eslint-config"
     },
     {
@@ -44,9 +41,6 @@
     },
     {
       "path": "./packages/db"
-    },
-    {
-      "path": "./apps/app"
     },
     {
       "path": "./apps/app-e2e"
