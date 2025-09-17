@@ -12,8 +12,8 @@ WORKDIR /builder
 COPY . .
 
 RUN pnpm install --frozen-lockfile \
-    && pnpm build-internal-plugins \
-    && pnpm load-internal-plugins \
+    && pnpm build-plugins \
+    && pnpm load-plugins \
     && nx build @cat/app
 
 FROM builder AS deployer

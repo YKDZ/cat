@@ -49,10 +49,10 @@ jobs:
         run: pnpm nx sync:check
 
       - name: Build plugins
-        run: pnpm build-internal-plugins
+        run: pnpm build-plugins
 
       - name: Load plugins
-        run: pnpm load-internal-plugins
+        run: pnpm load-plugins
 
       - name: Build app
         run: |
