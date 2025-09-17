@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { exists } from "fs-extra";
+import { stat } from "node:fs/promises";
 import type { GlobalContextServer } from "vike/types";
 import type { ComputedRef } from "vue";
 import { nextTick } from "vue";
@@ -29,7 +29,7 @@ export const loadLocaleMessagesInServerSide = async (
   if (ctx.i18nMessages && ctx.i18nMessages[locale]) return nextTick();
 
   const path = join(process.cwd(), `./locales/${locale}.json`);
-  if (!(await exists(path))) return nextTick();
+  if (!(await stat(path))) return nextTick();
   const fileContent = await readFile(path, "utf-8");
   const messages = JSON.parse(fileContent);
   const tempI18n = createI18n({

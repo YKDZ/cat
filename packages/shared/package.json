@@ -90,9 +90,5 @@
   "peerDependencies": {
     "pino": "^9.9.2",
     "zod": "^4.1.5"
-  },
-  "dependencies": {
-    "pino": "^9.9.2",
-    "zod": "^4.1.5"
   }
 }
