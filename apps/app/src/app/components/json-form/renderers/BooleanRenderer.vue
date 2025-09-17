@@ -28,7 +28,6 @@ const handleUpdate = (value: boolean) => {
     <RendererLabel :schema :property-key />
     <HToggle
       v-model="value"
-      @update="handleUpdate"
       :classes="{
         'base-checked': 'toggle toggle-md toggle-highlight-darker',
         'base-unchecked': 'toggle toggle-md toggle-base',
@@ -36,6 +35,7 @@ const handleUpdate = (value: boolean) => {
         'thumb-unchecked':
           'toggle-thumb toggle-thumb-md toggle-thumb-highlight toggle-thumb-checked',
       }"
+      @update="handleUpdate"
     />
   </div>
 </template>

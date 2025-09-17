@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
 import { usePageContext } from "vike-vue/usePageContext";
+import { provide } from "vue";
 import type { Data } from "./+data.ts";
 import AuthError from "@/app/components/AuthError.vue";
 import logoUrl from "@/app/assets/logo.png";

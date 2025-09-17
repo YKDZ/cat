@@ -284,7 +284,7 @@ export const glossaryRouter = router({
             await tx.termRelation.createManyAndReturn({
               data: terms.map((term, index) => ({
                 termId: term.id,
-                translationId: translations[index].id,
+                translationId: translations[index]!.id,
               })),
               include: {
                 Term: {
@@ -307,7 +307,7 @@ export const glossaryRouter = router({
             ...z.array(TermRelationSchema).parse(
               await tx.termRelation.createManyAndReturn({
                 data: terms.map((term, index) => ({
-                  termId: translations[index].id,
+                  termId: translations[index]!.id,
                   translationId: term.id,
                 })),
                 include: {

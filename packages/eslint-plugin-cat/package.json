@@ -1,0 +1,17 @@
+{
+  "name": "@cat/eslint-plugin-cat",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^8.44.0"
+  }
+}

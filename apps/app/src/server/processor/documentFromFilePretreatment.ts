@@ -25,7 +25,7 @@ import {
 import { diffArraysAndSeparate } from "@/server/utils/diff.ts";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
 import { useStorage } from "@/server/utils/storage/useStorage.ts";
-import { chunk, chunkDual } from "@/server/utils/array.ts";
+import { chunk, chunkDual, getIndex } from "@/server/utils/array.ts";
 import { getServiceFromDBId } from "@/server/utils/plugin.ts";
 
 const { client: prisma } = await getPrismaDB();
@@ -191,7 +191,7 @@ export const processPretreatment = async (
           chunkIndex: index,
           data: chunk.arr1.map((el, index) => ({
             element: el,
-            embedding: chunk.arr2[index],
+            embedding: getIndex(chunk.arr2, index),
           })),
         } satisfies ChunkData<{
           element: TranslatableElementData & { sortIndex: number };
@@ -276,7 +276,7 @@ const handleAddedElements = async (
     const embeddingIds = await insertVectors(tx, vectors);
 
     for (let i = 0; i < elements.length; i++) {
-      const element = elements[i];
+      const element = getIndex(elements, i);
 
       const existing = await tx.translatableElement.findFirst({
         where: {
@@ -299,7 +299,7 @@ const handleAddedElements = async (
           sortIndex: element.sortIndex,
           meta: z.json().parse(element.meta) ?? {},
           documentId,
-          embeddingId: embeddingIds[i],
+          embeddingId: getIndex(embeddingIds, i),
           version: newVersion,
           previousVersionId: existing?.id ?? null,
           isActive: true,

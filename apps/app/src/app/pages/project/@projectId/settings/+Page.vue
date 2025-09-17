@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { navigate } from "vike/client/router";
-import { ref } from "vue";
+import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
 import HButton from "@/app/components/headless/HButton.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { trpc } from "@/server/trpc/client.ts";
 import HInput from "@/app/components/headless/HInput.vue";
+import { projectKey } from "@/app/utils/provide.ts";
 
 const { t } = useI18n();
-const { project } = useData<Data>();
+const project = inject(projectKey);
 const name = ref(project!.name);
 const sourceLanguageId = ref(project!.sourceLanguageId);
 

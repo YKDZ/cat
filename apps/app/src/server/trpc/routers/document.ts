@@ -16,9 +16,9 @@ import {
 import { TaskSchema } from "@cat/shared/schema/prisma/misc";
 import type { JSONType } from "@cat/shared/schema/json";
 import { authedProcedure, router } from "@/server/trpc/server.ts";
-import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile";
+import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile.ts";
 import { useStorage } from "@/server/utils/storage/useStorage.ts";
-import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment";
+import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment.ts";
 
 export const documentRouter = router({
   fileUploadURL: authedProcedure

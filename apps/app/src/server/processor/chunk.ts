@@ -5,6 +5,7 @@ import { getPrismaDB, getRedisDB } from "@cat/db";
 import { logger } from "@cat/shared/utils";
 import type { JSONType } from "@cat/shared/schema/json";
 import { config } from "./config.ts";
+import { getFirst, getIndex } from "@/server/utils/array.ts";
 
 export type ChunkData<T> = {
   chunkIndex: number;
@@ -182,9 +183,7 @@ const runDistributedTask = async <T>(
             if (failedChunks.length !== 0) {
               await rollbackAll(task, successfulChunks);
               await updateTaskStatus(task, "failed");
-              reject(
-                failedChunks[0].error || new Error("Unknown error in task"),
-              );
+              reject(getFirst(failedChunks).error);
             }
             // 没有错误
             // 任务完成
@@ -237,7 +236,7 @@ const rollbackAll = async <T>(
     msg: `Task ${task.id} is about to be rollback`,
   });
   for (const { index, data } of successfulChunks.reverse()) {
-    const ctx = task.chunks[index];
+    const ctx = getIndex(task.chunks, index);
     try {
       logger.debug("PROCESSOR", { msg: `Rolling back chunk ${index}` });
       await task.rollback(ctx, data);

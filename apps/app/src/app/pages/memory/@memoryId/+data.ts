@@ -5,6 +5,8 @@ import { useSSCTRPC } from "@/server/trpc/sscClient.ts";
 export const data = async (ctx: PageContextServer) => {
   const { memoryId } = ctx.routeParams;
 
+  if (!memoryId) throw render("/", "Memory id is required");
+
   const memory = await useSSCTRPC(ctx).memory.query({ id: memoryId });
 
   if (!memory) throw render(`/memories`, `Memory ${memoryId} not found`);

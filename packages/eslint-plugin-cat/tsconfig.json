@@ -4,9 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../eslint-plugin-cat"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

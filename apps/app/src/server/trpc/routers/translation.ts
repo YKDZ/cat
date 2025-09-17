@@ -392,7 +392,9 @@ export const translationRouter = router({
               },
             },
           })
-        ).map((element) => element.Translations[0].id);
+        )
+          .filter((element) => element.Translations.length > 0)
+          .map((element) => element.Translations[0]!.id);
 
         return (
           await tx.translationApprovement.createMany({

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
+import { inject } from "vue";
 import ProjectDocumentList from "@/app/components/ProjectDocumentList.vue";
 import ProjectUploadFileBtn from "@/app/components/ProjectUploadFileBtn.vue";
+import { projectKey } from "@/app/utils/provide.ts";
 
-const { project } = useData<Data>();
+const project = inject(projectKey);
 
 const handleDeleteDocument = () => {
   if (!project || !project.Documents) return;

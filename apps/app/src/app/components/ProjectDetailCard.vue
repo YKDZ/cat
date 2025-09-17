@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { inject } from "vue";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
-import { projectKey } from "@/app/utils/provide.ts";
+import type { Project } from "@cat/shared/schema/prisma/project";
 
 const { t } = useI18n();
 
-const project = inject(projectKey);
+defineProps<{ project: Project }>();
 </script>
 
 <template>

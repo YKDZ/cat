@@ -12,11 +12,6 @@ const app = new Hono<{ Variables: Variables }>();
 
 app.use("*", pinoLoggerMiddleware);
 
-app.use("*", async (c, next) => {
-  c.set("pluginRegistry", PluginRegistry.get());
-  await next();
-});
-
 app.route("/api/trpc", trpcHandler);
 
 // app.route("/doc/openapi", openapiHandler);

@@ -7,6 +7,7 @@ import {
 import pluginVue from "eslint-plugin-vue";
 import skipFormatting from "@vue/eslint-config-prettier/skip-formatting";
 import unocss from "@unocss/eslint-config/flat";
+import cat from "@cat/eslint-plugin-cat";
 
 export default defineConfigWithVueTs(
   {
@@ -48,4 +49,5 @@ export default defineConfigWithVueTs(
   },
 
   unocss,
+  cat,
 );

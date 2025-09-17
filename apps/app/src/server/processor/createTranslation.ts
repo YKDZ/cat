@@ -1,10 +1,11 @@
 import { getPrismaDB, insertVector } from "@cat/db";
 import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
-import { registerTaskUpdateHandlers } from "../utils/worker";
-import { config } from "./config";
-import { getServiceFromDBId } from "@/server/utils/plugin.ts";
 import { z } from "zod";
+import { registerTaskUpdateHandlers } from "../utils/worker.ts";
+import { config } from "./config.ts";
+import { getServiceFromDBId } from "@/server/utils/plugin.ts";
+import { getSingle } from "@/server/utils/array.ts";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -74,7 +75,7 @@ const worker = new Worker(
       throw new Error("Vectorizer does not work well");
     }
 
-    const vector = vectors[0];
+    const vector = getSingle(vectors);
 
     await prisma.$transaction(async (tx) => {
       const embeddingId = await insertVector(tx, vector);
