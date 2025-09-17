@@ -18,6 +18,7 @@ import {
 } from "@/server/utils/memory.ts";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
 import { getServiceFromDBId } from "@/server/utils/plugin.ts";
+import { getFirst, getIndex, getSingle } from "@/server/utils/array.ts";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -155,9 +156,9 @@ const worker = new Worker(
 
         // 记忆
         if (memories.length > 0) {
-          const memory = memories.sort(
-            (a, b) => b.similarity - a.similarity,
-          )[0];
+          const memory = getFirst(
+            memories.sort((a, b) => b.similarity - a.similarity),
+          );
 
           return {
             translation: {
@@ -246,11 +247,7 @@ const worker = new Worker(
             } satisfies UnvectorizedTextData,
           ]);
 
-          if (vectors.length !== 1) {
-            throw new Error("Vectorizer does not return 1 vector");
-          }
-
-          const vector = vectors[0];
+          const vector = getSingle(vectors);
 
           const embeddingId = await insertVector(prisma, vector);
 
@@ -303,7 +300,7 @@ const worker = new Worker(
               vectorizerId,
               languageId,
               translatorId: userId,
-              translatableElementId: elements[index].id,
+              translatableElementId: getIndex(elements, index).id,
             };
           },
         ),

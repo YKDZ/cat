@@ -35,12 +35,12 @@ const handleUpdate = (event: Event) => {
   <div class="flex flex-col gap-0.5">
     <RendererLabel :for="propertyKey" :schema :property-key />
     <input
-      @change="handleUpdate"
-      :value
       :id="propertyKey"
+      :value
       :type="inputType"
       :autocomplete="z.string().optional().parse(schema['x-autocomplete'])"
       class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-base"
+      @change="handleUpdate"
       @input="handleUpdate"
     />
   </div>

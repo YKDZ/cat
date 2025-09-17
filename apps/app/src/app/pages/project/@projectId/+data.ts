@@ -8,6 +8,8 @@ export const data = async (
 ): Promise<{ project: Project }> => {
   const { projectId } = ctx.routeParams;
 
+  if (!projectId) throw render(`/`, `Project id is required`);
+
   const project = await useSSCTRPC(ctx).project.query({ id: projectId });
 
   if (!project)

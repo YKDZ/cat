@@ -2,7 +2,6 @@ import { randomBytes } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { JSONSchemaSchema } from "@cat/shared/schema/json";
-import { AuthMethodSchema, type AuthMethod } from "@cat/shared/schema/misc";
 import { publicProcedure, router } from "@/server/trpc/server.ts";
 
 export const authRouter = router({

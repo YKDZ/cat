@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { inject } from "vue";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import ProjectLanguageListItem from "./ProjectLanguageListItem.vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
-import { projectKey } from "@/app/utils/provide.ts";
 
-const project = inject(projectKey);
+defineProps<{ project: Project }>();
 </script>
 
 <template>

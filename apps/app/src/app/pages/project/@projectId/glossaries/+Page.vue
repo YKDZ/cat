@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
-import { onMounted, ref, watch } from "vue";
-import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
+import { inject, onMounted, ref, watch } from "vue";
 import ProjectGlossaryLinkerBtn from "@/app/components/ProjectGlossaryLinkerBtn.vue";
 import ProjectGlossaryList from "@/app/components/ProjectGlossaryList.vue";
 import { trpc } from "@/server/trpc/client.ts";
+import { projectKey } from "@/app/utils/provide.ts";
 
-const { project } = useData<Data>();
+const project = inject(projectKey);
 
 const glossaries = ref<Glossary[]>([]);
 

@@ -5,6 +5,8 @@ import { useSSCTRPC } from "@/server/trpc/sscClient.ts";
 export const data = async (ctx: PageContextServer) => {
   const { glossaryId } = ctx.routeParams;
 
+  if (!glossaryId) throw render("/", "Glossary id is required");
+
   const glossary = await useSSCTRPC(ctx).glossary.query({ id: glossaryId });
 
   if (!glossary)

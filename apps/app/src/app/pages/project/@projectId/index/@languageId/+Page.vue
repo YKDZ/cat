@@ -2,18 +2,16 @@
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { computed, onMounted, provide, ref, watch } from "vue";
-import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
-import { languageKey } from "@/app/utils/provide.ts";
+import { computed, inject, onMounted, provide, ref } from "vue";
+import { languageKey, projectKey } from "@/app/utils/provide.ts";
 import { useLanguageStore } from "@/app/stores/language.ts";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
 import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
 import HButton from "@/app/components/headless/HButton.vue";
 
 const ctx = usePageContext();
-const { project } = useData<Data>();
-const languageId = ref<string>(ctx.routeParams.languageId);
+const project = inject(projectKey)!;
+const languageId = ref<string>(ctx.routeParams.languageId!);
 const { update } = useLanguageStore();
 const { languages } = storeToRefs(useLanguageStore());
 
@@ -29,14 +27,6 @@ const handleBack = async () => {
   if (!project) return;
   await navigate(`/project/${project.id}`);
 };
-
-watch(
-  () => ctx.routeParams.languageId,
-  () => {
-    languageId.value = ctx.routeParams.languageId;
-  },
-  { immediate: true },
-);
 
 onMounted(update);
 </script>

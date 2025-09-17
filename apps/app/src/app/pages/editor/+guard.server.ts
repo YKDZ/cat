@@ -6,6 +6,10 @@ export const guard = async (ctx: PageContextServer) => {
   if (!ctx.user) throw render("/auth", `You must login to access`);
 
   const { elementId, documentId, languageFromTo } = ctx.routeParams;
+
+  if (!documentId || !languageFromTo || !elementId)
+    throw render("/", `Invalid route params`);
+
   if (elementId !== "auto" || !isNaN(parseInt(elementId))) return;
 
   let target = await useSSCTRPC(ctx).document.queryFirstElement({
@@ -19,11 +23,9 @@ export const guard = async (ctx: PageContextServer) => {
       page: 0,
       pageSize: 1,
     });
+    if (!first[0])
+      throw render(`/editor/${documentId}/${languageFromTo}/empty`);
     target = first[0];
-  }
-
-  if (!target) {
-    throw render(`/editor/${documentId}/${languageFromTo}/empty`);
   }
 
   throw render(`/editor/${documentId}/${languageFromTo}/${target.id}`);

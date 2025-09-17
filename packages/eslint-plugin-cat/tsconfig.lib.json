@@ -6,14 +6,15 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "rolldown-vite/client"]
+    "types": [
+      "node",
+      "rolldown-vite/client"
+    ]
   },
-  "include": ["src/**/*.ts", "rules/no-provide-in-page.js"],
-  "references": [
-    {
-      "path": "../eslint-plugin-cat/tsconfig.lib.json"
-    }
+  "include": [
+    "src/**/*.ts",
   ],
+  "references": [],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

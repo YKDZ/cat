@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
+import { inject } from "vue";
 import ProjectTaskListExportTranslatedFile from "@/app/components/ProjectTaskListExportTranslatedFile.vue";
+import { projectKey } from "@/app/utils/provide.ts";
 
-const { project } = useData<Data>();
+const project = inject(projectKey);
 </script>
 
 <template>

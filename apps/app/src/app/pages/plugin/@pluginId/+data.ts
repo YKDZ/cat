@@ -8,6 +8,8 @@ export const data = async (
 ): Promise<{ plugin: Plugin }> => {
   const { pluginId } = ctx.routeParams;
 
+  if (!pluginId) throw render("/", "Plugin id is required");
+
   const plugin = await useSSCTRPC(ctx).plugin.query({
     id: pluginId,
   });

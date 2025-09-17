@@ -6,7 +6,7 @@ import type { Options } from "@cspell/eslint-plugin";
 import importPlugin from "eslint-plugin-import";
 import pluginOxlint from "eslint-plugin-oxlint";
 import { defineConfig, globalIgnores } from "eslint/config";
-import cspellWords from "./cspell.words.json" assert { type: "json" };
+import cspellWords from "./cspell.words.json" with { type: "json" };
 
 export default defineConfig(
   globalIgnores(["dist/", "**/generated/prisma/"]),

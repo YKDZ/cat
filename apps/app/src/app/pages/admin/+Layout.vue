@@ -8,7 +8,6 @@ import AdminHeader from "@/app/components/AdminHeader.vue";
     <AdminSidebar />
     <div class="flex flex-col h-full w-full overflow-y-auto">
       <AdminHeader />
-      <!-- Content -->
       <div class="p-4 flex flex-col gap-2">
         <slot />
       </div>

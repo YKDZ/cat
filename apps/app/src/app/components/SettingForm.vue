@@ -95,11 +95,11 @@ onBeforeMount(async () => {
   <JSONForm
     :data
     :schema
-    @update="handleUpdate"
     :classes="{
       label: 'flex flex-col gap-0.5 mt-2',
       'label-title': 'text-xl font-bold text-highlight-content-darker',
       'label-description': 'text text-highlight-content',
     }"
+    @update="handleUpdate"
   />
 </template>
