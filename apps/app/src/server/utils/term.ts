@@ -5,7 +5,10 @@ export const initTermService = async (
   prisma: PrismaClient,
   pluginRegistry: PluginRegistry,
 ) => {
-  const services = await pluginRegistry.getTermServices(prisma);
+  const services = await pluginRegistry.getPluginServices(
+    prisma,
+    "TERM_SERVICE",
+  );
   const languageIds = (
     await prisma.language.findMany({
       select: { id: true },

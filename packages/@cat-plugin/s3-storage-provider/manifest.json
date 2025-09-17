@@ -3,6 +3,12 @@
   "id": "s3-storage-provider",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "S3",
+      "type": "STORAGE_PROVIDER"
+    }
+  ],
   "tags": [
     "storage-provider"
   ],

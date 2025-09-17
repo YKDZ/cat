@@ -24,8 +24,7 @@ const TranslationMetaSchema = z.object({
   isAutoTranslation: z.boolean().default(false),
   isAdvisor: z.boolean().default(false),
   isMemory: z.boolean().default(false),
-  advisorId: z.string().optional(),
-  advisorPluginId: z.string().optional(),
+  advisorId: z.int().optional(),
   memorySimilarity: z.number().min(0).max(1).default(0),
   memoryId: z.ulid().optional(),
 });
@@ -41,11 +40,10 @@ onMounted(() => {
       if (!mem) return;
       memory.value = mem;
     });
-  if (meta.value && meta.value.advisorId && meta.value.advisorPluginId)
-    trpc.plugin.queryAdvisor
+  if (meta.value && meta.value.advisorId)
+    trpc.plugin.getTranslationAdvisor
       .query({
         advisorId: meta.value.advisorId,
-        advisorPluginId: meta.value.advisorPluginId,
       })
       .then((a) => {
         if (!a) return;

@@ -103,8 +103,16 @@ export const PluginSchema = z.object({
   },
 });
 
-export const StorageProviderSchema = z.object({
+export const PluginServiceSchema = z.object({
   id: z.int(),
+  serviceType: z.enum([
+    "TRANSLATION_ADVISOR",
+    "STORAGE_PROVIDER",
+    "AUTH_PROVIDER",
+    "TERM_SERVICE",
+    "TRANSLATABLE_FILE_HANDLER",
+    "TEXT_VECTORIZER",
+  ]),
   serviceId: z.string(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
@@ -122,4 +130,4 @@ export type PluginConfigInstance = z.infer<typeof PluginConfigInstanceSchema>;
 export type PluginPermission = z.infer<typeof PluginPermissionSchema>;
 export type PluginInstallation = z.infer<typeof PluginInstallationSchema>;
 export type Plugin = z.infer<typeof PluginSchema>;
-export type StorageProvider = z.infer<typeof StorageProviderSchema>;
+export type PluginService = z.infer<typeof PluginServiceSchema>;

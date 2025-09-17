@@ -4,6 +4,7 @@ import { FileSchema } from "./file.ts";
 import { UserSchema } from "./user.ts";
 import { VectorSchema } from "./vector.ts";
 import { ProjectSchema } from "./project.ts";
+import { PluginServiceSchema } from "@/schema/prisma/plugin.ts";
 
 export const DocumentSchema = z.object({
   id: z.ulid(),
@@ -14,12 +15,17 @@ export const DocumentSchema = z.object({
     return FileSchema.nullable().optional();
   },
 
+  fileHandlerId: z.int().nullable(),
+  get FileHandler() {
+    return PluginServiceSchema.nullable().optional();
+  },
+
   creatorId: z.ulid(),
   get Creator() {
     return UserSchema.optional();
   },
 
-  projectId: z.string(),
+  projectId: z.ulid(),
   get Project() {
     return ProjectSchema.optional();
   },
@@ -29,25 +35,24 @@ export const DocumentSchema = z.object({
   },
 });
 
-// 使用 Omit 和 z.infer 来避免循环引用
 export const TranslatableElementSchema = z.object({
   id: z.int(),
   value: z.string(),
   sortIndex: z.int(),
   meta: z.json(),
-  embeddingId: z.int(),
   version: z.int(),
   isActive: z.boolean(),
 
   previousVersionId: z.int().nullable(),
+
+  embeddingId: z.ulid(),
   get Embedding() {
     return VectorSchema.optional();
   },
 
   documentVersionId: z.int(),
-  // 避免直接引用 DocumentVersionSchema 来防止循环引用
   get DocumentVersion() {
-    return z.unknown().optional();
+    return DocumentVersionSchema.optional();
   },
 });
 
@@ -58,9 +63,8 @@ export const DocumentVersionSchema = z.object({
   updatedAt: PrismaDateTime,
 
   documentId: z.ulid(),
-  // 避免直接引用 DocumentSchema 来防止循环引用
   get Document() {
-    return z.unknown().optional();
+    return DocumentSchema.optional();
   },
 });
 

@@ -1,44 +1,25 @@
 import type { OverallPrismaClient, ScopeType } from "@cat/db";
 import type { JSONType } from "@cat/shared/schema/json";
-import { merge } from "lodash-es";
 import z from "zod";
 
 export const getPluginConfig = async (
   prisma: OverallPrismaClient,
   pluginId: string,
-  options?: {
-    projectId?: string;
-    userId?: string;
-  },
+  scopeType: ScopeType,
+  scopeId: string,
 ): Promise<JSONType> => {
-  const global = await getConfigInstance(prisma, pluginId, "GLOBAL", "");
+  const config = await getConfigInstance(prisma, pluginId, scopeType, scopeId);
 
-  const project = await getConfigInstance(
-    prisma,
-    pluginId,
-    "PROJECT",
-    options?.projectId,
-  );
-
-  const user = await getConfigInstance(
-    prisma,
-    pluginId,
-    "USER",
-    options?.userId,
-  );
-
-  // TODO 继承方案应该更可控
-  return merge(user, project, global);
+  // TODO 继承呢
+  return config;
 };
 
 export const getConfigInstance = async (
   prisma: OverallPrismaClient,
   pluginId: string,
   scopeType: ScopeType,
-  scopeId?: string,
+  scopeId: string,
 ): Promise<JSONType> => {
-  if (scopeId === undefined) return {};
-
   const installation = await prisma.pluginInstallation.findUnique({
     where: {
       scopeId_scopeType_pluginId: {

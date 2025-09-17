@@ -1,7 +1,7 @@
 import type { File } from "@cat/shared/schema/prisma/file";
+import type { IPluginService } from "@/registry/plugin-registry.ts";
 
-export interface StorageProvider {
-  getId: () => string;
+export interface StorageProvider extends IPluginService {
   getBasicPath: () => string;
   getContent: (file: File) => Promise<Buffer>;
   generateUploadURL: (path: string, expiresIn: number) => Promise<string>;

@@ -4,6 +4,7 @@ import { UserSchema } from "./user.ts";
 import { TranslatableElementSchema } from "./document.ts";
 import { VectorSchema } from "./vector.ts";
 import { PrismaDateTime } from "@/schema/misc.ts";
+import { PluginServiceSchema } from "@/schema/prisma/plugin.ts";
 
 export const TranslationVoteSchema = z.object({
   id: z.int(),
@@ -33,22 +34,32 @@ export const TranslationSchema = z.object({
   meta: z.json().nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
+
   translatorId: z.ulid(),
   get Translator() {
     return UserSchema.optional();
   },
+
   translatableElementId: z.int(),
   get TranslatableElement() {
     return TranslatableElementSchema.optional();
   },
+
   languageId: z.string(),
   get Language() {
     return LanguageSchema.optional();
   },
+
   embeddingId: z.int().nullable(),
   get Embedding() {
     return VectorSchema.nullable().optional();
   },
+
+  vectorizerId: z.int(),
+  get Vectorizer() {
+    return PluginServiceSchema.optional();
+  },
+
   get Votes() {
     return z.array(TranslationVoteSchema).optional();
   },

@@ -20,7 +20,7 @@
     "start": "cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit && vue-tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat",
     "docker-entrypoint": "prisma migrate deploy && prisma db seed && node dist/server/index.js"

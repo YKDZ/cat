@@ -1,8 +1,10 @@
 import { getPrismaDB, insertVector } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import { registerTaskUpdateHandlers } from "../utils/worker";
 import { config } from "./config";
+import { getServiceFromDBId } from "@/server/utils/plugin.ts";
+import { z } from "zod";
 
 const { client: prisma } = await getPrismaDB();
 
@@ -21,28 +23,25 @@ const worker = new Worker(
       vectorizerId,
       createMemory,
       memoryIds,
-    }: {
-      translationValue: string;
-      translationLanguageId: string;
-      elementId: number;
-      creatorId: string;
-      createMemory: boolean;
-      vectorizerId: string;
-      memoryIds: string[];
-    } = job.data;
+    } = z
+      .object({
+        translationValue: z.string(),
+        translationLanguageId: z.string(),
+        elementId: z.number(),
+        creatorId: z.ulid(),
+        vectorizerId: z.number(),
+        createMemory: z.boolean(),
+        memoryIds: z.array(z.ulid()),
+      })
+      .parse(job.data);
 
-    const pluginRegistry = new PluginRegistry();
+    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    await pluginRegistry.loadPlugins(prisma, {
-      tags: ["text-vectorizer"],
-    });
-
-    const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
-      .map((d) => d.vectorizer)
-      .find((vectorizer) => vectorizer.getId() === vectorizerId);
-
-    if (!vectorizer)
-      throw new Error(`Can not find vectorizer by given id: '${vectorizerId}'`);
+    const vectorizer = await getServiceFromDBId<TextVectorizer>(
+      prisma,
+      pluginRegistry,
+      vectorizerId,
+    );
 
     const element = await prisma.translatableElement.findUnique({
       where: {
@@ -85,6 +84,11 @@ const worker = new Worker(
       const translation = await tx.translation.create({
         data: {
           value: translationValue,
+          Vectorizer: {
+            connect: {
+              id: vectorizerId,
+            },
+          },
           TranslatableElement: {
             connect: {
               id: elementId,

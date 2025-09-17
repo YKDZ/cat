@@ -1,4 +1,5 @@
 import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
+import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface TermFormatter {
   format(
@@ -36,8 +37,7 @@ export interface TermStore {
   init(): Promise<void>;
 }
 
-export interface TermService {
-  getId: () => string;
+export interface TermService extends IPluginService {
   termFormatter: TermFormatter;
   termIndexer: TermIndexer;
   termMatcher: TermMatcher;

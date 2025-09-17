@@ -60,6 +60,7 @@ const handleUpdate = async (
         isPending.value = true;
         try {
           await props.configSetter(v, s, k);
+          data.value = value;
         } finally {
           isPending.value = false;
         }
@@ -69,6 +70,7 @@ const handleUpdate = async (
         async (v: JSONType, s: JSONSchema, k?: string) => {
           try {
             await props.configSetter(v, s, k);
+            data.value = value;
           } finally {
             isPending.value = false;
           }

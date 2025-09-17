@@ -1,6 +1,8 @@
 import z from "zod";
 import { PrismaDateTime } from "./misc.ts";
-import { StorageProviderSchema } from "./plugin.ts";
+import { PluginServiceSchema } from "@/schema/prisma/plugin.ts";
+import { DocumentSchema } from "@/schema/prisma/document.ts";
+import { UserSchema } from "@/schema/prisma/user.ts";
 
 export const FileSchema = z.object({
   id: z.int(),
@@ -11,17 +13,18 @@ export const FileSchema = z.object({
 
   storageProviderId: z.int(),
   get StorageProvider() {
-    return StorageProviderSchema.optional();
+    return PluginServiceSchema.optional();
   },
 
   documentId: z.ulid().nullable(),
-  userId: z.ulid().nullable(),
-});
+  get Document() {
+    return DocumentSchema.optional();
+  },
 
-export const StorageTypeSchema = z.object({
-  id: z.int(),
-  name: z.string(),
+  userId: z.ulid().nullable(),
+  get User() {
+    return UserSchema.optional();
+  },
 });
 
 export type File = z.infer<typeof FileSchema>;
-export type StorageType = z.infer<typeof StorageTypeSchema>;

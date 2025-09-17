@@ -83,11 +83,9 @@ export const translationRouter = router({
             message: "Project not found",
           });
 
-        const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
-          .map((d) => d.vectorizer)
-          .find((vectorizer) =>
-            vectorizer.canVectorize(project.sourceLanguageId),
-          );
+        const vectorizer = (
+          await pluginRegistry.getPluginServices(prisma, "TEXT_VECTORIZER")
+        ).find(({ service }) => service.canVectorize(project.sourceLanguageId));
 
         if (!vectorizer) {
           throw new TRPCError({
@@ -110,7 +108,7 @@ export const translationRouter = router({
             creatorId: user.id,
             translationLanguageId: languageId,
             translationValue: value,
-            vectorizerId: vectorizer.getId(),
+            vectorizerId: vectorizer.id,
             memoryIds: project.Memories.map((memory) => memory.id),
           },
           {
@@ -147,7 +145,6 @@ export const translationRouter = router({
     .mutation(async ({ input, ctx }) => {
       const {
         prismaDB: { client: prisma },
-        pluginRegistry,
       } = ctx;
       const { id, value } = input;
 
@@ -171,17 +168,6 @@ export const translationRouter = router({
           message: "Translation with given id not found",
         });
 
-      const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
-        .map((d) => d.vectorizer)
-        .find((vectorizer) => vectorizer.canVectorize(translation.languageId));
-
-      if (!vectorizer) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "CAT 没有可以处理这种文本的向量化器",
-        });
-      }
-
       const task = await prisma.task.create({
         data: {
           type: "update_translation",
@@ -194,7 +180,6 @@ export const translationRouter = router({
           {
             translationId: id,
             translationValue: value,
-            vectorizerId: vectorizer.getId(),
           },
           {
             jobId: task.id,
@@ -498,9 +483,9 @@ export const translationRouter = router({
     .input(
       z.object({
         documentId: z.string(),
-        advisorId: z.string().nullable(),
+        advisorId: z.int(),
         languageId: z.string(),
-        minMemorySimilarity: z.number().default(0.72),
+        minMemorySimilarity: z.number().min(0).max(1).default(0.72),
       }),
     )
     .output(z.void())
@@ -539,21 +524,9 @@ export const translationRouter = router({
             "Document does not exists or language does not claimed in project",
         });
 
-      const advisorData = (
-        await pluginRegistry.getTranslationAdvisors(prisma, {
-          userId: user.id,
-        })
-      ).find(({ advisor }) => advisor.getId() === advisorId);
-
-      if (!advisorData)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Advisor with given id does not exists",
-        });
-
-      const vectorizer = (await pluginRegistry.getTextVectorizers(prisma))
-        .map((d) => d.vectorizer)
-        .find((vectorizer) => vectorizer.canVectorize(languageId));
+      const { id: vectorizerId, service: vectorizer } = (
+        await pluginRegistry.getPluginServices(prisma, "TEXT_VECTORIZER")
+      ).find(({ service }) => service.canVectorize(languageId))!;
 
       if (!vectorizer)
         throw new Error(`No vectorizer can vectorize the translation`);
@@ -574,8 +547,7 @@ export const translationRouter = router({
           userId: user.id,
           documentId,
           advisorId,
-          advisorPluginId: advisorData.pluginId,
-          vectorizerId: vectorizer.getId(),
+          vectorizerId,
           languageId,
           minMemorySimilarity,
         },

@@ -44,6 +44,8 @@ export const queryElementWithEmbedding = async (
     te.id = ${elementId};
 `;
 
+  if (!result[0]) throw new Error("No document found");
+
   return result[0];
 };
 

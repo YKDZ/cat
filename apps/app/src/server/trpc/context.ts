@@ -16,7 +16,7 @@ export const createHttpContext = async ({
 
   const prismaDB = await getPrismaDB();
   const redisDB = await getRedisDB();
-  const pluginRegistry = PluginRegistry.get();
+  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
   return {
     user,

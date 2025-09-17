@@ -10,14 +10,12 @@ export const PrismaErrorSchema = z.object({
 export const PrismaDateTime = z.date().or(z.iso.datetime());
 
 export const TranslationAdvisorDataSchema = z.object({
-  id: z.string(),
+  id: z.int(),
   name: z.string(),
-  pluginId: z.string(),
 });
 
 export const AuthMethodSchema = z.object({
-  pluginId: z.string(),
-  providerId: z.string(),
+  providerId: z.int(),
   name: z.string(),
   icon: z.string(),
 });

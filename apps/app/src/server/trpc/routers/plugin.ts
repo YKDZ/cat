@@ -4,13 +4,17 @@ import {
   PluginConfigInstanceSchema,
   PluginSchema,
 } from "@cat/shared/schema/prisma/plugin";
-import { logger } from "@cat/shared/utils";
-import { TranslationAdvisorDataSchema } from "@cat/shared/schema/misc";
 import {
-  pauseAllProcessors,
-  resumeAllProcessors,
-} from "@/server/processor/index.ts";
-import { authedProcedure, router } from "@/server/trpc/server.ts";
+  AuthMethodSchema,
+  TranslationAdvisorDataSchema,
+  type AuthMethod,
+  type TranslationAdvisorData,
+} from "@cat/shared/schema/misc";
+import {
+  authedProcedure,
+  publicProcedure,
+  router,
+} from "@/server/trpc/server.ts";
 
 export const pluginRouter = router({
   delete: authedProcedure
@@ -175,78 +179,92 @@ export const pluginRouter = router({
           }),
         );
     }),
-  reload: authedProcedure.output(z.void()).mutation(async ({ ctx }) => {
-    const {
-      prismaDB: { client: prisma },
-      pluginRegistry,
-    } = ctx;
+  availableAuthMethod: publicProcedure
+    .output(z.array(AuthMethodSchema))
+    .query(async ({ ctx }) => {
+      const {
+        prismaDB: { client: prisma },
+        pluginRegistry,
+      } = ctx;
 
-    logger.info("PROCESSOR", {
-      msg: "About to pause all processors to reload plugin",
-    });
-    await pauseAllProcessors()
-      .then(() => {
-        logger.info("PROCESSOR", { msg: "Successfully paused all processors" });
-      })
-      .catch((e) => {
-        logger.info(
-          "PROCESSOR",
-          { msg: "Error when pausing all processors" },
-          e,
-        );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            "Plugin reload was cancelled because error when pausing all processors",
-        });
+      const providersData = await prisma.pluginService.findMany({
+        where: {
+          serviceType: "AUTH_PROVIDER",
+        },
+        select: {
+          serviceId: true,
+        },
       });
 
-    await pluginRegistry.reload(prisma);
-
-    logger.info("PROCESSOR", {
-      msg: "About to resume all processors after plugin reloaded",
-    });
-    await resumeAllProcessors()
-      .then(() => {
-        logger.info("PROCESSOR", {
-          msg: "Successfully resumed all processors",
-        });
-      })
-      .catch((e) => {
-        logger.info(
-          "PROCESSOR",
-          { msg: "Error when resuming all processors" },
-          e,
+      const methods: AuthMethod[] = [];
+      for (const { serviceId } of providersData) {
+        const providers = await pluginRegistry.getPluginServices(
+          prisma,
+          "AUTH_PROVIDER",
         );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            "Error when resuming all processors after plugin reloaded. Please check console",
-        });
-      });
-  }),
-  queryAdvisor: authedProcedure
-    .input(z.object({ advisorId: z.string(), advisorPluginId: z.string() }))
-    .output(TranslationAdvisorDataSchema.nullable())
+        providers
+          .filter(({ service }) => serviceId === service.getId())
+          .forEach(({ id, service }) => {
+            methods.push({
+              providerId: id,
+              name: service.getName(),
+              icon: service.getIcon(),
+            });
+          });
+      }
+
+      return methods;
+    }),
+  listAllAvailableAdvisors: authedProcedure
+    .output(z.array(TranslationAdvisorDataSchema))
+    .query(async ({ ctx }) => {
+      const {
+        prismaDB: { client: prisma },
+        pluginRegistry,
+      } = ctx;
+      return (
+        await pluginRegistry.getPluginServices(prisma, "TRANSLATION_ADVISOR")
+      ).map(
+        ({ id, service }) =>
+          ({
+            id,
+            name: service.getName(),
+          }) satisfies TranslationAdvisorData,
+      );
+    }),
+  getTranslationAdvisor: authedProcedure
+    .input(
+      z.object({
+        advisorId: z.int(),
+      }),
+    )
+    .output(TranslationAdvisorDataSchema)
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
         pluginRegistry,
       } = ctx;
-      const { advisorId, advisorPluginId } = input;
-
-      const advisor = (
-        await pluginRegistry.getTranslationAdvisor(prisma, advisorPluginId)
-      ).find((a) => a.getId() === advisorId);
-
-      if (!advisor) {
-        return null;
-      }
-
+      const dbAdvisor = await prisma.pluginService.findUnique({
+        where: { id: input.advisorId, serviceType: "TRANSLATION_ADVISOR" },
+        select: {
+          serviceId: true,
+          serviceType: true,
+          PluginInstallation: {
+            select: { pluginId: true },
+          },
+        },
+      });
+      if (!dbAdvisor) throw new TRPCError({ code: "NOT_FOUND" });
+      const { service } = (await pluginRegistry.getPluginService(
+        prisma,
+        dbAdvisor.PluginInstallation.pluginId,
+        "TRANSLATION_ADVISOR",
+        dbAdvisor.serviceId,
+      ))!;
+      if (!service) throw new TRPCError({ code: "NOT_FOUND" });
       return TranslationAdvisorDataSchema.parse({
-        id: advisor.getId(),
-        name: advisor.getName(),
-        pluginId: advisorPluginId,
+        id: service.getId(),
+        name: service.getName(),
       });
     }),
 });

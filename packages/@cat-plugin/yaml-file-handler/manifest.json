@@ -3,6 +3,12 @@
   "id": "yaml-file-handler",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "YAML",
+      "type": "TRANSLATABLE_FILE_HANDLER"
+    }
+  ],
   "tags": [
     "translatable-file-handler"
   ]

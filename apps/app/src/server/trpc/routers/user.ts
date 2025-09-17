@@ -76,6 +76,7 @@ export const userRouter = router({
 
       const { id: storageProviderId, provider } = await useStorage(
         prisma,
+        "s3-storage-provider",
         "S3",
         "GLOBAL",
         "",
@@ -155,6 +156,7 @@ export const userRouter = router({
 
       const { provider } = await useStorage(
         prisma,
+        "s3-storage-provider",
         user.AvatarFile.StorageProvider.serviceId,
         "GLOBAL",
         "",

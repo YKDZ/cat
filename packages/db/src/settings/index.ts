@@ -1,2 +1,2 @@
-export * from "./default";
-export * from "./sync";
+export * from "./default.ts";
+export * from "./sync.ts";

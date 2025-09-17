@@ -1,5 +1,6 @@
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import type { HTTPHelpers } from "@cat/shared/utils";
+import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export type PreAuthResult = {
   sessionId: string;
@@ -17,8 +18,7 @@ export type AuthResult = {
   accountMeta?: JSONType;
 };
 
-export interface AuthProvider {
-  getId: () => string;
+export interface AuthProvider extends IPluginService {
   getType: () => string;
   getName: () => string;
   getIcon: () => string;

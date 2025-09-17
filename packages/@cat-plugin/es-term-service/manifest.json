@@ -3,6 +3,12 @@
   "id": "es-term-service",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "ES",
+      "type": "TERM_SERVICE"
+    }
+  ],
   "tags": [
     "term-service"
   ],

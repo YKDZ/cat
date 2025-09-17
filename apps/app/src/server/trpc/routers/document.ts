@@ -38,8 +38,9 @@ export const documentRouter = router({
         prismaDB: { client: prisma },
       } = ctx;
       const { meta } = input;
-      const { id: storageProviderId, provider } = await useStorage(
+      const { id: providerId, provider } = await useStorage(
         prisma,
+        "s3-storage-provider",
         "S3",
         "GLOBAL",
         "",
@@ -54,7 +55,7 @@ export const documentRouter = router({
         data: {
           originName: meta.name,
           storedPath: path,
-          storageProviderId,
+          storageProviderId: providerId,
         },
       });
 
@@ -80,189 +81,185 @@ export const documentRouter = router({
         pluginRegistry,
       } = ctx;
 
-      const {
-        parsedFile,
-        document,
-        parsedDocument,
-        handlerData: { handler, pluginId: handlerPluginId },
-        vectorizerData: { vectorizer, pluginId: vectorizerPluginId },
-        taskId,
-      } = await prisma.$transaction(async (tx) => {
-        const file = await prisma.file.findUnique({
-          where: {
-            id: fileId,
-          },
-        });
-
-        if (!file)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "File does not exists",
-          });
-
-        const parsedFile = FileSchema.parse(file);
-
-        const handlerData = (
-          await pluginRegistry.getTranslatableFileHandlers(prisma)
-        ).find(({ handler }) => handler.canExtractElement(parsedFile));
-
-        if (!handlerData) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "没有可以处理这种文件的文件解析器",
-          });
-        }
-
-        const project = await tx.project.findUnique({
-          where: {
-            id: projectId,
-          },
-        });
-
-        if (!project)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Project with given id does not exists",
-          });
-
-        const vectorizerData = (
-          await pluginRegistry.getTextVectorizers(prisma)
-        ).find(({ vectorizer }) =>
-          vectorizer.canVectorize(project.sourceLanguageId),
-        );
-
-        if (!vectorizerData) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "CAT 没有可以处理这种文本的向量化器",
-          });
-        }
-
-        const task = await tx.task.create({
-          data: {
-            type: "document_from_file_pretreatment",
-            meta: {
-              projectId,
-            },
-          },
-        });
-
-        // 在这里开始选择创建或查找现存文档
-        // 并维护文档版本
-        let document =
-          (await tx.document.findFirst({
+      const { parsedFile, parsedDocument, handlerId, vectorizerId, taskId } =
+        await prisma.$transaction(async (tx) => {
+          const file = await prisma.file.findUnique({
             where: {
-              projectId: project.id,
-              File: {
-                originName: file.originName,
-              },
-            },
-            include: {
-              Tasks: {
-                where: {
-                  type: "document_from_file_pretreatment",
-                },
-                take: 1,
-              },
-              Versions: true,
-              Project: true,
-            },
-          })) ?? null;
-
-        if (!document) {
-          document = await tx.document.create({
-            data: {
-              Creator: {
-                connect: {
-                  id: user.id,
-                },
-              },
-              File: {
-                connect: {
-                  id: fileId,
-                },
-              },
-              Project: {
-                connect: {
-                  id: projectId,
-                },
-              },
-              Tasks: {
-                connect: {
-                  id: task.id,
-                },
-              },
-              Versions: {
-                create: {
-                  isActive: true,
-                },
-              },
-            },
-            include: {
-              File: true,
-              Tasks: {
-                where: {
-                  type: "document_from_file_pretreatment",
-                },
-                take: 1,
-              },
-              Versions: true,
-              Project: true,
+              id: fileId,
             },
           });
-        } else {
-          await tx.document.update({
+
+          if (!file)
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "File does not exists",
+            });
+
+          const parsedFile = FileSchema.parse(file);
+
+          const handlerData = (
+            await pluginRegistry.getPluginServices(
+              prisma,
+              "TRANSLATABLE_FILE_HANDLER",
+            )
+          ).find(({ service }) => service.canExtractElement(parsedFile));
+
+          if (!handlerData) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "没有可以处理这种文件的文件解析器",
+            });
+          }
+
+          const project = await tx.project.findUnique({
             where: {
-              id: document.id,
+              id: projectId,
             },
+          });
+
+          if (!project)
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Project with given id does not exists",
+            });
+
+          const vectorizerData = (
+            await pluginRegistry.getPluginServices(prisma, "TEXT_VECTORIZER")
+          ).find(({ service }) =>
+            service.canVectorize(project.sourceLanguageId),
+          );
+
+          if (!vectorizerData) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "CAT 没有可以处理这种文本的向量化器",
+            });
+          }
+
+          const task = await tx.task.create({
             data: {
-              Tasks: {
-                disconnect: {
-                  id: document.Tasks[0].id,
-                },
-                connect: {
-                  id: task.id,
+              type: "document_from_file_pretreatment",
+              meta: {
+                projectId,
+              },
+            },
+          });
+
+          // 在这里开始选择创建或查找现存文档
+          // 并维护文档版本
+          let document =
+            (await tx.document.findFirst({
+              where: {
+                projectId: project.id,
+                File: {
+                  originName: file.originName,
                 },
               },
-              Versions: {
-                updateMany: {
+              include: {
+                Tasks: {
                   where: {
+                    type: "document_from_file_pretreatment",
+                  },
+                  take: 1,
+                },
+                Versions: true,
+                Project: true,
+              },
+            })) ?? null;
+
+          if (!document) {
+            document = await tx.document.create({
+              data: {
+                Creator: {
+                  connect: {
+                    id: user.id,
+                  },
+                },
+                File: {
+                  connect: {
+                    id: fileId,
+                  },
+                },
+                Project: {
+                  connect: {
+                    id: projectId,
+                  },
+                },
+                Tasks: {
+                  connect: {
+                    id: task.id,
+                  },
+                },
+                Versions: {
+                  create: {
                     isActive: true,
                   },
-                  data: {
-                    isActive: false,
-                  },
-                },
-                create: {
-                  isActive: true,
                 },
               },
-            },
-          });
-        }
+              include: {
+                File: true,
+                Tasks: {
+                  where: {
+                    type: "document_from_file_pretreatment",
+                  },
+                  take: 1,
+                },
+                Versions: true,
+                Project: true,
+              },
+            });
+          } else {
+            await tx.document.update({
+              where: {
+                id: document.id,
+              },
+              data: {
+                Tasks: {
+                  disconnect: document.Tasks[0]
+                    ? {
+                        id: document.Tasks[0].id,
+                      }
+                    : undefined,
+                  connect: {
+                    id: task.id,
+                  },
+                },
+                Versions: {
+                  updateMany: {
+                    where: {
+                      isActive: true,
+                    },
+                    data: {
+                      isActive: false,
+                    },
+                  },
+                  create: {
+                    isActive: true,
+                  },
+                },
+              },
+            });
+          }
 
-        const parsedDocument = DocumentSchema.parse(document);
+          const parsedDocument = DocumentSchema.parse(document);
 
-        return {
-          parsedFile,
-          document,
-          parsedDocument,
-          handlerData,
-          vectorizerData,
-          taskId: task.id,
-        };
-      });
+          return {
+            parsedFile,
+            parsedDocument,
+            handlerId: handlerData.id,
+            vectorizerId: vectorizerData.id,
+            taskId: task.id,
+          };
+        });
 
       await documentFromFilePretreatmentQueue.add(
         taskId,
         {
-          sourceLanguageId: document.Project.sourceLanguageId,
+          sourceLanguageId: parsedDocument.Project!.sourceLanguageId,
           file: parsedFile,
           document: parsedDocument,
-          handlerId: handler.getId(),
-          vectorizerId: vectorizer.getId(),
-          handlerPluginId,
-          vectorizerPluginId,
+          handlerId,
+          vectorizerId,
         },
         {
           jobId: taskId,
@@ -473,7 +470,7 @@ export const documentRouter = router({
   exportTranslatedFile: authedProcedure
     .input(
       z.object({
-        id: z.string(),
+        documentId: z.string(),
         languageId: z.string(),
       }),
     )
@@ -481,16 +478,25 @@ export const documentRouter = router({
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
-        pluginRegistry,
       } = ctx;
-      const { id, languageId } = input;
+      const { documentId, languageId } = input;
 
       const document = await prisma.document.findFirst({
         where: {
-          id,
+          id: documentId,
         },
-        include: {
-          File: true,
+        select: {
+          projectId: true,
+          File: {
+            select: {
+              id: true,
+            },
+          },
+          FileHandler: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
@@ -500,20 +506,10 @@ export const documentRouter = router({
           message: "指定文档不存在",
         });
 
-      if (!document.File)
+      if (!document.File || !document.FileHandler)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "指定文档不是基于文件的",
-        });
-
-      const handler = (await pluginRegistry.getTranslatableFileHandlers(prisma))
-        .map((d) => d.handler)
-        .find((handler) => handler.canGetReplacedFileContent(document.File!));
-
-      if (!handler)
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "没有可以导出这种文件的文件解析器",
         });
 
       const task = await prisma.task.create({
@@ -521,7 +517,7 @@ export const documentRouter = router({
           type: "export_translated_file",
           meta: {
             projectId: document.projectId,
-            documentId: document.id,
+            documentId,
             languageId,
           },
         },
@@ -530,8 +526,8 @@ export const documentRouter = router({
       await exportTranslatedFileQueue.add(
         task.id,
         {
-          handlerId: handler.getId(),
-          documentId: document.id,
+          projectId: document.projectId,
+          documentId,
           languageId,
         },
         {
@@ -581,7 +577,13 @@ export const documentRouter = router({
           code: "BAD_REQUEST",
         });
 
-      const { provider } = await useStorage(prisma, "S3", "GLOBAL", "");
+      const { provider } = await useStorage(
+        prisma,
+        "s3-storage-provider",
+        "S3",
+        "GLOBAL",
+        "",
+      );
       const { fileId } = task.meta as {
         fileId: number;
       };
@@ -895,7 +897,6 @@ export const documentRouter = router({
       const {
         prismaDB: { client: prisma },
         pluginRegistry,
-        user,
       } = ctx;
       const { documentId, documentVersionId } = input;
 
@@ -910,31 +911,52 @@ export const documentRouter = router({
         },
         select: {
           File: true,
+          FileHandler: {
+            select: {
+              serviceId: true,
+              PluginInstallation: {
+                select: {
+                  pluginId: true,
+                },
+              },
+            },
+          },
         },
       });
 
-      if (!document || !document.File)
+      if (!document || !document.File || !document.FileHandler)
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Document with given version and id does not exists",
+          message: "指定文档不存在",
         });
 
-      const handler = (
-        await pluginRegistry.getTranslatableFileHandlers(prisma, {
-          userId: user.id,
-        })
-      ).find(({ handler }) =>
-        handler.canGetReplacedFileContent(document.File!),
-      );
+      if (!document.File || !document.FileHandler)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "文档不是基于文件的",
+        });
+
+      const { service: handler } = (await pluginRegistry.getPluginService(
+        prisma,
+        document.FileHandler.PluginInstallation.pluginId,
+        "TRANSLATABLE_FILE_HANDLER",
+        document.FileHandler.serviceId,
+      ))!;
 
       if (!handler) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "没有可以处理这种文件的文件解析器",
+          message: "文件的文件解析器不存在",
         });
       }
 
-      const { provider } = await useStorage(prisma, "S3", "GLOBAL", "");
+      const { provider } = await useStorage(
+        prisma,
+        "s3-storage-provider",
+        "S3",
+        "GLOBAL",
+        "",
+      );
       const content = await provider.getContent(document.File);
 
       const elements = await prisma.translatableElement.findMany({
@@ -946,7 +968,7 @@ export const documentRouter = router({
       });
 
       return (
-        await handler.handler.getReplacedFileContent(
+        await handler.getReplacedFileContent(
           document.File,
           content,
           elements.map(({ value, meta }) => ({
