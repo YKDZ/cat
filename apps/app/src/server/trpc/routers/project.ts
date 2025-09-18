@@ -2,6 +2,7 @@ import type { PrismaError } from "@cat/shared/schema/misc";
 import { ProjectSchema } from "@cat/shared/schema/prisma/project";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { DocumentSchema } from "@cat/shared/schema/prisma/document";
 import { authedProcedure, publicProcedure, router } from "../server.ts";
 
 export const projectRouter = router({
@@ -338,11 +339,6 @@ export const projectRouter = router({
             Creator: true,
             TargetLanguages: true,
             SourceLanguage: true,
-            Documents: {
-              include: {
-                File: true,
-              },
-            },
           },
         }),
       );
@@ -521,6 +517,24 @@ export const projectRouter = router({
                       isActive: true,
                     },
                   },
+        },
+      });
+    }),
+  getDocuments: authedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .output(z.array(DocumentSchema.required({ File: true })))
+    .query(async ({ ctx, input }) => {
+      const {
+        prismaDB: { client: prisma },
+      } = ctx;
+      const { projectId } = input;
+
+      return await prisma.document.findMany({
+        where: {
+          projectId: projectId,
+        },
+        include: {
+          File: true,
         },
       });
     }),
