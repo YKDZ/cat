@@ -71,6 +71,7 @@ const handleFileChange = () => {
 const rawFileMime = computed(() => {
   if (!fileInputEl.value || !fileInputEl.value.files) return;
   const file = fileInputEl.value.files[0];
+  if (!file) return;
   return file.type;
 });
 </script>

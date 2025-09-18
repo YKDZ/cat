@@ -13,10 +13,11 @@ model Project {
     creatorId String
     Creator   User   @relation(fields: [creatorId], references: [id])
 
-    Members    User[]     @relation("ProjectMembers")
-    Memories   Memory[]
-    Glossaries Glossary[]
-    Documents  Document[]
+    Members              User[]                @relation("ProjectMembers")
+    Memories             Memory[]
+    Glossaries           Glossary[]
+    Documents            Document[]
+    TranslatableElements TranslatableElement[]
 
     @@index([creatorId])
 }

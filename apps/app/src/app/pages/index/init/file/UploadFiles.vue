@@ -14,7 +14,6 @@ const isProcessing = ref<boolean>(false);
 </script>
 
 <template>
-  <!-- Upload File -->
   <ProjectUploadFiles v-if="project" v-model:project="project" />
   <HButton
     icon="i-mdi:clock"

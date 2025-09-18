@@ -1,24 +1,28 @@
 import { diffArrays } from "diff";
 
-export const diffArraysAndSeparate = <T>(
+// 两个没有 extends 关系的对象被视为不可以
+// 也就没有 diff 的意义
+// 同时 diffArrays 也不接受两个泛型参数
+export const diffArraysAndSeparate = <T extends K, K>(
   elementsA: T[],
-  elementsB: T[],
-  comparator: (a: T, b: T) => boolean,
+  elementsB: K[],
+  comparator: (a: K, b: K) => boolean,
 ): {
-  added: T[];
+  added: K[];
   removed: T[];
 } => {
-  const added: T[] = [];
+  const added: K[] = [];
   const removed: T[] = [];
 
-  const diff = diffArrays<T>(elementsA, elementsB, {
+  const diff = diffArrays<K>(elementsA, elementsB, {
     comparator,
   });
+
   diff.forEach((object) => {
     if (object.added) {
       added.push(...object.value);
     } else if (object.removed) {
-      removed.push(...object.value);
+      removed.push(...(object.value as T[]));
     }
   });
 

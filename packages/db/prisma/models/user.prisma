@@ -24,7 +24,8 @@ model User {
     Answers                 Answer[]
     UserRoles               UserRole[]
     MemberedProjects        Project[]                @relation("ProjectMembers")
-    PluginConfigInstance    PluginConfigInstance[]
+    PluginConfigInstances   PluginConfigInstance[]
+    TranslatableElements    TranslatableElement[]
 }
 
 model Account {
