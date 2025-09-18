@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/prisma/document";
-import { computed, onMounted } from "vue";
+import { onMounted } from "vue";
 import { navigate } from "vike/client/router";
 import Icon from "./Icon.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
 import HButton from "./headless/HButton.vue";
-import { useDocumentStore } from "@/app/stores/document.ts";
 import { trpc } from "@/server/trpc/client.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 
@@ -15,12 +14,6 @@ const props = defineProps<{
 }>();
 
 const { trpcWarn, info } = useToastStore();
-const {
-  updateDocumentFromFilePretreatmentTask,
-  updateTranslatableEleAmount,
-  translatableEleAmounts,
-  tasks,
-} = useDocumentStore();
 
 const emits = defineEmits<{
   (e: "delete"): void;
@@ -39,12 +32,6 @@ const handleDelete = async () => {
     })
     .catch(trpcWarn);
 };
-
-const fileEmbeddingTask = computed(() => {
-  return tasks
-    .get(props.document.id)
-    ?.find((task) => task.type === "document_from_file_pretreatment");
-});
 
 const handleClick = async () => {
   await navigate(`/document/${props.document.id}`);
@@ -68,20 +55,6 @@ onMounted(() => {
       /></span>
       <span v-else>{{ translatableEleAmounts.get(document.id) }}</span>
     </TableCell>
-    <TableCell v-if="fileEmbeddingTask"
-      ><Icon
-        v-if="fileEmbeddingTask.status === 'pending'"
-        icon="i-mdi:dots-horizontal" /><Icon
-        v-else-if="fileEmbeddingTask.status === 'processing'"
-        icon="i-mdi:loading"
-        class="animate-spin" /><Icon
-        v-else-if="fileEmbeddingTask.status === 'completed'"
-        icon="i-mdi:check-circle-outline"
-        class="color-base" /><Icon
-        v-else-if="fileEmbeddingTask.status === 'failed'"
-        icon="i-mdi:close-circle-outline"
-        class="color-red"
-    /></TableCell>
     <TableCell>
       <HButton
         icon="i-mdi:trash-can"

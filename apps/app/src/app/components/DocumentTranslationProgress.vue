@@ -1,50 +1,34 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 import { toShortFixed } from "@cat/shared/utils";
 import { useI18n } from "vue-i18n";
 import Dot from "./Dot.vue";
 import ProgressBar from "./progress/bar/ProgressBar.vue";
-import { useDocumentStore } from "@/app/stores/document.ts";
 import type { ProgressBarLine } from "@/app/components/progress/bar/index.ts";
 
 const { t } = useI18n();
 
-const props = defineProps<{
+defineProps<{
   documentId: string;
   languageId: string;
 }>();
 
-const { updateTranslatableEleAmount, updateTranslationAmount } =
-  useDocumentStore();
-
-const { translatableEleAmounts, translationAmounts } =
-  storeToRefs(useDocumentStore());
-
 const progressBarLines = computed<ProgressBarLine[]>(() => {
-  const translationCount = translationAmounts.value.get(props.documentId);
-  const translatableEleAmount = translatableEleAmounts.value.get(
-    props.documentId,
-  );
+  const translationCount = 0;
+  const translatableEleAmount = 1;
 
   if (!translationCount || !translatableEleAmount) return [];
 
   return [
     {
       color: "#5B89C6",
-      progress: translationCount.translatedEleAmount / translatableEleAmount,
+      progress: 0 / translatableEleAmount,
     },
     {
       color: "#38C800",
-      progress:
-        translationCount.approvedTranslationAmount / translatableEleAmount,
+      progress: 0 / translatableEleAmount,
     },
   ];
-});
-
-onMounted(async () => {
-  await updateTranslatableEleAmount(props.documentId);
-  await updateTranslationAmount(props.documentId, props.languageId);
 });
 </script>
 
