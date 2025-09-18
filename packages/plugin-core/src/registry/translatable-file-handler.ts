@@ -5,7 +5,10 @@ import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface TranslatableFileHandler extends IPluginService {
   canExtractElement(file: File): boolean;
-  extractElement(file: File, fileContent: Buffer): TranslatableElementData[];
+  extractElement(
+    file: File,
+    fileContent: Buffer,
+  ): Promise<TranslatableElementData[]>;
   canGetReplacedFileContent(file: File): boolean;
   getReplacedFileContent(
     file: File,

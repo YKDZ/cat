@@ -120,7 +120,8 @@ const worker = new Worker(
         await tx.memoryItem.createMany({
           data: memoryIds.map((memoryId) => ({
             source: element.value,
-            sourceLanguageId: element.Document.Project.sourceLanguageId,
+            // TODO 源语言应该成为元素的属性
+            sourceLanguageId: element.Document!.Project.sourceLanguageId,
             translation: translation.value,
             translationLanguageId,
             sourceElementId: elementId,

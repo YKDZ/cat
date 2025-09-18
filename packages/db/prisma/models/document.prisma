@@ -31,25 +31,24 @@ model TranslatableElement {
     sortIndex Int
     meta      Json?
 
-    version  Int     @default(1)
-    isActive Boolean @default(true)
+    documentVersionId Int?
+    DocumentVersion   DocumentVersion? @relation(fields: [documentVersionId], references: [id])
 
-    documentVersionId Int
-    DocumentVersion   DocumentVersion @relation(fields: [documentVersionId], references: [id])
+    projectId String?
+    Project   Project? @relation(fields: [projectId], references: [id])
 
-    documentId String
-    Document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+    documentId String?
+    Document   Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+    creatorId String?
+    Creator   User?   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
     embeddingId Int
     Embedding   Vector @relation(fields: [embeddingId], references: [id])
 
-    previousVersionId Int?                 @unique
-    PreviousVersion   TranslatableElement? @relation("DiffHistory", fields: [previousVersionId], references: [id])
-    NextVersion       TranslatableElement? @relation("DiffHistory")
-
     Translations Translation[]
     MemoryItems  MemoryItem[]
-    Answer       Answer[]
+    Answers      Answer[]
 
     // 手动实现
     // 因为 prisma 不支持谓词索引

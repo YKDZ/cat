@@ -40,19 +40,25 @@ export const TranslatableElementSchema = z.object({
   value: z.string(),
   sortIndex: z.int(),
   meta: z.json(),
-  version: z.int(),
-  isActive: z.boolean(),
 
-  previousVersionId: z.int().nullable(),
-
-  embeddingId: z.ulid(),
+  embeddingId: z.int(),
   get Embedding() {
     return VectorSchema.optional();
   },
 
-  documentVersionId: z.int(),
+  documentVersionId: z.int().nullable(),
   get DocumentVersion() {
-    return DocumentVersionSchema.optional();
+    return DocumentVersionSchema.nullable().optional();
+  },
+
+  creatorId: z.ulid().nullable(),
+  get Creator() {
+    return UserSchema.optional().nullable();
+  },
+
+  projectId: z.ulid().nullable(),
+  get Project() {
+    return ProjectSchema.optional().nullable();
   },
 });
 

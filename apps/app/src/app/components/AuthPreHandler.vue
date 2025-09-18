@@ -56,7 +56,6 @@ const handlePreAuth = async () => {
 onMounted(async () => {
   schema.value = await trpc.auth.queryPreAuthFormSchema.query({
     providerId: props.method.providerId,
-    pluginId: props.method.pluginId,
   });
 });
 </script>

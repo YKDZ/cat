@@ -21,7 +21,10 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     return extname(file.originName) === ".json";
   }
 
-  extractElement(file: File, fileContent: Buffer): TranslatableElementData[] {
+  async extractElement(
+    file: File,
+    fileContent: Buffer,
+  ): Promise<TranslatableElementData[]> {
     return collectTranslatableElement(fileContent.toString("utf-8"));
   }
 

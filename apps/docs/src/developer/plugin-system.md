@@ -98,7 +98,7 @@ interface TranslationAdvisor {
 interface TranslatableFileHandler {
   getId(): string;
   canExtractElement(file: File): boolean;
-  extractElement(file: File, fileContent: Buffer): TranslatableElementData[];
+  async extractElement(file: File, fileContent: Buffer): TranslatableElementData[];
   canGetReplacedFileContent(file: File): boolean;
   getReplacedFileContent(
     file: File,

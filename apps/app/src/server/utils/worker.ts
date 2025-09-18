@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@cat/db";
 import { logger } from "@cat/shared/utils";
-import type { Job, Worker } from "bullmq";
+import type { Worker } from "bullmq";
 
 export const registerTaskUpdateHandlers = (
   prisma: PrismaClient,
@@ -10,7 +10,7 @@ export const registerTaskUpdateHandlers = (
   worker.on("active", async (job) => {
     const id = job.name;
 
-    await updateTaskStatus(prisma, id, "processing", job);
+    await updateTaskStatus(prisma, id, "processing");
 
     logger.info("PROCESSOR", { msg: `Active ${queueId} task: ${id}` });
   });
@@ -18,7 +18,7 @@ export const registerTaskUpdateHandlers = (
   worker.on("completed", async (job) => {
     const id = job.name;
 
-    await updateTaskStatus(prisma, id, "completed", job);
+    await updateTaskStatus(prisma, id, "completed");
 
     logger.info("PROCESSOR", { msg: `Completed ${queueId} task: ${id}` });
   });
@@ -28,7 +28,7 @@ export const registerTaskUpdateHandlers = (
 
     const id = job.name;
 
-    await updateTaskStatus(prisma, id, "failed", job);
+    await updateTaskStatus(prisma, id, "failed", job.stacktrace);
 
     logger.error(
       "PROCESSOR",
@@ -48,7 +48,7 @@ const updateTaskStatus = async (
   prisma: PrismaClient,
   id: string,
   status: "processing" | "completed" | "failed",
-  job: Job,
+  stacktrace?: string[],
 ) => {
   await prisma.$transaction(async (tx) => {
     const task = await tx.task.findUnique({
@@ -57,8 +57,12 @@ const updateTaskStatus = async (
       },
     });
 
-    if (!task || !(task.meta === null || typeof task.meta === "object"))
-      throw new Error("Task has wrong meta");
+    if (!task) throw new Error("Task not found");
+
+    if (task.meta && typeof task.meta !== "object")
+      throw new Error("Invalid task meta");
+
+    const meta = (task.meta as object) ?? {};
 
     await tx.task.update({
       where: {
@@ -67,8 +71,8 @@ const updateTaskStatus = async (
       data: {
         status,
         meta: {
-          ...task.meta,
-          job,
+          ...meta,
+          stacktrace,
         },
       },
     });

@@ -425,13 +425,13 @@ export const glossaryRouter = router({
           message: "请求术语的元素不存在",
         });
 
-      const sourceLanguageId = element.Document.Project.sourceLanguageId;
+      const sourceLanguageId = element.Document!.Project.sourceLanguageId;
 
       const translationIds = await termService.termStore.searchTerm(
         element.value,
         sourceLanguageId,
       );
-      const glossariesIds = element.Document.Project.Glossaries.map(
+      const glossariesIds = element.Document!.Project.Glossaries.map(
         (glossary) => glossary.id,
       );
 

@@ -18,7 +18,7 @@ import type { JSONType } from "@cat/shared/schema/json";
 import { authedProcedure, router } from "@/server/trpc/server.ts";
 import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile.ts";
 import { useStorage } from "@/server/utils/storage/useStorage.ts";
-import { documentFromFilePretreatmentQueue } from "@/server/processor/documentFromFilePretreatment.ts";
+import { upsertDocumentElementsFromFileQueue } from "@/server/processor/upsertDocumentElementsFromFile.ts";
 
 export const documentRouter = router({
   fileUploadURL: authedProcedure
@@ -38,13 +38,14 @@ export const documentRouter = router({
         prismaDB: { client: prisma },
       } = ctx;
       const { meta } = input;
-      const { id: providerId, provider } = await useStorage(
+      const storageResult = await useStorage(
         prisma,
         "s3-storage-provider",
         "S3",
         "GLOBAL",
         "",
       );
+      const { id: providerId, provider } = storageResult;
 
       const name = sanitizeFileName(meta.name);
 
@@ -81,192 +82,107 @@ export const documentRouter = router({
         pluginRegistry,
       } = ctx;
 
-      const { parsedFile, parsedDocument, handlerId, vectorizerId, taskId } =
-        await prisma.$transaction(async (tx) => {
-          const file = await prisma.file.findUnique({
-            where: {
-              id: fileId,
-            },
-          });
+      const dbProject = await prisma.project.findUniqueOrThrow({
+        where: { id: projectId },
+        select: {
+          sourceLanguageId: true,
+        },
+      });
 
-          if (!file)
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "File does not exists",
-            });
+      const vectorizer = (
+        await pluginRegistry.getPluginServices(prisma, "TEXT_VECTORIZER")
+      ).find(({ service }) => service.canVectorize(dbProject.sourceLanguageId));
 
-          const parsedFile = FileSchema.parse(file);
+      if (!vectorizer) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No vectorizer found for project's source language",
+        });
+      }
 
-          const handlerData = (
-            await pluginRegistry.getPluginServices(
-              prisma,
-              "TRANSLATABLE_FILE_HANDLER",
-            )
-          ).find(({ service }) => service.canExtractElement(parsedFile));
+      const existDocument = await prisma.document.findFirst({
+        where: {
+          projectId,
+          File: {
+            id: fileId,
+          },
+        },
+      });
 
-          if (!handlerData) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "没有可以处理这种文件的文件解析器",
-            });
-          }
-
-          const project = await tx.project.findUnique({
-            where: {
-              id: projectId,
-            },
-          });
-
-          if (!project)
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Project with given id does not exists",
-            });
-
-          const vectorizerData = (
-            await pluginRegistry.getPluginServices(prisma, "TEXT_VECTORIZER")
-          ).find(({ service }) =>
-            service.canVectorize(project.sourceLanguageId),
-          );
-
-          if (!vectorizerData) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "CAT 没有可以处理这种文本的向量化器",
-            });
-          }
-
-          const task = await tx.task.create({
-            data: {
-              type: "document_from_file_pretreatment",
-              meta: {
-                projectId,
-              },
-            },
-          });
-
-          // 在这里开始选择创建或查找现存文档
-          // 并维护文档版本
-          let document =
-            (await tx.document.findFirst({
-              where: {
-                projectId: project.id,
-                File: {
-                  originName: file.originName,
-                },
-              },
-              include: {
-                Tasks: {
-                  where: {
-                    type: "document_from_file_pretreatment",
-                  },
-                  take: 1,
-                },
-                Versions: true,
-                Project: true,
-              },
-            })) ?? null;
-
-          if (!document) {
-            document = await tx.document.create({
-              data: {
-                Creator: {
-                  connect: {
-                    id: user.id,
-                  },
-                },
-                File: {
-                  connect: {
-                    id: fileId,
-                  },
-                },
-                Project: {
-                  connect: {
-                    id: projectId,
-                  },
-                },
-                Tasks: {
-                  connect: {
-                    id: task.id,
-                  },
-                },
-                Versions: {
-                  create: {
-                    isActive: true,
-                  },
-                },
-              },
-              include: {
-                File: true,
-                Tasks: {
-                  where: {
-                    type: "document_from_file_pretreatment",
-                  },
-                  take: 1,
-                },
-                Versions: true,
-                Project: true,
-              },
-            });
-          } else {
-            await tx.document.update({
-              where: {
-                id: document.id,
-              },
-              data: {
-                Tasks: {
-                  disconnect: document.Tasks[0]
-                    ? {
-                        id: document.Tasks[0].id,
-                      }
-                    : undefined,
-                  connect: {
-                    id: task.id,
-                  },
-                },
-                Versions: {
-                  updateMany: {
-                    where: {
-                      isActive: true,
-                    },
-                    data: {
-                      isActive: false,
-                    },
-                  },
-                  create: {
-                    isActive: true,
-                  },
-                },
-              },
-            });
-          }
-
-          const parsedDocument = DocumentSchema.parse(document);
-
-          return {
-            parsedFile,
-            parsedDocument,
-            handlerId: handlerData.id,
-            vectorizerId: vectorizerData.id,
-            taskId: task.id,
-          };
+      if (!existDocument) {
+        const dbFile = await prisma.file.findUniqueOrThrow({
+          where: {
+            id: fileId,
+          },
         });
 
-      await documentFromFilePretreatmentQueue.add(
-        taskId,
-        {
-          sourceLanguageId: parsedDocument.Project!.sourceLanguageId,
-          file: parsedFile,
-          document: parsedDocument,
-          handlerId,
-          vectorizerId,
-        },
-        {
-          jobId: taskId,
-        },
-      );
+        const { id: fileHandlerId } = (
+          await pluginRegistry.getPluginServices(
+            prisma,
+            "TRANSLATABLE_FILE_HANDLER",
+          )
+        ).find(({ service }) => service.canExtractElement(dbFile))!;
 
-      return parsedDocument;
+        const document = await prisma.document.create({
+          data: {
+            creatorId: user.id,
+            projectId,
+            fileHandlerId,
+            File: {
+              connect: {
+                id: fileId,
+              },
+            },
+            Versions: {
+              create: {},
+            },
+            Tasks: {
+              create: {
+                type: "upsertDocumentElementsFromFile",
+              },
+            },
+          },
+          include: {
+            Tasks: true,
+          },
+        });
+
+        await upsertDocumentElementsFromFileQueue.add(document.Tasks[0]!.id, {
+          documentId: document.id,
+          fileId,
+          vectorizerId: vectorizer.id,
+        });
+
+        return document;
+      } else {
+        const task = await prisma.task.create({
+          data: {
+            type: "upsertDocumentElementsFromFile",
+          },
+        });
+
+        const document = await prisma.document.update({
+          where: {
+            id: existDocument.id,
+          },
+          data: {
+            Tasks: {
+              connect: { id: task.id },
+            },
+          },
+          include: {
+            Tasks: true,
+          },
+        });
+
+        await upsertDocumentElementsFromFileQueue.add(task.id, {
+          documentId: existDocument.id,
+          fileId,
+          vectorizerId: vectorizer.id,
+        });
+
+        return document;
+      }
     }),
   queryTask: authedProcedure
     .input(
@@ -357,7 +273,6 @@ export const documentRouter = router({
             searchQuery.trim().length !== 0
               ? { contains: searchQuery, mode: "insensitive" }
               : undefined,
-          isActive: true,
 
           Translations:
             isTranslated === undefined && isApproved === undefined
@@ -427,7 +342,6 @@ export const documentRouter = router({
           sortIndex: {
             gt: greaterThan,
           },
-          isActive: true,
 
           Translations:
             isTranslated === undefined && isApproved === undefined
@@ -577,13 +491,14 @@ export const documentRouter = router({
           code: "BAD_REQUEST",
         });
 
-      const { provider } = await useStorage(
+      const storageResult = await useStorage(
         prisma,
         "s3-storage-provider",
         "S3",
         "GLOBAL",
         "",
       );
+      const { provider } = storageResult;
       const { fileId } = task.meta as {
         fileId: number;
       };
@@ -632,7 +547,6 @@ export const documentRouter = router({
       const element = await prisma.translatableElement.findUnique({
         where: {
           id: elementId,
-          isActive: true,
         },
         include: {
           Translations: {
@@ -705,7 +619,6 @@ export const documentRouter = router({
             searchQuery?.trim().length !== 0
               ? { contains: searchQuery }
               : undefined,
-          isActive: true,
 
           Translations:
             isTranslated === undefined && isApproved === undefined
@@ -805,7 +718,6 @@ export const documentRouter = router({
           sortIndex: {
             lt: target.sortIndex,
           },
-          isActive: true,
 
           Translations:
             isTranslated === undefined && isApproved === undefined
@@ -924,7 +836,7 @@ export const documentRouter = router({
         },
       });
 
-      if (!document || !document.File || !document.FileHandler)
+      if (!document)
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "指定文档不存在",
@@ -963,7 +875,6 @@ export const documentRouter = router({
         where: {
           documentId,
           documentVersionId,
-          isActive: !documentVersionId ? true : undefined,
         },
       });
 

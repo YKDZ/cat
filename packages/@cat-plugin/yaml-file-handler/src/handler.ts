@@ -43,7 +43,10 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
     );
   }
 
-  extractElement(file: File, fileContent: Buffer): TranslatableElementData[] {
+  async extractElement(
+    file: File,
+    fileContent: Buffer,
+  ): Promise<TranslatableElementData[]> {
     const content = fileContent.toString("utf8");
     const doc = parseDocument(content);
     const elements: TranslatableElementData[] = [];

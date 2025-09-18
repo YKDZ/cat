@@ -95,7 +95,9 @@ export const suggestionRouter = router({
         const cacheKey = `cache:suggestions:${elementHash}`;
         const cachedSuggestion = z
           .array(TranslationSuggestionSchema)
-          .parse(await redis.sMembers(cacheKey));
+          .parse(
+            (await redis.sMembers(cacheKey)).map((str) => JSON.parse(str)),
+          );
         if (cachedSuggestion.length > 0) {
           cachedSuggestion.forEach((suggestion) => {
             redisPub.publish(suggestionChannelKey, JSON.stringify(suggestion));
@@ -107,7 +109,7 @@ export const suggestionRouter = router({
         const { termedText, translationIds } =
           await termService.termStore.termText(
             zElement.value,
-            element.Document.Project.sourceLanguageId,
+            element.Document!.Project.sourceLanguageId,
             languageId,
           );
         const relations = await prisma.termRelation.findMany({
@@ -116,7 +118,7 @@ export const suggestionRouter = router({
               in: translationIds,
             },
             Term: {
-              languageId: element.Document.Project.sourceLanguageId,
+              languageId: element.Document!.Project.sourceLanguageId,
             },
             Translation: {
               languageId,
@@ -132,7 +134,7 @@ export const suggestionRouter = router({
             zElement,
             termedText,
             relations,
-            element.Document.Project.sourceLanguageId,
+            element.Document!.Project.sourceLanguageId,
             languageId,
           )
           .then((suggestions) => {
