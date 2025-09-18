@@ -1,5 +1,5 @@
 import { tracked } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import {
   MemorySuggestionSchema,
   type MemorySuggestion,
@@ -25,7 +25,7 @@ export const memoryRouter = router({
         projectIds: z.array(z.ulid()).optional(),
       }),
     )
-    .output(z.void())
+    .output(MemorySchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -33,7 +33,7 @@ export const memoryRouter = router({
       } = ctx;
       const { name, description, projectIds } = input;
 
-      await prisma.memory.create({
+      return await prisma.memory.create({
         data: {
           name,
           description,
@@ -143,13 +143,11 @@ export const memoryRouter = router({
       const { userId } = input;
 
       // TODO 按权限选择
-      return z.array(MemorySchema).parse(
-        await prisma.memory.findMany({
-          where: {
-            creatorId: userId,
-          },
-        }),
-      );
+      return await prisma.memory.findMany({
+        where: {
+          creatorId: userId,
+        },
+      });
     }),
   query: authedProcedure
     .input(
@@ -164,16 +162,14 @@ export const memoryRouter = router({
       } = ctx;
       const { id } = input;
 
-      return MemorySchema.nullable().parse(
-        await prisma.memory.findUnique({
-          where: {
-            id,
-          },
-          include: {
-            Creator: true,
-          },
-        }),
-      );
+      return await prisma.memory.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          Creator: true,
+        },
+      });
     }),
   countMemoryItem: authedProcedure
     .input(
@@ -219,7 +215,7 @@ export const memoryRouter = router({
         },
       });
 
-      return z.array(MemoryItemSchema).parse(items);
+      return items;
     }),
   deleteItems: authedProcedure
     .input(
@@ -255,20 +251,18 @@ export const memoryRouter = router({
       } = ctx;
       const { projectId } = input;
 
-      return z.array(MemorySchema).parse(
-        await prisma.memory.findMany({
-          where: {
-            Projects: {
-              some: {
-                id: projectId,
-              },
+      return await prisma.memory.findMany({
+        where: {
+          Projects: {
+            some: {
+              id: projectId,
             },
           },
-          include: {
-            Creator: true,
-          },
-        }),
-      );
+        },
+        include: {
+          Creator: true,
+        },
+      });
     }),
   countItem: authedProcedure
     .input(

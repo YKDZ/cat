@@ -1,5 +1,5 @@
 import type { CatPlugin, PluginGetterOptions } from "@cat/plugin-core";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { Provider } from "./provider.ts";
 
 export const ProviderConfigSchema = z.object({

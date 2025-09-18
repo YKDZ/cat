@@ -5,7 +5,7 @@ import {
   type TranslationAdvisor,
 } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
-import { z } from "zod";
+import * as z from "zod/v4";
 import type {
   TranslationSuggestion,
   UnvectorizedTextData,

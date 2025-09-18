@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { sanitizeFileName } from "@cat/db";
 import type { PrismaError } from "@cat/shared/schema/misc";
 import {
@@ -13,7 +13,6 @@ import {
   DocumentVersionSchema,
   TranslatableElementSchema,
 } from "@cat/shared/schema/prisma/document";
-import { TaskSchema } from "@cat/shared/schema/prisma/misc";
 import type { JSONType } from "@cat/shared/schema/json";
 import { authedProcedure, router } from "@/server/trpc/server.ts";
 import { exportTranslatedFileQueue } from "@/server/processor/exportTranslatedFile.ts";
@@ -61,6 +60,7 @@ export const documentRouter = router({
       });
 
       const url = await provider.generateUploadURL(path, 120);
+
       return {
         url,
         file: FileSchema.parse(file),
@@ -184,37 +184,6 @@ export const documentRouter = router({
         return document;
       }
     }),
-  queryTask: authedProcedure
-    .input(
-      z.object({
-        id: z.ulid(),
-        type: z.string(),
-      }),
-    )
-    .output(TaskSchema.nullable())
-    .query(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const { id, type } = input;
-
-      const task = await prisma.document.findUnique({
-        where: {
-          id,
-        },
-        select: {
-          Tasks: {
-            where: {
-              type,
-            },
-          },
-        },
-      });
-
-      if (!task || task.Tasks.length === 0) return null;
-
-      return TaskSchema.nullable().parse(task.Tasks[0]);
-    }),
   query: authedProcedure
     .input(z.object({ id: z.string() }))
     .output(DocumentSchema.nullable())
@@ -241,7 +210,7 @@ export const documentRouter = router({
           });
         });
 
-      return DocumentSchema.nullable().parse(document);
+      return document;
     }),
   countElement: authedProcedure
     .input(
@@ -379,7 +348,7 @@ export const documentRouter = router({
         },
       });
 
-      return TranslatableElementSchema.nullable().parse(element);
+      return element;
     }),
   exportTranslatedFile: authedProcedure
     .input(
@@ -658,7 +627,7 @@ export const documentRouter = router({
         take: pageSize,
       });
 
-      return z.array(TranslatableElementSchema).parse(result);
+      return result;
     }),
   queryPageIndexOfElement: authedProcedure
     .input(
@@ -786,16 +755,14 @@ export const documentRouter = router({
       } = ctx;
       const { documentId } = input;
 
-      return z.array(DocumentVersionSchema).parse(
-        await prisma.documentVersion.findMany({
-          where: {
-            documentId,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        }),
-      );
+      return await prisma.documentVersion.findMany({
+        where: {
+          documentId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
     }),
   getDocumentContent: authedProcedure
     .input(

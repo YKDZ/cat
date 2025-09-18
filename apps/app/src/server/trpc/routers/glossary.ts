@@ -4,7 +4,7 @@ import {
   type TermRelation,
 } from "@cat/shared/schema/prisma/glossary";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import { authedProcedure, router } from "../server.ts";
 
@@ -87,7 +87,7 @@ export const glossaryRouter = router({
             },
       });
 
-      return z.array(TermRelationSchema).parse(relations);
+      return relations;
     }),
   query: authedProcedure
     .input(
@@ -102,16 +102,14 @@ export const glossaryRouter = router({
       } = ctx;
       const { id } = input;
 
-      return GlossarySchema.nullable().parse(
-        await prisma.glossary.findUnique({
-          where: {
-            id,
-          },
-          include: {
-            Creator: true,
-          },
-        }),
-      );
+      return await prisma.glossary.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          Creator: true,
+        },
+      });
     }),
   listUserOwned: authedProcedure
     .input(
@@ -126,16 +124,14 @@ export const glossaryRouter = router({
       } = ctx;
       const { userId } = input;
 
-      return z.array(GlossarySchema).parse(
-        await prisma.glossary.findMany({
-          where: {
-            creatorId: userId,
-          },
-          include: {
-            Creator: true,
-          },
-        }),
-      );
+      return await prisma.glossary.findMany({
+        where: {
+          creatorId: userId,
+        },
+        include: {
+          Creator: true,
+        },
+      });
     }),
   listProjectOwned: authedProcedure
     .input(
@@ -150,20 +146,18 @@ export const glossaryRouter = router({
       } = ctx;
       const { projectId } = input;
 
-      return z.array(GlossarySchema).parse(
-        await prisma.glossary.findMany({
-          where: {
-            Projects: {
-              some: {
-                id: projectId,
-              },
+      return await prisma.glossary.findMany({
+        where: {
+          Projects: {
+            some: {
+              id: projectId,
             },
           },
-          include: {
-            Creator: true,
-          },
-        }),
-      );
+        },
+        include: {
+          Creator: true,
+        },
+      });
     }),
   countTerm: authedProcedure
     .input(
@@ -202,26 +196,24 @@ export const glossaryRouter = router({
       } = ctx;
       const { name, description, projectIds } = input;
 
-      return GlossarySchema.parse(
-        await prisma.glossary.create({
-          data: {
-            name,
-            description,
-            Creator: {
-              connect: {
-                id: user.id,
-              },
-            },
-            Projects: {
-              connect: projectIds
-                ? projectIds.map((projectId) => ({
-                    id: projectId,
-                  }))
-                : undefined,
+      return await prisma.glossary.create({
+        data: {
+          name,
+          description,
+          Creator: {
+            connect: {
+              id: user.id,
             },
           },
-        }),
-      );
+          Projects: {
+            connect: projectIds
+              ? projectIds.map((projectId) => ({
+                  id: projectId,
+                }))
+              : undefined,
+          },
+        },
+      });
     }),
   insertTerm: authedProcedure
     .input(
@@ -375,7 +367,7 @@ export const glossaryRouter = router({
         },
       });
 
-      return z.array(TermRelationSchema).parse(relations);
+      return relations;
     }),
   findTerm: authedProcedure
     .input(
@@ -471,6 +463,6 @@ export const glossaryRouter = router({
         },
       });
 
-      return z.array(TermRelationSchema).parse(relations);
+      return relations;
     }),
 });

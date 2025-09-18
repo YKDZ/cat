@@ -28,17 +28,13 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@cat/db": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "@elastic/elasticsearch": "^9.1.1",
-    "zod": "^4.1.5"
+    "@elastic/elasticsearch": "^9.1.1"
   },
   "peerDependencies": {
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "zod": "^4.1.5"
+    "zod": "^4.1.9"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*"

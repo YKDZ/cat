@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import {
   TranslationApprovementSchema,
@@ -116,20 +116,19 @@ export const translationRouter = router({
           },
         );
 
-        return TranslationSchema.extend({
-          status: z.enum(["PROCESSING", "COMPLETED"]),
-        }).parse({
+        return {
           id: 0, // Placeholder ID, will be updated later
           embeddingId: 0, // Placeholder ID, will be updated later
           meta: null,
           value,
           languageId,
           translatableElementId: elementId,
+          vectorizerId: vectorizer.id,
           translatorId: user.id,
           createdAt: new Date(),
           updatedAt: new Date(),
           status: "PROCESSING",
-        });
+        };
       });
     }),
   update: authedProcedure
@@ -159,6 +158,7 @@ export const translationRouter = router({
           translatableElementId: true,
           translatorId: true,
           createdAt: true,
+          vectorizerId: true,
         },
       });
 
@@ -197,20 +197,19 @@ export const translationRouter = router({
           });
         });
 
-      return TranslationSchema.extend({
-        status: z.enum(["PROCESSING", "COMPLETED"]),
-      }).parse({
+      return {
         id: translation.id,
         embeddingId: translation.embeddingId,
         meta: null,
         value,
         languageId: translation.languageId,
+        vectorizerId: translation.vectorizerId,
         translatableElementId: translation.translatableElementId,
         translatorId: translation.translatorId,
         createdAt: translation.createdAt,
         updatedAt: new Date(),
         status: "PROCESSING",
-      });
+      };
     }),
   queryAll: authedProcedure
     .input(
@@ -237,7 +236,7 @@ export const translationRouter = router({
         },
       });
 
-      return z.array(TranslationSchema).parse(translations);
+      return translations;
     }),
   vote: authedProcedure
     .input(
@@ -254,42 +253,40 @@ export const translationRouter = router({
       } = ctx;
       const { id, value } = input;
 
-      return TranslationVoteSchema.parse(
-        await prisma.translationVote.upsert({
-          where: {
-            oneVotePerUserUniqueTranslation: {
-              translationId: id,
-              voterId: user.id,
+      return await prisma.translationVote.upsert({
+        where: {
+          oneVotePerUserUniqueTranslation: {
+            translationId: id,
+            voterId: user.id,
+          },
+        },
+        create: {
+          value,
+          Translation: {
+            connect: {
+              id,
             },
           },
-          create: {
-            value,
-            Translation: {
-              connect: {
-                id,
-              },
-            },
-            Voter: {
-              connect: {
-                id: user.id,
-              },
+          Voter: {
+            connect: {
+              id: user.id,
             },
           },
-          update: {
-            value,
-            Translation: {
-              connect: {
-                id,
-              },
-            },
-            Voter: {
-              connect: {
-                id: user.id,
-              },
+        },
+        update: {
+          value,
+          Translation: {
+            connect: {
+              id,
             },
           },
-        }),
-      );
+          Voter: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
+      });
     }),
   countVote: authedProcedure
     .input(
@@ -328,16 +325,14 @@ export const translationRouter = router({
       } = ctx;
       const { id } = input;
 
-      return TranslationVoteSchema.nullable().parse(
-        await prisma.translationVote.findUnique({
-          where: {
-            oneVotePerUserUniqueTranslation: {
-              translationId: id,
-              voterId: user.id,
-            },
+      return await prisma.translationVote.findUnique({
+        where: {
+          oneVotePerUserUniqueTranslation: {
+            translationId: id,
+            voterId: user.id,
           },
-        }),
-      );
+        },
+      });
     }),
   autoApprove: authedProcedure
     .input(
@@ -446,15 +441,13 @@ export const translationRouter = router({
           });
         }
 
-        return TranslationApprovementSchema.parse(
-          await tx.translationApprovement.create({
-            data: {
-              translationId: id,
-              isActive: true,
-              creatorId: user.id,
-            },
-          }),
-        );
+        return await tx.translationApprovement.create({
+          data: {
+            translationId: id,
+            isActive: true,
+            creatorId: user.id,
+          },
+        });
       });
     }),
   unapprove: authedProcedure
@@ -470,16 +463,14 @@ export const translationRouter = router({
       } = ctx;
       const { id } = input;
 
-      return TranslationApprovementSchema.parse(
-        await prisma.translationApprovement.update({
-          where: {
-            id,
-          },
-          data: {
-            isActive: false,
-          },
-        }),
-      );
+      return await prisma.translationApprovement.update({
+        where: {
+          id,
+        },
+        data: {
+          isActive: false,
+        },
+      });
     }),
   autoTranslate: authedProcedure
     .input(

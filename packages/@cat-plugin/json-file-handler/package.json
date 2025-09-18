@@ -33,9 +33,5 @@
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*"
-  },
-  "dependencies": {
-    "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*"
   }
 }

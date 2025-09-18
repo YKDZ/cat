@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { JSONSchemaSchema } from "@cat/shared/schema/json";
 import type { AuthProvider } from "@cat/plugin-core";
 import { publicProcedure, router } from "@/server/trpc/server.ts";
@@ -35,7 +35,7 @@ export const authRouter = router({
 
       if (typeof provider.getPreAuthFormSchema !== "function") return {};
 
-      return JSONSchemaSchema.parse(provider.getPreAuthFormSchema());
+      return provider.getPreAuthFormSchema();
     }),
   preAuth: publicProcedure
     .input(
@@ -129,7 +129,8 @@ export const authRouter = router({
         });
 
       if (typeof provider.getAuthFormSchema !== "function") return {};
-      return JSONSchemaSchema.parse(provider.getAuthFormSchema());
+
+      return provider.getAuthFormSchema();
     }),
   auth: publicProcedure
     .input(

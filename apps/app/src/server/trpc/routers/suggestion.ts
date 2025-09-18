@@ -1,5 +1,5 @@
 import { tracked, TRPCError } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,

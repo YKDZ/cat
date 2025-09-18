@@ -2,7 +2,7 @@ import type { TextVectorizer } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { UnvectorizedTextData } from "@cat/shared/schema/misc";
 import { Pool } from "undici";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const ConfigSchema = z.object({
   url: z.url(),

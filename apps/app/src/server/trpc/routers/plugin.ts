@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import {
   PluginConfigInstanceSchema,
@@ -58,16 +58,14 @@ export const pluginRouter = router({
 
       if (!installation) return null;
 
-      return PluginConfigInstanceSchema.nullable().parse(
-        await prisma.pluginConfigInstance.findUnique({
-          where: {
-            pluginInstallationId_configId: {
-              configId,
-              pluginInstallationId: installation.id,
-            },
+      return await prisma.pluginConfigInstance.findUnique({
+        where: {
+          pluginInstallationId_configId: {
+            configId,
+            pluginInstallationId: installation.id,
           },
-        }),
-      );
+        },
+      });
     }),
   upsertConfigInstance: authedProcedure
     .input(
@@ -79,7 +77,7 @@ export const pluginRouter = router({
         value: z.json(),
       }),
     )
-    .output(z.void())
+    .output(PluginConfigInstanceSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -97,7 +95,7 @@ export const pluginRouter = router({
           message: "Plugin not installed",
         });
 
-      await prisma.pluginConfigInstance.upsert({
+      return await prisma.pluginConfigInstance.upsert({
         where: {
           pluginInstallationId_configId: {
             pluginInstallationId: installation.id,
@@ -131,6 +129,7 @@ export const pluginRouter = router({
         prismaDB: { client: prisma },
       } = ctx;
       const { id } = input;
+
       return PluginSchema.required({
         Installations: true,
       })
@@ -159,25 +158,18 @@ export const pluginRouter = router({
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      return z
-        .array(
-          PluginSchema.required({
-            Installations: true,
-          }),
-        )
-        .parse(
-          await prisma.plugin.findMany({
-            include: {
-              Versions: true,
-              Permissions: true,
-              Tags: true,
-              Installations: true,
-            },
-            orderBy: {
-              id: "asc",
-            },
-          }),
-        );
+
+      return await prisma.plugin.findMany({
+        include: {
+          Versions: true,
+          Permissions: true,
+          Tags: true,
+          Installations: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      });
     }),
   availableAuthMethod: publicProcedure
     .output(z.array(AuthMethodSchema))
@@ -244,8 +236,10 @@ export const pluginRouter = router({
         prismaDB: { client: prisma },
         pluginRegistry,
       } = ctx;
+      const { advisorId } = input;
+
       const dbAdvisor = await prisma.pluginService.findUnique({
-        where: { id: input.advisorId, serviceType: "TRANSLATION_ADVISOR" },
+        where: { id: advisorId, serviceType: "TRANSLATION_ADVISOR" },
         select: {
           serviceId: true,
           serviceType: true,
@@ -254,17 +248,21 @@ export const pluginRouter = router({
           },
         },
       });
+
       if (!dbAdvisor) throw new TRPCError({ code: "NOT_FOUND" });
+
       const { service } = (await pluginRegistry.getPluginService(
         prisma,
         dbAdvisor.PluginInstallation.pluginId,
         "TRANSLATION_ADVISOR",
         dbAdvisor.serviceId,
       ))!;
+
       if (!service) throw new TRPCError({ code: "NOT_FOUND" });
-      return TranslationAdvisorDataSchema.parse({
-        id: service.getId(),
+
+      return {
+        id: advisorId,
         name: service.getName(),
-      });
+      };
     }),
 });

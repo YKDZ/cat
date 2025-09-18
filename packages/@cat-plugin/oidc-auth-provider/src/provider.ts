@@ -3,7 +3,7 @@ import type { AuthProvider, AuthResult, PreAuthResult } from "@cat/plugin-core";
 import type { HTTPHelpers } from "@cat/shared/utils";
 import { safeJoinURL } from "@cat/shared/utils";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { request, fetch } from "undici";
 import { randomChars } from "./utils/crypto.ts";
 import { createOIDCAuthURL } from "./utils/oidc.ts";

@@ -15,7 +15,7 @@ import { useRefHistory } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref } from "vue";
-import z from "zod";
+import * as z from "zod/v4";
 import { trpc } from "@/server/trpc/client.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { useToastStore } from "@/app/stores/toast.ts";

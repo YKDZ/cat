@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import z from "zod";
+import * as z from "zod/v4";
 import { Queue, Worker } from "bullmq";
 import { getPrismaDB, getRedisDB } from "@cat/db";
 import { logger } from "@cat/shared/utils";

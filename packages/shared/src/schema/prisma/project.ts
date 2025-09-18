@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod/v4";
 import { MemorySchema } from "./memory.ts";
 import { LanguageSchema } from "./misc.ts";
 import { UserSchema } from "./user.ts";

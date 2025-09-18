@@ -12,7 +12,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getPrismaDB, mimeFromFileName } from "@cat/db";
 import { StorageProvider } from "@cat/plugin-core";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const S3ConfigSchema = z.object({
   "endpoint-url": z.url(),

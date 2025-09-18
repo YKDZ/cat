@@ -1,7 +1,7 @@
 import type { PrismaError } from "@cat/shared/schema/misc";
 import { ProjectSchema } from "@cat/shared/schema/prisma/project";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { DocumentSchema } from "@cat/shared/schema/prisma/document";
 import { authedProcedure, publicProcedure, router } from "../server.ts";
 
@@ -43,31 +43,29 @@ export const projectRouter = router({
       const { id, name, sourceLanguageId, targetLanguageIds, description } =
         input;
 
-      return ProjectSchema.parse(
-        await prisma.project.update({
-          where: {
-            id,
-          },
-          data: {
-            name,
-            description,
-            SourceLanguage: sourceLanguageId
-              ? {
-                  connect: {
-                    id: sourceLanguageId,
-                  },
-                }
-              : undefined,
-            TargetLanguages: targetLanguageIds
-              ? {
-                  set: targetLanguageIds.map((id) => ({
-                    id,
-                  })),
-                }
-              : undefined,
-          },
-        }),
-      );
+      return await prisma.project.update({
+        where: {
+          id,
+        },
+        data: {
+          name,
+          description,
+          SourceLanguage: sourceLanguageId
+            ? {
+                connect: {
+                  id: sourceLanguageId,
+                },
+              }
+            : undefined,
+          TargetLanguages: targetLanguageIds
+            ? {
+                set: targetLanguageIds.map((id) => ({
+                  id,
+                })),
+              }
+            : undefined,
+        },
+      });
     }),
   create: authedProcedure
     .input(
@@ -146,7 +144,7 @@ export const projectRouter = router({
           });
         });
 
-      return ProjectSchema.parse(project);
+      return project;
     }),
   linkGlossary: authedProcedure
     .input(
@@ -155,14 +153,14 @@ export const projectRouter = router({
         glossaryIds: z.array(z.ulid()),
       }),
     )
-    .output(z.void())
+    .output(ProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
       const { id, glossaryIds } = input;
 
-      await prisma.project.update({
+      return await prisma.project.update({
         where: {
           id,
         },
@@ -182,14 +180,14 @@ export const projectRouter = router({
         memoryIds: z.array(z.ulid()),
       }),
     )
-    .output(z.void())
+    .output(ProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
       const { id, memoryIds } = input;
 
-      await prisma.project.update({
+      return await prisma.project.update({
         where: {
           id,
         },
@@ -209,14 +207,14 @@ export const projectRouter = router({
         glossaryIds: z.array(z.ulid()),
       }),
     )
-    .output(z.void())
+    .output(ProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
       const { id, glossaryIds } = input;
 
-      await prisma.project.update({
+      return await prisma.project.update({
         where: {
           id,
         },
@@ -236,14 +234,14 @@ export const projectRouter = router({
         memoryIds: z.array(z.ulid()),
       }),
     )
-    .output(z.void())
+    .output(ProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
       } = ctx;
       const { id, memoryIds } = input;
 
-      await prisma.project.update({
+      return await prisma.project.update({
         where: {
           id,
         },
@@ -264,23 +262,21 @@ export const projectRouter = router({
         user: creator,
       } = ctx;
 
-      return z.array(ProjectSchema).parse(
-        await prisma.project.findMany({
-          where: {
-            creatorId: creator.id,
-          },
-          include: {
-            Creator: true,
-            SourceLanguage: true,
-            TargetLanguages: true,
-            Documents: {
-              include: {
-                File: true,
-              },
+      return await prisma.project.findMany({
+        where: {
+          creatorId: creator.id,
+        },
+        include: {
+          Creator: true,
+          SourceLanguage: true,
+          TargetLanguages: true,
+          Documents: {
+            include: {
+              File: true,
             },
           },
-        }),
-      );
+        },
+      });
     }),
   listUserParticipated: publicProcedure
     .input(
@@ -295,27 +291,25 @@ export const projectRouter = router({
       } = ctx;
       const { userId } = input;
 
-      return z.array(ProjectSchema).parse(
-        await prisma.project.findMany({
-          where: {
-            Members: {
-              some: {
-                id: userId,
-              },
+      return await prisma.project.findMany({
+        where: {
+          Members: {
+            some: {
+              id: userId,
             },
           },
-          include: {
-            Creator: true,
-            SourceLanguage: true,
-            TargetLanguages: true,
-            Documents: {
-              include: {
-                File: true,
-              },
+        },
+        include: {
+          Creator: true,
+          SourceLanguage: true,
+          TargetLanguages: true,
+          Documents: {
+            include: {
+              File: true,
             },
           },
-        }),
-      );
+        },
+      });
     }),
   query: authedProcedure
     .input(
@@ -330,18 +324,16 @@ export const projectRouter = router({
       } = ctx;
       const { id } = input;
 
-      return ProjectSchema.nullable().parse(
-        await prisma.project.findUnique({
-          where: {
-            id,
-          },
-          include: {
-            Creator: true,
-            TargetLanguages: true,
-            SourceLanguage: true,
-          },
-        }),
-      );
+      return await prisma.project.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          Creator: true,
+          TargetLanguages: true,
+          SourceLanguage: true,
+        },
+      });
     }),
   addNewLanguage: authedProcedure
     .input(
@@ -358,31 +350,29 @@ export const projectRouter = router({
       } = ctx;
       const { projectId, languageId } = input;
 
-      return ProjectSchema.parse(
-        await prisma.project
-          .update({
-            where: {
-              id: projectId,
-              creatorId: user.id,
-            },
-            data: {
-              TargetLanguages: {
-                connect: {
-                  id: languageId,
-                },
+      return await prisma.project
+        .update({
+          where: {
+            id: projectId,
+            creatorId: user.id,
+          },
+          data: {
+            TargetLanguages: {
+              connect: {
+                id: languageId,
               },
             },
-            include: {
-              TargetLanguages: true,
-            },
-          })
-          .catch((e: PrismaError) => {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: e.message,
-            });
-          }),
-      );
+          },
+          include: {
+            TargetLanguages: true,
+          },
+        })
+        .catch((e: PrismaError) => {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: e.message,
+          });
+        });
     }),
   join: authedProcedure
     .input(
@@ -390,7 +380,7 @@ export const projectRouter = router({
         id: z.string(),
       }),
     )
-    .output(z.void())
+    .output(ProjectSchema)
     .mutation(async ({ input, ctx }) => {
       const {
         prismaDB: { client: prisma },
@@ -398,7 +388,7 @@ export const projectRouter = router({
       } = ctx;
       const { id } = input;
 
-      await prisma.project.update({
+      return await prisma.project.update({
         where: {
           id,
         },
@@ -418,7 +408,7 @@ export const projectRouter = router({
         userId: z.ulid(),
       }),
     )
-    .output(z.void())
+    .output(ProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -426,7 +416,7 @@ export const projectRouter = router({
       } = ctx;
       const { projectId, userId } = input;
 
-      await prisma.project.update({
+      return await prisma.project.update({
         where: {
           id: projectId,
           creatorId: creator.id,

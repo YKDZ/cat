@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/prisma/client.ts";
+import type { JsonObject } from "@/generated/prisma/internal/prismaNamespace.ts";
 
 export class PrismaDB {
   public client: PrismaClient;

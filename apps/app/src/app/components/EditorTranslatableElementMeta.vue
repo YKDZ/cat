@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
-import z from "zod";
+import * as z from "zod/v4";
 import Collapse from "./Collapse.vue";
 import { useEditorStore } from "@/app/stores/editor.ts";
 

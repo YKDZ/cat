@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod/v4";
 import { PrismaDateTime } from "./misc.ts";
 import { PluginServiceSchema } from "@/schema/prisma/plugin.ts";
 import { DocumentSchema } from "@/schema/prisma/document.ts";

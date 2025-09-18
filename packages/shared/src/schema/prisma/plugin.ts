@@ -1,13 +1,13 @@
-import z from "zod";
+import * as z from "zod/v4";
 import { UserSchema } from "./user.ts";
 import { PrismaDateTime } from "@/schema/misc.ts";
-import { JSONSchemaSchema } from "@/schema/json.ts";
+import { JSONSchemaSchema, safeZDotJson } from "@/schema/json.ts";
 
 export const PluginInstallationSchema = z.object({
   id: z.int(),
   scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
   scopeId: z.string().nullable(),
-  scopeMeta: z.json().nullable(),
+  scopeMeta: safeZDotJson.nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 
@@ -38,7 +38,7 @@ export const PluginConfigSchema = z.object({
 
 export const PluginConfigInstanceSchema = z.object({
   id: z.int(),
-  value: z.json(),
+  value: safeZDotJson,
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 

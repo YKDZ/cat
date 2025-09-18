@@ -28,9 +28,6 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@cat/db": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*",
     "jose": "^6.1.0"
   },
   "devDependencies": {
@@ -40,6 +37,6 @@
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "zod": "^4.1.5"
+    "zod": "^4.1.9"
   }
 }

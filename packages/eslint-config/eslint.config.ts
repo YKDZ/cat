@@ -27,7 +27,6 @@ export default defineConfig(
   {
     plugins: { import: importPlugin },
     rules: {
-      "import/no-namespace": "error",
       "import/order": "warn",
       "import/enforce-node-protocol-usage": ["error", "always"],
       "import/extensions": [

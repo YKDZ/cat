@@ -29,17 +29,13 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.879.0",
-    "@aws-sdk/s3-request-presigner": "^3.879.0",
-    "@cat/db": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "zod": "^4.1.5"
+    "@aws-sdk/s3-request-presigner": "^3.879.0"
   },
   "peerDependencies": {
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "zod": "^4.1.5"
+    "zod": "^4.1.9"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*"

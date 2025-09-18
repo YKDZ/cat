@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { Queue, Worker } from "bullmq";
 import { mimeFromFileName, setting } from "@cat/db";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { PluginRegistry } from "@cat/plugin-core";
 import { getPrismaDB } from "@cat/db";
 import { useStringTemplate } from "@cat/shared/utils";

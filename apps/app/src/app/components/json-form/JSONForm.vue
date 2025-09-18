@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, provide } from "vue";
 import {
-  JSONSchemaSchema,
-  type JSONSchema,
+  _JSONSchemaSchema,
+  type _JSONSchema,
   type JSONType,
 } from "@cat/shared/schema/json";
 import { MatcherRegistry, schemaKey, type RendererComponent } from "./index.ts";
@@ -15,23 +15,25 @@ type LabelClasses = {
 
 const props = defineProps<{
   propertyKey?: string;
-  schema: JSONSchema;
+  schema: _JSONSchema;
   data: JSONType;
   classes?: LabelClasses;
 }>();
 
 const emits = defineEmits<{
-  (e: "update", to: JSONType, schema: JSONSchema, key?: string): void;
-  (e: "_update", to: JSONType, schema: JSONSchema, key: string): void;
+  (e: "update", to: JSONType, schema: _JSONSchema, key?: string): void;
+  (e: "_update", to: JSONType, schema: _JSONSchema, key: string): void;
 }>();
 
 const objectProperties = computed(() => {
+  if (typeof props.schema === "boolean") return [];
+
   if (props.schema.type !== "object" || !props.schema.properties) return [];
 
   return Object.keys(props.schema.properties!).map((key) => {
     return {
       key,
-      schema: JSONSchemaSchema.parse(props.schema.properties![key]),
+      schema: _JSONSchemaSchema.parse(props.schema.properties![key]),
     };
   });
 });
@@ -42,7 +44,7 @@ const labelClasses = computed(() => ({
   "label-description": props.classes?.["label-description"],
 }));
 
-const handleUpdate = (to: JSONType, schema: JSONSchema, key?: string) => {
+const handleUpdate = (to: JSONType, schema: _JSONSchema, key?: string) => {
   let newData: JSONType;
 
   if (
@@ -87,35 +89,36 @@ provide(schemaKey, props.schema);
 </script>
 
 <template>
-  <component
-    :is="matchedRenderer"
-    v-if="matchedRenderer"
-    :data="providedData"
-    :property-key="propertyKey"
-    @_update="(to) => handleUpdate(to, props.schema)"
-  />
-  <div v-if="schema.type === 'object'">
-    <slot name="label" :propertyKey :schema :labelClasses>
-      <h3 :class="labelClasses.label">
-        <span :class="labelClasses['label-title']">
-          {{ schema.title ?? propertyKey }}</span
-        >
-        <span :class="labelClasses['label-description']">
-          {{ schema.description }}</span
-        >
-      </h3></slot
-    >
-    <form>
-      <JSONForm
-        v-for="property in objectProperties"
-        :key="property.key"
-        :data="dataOfPropertyKey(property.key, property.schema.default)"
-        :property-key="property.key"
-        :schema="property.schema"
-        :classes
-        @_update="handleUpdate"
-      />
-    </form>
-  </div>
+  <template v-if="typeof schema === 'boolean'" />
+  <template v-else>
+    <component
+      :is="matchedRenderer"
+      v-if="matchedRenderer"
+      :data="providedData"
+      :property-key="propertyKey"
+      @_update="(to) => handleUpdate(to, props.schema)" />
+    <div v-if="schema.type === 'object'">
+      <slot name="label" :propertyKey :schema :labelClasses>
+        <h3 :class="labelClasses.label">
+          <span :class="labelClasses['label-title']">
+            {{ schema.title ?? propertyKey }}</span
+          >
+          <span :class="labelClasses['label-description']">
+            {{ schema.description }}</span
+          >
+        </h3></slot
+      >
+      <form>
+        <JSONForm
+          v-for="property in objectProperties"
+          :key="property.key"
+          :data="dataOfPropertyKey(property.key, property.schema.default)"
+          :property-key="property.key"
+          :schema="property.schema"
+          :classes
+          @_update="handleUpdate"
+        />
+      </form></div
+  ></template>
   <slot name="custom" :props :classes />
 </template>

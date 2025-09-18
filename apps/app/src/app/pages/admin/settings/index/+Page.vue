@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { z } from "zod";
+import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";
 import AdminSettingForm from "@/app/components/AdminSettingForm.vue";
 

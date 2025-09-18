@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { JSONSchemaSchema } from "@/schema/json.ts";
 
 export const PluginManifestSchema = z.object({

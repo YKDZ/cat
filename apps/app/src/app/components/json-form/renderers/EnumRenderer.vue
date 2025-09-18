@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import type { JSONType } from "@cat/shared/schema/json";
-import z from "zod";
+import * as z from "zod/v4";
 import { schemaKey, transferDataToString } from "..";
 import type { PickerOption } from "@/app/components/picker/index.ts";
 import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";

@@ -1,10 +1,11 @@
-import z from "zod";
+import * as z from "zod/v4";
 import { LanguageSchema } from "./misc.ts";
 import { UserSchema } from "./user.ts";
 import { TranslatableElementSchema } from "./document.ts";
 import { VectorSchema } from "./vector.ts";
 import { PrismaDateTime } from "@/schema/misc.ts";
 import { PluginServiceSchema } from "@/schema/prisma/plugin.ts";
+import { safeZDotJson } from "@/schema/json.ts";
 
 export const TranslationVoteSchema = z.object({
   id: z.int(),
@@ -31,7 +32,7 @@ export const TranslationApprovementSchema = z.object({
 export const TranslationSchema = z.object({
   id: z.int(),
   value: z.string(),
-  meta: z.json().nullable(),
+  meta: safeZDotJson.nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 

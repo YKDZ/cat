@@ -5,7 +5,7 @@ import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
 import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
 import { logger } from "@cat/shared/utils";
 import { Pool } from "undici";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const ApiConfigSchema = z.object({
   url: z.url(),

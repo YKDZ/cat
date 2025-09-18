@@ -1,6 +1,6 @@
 import { getPrismaDB } from "@cat/db";
 import { Queue, Worker } from "bullmq";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { PluginRegistry, type TranslatableFileHandler } from "@cat/plugin-core";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";

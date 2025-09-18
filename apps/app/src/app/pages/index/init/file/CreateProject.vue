@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/prisma/project";
 import { ref } from "vue";
-import { z } from "zod";
+import * as z from "zod/v4";
 import HButton from "@/app/components/headless/HButton.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";

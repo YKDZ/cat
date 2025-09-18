@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { UserSchema } from "@cat/shared/schema/prisma/user";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
 import { authedProcedure, router } from "../server.ts";
@@ -21,13 +21,11 @@ export const userRouter = router({
       } = ctx;
       const { id } = input;
 
-      return UserSchema.nullable().parse(
-        await prisma.user.findUnique({
-          where: {
-            id,
-          },
-        }),
-      );
+      return await prisma.user.findUnique({
+        where: {
+          id,
+        },
+      });
     }),
   update: authedProcedure
     .input(
@@ -49,16 +47,14 @@ export const userRouter = router({
           message: "你没有更新他人的信息的权限",
         });
 
-      return UserSchema.parse(
-        await prisma.user.update({
-          where: {
-            id: newUser.id,
-          },
-          data: {
-            name: user.name,
-          },
-        }),
-      );
+      return await prisma.user.update({
+        where: {
+          id: newUser.id,
+        },
+        data: {
+          name: user.name,
+        },
+      });
     }),
   uploadAvatar: authedProcedure
     .input(

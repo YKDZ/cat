@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { TaskSchema } from "@cat/shared/schema/prisma/misc";
 import { authedProcedure, router } from "@/server/trpc/server.ts";
 
@@ -24,20 +24,18 @@ export const taskRouter = router({
       } = ctx;
       const { type, meta } = input;
 
-      return z.array(TaskSchema).parse(
-        await prisma.task.findMany({
-          where: {
-            type,
-            AND: meta
-              ? meta.map(({ path, value }) => ({
-                  meta: {
-                    path,
-                    equals: z.json().parse(value) ?? {},
-                  },
-                }))
-              : undefined,
-          },
-        }),
-      );
+      return await prisma.task.findMany({
+        where: {
+          type,
+          AND: meta
+            ? meta.map(({ path, value }) => ({
+                meta: {
+                  path,
+                  equals: z.json().parse(value) ?? {},
+                },
+              }))
+            : undefined,
+        },
+      });
     }),
 });
