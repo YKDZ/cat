@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/prisma/document";
-import { onMounted } from "vue";
 import { navigate } from "vike/client/router";
-import Icon from "./Icon.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
 import HButton from "./headless/HButton.vue";
@@ -36,11 +34,6 @@ const handleDelete = async () => {
 const handleClick = async () => {
   await navigate(`/document/${props.document.id}`);
 };
-
-onMounted(() => {
-  updateTranslatableEleAmount(props.document.id);
-  updateDocumentFromFilePretreatmentTask(props.document.id);
-});
 </script>
 
 <template>
@@ -50,18 +43,12 @@ onMounted(() => {
   >
     <TableCell>{{ document.File?.originName }}</TableCell>
     <TableCell>
-      <span v-if="translatableEleAmounts.get(document.id) === -1"
-        ><Icon small icon="i-mdi:loading animate-spin"
-      /></span>
-      <span v-else>{{ translatableEleAmounts.get(document.id) }}</span>
-    </TableCell>
-    <TableCell>
       <HButton
         icon="i-mdi:trash-can"
         :classes="{
           base: 'btn btn-md btn-base btn-square',
         }"
-        @click="handleDelete"
+        @click.stop="handleDelete"
       />
     </TableCell>
   </TableRow>
