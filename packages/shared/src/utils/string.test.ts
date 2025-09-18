@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { toShortFixed } from "./string";
+import { toShortFixed } from "./string.ts";
 
 test("should return shortened number", () => {
   expect(toShortFixed(1)).toStrictEqual("1");

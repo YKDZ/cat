@@ -1,5 +1,4 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
 import { publicProcedure, router } from "@/server/trpc/server.ts";
 
@@ -10,12 +9,8 @@ export const languageRouter = router({
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      return await z
-        .array(LanguageSchema)
-        .parseAsync(await prisma.language.findMany())
-        .catch((e) => {
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", cause: e });
-        });
+
+      return await prisma.language.findMany();
     }),
   query: publicProcedure
     .input(
@@ -30,12 +25,10 @@ export const languageRouter = router({
       } = ctx;
       const { id } = input;
 
-      return LanguageSchema.nullable().parse(
-        await prisma.language.findUnique({
-          where: {
-            id,
-          },
-        }),
-      );
+      return await prisma.language.findUnique({
+        where: {
+          id,
+        },
+      });
     }),
 });

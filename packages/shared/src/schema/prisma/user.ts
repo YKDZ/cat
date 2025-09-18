@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod/v4";
 import { LanguageSchema } from "./misc.ts";
 import { TranslationVoteSchema } from "./translation.ts";
 import { PrismaDateTime } from "@/schema/misc.ts";

@@ -8,7 +8,7 @@ import type {
   TermStore,
 } from "@cat/plugin-core";
 import { Client } from "@elastic/elasticsearch";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const ConnectionConfigSchema = z.object({
   url: z.url(),

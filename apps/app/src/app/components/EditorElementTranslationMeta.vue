@@ -4,7 +4,7 @@ import type { Translation } from "@cat/shared/schema/prisma/translation";
 import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
 import { toShortFixed } from "@cat/shared/utils";
 import { computed, onMounted, ref } from "vue";
-import z from "zod";
+import * as z from "zod/v4";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import EditorElementTranslationMetaTag from "./EditorElementTranslationMetaTag.vue";

@@ -1,3 +1,6 @@
+// @ts-expect-error zod ts(2742) workaround
+// eslint-disable-next-line
+import * as z from "zod";
 import { router } from "./server.ts";
 import { authRouter } from "./routers/auth.ts";
 import { projectRouter } from "./routers/project.ts";
@@ -13,18 +16,18 @@ import { settingRouter } from "./routers/setting.ts";
 import { taskRouter } from "./routers/task.ts";
 
 export const appRouter = router({
-  auth: authRouter,
-  project: projectRouter,
-  document: documentRouter,
-  language: languageRouter,
-  translation: translationRouter,
-  suggestion: suggestionRouter,
-  user: userRouter,
-  memory: memoryRouter,
-  glossary: glossaryRouter,
-  plugin: pluginRouter,
   setting: settingRouter,
   task: taskRouter,
+  plugin: pluginRouter,
+  glossary: glossaryRouter,
+  memoryRouter: memoryRouter,
+  userRouter: userRouter,
+  suggestion: suggestionRouter,
+  translation: translationRouter,
+  languageRouter: languageRouter,
+  document: documentRouter,
+  auth: authRouter,
+  project: projectRouter,
 });
 
 export type AppRouter = typeof appRouter;

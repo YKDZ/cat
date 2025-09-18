@@ -6,6 +6,9 @@ import type { User } from "@cat/shared/schema/prisma/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
 
 declare global {
+  interface JsonObject extends JSONType {}
+  interface JSONType extends JsonObject {}
+
   namespace Vike {
     interface PageContext {
       name: string;

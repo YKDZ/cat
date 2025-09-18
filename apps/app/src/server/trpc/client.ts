@@ -1,3 +1,6 @@
+// @ts-expect-error zod ts(2742) workaround
+// eslint-disable-next-line
+import * as z from "zod";
 import {
   createTRPCClient,
   httpBatchLink,

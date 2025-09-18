@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Task } from "@cat/shared/schema/prisma/misc";
 import { onMounted, ref } from "vue";
-import z from "zod";
+import * as z from "zod/v4";
 import type { Cell } from "@tanstack/vue-table";
 import TaskTable from "./TaskTable.vue";
 import HButton from "./headless/HButton.vue";

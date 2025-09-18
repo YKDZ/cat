@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
-import z from "zod";
+import * as z from "zod/v4";
 import type { JSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "..";
 import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";

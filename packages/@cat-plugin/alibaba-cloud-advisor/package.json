@@ -33,10 +33,6 @@
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "zod": "^4.1.5"
-  },
-  "dependencies": {
-    "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*"
+    "zod": "^4.1.9"
   }
 }

@@ -1,6 +1,6 @@
 import { getPrismaDB, verifyPassword } from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const FormSchema = z.object({
   email: z.email().meta({ "x-autocomplete": "email" }),

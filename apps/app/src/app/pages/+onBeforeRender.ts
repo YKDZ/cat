@@ -1,6 +1,6 @@
 import type { PageContextServer } from "vike/types";
 import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getPrismaDB } from "@cat/db";
 import { useLanguageStore } from "@/app/stores/language.ts";
 

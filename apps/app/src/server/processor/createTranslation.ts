@@ -1,7 +1,7 @@
 import { getPrismaDB, insertVector } from "@cat/db";
 import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { registerTaskUpdateHandlers } from "../utils/worker.ts";
 import { config } from "./config.ts";
 import { getServiceFromDBId } from "@/server/utils/plugin.ts";

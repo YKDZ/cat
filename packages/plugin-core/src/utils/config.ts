@@ -1,6 +1,6 @@
 import type { OverallPrismaClient, ScopeType } from "@cat/db";
 import type { JSONType } from "@cat/shared/schema/json";
-import z from "zod";
+import * as z from "zod/v4";
 
 export const getPluginConfig = async (
   prisma: OverallPrismaClient,

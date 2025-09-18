@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Task } from "@cat/shared/schema/prisma/misc";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { computed, ref } from "vue";
 import { useDateFormat } from "@vueuse/core";
 import TableRow from "./table/TableRow.vue";

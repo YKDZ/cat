@@ -1,4 +1,5 @@
-import { z } from "zod";
+import * as z from "zod/v4";
+import { safeZDotJson } from "@/schema/json.ts";
 
 export const PrismaErrorSchema = z.object({
   code: z.string(),
@@ -31,7 +32,7 @@ export const TranslationSuggestionStatusSchema = z.enum(["ERROR", "SUCCESS"]);
 export const TranslatableElementDataSchema = z.object({
   value: z.string(),
   sortIndex: z.int().optional(),
-  meta: z.json(),
+  meta: safeZDotJson,
 });
 
 export const TranslationSuggestionSchema = z.object({

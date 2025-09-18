@@ -1,10 +1,11 @@
-import z from "zod";
+import * as z from "zod/v4";
 import { PrismaDateTime } from "./misc.ts";
 import { FileSchema } from "./file.ts";
 import { UserSchema } from "./user.ts";
 import { VectorSchema } from "./vector.ts";
 import { ProjectSchema } from "./project.ts";
 import { PluginServiceSchema } from "@/schema/prisma/plugin.ts";
+import { safeZDotJson } from "@/schema/json.ts";
 
 export const DocumentSchema = z.object({
   id: z.ulid(),
@@ -39,7 +40,7 @@ export const TranslatableElementSchema = z.object({
   id: z.int(),
   value: z.string(),
   sortIndex: z.int(),
-  meta: z.json(),
+  meta: safeZDotJson,
 
   embeddingId: z.int(),
   get Embedding() {

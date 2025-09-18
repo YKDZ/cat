@@ -1,5 +1,6 @@
-import z from "zod";
+import * as z from "zod/v4";
 import { PrismaDateTime } from "@/schema/misc.ts";
+import { safeZDotJson } from "@/schema/json.ts";
 
 export const LanguageSchema = z.object({
   id: z.string(),
@@ -10,15 +11,19 @@ export const TaskSchema = z.object({
   id: z.ulid(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-  status: z.enum(["pending", "processing", "completed", "failed"]),
-  meta: z.json(),
+  status: z
+    .string()
+    .refine((v) =>
+      z.enum(["pending", "processing", "completed", "failed"]).parse(v),
+    ),
+  meta: safeZDotJson,
   type: z.string(),
 });
 
 export const SettingSchema = z.object({
   id: z.int(),
   key: z.string(),
-  value: z.json(),
+  value: safeZDotJson,
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 });

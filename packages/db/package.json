@@ -21,7 +21,6 @@
     "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
-    "@cat/shared": "workspace:*",
     "@prisma/adapter-pg": "6.16.1",
     "@prisma/client": "6.16.1",
     "redis": "^5.8.2"
@@ -32,6 +31,6 @@
   },
   "peerDependencies": {
     "@cat/shared": "workspace:*",
-    "zod": "^4.1.5"
+    "zod": "^4.1.9"
   }
 }

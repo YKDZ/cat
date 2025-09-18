@@ -20,6 +20,8 @@ const isPending = ref(false);
 const debouncedFunctions = new Map<string, ReturnType<typeof useDebounceFn>>();
 
 const getDelayByType = (schema: JSONSchema): number => {
+  if (typeof schema === "boolean") return 0;
+
   if (schema.enum || schema.const) return 0;
 
   switch (schema.type) {
@@ -93,6 +95,7 @@ onBeforeMount(async () => {
 
 <template>
   <JSONForm
+    v-if="typeof schema === 'object'"
     :data
     :schema
     :classes="{

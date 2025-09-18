@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { JSONSchemaSchema, type JSONType } from "@cat/shared/schema/json";
 import {
   OverallPrismaClient,

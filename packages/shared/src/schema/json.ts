@@ -1,6 +1,8 @@
-import z from "zod";
+import * as z from "zod/v4";
 
-export const JSONSchemaSchema = z
+export const safeZDotJson = z.any().refine((v) => z.json().parse(v));
+
+export const _JSONSchemaSchema = z
   .object({
     $schema: z
       .enum([
@@ -32,67 +34,65 @@ export const JSONSchemaSchema = z
       ])
       .optional(),
     // get additionalItems() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
     // get unevaluatedItems() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
     get prefixItems() {
-      return z.lazy(() => z.array(BooleanAbleJSONSchemaSchema)).optional();
+      return z.lazy(() => z.array(JSONSchemaSchema)).optional();
     },
     get items() {
       return z
-        .lazy(() =>
-          z.array(BooleanAbleJSONSchemaSchema).or(BooleanAbleJSONSchemaSchema),
-        )
+        .lazy(() => z.array(JSONSchemaSchema).or(JSONSchemaSchema))
         .optional();
     },
     // get contains() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
     // get additionalProperties() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
     // get unevaluatedProperties() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
     get properties() {
-      return z.record(z.string(), BooleanAbleJSONSchemaSchema).optional();
+      return z.record(z.string(), JSONSchemaSchema).optional();
     },
     // get patternProperties() {
     //   return z
-    //     .lazy(() => z.record(z.string(), BooleanAbleJSONSchemaSchema))
+    //     .lazy(() => z.record(z.string(), JSONSchemaSchema))
     //     .optional();
     // },
     // get dependentSchemas() {
     //   return z
-    //     .lazy(() => z.record(z.string(), BooleanAbleJSONSchemaSchema))
+    //     .lazy(() => z.record(z.string(), JSONSchemaSchema))
     //     .optional();
     // },
     // get propertyNames() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
     // get if() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
 
     // get then() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
     // get else() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
     // get allOf() {
     //   return z.array(JSONSchemaSchema).optional();
     // },
     get anyOf() {
-      return z.array(JSONSchemaSchema).optional();
+      return z.array(_JSONSchemaSchema).optional();
     },
     get oneOf() {
-      return z.array(JSONSchemaSchema).optional();
+      return z.array(_JSONSchemaSchema).optional();
     },
     // get not() {
-    //   return z.lazy(() => BooleanAbleJSONSchemaSchema).optional();
+    //   return z.lazy(() => JSONSchemaSchema).optional();
     // },
 
     multipleOf: z.number().optional(),
@@ -143,7 +143,8 @@ export const JSONSchemaSchema = z
   })
   .catchall(z.unknown());
 
-export const BooleanAbleJSONSchemaSchema = JSONSchemaSchema.or(z.boolean());
+export const JSONSchemaSchema = _JSONSchemaSchema.or(z.boolean());
 
 export type JSONSchema = z.infer<typeof JSONSchemaSchema>;
+export type _JSONSchema = z.infer<typeof _JSONSchemaSchema>;
 export type JSONType = z.infer<ReturnType<typeof z.json>>;

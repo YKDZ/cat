@@ -7,7 +7,7 @@ import {
   type TranslatableElementData,
 } from "@cat/shared/schema/misc";
 import { logger } from "@cat/shared/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { isEqual } from "lodash-es";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/server/utils/worker.ts";
