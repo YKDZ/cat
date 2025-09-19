@@ -99,6 +99,9 @@ export default defineConfig({
       "input-container":
         "ring-1 flex gap-1 items-center focus-within:ring-base ring-highlight-darkest ring-offset-transparent ",
       "input-icon": "ml-2 text-lg",
+
+      "form-control": "flex flex-col gap-2",
+      label: "-mb-1.5",
     },
     [
       /^btn-(.*)$/,

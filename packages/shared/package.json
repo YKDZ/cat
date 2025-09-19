@@ -80,7 +80,7 @@
     "package.json"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "nx vite:build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },

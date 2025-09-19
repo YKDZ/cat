@@ -114,7 +114,6 @@ export const useEditorStore = defineStore("editor", () => {
   };
 
   const storedElements = computed(() => {
-    // @ts-expect-error unsolvable
     return [...loadedPages.entries()]
       .sort((a, b) => a[0] - b[0])
       .flatMap(([, elements]) => elements);
@@ -206,7 +205,7 @@ export const useEditorStore = defineStore("editor", () => {
   const fetchDocument = async (id: string) => {
     documentId.value = id;
 
-    await trpc.document.query
+    await trpc.document.get
       .query({ id: documentId.value })
       .then((newDocument) => {
         document.value = newDocument;

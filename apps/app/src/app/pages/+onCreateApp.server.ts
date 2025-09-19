@@ -24,7 +24,11 @@ const loadI18n = async (ctx: PageContextServer) => {
     parsePreferredLanguage(ctx.helpers.getReqHeader("Accept-Language") ?? "")
       ?.toLocaleLowerCase()
       .replace("-", "_") ??
-    (await setting("server.default-language", "zh_cn", ctx.prismaDB.client));
+    (await setting(
+      "server.default-language",
+      "zh_cn",
+      ctx.globalContext.prismaDB.client,
+    ));
 
   // 未加载过客户端指定语言时
   // 进行懒加载

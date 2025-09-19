@@ -72,9 +72,6 @@ const startServer = async () => {
           user,
           sessionId,
           displayLanguage,
-          pluginRegistry,
-          prismaDB,
-          redisDB,
           helpers,
         };
       },

@@ -10,7 +10,7 @@ export const data = async (
 
   if (!documentId) throw render("/", `Document id not provided`);
 
-  const document = await useSSCTRPC(ctx).document.query({
+  const document = await useSSCTRPC(ctx).document.get({
     id: documentId,
   });
 
