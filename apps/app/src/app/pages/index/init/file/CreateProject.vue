@@ -2,6 +2,7 @@
 import type { Project } from "@cat/shared/schema/prisma/project";
 import { ref } from "vue";
 import * as z from "zod/v4";
+import { useI18n } from "vue-i18n";
 import HButton from "@/app/components/headless/HButton.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
@@ -12,6 +13,8 @@ import Textarea from "@/app/components/Textarea.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { trpc } from "@/server/trpc/client.ts";
 import HInput from "@/app/components/headless/HInput.vue";
+
+const { t } = useI18n();
 
 const { info, zWarn, trpcWarn } = useToastStore();
 
@@ -70,6 +73,17 @@ const createProject = () => {
         createMemory,
         createGlossary,
       }) => {
+        console.log({
+          name,
+          description,
+          sourceLanguageId,
+          targetLanguageIds,
+          memoryIds,
+          glossaryIds,
+          createMemory,
+          createGlossary,
+        });
+
         isProcessing.value = true;
 
         trpc.project.create
@@ -99,7 +113,7 @@ const createProject = () => {
 <template>
   <!-- Create Project -->
   <div class="flex flex-col gap-2">
-    <InputLabel required>名称</InputLabel>
+    <InputLabel required>{{ t("名称") }}</InputLabel>
     <HInput
       v-model="name"
       type="text"
@@ -111,18 +125,18 @@ const createProject = () => {
         'input-icon': 'input-icon',
       }"
     />
-    <InputLabel>简介</InputLabel>
+    <InputLabel>{{ t("简介") }}</InputLabel>
     <Textarea v-model="description" placeholder="用于描述项目的简短文本" />
-    <InputLabel required>源语言</InputLabel>
+    <InputLabel required>{{ t("源语言") }}</InputLabel>
     <LanguagePicker v-model="sourceLanguageId" />
-    <InputLabel>目标语言</InputLabel>
+    <InputLabel>{{ t("目标语言") }}</InputLabel>
     <MultiLanguagePicker v-model:language-ids="targetLanguageIds" />
-    <InputLabel>记忆库</InputLabel>
+    <InputLabel>{{ t("记忆库") }}</InputLabel>
     <MultiMemoryPicker
       v-model:memory-ids="memoryIds"
       placeholder="选择一个或多个记忆库"
     />
-    <InputLabel>术语库</InputLabel>
+    <InputLabel>{{ t("术语库") }}</InputLabel>
     <MultiGlossaryPicker
       v-model:glossary-ids="glossaryIds"
       create-new
@@ -136,7 +150,7 @@ const createProject = () => {
       :loading="isProcessing"
       @click="createProject"
     >
-      创建项目
+      {{ t("创建项目") }}
     </HButton>
   </div>
 </template>

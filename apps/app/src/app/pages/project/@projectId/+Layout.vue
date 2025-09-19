@@ -16,10 +16,10 @@ provide(projectKey, project);
   <div class="flex flex-col h-full w-full md:flex-row">
     <IndexSidebar />
     <div class="flex flex-col h-full w-full overflow-y-auto">
-      <ProjectHeader />
+      <ProjectHeader :project />
       <!-- Content -->
       <div class="p-4 pt-0 flex flex-col">
-        <ProjectNavbar />
+        <ProjectNavbar :project />
         <slot />
       </div>
     </div>

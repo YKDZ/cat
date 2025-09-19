@@ -97,52 +97,43 @@ export const projectRouter = router({
         createGlossary,
       } = input;
 
-      const project = await prisma.project
-        .create({
-          data: {
-            name,
-            description,
-            Creator: {
-              connect: {
-                id: user.id,
-              },
-            },
-            SourceLanguage: {
-              connect: {
-                id: sourceLanguageId,
-              },
-            },
-            TargetLanguages: {
-              connect: targetLanguageIds.map((id) => ({
-                id,
-              })),
-            },
-            Memories: {
-              connect: memoryIds.map((id) => {
-                return {
-                  id,
-                };
-              }),
-              create: createMemory ? [{ name, creatorId: user.id }] : undefined,
-            },
-            Glossaries: {
-              connect: glossaryIds.map((id) => {
-                return {
-                  id,
-                };
-              }),
-              create: createGlossary
-                ? [{ name, creatorId: user.id }]
-                : undefined,
+      const project = await prisma.project.create({
+        data: {
+          name,
+          description,
+          Creator: {
+            connect: {
+              id: user.id,
             },
           },
-        })
-        .catch((e: PrismaError) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: e.message,
-          });
-        });
+          SourceLanguage: {
+            connect: {
+              id: sourceLanguageId,
+            },
+          },
+          TargetLanguages: {
+            connect: targetLanguageIds.map((id) => ({
+              id,
+            })),
+          },
+          Memories: {
+            connect: memoryIds.map((id) => {
+              return {
+                id,
+              };
+            }),
+            create: createMemory ? [{ name, creatorId: user.id }] : undefined,
+          },
+          Glossaries: {
+            connect: glossaryIds.map((id) => {
+              return {
+                id,
+              };
+            }),
+            create: createGlossary ? [{ name, creatorId: user.id }] : undefined,
+          },
+        },
+      });
 
       return project;
     }),

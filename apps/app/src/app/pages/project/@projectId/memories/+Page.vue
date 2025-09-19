@@ -1,35 +1,17 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/prisma/memory";
-import { inject, onMounted, ref, watch } from "vue";
+import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
 import ProjectMemoryList from "@/app/components/ProjectMemoryList.vue";
 import ProjectMemoryLinkerBtn from "@/app/components/ProjectMemoryLinkerBtn.vue";
-import { trpc } from "@/server/trpc/client.ts";
-import { projectKey } from "@/app/utils/provide.ts";
 
-const project = inject(projectKey);
-const memories = ref<Memory[]>([]);
-
-const updateMemories = async () => {
-  if (!project) return;
-
-  await trpc.memory.listProjectOwned
-    .query({
-      projectId: project.id,
-    })
-    .then((mems) => (memories.value = mems));
-};
-
-watch(project ?? {}, updateMemories);
-
-onMounted(updateMemories);
+const { memories } = useData<Data>();
 </script>
 
 <template>
   <div class="my-3 flex items-center justify-between">
-    <div></div>
     <div>
-      <ProjectMemoryLinkerBtn class="self-end" @link="updateMemories" />
+      <ProjectMemoryLinkerBtn class="self-end" />
     </div>
   </div>
-  <ProjectMemoryList v-model="memories" />
+  <ProjectMemoryList :memories />
 </template>
