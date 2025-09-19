@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Task } from "@cat/shared/schema/prisma/misc";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import * as z from "zod/v4";
 import type { Cell } from "@tanstack/vue-table";
 import TaskTable from "./TaskTable.vue";
@@ -8,30 +8,15 @@ import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { trpc } from "@/server/trpc/client.ts";
 
-const props = defineProps<{
-  projectId: string;
+defineProps<{
+  tasks: Task[];
 }>();
-
-const tasks = ref<Task[]>([]);
-
-const updateTasks = async () => {
-  await trpc.task.query
-    .query({
-      type: "export_translated_file",
-      meta: [
-        {
-          path: ["projectId"],
-          value: props.projectId,
-        },
-      ],
-    })
-    .then((ts) => (tasks.value = ts));
-};
 
 const { trpcWarn } = useToastStore();
 
 const downloadAEl = ref<HTMLAnchorElement>();
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MetaSchema = z.object({
   projectId: z.ulid(),
   documentId: z.ulid(),
@@ -39,10 +24,6 @@ const MetaSchema = z.object({
 });
 
 type Meta = z.infer<typeof MetaSchema>;
-
-const meta = (cell: Cell<Task, Meta>) => {
-  return cell.getValue();
-};
 
 const task = (cell: Cell<Task, Meta>) => {
   return cell.row.original;
@@ -64,10 +45,6 @@ const handleDownload = async (cell: Cell<Task, Meta>) => {
     })
     .catch(trpcWarn);
 };
-
-onMounted(() => {
-  updateTasks();
-});
 </script>
 
 <template>

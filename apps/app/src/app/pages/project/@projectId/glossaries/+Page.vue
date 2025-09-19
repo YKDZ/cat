@@ -1,36 +1,18 @@
 <script setup lang="ts">
-import type { Glossary } from "@cat/shared/schema/prisma/glossary";
-import { inject, onMounted, ref, watch } from "vue";
+import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
 import ProjectGlossaryLinkerBtn from "@/app/components/ProjectGlossaryLinkerBtn.vue";
 import ProjectGlossaryList from "@/app/components/ProjectGlossaryList.vue";
-import { trpc } from "@/server/trpc/client.ts";
-import { projectKey } from "@/app/utils/provide.ts";
 
-const project = inject(projectKey);
-
-const glossaries = ref<Glossary[]>([]);
-
-const updateGlossaries = async () => {
-  if (!project) return;
-
-  await trpc.glossary.listProjectOwned
-    .query({
-      projectId: project.id,
-    })
-    .then((glo) => (glossaries.value = glo));
-};
-
-watch(project ?? {}, updateGlossaries);
-
-onMounted(updateGlossaries);
+const { glossaries } = useData<Data>();
 </script>
 
 <template>
   <div class="my-3 flex items-center justify-between">
     <div></div>
     <div>
-      <ProjectGlossaryLinkerBtn class="self-end" @link="updateGlossaries" />
+      <ProjectGlossaryLinkerBtn class="self-end" />
     </div>
   </div>
-  <ProjectGlossaryList v-model="glossaries" />
+  <ProjectGlossaryList :glossaries />
 </template>

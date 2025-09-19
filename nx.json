@@ -6,19 +6,25 @@
       "{workspaceRoot}/tsconfig.base.json",
       "{workspaceRoot}/package.json"
     ],
-    "default": ["{projectRoot}/**/*", "sharedGlobals"]
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ]
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "{projectRoot}/.env",
         "{projectRoot}/*.json",
         "{projectRoot}/src/**",
-        "{projectRoot}/*.config.ts",
-        "{projectRoot}/*.d.ts"
+        "{projectRoot}/*.ts"
       ],
-      "outputs": ["{projectRoot}/dist/**"],
+      "outputs": [
+        "{projectRoot}/dist/**"
+      ],
       "cache": true
     }
   },

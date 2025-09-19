@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { inject } from "vue";
+import { useData } from "vike-vue/useData";
+import type { Data } from "./+data.ts";
 import ProjectTaskListExportTranslatedFile from "@/app/components/ProjectTaskListExportTranslatedFile.vue";
-import { projectKey } from "@/app/utils/provide.ts";
 
-const project = inject(projectKey);
+const { tasks } = useData<Data>();
 </script>
 
 <template>
-  <ProjectTaskListExportTranslatedFile
-    v-if="project"
-    :project-id="project.id"
-  />
+  <ProjectTaskListExportTranslatedFile :tasks />
 </template>

@@ -3,10 +3,10 @@ import { TaskSchema } from "@cat/shared/schema/prisma/misc";
 import { authedProcedure, router } from "@/server/trpc/server.ts";
 
 export const taskRouter = router({
-  query: authedProcedure
+  get: authedProcedure
     .input(
       z.object({
-        type: z.string(),
+        type: z.string().optional(),
         meta: z
           .array(
             z.object({

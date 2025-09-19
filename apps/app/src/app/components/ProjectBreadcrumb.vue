@@ -3,7 +3,7 @@ import type { Project } from "@cat/shared/schema/prisma/project";
 import Slash from "./Slash.vue";
 import UserAvatar from "./UserAvatar.vue";
 
-const props = defineProps<{
+defineProps<{
   project: Project;
 }>();
 </script>

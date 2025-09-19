@@ -154,9 +154,6 @@ export const glossaryRouter = router({
             },
           },
         },
-        include: {
-          Creator: true,
-        },
       });
     }),
   countTerm: authedProcedure

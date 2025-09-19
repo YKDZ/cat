@@ -139,6 +139,9 @@ export const documentRouter = router({
             Tasks: {
               create: {
                 type: "upsertDocumentElementsFromFile",
+                meta: {
+                  projectId,
+                },
               },
             },
           },
@@ -158,6 +161,9 @@ export const documentRouter = router({
         const task = await prisma.task.create({
           data: {
             type: "upsertDocumentElementsFromFile",
+            meta: {
+              projectId,
+            },
           },
         });
 

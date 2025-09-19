@@ -1,14 +1,10 @@
 import type { Pinia, StateTree } from "pinia";
-import type { PluginRegistry } from "@cat/plugin-core";
 import type { I18n, LocaleMessageValue, VueMessageType } from "vue-i18n";
-import type { ESDB, PrismaDB, RedisDB } from "@cat/db";
+import type { PrismaDB, RedisDB } from "@cat/db";
 import type { User } from "@cat/shared/schema/prisma/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
 
 declare global {
-  interface JsonObject extends JSONType {}
-  interface JSONType extends JsonObject {}
-
   namespace Vike {
     interface PageContext {
       name: string;
@@ -20,10 +16,6 @@ declare global {
     }
     interface PageContextServer {
       pinia?: Pinia;
-      pluginRegistry: PluginRegistry;
-      prismaDB: PrismaDB;
-      redisDB: RedisDB;
-      esDB: ESDB;
       helpers: HTTPHelpers;
       displayLanguage: string;
     }
@@ -32,6 +24,8 @@ declare global {
       i18nMessages?: RemoveIndexSignature<{
         [x: string]: LocaleMessageValue<VueMessageType>;
       }>;
+      prismaDB: PrismaDB;
+      redisDB: RedisDB;
     }
     interface GlobalContextClient {
       pinia?: Pinia;
