@@ -1,6 +1,6 @@
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
-import { useSSCTRPC } from "@/server/trpc/sscClient.ts";
+import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
 
 // 在 https://github.com/vikejs/vike/issues/1833 前的 workaround
 export const data = async (ctx: PageContextServer) => {

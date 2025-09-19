@@ -12,11 +12,13 @@ export default defineConfig({
       "@": resolve(import.meta.dirname, "src"),
     },
   },
+
   server: {
     watch: {
       ignored: ["plugins/**"],
     },
   },
+
   plugins: [
     UnoCSS(),
     vike(),
@@ -29,6 +31,7 @@ export default defineConfig({
     }),
     vueDevTools(),
   ],
+
   build: {
     target: "esnext",
     emptyOutDir: true,

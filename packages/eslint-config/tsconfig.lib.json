@@ -9,11 +9,7 @@
     "types": ["node", "rolldown-vite/client"]
   },
   "include": ["src/**/*.ts", "rules/no-provide-in-page.js"],
-  "references": [
-    {
-      "path": "../eslint-plugin-cat/tsconfig.lib.json"
-    }
-  ],
+  "references": [],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

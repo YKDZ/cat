@@ -26,6 +26,7 @@ declare global {
       }>;
       prismaDB: PrismaDB;
       redisDB: RedisDB;
+      pluginRegistry: PluginRegistry;
     }
     interface GlobalContextClient {
       pinia?: Pinia;

@@ -1,16 +1,11 @@
 {
-  "extends": [
-    "../../tsconfig.base.json",
-    "@vue/tsconfig/tsconfig.dom.json"
-  ],
+  "extends": ["../../tsconfig.base.json", "@vue/tsconfig/tsconfig.dom.json"],
   "compilerOptions": {
     "composite": true,
     "resolveJsonModule": true,
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
   "exclude": [
@@ -39,13 +34,25 @@
   ],
   "references": [
     {
-      "path": "../../packages/db/tsconfig.lib.json"
+      "path": "../app-server-shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../app-workers/tsconfig.lib.json"
+    },
+    {
+      "path": "../app-api/tsconfig.lib.json"
     },
     {
       "path": "../../packages/plugin-core/tsconfig.lib.json"
     },
     {
       "path": "../../packages/shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/db/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/eslint-plugin-cat/tsconfig.lib.json"
     },
     {
       "path": "../../packages/eslint-config/tsconfig.lib.json"

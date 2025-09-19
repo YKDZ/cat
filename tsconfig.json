@@ -53,6 +53,15 @@
     },
     {
       "path": "./packages/eslint-plugin-cat"
+    },
+    {
+      "path": "./apps/app-api"
+    },
+    {
+      "path": "./apps/app-server-shared"
+    },
+    {
+      "path": "./apps/app-workers"
     }
   ]
 }

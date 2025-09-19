@@ -7,7 +7,7 @@ import type { TermListFilterOptions } from "./index.ts";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 import { memoryKey } from "@/app/utils/provide.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const items = ref<MemoryItem[]>([]);
 

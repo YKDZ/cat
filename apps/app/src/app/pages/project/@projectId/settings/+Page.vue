@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import HButton from "@/app/components/headless/HButton.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import HInput from "@/app/components/headless/HInput.vue";
 import { projectKey } from "@/app/utils/provide.ts";
 

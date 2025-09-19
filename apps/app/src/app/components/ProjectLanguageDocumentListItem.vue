@@ -10,7 +10,7 @@ import ProjectLanguageDocumentAutoApproveBtn from "./ProjectLanguageDocumentAuto
 import ProjectLanguageDocumentAutoTranslateBtn from "./ProjectLanguageDocumentAutoTranslateBtn.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import { languageKey, projectKey } from "@/app/utils/provide.ts";
 
 const props = defineProps<{

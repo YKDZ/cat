@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
 import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import { projectKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 

@@ -6,7 +6,7 @@ import type { Data } from "./+data.ts";
 import PluginList from "@/app/components/PluginList.vue";
 import PluginReloadBtn from "@/app/components/PluginReloadBtn.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { trpcWarn } = useToastStore();
 

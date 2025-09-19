@@ -17,7 +17,7 @@ const { languageFromId, languageToId } = storeToRefs(useEditorStore());
 watch(
   () => ctx.routeParams["documentId"],
   async (to) => {
-    if (import.meta.env.SSR) return;
+    if (!to) return;
     refresh();
     await fetchDocument(to).catch(trpcWarn);
   },
@@ -27,8 +27,10 @@ watch(
 watch(
   () => ctx.routeParams["languageFromTo"],
   (to) => {
+    if (!to) return;
     if (import.meta.env.SSR) return;
     const [fromId, toId] = to.split("-");
+    if (!fromId || !toId) return;
     languageFromId.value = fromId;
     languageToId.value = toId;
   },
@@ -36,7 +38,7 @@ watch(
 );
 
 watch(
-  () => parseInt(ctx.routeParams["elementId"]),
+  () => parseInt(ctx.routeParams["elementId"] ?? ""),
   async (to) => {
     if (import.meta.env.SSR) return;
     if (!to) return;

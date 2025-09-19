@@ -6,7 +6,7 @@ import type { PickerOption } from "./picker/index.ts";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { projectKey } from "@/app/utils/provide.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 

@@ -1,14 +1,9 @@
 import { Hono } from "hono";
-import { PluginRegistry } from "@cat/plugin-core";
 import { trpcHandler } from "./handler/trpc.ts";
 import { healthHandler } from "./handler/health.ts";
 import { pinoLoggerMiddleware } from "./middleware/logger.ts";
 
-type Variables = {
-  pluginRegistry: PluginRegistry;
-};
-
-const app = new Hono<{ Variables: Variables }>();
+const app = new Hono();
 
 app.use("*", pinoLoggerMiddleware);
 

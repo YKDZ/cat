@@ -1,0 +1,42 @@
+{
+  "name": "@cat/app-server-shared",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": [
+    "plugins",
+    "typescript",
+    "types",
+    "cat"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils.js"
+    }
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "nx vite:build",
+    "lint": "nx eslint:lint --fix",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*"
+  },
+  "peerDependencies": {
+    "@cat/plugin-core": "workspace:*",
+    "@cat/db": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "diff": "^8.0.2"
+  }
+}

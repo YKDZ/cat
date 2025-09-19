@@ -6,7 +6,7 @@ import type { Cell } from "@tanstack/vue-table";
 import TaskTable from "./TaskTable.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 defineProps<{
   tasks: Task[];

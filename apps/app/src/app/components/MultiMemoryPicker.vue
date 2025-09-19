@@ -5,7 +5,7 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 withDefaults(
   defineProps<{

@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 import EditorTermListItem from "./EditorTermListItem.vue";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import { useEditorStore } from "@/app/stores/editor.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 

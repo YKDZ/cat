@@ -6,7 +6,7 @@ import { useObjectUrl } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import ImageCopper from "@/app/components/ImageCopper.vue";
 import Modal from "@/app/components/headless/HModal.vue";

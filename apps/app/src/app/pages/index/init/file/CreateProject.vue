@@ -11,7 +11,7 @@ import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
 import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
 import Textarea from "@/app/components/Textarea.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import HInput from "@/app/components/headless/HInput.vue";
 
 const { t } = useI18n();

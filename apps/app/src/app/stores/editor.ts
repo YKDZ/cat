@@ -16,7 +16,7 @@ import { defineStore } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, nextTick, reactive, ref } from "vue";
 import * as z from "zod/v4";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 import type { PartData } from "@/app/components/tagger/index.ts";

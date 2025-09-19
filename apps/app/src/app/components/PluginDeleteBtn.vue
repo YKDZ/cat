@@ -3,7 +3,7 @@ import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 

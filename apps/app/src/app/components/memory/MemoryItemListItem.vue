@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MemoryItem } from "@cat/shared/schema/prisma/memory";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import { useToastStore } from "@/app/stores/toast.ts";
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";

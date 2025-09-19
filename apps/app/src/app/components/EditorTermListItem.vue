@@ -10,7 +10,7 @@ import TextTagger from "./tagger/TextTagger.vue";
 import Icon from "./Icon.vue";
 import { useEditorStore } from "@/app/stores/editor.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 
 const props = defineProps<{
