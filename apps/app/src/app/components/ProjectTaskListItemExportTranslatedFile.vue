@@ -6,7 +6,7 @@ import { useDateFormat } from "@vueuse/core";
 import TableRow from "./table/TableRow.vue";
 import TableCell from "./table/TableCell.vue";
 import HButton from "./headless/HButton.vue";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useLanguageStore } from "@/app/stores/language.ts";
 

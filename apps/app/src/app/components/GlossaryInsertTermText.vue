@@ -6,7 +6,7 @@ import Textarea from "@/app/components/Textarea.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 

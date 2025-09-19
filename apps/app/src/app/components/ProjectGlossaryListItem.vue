@@ -2,10 +2,10 @@
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
 import { inject, onMounted, ref, watch } from "vue";
 import { navigate } from "vike/client/router";
+import { trpc } from "@cat/app-api/trpc/client";
 import HButton from "./headless/HButton.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
-import { trpc } from "@/server/trpc/client.ts";
 import { projectKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 

@@ -1,29 +1,11 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "namedInputs": {
-    "sharedGlobals": [
-      "{workspaceRoot}/tsconfig.json",
-      "{workspaceRoot}/tsconfig.base.json",
-      "{workspaceRoot}/package.json"
-    ],
-    "default": [
-      "{projectRoot}/**/*",
-      "sharedGlobals"
-    ]
-  },
+  "namedInputs": {},
   "targetDefaults": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
       "inputs": [
-        "{projectRoot}/.env",
-        "{projectRoot}/*.json",
-        "{projectRoot}/src/**",
-        "{projectRoot}/*.ts"
-      ],
-      "outputs": [
-        "{projectRoot}/dist/**"
+        "{projectRoot}/**/*",
+        "!{projectRoot}/dist/**/*"
       ],
       "cache": true
     }

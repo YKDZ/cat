@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import EditorSuggestionListItem from "./EditorSuggestionListItem.vue";
 import { useEditorStore } from "@/app/stores/editor.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 

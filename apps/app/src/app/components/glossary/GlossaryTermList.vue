@@ -5,7 +5,7 @@ import type { TermListFilterOptions } from "./index.ts";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 import { glossaryKey } from "@/app/utils/provide.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 import GlossaryTermListItem from "@/app/components/glossary/GlossaryTermListItem.vue";
 import GlossaryInsertTermBtn from "@/app/components/GlossaryInsertTermBtn.vue";
 import GlossaryTermListFilter from "@/app/components/glossary/GlossaryTermListFilter.vue";

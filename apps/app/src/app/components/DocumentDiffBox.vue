@@ -5,7 +5,7 @@ import { useDateFormat } from "@vueuse/core";
 import DiffBox from "./diff/DiffBox.vue";
 import Picker from "./picker/Picker.vue";
 import type { PickerOption } from "./picker/index.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const props = defineProps<{
   documentId: string;

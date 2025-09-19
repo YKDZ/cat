@@ -9,7 +9,7 @@ import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
 import JSONForm from "@/app/components/json-form/JSONForm.vue";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 

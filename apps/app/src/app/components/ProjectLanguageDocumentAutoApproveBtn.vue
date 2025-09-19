@@ -6,7 +6,7 @@ import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";
 import { languageKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 

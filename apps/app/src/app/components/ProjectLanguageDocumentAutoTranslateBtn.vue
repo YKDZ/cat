@@ -12,7 +12,7 @@ import Picker from "./picker/Picker.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { languageKey } from "@/app/utils/provide.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const props = defineProps<{
   document: Document;

@@ -1,7 +1,7 @@
 import type { Language } from "@cat/shared/schema/prisma/misc";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 export const useLanguageStore = defineStore("language", () => {
   const languages = ref<Language[]>([]);

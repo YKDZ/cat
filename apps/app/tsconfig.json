@@ -3,20 +3,30 @@
   "include": [],
   "compilerOptions": {
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
   "references": [
     {
-      "path": "../../packages/db"
+      "path": "../app-server-shared"
+    },
+    {
+      "path": "../app-workers"
+    },
+    {
+      "path": "../app-api"
     },
     {
       "path": "../../packages/plugin-core"
     },
     {
       "path": "../../packages/shared"
+    },
+    {
+      "path": "../../packages/db"
+    },
+    {
+      "path": "../../packages/eslint-plugin-cat"
     },
     {
       "path": "../../packages/eslint-config"

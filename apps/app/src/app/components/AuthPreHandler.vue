@@ -10,7 +10,7 @@ import JSONForm from "./json-form/JSONForm.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 

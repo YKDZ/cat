@@ -1,7 +1,7 @@
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 import type { Document } from "@cat/shared/schema/prisma/document";
-import { useSSCTRPC } from "@/server/trpc/sscClient.ts";
+import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
 
 export const data = async (
   ctx: PageContextServer,

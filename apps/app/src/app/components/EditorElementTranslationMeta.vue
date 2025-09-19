@@ -8,7 +8,7 @@ import * as z from "zod/v4";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import EditorElementTranslationMetaTag from "./EditorElementTranslationMetaTag.vue";
-import { trpc } from "@/server/trpc/client.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 
