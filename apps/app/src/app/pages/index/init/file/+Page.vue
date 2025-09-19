@@ -2,9 +2,9 @@
 import type { Project } from "@cat/shared/schema/prisma/project";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import CreateProject from "./CreateProject.vue";
-import UploadFiles from "./UploadFiles.vue";
-import Finish from "./Finish.vue";
+import CreateProject from "@/app/components/InitProjectFromFileCreateProject.vue";
+import UploadFiles from "@/app/components/InitProjectFromFileUploadFiles.vue";
+import Finish from "@/app/components/InitProjectFromFileFinish.vue";
 import type { FlowItem } from "@/app/components/flow/index.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 import TextFlow from "@/app/components/flow/TextFlow.vue";

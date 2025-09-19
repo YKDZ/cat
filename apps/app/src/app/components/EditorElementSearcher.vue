@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useEditorStore } from "@/app/stores/editor.ts";
-import HInput from "@/app/components/headless/HInput.vue";
+import HInput from "@/app/components/headless/form/HInput.vue";
 
 const { t } = useI18n();
 

@@ -190,7 +190,7 @@ export const documentRouter = router({
         return document;
       }
     }),
-  query: authedProcedure
+  get: authedProcedure
     .input(z.object({ id: z.string() }))
     .output(DocumentSchema.nullable())
     .query(async ({ ctx, input }) => {

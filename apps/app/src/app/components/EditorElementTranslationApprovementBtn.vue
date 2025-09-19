@@ -6,10 +6,10 @@ import type {
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useEditorStore } from "@/app/stores/editor.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 
 const props = defineProps<{
   translation: Translation;

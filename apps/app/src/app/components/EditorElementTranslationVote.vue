@@ -4,9 +4,9 @@ import type {
   TranslationVote,
 } from "@cat/shared/schema/prisma/translation";
 import { onMounted, ref, watch } from "vue";
+import { trpc } from "@cat/app-api/trpc/client";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 
 const props = defineProps<{
   translation: Translation;

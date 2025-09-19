@@ -6,7 +6,7 @@ import HButton from "@/app/components/headless/HButton.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { trpc } from "@cat/app-api/trpc/client";
-import HInput from "@/app/components/headless/HInput.vue";
+import HInput from "@/app/components/headless/form/HInput.vue";
 import { projectKey } from "@/app/utils/provide.ts";
 
 const { t } = useI18n();
