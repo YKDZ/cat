@@ -1,31 +1,35 @@
 <script setup lang="ts">
 import { warn } from "node:console";
-import { inject, ref } from "vue";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
+import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Language } from "@cat/shared/schema/prisma/misc";
 import type { PickerOption } from "./picker/index.ts";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { projectKey } from "@/app/utils/provide.ts";
-import { trpc } from "@cat/app-api/trpc/client";
+import LanguagePicker from "@/app/components/LanguagePicker.vue";
 
 const { t } = useI18n();
 
 const { trpcWarn } = useToastStore();
 
-const project = inject(projectKey);
+const props = defineProps<{
+  project: Project & {
+    TargetLanguages: Language[];
+    SourceLanguage: Language;
+  };
+}>();
+
 const languageId = ref<string>("");
 
 const addNewLanguage = () => {
-  if (!project || !project.value) {
-    warn("你还没有选择项目");
-    return;
-  }
   if (languageId.value === "") {
     warn("你还没有选择语言");
     return;
   }
   if (
-    project.value.TargetLanguages?.find(
+    props.project.TargetLanguages?.find(
       (language) => language.id === languageId.value,
     )
   ) {
@@ -35,20 +39,16 @@ const addNewLanguage = () => {
 
   trpc.project.addNewLanguage
     .mutate({
-      projectId: project.value.id,
+      projectId: props.project.id,
       languageId: languageId.value,
     })
     .catch(trpcWarn);
 };
 
 const langFilter = (option: PickerOption) => {
-  if (!project || !project.value) {
-    warn("你还没有选择项目");
-    return false;
-  }
   return (
-    option.value !== project.value.SourceLanguage?.id &&
-    !project.value.TargetLanguages?.map((language) => language.id).includes(
+    option.value !== props.project.SourceLanguage.id &&
+    !props.project.TargetLanguages.map((language) => language.id).includes(
       `${option.value}`,
     )
   );

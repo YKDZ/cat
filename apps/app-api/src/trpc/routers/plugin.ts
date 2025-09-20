@@ -2,7 +2,9 @@ import * as z from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import {
   PluginConfigInstanceSchema,
+  PluginInstallationSchema,
   PluginSchema,
+  PluginTagSchema,
 } from "@cat/shared/schema/prisma/plugin";
 import {
   AuthMethodSchema,
@@ -109,15 +111,16 @@ export const pluginRouter = router({
         },
       });
     }),
-  query: authedProcedure
+  get: authedProcedure
     .input(
       z.object({
         id: z.string(),
       }),
     )
     .output(
-      PluginSchema.required({
-        Installations: true,
+      PluginSchema.extend({
+        Installations: z.array(PluginInstallationSchema),
+        Tags: z.array(PluginTagSchema),
       }).nullable(),
     )
     .query(async ({ ctx, input }) => {
@@ -126,27 +129,22 @@ export const pluginRouter = router({
       } = ctx;
       const { id } = input;
 
-      return PluginSchema.required({
-        Installations: true,
-      })
-        .nullable()
-        .parse(
-          await prisma.plugin.findUnique({
-            where: {
-              id,
-            },
-            include: {
-              Config: true,
-              Installations: true,
-            },
-          }),
-        );
+      return await prisma.plugin.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          Tags: true,
+          Installations: true,
+        },
+      });
     }),
   listAll: authedProcedure
     .output(
       z.array(
-        PluginSchema.required({
-          Installations: true,
+        PluginSchema.extend({
+          Installations: z.array(PluginInstallationSchema),
+          Tags: z.array(PluginTagSchema),
         }),
       ),
     )
@@ -157,8 +155,6 @@ export const pluginRouter = router({
 
       return await prisma.plugin.findMany({
         include: {
-          Versions: true,
-          Permissions: true,
           Tags: true,
           Installations: true,
         },

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
 import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";
-import { trpc } from "@cat/app-api/trpc/client";
-import { projectKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
@@ -14,7 +14,9 @@ const { info, trpcWarn } = useToastStore();
 
 const emits = defineEmits(["link"]);
 
-const project = inject(projectKey);
+const props = defineProps<{
+  project: Project;
+}>();
 
 const glossaryIds = ref<string[]>([]);
 
@@ -25,8 +27,6 @@ const handleOpen = () => {
 };
 
 const handleLink = async () => {
-  if (!project) return;
-
   const createNewIndex = glossaryIds.value.findIndex(
     (id) => id === "createNew",
   );
@@ -34,14 +34,14 @@ const handleLink = async () => {
 
   if (createNewIndex !== -1) {
     await trpc.glossary.create.mutate({
-      name: project.name,
-      projectIds: [project.id],
+      name: props.project.name,
+      projectIds: [props.project.id],
     });
   }
 
   await trpc.project.linkGlossary
     .mutate({
-      id: project.id,
+      id: props.project.id,
       glossaryIds: realIds,
     })
     .then(() => {

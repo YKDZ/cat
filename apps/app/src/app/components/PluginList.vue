@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import type { Plugin } from "@cat/shared/schema/prisma/plugin";
+import type {
+  PluginTag,
+  Plugin,
+  PluginInstallation,
+} from "@cat/shared/schema/prisma/plugin";
 import PluginListItem from "./PluginListItem.vue";
 
 defineProps<{
-  plugins: WithRequired<Plugin, "Installations">[];
+  plugins: (Plugin & {
+    Installations: PluginInstallation[];
+    Tags: PluginTag[];
+  })[];
   pathPrefix: string;
 }>();
 </script>

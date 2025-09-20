@@ -5,8 +5,6 @@ import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
 export const data = async (ctx: PageContextServer) => {
   const { projectId } = ctx.routeParams;
 
-  console.log(`projectId`, projectId);
-
   if (!projectId) throw render(`/`, `Project id is required`);
 
   const glossaries = await useSSCTRPC(ctx).glossary.listProjectOwned({

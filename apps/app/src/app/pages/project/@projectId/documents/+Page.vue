@@ -1,29 +1,20 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject } from "vue";
 import { useData } from "vike-vue/useData";
-import type { Document } from "@cat/shared/schema/prisma/document";
+import type { Data as LayoutData } from "../+data.ts";
 import type { Data } from "./+data.ts";
 import ProjectDocumentList from "@/app/components/ProjectDocumentList.vue";
 import ProjectUploadFileBtn from "@/app/components/ProjectUploadFileBtn.vue";
-import { projectKey } from "@/app/utils/provide.ts";
+import { useInjectionKey } from "@/app/utils/provide.ts";
 
-const project = inject(projectKey);
+const project = inject(useInjectionKey<LayoutData, "project">())!;
 
-const documents = ref<Document[]>(useData<Data>().documents);
-
-const handleDeleteDocument = (id: string) => {
-  if (!project || !project.Documents) return;
-
-  documents.value = documents.value.filter((doc) => doc.id !== id);
-};
+const { documents } = useData<Data>();
 </script>
 
 <template>
   <div class="pt-3 flex flex-col gap-3 w-full">
-    <ProjectUploadFileBtn />
-    <ProjectDocumentList
-      :documents="documents"
-      @delete="handleDeleteDocument"
-    />
+    <ProjectUploadFileBtn :project />
+    <ProjectDocumentList :documents />
   </div>
 </template>

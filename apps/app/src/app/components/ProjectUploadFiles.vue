@@ -4,6 +4,7 @@ import type { Project } from "@cat/shared/schema/prisma/project";
 import { computed, ref, shallowRef } from "vue";
 import { TRPCClientError } from "@trpc/client";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
 import Icon from "./Icon.vue";
 import HButton from "./headless/HButton.vue";
 import Table from "@/app/components/table/Table.vue";
@@ -12,7 +13,6 @@ import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 
@@ -20,7 +20,9 @@ const { info, warn, trpcWarn } = useToastStore();
 
 const fileInputEl = ref<HTMLInputElement>();
 
-const project = defineModel<Project>("project", { required: true });
+const props = defineProps<{
+  project: Project;
+}>();
 
 const isProcessing = ref<boolean>(false);
 
@@ -67,10 +69,6 @@ const removeFile = async (file: TempFile) => {
     await trpc.document.delete
       .mutate({ id: file.document.id })
       .then(() => {
-        project.value.Documents = project.value.Documents?.filter(
-          (document) => document.id !== file.document?.id,
-        );
-
         files.value = files.value.filter((file) => file.tempId !== file.tempId);
       })
       .catch(trpcWarn);
@@ -98,8 +96,6 @@ const upload = async (tempFile: TempFile) => {
   isProcessing.value = true;
   tempFile.status = "processing";
 
-  if (!project.value) return;
-
   try {
     const { url, file } = await trpc.document.fileUploadURL.mutate({
       meta: {
@@ -113,11 +109,10 @@ const upload = async (tempFile: TempFile) => {
 
     await trpc.document.createFromFile
       .mutate({
-        projectId: project.value.id,
+        projectId: props.project.id,
         fileId: file.id,
       })
-      .then((document) => {
-        project.value.Documents?.push(document);
+      .then(() => {
         tempFile.status = "completed";
         info(`上传 ${tempFile.raw.name} 成功，等待处理完成后即可翻译`);
       });

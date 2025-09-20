@@ -3,6 +3,8 @@ import { ProjectSchema } from "@cat/shared/schema/prisma/project";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { DocumentSchema } from "@cat/shared/schema/prisma/document";
+import { UserSchema } from "@cat/shared/schema/prisma/user";
+import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 
 export const projectRouter = router({
@@ -302,13 +304,20 @@ export const projectRouter = router({
         },
       });
     }),
-  query: authedProcedure
+  get: authedProcedure
     .input(
       z.object({
         id: z.string(),
       }),
     )
-    .output(ProjectSchema.nullable())
+    .output(
+      ProjectSchema.extend({
+        Creator: UserSchema,
+        TargetLanguages: z.array(LanguageSchema),
+        SourceLanguage: LanguageSchema,
+        Documents: z.array(DocumentSchema),
+      }).nullable(),
+    )
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -323,6 +332,7 @@ export const projectRouter = router({
           Creator: true,
           TargetLanguages: true,
           SourceLanguage: true,
+          Documents: true,
         },
       });
     }),

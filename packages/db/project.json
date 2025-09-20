@@ -1,0 +1,10 @@
+{
+  "targets": {
+    "vite:build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prisma generate && vite build"
+      }
+    }
+  }
+}

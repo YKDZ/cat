@@ -9,21 +9,6 @@ export const RoleSchema = z.object({
   updatedAt: PrismaDateTime,
 
   parentId: z.int().nullable(),
-  get Parent() {
-    return RoleSchema.optional();
-  },
-
-  get Childrens() {
-    return z.array(RoleSchema).optional();
-  },
-
-  get UserRoles() {
-    return z.array(UserRoleSchema).optional();
-  },
-
-  get RolePermissions() {
-    return z.array(RolePermissionSchema).optional();
-  },
 });
 
 export const PermissionSchema = z.object({

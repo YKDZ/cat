@@ -24,9 +24,6 @@ export const TranslationApprovementSchema = z.object({
   translationId: z.int(),
 
   creatorId: z.ulid(),
-  get Creator() {
-    return UserSchema.optional();
-  },
 });
 
 export const TranslationSchema = z.object({
@@ -37,36 +34,14 @@ export const TranslationSchema = z.object({
   updatedAt: PrismaDateTime,
 
   translatorId: z.ulid(),
-  get Translator() {
-    return UserSchema.optional();
-  },
 
   translatableElementId: z.int(),
-  get TranslatableElement() {
-    return TranslatableElementSchema.optional();
-  },
 
   languageId: z.string(),
-  get Language() {
-    return LanguageSchema.optional();
-  },
 
   embeddingId: z.int().nullable(),
-  get Embedding() {
-    return VectorSchema.nullable().optional();
-  },
 
   vectorizerId: z.int(),
-  get Vectorizer() {
-    return PluginServiceSchema.optional();
-  },
-
-  get Votes() {
-    return z.array(TranslationVoteSchema).optional();
-  },
-  get Approvements() {
-    return z.array(TranslationApprovementSchema).optional();
-  },
 });
 
 export type Translation = z.infer<typeof TranslationSchema>;

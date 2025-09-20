@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { Plugin } from "@cat/shared/schema/prisma/plugin";
+import type {
+  Plugin,
+  PluginInstallation,
+  PluginTag,
+} from "@cat/shared/schema/prisma/plugin";
 import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
@@ -9,7 +13,10 @@ import PluginTags from "./PluginTags.vue";
 const { t } = useI18n();
 
 const props = defineProps<{
-  plugin: WithRequired<Plugin, "Installations">;
+  plugin: Plugin & {
+    Installations: PluginInstallation[];
+    Tags: PluginTag[];
+  };
   pathPrefix: string;
 }>();
 
