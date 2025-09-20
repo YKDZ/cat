@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
+import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import type { AuthMethod } from "@cat/shared/schema/misc";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { storeToRefs } from "pinia";
@@ -22,7 +22,7 @@ const { trpcWarn } = useToastStore();
 const { authMethod } = storeToRefs(useAuthStore());
 
 const schema = ref<JSONSchema>({});
-const data = shallowRef<JSONType>({});
+const data = shallowRef<NonNullJSONType>({});
 
 const isEmpty = computed(() => {
   return Object.keys(schema.value).length === 0;

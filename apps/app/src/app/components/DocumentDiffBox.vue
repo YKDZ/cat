@@ -2,10 +2,10 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import type { DocumentVersion } from "@cat/shared/schema/prisma/document";
 import { useDateFormat } from "@vueuse/core";
+import { trpc } from "@cat/app-api/trpc/client";
 import DiffBox from "./diff/DiffBox.vue";
 import Picker from "./picker/Picker.vue";
 import type { PickerOption } from "./picker/index.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 
 const props = defineProps<{
   documentId: string;
