@@ -7,8 +7,8 @@ import {
 import { ref } from "vue";
 import type { ScopeType } from "@cat/db";
 import { navigate } from "vike/client/router";
-import SettingForm from "./SettingForm.vue";
 import { trpc } from "@cat/app-api/trpc/client";
+import SettingForm from "./SettingForm.vue";
 
 const props = defineProps<{
   config: PluginConfig;

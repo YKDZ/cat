@@ -35,17 +35,19 @@ const props = withDefaults(
     as?: string | Component;
     disabled?: boolean;
     loading?: boolean;
+    value?: boolean;
     classes?: Classes;
   }>(),
   {
     as: "button",
     disabled: false,
     loading: false,
+    value: false,
     classes: () => ({}),
   },
 );
 
-const checked = defineModel<boolean>({});
+const checked = defineModel<boolean>();
 
 const emit = defineEmits<{
   update: [value: boolean];

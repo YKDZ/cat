@@ -13,10 +13,9 @@ import Textarea from "@/app/components/Textarea.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import HInput from "@/app/components/headless/form/HInput.vue";
 import HLabel from "@/app/components/headless/form/HLabel.vue";
-import HFormControl from "@/app/components/headless/form/HFormControl.vue";
+import HForm from "@/app/components/headless/form/HForm.vue";
 
 const { t } = useI18n();
-
 const { info } = useToastStore();
 
 const progress = defineModel("progress", { type: Number, required: true });
@@ -81,21 +80,19 @@ const createProject = async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
-    <HFormControl
-      required
+  <HForm
+    :classes="{
+      form: 'form',
+    }"
+  >
+    <HLabel
       :classes="{
-        container: 'form-control',
+        label: 'label',
       }"
-    >
-      <HLabel
-        :classes="{
-          label: 'label',
-        }"
-        >{{ t("名称") }}</HLabel
-      >
+      ><span class="label-text label-text-required">{{ t("名称") }}</span>
       <HInput
         v-model="name"
+        required
         type="text"
         placeholder="项目名称"
         icon="i-mdi:book"
@@ -105,61 +102,53 @@ const createProject = async () => {
           'input-icon': 'input-icon',
         }"
       />
-    </HFormControl>
+    </HLabel>
 
-    <HFormControl
+    <HLabel
       :classes="{
-        container: 'form-control',
+        label: 'label',
       }"
-    >
-      <HLabel
-        :classes="{
-          label: 'label',
-        }"
-        >{{ t("简介") }}</HLabel
-      >
-      <Textarea v-model="description" placeholder="用于描述项目的简短文本"
-    /></HFormControl>
+      ><span class="label-text">{{ t("简介") }}</span
+      ><Textarea v-model="description" placeholder="用于描述项目的简短文本"
+    /></HLabel>
 
     <HLabel
       :classes="{
         label: 'label',
       }"
       required
-      >{{ t("源语言") }}</HLabel
-    >
-    <LanguagePicker v-model="sourceLanguageId" />
+      ><span class="label-text label-text-required">{{ t("源语言") }}</span
+      ><LanguagePicker v-model="sourceLanguageId"
+    /></HLabel>
 
     <HLabel
       :classes="{
         label: 'label',
       }"
-      >{{ t("目标语言") }}</HLabel
-    >
-    <MultiLanguagePicker v-model:language-ids="targetLanguageIds" />
+      ><span class="label-text label-text-required">{{ t("目标语言") }}</span
+      ><MultiLanguagePicker v-model:language-ids="targetLanguageIds"
+    /></HLabel>
 
     <HLabel
       :classes="{
         label: 'label',
       }"
-      >{{ t("记忆库") }}</HLabel
-    >
-    <MultiMemoryPicker
-      v-model:memory-ids="memoryIds"
-      placeholder="选择一个或多个记忆库"
-    />
+      ><span class="label-text label-text-required">{{ t("记忆库") }}</span>
+      <MultiMemoryPicker
+        v-model:memory-ids="memoryIds"
+        placeholder="选择一个或多个记忆库"
+    /></HLabel>
 
     <HLabel
       :classes="{
         label: 'label',
       }"
-      >{{ t("术语库") }}</HLabel
-    >
-    <MultiGlossaryPicker
-      v-model:glossary-ids="glossaryIds"
-      create-new
-      placeholder="选择一个或多个术语库"
-    />
+      ><span class="label-text label-text-required">{{ t("术语库") }}</span>
+      <MultiGlossaryPicker
+        v-model:glossary-ids="glossaryIds"
+        create-new
+        placeholder="选择一个或多个术语库"
+    /></HLabel>
 
     <HButton
       :classes="{
@@ -171,5 +160,5 @@ const createProject = async () => {
     >
       {{ t("创建项目") }}
     </HButton>
-  </div>
+  </HForm>
 </template>

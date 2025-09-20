@@ -100,8 +100,11 @@ export default defineConfig({
         "ring-1 flex gap-1 items-center focus-within:ring-base ring-highlight-darkest ring-offset-transparent ",
       "input-icon": "ml-2 text-lg",
 
-      "form-control": "flex flex-col gap-2",
-      label: "-mb-1.5",
+      form: "flex flex-col gap-2",
+      label: "flex flex-col",
+      "label-text": "",
+      "label-text-required":
+        "after:text-error-darker after:ml-1 after:content-['*']",
     },
     [
       /^btn-(.*)$/,

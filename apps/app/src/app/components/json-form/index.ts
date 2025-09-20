@@ -1,22 +1,25 @@
 import type { DefineComponent, InjectionKey } from "vue";
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
+import type {
+  _JSONSchema,
+  JSONSchema,
+  NonNullJSONType,
+} from "@cat/shared/schema/json";
 import StringRenderer from "./renderers/StringRenderer.vue";
 import NumberRenderer from "./renderers/NumberRenderer.vue";
 import BooleanRenderer from "./renderers/BooleanRenderer.vue";
 import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
-import ArrayRenderer from "./renderers/ArrayRenderer.vue";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
 
-export const schemaKey = Symbol() as InjectionKey<JSONSchema>;
+export const schemaKey = Symbol() as InjectionKey<_JSONSchema>;
 
 export interface RendererProps {
-  propertyKey?: string;
-  data: JSONType;
+  propertyKey: string | number;
+  data: NonNullJSONType;
 }
 
 export type RendererEmits = {
-  _update: (to: JSONType) => void;
+  _update: (to: NonNullJSONType) => void;
 };
 
 export type RendererComponent = DefineComponent<
@@ -159,7 +162,6 @@ const matchers: Matcher[] = [
   new Matcher("string", { type: "string" }, StringRenderer),
   new Matcher("number", { type: "number" }, NumberRenderer),
   new Matcher("boolean", { type: "boolean" }, BooleanRenderer),
-  new Matcher("array", { type: "array" }, ArrayRenderer),
 ];
 
 matchers.forEach((renderer) => MatcherRegistry.register(renderer));

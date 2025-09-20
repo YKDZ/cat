@@ -2,7 +2,7 @@
 import { onBeforeMount, ref, shallowRef } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
-import JSONForm from "@/app/components/json-form/JSONForm.vue";
+import JSONForm from "@/app/components/json-form/JsonForm.vue";
 
 const props = defineProps<{
   configGetter: () => Promise<JSONType>;
@@ -98,11 +98,6 @@ onBeforeMount(async () => {
     v-if="typeof schema === 'object'"
     :data
     :schema
-    :classes="{
-      label: 'flex flex-col gap-0.5 mt-2',
-      'label-title': 'text-xl font-bold text-highlight-content-darker',
-      'label-description': 'text text-highlight-content',
-    }"
     @update="handleUpdate"
   />
 </template>

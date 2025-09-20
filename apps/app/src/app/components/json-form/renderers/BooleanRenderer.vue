@@ -1,22 +1,27 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey } from "../index.ts";
-import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";
 import HToggle from "@/app/components/headless/HToggle.vue";
 
 const props = defineProps<{
-  propertyKey?: string;
-  data: JSONType;
+  propertyKey: string | number;
+  data: NonNullJSONType;
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: JSONType): void;
+  (e: "_update", to: NonNullJSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
 
-const value = computed(() => Boolean(props.data ?? schema.default));
+const value = computed(() => {
+  try {
+    return Boolean(props.data ?? schema.default);
+  } catch {
+    return false;
+  }
+});
 
 const handleUpdate = (value: boolean) => {
   emits("_update", value);
@@ -24,18 +29,22 @@ const handleUpdate = (value: boolean) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-0.5">
-    <RendererLabel :schema :property-key />
+  <label class="flex flex-col gap-0.5"
+    ><span class="text-highlight-content-darker font-semibold">{{
+      schema.title ?? propertyKey
+    }}</span>
+    <span class="text-sm text-highlight-content">{{ schema.description }}</span>
     <HToggle
-      v-model="value"
+      :value
       :classes="{
-        'base-checked': 'toggle toggle-md toggle-highlight-darker',
-        'base-unchecked': 'toggle toggle-md toggle-base',
-        'thumb-checked': 'toggle-thumb toggle-thumb-md toggle-thumb-highlight',
-        'thumb-unchecked':
+        'base-checked': 'toggle toggle-md toggle-base',
+        'base-unchecked': 'toggle toggle-md toggle-highlight-darker',
+        'thumb-checked':
           'toggle-thumb toggle-thumb-md toggle-thumb-highlight toggle-thumb-checked',
+        'thumb-unchecked':
+          'toggle-thumb toggle-thumb-md toggle-thumb-highlight',
       }"
       @update="handleUpdate"
     />
-  </div>
+  </label>
 </template>

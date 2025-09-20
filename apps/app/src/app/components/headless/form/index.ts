@@ -1,22 +1,7 @@
-import type { ComputedRef } from "vue";
+import type { InjectionKey } from "vue";
 
-export const FORM_CONTROL_SYMBOL = Symbol("form-control");
+export const labelContextKey = Symbol() as InjectionKey<HLabelContext>;
 
-export interface FormControlContext {
-  id: string;
-  labelId: string;
-  descriptionId: string;
-  errorId: string;
-  inputId: ComputedRef<string>;
-  disabled: ComputedRef<boolean>;
-  required: ComputedRef<boolean>;
-  invalid: ComputedRef<boolean>;
-  registerInput: (customId?: string) => string;
-  classes?: {
-    container?: string;
-    label?: string;
-    description?: string;
-    error?: string;
-    input?: string;
-  };
-}
+export type HLabelContext = {
+  for?: string;
+};

@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { NonNullJSONType } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 import { schemaKey, transferDataToString } from "..";
 import type { PickerOption } from "@/app/components/picker/index.ts";
-import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";
 import Picker from "@/app/components/picker/Picker.vue";
 
 const props = defineProps<{
-  propertyKey?: string;
-  data: JSONType;
+  propertyKey: string | number;
+  data: NonNullJSONType;
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: JSONType): void;
+  (e: "_update", to: NonNullJSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
@@ -34,13 +33,18 @@ const options = computed(() => {
 });
 
 const handleChange = (_: unknown, to: unknown) => {
-  emits("_update", z.json().parse(to));
+  const value = z.json().parse(to);
+  if (value === null) return;
+  emits("_update", value);
 };
 </script>
 
 <template>
-  <div class="flex flex-col gap-0.5">
-    <RendererLabel :schema :property-key />
+  <label class="flex flex-col gap-0.5"
+    ><span class="text-highlight-content-darker font-semibold">{{
+      schema.title ?? propertyKey
+    }}</span>
+    <span class="text-sm text-highlight-content">{{ schema.description }}</span>
     <Picker v-model="value" :options @change="handleChange" />
-  </div>
+  </label>
 </template>
