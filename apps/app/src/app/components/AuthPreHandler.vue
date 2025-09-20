@@ -6,11 +6,11 @@ import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 import type { TRPCError } from "@trpc/server";
-import JSONForm from "./json-form/JSONForm.vue";
+import { trpc } from "@cat/app-api/trpc/client";
+import JSONForm from "./json-form/JsonForm.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 
@@ -61,7 +61,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <JSONForm v-if="!isEmpty" :schema :data @update="(to) => (data = to)" />
+  <JSONForm
+    v-if="typeof schema === 'object' && !isEmpty"
+    :schema
+    :data
+    @update="(to) => (data = to)"
+  />
   <HButton
     :data-testid="method.providerId"
     :classes="{

@@ -1,13 +1,30 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "namedInputs": {},
+  "namedInputs": {
+    "default": [
+      "{projectRoot}/**/*"
+    ],
+    "production": [
+      "default",
+      "!{projectRoot}/vitest.config.ts",
+      "!{projectRoot}/**/?(*.)+(spec|test).ts"
+    ]
+  },
   "targetDefaults": {
     "build": {
-      "inputs": [
-        "{projectRoot}/**/*",
-        "!{projectRoot}/dist/**/*"
-      ],
-      "cache": true
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "dev": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "preview": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   },
   "plugins": [

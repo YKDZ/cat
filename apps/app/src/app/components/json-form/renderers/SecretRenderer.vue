@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
 import * as z from "zod/v4";
-import type { JSONType } from "@cat/shared/schema/json";
-import { schemaKey, transferDataToString } from "..";
-import RendererLabel from "@/app/components/json-form/utils/RendererLabel.vue";
+import type { NonNullJSONType } from "@cat/shared/schema/json";
+import { schemaKey, transferDataToString } from "../index.ts";
 import Icon from "@/app/components/Icon.vue";
 
 const props = defineProps<{
-  propertyKey?: string;
-  data: JSONType;
+  propertyKey: string | number;
+  data: NonNullJSONType;
 }>();
 
 const emits = defineEmits<{
-  (e: "_update", to: JSONType): void;
+  (e: "_update", to: NonNullJSONType): void;
 }>();
 
 const schema = inject(schemaKey)!;
@@ -23,9 +22,17 @@ const value = computed(() =>
 
 const visible = ref(false);
 
-const inputType = computed(() => {
+const type = computed(() => {
   if (visible.value === true) return "text";
   else return "password";
+});
+
+const autocomplete = computed(() => {
+  try {
+    return z.string().parse(schema["x-autocomplete"]);
+  } catch {
+    return "off";
+  }
 });
 
 const handleUpdate = (event: Event) => {
@@ -35,14 +42,16 @@ const handleUpdate = (event: Event) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-0.5">
-    <RendererLabel :for="propertyKey" :schema :property-key />
+  <label class="flex flex-col gap-0.5">
+    <span class="text-highlight-content-darker font-semibold">{{
+      schema.title ?? propertyKey
+    }}</span>
+    <span class="text-sm text-highlight-content">{{ schema.description }}</span>
     <div class="flex items-center justify-between relative">
       <input
-        :id="propertyKey"
         :value
-        :autocomplete="z.string().optional().parse(schema['x-autocomplete'])"
-        :type="inputType"
+        :autocomplete
+        :type
         class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-base"
         @input="handleUpdate"
       />
@@ -53,5 +62,5 @@ const handleUpdate = (event: Event) => {
         <Icon :icon="!visible ? 'i-mdi:eye' : 'i-mdi:eye-off'"
       /></span>
     </div>
-  </div>
+  </label>
 </template>

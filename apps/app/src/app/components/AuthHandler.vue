@@ -6,10 +6,10 @@ import type { TRPCError } from "@trpc/server";
 import { storeToRefs } from "pinia";
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
 import { useI18n } from "vue-i18n";
-import HButton from "./headless/HButton.vue";
-import JSONForm from "@/app/components/json-form/JSONForm.vue";
-import { useAuthStore } from "@/app/stores/auth.ts";
 import { trpc } from "@cat/app-api/trpc/client";
+import HButton from "./headless/HButton.vue";
+import JSONForm from "@/app/components/json-form/JsonForm.vue";
+import { useAuthStore } from "@/app/stores/auth.ts";
 
 const { t } = useI18n();
 
@@ -69,7 +69,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="!isEmpty" class="flex flex-col gap-1">
+  <div
+    v-if="typeof schema === 'object' && !isEmpty"
+    class="flex flex-col gap-1"
+  >
     <JSONForm :schema :data @update="handleUpdate" />
     <HButton
       :classes="{

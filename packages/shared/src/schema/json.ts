@@ -147,4 +147,19 @@ export const JSONSchemaSchema = _JSONSchemaSchema.or(z.boolean());
 
 export type JSONSchema = z.infer<typeof JSONSchemaSchema>;
 export type _JSONSchema = z.infer<typeof _JSONSchemaSchema>;
-export type JSONType = z.infer<ReturnType<typeof z.json>>;
+
+export type JSONType =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONArray
+  | JSONObject;
+
+export interface JSONObject {
+  [key: string]: JSONType;
+}
+
+export type JSONArray = JSONType[];
+
+export type NonNullJSONType = Exclude<JSONType, null>;

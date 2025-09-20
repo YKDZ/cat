@@ -1,11 +1,16 @@
 {
-  "extends": ["../../tsconfig.base.json", "@vue/tsconfig/tsconfig.dom.json"],
+  "extends": [
+    "../../tsconfig.base.json",
+    "@vue/tsconfig/tsconfig.dom.json"
+  ],
   "compilerOptions": {
     "composite": true,
     "resolveJsonModule": true,
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
   "exclude": [
@@ -29,8 +34,7 @@
     "src/**/*.js",
     "src/**/*.jsx",
     "src/**/*.ts",
-    "src/**/*.vue",
-    "*.d.ts"
+    "src/**/*.vue"
   ],
   "references": [
     {
