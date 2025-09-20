@@ -7,7 +7,7 @@ import ProjectDocumentList from "@/app/components/ProjectDocumentList.vue";
 import ProjectUploadFileBtn from "@/app/components/ProjectUploadFileBtn.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 
-const project = inject(useInjectionKey<LayoutData, "project">())!;
+const project = inject(useInjectionKey<LayoutData>("project"))!;
 
 const { documents } = useData<Data>();
 </script>

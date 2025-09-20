@@ -10,6 +10,31 @@
       "!{projectRoot}/**/?(*.)+(spec|test).ts"
     ]
   },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
+    "dev": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false
+    },
+    "preview": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false
+    }
+  },
   "plugins": [
     {
       "plugin": "@nx/js/typescript",

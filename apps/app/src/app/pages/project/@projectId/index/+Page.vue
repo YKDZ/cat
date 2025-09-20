@@ -5,7 +5,7 @@ import ProjectLanguageList from "@/app/components/ProjectLanguageList.vue";
 import ProjectDetailCard from "@/app/components/ProjectDetailCard.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 
-const project = inject(useInjectionKey<Data, "project">())!;
+const project = inject(useInjectionKey<Data>("project"))!;
 </script>
 
 <template>

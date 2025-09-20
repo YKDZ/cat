@@ -1,6 +1,4 @@
 import * as z from "zod/v4";
-import { LanguageSchema } from "./misc.ts";
-import { UserSchema } from "./user.ts";
 import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const TermSchema = z.object({

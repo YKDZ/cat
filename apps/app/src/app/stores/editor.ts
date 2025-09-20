@@ -8,8 +8,14 @@ import {
   type TranslatableElement,
   type Document,
 } from "@cat/shared/schema/prisma/document";
-import { type TermRelation } from "@cat/shared/schema/prisma/glossary";
-import { TranslationSchema } from "@cat/shared/schema/prisma/translation";
+import {
+  type Term,
+  type TermRelation,
+} from "@cat/shared/schema/prisma/glossary";
+import {
+  TranslationSchema,
+  type Translation,
+} from "@cat/shared/schema/prisma/translation";
 import type { TRPCClientError } from "@trpc/client";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore } from "pinia";
@@ -68,7 +74,12 @@ export const useEditorStore = defineStore("editor", () => {
   const translationValue = ref<string>("");
   const suggestions = ref<TranslationSuggestion[]>([]);
   const memories = ref<MemorySuggestion[]>([]);
-  const terms = ref<TermRelation[]>([]);
+  const terms = ref<
+    (TermRelation & {
+      Term: Term;
+      Translation: Translation;
+    })[]
+  >([]);
   const originDivEl = ref<HTMLDivElement>();
   const inputDivEl = ref<HTMLDivElement>();
   const sourceParts = ref<PartData[]>([]);
@@ -90,7 +101,12 @@ export const useEditorStore = defineStore("editor", () => {
     return Array.from(loadedPages.keys());
   });
 
-  const addTerms = (...termsToAdd: TermRelation[]) => {
+  const addTerms = (
+    ...termsToAdd: (TermRelation & {
+      Term: Term;
+      Translation: Translation;
+    })[]
+  ) => {
     termsToAdd.forEach((relation) => {
       const { Term: term, Translation: translation } = relation;
       if (!term || !translation) return;
@@ -98,14 +114,15 @@ export const useEditorStore = defineStore("editor", () => {
         term.value +
         translation.value +
         term.creatorId +
-        translation.creatorId +
+        translation.translatorId +
         term.createdAt;
       if (
-        !terms.value.find((relation: TermRelation) => {
+        !terms.value.find((relation) => {
           const { Term: t, Translation: tr } = relation;
           if (!t || !tr) return false;
           return (
-            t.value + tr.value + t.creatorId + tr.creatorId + t.createdAt === id
+            t.value + tr.value + t.creatorId + tr.translatorId + t.createdAt ===
+            id
           );
         })
       )

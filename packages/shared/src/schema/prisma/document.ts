@@ -1,10 +1,6 @@
 import * as z from "zod/v4";
 import { PrismaDateTime } from "./misc.ts";
 import { FileSchema } from "./file.ts";
-import { UserSchema } from "./user.ts";
-import { VectorSchema } from "./vector.ts";
-import { ProjectSchema } from "./project.ts";
-import { PluginServiceSchema } from "@/schema/prisma/plugin.ts";
 import { safeZDotJson } from "@/schema/json.ts";
 
 export const DocumentSchema = z.object({

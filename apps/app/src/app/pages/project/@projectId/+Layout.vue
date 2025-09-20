@@ -9,7 +9,7 @@ import { useInjectionKey } from "@/app/utils/provide.ts";
 
 const { project } = useData<Data>();
 
-provide(useInjectionKey<Data, "project">(), project);
+provide(useInjectionKey<Data>("project"), project);
 </script>
 
 <template>
