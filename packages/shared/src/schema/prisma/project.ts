@@ -1,8 +1,4 @@
 import * as z from "zod/v4";
-import { MemorySchema } from "./memory.ts";
-import { LanguageSchema } from "./misc.ts";
-import { UserSchema } from "./user.ts";
-import { DocumentSchema } from "./document.ts";
 import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const ProjectSchema = z.object({

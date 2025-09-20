@@ -9,7 +9,7 @@ import { useInjectionKey } from "@/app/utils/provide.ts";
 
 const { glossaries } = useData<Data>();
 
-const project = inject(useInjectionKey<LayoutData, "project">())!;
+const project = inject(useInjectionKey<LayoutData>("project"))!;
 </script>
 
 <template>

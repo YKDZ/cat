@@ -34,6 +34,7 @@
     "package.json"
   ],
   "scripts": {
+    "build": "vite build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },
