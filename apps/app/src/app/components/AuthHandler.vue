@@ -4,7 +4,7 @@ import { computed, onMounted, ref, shallowRef } from "vue";
 import { navigate } from "vike/client/router";
 import type { TRPCError } from "@trpc/server";
 import { storeToRefs } from "pinia";
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
+import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import HButton from "./headless/HButton.vue";
@@ -16,7 +16,7 @@ const { t } = useI18n();
 const ctx = usePageContext();
 const { error, authMethod } = storeToRefs(useAuthStore());
 const schema = ref<JSONSchema>({});
-const data = shallowRef<JSONType>({});
+const data = shallowRef<NonNullJSONType>({});
 
 const handleAuth = async () => {
   const formData =
@@ -47,7 +47,7 @@ const isEmpty = computed(() => {
   return Object.keys(schema.value).length === 0;
 });
 
-const handleUpdate = (to: JSONType) => {
+const handleUpdate = (to: NonNullJSONType) => {
   data.value = to;
 };
 

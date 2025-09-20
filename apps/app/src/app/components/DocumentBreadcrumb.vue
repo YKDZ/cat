@@ -2,7 +2,7 @@
 import type { Document } from "@cat/shared/schema/prisma/document";
 import { computed } from "vue";
 
-const props = defineProps<{
+defineProps<{
   document: Document;
 }>();
 
