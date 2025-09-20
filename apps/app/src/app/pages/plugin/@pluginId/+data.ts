@@ -10,7 +10,7 @@ export const data = async (
 
   if (!pluginId) throw render("/", "Plugin id is required");
 
-  const plugin = await useSSCTRPC(ctx).plugin.query({
+  const plugin = await useSSCTRPC(ctx).plugin.get({
     id: pluginId,
   });
 

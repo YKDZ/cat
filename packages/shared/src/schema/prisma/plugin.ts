@@ -1,5 +1,4 @@
 import * as z from "zod/v4";
-import { UserSchema } from "./user.ts";
 import { PrismaDateTime } from "@/schema/misc.ts";
 import { JSONSchemaSchema, safeZDotJson } from "@/schema/json.ts";
 
@@ -12,9 +11,6 @@ export const PluginInstallationSchema = z.object({
   updatedAt: PrismaDateTime,
 
   pluginId: z.string(),
-  get Plugin() {
-    return PluginSchema.optional();
-  },
 });
 
 export const PluginTagSchema = z.object({
@@ -30,10 +26,6 @@ export const PluginConfigSchema = z.object({
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
   pluginId: z.string(),
-
-  get PluginConfigInstances() {
-    return z.array(PluginConfigInstanceSchema).optional();
-  },
 });
 
 export const PluginConfigInstanceSchema = z.object({
@@ -43,19 +35,10 @@ export const PluginConfigInstanceSchema = z.object({
   updatedAt: PrismaDateTime,
 
   configId: z.int(),
-  get Config() {
-    return PluginConfigSchema.optional();
-  },
 
   creatorId: z.string().nullable(),
-  get Creator() {
-    return UserSchema.optional().nullable();
-  },
 
   pluginInstallationId: z.int().nullable(),
-  get PluginInstallation() {
-    return PluginInstallationSchema.optional();
-  },
 });
 
 export const PluginPermissionSchema = z.object({
@@ -81,26 +64,6 @@ export const PluginSchema = z.object({
   isExternal: z.boolean(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-
-  get Config() {
-    return PluginConfigSchema.nullable().optional();
-  },
-
-  get Permissions() {
-    return z.array(PluginPermissionSchema).optional();
-  },
-
-  get Versions() {
-    return z.array(PluginVersionSchema).optional();
-  },
-
-  get Tags() {
-    return z.array(PluginTagSchema).optional();
-  },
-
-  get Installations() {
-    return z.array(PluginInstallationSchema).optional();
-  },
 });
 
 export const PluginServiceSchema = z.object({
@@ -118,9 +81,6 @@ export const PluginServiceSchema = z.object({
   updatedAt: PrismaDateTime,
 
   pluginInstallationId: z.int(),
-  get Installation() {
-    return PluginInstallationSchema.optional();
-  },
 });
 
 export type PluginTag = z.infer<typeof PluginTagSchema>;

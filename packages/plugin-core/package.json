@@ -22,7 +22,6 @@
     "package.json"
   ],
   "scripts": {
-    "build": "nx vite:build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write ."
   },

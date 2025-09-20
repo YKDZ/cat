@@ -2,17 +2,17 @@
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { computed, inject, onMounted, provide, ref } from "vue";
-import { languageKey, projectKey } from "@/app/utils/provide.ts";
+import { computed, inject, provide, ref } from "vue";
+import type { Data } from "../../+data.ts";
+import { languageKey, useInjectionKey } from "@/app/utils/provide.ts";
 import { useLanguageStore } from "@/app/stores/language.ts";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
 import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
 import HButton from "@/app/components/headless/HButton.vue";
 
 const ctx = usePageContext();
-const project = inject(projectKey)!;
+const project = inject(useInjectionKey<Data, "project">())!;
 const languageId = ref<string>(ctx.routeParams.languageId!);
-const { update } = useLanguageStore();
 const { languages } = storeToRefs(useLanguageStore());
 
 const language = computed(() => {
@@ -27,8 +27,6 @@ const handleBack = async () => {
   if (!project) return;
   await navigate(`/project/${project.id}`);
 };
-
-onMounted(update);
 </script>
 
 <template>
@@ -50,9 +48,6 @@ onMounted(update);
         :project-id="project.id"
       />
     </div>
-    <ProjectLanguageDocumentList
-      v-if="project.Documents"
-      :documents="project.Documents"
-    />
+    <ProjectLanguageDocumentList :documents="project.Documents" />
   </div>
 </template>

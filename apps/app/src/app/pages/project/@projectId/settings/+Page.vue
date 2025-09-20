@@ -2,17 +2,18 @@
 import { navigate } from "vike/client/router";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
+import type { Data } from "../+data.ts";
 import HButton from "@/app/components/headless/HButton.vue";
 import InputLabel from "@/app/components/InputLabel.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { trpc } from "@cat/app-api/trpc/client";
 import HInput from "@/app/components/headless/form/HInput.vue";
-import { projectKey } from "@/app/utils/provide.ts";
+import { useInjectionKey } from "@/app/utils/provide.ts";
 
 const { t } = useI18n();
-const project = inject(projectKey);
-const name = ref(project!.name);
-const sourceLanguageId = ref(project!.sourceLanguageId);
+const project = inject(useInjectionKey<Data, "project">())!;
+const name = ref(project.name);
+const sourceLanguageId = ref(project.sourceLanguageId);
 
 const updateName = async (): Promise<void> => {
   if (!project) return;

@@ -1,22 +1,21 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
-import { inject, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { navigate } from "vike/client/router";
 import { trpc } from "@cat/app-api/trpc/client";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import HButton from "./headless/HButton.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
-import { projectKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 
 const { info, trpcWarn } = useToastStore();
-
-const project = inject(projectKey);
 
 const termAmount = ref(-1);
 
 const props = defineProps<{
   glossary: Glossary;
+  project: Project;
 }>();
 
 const emits = defineEmits<{
@@ -36,11 +35,9 @@ const handleCheck = async () => {
 };
 
 const handleUnlink = async () => {
-  if (!project) return;
-
   await trpc.project.unlinkGlossary
     .mutate({
-      id: project.id,
+      id: props.project.id,
       glossaryIds: [props.glossary.id],
     })
     .then(() => {

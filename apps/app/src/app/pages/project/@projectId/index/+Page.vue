@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { inject } from "vue";
+import type { Data } from "../+data.ts";
 import ProjectLanguageList from "@/app/components/ProjectLanguageList.vue";
 import ProjectDetailCard from "@/app/components/ProjectDetailCard.vue";
-import { projectKey } from "@/app/utils/provide.ts";
+import { useInjectionKey } from "@/app/utils/provide.ts";
 
-const project = inject(projectKey)!;
+const project = inject(useInjectionKey<Data, "project">())!;
 </script>
 
 <template>

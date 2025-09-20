@@ -1,22 +1,21 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/prisma/memory";
-import { inject, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { navigate } from "vike/client/router";
+import { trpc } from "@cat/app-api/trpc/client";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import HButton from "./headless/HButton.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
-import { trpc } from "@cat/app-api/trpc/client";
-import { projectKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 
 const { info, trpcWarn } = useToastStore();
-
-const project = inject(projectKey);
 
 const itemAmount = ref(-1);
 
 const props = defineProps<{
   memory: Memory;
+  project: Project;
 }>();
 
 const emits = defineEmits<{
@@ -36,11 +35,9 @@ const handleCheck = async () => {
 };
 
 const handleUnlink = async () => {
-  if (!project) return;
-
   await trpc.project.unlinkMemory
     .mutate({
-      id: project.id,
+      id: props.project.id,
       memoryIds: [props.memory.id],
     })
     .then(() => {

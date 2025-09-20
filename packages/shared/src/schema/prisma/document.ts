@@ -17,23 +17,10 @@ export const DocumentSchema = z.object({
   },
 
   fileHandlerId: z.int().nullable(),
-  get FileHandler() {
-    return PluginServiceSchema.nullable().optional();
-  },
 
   creatorId: z.ulid(),
-  get Creator() {
-    return UserSchema.optional();
-  },
 
   projectId: z.ulid(),
-  get Project() {
-    return ProjectSchema.optional();
-  },
-
-  get TranslatableElements() {
-    return z.array(TranslatableElementSchema).optional();
-  },
 });
 
 export const TranslatableElementSchema = z.object({
@@ -43,24 +30,12 @@ export const TranslatableElementSchema = z.object({
   meta: safeZDotJson,
 
   embeddingId: z.int(),
-  get Embedding() {
-    return VectorSchema.optional();
-  },
 
   documentVersionId: z.int().nullable(),
-  get DocumentVersion() {
-    return DocumentVersionSchema.nullable().optional();
-  },
 
   creatorId: z.ulid().nullable(),
-  get Creator() {
-    return UserSchema.optional().nullable();
-  },
 
   projectId: z.ulid().nullable(),
-  get Project() {
-    return ProjectSchema.optional().nullable();
-  },
 });
 
 export const DocumentVersionSchema = z.object({
@@ -70,9 +45,6 @@ export const DocumentVersionSchema = z.object({
   updatedAt: PrismaDateTime,
 
   documentId: z.ulid(),
-  get Document() {
-    return DocumentSchema.optional();
-  },
 });
 
 export type Document = z.infer<typeof DocumentSchema>;

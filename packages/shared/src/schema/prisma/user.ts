@@ -10,16 +10,6 @@ export const UserSchema = z.object({
   emailVerified: z.boolean(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-
-  get WritableLanguages() {
-    return z.array(LanguageSchema).optional();
-  },
-  get ReadableLanguages() {
-    return z.array(LanguageSchema).optional();
-  },
-  get TranslationVotes() {
-    return z.array(TranslationVoteSchema).optional();
-  },
 });
 
 export const AccountSchema = z.object({
@@ -29,9 +19,6 @@ export const AccountSchema = z.object({
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
   userId: z.ulid(),
-  get User() {
-    return UserSchema.optional();
-  },
 });
 
 export type User = z.infer<typeof UserSchema>;

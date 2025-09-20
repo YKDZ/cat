@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import Modal from "./headless/HModal.vue";
 import MultiMemoryPicker from "./MultiMemoryPicker.vue";
 import HButton from "./headless/HButton.vue";
-import { trpc } from "@cat/app-api/trpc/client";
-import { projectKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
-
 const { info, trpcWarn } = useToastStore();
 
-const emits = defineEmits(["link"]);
+const props = defineProps<{
+  project: Project;
+}>();
 
-const project = inject(projectKey);
+const emits = defineEmits(["link"]);
 
 const memoryIds = ref<string[]>([]);
 
@@ -25,21 +26,19 @@ const handleOpen = () => {
 };
 
 const handleLink = async () => {
-  if (!project) return;
-
   const createNewIndex = memoryIds.value.findIndex((id) => id === "createNew");
   const realIds = memoryIds.value.splice(createNewIndex, 1);
 
   if (createNewIndex !== -1) {
     await trpc.memory.create.mutate({
-      name: project.name,
-      projectIds: [project.id],
+      name: props.project.name,
+      projectIds: [props.project.id],
     });
   }
 
   await trpc.project.linkMemory
     .mutate({
-      id: project.id,
+      id: props.project.id,
       memoryIds: realIds,
     })
     .then(() => {

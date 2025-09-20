@@ -12,19 +12,10 @@ export const FileSchema = z.object({
   updatedAt: PrismaDateTime,
 
   storageProviderId: z.int(),
-  get StorageProvider() {
-    return PluginServiceSchema.optional();
-  },
 
   documentId: z.ulid().nullable(),
-  get Document() {
-    return DocumentSchema.optional();
-  },
 
   userId: z.ulid().nullable(),
-  get User() {
-    return UserSchema.optional();
-  },
 });
 
 export type File = z.infer<typeof FileSchema>;

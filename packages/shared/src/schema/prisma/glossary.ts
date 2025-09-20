@@ -10,25 +10,15 @@ export const TermSchema = z.object({
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
   glossaryId: z.ulid(),
+
   languageId: z.string(),
-  get Language() {
-    return LanguageSchema.optional();
-  },
+
   creatorId: z.ulid(),
-  get Creator() {
-    return UserSchema.optional();
-  },
 });
 
 export const TermRelationSchema = z.object({
   termId: z.int(),
-  get Term() {
-    return TermSchema.optional();
-  },
   translationId: z.int(),
-  get Translation() {
-    return TermSchema.optional();
-  },
 });
 
 export const GlossarySchema = z.object({
@@ -38,12 +28,6 @@ export const GlossarySchema = z.object({
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
   creatorId: z.ulid(),
-  get Creator() {
-    return UserSchema.optional();
-  },
-  get GlossaryItems() {
-    return z.array(TermSchema).optional();
-  },
 });
 
 export type Term = z.infer<typeof TermSchema>;

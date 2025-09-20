@@ -1,0 +1,22 @@
+{
+  "targets": {
+    "vite:build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vike:build"
+      }
+    },
+    "vite:dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vike dev"
+      }
+    },
+    "vite:preview": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cross-env NODE_ENV=production node dist/server/index.js"
+      }
+    }
+  }
+}

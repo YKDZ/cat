@@ -1,9 +1,6 @@
 import * as z from "zod/v4";
 
-export const safeZDotJson = z
-  .any()
-  .nonoptional()
-  .refine((v) => z.json().parse(v));
+export const safeZDotJson = z.any().refine((v) => z.json().parse(v));
 
 export const _JSONSchemaSchema = z
   .object({

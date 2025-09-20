@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import type { Project } from "@cat/shared/schema/prisma/project";
 import Modal from "./headless/HModal.vue";
 import ProjectUploadFiles from "./ProjectUploadFiles.vue";
 import HButton from "./headless/HButton.vue";
-import { projectKey } from "@/app/utils/provide.ts";
 
 const { t } = useI18n();
 
 const isOpen = ref(false);
 
-const project = inject(projectKey);
+defineProps<{
+  project: Project;
+}>();
 </script>
 
 <template>
@@ -31,6 +33,6 @@ const project = inject(projectKey);
       'modal-backdrop': 'modal-backdrop',
     }"
   >
-    <ProjectUploadFiles v-model:project="project" />
+    <ProjectUploadFiles :project />
   </Modal>
 </template>

@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
 import { provide } from "vue";
-import type { Data } from "./+data.ts";
+import { type Data } from "./+data.ts";
 import IndexSidebar from "@/app/components/IndexSidebar.vue";
 import ProjectHeader from "@/app/components/ProjectHeader.vue";
 import ProjectNavbar from "@/app/components/ProjectNavbar.vue";
-import { projectKey } from "@/app/utils/provide.ts";
+import { useInjectionKey } from "@/app/utils/provide.ts";
 
 const { project } = useData<Data>();
 
-provide(projectKey, project);
+provide(useInjectionKey<Data, "project">(), project);
 </script>
 
 <template>
