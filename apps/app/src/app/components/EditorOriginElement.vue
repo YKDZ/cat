@@ -2,9 +2,9 @@
 import { storeToRefs } from "pinia";
 import EditorTranslatableElementMeta from "./EditorTranslatableElementMeta.vue";
 import EditorOriginElementValue from "./EditorOriginElementValue.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
-const { originDivEl } = storeToRefs(useEditorStore());
+const { originDivEl } = storeToRefs(useEditorTableStore());
 </script>
 
 <template>

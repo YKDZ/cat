@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import { navigate } from "vike/client/router";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { Project } from "@cat/shared/schema/prisma/project";
@@ -8,6 +8,7 @@ import HButton from "./headless/HButton.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
+import { watchClient } from "@/app/utils/vue.ts";
 
 const { info, trpcWarn } = useToastStore();
 
@@ -47,7 +48,7 @@ const handleUnlink = async () => {
     .catch(trpcWarn);
 };
 
-watch(() => props.glossary, updateTermAmount);
+watchClient(() => props.glossary, updateTermAmount);
 
 onMounted(updateTermAmount);
 </script>

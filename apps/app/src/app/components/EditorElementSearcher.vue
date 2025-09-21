@@ -1,24 +1,22 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { useEditorStore } from "@/app/stores/editor.ts";
 import HInput from "@/app/components/headless/form/HInput.vue";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
 const { t } = useI18n();
 
-const { searchQuery } = storeToRefs(useEditorStore());
-const { refresh, fetchElementTotalAmount, toPage } = useEditorStore();
+const { searchQuery } = storeToRefs(useEditorTableStore());
+const { toPage } = useEditorTableStore();
 
-const handleSearch = async () => {
-  refresh();
-  await fetchElementTotalAmount();
-  await toPage(0);
+const handleSearch = () => {
+  toPage(0);
 };
 </script>
 
 <template>
   <HInput
-    v-model="searchQuery"
+    v-model.trim="searchQuery"
     icon="i-mdi:magnify"
     :placeholder="t('搜索可翻译元素')"
     type="text"

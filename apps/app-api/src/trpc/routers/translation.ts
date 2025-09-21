@@ -9,6 +9,7 @@ import { logger } from "@cat/shared/utils";
 import { autoTranslateQueue } from "@cat/app-workers/workers";
 import { createTranslationQueue } from "@cat/app-workers/workers";
 import { updateTranslationQueue } from "@cat/app-workers/workers";
+import { UserSchema } from "@cat/shared/schema/prisma/user";
 import { authedProcedure, router } from "../server.ts";
 
 export const translationRouter = router({
@@ -211,14 +212,21 @@ export const translationRouter = router({
         status: "PROCESSING",
       };
     }),
-  queryAll: authedProcedure
+  getAll: authedProcedure
     .input(
       z.object({
         elementId: z.number().int(),
         languageId: z.string(),
       }),
     )
-    .output(z.array(TranslationSchema))
+    .output(
+      z.array(
+        TranslationSchema.extend({
+          Translator: UserSchema,
+          Approvements: z.array(TranslationApprovementSchema),
+        }),
+      ),
+    )
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

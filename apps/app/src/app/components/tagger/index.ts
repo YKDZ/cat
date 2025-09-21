@@ -1,6 +1,6 @@
 import type { VNode } from "vue";
 import { h, ref } from "vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
 export type Clipper = {
   id: number | string;
@@ -111,7 +111,7 @@ const copyContent: ClickHandler = {
   name: "Copy Content",
 
   handler(clipper: Clipper, part: PartData) {
-    const { insert } = useEditorStore();
+    const { insert } = useEditorTableStore();
     insert(part.text);
   },
 };

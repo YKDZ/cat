@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs } from "vue";
+import { computed } from "vue";
 import type { JSX } from "vue/jsx-runtime";
 
 type Classes = {
@@ -21,7 +21,7 @@ const props = defineProps<{
   disabled?: boolean;
 }>();
 
-const attrs = useAttrs();
+const modelValue = defineModel();
 
 const state = computed(() => ({
   disabled: props.disabled,
@@ -34,18 +34,21 @@ const inputProps = computed(() => {
     "aria-disabled": state.value.disabled,
   };
 
-  return { result, ...attrs };
+  return result;
 });
 </script>
 
 <template>
   <div :class="classes?.['input-container']">
-    <slot v-if="icon" name="icon" :props="inputProps" :state :classes>
+    <slot v-if="icon" name="icon" v-bind="inputProps" :state :classes>
       <span :class="[icon, classes?.['input-icon']]" />
     </slot>
-    <slot :props="inputProps" :state :classes v-bind="$attrs"
-      ><input :class="classes?.input" v-bind="{ ...$attrs, ...props }"
+    <slot :state :classes v-bind="{ ...inputProps, ...$attrs }"
+      ><input
+        v-model="modelValue"
+        :class="classes?.input"
+        v-bind="{ ...inputProps, ...$attrs }"
     /></slot>
   </div>
-  <slot name="custom" :props="inputProps" :state :classes v-bind="$attrs" />
+  <slot name="custom" v-bind="{ ...inputProps, ...$attrs }" :state :classes />
 </template>

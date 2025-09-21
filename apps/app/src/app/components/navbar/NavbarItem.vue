@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { computed, ref, watch } from "vue";
+import { computed, watch } from "vue";
 import Icon from "../Icon.vue";
 import type { NavbarItemType } from "./index.ts";
 

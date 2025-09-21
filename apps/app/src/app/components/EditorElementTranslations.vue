@@ -2,11 +2,17 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import EditorElementTranslation from "./EditorElementTranslation.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTranslationStore } from "@/app/stores/editor/translation.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { watchClient } from "@/app/utils/vue.ts";
 
 const { t } = useI18n();
 
-const { translations } = storeToRefs(useEditorStore());
+const { translations } = storeToRefs(useEditorTranslationStore());
+const { updateTranslations } = useEditorTranslationStore();
+const { elementId } = storeToRefs(useEditorTableStore());
+
+watchClient(elementId, updateTranslations, { immediate: true });
 </script>
 
 <template>

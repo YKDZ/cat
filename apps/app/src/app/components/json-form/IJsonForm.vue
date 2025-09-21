@@ -96,7 +96,7 @@ provide(schemaKey, props.schema);
       @_update="(to) => handleUpdate(to, props.schema, propertyKey, [])"
     />
     <div v-if="isObject">
-      <IJSONForm
+      <IJsonForm
         v-for="property in objectProperties"
         :key="property.key"
         :data="dataOfPropertyKey(property.key, property.schema.default)"

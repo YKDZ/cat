@@ -4,15 +4,13 @@ import { type Memory } from "@cat/shared/schema/prisma/memory";
 import { type MemorySuggestion } from "@cat/shared/schema/misc";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
 import TextTagger from "./tagger/TextTagger.vue";
 import UserAvatar from "./UserAvatar.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
-import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
-const { info } = useToastStore();
-const { replace } = useEditorStore();
+const { replace } = useEditorTableStore();
 const { t } = useI18n();
 
 const props = defineProps<{
@@ -22,11 +20,6 @@ const props = defineProps<{
 
 const handleCopy = () => {
   replace(props.memorySuggestion.translation);
-  info(
-    t("成功复制来自记忆库 {name} 的记忆", {
-      name: memory.value?.name ?? props.memorySuggestion.memoryId,
-    }),
-  );
 };
 
 const memory = ref<Memory | null>(null);

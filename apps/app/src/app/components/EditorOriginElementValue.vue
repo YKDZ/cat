@@ -2,9 +2,9 @@
 import { storeToRefs } from "pinia";
 import TextTagger from "./tagger/TextTagger.vue";
 import type { PartData } from "./tagger/index.ts";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
-const { element, sourceParts } = storeToRefs(useEditorStore());
+const { element, sourceParts } = storeToRefs(useEditorTableStore());
 
 const handleUpdate = (_: PartData[] | undefined, to: PartData[]) => {
   sourceParts.value = to;

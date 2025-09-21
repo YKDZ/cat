@@ -2,10 +2,11 @@
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
 import EditorTaggedTranslation from "./EditorTaggedTranslation.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
-const { translationValue, inputTextareaEl, originDivEl } =
-  storeToRefs(useEditorStore());
+const { translationValue, inputTextareaEl, originDivEl } = storeToRefs(
+  useEditorTableStore(),
+);
 
 const isSticky = ref(false);
 

@@ -1,14 +1,12 @@
 import "dotenv/config";
 import type { Server } from "node:http";
-import { setting, syncSettings } from "@cat/db";
-import { createHTTPHelpers, logger } from "@cat/shared/utils";
+import { syncSettings } from "@cat/db";
+import { logger } from "@cat/shared/utils";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import { getPrismaDB, getRedisDB } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { closeAllProcessors } from "@cat/app-workers/utils";
-import { userFromSessionId } from "@cat/app-server-shared/utils";
-import { parsePreferredLanguage } from "./utils/i18n.ts";
 import app from "./app.ts";
 import { initTermService } from "./utils/term.ts";
 import { importLocalPlugins, installDefaultPlugins } from "./utils/plugin.ts";
@@ -50,32 +48,7 @@ const startServer = async () => {
 
     await initTermService(prismaDB.client, pluginRegistry);
 
-    apply(app, {
-      pageContext: async (runtime) => {
-        const helpers = createHTTPHelpers(
-          runtime.hono.req.raw,
-          runtime.hono.res.headers,
-        );
-
-        const sessionId = helpers.getCookie("sessionId");
-        const displayLanguage =
-          helpers.getCookie("displayLanguage") ??
-          parsePreferredLanguage(helpers.getReqHeader("Accept-Language") ?? "")
-            ?.toLocaleLowerCase()
-            .replace("-", "_") ??
-          (await setting("server.default-language", "zh_cn", prismaDB.client));
-        const user = await userFromSessionId(sessionId ?? "");
-        const name = await setting("server.name", "CAT", prismaDB.client);
-
-        return {
-          name,
-          user,
-          sessionId,
-          displayLanguage,
-          helpers,
-        };
-      },
-    });
+    apply(app);
   } catch (e) {
     logger.error(
       "SERVER",

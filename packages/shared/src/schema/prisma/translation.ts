@@ -34,7 +34,7 @@ export const TranslationSchema = z.object({
 
   languageId: z.string(),
 
-  embeddingId: z.int().nullable(),
+  embeddingId: z.int(),
 
   vectorizerId: z.int(),
 });

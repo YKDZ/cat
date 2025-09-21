@@ -221,7 +221,7 @@ export const documentRouter = router({
   countElement: authedProcedure
     .input(
       z.object({
-        id: z.string(),
+        documentId: z.string(),
         searchQuery: z.string().default(""),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
@@ -232,7 +232,7 @@ export const documentRouter = router({
       const {
         prismaDB: { client: prisma },
       } = ctx;
-      const { id, searchQuery, isApproved, isTranslated } = input;
+      const { documentId, searchQuery, isApproved, isTranslated } = input;
 
       if (isApproved !== undefined && isTranslated !== true) {
         throw new TRPCError({
@@ -243,7 +243,7 @@ export const documentRouter = router({
 
       return await prisma.translatableElement.count({
         where: {
-          documentId: id,
+          documentId,
           value:
             searchQuery.trim().length !== 0
               ? { contains: searchQuery, mode: "insensitive" }

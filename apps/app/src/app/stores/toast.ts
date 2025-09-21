@@ -1,4 +1,3 @@
-import type { TRPCClientError } from "@trpc/client";
 import type { TRPCError } from "@trpc/server";
 import { defineStore } from "pinia";
 import { ref } from "vue";
@@ -63,10 +62,7 @@ export const useToastStore = defineStore("toast", () => {
     );
   };
 
-  const trpcWarn = (
-    e: TRPCClientError<never> | TRPCError,
-    duration = defaultDuration,
-  ) => {
+  const trpcWarn = (e: TRPCError, duration = defaultDuration) => {
     if (!e.message) return;
 
     console.warn(e);

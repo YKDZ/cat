@@ -1,11 +1,13 @@
 import {
   GlossarySchema,
   TermRelationSchema,
+  TermSchema,
   type TermRelation,
 } from "@cat/shared/schema/prisma/glossary";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { TermDataSchema } from "@cat/shared/schema/misc";
+import { TranslationSchema } from "@cat/shared/schema/prisma/translation";
 import { authedProcedure, router } from "../server.ts";
 
 export const glossaryRouter = router({
@@ -326,7 +328,14 @@ export const glossaryRouter = router({
         translationLanguageId: z.string(),
       }),
     )
-    .output(z.array(TermRelationSchema))
+    .output(
+      z.array(
+        TermRelationSchema.extend({
+          Term: TermSchema,
+          Translation: TermSchema,
+        }),
+      ),
+    )
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -373,7 +382,14 @@ export const glossaryRouter = router({
         translationLanguageId: z.string(),
       }),
     )
-    .output(z.array(TermRelationSchema))
+    .output(
+      z.array(
+        TermRelationSchema.extend({
+          Term: TermSchema,
+          Translation: TermSchema,
+        }),
+      ),
+    )
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -420,7 +436,7 @@ export const glossaryRouter = router({
         element.value,
         sourceLanguageId,
       );
-      const glossariesIds = element.Document!.Project.Glossaries.map(
+      const glossaryIds = element.Document!.Project.Glossaries.map(
         (glossary) => glossary.id,
       );
 
@@ -429,7 +445,7 @@ export const glossaryRouter = router({
           Term: {
             Glossary: {
               id: {
-                in: glossariesIds,
+                in: glossaryIds,
               },
             },
             languageId: sourceLanguageId,
@@ -440,23 +456,15 @@ export const glossaryRouter = router({
             },
             Glossary: {
               id: {
-                in: glossariesIds,
+                in: glossaryIds,
               },
             },
             languageId: translationLanguageId,
           },
         },
         include: {
-          Term: {
-            include: {
-              Glossary: true,
-            },
-          },
-          Translation: {
-            include: {
-              Glossary: true,
-            },
-          },
+          Term: true,
+          Translation: true,
         },
       });
 

@@ -1,34 +1,29 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import TextTagger from "./tagger/TextTagger.vue";
 import type { PartData } from "./tagger/index.ts";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { syncRefWith } from "@/app/utils/vue.ts";
 
-const {
-  translationValue,
-  document,
-  inputTextareaEl,
-  originDivEl,
-  translationParts,
-} = storeToRefs(useEditorStore());
+const { translationValue, inputTextareaEl, originDivEl, translationParts } =
+  storeToRefs(useEditorTableStore());
+const { document } = storeToRefs(useEditorContextStore());
 
-const topHeight = ref(originDivEl.value?.clientHeight);
+const topHeight = ref<number>(0);
 
-watch(
-  () => originDivEl.value?.clientHeight,
-  (to) => (topHeight.value = to),
-);
+const handleUpdate = (from: PartData[] | undefined, to: PartData[]) => {
+  translationParts.value = to;
+};
+
+syncRefWith(topHeight, () => originDivEl.value?.clientHeight);
 
 onMounted(() => {
   if (inputTextareaEl.value) {
     inputTextareaEl.value.focus();
   }
 });
-
-const handleUpdate = (from: PartData[] | undefined, to: PartData[]) => {
-  translationParts.value = to;
-};
 </script>
 
 <template>

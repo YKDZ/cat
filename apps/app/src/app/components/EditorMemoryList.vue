@@ -1,47 +1,24 @@
 <script setup lang="ts">
-import type { Unsubscribable } from "@trpc/server/observable";
 import { storeToRefs } from "pinia";
-import { watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
 import EditorMemoryListItem from "./EditorMemoryListItem.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
-import { useToastStore } from "@/app/stores/toast.ts";
+import { useEditorMemoryStore } from "@/app/stores/editor/memory.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { watchClient, watchClientThrottled } from "@/app/utils/vue.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 
 const { t } = useI18n();
 
-const { trpcWarn } = useToastStore();
+const { memories } = storeToRefs(useEditorMemoryStore());
+const { elementId } = storeToRefs(useEditorTableStore());
+const { subMemories } = useEditorMemoryStore();
 const { editorMemoryMinSimilarity } = storeToRefs(useProfileStore());
-const { elementId, languageFromId, languageToId, memories } =
-  storeToRefs(useEditorStore());
 
-let memorySub: Unsubscribable;
+watchClient(elementId, subMemories, {
+  immediate: true,
+});
 
-const load = () => {
-  if (!elementId.value || !languageFromId.value || !languageToId.value) return;
-  if (memorySub) {
-    memorySub.unsubscribe();
-    memories.value = [];
-  }
-
-  memorySub = trpc.memory.onNew.subscribe(
-    {
-      elementId: elementId.value,
-      sourceLanguageId: languageFromId.value,
-      translationLanguageId: languageToId.value,
-      minMemorySimilarity: editorMemoryMinSimilarity.value,
-    },
-    {
-      onData: ({ id, data }) => {
-        memories.value.push(data);
-      },
-      onError: trpcWarn,
-    },
-  );
-};
-
-watch(elementId, load, { immediate: true });
+watchClientThrottled(editorMemoryMinSimilarity, subMemories);
 </script>
 
 <template>

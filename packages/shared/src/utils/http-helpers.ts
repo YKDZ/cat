@@ -28,11 +28,11 @@ export const createHTTPHelpers = (req: Request, resHeaders: Headers) => {
 };
 
 export const getCookieFunc = (cookies: string) => {
-  const getCookie = (name: string) => {
-    if (!cookies) return undefined;
+  const getCookie = (name: string): string | null => {
+    if (!cookies) return null;
 
     const match = cookies.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-    return match ? match[1] : undefined;
+    return match ? match[1] : null;
   };
   return getCookie;
 };

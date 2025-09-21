@@ -2,13 +2,12 @@
 import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 import { storeToRefs } from "pinia";
 import TextTagger from "./tagger/TextTagger.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
-import { useToastStore } from "@/app/stores/toast.ts";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 
-const { info } = useToastStore();
-const { replace } = useEditorStore();
-const { document } = storeToRefs(useEditorStore());
+const { replace } = useEditorTableStore();
+const { document } = storeToRefs(useEditorContextStore());
 
 const props = defineProps<{
   suggestion: TranslationSuggestion;
@@ -19,7 +18,6 @@ const handleCopy = () => {
   if (props.suggestion.status !== "SUCCESS") return;
 
   replace(props.suggestion.value);
-  info(`成功复制来自 ${props.suggestion.from} 的翻译`);
 };
 
 useHotKeys(`S+${props.index + 1}`, handleCopy);
