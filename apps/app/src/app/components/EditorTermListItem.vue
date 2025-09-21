@@ -40,7 +40,7 @@ useHotKeys(`T+${props.index + 1}`, handleInsert);
 onMounted(() => {
   if (!props.term.Term) return;
 
-  trpc.glossary.query
+  trpc.glossary.get
     .query({
       id: props.term.Term.glossaryId,
     })

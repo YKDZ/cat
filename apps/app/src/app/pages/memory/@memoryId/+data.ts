@@ -7,7 +7,7 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!memoryId) throw render("/", "Memory id is required");
 
-  const memory = await useSSCTRPC(ctx).memory.query({ id: memoryId });
+  const memory = await useSSCTRPC(ctx).memory.get({ id: memoryId });
 
   if (!memory) throw render(`/memories`, `Memory ${memoryId} not found`);
 

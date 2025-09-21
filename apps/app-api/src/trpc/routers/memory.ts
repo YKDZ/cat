@@ -14,6 +14,7 @@ import {
   searchMemory,
 } from "@cat/app-server-shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
+import { UserSchema } from "@cat/shared/schema/prisma/user";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
 export const memoryRouter = router({
@@ -149,13 +150,17 @@ export const memoryRouter = router({
         },
       });
     }),
-  query: authedProcedure
+  get: authedProcedure
     .input(
       z.object({
         id: z.ulid(),
       }),
     )
-    .output(MemorySchema.nullable())
+    .output(
+      MemorySchema.extend({
+        Creator: UserSchema,
+      }).nullable(),
+    )
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

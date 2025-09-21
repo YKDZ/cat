@@ -1,4 +1,4 @@
-import { defineConfig } from "rolldown-vite";
+import { defineConfig } from "vite";
 import { resolve } from "path";
 import dts from "unplugin-dts/vite";
 

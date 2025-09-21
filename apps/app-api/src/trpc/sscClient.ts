@@ -1,5 +1,5 @@
 // @ts-expect-error zod ts(2742) workaround
-// eslint-disable-next-line
+
 import * as z from "zod";
 import type { PageContextServer } from "vike/types";
 import { appRouter } from "@cat/app-api/trpc";
@@ -13,6 +13,8 @@ export const useSSCTRPC = (
   appRouter.createCaller({
     ...EMPTY_CONTEXT,
     ...ctx,
-    ...ctx.globalContext,
+    prismaDB: ctx.globalContext.prismaDB,
+    redisDB: ctx.globalContext.redisDB,
+    pluginRegistry: ctx.globalContext.pluginRegistry,
     ...(extraCtx ?? {}),
   });

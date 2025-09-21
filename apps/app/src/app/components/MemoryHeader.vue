@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { inject } from "vue";
+import type { Memory } from "@cat/shared/schema/prisma/memory";
+import type { User } from "@cat/shared/schema/prisma/user";
 import MemoryBreadcrumb from "./MemoryBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
 import Header from "@/app/components/headless/HHeader.vue";
-
 import { useSidebarStore } from "@/app/stores/sidebar.ts";
-import { memoryKey } from "@/app/utils/provide.ts";
 
 const { isFolding } = storeToRefs(useSidebarStore());
 
-const memory = inject(memoryKey);
+defineProps<{
+  memory: Memory & {
+    Creator: User;
+  };
+}>();
 </script>
 
 <template>
@@ -27,6 +30,6 @@ const memory = inject(memoryKey);
       class="font-bold md:hidden"
       @click.stop="isFolding = !isFolding"
     />
-    <MemoryBreadcrumb v-if="memory" :memory />
+    <MemoryBreadcrumb :memory />
   </Header>
 </template>

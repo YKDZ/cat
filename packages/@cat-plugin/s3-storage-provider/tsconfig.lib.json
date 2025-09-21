@@ -8,7 +8,7 @@
     "forceConsistentCasingInFileNames": true,
     "types": [
       "node",
-      "rolldown-vite/client"
+      "vite/client"
     ]
   },
   "include": [

@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { inject } from "vue";
+import type { Glossary } from "@cat/shared/schema/prisma/glossary";
+import type { User } from "@cat/shared/schema/prisma/user";
 import GlossaryBreadcrumb from "./GlossaryBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
 import Header from "@/app/components/headless/HHeader.vue";
 import { useSidebarStore } from "@/app/stores/sidebar.ts";
-import { glossaryKey } from "@/app/utils/provide.ts";
 
 const { isFolding } = storeToRefs(useSidebarStore());
 
-const glossary = inject(glossaryKey);
+defineProps<{
+  glossary: Glossary & {
+    Creator: User;
+  };
+}>();
 </script>
 
 <template>
@@ -26,6 +30,6 @@ const glossary = inject(glossaryKey);
       class="font-bold md:hidden"
       @click.stop="isFolding = !isFolding"
     />
-    <GlossaryBreadcrumb v-if="glossary" :glossary />
+    <GlossaryBreadcrumb :glossary />
   </Header>
 </template>

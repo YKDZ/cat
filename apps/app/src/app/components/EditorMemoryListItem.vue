@@ -27,12 +27,10 @@ const memory = ref<Memory | null>(null);
 useHotKeys(`M+${props.index + 1}`, handleCopy);
 
 onMounted(() => {
-  trpc.memory.query
-    .query({ id: props.memorySuggestion.memoryId })
-    .then((mem) => {
-      if (!mem) return;
-      memory.value = mem;
-    });
+  trpc.memory.get.query({ id: props.memorySuggestion.memoryId }).then((mem) => {
+    if (!mem) return;
+    memory.value = mem;
+  });
 });
 </script>
 

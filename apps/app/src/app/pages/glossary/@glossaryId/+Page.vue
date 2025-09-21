@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import GlossaryTermList from "@/app/components/glossary/GlossaryTermList.vue";
-</script>
+<script setup lang="ts"></script>
 
-<template>
-  <GlossaryTermList />
-</template>
+<template>术语库</template>

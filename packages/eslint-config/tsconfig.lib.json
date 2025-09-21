@@ -6,9 +6,15 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "rolldown-vite/client"]
+    "types": [
+      "node",
+      "vite/client"
+    ]
   },
-  "include": ["src/**/*.ts", "rules/no-provide-in-page.js"],
+  "include": [
+    "src/**/*.ts",
+    "rules/no-provide-in-page.js"
+  ],
   "references": [],
   "exclude": [
     "vite.config.ts",

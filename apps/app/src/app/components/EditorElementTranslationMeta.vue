@@ -36,7 +36,7 @@ const advisor = ref<TranslationAdvisorData | null>(null);
 
 onMounted(() => {
   if (meta.value && meta.value.memoryId)
-    trpc.memory.query.query({ id: meta.value.memoryId }).then((mem) => {
+    trpc.memory.get.query({ id: meta.value.memoryId }).then((mem) => {
       if (!mem) return;
       memory.value = mem;
     });
