@@ -8,15 +8,18 @@ import EditorSidebarElement from "./EditorSidebarElement.vue";
 import EditorElementSearcher from "./EditorElementSearcher.vue";
 import Slash from "./Slash.vue";
 import HButton from "./headless/HButton.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
 import { useSidebarStore } from "@/app/stores/sidebar.ts";
+import { useEditorElementStore } from "@/app/stores/editor/element.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 
 const { t } = useI18n();
 
-const { displayedElements, currentPageIndex, totalPageIndex } =
-  storeToRefs(useEditorStore());
+const { displayedElements } = storeToRefs(useEditorElementStore());
+const { currentPageIndex } = storeToRefs(useEditorContextStore());
+const { totalPageIndex } = storeToRefs(useEditorTableStore());
 
-const { toPage } = useEditorStore();
+const { toPage } = useEditorTableStore();
 
 const mouseInSidebar = ref<boolean>(false);
 
@@ -38,12 +41,10 @@ const handleNextPage = () => {
 <template>
   <Sidebar v-model:mouse-in-sidebar="mouseInSidebar">
     <div class="flex flex-col gap-3 h-full w-full items-center">
-      <!-- Top -->
       <div
         class="px-4.5 pt-3 flex h-fit w-full select-none items-center justify-between"
       >
         <Logo link />
-        <!-- Button for free sidebar -->
         <HButton
           :classes="{
             base: 'btn btn-md btn-transparent btn-square',
@@ -53,11 +54,9 @@ const handleNextPage = () => {
           @click="isFree = !isFree"
         />
       </div>
-      <!-- Search Input -->
       <div class="px-3 pb-1 pt-3 w-full">
         <EditorElementSearcher />
       </div>
-      <!-- Elements -->
       <div class="px-2 flex flex-col h-full w-full">
         <EditorSidebarElement
           v-for="element in displayedElements"

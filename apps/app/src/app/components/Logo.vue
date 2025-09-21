@@ -26,6 +26,6 @@ const handleClick = async () => {
     @click="handleClick"
   >
     <img :src="logoURL" alt="Logo" class="h-6 w-6" />
-    <span class="font-bold">{{ ctx.name }}</span>
+    <span class="font-bold">{{ ctx.globalContext.name }}</span>
   </div>
 </template>

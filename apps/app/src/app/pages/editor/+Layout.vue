@@ -1,50 +1,44 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { watch } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
+import * as z from "zod";
 import EditorHeader from "@/app/components/EditorHeader.vue";
 import EditorSidebar from "@/app/components/EditorSidebar.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
-import { useToastStore } from "@/app/stores/toast.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { syncRefWith, watchClient } from "@/app/utils/vue.ts";
 
 const ctx = usePageContext();
 
-const { trpcWarn } = useToastStore();
-const { fetchDocument, fetchTranslations, toElement, refresh } =
-  useEditorStore();
-const { languageFromId, languageToId } = storeToRefs(useEditorStore());
-
-watch(
-  () => ctx.routeParams["documentId"],
-  async (to) => {
-    if (!to) return;
-    refresh();
-    await fetchDocument(to).catch(trpcWarn);
-  },
-  { immediate: true },
+const { toElement } = useEditorTableStore();
+const { elementId } = storeToRefs(useEditorTableStore());
+const { documentId, languageFromId, languageToId } = storeToRefs(
+  useEditorContextStore(),
 );
 
-watch(
-  () => ctx.routeParams["languageFromTo"],
+const LanguageFromToSchema = z.string().regex(/^.+-.+$/);
+
+syncRefWith(documentId, () => z.ulid().parse(ctx.routeParams["documentId"]));
+syncRefWith(
+  languageFromId,
+  () =>
+    LanguageFromToSchema.parse(ctx.routeParams["languageFromTo"] ?? "").split(
+      "-",
+    )[0],
+);
+syncRefWith(
+  languageToId,
+  () =>
+    LanguageFromToSchema.parse(ctx.routeParams["languageFromTo"] ?? "").split(
+      "-",
+    )[1],
+);
+syncRefWith(elementId, () => parseInt(ctx.routeParams["elementId"] ?? ""));
+
+watchClient(
+  elementId,
   (to) => {
-    if (!to) return;
-    if (import.meta.env.SSR) return;
-    const [fromId, toId] = to.split("-");
-    if (!fromId || !toId) return;
-    languageFromId.value = fromId;
-    languageToId.value = toId;
-  },
-  { immediate: true },
-);
-
-watch(
-  () => parseInt(ctx.routeParams["elementId"] ?? ""),
-  async (to) => {
-    if (import.meta.env.SSR) return;
-    if (!to) return;
-
-    await toElement(to).catch(trpcWarn);
-    await fetchTranslations(to).catch(trpcWarn);
+    if (to) toElement(to);
   },
   { immediate: true },
 );
@@ -55,7 +49,6 @@ watch(
     <EditorSidebar />
     <div class="flex flex-col h-full w-full overflow-y-auto">
       <EditorHeader />
-      <!-- Content -->
       <div class="m-4 mb-0 flex flex-col gap-2 h-full max-h-full">
         <slot />
       </div>

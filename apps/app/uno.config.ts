@@ -107,6 +107,13 @@ export default defineConfig({
         "after:text-error-darker after:ml-1 after:content-['*']",
     },
     [
+      /^btn-icon-(.*)$/,
+      // @ts-expect-error Just type error
+      ([, c], { theme: { colors } }) => {
+        if (Object.keys(colors).includes(c)) return `bg-${c}`;
+      },
+    ],
+    [
       /^btn-(.*)$/,
       // @ts-expect-error Just type error
       ([, c], { theme: { colors } }) => {

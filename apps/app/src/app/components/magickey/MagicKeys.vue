@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMagicKeys, whenever } from "@vueuse/core";
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import Key from "./Key.vue";
 
 const props = defineProps<{

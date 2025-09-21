@@ -4,23 +4,27 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
+import type { TranslationApprovement } from "@cat/shared/schema/prisma/translation";
 import EditorElementTranslationMeta from "./EditorElementTranslationMeta.vue";
 import EditorElementTranslationVote from "./EditorElementTranslationVote.vue";
 import TextTagger from "./tagger/TextTagger.vue";
 import UserAvatar from "./UserAvatar.vue";
 import EditorElementTranslationApprovementBtn from "./EditorElementTranslationApprovementBtn.vue";
 import Icon from "./Icon.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
-import type { TranslationWithStatus } from "@/app/stores/editor.ts";
+import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
 const { t } = useI18n();
 
-const { translationValue, selectedTranslationId } =
-  storeToRefs(useEditorStore());
+const { translationValue, selectedTranslationId } = storeToRefs(
+  useEditorTableStore(),
+);
 const { user } = usePageContext();
 
 const props = defineProps<{
-  translation: TranslationWithStatus;
+  translation: TranslationWithStatus & {
+    Approvements: TranslationApprovement[];
+  };
 }>();
 
 const handleSelect = () => {

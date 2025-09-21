@@ -4,11 +4,11 @@ import Header from "./headless/HHeader.vue";
 import DocumentBreadcrumb from "./DocumentBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
 import { useSidebarStore } from "@/app/stores/sidebar.ts";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 
 const { isFolding } = storeToRefs(useSidebarStore());
 
-const { document } = storeToRefs(useEditorStore());
+const { document } = storeToRefs(useEditorContextStore());
 </script>
 
 <template>

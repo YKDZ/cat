@@ -2,26 +2,31 @@
 import { storeToRefs } from "pinia";
 import type {
   Glossary,
+  Term,
   TermRelation,
 } from "@cat/shared/schema/prisma/glossary";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
 import TextTagger from "./tagger/TextTagger.vue";
 import Icon from "./Icon.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 
 const props = defineProps<{
-  term: TermRelation;
+  term: TermRelation & {
+    Term: Term;
+    Translation: Term;
+  };
   index: number;
 }>();
 
 const { t } = useI18n();
 const { info } = useToastStore();
-const { insert } = useEditorStore();
-const { document } = storeToRefs(useEditorStore());
+const { insert } = useEditorTableStore();
+const { document } = storeToRefs(useEditorContextStore());
 
 const handleInsert = () => {
   insert(props.term!.Translation!.value);

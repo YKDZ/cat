@@ -32,6 +32,7 @@
     "jiti": "2.5.1",
     "nx": "21.6.1-beta.3",
     "oxlint": "^1.14.0",
+    "pino-pretty": "^13.1.1",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "rolldown-vite": "^7.1.9",

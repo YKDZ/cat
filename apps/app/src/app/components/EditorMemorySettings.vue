@@ -47,12 +47,12 @@ const isOpen = ref(false);
       <HToggle
         v-model="editorMemoryAutoCreateMemory"
         :classes="{
-          'base-checked': 'toggle toggle-md toggle-highlight-darker',
-          'base-unchecked': 'toggle toggle-md toggle-base',
+          'base-checked': 'toggle toggle-md toggle-base',
+          'base-unchecked': 'toggle toggle-md toggle-highlight-darker',
           'thumb-checked':
-            'toggle-thumb toggle-thumb-md toggle-thumb-highlight',
-          'thumb-unchecked':
             'toggle-thumb toggle-thumb-md toggle-thumb-highlight toggle-thumb-checked',
+          'thumb-unchecked':
+            'toggle-thumb toggle-thumb-md toggle-thumb-highlight',
         }"
       /></div
   ></Modal>

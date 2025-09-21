@@ -1,48 +1,31 @@
 <script setup lang="ts">
 import { navigate } from "vike/client/router";
 import { storeToRefs } from "pinia";
-import { onMounted, ref } from "vue";
+import { onMounted } from "vue";
 import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
-import { useToastStore } from "@/app/stores/toast.ts";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useEditorElementStore } from "@/app/stores/editor/element.ts";
 
-const { trpcWarn } = useToastStore();
-
-const {
-  documentId,
-  languageFromId,
-  languageToId,
-  storedElements,
-  elementId: currentElementId,
-} = storeToRefs(useEditorStore());
-
-const { updateElementStatus } = useEditorStore();
+const { elementId } = storeToRefs(useEditorTableStore());
+const { documentId, languageFromId, languageToId } = storeToRefs(
+  useEditorContextStore(),
+);
+const { updateElementStatus } = useEditorElementStore();
 
 const props = defineProps<{
   element: TranslatableElement & { status?: "NO" | "TRANSLATED" | "APPROVED" };
 }>();
 
-const element = ref<
-  TranslatableElement & { status?: "NO" | "TRANSLATED" | "APPROVED" }
->(props.element);
-
 const handleClick = async () => {
-  if (!element.value) return;
+  if (!props.element) return;
 
   await navigate(
-    `/editor/${documentId.value}/${languageFromId.value}-${languageToId.value}/${element.value.id}`,
+    `/editor/${documentId.value}/${languageFromId.value}-${languageToId.value}/${props.element.id}`,
   );
 };
 
-onMounted(() => {
-  updateElementStatus(element.value.id)
-    .then(() => {
-      element.value = storedElements.value.find(
-        (el) => el.id === props.element.id,
-      )!;
-    })
-    .catch(trpcWarn);
-});
+onMounted(() => updateElementStatus(props.element.id));
 </script>
 
 <template>
@@ -50,7 +33,7 @@ onMounted(() => {
     v-if="element"
     class="px-2 py-2 text-start flex gap-3 cursor-pointer items-center hover:bg-highlight-darkest"
     :class="{
-      'bg-highlight-darkest': element.id === currentElementId,
+      'bg-highlight-darkest': element.id === elementId,
     }"
     @click="handleClick"
   >

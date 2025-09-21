@@ -6,10 +6,11 @@ import { clippers } from "./tagger/index.ts";
 import Collapse from "./Collapse.vue";
 import Icon from "./Icon.vue";
 import HButton from "./headless/HButton.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
-const { sourceParts, translationParts, translationValue } =
-  storeToRefs(useEditorStore());
+const { sourceParts, translationParts, translationValue } = storeToRefs(
+  useEditorTableStore(),
+);
 
 const clipperVerifyResults = ref<ClipperVerifyResult[]>([]);
 const isProcessing = ref(false);
@@ -58,13 +59,11 @@ watch(isAllPass, (to) => {
     <HButton
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',
-        icon: 'btn-icon btn-icon-sm',
+        icon:
+          'btn-icon btn-icon-sm' +
+          `${isAllPass ? ' btn-icon-green' : ' btn-icon-red'}`,
       }"
       :icon="isAllPass ? 'i-mdi:check' : 'i-mdi:close'"
-      :class="{
-        'color-green': isAllPass,
-        'color-red': !isAllPass,
-      }"
     />
     <Collapse v-if="!isAllPass" v-model="isCollapseOpen">
       <ul>

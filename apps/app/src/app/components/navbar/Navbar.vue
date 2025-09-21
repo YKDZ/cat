@@ -2,7 +2,7 @@
 import NavbarItem from "./NavbarItem.vue";
 import type { NavbarItemType } from "./index.ts";
 
-const props = defineProps<{
+defineProps<{
   pathPrefix: string;
 }>();
 
@@ -13,6 +13,8 @@ const handleSelect = (id: string, from: boolean, to: boolean) => {
   if (index === -1) return;
 
   const newItem = items.value[index];
+  if (!newItem) return;
+
   newItem.selected = to;
   items.value.splice(index, 1, newItem);
 };

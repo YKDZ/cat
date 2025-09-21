@@ -1,42 +1,18 @@
 <script setup lang="ts">
-import type { Unsubscribable } from "@trpc/server/observable";
 import { storeToRefs } from "pinia";
-import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 import EditorSuggestionListItem from "./EditorSuggestionListItem.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
-import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@cat/app-api/trpc/client";
+import { useEditorSuggestionStore } from "@/app/stores/editor/suggestion.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { watchClient } from "@/app/utils/vue.ts";
 
 const { t } = useI18n();
 
-const { trpcWarn } = useToastStore();
-const { elementId, languageToId, suggestions } = storeToRefs(useEditorStore());
+const { suggestions } = storeToRefs(useEditorSuggestionStore());
+const { elementId } = storeToRefs(useEditorTableStore());
+const { subSuggestions } = useEditorSuggestionStore();
 
-let suggestionSub: Unsubscribable;
-
-const load = () => {
-  if (!elementId.value || !languageToId.value) return;
-  if (suggestionSub) {
-    suggestionSub.unsubscribe();
-    suggestions.value = [];
-  }
-
-  suggestionSub = trpc.suggestion.onNew.subscribe(
-    {
-      elementId: elementId.value,
-      languageId: languageToId.value,
-    },
-    {
-      onData: ({ data }) => {
-        suggestions.value.push(data);
-      },
-      onError: trpcWarn,
-    },
-  );
-};
-
-watch(elementId, load, { immediate: true });
+watchClient(elementId, subSuggestions, { immediate: true });
 </script>
 
 <template>

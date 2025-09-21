@@ -1,32 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 import EditorTermListItem from "./EditorTermListItem.vue";
-import { trpc } from "@cat/app-api/trpc/client";
-import { useEditorStore } from "@/app/stores/editor.ts";
-import { useToastStore } from "@/app/stores/toast.ts";
+import { useEditorTermStore } from "@/app/stores/editor/term.ts";
+import { watchClient } from "@/app/utils/vue.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
 const { t } = useI18n();
 
-const { trpcWarn } = useToastStore();
-const { elementId, languageToId, terms } = storeToRefs(useEditorStore());
+const { elementId } = storeToRefs(useEditorTableStore());
+const { terms } = storeToRefs(useEditorTermStore());
+const { updateTerms } = useEditorTermStore();
 
-const load = () => {
-  if (!elementId.value || !languageToId.value) return;
-
-  trpc.glossary.findTerm
-    .query({
-      elementId: elementId.value,
-      translationLanguageId: languageToId.value,
-    })
-    .then((ts) => {
-      terms.value = ts;
-    })
-    .catch(trpcWarn);
-};
-
-watch(elementId, load, { immediate: true });
+watchClient(elementId, updateTerms, { immediate: true });
 </script>
 
 <template>

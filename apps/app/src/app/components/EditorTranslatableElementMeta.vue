@@ -3,9 +3,9 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import * as z from "zod/v4";
 import Collapse from "./Collapse.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
-const { element } = storeToRefs(useEditorStore());
+const { element } = storeToRefs(useEditorTableStore());
 
 const meta = computed(() => {
   if (!element.value) return {} as Record<string, unknown>;

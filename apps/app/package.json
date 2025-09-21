@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "vike build",
-    "dev": "cross-env NODE_ENV=development vike dev",
+    "dev": "cross-env NODE_ENV=development vike dev | pino-pretty",
     "preview": "cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
     "format": "prettier --write .",

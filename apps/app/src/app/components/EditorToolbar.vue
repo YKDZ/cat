@@ -3,18 +3,17 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
 import HButton from "./headless/HButton.vue";
-import { useEditorStore } from "@/app/stores/editor.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
 const { t } = useI18n();
 
-const { translate, jumpToNextUntranslated, replace, clear } = useEditorStore();
-const { undo, redo } = useEditorStore();
+const { translate, toNextUntranslated, replace, clear, undo, redo } =
+  useEditorTableStore();
+const { element, selectedTranslationId } = storeToRefs(useEditorTableStore());
 
-const { element, selectedTranslationId } = storeToRefs(useEditorStore());
-
-const handleTranslate = async (jumpToNext: boolean) => {
-  await translate(!jumpToNext);
-  if (jumpToNext) await jumpToNextUntranslated();
+const handleTranslate = async (toNext: boolean) => {
+  await translate();
+  if (toNext) await toNextUntranslated();
 };
 </script>
 
@@ -32,7 +31,7 @@ const handleTranslate = async (jumpToNext: boolean) => {
       <HButton
         :classes="{
           base: 'btn btn-md btn-transparent btn-square',
-          icon: 'btn-icon btn-icon-sm',
+          icon: 'btn-icon btn-icon-red btn-icon-sm',
         }"
         icon="i-mdi:trash-can"
         @click="clear"

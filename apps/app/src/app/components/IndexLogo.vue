@@ -9,7 +9,7 @@ const ctx = usePageContext();
   <div class="flex gap-3 items-center">
     <img :src="logoURL" alt="Logo" class="h-6 w-6" /><span
       class="text-lg font-bold"
-      >{{ ctx.name }}</span
+      >{{ ctx.globalContext.name }}</span
     >
   </div>
 </template>
