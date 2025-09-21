@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
+import type { User } from "@cat/shared/schema/prisma/user";
 import Slash from "./Slash.vue";
 import UserAvatar from "./UserAvatar.vue";
 
-const props = defineProps<{
-  glossary: Glossary;
+defineProps<{
+  glossary: Glossary & {
+    Creator: User;
+  };
 }>();
 </script>
 

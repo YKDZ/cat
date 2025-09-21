@@ -5,7 +5,7 @@
     "types": [
       "vitest/globals",
       "vitest/importMeta",
-      "rolldown-vite/client",
+      "vite/client",
       "node",
       "vitest"
     ],

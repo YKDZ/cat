@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import MemoryItemList from "@/app/components/memory/MemoryItemList.vue";
-</script>
+<script setup lang="ts"></script>
 
-<template>
-  <MemoryItemList />
-</template>
+<template>记忆库</template>

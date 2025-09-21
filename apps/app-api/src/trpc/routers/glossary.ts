@@ -7,7 +7,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import { TranslationSchema } from "@cat/shared/schema/prisma/translation";
+import { UserSchema } from "@cat/shared/schema/prisma/user";
 import { authedProcedure, router } from "../server.ts";
 
 export const glossaryRouter = router({
@@ -91,13 +91,17 @@ export const glossaryRouter = router({
 
       return relations;
     }),
-  query: authedProcedure
+  get: authedProcedure
     .input(
       z.object({
         id: z.ulid(),
       }),
     )
-    .output(GlossarySchema.nullable())
+    .output(
+      GlossarySchema.extend({
+        Creator: UserSchema,
+      }).nullable(),
+    )
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },

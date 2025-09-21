@@ -28,7 +28,7 @@
       "dependsOn": [
         "^build"
       ],
-      "cache": false
+      "continuous": true
     },
     "preview": {
       "dependsOn": [

@@ -15,6 +15,3 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - "@swc/core"
   - nx
-
-overrides:
-  vite: "npm:rolldown-vite@latest"
