@@ -68,6 +68,7 @@ export const installDefaultPlugins = async (
     "libretranslate-advisor",
     "ollama-vectorizer",
     "yaml-file-handler",
+    "markdown-file-handler",
     "s3-storage-provider",
   ];
 

@@ -62,6 +62,9 @@
     },
     {
       "path": "./apps/app-workers"
+    },
+    {
+      "path": "./packages/@cat-plugin/markdown-file-handler"
     }
   ]
 }

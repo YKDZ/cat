@@ -116,18 +116,24 @@ export const documentRouter = router({
           },
         });
 
-        const { id: fileHandlerId } = (
+        const service = (
           await pluginRegistry.getPluginServices(
             prisma,
             "TRANSLATABLE_FILE_HANDLER",
           )
-        ).find(({ service }) => service.canExtractElement(dbFile))!;
+        ).find(({ service }) => service.canExtractElement(dbFile));
+
+        if (!service)
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "没有可以处理这种文件的文件解析器",
+          });
 
         const document = await prisma.document.create({
           data: {
             creatorId: user.id,
             projectId,
-            fileHandlerId,
+            fileHandlerId: service.id,
             File: {
               connect: {
                 id: fileId,

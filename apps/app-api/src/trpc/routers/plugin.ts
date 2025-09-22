@@ -2,6 +2,7 @@ import * as z from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import {
   PluginConfigInstanceSchema,
+  PluginConfigSchema,
   PluginInstallationSchema,
   PluginSchema,
   PluginTagSchema,
@@ -119,10 +120,12 @@ export const pluginRouter = router({
     )
     .output(
       PluginSchema.extend({
+        Config: PluginConfigSchema.nullable(),
         Installations: z.array(PluginInstallationSchema),
         Tags: z.array(PluginTagSchema),
       }).nullable(),
     )
+    // @ts-expect-error unsolvable
     .query(async ({ ctx, input }) => {
       const {
         prismaDB: { client: prisma },
@@ -134,6 +137,7 @@ export const pluginRouter = router({
           id,
         },
         include: {
+          Config: true,
           Tags: true,
           Installations: true,
         },
