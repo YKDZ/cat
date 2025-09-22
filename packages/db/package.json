@@ -21,13 +21,13 @@
     "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "6.16.1",
-    "@prisma/client": "6.16.1",
+    "@prisma/adapter-pg": "6.16.2",
+    "@prisma/client": "6.16.2",
     "redis": "^5.8.2"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "prisma": "6.16.1"
+    "prisma": "6.16.2"
   },
   "peerDependencies": {
     "@cat/shared": "workspace:*",
