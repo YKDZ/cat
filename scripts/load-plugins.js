@@ -11,6 +11,7 @@ const FOLDER_INCLUDES = [
   "libretranslate-advisor",
   "json-file-handler",
   "yaml-file-handler",
+  "markdown-file-handler",
   "oidc-auth-provider",
   "email-password-auth-provider",
   "es-term-service",

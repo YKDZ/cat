@@ -1,0 +1,47 @@
+{
+  "name": "@cat-plugin/markdown-file-handler",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": [
+    "plugins",
+    "typescript",
+    "types",
+    "cat"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "manifest.json"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "lint": "nx eslint:lint --fix",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*",
+    "@types/lodash-es": "^4.17.12",
+    "@types/mdast": "^4.0.4",
+    "@types/unist": "^3.0.3"
+  },
+  "peerDependencies": {
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "lodash-es": "^4.17.21",
+    "zod": "^4.1.9"
+  }
+}

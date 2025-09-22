@@ -1,11 +1,8 @@
-import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import type { PageContextServer } from "vike/types";
 import { render } from "vike/abort";
 import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
 
-export const data: {
-  (ctx: PageContextServer): Promise<{ plugin: Plugin }>;
-} = async (ctx: PageContextServer) => {
+export const data = async (ctx: PageContextServer) => {
   const { pluginId } = ctx.routeParams;
 
   if (!pluginId) throw render("/", "Plugin id is required");

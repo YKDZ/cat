@@ -1,0 +1,15 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "markdown-file-handler",
+  "entry": "dist/index.js",
+  "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "MARKDOWN",
+      "type": "TRANSLATABLE_FILE_HANDLER"
+    }
+  ],
+  "tags": [
+    "translatable-file-handler"
+  ]
+}

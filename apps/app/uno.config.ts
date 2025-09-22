@@ -105,7 +105,17 @@ export default defineConfig({
       "label-text": "",
       "label-text-required":
         "after:text-error-darker after:ml-1 after:content-['*']",
+
+      markdown: "prose",
     },
+    [
+      /^markdown-(.*)$/,
+      // @ts-expect-error Just type error
+      ([, c], { theme: { colors } }) => {
+        if (Object.keys(colors).includes(c))
+          return `bg-${c} prose-${c}-content-darker`;
+      },
+    ],
     [
       /^btn-icon-(.*)$/,
       // @ts-expect-error Just type error

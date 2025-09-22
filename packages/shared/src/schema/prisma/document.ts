@@ -5,6 +5,7 @@ import { safeZDotJson } from "@/schema/json.ts";
 
 export const DocumentSchema = z.object({
   id: z.ulid(),
+  name: z.string().nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 

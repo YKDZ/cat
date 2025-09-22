@@ -5,6 +5,7 @@ import * as z from "zod/v4";
 import { DocumentSchema } from "@cat/shared/schema/prisma/document";
 import { UserSchema } from "@cat/shared/schema/prisma/user";
 import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
+import { FileSchema } from "@cat/shared/schema/prisma/file";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 
 export const projectRouter = router({
@@ -248,16 +249,29 @@ export const projectRouter = router({
       });
     }),
   listUserOwned: authedProcedure
-    .output(z.array(ProjectSchema))
+    .output(
+      z.array(
+        ProjectSchema.extend({
+          Creator: UserSchema,
+          SourceLanguage: LanguageSchema,
+          TargetLanguages: z.array(LanguageSchema),
+          Documents: z.array(
+            DocumentSchema.extend({
+              File: FileSchema.nullable(),
+            }),
+          ),
+        }),
+      ),
+    )
     .query(async ({ ctx }) => {
       const {
         prismaDB: { client: prisma },
-        user: creator,
+        user,
       } = ctx;
 
       return await prisma.project.findMany({
         where: {
-          creatorId: creator.id,
+          creatorId: user.id,
         },
         include: {
           Creator: true,
@@ -315,7 +329,11 @@ export const projectRouter = router({
         Creator: UserSchema,
         TargetLanguages: z.array(LanguageSchema),
         SourceLanguage: LanguageSchema,
-        Documents: z.array(DocumentSchema),
+        Documents: z.array(
+          DocumentSchema.extend({
+            File: FileSchema.nullable(),
+          }),
+        ),
       }).nullable(),
     )
     .query(async ({ ctx, input }) => {
@@ -332,7 +350,11 @@ export const projectRouter = router({
           Creator: true,
           TargetLanguages: true,
           SourceLanguage: true,
-          Documents: true,
+          Documents: {
+            include: {
+              File: true,
+            },
+          },
         },
       });
     }),

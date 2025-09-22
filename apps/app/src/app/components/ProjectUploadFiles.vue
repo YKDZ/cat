@@ -2,7 +2,6 @@
 import type { Document } from "@cat/shared/schema/prisma/document";
 import type { Project } from "@cat/shared/schema/prisma/project";
 import { computed, ref, shallowRef } from "vue";
-import { TRPCClientError } from "@trpc/client";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import Icon from "./Icon.vue";
@@ -116,8 +115,7 @@ const upload = async (tempFile: TempFile) => {
         tempFile.status = "completed";
         info(`上传 ${tempFile.raw.name} 成功，等待处理完成后即可翻译`);
       });
-  } catch (e) {
-    if (e instanceof TRPCClientError) trpcWarn(e);
+  } catch {
     tempFile.status = "failed";
   }
 };

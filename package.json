@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build-plugins": "nx run-many --target=build --projects=@cat-plugin/*",
-    "load-plugins": "node scripts/load-internal-plugins.js"
+    "load-plugins": "node scripts/load-plugins.js"
   },
   "dependencies": {
     "dotenv": "^17.2.1",
