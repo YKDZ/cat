@@ -241,6 +241,8 @@ export const glossaryRouter = router({
 
       if (!termService) throw new Error("Term service does not exists");
 
+      if (termsData.length === 0) return;
+
       await drizzle.transaction(async (tx) => {
         const terms = await tx
           .insert(termTable)

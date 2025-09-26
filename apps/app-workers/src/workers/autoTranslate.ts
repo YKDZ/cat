@@ -351,9 +351,8 @@ const worker = new Worker(
           translatableElementId: getIndex(elements, index).id,
         }),
       );
-    if (translationRows.length > 0) {
+    if (translationRows.length > 0)
       await drizzle.insert(translationTable).values(translationRows).execute();
-    }
   },
   {
     ...config,

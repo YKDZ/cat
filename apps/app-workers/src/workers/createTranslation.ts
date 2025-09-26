@@ -100,7 +100,7 @@ const worker = new Worker(
           }),
       );
 
-      if (createMemory) {
+      if (createMemory && memoryIds.length > 0) {
         await tx.insert(memoryItem).values(
           memoryIds.map((memoryId) => ({
             source: element.value,

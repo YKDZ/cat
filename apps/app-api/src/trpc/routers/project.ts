@@ -199,6 +199,8 @@ export const projectRouter = router({
       } = ctx;
       const { id, glossaryIds } = input;
 
+      if (glossaryIds.length === 0) return;
+
       await drizzle.insert(glossaryToProject).values(
         glossaryIds.map((glossaryId) => ({
           projectId: id,
@@ -219,6 +221,8 @@ export const projectRouter = router({
         drizzleDB: { client: drizzle },
       } = ctx;
       const { id, memoryIds } = input;
+
+      if (memoryIds.length === 0) return;
 
       await drizzle.insert(memoryToProject).values(
         memoryIds.map((memoryId) => ({

@@ -54,7 +54,7 @@ export const memoryRouter = router({
             .returning(),
         );
 
-        if (projectIds)
+        if (projectIds && projectIds.length > 0)
           await tx.insert(memoryToProject).values(
             projectIds.map((projectId) => ({
               memoryId: memory.id,
