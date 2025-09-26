@@ -3,9 +3,9 @@ import { computed, onMounted, ref } from "vue";
 import type { Glossary } from "@cat/shared/schema/prisma/glossary";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
 import type { PickerOption } from "./picker";
 import MultiPicker from "./picker/MultiPicker.vue";
-import { trpc } from "@cat/app-api/trpc/client";
 
 const { user } = usePageContext();
 

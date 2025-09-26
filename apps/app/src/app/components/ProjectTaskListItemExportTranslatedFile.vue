@@ -3,10 +3,10 @@ import type { Task } from "@cat/shared/schema/prisma/misc";
 import * as z from "zod/v4";
 import { computed, ref } from "vue";
 import { useDateFormat } from "@vueuse/core";
+import { trpc } from "@cat/app-api/trpc/client";
 import TableRow from "./table/TableRow.vue";
 import TableCell from "./table/TableCell.vue";
 import HButton from "./headless/HButton.vue";
-import { trpc } from "@cat/app-api/trpc/client";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useLanguageStore } from "@/app/stores/language.ts";
 
@@ -19,8 +19,8 @@ const { trpcWarn } = useToastStore();
 const downloadAEl = ref<HTMLAnchorElement>();
 
 const metaSchema = z.object({
-  projectId: z.ulid(),
-  documentId: z.ulid(),
+  projectId: z.uuidv7(),
+  documentId: z.uuidv7(),
   languageId: z.string(),
 });
 

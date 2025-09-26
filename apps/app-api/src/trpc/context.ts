@@ -1,6 +1,6 @@
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
-import { getPrismaDB, getRedisDB } from "@cat/db";
+import { getDrizzleDB, getRedisDB } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { createHTTPHelpers, getCookieFunc } from "@cat/shared/utils";
 import { userFromSessionId } from "@cat/app-server-shared/utils";
@@ -11,18 +11,18 @@ export const createHttpContext = async ({
 }: Pick<FetchCreateContextFnOptions, "req" | "resHeaders">) => {
   const helpers = createHTTPHelpers(req, resHeaders);
 
-  const sessionId = helpers.getCookie("sessionId") ?? null;
-  const user = await userFromSessionId(sessionId);
-
-  const prismaDB = await getPrismaDB();
+  const drizzleDB = await getDrizzleDB();
   const redisDB = await getRedisDB();
   const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+
+  const sessionId = helpers.getCookie("sessionId") ?? null;
+  const user = await userFromSessionId(drizzleDB.client, sessionId);
 
   return {
     user,
     sessionId,
     pluginRegistry,
-    prismaDB,
+    drizzleDB,
     redisDB,
     helpers,
     ...helpers,

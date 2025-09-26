@@ -7,7 +7,7 @@ export const TranslationVoteSchema = z.object({
   value: z.int(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-  voterId: z.ulid(),
+  voterId: z.uuidv7(),
   translationId: z.int(),
 });
 
@@ -18,7 +18,7 @@ export const TranslationApprovementSchema = z.object({
   updatedAt: PrismaDateTime,
   translationId: z.int(),
 
-  creatorId: z.ulid(),
+  creatorId: z.uuidv7(),
 });
 
 export const TranslationSchema = z.object({
@@ -28,7 +28,7 @@ export const TranslationSchema = z.object({
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 
-  translatorId: z.ulid(),
+  translatorId: z.uuidv7(),
 
   translatableElementId: z.int(),
 

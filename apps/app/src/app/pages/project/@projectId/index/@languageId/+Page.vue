@@ -11,7 +11,7 @@ import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumen
 import HButton from "@/app/components/headless/HButton.vue";
 
 const ctx = usePageContext();
-const project = inject(useInjectionKey<Data>("project"))!;
+const project = inject(useInjectionKey<Data>()("project"))!;
 const languageId = ref<string>(ctx.routeParams.languageId!);
 const { languages } = storeToRefs(useLanguageStore());
 

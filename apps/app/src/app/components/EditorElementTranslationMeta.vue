@@ -26,7 +26,7 @@ const TranslationMetaSchema = z.object({
   isMemory: z.boolean().default(false),
   advisorId: z.int().optional(),
   memorySimilarity: z.number().min(0).max(1).default(0),
-  memoryId: z.ulid().optional(),
+  memoryId: z.uuidv7().optional(),
 });
 
 type TranslationMeta = z.infer<typeof TranslationMetaSchema>;

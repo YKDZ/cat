@@ -12,21 +12,26 @@
   },
   "files": [
     "dist",
-    "package.json"
+    "drizzle/migrations/",
+    "package.json",
+    "drizzle.config.ts"
   ],
   "scripts": {
-    "build": "prisma generate && nx vite:build",
+    "build": "nx vite:build",
     "lint": "nx eslint:lint --fix",
     "format": "prettier --write .",
     "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "6.16.1",
-    "@prisma/client": "6.16.1",
+    "drizzle-orm": "^0.44.5",
+    "pg": "^8.16.3",
     "redis": "^5.8.2"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
+    "@types/pg": "^8.15.5",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-prisma-generator": "^0.1.7",
     "prisma": "6.16.1"
   },
   "peerDependencies": {

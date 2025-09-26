@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/prisma/document";
 import { navigate } from "vike/client/router";
+import { trpc } from "@cat/app-api/trpc/client";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";
 import HButton from "./headless/HButton.vue";
-import { trpc } from "@cat/app-api/trpc/client";
 import { useToastStore } from "@/app/stores/toast.ts";
 
 const props = defineProps<{

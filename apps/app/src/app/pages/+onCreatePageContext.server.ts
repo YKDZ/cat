@@ -2,7 +2,7 @@ import type { PageContextServer } from "vike/types";
 import { createPinia } from "pinia";
 import { createHTTPHelpers } from "@cat/shared/utils";
 import { userFromSessionId } from "@cat/app-server-shared/utils";
-import { setting } from "@cat/db";
+import { getSetting } from "@cat/db";
 import { parsePreferredLanguage } from "@/server/utils/i18n.ts";
 
 export const onCreatePageContext = async (ctx: PageContextServer) => {
@@ -19,11 +19,14 @@ export const onCreatePageContext = async (ctx: PageContextServer) => {
     parsePreferredLanguage(helpers.getReqHeader("Accept-Language") ?? "")
       ?.toLocaleLowerCase()
       .replace("-", "_") ??
-    (await setting(
+    (await getSetting(
+      ctx.globalContext.drizzleDB.client,
       "server.default-language",
       "zh_cn",
-      ctx.globalContext.prismaDB.client,
     ));
-  ctx.user = await userFromSessionId(ctx.sessionId ?? "");
+  ctx.user = await userFromSessionId(
+    ctx.globalContext.drizzleDB.client,
+    ctx.sessionId ?? "",
+  );
   ctx.helpers = helpers;
 };

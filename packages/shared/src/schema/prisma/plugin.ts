@@ -60,7 +60,7 @@ export const PluginSchema = z.object({
   id: z.string(),
   name: z.string(),
   overview: z.string().nullable(),
-  iconURL: z.url().nullable(),
+  iconUrl: z.url().nullable(),
   isExternal: z.boolean(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,

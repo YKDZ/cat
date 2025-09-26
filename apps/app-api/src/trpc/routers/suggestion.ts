@@ -8,6 +8,15 @@ import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
 import { logger } from "@cat/shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { hash } from "@cat/app-server-shared/utils";
+import {
+  aliasedTable,
+  and,
+  eq,
+  inArray,
+  term as termTable,
+  termRelation as termRelationTable,
+  getTableColumns,
+} from "@cat/db";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
 export const suggestionRouter = router({
@@ -21,14 +30,14 @@ export const suggestionRouter = router({
     .subscription(async function* ({ ctx, input }) {
       const {
         redisDB: { redis, redisPub, redisSub },
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
       const { elementId, languageId } = input;
 
       // TODO 选择安装的服务或者继承
       const { service: termService } = (await pluginRegistry.getPluginService(
-        prisma,
+        drizzle,
         "es-term-service",
         "TERM_SERVICE",
         "ES",
@@ -36,17 +45,8 @@ export const suggestionRouter = router({
 
       if (!termService) throw new Error("Term service does not exists");
 
-      const element = await prisma.translatableElement.findUnique({
-        where: {
-          id: elementId,
-        },
-        include: {
-          Document: {
-            include: {
-              Project: true,
-            },
-          },
-        },
+      const element = await drizzle.query.translatableElement.findFirst({
+        where: (el, { eq }) => eq(el.id, elementId),
       });
 
       if (!element) {
@@ -72,7 +72,7 @@ export const suggestionRouter = router({
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
       const advisors = (
-        await pluginRegistry.getPluginServices(prisma, "TRANSLATION_ADVISOR")
+        await pluginRegistry.getPluginServices(drizzle, "TRANSLATION_ADVISOR")
       ).map(({ service }) => service);
 
       const advisorAmount = advisors.length;
@@ -109,32 +109,42 @@ export const suggestionRouter = router({
         const { termedText, translationIds } =
           await termService.termStore.termText(
             zElement.value,
-            element.Document!.Project.sourceLanguageId,
+            "zh_Hans",
             languageId,
           );
-        const relations = await prisma.termRelation.findMany({
-          where: {
-            translationId: {
-              in: translationIds,
-            },
-            Term: {
-              languageId: element.Document!.Project.sourceLanguageId,
-            },
-            Translation: {
-              languageId,
-            },
-          },
-          include: {
-            Term: true,
-            Translation: true,
-          },
-        });
+        const relationTerm = aliasedTable(termTable, "relationTerm");
+        const relationTranslation = aliasedTable(
+          termTable,
+          "relationTranslation",
+        );
+        const relations = await drizzle
+          .select({
+            ...getTableColumns(termRelationTable),
+            Term: getTableColumns(relationTerm),
+            Translation: getTableColumns(relationTranslation),
+          })
+          .from(termRelationTable)
+          .innerJoin(
+            relationTerm,
+            eq(termRelationTable.termId, relationTerm.id),
+          )
+          .innerJoin(
+            relationTranslation,
+            eq(termRelationTable.translationId, relationTranslation.id),
+          )
+          .where(
+            and(
+              inArray(relationTranslation.id, translationIds),
+              eq(relationTerm.languageId, "zh_Hans"),
+              eq(relationTranslation.languageId, languageId),
+            ),
+          );
         advisor
           .getSuggestions(
             zElement,
             termedText,
             relations,
-            element.Document!.Project.sourceLanguageId,
+            "zh_Hans",
             languageId,
           )
           .then((suggestions) => {

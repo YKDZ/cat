@@ -2,7 +2,7 @@ import * as z from "zod/v4";
 import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const UserSchema = z.object({
-  id: z.ulid(),
+  id: z.uuidv7(),
   name: z.string(),
   email: z.email(),
   emailVerified: z.boolean(),
@@ -16,7 +16,7 @@ export const AccountSchema = z.object({
   providedAccountId: z.string(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-  userId: z.ulid(),
+  userId: z.uuidv7(),
 });
 
 export type User = z.infer<typeof UserSchema>;

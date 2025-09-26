@@ -5,7 +5,6 @@ import {
   PluginConfigSchema,
   PluginInstallationSchema,
   PluginSchema,
-  PluginTagSchema,
 } from "@cat/shared/schema/prisma/plugin";
 import {
   AuthMethodSchema,
@@ -13,6 +12,13 @@ import {
   type AuthMethod,
   type TranslationAdvisorData,
 } from "@cat/shared/schema/misc";
+import {
+  eq,
+  plugin as pluginTable,
+  pluginConfigInstance as pluginConfigInstanceTable,
+  desc,
+} from "@cat/db";
+import { getSingle } from "@cat/shared/utils";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 
 export const pluginRouter = router({
@@ -25,15 +31,11 @@ export const pluginRouter = router({
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      await prisma.plugin.delete({
-        where: {
-          id,
-        },
-      });
+      await drizzle.delete(pluginTable).where(eq(pluginTable.id, id));
     }),
   queryConfigInstance: authedProcedure
     .input(
@@ -47,24 +49,30 @@ export const pluginRouter = router({
     .output(PluginConfigInstanceSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { configId, pluginId, scopeId, scopeType } = input;
 
-      const installation = await prisma.pluginInstallation.findUnique({
-        where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
+      const installation = await drizzle.query.pluginInstallation.findFirst({
+        where: (installation, { eq, and }) =>
+          and(
+            eq(installation.pluginId, pluginId),
+            eq(installation.scopeType, scopeType),
+            eq(installation.scopeId, scopeId),
+          ),
       });
 
       if (!installation) return null;
 
-      return await prisma.pluginConfigInstance.findUnique({
-        where: {
-          pluginInstallationId_configId: {
-            configId,
-            pluginInstallationId: installation.id,
-          },
-        },
-      });
+      return (
+        (await drizzle.query.pluginConfigInstance.findFirst({
+          where: (instance, { eq, and }) =>
+            and(
+              eq(instance.pluginInstallationId, installation.id),
+              eq(instance.configId, configId),
+            ),
+        })) ?? null
+      );
     }),
   upsertConfigInstance: authedProcedure
     .input(
@@ -79,13 +87,18 @@ export const pluginRouter = router({
     .output(PluginConfigInstanceSchema)
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
       const { configId, pluginId, scopeType, scopeId, value } = input;
 
-      const installation = await prisma.pluginInstallation.findUnique({
-        where: { scopeId_scopeType_pluginId: { pluginId, scopeType, scopeId } },
+      const installation = await drizzle.query.pluginInstallation.findFirst({
+        where: (installation, { eq, and }) =>
+          and(
+            eq(installation.pluginId, pluginId),
+            eq(installation.scopeType, scopeType),
+            eq(installation.scopeId, scopeId),
+          ),
       });
 
       if (!installation)
@@ -94,23 +107,26 @@ export const pluginRouter = router({
           message: "Plugin not installed",
         });
 
-      return await prisma.pluginConfigInstance.upsert({
-        where: {
-          pluginInstallationId_configId: {
-            pluginInstallationId: installation.id,
+      return getSingle(
+        await drizzle
+          .insert(pluginConfigInstanceTable)
+          .values({
+            value,
+            creatorId: user.id,
             configId,
-          },
-        },
-        create: {
-          value: z.json().parse(value) ?? {},
-          creatorId: user.id,
-          configId,
-          pluginInstallationId: installation.id,
-        },
-        update: {
-          value: z.json().parse(value) ?? {},
-        },
-      });
+            pluginInstallationId: installation.id,
+          })
+          .onConflictDoUpdate({
+            target: [
+              pluginConfigInstanceTable.pluginInstallationId,
+              pluginConfigInstanceTable.configId,
+            ],
+            set: {
+              value,
+            },
+          })
+          .returning(),
+      );
     }),
   get: authedProcedure
     .input(
@@ -120,66 +136,57 @@ export const pluginRouter = router({
     )
     .output(
       PluginSchema.extend({
-        Config: PluginConfigSchema.nullable(),
-        Installations: z.array(PluginInstallationSchema),
-        Tags: z.array(PluginTagSchema),
+        PluginConfig: PluginConfigSchema.nullable(),
+        PluginInstallations: z.array(PluginInstallationSchema),
       }).nullable(),
     )
-    // @ts-expect-error unsolvable
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      return await prisma.plugin.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          Config: true,
-          Tags: true,
-          Installations: true,
-        },
-      });
+      return (
+        (await drizzle.query.plugin.findFirst({
+          where: (plugin, { eq }) => eq(plugin.id, id),
+          with: {
+            PluginConfig: true,
+            PluginInstallations: true,
+          },
+        })) ?? null
+      );
     }),
   listAll: authedProcedure
     .output(
       z.array(
         PluginSchema.extend({
-          Installations: z.array(PluginInstallationSchema),
-          Tags: z.array(PluginTagSchema),
+          PluginInstallations: z.array(PluginInstallationSchema),
         }),
       ),
     )
     .query(async ({ ctx }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
 
-      return await prisma.plugin.findMany({
-        include: {
-          Tags: true,
-          Installations: true,
+      return await drizzle.query.plugin.findMany({
+        with: {
+          PluginInstallations: true,
         },
-        orderBy: {
-          id: "asc",
-        },
+        orderBy: desc(pluginTable.id),
       });
     }),
   availableAuthMethod: publicProcedure
     .output(z.array(AuthMethodSchema))
     .query(async ({ ctx }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
 
-      const providersData = await prisma.pluginService.findMany({
-        where: {
-          serviceType: "AUTH_PROVIDER",
-        },
-        select: {
+      const providersData = await drizzle.query.pluginService.findMany({
+        where: (service, { eq }) => eq(service.serviceType, "AUTH_PROVIDER"),
+        columns: {
           serviceId: true,
         },
       });
@@ -187,7 +194,7 @@ export const pluginRouter = router({
       const methods: AuthMethod[] = [];
       for (const { serviceId } of providersData) {
         const providers = await pluginRegistry.getPluginServices(
-          prisma,
+          drizzle,
           "AUTH_PROVIDER",
         );
         providers
@@ -207,11 +214,11 @@ export const pluginRouter = router({
     .output(z.array(TranslationAdvisorDataSchema))
     .query(async ({ ctx }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
       return (
-        await pluginRegistry.getPluginServices(prisma, "TRANSLATION_ADVISOR")
+        await pluginRegistry.getPluginServices(drizzle, "TRANSLATION_ADVISOR")
       ).map(
         ({ id, service }) =>
           ({
@@ -229,18 +236,26 @@ export const pluginRouter = router({
     .output(TranslationAdvisorDataSchema)
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
       const { advisorId } = input;
 
-      const dbAdvisor = await prisma.pluginService.findUnique({
-        where: { id: advisorId, serviceType: "TRANSLATION_ADVISOR" },
-        select: {
+      const dbAdvisor = await drizzle.query.pluginService.findFirst({
+        where: (service, { and, eq }) =>
+          and(
+            eq(service.id, advisorId),
+            eq(service.serviceType, "TRANSLATION_ADVISOR"),
+          ),
+        columns: {
           serviceId: true,
           serviceType: true,
+        },
+        with: {
           PluginInstallation: {
-            select: { pluginId: true },
+            columns: {
+              pluginId: true,
+            },
           },
         },
       });
@@ -248,7 +263,7 @@ export const pluginRouter = router({
       if (!dbAdvisor) throw new TRPCError({ code: "NOT_FOUND" });
 
       const { service } = (await pluginRegistry.getPluginService(
-        prisma,
+        drizzle,
         dbAdvisor.PluginInstallation.pluginId,
         "TRANSLATION_ADVISOR",
         dbAdvisor.serviceId,

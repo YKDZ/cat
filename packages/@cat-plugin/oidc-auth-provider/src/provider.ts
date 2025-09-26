@@ -1,4 +1,4 @@
-import { getPrismaDB, getRedisDB, setting } from "@cat/db";
+import { getDrizzleDB, getRedisDB, setting } from "@cat/db";
 import type { AuthProvider, AuthResult, PreAuthResult } from "@cat/plugin-core";
 import type { HTTPHelpers } from "@cat/shared/utils";
 import { safeJoinURL } from "@cat/shared/utils";
@@ -61,7 +61,7 @@ export class Provider implements AuthProvider {
     { getCookie, delCookie }: HTTPHelpers,
   ) {
     const { redis } = await getRedisDB();
-    const { client: prisma } = await getPrismaDB();
+    const { client: prisma } = await getDrizzleDB();
 
     const { state, code } = SearchParasSchema.parse(
       gotFromClient.urlSearchParams,
@@ -161,7 +161,7 @@ export class Provider implements AuthProvider {
 
   async handleLogout(sessionId: string) {
     const { redis } = await getRedisDB();
-    const { client: prisma } = await getPrismaDB();
+    const { client: prisma } = await getDrizzleDB();
     const idToken = await redis.hGet(`user:session:${sessionId}`, "idToken");
 
     if (!idToken) throw new Error("ID Token do not exists");

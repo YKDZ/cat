@@ -7,11 +7,11 @@ export const TermSchema = z.object({
   context: z.string().optional().nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-  glossaryId: z.ulid(),
+  glossaryId: z.uuidv7(),
 
   languageId: z.string(),
 
-  creatorId: z.ulid(),
+  creatorId: z.uuidv7(),
 });
 
 export const TermRelationSchema = z.object({
@@ -20,12 +20,12 @@ export const TermRelationSchema = z.object({
 });
 
 export const GlossarySchema = z.object({
-  id: z.ulid(),
+  id: z.uuidv7(),
   name: z.string(),
   description: z.string().nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-  creatorId: z.ulid(),
+  creatorId: z.uuidv7(),
 });
 
 export type Term = z.infer<typeof TermSchema>;

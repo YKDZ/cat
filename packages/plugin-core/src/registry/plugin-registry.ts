@@ -5,17 +5,30 @@ import { pathToFileURL } from "node:url";
 import * as z from "zod/v4";
 import { JSONSchemaSchema, type JSONType } from "@cat/shared/schema/json";
 import {
-  OverallPrismaClient,
-  PluginServiceType,
-  PrismaClient,
-  ScopeType,
-} from "@cat/db";
-import { getDefaultFromSchema, logger } from "@cat/shared/utils";
+  getDefaultFromSchema,
+  getFirst,
+  getSingle,
+  logger,
+} from "@cat/shared/utils";
 import {
   PluginDataSchema,
   PluginManifestSchema,
 } from "@cat/shared/schema/plugin";
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
+import {
+  eq,
+  inArray,
+  OverallDrizzleClient,
+  plugin,
+  pluginConfig,
+  pluginConfigInstance,
+  pluginInstallation,
+  pluginService,
+  type DrizzleClient,
+  type PluginServiceType,
+  type ScopeType,
+} from "@cat/db";
+import { and } from "@cat/db";
 import { getPluginConfig } from "@/utils/config.ts";
 import type { TranslationAdvisor } from "@/registry/translation-advisor.ts";
 import type { TranslatableFileHandler } from "@/registry/translatable-file-handler.ts";
@@ -35,23 +48,23 @@ export type PluginServiceGetters = keyof Pick<
 >;
 
 type PluginServiceMap = {
-  [PluginServiceType.AUTH_PROVIDER]: AuthProvider;
-  [PluginServiceType.STORAGE_PROVIDER]: StorageProvider;
-  [PluginServiceType.TEXT_VECTORIZER]: TextVectorizer;
-  [PluginServiceType.TRANSLATABLE_FILE_HANDLER]: TranslatableFileHandler;
-  [PluginServiceType.TRANSLATION_ADVISOR]: TranslationAdvisor;
-  [PluginServiceType.TERM_SERVICE]: TermService;
+  ["AUTH_PROVIDER"]: AuthProvider;
+  ["STORAGE_PROVIDER"]: StorageProvider;
+  ["TEXT_VECTORIZER"]: TextVectorizer;
+  ["TRANSLATABLE_FILE_HANDLER"]: TranslatableFileHandler;
+  ["TRANSLATION_ADVISOR"]: TranslationAdvisor;
+  ["TERM_SERVICE"]: TermService;
 };
 
 const PluginServiceGetterMap: {
   [K in PluginServiceType]: PluginServiceGetters;
 } = {
-  [PluginServiceType.AUTH_PROVIDER]: "getAuthProviders",
-  [PluginServiceType.STORAGE_PROVIDER]: "getStorageProviders",
-  [PluginServiceType.TEXT_VECTORIZER]: "getTextVectorizers",
-  [PluginServiceType.TRANSLATABLE_FILE_HANDLER]: "getTranslatableFileHandlers",
-  [PluginServiceType.TRANSLATION_ADVISOR]: "getTranslationAdvisors",
-  [PluginServiceType.TERM_SERVICE]: "getTermServices",
+  ["AUTH_PROVIDER"]: "getAuthProviders",
+  ["STORAGE_PROVIDER"]: "getStorageProviders",
+  ["TEXT_VECTORIZER"]: "getTextVectorizers",
+  ["TRANSLATABLE_FILE_HANDLER"]: "getTranslatableFileHandlers",
+  ["TRANSLATION_ADVISOR"]: "getTranslationAdvisors",
+  ["TERM_SERVICE"]: "getTermServices",
 };
 
 export interface IPluginService {
@@ -90,14 +103,14 @@ export interface CatPlugin {
 const PluginObjectSchema = z.custom<CatPlugin>();
 
 interface IPluginRegistry {
-  installPlugin(prisma: PrismaClient, pluginId: string): Promise<void>;
-  uninstallPlugin(prisma: PrismaClient, pluginId: string): Promise<void>;
+  installPlugin(drizzle: DrizzleClient, pluginId: string): Promise<void>;
+  uninstallPlugin(drizzle: DrizzleClient, pluginId: string): Promise<void>;
   getPluginServices<T extends PluginServiceType>(
-    prisma: OverallPrismaClient,
+    drizzle: DrizzleClient,
     type: T,
   ): Promise<{ id: number; service: PluginServiceMap[T]; pluginId: string }[]>;
   getPluginService<T extends PluginServiceType>(
-    prisma: OverallPrismaClient,
+    drizzle: DrizzleClient,
     pluginId: string,
     type: T,
     id: string,
@@ -123,106 +136,51 @@ export class PluginRegistry implements IPluginRegistry {
   }
 
   public static async importPlugin(
-    prisma: OverallPrismaClient,
+    drizzle: OverallDrizzleClient,
     pluginId: string,
   ): Promise<void> {
     const data = await this.getPluginData(pluginId);
 
-    await prisma.plugin.upsert({
-      where: {
-        id: pluginId,
-      },
-      update: {
-        name: data.name,
-        entry: data.entry,
-        overview: data.overview,
-        iconURL: data.iconURL,
-
-        Config: data.config
-          ? {
-              connectOrCreate: {
-                where: {
-                  pluginId,
-                  schema: {
-                    equals: z.json().parse(data.config) ?? {},
-                  },
-                },
-                create: {
-                  schema: z.json().parse(data.config) ?? {},
-                },
-              },
-            }
-          : undefined,
-
-        Tags: {
-          connectOrCreate: data.tags
-            ? data.tags.map((tag) => ({
-                where: {
-                  name: tag,
-                },
-                create: {
-                  name: tag,
-                },
-              }))
-            : undefined,
-        },
-
-        Versions: {
-          connectOrCreate: {
-            where: {
-              pluginId_version: {
-                pluginId,
-                version: data.version,
-              },
-            },
-            create: {
-              version: data.version,
-            },
+    await drizzle.transaction(async (tx) => {
+      await tx
+        .insert(plugin)
+        .values([
+          {
+            id: pluginId,
+            name: data.name,
+            entry: data.entry ?? null,
+            overview: data.overview,
+            iconUrl: data.iconURL,
           },
-        },
-      },
-
-      create: {
-        id: pluginId,
-        name: data.name,
-        overview: data.overview,
-        entry: data.entry ?? null,
-        iconURL: data.iconURL,
-
-        Config: data.config
-          ? {
-              create: {
-                schema: z.json().parse(data.config) ?? {},
-              },
-            }
-          : undefined,
-
-        Tags: {
-          connectOrCreate: data.tags
-            ? data.tags.map((tag) => ({
-                where: {
-                  name: tag,
-                },
-                create: {
-                  name: tag,
-                },
-              }))
-            : undefined,
-        },
-
-        Versions: {
-          create: {
-            version: data.version,
+        ])
+        .onConflictDoUpdate({
+          target: plugin.id,
+          set: {
+            name: data.name,
+            entry: data.entry ?? null,
+            overview: data.overview,
+            iconUrl: data.iconURL,
           },
-        },
-      },
+        });
+
+      if (data.config) {
+        const schema = JSONSchemaSchema.parse(data.config);
+
+        await tx
+          .insert(pluginConfig)
+          .values([{ pluginId, schema }])
+          .onConflictDoUpdate({
+            target: [pluginConfig.pluginId],
+            set: { schema },
+          });
+      }
     });
   }
 
-  public async installPlugin(prisma: PrismaClient, pluginId: string) {
-    const dbPlugin = await prisma.plugin.findUnique({
-      where: { id: pluginId },
-      select: {
+  public async installPlugin(drizzle: DrizzleClient, pluginId: string) {
+    const dbPlugin = await drizzle.query.plugin.findFirst({
+      where: (plugin, { eq }) => eq(plugin.id, pluginId),
+      columns: {
         entry: true,
       },
     });
@@ -238,116 +196,115 @@ export class PluginRegistry implements IPluginRegistry {
     const pluginObj = await this.getPluginInstance(pluginId, dbPlugin.entry);
     if (pluginObj.onInstalled) await pluginObj.onInstalled();
 
-    await prisma.$transaction(async (tx) => {
-      const installation = await tx.pluginInstallation.create({
-        data: { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
+    await drizzle.transaction(async (tx) => {
+      const installation = getSingle(
+        await tx
+          .insert(pluginInstallation)
+          .values([
+            { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
+          ])
+          .returning({ id: pluginInstallation.id }),
+      );
+
+      const pluginConfigs = await drizzle.query.pluginConfig.findMany({
+        where: (config, { eq }) => eq(config.pluginId, pluginId),
+        columns: { id: true, schema: true },
       });
 
-      const pluginConfigs = await tx.pluginConfig.findMany({
-        where: {
-          pluginId,
-        },
-        select: { id: true, schema: true },
-      });
-
-      for (const { id, schema } of pluginConfigs) {
-        const defaultValue =
-          getDefaultFromSchema(JSONSchemaSchema.parse(schema)) ?? {};
-
-        await tx.pluginConfigInstance.create({
-          data: {
-            configId: id,
+      if (pluginConfigs.length > 0)
+        await tx.insert(pluginConfigInstance).values(
+          pluginConfigs.map((config) => ({
+            configId: config.id,
             pluginInstallationId: installation.id,
-            value: defaultValue,
-          },
-        });
-      }
+            value:
+              getDefaultFromSchema(JSONSchemaSchema.parse(config.schema)) ?? {},
+          })),
+        );
 
-      for (const { id: serviceId, type: serviceType } of manifest.services ??
-        []) {
-        await tx.pluginService.create({
-          data: {
-            serviceId,
-            serviceType,
+      if (manifest.services)
+        await tx.insert(pluginService).values(
+          manifest.services.map((service) => ({
+            serviceId: service.id,
+            serviceType: service.type,
             pluginInstallationId: installation.id,
-          },
-        });
-      }
+          })),
+        );
     });
   }
 
-  public async uninstallPlugin(prisma: PrismaClient, pluginId: string) {
-    const dbPlugin = await prisma.plugin.findUnique({
-      where: { id: pluginId },
+  public async uninstallPlugin(drizzle: DrizzleClient, pluginId: string) {
+    const dbPlugin = await drizzle.query.plugin.findFirst({
+      where: ({ id }, { eq }) => eq(id, pluginId),
     });
 
     if (!dbPlugin) throw new Error(`Plugin ${pluginId} not found`);
 
-    const installation = await prisma.pluginInstallation.findUnique({
-      where: {
-        scopeId_scopeType_pluginId: {
-          pluginId,
-          scopeType: this.scopeType,
-          scopeId: this.scopeId,
-        },
-      },
+    const installation = await drizzle.query.pluginInstallation.findFirst({
+      where: (installation, { and, eq }) =>
+        and(
+          eq(installation.pluginId, pluginId),
+          eq(installation.scopeId, this.scopeId),
+          eq(installation.scopeType, this.scopeType),
+        ),
     });
 
     if (!installation) throw new Error(`Plugin ${pluginId} not installed`);
 
-    await prisma.pluginInstallation.delete({
-      where: {
-        scopeId_scopeType_pluginId: {
-          pluginId,
-          scopeType: this.scopeType,
-          scopeId: this.scopeId,
-        },
-      },
-    });
+    await drizzle
+      .delete(pluginInstallation)
+      .where(
+        and(
+          eq(pluginInstallation.id, installation.id),
+          eq(pluginInstallation.scopeId, this.scopeId),
+          eq(pluginInstallation.scopeType, this.scopeType),
+        ),
+      );
   }
 
   public async getPluginServices<T extends PluginServiceType>(
-    prisma: OverallPrismaClient,
+    drizzle: OverallDrizzleClient,
     type: T,
   ): Promise<{ id: number; service: PluginServiceMap[T]; pluginId: string }[]> {
-    const installations = await prisma.pluginInstallation.findMany({
-      where: {
-        scopeId: this.scopeId,
-        scopeType: this.scopeType,
-      },
+    const installations = await drizzle.query.pluginInstallation.findMany({
+      where: (installation, { and, eq }) =>
+        and(
+          eq(installation.scopeType, this.scopeType),
+          eq(installation.scopeId, this.scopeId),
+        ),
     });
 
-    const servicesRows = await prisma.pluginService.findMany({
-      where: {
-        pluginInstallationId: {
-          in: installations.map((i) => i.id),
+    const servicesRows = await drizzle
+      .select({
+        id: pluginService.id,
+        serviceId: pluginService.serviceId,
+        plugin: {
+          id: plugin.id,
+          entry: plugin.entry,
         },
-        serviceType: type,
-      },
-      select: {
-        id: true,
-        serviceId: true,
-        PluginInstallation: {
-          select: {
-            Plugin: {
-              select: {
-                id: true,
-                entry: true,
-              },
-            },
-          },
-        },
-      },
-    });
+      })
+      .from(pluginService)
+      .innerJoin(
+        pluginInstallation,
+        eq(pluginService.pluginInstallationId, pluginInstallation.id),
+      )
+      .innerJoin(plugin, eq(pluginInstallation.pluginId, plugin.id))
+      .where(
+        and(
+          inArray(
+            pluginService.pluginInstallationId,
+            installations.map((i) => i.id),
+          ),
+          eq(pluginService.serviceType, type),
+        ),
+      );
 
-    // Map: pluginId -> { entry, rows: [{ id, serviceId }] }
     const pluginMap = new Map<
       string,
       { entry: string; rows: { id: number; serviceId: string }[] }
     >();
 
     for (const r of servicesRows) {
-      const plugin = r.PluginInstallation?.Plugin;
+      const plugin = r.plugin;
       if (!plugin?.id) continue;
       const pluginId = plugin.id;
       const entry = plugin.entry;
@@ -383,7 +340,7 @@ export class PluginRegistry implements IPluginRegistry {
             }[];
 
           const config = await getPluginConfig(
-            prisma,
+            drizzle,
             pluginId,
             this.scopeType,
             this.scopeId,
@@ -428,51 +385,53 @@ export class PluginRegistry implements IPluginRegistry {
   }
 
   public async getPluginService<T extends PluginServiceType>(
-    prisma: OverallPrismaClient,
+    drizzle: OverallDrizzleClient,
     pluginId: string,
     type: T,
     id: string,
   ): Promise<{ id: number; service: PluginServiceMap[T] } | null> {
-    const installation = await prisma.pluginInstallation.findUnique({
-      where: {
-        scopeId_scopeType_pluginId: {
-          pluginId,
-          scopeType: this.scopeType,
-          scopeId: this.scopeId,
-        },
-      },
-      select: {
+    const installation = await drizzle.query.pluginInstallation.findFirst({
+      where: (installation, { and, eq }) =>
+        and(
+          eq(installation.pluginId, pluginId),
+          eq(installation.scopeType, this.scopeType),
+          eq(installation.scopeId, this.scopeId),
+        ),
+      columns: {
         id: true,
       },
     });
 
     if (!installation) throw new Error("Plugin not installed");
 
-    const serviceRow = await prisma.pluginService.findUnique({
-      where: {
-        serviceType_serviceId_pluginInstallationId: {
-          serviceType: type,
-          serviceId: id,
-          pluginInstallationId: installation.id,
+    const serviceRows = await drizzle
+      .select({
+        id: pluginService.id,
+        serviceId: pluginService.serviceId,
+        plugin: {
+          id: plugin.id,
+          entry: plugin.entry,
         },
-      },
-      select: {
-        id: true,
-        PluginInstallation: {
-          select: {
-            Plugin: {
-              select: {
-                entry: true,
-              },
-            },
-          },
-        },
-      },
-    });
+      })
+      .from(pluginService)
+      .innerJoin(
+        pluginInstallation,
+        eq(pluginService.pluginInstallationId, pluginInstallation.id),
+      )
+      .innerJoin(plugin, eq(pluginInstallation.pluginId, plugin.id))
+      .where(
+        and(
+          eq(pluginService.pluginInstallationId, installation.id),
+          eq(pluginService.serviceType, type),
+        ),
+      )
+      .limit(1);
 
-    if (!serviceRow) throw new Error(`Service ${type} ${id} not found`);
+    const service = getFirst(serviceRows);
 
-    const entry = serviceRow.PluginInstallation.Plugin.entry;
+    if (!service) throw new Error(`Service ${type} ${id} not found`);
+
+    const entry = service.plugin.entry;
     const instance = await this.getPluginInstance(pluginId, entry);
 
     const getter = instance[PluginServiceGetterMap[type]] as
@@ -484,7 +443,7 @@ export class PluginRegistry implements IPluginRegistry {
     if (!getter) return null;
 
     const config = await getPluginConfig(
-      prisma,
+      drizzle,
       pluginId,
       this.scopeType,
       this.scopeId,
@@ -500,7 +459,7 @@ export class PluginRegistry implements IPluginRegistry {
 
     if (!matched) return null;
 
-    return { id: serviceRow.id, service: matched };
+    return { id: service.id, service: matched };
   }
 
   private async getPluginInstance(pluginId: string, entry: string) {

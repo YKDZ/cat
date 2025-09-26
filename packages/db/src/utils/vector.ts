@@ -1,24 +1,27 @@
-import type { DefaultArgs } from "@prisma/client/runtime/client";
-import type { PrismaClient } from "@/generated/prisma/client.ts";
+import type { OverallDrizzleClient } from "@/drizzle/db.ts";
+import { vector } from "@/drizzle/schema/vector.ts";
 
 export const insertVector = async (
-  prisma: Pick<PrismaClient<never, never, DefaultArgs>, "$queryRawUnsafe">,
+  drizzle: OverallDrizzleClient,
   vector: number[],
 ): Promise<number> => {
-  const ids = await insertVectors(prisma, [vector]);
+  const ids = await insertVectors(drizzle, [vector]);
   if (ids.length !== 1)
     throw new Error("insert vector did not return one of id");
   return ids[0]!;
 };
 
 export const insertVectors = async (
-  prisma: Pick<PrismaClient<never, never, DefaultArgs>, "$queryRawUnsafe">,
+  drizzle: OverallDrizzleClient,
   vectors: number[][],
 ): Promise<number[]> => {
-  const result = await prisma.$queryRawUnsafe<{ id: number }[]>(`
-        INSERT INTO "Vector" (vector)
-        VALUES ${vectors.map((v) => `('[${v.join(",")}]')`).join(",")}
-        RETURNING id
-      `);
+  const result = await drizzle
+    .insert(vector)
+    .values(
+      vectors.map((vector) => ({
+        vector,
+      })),
+    )
+    .returning({ id: vector.id });
   return result.map((result) => result.id);
 };

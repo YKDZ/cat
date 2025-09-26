@@ -1,37 +1,47 @@
-import type { PrismaError } from "@cat/shared/schema/misc";
 import { ProjectSchema } from "@cat/shared/schema/prisma/project";
-import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { DocumentSchema } from "@cat/shared/schema/prisma/document";
 import { UserSchema } from "@cat/shared/schema/prisma/user";
 import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
 import { FileSchema } from "@cat/shared/schema/prisma/file";
-import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
+import {
+  eq,
+  glossaryToProject,
+  memoryToProject,
+  project as projectTable,
+  projectTargetLanguage,
+  memory as memoryTable,
+  and,
+  inArray,
+  document as documentTable,
+  translatableElement as translatableElementTable,
+  translation as translationTable,
+  translationApprovement as translationApprovementTable,
+  count,
+} from "@cat/db";
+import { getSingle } from "@cat/shared/utils";
+import { authedProcedure, router } from "@/trpc/server.ts";
 
 export const projectRouter = router({
   delete: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
       }),
     )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      await prisma.project.delete({
-        where: {
-          id,
-        },
-      });
+      await drizzle.delete(projectTable).where(eq(projectTable.id, id));
     }),
   update: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
         name: z.string().min(1).optional(),
         sourceLanguageId: z.string().optional(),
         targetLanguageIds: z.array(z.string()).optional(),
@@ -41,33 +51,42 @@ export const projectRouter = router({
     .output(ProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, name, sourceLanguageId, targetLanguageIds, description } =
         input;
 
-      return await prisma.project.update({
-        where: {
-          id,
-        },
-        data: {
-          name,
-          description,
-          SourceLanguage: sourceLanguageId
-            ? {
-                connect: {
-                  id: sourceLanguageId,
-                },
-              }
-            : undefined,
-          TargetLanguages: targetLanguageIds
-            ? {
-                set: targetLanguageIds.map((id) => ({
-                  id,
-                })),
-              }
-            : undefined,
-        },
+      return await drizzle.transaction(async (tx) => {
+        if (targetLanguageIds) {
+          await tx
+            .delete(projectTargetLanguage)
+            .where(eq(projectTargetLanguage.projectId, id));
+
+          await tx.insert(projectTargetLanguage).values(
+            targetLanguageIds.map((languageId) => ({
+              projectId: id,
+              languageId,
+            })),
+          );
+        }
+        if (sourceLanguageId)
+          await tx
+            .update(projectTable)
+            .set({
+              sourceLanguageId,
+            })
+            .where(eq(projectTable.id, id));
+
+        return getSingle(
+          await tx
+            .update(projectTable)
+            .set({
+              name,
+              description,
+            })
+            .where(eq(projectTable.id, id))
+            .returning(),
+        );
       });
     }),
   create: authedProcedure
@@ -77,8 +96,8 @@ export const projectRouter = router({
         description: z.string().nullable(),
         sourceLanguageId: z.string(),
         targetLanguageIds: z.array(z.string()),
-        memoryIds: z.array(z.ulid()),
-        glossaryIds: z.array(z.ulid()),
+        memoryIds: z.array(z.uuidv7()),
+        glossaryIds: z.array(z.uuidv7()),
         createMemory: z.boolean(),
         createGlossary: z.boolean(),
       }),
@@ -86,7 +105,7 @@ export const projectRouter = router({
     .output(ProjectSchema)
     .mutation(async ({ input, ctx }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
       const {
@@ -100,153 +119,159 @@ export const projectRouter = router({
         createGlossary,
       } = input;
 
-      const project = await prisma.project.create({
-        data: {
-          name,
-          description,
-          Creator: {
-            connect: {
-              id: user.id,
-            },
-          },
-          SourceLanguage: {
-            connect: {
-              id: sourceLanguageId,
-            },
-          },
-          TargetLanguages: {
-            connect: targetLanguageIds.map((id) => ({
-              id,
-            })),
-          },
-          Memories: {
-            connect: memoryIds.map((id) => {
-              return {
-                id,
-              };
-            }),
-            create: createMemory ? [{ name, creatorId: user.id }] : undefined,
-          },
-          Glossaries: {
-            connect: glossaryIds.map((id) => {
-              return {
-                id,
-              };
-            }),
-            create: createGlossary ? [{ name, creatorId: user.id }] : undefined,
-          },
-        },
-      });
+      return await drizzle.transaction(async (tx) => {
+        // TODO 源语言不应该是项目的属性
+        const project = getSingle(
+          await tx
+            .insert(projectTable)
+            .values({
+              name,
+              description,
+              creatorId: user.id,
+              sourceLanguageId,
+            })
+            .returning(),
+        );
 
-      return project;
+        await tx.insert(projectTargetLanguage).values(
+          targetLanguageIds.map((languageId) => ({
+            projectId: project.id,
+            languageId,
+          })),
+        );
+
+        if (createMemory) {
+          const memory = getSingle(
+            await tx
+              .insert(memoryTable)
+              .values({
+                name,
+                creatorId: user.id,
+              })
+              .returning({ id: memoryTable.id }),
+          );
+          memoryIds.push(memory.id);
+        }
+
+        if (createGlossary) {
+          const memory = getSingle(
+            await tx
+              .insert(memoryTable)
+              .values({
+                name,
+                creatorId: user.id,
+              })
+              .returning({ id: memoryTable.id }),
+          );
+          memoryIds.push(memory.id);
+        }
+
+        if (glossaryIds.length > 0)
+          await tx.insert(glossaryToProject).values(
+            glossaryIds.map((glossaryId) => ({
+              projectId: project.id,
+              glossaryId,
+            })),
+          );
+
+        if (memoryIds.length > 0)
+          await tx.insert(memoryToProject).values(
+            memoryIds.map((memoryId) => ({
+              projectId: project.id,
+              memoryId,
+            })),
+          );
+
+        return project;
+      });
     }),
   linkGlossary: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
-        glossaryIds: z.array(z.ulid()),
+        id: z.uuidv7(),
+        glossaryIds: z.array(z.uuidv7()),
       }),
     )
-    .output(ProjectSchema)
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, glossaryIds } = input;
 
-      return await prisma.project.update({
-        where: {
-          id,
-        },
-        data: {
-          Glossaries: {
-            connect: glossaryIds.map((glossaryId) => ({
-              id: glossaryId,
-            })),
-          },
-        },
-      });
+      await drizzle.insert(glossaryToProject).values(
+        glossaryIds.map((glossaryId) => ({
+          projectId: id,
+          glossaryId,
+        })),
+      );
     }),
   linkMemory: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
-        memoryIds: z.array(z.ulid()),
+        id: z.uuidv7(),
+        memoryIds: z.array(z.uuidv7()),
       }),
     )
-    .output(ProjectSchema)
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, memoryIds } = input;
 
-      return await prisma.project.update({
-        where: {
-          id,
-        },
-        data: {
-          Memories: {
-            connect: memoryIds.map((memoryId) => ({
-              id: memoryId,
-            })),
-          },
-        },
-      });
+      await drizzle.insert(memoryToProject).values(
+        memoryIds.map((memoryId) => ({
+          projectId: id,
+          memoryId,
+        })),
+      );
     }),
   unlinkGlossary: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
-        glossaryIds: z.array(z.ulid()),
+        id: z.uuidv7(),
+        glossaryIds: z.array(z.uuidv7()),
       }),
     )
-    .output(ProjectSchema)
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, glossaryIds } = input;
 
-      return await prisma.project.update({
-        where: {
-          id,
-        },
-        data: {
-          Glossaries: {
-            disconnect: glossaryIds.map((glossaryId) => ({
-              id: glossaryId,
-            })),
-          },
-        },
-      });
+      await drizzle
+        .delete(glossaryToProject)
+        .where(
+          and(
+            eq(glossaryToProject.projectId, id),
+            inArray(glossaryToProject.glossaryId, glossaryIds),
+          ),
+        );
     }),
   unlinkMemory: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
-        memoryIds: z.array(z.ulid()),
+        id: z.uuidv7(),
+        memoryIds: z.array(z.uuidv7()),
       }),
     )
-    .output(ProjectSchema)
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, memoryIds } = input;
 
-      return await prisma.project.update({
-        where: {
-          id,
-        },
-        data: {
-          Memories: {
-            disconnect: memoryIds.map((memoryId) => ({
-              id: memoryId,
-            })),
-          },
-        },
-      });
+      await drizzle
+        .delete(memoryToProject)
+        .where(
+          and(
+            eq(memoryToProject.projectId, id),
+            inArray(memoryToProject.memoryId, memoryIds),
+          ),
+        );
     }),
   listUserOwned: authedProcedure
     .output(
@@ -254,7 +279,6 @@ export const projectRouter = router({
         ProjectSchema.extend({
           Creator: UserSchema,
           SourceLanguage: LanguageSchema,
-          TargetLanguages: z.array(LanguageSchema),
           Documents: z.array(
             DocumentSchema.extend({
               File: FileSchema.nullable(),
@@ -265,53 +289,17 @@ export const projectRouter = router({
     )
     .query(async ({ ctx }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
 
-      return await prisma.project.findMany({
-        where: {
-          creatorId: user.id,
-        },
-        include: {
+      return await drizzle.query.project.findMany({
+        where: (project, { eq }) => eq(project.creatorId, user.id),
+        with: {
           Creator: true,
           SourceLanguage: true,
-          TargetLanguages: true,
           Documents: {
-            include: {
-              File: true,
-            },
-          },
-        },
-      });
-    }),
-  listUserParticipated: publicProcedure
-    .input(
-      z.object({
-        userId: z.ulid(),
-      }),
-    )
-    .output(z.array(ProjectSchema))
-    .query(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-      } = ctx;
-      const { userId } = input;
-
-      return await prisma.project.findMany({
-        where: {
-          Members: {
-            some: {
-              id: userId,
-            },
-          },
-        },
-        include: {
-          Creator: true,
-          SourceLanguage: true,
-          TargetLanguages: true,
-          Documents: {
-            include: {
+            with: {
               File: true,
             },
           },
@@ -327,7 +315,6 @@ export const projectRouter = router({
     .output(
       ProjectSchema.extend({
         Creator: UserSchema,
-        TargetLanguages: z.array(LanguageSchema),
         SourceLanguage: LanguageSchema,
         Documents: z.array(
           DocumentSchema.extend({
@@ -338,25 +325,24 @@ export const projectRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      return await prisma.project.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          Creator: true,
-          TargetLanguages: true,
-          SourceLanguage: true,
-          Documents: {
-            include: {
-              File: true,
+      return (
+        (await drizzle.query.project.findFirst({
+          where: (project, { eq }) => eq(project.id, id),
+          with: {
+            Creator: true,
+            SourceLanguage: true,
+            Documents: {
+              with: {
+                File: true,
+              },
             },
           },
-        },
-      });
+        })) ?? null
+      );
     }),
   addNewLanguage: authedProcedure
     .input(
@@ -365,98 +351,21 @@ export const projectRouter = router({
         languageId: z.string(),
       }),
     )
-    .output(ProjectSchema)
     .mutation(async ({ input, ctx }) => {
       const {
-        prismaDB: { client: prisma },
-        user,
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { projectId, languageId } = input;
 
-      return await prisma.project
-        .update({
-          where: {
-            id: projectId,
-            creatorId: user.id,
-          },
-          data: {
-            TargetLanguages: {
-              connect: {
-                id: languageId,
-              },
-            },
-          },
-          include: {
-            TargetLanguages: true,
-          },
-        })
-        .catch((e: PrismaError) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: e.message,
-          });
-        });
-    }),
-  join: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
-    .output(ProjectSchema)
-    .mutation(async ({ input, ctx }) => {
-      const {
-        prismaDB: { client: prisma },
-        user,
-      } = ctx;
-      const { id } = input;
-
-      return await prisma.project.update({
-        where: {
-          id,
-        },
-        data: {
-          Members: {
-            connect: {
-              id: user.id,
-            },
-          },
-        },
-      });
-    }),
-  invite: authedProcedure
-    .input(
-      z.object({
-        projectId: z.ulid(),
-        userId: z.ulid(),
-      }),
-    )
-    .output(ProjectSchema)
-    .mutation(async ({ ctx, input }) => {
-      const {
-        prismaDB: { client: prisma },
-        user: creator,
-      } = ctx;
-      const { projectId, userId } = input;
-
-      return await prisma.project.update({
-        where: {
-          id: projectId,
-          creatorId: creator.id,
-        },
-        data: {
-          Members: {
-            connect: {
-              id: userId,
-            },
-          },
-        },
+      await drizzle.insert(projectTargetLanguage).values({
+        projectId,
+        languageId,
       });
     }),
   countElement: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
         isTranslated: z.boolean().optional(),
         isApproved: z.boolean().optional(),
       }),
@@ -464,41 +373,50 @@ export const projectRouter = router({
     .output(z.int().min(0))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, isApproved, isTranslated } = input;
 
-      return await prisma.translatableElement.count({
-        where: {
-          Document: {
-            Project: {
-              id,
-            },
-          },
-          Translations:
-            isTranslated === undefined && isApproved === undefined
-              ? undefined
-              : {
-                  some: {
-                    ...(isTranslated !== undefined ? {} : undefined),
-                    ...(isApproved !== undefined
-                      ? {
-                          Approvements: {
-                            some: {
-                              isActive: true,
-                            },
-                          },
-                        }
-                      : undefined),
-                  },
-                },
-        },
-      });
+      const baseQuery = drizzle
+        .select({ count: count() })
+        .from(translatableElementTable)
+        .innerJoin(
+          documentTable,
+          eq(translatableElementTable.documentId, documentTable.id),
+        )
+        .innerJoin(projectTable, eq(documentTable.projectId, projectTable.id))
+        .where(
+          and(
+            eq(projectTable.id, id),
+            isApproved
+              ? eq(translationApprovementTable.isActive, isApproved)
+              : undefined,
+          ),
+        );
+
+      if (isTranslated !== undefined || isApproved !== undefined) {
+        baseQuery.innerJoin(
+          translationTable,
+          eq(
+            translationTable.translatableElementId,
+            translatableElementTable.id,
+          ),
+        );
+
+        if (isApproved !== undefined) {
+          baseQuery.innerJoin(
+            translationApprovementTable,
+            eq(translationApprovementTable.translationId, translationTable.id),
+          );
+        }
+      }
+
+      return getSingle(await baseQuery).count;
     }),
   countTranslation: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
         languageId: z.string(),
         isApproved: z.boolean().optional(),
       }),
@@ -506,47 +424,51 @@ export const projectRouter = router({
     .output(z.int().min(0))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, languageId, isApproved } = input;
 
-      return await prisma.translation.count({
-        where: {
-          TranslatableElement: {
-            documentId: id,
-          },
-          languageId,
-          Approvements:
-            isApproved === undefined
-              ? undefined
-              : isApproved === true
-                ? {
-                    some: {
-                      isActive: true,
-                    },
-                  }
-                : {
-                    none: {
-                      isActive: true,
-                    },
-                  },
-        },
-      });
+      const baseQuery = drizzle
+        .select({ count: count() })
+        .from(translationTable)
+        .innerJoin(
+          translatableElementTable,
+          eq(
+            translationTable.translatableElementId,
+            translatableElementTable.id,
+          ),
+        )
+        .where(
+          and(
+            eq(translatableElementTable.documentId, id),
+            eq(translationTable.languageId, languageId),
+            isApproved
+              ? eq(translationApprovementTable.isActive, isApproved)
+              : undefined,
+          ),
+        );
+
+      if (isApproved !== undefined) {
+        baseQuery.innerJoin(
+          translationApprovementTable,
+          eq(translationApprovementTable.translationId, translationTable.id),
+        );
+      }
+
+      return getSingle(await baseQuery).count;
     }),
   getDocuments: authedProcedure
     .input(z.object({ projectId: z.string() }))
-    .output(z.array(DocumentSchema.required({ File: true })))
+    .output(z.array(DocumentSchema.extend({ File: FileSchema.nullable() })))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { projectId } = input;
 
-      return await prisma.document.findMany({
-        where: {
-          projectId: projectId,
-        },
-        include: {
+      return await drizzle.query.document.findMany({
+        where: (document, { eq }) => eq(document.projectId, projectId),
+        with: {
           File: true,
         },
       });

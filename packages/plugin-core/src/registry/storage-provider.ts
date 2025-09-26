@@ -3,7 +3,7 @@ import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface StorageProvider extends IPluginService {
   getBasicPath: () => string;
-  getContent: (file: File) => Promise<Buffer>;
+  getContent: (storedPath: string) => Promise<Buffer>;
   generateUploadURL: (path: string, expiresIn: number) => Promise<string>;
   generateURL: (
     path: string,

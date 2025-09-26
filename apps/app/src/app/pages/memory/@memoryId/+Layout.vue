@@ -8,7 +8,7 @@ import { useInjectionKey } from "@/app/utils/provide.ts";
 
 const { memory } = useData<Data>();
 
-provide(useInjectionKey<Data>("memory"), memory);
+provide(useInjectionKey<Data>()("memory"), memory);
 </script>
 
 <template>

@@ -11,15 +11,6 @@ export const data = async (
 
   if (!user) throw render("/auth");
 
-  const participated = await useSSCTRPC(ctx)
-    .project.listUserParticipated({
-      userId: user.id,
-    })
-    .catch((e) => {
-      logger.error("WEB", { msg: "Failed to fetch projects" }, e);
-      throw render("/");
-    });
-
   const owned = await useSSCTRPC(ctx)
     .project.listUserOwned()
     .catch((e) => {
@@ -27,7 +18,7 @@ export const data = async (
       throw render("/");
     });
 
-  return { projects: [...participated, ...owned] };
+  return { projects: owned };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

@@ -4,6 +4,8 @@ import * as z from "zod/v4";
 import { JSONSchemaSchema } from "@cat/shared/schema/json";
 import type { AuthProvider } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
+import { account as accountTable, user as userTable } from "@cat/db";
+import { getSingle } from "@cat/shared/utils";
 import { publicProcedure, router } from "@/trpc/server.ts";
 
 export const authRouter = router({
@@ -17,12 +19,12 @@ export const authRouter = router({
     .query(async ({ ctx, input }) => {
       const {
         pluginRegistry,
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { providerId } = input;
 
       const provider = await getServiceFromDBId<AuthProvider>(
-        prisma,
+        drizzle,
         pluginRegistry,
         providerId,
       );
@@ -50,7 +52,7 @@ export const authRouter = router({
     .mutation(async ({ ctx, input }) => {
       const {
         redisDB: { redis },
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
         pluginRegistry,
         helpers,
@@ -62,7 +64,7 @@ export const authRouter = router({
         throw new TRPCError({ code: "CONFLICT", message: "Already login" });
 
       const provider = await getServiceFromDBId<AuthProvider>(
-        prisma,
+        drizzle,
         pluginRegistry,
         providerId,
       );
@@ -111,13 +113,13 @@ export const authRouter = router({
     .output(JSONSchemaSchema)
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
       const { providerId } = input;
 
       const provider = await getServiceFromDBId<AuthProvider>(
-        prisma,
+        drizzle,
         pluginRegistry,
         providerId,
       );
@@ -145,7 +147,7 @@ export const authRouter = router({
     .mutation(async ({ ctx, input }) => {
       const {
         redisDB: { redis },
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         getCookie,
         setCookie,
         delCookie,
@@ -172,7 +174,7 @@ export const authRouter = router({
         });
 
       const provider = await getServiceFromDBId<AuthProvider>(
-        prisma,
+        drizzle,
         pluginRegistry,
         providerId,
       );
@@ -193,57 +195,65 @@ export const authRouter = router({
         accountMeta,
       } = await provider.handleAuth(passToServer, helpers);
 
-      const { userId, account } = await prisma.$transaction(async (tx) => {
-        let account = await tx.account.findUnique({
-          where: {
-            provider_providedAccountId: {
-              provider: providerIssuer,
-              providedAccountId,
-            },
-          },
-          include: {
-            User: {
-              select: {
-                id: true,
-              },
-            },
+      const { userId, account } = await drizzle.transaction(async (tx) => {
+        let account = await tx.query.account.findFirst({
+          where: (account, { and, eq }) =>
+            and(
+              eq(account.provider, providerIssuer),
+              eq(account.providedAccountId, providedAccountId),
+            ),
+          columns: {
+            userId: true,
+            provider: true,
+            type: true,
+            providedAccountId: true,
           },
         });
 
         // 账户不存在
         // 用户可能存在
         if (!account) {
-          account = await tx.account.create({
-            data: {
-              type: provider.getType(),
-              provider: providerIssuer,
-              providedAccountId,
-              meta: z.json().parse(accountMeta) ?? {},
-              User: {
-                connectOrCreate: {
-                  where: {
-                    email,
-                  },
-                  create: {
-                    name: userName,
-                    email,
-                    emailVerified,
-                  },
-                },
-              },
-            },
-            include: {
-              User: {
-                select: {
-                  id: true,
-                },
-              },
+          let user = await tx.query.user.findFirst({
+            where: (user, { eq }) => eq(user.email, email),
+            columns: {
+              id: true,
             },
           });
+
+          if (!user) {
+            user = getSingle(
+              await tx
+                .insert(userTable)
+                .values({
+                  name: userName,
+                  email,
+                  emailVerified,
+                })
+                .returning({ id: userTable.id }),
+            );
+          }
+
+          account = getSingle(
+            await tx
+              .insert(accountTable)
+              .values({
+                type: provider.getType(),
+                provider: providerIssuer,
+                providedAccountId,
+                meta: z.json().parse(accountMeta) ?? {},
+                userId: user.id,
+              })
+              .returning({
+                userId: accountTable.userId,
+                provider: accountTable.provider,
+                type: accountTable.type,
+                providedAccountId: accountTable.providedAccountId,
+              }),
+          );
         }
 
         return {
-          userId: account.User.id,
+          userId: account.userId,
           account,
         };
       });
@@ -265,7 +275,7 @@ export const authRouter = router({
     }),
   logout: publicProcedure.output(z.void()).mutation(async ({ ctx }) => {
     const {
-      prismaDB: { client: prisma },
+      drizzleDB: { client: drizzle },
       redisDB: { redis },
       user,
       sessionId,
@@ -287,7 +297,7 @@ export const authRouter = router({
       });
 
     const provider = await getServiceFromDBId<AuthProvider>(
-      prisma,
+      drizzle,
       pluginRegistry,
       providerId,
     );

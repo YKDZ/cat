@@ -1,4 +1,4 @@
-import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
+import type { Term, TermRelation } from "@cat/shared/schema/prisma/glossary";
 import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface TermFormatter {
@@ -26,8 +26,18 @@ export interface TermMatcher {
 }
 
 export interface TermStore {
-  insertTerm(relation: TermRelation): Promise<void>;
-  insertTerms(...relations: TermRelation[]): Promise<void>;
+  insertTerm(
+    relation: TermRelation & {
+      Term: Term;
+      Translation: Term;
+    },
+  ): Promise<void>;
+  insertTerms(
+    ...relations: (TermRelation & {
+      Term: Term;
+      Translation: Term;
+    })[]
+  ): Promise<void>;
   searchTerm(text: string, languageId: string): Promise<number[]>;
   termText(
     text: string,

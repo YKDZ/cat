@@ -1,4 +1,4 @@
-import { getPrismaDB, getRedisDB, setting } from "@cat/db";
+import { getDrizzleDB, getRedisDB, setting } from "@cat/db";
 import type { ProviderConfig } from "..";
 import { randomChars } from "./crypto.ts";
 
@@ -22,7 +22,7 @@ export const createOIDCAuthURL = async (
   state: string,
   nonce: string,
 ): Promise<string> => {
-  const { client: prisma } = await getPrismaDB();
+  const { client: prisma } = await getDrizzleDB();
   const redirecturi = new URL(
     "/auth/callback",
     await setting("server.url", "http://localhost:3000", prisma),

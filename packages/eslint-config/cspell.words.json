@@ -19,5 +19,6 @@
   "intlify",
   "oxlint",
   "libretranslate",
-  "ollama"
+  "ollama",
+  "uuidv7"
 ]

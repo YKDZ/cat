@@ -1,4 +1,4 @@
-import { setting } from "@cat/db";
+import { getSetting } from "@cat/db";
 import type { PageContextServer } from "vike/types";
 import {
   loadLocaleMessagesInServerSide,
@@ -24,10 +24,10 @@ const loadI18n = async (ctx: PageContextServer) => {
     parsePreferredLanguage(ctx.helpers.getReqHeader("Accept-Language") ?? "")
       ?.toLocaleLowerCase()
       .replace("-", "_") ??
-    (await setting(
+    (await getSetting(
+      ctx.globalContext.drizzleDB.client,
       "server.default-language",
       "zh_cn",
-      ctx.globalContext.prismaDB.client,
     ));
 
   // 未加载过客户端指定语言时

@@ -1,16 +1,31 @@
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { Queue, Worker } from "bullmq";
-import { mimeFromFileName, setting } from "@cat/db";
+import {
+  eq,
+  mimeFromFileName,
+  pluginService as pluginServiceTable,
+  pluginInstallation as pluginInstallationTable,
+  task as taskTable,
+  translation as translationTable,
+  translatableElement as translatableElementTable,
+  getSetting,
+  sql,
+  and,
+} from "@cat/db";
 import * as z from "zod/v4";
 import { PluginRegistry } from "@cat/plugin-core";
-import { getPrismaDB } from "@cat/db";
-import { useStringTemplate } from "@cat/shared/utils";
+import {
+  getDrizzleDB,
+  file as fileTable,
+  document as documentTable,
+} from "@cat/db";
+import { getSingle, useStringTemplate } from "@cat/shared/utils";
 import { useStorage } from "@cat/app-server-shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 
-const { client: prisma } = await getPrismaDB();
+const { client: drizzle } = await getDrizzleDB();
 
 const queueId = "exportTranslatedFile";
 
@@ -25,121 +40,131 @@ const worker = new Worker(
         languageId: z.string(),
       })
       .parse(job.data);
-    const taskId = job.id;
+    const taskId = z.string().parse(job.id);
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    const document = await prisma.document.findUnique({
-      where: {
-        id: documentId,
-      },
-      select: {
-        File: true,
-        FileHandler: {
-          select: {
-            serviceId: true,
-            PluginInstallation: {
-              select: {
-                pluginId: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const document = getSingle(
+      await drizzle
+        .select({
+          handlerId: pluginServiceTable.serviceId,
+          handlerPluginId: pluginInstallationTable.pluginId,
+        })
+        .from(documentTable)
+        .leftJoin(
+          pluginServiceTable,
+          eq(documentTable.fileHandlerId, pluginServiceTable.id),
+        )
+        .leftJoin(
+          pluginInstallationTable,
+          eq(
+            pluginServiceTable.pluginInstallationId,
+            pluginInstallationTable.id,
+          ),
+        )
+        .where(eq(documentTable.id, documentId))
+        .limit(1),
+    );
 
-    if (!document) throw new Error("Document not found");
-
-    if (!document.File || !document.FileHandler)
-      throw new Error("File not found");
+    if (!document.handlerId || !document.handlerPluginId)
+      throw new Error("Document not found");
 
     const { service: handler } = (await pluginRegistry.getPluginService(
-      prisma,
-      document.FileHandler.PluginInstallation.pluginId,
+      drizzle,
+      document.handlerPluginId,
       "TRANSLATABLE_FILE_HANDLER",
-      document.FileHandler.serviceId,
+      document.handlerId,
     ))!;
 
     if (!handler)
       throw new Error(
-        `Translatable File Handler with id ${document.FileHandler.serviceId} do not exists`,
+        `Translatable File Handler with id ${document.handlerId} do not exists`,
       );
 
-    if (!document || !document.File)
-      throw new Error(`Document with id ${documentId} do not exists`);
+    const file = getSingle(
+      await drizzle
+        .select({
+          originName: fileTable.originName,
+          storedPath: fileTable.storedPath,
+        })
+        .from(fileTable)
+        .where(eq(fileTable.documentId, documentId))
+        .limit(1),
+    );
+
+    if (!file) throw new Error(`Document with id ${documentId} do not exists`);
 
     const { id, provider } = await useStorage(
-      prisma,
+      drizzle,
       "s3-storage-provider",
       "S3",
       "GLOBAL",
       "",
     );
-    const fileContent = await provider.getContent(document.File);
+    const fileContent = await provider.getContent(file.storedPath);
 
-    const translationData = await prisma.translation.findMany({
-      where: {
-        languageId,
-        TranslatableElement: {
-          documentId,
-        },
-        Approvements: {
-          some: {
-            isActive: true,
-          },
-        },
-      },
-      select: {
-        value: true,
-        TranslatableElement: {
-          select: {
-            meta: true,
-          },
-        },
-      },
-    });
+    // drizzle 查询 translation 及关联 TranslatableElement、Approvements
+    const translationData = await drizzle
+      .select({
+        value: translationTable.value,
+        meta: translatableElementTable.meta,
+      })
+      .from(translationTable)
+      .innerJoin(
+        translatableElementTable,
+        eq(translationTable.translatableElementId, translatableElementTable.id),
+      )
+      .where(
+        and(
+          eq(translationTable.languageId, languageId),
+          eq(translatableElementTable.documentId, documentId),
+          sql`EXISTS (SELECT 1 FROM "Approvements" a WHERE a."translationId" = ${translationTable.id} AND a."isActive" = true)`,
+        ),
+      )
+      .execute();
 
     const translated = await handler.getReplacedFileContent(
-      document.File,
       fileContent,
-      translationData.map(({ value, TranslatableElement: { meta } }) => ({
+      translationData.map(({ value, meta }) => ({
         value,
         meta: z.json().parse(meta),
       })),
     );
 
-    const fileName = document.File.originName;
     const uuid = randomUUID();
     const date = new Date();
-    const template = await setting(
+    const template = await getSetting(
+      drizzle,
       "storage.template.exported-translated-file",
       "exported/document/translated/{year}/{month}/{date}/{uuid}-{languageId}-{fileName}",
-      prisma,
     );
     const path = useStringTemplate(template, {
       date,
       documentId,
       languageId,
       uuid,
-      fileName,
+      fileName: file.originName,
     });
     const storedPath = join(provider.getBasicPath(), path);
 
-    const file = await prisma.file.create({
-      data: {
-        storedPath,
-        originName: fileName,
-        createdAt: date,
-        updatedAt: date,
-        storageProviderId: id,
-      },
-    });
+    const translatedFile = getSingle(
+      await drizzle
+        .insert(fileTable)
+        .values([
+          {
+            storedPath: storedPath,
+            originName: file.originName,
+            storageProviderId: id,
+          },
+        ])
+        .returning({ id: fileTable.id }),
+    );
 
     const uploadURL = await provider.generateUploadURL(storedPath, 60);
 
     const response = await fetch(uploadURL, {
       method: "PUT",
       headers: {
-        "Content-Type": await mimeFromFileName(fileName, prisma),
+        "Content-Type": await mimeFromFileName(drizzle, file.originName),
       },
       body: new Uint8Array(translated),
       mode: "cors",
@@ -152,28 +177,19 @@ const worker = new Worker(
       );
     }
 
-    await prisma.$transaction(async (tx) => {
-      const task = await tx.task.findUnique({
-        where: {
-          id: taskId,
-        },
-      });
-
+    await drizzle.transaction(async (tx) => {
+      const [task] = await tx
+        .select()
+        .from(taskTable)
+        .where(eq(taskTable.id, taskId))
+        .execute();
       if (!task) throw new Error("Task do not exists");
-
       if (typeof task.meta !== "object") throw new Error("Task has wrong meta");
-
-      await tx.task.update({
-        where: {
-          id: taskId,
-        },
-        data: {
-          meta: {
-            ...task.meta,
-            fileId: file.id,
-          },
-        },
-      });
+      await tx
+        .update(taskTable)
+        .set({ meta: { ...task.meta, fileId: translatedFile.id } })
+        .where(eq(taskTable.id, taskId))
+        .execute();
     });
   },
   {
@@ -182,6 +198,6 @@ const worker = new Worker(
   },
 );
 
-registerTaskUpdateHandlers(prisma, worker, queueId);
+registerTaskUpdateHandlers(drizzle, worker, queueId);
 
 export const exportTranslatedFileWorker = worker;

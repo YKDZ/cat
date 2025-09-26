@@ -11,7 +11,7 @@ import HInput from "@/app/components/headless/form/HInput.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 
 const { t } = useI18n();
-const project = inject(useInjectionKey<Data>("project"))!;
+const project = inject(useInjectionKey<Data>()("project"))!;
 const name = ref(project.name);
 const sourceLanguageId = ref(project.sourceLanguageId);
 

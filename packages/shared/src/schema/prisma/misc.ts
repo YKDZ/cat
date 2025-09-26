@@ -8,7 +8,7 @@ export const LanguageSchema = z.object({
 });
 
 export const TaskSchema = z.object({
-  id: z.ulid(),
+  id: z.uuidv7(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
   status: z

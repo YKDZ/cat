@@ -1,16 +1,16 @@
-import type { PrismaClient } from "@cat/db";
+import { eq, sql, task, type DrizzleClient } from "@cat/db";
 import { logger } from "@cat/shared/utils";
 import type { Worker } from "bullmq";
 
 export const registerTaskUpdateHandlers = (
-  prisma: PrismaClient,
+  drizzle: DrizzleClient,
   worker: Worker,
   queueId: string,
 ) => {
   worker.on("active", async (job) => {
     const id = job.name;
 
-    await updateTaskStatus(prisma, id, "processing");
+    await updateTaskStatus(drizzle, id, "processing");
 
     logger.info("PROCESSOR", { msg: `Active ${queueId} task: ${id}` });
   });
@@ -18,7 +18,7 @@ export const registerTaskUpdateHandlers = (
   worker.on("completed", async (job) => {
     const id = job.name;
 
-    await updateTaskStatus(prisma, id, "completed");
+    await updateTaskStatus(drizzle, id, "completed");
 
     logger.info("PROCESSOR", { msg: `Completed ${queueId} task: ${id}` });
   });
@@ -28,7 +28,7 @@ export const registerTaskUpdateHandlers = (
 
     const id = job.name;
 
-    await updateTaskStatus(prisma, id, "failed", job.stacktrace);
+    await updateTaskStatus(drizzle, id, "failed", job.stacktrace);
 
     logger.error(
       "PROCESSOR",
@@ -45,36 +45,15 @@ export const registerTaskUpdateHandlers = (
 };
 
 const updateTaskStatus = async (
-  prisma: PrismaClient,
+  drizzle: DrizzleClient,
   id: string,
   status: "processing" | "completed" | "failed",
   stacktrace?: string[],
 ) => {
-  await prisma.$transaction(async (tx) => {
-    const task = await tx.task.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!task) throw new Error("Task not found");
-
-    if (task.meta && typeof task.meta !== "object")
-      throw new Error("Invalid task meta");
-
-    const meta = (task.meta as object) ?? {};
-
-    await tx.task.update({
-      where: {
-        id,
-      },
-      data: {
-        status,
-        meta: {
-          ...meta,
-          stacktrace,
-        },
-      },
-    });
-  });
+  await drizzle
+    .update(task)
+    .set({
+      meta: sql`COALESCE(${task.meta}, '{}' )::jsonb || ${JSON.stringify({ stacktrace })}::jsonb`,
+    })
+    .where(eq(task.id, id));
 };

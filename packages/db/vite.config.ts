@@ -3,9 +3,15 @@ import { defineConfig } from "vite";
 import dts from "unplugin-dts/vite";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": resolve(import.meta.dirname, "src"),
+    },
+  },
+
   ssr: {
     external: ["@cat/shared", "zod", "dotenv"],
-    noExternal: ["@prisma/adapter-pg", "@prisma/client", "redis"],
+    noExternal: ["drizzle-orm", "pg", "redis"],
   },
 
   build: {

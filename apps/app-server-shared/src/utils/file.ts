@@ -4,12 +4,12 @@ import type {
   TranslatableFileHandler,
 } from "@cat/plugin-core";
 import type { TranslatableElementData } from "@cat/shared/schema/misc";
-import type { OverallPrismaClient } from "@cat/db";
 import type { JSONType } from "@cat/shared/schema/json";
+import { OverallDrizzleClient } from "@cat/db";
 import { getServiceFromDBId } from "@/utils/plugin.ts";
 
 export const extractElementsFromFile = async (
-  prisma: OverallPrismaClient,
+  drizzle: OverallDrizzleClient,
   pluginRegistry: PluginRegistry,
   handler: TranslatableFileHandler,
   fileId: number,
@@ -20,31 +20,26 @@ export const extractElementsFromFile = async (
     sortIndex: number;
   }[]
 > => {
-  const dbFile = await prisma.file.findUniqueOrThrow({
-    where: {
-      id: fileId,
-    },
-    select: {
+  const dbFile = await drizzle.query.file.findFirst({
+    where: (file, { eq }) => eq(file.id, fileId),
+    columns: {
       storageProviderId: true,
+      storedPath: true,
     },
   });
 
+  if (!dbFile) throw new Error("File not found");
+
   const provider = await getServiceFromDBId<StorageProvider>(
-    prisma,
+    drizzle,
     pluginRegistry,
     dbFile.storageProviderId,
   );
 
-  const file = await prisma.file.findUniqueOrThrow({
-    where: {
-      id: fileId,
-    },
-  });
-
-  const fileContent = await provider.getContent(file);
+  const fileContent = await provider.getContent(dbFile.storedPath);
 
   const newElements = sortAndAssignIndex(
-    await handler.extractElement(file, fileContent),
+    await handler.extractElement(fileContent),
   );
 
   return newElements;

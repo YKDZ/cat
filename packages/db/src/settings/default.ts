@@ -1,15 +1,14 @@
-import { SettingSchema } from "@cat/shared/schema/prisma/misc";
-import type z from "zod/v4";
+/* eslint-disable @cspell/spellchecker */
+import z from "zod/v4";
 
-export const DefaultSettingDataSchema = SettingSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const DefaultSettingDataSchema = z.object({
+  key: z.string(),
+  value: z.json(),
 });
 
 export type DefaultSettingData = z.infer<typeof DefaultSettingDataSchema>;
 
-export const DEFAULT_SETTINGS: DefaultSettingData[] = [
+export const DEFAULT_SETTINGS = z.array(DefaultSettingDataSchema).parse([
   {
     key: "s3.region",
     value: "cn-south-1",
@@ -619,4 +618,4 @@ export const DEFAULT_SETTINGS: DefaultSettingData[] = [
       ".json": "application/json",
     },
   },
-];
+]);

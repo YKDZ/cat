@@ -38,8 +38,8 @@ const ProjectDataSchema = z.object({
     .string({ error: "必须指定项目源语言" })
     .min(1, { error: "必须指定项目源语言" }),
   targetLanguageIds: z.array(z.string()).default([]),
-  memoryIds: z.array(z.ulid()).default([]),
-  glossaryIds: z.array(z.ulid()).default([]),
+  memoryIds: z.array(z.uuidv7()).default([]),
+  glossaryIds: z.array(z.uuidv7()).default([]),
   createMemory: z.boolean().default(true),
   createGlossary: z.boolean().default(true),
 });

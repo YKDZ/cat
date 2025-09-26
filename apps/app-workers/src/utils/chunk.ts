@@ -1,10 +1,9 @@
 import { randomUUID } from "node:crypto";
 import * as z from "zod/v4";
 import { Queue, Worker } from "bullmq";
-import { getPrismaDB, getRedisDB } from "@cat/db";
-import { logger } from "@cat/shared/utils";
+import { eq, getDrizzleDB, getRedisDB, task } from "@cat/db";
+import { getFirst, getIndex, getSingle, logger } from "@cat/shared/utils";
 import type { JSONType } from "@cat/shared/schema/json";
-import { getFirst, getIndex } from "@cat/app-server-shared/utils";
 import { config } from "@/workers/config.ts";
 
 export type ChunkData<T> = {
@@ -57,16 +56,23 @@ export class DistributedTaskHandler<T> {
   }
 
   public async run() {
-    const { client: prisma } = await getPrismaDB();
+    const { client: drizzle } = await getDrizzleDB();
 
-    const task = await prisma.task.create({
-      data: {
-        type: "distributed_" + this.task.type,
-      },
-    });
+    const newTask = getSingle(
+      await drizzle
+        .insert(task)
+        .values([
+          {
+            type: "distributed_" + this.task.type,
+          },
+        ])
+        .returning({
+          id: task.id,
+        }),
+    );
 
     const taskWithId = {
-      id: task.id,
+      id: newTask.id,
       ...this.task,
     } satisfies DistributedTaskWithId<T>;
 
@@ -251,15 +257,10 @@ const rollbackAll = async <T>(
 };
 
 const updateTaskStatus = async <T>(
-  task: DistributedTaskWithId<T>,
+  targetTask: DistributedTaskWithId<T>,
   status: "pending" | "processing" | "completed" | "failed",
 ) => {
-  const { client: prisma } = await getPrismaDB();
+  const { client: drizzle } = await getDrizzleDB();
 
-  await prisma.task.update({
-    where: { id: task.id },
-    data: {
-      status,
-    },
-  });
+  await drizzle.update(task).set({ status }).where(eq(task.id, targetTask.id));
 };

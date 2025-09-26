@@ -1,4 +1,10 @@
-import { getPrismaDB, insertVectors } from "@cat/db";
+import {
+  getDrizzleDB,
+  inArray,
+  insertVectors,
+  translatableElement,
+  vector,
+} from "@cat/db";
 import { Queue, QueueEvents, Worker } from "bullmq";
 import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
@@ -9,7 +15,7 @@ import {
 import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 import { isEqual } from "lodash-es";
-import { chunk, chunkDual, getIndex } from "@cat/app-server-shared/utils";
+import { chunk, chunkDual, getIndex } from "@cat/shared/utils";
 import { diffArraysAndSeparate } from "@cat/app-server-shared/utils";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import { config } from "./config.ts";
@@ -26,7 +32,7 @@ type NewElementMeta = {
   documentId?: string;
 };
 
-const { client: prisma } = await getPrismaDB();
+const { client: drizzle } = await getDrizzleDB();
 
 const queueId = "batchDiffElements";
 
@@ -54,9 +60,9 @@ const worker = new Worker(
         vectorizerId: z.int(),
         newElementMeta: z
           .object({
-            projectId: z.ulid().optional(),
-            creatorId: z.ulid().optional(),
-            documentId: z.ulid().optional(),
+            projectId: z.uuidv7().optional(),
+            creatorId: z.uuidv7().optional(),
+            documentId: z.uuidv7().optional(),
           })
           .refine(
             (obj) =>
@@ -74,7 +80,7 @@ const worker = new Worker(
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
     const vectorizer = await getServiceFromDBId<TextVectorizer>(
-      prisma,
+      drizzle,
       pluginRegistry,
       vectorizerId,
     );
@@ -99,25 +105,23 @@ const batchDiff = async (
   vectorizer: TextVectorizer,
   newElementMeta?: NewElementMeta,
 ) => {
+  // drizzle 查询替换 prisma findMany
   const oldElements = (
-    await prisma.translatableElement.findMany({
-      where: {
-        id: {
-          in: oldElementIds,
-        },
-      },
-      select: {
-        id: true,
-        value: true,
-        meta: true,
-        sortIndex: true,
-      },
-    })
+    await drizzle
+      .select({
+        id: translatableElement.id,
+        value: translatableElement.value,
+        meta: translatableElement.meta,
+        sortIndex: translatableElement.sortIndex,
+      })
+      .from(translatableElement)
+      .where(inArray(translatableElement.id, oldElementIds))
+      .execute()
   ).map((element) => ({
     id: element.id,
     value: element.value,
     sortIndex: element.sortIndex,
-    meta: element.meta as JSONType,
+    meta: element.meta,
   }));
 
   const { added, removed: removedElements } = diffArraysAndSeparate(
@@ -205,13 +209,9 @@ const batchDiff = async (
 };
 
 const handleRemovedElements = async (elementIds: number[]): Promise<void> => {
-  await prisma.translatableElement.deleteMany({
-    where: {
-      id: {
-        in: elementIds,
-      },
-    },
-  });
+  await drizzle
+    .delete(translatableElement)
+    .where(inArray(translatableElement.id, elementIds));
 };
 
 const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
@@ -226,31 +226,26 @@ const handleAddedElements = async (
   embeddingIds: number[];
   elementIds: number[];
 }> => {
-  return await prisma.$transaction(async (tx) => {
-    const elementIds = [];
-
+  return await drizzle.transaction(async (tx) => {
+    const elementIds: number[] = [];
     const embeddingIds = await insertVectors(tx, vectors);
 
     for (let i = 0; i < elements.length; i++) {
       const element = getIndex(elements, i);
-
-      const createdElement = await tx.translatableElement.create({
-        data: {
+      const [createdElement] = await tx
+        .insert(translatableElement)
+        .values({
           value: element.value,
           sortIndex: element.sortIndex,
           meta: z.json().parse(element.meta) ?? {},
           embeddingId: getIndex(embeddingIds, i),
           ...newElementMeta,
-        },
-      });
-
+        })
+        .returning({ id: translatableElement.id })
+        .execute();
       elementIds.push(createdElement.id);
     }
-
-    return {
-      embeddingIds,
-      elementIds,
-    };
+    return { embeddingIds, elementIds };
   });
 };
 
@@ -258,22 +253,12 @@ const rollbackAddedElements = async (
   elementIds: number[],
   embeddingIds: number[],
 ) => {
-  await prisma.$transaction(async (tx) => {
-    await tx.translatableElement.deleteMany({
-      where: {
-        id: {
-          in: elementIds,
-        },
-      },
-    });
-    await tx.vector.deleteMany({
-      where: {
-        id: {
-          in: embeddingIds,
-        },
-      },
-    });
+  await drizzle.transaction(async (tx) => {
+    await tx
+      .delete(translatableElement)
+      .where(inArray(translatableElement.id, elementIds));
+    await tx.delete(vector).where(inArray(vector.id, embeddingIds));
   });
 };
 
-registerTaskUpdateHandlers(prisma, worker, queueId);
+registerTaskUpdateHandlers(drizzle, worker, queueId);
