@@ -221,7 +221,7 @@ export class PluginRegistry implements IPluginRegistry {
           })),
         );
 
-      if (manifest.services)
+      if (manifest.services && manifest.services.length > 0)
         await tx.insert(pluginService).values(
           manifest.services.map((service) => ({
             serviceId: service.id,

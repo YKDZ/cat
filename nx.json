@@ -14,8 +14,12 @@
   },
   "targetDefaults": {
     "build": {
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
-        "production"
+        "production",
+        "^production"
       ],
       "outputs": [
         "{projectRoot}/dist"
@@ -30,6 +34,7 @@
     },
     "preview": {
       "dependsOn": [
+        "build",
         "^build"
       ],
       "cache": false

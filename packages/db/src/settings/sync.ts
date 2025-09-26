@@ -5,6 +5,8 @@ import { setting } from "@/drizzle/schema/misc.ts";
 export const syncSettings = async (
   drizzle: OverallDrizzleClient,
 ): Promise<void> => {
+  if (DEFAULT_SETTINGS.length === 0) return;
+
   await drizzle
     .insert(setting)
     .values(
