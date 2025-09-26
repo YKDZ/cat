@@ -1,5 +1,3 @@
-// @ts-expect-error zod ts(2742) workaround
-import * as z from "zod";
 import {
   createTRPCClient,
   httpBatchLink,

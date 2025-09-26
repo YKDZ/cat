@@ -1,8 +1,30 @@
 import { join } from "node:path";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
-import { sanitizeFileName } from "@cat/db";
-import type { PrismaError } from "@cat/shared/schema/misc";
+import {
+  sanitizeFileName,
+  translatableElement as translatableElementTable,
+  document as documentTable,
+  documentVersion as documentVersionTable,
+  file as fileTable,
+  pluginService as pluginServiceTable,
+  pluginInstallation as pluginInstallationTable,
+  task as taskTable,
+  documentToTask as documentToTaskTable,
+  translation as translationTable,
+  translationApprovement as translationApprovementTable,
+  eq,
+  exists,
+  and,
+  count,
+  asc,
+  gt,
+  lt,
+  ilike,
+  not,
+  DrizzleClient,
+} from "@cat/db";
+
 import {
   ElementTranslationStatusSchema,
   FileMetaSchema,
@@ -13,11 +35,123 @@ import {
   DocumentVersionSchema,
   TranslatableElementSchema,
 } from "@cat/shared/schema/prisma/document";
-import type { JSONType } from "@cat/shared/schema/json";
 import { useStorage } from "@cat/app-server-shared/utils";
 import { exportTranslatedFileQueue } from "@cat/app-workers/workers";
 import { upsertDocumentElementsFromFileQueue } from "@cat/app-workers/workers";
+import { getSingle } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
+
+/**
+ * 构建翻译状态查询条件
+ * @param drizzle - Drizzle 数据库实例
+ * @param isTranslated - 是否已翻译
+ * @param isApproved - 是否已审批
+ * @returns 翻译状态查询条件数组
+ */
+function buildTranslationStatusConditions(
+  drizzle: DrizzleClient,
+  isTranslated?: boolean,
+  isApproved?: boolean,
+) {
+  const conditions = [];
+
+  if (isTranslated === false && isApproved === undefined) {
+    // 没有翻译
+    conditions.push(
+      not(
+        exists(
+          drizzle
+            .select()
+            .from(translationTable)
+            .where(
+              eq(
+                translationTable.translatableElementId,
+                translatableElementTable.id,
+              ),
+            ),
+        ),
+      ),
+    );
+  } else if (isTranslated === true && isApproved === undefined) {
+    // 有翻译
+    conditions.push(
+      exists(
+        drizzle
+          .select()
+          .from(translationTable)
+          .where(
+            eq(
+              translationTable.translatableElementId,
+              translatableElementTable.id,
+            ),
+          ),
+      ),
+    );
+  } else if (isTranslated === true && isApproved === false) {
+    // 有翻译但未审批
+    conditions.push(
+      exists(
+        drizzle
+          .select()
+          .from(translationTable)
+          .where(
+            and(
+              eq(
+                translationTable.translatableElementId,
+                translatableElementTable.id,
+              ),
+              not(
+                exists(
+                  drizzle
+                    .select()
+                    .from(translationApprovementTable)
+                    .where(
+                      eq(
+                        translationApprovementTable.translationId,
+                        translationTable.id,
+                      ),
+                    ),
+                ),
+              ),
+            ),
+          ),
+      ),
+    );
+  } else if (isTranslated === true && isApproved === true) {
+    // 有翻译且已审批
+    conditions.push(
+      exists(
+        drizzle
+          .select()
+          .from(translationTable)
+          .where(
+            and(
+              eq(
+                translationTable.translatableElementId,
+                translatableElementTable.id,
+              ),
+              exists(
+                drizzle
+                  .select()
+                  .from(translationApprovementTable)
+                  .where(
+                    and(
+                      eq(
+                        translationApprovementTable.translationId,
+                        translationTable.id,
+                      ),
+                      eq(translationApprovementTable.isActive, true),
+                    ),
+                  ),
+              ),
+            ),
+          ),
+      ),
+    );
+  }
+
+  return conditions;
+}
 
 export const documentRouter = router({
   fileUploadURL: authedProcedure
@@ -34,11 +168,11 @@ export const documentRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { meta } = input;
       const storageResult = await useStorage(
-        prisma,
+        drizzle,
         "s3-storage-provider",
         "S3",
         "GLOBAL",
@@ -51,13 +185,16 @@ export const documentRouter = router({
       const path = join(provider.getBasicPath(), "documents", name);
 
       // TODO 校验文件类型
-      const file = await prisma.file.create({
-        data: {
-          originName: meta.name,
-          storedPath: path,
-          storageProviderId: providerId,
-        },
-      });
+      const file = getSingle(
+        await drizzle
+          .insert(fileTable)
+          .values({
+            originName: meta.name,
+            storedPath: path,
+            storageProviderId: providerId,
+          })
+          .returning(),
+      );
 
       const url = await provider.generateUploadURL(path, 120);
 
@@ -77,20 +214,26 @@ export const documentRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { projectId, fileId } = input;
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
         pluginRegistry,
       } = ctx;
 
-      const dbProject = await prisma.project.findUniqueOrThrow({
-        where: { id: projectId },
-        select: {
+      const dbProject = await drizzle.query.project.findFirst({
+        where: (project, { eq }) => eq(project.id, projectId),
+        columns: {
           sourceLanguageId: true,
         },
       });
 
+      if (!dbProject)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Project not found",
+        });
+
       const vectorizer = (
-        await pluginRegistry.getPluginServices(prisma, "TEXT_VECTORIZER")
+        await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER")
       ).find(({ service }) => service.canVectorize(dbProject.sourceLanguageId));
 
       if (!vectorizer) {
@@ -100,25 +243,31 @@ export const documentRouter = router({
         });
       }
 
-      const existDocument = await prisma.document.findFirst({
-        where: {
-          projectId,
-          File: {
-            id: fileId,
-          },
-        },
-      });
+      const existDocument = getSingle(
+        await drizzle
+          .select({
+            id: documentTable.id,
+          })
+          .from(documentTable)
+          .innerJoin(fileTable, eq(fileTable.documentId, documentTable.id))
+          .where(eq(documentTable.projectId, projectId))
+          .limit(1),
+      );
 
       if (!existDocument) {
-        const dbFile = await prisma.file.findUniqueOrThrow({
-          where: {
-            id: fileId,
-          },
+        const dbFile = await drizzle.query.file.findFirst({
+          where: (file, { eq }) => eq(file.id, fileId),
         });
+
+        if (!dbFile)
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "File not found",
+          });
 
         const service = (
           await pluginRegistry.getPluginServices(
-            prisma,
+            drizzle,
             "TRANSLATABLE_FILE_HANDLER",
           )
         ).find(({ service }) => service.canExtractElement(dbFile));
@@ -129,62 +278,79 @@ export const documentRouter = router({
             message: "没有可以处理这种文件的文件解析器",
           });
 
-        const document = await prisma.document.create({
-          data: {
-            creatorId: user.id,
-            projectId,
-            fileHandlerId: service.id,
-            File: {
-              connect: {
-                id: fileId,
-              },
-            },
-            Versions: {
-              create: {},
-            },
-            Tasks: {
-              create: {
+        const result = await drizzle.transaction(async (tx) => {
+          // 创建文档
+          const document = getSingle(
+            await tx
+              .insert(documentTable)
+              .values({
+                creatorId: user.id,
+                projectId,
+                fileHandlerId: service.id,
+              })
+              .returning(),
+          );
+
+          // 更新文件关联到文档
+          await tx
+            .update(fileTable)
+            .set({ documentId: document.id })
+            .where(eq(fileTable.id, fileId));
+
+          // 创建文档版本
+          await tx.insert(documentVersionTable).values({
+            documentId: document.id,
+          });
+
+          // 创建任务
+          const task = getSingle(
+            await tx
+              .insert(taskTable)
+              .values({
                 type: "upsertDocumentElementsFromFile",
                 meta: {
                   projectId,
                 },
-              },
-            },
-          },
-          include: {
-            Tasks: true,
-          },
+              })
+              .returning(),
+          );
+
+          // 关联文档和任务
+          await tx.insert(documentToTaskTable).values({
+            documentId: document.id,
+            taskId: task.id,
+          });
+
+          return { document, task };
         });
 
-        await upsertDocumentElementsFromFileQueue.add(document.Tasks[0]!.id, {
-          documentId: document.id,
+        await upsertDocumentElementsFromFileQueue.add(result.task.id, {
+          documentId: result.document.id,
           fileId,
           vectorizerId: vectorizer.id,
         });
 
-        return document;
+        return result.document;
       } else {
-        const task = await prisma.task.create({
-          data: {
-            type: "upsertDocumentElementsFromFile",
-            meta: {
-              projectId,
-            },
-          },
+        const task = getSingle(
+          await drizzle
+            .insert(taskTable)
+            .values({
+              type: "upsertDocumentElementsFromFile",
+              meta: { projectId },
+            })
+            .returning({ id: taskTable.id }),
+        );
+
+        // 关联文档和任务
+        await drizzle.insert(documentToTaskTable).values({
+          documentId: existDocument.id,
+          taskId: task.id,
         });
 
-        const document = await prisma.document.update({
-          where: {
-            id: existDocument.id,
-          },
-          data: {
-            Tasks: {
-              connect: { id: task.id },
-            },
-          },
-          include: {
-            Tasks: true,
-          },
+        // 获取文档信息用于返回
+        const document = await drizzle.query.document.findFirst({
+          where: (doc, { eq }) => eq(doc.id, existDocument.id),
         });
 
         await upsertDocumentElementsFromFileQueue.add(task.id, {
@@ -193,36 +359,36 @@ export const documentRouter = router({
           vectorizerId: vectorizer.id,
         });
 
-        return document;
+        return document!;
       }
     }),
   get: authedProcedure
     .input(z.object({ id: z.string() }))
-    .output(DocumentSchema.nullable())
+    .output(
+      DocumentSchema.extend({
+        File: FileSchema.nullable(),
+      }).nullable(),
+    )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      const document = await prisma.document
-        .findUnique({
-          where: {
-            id,
-          },
-          include: {
-            File: true,
-          },
-        })
-        .catch((e: PrismaError) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            cause: e,
-            message: e.message,
-          });
-        });
+      const document = await drizzle.query.document.findFirst({
+        where: (document, { eq }) => eq(document.id, id),
+      });
 
-      return document;
+      if (!document) return null;
+
+      const file = await drizzle.query.file.findFirst({
+        where: (file, { eq }) => eq(file.documentId, id),
+      });
+
+      return {
+        ...document,
+        File: file ?? null,
+      };
     }),
   countElement: authedProcedure
     .input(
@@ -236,7 +402,7 @@ export const documentRouter = router({
     .output(z.int().min(0))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { documentId, searchQuery, isApproved, isTranslated } = input;
 
@@ -247,46 +413,31 @@ export const documentRouter = router({
         });
       }
 
-      return await prisma.translatableElement.count({
-        where: {
-          documentId,
-          value:
-            searchQuery.trim().length !== 0
-              ? { contains: searchQuery, mode: "insensitive" }
-              : undefined,
+      const whereConditions = [
+        eq(translatableElementTable.documentId, documentId),
+      ];
 
-          Translations:
-            isTranslated === undefined && isApproved === undefined
-              ? undefined
-              : isTranslated === false && isApproved === undefined
-                ? {
-                    none: {},
-                  }
-                : isTranslated === true && isApproved === undefined
-                  ? {
-                      some: {},
-                    }
-                  : isTranslated === true && isApproved === false
-                    ? {
-                        some: {
-                          Approvements: {
-                            none: {},
-                          },
-                        },
-                      }
-                    : isTranslated === true && isApproved === true
-                      ? {
-                          some: {
-                            Approvements: {
-                              some: {
-                                isActive: true,
-                              },
-                            },
-                          },
-                        }
-                      : undefined,
-        },
-      });
+      if (searchQuery.trim().length !== 0) {
+        whereConditions.push(
+          ilike(translatableElementTable.value, `%${searchQuery}%`),
+        );
+      }
+
+      // 添加翻译状态条件
+      whereConditions.push(
+        ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
+      );
+
+      const result = await drizzle
+        .select({ count: count() })
+        .from(translatableElementTable)
+        .where(
+          whereConditions.length === 1
+            ? whereConditions[0]
+            : and(...whereConditions),
+        );
+
+      return result[0].count;
     }),
   queryFirstElement: authedProcedure
     .input(
@@ -301,7 +452,7 @@ export const documentRouter = router({
     .output(TranslatableElementSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { documentId, searchQuery, greaterThan, isApproved, isTranslated } =
         input;
@@ -313,54 +464,39 @@ export const documentRouter = router({
         });
       }
 
-      const element = await prisma.translatableElement.findFirst({
-        where: {
-          documentId,
-          value:
-            searchQuery.trim().length !== 0
-              ? { contains: searchQuery, mode: "insensitive" }
-              : {},
-          sortIndex: {
-            gt: greaterThan,
-          },
+      const whereConditions = [
+        eq(translatableElementTable.documentId, documentId),
+      ];
 
-          Translations:
-            isTranslated === undefined && isApproved === undefined
-              ? undefined
-              : isTranslated === false && isApproved === undefined
-                ? {
-                    none: {},
-                  }
-                : isTranslated === true && isApproved === undefined
-                  ? {
-                      some: {},
-                    }
-                  : isTranslated === true && isApproved === false
-                    ? {
-                        some: {
-                          Approvements: {
-                            none: {},
-                          },
-                        },
-                      }
-                    : isTranslated === true && isApproved === true
-                      ? {
-                          some: {
-                            Approvements: {
-                              some: {
-                                isActive: true,
-                              },
-                            },
-                          },
-                        }
-                      : undefined,
-        },
-        orderBy: {
-          sortIndex: "asc",
-        },
-      });
+      if (searchQuery.trim().length !== 0) {
+        whereConditions.push(
+          ilike(translatableElementTable.value, `%${searchQuery}%`),
+        );
+      }
 
-      return element;
+      if (greaterThan !== undefined) {
+        whereConditions.push(
+          gt(translatableElementTable.sortIndex, greaterThan),
+        );
+      }
+
+      // 添加翻译状态条件
+      whereConditions.push(
+        ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
+      );
+
+      const elements = await drizzle
+        .select()
+        .from(translatableElementTable)
+        .where(
+          whereConditions.length === 1
+            ? whereConditions[0]
+            : and(...whereConditions),
+        )
+        .orderBy(asc(translatableElementTable.sortIndex))
+        .limit(1);
+
+      return elements[0] || null;
     }),
   exportTranslatedFile: authedProcedure
     .input(
@@ -372,26 +508,22 @@ export const documentRouter = router({
     .output(z.void())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { documentId, languageId } = input;
 
-      const document = await prisma.document.findFirst({
-        where: {
-          id: documentId,
-        },
-        select: {
+      const document = await drizzle.query.document.findFirst({
+        where: (doc, { eq }) => eq(doc.id, documentId),
+        columns: {
           projectId: true,
-          File: {
-            select: {
-              id: true,
-            },
-          },
-          FileHandler: {
-            select: {
-              id: true,
-            },
-          },
+          fileHandlerId: true,
+        },
+      });
+
+      const file = await drizzle.query.file.findFirst({
+        where: (f, { eq }) => eq(f.documentId, documentId),
+        columns: {
+          id: true,
         },
       });
 
@@ -401,22 +533,25 @@ export const documentRouter = router({
           message: "指定文档不存在",
         });
 
-      if (!document.File || !document.FileHandler)
+      if (!file || !document.fileHandlerId)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "指定文档不是基于文件的",
         });
 
-      const task = await prisma.task.create({
-        data: {
-          type: "export_translated_file",
-          meta: {
-            projectId: document.projectId,
-            documentId,
-            languageId,
-          },
-        },
-      });
+      const task = getSingle(
+        await drizzle
+          .insert(taskTable)
+          .values({
+            type: "export_translated_file",
+            meta: {
+              projectId: document.projectId,
+              documentId,
+              languageId,
+            },
+          })
+          .returning({ id: taskTable.id }),
+      );
 
       await exportTranslatedFileQueue.add(
         task.id,
@@ -433,7 +568,7 @@ export const documentRouter = router({
   downloadTranslatedFile: authedProcedure
     .input(
       z.object({
-        taskId: z.ulid(),
+        taskId: z.uuidv7(),
       }),
     )
     .output(
@@ -444,18 +579,14 @@ export const documentRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { taskId } = input;
 
-      const task = await prisma.task.findFirst({
-        where: {
-          type: "export_translated_file",
-          id: taskId,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
+      const task = await drizzle.query.task.findFirst({
+        where: (task, { and, eq }) =>
+          and(eq(task.type, "export_translated_file"), eq(task.id, taskId)),
+        orderBy: (task, { desc }) => desc(task.createdAt),
       });
 
       if (!task)
@@ -473,7 +604,7 @@ export const documentRouter = router({
         });
 
       const storageResult = await useStorage(
-        prisma,
+        drizzle,
         "s3-storage-provider",
         "S3",
         "GLOBAL",
@@ -484,11 +615,9 @@ export const documentRouter = router({
         fileId: number;
       };
 
-      const file = await prisma.file.findUnique({
-        where: {
-          id: fileId,
-        },
-        select: {
+      const file = await drizzle.query.file.findFirst({
+        where: (file, { eq }) => eq(file.id, fileId),
+        columns: {
           storedPath: true,
           originName: true,
         },
@@ -521,28 +650,12 @@ export const documentRouter = router({
     .output(ElementTranslationStatusSchema)
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { elementId, languageId } = input;
 
-      const element = await prisma.translatableElement.findUnique({
-        where: {
-          id: elementId,
-        },
-        include: {
-          Translations: {
-            where: {
-              languageId,
-            },
-            select: {
-              Approvements: {
-                where: {
-                  isActive: true,
-                },
-              },
-            },
-          },
-        },
+      const element = await drizzle.query.translatableElement.findFirst({
+        where: (element, { eq }) => eq(element.id, elementId),
       });
 
       if (!element)
@@ -551,15 +664,42 @@ export const documentRouter = router({
           message: "指定元素不存在",
         });
 
-      if (element.Translations.length === 0) {
+      // 查询该元素在指定语言下的翻译
+      const translations = await drizzle
+        .select({
+          id: translationTable.id,
+        })
+        .from(translationTable)
+        .where(
+          and(
+            eq(translationTable.translatableElementId, elementId),
+            eq(translationTable.languageId, languageId),
+          ),
+        );
+
+      if (translations.length === 0) {
         return "NO";
       }
 
-      return element.Translations.findIndex(
-        (translation) => translation.Approvements.length > 0,
-      ) === -1
-        ? "TRANSLATED"
-        : "APPROVED";
+      // 检查是否有活跃的审批
+      for (const translation of translations) {
+        const activeApprovements = await drizzle
+          .select()
+          .from(translationApprovementTable)
+          .where(
+            and(
+              eq(translationApprovementTable.translationId, translation.id),
+              eq(translationApprovementTable.isActive, true),
+            ),
+          )
+          .limit(1);
+
+        if (activeApprovements.length > 0) {
+          return "APPROVED";
+        }
+      }
+
+      return "TRANSLATED";
     }),
   queryElements: authedProcedure
     .input(
@@ -575,7 +715,7 @@ export const documentRouter = router({
     .output(z.array(TranslatableElementSchema))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const {
         documentId,
@@ -593,51 +733,32 @@ export const documentRouter = router({
         });
       }
 
-      const result = await prisma.translatableElement.findMany({
-        where: {
-          documentId: documentId,
-          value:
-            searchQuery?.trim().length !== 0
-              ? { contains: searchQuery }
-              : undefined,
+      const whereConditions = [
+        eq(translatableElementTable.documentId, documentId),
+      ];
 
-          Translations:
-            isTranslated === undefined && isApproved === undefined
-              ? undefined
-              : isTranslated === false && isApproved === undefined
-                ? {
-                    none: {},
-                  }
-                : isTranslated === true && isApproved === undefined
-                  ? {
-                      some: {},
-                    }
-                  : isTranslated === true && isApproved === false
-                    ? {
-                        some: {
-                          Approvements: {
-                            none: {},
-                          },
-                        },
-                      }
-                    : isTranslated === true && isApproved === true
-                      ? {
-                          some: {
-                            Approvements: {
-                              some: {
-                                isActive: true,
-                              },
-                            },
-                          },
-                        }
-                      : undefined,
-        },
-        orderBy: {
-          sortIndex: "asc",
-        },
-        skip: page * pageSize,
-        take: pageSize,
-      });
+      if (searchQuery?.trim().length !== 0) {
+        whereConditions.push(
+          ilike(translatableElementTable.value, `%${searchQuery}%`),
+        );
+      }
+
+      // 添加翻译状态条件
+      whereConditions.push(
+        ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
+      );
+
+      const result = await drizzle
+        .select()
+        .from(translatableElementTable)
+        .where(
+          whereConditions.length === 1
+            ? whereConditions[0]
+            : and(...whereConditions),
+        )
+        .orderBy(asc(translatableElementTable.sortIndex))
+        .limit(pageSize)
+        .offset(page * pageSize);
 
       return result;
     }),
@@ -655,7 +776,7 @@ export const documentRouter = router({
     .output(z.number().int())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
 
       const {
@@ -674,11 +795,9 @@ export const documentRouter = router({
         });
       }
 
-      const target = await prisma.translatableElement.findUnique({
-        where: {
-          id: elementId,
-        },
-        select: {
+      const target = await drizzle.query.translatableElement.findFirst({
+        where: (element, { eq }) => eq(element.id, elementId),
+        columns: {
           sortIndex: true,
         },
       });
@@ -689,149 +808,150 @@ export const documentRouter = router({
           message: "Element with given id does not exists",
         });
 
-      const count = await prisma.translatableElement.count({
-        where: {
-          documentId,
-          value:
-            searchQuery.trim().length !== 0
-              ? { contains: searchQuery, mode: "insensitive" }
-              : {},
-          sortIndex: {
-            lt: target.sortIndex,
-          },
+      const whereConditions = [
+        eq(translatableElementTable.documentId, documentId),
+        lt(translatableElementTable.sortIndex, target.sortIndex),
+      ];
 
-          Translations:
-            isTranslated === undefined && isApproved === undefined
-              ? undefined
-              : isTranslated === false && isApproved === undefined
-                ? {
-                    none: {},
-                  }
-                : isTranslated === true && isApproved === undefined
-                  ? {
-                      some: {},
-                    }
-                  : isTranslated === true && isApproved === false
-                    ? {
-                        some: {
-                          Approvements: {
-                            none: {},
-                          },
-                        },
-                      }
-                    : isTranslated === true && isApproved === true
-                      ? {
-                          some: {
-                            Approvements: {
-                              some: {
-                                isActive: true,
-                              },
-                            },
-                          },
-                        }
-                      : undefined,
-        },
-      });
+      if (searchQuery.trim().length !== 0) {
+        whereConditions.push(
+          ilike(translatableElementTable.value, `%${searchQuery}%`),
+        );
+      }
 
-      return Math.floor(count / pageSize);
+      // 添加翻译状态条件
+      whereConditions.push(
+        ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
+      );
+
+      const result = await drizzle
+        .select({ count: count() })
+        .from(translatableElementTable)
+        .where(and(...whereConditions));
+
+      return Math.floor(result[0].count / pageSize);
     }),
   delete: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
       }),
     )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      await prisma.document.delete({
-        where: {
-          id,
-        },
-      });
+      await drizzle.delete(documentTable).where(eq(documentTable.id, id));
     }),
   getDocumentVersions: authedProcedure
     .input(
       z.object({
-        documentId: z.ulid(),
+        documentId: z.uuidv7(),
       }),
     )
     .output(z.array(DocumentVersionSchema))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { documentId } = input;
 
-      return await prisma.documentVersion.findMany({
-        where: {
-          documentId,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
+      return await drizzle.query.documentVersion.findMany({
+        where: (version, { eq }) => eq(version.documentId, documentId),
+        orderBy: (version, { desc }) => desc(version.createdAt),
       });
     }),
   getDocumentContent: authedProcedure
     .input(
       z.object({
-        documentId: z.ulid(),
+        documentId: z.uuidv7(),
         documentVersionId: z.number().int().optional(),
       }),
     )
     .output(z.string())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
       const { documentId, documentVersionId } = input;
 
-      const document = await prisma.document.findUnique({
-        where: {
-          id: documentId,
-          Versions: {
-            some: {
-              id: documentVersionId,
-            },
-          },
-        },
-        select: {
-          File: true,
-          FileHandler: {
-            select: {
-              serviceId: true,
-              PluginInstallation: {
-                select: {
-                  pluginId: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      const whereConditions = [eq(documentTable.id, documentId)];
 
-      if (!document)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "指定文档不存在",
-        });
+      if (documentVersionId) {
+        whereConditions.push(
+          exists(
+            drizzle
+              .select()
+              .from(documentVersionTable)
+              .where(
+                and(
+                  eq(documentVersionTable.documentId, documentId),
+                  eq(documentVersionTable.id, documentVersionId),
+                ),
+              ),
+          ),
+        );
+      }
 
-      if (!document.File || !document.FileHandler)
+      const documentData = getSingle(
+        await drizzle
+          .select({
+            file: {
+              id: fileTable.id,
+              originName: fileTable.originName,
+              storedPath: fileTable.storedPath,
+              documentId: fileTable.documentId,
+              userId: fileTable.userId,
+              storageProviderId: fileTable.storageProviderId,
+              createdAt: fileTable.createdAt,
+              updatedAt: fileTable.updatedAt,
+            },
+            fileHandler: {
+              serviceId: pluginServiceTable.serviceId,
+              pluginId: pluginInstallationTable.pluginId,
+            },
+          })
+          .from(documentTable)
+          .leftJoin(fileTable, eq(fileTable.documentId, documentTable.id))
+          .leftJoin(
+            pluginServiceTable,
+            eq(pluginServiceTable.id, documentTable.fileHandlerId),
+          )
+          .leftJoin(
+            pluginInstallationTable,
+            eq(
+              pluginInstallationTable.id,
+              pluginServiceTable.pluginInstallationId,
+            ),
+          )
+          .where(
+            whereConditions.length === 1
+              ? whereConditions[0]
+              : and(...whereConditions),
+          )
+          .limit(1),
+      );
+
+      if (
+        !documentData.file ||
+        !documentData.fileHandler ||
+        !documentData.fileHandler.pluginId ||
+        !documentData.fileHandler.serviceId
+      )
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "文档不是基于文件的",
         });
 
       const { service: handler } = (await pluginRegistry.getPluginService(
-        prisma,
-        document.FileHandler.PluginInstallation.pluginId,
+        drizzle,
+        documentData.fileHandler.pluginId,
         "TRANSLATABLE_FILE_HANDLER",
-        document.FileHandler.serviceId,
+        documentData.fileHandler.serviceId,
       ))!;
 
       if (!handler) {
@@ -842,28 +962,34 @@ export const documentRouter = router({
       }
 
       const { provider } = await useStorage(
-        prisma,
+        drizzle,
         "s3-storage-provider",
         "S3",
         "GLOBAL",
         "",
       );
-      const content = await provider.getContent(document.File);
+      const content = await provider.getContent(documentData.file.storedPath);
 
-      const elements = await prisma.translatableElement.findMany({
-        where: {
-          documentId,
-          documentVersionId,
+      const elements = await drizzle.query.translatableElement.findMany({
+        where: (translatableElement, { eq, and }) =>
+          and(
+            eq(translatableElement.documentId, documentId),
+            documentVersionId
+              ? eq(translatableElement.documentVersionId, documentVersionId)
+              : undefined,
+          ),
+        columns: {
+          value: true,
+          meta: true,
         },
       });
 
       return (
         await handler.getReplacedFileContent(
-          document.File,
           content,
           elements.map(({ value, meta }) => ({
             value,
-            meta: meta as JSONType,
+            meta: meta,
           })),
         )
       ).toString();

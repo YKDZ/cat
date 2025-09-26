@@ -1,29 +1,39 @@
-import type { OverallPrismaClient, PrismaClient } from "@cat/db";
+import {
+  DrizzleClient,
+  eq,
+  OverallDrizzleClient,
+  pluginInstallation,
+  pluginService,
+} from "@cat/db";
 import { PluginRegistry, type IPluginService } from "@cat/plugin-core";
+import { getSingle } from "@cat/shared/utils";
 
 export const getServiceFromDBId = async <T extends IPluginService>(
-  prisma: OverallPrismaClient,
+  drizzle: OverallDrizzleClient,
   pluginRegistry: PluginRegistry,
   id: number,
 ) => {
-  const dbAdvisor = await prisma.pluginService.findUnique({
-    where: { id },
-    select: {
-      serviceId: true,
-      serviceType: true,
-      PluginInstallation: {
-        select: {
-          pluginId: true,
-        },
-      },
-    },
-  });
+  const dbAdvisor = getSingle(
+    await drizzle
+      .select({
+        serviceId: pluginService.serviceId,
+        serviceType: pluginService.serviceType,
+        pluginId: pluginInstallation.pluginId,
+      })
+      .from(pluginService)
+      .innerJoin(
+        pluginInstallation,
+        eq(pluginService.pluginInstallationId, pluginInstallation.id),
+      )
+      .where(eq(pluginService.id, id))
+      .limit(1),
+  );
 
   if (!dbAdvisor) throw new Error(`Service ${id} not found`);
 
   const { service } = (await pluginRegistry.getPluginService(
-    prisma,
-    dbAdvisor.PluginInstallation.pluginId,
+    drizzle,
+    dbAdvisor.pluginId,
     dbAdvisor.serviceType,
     dbAdvisor.serviceId,
   ))!;
@@ -34,15 +44,15 @@ export const getServiceFromDBId = async <T extends IPluginService>(
 };
 
 export const importLocalPlugins = async (
-  prisma: PrismaClient,
+  drizzle: DrizzleClient,
 ): Promise<void> => {
-  await prisma.$transaction(async (tx) => {
+  await drizzle.transaction(async (tx) => {
     const existPluginIds: string[] = [];
 
     existPluginIds.push(
       ...(
-        await tx.plugin.findMany({
-          select: {
+        await tx.query.plugin.findMany({
+          columns: {
             id: true,
           },
         })
@@ -58,7 +68,7 @@ export const importLocalPlugins = async (
 };
 
 export const installDefaultPlugins = async (
-  prisma: PrismaClient,
+  drizzle: DrizzleClient,
   pluginRegistry: PluginRegistry,
 ): Promise<void> => {
   const localPlugins = [
@@ -72,12 +82,10 @@ export const installDefaultPlugins = async (
   ];
 
   const installedPlugins = (
-    await prisma.pluginInstallation.findMany({
-      where: {
-        scopeType: "GLOBAL",
-        scopeId: "",
-      },
-      select: { pluginId: true },
+    await drizzle.query.pluginInstallation.findMany({
+      where: (installation, { and, eq }) =>
+        and(eq(installation.scopeType, "GLOBAL"), eq(installation.scopeId, "")),
+      columns: { pluginId: true },
     })
   ).map((i) => i.pluginId);
 
@@ -86,6 +94,6 @@ export const installDefaultPlugins = async (
   );
 
   for (const pluginId of needToBeInstalled) {
-    await pluginRegistry.installPlugin(prisma, pluginId);
+    await pluginRegistry.installPlugin(drizzle, pluginId);
   }
 };

@@ -4,6 +4,7 @@ import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
 import { toShortFixed } from "@cat/shared/utils";
 import { type Document } from "@cat/shared/schema/prisma/document";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
 import Modal from "./headless/HModal.vue";
 import InputLabel from "./InputLabel.vue";
 import RangeInput from "./RangeInput.vue";
@@ -12,7 +13,6 @@ import Picker from "./picker/Picker.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { languageKey } from "@/app/utils/provide.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 
 const props = defineProps<{
   document: Document;

@@ -1,13 +1,19 @@
-import { getPrismaDB, insertVector } from "@cat/db";
+import {
+  getDrizzleDB,
+  insertVector,
+  translation as translationTable,
+  eq,
+  memoryItem,
+} from "@cat/db";
 import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
-import { getSingle } from "@cat/app-server-shared/utils";
+import { getSingle } from "@cat/shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 
-const { client: prisma } = await getPrismaDB();
+const { client: drizzle } = await getDrizzleDB();
 
 const queueId = "updateTranslation";
 
@@ -25,57 +31,54 @@ const worker = new Worker(
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    const translation = await prisma.translation.findUnique({
-      where: {
-        id: translationId,
-      },
-      select: {
-        value: true,
-        Language: true,
-        vectorizerId: true,
-      },
-    });
+    const translation = getSingle(
+      await drizzle
+        .select({
+          value: translationTable.value,
+          vectorizerId: translationTable.vectorizerId,
+          languageId: translationTable.languageId,
+        })
+        .from(translationTable)
+        .where(eq(translationTable.id, translationId))
+        .limit(1),
+    );
 
     if (!translation)
       throw new Error("Translation with given id doest not exists");
 
     const vectorizer = await getServiceFromDBId<TextVectorizer>(
-      prisma,
+      drizzle,
       pluginRegistry,
       translation.vectorizerId,
     );
 
     // 开始处理翻译的嵌入并插入
-    const vectors = await vectorizer.vectorize(translation.Language.id, [
+    const vectors = await vectorizer.vectorize(translation.languageId, [
       { value: translationValue, meta: null },
     ]);
 
     const vector = getSingle(vectors);
 
-    await prisma.$transaction(async (tx) => {
+    await drizzle.transaction(async (tx) => {
       const embeddingId = await insertVector(tx, vector);
 
       if (!embeddingId) throw new Error("Failed to get id of vector");
 
-      await tx.translation.update({
-        where: {
-          id: translationId,
-        },
-        data: {
+      await tx
+        .update(translationTable)
+        .set({
           value: translationValue,
           embeddingId,
-        },
-      });
+        })
+        .where(eq(translationTable.id, translationId));
 
-      await tx.memoryItem.updateMany({
-        where: {
-          translationId,
-        },
-        data: {
+      await tx
+        .update(memoryItem)
+        .set({
           translation: translationValue,
           translationEmbeddingId: embeddingId,
-        },
-      });
+        })
+        .where(eq(memoryItem.translationId, translationId));
     });
   },
   {
@@ -84,4 +87,4 @@ const worker = new Worker(
   },
 );
 
-registerTaskUpdateHandlers(prisma, worker, queueId);
+registerTaskUpdateHandlers(drizzle, worker, queueId);

@@ -8,7 +8,7 @@ import { useInjectionKey } from "@/app/utils/provide.ts";
 
 const { glossary } = useData<Data>();
 
-provide(useInjectionKey<Data>("glossary"), glossary);
+provide(useInjectionKey<Data>()("glossary"), glossary);
 </script>
 
 <template>

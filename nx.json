@@ -14,15 +14,13 @@
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
       "inputs": [
         "production"
       ],
       "outputs": [
         "{projectRoot}/dist"
-      ]
+      ],
+      "cache": true
     },
     "dev": {
       "dependsOn": [

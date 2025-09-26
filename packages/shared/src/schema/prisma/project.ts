@@ -2,7 +2,7 @@ import * as z from "zod/v4";
 import { PrismaDateTime } from "@/schema/misc.ts";
 
 export const ProjectSchema = z.object({
-  id: z.ulid(),
+  id: z.uuidv7(),
   name: z.string(),
   description: z.string().nullable(),
   createdAt: PrismaDateTime,
@@ -10,7 +10,7 @@ export const ProjectSchema = z.object({
 
   sourceLanguageId: z.string(),
 
-  creatorId: z.ulid(),
+  creatorId: z.uuidv7(),
 });
 
 export type Project = z.infer<typeof ProjectSchema>;

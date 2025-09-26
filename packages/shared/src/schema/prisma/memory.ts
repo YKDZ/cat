@@ -11,18 +11,18 @@ export const MemoryItemSchema = z.object({
   translationLanguageId: z.string(),
   sourceEmbeddingId: z.int(),
   translationEmbeddingId: z.int(),
-  memoryId: z.ulid(),
-  creatorId: z.ulid(),
+  memoryId: z.uuidv7(),
+  creatorId: z.uuidv7(),
 });
 
 export const MemorySchema = z.object({
-  id: z.ulid(),
+  id: z.uuidv7(),
   name: z.string(),
   description: z.string().nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 
-  creatorId: z.ulid(),
+  creatorId: z.uuidv7(),
 });
 
 export type Memory = z.infer<typeof MemorySchema>;

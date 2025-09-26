@@ -5,50 +5,52 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/prisma/translation";
-import { logger } from "@cat/shared/utils";
+import { getSingle } from "@cat/shared/utils";
 import { autoTranslateQueue } from "@cat/app-workers/workers";
 import { createTranslationQueue } from "@cat/app-workers/workers";
 import { updateTranslationQueue } from "@cat/app-workers/workers";
 import { UserSchema } from "@cat/shared/schema/prisma/user";
+import {
+  eq,
+  translation as translationTable,
+  task as taskTable,
+  project as projectTable,
+  document as documentTable,
+  and,
+  projectTargetLanguage,
+  translationApprovement as translationApprovementTable,
+  count,
+  translationVote as translationVoteTable,
+  translatableElement as translatableElementTable,
+  sum,
+  isNull,
+  desc,
+  sql,
+} from "@cat/db";
 import { authedProcedure, router } from "../server.ts";
 
 export const translationRouter = router({
   delete: authedProcedure
     .input(
       z.object({
-        id: z.string(),
+        translationId: z.int(),
       }),
     )
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
       const {
-        prismaDB: { client: prisma },
-        user,
+        drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { translationId } = input;
 
-      const project = await prisma.project.findUnique({
-        where: {
-          id,
-        },
-      });
-
-      if (!project || project.creatorId != user.id)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Do not have permission to delete this project",
-        });
-
-      await prisma.project.delete({
-        where: {
-          id,
-        },
-      });
+      await drizzle
+        .delete(translationTable)
+        .where(eq(translationTable.id, translationId));
     }),
   create: authedProcedure
     .input(
       z.object({
-        projectId: z.ulid(),
+        projectId: z.uuidv7(),
         elementId: z.number().int(),
         languageId: z.string(),
         value: z.string(),
@@ -62,31 +64,29 @@ export const translationRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
         pluginRegistry,
       } = ctx;
       const { projectId, elementId, languageId, value, createMemory } = input;
 
-      return await prisma.$transaction(async (tx) => {
-        const project = await tx.project.findUnique({
-          where: { id: projectId },
-          include: {
-            Memories: {
-              select: { id: true },
-            },
-          },
-        });
+      return await drizzle.transaction(async (tx) => {
+        const memoryIds = (
+          await drizzle.query.memoryToProject.findMany({
+            where: (memToProj, { eq }) => eq(memToProj.projectId, projectId),
+            columns: { memoryId: true },
+          })
+        ).map((memToProj) => memToProj.memoryId);
 
-        if (!project)
+        if (!memoryIds)
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Project not found",
           });
 
         const vectorizer = (
-          await pluginRegistry.getPluginServices(prisma, "TEXT_VECTORIZER")
-        ).find(({ service }) => service.canVectorize(project.sourceLanguageId));
+          await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER")
+        ).find(({ service }) => service.canVectorize("en"));
 
         if (!vectorizer) {
           throw new TRPCError({
@@ -95,11 +95,14 @@ export const translationRouter = router({
           });
         }
 
-        const task = await tx.task.create({
-          data: {
-            type: "create_translation",
-          },
-        });
+        const task = getSingle(
+          await tx
+            .insert(taskTable)
+            .values({
+              type: "create_translation",
+            })
+            .returning({ id: taskTable.id }),
+        );
 
         await createTranslationQueue.add(
           task.id,
@@ -110,7 +113,7 @@ export const translationRouter = router({
             translationLanguageId: languageId,
             translationValue: value,
             vectorizerId: vectorizer.id,
-            memoryIds: project.Memories.map((memory) => memory.id),
+            memoryIds,
           },
           {
             jobId: task.id,
@@ -118,8 +121,8 @@ export const translationRouter = router({
         );
 
         return {
-          id: 0, // Placeholder ID, will be updated later
-          embeddingId: 0, // Placeholder ID, will be updated later
+          id: 0,
+          embeddingId: 0,
           meta: null,
           value,
           languageId,
@@ -144,23 +147,12 @@ export const translationRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, value } = input;
 
-      const translation = await prisma.translation.findUnique({
-        where: {
-          id,
-        },
-        select: {
-          id: true,
-          embeddingId: true,
-          languageId: true,
-          translatableElementId: true,
-          translatorId: true,
-          createdAt: true,
-          vectorizerId: true,
-        },
+      const translation = await drizzle.query.translation.findFirst({
+        where: (translation, { eq }) => eq(translation.id, id),
       });
 
       if (!translation)
@@ -169,34 +161,25 @@ export const translationRouter = router({
           message: "Translation with given id not found",
         });
 
-      const task = await prisma.task.create({
-        data: {
-          type: "update_translation",
-        },
-      });
+      const task = getSingle(
+        await drizzle
+          .insert(taskTable)
+          .values({
+            type: "update_translation",
+          })
+          .returning({ id: taskTable.id }),
+      );
 
-      await updateTranslationQueue
-        .add(
-          task.id,
-          {
-            translationId: id,
-            translationValue: value,
-          },
-          {
-            jobId: task.id,
-          },
-        )
-        .catch(async (e) => {
-          logger.error(
-            "RPC",
-            { msg: "Failed to add update translation job to queue" },
-            e,
-          );
-          await prisma.task.update({
-            where: { id: task.id },
-            data: { status: "failed" },
-          });
-        });
+      await updateTranslationQueue.add(
+        task.id,
+        {
+          translationId: id,
+          translationValue: value,
+        },
+        {
+          jobId: task.id,
+        },
+      );
 
       return {
         id: translation.id,
@@ -223,24 +206,25 @@ export const translationRouter = router({
       z.array(
         TranslationSchema.extend({
           Translator: UserSchema,
-          Approvements: z.array(TranslationApprovementSchema),
+          TranslationApprovements: z.array(TranslationApprovementSchema),
         }),
       ),
     )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { elementId, languageId } = input;
 
-      const translations = await prisma.translation.findMany({
-        where: {
-          languageId: languageId,
-          translatableElementId: elementId,
-        },
-        include: {
+      const translations = await drizzle.query.translation.findMany({
+        where: (translations, { and, eq }) =>
+          and(
+            eq(translations.translatableElementId, elementId),
+            eq(translations.languageId, languageId),
+          ),
+        with: {
           Translator: true,
-          Approvements: true,
+          TranslationApprovements: true,
         },
       });
 
@@ -249,52 +233,39 @@ export const translationRouter = router({
   vote: authedProcedure
     .input(
       z.object({
-        id: z.number().int(),
+        translationId: z.number().int(),
         value: z.number().int(),
       }),
     )
     .output(TranslationVoteSchema)
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
-      const { id, value } = input;
+      const { translationId, value } = input;
 
-      return await prisma.translationVote.upsert({
-        where: {
-          oneVotePerUserUniqueTranslation: {
-            translationId: id,
+      return getSingle(
+        await drizzle
+          .insert(translationVoteTable)
+          .values({
+            value,
+            translationId,
             voterId: user.id,
-          },
-        },
-        create: {
-          value,
-          Translation: {
-            connect: {
-              id,
+          })
+          .onConflictDoUpdate({
+            target: [
+              translationVoteTable.translationId,
+              translationVoteTable.voterId,
+            ],
+            set: {
+              value,
+              translationId,
+              voterId: user.id,
             },
-          },
-          Voter: {
-            connect: {
-              id: user.id,
-            },
-          },
-        },
-        update: {
-          value,
-          Translation: {
-            connect: {
-              id,
-            },
-          },
-          Voter: {
-            connect: {
-              id: user.id,
-            },
-          },
-        },
-      });
+          })
+          .returning(),
+      );
     }),
   countVote: authedProcedure
     .input(
@@ -305,19 +276,22 @@ export const translationRouter = router({
     .output(z.number().int())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      const votes = await prisma.translationVote.findMany({
-        where: {
-          translationId: id,
-        },
-      });
+      const { total } = getSingle(
+        await drizzle
+          .select({
+            total: sum(translationVoteTable.value),
+          })
+          .from(translationVoteTable)
+          .where(eq(translationVoteTable.translationId, id)),
+      );
 
-      return votes
-        .map((vote) => vote.value)
-        .reduce((value, current) => value + current, 0);
+      if (!total) return 0;
+
+      return Number(total);
     }),
   querySelfVote: authedProcedure
     .input(
@@ -328,134 +302,127 @@ export const translationRouter = router({
     .output(TranslationVoteSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
       const { id } = input;
 
-      return await prisma.translationVote.findUnique({
-        where: {
-          oneVotePerUserUniqueTranslation: {
-            translationId: id,
-            voterId: user.id,
-          },
-        },
-      });
+      return (
+        (await drizzle.query.translationVote.findFirst({
+          where: (vote, { and, eq }) =>
+            and(eq(vote.translationId, id), eq(vote.voterId, user.id)),
+        })) ?? null
+      );
     }),
   autoApprove: authedProcedure
     .input(
       z.object({
-        documentId: z.ulid(),
+        documentId: z.uuidv7(),
         languageId: z.string(),
       }),
     )
     .output(z.number())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
       const { documentId, languageId } = input;
 
-      return await prisma.$transaction(async (tx) => {
+      return await drizzle.transaction(async (tx) => {
         const translationIds = (
-          await prisma.translatableElement.findMany({
-            where: {
-              documentId,
-              // 至少有一个指定语言的翻译
-              Translations: {
-                some: {
-                  languageId,
-                },
-              },
-              // 所有的翻译都没有被采用
-              NOT: {
-                Translations: {
-                  some: {
-                    Approvements: {
-                      some: {
-                        isActive: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            select: {
-              Translations: {
-                select: {
-                  id: true,
-                },
-                orderBy: {
-                  Votes: {
-                    _count: "desc",
-                  },
-                },
-                take: 1,
-              },
-            },
-          })
-        )
-          .filter((element) => element.Translations.length > 0)
-          .map((element) => element.Translations[0]!.id);
+          await tx
+            .select({
+              translationId: translationTable.id,
+            })
+            .from(translatableElementTable)
+            .innerJoin(
+              translationTable,
+              eq(
+                translationTable.translatableElementId,
+                translatableElementTable.id,
+              ),
+            )
+            .leftJoin(
+              translationApprovementTable,
+              eq(
+                translationApprovementTable.translationId,
+                translationTable.id,
+              ),
+            )
+            .where(
+              and(
+                eq(translatableElementTable.documentId, documentId),
+                eq(translationTable.languageId, languageId),
+                isNull(translationApprovementTable.id),
+              ),
+            )
+            .orderBy(desc(sql`COUNT(${translationVoteTable.value})`))
+            .limit(1)
+        ).map((row) => row.translationId);
 
-        return (
-          await tx.translationApprovement.createMany({
-            data: translationIds.map((id) => ({
-              translationId: id,
-              isActive: true,
-              creatorId: user.id,
-            })),
-          })
-        ).count;
+        if (translationIds.length === 0) return 0;
+
+        const result = getSingle(
+          await tx
+            .insert(translationApprovementTable)
+            .values(
+              translationIds.map((id) => ({
+                translationId: id,
+                isActive: true,
+                creatorId: user.id,
+              })),
+            )
+            .returning({ count: count() }),
+        );
+
+        return result.count;
       });
     }),
   approve: authedProcedure
     .input(
       z.object({
-        id: z.int(),
+        translationId: z.int(),
       }),
     )
     .output(TranslationApprovementSchema)
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
-      const { id } = input;
+      const { translationId } = input;
 
-      return await prisma.$transaction(async (tx) => {
-        const exists = await tx.translation.count({
-          where: {
-            id,
-            TranslatableElement: {
-              Translations: {
-                some: {
-                  Approvements: {
-                    some: {
-                      isActive: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
+      return await drizzle.transaction(async (tx) => {
+        const { exists } = getSingle(
+          await tx
+            .select({ exists: count() })
+            .from(translationApprovementTable)
+            .where(
+              and(
+                eq(translationApprovementTable.translationId, translationId),
+                eq(translationApprovementTable.isActive, true),
+              ),
+            ),
+        );
 
         if (exists > 0) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Some translations already have active approvment",
+            message: "Some translations already have active approvement",
           });
         }
 
-        return await tx.translationApprovement.create({
-          data: {
-            translationId: id,
-            isActive: true,
-            creatorId: user.id,
-          },
-        });
+        return getSingle(
+          await tx
+            .insert(translationApprovementTable)
+            .values({
+              translationId: translationId,
+              isActive: true,
+              creatorId: user.id,
+            })
+            .returning(),
+        );
       });
     }),
   unapprove: authedProcedure
@@ -464,21 +431,17 @@ export const translationRouter = router({
         id: z.int(),
       }),
     )
-    .output(TranslationApprovementSchema)
+    .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      return await prisma.translationApprovement.update({
-        where: {
-          id,
-        },
-        data: {
-          isActive: false,
-        },
-      });
+      await drizzle
+        .update(translationApprovementTable)
+        .set({ isActive: false })
+        .where(eq(translationApprovementTable.id, id));
     }),
   autoTranslate: authedProcedure
     .input(
@@ -492,31 +455,30 @@ export const translationRouter = router({
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
         pluginRegistry,
       } = ctx;
       const { documentId, advisorId, languageId, minMemorySimilarity } = input;
 
-      const document = await prisma.document.findUnique({
-        where: {
-          id: documentId,
-          Project: {
-            TargetLanguages: {
-              some: {
-                id: languageId,
-              },
-            },
-          },
-        },
-        select: {
-          Project: {
-            select: {
-              id: true,
-            },
-          },
-        },
-      });
+      const document = getSingle(
+        await drizzle
+          .select({
+            projectId: projectTable.id,
+          })
+          .from(documentTable)
+          .innerJoin(
+            projectTargetLanguage,
+            eq(projectTargetLanguage.projectId, documentTable.projectId),
+          )
+          .where(
+            and(
+              eq(documentTable.id, documentId),
+              eq(projectTargetLanguage.languageId, languageId),
+            ),
+          )
+          .limit(1),
+      );
 
       if (!document)
         throw new TRPCError({
@@ -526,21 +488,24 @@ export const translationRouter = router({
         });
 
       const { id: vectorizerId, service: vectorizer } = (
-        await pluginRegistry.getPluginServices(prisma, "TEXT_VECTORIZER")
+        await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER")
       ).find(({ service }) => service.canVectorize(languageId))!;
 
       if (!vectorizer)
         throw new Error(`No vectorizer can vectorize the translation`);
 
-      const task = await prisma.task.create({
-        data: {
-          type: "auto_translate",
-          meta: {
-            projectId: document.Project.id,
-            documentId,
-          },
-        },
-      });
+      const task = getSingle(
+        await drizzle
+          .insert(taskTable)
+          .values({
+            type: "auto_translate",
+            meta: {
+              projectId: document.projectId,
+              documentId,
+            },
+          })
+          .returning({ id: taskTable.id }),
+      );
 
       await autoTranslateQueue.add(
         task.id,

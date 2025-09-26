@@ -22,7 +22,6 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
   }
 
   async extractElement(
-    file: File,
     fileContent: Buffer,
   ): Promise<TranslatableElementData[]> {
     return collectTranslatableElement(fileContent.toString("utf-8"));
@@ -33,7 +32,6 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
   }
 
   async getReplacedFileContent(
-    file: File,
     fileContent: Buffer,
     elements: Pick<TranslatableElement, "meta" | "value">[],
   ) {

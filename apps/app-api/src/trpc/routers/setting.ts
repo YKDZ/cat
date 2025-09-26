@@ -1,5 +1,6 @@
 import * as z from "zod/v4";
 import { safeZDotJson } from "@cat/shared/schema/json";
+import { eq, setting as settingTable } from "@cat/db";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
 export const settingRouter = router({
@@ -15,17 +16,17 @@ export const settingRouter = router({
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const arr = input;
 
-      await prisma.$transaction(async (tx) => {
+      await drizzle.transaction(async (tx) => {
         for (const item of arr) {
           const { key, value } = item;
-          await tx.setting.update({
-            where: { key },
-            data: { value: z.json().parse(value) ?? {} },
-          });
+          await tx
+            .update(settingTable)
+            .set({ value })
+            .where(eq(settingTable.key, key));
         }
       });
     }),
@@ -38,21 +39,19 @@ export const settingRouter = router({
     .output(safeZDotJson.nullable())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { key } = input;
 
-      return (
-        (
-          await prisma.setting.findUnique({
-            where: {
-              key,
-            },
-            select: {
-              value: true,
-            },
-          })
-        )?.value ?? null
-      );
+      const setting = await drizzle.query.setting.findFirst({
+        where: (setting, { eq }) => eq(setting.key, key),
+        columns: {
+          value: true,
+        },
+      });
+
+      if (!setting) return null;
+
+      return setting.value;
     }),
 });

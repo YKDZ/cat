@@ -6,36 +6,23 @@ export const taskRouter = router({
   get: authedProcedure
     .input(
       z.object({
-        type: z.string().optional(),
-        meta: z
-          .array(
-            z.object({
-              path: z.array(z.string()),
-              value: z.json(),
-            }),
-          )
-          .optional(),
+        type: z.string(),
+        projectId: z.uuid(),
       }),
     )
     .output(z.array(TaskSchema))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
-      const { type, meta } = input;
+      const { type, projectId } = input;
 
-      return await prisma.task.findMany({
-        where: {
-          type,
-          AND: meta
-            ? meta.map(({ path, value }) => ({
-                meta: {
-                  path,
-                  equals: z.json().parse(value) ?? {},
-                },
-              }))
-            : undefined,
-        },
+      return await drizzle.query.task.findMany({
+        where: (task, { and, eq, sql }) =>
+          and(
+            eq(task.type, type),
+            sql`("meta" ->> 'projectId') = ${projectId}`,
+          ),
       });
     }),
 });

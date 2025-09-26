@@ -3,9 +3,9 @@ import { computed, onMounted, ref } from "vue";
 import type { Memory } from "@cat/shared/schema/prisma/memory";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
 import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
-import { trpc } from "@cat/app-api/trpc/client";
 
 withDefaults(
   defineProps<{

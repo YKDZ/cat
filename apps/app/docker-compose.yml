@@ -26,7 +26,7 @@ services:
       timeout: 3s
 
   postgresql:
-    image: pgvector/pgvector:pg17
+    image: pgvector/pgvector:pg18
     container_name: cat_postgresql
     environment:
       POSTGRES_USER: user

@@ -1,23 +1,18 @@
 import * as z from "zod/v4";
 import { PrismaDateTime } from "./misc.ts";
-import { FileSchema } from "./file.ts";
 import { safeZDotJson } from "@/schema/json.ts";
 
 export const DocumentSchema = z.object({
-  id: z.ulid(),
+  id: z.uuidv7(),
   name: z.string().nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 
-  get File() {
-    return FileSchema.nullable().optional();
-  },
-
   fileHandlerId: z.int().nullable(),
 
-  creatorId: z.ulid(),
+  creatorId: z.uuidv7(),
 
-  projectId: z.ulid(),
+  projectId: z.uuidv7(),
 });
 
 export const TranslatableElementSchema = z.object({
@@ -30,9 +25,9 @@ export const TranslatableElementSchema = z.object({
 
   documentVersionId: z.int().nullable(),
 
-  creatorId: z.ulid().nullable(),
+  creatorId: z.uuidv7().nullable(),
 
-  projectId: z.ulid().nullable(),
+  projectId: z.uuidv7().nullable(),
 });
 
 export const DocumentVersionSchema = z.object({
@@ -41,7 +36,7 @@ export const DocumentVersionSchema = z.object({
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 
-  documentId: z.ulid(),
+  documentId: z.uuidv7(),
 });
 
 export type Document = z.infer<typeof DocumentSchema>;

@@ -4,12 +4,15 @@ import { syncSettings } from "@cat/db";
 import { logger } from "@cat/shared/utils";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
-import { getPrismaDB, getRedisDB } from "@cat/db";
+import { getDrizzleDB, getRedisDB } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { closeAllProcessors } from "@cat/app-workers/utils";
+import {
+  importLocalPlugins,
+  installDefaultPlugins,
+  initTermService,
+} from "@cat/app-server-shared/utils";
 import app from "./app.ts";
-import { initTermService } from "./utils/term.ts";
-import { importLocalPlugins, installDefaultPlugins } from "./utils/plugin.ts";
 
 let server: Server | null = null;
 
@@ -23,7 +26,7 @@ const shutdownServer = async () => {
 
       await closeAllProcessors();
       await (await getRedisDB()).disconnect();
-      await (await getPrismaDB()).disconnect();
+      await (await getDrizzleDB()).disconnect();
     });
   });
 
@@ -32,21 +35,21 @@ const shutdownServer = async () => {
 
 const startServer = async () => {
   try {
-    const prismaDB = await getPrismaDB();
+    const drizzleDB = await getDrizzleDB();
     const redisDB = await getRedisDB();
 
-    await prismaDB.ping();
+    await drizzleDB.ping();
     await redisDB.ping();
 
-    await syncSettings(prismaDB.client);
+    await syncSettings(drizzleDB.client);
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    await importLocalPlugins(prismaDB.client);
+    await importLocalPlugins(drizzleDB.client);
 
-    await installDefaultPlugins(prismaDB.client, pluginRegistry);
+    await installDefaultPlugins(drizzleDB.client, pluginRegistry);
 
-    await initTermService(prismaDB.client, pluginRegistry);
+    await initTermService(drizzleDB.client, pluginRegistry);
 
     apply(app);
   } catch (e) {

@@ -143,7 +143,6 @@ export class MarkdownTranslatableFileHandler
   }
 
   async extractElement(
-    file: File,
     fileContent: Buffer,
   ): Promise<TranslatableElementData[]> {
     const text = fileContent.toString("utf-8");
@@ -155,7 +154,6 @@ export class MarkdownTranslatableFileHandler
   }
 
   async getReplacedFileContent(
-    file: File,
     fileContent: Buffer,
     elements: Pick<TranslatableElement, "meta" | "value">[],
   ): Promise<Buffer> {

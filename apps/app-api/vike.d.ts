@@ -1,5 +1,5 @@
-import type { PrismaDB, RedisDB } from "@cat/db";
-import type { User } from "@cat/shared/schema/prisma/user";
+import type { DrizzleDB, RedisDB } from "@cat/db";
+import type { User } from "../../packages/shared/dist/schema/drizzle/user.ts";
 import type { HTTPHelpers } from "@cat/shared/utils";
 import type { PluginRegistry } from "@cat/plugin-core";
 
@@ -15,7 +15,7 @@ declare global {
       displayLanguage: string;
     }
     interface GlobalContextServer {
-      prismaDB: PrismaDB;
+      drizzleDB: DrizzleDB;
       redisDB: RedisDB;
       pluginRegistry: PluginRegistry;
     }

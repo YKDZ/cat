@@ -1,7 +1,7 @@
-import { getPrismaDB, hashPassword } from "@cat/db";
+import { getDrizzleDB, hashPassword } from "@cat/db";
 
 const seed = async () => {
-  const { client: prisma } = await getPrismaDB();
+  const { client: prisma } = await getDrizzleDB();
 
   await prisma.$transaction(async (tx) => {
     await tx.language.createMany({

@@ -11,8 +11,8 @@ export const memoryKey = Symbol() as InjectionKey<Memory>;
 export const languageKey = Symbol() as InjectionKey<Ref<Language | null>>;
 export const pluginKey = Symbol() as InjectionKey<Plugin>;
 
-export const useInjectionKey = <T>(key: keyof T) => {
-  return Symbol.for(String(key)) as {
-    [K in keyof T]: InjectionKey<T[K]>;
-  }[keyof T];
-};
+export function useInjectionKey<T>() {
+  return function <K extends keyof T>(key: K): InjectionKey<T[K]> {
+    return Symbol.for(String(key)) as InjectionKey<T[K]>;
+  };
+}

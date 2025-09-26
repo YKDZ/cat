@@ -1,9 +1,9 @@
-import type { OverallPrismaClient, ScopeType } from "@cat/db";
+import type { OverallDrizzleClient, ScopeType } from "@cat/db";
 import type { StorageProvider } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
 
 export const useStorage = async (
-  prisma: OverallPrismaClient,
+  drizzle: OverallDrizzleClient,
   pluginId: string,
   serviceId: string,
   scopeType: ScopeType,
@@ -15,20 +15,22 @@ export const useStorage = async (
   const { id, service: storage } = (await PluginRegistry.get(
     scopeType,
     scopeId,
-  ).getPluginService(prisma, pluginId, "STORAGE_PROVIDER", serviceId))!;
+  ).getPluginService(drizzle, pluginId, "STORAGE_PROVIDER", serviceId))!;
 
   if (!storage)
     throw new Error(
       `Storage provider ${pluginId}:${serviceId} does not exists found`,
     );
 
-  const installation = await prisma.pluginInstallation.findUnique({
-    where: {
-      scopeId_scopeType_pluginId: {
-        scopeId,
-        scopeType,
-        pluginId: pluginId,
-      },
+  const installation = await drizzle.query.pluginInstallation.findFirst({
+    where: (installation, { and, eq }) =>
+      and(
+        eq(installation.pluginId, pluginId),
+        eq(installation.scopeId, scopeId),
+        eq(installation.scopeType, scopeType),
+      ),
+    columns: {
+      id: true,
     },
   });
 

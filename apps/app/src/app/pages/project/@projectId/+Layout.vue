@@ -7,9 +7,10 @@ import ProjectHeader from "@/app/components/ProjectHeader.vue";
 import ProjectNavbar from "@/app/components/ProjectNavbar.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 
-const { project } = useData<Data>();
+const { project, targetLanguages } = useData<Data>();
 
-provide(useInjectionKey<Data>("project"), project);
+provide(useInjectionKey<Data>()("project"), project);
+provide(useInjectionKey<Data>()("targetLanguages"), targetLanguages);
 </script>
 
 <template>

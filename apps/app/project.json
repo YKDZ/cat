@@ -1,7 +1,0 @@
-{
-  "targets": {
-    "vite:build": {},
-    "vite:dev": {},
-    "vite:preview": {}
-  }
-}

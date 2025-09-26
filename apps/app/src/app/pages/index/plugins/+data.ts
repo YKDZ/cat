@@ -1,11 +1,6 @@
-import type { Plugin } from "@cat/shared/schema/prisma/plugin";
 import type { PageContextServer } from "vike/types";
 
-export const data = async (
-  ctx: PageContextServer,
-): Promise<{
-  plugins: WithRequired<Plugin, "Installations">[];
-}> => {
+export const data = async (ctx: PageContextServer) => {
   return { plugins: [] };
 };
 

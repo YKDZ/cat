@@ -1,4 +1,4 @@
-import { getPrismaDB, verifyPassword } from "@cat/db";
+import { getDrizzleDB, verifyPassword } from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
 import * as z from "zod/v4";
 
@@ -32,28 +32,22 @@ export class Provider implements AuthProvider {
   }
 
   async handleAuth(gotFromClient: { formData?: unknown }) {
-    const { client: prisma } = await getPrismaDB();
+    const { client: drizzle } = await getDrizzleDB();
     const { email, password } = FormSchema.parse(gotFromClient.formData);
 
-    const account = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({
-        where: {
-          email,
-        },
-        select: {
+    const account = await drizzle.transaction(async (tx) => {
+      const user = await tx.query.user.findFirst({
+        where: (user, { eq }) => eq(user.email, email),
+        columns: {
           id: true,
         },
       });
 
       if (!user) return null;
 
-      const account = await prisma.account.findUnique({
-        where: {
-          userId_provider: {
-            userId: user.id,
-            provider: this.getId(),
-          },
-        },
+      const account = await tx.query.account.findFirst({
+        where: (account, { and, eq }) =>
+          and(eq(account.userId, user.id), eq(account.provider, this.getId())),
       });
 
       return account;

@@ -10,9 +10,9 @@ export const FileSchema = z.object({
 
   storageProviderId: z.int(),
 
-  documentId: z.ulid().nullable(),
+  documentId: z.uuidv7().nullable(),
 
-  userId: z.ulid().nullable(),
+  userId: z.uuidv7().nullable(),
 });
 
 export type File = z.infer<typeof FileSchema>;

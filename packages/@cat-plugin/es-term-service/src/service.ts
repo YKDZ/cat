@@ -1,5 +1,13 @@
-import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
-import { getPrismaDB } from "@cat/db";
+import type { Term, TermRelation } from "@cat/shared/schema/prisma/glossary";
+import {
+  getDrizzleDB,
+  termRelation,
+  translation,
+  eq,
+  and,
+  inArray,
+  term,
+} from "@cat/db";
 import type {
   TermFormatter,
   TermIndexer,
@@ -130,7 +138,12 @@ export const getESTermService = (config: Config): TermService => {
   };
 
   const Store: TermStore = {
-    async insertTerm(relation: TermRelation) {
+    async insertTerm(
+      relation: TermRelation & {
+        Term: Term;
+        Translation: Term;
+      },
+    ) {
       const { Term: term, Translation: translation } = relation;
       if (!term || !translation) return;
       const index = `terms_${term.languageId.toLowerCase()}`;
@@ -153,7 +166,7 @@ export const getESTermService = (config: Config): TermService => {
     },
 
     async termText(text, sourceLang, targetLang) {
-      const { client: prisma } = await getPrismaDB();
+      const { client: drizzle } = await getDrizzleDB();
       const matches = await Matcher.search(text, sourceLang);
       const textLower = text.toLowerCase();
       const allMatches = [];
@@ -188,16 +201,24 @@ export const getESTermService = (config: Config): TermService => {
         ).list;
 
       const ids = [...new Set(deduped.map((m) => m.translationId))];
-      const relations = await prisma.termRelation.findMany({
-        where: {
-          Translation: { id: { in: ids }, languageId: targetLang },
-          Term: { languageId: sourceLang },
-        },
-        select: {
-          translationId: true,
-          Translation: { select: { value: true } },
-        },
-      });
+
+      const relations = await drizzle
+        .select({
+          translationId: termRelation.translationId,
+          Translation: {
+            value: translation.value,
+          },
+        })
+        .from(termRelation)
+        .where(
+          and(
+            inArray(termRelation.translationId, ids),
+            eq(translation.languageId, targetLang),
+            eq(term.languageId, sourceLang),
+          ),
+        )
+        .innerJoin(translation, eq(translation.id, termRelation.translationId))
+        .innerJoin(term, eq(term.id, termRelation.termId));
 
       const map = new Map<number, string>();
       for (const r of relations) {
@@ -221,8 +242,10 @@ export const getESTermService = (config: Config): TermService => {
     },
 
     async init() {
-      const { client: prisma } = await getPrismaDB();
-      const langs = await prisma.language.findMany({ select: { id: true } });
+      const { client: drizzle } = await getDrizzleDB();
+      const langs = await drizzle.query.language.findMany({
+        columns: { id: true },
+      });
       await Promise.all(
         langs.map(({ id }) => Indexer.ensureIndex(id.toLowerCase())),
       );

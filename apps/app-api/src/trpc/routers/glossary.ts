@@ -2,12 +2,26 @@ import {
   GlossarySchema,
   TermRelationSchema,
   TermSchema,
-  type TermRelation,
 } from "@cat/shared/schema/prisma/glossary";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import { UserSchema } from "@cat/shared/schema/prisma/user";
+import {
+  and,
+  count,
+  eq,
+  getTableColumns,
+  glossary as glossaryTable,
+  glossaryToProject,
+  inArray,
+  termRelation as termRelationTable,
+  term as termTable,
+  document as documentTable,
+  project as projectTable,
+  aliasedTable,
+} from "@cat/db";
+import { getSingle, zip } from "@cat/shared/utils";
 import { authedProcedure, router } from "../server.ts";
 
 export const glossaryRouter = router({
@@ -20,22 +34,16 @@ export const glossaryRouter = router({
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { ids } = input;
 
-      await prisma.term.deleteMany({
-        where: {
-          id: {
-            in: ids,
-          },
-        },
-      });
+      await drizzle.delete(termTable).where(inArray(termTable.id, ids));
     }),
   queryTerms: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
         sourceLanguageId: z.string().nullable(),
         translationLanguageId: z.string().nullable(),
       }),
@@ -43,58 +51,46 @@ export const glossaryRouter = router({
     .output(z.array(TermRelationSchema))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id, sourceLanguageId, translationLanguageId } = input;
 
-      const relations = await prisma.termRelation.findMany({
-        where: {
-          Term: {
-            languageId: sourceLanguageId ? sourceLanguageId : undefined,
-            Glossary: {
-              id,
-            },
-          },
-          Translation: {
-            languageId: translationLanguageId
-              ? translationLanguageId
+      const relationTerm = aliasedTable(termTable, "relationTerm");
+      const relationTranslation = aliasedTable(
+        termTable,
+        "relationTranslation",
+      );
+      const relations = await drizzle
+        .select({
+          ...getTableColumns(termRelationTable),
+          Term: getTableColumns(relationTerm),
+          Translation: getTableColumns(relationTranslation),
+        })
+        .from(termRelationTable)
+        .innerJoin(relationTerm, eq(termRelationTable.termId, relationTerm.id))
+        .innerJoin(
+          relationTranslation,
+          eq(termRelationTable.translationId, relationTranslation.id),
+        )
+        .where(
+          and(
+            sourceLanguageId
+              ? eq(relationTranslation.languageId, sourceLanguageId)
               : undefined,
-            Glossary: {
-              id,
-            },
-          },
-        },
-        include: {
-          Term: {
-            include: {
-              Language: true,
-            },
-          },
-          Translation: {
-            include: {
-              Language: true,
-            },
-          },
-        },
-        orderBy: translationLanguageId
-          ? {
-              Term: {
-                value: "asc",
-              },
-            }
-          : {
-              Translation: {
-                value: "asc",
-              },
-            },
-      });
+            translationLanguageId
+              ? eq(relationTerm.languageId, translationLanguageId)
+              : undefined,
+            eq(relationTranslation.glossaryId, id),
+            eq(relationTerm.glossaryId, id),
+          ),
+        );
 
       return relations;
     }),
   get: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
       }),
     )
     .output(
@@ -104,37 +100,35 @@ export const glossaryRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      return await prisma.glossary.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          Creator: true,
-        },
-      });
+      return (
+        (await drizzle.query.glossary.findFirst({
+          where: (glossary, { eq }) => eq(glossary.id, id),
+          with: {
+            Creator: true,
+          },
+        })) ?? null
+      );
     }),
   listUserOwned: authedProcedure
     .input(
       z.object({
-        userId: z.ulid(),
+        userId: z.uuidv7(),
       }),
     )
-    .output(z.array(GlossarySchema))
+    .output(z.array(GlossarySchema.extend({ Creator: UserSchema })))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { userId } = input;
 
-      return await prisma.glossary.findMany({
-        where: {
-          creatorId: userId,
-        },
-        include: {
+      return await drizzle.query.glossary.findMany({
+        where: (glossary, { eq }) => eq(glossary.creatorId, userId),
+        with: {
           Creator: true,
         },
       });
@@ -142,102 +136,104 @@ export const glossaryRouter = router({
   listProjectOwned: authedProcedure
     .input(
       z.object({
-        projectId: z.ulid(),
+        projectId: z.uuidv7(),
       }),
     )
     .output(z.array(GlossarySchema))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { projectId } = input;
 
-      return await prisma.glossary.findMany({
-        where: {
-          Projects: {
-            some: {
-              id: projectId,
-            },
+      return (
+        await drizzle.query.glossaryToProject.findMany({
+          where: (glossaryToProject, { eq }) =>
+            eq(glossaryToProject.projectId, projectId),
+          with: {
+            Glossary: true,
           },
-        },
-      });
+        })
+      ).map((item) => item.Glossary);
     }),
   countTerm: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
       }),
     )
     .output(z.number().int())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      return await prisma.term.count({
-        where: {
-          Glossary: {
-            id,
-          },
-        },
-      });
+      return getSingle(
+        await drizzle
+          .select({ count: count() })
+          .from(termTable)
+          .where(eq(termTable.glossaryId, id)),
+      ).count;
     }),
   create: authedProcedure
     .input(
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        projectIds: z.array(z.ulid()).optional(),
+        projectIds: z.array(z.uuidv7()).optional(),
       }),
     )
     .output(GlossarySchema)
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
       const { name, description, projectIds } = input;
 
-      return await prisma.glossary.create({
-        data: {
-          name,
-          description,
-          Creator: {
-            connect: {
-              id: user.id,
-            },
-          },
-          Projects: {
-            connect: projectIds
-              ? projectIds.map((projectId) => ({
-                  id: projectId,
-                }))
-              : undefined,
-          },
-        },
+      return await drizzle.transaction(async (tx) => {
+        const glossary = getSingle(
+          await tx
+            .insert(glossaryTable)
+            .values({
+              name,
+              description,
+              creatorId: user.id,
+            })
+            .returning(),
+        );
+
+        if (projectIds && projectIds.length > 0)
+          await drizzle.insert(glossaryToProject).values(
+            projectIds.map((projectId) => ({
+              glossaryId: glossary.id,
+              projectId,
+            })),
+          );
+
+        return glossary;
       });
     }),
   insertTerm: authedProcedure
     .input(
       z.object({
-        glossaryId: z.ulid(),
+        glossaryId: z.uuidv7(),
         termsData: z.array(TermDataSchema),
-        canReverse: z.boolean().default(true),
       }),
     )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
         user,
       } = ctx;
-      const { glossaryId, termsData, canReverse } = input;
+      const { glossaryId, termsData } = input;
 
       // TODO 选择安装的服务或者继承
       const { service: termService } = (await pluginRegistry.getPluginService(
-        prisma,
+        drizzle,
         "es-term-service",
         "TERM_SERVICE",
         "ES",
@@ -245,83 +241,69 @@ export const glossaryRouter = router({
 
       if (!termService) throw new Error("Term service does not exists");
 
-      await prisma.$transaction(async (tx) => {
-        const terms = await Promise.all(
-          termsData.map((term) =>
-            tx.term.create({
-              data: {
-                value: term.term,
-                languageId: term.termLanguageId,
-                creatorId: user.id,
-                glossaryId,
-              },
-            }),
-          ),
+      await drizzle.transaction(async (tx) => {
+        const terms = await tx
+          .insert(termTable)
+          .values(
+            termsData.map((term) => ({
+              value: term.term,
+              languageId: term.termLanguageId,
+              creatorId: user.id,
+              glossaryId,
+            })),
+          )
+          .returning({ id: termTable.id });
+
+        const translations = await tx
+          .insert(termTable)
+          .values(
+            termsData.map((term) => ({
+              value: term.term,
+              languageId: term.termLanguageId,
+              creatorId: user.id,
+              glossaryId,
+            })),
+          )
+          .returning({ id: termTable.id });
+
+        const relations = await drizzle
+          .insert(termRelationTable)
+          .values(
+            zip(terms, translations).map(([term, translation]) => ({
+              termId: term.id,
+              translationId: translation.id,
+            })),
+          )
+          .returning({ id: termRelationTable.id });
+
+        const relationTerm = aliasedTable(termTable, "relationTerm");
+        const relationTranslation = aliasedTable(
+          termTable,
+          "relationTranslation",
         );
-
-        const translations = await Promise.all(
-          termsData.map((term) =>
-            tx.term.create({
-              data: {
-                value: term.translation,
-                languageId: term.translationLanguageId,
-                creatorId: user.id,
-                glossaryId,
-              },
-            }),
-          ),
-        );
-
-        const relations: TermRelation[] = [];
-
-        relations.push(
-          ...z.array(TermRelationSchema).parse(
-            await tx.termRelation.createManyAndReturn({
-              data: terms.map((term, index) => ({
-                termId: term.id,
-                translationId: translations[index]!.id,
-              })),
-              include: {
-                Term: {
-                  include: {
-                    Language: true,
-                  },
-                },
-                Translation: {
-                  include: {
-                    Language: true,
-                  },
-                },
-              },
-            }),
-          ),
-        );
-
-        if (canReverse)
-          relations.push(
-            ...z.array(TermRelationSchema).parse(
-              await tx.termRelation.createManyAndReturn({
-                data: terms.map((term, index) => ({
-                  termId: translations[index]!.id,
-                  translationId: term.id,
-                })),
-                include: {
-                  Term: {
-                    include: {
-                      Language: true,
-                    },
-                  },
-                  Translation: {
-                    include: {
-                      Language: true,
-                    },
-                  },
-                },
-              }),
+        const termRelations = await drizzle
+          .select({
+            ...getTableColumns(termRelationTable),
+            Term: getTableColumns(relationTerm),
+            Translation: getTableColumns(relationTranslation),
+          })
+          .from(termRelationTable)
+          .innerJoin(
+            relationTerm,
+            eq(termRelationTable.translationId, relationTerm.id),
+          )
+          .innerJoin(
+            relationTranslation,
+            eq(termRelationTable.translationId, relationTranslation.id),
+          )
+          .where(
+            inArray(
+              termRelationTable.id,
+              relations.map((t) => t.id),
             ),
           );
 
-        await termService.termStore.insertTerms(...relations);
+        await termService.termStore.insertTerms(...termRelations);
       });
     }),
   searchTerm: authedProcedure
@@ -342,14 +324,14 @@ export const glossaryRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
       const { text, termLanguageId, translationLanguageId } = input;
 
       // TODO 选择安装的服务或者继承
       const { service: termService } = (await pluginRegistry.getPluginService(
-        prisma,
+        drizzle,
         "es-term-service",
         "TERM_SERVICE",
         "ES",
@@ -362,20 +344,32 @@ export const glossaryRouter = router({
         termLanguageId,
       );
 
-      const relations = await prisma.termRelation.findMany({
-        where: {
-          Translation: {
-            id: {
-              in: translationIds,
-            },
-            languageId: translationLanguageId,
-          },
-        },
-        include: {
-          Term: true,
-          Translation: true,
-        },
-      });
+      const relationTerm = aliasedTable(termTable, "relationTerm");
+      const relationTranslation = aliasedTable(
+        termTable,
+        "relationTranslation",
+      );
+      const relations = await drizzle
+        .select({
+          ...getTableColumns(termRelationTable),
+          Term: getTableColumns(relationTerm),
+          Translation: getTableColumns(relationTranslation),
+        })
+        .from(termRelationTable)
+        .innerJoin(
+          relationTerm,
+          eq(termRelationTable.translationId, relationTerm.id),
+        )
+        .innerJoin(
+          relationTranslation,
+          eq(termRelationTable.translationId, relationTranslation.id),
+        )
+        .where(
+          and(
+            inArray(relationTranslation.id, translationIds),
+            eq(relationTranslation.languageId, translationLanguageId),
+          ),
+        );
 
       return relations;
     }),
@@ -396,14 +390,14 @@ export const glossaryRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
       const { elementId, translationLanguageId } = input;
 
       // TODO 选择安装的服务或者继承
       const { service: termService } = (await pluginRegistry.getPluginService(
-        prisma,
+        drizzle,
         "es-term-service",
         "TERM_SERVICE",
         "ES",
@@ -411,22 +405,44 @@ export const glossaryRouter = router({
 
       if (!termService) throw new Error("Term service does not exists");
 
-      const element = await prisma.translatableElement.findUnique({
-        where: {
-          id: elementId,
-        },
-        include: {
-          Document: {
-            include: {
-              Project: {
-                include: {
-                  Glossaries: true,
-                },
-              },
-            },
-          },
+      const element = await drizzle.query.translatableElement.findFirst({
+        where: (element, { eq }) => eq(element.id, elementId),
+        columns: {
+          id: true,
+          value: true,
+          documentId: true,
         },
       });
+
+      // TODO 元素不一定属于一个文档，元素 -> 文档 -> 项目 -> 术语库 是不成立的
+      if (!element || !element.documentId)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Element does not exists",
+        });
+
+      const { projectId } = getSingle(
+        await drizzle
+          .select({
+            projectId: documentTable.projectId,
+          })
+          .from(documentTable)
+          .where(eq(documentTable.id, element.documentId))
+          .limit(1),
+      );
+
+      const glossaryIds = (
+        await drizzle
+          .select({
+            id: glossaryToProject.glossaryId,
+          })
+          .from(projectTable)
+          .innerJoin(
+            glossaryToProject,
+            eq(projectTable.id, glossaryToProject.projectId),
+          )
+          .where(eq(projectTable.id, projectId))
+      ).map((item) => item.id);
 
       if (!element)
         throw new TRPCError({
@@ -434,43 +450,40 @@ export const glossaryRouter = router({
           message: "请求术语的元素不存在",
         });
 
-      const sourceLanguageId = element.Document!.Project.sourceLanguageId;
+      // TODO 源语言应该是元素的属性
+      const sourceLanguageId = "zh_Hans";
 
       const translationIds = await termService.termStore.searchTerm(
         element.value,
         sourceLanguageId,
       );
-      const glossaryIds = element.Document!.Project.Glossaries.map(
-        (glossary) => glossary.id,
-      );
 
-      const relations = await prisma.termRelation.findMany({
-        where: {
-          Term: {
-            Glossary: {
-              id: {
-                in: glossaryIds,
-              },
-            },
-            languageId: sourceLanguageId,
-          },
-          Translation: {
-            id: {
-              in: translationIds,
-            },
-            Glossary: {
-              id: {
-                in: glossaryIds,
-              },
-            },
-            languageId: translationLanguageId,
-          },
-        },
-        include: {
-          Term: true,
-          Translation: true,
-        },
-      });
+      const relationTerm = aliasedTable(termTable, "relationTerm");
+      const relationTranslation = aliasedTable(
+        termTable,
+        "relationTranslation",
+      );
+      const relations = await drizzle
+        .select({
+          ...getTableColumns(termRelationTable),
+          Term: getTableColumns(relationTerm),
+          Translation: getTableColumns(relationTranslation),
+        })
+        .from(termRelationTable)
+        .innerJoin(relationTerm, eq(termRelationTable.termId, relationTerm.id))
+        .innerJoin(
+          relationTranslation,
+          eq(termRelationTable.translationId, relationTranslation.id),
+        )
+        .where(
+          and(
+            inArray(relationTranslation.id, translationIds),
+            inArray(relationTranslation.glossaryId, glossaryIds),
+            inArray(relationTerm.glossaryId, glossaryIds),
+            eq(relationTerm.languageId, sourceLanguageId),
+            eq(relationTranslation.languageId, translationLanguageId),
+          ),
+        );
 
       return relations;
     }),

@@ -10,7 +10,7 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { getPrismaDB, mimeFromFileName } from "@cat/db";
+import { getDrizzleDB, mimeFromFileName } from "@cat/db";
 import { StorageProvider } from "@cat/plugin-core";
 import * as z from "zod/v4";
 
@@ -105,10 +105,10 @@ export class S3StorageProvider implements StorageProvider {
     await this.db.disconnect();
   }
 
-  async getContent(file: File): Promise<Buffer> {
+  async getContent(storedPath: string): Promise<Buffer> {
     const command = new GetObjectCommand({
       Bucket: this.config.s3["bucket-name"],
-      Key: file.storedPath.replaceAll("\\", "/"),
+      Key: storedPath.replaceAll("\\", "/"),
     });
 
     const response = await this.db.client.send(command);
@@ -154,8 +154,8 @@ export class S3StorageProvider implements StorageProvider {
       Key: path.replaceAll("\\", "/"),
       ResponseContentDisposition: `attachment; filename="${fileName}"`,
       ResponseContentType: await mimeFromFileName(
+        (await getDrizzleDB()).client,
         fileName,
-        (await getPrismaDB()).client,
       ),
     });
 

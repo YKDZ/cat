@@ -1,9 +1,10 @@
-import { getPrismaDB } from "@cat/db";
+import { getDrizzleDB, task as taskTable } from "@cat/db";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
 import { PluginRegistry, type TranslatableFileHandler } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import { extractElementsFromFile } from "@cat/app-server-shared/utils";
+import { getSingle } from "@cat/shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 import {
@@ -11,7 +12,7 @@ import {
   batchDiffElementsQueueEvents,
 } from "@/workers/batchDiffElements.ts";
 
-const { client: prisma } = await getPrismaDB();
+const { client: drizzle } = await getDrizzleDB();
 
 const queueId = "upsertDocumentElementsFromFile";
 
@@ -22,7 +23,7 @@ const worker = new Worker(
   async (job) => {
     const { documentId, fileId, vectorizerId } = z
       .object({
-        documentId: z.ulid(),
+        documentId: z.uuidv7(),
         fileId: z.int(),
         vectorizerId: z.int(),
       })
@@ -30,55 +31,60 @@ const worker = new Worker(
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    const dbFile = await prisma.file.findUnique({
-      where: {
-        id: fileId,
-      },
+    const dbFile = await drizzle.query.file.findFirst({
+      where: (file, { eq }) => eq(file.id, fileId),
     });
+
+    // const dbFile = await drizzle.file.findUnique({
+    //   where: {
+    //     id: fileId,
+    //   },
+    // });
 
     if (!dbFile) throw new Error("File not found");
 
-    const dbDocument = await prisma.document.findUniqueOrThrow({
-      where: {
-        id: documentId,
-      },
-      select: {
+    const dbDocument = await drizzle.query.document.findFirst({
+      where: (document, { eq }) => eq(document.id, documentId),
+      columns: {
         fileHandlerId: true,
       },
     });
 
-    if (!dbDocument.fileHandlerId) throw new Error("Document not found");
+    if (!dbDocument || !dbDocument.fileHandlerId)
+      throw new Error("Document not found");
 
     const handler = await getServiceFromDBId<TranslatableFileHandler>(
-      prisma,
+      drizzle,
       pluginRegistry,
       dbDocument.fileHandlerId,
     );
 
     const newElementsData = await extractElementsFromFile(
-      prisma,
+      drizzle,
       pluginRegistry,
       handler,
       dbFile.id,
     );
 
     const oldElementIds = (
-      await prisma.translatableElement.findMany({
-        where: {
-          documentId,
-        },
-        select: {
+      await drizzle.query.translatableElement.findMany({
+        where: (document, { eq }) => eq(document.documentId, documentId),
+        columns: {
           id: true,
         },
       })
     ).map((el) => el.id);
 
-    const dbTask = await prisma.task.create({
-      data: { type: "upsertDocumentElementsFromFile" },
-      select: {
-        id: true,
-      },
-    });
+    const dbTask = getSingle(
+      await drizzle
+        .insert(taskTable)
+        .values([
+          {
+            type: "upsertDocumentElementsFromFile",
+          },
+        ])
+        .returning({ id: taskTable.id }),
+    );
 
     const task = await batchDiffElementsQueue.add(dbTask.id, {
       newElementsData,
@@ -97,4 +103,4 @@ const worker = new Worker(
   },
 );
 
-registerTaskUpdateHandlers(prisma, worker, queueId);
+registerTaskUpdateHandlers(drizzle, worker, queueId);

@@ -1,6 +1,6 @@
 import type { Pinia, StateTree } from "pinia";
 import type { I18n, LocaleMessageValue, VueMessageType } from "vue-i18n";
-import type { PrismaDB, RedisDB } from "@cat/db";
+import type { DrizzleDB, RedisDB } from "@cat/db";
 import type { User } from "@cat/shared/schema/prisma/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
 import type { RuntimeAdapter } from "vike-server/hono";
@@ -26,7 +26,7 @@ declare global {
       i18nMessages?: RemoveIndexSignature<{
         [x: string]: LocaleMessageValue<VueMessageType>;
       }>;
-      prismaDB: PrismaDB;
+      drizzleDB: DrizzleDB;
       redisDB: RedisDB;
       pluginRegistry: PluginRegistry;
     }

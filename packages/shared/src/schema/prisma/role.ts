@@ -50,11 +50,11 @@ export const UserRoleSchema = z.object({
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
 
-  userId: z.ulid(),
+  userId: z.uuidv7(),
   get User() {
     return z
       .object({
-        id: z.ulid(),
+        id: z.uuidv7(),
         name: z.string(),
         email: z.string().email(),
       })

@@ -1,40 +1,15 @@
-import type { PrismaClient } from "@/generated/prisma/client.ts";
+import type { OverallDrizzleClient } from "@/drizzle/db.ts";
 
-export const setting = async <T>(
-  key: string,
+export const getSetting = async <T>(
+  drizzle: OverallDrizzleClient,
+  settingKey: string,
   fallback: T,
-  prisma: Pick<PrismaClient, "setting">,
 ): Promise<T> => {
-  const data = await prisma.setting.findUnique({
-    where: {
-      key,
-    },
-    select: {
+  const data = await drizzle.query.setting.findFirst({
+    where: ({ key }, { eq }) => eq(key, settingKey),
+    columns: {
       value: true,
     },
   });
   return data ? (data.value as T) : fallback;
-};
-
-export const settings = async (
-  prefix: string,
-  prisma: Pick<PrismaClient, "setting">,
-): Promise<Record<string, unknown>> => {
-  const data = await prisma.setting.findMany({
-    where: {
-      key: {
-        startsWith: prefix,
-      },
-    },
-    select: {
-      key: true,
-      value: true,
-    },
-  });
-
-  const settings: Record<string, unknown> = {};
-  data.forEach(({ key, value }) => {
-    settings[key] = value;
-  });
-  return settings;
 };

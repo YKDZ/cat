@@ -2,11 +2,11 @@
 import type { Document } from "@cat/shared/schema/prisma/document";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { trpc } from "@cat/app-api/trpc/client";
 import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";
 import { languageKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 
 const { t } = useI18n();
 

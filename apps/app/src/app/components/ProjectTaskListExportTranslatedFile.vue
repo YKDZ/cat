@@ -3,10 +3,10 @@ import type { Task } from "@cat/shared/schema/prisma/misc";
 import { ref } from "vue";
 import * as z from "zod/v4";
 import type { Cell } from "@tanstack/vue-table";
+import { trpc } from "@cat/app-api/trpc/client";
 import TaskTable from "./TaskTable.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@cat/app-api/trpc/client";
 
 defineProps<{
   tasks: Task[];
@@ -18,8 +18,8 @@ const downloadAEl = ref<HTMLAnchorElement>();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MetaSchema = z.object({
-  projectId: z.ulid(),
-  documentId: z.ulid(),
+  projectId: z.uuidv7(),
+  documentId: z.uuidv7(),
   languageId: z.string(),
 });
 

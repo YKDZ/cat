@@ -1,13 +1,20 @@
-import { getPrismaDB, insertVector } from "@cat/db";
+import {
+  eq,
+  getDrizzleDB,
+  insertVector,
+  memoryItem,
+  translatableElement,
+  translation as translationTable,
+} from "@cat/db";
 import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
-import { getSingle } from "@cat/app-server-shared/utils";
+import { getSingle } from "@cat/shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 
-const { client: prisma } = await getPrismaDB();
+const { client: drizzle } = await getDrizzleDB();
 
 const queueId = "createTranslation";
 
@@ -29,39 +36,31 @@ const worker = new Worker(
         translationValue: z.string(),
         translationLanguageId: z.string(),
         elementId: z.number(),
-        creatorId: z.ulid(),
+        creatorId: z.uuidv7(),
         vectorizerId: z.number(),
         createMemory: z.boolean(),
-        memoryIds: z.array(z.ulid()),
+        memoryIds: z.array(z.uuidv7()),
       })
       .parse(job.data);
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
     const vectorizer = await getServiceFromDBId<TextVectorizer>(
-      prisma,
+      drizzle,
       pluginRegistry,
       vectorizerId,
     );
 
-    const element = await prisma.translatableElement.findUnique({
-      where: {
-        id: elementId,
-      },
-      select: {
-        value: true,
-        embeddingId: true,
-        Document: {
-          select: {
-            Project: {
-              select: {
-                sourceLanguageId: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const element = getSingle(
+      await drizzle
+        .select({
+          value: translatableElement.value,
+          embeddingId: translatableElement.embeddingId,
+        })
+        .from(translatableElement)
+        .where(eq(translatableElement.id, elementId))
+        .limit(1),
+    );
 
     if (!element)
       throw new Error("TranslatableElement with given id doest not exists");
@@ -77,51 +76,36 @@ const worker = new Worker(
 
     const vector = getSingle(vectors);
 
-    await prisma.$transaction(async (tx) => {
+    await drizzle.transaction(async (tx) => {
       const embeddingId = await insertVector(tx, vector);
 
       if (!embeddingId) throw new Error("Failed to get id of vector");
 
-      const translation = await tx.translation.create({
-        data: {
-          value: translationValue,
-          Vectorizer: {
-            connect: {
-              id: vectorizerId,
+      const translation = getSingle(
+        await drizzle
+          .insert(translationTable)
+          .values([
+            {
+              value: translationValue,
+              vectorizerId,
+              translatorId: creatorId,
+              embeddingId,
+              languageId: translationLanguageId,
+              translatableElementId: elementId,
             },
-          },
-          TranslatableElement: {
-            connect: {
-              id: elementId,
-            },
-          },
-          Language: {
-            connect: {
-              id: translationLanguageId,
-            },
-          },
-          Translator: {
-            connect: {
-              id: creatorId,
-            },
-          },
-          Embedding: {
-            connect: {
-              id: embeddingId,
-            },
-          },
-        },
-        include: {
-          Translator: true,
-        },
-      });
+          ])
+          .returning({
+            id: translationTable.id,
+            value: translationTable.value,
+          }),
+      );
 
       if (createMemory) {
-        await tx.memoryItem.createMany({
-          data: memoryIds.map((memoryId) => ({
+        await tx.insert(memoryItem).values(
+          memoryIds.map((memoryId) => ({
             source: element.value,
             // TODO 源语言应该成为元素的属性
-            sourceLanguageId: element.Document!.Project.sourceLanguageId,
+            sourceLanguageId: "zh_Hans",
             translation: translation.value,
             translationLanguageId,
             sourceElementId: elementId,
@@ -129,9 +113,9 @@ const worker = new Worker(
             memoryId,
             creatorId,
             sourceEmbeddingId: element.embeddingId,
-            translationEmbeddingId: translation.embeddingId,
+            translationEmbeddingId: embeddingId,
           })),
-        });
+        );
       }
     });
   },
@@ -141,4 +125,4 @@ const worker = new Worker(
   },
 );
 
-registerTaskUpdateHandlers(prisma, worker, queueId);
+registerTaskUpdateHandlers(drizzle, worker, queueId);

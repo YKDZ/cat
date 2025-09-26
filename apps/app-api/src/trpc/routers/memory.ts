@@ -4,7 +4,7 @@ import {
   MemorySuggestionSchema,
   type MemorySuggestion,
 } from "@cat/shared/schema/misc";
-import { logger } from "@cat/shared/utils";
+import { getSingle, logger } from "@cat/shared/utils";
 import {
   MemoryItemSchema,
   MemorySchema,
@@ -15,6 +15,14 @@ import {
 } from "@cat/app-server-shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { UserSchema } from "@cat/shared/schema/prisma/user";
+import {
+  count,
+  eq,
+  inArray,
+  memoryItem as memoryItemTable,
+  memory as memoryTable,
+  memoryToProject,
+} from "@cat/db";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
 export const memoryRouter = router({
@@ -23,39 +31,44 @@ export const memoryRouter = router({
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        projectIds: z.array(z.ulid()).optional(),
+        projectIds: z.array(z.uuidv7()).optional(),
       }),
     )
     .output(MemorySchema)
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
         user,
       } = ctx;
       const { name, description, projectIds } = input;
 
-      return await prisma.memory.create({
-        data: {
-          name,
-          description,
-          Creator: {
-            connect: {
-              id: user.id,
-            },
-          },
-          Projects: {
-            connect: projectIds
-              ? projectIds.map((projectId) => ({
-                  id: projectId,
-                }))
-              : undefined,
-          },
-        },
+      return await drizzle.transaction(async (tx) => {
+        const memory = getSingle(
+          await tx
+            .insert(memoryTable)
+            .values({
+              name,
+              description,
+              creatorId: user.id,
+            })
+            .returning(),
+        );
+
+        if (projectIds)
+          await tx.insert(memoryToProject).values(
+            projectIds.map((projectId) => ({
+              memoryId: memory.id,
+              projectId,
+            })),
+          );
+
+        return memory;
       });
     }),
   onNew: authedProcedure
     .input(
       z.object({
+        projectId: z.uuid(),
         elementId: z.number().int(),
         sourceLanguageId: z.string(),
         translationLanguageId: z.string(),
@@ -65,9 +78,10 @@ export const memoryRouter = router({
     .subscription(async function* ({ ctx, input }) {
       const {
         redisDB: { redisSub },
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const {
+        projectId,
         elementId,
         sourceLanguageId,
         translationLanguageId,
@@ -75,22 +89,16 @@ export const memoryRouter = router({
       } = input;
 
       // 要匹配记忆的元素
-      const element = await queryElementWithEmbedding(elementId);
+      const element = await queryElementWithEmbedding(drizzle, elementId);
 
       const memoryIds = (
-        await prisma.memory.findMany({
-          where: {
-            Projects: {
-              some: {
-                id: element.projectId,
-              },
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-      ).map((memory) => memory.id);
+        await drizzle
+          .select({
+            memoryId: memoryToProject.memoryId,
+          })
+          .from(memoryToProject)
+          .where(eq(memoryToProject.projectId, projectId))
+      ).map((row) => row.memoryId);
 
       if (!element || memoryIds.length === 0) return;
 
@@ -114,6 +122,7 @@ export const memoryRouter = router({
       await redisSub.subscribe(memoryChannelKey, onNewMemory);
 
       searchMemory(
+        drizzle,
         element.embedding,
         sourceLanguageId,
         translationLanguageId,
@@ -133,27 +142,25 @@ export const memoryRouter = router({
   listUserOwned: authedProcedure
     .input(
       z.object({
-        userId: z.ulid(),
+        userId: z.uuidv7(),
       }),
     )
     .output(z.array(MemorySchema))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { userId } = input;
 
       // TODO 按权限选择
-      return await prisma.memory.findMany({
-        where: {
-          creatorId: userId,
-        },
+      return await drizzle.query.memory.findMany({
+        where: (memory, { eq }) => eq(memory.creatorId, userId),
       });
     }),
   get: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
       }),
     )
     .output(
@@ -163,44 +170,44 @@ export const memoryRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      return await prisma.memory.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          Creator: true,
-        },
-      });
+      return (
+        (await drizzle.query.memory.findFirst({
+          where: (memory, { eq }) => eq(memory.id, id),
+          with: {
+            Creator: true,
+          },
+        })) ?? null
+      );
     }),
   countMemoryItem: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
       }),
     )
     .output(z.number().int().min(0))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      return await prisma.memoryItem.count({
-        where: {
-          Memory: {
-            id,
-          },
-        },
-      });
+      return getSingle(
+        await drizzle
+          .select({ count: count() })
+          .from(memoryItemTable)
+          .where(eq(memoryItemTable.memoryId, id))
+          .limit(1),
+      ).count;
     }),
   queryItems: authedProcedure
     .input(
       z.object({
-        memoryId: z.ulid(),
+        memoryId: z.uuidv7(),
         sourceLanguageId: z.string().nullable(),
         translationLanguageId: z.string().nullable(),
       }),
@@ -208,16 +215,21 @@ export const memoryRouter = router({
     .output(z.array(MemoryItemSchema))
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { memoryId, sourceLanguageId, translationLanguageId } = input;
 
-      const items = await prisma.memoryItem.findMany({
-        where: {
-          sourceLanguageId: sourceLanguageId ?? undefined,
-          translationLanguageId: translationLanguageId ?? undefined,
-          memoryId,
-        },
+      const items = await drizzle.query.memoryItem.findMany({
+        where: (memoryItem, { eq, and }) =>
+          and(
+            eq(memoryItem.memoryId, memoryId),
+            sourceLanguageId
+              ? eq(memoryItem.sourceLanguageId, sourceLanguageId)
+              : undefined,
+            translationLanguageId
+              ? eq(memoryItem.translationLanguageId, translationLanguageId)
+              : undefined,
+          ),
       });
 
       return items;
@@ -231,63 +243,66 @@ export const memoryRouter = router({
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { ids } = input;
 
-      await prisma.memoryItem.deleteMany({
-        where: {
-          id: {
-            in: ids,
-          },
-        },
-      });
+      await drizzle
+        .delete(memoryItemTable)
+        .where(inArray(memoryItemTable.id, ids));
     }),
   listProjectOwned: authedProcedure
     .input(
       z.object({
-        projectId: z.ulid(),
+        projectId: z.uuidv7(),
       }),
     )
-    .output(z.array(MemorySchema))
+    .output(
+      z.array(
+        MemorySchema.extend({
+          Creator: UserSchema,
+        }),
+      ),
+    )
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { projectId } = input;
 
-      return await prisma.memory.findMany({
-        where: {
-          Projects: {
-            some: {
-              id: projectId,
+      const row = await drizzle.query.memoryToProject.findMany({
+        where: (memoryToProject, { eq }) =>
+          eq(memoryToProject.projectId, projectId),
+        with: {
+          Memory: {
+            with: {
+              Creator: true,
             },
           },
         },
-        include: {
-          Creator: true,
-        },
       });
+
+      return row.map((r) => r.Memory);
     }),
   countItem: authedProcedure
     .input(
       z.object({
-        id: z.ulid(),
+        id: z.uuidv7(),
       }),
     )
     .output(z.number().int())
     .query(async ({ ctx, input }) => {
       const {
-        prismaDB: { client: prisma },
+        drizzleDB: { client: drizzle },
       } = ctx;
       const { id } = input;
 
-      return await prisma.memoryItem.count({
-        where: {
-          Memory: {
-            id,
-          },
-        },
-      });
+      return getSingle(
+        await drizzle
+          .select({ count: count() })
+          .from(memoryItemTable)
+          .where(eq(memoryItemTable.memoryId, id))
+          .limit(1),
+      ).count;
     }),
 });

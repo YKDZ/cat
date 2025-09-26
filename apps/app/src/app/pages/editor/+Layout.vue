@@ -18,7 +18,7 @@ const { documentId, languageFromId, languageToId } = storeToRefs(
 
 const LanguageFromToSchema = z.string().regex(/^.+-.+$/);
 
-syncRefWith(documentId, () => z.ulid().parse(ctx.routeParams["documentId"]));
+syncRefWith(documentId, () => z.uuidv7().parse(ctx.routeParams["documentId"]));
 syncRefWith(
   languageFromId,
   () =>

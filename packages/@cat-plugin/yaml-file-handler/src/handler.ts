@@ -44,7 +44,6 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
   }
 
   async extractElement(
-    file: File,
     fileContent: Buffer,
   ): Promise<TranslatableElementData[]> {
     const content = fileContent.toString("utf8");
@@ -99,7 +98,6 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
   }
 
   async getReplacedFileContent(
-    file: File,
     fileContent: Buffer,
     elements: Pick<TranslatableElement, "meta" | "value">[],
   ): Promise<Buffer> {

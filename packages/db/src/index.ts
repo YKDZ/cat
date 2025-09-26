@@ -1,4 +1,3 @@
-export * from "./prisma.ts";
 export * from "./redis.ts";
 export * from "./utils/setting.ts";
 export * from "./utils/password.ts";
@@ -6,5 +5,5 @@ export * from "./utils/vector.ts";
 export * from "./utils/file.ts";
 export * from "./settings/index.ts";
 export * from "./getter.ts";
-export * from "./generated/prisma/client.ts";
-export * from "./types/prisma.ts";
+export * from "./drizzle/index.ts";
+export * from "drizzle-orm";

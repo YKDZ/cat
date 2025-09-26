@@ -1,22 +1,21 @@
 import { logger } from "@cat/shared/utils";
-import { PrismaDB } from "./prisma.ts";
 import { RedisDB } from "./redis.ts";
+import { DrizzleDB } from "@/drizzle/db.ts";
 
 declare global {
-  var __PRISMA_DB__: PrismaDB | undefined;
-
+  var __DRIZZLE_DB__: DrizzleDB | undefined;
   var __REDIS_DB__: RedisDB | undefined;
 }
 
-export const getPrismaDB = async (): Promise<PrismaDB> => {
-  if (!globalThis["__PRISMA_DB__"]) {
+export const getDrizzleDB = async (): Promise<DrizzleDB> => {
+  if (!globalThis["__DRIZZLE_DB__"]) {
     logger.debug("DB", { msg: "new PrismaDB instance" });
-    const db = new PrismaDB();
+    const db = new DrizzleDB();
     await db.connect();
     await db.ping();
-    globalThis["__PRISMA_DB__"] = db;
+    globalThis["__DRIZZLE_DB__"] = db;
   }
-  return globalThis["__PRISMA_DB__"]!;
+  return globalThis["__DRIZZLE_DB__"]!;
 };
 
 export const getRedisDB = async (): Promise<RedisDB> => {
