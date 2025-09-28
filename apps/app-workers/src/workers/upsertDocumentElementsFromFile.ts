@@ -4,7 +4,7 @@ import * as z from "zod/v4";
 import { PluginRegistry, type TranslatableFileHandler } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import { extractElementsFromFile } from "@cat/app-server-shared/utils";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 import {
@@ -21,11 +21,11 @@ export const upsertDocumentElementsFromFileQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const { documentId, fileId, vectorizerId } = z
+    const { documentId, fileId, languageId } = z
       .object({
         documentId: z.uuidv7(),
         fileId: z.int(),
-        vectorizerId: z.int(),
+        languageId: z.string(),
       })
       .parse(job.data);
 
@@ -34,12 +34,6 @@ const worker = new Worker(
     const dbFile = await drizzle.query.file.findFirst({
       where: (file, { eq }) => eq(file.id, fileId),
     });
-
-    // const dbFile = await drizzle.file.findUnique({
-    //   where: {
-    //     id: fileId,
-    //   },
-    // });
 
     if (!dbFile) throw new Error("File not found");
 
@@ -59,12 +53,9 @@ const worker = new Worker(
       dbDocument.fileHandlerId,
     );
 
-    const newElementsData = await extractElementsFromFile(
-      drizzle,
-      pluginRegistry,
-      handler,
-      dbFile.id,
-    );
+    const newElementsData = (
+      await extractElementsFromFile(drizzle, pluginRegistry, handler, dbFile.id)
+    ).map((el) => ({ ...el, languageId }));
 
     const oldElementIds = (
       await drizzle.query.translatableElement.findMany({
@@ -75,7 +66,7 @@ const worker = new Worker(
       })
     ).map((el) => el.id);
 
-    const dbTask = getSingle(
+    const dbTask = assertSingleNonNullish(
       await drizzle
         .insert(taskTable)
         .values([
@@ -89,11 +80,8 @@ const worker = new Worker(
     const task = await batchDiffElementsQueue.add(dbTask.id, {
       newElementsData,
       oldElementIds,
-      vectorizerId,
-      sourceLanguageId: "zh_cn",
-      newElementMeta: {
-        documentId,
-      },
+      sourceLanguageId: languageId,
+      documentId,
     });
 
     await task.waitUntilFinished(batchDiffElementsQueueEvents);

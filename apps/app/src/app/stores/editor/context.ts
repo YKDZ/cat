@@ -5,7 +5,6 @@ import { trpc } from "@cat/app-api/trpc/client";
 
 export const useEditorContextStore = defineStore("editorContext", () => {
   const documentId = ref<string | null>(null);
-  const languageFromId = ref<string | null>(null);
   const languageToId = ref<string | null>(null);
   const pageSize = ref(16);
   const currentPageIndex = ref(-1);
@@ -19,12 +18,16 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     });
   });
 
+  const refresh = () => {
+    currentPageIndex.value = -1;
+  };
+
   return {
     documentId,
-    languageFromId,
     languageToId,
     pageSize,
     currentPageIndex,
     document,
+    refresh,
   };
 });

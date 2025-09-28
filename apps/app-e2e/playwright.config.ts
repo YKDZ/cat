@@ -25,7 +25,7 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "npx nx preview @cat/app",
+    command: "npx tsx ./scripts/copy-drizzle.ts && npx nx preview @cat/app",
     url: "http://localhost:3000",
     stdout: process.env.CI ? "pipe" : "ignore",
     stderr: process.env.CI ? "pipe" : "ignore",

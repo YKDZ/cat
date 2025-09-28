@@ -26,7 +26,7 @@ const handleVote = (value: number) => {
 
   trpc.translation.vote
     .mutate({
-      id: props.translation.id,
+      translationId: props.translation.id,
       value,
     })
     .then((newVote) => {

@@ -29,9 +29,6 @@ defineProps<{ project: Project }>();
       描述 <span>{{ project.description }}</span>
     </p>
     <p class="text-sm line-height-loose flex justify-between">
-      源语言 <span>{{ project?.SourceLanguage?.name }}</span>
-    </p>
-    <p class="text-sm line-height-loose flex justify-between">
       创建于
       <span>{{ useDateFormat(project.createdAt, "YYYY-MM-DD HH:mm") }}</span>
     </p>

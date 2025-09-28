@@ -19,8 +19,7 @@
   "scripts": {
     "build": "nx vite:build",
     "lint": "nx eslint:lint --fix",
-    "format": "prettier --write .",
-    "prisma:migrate": "prisma migrate dev"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "drizzle-orm": "^0.44.5",

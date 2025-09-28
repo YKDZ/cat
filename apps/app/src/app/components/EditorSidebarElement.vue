@@ -8,9 +8,7 @@ import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";
 
 const { elementId } = storeToRefs(useEditorTableStore());
-const { documentId, languageFromId, languageToId } = storeToRefs(
-  useEditorContextStore(),
-);
+const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 const { updateElementStatus } = useEditorElementStore();
 
 const props = defineProps<{
@@ -21,7 +19,7 @@ const handleClick = async () => {
   if (!props.element) return;
 
   await navigate(
-    `/editor/${documentId.value}/${languageFromId.value}-${languageToId.value}/${props.element.id}`,
+    `/editor/${documentId.value}/${languageToId.value}/${props.element.id}`,
   );
 };
 

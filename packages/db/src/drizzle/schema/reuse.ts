@@ -6,7 +6,7 @@ export const timestamps = {
   updatedAt: timestamp({ withTimezone: true })
     .defaultNow()
     .notNull()
-    .$onUpdate(() => sql`now()`),
+    .$onUpdate(() => new Date()),
 };
 
 export const uuidId = () =>

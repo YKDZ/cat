@@ -22,7 +22,7 @@ WORKDIR /builder
 RUN pnpm --filter=@cat/app deploy --prod --no-optional /deployer \
     && pnpm prune --prod --no-optional
 
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 ENV PNPM_HOME="/pnpm" \
     PATH="/pnpm:$PATH" \
     NODE_ENV=production

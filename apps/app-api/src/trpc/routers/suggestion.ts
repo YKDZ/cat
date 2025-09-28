@@ -141,7 +141,7 @@ export const suggestionRouter = router({
           );
         advisor
           .getSuggestions(
-            zElement,
+            zElement.value,
             termedText,
             relations,
             "zh_Hans",

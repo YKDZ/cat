@@ -15,6 +15,55 @@
       "when": 1758880958383,
       "tag": "0001_numerous_sugar_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758963256014,
+      "tag": "0002_lethal_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1758976295843,
+      "tag": "0003_bouncy_virginia_dare",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1758976463511,
+      "tag": "0004_romantic_silverclaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1758976663647,
+      "tag": "0005_dark_shockwave",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759026472125,
+      "tag": "0006_cuddly_ghost_rider",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1759026714251,
+      "tag": "0007_next_blacklash",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1759027866375,
+      "tag": "0008_hot_shooting_star",
+      "breakpoints": true
     }
   ]
 }

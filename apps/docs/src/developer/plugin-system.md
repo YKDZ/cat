@@ -538,7 +538,7 @@ const pluginObj = PluginObjectSchema.parse(imported.default ?? imported);
 // 通用服务获取方法
 private async getPluginServices<T, K extends string>(
   prisma: OverallPrismaClient,
-  getSingleService: (prisma: OverallPrismaClient, pluginId: string, options?: GetterOptions) => Promise<T[]>,
+  assertSingleNonNullishService: (prisma: OverallPrismaClient, pluginId: string, options?: GetterOptions) => Promise<T[]>,
   serviceKey: K,
   options?: GetterOptions,
 ): Promise<Array<{ pluginId: string } & Record<K, T>>> {

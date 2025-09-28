@@ -13,6 +13,7 @@ import EditorElementTranslationApprovementBtn from "./EditorElementTranslationAp
 import Icon from "./Icon.vue";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import type { User } from "@cat/shared/schema/prisma/user";
 
 const { t } = useI18n();
 
@@ -23,7 +24,8 @@ const { user } = usePageContext();
 
 const props = defineProps<{
   translation: TranslationWithStatus & {
-    Approvements: TranslationApprovement[];
+    Translator: User;
+    TranslationApprovements: TranslationApprovement[];
   };
 }>();
 
@@ -40,8 +42,8 @@ const handleSelect = () => {
 };
 
 const approvement = computed(() => {
-  if (!props.translation.Approvements) return null;
-  return props.translation.Approvements.find((a) => a.isActive);
+  if (!props.translation.TranslationApprovements) return null;
+  return props.translation.TranslationApprovements.find((a) => a.isActive);
 });
 </script>
 
@@ -55,7 +57,7 @@ const approvement = computed(() => {
     @click="handleSelect"
   >
     <div class="flex gap-2 items-center">
-      <UserAvatar :user-id="translation.translatorId" :size="36" />
+      <UserAvatar :user="translation.Translator" :size="36" />
       <div class="flex flex-col gap-1 max-w-full">
         <TextTagger :text="translation.value" />
         <EditorElementTranslationMeta :translation />

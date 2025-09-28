@@ -19,7 +19,7 @@ withDefaults(
 const { t } = useI18n();
 
 const { user } = usePageContext();
-const memoryIds = defineModel<string[]>("memoryIds", { required: true });
+const memoryIds = defineModel<string[]>({ required: true });
 
 const memories = ref<Memory[]>([]);
 const options = computed(() => {

@@ -2,56 +2,15 @@ import {
   and,
   cosineDistance,
   desc,
-  document,
   eq,
   gt,
   inArray,
   memoryItem,
   OverallDrizzleClient,
   sql,
-  translatableElement,
   vector,
 } from "@cat/db";
-import { getSingle } from "@cat/shared/utils";
-
-export type SearchedMemory = {
-  id: number;
-  source: string;
-  translation: string;
-  memoryId: string;
-  translatorId: string;
-  similarity: number;
-  translationEmbeddingId: number;
-};
-
-export const queryElementWithEmbedding = async (
-  drizzle: OverallDrizzleClient,
-  elementId: number,
-): Promise<{
-  id: number;
-  value: string;
-  embedding: number[];
-}> => {
-  const element = getSingle(
-    await drizzle
-      .select({
-        id: translatableElement.id,
-        value: translatableElement.value,
-        embedding: vector.vector,
-      })
-      .from(translatableElement)
-      .innerJoin(vector, eq(translatableElement.embeddingId, vector.id))
-      .innerJoin(document, eq(translatableElement.documentId, document.id))
-      .where(eq(translatableElement.id, elementId))
-      .limit(1),
-  );
-
-  return {
-    id: element.id,
-    value: element.value,
-    embedding: element.embedding,
-  };
-};
+import { MemorySuggestion } from "@cat/shared/schema/misc";
 
 export const searchMemory = async (
   drizzle: OverallDrizzleClient,
@@ -61,76 +20,78 @@ export const searchMemory = async (
   memoryIds: string[],
   minSimilarity: number = 0.8,
   maxAmount: number = 3,
-): Promise<SearchedMemory[]> => {
+): Promise<MemorySuggestion[]> => {
+  const similarityExpr = sql<number>`1 - (${cosineDistance(vector.vector, embedding)})`;
+
   // source -> translation
-  const similaritySource = sql<number>`1 - (${cosineDistance(memoryItem.sourceEmbeddingId, embedding)})`;
   const sourceResults = await drizzle
     .select({
       id: memoryItem.id,
+      translationEmbeddingId: memoryItem.sourceEmbeddingId,
       memoryId: memoryItem.memoryId,
       source: memoryItem.source,
       translation: memoryItem.translation,
-      translationEmbeddingId: memoryItem.translationEmbeddingId,
       creatorId: memoryItem.creatorId,
-      similarity: similaritySource,
+      similarity: similarityExpr,
+      createdAt: memoryItem.createdAt,
+      updatedAt: memoryItem.updatedAt,
     })
     .from(memoryItem)
+    .innerJoin(vector, eq(memoryItem.sourceEmbeddingId, vector.id))
     .where(
       and(
         eq(memoryItem.sourceLanguageId, sourceLanguageId),
         eq(memoryItem.translationLanguageId, translationLanguageId),
         inArray(memoryItem.memoryId, memoryIds),
-        gt(similaritySource, minSimilarity),
+        gt(similarityExpr, minSimilarity),
       ),
     )
-    .orderBy(desc(similaritySource))
+    .orderBy(desc(similarityExpr))
     .limit(maxAmount);
 
   // translation -> source
-  const similarityTrans = sql<number>`1 - (${cosineDistance(memoryItem.translationEmbeddingId, embedding)})`;
   const transResults = await drizzle
     .select({
       id: memoryItem.id,
+      translationEmbeddingId: memoryItem.sourceEmbeddingId,
       memoryId: memoryItem.memoryId,
       source: memoryItem.translation,
       translation: memoryItem.source,
-      translationEmbeddingId: memoryItem.translationEmbeddingId,
       creatorId: memoryItem.creatorId,
-      similarity: similarityTrans,
+      similarity: similarityExpr,
+      createdAt: memoryItem.createdAt,
+      updatedAt: memoryItem.updatedAt,
     })
     .from(memoryItem)
+    .innerJoin(vector, eq(memoryItem.translationEmbeddingId, vector.id))
     .where(
       and(
         eq(memoryItem.sourceLanguageId, translationLanguageId),
         eq(memoryItem.translationLanguageId, sourceLanguageId),
         inArray(memoryItem.memoryId, memoryIds),
-        gt(similarityTrans, minSimilarity),
+        gt(similarityExpr, minSimilarity),
       ),
     )
-    .orderBy(desc(similarityTrans))
+    .orderBy(desc(similarityExpr))
     .limit(maxAmount);
 
-  const allResults = [...sourceResults, ...transResults]
+  const allResults = uniqueBy(
+    [...sourceResults, ...transResults],
+    (item) => item.source + item.translation,
+  )
+    .filter((item) => item.similarity >= minSimilarity)
     .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, maxAmount)
-    .map(
-      ({
-        id,
-        memoryId,
-        source,
-        translation,
-        creatorId,
-        similarity,
-        translationEmbeddingId,
-      }) => ({
-        id,
-        source,
-        translation,
-        memoryId,
-        translatorId: creatorId,
-        similarity,
-        translationEmbeddingId,
-      }),
-    );
+    .slice(0, maxAmount);
+
   return allResults;
+};
+
+const uniqueBy = <T, K>(arr: T[], keyFn: (item: T) => K): T[] => {
+  const seen = new Set<K>();
+  return arr.filter((item) => {
+    const key = keyFn(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 };

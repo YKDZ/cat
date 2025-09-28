@@ -7,11 +7,8 @@ export const DocumentSchema = z.object({
   name: z.string().nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-
   fileHandlerId: z.int().nullable(),
-
   creatorId: z.uuidv7(),
-
   projectId: z.uuidv7(),
 });
 
@@ -20,14 +17,11 @@ export const TranslatableElementSchema = z.object({
   value: z.string(),
   sortIndex: z.int(),
   meta: safeZDotJson,
-
   embeddingId: z.int(),
-
   documentVersionId: z.int().nullable(),
-
   creatorId: z.uuidv7().nullable(),
-
-  projectId: z.uuidv7().nullable(),
+  documentId: z.uuidv7(),
+  languageId: z.string(),
 });
 
 export const DocumentVersionSchema = z.object({
@@ -35,7 +29,6 @@ export const DocumentVersionSchema = z.object({
   isActive: z.boolean(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-
   documentId: z.uuidv7(),
 });
 

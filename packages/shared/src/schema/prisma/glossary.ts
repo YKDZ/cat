@@ -8,9 +8,7 @@ export const TermSchema = z.object({
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
   glossaryId: z.uuidv7(),
-
   languageId: z.string(),
-
   creatorId: z.uuidv7(),
 });
 

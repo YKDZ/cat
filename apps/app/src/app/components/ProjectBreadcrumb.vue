@@ -10,13 +10,7 @@ defineProps<{
 
 <template>
   <div class="text-lg font-500 flex items-center">
-    <UserAvatar
-      v-if="project.Creator"
-      :user="project.Creator"
-      :size="30"
-      with-name
-      link
-    />
+    <UserAvatar :user-id="project.creatorId" :size="30" with-name link />
     <Slash large />{{ project.name }}
   </div>
 </template>

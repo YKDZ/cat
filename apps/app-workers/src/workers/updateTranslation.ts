@@ -1,15 +1,14 @@
 import {
   getDrizzleDB,
-  insertVector,
   translation as translationTable,
   eq,
   memoryItem,
 } from "@cat/db";
-import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
+import { PluginRegistry } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
-import { getServiceFromDBId } from "@cat/app-server-shared/utils";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
+import { vectorize } from "@cat/app-server-shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 
@@ -31,11 +30,10 @@ const worker = new Worker(
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    const translation = getSingle(
+    const translation = assertSingleNonNullish(
       await drizzle
         .select({
           value: translationTable.value,
-          vectorizerId: translationTable.vectorizerId,
           languageId: translationTable.languageId,
         })
         .from(translationTable)
@@ -46,29 +44,21 @@ const worker = new Worker(
     if (!translation)
       throw new Error("Translation with given id doest not exists");
 
-    const vectorizer = await getServiceFromDBId<TextVectorizer>(
-      drizzle,
-      pluginRegistry,
-      translation.vectorizerId,
+    // 开始处理翻译的嵌入并插入
+    const embeddingId = assertSingleNonNullish(
+      await vectorize(drizzle, pluginRegistry, [
+        {
+          value: translationValue,
+          languageId: translation.languageId,
+        },
+      ]),
     );
 
-    // 开始处理翻译的嵌入并插入
-    const vectors = await vectorizer.vectorize(translation.languageId, [
-      { value: translationValue, meta: null },
-    ]);
-
-    const vector = getSingle(vectors);
-
     await drizzle.transaction(async (tx) => {
-      const embeddingId = await insertVector(tx, vector);
-
-      if (!embeddingId) throw new Error("Failed to get id of vector");
-
       await tx
         .update(translationTable)
         .set({
           value: translationValue,
-          embeddingId,
         })
         .where(eq(translationTable.id, translationId));
 

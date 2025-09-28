@@ -8,9 +8,7 @@ import ProjectLanguageDocumentListItem from "./ProjectLanguageDocumentListItem.v
 
 defineProps<{
   documents: Document[];
-  project: Project & {
-    SourceLanguage: Language;
-  };
+  project: Project;
   language: Language;
 }>();
 </script>

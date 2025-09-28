@@ -11,9 +11,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { timestamps } from "../utils/reuse.ts";
+import { timestamps } from "./reuse.ts";
 import { user } from "./user.ts";
-import { pluginService } from "./plugin.ts";
 import { language } from "./misc.ts";
 import { translatableElement } from "./document.ts";
 import { vector } from "./vector.ts";
@@ -29,7 +28,6 @@ export const translation = pgTable(
     languageId: text().notNull(),
     meta: jsonb(),
     embeddingId: integer().notNull(),
-    vectorizerId: integer().notNull(),
     ...timestamps,
   },
   (table) => [
@@ -61,12 +59,6 @@ export const translation = pgTable(
     foreignKey({
       columns: [table.embeddingId],
       foreignColumns: [vector.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("restrict"),
-    foreignKey({
-      columns: [table.vectorizerId],
-      foreignColumns: [pluginService.id],
     })
       .onUpdate("cascade")
       .onDelete("restrict"),
@@ -149,10 +141,6 @@ export const translationRelations = relations(translation, ({ one, many }) => ({
   Embedding: one(vector, {
     fields: [translation.embeddingId],
     references: [vector.id],
-  }),
-  PluginService: one(pluginService, {
-    fields: [translation.vectorizerId],
-    references: [pluginService.id],
   }),
   TranslationVotes: many(translationVote),
   MemoryItems: many(memoryItem),

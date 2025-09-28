@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 import * as z from "zod/v4";
 import { Queue, Worker } from "bullmq";
 import { eq, getDrizzleDB, getRedisDB, task } from "@cat/db";
-import { getFirst, getIndex, getSingle, logger } from "@cat/shared/utils";
+import {
+  assertFirstNonNullish,
+  getIndex,
+  assertSingleNonNullish,
+  logger,
+} from "@cat/shared/utils";
 import type { JSONType } from "@cat/shared/schema/json";
 import { config } from "@/workers/config.ts";
 
@@ -58,7 +63,7 @@ export class DistributedTaskHandler<T> {
   public async run() {
     const { client: drizzle } = await getDrizzleDB();
 
-    const newTask = getSingle(
+    const newTask = assertSingleNonNullish(
       await drizzle
         .insert(task)
         .values([
@@ -189,7 +194,7 @@ const runDistributedTask = async <T>(
             if (failedChunks.length !== 0) {
               await rollbackAll(task, successfulChunks);
               await updateTaskStatus(task, "failed");
-              reject(getFirst(failedChunks).error);
+              reject(assertFirstNonNullish(failedChunks).error);
             }
             // 没有错误
             // 任务完成

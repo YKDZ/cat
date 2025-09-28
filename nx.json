@@ -26,6 +26,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "preview": {
+      "dependsOn": [
+        "build"
+      ]
     }
   },
   "plugins": [

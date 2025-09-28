@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { onBeforeMount, ref, shallowRef } from "vue";
+import { onMounted, ref, shallowRef } from "vue";
 import { useDebounceFn } from "@vueuse/core";
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
-import JSONForm from "@/app/components/json-form/JsonForm.vue";
+import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+import JsonForm from "@/app/components/json-form/JsonForm.vue";
 
 const props = defineProps<{
-  configGetter: () => Promise<JSONType>;
+  configGetter: () => Promise<NonNullJSONType>;
   configSetter: (
-    value: JSONType,
+    value: NonNullJSONType,
     schema: JSONSchema,
-    key?: string,
+    key: string | number,
   ) => Promise<void>;
   schema: JSONSchema;
 }>();
 
-const data = shallowRef<JSONType>({});
+const data = shallowRef<NonNullJSONType>({});
 const isPending = ref(false);
 
 const debouncedFunctions = new Map<string, ReturnType<typeof useDebounceFn>>();
@@ -42,9 +42,9 @@ const getDelayByType = (schema: JSONSchema): number => {
 };
 
 const handleUpdate = async (
-  value: JSONType,
+  value: NonNullJSONType,
   schema: JSONSchema,
-  key?: string,
+  key: string | number,
 ) => {
   if (!key) {
     await props.configSetter(value, schema, key);
@@ -52,13 +52,17 @@ const handleUpdate = async (
   }
 
   const delay = getDelayByType(schema);
-  const debouncedKey = key;
+  const debouncedKey = `${key}`;
 
   let debouncedFn = debouncedFunctions.get(debouncedKey);
   if (!debouncedFn) {
     if (delay === 0) {
       // 无延迟，创建立即执行的函数
-      debouncedFn = async (v: JSONType, s: JSONSchema, k?: string) => {
+      debouncedFn = async (
+        v: NonNullJSONType,
+        s: JSONSchema,
+        k: string | number,
+      ) => {
         isPending.value = true;
         try {
           await props.configSetter(v, s, k);
@@ -69,7 +73,7 @@ const handleUpdate = async (
       };
     } else {
       debouncedFn = useDebounceFn(
-        async (v: JSONType, s: JSONSchema, k?: string) => {
+        async (v: NonNullJSONType, s: JSONSchema, k: string | number) => {
           try {
             await props.configSetter(v, s, k);
             data.value = value;
@@ -88,14 +92,14 @@ const handleUpdate = async (
   await debouncedFn(value, schema, key);
 };
 
-onBeforeMount(async () => {
+onMounted(async () => {
   data.value = await props.configGetter();
 });
 </script>
 
 <template>
-  <JSONForm
-    v-if="typeof schema === 'object'"
+  <JsonForm
+    v-if="typeof schema === 'object' && Object.keys(data).length > 0"
     :data
     :schema
     @update="handleUpdate"

@@ -1,40 +1,47 @@
 <script setup lang="ts">
-import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
+import type {
+  _JSONSchema,
+  JSONSchema,
+  NonNullJSONType,
+} from "@cat/shared/schema/json";
 import { trpc } from "@cat/app-api/trpc/client";
 import SettingForm from "./SettingForm.vue";
 
 const props = defineProps<{
-  schema: JSONSchema;
+  schema: _JSONSchema;
 }>();
 
 const configSetter = async (
-  value: JSONType,
+  value: NonNullJSONType,
   schema: JSONSchema,
-  key?: string,
+  key?: string | number,
 ) => {
-  if (!key) return;
+  if (!key || typeof key === "number") return;
+
   if (
     Object.keys(value as object).length === 0 ||
     !Object.keys(value as object).includes(key)
   )
     return;
 
-  await trpc.setting.set.mutate([
-    { key, value: (value as Record<string, JSONType>)[key] },
-  ]);
+  const toValue = (value as Record<string, NonNullJSONType>)[key];
+
+  if (!toValue) return;
+
+  await trpc.setting.set.mutate([{ key, value: toValue }]);
 };
 
 const configGetter = async () => {
   if (props.schema.type !== "object")
     throw new Error("schema type must be object");
 
-  const data: Record<string, JSONType> = {};
+  const data: Record<string, NonNullJSONType> = {};
   for (const key in props.schema.properties) {
     const value = await trpc.setting.get.query({ key });
     data[key] = value;
   }
 
-  return data as JSONType;
+  return data as NonNullJSONType;
 };
 </script>
 

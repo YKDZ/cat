@@ -14,11 +14,11 @@ import {
 } from "drizzle-orm/pg-core";
 import { JSONSchema } from "@cat/shared/schema/json";
 import { relations } from "drizzle-orm";
-import { timestamps } from "../utils/reuse.ts";
+import { timestamps } from "./reuse.ts";
 import { user } from "./user.ts";
 import { file } from "./file.ts";
 import { document } from "./document.ts";
-import { translation } from "./translation.ts";
+import { vector } from "./vector.ts";
 
 export type PluginServiceType =
   | "AUTH_PROVIDER"
@@ -208,7 +208,7 @@ export const pluginServiceRelations = relations(
     }),
     Files: many(file),
     Documents: many(document),
-    Translations: many(translation),
+    Vectors: many(vector),
   }),
 );
 

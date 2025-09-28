@@ -41,7 +41,7 @@ const configGetter = async () => {
         await navigate("/");
         return {};
       }
-      instance.value = data;
+      instance.value = data as PluginConfigInstance;
       return data.value;
     });
 };

@@ -32,7 +32,8 @@
   "scripts": {
     "build": "vite build",
     "lint": "nx eslint:lint --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",

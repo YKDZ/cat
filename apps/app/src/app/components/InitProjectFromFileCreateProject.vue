@@ -5,7 +5,6 @@ import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import HButton from "@/app/components/headless/HButton.vue";
-import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
 import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
 import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
@@ -22,9 +21,8 @@ const progress = defineModel("progress", { type: Number, required: true });
 const project = defineModel<Project>("project");
 
 const isProcessing = ref<boolean>(false);
-const name = ref<string>();
+const name = ref<string>("");
 const description = ref<string>("");
-const sourceLanguageId = ref<string>("");
 const targetLanguageIds = ref<string[]>([]);
 const memoryIds = ref<string[]>(["createNew"]);
 const glossaryIds = ref<string[]>(["createNew"]);
@@ -34,9 +32,6 @@ const ProjectDataSchema = z.object({
     .string({ error: "项目必须有名称" })
     .min(1, { error: "项目必须有名称" }),
   description: z.string({ error: "项目简介必须是字符串" }).nullable(),
-  sourceLanguageId: z
-    .string({ error: "必须指定项目源语言" })
-    .min(1, { error: "必须指定项目源语言" }),
   targetLanguageIds: z.array(z.string()).default([]),
   memoryIds: z.array(z.uuidv7()).default([]),
   glossaryIds: z.array(z.uuidv7()).default([]),
@@ -55,7 +50,6 @@ const createProject = async () => {
   const projectData = ProjectDataSchema.parse({
     name: name.value,
     description: description.value,
-    sourceLanguageId: sourceLanguageId.value,
     targetLanguageIds: targetLanguageIds.value,
     memoryIds: realMemIds,
     glossaryIds: realGloIds,
@@ -66,7 +60,6 @@ const createProject = async () => {
   project.value = await trpc.project.create.mutate({
     name: projectData.name,
     description: projectData.description,
-    sourceLanguageId: projectData.sourceLanguageId,
     targetLanguageIds: projectData.targetLanguageIds,
     memoryIds: projectData.memoryIds,
     glossaryIds: projectData.glossaryIds,
@@ -116,17 +109,8 @@ const createProject = async () => {
       :classes="{
         label: 'label',
       }"
-      required
-      ><span class="label-text label-text-required">{{ t("源语言") }}</span
-      ><LanguagePicker v-model="sourceLanguageId"
-    /></HLabel>
-
-    <HLabel
-      :classes="{
-        label: 'label',
-      }"
       ><span class="label-text label-text-required">{{ t("目标语言") }}</span
-      ><MultiLanguagePicker v-model:language-ids="targetLanguageIds"
+      ><MultiLanguagePicker v-model="targetLanguageIds"
     /></HLabel>
 
     <HLabel
@@ -134,9 +118,7 @@ const createProject = async () => {
         label: 'label',
       }"
       ><span class="label-text label-text-required">{{ t("记忆库") }}</span>
-      <MultiMemoryPicker
-        v-model:memory-ids="memoryIds"
-        placeholder="选择一个或多个记忆库"
+      <MultiMemoryPicker v-model="memoryIds" placeholder="选择一个或多个记忆库"
     /></HLabel>
 
     <HLabel
@@ -145,7 +127,7 @@ const createProject = async () => {
       }"
       ><span class="label-text label-text-required">{{ t("术语库") }}</span>
       <MultiGlossaryPicker
-        v-model:glossary-ids="glossaryIds"
+        v-model="glossaryIds"
         create-new
         placeholder="选择一个或多个术语库"
     /></HLabel>

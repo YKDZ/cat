@@ -67,7 +67,7 @@ const handleLink = async () => {
     }"
   >
     <h3 class="text-lg font-bold">{{ t("连接或创建新记忆库") }}</h3>
-    <MultiMemoryPicker v-model:memory-ids="memoryIds" full-width create-new />
+    <MultiMemoryPicker v-model="memoryIds" full-width create-new />
     <HButton
       :classes="{
         base: 'btn btn-md btn-base btn-w-full',

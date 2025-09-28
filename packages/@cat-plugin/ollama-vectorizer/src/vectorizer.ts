@@ -28,10 +28,7 @@ export class Vectorizer implements TextVectorizer {
     return true;
   }
 
-  async vectorize(
-    languageId: string,
-    elements: UnvectorizedTextData[],
-  ): Promise<number[][]> {
+  async vectorize(elements: UnvectorizedTextData[]): Promise<number[][]> {
     const values: string[] = elements.map((element) => element.value);
 
     const response = await this.pool.request({

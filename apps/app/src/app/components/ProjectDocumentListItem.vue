@@ -26,7 +26,7 @@ const handleDelete = async () => {
     })
     .then(() => {
       emits("delete");
-      info("成功删除文档 " + props.document.File?.originName);
+      info("成功删除文档 " + props.document.name);
     })
     .catch(trpcWarn);
 };
@@ -41,7 +41,7 @@ const handleClick = async () => {
     class="cursor-pointer hover:bg-highlight-darker"
     @click="handleClick"
   >
-    <TableCell>{{ document.File?.originName }}</TableCell>
+    <TableCell>{{ document.name }}</TableCell>
     <TableCell>
       <HButton
         icon="i-mdi:trash-can"

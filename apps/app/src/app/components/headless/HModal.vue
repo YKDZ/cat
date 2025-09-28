@@ -29,7 +29,7 @@ const handleClickOutside = () => {
 
 const { escape } = useMagicKeys();
 
-watch(escape, () => (isOpen.value = false));
+watch([escape], () => (isOpen.value = false));
 </script>
 
 <template>

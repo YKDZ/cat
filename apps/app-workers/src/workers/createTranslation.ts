@@ -1,16 +1,15 @@
 import {
   eq,
   getDrizzleDB,
-  insertVector,
   memoryItem,
   translatableElement,
   translation as translationTable,
 } from "@cat/db";
-import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
+import { PluginRegistry } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
-import { getServiceFromDBId } from "@cat/app-server-shared/utils";
-import { getSingle } from "@cat/shared/utils";
+import { vectorize } from "@cat/app-server-shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 
@@ -28,7 +27,6 @@ const worker = new Worker(
       translationLanguageId,
       elementId,
       creatorId,
-      vectorizerId,
       createMemory,
       memoryIds,
     } = z
@@ -37,7 +35,6 @@ const worker = new Worker(
         translationLanguageId: z.string(),
         elementId: z.number(),
         creatorId: z.uuidv7(),
-        vectorizerId: z.number(),
         createMemory: z.boolean(),
         memoryIds: z.array(z.uuidv7()),
       })
@@ -45,17 +42,12 @@ const worker = new Worker(
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    const vectorizer = await getServiceFromDBId<TextVectorizer>(
-      drizzle,
-      pluginRegistry,
-      vectorizerId,
-    );
-
-    const element = getSingle(
+    const element = assertSingleNonNullish(
       await drizzle
         .select({
           value: translatableElement.value,
           embeddingId: translatableElement.embeddingId,
+          languageId: translatableElement.languageId,
         })
         .from(translatableElement)
         .where(eq(translatableElement.id, elementId))
@@ -66,28 +58,22 @@ const worker = new Worker(
       throw new Error("TranslatableElement with given id doest not exists");
 
     // 开始处理翻译的嵌入并插入
-    const vectors = await vectorizer.vectorize(translationLanguageId, [
-      { value: translationValue, meta: null },
-    ]);
-
-    if (vectors.length !== 1) {
-      throw new Error("Vectorizer does not work well");
-    }
-
-    const vector = getSingle(vectors);
+    const embeddingId = assertSingleNonNullish(
+      await vectorize(drizzle, pluginRegistry, [
+        {
+          value: translationValue,
+          languageId: translationLanguageId,
+        },
+      ]),
+    );
 
     await drizzle.transaction(async (tx) => {
-      const embeddingId = await insertVector(tx, vector);
-
-      if (!embeddingId) throw new Error("Failed to get id of vector");
-
-      const translation = getSingle(
+      const translation = assertSingleNonNullish(
         await drizzle
           .insert(translationTable)
           .values([
             {
               value: translationValue,
-              vectorizerId,
               translatorId: creatorId,
               embeddingId,
               languageId: translationLanguageId,
@@ -104,8 +90,7 @@ const worker = new Worker(
         await tx.insert(memoryItem).values(
           memoryIds.map((memoryId) => ({
             source: element.value,
-            // TODO 源语言应该成为元素的属性
-            sourceLanguageId: "zh_Hans",
+            sourceLanguageId: element.languageId,
             translation: translation.value,
             translationLanguageId,
             sourceElementId: elementId,

@@ -2,7 +2,6 @@ import { ProjectSchema } from "@cat/shared/schema/prisma/project";
 import * as z from "zod/v4";
 import { DocumentSchema } from "@cat/shared/schema/prisma/document";
 import { UserSchema } from "@cat/shared/schema/prisma/user";
-import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
 import { FileSchema } from "@cat/shared/schema/prisma/file";
 import {
   eq,
@@ -11,6 +10,7 @@ import {
   project as projectTable,
   projectTargetLanguage,
   memory as memoryTable,
+  glossary as glossaryTable,
   and,
   inArray,
   document as documentTable,
@@ -19,7 +19,7 @@ import {
   translationApprovement as translationApprovementTable,
   count,
 } from "@cat/db";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
 export const projectRouter = router({
@@ -43,7 +43,6 @@ export const projectRouter = router({
       z.object({
         id: z.uuidv7(),
         name: z.string().min(1).optional(),
-        sourceLanguageId: z.string().optional(),
         targetLanguageIds: z.array(z.string()).optional(),
         description: z.string().min(0).optional(),
       }),
@@ -53,8 +52,7 @@ export const projectRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id, name, sourceLanguageId, targetLanguageIds, description } =
-        input;
+      const { id, name, targetLanguageIds, description } = input;
 
       return await drizzle.transaction(async (tx) => {
         if (targetLanguageIds) {
@@ -69,15 +67,8 @@ export const projectRouter = router({
             })),
           );
         }
-        if (sourceLanguageId)
-          await tx
-            .update(projectTable)
-            .set({
-              sourceLanguageId,
-            })
-            .where(eq(projectTable.id, id));
 
-        return getSingle(
+        return assertSingleNonNullish(
           await tx
             .update(projectTable)
             .set({
@@ -94,7 +85,6 @@ export const projectRouter = router({
       z.object({
         name: z.string(),
         description: z.string().nullable(),
-        sourceLanguageId: z.string(),
         targetLanguageIds: z.array(z.string()),
         memoryIds: z.array(z.uuidv7()),
         glossaryIds: z.array(z.uuidv7()),
@@ -111,7 +101,6 @@ export const projectRouter = router({
       const {
         name,
         description,
-        sourceLanguageId,
         targetLanguageIds,
         memoryIds,
         glossaryIds,
@@ -120,28 +109,27 @@ export const projectRouter = router({
       } = input;
 
       return await drizzle.transaction(async (tx) => {
-        // TODO 源语言不应该是项目的属性
-        const project = getSingle(
+        const project = assertSingleNonNullish(
           await tx
             .insert(projectTable)
             .values({
               name,
               description,
               creatorId: user.id,
-              sourceLanguageId,
             })
             .returning(),
         );
 
-        await tx.insert(projectTargetLanguage).values(
-          targetLanguageIds.map((languageId) => ({
-            projectId: project.id,
-            languageId,
-          })),
-        );
+        if (targetLanguageIds.length > 0)
+          await tx.insert(projectTargetLanguage).values(
+            targetLanguageIds.map((languageId) => ({
+              projectId: project.id,
+              languageId,
+            })),
+          );
 
         if (createMemory) {
-          const memory = getSingle(
+          const memory = assertSingleNonNullish(
             await tx
               .insert(memoryTable)
               .values({
@@ -154,16 +142,16 @@ export const projectRouter = router({
         }
 
         if (createGlossary) {
-          const memory = getSingle(
+          const glossary = assertSingleNonNullish(
             await tx
-              .insert(memoryTable)
+              .insert(glossaryTable)
               .values({
                 name,
                 creatorId: user.id,
               })
-              .returning({ id: memoryTable.id }),
+              .returning({ id: glossaryTable.id }),
           );
-          memoryIds.push(memory.id);
+          glossaryIds.push(glossary.id);
         }
 
         if (glossaryIds.length > 0)
@@ -282,7 +270,6 @@ export const projectRouter = router({
       z.array(
         ProjectSchema.extend({
           Creator: UserSchema,
-          SourceLanguage: LanguageSchema,
           Documents: z.array(
             DocumentSchema.extend({
               File: FileSchema.nullable(),
@@ -301,7 +288,6 @@ export const projectRouter = router({
         where: (project, { eq }) => eq(project.creatorId, user.id),
         with: {
           Creator: true,
-          SourceLanguage: true,
           Documents: {
             with: {
               File: true,
@@ -319,7 +305,6 @@ export const projectRouter = router({
     .output(
       ProjectSchema.extend({
         Creator: UserSchema,
-        SourceLanguage: LanguageSchema,
         Documents: z.array(
           DocumentSchema.extend({
             File: FileSchema.nullable(),
@@ -338,7 +323,6 @@ export const projectRouter = router({
           where: (project, { eq }) => eq(project.id, id),
           with: {
             Creator: true,
-            SourceLanguage: true,
             Documents: {
               with: {
                 File: true,
@@ -415,7 +399,7 @@ export const projectRouter = router({
         }
       }
 
-      return getSingle(await baseQuery).count;
+      return assertSingleNonNullish(await baseQuery).count;
     }),
   countTranslation: authedProcedure
     .input(
@@ -459,7 +443,7 @@ export const projectRouter = router({
         );
       }
 
-      return getSingle(await baseQuery).count;
+      return assertSingleNonNullish(await baseQuery).count;
     }),
   getDocuments: authedProcedure
     .input(z.object({ projectId: z.string() }))
