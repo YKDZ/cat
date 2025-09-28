@@ -9,7 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { timestamps, uuidId } from "../utils/reuse.ts";
+import { timestamps, uuidId } from "./reuse.ts";
 import { project } from "./project.ts";
 import { user } from "./user.ts";
 import { language } from "./misc.ts";

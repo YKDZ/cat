@@ -11,8 +11,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { timestamps, uuidId } from "../utils/reuse.ts";
-import { task } from "./misc.ts";
+import { timestamps, uuidId } from "./reuse.ts";
+import { language, task } from "./misc.ts";
 import { project } from "./project.ts";
 import { user } from "./user.ts";
 import { pluginService } from "./plugin.ts";
@@ -60,12 +60,12 @@ export const translatableElement = pgTable(
     id: serial().primaryKey().notNull(),
     value: text().notNull(),
     meta: jsonb(),
-    documentId: uuid(),
+    documentId: uuid().notNull(),
     embeddingId: integer().notNull(),
     documentVersionId: integer(),
     sortIndex: integer().notNull(),
     creatorId: uuid(),
-    projectId: uuid(),
+    languageId: text().notNull(),
     ...timestamps,
   },
   (table) => [
@@ -94,11 +94,11 @@ export const translatableElement = pgTable(
       .onUpdate("cascade")
       .onDelete("cascade"),
     foreignKey({
-      columns: [table.projectId],
-      foreignColumns: [project.id],
+      columns: [table.languageId],
+      foreignColumns: [language.id],
     })
       .onUpdate("cascade")
-      .onDelete("set null"),
+      .onDelete("restrict"),
   ],
 );
 
@@ -184,9 +184,9 @@ export const translatableElementRelations = relations(
       fields: [translatableElement.creatorId],
       references: [user.id],
     }),
-    Project: one(project, {
-      fields: [translatableElement.projectId],
-      references: [project.id],
+    Language: one(language, {
+      fields: [translatableElement.languageId],
+      references: [language.id],
     }),
     MemoryItems: many(memoryItem),
     Translations: many(translation),

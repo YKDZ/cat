@@ -84,11 +84,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
     return this.config.base["advisor-name"];
   }
 
-  canSuggest(
-    element: TranslatableElement,
-    languageFromId: string,
-    languageToId: string,
-  ) {
+  canSuggest(languageFromId: string, languageToId: string) {
     const sourceLang = languageFromId.replaceAll("_", "-");
     const targetLang = languageToId.replaceAll("_", "-");
     return (
@@ -98,7 +94,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
   }
 
   async getSuggestions(
-    element: TranslatableElement,
+    value: string,
     termedValue: string,
     termRelations: Required<TermRelation>[],
     languageFromId: string,
@@ -108,9 +104,9 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
     const targetLang = languageToId.replaceAll("_", "-");
 
     try {
-      const raw = await this.translate(element.value, sourceLang, targetLang);
+      const raw = await this.translate(value, sourceLang, targetLang);
       const termed = [];
-      if (termedValue !== element.value) {
+      if (termedValue !== value) {
         termed.push(
           ...(await this.translate(termedValue, sourceLang, targetLang)),
         );

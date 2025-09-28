@@ -28,8 +28,10 @@ const loadVersions = async () => {
   versions.value = await trpc.document.getDocumentVersions.query({
     documentId: props.documentId,
   });
-  nowVersionId.value = versions.value[0].id;
-  oldVersionId.value = versions.value[0].id;
+  const latest = versions.value[0];
+  if (!latest) return;
+  nowVersionId.value = latest.id;
+  oldVersionId.value = latest.id;
 };
 
 const versionOptions = computed(() => {

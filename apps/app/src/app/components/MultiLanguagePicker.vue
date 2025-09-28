@@ -18,7 +18,7 @@ withDefaults(
 
 const { languages } = storeToRefs(useLanguageStore());
 
-const languageIds = defineModel<string[]>("languageIds");
+const languageIds = defineModel<string[]>();
 
 const options = computed(() => {
   return languages.value.map((language) => {
@@ -32,7 +32,7 @@ const options = computed(() => {
 
 <template>
   <MultiPicker
-    v-model:model-value="languageIds"
+    v-model="languageIds"
     :width
     :options
     :filter

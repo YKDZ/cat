@@ -1,6 +1,5 @@
 import { type TranslationSuggestion } from "@cat/shared/schema/misc";
 import type { TranslationAdvisor } from "@cat/plugin-core";
-import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
 import { logger } from "@cat/shared/utils";
 import Sender from "./sender.ts";
 
@@ -26,7 +25,7 @@ export class Advisor implements TranslationAdvisor {
   }
 
   async getSuggestions(
-    element: TranslatableElement,
+    value: string,
     languageFromId: string,
     languageToId: string,
   ): Promise<TranslationSuggestion[]> {
@@ -35,7 +34,7 @@ export class Advisor implements TranslationAdvisor {
         FormatType: "text",
         SourceLanguage: languageCodeMap.get(languageFromId) ?? languageFromId,
         TargetLanguage: languageCodeMap.get(languageToId) ?? languageToId,
-        SourceText: element.value,
+        SourceText: value,
         Scene: "general",
       })) as {
         Code: string;

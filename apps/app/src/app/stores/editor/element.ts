@@ -81,6 +81,11 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     updateElement(newEl);
   };
 
+  const refresh = () => {
+    loadedPages.clear();
+    loadedPageHashes.clear();
+  };
+
   return {
     loadedPages,
     loadedPageHashes,
@@ -90,5 +95,6 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     getElementTranslationStatus,
     updateElement,
     updateElementStatus,
+    refresh,
   };
 });

@@ -70,11 +70,7 @@ const handleLink = async () => {
     }"
   >
     <h3 class="text-lg font-bold">{{ t("连接或创建新术语库") }}</h3>
-    <MultiGlossaryPicker
-      v-model:glossary-ids="glossaryIds"
-      full-width
-      create-new
-    />
+    <MultiGlossaryPicker v-model="glossaryIds" full-width create-new />
     <HButton
       :classes="{
         base: 'btn btn-md btn-base btn-w-full',

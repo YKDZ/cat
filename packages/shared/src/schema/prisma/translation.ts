@@ -27,16 +27,10 @@ export const TranslationSchema = z.object({
   meta: safeZDotJson.nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-
   translatorId: z.uuidv7(),
-
   translatableElementId: z.int(),
-
   languageId: z.string(),
-
   embeddingId: z.int(),
-
-  vectorizerId: z.int(),
 });
 
 export type Translation = z.infer<typeof TranslationSchema>;

@@ -70,20 +70,6 @@ export function chunkDual<A, B>(
   return result;
 }
 
-export const getFirst = <T>(arr: T[]): T => {
-  if (arr.length !== 1 || !arr[0]) {
-    throw new Error(`Expected array of length 1, but got length ${arr.length}`);
-  }
-  return arr[0]!;
-};
-
-export const getSingle = <T>(arr: T[]): T => {
-  if (arr.length === 0 || !arr[0]) {
-    throw new Error(`Expected array of length 1, but got length ${arr.length}`);
-  }
-  return arr[0]!;
-};
-
 export const getIndex = <T>(arr: T[], index: number): T => {
   if (index >= arr.length || !arr[index]) {
     throw new Error(

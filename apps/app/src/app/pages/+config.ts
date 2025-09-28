@@ -11,6 +11,4 @@ export default {
   },
 
   filesystemRoutingRoot: "/",
-
-  stream: "web",
 } as Config;

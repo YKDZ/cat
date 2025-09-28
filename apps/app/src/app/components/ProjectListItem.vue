@@ -19,17 +19,5 @@ const handleCheck = async () => {
     @click="handleCheck"
   >
     <TableCell>{{ project.name }}</TableCell>
-    <TableCell
-      ><div class="flex flex-col">
-        <span class="text-sm"
-          ><span class="font-bold">{{ project.Documents?.length }}</span>
-          个文档</span
-        >
-        <span class="text-sm"
-          ><span class="font-bold">{{ project.TargetLanguages?.length }}</span>
-          个语言</span
-        >
-      </div></TableCell
-    >
   </TableRow>
 </template>

@@ -7,12 +7,12 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { timestamps, uuidId } from "../utils/reuse.ts";
-import { project, projectTargetLanguage } from "./project.ts";
+import { timestamps, uuidId } from "./reuse.ts";
+import { projectTargetLanguage } from "./project.ts";
 import { term } from "./glossary.ts";
 import { memoryItem } from "./memory.ts";
 import { translation } from "./translation.ts";
-import { documentToTask } from "./document.ts";
+import { documentToTask, translatableElement } from "./document.ts";
 
 export const language = pgTable("Language", {
   id: text().primaryKey().notNull(),
@@ -47,10 +47,9 @@ export const task = pgTable(
 );
 
 export const languageRelations = relations(language, ({ many }) => ({
-  Projects: many(project),
   Translations: many(translation),
   Terms: many(term),
-
+  TranslatableElements: many(translatableElement),
   MemoryItemSourceLanguages: many(memoryItem, {
     relationName: "sourceLanguage",
   }),

@@ -4,24 +4,24 @@ import {
   MemorySuggestionSchema,
   type MemorySuggestion,
 } from "@cat/shared/schema/misc";
-import { getSingle, logger } from "@cat/shared/utils";
+import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import {
   MemoryItemSchema,
   MemorySchema,
 } from "@cat/shared/schema/prisma/memory";
-import {
-  queryElementWithEmbedding,
-  searchMemory,
-} from "@cat/app-server-shared/utils";
+import { searchMemory } from "@cat/app-server-shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { UserSchema } from "@cat/shared/schema/prisma/user";
 import {
   count,
+  document as documentTable,
   eq,
   inArray,
   memoryItem as memoryItemTable,
   memory as memoryTable,
   memoryToProject,
+  translatableElement,
+  vector,
 } from "@cat/db";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
@@ -43,7 +43,7 @@ export const memoryRouter = router({
       const { name, description, projectIds } = input;
 
       return await drizzle.transaction(async (tx) => {
-        const memory = getSingle(
+        const memory = assertSingleNonNullish(
           await tx
             .insert(memoryTable)
             .values({
@@ -68,7 +68,6 @@ export const memoryRouter = router({
   onNew: authedProcedure
     .input(
       z.object({
-        projectId: z.uuid(),
         elementId: z.number().int(),
         sourceLanguageId: z.string(),
         translationLanguageId: z.string(),
@@ -81,7 +80,6 @@ export const memoryRouter = router({
         drizzleDB: { client: drizzle },
       } = ctx;
       const {
-        projectId,
         elementId,
         sourceLanguageId,
         translationLanguageId,
@@ -89,7 +87,23 @@ export const memoryRouter = router({
       } = input;
 
       // 要匹配记忆的元素
-      const element = await queryElementWithEmbedding(drizzle, elementId);
+      const element = assertSingleNonNullish(
+        await drizzle
+          .select({
+            id: translatableElement.id,
+            value: translatableElement.value,
+            embedding: vector.vector,
+            projectId: documentTable.projectId,
+          })
+          .from(translatableElement)
+          .innerJoin(vector, eq(translatableElement.embeddingId, vector.id))
+          .innerJoin(
+            documentTable,
+            eq(translatableElement.documentId, documentTable.id),
+          )
+          .where(eq(translatableElement.id, elementId))
+          .limit(1),
+      );
 
       const memoryIds = (
         await drizzle
@@ -97,7 +111,7 @@ export const memoryRouter = router({
             memoryId: memoryToProject.memoryId,
           })
           .from(memoryToProject)
-          .where(eq(memoryToProject.projectId, projectId))
+          .where(eq(memoryToProject.projectId, element.projectId))
       ).map((row) => row.memoryId);
 
       if (!element || memoryIds.length === 0) return;
@@ -196,7 +210,7 @@ export const memoryRouter = router({
       } = ctx;
       const { id } = input;
 
-      return getSingle(
+      return assertSingleNonNullish(
         await drizzle
           .select({ count: count() })
           .from(memoryItemTable)
@@ -297,7 +311,7 @@ export const memoryRouter = router({
       } = ctx;
       const { id } = input;
 
-      return getSingle(
+      return assertSingleNonNullish(
         await drizzle
           .select({ count: count() })
           .from(memoryItemTable)

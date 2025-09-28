@@ -6,8 +6,8 @@ import * as z from "zod/v4";
 import { JSONSchemaSchema, type JSONType } from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
-  getFirst,
-  getSingle,
+  assertFirstNonNullish,
+  assertSingleNonNullish,
   logger,
 } from "@cat/shared/utils";
 import {
@@ -197,7 +197,7 @@ export class PluginRegistry implements IPluginRegistry {
     if (pluginObj.onInstalled) await pluginObj.onInstalled();
 
     await drizzle.transaction(async (tx) => {
-      const installation = getSingle(
+      const installation = assertSingleNonNullish(
         await tx
           .insert(pluginInstallation)
           .values([
@@ -404,30 +404,30 @@ export class PluginRegistry implements IPluginRegistry {
 
     if (!installation) throw new Error("Plugin not installed");
 
-    const serviceRows = await drizzle
-      .select({
-        id: pluginService.id,
-        serviceId: pluginService.serviceId,
-        plugin: {
-          id: plugin.id,
-          entry: plugin.entry,
-        },
-      })
-      .from(pluginService)
-      .innerJoin(
-        pluginInstallation,
-        eq(pluginService.pluginInstallationId, pluginInstallation.id),
-      )
-      .innerJoin(plugin, eq(pluginInstallation.pluginId, plugin.id))
-      .where(
-        and(
-          eq(pluginService.pluginInstallationId, installation.id),
-          eq(pluginService.serviceType, type),
-        ),
-      )
-      .limit(1);
-
-    const service = getFirst(serviceRows);
+    const service = assertFirstNonNullish(
+      await drizzle
+        .select({
+          id: pluginService.id,
+          serviceId: pluginService.serviceId,
+          plugin: {
+            id: plugin.id,
+            entry: plugin.entry,
+          },
+        })
+        .from(pluginService)
+        .innerJoin(
+          pluginInstallation,
+          eq(pluginService.pluginInstallationId, pluginInstallation.id),
+        )
+        .innerJoin(plugin, eq(pluginInstallation.pluginId, plugin.id))
+        .where(
+          and(
+            eq(pluginService.pluginInstallationId, installation.id),
+            eq(pluginService.serviceType, type),
+          ),
+        )
+        .limit(1),
+    );
 
     if (!service) throw new Error(`Service ${type} ${id} not found`);
 

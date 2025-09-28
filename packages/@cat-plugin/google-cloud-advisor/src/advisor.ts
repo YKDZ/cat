@@ -29,13 +29,13 @@ export class Advisor implements TranslationAdvisor {
   }
 
   async getSuggestions(
-    element: TranslatableElement,
+    value: string,
     languageFromId: string,
     languageToId: string,
   ): Promise<TranslationSuggestion[]> {
     if (!this.client) throw new Error("Client does not initd");
     try {
-      const [translated] = await this.client.translate(element.value, {
+      const [translated] = await this.client.translate(value, {
         from: languageFromId.replaceAll("_", "-"),
         to: languageToId.replaceAll("_", "-"),
       });

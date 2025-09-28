@@ -3,9 +3,11 @@ import type { Memory } from "@cat/shared/schema/prisma/memory";
 import ProjectMemoryListItem from "./ProjectMemoryListItem.vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
+import type { Project } from "@cat/shared/schema/prisma/project";
 
 defineProps<{
   memories: Memory[];
+  project: Project;
 }>();
 </script>
 
@@ -16,6 +18,7 @@ defineProps<{
         v-for="memory in memories"
         :key="memory.id"
         :memory
+        :project
       />
     </TableBody>
   </Table>

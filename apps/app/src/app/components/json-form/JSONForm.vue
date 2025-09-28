@@ -20,13 +20,8 @@ const emits = defineEmits<{
 
 <template>
   <form>
-    <IJsonForm
-      :schema="schema"
-      property-key=""
-      :data
-      @_update="
-        (to, schema, key, path) => emits('update', to, schema, key, path)
-      "
-    />
+    <IJsonForm :schema="schema" property-key="" :data @_update="
+      (to, schema, key, path) => emits('update', to, schema, key, path)
+    " />
   </form>
 </template>

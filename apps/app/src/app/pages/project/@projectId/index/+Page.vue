@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject } from "vue";
-import type { Data } from "../+data.ts";
+import type { Data } from "../+data.server.ts";
 import ProjectLanguageList from "@/app/components/ProjectLanguageList.vue";
 import ProjectDetailCard from "@/app/components/ProjectDetailCard.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";

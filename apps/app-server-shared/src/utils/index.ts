@@ -5,5 +5,5 @@ export * from "./file.ts";
 export * from "./memory.ts";
 export * from "./plugin.ts";
 export * from "./queue.ts";
-export * from "./term.ts";
 export * from "./user.ts";
+export * from "./vector.ts";

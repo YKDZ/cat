@@ -20,13 +20,9 @@ const props = withDefaults(
   },
 );
 
-const modelValue = defineModel<unknown[]>("modelValue", { default: [] });
+const modelValue = defineModel<unknown[]>({ default: [] });
 const searchQuery = ref("");
 const isOpen = ref(false);
-
-const emits = defineEmits<{
-  (e: "change", from: unknown[], to: unknown[]): void;
-}>();
 
 const filteredOptions = computed(() => {
   if (!searchQuery.value) return props.options.filter(props.filter);
@@ -38,7 +34,6 @@ const filteredOptions = computed(() => {
 
 const selectOption = (option: PickerOption) => {
   const value = option.value ?? option.content;
-  const oldArr = [...modelValue.value];
   const index = modelValue.value.findIndex((selected) => selected === value);
 
   if (index !== -1) {
@@ -48,7 +43,15 @@ const selectOption = (option: PickerOption) => {
   }
 
   searchQuery.value = "";
-  emits("change", oldArr, modelValue.value);
+};
+
+const removeOption = (option: PickerOption) => {
+  const value = option.value ?? option.content;
+  const index = modelValue.value.findIndex((selected) => selected === value);
+
+  if (index !== -1) {
+    modelValue.value.splice(index, 1);
+  }
 };
 
 const close = () => (isOpen.value = false);
@@ -59,8 +62,7 @@ const handleInputFocus = () => {
 };
 
 const selectedOptions = computed(() => {
-  return props.options
-    .filter(props.filter)
+  return filteredOptions.value
     .filter((option) => modelValue.value.includes(option.value))
     .sort((a, b) => {
       const aIndex = modelValue.value.findIndex(
@@ -98,12 +100,13 @@ const selectedOptions = computed(() => {
         <div
           v-for="option in selectedOptions"
           :key="option.content"
-          class="text-sm px-1.5 py-1 rounded-md inline-flex gap-0.5 text-nowrap shadow-sm items-center"
+          class="text-sm text-highlight-content-darker px-1.5 py-1 rounded-md inline-flex gap-0.5 text-nowrap shadow-sm items-center"
         >
           {{ option.content }}
           <button
+            type="button"
             class="i-mdi:close inline-block cursor-pointer"
-            @click="selectOption(option)"
+            @mouseup="removeOption(option)"
           />
         </div>
       </div>
@@ -120,11 +123,12 @@ const selectedOptions = computed(() => {
     <!-- 下拉面板 -->
     <div
       v-show="isOpen"
-      class="mt-1 rounded-md bg-white max-h-60 w-full shadow-lg absolute z-50 overflow-auto"
+      class="mt-1 rounded-md text-highlight-content bg-highlight max-h-60 w-full shadow-lg absolute z-50 overflow-auto"
     >
       <div
         v-for="option in filteredOptions"
         :key="option.content"
+        type="button"
         class="px-3 py-2 flex cursor-pointer items-center hover:bg-highlight-darker"
         @click="selectOption(option)"
       >
@@ -133,10 +137,12 @@ const selectedOptions = computed(() => {
           :class="option.icon"
           class="mr-2 h-4 w-4 inline-block"
         />
-        <span class="flex-1 truncate">{{ option.content }}</span>
+        <span class="flex-1 truncate text-highlight-content-darker">{{
+          option.content
+        }}</span>
         <span
           v-if="modelValue.includes(option.value ?? option.content)"
-          class="text-primary-500 i-mdi:check ml-2"
+          class="text-success i-mdi:check ml-2"
         />
       </div>
 

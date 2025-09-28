@@ -21,7 +21,7 @@ import {
   project as projectTable,
   aliasedTable,
 } from "@cat/db";
-import { getSingle, zip } from "@cat/shared/utils";
+import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { authedProcedure, router } from "../server.ts";
 
 export const glossaryRouter = router({
@@ -169,7 +169,7 @@ export const glossaryRouter = router({
       } = ctx;
       const { id } = input;
 
-      return getSingle(
+      return assertSingleNonNullish(
         await drizzle
           .select({ count: count() })
           .from(termTable)
@@ -193,7 +193,7 @@ export const glossaryRouter = router({
       const { name, description, projectIds } = input;
 
       return await drizzle.transaction(async (tx) => {
-        const glossary = getSingle(
+        const glossary = assertSingleNonNullish(
           await tx
             .insert(glossaryTable)
             .values({
@@ -260,8 +260,8 @@ export const glossaryRouter = router({
           .insert(termTable)
           .values(
             termsData.map((term) => ({
-              value: term.term,
-              languageId: term.termLanguageId,
+              value: term.translation,
+              languageId: term.translationLanguageId,
               creatorId: user.id,
               glossaryId,
             })),
@@ -271,10 +271,10 @@ export const glossaryRouter = router({
         const relations = await drizzle
           .insert(termRelationTable)
           .values(
-            zip(terms, translations).map(([term, translation]) => ({
-              termId: term.id,
-              translationId: translation.id,
-            })),
+            zip(terms, translations).flatMap(([term, translation]) => [
+              { termId: term.id, translationId: translation.id }, // 正向
+              { termId: translation.id, translationId: term.id }, // 反向
+            ]),
           )
           .returning({ id: termRelationTable.id });
 
@@ -292,7 +292,7 @@ export const glossaryRouter = router({
           .from(termRelationTable)
           .innerJoin(
             relationTerm,
-            eq(termRelationTable.translationId, relationTerm.id),
+            eq(termRelationTable.termId, relationTerm.id),
           )
           .innerJoin(
             relationTranslation,
@@ -358,10 +358,7 @@ export const glossaryRouter = router({
           Translation: getTableColumns(relationTranslation),
         })
         .from(termRelationTable)
-        .innerJoin(
-          relationTerm,
-          eq(termRelationTable.translationId, relationTerm.id),
-        )
+        .innerJoin(relationTerm, eq(termRelationTable.termId, relationTerm.id))
         .innerJoin(
           relationTranslation,
           eq(termRelationTable.translationId, relationTranslation.id),
@@ -413,17 +410,17 @@ export const glossaryRouter = router({
           id: true,
           value: true,
           documentId: true,
+          languageId: true,
         },
       });
 
-      // TODO 元素不一定属于一个文档，元素 -> 文档 -> 项目 -> 术语库 是不成立的
       if (!element || !element.documentId)
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Element does not exists",
         });
 
-      const { projectId } = getSingle(
+      const { projectId } = assertSingleNonNullish(
         await drizzle
           .select({
             projectId: documentTable.projectId,
@@ -452,12 +449,9 @@ export const glossaryRouter = router({
           message: "请求术语的元素不存在",
         });
 
-      // TODO 源语言应该是元素的属性
-      const sourceLanguageId = "zh_Hans";
-
       const translationIds = await termService.termStore.searchTerm(
         element.value,
-        sourceLanguageId,
+        element.languageId,
       );
 
       const relationTerm = aliasedTable(termTable, "relationTerm");
@@ -482,7 +476,7 @@ export const glossaryRouter = router({
             inArray(relationTranslation.id, translationIds),
             inArray(relationTranslation.glossaryId, glossaryIds),
             inArray(relationTerm.glossaryId, glossaryIds),
-            eq(relationTerm.languageId, sourceLanguageId),
+            eq(relationTerm.languageId, element.languageId),
             eq(relationTranslation.languageId, translationLanguageId),
           ),
         );

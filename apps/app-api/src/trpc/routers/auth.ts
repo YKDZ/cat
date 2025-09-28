@@ -5,7 +5,7 @@ import { JSONSchemaSchema } from "@cat/shared/schema/json";
 import type { AuthProvider } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import { account as accountTable, user as userTable } from "@cat/db";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { publicProcedure, router } from "@/trpc/server.ts";
 
 export const authRouter = router({
@@ -221,7 +221,7 @@ export const authRouter = router({
           });
 
           if (!user) {
-            user = getSingle(
+            user = assertSingleNonNullish(
               await tx
                 .insert(userTable)
                 .values({
@@ -233,7 +233,7 @@ export const authRouter = router({
             );
           }
 
-          account = getSingle(
+          account = assertSingleNonNullish(
             await tx
               .insert(accountTable)
               .values({

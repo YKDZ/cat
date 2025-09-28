@@ -1,1 +1,1 @@
-export default "/editor/@documentId/@languageFromTo/@elementId";
+export default "/editor/@documentId/@languageToId/@elementId";

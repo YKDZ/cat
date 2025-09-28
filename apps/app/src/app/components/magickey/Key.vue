@@ -38,7 +38,11 @@ const icon = computed(
     )?.icon,
 );
 
-const key = computed(() => keys[props.keyString]);
+const key = computed(() => {
+  const key = keys[props.keyString];
+  if (!key) throw new Error(`Invalid key: ${props.keyString}`);
+  return key;
+});
 </script>
 
 <template>
