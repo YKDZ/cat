@@ -228,7 +228,7 @@ importers:
         version: 1.2.9
       '@iconify-json/fluent':
         specifier: ^1.2.30
-        version: 1.2.30
+        version: 1.2.32
       '@iconify-json/mdi':
         specifier: ^1.2.3
         version: 1.2.3
@@ -2342,8 +2342,8 @@ packages:
   '@iconify-json/flag@1.2.9':
     resolution: {integrity: sha512-4KEIO17qmdFMz8QiKPD4Wahu2mEcv7qEfLePf99Jf/Mk9R3Dx2ss9gyUxFgWykUZBCjzxsBXe5Z6ctMcyt67SQ==}
 
-  '@iconify-json/fluent@1.2.30':
-    resolution: {integrity: sha512-tR0E0As25LGV95vryo/bZbLJ3kcUiOva99MP7nB7gQV82K08zaaaSYZWcyKbLgV4BxHOfMuBgNoOvQpYqm9Oyg==}
+  '@iconify-json/fluent@1.2.32':
+    resolution: {integrity: sha512-YQFHsRrBhgrfvuVWJTg+EsVDA3pN4QwrFApZ2Di7J6YQIsNVNnBiEpGdT5qX4KxXFre3Yd4D7zm6EsWfKj4QBw==}
 
   '@iconify-json/mdi@1.2.3':
     resolution: {integrity: sha512-O3cLwbDOK7NNDf2ihaQOH5F9JglnulNDFV7WprU2dSoZu3h3cWH//h74uQAB87brHmvFVxIOkuBX2sZSzYhScg==}
@@ -10327,7 +10327,7 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/fluent@1.2.30':
+  '@iconify-json/fluent@1.2.32':
     dependencies:
       '@iconify/types': 2.0.0
 
