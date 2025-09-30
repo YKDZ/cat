@@ -679,7 +679,7 @@ importers:
         version: 9.35.0
       '@typescript-eslint/utils':
         specifier: ^8.44.0
-        version: 8.44.0(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
+        version: 8.45.0(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
       '@unocss/eslint-config':
         specifier: ^66.5.0
         version: 66.5.1(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
@@ -700,7 +700,7 @@ importers:
     dependencies:
       '@typescript-eslint/utils':
         specifier: ^8.44.0
-        version: 8.44.0(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
+        version: 8.45.0(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
 
   packages/plugin-core:
     dependencies:
@@ -12169,6 +12169,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@typescript-eslint/utils@8.45.0(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)':
+    dependencies:
+      '@eslint-community/eslint-utils': 4.9.0(eslint@9.36.0(jiti@2.5.1))
+      '@typescript-eslint/scope-manager': 8.45.0
+      '@typescript-eslint/types': 8.45.0
+      '@typescript-eslint/typescript-estree': 8.45.0(typescript@5.9.2)
+      eslint: 9.36.0(jiti@2.5.1)
+      typescript: 5.9.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@typescript-eslint/visitor-keys@8.43.0':
     dependencies:
       '@typescript-eslint/types': 8.43.0
@@ -12321,7 +12332,7 @@ snapshots:
 
   '@unocss/eslint-plugin@66.5.1(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)':
     dependencies:
-      '@typescript-eslint/utils': 8.44.0(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
+      '@typescript-eslint/utils': 8.45.0(eslint@9.36.0(jiti@2.5.1))(typescript@5.9.2)
       '@unocss/config': 66.5.1
       '@unocss/core': 66.5.1
       '@unocss/rule-utils': 66.5.1
