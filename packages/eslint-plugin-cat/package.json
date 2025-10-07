@@ -9,6 +9,6 @@
     }
   },
   "dependencies": {
-    "@typescript-eslint/utils": "^8.44.0"
+    "@typescript-eslint/utils": "^8.46.0"
   }
 }

@@ -11,7 +11,7 @@
     "@cat/eslint-config": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@playwright/test": "^1.55.0",
-    "tsx": "^4.20.5"
+    "@playwright/test": "^1.56.0",
+    "tsx": "^4.20.6"
   }
 }
