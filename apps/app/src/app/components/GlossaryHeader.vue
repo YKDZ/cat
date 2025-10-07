@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import type { Glossary } from "@cat/shared/schema/prisma/glossary";
-import type { User } from "@cat/shared/schema/prisma/user";
+import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
+import type { User } from "@cat/shared/schema/drizzle/user";
 import GlossaryBreadcrumb from "./GlossaryBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
 import Header from "@/app/components/headless/HHeader.vue";

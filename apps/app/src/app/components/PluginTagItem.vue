@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PluginTag } from "@cat/shared/schema/prisma/plugin";
+import type { PluginTag } from "@cat/shared/schema/drizzle/plugin";
 
 defineProps<{
   tag: PluginTag;

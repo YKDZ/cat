@@ -4,12 +4,12 @@ import {
   TranslationApprovementSchema,
   TranslationSchema,
   TranslationVoteSchema,
-} from "@cat/shared/schema/prisma/translation";
+} from "@cat/shared/schema/drizzle/translation";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { autoTranslateQueue } from "@cat/app-workers/workers";
 import { createTranslationQueue } from "@cat/app-workers/workers";
 import { updateTranslationQueue } from "@cat/app-workers/workers";
-import { UserSchema } from "@cat/shared/schema/prisma/user";
+import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import {
   eq,
   translation as translationTable,

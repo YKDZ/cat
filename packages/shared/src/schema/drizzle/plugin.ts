@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { PrismaDateTime } from "@/schema/misc.ts";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 import { JSONSchemaSchema, safeZDotJson } from "@/schema/json.ts";
 
 export const PluginInstallationSchema = z.object({
@@ -7,8 +7,8 @@ export const PluginInstallationSchema = z.object({
   scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
   scopeId: z.string().nullable(),
   scopeMeta: safeZDotJson.nullable(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 
   pluginId: z.string(),
 });
@@ -16,23 +16,23 @@ export const PluginInstallationSchema = z.object({
 export const PluginTagSchema = z.object({
   id: z.int(),
   name: z.string(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 });
 
 export const PluginConfigSchema = z.object({
   id: z.int(),
   schema: JSONSchemaSchema,
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
   pluginId: z.string(),
 });
 
 export const PluginConfigInstanceSchema = z.object({
   id: z.int(),
   value: safeZDotJson,
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 
   configId: z.int(),
 
@@ -45,8 +45,8 @@ export const PluginPermissionSchema = z.object({
   id: z.int(),
   permission: z.string(),
   description: z.string(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
   pluginId: z.string(),
 });
 
@@ -62,8 +62,8 @@ export const PluginSchema = z.object({
   overview: z.string().nullable(),
   iconUrl: z.url().nullable(),
   isExternal: z.boolean(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 });
 
 export const PluginServiceSchema = z.object({
@@ -77,8 +77,8 @@ export const PluginServiceSchema = z.object({
     "TEXT_VECTORIZER",
   ]),
   serviceId: z.string(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 
   pluginInstallationId: z.int(),
 });

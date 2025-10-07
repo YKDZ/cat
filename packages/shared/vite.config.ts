@@ -23,49 +23,49 @@ export default defineConfig({
         "schema/json": resolve(import.meta.dirname, "src/schema/json.ts"),
         "schema/misc": resolve(import.meta.dirname, "src/schema/misc.ts"),
         "schema/plugin": resolve(import.meta.dirname, "src/schema/plugin.ts"),
-        "schema/prisma/document": resolve(
+        "schema/drizzle/document": resolve(
           import.meta.dirname,
-          "src/schema/prisma/document.ts",
+          "src/schema/drizzle/document.ts",
         ),
-        "schema/prisma/file": resolve(
+        "schema/drizzle/file": resolve(
           import.meta.dirname,
-          "src/schema/prisma/file.ts",
+          "src/schema/drizzle/file.ts",
         ),
-        "schema/prisma/glossary": resolve(
+        "schema/drizzle/glossary": resolve(
           import.meta.dirname,
-          "src/schema/prisma/glossary.ts",
+          "src/schema/drizzle/glossary.ts",
         ),
-        "schema/prisma/memory": resolve(
+        "schema/drizzle/memory": resolve(
           import.meta.dirname,
-          "src/schema/prisma/memory.ts",
+          "src/schema/drizzle/memory.ts",
         ),
-        "schema/prisma/misc": resolve(
+        "schema/drizzle/misc": resolve(
           import.meta.dirname,
-          "src/schema/prisma/misc.ts",
+          "src/schema/drizzle/misc.ts",
         ),
-        "schema/prisma/plugin": resolve(
+        "schema/drizzle/plugin": resolve(
           import.meta.dirname,
-          "src/schema/prisma/plugin.ts",
+          "src/schema/drizzle/plugin.ts",
         ),
-        "schema/prisma/project": resolve(
+        "schema/drizzle/project": resolve(
           import.meta.dirname,
-          "src/schema/prisma/project.ts",
+          "src/schema/drizzle/project.ts",
         ),
-        "schema/prisma/role": resolve(
+        "schema/drizzle/role": resolve(
           import.meta.dirname,
-          "src/schema/prisma/role.ts",
+          "src/schema/drizzle/role.ts",
         ),
-        "schema/prisma/translation": resolve(
+        "schema/drizzle/translation": resolve(
           import.meta.dirname,
-          "src/schema/prisma/translation.ts",
+          "src/schema/drizzle/translation.ts",
         ),
-        "schema/prisma/user": resolve(
+        "schema/drizzle/user": resolve(
           import.meta.dirname,
-          "src/schema/prisma/user.ts",
+          "src/schema/drizzle/user.ts",
         ),
-        "schema/prisma/vector": resolve(
+        "schema/drizzle/vector": resolve(
           import.meta.dirname,
-          "src/schema/prisma/vector.ts",
+          "src/schema/drizzle/vector.ts",
         ),
       },
       formats: ["es"],

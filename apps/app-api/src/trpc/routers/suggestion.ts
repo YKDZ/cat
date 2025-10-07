@@ -4,7 +4,7 @@ import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
 } from "@cat/shared/schema/misc";
-import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
+import { TranslatableElementSchema } from "@cat/shared/schema/drizzle/document";
 import { logger } from "@cat/shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { hash } from "@cat/app-server-shared/utils";

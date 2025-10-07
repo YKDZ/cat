@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 
 const { t } = useI18n();
 

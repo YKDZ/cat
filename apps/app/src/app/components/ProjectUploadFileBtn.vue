@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import Modal from "./headless/HModal.vue";
 import ProjectUploadFiles from "./ProjectUploadFiles.vue";
 import HButton from "./headless/HButton.vue";

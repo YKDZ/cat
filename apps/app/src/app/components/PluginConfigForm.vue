@@ -3,7 +3,7 @@ import type { JSONType } from "@cat/shared/schema/json";
 import {
   type PluginConfig,
   type PluginConfigInstance,
-} from "@cat/shared/schema/prisma/plugin";
+} from "@cat/shared/schema/drizzle/plugin";
 import { ref } from "vue";
 import type { ScopeType } from "@cat/db";
 import { navigate } from "vike/client/router";

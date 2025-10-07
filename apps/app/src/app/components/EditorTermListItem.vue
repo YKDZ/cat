@@ -4,7 +4,7 @@ import type {
   Glossary,
   Term,
   TermRelation,
-} from "@cat/shared/schema/prisma/glossary";
+} from "@cat/shared/schema/drizzle/glossary";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";

@@ -29,12 +29,12 @@ import {
   ElementTranslationStatusSchema,
   FileMetaSchema,
 } from "@cat/shared/schema/misc";
-import { FileSchema } from "@cat/shared/schema/prisma/file";
+import { FileSchema } from "@cat/shared/schema/drizzle/file";
 import {
   DocumentSchema,
   DocumentVersionSchema,
   TranslatableElementSchema,
-} from "@cat/shared/schema/prisma/document";
+} from "@cat/shared/schema/drizzle/document";
 import { useStorage } from "@cat/app-server-shared/utils";
 import { exportTranslatedFileQueue } from "@cat/app-workers/workers";
 import { upsertDocumentElementsFromFileQueue } from "@cat/app-workers/workers";

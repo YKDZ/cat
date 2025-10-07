@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { trpc } from "@cat/app-api/trpc/client";
-import type { Document } from "@cat/shared/schema/prisma/document";
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Document } from "@cat/shared/schema/drizzle/document";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import { computed, ref } from "vue";
 import { watchClient } from "@/app/utils/vue.ts";
 import HMarkdown from "@/app/components/headless/HMarkdown.vue";

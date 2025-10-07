@@ -1,8 +1,8 @@
-import { ProjectSchema } from "@cat/shared/schema/prisma/project";
+import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
 import * as z from "zod/v4";
-import { DocumentSchema } from "@cat/shared/schema/prisma/document";
-import { UserSchema } from "@cat/shared/schema/prisma/user";
-import { FileSchema } from "@cat/shared/schema/prisma/file";
+import { DocumentSchema } from "@cat/shared/schema/drizzle/document";
+import { UserSchema } from "@cat/shared/schema/drizzle/user";
+import { FileSchema } from "@cat/shared/schema/drizzle/file";
 import {
   eq,
   glossaryToProject,

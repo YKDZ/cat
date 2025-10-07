@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
-  "scripts": {
-    "reset-db": "prisma migrate reset --force"
-  },
   "devDependencies": {
     "@cat/db": "workspace:*",
     "@cat/eslint-config": "workspace:*",

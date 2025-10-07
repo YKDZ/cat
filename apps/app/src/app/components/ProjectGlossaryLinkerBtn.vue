@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
 import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";

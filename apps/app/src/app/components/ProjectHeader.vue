@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import Header from "./headless/HHeader.vue";
 import ProjectBreadcrumb from "./ProjectBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";

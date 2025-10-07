@@ -1,7 +1,7 @@
 import { type TranslationSuggestion } from "@cat/shared/schema/misc";
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import { v2 } from "@google-cloud/translate";
-import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import { logger } from "@cat/shared/utils";
 
 export class Advisor implements TranslationAdvisor {

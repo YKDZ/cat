@@ -2,7 +2,7 @@
 import type {
   Plugin,
   PluginInstallation,
-} from "@cat/shared/schema/prisma/plugin";
+} from "@cat/shared/schema/drizzle/plugin";
 import PluginListItem from "./PluginListItem.vue";
 
 defineProps<{

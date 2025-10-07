@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/prisma/memory";
-import type { Translation } from "@cat/shared/schema/prisma/translation";
+import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import type { Translation } from "@cat/shared/schema/drizzle/translation";
 import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
 import { toShortFixed } from "@cat/shared/utils";
 import { computed, onMounted, ref } from "vue";

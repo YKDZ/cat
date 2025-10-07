@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import { navigate } from "vike/client/router";
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";

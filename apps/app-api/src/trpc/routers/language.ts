@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { LanguageSchema } from "@cat/shared/schema/prisma/misc";
+import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 
 export const languageRouter = router({

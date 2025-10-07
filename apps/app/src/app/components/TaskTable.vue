@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Task } from "@cat/shared/schema/prisma/misc";
+import type { Task } from "@cat/shared/schema/drizzle/misc";
 import { computed } from "vue";
 import type { ColumnDef } from "@tanstack/vue-table";
 import {

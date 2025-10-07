@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/schema/prisma/document";
+import type { Document } from "@cat/shared/schema/drizzle/document";
 import { navigate } from "vike/client/router";
 import { trpc } from "@cat/app-api/trpc/client";
 import TableCell from "./table/TableCell.vue";

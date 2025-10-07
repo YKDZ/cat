@@ -1,4 +1,4 @@
-import type { File } from "@cat/shared/schema/prisma/file";
+import type { File } from "@cat/shared/schema/drizzle/file";
 import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface StorageProvider extends IPluginService {

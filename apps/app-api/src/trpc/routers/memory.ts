@@ -8,10 +8,10 @@ import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import {
   MemoryItemSchema,
   MemorySchema,
-} from "@cat/shared/schema/prisma/memory";
+} from "@cat/shared/schema/drizzle/memory";
 import { searchMemory } from "@cat/app-server-shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
-import { UserSchema } from "@cat/shared/schema/prisma/user";
+import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import {
   count,
   document as documentTable,

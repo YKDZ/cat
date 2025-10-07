@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import { navigate } from "vike/client/router";
 import HButton from "@/app/components/headless/HButton.vue";
 

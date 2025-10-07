@@ -2,7 +2,7 @@
 import type {
   Translation,
   TranslationVote,
-} from "@cat/shared/schema/prisma/translation";
+} from "@cat/shared/schema/drizzle/translation";
 import { onMounted, ref } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";
 import HButton from "./headless/HButton.vue";

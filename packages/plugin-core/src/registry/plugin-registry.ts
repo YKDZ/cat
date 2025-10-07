@@ -36,6 +36,7 @@ import type { TextVectorizer } from "@/registry/text-vectorizer.ts";
 import type { TermService } from "@/registry/term-service.ts";
 import type { StorageProvider } from "@/registry/storage-provider.ts";
 import type { AuthProvider } from "@/registry/auth-provider.ts";
+import { existsSync } from "node:fs";
 
 export type PluginServiceGetters = keyof Pick<
   CatPlugin,
@@ -536,7 +537,8 @@ export class PluginRegistry implements IPluginRegistry {
   }
 
   public static async getPluginIdInLocalPlugins(): Promise<string[]> {
-    await mkdir(PluginRegistry.pluginsDir);
+    if (!existsSync(PluginRegistry.pluginsDir))
+      await mkdir(PluginRegistry.pluginsDir);
 
     const dirs = (
       await readdir(PluginRegistry.pluginsDir, {

@@ -2,7 +2,7 @@
 import type {
   Plugin,
   PluginInstallation,
-} from "@cat/shared/schema/prisma/plugin";
+} from "@cat/shared/schema/drizzle/plugin";
 import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";

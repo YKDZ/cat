@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import type { Memory } from "@cat/shared/schema/prisma/memory";
+import type { Memory } from "@cat/shared/schema/drizzle/memory";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";

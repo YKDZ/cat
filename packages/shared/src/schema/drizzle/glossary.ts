@@ -1,12 +1,12 @@
 import * as z from "zod/v4";
-import { PrismaDateTime } from "@/schema/misc.ts";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const TermSchema = z.object({
   id: z.int(),
   value: z.string(),
   context: z.string().optional().nullable(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
   glossaryId: z.uuidv7(),
   languageId: z.string(),
   creatorId: z.uuidv7(),
@@ -21,8 +21,8 @@ export const GlossarySchema = z.object({
   id: z.uuidv7(),
   name: z.string(),
   description: z.string().nullable(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
   creatorId: z.uuidv7(),
 });
 

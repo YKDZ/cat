@@ -8,7 +8,9 @@ export const PrismaErrorSchema = z.object({
   clientVersion: z.string(),
 });
 
-export const PrismaDateTime = z.date().or(z.iso.datetime({ offset: true }));
+export const DrizzleDateTimeSchema = z
+  .date()
+  .or(z.iso.datetime({ offset: true }));
 
 export const TranslationAdvisorDataSchema = z.object({
   id: z.int(),
@@ -50,8 +52,8 @@ export const MemorySuggestionSchema = z.object({
   memoryId: z.uuidv7(),
   creatorId: z.uuidv7(),
   similarity: z.number().min(0).max(1),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 });
 
 export const UnvectorizedTextDataSchema = z.object({
