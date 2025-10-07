@@ -15,6 +15,3 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - "@swc/core"
   - nx
-
-overrides:
-  "vite": "npm:vite@7.1.6"

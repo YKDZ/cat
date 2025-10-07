@@ -1,17 +1,17 @@
-import type { PrismaClient } from "@cat/db";
+import type { OverallDrizzleClient } from "@cat/db";
 import type { PluginRegistry } from "@cat/plugin-core";
 
 export const initTermService = async (
-  prisma: PrismaClient,
+  drizzle: OverallDrizzleClient,
   pluginRegistry: PluginRegistry,
 ) => {
   const services = await pluginRegistry.getPluginServices(
-    prisma,
+    drizzle,
     "TERM_SERVICE",
   );
   const languageIds = (
-    await prisma.language.findMany({
-      select: { id: true },
+    await drizzle.query.language.findMany({
+      columns: { id: true },
     })
   ).map((l) => l.id);
 

@@ -16,13 +16,13 @@
   "scripts": {
     "build": "vike build",
     "dev": "vike dev | pino-pretty",
-    "preview": "cross-env NODE_ENV=production node dist/server/index.js",
+    "preview": "tsx ./scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat",
-    "docker-entrypoint": "prisma migrate deploy && prisma db seed && node dist/server/index.js"
+    "docker-entrypoint": "node dist/server/index.js"
   },
   "dependencies": {
     "@cat/app-api": "workspace:*",

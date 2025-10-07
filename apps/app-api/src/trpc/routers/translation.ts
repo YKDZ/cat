@@ -5,7 +5,7 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/prisma/translation";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { autoTranslateQueue } from "@cat/app-workers/workers";
 import { createTranslationQueue } from "@cat/app-workers/workers";
 import { updateTranslationQueue } from "@cat/app-workers/workers";
@@ -66,7 +66,6 @@ export const translationRouter = router({
       const {
         drizzleDB: { client: drizzle },
         user,
-        pluginRegistry,
       } = ctx;
       const { projectId, elementId, languageId, value, createMemory } = input;
 
@@ -84,18 +83,7 @@ export const translationRouter = router({
             message: "Project not found",
           });
 
-        const vectorizer = (
-          await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER")
-        ).find(({ service }) => service.canVectorize("en"));
-
-        if (!vectorizer) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "CAT 没有可以处理这种文本的向量化器",
-          });
-        }
-
-        const task = getSingle(
+        const task = assertSingleNonNullish(
           await tx
             .insert(taskTable)
             .values({
@@ -112,7 +100,6 @@ export const translationRouter = router({
             creatorId: user.id,
             translationLanguageId: languageId,
             translationValue: value,
-            vectorizerId: vectorizer.id,
             memoryIds,
           },
           {
@@ -127,7 +114,6 @@ export const translationRouter = router({
           value,
           languageId,
           translatableElementId: elementId,
-          vectorizerId: vectorizer.id,
           translatorId: user.id,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -161,7 +147,7 @@ export const translationRouter = router({
           message: "Translation with given id not found",
         });
 
-      const task = getSingle(
+      const task = assertSingleNonNullish(
         await drizzle
           .insert(taskTable)
           .values({
@@ -187,7 +173,6 @@ export const translationRouter = router({
         meta: null,
         value,
         languageId: translation.languageId,
-        vectorizerId: translation.vectorizerId,
         translatableElementId: translation.translatableElementId,
         translatorId: translation.translatorId,
         createdAt: translation.createdAt,
@@ -245,7 +230,7 @@ export const translationRouter = router({
       } = ctx;
       const { translationId, value } = input;
 
-      return getSingle(
+      return assertSingleNonNullish(
         await drizzle
           .insert(translationVoteTable)
           .values({
@@ -280,7 +265,7 @@ export const translationRouter = router({
       } = ctx;
       const { id } = input;
 
-      const { total } = getSingle(
+      const { total } = assertSingleNonNullish(
         await drizzle
           .select({
             total: sum(translationVoteTable.value),
@@ -363,7 +348,7 @@ export const translationRouter = router({
 
         if (translationIds.length === 0) return 0;
 
-        const result = getSingle(
+        const result = assertSingleNonNullish(
           await tx
             .insert(translationApprovementTable)
             .values(
@@ -394,7 +379,7 @@ export const translationRouter = router({
       const { translationId } = input;
 
       return await drizzle.transaction(async (tx) => {
-        const { exists } = getSingle(
+        const { exists } = assertSingleNonNullish(
           await tx
             .select({ exists: count() })
             .from(translationApprovementTable)
@@ -413,7 +398,7 @@ export const translationRouter = router({
           });
         }
 
-        return getSingle(
+        return assertSingleNonNullish(
           await tx
             .insert(translationApprovementTable)
             .values({
@@ -428,7 +413,7 @@ export const translationRouter = router({
   unapprove: authedProcedure
     .input(
       z.object({
-        id: z.int(),
+        translationId: z.int(),
       }),
     )
     .output(z.void())
@@ -436,12 +421,12 @@ export const translationRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { translationId } = input;
 
       await drizzle
         .update(translationApprovementTable)
         .set({ isActive: false })
-        .where(eq(translationApprovementTable.id, id));
+        .where(eq(translationApprovementTable.id, translationId));
     }),
   autoTranslate: authedProcedure
     .input(
@@ -457,11 +442,10 @@ export const translationRouter = router({
       const {
         drizzleDB: { client: drizzle },
         user,
-        pluginRegistry,
       } = ctx;
       const { documentId, advisorId, languageId, minMemorySimilarity } = input;
 
-      const document = getSingle(
+      const document = assertSingleNonNullish(
         await drizzle
           .select({
             projectId: projectTable.id,
@@ -471,6 +455,7 @@ export const translationRouter = router({
             projectTargetLanguage,
             eq(projectTargetLanguage.projectId, documentTable.projectId),
           )
+          .innerJoin(projectTable, eq(projectTable.id, documentTable.projectId))
           .where(
             and(
               eq(documentTable.id, documentId),
@@ -487,14 +472,7 @@ export const translationRouter = router({
             "Document does not exists or language does not claimed in project",
         });
 
-      const { id: vectorizerId, service: vectorizer } = (
-        await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER")
-      ).find(({ service }) => service.canVectorize(languageId))!;
-
-      if (!vectorizer)
-        throw new Error(`No vectorizer can vectorize the translation`);
-
-      const task = getSingle(
+      const task = assertSingleNonNullish(
         await drizzle
           .insert(taskTable)
           .values({
@@ -513,7 +491,6 @@ export const translationRouter = router({
           userId: user.id,
           documentId,
           advisorId,
-          vectorizerId,
           languageId,
           minMemorySimilarity,
         },

@@ -2,20 +2,17 @@
 import type {
   Plugin,
   PluginInstallation,
-  PluginTag,
 } from "@cat/shared/schema/prisma/plugin";
 import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
-import PluginTags from "./PluginTags.vue";
 
 const { t } = useI18n();
 
 const props = defineProps<{
   plugin: Plugin & {
-    Installations: PluginInstallation[];
-    Tags: PluginTag[];
+    PluginInstallations: PluginInstallation[];
   };
   pathPrefix: string;
 }>();
@@ -43,9 +40,9 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
       <!-- Icon -->
       <div>
         <img
-          v-show="plugin.iconURL && isIconLoaded"
+          v-show="plugin.iconUrl && isIconLoaded"
           ref="iconImgEl"
-          :src="plugin.iconURL ?? ``"
+          :src="plugin.iconUrl ?? ``"
           class="rounded-md max-h-12 max-h-12 min-h-12 min-w-12 aspect-ratio-square object-cover"
         />
         <span
@@ -70,7 +67,7 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
             >{{ t("内部插件") }}</span
           >
           <span
-            v-if="plugin.Installations.length > 0"
+            v-if="plugin.PluginInstallations.length > 0"
             class="px-2 py-1 rounded-sm bg-highlight-darkest"
             >{{ t("已安装") }}</span
           >
@@ -78,6 +75,5 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
       </div>
     </div>
     <p>{{ plugin.overview }}</p>
-    <PluginTags :tags="plugin.Tags ?? []" class="mt-auto" />
   </div>
 </template>

@@ -9,14 +9,14 @@ import HButton from "./headless/HButton.vue";
 
 const props = defineProps<{
   translation: Translation & {
-    Approvements: TranslationApprovement[];
+    TranslationApprovements: TranslationApprovement[];
   };
 }>();
 
 const isApproved = computed(() => {
-  if (!props.translation.Approvements) return false;
+  if (!props.translation.TranslationApprovements) return false;
   return (
-    props.translation.Approvements.findIndex(
+    props.translation.TranslationApprovements.findIndex(
       (approvement) => approvement.isActive,
     ) !== -1
   );
@@ -26,7 +26,7 @@ const handleApprove = async () => {
   if (isApproved.value) return;
 
   await trpc.translation.approve.mutate({
-    id: props.translation.id,
+    translationId: props.translation.id,
   });
 };
 
@@ -34,7 +34,7 @@ const handleUnapprove = async () => {
   if (!isApproved.value) return;
 
   await trpc.translation.unapprove.mutate({
-    id: props.translation.id,
+    translationId: props.translation.id,
   });
 };
 </script>

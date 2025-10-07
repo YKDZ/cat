@@ -1,53 +1,31 @@
 import {
   and,
-  document as documentTale,
+  document as documentTable,
   translation as translationTable,
   eq,
   getDrizzleDB,
   glossaryToProject,
   inArray,
-  insertVector,
-  language,
   memoryToProject,
-  project,
   projectTargetLanguage,
-  sql,
   term,
   termRelation,
   translatableElement,
+  vector,
 } from "@cat/db";
-import {
-  PluginRegistry,
-  type TextVectorizer,
-  type TranslationAdvisor,
-} from "@cat/plugin-core";
+import { PluginRegistry, type TranslationAdvisor } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
-import type {
-  TranslationSuggestion,
-  UnvectorizedTextData,
-} from "@cat/shared/schema/misc";
-import { getServiceFromDBId } from "@cat/app-server-shared/utils";
+import { getServiceFromDBId, vectorize } from "@cat/app-server-shared/utils";
+import { searchMemory } from "@cat/app-server-shared/utils";
 import {
-  queryElementWithEmbedding,
-  searchMemory,
-} from "@cat/app-server-shared/utils";
-import { getFirst, getIndex, getSingle } from "@cat/shared/utils";
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+} from "@cat/shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 
 const { client: drizzle } = await getDrizzleDB();
-
-type TranslationData = {
-  translation: TranslationSuggestion;
-  isMemory: boolean;
-  isAdvisor: boolean;
-  advisorId?: number;
-  memorySimilarity?: number;
-  memoryId?: string;
-  memoryItemId?: number;
-  embeddingId?: number;
-};
 
 const queueId = "autoTranslate";
 
@@ -56,19 +34,11 @@ export const autoTranslateQueue = new Queue(queueId, config);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const {
-      documentId,
-      advisorId,
-      vectorizerId,
-      userId,
-      languageId,
-      minMemorySimilarity,
-    } = z
+    const { documentId, advisorId, userId, languageId, minMemorySimilarity } = z
       .object({
         userId: z.uuidv7(),
         documentId: z.uuidv7(),
         advisorId: z.int(),
-        vectorizerId: z.int(),
         languageId: z.string(),
         minMemorySimilarity: z.number().min(0).max(1),
       })
@@ -81,43 +51,32 @@ const worker = new Worker(
       pluginRegistry,
       advisorId,
     );
-    const vectorizer = await getServiceFromDBId<TextVectorizer>(
-      drizzle,
-      pluginRegistry,
-      vectorizerId,
-    );
 
     if (minMemorySimilarity > 1 || minMemorySimilarity < 0) {
       throw new Error("Min memory similarity should between 0 and 1");
     }
 
-    const docRow = getSingle(
+    const document = assertSingleNonNullish(
       await drizzle
         .select({
-          id: documentTale.id,
-          projectId: documentTale.projectId,
-          project: {
-            id: project.id,
-            sourceLanguageId: project.sourceLanguageId,
-          },
+          id: documentTable.id,
+          projectId: documentTable.projectId,
         })
-        .from(documentTale)
-        .innerJoin(project, eq(documentTale.projectId, project.id))
-        .where(eq(documentTale.id, documentId)),
+        .from(documentTable)
+        .where(eq(documentTable.id, documentId)),
     );
 
-    if (!docRow) throw new Error("Document not found");
+    if (!document) throw new Error("Document not found");
 
     const targetLangRows = await drizzle
       .select({ languageId: projectTargetLanguage.languageId })
       .from(projectTargetLanguage)
       .where(
         and(
-          eq(projectTargetLanguage.projectId, docRow.project.id),
+          eq(projectTargetLanguage.projectId, document.projectId),
           eq(projectTargetLanguage.languageId, languageId),
         ),
-      )
-      .execute();
+      );
 
     if (targetLangRows.length === 0)
       throw new Error("Language does not claimed in project");
@@ -126,31 +85,15 @@ const worker = new Worker(
       await drizzle
         .select({ glossaryId: glossaryToProject.glossaryId })
         .from(glossaryToProject)
-        .where(eq(glossaryToProject.projectId, docRow.project.id))
+        .where(eq(glossaryToProject.projectId, document.projectId))
     ).map((r) => r.glossaryId);
 
     const memoryIds = (
       await drizzle
         .select({ memoryId: memoryToProject.memoryId })
         .from(memoryToProject)
-        .where(eq(memoryToProject.projectId, docRow.project.id))
+        .where(eq(memoryToProject.projectId, document.projectId))
     ).map((r) => r.memoryId);
-
-    const sourceLanguageId = getSingle(
-      await drizzle
-        .select({ id: language.id })
-        .from(language)
-        .where(eq(language.id, docRow.project.sourceLanguageId)),
-    ).id;
-
-    const document = {
-      projectId: docRow.projectId,
-      Project: {
-        Memories: memoryIds.map((id) => ({ id })),
-        Glossaries: glossaryIds.map((id) => ({ id })),
-        SourceLanguage: { id: sourceLanguageId },
-      },
-    };
 
     if (!document)
       throw new Error(
@@ -170,73 +113,64 @@ const worker = new Worker(
     // 开自动始翻译
 
     const elements = await drizzle
-      .select()
+      .select({
+        id: translatableElement.id,
+        value: translatableElement.value,
+        languageId: translatableElement.languageId,
+        embedding: vector.vector,
+      })
       .from(translatableElement)
-      .where(
-        and(
-          eq(translatableElement.documentId, documentId),
-          sql`NOT EXISTS (SELECT 1 FROM "Translation" t WHERE t."translatableElementId" = ${translatableElement.id})`,
-        ),
+      .innerJoin(vector, eq(translatableElement.embeddingId, vector.id))
+      .innerJoin(
+        documentTable,
+        eq(translatableElement.documentId, documentTable.id),
       )
-      .execute();
+      .where(eq(documentTable.id, documentId));
 
     // 自动翻译数据
     // 只有翻译记忆和建议器两个来源
-    const translations: TranslationData[] = await Promise.all(
+    // 将元素 map 为 translationTable 的 insert 数据
+    const translations = await Promise.all(
       elements.map(async (element) => {
-        const embeddedElement = await queryElementWithEmbedding(
-          drizzle,
-          element.id,
-        );
         const memories = await searchMemory(
           drizzle,
-          embeddedElement.embedding,
-          sourceLanguageId,
+          element.embedding,
+          element.languageId,
           languageId,
-          document.Project.Memories.map((memory) => memory.id),
+          memoryIds,
           minMemorySimilarity,
         );
 
-        // 记忆
+        // 用记忆充当翻译结果
         if (memories.length > 0) {
-          const memory = getFirst(
+          const memory = assertFirstNonNullish(
             memories.sort((a, b) => b.similarity - a.similarity),
           );
 
           return {
-            translation: {
-              from: element.value,
-              value: memory.translation,
-              status: "SUCCESS",
-            } satisfies TranslationSuggestion,
-            isMemory: true,
-            isAdvisor: false,
-            memorySimilarity: memory.similarity,
-            memoryId: memory.memoryId,
-            memoryItemId: memory.id,
+            value: memory.translation,
+            translatorId: memory.creatorId,
+            translatableElementId: element.id,
+            languageId,
             embeddingId: memory.translationEmbeddingId,
+            meta: {
+              memorySimilarity: memory.similarity,
+              memoryId: memory.memoryId,
+              memoryItemId: memory.id,
+            },
           };
         }
         // 建议器
         else {
-          if (!advisor)
-            return {
-              translation: {
-                from: element.value,
-                value: "",
-                status: "ERROR",
-              } satisfies TranslationSuggestion,
-              isAdvisor: false,
-              isMemory: false,
-            };
+          if (!advisor) return undefined;
 
-          if (!advisor.canSuggest(element, sourceLanguageId, languageId))
+          if (!advisor.canSuggest(element.languageId, languageId))
             throw new Error("Advisor can not suggest element in document");
 
           const { termedText, translationIds } =
             await termService.termStore.termText(
               element.value,
-              sourceLanguageId,
+              element.languageId,
               languageId,
             );
           const relations = await drizzle
@@ -251,11 +185,8 @@ const worker = new Worker(
               term,
               and(
                 eq(term.id, termRelation.termId),
-                eq(term.languageId, sourceLanguageId),
-                inArray(
-                  term.glossaryId,
-                  document.Project.Glossaries.map((g) => g.id),
-                ),
+                eq(term.languageId, element.languageId),
+                inArray(term.glossaryId, glossaryIds),
               ),
             )
             .innerJoin(
@@ -265,94 +196,47 @@ const worker = new Worker(
                 eq(translationTable.languageId, languageId),
                 inArray(termRelation.translationId, translationIds),
               ),
-            )
-            .execute();
+            );
 
           const translation = (
             await advisor.getSuggestions(
-              element,
+              element.value,
               termedText,
               relations,
-              sourceLanguageId,
+              element.languageId,
               languageId,
             )
           ).find(({ status }) => status === "SUCCESS");
 
-          if (!translation)
-            return {
-              translation: {
-                from: element.value,
-                value: "",
-                status: "ERROR",
-              } satisfies TranslationSuggestion,
-              isAdvisor: false,
-              isMemory: false,
-            };
+          if (!translation) return undefined;
 
-          if (!vectorizer) throw new Error("Vectorizer does not exists");
-
-          const vectors = await vectorizer.vectorize(languageId, [
-            {
-              value: translation.value,
-              meta: null,
-            } satisfies UnvectorizedTextData,
-          ]);
-
-          const vector = getSingle(vectors);
-
-          const embeddingId = await insertVector(drizzle, vector);
-
-          if (!embeddingId) throw new Error("Failed to get id of vector");
+          const embeddingId = assertSingleNonNullish(
+            await vectorize(drizzle, pluginRegistry, [
+              {
+                value: translation.value,
+                languageId,
+              },
+            ]),
+          );
 
           return {
-            translation,
-            advisorId,
-            isAdvisor: true,
-            isMemory: false,
+            value: translation.value,
+            translatorId: userId,
+            translatableElementId: element.id,
+            languageId,
             embeddingId,
-          } satisfies TranslationData;
+            meta: {
+              advisorId,
+            },
+          };
         }
       }),
     );
 
+    const filtered = translations.filter((z) => !!z);
+
     // 创建翻译
-    // drizzle 批量插入 translation
-    const translationRows = translations
-      .map((data, index) => ({ data, index }))
-      .filter(({ data }) => data.translation.status === "SUCCESS")
-      .map(
-        ({
-          data: {
-            translation,
-            isAdvisor,
-            isMemory,
-            advisorId,
-            memoryItemId,
-            memorySimilarity,
-            memoryId,
-            embeddingId,
-          },
-          index,
-        }) => ({
-          value: translation.value,
-          meta: {
-            isAutoTranslation: true,
-            isAdvisor,
-            isMemory,
-            memorySimilarity,
-            memoryId,
-            memoryItemId,
-            advisorId,
-          },
-          embeddingId: embeddingId!,
-          vectorizerId,
-          languageId,
-          translatorId: userId,
-          translatableElementId: getIndex(elements, index).id,
-        }),
-      );
-    if (translationRows.length > 0)
-      await drizzle.insert(translationTable).values(translationRows).execute();
+    await drizzle.insert(translationTable).values(filtered);
   },
   {
     ...config,

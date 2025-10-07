@@ -48,6 +48,7 @@ const handleInsert = async () => {
 
   const termsData = termArr.map((term, index) => {
     const translation = translationArr[index];
+    if (!translation) throw new Error("term and translation must match");
     return {
       term,
       termLanguageId: termLanguageId.value,
@@ -60,7 +61,6 @@ const handleInsert = async () => {
     .mutate({
       glossaryId: props.glossaryId,
       termsData: termsData,
-      canReverse: canReverse.value,
     })
     .then(() => {
       info(t("成功插入所有术语"));

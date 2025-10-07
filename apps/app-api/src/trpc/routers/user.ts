@@ -6,7 +6,7 @@ import { UserSchema } from "@cat/shared/schema/prisma/user";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
 import { useStorage } from "@cat/app-server-shared/utils";
 import { eq, file as fileTable, user as userTable } from "@cat/db";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
 export const userRouter = router({
@@ -49,7 +49,7 @@ export const userRouter = router({
           message: "你没有更新他人的信息的权限",
         });
 
-      return getSingle(
+      return assertSingleNonNullish(
         await drizzle
           .update(userTable)
           .set({

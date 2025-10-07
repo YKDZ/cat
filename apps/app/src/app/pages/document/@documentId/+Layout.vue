@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { provide } from "vue";
 import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
+import type { Data } from "./+data.server.ts";
 import IndexSidebar from "@/app/components/IndexSidebar.vue";
 import { documentKey } from "@/app/utils/provide.ts";
 import DocumentHeader from "@/app/components/DocumentHeader.vue";

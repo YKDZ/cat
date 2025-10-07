@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
+import type { Data } from "./+data.server.ts";
 import PluginList from "@/app/components/PluginList.vue";
 
-const plugins = ref(useData<Data>().plugins);
+const { plugins } = useData<Data>();
 </script>
 
 <template>

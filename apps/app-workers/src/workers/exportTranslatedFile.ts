@@ -20,7 +20,7 @@ import {
   file as fileTable,
   document as documentTable,
 } from "@cat/db";
-import { getSingle, useStringTemplate } from "@cat/shared/utils";
+import { assertSingleNonNullish, useStringTemplate } from "@cat/shared/utils";
 import { useStorage } from "@cat/app-server-shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
@@ -43,7 +43,7 @@ const worker = new Worker(
     const taskId = z.string().parse(job.id);
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    const document = getSingle(
+    const document = assertSingleNonNullish(
       await drizzle
         .select({
           handlerId: pluginServiceTable.serviceId,
@@ -80,7 +80,7 @@ const worker = new Worker(
         `Translatable File Handler with id ${document.handlerId} do not exists`,
       );
 
-    const file = getSingle(
+    const file = assertSingleNonNullish(
       await drizzle
         .select({
           originName: fileTable.originName,
@@ -146,7 +146,7 @@ const worker = new Worker(
     });
     const storedPath = join(provider.getBasicPath(), path);
 
-    const translatedFile = getSingle(
+    const translatedFile = assertSingleNonNullish(
       await drizzle
         .insert(fileTable)
         .values([

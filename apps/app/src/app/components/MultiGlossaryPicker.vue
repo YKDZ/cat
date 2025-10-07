@@ -22,7 +22,7 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
-const memoryIds = defineModel<string[]>("glossaryIds", { required: true });
+const memoryIds = defineModel<string[]>({ required: true });
 
 const glossaries = ref<Glossary[]>([]);
 const options = computed(() => {

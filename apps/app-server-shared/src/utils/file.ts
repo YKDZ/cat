@@ -3,8 +3,10 @@ import type {
   StorageProvider,
   TranslatableFileHandler,
 } from "@cat/plugin-core";
-import type { TranslatableElementData } from "@cat/shared/schema/misc";
-import type { JSONType } from "@cat/shared/schema/json";
+import type {
+  TranslatableElementData,
+  TranslatableElementDataWithoutLanguageId,
+} from "@cat/shared/schema/misc";
 import { OverallDrizzleClient } from "@cat/db";
 import { getServiceFromDBId } from "@/utils/plugin.ts";
 
@@ -13,13 +15,7 @@ export const extractElementsFromFile = async (
   pluginRegistry: PluginRegistry,
   handler: TranslatableFileHandler,
   fileId: number,
-): Promise<
-  {
-    value: string;
-    meta: JSONType;
-    sortIndex: number;
-  }[]
-> => {
+): Promise<TranslatableElementDataWithoutLanguageId[]> => {
   const dbFile = await drizzle.query.file.findFirst({
     where: (file, { eq }) => eq(file.id, fileId),
     columns: {
@@ -46,11 +42,13 @@ export const extractElementsFromFile = async (
 };
 
 const sortAndAssignIndex = (
-  elements: TranslatableElementData[],
-): (TranslatableElementData & { sortIndex: number })[] => {
-  const withSortIndex: (TranslatableElementData & { sortIndex: number })[] = [];
+  elements: TranslatableElementDataWithoutLanguageId[],
+): (TranslatableElementDataWithoutLanguageId & { sortIndex: number })[] => {
+  const withSortIndex: (TranslatableElementDataWithoutLanguageId & {
+    sortIndex: number;
+  })[] = [];
   const withoutSortIndex: {
-    item: TranslatableElementData;
+    item: TranslatableElementDataWithoutLanguageId;
     originalIndex: number;
   }[] = [];
 

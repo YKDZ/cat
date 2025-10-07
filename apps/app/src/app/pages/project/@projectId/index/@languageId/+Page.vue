@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { computed, inject, provide, ref } from "vue";
-import type { Data } from "../../+data.ts";
+import type { Data } from "../../+data.server.ts";
 import { languageKey, useInjectionKey } from "@/app/utils/provide.ts";
 import { useLanguageStore } from "@/app/stores/language.ts";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";

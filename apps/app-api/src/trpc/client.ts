@@ -5,7 +5,7 @@ import {
   loggerLink,
   splitLink,
 } from "@trpc/client";
-import type { AppRouter } from "@cat/app-api/trpc";
+import { AppRouter } from "./_app.ts";
 
 const isDev = process.env.NODE_ENV === "development";
 

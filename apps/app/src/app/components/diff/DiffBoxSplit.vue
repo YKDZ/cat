@@ -58,8 +58,19 @@ const diffedRows = computed<DiffedRow[]>(() => {
   let i = 0;
   const n = lines.length;
 
+  const safeGet = (array: any[], index: number) => {
+    return index >= 0 && index < array.length ? array[index] : undefined;
+  };
+
+  const isValidLineType = (index: number, expectedType: string) => {
+    const line = safeGet(lines, index);
+    return line && line.type === expectedType;
+  };
+
   while (i < n) {
-    const cur = lines[i];
+    const cur = safeGet(lines, i);
+
+    if (!cur) break;
 
     if (cur.type === "unchanged") {
       rows.push({
@@ -81,29 +92,43 @@ const diffedRows = computed<DiffedRow[]>(() => {
     if (cur.type === "removed") {
       const removed: DiffedLine[] = [];
       const added: DiffedLine[] = [];
-      while (i < n && lines[i].type === "removed") {
-        removed.push(lines[i]);
+
+      // 安全收集所有连续的removed行
+      while (isValidLineType(i, "removed")) {
+        const line = safeGet(lines, i);
+        if (line) {
+          removed.push(line);
+        }
         i++;
       }
-      while (i < n && lines[i].type === "added") {
-        added.push(lines[i]);
+
+      // 安全收集所有连续的added行
+      while (isValidLineType(i, "added")) {
+        const line = safeGet(lines, i);
+        if (line) {
+          added.push(line);
+        }
         i++;
       }
 
       const maxLen = Math.max(removed.length, added.length);
       for (let k = 0; k < maxLen; k++) {
-        const left = removed[k]
+        const removedLine = safeGet(removed, k);
+        const addedLine = safeGet(added, k);
+
+        const left = removedLine
           ? {
-              lineNumber: removed[k].oldLineNumber,
+              lineNumber: removedLine.oldLineNumber,
               type: "removed" as const,
-              content: normalizeContent(removed[k].content),
+              content: normalizeContent(removedLine.content),
             }
           : undefined;
-        const right = added[k]
+
+        const right = addedLine
           ? {
-              lineNumber: added[k].newLineNumber,
+              lineNumber: addedLine.newLineNumber,
               type: "added" as const,
-              content: normalizeContent(added[k].content),
+              content: normalizeContent(addedLine.content),
             }
           : undefined;
 
@@ -126,29 +151,43 @@ const diffedRows = computed<DiffedRow[]>(() => {
     if (cur.type === "added") {
       const added: DiffedLine[] = [];
       const removed: DiffedLine[] = [];
-      while (i < n && lines[i].type === "added") {
-        added.push(lines[i]);
+
+      // 安全收集所有连续的added行
+      while (isValidLineType(i, "added")) {
+        const line = safeGet(lines, i);
+        if (line) {
+          added.push(line);
+        }
         i++;
       }
-      while (i < n && lines[i].type === "removed") {
-        removed.push(lines[i]);
+
+      // 安全收集所有连续的removed行
+      while (isValidLineType(i, "removed")) {
+        const line = safeGet(lines, i);
+        if (line) {
+          removed.push(line);
+        }
         i++;
       }
 
       const maxLen = Math.max(added.length, removed.length);
       for (let k = 0; k < maxLen; k++) {
-        const left = removed[k]
+        const removedLine = safeGet(removed, k);
+        const addedLine = safeGet(added, k);
+
+        const left = removedLine
           ? {
-              lineNumber: removed[k].oldLineNumber,
+              lineNumber: removedLine.oldLineNumber,
               type: "removed" as const,
-              content: normalizeContent(removed[k].content),
+              content: normalizeContent(removedLine.content),
             }
           : undefined;
-        const right = added[k]
+
+        const right = addedLine
           ? {
-              lineNumber: added[k].newLineNumber,
+              lineNumber: addedLine.newLineNumber,
               type: "added" as const,
-              content: normalizeContent(added[k].content),
+              content: normalizeContent(addedLine.content),
             }
           : undefined;
 
@@ -166,6 +205,8 @@ const diffedRows = computed<DiffedRow[]>(() => {
       }
       continue;
     }
+
+    i++;
   }
 
   return rows;

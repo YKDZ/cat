@@ -4,7 +4,6 @@
 .qoder
 .npmrc
 dist
-packages/db/src/generated/prisma/
 apps/app/plugins/
 ollama
 uploads

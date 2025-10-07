@@ -11,8 +11,8 @@ type TermRelationWithDetails = TermRelation & {
 };
 
 export const useEditorTermStore = defineStore("editorTerm", () => {
-  const { elementId } = storeToRefs(useEditorTableStore());
-  const { languageFromId, languageToId } = storeToRefs(useEditorContextStore());
+  const { elementId, elementLanguageId } = storeToRefs(useEditorTableStore());
+  const { languageToId } = storeToRefs(useEditorContextStore());
 
   const searchQuery = ref("");
   const terms = ref<TermRelationWithDetails[]>([]);
@@ -27,13 +27,13 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
   };
 
   const searchTerm = async () => {
-    if (!languageFromId.value || !languageToId.value) return 0;
+    if (!elementLanguageId.value || !languageToId.value) return 0;
 
     if (searchQuery.value.length === 0) return 0;
 
     const terms = await trpc.glossary.searchTerm.query({
       text: searchQuery.value,
-      termLanguageId: languageFromId.value,
+      termLanguageId: elementLanguageId.value,
       translationLanguageId: languageToId.value,
     });
 

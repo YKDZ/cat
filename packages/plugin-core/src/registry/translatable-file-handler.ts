@@ -1,11 +1,13 @@
-import type { TranslatableElementData } from "@cat/shared/schema/misc";
+import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
 import type { File } from "@cat/shared/schema/prisma/file";
 import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface TranslatableFileHandler extends IPluginService {
   canExtractElement(file: File): boolean;
-  extractElement(fileContent: Buffer): Promise<TranslatableElementData[]>;
+  extractElement(
+    fileContent: Buffer,
+  ): Promise<TranslatableElementDataWithoutLanguageId[]>;
   canGetReplacedFileContent(file: File): boolean;
   getReplacedFileContent(
     fileContent: Buffer,

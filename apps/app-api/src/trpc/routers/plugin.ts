@@ -18,7 +18,7 @@ import {
   pluginConfigInstance as pluginConfigInstanceTable,
   desc,
 } from "@cat/db";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 
 export const pluginRouter = router({
@@ -107,7 +107,7 @@ export const pluginRouter = router({
           message: "Plugin not installed",
         });
 
-      return getSingle(
+      return assertSingleNonNullish(
         await drizzle
           .insert(pluginConfigInstanceTable)
           .values({

@@ -5,9 +5,9 @@ import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
 export const guard = async (ctx: PageContextServer) => {
   if (!ctx.user) throw render("/auth", `You must login to access`);
 
-  const { elementId, documentId, languageFromTo } = ctx.routeParams;
+  const { elementId, documentId, languageToId } = ctx.routeParams;
 
-  if (!documentId || !languageFromTo || !elementId)
+  if (!documentId || !languageToId || !elementId)
     throw render("/", `Invalid route params`);
 
   if (elementId !== "auto" || !isNaN(parseInt(elementId))) return;
@@ -23,10 +23,9 @@ export const guard = async (ctx: PageContextServer) => {
       page: 0,
       pageSize: 1,
     });
-    if (!first[0])
-      throw render(`/editor/${documentId}/${languageFromTo}/empty`);
+    if (!first[0]) throw render(`/editor/${documentId}/${languageToId}/empty`);
     target = first[0];
   }
 
-  throw render(`/editor/${documentId}/${languageFromTo}/${target.id}`);
+  throw render(`/editor/${documentId}/${languageToId}/${target.id}`);
 };

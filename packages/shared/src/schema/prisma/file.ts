@@ -7,11 +7,8 @@ export const FileSchema = z.object({
   storedPath: z.string(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-
   storageProviderId: z.int(),
-
   documentId: z.uuidv7().nullable(),
-
   userId: z.uuidv7().nullable(),
 });
 

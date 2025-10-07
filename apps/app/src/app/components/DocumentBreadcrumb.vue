@@ -14,7 +14,7 @@ const icon = computed(() => "i-mdi:file");
   <div class="flex items-center">
     <div class="text-lg font-bold flex gap-2 items-center">
       <span :class="icon" class="h-6 w-6 inline-block" /><span>{{
-        document?.File?.originName
+        document.name
       }}</span>
     </div>
   </div>

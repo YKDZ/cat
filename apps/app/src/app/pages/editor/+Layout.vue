@@ -7,38 +7,34 @@ import EditorSidebar from "@/app/components/EditorSidebar.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { syncRefWith, watchClient } from "@/app/utils/vue.ts";
+import { useEditorElementStore } from "@/app/stores/editor/element";
+import { watch } from "vue";
 
 const ctx = usePageContext();
 
+const { refresh: refreshContext } = useEditorContextStore();
+const { refresh: refreshElement } = useEditorElementStore();
 const { toElement } = useEditorTableStore();
 const { elementId } = storeToRefs(useEditorTableStore());
-const { documentId, languageFromId, languageToId } = storeToRefs(
-  useEditorContextStore(),
-);
-
-const LanguageFromToSchema = z.string().regex(/^.+-.+$/);
+const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 
 syncRefWith(documentId, () => z.uuidv7().parse(ctx.routeParams["documentId"]));
-syncRefWith(
-  languageFromId,
-  () =>
-    LanguageFromToSchema.parse(ctx.routeParams["languageFromTo"] ?? "").split(
-      "-",
-    )[0],
-);
-syncRefWith(
-  languageToId,
-  () =>
-    LanguageFromToSchema.parse(ctx.routeParams["languageFromTo"] ?? "").split(
-      "-",
-    )[1],
-);
+syncRefWith(languageToId, () => ctx.routeParams["languageToId"] ?? "");
 syncRefWith(elementId, () => parseInt(ctx.routeParams["elementId"] ?? ""));
 
 watchClient(
   elementId,
   (to) => {
     if (to) toElement(to);
+  },
+  { immediate: true },
+);
+
+watch(
+  documentId,
+  () => {
+    refreshContext();
+    refreshElement();
   },
   { immediate: true },
 );

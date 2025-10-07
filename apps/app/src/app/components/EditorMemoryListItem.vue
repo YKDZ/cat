@@ -45,11 +45,7 @@ onMounted(() => {
           similarity: toShortFixed(memorySuggestion.similarity * 100, 2),
         })
       }}</span>
-      <UserAvatar
-        :user-id="memorySuggestion.translatorId"
-        with-name
-        :size="16"
-      />
+      <UserAvatar :user-id="memorySuggestion.creatorId" with-name :size="16" />
       <span>{{ memory?.name ?? props.memorySuggestion.memoryId }}</span>
     </div>
   </div>

@@ -7,9 +7,6 @@ export const ProjectSchema = z.object({
   description: z.string().nullable(),
   createdAt: PrismaDateTime,
   updatedAt: PrismaDateTime,
-
-  sourceLanguageId: z.string(),
-
   creatorId: z.uuidv7(),
 });
 

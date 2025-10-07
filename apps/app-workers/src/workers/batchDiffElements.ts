@@ -1,23 +1,14 @@
-import {
-  getDrizzleDB,
-  inArray,
-  insertVectors,
-  translatableElement,
-  vector,
-} from "@cat/db";
+import { getDrizzleDB, inArray, translatableElement, vector } from "@cat/db";
 import { Queue, QueueEvents, Worker } from "bullmq";
-import { PluginRegistry, type TextVectorizer } from "@cat/plugin-core";
-import type { JSONType } from "@cat/shared/schema/json";
+import { PluginRegistry } from "@cat/plugin-core";
 import {
   TranslatableElementDataSchema,
   type TranslatableElementData,
 } from "@cat/shared/schema/misc";
-import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 import { isEqual } from "lodash-es";
 import { chunk, chunkDual, getIndex } from "@cat/shared/utils";
-import { diffArraysAndSeparate } from "@cat/app-server-shared/utils";
-import { getServiceFromDBId } from "@cat/app-server-shared/utils";
+import { diffArraysAndSeparate, vectorize } from "@cat/app-server-shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 import {
@@ -25,12 +16,6 @@ import {
   type ChunkData,
   type DistributedTask,
 } from "@/utils/chunk.ts";
-
-type NewElementMeta = {
-  projectId?: string;
-  creatorId?: string;
-  documentId?: string;
-};
 
 const { client: drizzle } = await getDrizzleDB();
 
@@ -42,56 +27,21 @@ export const batchDiffElementsQueueEvents = new QueueEvents(queueId);
 const worker = new Worker(
   queueId,
   async (job) => {
-    const {
-      newElementsData,
-      oldElementIds,
-      sourceLanguageId,
-      vectorizerId,
-      newElementMeta,
-    } = z
+    const { newElementsData, oldElementIds, documentId } = z
       .object({
         newElementsData: z.array(
           TranslatableElementDataSchema.required({
             sortIndex: true,
           }),
         ),
-        sourceLanguageId: z.string(),
         oldElementIds: z.array(z.int()),
-        vectorizerId: z.int(),
-        newElementMeta: z
-          .object({
-            projectId: z.uuidv7().optional(),
-            creatorId: z.uuidv7().optional(),
-            documentId: z.uuidv7().optional(),
-          })
-          .refine(
-            (obj) =>
-              obj.projectId !== undefined ||
-              obj.creatorId !== undefined ||
-              obj.documentId !== undefined,
-            {
-              message: "At least one of element host must be provided",
-            },
-          )
-          .optional(),
+        documentId: z.uuidv7(),
       })
       .parse(job.data);
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    const vectorizer = await getServiceFromDBId<TextVectorizer>(
-      drizzle,
-      pluginRegistry,
-      vectorizerId,
-    );
-
-    await batchDiff(
-      oldElementIds,
-      newElementsData,
-      sourceLanguageId,
-      vectorizer,
-      newElementMeta,
-    );
+    await batchDiff(pluginRegistry, oldElementIds, newElementsData, documentId);
   },
   {
     ...config,
@@ -99,11 +49,10 @@ const worker = new Worker(
 );
 
 const batchDiff = async (
+  pluginRegistry: PluginRegistry,
   oldElementIds: number[],
   newElementsData: (TranslatableElementData & { sortIndex: number })[],
-  sourceLanguageId: string,
-  vectorizer: TextVectorizer,
-  newElementMeta?: NewElementMeta,
+  documentId: string,
 ) => {
   // drizzle 查询替换 prisma findMany
   const oldElements = (
@@ -112,6 +61,7 @@ const batchDiff = async (
         id: translatableElement.id,
         value: translatableElement.value,
         meta: translatableElement.meta,
+        languageId: translatableElement.languageId,
         sortIndex: translatableElement.sortIndex,
       })
       .from(translatableElement)
@@ -121,6 +71,7 @@ const batchDiff = async (
     id: element.id,
     value: element.value,
     sortIndex: element.sortIndex,
+    languageId: element.languageId,
     meta: element.meta,
   }));
 
@@ -134,16 +85,11 @@ const batchDiff = async (
   const addedElements = added.map((element) => ({
     value: element.value,
     sortIndex: element.sortIndex,
-    meta: element.meta as JSONType,
+    languageId: element.languageId,
+    meta: element.meta,
   }));
 
-  const vectors = await vectorizer.vectorize(sourceLanguageId, addedElements);
-  if (!vectors) {
-    logger.warn("PROCESSOR", {
-      msg: `Vectorizer ${vectorizer.getId()} does not return vectors.`,
-    });
-    return;
-  }
+  const embeddingIds = await vectorize(drizzle, pluginRegistry, addedElements);
 
   // 移除元素
 
@@ -166,7 +112,7 @@ const batchDiff = async (
   // 添加元素
   type ChunkElement = {
     element: TranslatableElementData & { sortIndex: number };
-    embedding: number[];
+    embeddingId: number;
   };
 
   await new DistributedTaskHandler<ChunkElement>(
@@ -174,24 +120,24 @@ const batchDiff = async (
     {
       chunks: chunkDual<
         TranslatableElementData & { sortIndex: number },
-        number[]
-      >(addedElements, vectors, 100).map(({ index, chunk }) => {
+        number
+      >(addedElements, embeddingIds, 100).map(({ index, chunk }) => {
         return {
           chunkIndex: index,
           data: chunk.arr1.map((el, index) => ({
             element: el,
-            embedding: getIndex(chunk.arr2, index),
+            embeddingId: getIndex(chunk.arr2, index),
           })),
         } satisfies ChunkData<{
           element: TranslatableElementData & { sortIndex: number };
-          embedding: number[];
+          embeddingId: number;
         }>;
       }),
       run: async ({ data }) => {
-        const { embeddingIds, elementIds } = await handleAddedElements(
+        const { elementIds } = await handleAddedElements(
           data.map((element) => element.element),
-          data.map((element) => element.embedding),
-          newElementMeta,
+          data.map((element) => element.embeddingId),
+          documentId,
         );
         return { elementIds, embeddingIds };
       },
@@ -220,15 +166,13 @@ const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
 
 const handleAddedElements = async (
   elements: (TranslatableElementData & { sortIndex: number })[],
-  vectors: number[][],
-  newElementMeta?: NewElementMeta,
+  embeddingIds: number[],
+  documentId: string,
 ): Promise<{
-  embeddingIds: number[];
   elementIds: number[];
 }> => {
   return await drizzle.transaction(async (tx) => {
     const elementIds: number[] = [];
-    const embeddingIds = await insertVectors(tx, vectors);
 
     for (let i = 0; i < elements.length; i++) {
       const element = getIndex(elements, i);
@@ -237,9 +181,10 @@ const handleAddedElements = async (
         .values({
           value: element.value,
           sortIndex: element.sortIndex,
-          meta: z.json().parse(element.meta) ?? {},
+          meta: element.meta,
           embeddingId: getIndex(embeddingIds, i),
-          ...newElementMeta,
+          documentId,
+          languageId: element.languageId,
         })
         .returning({ id: translatableElement.id })
         .execute();

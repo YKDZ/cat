@@ -1,0 +1,1 @@
+ALTER TABLE "Vector" ADD COLUMN "vectorizer_id" integer NOT NULL;
