@@ -21,9 +21,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     return extname(file.originName) === ".json";
   }
 
-  async extractElement(
-    fileContent: Buffer,
-  ): Promise<TranslatableElementData[]> {
+  async extractElement(fileContent: Buffer) {
     return collectTranslatableElement(fileContent.toString("utf-8"));
   }
 
@@ -76,11 +74,9 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
   }
 }
 
-const collectTranslatableElement = (
-  json: string,
-): TranslatableElementData[] => {
+const collectTranslatableElement = (json: string) => {
   const parsedData = JSON.parse(json);
-  const result: TranslatableElementData[] = [];
+  const result: Omit<TranslatableElementData, "languageId">[] = [];
 
   const traverse = (obj: JSONValue, currentPath: string[] = []) => {
     if (typeof obj === "object" && obj !== null) {

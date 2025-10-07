@@ -1,17 +1,10 @@
 import "dotenv/config";
 import type { Server } from "node:http";
-import { syncSettings } from "@cat/db";
 import { logger } from "@cat/shared/utils";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import { getDrizzleDB, getRedisDB } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
 import { closeAllProcessors } from "@cat/app-workers/utils";
-import {
-  importLocalPlugins,
-  installDefaultPlugins,
-  initTermService,
-} from "@cat/app-server-shared/utils";
 import app from "./app.ts";
 
 let server: Server | null = null;
@@ -34,32 +27,7 @@ const shutdownServer = async () => {
 };
 
 const startServer = async () => {
-  try {
-    const drizzleDB = await getDrizzleDB();
-    const redisDB = await getRedisDB();
-
-    await drizzleDB.ping();
-    await redisDB.ping();
-
-    await syncSettings(drizzleDB.client);
-
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-
-    await importLocalPlugins(drizzleDB.client);
-
-    await installDefaultPlugins(drizzleDB.client, pluginRegistry);
-
-    await initTermService(drizzleDB.client, pluginRegistry);
-
-    apply(app);
-  } catch (e) {
-    logger.error(
-      "SERVER",
-      { msg: "Failed to start server. Process will exit with code 1" },
-      e,
-    );
-    process.exit(6);
-  }
+  apply(app);
 
   return serve(app, {
     port: process.env.PORT ? parseInt(process.env.PORT) : 3000,

@@ -41,26 +41,3 @@ export const createWSContext = async ({
 
 export type WSContext = Awaited<ReturnType<typeof createWSContext>>;
 export type HttpContext = Awaited<ReturnType<typeof createHttpContext>>;
-
-export const EMPTY_CONTEXT = {
-  user: null,
-  sessionId: "sessionId not exists in EMPTY_CONTEXT",
-  setCookie: (): string => {
-    throw new Error("Not implemented in EMPTY_CONTEXT");
-  },
-  getCookie: (): string => {
-    throw new Error("Not implemented in EMPTY_CONTEXT");
-  },
-  getQueryParam: (): string => {
-    throw new Error("Not implemented in EMPTY_CONTEXT");
-  },
-  setResHeader: (): string => {
-    throw new Error("Not implemented in EMPTY_CONTEXT");
-  },
-  delCookie: (): string => {
-    throw new Error("Not implemented in EMPTY_CONTEXT");
-  },
-  getReqHeader: (): string => {
-    throw new Error("Not implemented in EMPTY_CONTEXT");
-  },
-};

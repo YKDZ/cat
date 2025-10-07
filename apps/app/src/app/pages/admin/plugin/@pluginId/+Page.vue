@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
+import type { Data } from "./+data.server.ts";
 import PluginConfig from "@/app/components/PluginConfig.vue";
 import PluginDeleteBtn from "@/app/components/PluginDeleteBtn.vue";
 
@@ -9,8 +9,8 @@ const { plugin } = useData<Data>();
 
 <template>
   <PluginConfig
-    v-if="plugin.Config"
-    :config="plugin.Config"
+    v-if="plugin.PluginConfig"
+    :config="plugin.PluginConfig"
     scope-type="GLOBAL"
     scope-id=""
   />

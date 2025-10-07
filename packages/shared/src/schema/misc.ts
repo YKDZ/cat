@@ -32,6 +32,7 @@ export const TranslationSuggestionStatusSchema = z.enum(["ERROR", "SUCCESS"]);
 export const TranslatableElementDataSchema = z.object({
   value: z.string(),
   sortIndex: z.int().optional(),
+  languageId: z.string(),
   meta: safeZDotJson,
 });
 
@@ -42,16 +43,20 @@ export const TranslationSuggestionSchema = z.object({
 });
 
 export const MemorySuggestionSchema = z.object({
+  id: z.int(),
+  translationEmbeddingId: z.int(),
   source: z.string(),
   translation: z.string(),
   memoryId: z.uuidv7(),
-  translatorId: z.uuidv7(),
+  creatorId: z.uuidv7(),
   similarity: z.number().min(0).max(1),
+  createdAt: PrismaDateTime,
+  updatedAt: PrismaDateTime,
 });
 
 export const UnvectorizedTextDataSchema = z.object({
   value: z.string(),
-  meta: z.any().nullable(),
+  languageId: z.string(),
 });
 
 export const TermDataSchema = z.object({
@@ -71,6 +76,10 @@ export type FileMeta = z.infer<typeof FileMetaSchema>;
 export type TranslationSuggestion = z.infer<typeof TranslationSuggestionSchema>;
 export type TranslatableElementData = z.infer<
   typeof TranslatableElementDataSchema
+>;
+export type TranslatableElementDataWithoutLanguageId = Omit<
+  TranslatableElementData,
+  "languageId"
 >;
 export type ElementTranslationStatus = z.infer<
   typeof ElementTranslationStatusSchema

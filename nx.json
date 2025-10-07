@@ -3,24 +3,21 @@
   "namedInputs": {
     "default": [
       "{projectRoot}/**/*",
-      "!{projectRoot}/dist",
-      "!{projectRoot}/node_modules"
+      "sharedGlobals",
+      "!{projectRoot}/dist"
     ],
     "production": [
       "default",
-      "!{projectRoot}/vitest.config.ts",
-      "!{projectRoot}/**/?(*.)+(spec|test).ts"
-    ]
+      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.mjs",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/src/test-setup.[jt]s"
+    ],
+    "sharedGlobals": []
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "inputs": [
-        "production",
-        "^production"
-      ],
       "outputs": [
         "{projectRoot}/dist"
       ],
@@ -29,15 +26,12 @@
     "dev": {
       "dependsOn": [
         "^build"
-      ],
-      "continuous": true
+      ]
     },
     "preview": {
       "dependsOn": [
-        "build",
-        "^build"
-      ],
-      "cache": false
+        "build"
+      ]
     }
   },
   "plugins": [

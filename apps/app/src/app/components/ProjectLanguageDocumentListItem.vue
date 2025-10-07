@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/schema/prisma/document";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
+import type { Document } from "@cat/shared/schema/prisma/document";
 import type { Project } from "@cat/shared/schema/prisma/project";
 import type { Language } from "@cat/shared/schema/prisma/misc";
 import DocumentTranslationProgress from "./DocumentTranslationProgress.vue";
@@ -15,9 +15,7 @@ import { useToastStore } from "@/app/stores/toast.ts";
 
 const props = defineProps<{
   document: Document;
-  project: Project & {
-    SourceLanguage: Language;
-  };
+  project: Project;
   language: Language;
 }>();
 
@@ -25,9 +23,7 @@ const { info, trpcWarn } = useToastStore();
 const { t } = useI18n();
 
 const handleEdit = async () => {
-  await navigate(
-    `/editor/${props.document.id}/${props.project.SourceLanguage.id}-${props.language.id}/auto`,
-  );
+  await navigate(`/editor/${props.document.id}/${props.language.id}/auto`);
 };
 
 const handleExportTranslated = async () => {
@@ -48,7 +44,7 @@ const handleExportTranslated = async () => {
     class="cursor-pointer hover:bg-highlight-darker"
     @click="handleEdit"
   >
-    <TableCell>{{ document.File?.originName }}</TableCell>
+    <TableCell>{{ document.name }}</TableCell>
     <TableCell>
       <DocumentTranslationProgress
         v-if="language"

@@ -38,7 +38,7 @@ import {
 import { useStorage } from "@cat/app-server-shared/utils";
 import { exportTranslatedFileQueue } from "@cat/app-workers/workers";
 import { upsertDocumentElementsFromFileQueue } from "@cat/app-workers/workers";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
 /**
@@ -185,7 +185,7 @@ export const documentRouter = router({
       const path = join(provider.getBasicPath(), "documents", name);
 
       // TODO 校验文件类型
-      const file = getSingle(
+      const file = assertSingleNonNullish(
         await drizzle
           .insert(fileTable)
           .values({
@@ -206,13 +206,13 @@ export const documentRouter = router({
   createFromFile: authedProcedure
     .input(
       z.object({
+        languageId: z.string(),
         projectId: z.string(),
         fileId: z.number().int(),
       }),
     )
-    .output(DocumentSchema)
     .mutation(async ({ input, ctx }) => {
-      const { projectId, fileId } = input;
+      const { projectId, fileId, languageId } = input;
       const {
         drizzleDB: { client: drizzle },
         user,
@@ -222,7 +222,7 @@ export const documentRouter = router({
       const dbProject = await drizzle.query.project.findFirst({
         where: (project, { eq }) => eq(project.id, projectId),
         columns: {
-          sourceLanguageId: true,
+          id: true,
         },
       });
 
@@ -232,39 +232,31 @@ export const documentRouter = router({
           message: "Project not found",
         });
 
-      const vectorizer = (
-        await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER")
-      ).find(({ service }) => service.canVectorize(dbProject.sourceLanguageId));
+      const dbFile = await drizzle.query.file.findFirst({
+        where: (file, { eq }) => eq(file.id, fileId),
+      });
 
-      if (!vectorizer) {
+      if (!dbFile)
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "No vectorizer found for project's source language",
-        });
-      }
-
-      const existDocument = getSingle(
-        await drizzle
-          .select({
-            id: documentTable.id,
-          })
-          .from(documentTable)
-          .innerJoin(fileTable, eq(fileTable.documentId, documentTable.id))
-          .where(eq(documentTable.projectId, projectId))
-          .limit(1),
-      );
-
-      if (!existDocument) {
-        const dbFile = await drizzle.query.file.findFirst({
-          where: (file, { eq }) => eq(file.id, fileId),
+          message: "File not found",
         });
 
-        if (!dbFile)
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "File not found",
-          });
+      const existDocumentRows = await drizzle
+        .select({
+          id: documentTable.id,
+        })
+        .from(documentTable)
+        .innerJoin(fileTable, eq(fileTable.documentId, documentTable.id))
+        .where(
+          and(
+            eq(documentTable.projectId, projectId),
+            eq(documentTable.name, dbFile.originName),
+          ),
+        )
+        .limit(1);
 
+      if (existDocumentRows.length === 0) {
         const service = (
           await pluginRegistry.getPluginServices(
             drizzle,
@@ -280,13 +272,14 @@ export const documentRouter = router({
 
         const result = await drizzle.transaction(async (tx) => {
           // 创建文档
-          const document = getSingle(
+          const document = assertSingleNonNullish(
             await tx
               .insert(documentTable)
               .values({
                 creatorId: user.id,
                 projectId,
                 fileHandlerId: service.id,
+                name: dbFile.originName,
               })
               .returning(),
           );
@@ -303,7 +296,7 @@ export const documentRouter = router({
           });
 
           // 创建任务
-          const task = getSingle(
+          const task = assertSingleNonNullish(
             await tx
               .insert(taskTable)
               .values({
@@ -312,7 +305,9 @@ export const documentRouter = router({
                   projectId,
                 },
               })
-              .returning(),
+              .returning({
+                id: documentTable.id,
+              }),
           );
 
           // 关联文档和任务
@@ -327,12 +322,12 @@ export const documentRouter = router({
         await upsertDocumentElementsFromFileQueue.add(result.task.id, {
           documentId: result.document.id,
           fileId,
-          vectorizerId: vectorizer.id,
+          languageId,
         });
-
-        return result.document;
       } else {
-        const task = getSingle(
+        const existDocument = assertSingleNonNullish(existDocumentRows);
+
+        const task = assertSingleNonNullish(
           await drizzle
             .insert(taskTable)
             .values({
@@ -348,18 +343,11 @@ export const documentRouter = router({
           taskId: task.id,
         });
 
-        // 获取文档信息用于返回
-        const document = await drizzle.query.document.findFirst({
-          where: (doc, { eq }) => eq(doc.id, existDocument.id),
-        });
-
         await upsertDocumentElementsFromFileQueue.add(task.id, {
           documentId: existDocument.id,
           fileId,
-          vectorizerId: vectorizer.id,
+          languageId,
         });
-
-        return document!;
       }
     }),
   get: authedProcedure
@@ -539,7 +527,7 @@ export const documentRouter = router({
           message: "指定文档不是基于文件的",
         });
 
-      const task = getSingle(
+      const task = assertSingleNonNullish(
         await drizzle
           .insert(taskTable)
           .values({
@@ -897,7 +885,7 @@ export const documentRouter = router({
         );
       }
 
-      const documentData = getSingle(
+      const documentData = assertSingleNonNullish(
         await drizzle
           .select({
             file: {

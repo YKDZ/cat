@@ -8,7 +8,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { timestamps } from "../utils/reuse.ts";
+import { timestamps } from "./reuse.ts";
 import { pluginService } from "./plugin.ts";
 import { user } from "./user.ts";
 import { document } from "./document.ts";

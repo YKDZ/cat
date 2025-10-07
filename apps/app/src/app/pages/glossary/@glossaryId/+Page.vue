@@ -1,3 +1,12 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import GlossaryInsertTermBtn from "@/app/components/GlossaryInsertTermBtn.vue";
+import { useInjectionKey } from "@/app/utils/provide";
+import { inject } from "vue";
+import type { Data } from "./+data.server.ts";
 
-<template>术语库</template>
+const glossary = inject(useInjectionKey<Data>()("glossary"))!;
+</script>
+
+<template>
+  <GlossaryInsertTermBtn :glossary-id="glossary.id" />
+</template>

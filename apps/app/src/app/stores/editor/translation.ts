@@ -1,12 +1,12 @@
 import { trpc } from "@cat/app-api/trpc/client";
 import {
-  TranslationApprovementSchema,
   TranslationSchema,
+  type TranslationApprovement,
 } from "@cat/shared/schema/prisma/translation";
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
 import * as z from "zod";
-import { UserSchema } from "@cat/shared/schema/prisma/user";
+import { type User } from "@cat/shared/schema/prisma/user";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
@@ -15,10 +15,7 @@ const TranslationStatusSchema = z
   .default("COMPLETED");
 
 const TranslationWithStatusSchema = TranslationSchema.extend({
-  status: TranslationStatusSchema,
-
-  Translator: UserSchema,
-  Approvements: z.array(TranslationApprovementSchema),
+  status: TranslationStatusSchema.optional(),
 });
 
 export type TranslationWithStatus = z.infer<typeof TranslationWithStatusSchema>;
@@ -29,7 +26,12 @@ export const useEditorTranslationStore = defineStore(
     const table = storeToRefs(useEditorTableStore());
     const context = storeToRefs(useEditorContextStore());
 
-    const translations = ref<TranslationWithStatus[]>([]);
+    const translations = ref<
+      (TranslationWithStatus & {
+        Translator: User;
+        TranslationApprovements: TranslationApprovement[];
+      })[]
+    >([]);
 
     const updateTranslations = async () => {
       if (!table.elementId.value || !context.languageToId.value) return;
@@ -40,9 +42,8 @@ export const useEditorTranslationStore = defineStore(
           languageId: context.languageToId.value,
         })
         .then((newTranslations) => {
-          translations.value = z
-            .array(TranslationWithStatusSchema)
-            .parse(newTranslations);
+          // @ts-expect-error json optional
+          translations.value = newTranslations;
         });
     };
 

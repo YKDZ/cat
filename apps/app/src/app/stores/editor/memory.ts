@@ -9,21 +9,14 @@ import { useProfileStore } from "@/app/stores/profile.ts";
 
 export const useEditorMemoryStore = defineStore("editorMemory", () => {
   const sub = shallowRef<Unsubscribable>();
-  const { elementId } = storeToRefs(useEditorTableStore());
-  const { languageFromId, languageToId, document } = storeToRefs(
-    useEditorContextStore(),
-  );
+  const { elementId, elementLanguageId } = storeToRefs(useEditorTableStore());
+  const { languageToId } = storeToRefs(useEditorContextStore());
   const { editorMemoryMinSimilarity } = storeToRefs(useProfileStore());
 
   const memories = ref<MemorySuggestion[]>([]);
 
   const subMemories = () => {
-    if (
-      !document.value ||
-      !elementId.value ||
-      !languageFromId.value ||
-      !languageToId.value
-    )
+    if (!elementId.value || !elementLanguageId.value || !languageToId.value)
       return;
 
     if (sub.value) sub.value.unsubscribe();
@@ -31,9 +24,8 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
 
     sub.value = trpc.memory.onNew.subscribe(
       {
-        projectId: document.value.projectId,
         elementId: elementId.value,
-        sourceLanguageId: languageFromId.value,
+        sourceLanguageId: elementLanguageId.value,
         translationLanguageId: languageToId.value,
         minMemorySimilarity: editorMemoryMinSimilarity.value,
       },

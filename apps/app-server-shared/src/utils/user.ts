@@ -13,9 +13,10 @@ export const userFromSessionId = async (
   const userId = await redis.hGet(`user:session:${sessionId}`, "userId");
   if (!userId) return null;
 
-  return UserSchema.nullable().parse(
+  const user =
     (await drizzle.query.user.findFirst({
       where: (user, { eq }) => eq(user.id, userId),
-    })) ?? null,
-  );
+    })) ?? null;
+
+  return UserSchema.nullable().parse(user);
 };

@@ -1,1 +1,1 @@
-export default "/editor/@documentId/@languageFromTo/empty";
+export default "/editor/@documentId/@languageToId/empty";

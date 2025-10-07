@@ -20,5 +20,6 @@
   "oxlint",
   "libretranslate",
   "ollama",
-  "uuidv7"
+  "uuidv7",
+  "unvectorized"
 ]

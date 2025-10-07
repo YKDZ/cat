@@ -25,7 +25,8 @@ const setActiveTab = (tabId: string) => {
 const hasCustomTab = computed(() => !!slots.tab);
 
 if (!currentTabId.value && props.tabs.length > 0) {
-  currentTabId.value = props.tabs[0].id;
+  const tab = props.tabs[0];
+  if (tab) currentTabId.value = tab.id;
 }
 </script>
 

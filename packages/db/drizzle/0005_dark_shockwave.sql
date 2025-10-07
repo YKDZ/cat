@@ -1,0 +1,1 @@
+ALTER TABLE "TranslatableElement" ALTER COLUMN "language_id" SET NOT NULL;

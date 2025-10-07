@@ -7,10 +7,10 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { timestamps, uuidId } from "../utils/reuse.ts";
+import { timestamps, uuidId } from "./reuse.ts";
 import { user } from "./user.ts";
 import { language } from "./misc.ts";
-import { document, translatableElement } from "./document.ts";
+import { document } from "./document.ts";
 import { memoryToProject } from "./memory.ts";
 import { glossaryToProject } from "./glossary.ts";
 
@@ -20,18 +20,11 @@ export const project = pgTable(
     id: uuidId(),
     name: text().notNull(),
     description: text(),
-    sourceLanguageId: text().notNull(),
     creatorId: uuid().notNull(),
     ...timestamps,
   },
   (table) => [
     index().using("btree", table.creatorId.asc().nullsLast()),
-    foreignKey({
-      columns: [table.sourceLanguageId],
-      foreignColumns: [language.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("restrict"),
     foreignKey({
       columns: [table.creatorId],
       foreignColumns: [user.id],
@@ -68,16 +61,11 @@ export const projectTargetLanguage = pgTable(
 );
 
 export const projectRelations = relations(project, ({ one, many }) => ({
-  SourceLanguage: one(language, {
-    fields: [project.sourceLanguageId],
-    references: [language.id],
-  }),
   Creator: one(user, {
     fields: [project.creatorId],
     references: [user.id],
   }),
   Documents: many(document),
-  TranslatableElements: many(translatableElement),
   ProjectTargetLanguages: many(projectTargetLanguage),
   GlossaryToProjects: many(glossaryToProject),
   MemoryToProjects: many(memoryToProject),

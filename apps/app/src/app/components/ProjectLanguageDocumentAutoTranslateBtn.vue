@@ -64,7 +64,8 @@ const updateAvailableAdvisor = async () => {
     .then((advisors) => (availableAdvisors.value = advisors));
 
   if (availableAdvisors.value.length > 0 && !advisorId.value) {
-    advisorId.value = availableAdvisors.value[0].id;
+    const advisor = availableAdvisors.value[0];
+    if (advisor) advisorId.value = advisor.id;
   }
 };
 

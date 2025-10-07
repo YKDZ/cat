@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { getSingle } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { hashPassword } from "./password.ts";
 import { language as languageTable } from "@/drizzle/schema/misc.ts";
 import {
@@ -34,7 +34,7 @@ export const init = async (): Promise<void> => {
         ? "password"
         : randomBytes(8).toString("hex");
 
-    const user = getSingle(
+    const user = assertSingleNonNullish(
       await tx
         .insert(userTable)
         .values({

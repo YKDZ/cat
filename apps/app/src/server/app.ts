@@ -9,7 +9,6 @@ app.use("*", pinoLoggerMiddleware);
 
 app.route("/api/trpc", trpcHandler);
 
-// app.route("/doc/openapi", openapiHandler);
 app.route("/api/__health", healthHandler);
 
 export default app;

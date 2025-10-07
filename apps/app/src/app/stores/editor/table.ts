@@ -41,6 +41,11 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     );
   });
 
+  const elementLanguageId = computed(() => {
+    if (!element.value) return null;
+    return element.value.languageId;
+  });
+
   const elementTotalAmount = computedAsync(async () => {
     if (!context.documentId.value) return 0;
 
@@ -122,7 +127,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
 
     await toElement(firstUntranslatedElement.id);
     await navigate(
-      `/editor/${context.documentId.value}/${context.languageFromId.value}-${context.languageToId.value}/${firstUntranslatedElement.id}`,
+      `/editor/${context.documentId.value}/${context.languageToId.value}/${firstUntranslatedElement.id}`,
     );
   };
 
@@ -197,6 +202,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     element,
     elementTotalAmount,
     totalPageIndex,
+    elementLanguageId,
     toElement,
     toPage,
     toNextUntranslated,

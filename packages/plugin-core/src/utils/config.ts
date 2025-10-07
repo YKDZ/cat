@@ -10,7 +10,7 @@ export const getPluginConfig = async (
 ): Promise<JSONType> => {
   const config = await getConfigInstance(drizzle, pluginId, scopeType, scopeId);
 
-  // TODO 继承呢
+  // TODO 继承
   return config;
 };
 
