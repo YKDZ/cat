@@ -30,9 +30,7 @@
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@types/pg": "^8.15.5",
-    "drizzle-kit": "^0.31.4",
-    "drizzle-prisma-generator": "^0.1.7",
-    "prisma": "6.16.1"
+    "drizzle-kit": "^0.31.4"
   },
   "peerDependencies": {
     "@cat/shared": "workspace:*",
