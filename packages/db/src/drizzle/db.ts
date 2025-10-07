@@ -19,13 +19,7 @@ export class DrizzleDB {
   public client;
 
   constructor() {
-    const client = new Client({
-      host: process.env.DB_HOST!,
-      port: Number(process.env.DB_PORT!),
-      user: process.env.DB_USERNAME!,
-      password: process.env.DB_PASSWORD!,
-      database: process.env.DB_NAME!,
-    });
+    const client = new Client({ connectionString: process.env.DATABASE_URL });
     this.client = drizzle({
       client,
       schema: {

@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from "node:fs";
+import { access, mkdir, readdir } from "node:fs/promises";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -500,7 +500,7 @@ export class PluginRegistry implements IPluginRegistry {
     const dirPath = PluginRegistry.getPluginFsPath(pluginId);
     const manifestPath = join(dirPath, "manifest.json");
 
-    if (!existsSync(manifestPath)) {
+    if (!access(manifestPath)) {
       logger.debug("PLUGIN", {
         msg: `Plugin ${pluginId} missing manifest.json`,
       });
@@ -536,9 +536,13 @@ export class PluginRegistry implements IPluginRegistry {
   }
 
   public static async getPluginIdInLocalPlugins(): Promise<string[]> {
-    const dirs = readdirSync(PluginRegistry.pluginsDir, {
-      withFileTypes: true,
-    }).filter((dirent) => dirent.isDirectory());
+    await mkdir(PluginRegistry.pluginsDir);
+
+    const dirs = (
+      await readdir(PluginRegistry.pluginsDir, {
+        withFileTypes: true,
+      })
+    ).filter((dirent) => dirent.isDirectory());
 
     const results = [];
 
