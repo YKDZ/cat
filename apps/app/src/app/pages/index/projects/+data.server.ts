@@ -1,4 +1,4 @@
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import { logger } from "@cat/shared/utils";
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";

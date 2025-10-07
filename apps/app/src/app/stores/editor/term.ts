@@ -1,5 +1,5 @@
 import { trpc } from "@cat/app-api/trpc/client";
-import type { Term, TermRelation } from "@cat/shared/schema/prisma/glossary";
+import type { Term, TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";

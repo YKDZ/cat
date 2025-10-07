@@ -1,6 +1,6 @@
 import { getRedisDB, OverallDrizzleClient } from "@cat/db";
-import type { User } from "@cat/shared/schema/prisma/user";
-import { UserSchema } from "@cat/shared/schema/prisma/user";
+import type { User } from "@cat/shared/schema/drizzle/user";
+import { UserSchema } from "@cat/shared/schema/drizzle/user";
 
 export const userFromSessionId = async (
   drizzle: OverallDrizzleClient,

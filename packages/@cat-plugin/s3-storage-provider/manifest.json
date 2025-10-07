@@ -9,9 +9,7 @@
       "type": "STORAGE_PROVIDER"
     }
   ],
-  "tags": [
-    "storage-provider"
-  ],
+  "tags": ["storage-provider"],
   "config": {
     "type": "object",
     "properties": {
@@ -54,7 +52,7 @@
           },
           "force-path-style": {
             "type": "boolean",
-            "default": true
+            "default": false
           }
         }
       },

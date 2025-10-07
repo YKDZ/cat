@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Glossary } from "@cat/shared/schema/prisma/glossary";
+import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 import ProjectGlossaryListItem from "@/app/components/ProjectGlossaryListItem.vue";
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 
 defineProps<{
   glossaries: Glossary[];

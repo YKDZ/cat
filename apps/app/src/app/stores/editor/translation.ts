@@ -2,11 +2,11 @@ import { trpc } from "@cat/app-api/trpc/client";
 import {
   TranslationSchema,
   type TranslationApprovement,
-} from "@cat/shared/schema/prisma/translation";
+} from "@cat/shared/schema/drizzle/translation";
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
 import * as z from "zod";
-import { type User } from "@cat/shared/schema/prisma/user";
+import { type User } from "@cat/shared/schema/drizzle/user";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 

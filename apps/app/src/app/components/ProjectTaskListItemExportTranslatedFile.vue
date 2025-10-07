@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Task } from "@cat/shared/schema/prisma/misc";
+import type { Task } from "@cat/shared/schema/drizzle/misc";
 import * as z from "zod/v4";
 import { computed, ref } from "vue";
 import { useDateFormat } from "@vueuse/core";

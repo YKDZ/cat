@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/schema/prisma/document";
+import type { Document } from "@cat/shared/schema/drizzle/document";
 import ProjectDocumentListItem from "./ProjectDocumentListItem.vue";
 import Table from "./table/Table.vue";
 import TableBody from "./table/TableBody.vue";

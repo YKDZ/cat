@@ -4,7 +4,7 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
-import type { TranslationApprovement } from "@cat/shared/schema/prisma/translation";
+import type { TranslationApprovement } from "@cat/shared/schema/drizzle/translation";
 import EditorElementTranslationMeta from "./EditorElementTranslationMeta.vue";
 import EditorElementTranslationVote from "./EditorElementTranslationVote.vue";
 import TextTagger from "./tagger/TextTagger.vue";
@@ -13,7 +13,7 @@ import EditorElementTranslationApprovementBtn from "./EditorElementTranslationAp
 import Icon from "./Icon.vue";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import type { User } from "@cat/shared/schema/prisma/user";
+import type { User } from "@cat/shared/schema/drizzle/user";
 
 const { t } = useI18n();
 

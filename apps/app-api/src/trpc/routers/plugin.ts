@@ -5,7 +5,7 @@ import {
   PluginConfigSchema,
   PluginInstallationSchema,
   PluginSchema,
-} from "@cat/shared/schema/prisma/plugin";
+} from "@cat/shared/schema/drizzle/plugin";
 import {
   AuthMethodSchema,
   TranslationAdvisorDataSchema,

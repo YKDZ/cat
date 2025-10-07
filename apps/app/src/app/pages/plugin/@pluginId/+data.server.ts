@@ -1,4 +1,4 @@
-import type { Plugin } from "@cat/shared/schema/prisma/plugin";
+import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";

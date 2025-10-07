@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import { ref } from "vue";
 import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";

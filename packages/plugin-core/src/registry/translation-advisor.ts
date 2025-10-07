@@ -1,5 +1,5 @@
 import type { TranslationSuggestion } from "@cat/shared/schema/misc";
-import type { TermRelation } from "@cat/shared/schema/prisma/glossary";
+import type { TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface TranslationAdvisor extends IPluginService {

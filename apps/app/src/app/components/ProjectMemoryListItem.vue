@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/prisma/memory";
+import type { Memory } from "@cat/shared/schema/drizzle/memory";
 import { onMounted, ref } from "vue";
 import { navigate } from "vike/client/router";
 import { trpc } from "@cat/app-api/trpc/client";
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import HButton from "./headless/HButton.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";

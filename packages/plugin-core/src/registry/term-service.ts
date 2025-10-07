@@ -1,4 +1,4 @@
-import type { Term, TermRelation } from "@cat/shared/schema/prisma/glossary";
+import type { Term, TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface TermFormatter {

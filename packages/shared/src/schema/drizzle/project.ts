@@ -1,12 +1,12 @@
 import * as z from "zod/v4";
-import { PrismaDateTime } from "@/schema/misc.ts";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const ProjectSchema = z.object({
   id: z.uuidv7(),
   name: z.string(),
   description: z.string().nullable(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
   creatorId: z.uuidv7(),
 });
 

@@ -7,9 +7,9 @@ import { z } from "zod";
 import type { Node } from "unist";
 import type { Root, Parent, RootContent, Literal, Image } from "mdast";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
-import { File } from "@cat/shared/schema/prisma/file";
+import { File } from "@cat/shared/schema/drizzle/file";
 import { TranslatableElementData } from "@cat/shared/schema/misc";
-import { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 
 /** 可译块类型集合 */
 const BLOCK_NODE_TYPES = new Set<string>([

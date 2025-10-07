@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
-import { UserSchema } from "@cat/shared/schema/prisma/user";
+import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
 import { useStorage } from "@cat/app-server-shared/utils";
 import { eq, file as fileTable, user as userTable } from "@cat/db";

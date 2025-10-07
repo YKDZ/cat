@@ -2,7 +2,7 @@
 import { navigate } from "vike/client/router";
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
-import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";

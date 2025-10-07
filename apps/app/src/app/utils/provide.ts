@@ -1,8 +1,8 @@
-import type { Document } from "@cat/shared/schema/prisma/document";
-import type { Glossary } from "@cat/shared/schema/prisma/glossary";
-import type { Memory } from "@cat/shared/schema/prisma/memory";
-import type { Language } from "@cat/shared/schema/prisma/misc";
-import type { Plugin } from "@cat/shared/schema/prisma/plugin";
+import type { Document } from "@cat/shared/schema/drizzle/document";
+import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
+import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import type { Language } from "@cat/shared/schema/drizzle/misc";
+import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
 import type { InjectionKey, Ref } from "vue";
 
 export const documentKey = Symbol() as InjectionKey<Document>;

@@ -2,8 +2,8 @@ import { defineStore, storeToRefs } from "pinia";
 import { reactive, computed } from "vue";
 import * as z from "zod/v4";
 import type { ElementTranslationStatus } from "@cat/shared/schema/misc";
-import { TranslatableElementSchema } from "@cat/shared/schema/prisma/document";
-import type { TranslatableElement } from "@cat/shared/schema/prisma/document";
+import { TranslatableElementSchema } from "@cat/shared/schema/drizzle/document";
+import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import { trpc } from "@cat/app-api/trpc/client";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 

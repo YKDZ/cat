@@ -1,21 +1,21 @@
 import * as z from "zod/v4";
-import { PrismaDateTime } from "@/schema/misc.ts";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const UserSchema = z.object({
   id: z.uuidv7(),
   name: z.string(),
   email: z.email(),
   emailVerified: z.boolean(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 });
 
 export const AccountSchema = z.object({
   type: z.string(),
   provider: z.string(),
   providedAccountId: z.string(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
   userId: z.uuidv7(),
 });
 

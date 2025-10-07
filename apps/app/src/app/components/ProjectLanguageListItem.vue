@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Language } from "@cat/shared/schema/prisma/misc";
+import type { Language } from "@cat/shared/schema/drizzle/misc";
 import { navigate } from "vike/client/router";
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import ProjectTranslationProgress from "./ProjectTranslationProgress.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";

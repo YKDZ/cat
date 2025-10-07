@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { PrismaDateTime } from "@/schema/misc.ts";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 import { safeZDotJson } from "@/schema/json.ts";
 
 export const LanguageSchema = z.object({
@@ -9,8 +9,8 @@ export const LanguageSchema = z.object({
 
 export const TaskSchema = z.object({
   id: z.uuidv7(),
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
   status: z
     .string()
     .refine((v) =>
@@ -24,12 +24,12 @@ export const SettingSchema = z.object({
   id: z.int(),
   key: z.string(),
   value: safeZDotJson,
-  createdAt: PrismaDateTime,
-  updatedAt: PrismaDateTime,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 });
 
 export type Language = z.infer<typeof LanguageSchema>;
 export type Task = z.infer<typeof TaskSchema>;
 export type Setting = z.infer<typeof SettingSchema>;
 
-export { PrismaDateTime };
+export { DrizzleDateTimeSchema };

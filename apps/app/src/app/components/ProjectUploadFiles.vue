@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Project } from "@cat/shared/schema/prisma/project";
+import type { Project } from "@cat/shared/schema/drizzle/project";
 import { computed, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";

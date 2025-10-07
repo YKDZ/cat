@@ -2,11 +2,11 @@ import {
   GlossarySchema,
   TermRelationSchema,
   TermSchema,
-} from "@cat/shared/schema/prisma/glossary";
+} from "@cat/shared/schema/drizzle/glossary";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import { UserSchema } from "@cat/shared/schema/prisma/user";
+import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import {
   and,
   count,

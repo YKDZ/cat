@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import type { Memory } from "@cat/shared/schema/prisma/memory";
-import type { User } from "@cat/shared/schema/prisma/user";
+import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import type { User } from "@cat/shared/schema/drizzle/user";
 import MemoryBreadcrumb from "./MemoryBreadcrumb.vue";
 import HButton from "./headless/HButton.vue";
 import Header from "@/app/components/headless/HHeader.vue";

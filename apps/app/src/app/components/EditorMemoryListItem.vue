@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toShortFixed } from "@cat/shared/utils";
-import { type Memory } from "@cat/shared/schema/prisma/memory";
+import { type Memory } from "@cat/shared/schema/drizzle/memory";
 import { type MemorySuggestion } from "@cat/shared/schema/misc";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";

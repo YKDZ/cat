@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { User } from "@cat/shared/schema/prisma/user";
+import type { User } from "@cat/shared/schema/drizzle/user";
 import { computed, onBeforeMount, ref } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";
 

@@ -1,6 +1,6 @@
 import type { Readable } from "node:stream";
 import type { JSONType } from "@cat/shared/schema/json";
-import type { File } from "@cat/shared/schema/prisma/file";
+import type { File } from "@cat/shared/schema/drizzle/file";
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
 import { S3Client } from "@aws-sdk/client-s3";
 import {

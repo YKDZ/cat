@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/schema/prisma/document";
+import type { Document } from "@cat/shared/schema/drizzle/document";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";

@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { TaskSchema } from "@cat/shared/schema/prisma/misc";
+import { TaskSchema } from "@cat/shared/schema/drizzle/misc";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
 export const taskRouter = router({

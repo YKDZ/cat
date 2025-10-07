@@ -1,4 +1,4 @@
-import type { Language } from "@cat/shared/schema/prisma/misc";
+import type { Language } from "@cat/shared/schema/drizzle/misc";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";

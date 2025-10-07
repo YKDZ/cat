@@ -2,9 +2,9 @@
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import type { Document } from "@cat/shared/schema/prisma/document";
-import type { Project } from "@cat/shared/schema/prisma/project";
-import type { Language } from "@cat/shared/schema/prisma/misc";
+import type { Document } from "@cat/shared/schema/drizzle/document";
+import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Language } from "@cat/shared/schema/drizzle/misc";
 import DocumentTranslationProgress from "./DocumentTranslationProgress.vue";
 import TableCell from "./table/TableCell.vue";
 import TableRow from "./table/TableRow.vue";

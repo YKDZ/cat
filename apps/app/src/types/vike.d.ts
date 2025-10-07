@@ -1,7 +1,7 @@
 import type { Pinia, StateTree } from "pinia";
 import type { I18n, LocaleMessageValue, VueMessageType } from "vue-i18n";
 import type { DrizzleDB, RedisDB } from "@cat/db";
-import type { User } from "@cat/shared/schema/prisma/user";
+import type { User } from "@cat/shared/schema/drizzle/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
 import type { RuntimeAdapter } from "vike-server/hono";
 

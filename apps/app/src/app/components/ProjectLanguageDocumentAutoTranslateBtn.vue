@@ -2,7 +2,7 @@
 import { computed, inject, onMounted, ref } from "vue";
 import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
 import { toShortFixed } from "@cat/shared/utils";
-import { type Document } from "@cat/shared/schema/prisma/document";
+import { type Document } from "@cat/shared/schema/drizzle/document";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import Modal from "./headless/HModal.vue";

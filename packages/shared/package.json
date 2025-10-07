@@ -30,49 +30,49 @@
       "types": "./dist/schema/plugin.d.ts",
       "import": "./dist/schema/plugin.js"
     },
-    "./schema/prisma/document": {
-      "types": "./dist/schema/prisma/document.d.ts",
-      "import": "./dist/schema/prisma/document.js"
+    "./schema/drizzle/document": {
+      "types": "./dist/schema/drizzle/document.d.ts",
+      "import": "./dist/schema/drizzle/document.js"
     },
-    "./schema/prisma/file": {
-      "types": "./dist/schema/prisma/file.d.ts",
-      "import": "./dist/schema/prisma/file.js"
+    "./schema/drizzle/file": {
+      "types": "./dist/schema/drizzle/file.d.ts",
+      "import": "./dist/schema/drizzle/file.js"
     },
-    "./schema/prisma/glossary": {
-      "types": "./dist/schema/prisma/glossary.d.ts",
-      "import": "./dist/schema/prisma/glossary.js"
+    "./schema/drizzle/glossary": {
+      "types": "./dist/schema/drizzle/glossary.d.ts",
+      "import": "./dist/schema/drizzle/glossary.js"
     },
-    "./schema/prisma/memory": {
-      "types": "./dist/schema/prisma/memory.d.ts",
-      "import": "./dist/schema/prisma/memory.js"
+    "./schema/drizzle/memory": {
+      "types": "./dist/schema/drizzle/memory.d.ts",
+      "import": "./dist/schema/drizzle/memory.js"
     },
-    "./schema/prisma/misc": {
-      "types": "./dist/schema/prisma/misc.d.ts",
-      "import": "./dist/schema/prisma/misc.js"
+    "./schema/drizzle/misc": {
+      "types": "./dist/schema/drizzle/misc.d.ts",
+      "import": "./dist/schema/drizzle/misc.js"
     },
-    "./schema/prisma/plugin": {
-      "types": "./dist/schema/prisma/plugin.d.ts",
-      "import": "./dist/schema/prisma/plugin.js"
+    "./schema/drizzle/plugin": {
+      "types": "./dist/schema/drizzle/plugin.d.ts",
+      "import": "./dist/schema/drizzle/plugin.js"
     },
-    "./schema/prisma/project": {
-      "types": "./dist/schema/prisma/project.d.ts",
-      "import": "./dist/schema/prisma/project.js"
+    "./schema/drizzle/project": {
+      "types": "./dist/schema/drizzle/project.d.ts",
+      "import": "./dist/schema/drizzle/project.js"
     },
-    "./schema/prisma/role": {
-      "types": "./dist/schema/prisma/role.d.ts",
-      "import": "./dist/schema/prisma/role.js"
+    "./schema/drizzle/role": {
+      "types": "./dist/schema/drizzle/role.d.ts",
+      "import": "./dist/schema/drizzle/role.js"
     },
-    "./schema/prisma/translation": {
-      "types": "./dist/schema/prisma/translation.d.ts",
-      "import": "./dist/schema/prisma/translation.js"
+    "./schema/drizzle/translation": {
+      "types": "./dist/schema/drizzle/translation.d.ts",
+      "import": "./dist/schema/drizzle/translation.js"
     },
-    "./schema/prisma/user": {
-      "types": "./dist/schema/prisma/user.d.ts",
-      "import": "./dist/schema/prisma/user.js"
+    "./schema/drizzle/user": {
+      "types": "./dist/schema/drizzle/user.d.ts",
+      "import": "./dist/schema/drizzle/user.js"
     },
-    "./schema/prisma/vector": {
-      "types": "./dist/schema/prisma/vector.d.ts",
-      "import": "./dist/schema/prisma/vector.js"
+    "./schema/drizzle/vector": {
+      "types": "./dist/schema/drizzle/vector.d.ts",
+      "import": "./dist/schema/drizzle/vector.js"
     }
   },
   "files": [
