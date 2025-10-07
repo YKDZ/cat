@@ -229,7 +229,7 @@ export const documentRouter = router({
       if (!dbProject)
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Project not found",
+          message: `Project ${projectId} not found`,
         });
 
       const dbFile = await drizzle.query.file.findFirst({
@@ -239,7 +239,7 @@ export const documentRouter = router({
       if (!dbFile)
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "File not found",
+          message: `File ${fileId} not found`,
         });
 
       const existDocumentRows = await drizzle
@@ -267,7 +267,7 @@ export const documentRouter = router({
         if (!service)
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "没有可以处理这种文件的文件解析器",
+            message: "No suitable file handler found for this file",
           });
 
         const result = await drizzle.transaction(async (tx) => {

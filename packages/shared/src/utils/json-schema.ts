@@ -5,7 +5,7 @@ export const getDefaultFromSchema = (schema: JSONSchema): JSONType => {
   if (typeof schema === "boolean") return null;
 
   if (schema.default !== undefined) {
-    return schema.default;
+    return schema.default as JSONType;
   }
 
   if (schema.type === "object" || schema.properties) {
