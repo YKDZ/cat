@@ -8,7 +8,7 @@ import {
   YAMLSeq,
 } from "yaml";
 import type { File } from "@cat/shared/schema/drizzle/file";
-import type { TranslatableElementData } from "@cat/shared/schema/misc";
+import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 
@@ -43,12 +43,10 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
     );
   }
 
-  async extractElement(
-    fileContent: Buffer,
-  ): Promise<TranslatableElementData[]> {
+  async extractElement(fileContent: Buffer) {
     const content = fileContent.toString("utf8");
     const doc = parseDocument(content);
-    const elements: TranslatableElementData[] = [];
+    const elements: TranslatableElementDataWithoutLanguageId[] = [];
 
     function traverseNode(
       node: unknown,

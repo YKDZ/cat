@@ -1,7 +1,10 @@
 import { extname } from "node:path";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { File } from "@cat/shared/schema/drizzle/file";
-import { TranslatableElementData } from "@cat/shared/schema/misc";
+import {
+  TranslatableElementData,
+  TranslatableElementDataWithoutLanguageId,
+} from "@cat/shared/schema/misc";
 import { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 
 type JSONValue =
@@ -76,7 +79,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
 
 const collectTranslatableElement = (json: string) => {
   const parsedData = JSON.parse(json);
-  const result: Omit<TranslatableElementData, "languageId">[] = [];
+  const result: TranslatableElementDataWithoutLanguageId[] = [];
 
   const traverse = (obj: JSONValue, currentPath: string[] = []) => {
     if (typeof obj === "object" && obj !== null) {

@@ -8,7 +8,7 @@ import type { Node } from "unist";
 import type { Root, Parent, RootContent, Literal, Image } from "mdast";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { File } from "@cat/shared/schema/drizzle/file";
-import { TranslatableElementData } from "@cat/shared/schema/misc";
+import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 
 /** 可译块类型集合 */
@@ -64,12 +64,10 @@ const nodeToMarkdown = (node: Node): string => {
 };
 
 /** 收集可译元素：返回 TranslatableElementData[] */
-const collectTranslatableElementsFromMarkdown = (
-  md: string,
-): TranslatableElementData[] => {
+const collectTranslatableElementsFromMarkdown = (md: string) => {
   const processor = unified().use(remarkParse).use(remarkStringify);
   const rootNode = processor.parse(md) as Root;
-  const result: TranslatableElementData[] = [];
+  const result: TranslatableElementDataWithoutLanguageId[] = [];
 
   const traverse = (node: Node, path: number[] = []): void => {
     if (!node) return;
@@ -127,6 +125,7 @@ const collectTranslatableElementsFromMarkdown = (
   };
 
   traverse(rootNode, []);
+
   return result;
 };
 
@@ -142,9 +141,7 @@ export class MarkdownTranslatableFileHandler
     return e === ".md" || e === ".markdown" || e === ".mdown";
   }
 
-  async extractElement(
-    fileContent: Buffer,
-  ): Promise<TranslatableElementData[]> {
+  async extractElement(fileContent: Buffer) {
     const text = fileContent.toString("utf-8");
     return collectTranslatableElementsFromMarkdown(text);
   }

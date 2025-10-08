@@ -31,6 +31,7 @@
     "@cat/eslint-config": "workspace:*"
   },
   "peerDependencies": {
+    "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*"
   }

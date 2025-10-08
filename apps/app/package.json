@@ -8,7 +8,9 @@
     "dist",
     "node_modules",
     "package.json",
-    "locales"
+    "locales",
+    "scripts",
+    "drizzle"
   ],
   "engines": {
     "node": ">=24.0.0"
@@ -16,13 +18,13 @@
   "scripts": {
     "build": "vike build",
     "dev": "vike dev | pino-pretty",
-    "preview": "tsx ./scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.js",
+    "preview": "copy-drizzle && cross-env NODE_ENV=production node dist/server/index.js",
     "lint": "eslint ./src --fix",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat",
-    "docker-entrypoint": "node dist/server/index.js"
+    "copy-drizzle": "tsx scripts/copy-drizzle.ts"
   },
   "dependencies": {
     "@cat/app-api": "workspace:*",
@@ -39,6 +41,7 @@
     "@vueuse/components": "^13.9.0",
     "@vueuse/core": "^13.9.0",
     "@vueuse/integrations": "^13.9.0",
+    "dotenv": "^17.2.3",
     "bullmq": "^5.61.0",
     "diff": "^8.0.2",
     "hono": "^4.9.10",
@@ -48,6 +51,7 @@
     "pinia-plugin-persistedstate": "^4.5.0",
     "pino": "^9.13.1",
     "pino-http": "^10.5.0",
+    "undici": "^7.16.0",
     "universal-cookie": "^8.0.1",
     "vike": "^0.4.241",
     "vike-server": "^1.0.24",

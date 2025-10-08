@@ -10,6 +10,9 @@
       "path": "../../plugin-core"
     },
     {
+      "path": "../../db"
+    },
+    {
       "path": "../../eslint-config"
     },
     {

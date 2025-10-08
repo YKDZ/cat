@@ -31,8 +31,10 @@
     "@cat/eslint-config": "workspace:*"
   },
   "peerDependencies": {
+    "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
+    "undici": "7.16.0",
     "zod": "^4.1.9"
   }
 }
