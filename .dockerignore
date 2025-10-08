@@ -1,18 +1,62 @@
+# Dependencies
 **/node_modules
+**/.pnpm-store
 
+# Build outputs
+**/dist
 **/build
+**/.next
+**/out
 
-**/generated/prisma
+# NX cache
+**/.nx
+.nx
 
-**/.github
-**/.vscode
+# Test and coverage
+**/coverage
+**/test-results
+**/playwright-report
+**/*.test.ts
+**/*.spec.ts
+**/.vitest
+
+# Development files
 **/.env
+**/.env.*
+**/.vscode
+**/.idea
+**/.DS_Store
+**/.github
 
+# Docker files (avoid recursive Docker builds)
 **/Dockerfile
+**/docker-compose*.yml
 **/.dockerignore
 
-**/dist
+# Git
+**/.git
+**/.gitignore
+**/.gitattributes
 
-**/.nx
+# Logs
+**/logs
+**/*.log
+**/npm-debug.log*
+**/pnpm-debug.log*
 
-**/playwright-report
+# Documentation (if not needed in production)
+**/README.md
+**/CHANGELOG.md
+**/LICENSE
+**/docs
+
+# CI/CD
+**/.github
+**/.gitlab-ci.yml
+
+# Temporary files
+**/tmp
+**/temp
+**/*.tmp
+**/*.swp
+**/*.swo

@@ -6,10 +6,8 @@
     "load-plugins": "node scripts/load-plugins.js"
   },
   "dependencies": {
-    "dotenv": "^17.2.3",
     "tsc": "^2.0.4",
-    "tsx": "^4.20.6",
-    "undici": "^7.16.0"
+    "tsx": "^4.20.6"
   },
   "devDependencies": {
     "@nx/devkit": "21.6.1",

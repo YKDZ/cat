@@ -1,7 +1,6 @@
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { TranslationSuggestion } from "@cat/shared/schema/misc";
-import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import type { TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import { logger } from "@cat/shared/utils";
 import { Pool } from "undici";

@@ -10,12 +10,6 @@
       "path": "./packages/@cat-plugin/libretranslate-advisor"
     },
     {
-      "path": "./packages/@cat-plugin/alibaba-cloud-advisor"
-    },
-    {
-      "path": "./packages/@cat-plugin/google-cloud-advisor"
-    },
-    {
       "path": "./packages/@cat-plugin/oidc-auth-provider"
     },
     {
@@ -23,9 +17,6 @@
     },
     {
       "path": "./packages/@cat-plugin/ollama-vectorizer"
-    },
-    {
-      "path": "./packages/@cat-plugin/openai-vectorizer"
     },
     {
       "path": "./packages/@cat-plugin/yaml-file-handler"

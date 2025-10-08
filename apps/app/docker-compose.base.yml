@@ -56,10 +56,9 @@ services:
     ports:
       - 11434:11434
 
-  cat_libretranslate:
+  libretranslate:
     container_name: cat_libretranslate
     image: libretranslate/libretranslate
-    restart: always
     ports:
       - 5000:5000
     healthcheck:
@@ -67,5 +66,4 @@ services:
         - CMD-SHELL
         - ./venv/bin/python scripts/healthcheck.py
     environment:
-      - LT_UPDATE_MODELS=true
       - LT_LOAD_ONLY=zh,en

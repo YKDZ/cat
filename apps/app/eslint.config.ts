@@ -1,32 +1,30 @@
 import config from "@cat/eslint-config";
 import vueI18n from "@intlify/eslint-plugin-vue-i18n";
-import {
-  defineConfigWithVueTs,
-  vueTsConfigs,
-} from "@vue/eslint-config-typescript";
 import pluginVue from "eslint-plugin-vue";
 import skipFormatting from "@vue/eslint-config-prettier/skip-formatting";
 import unocss from "@unocss/eslint-config/flat";
-import cat from "@cat/eslint-plugin-cat";
 
-export default defineConfigWithVueTs(
-  {
-    extends: [config],
-  },
+export default [
+  ...config,
 
-  pluginVue.configs["flat/essential"],
-  vueTsConfigs.recommended,
+  ...pluginVue.configs["flat/essential"],
+
   {
+    files: ["**/*.vue", "**/*.ts"],
+    languageOptions: {
+      parserOptions: {
+        parser: "@typescript-eslint/parser",
+        project: "./tsconfig.app.json",
+        extraFileExtensions: [".vue"],
+      },
+    },
     rules: {
       "vue/attributes-order": "warn",
-    },
-  },
-  skipFormatting,
-  {
-    rules: {
       "vue/multi-word-component-names": "off",
     },
   },
+
+  skipFormatting,
 
   ...vueI18n.configs.recommended,
   {
@@ -49,5 +47,4 @@ export default defineConfigWithVueTs(
   },
 
   unocss,
-  cat,
-);
+];
