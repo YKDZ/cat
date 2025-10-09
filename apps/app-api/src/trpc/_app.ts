@@ -1,6 +1,3 @@
-// @ts-expect-error zod ts(2742) workaround
-// eslint-disable-next-line
-import * as z from "zod";
 import { router } from "./server.ts";
 import { authRouter } from "./routers/auth.ts";
 import { projectRouter } from "./routers/project.ts";

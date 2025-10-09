@@ -15,6 +15,8 @@ import Toast from "@/app/components/Toast.vue";
 // i-file-icons:markdownlint
 // i-file-icons:yaml-alt4
 // i-mdi:code-json
+
+const a = "b";
 </script>
 
 <template>

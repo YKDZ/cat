@@ -3,14 +3,13 @@
   "namedInputs": {
     "default": [
       "{projectRoot}/**/*",
-      "sharedGlobals",
-      "!{projectRoot}/dist"
+      "sharedGlobals"
     ],
     "production": [
       "default",
-      "!{projectRoot}/eslint.config.ts",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
-      "!{projectRoot}/tsconfig.spec.json"
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/src/test-setup.[jt]s"
     ],
     "sharedGlobals": []
   },
@@ -20,10 +19,11 @@
         "^build"
       ],
       "inputs": [
-        "production"
+        "production",
+        "^production"
       ],
       "outputs": [
-        "{projectRoot}/dist"
+        "{projectRoot}/dist/**/*"
       ],
       "cache": true
     },
@@ -51,18 +51,6 @@
           "buildDepsName": "build-deps",
           "watchDepsName": "watch-deps"
         }
-      }
-    },
-    {
-      "plugin": "@nx/eslint/plugin",
-      "options": {
-        "targetName": "eslint:lint"
-      }
-    },
-    {
-      "plugin": "@nx/playwright/plugin",
-      "options": {
-        "targetName": "e2e"
       }
     },
     {

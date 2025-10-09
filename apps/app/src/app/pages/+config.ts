@@ -10,5 +10,5 @@ export default {
     entry: "src/server/index.ts",
   },
 
-  filesystemRoutingRoot: "/",
+  filesystemRoutingRoot: "/xxxxxx",
 } as Config;
