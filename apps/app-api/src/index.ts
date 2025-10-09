@@ -1,1 +1,1 @@
-throw new Error("No export in . path. Please import in sub path");
+throw new Error("No export in . path");

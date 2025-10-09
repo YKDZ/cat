@@ -52,10 +52,6 @@ const worker = new Worker(
       advisorId,
     );
 
-    if (minMemorySimilarity > 1 || minMemorySimilarity < 0) {
-      throw new Error("Min memory similarity should between 0 and 1");
-    }
-
     const document = assertSingleNonNullish(
       await drizzle
         .select({
@@ -65,8 +61,6 @@ const worker = new Worker(
         .from(documentTable)
         .where(eq(documentTable.id, documentId)),
     );
-
-    if (!document) throw new Error("Document not found");
 
     const targetLangRows = await drizzle
       .select({ languageId: projectTargetLanguage.languageId })

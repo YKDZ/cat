@@ -40,7 +40,7 @@ export default [
     },
     settings: {
       "vue-i18n": {
-        localeDir: "./locales/*.{json,json5,yaml,yml}",
+        localeDir: "./locales/**.{json,json5,yaml,yml}",
         messageSyntaxVersion: "^11.1.3",
       },
     },
