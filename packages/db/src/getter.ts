@@ -9,7 +9,7 @@ declare global {
 
 export const getDrizzleDB = async (): Promise<DrizzleDB> => {
   if (!globalThis["__DRIZZLE_DB__"]) {
-    logger.debug("DB", { msg: "new PrismaDB instance" });
+    logger.debug("DB", { msg: "new DrizzleDB instance" });
     const db = new DrizzleDB();
     await db.connect();
     await db.ping();

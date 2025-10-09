@@ -17,8 +17,7 @@
     "src/**/*.spec.js",
     "src/**/*.test.jsx",
     "src/**/*.spec.jsx",
-    "src/**/*.d.ts",
-    "src/types/prisma.ts"
+    "src/**/*.d.ts"
   ],
   "references": [
     {

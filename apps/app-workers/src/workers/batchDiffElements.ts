@@ -54,7 +54,6 @@ const batchDiff = async (
   newElementsData: (TranslatableElementData & { sortIndex: number })[],
   documentId: string,
 ) => {
-  // drizzle 查询替换 prisma findMany
   const oldElements = (
     await drizzle
       .select({

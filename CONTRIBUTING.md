@@ -14,12 +14,11 @@ The relating tech and framework are:
 - [vue](https://vuejs.org/): frontend framework
 - [hono](https://hono.dev/): web application framework
 - [tRPC](https://trpc.io/): RPC library
-- [prisma](https://www.prisma.io/): ORM (postgresql)
+- [drizzle](https://orm.drizzle.team/): ORM (postgresql)
 - [redis](https://redis.io/): cache database
 - [vite](https://vite.dev/): bundler
 - [unocss](https://unocss.dev/): atom css library
 - [zod](https://zod.dev/): validation library
-- [rollup](https://rollupjs.org/): bundler
 - [nx](https://nx.dev/): monorepo manager
 
 ## Local Development

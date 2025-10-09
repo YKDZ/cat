@@ -1,13 +1,6 @@
 import * as z from "zod/v4";
 import { safeZDotJson } from "@/schema/json.ts";
 
-export const PrismaErrorSchema = z.object({
-  code: z.string(),
-  meta: z.string(),
-  message: z.string(),
-  clientVersion: z.string(),
-});
-
 export const DrizzleDateTimeSchema = z
   .date()
   .or(z.iso.datetime({ offset: true }));
@@ -93,7 +86,6 @@ export type TranslationSuggestionStatus = z.infer<
 export type UnvectorizedTextData = z.infer<typeof UnvectorizedTextDataSchema>;
 export type TermData = z.infer<typeof TermDataSchema>;
 export type AuthMethod = z.infer<typeof AuthMethodSchema>;
-export type PrismaError = z.infer<typeof PrismaErrorSchema>;
 export type TranslationAdvisorData = z.infer<
   typeof TranslationAdvisorDataSchema
 >;
