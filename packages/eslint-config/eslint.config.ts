@@ -9,7 +9,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import cspellWords from "./cspell.words.json" with { type: "json" };
 
 export default defineConfig(
-  globalIgnores(["dist/", "**/generated/prisma/"]),
+  globalIgnores(["dist/"]),
 
   {
     languageOptions: {
