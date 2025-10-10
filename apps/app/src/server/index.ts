@@ -30,15 +30,6 @@ const shutdownServer = async () => {
 const startServer = async () => {
   apply(app);
 
-  const { client: drizzle } = await getDrizzleDB();
-
-  const a = await drizzle
-    .select({ ...getTableColumns(account) })
-    .from(account)
-    .limit(1);
-
-  console.log(typeof a[0]?.updatedAt);
-
   return serve(app, {
     port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
     onCreate: async (nodeServer) => {

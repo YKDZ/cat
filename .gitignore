@@ -1,7 +1,7 @@
-.history
-.yarn
+# app
+apps/app/plugins
+
 .vscode
-.npmrc
 dist
 ollama
 uploads
