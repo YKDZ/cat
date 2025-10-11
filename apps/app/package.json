@@ -78,7 +78,7 @@
     "@vue/tsconfig": "^0.8.1",
     "cross-env": "^10.1.0",
     "eslint-plugin-vue": "^10.5.0",
-    "happy-dom": "^18.0.1",
+    "happy-dom": "^20.0.0",
     "unocss": "^66.5.2",
     "vue-eslint-parser": "^10.2.0"
   }
