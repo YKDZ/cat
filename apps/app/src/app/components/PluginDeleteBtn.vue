@@ -30,7 +30,7 @@ const handleDelete = async () => {
       base: 'btn btn-md btn-base',
       icon: 'btn-icon',
     }"
-    icon="i-mdi:trash-can"
+    icon="icon-[mdi--trash-can]"
     @click="handleDelete"
     >{{ t("删除插件") }}</HButton
   >

@@ -35,7 +35,7 @@ const handleLogout = async () => {
       base: 'btn btn-md btn-left btn-w-full btn-transparent btn-none-rounded',
       icon: 'btn-icon btn-icon-lg',
     }"
-    icon="i-mdi:logout"
+    icon="icon-[mdi--logout]"
     :loading="isProcessing"
     @click="handleLogout"
   >

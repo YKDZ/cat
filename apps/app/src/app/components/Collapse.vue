@@ -41,7 +41,7 @@ const handleClickOutside = () => {
         >
         <Icon v-if="icon" :icon />
         <span
-          class="i-mdi:chevron-down inline-block transform-gpu transition-all"
+          class="icon-[mdi--chevron-down] inline-block transform-gpu transition-all"
           :class="{ 'transform-rotate-180': isOpen }"
         ></span>
       </div>

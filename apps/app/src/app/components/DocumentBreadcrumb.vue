@@ -7,7 +7,7 @@ defineProps<{
 }>();
 
 // TODO 文件名 -> 图标
-const icon = computed(() => "i-mdi:file");
+const icon = computed(() => "icon-[mdi--file]");
 </script>
 
 <template>

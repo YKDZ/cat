@@ -63,7 +63,7 @@ const upload = async () => {
             base: 'btn btn-md btn-base btn-square',
             icon: 'btn-icon btn-icon-md',
           }"
-          icon="i-mdi:upload"
+          icon="icon-[mdi--upload]"
           @click="upload"
         />
       </div>

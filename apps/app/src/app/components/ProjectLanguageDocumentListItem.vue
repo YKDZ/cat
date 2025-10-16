@@ -58,7 +58,7 @@ const handleExportTranslated = async () => {
             base: 'btn btn-md btn-base btn-square',
             icon: 'btn-icon btn-icon-md',
           }"
-          icon="i-mdi:download"
+          icon="icon-[mdi--download]"
           @click.stop="handleExportTranslated"
         />
         <ProjectLanguageDocumentAutoApproveBtn :document />

@@ -106,7 +106,7 @@ watch(
         <span class="flex-1 truncate">{{ option.content }}</span>
         <span
           v-if="(option.value ?? option.content) === modelValue"
-          class="i-mdi:check text-base ml-2"
+          class="icon-[mdi--check] text-base ml-2"
         />
       </div>
 

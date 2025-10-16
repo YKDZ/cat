@@ -17,7 +17,7 @@ const handleSearch = () => {
 <template>
   <HInput
     v-model.trim="searchQuery"
-    icon="i-mdi:magnify"
+    icon="icon-[mdi--magnify]"
     :placeholder="t('搜索可翻译元素')"
     type="text"
     :classes="{

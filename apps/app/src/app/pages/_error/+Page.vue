@@ -20,7 +20,7 @@ const handleBack = () => {
     :classes="{
       base: 'btn btn-md btn-base',
     }"
-    icon="i-mdi:arrow-left"
+    icon="icon-[mdi--arrow-left]"
     @click="handleBack"
     >{{ t("返回上一页") }}</HButton
   >

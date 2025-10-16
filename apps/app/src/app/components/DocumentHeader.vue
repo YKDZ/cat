@@ -20,7 +20,7 @@ const document = inject(documentKey)!;
       :classes="{
         base: 'btn btn-transparent btn-md btn-square',
       }"
-      icon="i-mdi:menu"
+      icon="icon-[mdi--menu]"
       class="md:hidden"
       @click="isFolding = !isFolding"
     />

@@ -105,7 +105,7 @@ const selectedOptions = computed(() => {
           {{ option.content }}
           <button
             type="button"
-            class="i-mdi:close inline-block cursor-pointer"
+            class="icon-[mdi--close] inline-block cursor-pointer"
             @mouseup="removeOption(option)"
           />
         </div>
@@ -142,7 +142,7 @@ const selectedOptions = computed(() => {
         }}</span>
         <span
           v-if="modelValue.includes(option.value ?? option.content)"
-          class="text-success i-mdi:check ml-2"
+          class="text-success icon-[mdi--check] ml-2"
         />
       </div>
 

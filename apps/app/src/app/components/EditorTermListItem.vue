@@ -55,7 +55,7 @@ onMounted(() => {
       @click="handleInsert"
     >
       <TextTagger v-if="document" :text="term.Term!.value" />
-      <Icon small icon="i-mdi:arrow-right" />
+      <Icon small icon="icon-[mdi--arrow-right]" />
       <TextTagger v-if="document" :text="term.Translation!.value" />
     </button>
     <span v-if="glossary" class="text-sm text-highlight-content">{{

@@ -19,7 +19,7 @@ const handleClick = async () => {
       :classes="{
         base: 'btn btn-md btn-base',
       }"
-      icon="i-mdi:check"
+      icon="icon-[mdi--check]"
       @click="handleClick"
       >前往项目界面</HButton
     >

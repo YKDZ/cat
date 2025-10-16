@@ -25,27 +25,27 @@ const { user } = usePageContext();
 const items = ref([
   {
     path: "/",
-    icon: "i-mdi:home",
+    icon: "icon-[mdi--home]",
     text: t("主页"),
   },
   {
     path: "/projects",
-    icon: "i-mdi:folder",
+    icon: "icon-[mdi--folder]",
     text: t("项目"),
   },
   {
     path: "/glossaries",
-    icon: "i-mdi:file-word-box",
+    icon: "icon-[mdi--file-word-box]",
     text: t("术语"),
   },
   {
     path: "/memories",
-    icon: "i-mdi:zip-box",
+    icon: "icon-[mdi--zip-box]",
     text: t("记忆"),
   },
   {
     path: "/plugins",
-    icon: "i-mdi:toy-brick",
+    icon: "icon-[mdi--toy-brick]",
     text: t("插件"),
   },
 ]);
@@ -69,7 +69,11 @@ const handleNavigate = async (path: string) => {
               base: 'btn btn-md btn-transparent btn-square',
               icon: 'btn-icon',
             }"
-            :icon="isFree ? 'i-mdi:card-outline' : 'i-mdi:card-off-outline'"
+            :icon="
+              isFree
+                ? 'icon-[mdi--card-outline]'
+                : 'icon-[mdi--card-off-outline]'
+            "
             @click="isFree = !isFree"
           />
         </div>

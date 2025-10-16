@@ -4,16 +4,17 @@ packages:
   - packages/@cat-plugin/*
 
 ignoredBuiltDependencies:
-  - "@prisma/client"
-  - "@prisma/engines"
+  - '@prisma/client'
+  - '@prisma/engines'
   - esbuild
   - msgpackr-extract
   - oxc-resolver
   - prisma
   - protobufjs
 
-onlyBuiltDependencies:
-  - "@swc/core"
-  - nx
-
 injectWorkspacePackages: true
+
+onlyBuiltDependencies:
+  - '@swc/core'
+  - '@tailwindcss/oxide'
+  - nx

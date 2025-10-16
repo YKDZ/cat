@@ -73,7 +73,7 @@ watchClient(
 <template>
   <div class="flex gap-1 items-center">
     <HButton
-      icon="i-mdi:minus"
+      icon="icon-[mdi--minus]"
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',
       }"
@@ -82,10 +82,10 @@ watchClient(
     />
     <span class="text-center text-center min-h-24px min-w-24px inline-block">
       <span v-if="vote !== null">{{ vote }}</span>
-      <span v-else class="i-mdi:help inline-block" />
+      <span v-else class="icon-[mdi--help] inline-block" />
     </span>
     <HButton
-      icon="i-mdi:plus"
+      icon="icon-[mdi--plus]"
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',
       }"

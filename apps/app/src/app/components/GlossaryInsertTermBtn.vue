@@ -20,7 +20,7 @@ const isOpen = ref(false);
     :classes="{
       base: 'btn btn-md btn-base',
     }"
-    icon="i-mdi:plus"
+    icon="icon-[mdi--plus]"
     @click="isOpen = true"
     >{{ t("插入术语") }}</HButton
   >

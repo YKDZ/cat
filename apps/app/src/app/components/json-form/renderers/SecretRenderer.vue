@@ -59,7 +59,7 @@ const handleUpdate = (event: Event) => {
         class="p-1 rounded-md inline-flex cursor-pointer items-center right-1 justify-center absolute hover:bg-highlight-darker"
         @click="visible = !visible"
       >
-        <Icon :icon="!visible ? 'i-mdi:eye' : 'i-mdi:eye-off'"
+        <Icon :icon="!visible ? 'icon-[mdi--eye]' : 'icon-[mdi--eye-off]'"
       /></span>
     </div>
   </label>

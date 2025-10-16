@@ -21,7 +21,7 @@ const { document } = storeToRefs(useEditorContextStore());
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',
       }"
-      icon="i-mdi:menu"
+      icon="icon-[mdi--menu]"
       class="font-bold md:hidden"
       @click.stop="isFolding = !isFolding"
     />

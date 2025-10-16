@@ -5,6 +5,7 @@ import {
   parsePreferredLanguage,
   setupI18n,
 } from "@/server/utils/i18n.ts";
+import PrimeVue from "primevue/config";
 
 export const onCreateApp = async (ctx: PageContextServer) => {
   const { app } = ctx;
@@ -15,6 +16,10 @@ export const onCreateApp = async (ctx: PageContextServer) => {
 
   const i18n = await loadI18n(ctx);
   app.use(i18n);
+
+  app.use(PrimeVue, {
+    unstyled: true,
+  });
 };
 
 const loadI18n = async (ctx: PageContextServer) => {

@@ -63,7 +63,7 @@ watch(isAllPass, (to) => {
           'btn-icon btn-icon-sm' +
           `${isAllPass ? ' btn-icon-green' : ' btn-icon-red'}`,
       }"
-      :icon="isAllPass ? 'i-mdi:check' : 'i-mdi:close'"
+      :icon="isAllPass ? 'icon-[mdi--check]' : 'icon-[mdi--close]'"
     />
     <Collapse v-if="!isAllPass" v-model="isCollapseOpen">
       <ul>
@@ -72,7 +72,7 @@ watch(isAllPass, (to) => {
           :key="index"
           class="text-highlight-content font-normal flex gap-0.5 text-nowrap items-center"
         >
-          <Icon small icon="i-mdi:close" class="color-red" />
+          <Icon small icon="icon-[mdi--close]" class="color-red" />
           {{ result.error }}
         </li>
       </ul></Collapse

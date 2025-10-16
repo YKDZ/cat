@@ -1,43 +1,34 @@
-:root {
+@theme {
   /* highlight */
-  --cat-theme-highlight: #ffffff;
-  --cat-theme-highlight-darker: #edf2f7;
-  --cat-theme-highlight-darkest: #d7e0ea;
-  --cat-theme-highlight-content: #4e5c6e;
-  --cat-theme-highlight-content-darker: #000000;
+  --color-highlight: #ffffff;
+  --color-highlight-darker: #edf2f7;
+  --color-highlight-darkest: #d7e0ea;
+  --color-highlight-content: #4e5c6e;
+  --color-highlight-content-darker: #000000;
   /* base */
-  --cat-theme-base: #38c800;
-  --cat-theme-base-darker: #2da000;
-  --cat-theme-base-darkest: #2b9401;
-  --cat-theme-base-content: #ffffff;
-  --cat-theme-base-content-darker: #ffffff;
+  --color-base: #38c800;
+  --color-base-darker: #2da000;
+  --color-base-darkest: #2b9401;
+  --color-base-content: #ffffff;
+  --color-base-content-darker: #ffffff;
   /* success */
-  --cat-theme-success: #e8f5e9;
-  --cat-theme-success-darker: #c8e6c9;
-  --cat-theme-success-darkest: #388e3c;
-  --cat-theme-success-content: #000000;
+  --color-success: #e8f5e9;
+  --color-success-darker: #c8e6c9;
+  --color-success-darkest: #388e3c;
+  --color-success-content: #000000;
   /* warning */
-  --cat-theme-warning: #fff8e1;
-  --cat-theme-warning-darker: #ffecb3;
-  --cat-theme-warning-darkest: #f57c00;
-  --cat-theme-warning-content: #000000;
+  --color-warning: #fff8e1;
+  --color-warning-darker: #ffecb3;
+  --color-warning-darkest: #f57c00;
+  --color-warning-content: #000000;
   /* error */
-  --cat-theme-error: #ff8fa0;
-  --cat-theme-error-darker: #ff5768;
-  --cat-theme-error-darkest: #d41717;
-  --cat-theme-error-content: #ffffff;
+  --color-error: #ff8fa0;
+  --color-error-darker: #ff5768;
+  --color-error-darkest: #d41717;
+  --color-error-content: #ffffff;
   /* info */
-  --cat-theme-info: #e3f2fd;
-  --cat-theme-info-darker: #bbdefb;
-  --cat-theme-info-darkest: #1565c0;
-  --cat-theme-info-content: #000000;
-}
-
-body:not(.hydrated) button,
-body:not(.hydrated) a,
-body:not(.hydrated) input,
-body:not(.hydrated) select,
-body:not(.hydrated) textarea {
-  pointer-events: none;
-  cursor: not-allowed;
+  --color-info: #e3f2fd;
+  --color-info-darker: #bbdefb;
+  --color-info-darkest: #1565c0;
+  --color-info-content: #000000;
 }

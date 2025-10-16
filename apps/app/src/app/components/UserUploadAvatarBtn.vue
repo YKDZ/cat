@@ -81,7 +81,7 @@ const rawFileMime = computed(() => {
     :classes="{
       base: 'btn btn-md btn-base',
     }"
-    icon="i-mdi:upload"
+    icon="icon-[mdi--upload]"
     :class="$attrs.class"
     @click="handleStart"
     >{{ t("上传头像") }}</HButton

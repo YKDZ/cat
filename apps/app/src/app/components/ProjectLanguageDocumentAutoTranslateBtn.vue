@@ -78,7 +78,7 @@ onMounted(updateAvailableAdvisor);
     :classes="{
       base: 'btn btn-md btn-base btn-square',
     }"
-    icon="i-mdi:translate"
+    icon="icon-[mdi--translate]"
     @click.stop="isOpen = true"
   />
   <Modal

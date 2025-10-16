@@ -26,17 +26,17 @@ const { user } = usePageContext();
 const items = ref([
   {
     path: "/admin",
-    icon: "i-mdi:home",
+    icon: "icon-[mdi--home]",
     text: t("首页"),
   },
   {
     path: "/admin/settings",
-    icon: "i-mdi:folder",
+    icon: "icon-[mdi--folder]",
     text: t("参数设置"),
   },
   {
     path: "/admin/plugins",
-    icon: "i-mdi:toy-brick",
+    icon: "icon-[mdi--toy-brick]",
     text: t("插件"),
   },
 ]);
@@ -60,7 +60,11 @@ const handleNavigate = async (path: string) => {
               base: 'btn btn-md btn-transparent btn-square',
               icon: 'btn-icon',
             }"
-            :icon="isFree ? 'i-mdi:card-outline' : 'i-mdi:card-off-outline'"
+            :icon="
+              isFree
+                ? 'icon-[mdi--card-outline]'
+                : 'icon-[mdi--card-off-outline]'
+            "
             @click="isFree = !isFree"
           />
         </div>
