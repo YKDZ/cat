@@ -121,7 +121,7 @@ onMounted(renderChart);
       class="absolute right-0 top-0 hover:bg-default-soft p-0.5 w-8 h-8 rounded-md"
       @click="downloadSVG()"
     >
-      <div class="i-mdi:download w-full h-full" />
+      <div class="icon-[mdi--download] w-full h-full" />
     </button>
   </div>
 
@@ -138,7 +138,7 @@ onMounted(renderChart);
         class="absolute right-3 top-3 hover:bg-default-soft p-0.5 w-8 h-8 rounded-md"
         @click="downloadSVG()"
       >
-        <div class="i-mdi:download w-full h-full" />
+        <div class="icon-[mdi--download] w-full h-full" />
       </button>
       <div
         :key="`${id}-${renderKey}`"

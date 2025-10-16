@@ -58,7 +58,7 @@ const langFilter = (option: PickerOption) => {
 <template>
   <LanguagePicker v-model="languageId" :filter="langFilter" />
   <HButton
-    icon="i-mdi:plus"
+    icon="icon-[mdi--plus]"
     :classes="{
       base: 'btn btn-md btn-base',
     }"

@@ -37,7 +37,7 @@ const handleBack = async () => {
           :classes="{
             base: 'btn btn-md btn-base btn-square',
           }"
-          icon="i-mdi:arrow-left"
+          icon="icon-[mdi--arrow-left]"
           @click="handleBack"
         />
         <h3 v-if="language" class="text-xl font-bold">{{ language.name }}</h3>

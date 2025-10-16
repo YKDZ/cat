@@ -16,7 +16,7 @@ const handleNav = async () => {
       base: 'btn btn-md btn-left btn-w-full btn-transparent btn-none-rounded',
       icon: 'btn-icon btn-icon-lg',
     }"
-    icon="i-mdi:cog"
+    icon="icon-[mdi--cog]"
     @click="handleNav"
   >
     {{ t("管理") }}

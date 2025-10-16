@@ -19,7 +19,7 @@ const isOpen = ref(false);
 
 <template>
   <button
-    class="i-mdi:cog bg-highlight-content aspect-ratio-square cursor-pointer hover:bg-highlight-content-darker hover:scale-110"
+    class="icon-[mdi--cog] bg-highlight-content aspect-ratio-square cursor-pointer hover:bg-highlight-content-darker hover:scale-110"
     @click="isOpen = !isOpen"
   />
   <Modal

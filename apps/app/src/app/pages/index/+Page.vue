@@ -14,7 +14,7 @@ const handleClick = async () => {
       title="翻译文件"
       subtitle="YAML、JSON 与 Markdown 等"
       content="点此快速创建一个纯文本文件翻译项目并即刻进行翻译工作。"
-      icon="i-mdi:file"
+      icon="icon-[mdi--file]"
       @click="handleClick"
     ></NewProjectCard>
     <UserUploadAvatarBtn />

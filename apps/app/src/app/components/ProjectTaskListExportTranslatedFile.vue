@@ -54,7 +54,7 @@ const handleDownload = async (cell: Cell<Task, Meta>) => {
       :classes="{
         base: 'btn btn-md btn-base btn-square',
       }"
-      icon="i-mdi:download"
+      icon="icon-[mdi--download]"
       @click.stop="handleDownload(cell)"
     />
     <a ref="downloadAEl" target="_blank" class="hidden" />

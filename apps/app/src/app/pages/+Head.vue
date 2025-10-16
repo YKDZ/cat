@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import logoUrl from "@/app/assets/logo.png";
+import "@/app/assets/style.css";
 </script>
 
 <template>

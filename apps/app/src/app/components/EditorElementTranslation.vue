@@ -79,7 +79,7 @@ const approvement = computed(() => {
     <div
       class="p-0.5 rounded-full bg-highlight-darkest inline-flex items-center justify-center"
     >
-      <Icon icon="i-mdi:check" small class="bg-success-darkest" />
+      <Icon icon="icon-[mdi--check]" small class="bg-success-darkest" />
     </div>
     <span class="text-success-darkest">{{ t("已批准") }}</span>
     <UserAvatar :user-id="approvement.creatorId" :size="36" />

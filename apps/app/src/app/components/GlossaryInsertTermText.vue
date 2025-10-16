@@ -90,7 +90,11 @@ const handleInsert = async () => {
         :classes="{
           base: 'btn btn-md btn-transparent btn-square',
         }"
-        :icon="canReverse ? `i-mdi:arrow-left-right` : `i-mdi:arrow-right`"
+        :icon="
+          canReverse
+            ? `icon-[mdi--arrow-left-right]`
+            : `icon-[mdi--arrow-right]`
+        "
         @click="canReverse = !canReverse"
       />
       <div class="flex flex-col gap-2">

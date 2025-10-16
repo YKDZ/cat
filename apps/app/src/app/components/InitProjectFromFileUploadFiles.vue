@@ -16,7 +16,7 @@ const isProcessing = ref<boolean>(false);
 <template>
   <ProjectUploadFiles v-if="project" v-model:project="project" />
   <HButton
-    icon="i-mdi:clock"
+    icon="icon-[mdi--clock]"
     :classes="{
       base: 'btn btn-md btn-base',
     }"

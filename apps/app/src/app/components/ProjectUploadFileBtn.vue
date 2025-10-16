@@ -20,7 +20,7 @@ defineProps<{
     :classes="{
       base: 'btn btn-md btn-base',
     }"
-    icon="i-mdi:plus"
+    icon="icon-[mdi--plus]"
     :class="$attrs.class"
     @click="isOpen = true"
     >{{ t("上传文件") }}</HButton

@@ -54,7 +54,7 @@ const handleLink = async () => {
     :classes="{
       base: 'btn btn-md btn-base',
     }"
-    icon="i-mdi:link"
+    icon="icon-[mdi--link]"
     :class="$attrs.class"
     @click="handleOpen"
     >{{ t("连接记忆库") }}</HButton
@@ -72,7 +72,7 @@ const handleLink = async () => {
       :classes="{
         base: 'btn btn-md btn-base btn-w-full',
       }"
-      icon="i-mdi:link"
+      icon="icon-[mdi--link]"
       @click="handleLink"
       >{{ t("连接") }}</HButton
     >

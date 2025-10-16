@@ -49,7 +49,9 @@ const handleNextPage = () => {
           :classes="{
             base: 'btn btn-md btn-transparent btn-square',
           }"
-          :icon="isFree ? 'i-mdi:card-outline' : 'i-mdi:card-off-outline'"
+          :icon="
+            isFree ? 'icon-[mdi--card-outline]' : 'icon-[mdi--card-off-outline]'
+          "
           class="hidden md:flex"
           @click="isFree = !isFree"
         />
@@ -77,7 +79,7 @@ const handleNextPage = () => {
         class="px-5 pb-2 flex gap-1 w-full items-center justify-between"
       >
         <HButton
-          icon="i-mdi:chevron-left"
+          icon="icon-[mdi--chevron-left]"
           :classes="{
             base: 'btn btn-md btn-base btn-square',
             'base-disabled': 'btn btn-square btn-disabled',
@@ -90,7 +92,7 @@ const handleNextPage = () => {
           >{{ currentPageIndex + 1 }} <Slash /> {{ totalPageIndex + 1 }}</span
         >
         <HButton
-          icon="i-mdi:chevron-right"
+          icon="icon-[mdi--chevron-right]"
           :classes="{
             base: 'btn btn-md btn-base btn-square',
             'base-disabled': 'btn btn-square btn-disabled',

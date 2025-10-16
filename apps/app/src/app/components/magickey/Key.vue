@@ -23,11 +23,11 @@ const icons = ref([
   },
   {
     key: "t",
-    icon: "i-mdi:alpha-t",
+    icon: "icon-[mdi--alpha-t]",
   },
   {
     key: "z",
-    icon: "i-mdi:alpha-z",
+    icon: "icon-[mdi--alpha-z]",
   },
 ]);
 

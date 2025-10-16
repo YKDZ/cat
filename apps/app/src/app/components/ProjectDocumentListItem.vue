@@ -44,7 +44,7 @@ const handleClick = async () => {
     <TableCell>{{ document.name }}</TableCell>
     <TableCell>
       <HButton
-        icon="i-mdi:trash-can"
+        icon="icon-[mdi--trash-can]"
         :classes="{
           base: 'btn btn-md btn-base btn-square',
         }"

@@ -8,7 +8,7 @@ const { t } = useI18n();
 
 const items = ref<NavbarItemType[]>([
   {
-    icon: "i-mdi:server",
+    icon: "icon-[mdi--server]",
     text: t("基本"),
     selected: false,
     to: "",

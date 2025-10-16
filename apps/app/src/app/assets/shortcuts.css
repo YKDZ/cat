@@ -1,0 +1,315 @@
+/* Button Styles */
+.btn {
+  @apply rounded-md not-disabled:cursor-pointer w-fit flex gap-1 select-none justify-start items-center font-bold text-nowrap;
+}
+
+.btn-none-rounded {
+  @apply rounded-none;
+}
+
+.btn-sm {
+  @apply px-2.5 py-1.5 gap-1 text-sm;
+}
+
+.btn-md {
+  @apply px-3.5 py-2.5 gap-1;
+}
+
+.btn-lg {
+  @apply px-4 py-3 gap-2;
+}
+
+.btn-w-full {
+  @apply w-full;
+}
+
+.btn-square {
+  @apply w-10 h-10 gap-0 aspect-square;
+}
+
+.btn-square-lg {
+  @apply w-12 h-12 gap-0 aspect-square;
+}
+
+.btn-square-sm {
+  @apply w-8 h-8 gap-0 aspect-square;
+}
+
+.btn-transparent {
+  @apply text-black bg-transparent hover:bg-highlight-darkest;
+}
+
+.btn-disabled {
+  @apply bg-highlight-darkest text-highlight-content disabled:cursor-not-allowed;
+}
+
+.btn-outline {
+  @apply border border-base-content;
+}
+
+.btn-center {
+  @apply justify-center;
+}
+
+.btn-icon {
+  @apply aspect-square;
+}
+
+.btn-icon-sm {
+  @apply w-4 h-4;
+}
+
+.btn-icon-md {
+  @apply w-6 h-6;
+}
+
+.btn-icon-lg {
+  @apply w-6 h-6;
+}
+
+/* Dynamic Button Color Variants */
+.btn-base {
+  @apply bg-base text-base-content hover:bg-base-darker;
+}
+
+.btn-warning {
+  @apply bg-warning text-warning-content hover:bg-warning-darker;
+}
+
+.btn-error {
+  @apply bg-error text-error-content hover:bg-error-darker;
+}
+
+.btn-success {
+  @apply bg-success text-success-content hover:bg-success-darker;
+}
+
+.btn-info {
+  @apply bg-info text-info-content hover:bg-info-darker;
+}
+
+.btn-highlight {
+  @apply bg-highlight text-highlight-content hover:bg-highlight-darker;
+}
+
+/* Dynamic Button Icon Variants */
+.btn-icon-base {
+  @apply bg-base;
+}
+
+.btn-icon-warning {
+  @apply bg-warning;
+}
+
+.btn-icon-error {
+  @apply bg-error;
+}
+
+.btn-icon-success {
+  @apply bg-success;
+}
+
+.btn-icon-info {
+  @apply bg-info;
+}
+
+.btn-icon-highlight {
+  @apply bg-highlight;
+}
+
+/* Toggle Styles */
+.toggle {
+  @apply rounded-md relative inline-block transition-colors cursor-pointer;
+}
+
+.toggle-md {
+  @apply w-12 h-6;
+}
+
+.toggle-thumb {
+  @apply rounded-full absolute shadow-2xl transition-transform top-0 left-0;
+}
+
+.toggle-thumb-checked {
+  @apply translate-x-[120%];
+}
+
+.toggle-thumb-md {
+  @apply h-6 w-6;
+}
+
+/* Dynamic Toggle Variants */
+.toggle-base {
+  @apply bg-base;
+}
+
+.toggle-warning {
+  @apply bg-warning;
+}
+
+.toggle-error {
+  @apply bg-error;
+}
+
+.toggle-success {
+  @apply bg-success;
+}
+
+.toggle-info {
+  @apply bg-info;
+}
+
+.toggle-highlight {
+  @apply bg-highlight;
+}
+
+/* Dynamic Toggle Thumb Variants */
+.toggle-thumb-base {
+  @apply bg-base;
+}
+
+.toggle-thumb-warning {
+  @apply bg-warning;
+}
+
+.toggle-thumb-error {
+  @apply bg-error;
+}
+
+.toggle-thumb-success {
+  @apply bg-success;
+}
+
+.toggle-thumb-info {
+  @apply bg-info;
+}
+
+.toggle-thumb-highlight {
+  @apply bg-highlight;
+}
+
+/* Modal Styles */
+.modal {
+  @apply px-10 py-6 rounded-sm bg-highlight;
+}
+
+.modal-backdrop {
+  @apply bg-black/20 flex h-screen w-screen items-center left-0 top-0 justify-center fixed z-[60];
+}
+
+/* Header Styles */
+.header {
+  @apply px-4 py-1 bg-highlight flex min-h-16 w-full select-none items-center left-0 top-0 justify-between sticky z-10 md:px-6;
+}
+
+/* Input Styles */
+.input {
+  @apply text-highlight-content-darker outline-0 bg-transparent w-full select-none disabled:cursor-not-allowed;
+}
+
+.input-sm {
+  @apply pr-2 h-8;
+}
+
+.input-md {
+  @apply pr-3 h-10;
+}
+
+.input-container {
+  @apply ring-1 flex gap-1 items-center focus-within:ring-base ring-highlight-darkest ring-offset-transparent;
+}
+
+.input-icon {
+  @apply ml-2 text-lg;
+}
+
+/* Form Styles */
+.form {
+  @apply flex flex-col gap-2;
+}
+
+.label {
+  @apply flex flex-col;
+}
+
+.label-text {
+  /* Empty class - no styles applied */
+}
+
+.label-text-required {
+  @apply after:text-error-darker after:ml-1 after:content-['*'];
+}
+
+/* Dynamic Markdown Variants */
+.markdown {
+  @apply prose;
+}
+
+/* Toggle Styles */
+.toggle {
+  @apply rounded-md relative inline-block transition-colors cursor-pointer;
+}
+
+.toggle-md {
+  @apply w-12 h-6;
+}
+
+.toggle-thumb {
+  @apply rounded-full absolute shadow-2xl transition-transform top-0 left-0;
+}
+
+.toggle-thumb-checked {
+  @apply translate-x-[120%];
+}
+
+.toggle-thumb-md {
+  @apply h-6 w-6;
+}
+
+/* Modal Styles */
+.modal {
+  @apply px-10 py-6 rounded-sm bg-highlight;
+}
+
+.modal-backdrop {
+  @apply bg-black/20 flex h-screen w-screen items-center left-0 top-0 justify-center fixed z-[60];
+}
+
+/* Header Styles */
+.header {
+  @apply px-4 py-1 bg-highlight flex min-h-16 w-full select-none items-center left-0 top-0 justify-between sticky z-10 md:px-6;
+}
+
+/* Input Styles */
+.input {
+  @apply text-highlight-content-darker outline-0 bg-transparent w-full select-none disabled:cursor-not-allowed;
+}
+
+.input-sm {
+  @apply pr-2 h-8;
+}
+
+.input-md {
+  @apply pr-3 h-10;
+}
+
+.input-container {
+  @apply ring-1 flex gap-1 items-center focus-within:ring-base ring-highlight-darkest ring-offset-transparent;
+}
+
+.input-icon {
+  @apply ml-2 text-lg;
+}
+
+/* Form Styles */
+.form {
+  @apply flex flex-col gap-2;
+}
+
+.label {
+  @apply flex flex-col;
+}
+
+.label-text-required {
+  @apply after:text-error-darker after:ml-1 after:content-['*'];
+}

@@ -66,7 +66,7 @@ onMounted(updateTermAmount);
         :classes="{
           base: 'btn btn-md btn-base btn-square',
         }"
-        icon="i-mdi:link-off"
+        icon="icon-[mdi--link-off]"
         @click.stop="handleUnlink"
       />
     </TableCell>

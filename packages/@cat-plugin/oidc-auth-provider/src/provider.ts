@@ -34,7 +34,7 @@ export class Provider implements AuthProvider {
   }
 
   getIcon() {
-    return "i-mdi:ssh";
+    return "icon-[mdi--ssh]";
   }
 
   async handlePreAuth(sessionId: string) {

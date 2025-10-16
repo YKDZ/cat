@@ -34,10 +34,10 @@ const progress = defineModel("progress", {
         <span
           :class="
             progress > index
-              ? `i-mdi:check-circle-outline`
+              ? `icon-[mdi--check-circle-outline]`
               : item.icon && item.icon.length > 0
                 ? item.icon
-                : `i-mdi:numeric-${index + 1}-circle-outline`
+                : `icon-[mdi--numeric-]${index + 1}-circle-outline`
           "
           class="inline-block"
         />
@@ -45,7 +45,7 @@ const progress = defineModel("progress", {
       >
       <span
         v-if="index !== items.length - 1"
-        class="i-mdi:arrow-right-bold mx-1 inline"
+        class="icon-[mdi--arrow-right-bold] mx-1 inline"
       />
     </div>
   </div>

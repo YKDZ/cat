@@ -88,7 +88,7 @@ const createProject = async () => {
         required
         type="text"
         placeholder="项目名称"
-        icon="i-mdi:book"
+        icon="icon-[mdi--book]"
         :classes="{
           input: 'input input-md',
           'input-container': 'input-container rounded-md',
@@ -136,7 +136,7 @@ const createProject = async () => {
       :classes="{
         base: 'btn btn-md btn-base',
       }"
-      icon="i-mdi:plus"
+      icon="icon-[mdi--plus]"
       :loading="isProcessing"
       @click="createProject"
     >

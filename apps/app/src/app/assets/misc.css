@@ -1,0 +1,8 @@
+body:not(.hydrated) button,
+body:not(.hydrated) a,
+body:not(.hydrated) input,
+body:not(.hydrated) select,
+body:not(.hydrated) textarea {
+  pointer-events: none;
+  cursor: not-allowed;
+}

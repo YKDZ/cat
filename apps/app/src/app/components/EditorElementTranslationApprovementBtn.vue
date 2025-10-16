@@ -46,7 +46,7 @@ const handleUnapprove = async () => {
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',
       }"
-      icon="i-mdi:check"
+      icon="icon-[mdi--check]"
       @click.stop="handleApprove"
     />
     <HButton
@@ -54,7 +54,7 @@ const handleUnapprove = async () => {
       :classes="{
         base: 'btn btn-md btn-transparent btn-square',
       }"
-      icon="i-mdi:close"
+      icon="icon-[mdi--close]"
       @click.stop="handleUnapprove"
     />
   </div>

@@ -42,7 +42,7 @@ const onProgressChange = (from: number, to: number): number => {
 
 <template>
   <h1 class="text-2xl font-bold flex gap-2 items-center">
-    <div class="i-mdi:cog-outline duration-3000 animate-spin" />
+    <div class="icon-[mdi--cog-outline] duration-3000 animate-spin" />
     {{ t("初始化项目") }}
   </h1>
   <div

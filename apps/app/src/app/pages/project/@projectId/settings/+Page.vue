@@ -57,7 +57,7 @@ const remove = async (): Promise<void> => {
         v-model="name"
         type="text"
         placeholder="项目名称"
-        icon="i-mdi:book"
+        icon="icon-[mdi--book]"
         :classes="{
           input: 'input input-sm',
           'input-container': 'input-container rounded-md',

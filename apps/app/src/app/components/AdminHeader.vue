@@ -17,7 +17,7 @@ const { isFolding } = storeToRefs(useSidebarStore());
       :classes="{
         base: 'btn btn-transparent btn-square',
       }"
-      icon="i-mdi:menu"
+      icon="icon-[mdi--menu]"
       class="font-bold md:hidden"
       @click="isFolding = !isFolding"
     />

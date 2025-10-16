@@ -43,7 +43,7 @@ const selectFile = () => {
   <!-- Upload File -->
   <div v-if="project" class="flex flex-col gap-2 min-w-screen-lg">
     <p class="text-lg flex items-center">
-      <span class="i-mdi:file-upload mr-1 inline-block" />
+      <span class="icon-[mdi--file-upload] mr-1 inline-block" />
       为项目
       <span class="font-bold mx-1">{{ project.name }}</span> 上传需要翻译的文件
     </p>
@@ -77,7 +77,7 @@ const selectFile = () => {
         :classes="{
           base: 'btn btn-md btn-base',
         }"
-        icon="i-mdi:folder"
+        icon="icon-[mdi--folder]"
         :is-processing
         @click="fileInputEl && fileInputEl.click()"
       >

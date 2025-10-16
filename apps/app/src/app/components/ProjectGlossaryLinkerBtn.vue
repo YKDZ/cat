@@ -54,7 +54,7 @@ const handleLink = async () => {
 
 <template>
   <HButton
-    icon="i-mdi:link"
+    icon="icon-[mdi--link]"
     :classes="{
       base: 'btn btn-md btn-base',
     }"
@@ -75,7 +75,7 @@ const handleLink = async () => {
       :classes="{
         base: 'btn btn-md btn-base btn-w-full',
       }"
-      icon="i-mdi:link"
+      icon="icon-[mdi--link]"
       @click="handleLink"
       >{{ t("连接") }}</HButton
     >
