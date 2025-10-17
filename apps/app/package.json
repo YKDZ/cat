@@ -51,7 +51,7 @@
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
     "pino": "^9.13.1",
-    "pino-http": "^10.5.0",
+    "pino-http": "^11.0.0",
     "primevue": "^4.4.1",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.14",
