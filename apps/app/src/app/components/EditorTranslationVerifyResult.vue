@@ -24,19 +24,21 @@ const verifyTranslation = async () => {
   isProcessing.value = false;
 
   clipperVerifyResults.value = [];
-  for (const clipper of clippers.value) {
-    if (clipper.verifyHandlers.length === 0) continue;
-    await Promise.all(
-      clipper.verifyHandlers.map(async ({ handler }) => {
-        const result = await handler(
-          clipper,
-          sourceParts.value,
-          translationParts.value,
-        );
-        clipperVerifyResults.value.push(result);
-      }),
-    );
-  }
+  await Promise.all(
+    clippers.value.map(async (clipper) => {
+      if (clipper.verifyHandlers.length === 0) return;
+      await Promise.all(
+        clipper.verifyHandlers.map(async ({ handler }) => {
+          const result = await handler(
+            clipper,
+            sourceParts.value,
+            translationParts.value,
+          );
+          clipperVerifyResults.value.push(result);
+        }),
+      );
+    }),
+  );
 };
 
 const failedResults = computed(() => {

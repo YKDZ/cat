@@ -44,16 +44,12 @@ const options = computed(() => {
   return result;
 });
 
-onMounted(() => {
+onMounted(async () => {
   if (!user) return;
 
-  trpc.glossary.listUserOwned
-    .query({
-      userId: user.id,
-    })
-    .then((glo) => {
-      glossaries.value = glo;
-    });
+  glossaries.value = await trpc.glossary.listUserOwned.query({
+    userId: user.id,
+  });
 });
 </script>
 

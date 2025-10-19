@@ -27,7 +27,6 @@ const handleUpdate = (
   path: (string | number)[],
 ) => {
   data.value = v;
-  console.log(v, schema, key, path);
 };
 </script>
 

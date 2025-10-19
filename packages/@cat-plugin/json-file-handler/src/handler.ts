@@ -49,7 +49,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
         let current: unknown = modifiedObj;
         let validPath = true;
 
-        for (let i = 0; i < pathParts.length; i++) {
+        for (let i = 0; i < pathParts.length; i += 1) {
           const part = pathParts[i];
           if (typeof current !== "object" || current === null) {
             validPath = false;

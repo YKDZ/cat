@@ -14,10 +14,10 @@ const queues = [
   upsertDocumentElementsFromFileQueue,
 ];
 
-export const closeAllProcessors = async () => {
+export const closeAllProcessors = async (): Promise<void> => {
   await Promise.all(queues.map((queue) => queue.close()));
 };
 
-export const resumeAllProcessors = async () => {
+export const resumeAllProcessors = async (): Promise<void> => {
   await Promise.all(queues.map((queue) => queue.resume()));
 };

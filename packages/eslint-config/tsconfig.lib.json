@@ -5,17 +5,21 @@
     "rootDir": "src",
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+    "incremental": true,
+    "composite": true,
     "forceConsistentCasingInFileNames": true,
-    "types": [
-      "node",
-      "vite/client"
-    ]
+    "declaration": true,
+    "declarationMap": true,
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "include": [
-    "src/**/*.ts",
-    "rules/no-provide-in-page.js"
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../eslint-config/tsconfig.lib.json"
+    }
   ],
-  "references": [],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

@@ -19,7 +19,7 @@
     "build": "vike build",
     "dev": "vike dev | pino-pretty",
     "preview": "copy-drizzle && cross-env NODE_ENV=production node dist/server/index.js",
-    "lint": "eslint ./src --fix",
+    "lint": "oxlint --fix",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
@@ -68,25 +68,17 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "@cat/eslint-plugin-cat": "workspace:*",
     "@iconify-json/codicon": "^1.2.31",
     "@iconify-json/file-icons": "^1.2.2",
     "@iconify-json/flag": "^1.2.9",
     "@iconify-json/fluent": "^1.2.32",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/tailwind4": "^1.0.6",
-    "@intlify/eslint-plugin-vue-i18n": "^4.1.0",
     "@tailwindcss/typography": "^0.5.19",
     "@types/lodash-es": "^4.17.12",
-    "@unocss/eslint-config": "^66.5.2",
-    "@vue/eslint-config-prettier": "^10.2.0",
-    "@vue/eslint-config-typescript": "^14.6.0",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
     "cross-env": "^10.1.0",
-    "eslint-plugin-vue": "^10.5.0",
-    "happy-dom": "^18.0.1",
-    "unocss": "^66.5.2",
-    "vue-eslint-parser": "^10.2.0"
+    "happy-dom": "^18.0.1"
   }
 }

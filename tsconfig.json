@@ -43,9 +43,6 @@
       "path": "./packages/@cat-plugin/s3-storage-provider"
     },
     {
-      "path": "./packages/eslint-plugin-cat"
-    },
-    {
       "path": "./apps/app-api"
     },
     {

@@ -178,7 +178,10 @@ export class PluginRegistry implements IPluginRegistry {
     });
   }
 
-  public async installPlugin(drizzle: DrizzleClient, pluginId: string) {
+  public async installPlugin(
+    drizzle: DrizzleClient,
+    pluginId: string,
+  ): Promise<void> {
     const dbPlugin = await drizzle.query.plugin.findFirst({
       where: (plugin, { eq }) => eq(plugin.id, pluginId),
       columns: {
@@ -233,7 +236,10 @@ export class PluginRegistry implements IPluginRegistry {
     });
   }
 
-  public async uninstallPlugin(drizzle: DrizzleClient, pluginId: string) {
+  public async uninstallPlugin(
+    drizzle: DrizzleClient,
+    pluginId: string,
+  ): Promise<void> {
     const dbPlugin = await drizzle.query.plugin.findFirst({
       where: ({ id }, { eq }) => eq(id, pluginId),
     });
@@ -546,20 +552,22 @@ export class PluginRegistry implements IPluginRegistry {
       })
     ).filter((dirent) => dirent.isDirectory());
 
-    const results = [];
+    const results: string[] = [];
 
-    for (const dir of dirs) {
-      try {
-        const manifest = await PluginRegistry.getPluginManifest(dir.name);
-        results.push(manifest.id);
-      } catch (err) {
-        logger.error(
-          "PLUGIN",
-          { msg: `Error reading manifest.json in ${dir.name}:` },
-          err,
-        );
-      }
-    }
+    await Promise.all(
+      dirs.map(async (dir) => {
+        try {
+          const manifest = await PluginRegistry.getPluginManifest(dir.name);
+          results.push(manifest.id);
+        } catch (err) {
+          logger.error(
+            "PLUGIN",
+            { msg: `Error reading manifest.json in ${dir.name}:` },
+            err,
+          );
+        }
+      }),
+    );
 
     return results;
   }

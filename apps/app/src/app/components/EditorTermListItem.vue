@@ -37,14 +37,12 @@ const glossary = ref<Glossary | null>(null);
 
 useHotKeys(`T+${props.index + 1}`, handleInsert);
 
-onMounted(() => {
+onMounted(async () => {
   if (!props.term.Term) return;
 
-  trpc.glossary.get
-    .query({
-      id: props.term.Term.glossaryId,
-    })
-    .then((glo) => (glossary.value = glo));
+  glossary.value = await trpc.glossary.get.query({
+    id: props.term.Term.glossaryId,
+  });
 });
 </script>
 

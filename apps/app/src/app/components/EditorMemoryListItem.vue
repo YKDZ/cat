@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toShortFixed } from "@cat/shared/utils";
-import { type Memory } from "@cat/shared/schema/drizzle/memory";
-import { type MemorySuggestion } from "@cat/shared/schema/misc";
+import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
@@ -26,10 +26,9 @@ const memory = ref<Memory | null>(null);
 
 useHotKeys(`M+${props.index + 1}`, handleCopy);
 
-onMounted(() => {
-  trpc.memory.get.query({ id: props.memorySuggestion.memoryId }).then((mem) => {
-    if (!mem) return;
-    memory.value = mem;
+onMounted(async () => {
+  memory.value = await trpc.memory.get.query({
+    id: props.memorySuggestion.memoryId,
   });
 });
 </script>

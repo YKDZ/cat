@@ -8,25 +8,22 @@
   },
   "references": [
     {
-      "path": "../app-server-shared"
-    },
-    {
-      "path": "../app-workers"
-    },
-    {
-      "path": "../app-api"
+      "path": "../../packages/shared"
     },
     {
       "path": "../../packages/plugin-core"
     },
     {
-      "path": "../../packages/shared"
-    },
-    {
       "path": "../../packages/db"
     },
     {
-      "path": "../../packages/eslint-plugin-cat"
+      "path": "../app-workers"
+    },
+    {
+      "path": "../app-server-shared"
+    },
+    {
+      "path": "../app-api"
     },
     {
       "path": "../../packages/eslint-config"

@@ -6,7 +6,7 @@ export class AsyncMessageQueue<T> {
    * Add message to queue
    * @param message Message to add
    */
-  push(...messages: T[]) {
+  push(...messages: T[]): void {
     this.queue.push(...messages);
     if (this.resolve) {
       this.resolve();
@@ -23,6 +23,7 @@ export class AsyncMessageQueue<T> {
       if (this.queue.length > 0) {
         yield this.queue.shift()!;
       } else {
+        // oxlint-disable-next-line no-await-in-loop
         await new Promise<void>((res) => (this.resolve = res));
       }
     }
@@ -31,7 +32,7 @@ export class AsyncMessageQueue<T> {
   /**
    * Clear queue
    */
-  clear() {
+  clear(): void {
     this.queue.length = 0;
     this.resolve = null;
   }

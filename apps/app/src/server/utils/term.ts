@@ -4,7 +4,7 @@ import type { PluginRegistry } from "@cat/plugin-core";
 export const initTermService = async (
   drizzle: OverallDrizzleClient,
   pluginRegistry: PluginRegistry,
-) => {
+): Promise<void> => {
   const services = await pluginRegistry.getPluginServices(
     drizzle,
     "TERM_SERVICE",
@@ -15,9 +15,14 @@ export const initTermService = async (
     })
   ).map((l) => l.id);
 
-  for (const { service } of services) {
-    for (const langId of languageIds) {
-      await service.termIndexer.ensureIndex(langId.toLowerCase());
-    }
-  }
+  await Promise.all(
+    services.map(
+      async ({ service }) =>
+        await Promise.all(
+          languageIds.map((langId) =>
+            service.termIndexer.ensureIndex(langId.toLowerCase()),
+          ),
+        ),
+    ),
+  );
 };

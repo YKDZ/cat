@@ -37,7 +37,7 @@ export const useToastStore = defineStore("toast", () => {
 
     const startAt = new Date();
     const toast = {
-      id: index.value++,
+      id: (index.value += 1),
       icon,
       message,
       type,
@@ -65,7 +65,6 @@ export const useToastStore = defineStore("toast", () => {
   const trpcWarn = (e: TRPCError, duration = defaultDuration) => {
     if (!e.message) return;
 
-    console.warn(e);
     warn(e.message, duration);
   };
 

@@ -21,13 +21,15 @@ export const settingRouter = router({
       const arr = input;
 
       await drizzle.transaction(async (tx) => {
-        for (const item of arr) {
-          const { key, value } = item;
-          await tx
-            .update(settingTable)
-            .set({ value })
-            .where(eq(settingTable.key, key));
-        }
+        await Promise.all(
+          arr.map(async (item) => {
+            const { key, value } = item;
+            await tx
+              .update(settingTable)
+              .set({ value })
+              .where(eq(settingTable.key, key));
+          }),
+        );
       });
     }),
   get: authedProcedure

@@ -25,6 +25,7 @@ const EMPTY_CONTEXT = {
   },
 };
 
+// oxlint-disable-next-line explicit-module-boundary-types
 export const useSSCTRPC = (
   ctx: PageContextServer,
   extraCtx?: Partial<HttpContext>,

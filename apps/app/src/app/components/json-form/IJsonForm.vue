@@ -5,7 +5,8 @@ import {
   type _JSONSchema,
   type NonNullJSONType,
 } from "@cat/shared/schema/json";
-import { MatcherRegistry, schemaKey, type RendererComponent } from "./index.ts";
+import { MatcherRegistry, type RendererComponent } from "./index.ts";
+import { schemaKey } from "./utils.ts";
 
 const props = defineProps<{
   propertyKey: string | number;
@@ -99,7 +100,12 @@ provide(schemaKey, props.schema);
       <IJsonForm
         v-for="property in objectProperties"
         :key="property.key"
-        :data="dataOfPropertyKey(property.key, property.schema.default)"
+        :data="
+          dataOfPropertyKey(
+            property.key,
+            property.schema.default,
+          ) as NonNullJSONType
+        "
         :property-key="property.key"
         :schema="property.schema"
         @_update="handleUpdate"

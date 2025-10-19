@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
-import { schemaKey, transferDataToString } from "..";
+import { schemaKey, transferDataToString } from "../utils.ts";
 
 defineProps<{
   propertyKey: string | number;

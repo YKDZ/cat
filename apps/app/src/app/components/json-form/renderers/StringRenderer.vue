@@ -2,7 +2,7 @@
 import { computed, inject } from "vue";
 import * as z from "zod/v4";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
-import { schemaKey, transferDataToString } from "../index.ts";
+import { schemaKey, transferDataToString } from "../utils.ts";
 
 const props = defineProps<{
   propertyKey: string | number;

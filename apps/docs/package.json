@@ -7,7 +7,7 @@
     "dev": "vitepress dev src",
     "build": "vitepress build src",
     "preview": "vitepress preview src",
-    "lint": "eslint ./src --fix",
+    "lint": "oxlint --fix",
     "format": "prettier --write ."
   },
   "devDependencies": {

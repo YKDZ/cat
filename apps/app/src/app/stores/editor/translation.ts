@@ -6,7 +6,7 @@ import {
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
 import * as z from "zod";
-import { type User } from "@cat/shared/schema/drizzle/user";
+import type { User } from "@cat/shared/schema/drizzle/user";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 

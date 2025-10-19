@@ -20,14 +20,15 @@ const vote = ref<number | null>(null);
 const isProcessing = ref<boolean>(false);
 
 const handleVote = (value: number) => {
-  if (value === selfVote.value?.value) value = 0;
+  const modifiedVote = value === selfVote.value?.value ? 0 : value;
+
   if (vote.value === null) return;
   if (isProcessing.value) return;
 
   trpc.translation.vote
     .mutate({
       translationId: props.translation.id,
-      value,
+      value: modifiedVote,
     })
     .then((newVote) => {
       if (selfVote.value === null) {
@@ -39,32 +40,24 @@ const handleVote = (value: number) => {
       }
       selfVote.value = newVote;
     })
-    .catch(trpcWarn)
     .finally(() => {
       isProcessing.value = false;
-    });
+    })
+    .catch(trpcWarn);
 };
 
-onMounted(() => {
-  trpc.translation.querySelfVote
-    .query({
-      id: props.translation.id,
-    })
-    .then((self) => {
-      selfVote.value = self;
-    });
+onMounted(async () => {
+  selfVote.value = await trpc.translation.querySelfVote.query({
+    id: props.translation.id,
+  });
 });
 
 watchClient(
   selfVote,
-  () => {
-    trpc.translation.countVote
-      .query({
-        id: props.translation.id,
-      })
-      .then((amount) => {
-        vote.value = amount;
-      });
+  async () => {
+    vote.value = await trpc.translation.countVote.query({
+      id: props.translation.id,
+    });
   },
   { immediate: true },
 );
@@ -80,7 +73,7 @@ watchClient(
       :focused="selfVote?.value === -1"
       @click.stop="handleVote(-1)"
     />
-    <span class="text-center text-center min-h-24px min-w-24px inline-block">
+    <span class="text-center min-h-24px min-w-24px inline-block">
       <span v-if="vote !== null">{{ vote }}</span>
       <span v-else class="icon-[mdi--help] inline-block" />
     </span>

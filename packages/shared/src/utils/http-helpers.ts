@@ -1,4 +1,25 @@
-export const createHTTPHelpers = (req: Request, resHeaders: Headers) => {
+export type setCookie = (
+  key: string,
+  value: string | undefined,
+  maxAge: number | undefined,
+) => void;
+export type delCookie = (key: string) => void;
+export type getCookie = (name: string) => string | null;
+export type getQueryParam = (name: string) => string | undefined;
+export type getReqHeader = (name: string) => string | undefined;
+export type setResHeader = (name: string, value: string) => void;
+
+export const createHTTPHelpers = (
+  req: Request,
+  resHeaders: Headers,
+): {
+  setCookie: setCookie;
+  delCookie: delCookie;
+  getCookie: getCookie;
+  getQueryParam: getQueryParam;
+  getReqHeader: getReqHeader;
+  setResHeader: setResHeader;
+} => {
   const getCookie = getCookieFunc(req.headers.get("Cookie") || "");
   const getQueryParam = getQueryParamFunc(req.url);
 
@@ -27,7 +48,7 @@ export const createHTTPHelpers = (req: Request, resHeaders: Headers) => {
   };
 };
 
-export const getCookieFunc = (cookies: string) => {
+export const getCookieFunc = (cookies: string): getCookie => {
   const getCookie = (name: string): string | null => {
     if (!cookies) return null;
 
@@ -37,7 +58,7 @@ export const getCookieFunc = (cookies: string) => {
   return getCookie;
 };
 
-export const getQueryParamFunc = (url: string) => {
+export const getQueryParamFunc = (url: string): getQueryParam => {
   const urlParams = new URL(url).searchParams;
 
   return (name: string) => {

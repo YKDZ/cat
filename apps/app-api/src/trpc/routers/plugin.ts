@@ -192,21 +192,24 @@ export const pluginRouter = router({
       });
 
       const methods: AuthMethod[] = [];
-      for (const { serviceId } of providersData) {
-        const providers = await pluginRegistry.getPluginServices(
-          drizzle,
-          "AUTH_PROVIDER",
-        );
-        providers
-          .filter(({ service }) => serviceId === service.getId())
-          .forEach(({ id, service }) => {
-            methods.push({
-              providerId: id,
-              name: service.getName(),
-              icon: service.getIcon(),
+
+      await Promise.all(
+        providersData.map(async ({ serviceId }) => {
+          const providers = await pluginRegistry.getPluginServices(
+            drizzle,
+            "AUTH_PROVIDER",
+          );
+          providers
+            .filter(({ service }) => serviceId === service.getId())
+            .forEach(({ id, service }) => {
+              methods.push({
+                providerId: id,
+                name: service.getName(),
+                icon: service.getIcon(),
+              });
             });
-          });
-      }
+        }),
+      );
 
       return methods;
     }),

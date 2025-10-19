@@ -8,16 +8,18 @@ async function copyDir(src: string, dest: string): Promise<void> {
 
   const entries = await readdir(src, { withFileTypes: true });
 
-  for (const entry of entries) {
-    const srcPath = join(src, entry.name);
-    const destPath = join(dest, entry.name);
+  await Promise.all(
+    entries.map(async (entry) => {
+      const srcPath = join(src, entry.name);
+      const destPath = join(dest, entry.name);
 
-    if (entry.isDirectory()) {
-      await copyDir(srcPath, destPath);
-    } else if (entry.isFile()) {
-      await copyFile(srcPath, destPath);
-    }
-  }
+      if (entry.isDirectory()) {
+        await copyDir(srcPath, destPath);
+      } else if (entry.isFile()) {
+        await copyFile(srcPath, destPath);
+      }
+    }),
+  );
 }
 
 await (async () => {

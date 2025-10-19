@@ -18,12 +18,12 @@ const { error, authMethod } = storeToRefs(useAuthStore());
 const schema = ref<JSONSchema>({});
 const data = shallowRef<NonNullJSONType>({});
 
-const handleAuth = async () => {
+const handleAuth = async (): Promise<void> => {
   const formData =
     typeof data.value === "object"
       ? {
-        ...data.value,
-      }
+          ...data.value,
+        }
       : data.value;
   await trpc.auth.auth
     .mutate({
@@ -47,7 +47,7 @@ const isEmpty = computed(() => {
   return Object.keys(schema.value).length === 0;
 });
 
-const handleUpdate = (to: NonNullJSONType) => {
+const handleUpdate = (to: NonNullJSONType): void => {
   data.value = to;
 };
 
@@ -69,10 +69,19 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="typeof schema === 'object' && !isEmpty" class="flex flex-col gap-1">
+  <div
+    v-if="typeof schema === 'object' && !isEmpty"
+    class="flex flex-col gap-1"
+  >
     <JSONForm :schema :data @update="handleUpdate" />
-    <HButton :classes="{
-      base: 'btn btn-md btn-w-full btn-base btn-center',
-    }" magic-key="Enter" @click="handleAuth" @magic-click="handleAuth">{{ t("登录") }}</HButton>
+    <HButton
+      :classes="{
+        base: 'btn btn-md btn-w-full btn-base btn-center',
+      }"
+      magic-key="Enter"
+      @click="handleAuth"
+      @magic-click="handleAuth"
+      >{{ t("登录") }}</HButton
+    >
   </div>
 </template>

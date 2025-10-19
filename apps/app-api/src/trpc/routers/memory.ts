@@ -135,14 +135,16 @@ export const memoryRouter = router({
       };
       await redisSub.subscribe(memoryChannelKey, onNewMemory);
 
-      searchMemory(
-        drizzle,
-        element.embedding,
-        sourceLanguageId,
-        translationLanguageId,
-        memoryIds,
-        minMemorySimilarity,
-      ).then((memories) => memoriesQueue.push(...memories));
+      memoriesQueue.push(
+        ...(await searchMemory(
+          drizzle,
+          element.embedding,
+          sourceLanguageId,
+          translationLanguageId,
+          memoryIds,
+          minMemorySimilarity,
+        )),
+      );
 
       try {
         for await (const memory of memoriesQueue.consume()) {

@@ -28,21 +28,21 @@ const diffedLines = computed<DiffedLine[]>(() => {
         result.push({
           type: "added",
           oldLineNumber: undefined,
-          newLineNumber: newLineNum++,
+          newLineNumber: (newLineNum += 1),
           content: line,
         });
       } else if (change.removed) {
         result.push({
           type: "removed",
-          oldLineNumber: oldLineNum++,
+          oldLineNumber: (oldLineNum += 1),
           newLineNumber: undefined,
           content: line,
         });
       } else {
         result.push({
           type: "unchanged",
-          oldLineNumber: oldLineNum++,
-          newLineNumber: newLineNum++,
+          oldLineNumber: (oldLineNum += 1),
+          newLineNumber: (newLineNum += 1),
           content: line,
         });
       }

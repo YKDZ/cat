@@ -6,9 +6,11 @@ import type {
   WatchSource,
   WatchCallback,
   WatchOptions,
+  WatchStopHandle,
+  WatchHandle,
 } from "vue";
 
-export const syncRefWith = <T>(ref: Ref<T>, getter: () => T) => {
+export const syncRefWith = <T>(ref: Ref<T>, getter: () => T): WatchHandle => {
   return watch(
     getter,
     (value) => {
@@ -30,8 +32,11 @@ export function watchClient<T extends Readonly<MultiWatchSources>>(
   options?: WatchOptions,
 ): ReturnType<typeof watch>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function watchClient(source: any, cb: any, options?: WatchOptions) {
+export function watchClient(
+  source: WatchSource<unknown> | MultiWatchSources,
+  cb: WatchCallback<unknown>,
+  options?: WatchOptions,
+): WatchHandle | undefined {
   if (import.meta.env.SSR) return;
   return watch(source, cb, options);
 }
@@ -40,7 +45,7 @@ export function watchClientThrottled(
   source: WatchSource,
   cb: WatchCallback,
   options?: WatchThrottledOptions<boolean>,
-) {
+): WatchStopHandle | undefined {
   if (import.meta.env.SSR) return;
   return watchThrottled(source, cb, options);
 }

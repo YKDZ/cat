@@ -31,7 +31,7 @@
   ],
   "scripts": {
     "build": "vite build",
-    "lint": "nx eslint:lint --fix",
+    "lint": "oxlint --fix",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },

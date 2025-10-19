@@ -6,7 +6,7 @@ import { usePreferredLanguages } from "@vueuse/core";
 import { createI18n } from "vue-i18n";
 import PrimeVue from "primevue/config";
 
-export const onCreateApp = async (ctx: PageContextClient) => {
+export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
   const { app } = ctx;
 
   if (!app) return;

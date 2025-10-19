@@ -6,7 +6,7 @@ export const registerTaskUpdateHandlers = (
   drizzle: DrizzleClient,
   worker: Worker,
   queueId: string,
-) => {
+): void => {
   worker.on("active", async (job) => {
     const id = job.name;
 

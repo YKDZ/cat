@@ -11,7 +11,7 @@ export class AssertError extends Error {
 export const assertPromise = async (
   predicate: () => Promise<unknown>,
   message: string,
-) => {
+): Promise<void> => {
   try {
     await predicate();
   } catch (e) {

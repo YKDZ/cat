@@ -133,7 +133,7 @@ const batchDiff = async (
         }>;
       }),
       run: async ({ data }) => {
-        const { elementIds } = await handleAddedElements(
+        const elementIds = await handleAddedElements(
           data.map((element) => element.element),
           data.map((element) => element.embeddingId),
           documentId,
@@ -167,30 +167,31 @@ const handleAddedElements = async (
   elements: (TranslatableElementData & { sortIndex: number })[],
   embeddingIds: number[],
   documentId: string,
-): Promise<{
-  elementIds: number[];
-}> => {
-  return await drizzle.transaction(async (tx) => {
-    const elementIds: number[] = [];
+): Promise<number[]> => {
+  const elementWithEmbeddingIds = elements.map((element, index) => ({
+    ...element,
+    embeddingId: getIndex(embeddingIds, index),
+  }));
 
-    for (let i = 0; i < elements.length; i++) {
-      const element = getIndex(elements, i);
-      const [createdElement] = await tx
-        .insert(translatableElement)
-        .values({
-          value: element.value,
-          sortIndex: element.sortIndex,
-          meta: element.meta,
-          embeddingId: getIndex(embeddingIds, i),
-          documentId,
-          languageId: element.languageId,
-        })
-        .returning({ id: translatableElement.id })
-        .execute();
-      elementIds.push(createdElement.id);
-    }
-    return { embeddingIds, elementIds };
-  });
+  return (
+    await drizzle
+      .insert(translatableElement)
+      .values(
+        elementWithEmbeddingIds.map((data) => {
+          return {
+            value: data.value,
+            sortIndex: data.sortIndex,
+            meta: data.meta,
+            embeddingId: data.embeddingId,
+            documentId,
+            languageId: data.languageId,
+          };
+        }),
+      )
+      .returning({
+        id: translatableElement.id,
+      })
+  ).map(({ id }) => id);
 };
 
 const rollbackAddedElements = async (

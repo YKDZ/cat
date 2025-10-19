@@ -32,14 +32,20 @@ const configSetter = async (
 };
 
 const configGetter = async () => {
-  if (props.schema.type !== "object")
+  if (
+    props.schema.type !== "object" ||
+    typeof props.schema.properties !== "object"
+  )
     throw new Error("schema type must be object");
 
   const data: Record<string, NonNullJSONType> = {};
-  for (const key in props.schema.properties) {
-    const value = await trpc.setting.get.query({ key });
-    data[key] = value;
-  }
+
+  await Promise.all(
+    Object.keys(props.schema.properties).map(async (key) => {
+      const value = await trpc.setting.get.query({ key });
+      data[key] = value;
+    }),
+  );
 
   return data as NonNullJSONType;
 };
