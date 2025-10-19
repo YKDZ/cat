@@ -34,21 +34,13 @@ type TranslationMeta = z.infer<typeof TranslationMetaSchema>;
 const memory = ref<Memory | null>(null);
 const advisor = ref<TranslationAdvisorData | null>(null);
 
-onMounted(() => {
+onMounted(async () => {
   if (meta.value && meta.value.memoryId)
-    trpc.memory.get.query({ id: meta.value.memoryId }).then((mem) => {
-      if (!mem) return;
-      memory.value = mem;
-    });
+    memory.value = await trpc.memory.get.query({ id: meta.value.memoryId });
   if (meta.value && meta.value.advisorId)
-    trpc.plugin.getTranslationAdvisor
-      .query({
-        advisorId: meta.value.advisorId,
-      })
-      .then((a) => {
-        if (!a) return;
-        advisor.value = a;
-      });
+    advisor.value = await trpc.plugin.getTranslationAdvisor.query({
+      advisorId: meta.value.advisorId,
+    });
 });
 </script>
 

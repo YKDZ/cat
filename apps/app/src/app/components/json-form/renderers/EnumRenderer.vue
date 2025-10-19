@@ -2,7 +2,7 @@
 import { computed, inject } from "vue";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
-import { schemaKey, transferDataToString } from "..";
+import { schemaKey, transferDataToString } from "../utils.ts";
 import type { PickerOption } from "@/app/components/picker/index.ts";
 import Picker from "@/app/components/picker/Picker.vue";
 

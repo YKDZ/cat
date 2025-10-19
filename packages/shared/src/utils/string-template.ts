@@ -13,7 +13,7 @@ export const useStringTemplate = (
     if (typeof value === "function") {
       return value();
     }
-    return value != null ? String(value) : "";
+    return value !== null ? String(value) : "";
   });
 };
 

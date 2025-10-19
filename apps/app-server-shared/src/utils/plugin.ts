@@ -11,7 +11,7 @@ export const getServiceFromDBId = async <T extends IPluginService>(
   drizzle: OverallDrizzleClient,
   pluginRegistry: PluginRegistry,
   id: number,
-) => {
+): Promise<T> => {
   const dbAdvisor = assertSingleNonNullish(
     await drizzle
       .select({

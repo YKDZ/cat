@@ -74,7 +74,7 @@ const sortAndAssignIndex = (
     .sort((a, b) => a.originalIndex - b.originalIndex)
     .map(({ item }) => ({
       ...item,
-      sortIndex: currentIndex++,
+      sortIndex: (currentIndex += 1),
     }));
 
   return [...withSortIndex, ...assignedWithoutSortIndex];

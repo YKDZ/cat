@@ -27,12 +27,15 @@ type DiffedRow = {
   rightChars?: DiffSegment[];
 };
 
-const normalizeContent = (s?: string) => {
+const normalizeContent = (s?: string): string => {
   if (s === undefined) return "";
   return s === "" ? "" : s;
 };
 
-const buildCharDiffs = (left?: string, right?: string) => {
+const buildCharDiffs = (
+  left?: string,
+  right?: string,
+): { left: DiffSegment[] | null; right: DiffSegment[] | null } | null => {
   if (left === undefined || right === undefined) return null;
   // if both strings are identical, skip expensive diff
   if (left === right) return { left: null, right: null };
@@ -58,13 +61,13 @@ const diffedRows = computed<DiffedRow[]>(() => {
   let i = 0;
   const n = lines.length;
 
-  const safeGet = (array: any[], index: number) => {
+  const safeGet = <T,>(array: T[], index: number): T | undefined => {
     return index >= 0 && index < array.length ? array[index] : undefined;
   };
 
-  const isValidLineType = (index: number, expectedType: string) => {
+  const isValidLineType = (index: number, expectedType: string): boolean => {
     const line = safeGet(lines, index);
-    return line && line.type === expectedType;
+    return line !== undefined && line.type === expectedType;
   };
 
   while (i < n) {
@@ -85,7 +88,7 @@ const diffedRows = computed<DiffedRow[]>(() => {
           content: normalizeContent(cur.content),
         },
       });
-      i++;
+      i += 1;
       continue;
     }
 
@@ -99,7 +102,7 @@ const diffedRows = computed<DiffedRow[]>(() => {
         if (line) {
           removed.push(line);
         }
-        i++;
+        i += 1;
       }
 
       // 安全收集所有连续的added行
@@ -108,11 +111,11 @@ const diffedRows = computed<DiffedRow[]>(() => {
         if (line) {
           added.push(line);
         }
-        i++;
+        i += 1;
       }
 
       const maxLen = Math.max(removed.length, added.length);
-      for (let k = 0; k < maxLen; k++) {
+      for (let k = 0; k < maxLen; k += 1) {
         const removedLine = safeGet(removed, k);
         const addedLine = safeGet(added, k);
 
@@ -158,7 +161,7 @@ const diffedRows = computed<DiffedRow[]>(() => {
         if (line) {
           added.push(line);
         }
-        i++;
+        i += 1;
       }
 
       // 安全收集所有连续的removed行
@@ -167,11 +170,11 @@ const diffedRows = computed<DiffedRow[]>(() => {
         if (line) {
           removed.push(line);
         }
-        i++;
+        i += 1;
       }
 
       const maxLen = Math.max(added.length, removed.length);
-      for (let k = 0; k < maxLen; k++) {
+      for (let k = 0; k < maxLen; k += 1) {
         const removedLine = safeGet(removed, k);
         const addedLine = safeGet(added, k);
 
@@ -206,7 +209,7 @@ const diffedRows = computed<DiffedRow[]>(() => {
       continue;
     }
 
-    i++;
+    i += 1;
   }
 
   return rows;

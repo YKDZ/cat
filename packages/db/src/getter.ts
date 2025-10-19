@@ -3,8 +3,8 @@ import { RedisDB } from "./redis.ts";
 import { DrizzleDB } from "@/drizzle/db.ts";
 
 declare global {
-  var __DRIZZLE_DB__: DrizzleDB | undefined;
-  var __REDIS_DB__: RedisDB | undefined;
+  const __DRIZZLE_DB__: DrizzleDB | undefined;
+  const __REDIS_DB__: RedisDB | undefined;
 }
 
 export const getDrizzleDB = async (): Promise<DrizzleDB> => {

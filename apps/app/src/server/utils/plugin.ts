@@ -18,11 +18,11 @@ export const importLocalPlugins = async (
       ).map((plugin) => plugin.id),
     );
 
-    for (const id of (await PluginRegistry.getPluginIdInLocalPlugins()).filter(
-      (id) => !existPluginIds.includes(id),
-    )) {
-      await PluginRegistry.importPlugin(tx, id);
-    }
+    await Promise.all(
+      (await PluginRegistry.getPluginIdInLocalPlugins())
+        .filter((id) => !existPluginIds.includes(id))
+        .map((id) => PluginRegistry.importPlugin(tx, id)),
+    );
   });
 };
 
@@ -58,7 +58,9 @@ export const installDefaultPlugins = async (
     (p) => !installedPlugins.includes(p),
   );
 
-  for (const pluginId of needToBeInstalled) {
-    await pluginRegistry.installPlugin(drizzle, pluginId);
-  }
+  await Promise.all(
+    needToBeInstalled.map((pluginId) =>
+      pluginRegistry.installPlugin(drizzle, pluginId),
+    ),
+  );
 };

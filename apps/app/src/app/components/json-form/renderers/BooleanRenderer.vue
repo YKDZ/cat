@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import type { NonNullJSONType } from "@cat/shared/schema/json";
-import { schemaKey } from "../index.ts";
+import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import HToggle from "@/app/components/headless/HToggle.vue";
+import { schemaKey } from "../utils.ts";
 
 const props = defineProps<{
   propertyKey: string | number;

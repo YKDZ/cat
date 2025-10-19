@@ -21,3 +21,6 @@ updates:
         patterns:
           - "nx"
           - "@nx/*"
+      drizzle:
+        patterns:
+          - "drizzle*"

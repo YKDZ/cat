@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from "vue";
-
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
 import Modal from "@/app/components/headless/HModal.vue";

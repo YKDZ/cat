@@ -13,3 +13,5 @@ fetch(url, { signal: controller.signal })
     clearTimeout(timeout);
     process.exit(1);
   });
+
+export {};

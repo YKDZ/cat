@@ -4,9 +4,15 @@ import { stat } from "node:fs/promises";
 import type { GlobalContextServer } from "vike/types";
 import type { ComputedRef } from "vue";
 import { nextTick } from "vue";
-import { createI18n } from "vue-i18n";
+import { createI18n, type I18n } from "vue-i18n";
 
-export const setupI18n = () =>
+export const setupI18n = (): I18n<
+  Record<string, unknown>,
+  Record<string, unknown>,
+  Record<string, unknown>,
+  string,
+  false
+> =>
   createI18n({
     legacy: false,
     fallbackLocale: "zh_cn",
@@ -20,7 +26,7 @@ export const setupI18n = () =>
 export const loadLocaleMessagesInServerSide = async (
   ctx: GlobalContextServer,
   locale: string,
-) => {
+): Promise<void> => {
   if (locale === "zh_cn") {
     if (!ctx.i18nMessages) ctx.i18nMessages = {};
     ctx.i18nMessages[locale] = {};

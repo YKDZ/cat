@@ -670,21 +670,14 @@ export const documentRouter = router({
       }
 
       // 检查是否有活跃的审批
-      for (const translation of translations) {
-        const activeApprovements = await drizzle
-          .select()
-          .from(translationApprovementTable)
-          .where(
-            and(
-              eq(translationApprovementTable.translationId, translation.id),
-              eq(translationApprovementTable.isActive, true),
-            ),
-          )
-          .limit(1);
+      const activeApprovements = await drizzle
+        .select()
+        .from(translationApprovementTable)
+        .where(and(eq(translationApprovementTable.isActive, true)))
+        .limit(1);
 
-        if (activeApprovements.length > 0) {
-          return "APPROVED";
-        }
+      if (activeApprovements.length > 0) {
+        return "APPROVED";
       }
 
       return "TRANSLATED";

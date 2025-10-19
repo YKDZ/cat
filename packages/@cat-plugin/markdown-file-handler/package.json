@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "build": "vite build",
-    "lint": "nx eslint:lint --fix",
+    "lint": "oxlint --fix",
     "format": "prettier --write ."
   },
   "dependencies": {

@@ -1,5 +1,9 @@
-import { sql } from "drizzle-orm";
-import { timestamp, uuid as dbUUID } from "drizzle-orm/pg-core";
+import { HasDefault, IsPrimaryKey, NotNull, sql } from "drizzle-orm";
+import {
+  timestamp,
+  uuid as dbUUID,
+  PgUUIDBuilderInitial,
+} from "drizzle-orm/pg-core";
 
 export const timestamps = {
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
@@ -9,7 +13,9 @@ export const timestamps = {
     .$onUpdate(() => new Date()),
 };
 
-export const uuidId = () =>
+export const uuidId = (): NotNull<
+  HasDefault<IsPrimaryKey<NotNull<PgUUIDBuilderInitial<"">>>>
+> =>
   dbUUID()
     .primaryKey()
     .default(sql`uuidv7()`)

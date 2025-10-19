@@ -20,6 +20,7 @@ import Button, {
 import { ref } from "vue";
 import { ptViewMerge } from "./utils";
 
+// oxlint-disable-next-line no-empty-object-type
 interface Props extends /* @vue-ignore */ ButtonProps {}
 defineProps<Props>();
 

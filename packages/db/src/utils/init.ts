@@ -45,18 +45,17 @@ export const init = async (): Promise<void> => {
         .returning({ id: userTable.id }),
     );
 
-    await tx.insert(accountTable).values([
-      {
-        type: "ID_PASSWORD",
-        provider: "EMAIL_PASSWORD",
-        providedAccountId: "admin@encmys.cn",
-        userId: user.id,
-        meta: {
-          password: await hashPassword(password),
-        },
+    await tx.insert(accountTable).values({
+      type: "ID_PASSWORD",
+      provider: "EMAIL_PASSWORD",
+      providedAccountId: "admin@encmys.cn",
+      userId: user.id,
+      meta: {
+        password: await hashPassword(password),
       },
-    ]);
+    });
 
+    // oxlint-disable-next-line no-console
     console.log(`Default admin password is: ${password}`);
   });
 };

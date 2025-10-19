@@ -3,10 +3,9 @@ import type { Server } from "node:http";
 import { logger } from "@cat/shared/utils";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
-import { account, getDrizzleDB, getRedisDB, getTableColumns } from "@cat/db";
+import { getDrizzleDB, getRedisDB } from "@cat/db";
 import { closeAllProcessors } from "@cat/app-workers/utils";
 import app from "./app.ts";
-import { kill } from "node:process";
 
 let server: Server | null = null;
 

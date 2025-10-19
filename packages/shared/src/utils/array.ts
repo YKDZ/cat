@@ -55,7 +55,7 @@ export function chunkDual<A, B>(
   }[] = [];
 
   const chunkCount = Math.ceil(arr1.length / size);
-  for (let i = 0; i < chunkCount; i++) {
+  for (let i = 0; i < chunkCount; i += 1) {
     const start = i * size;
     const end = start + size;
     result.push({

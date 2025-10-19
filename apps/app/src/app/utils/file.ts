@@ -8,7 +8,10 @@ export const formatSize = (bytes: number): string => {
   return toShortFixed(bytes / Math.pow(k, i), 2) + " " + sizes[i];
 };
 
-export const uploadFileToS3PresignedURL = async (file: File, url: string) => {
+export const uploadFileToS3PresignedURL = async (
+  file: File,
+  url: string,
+): Promise<void> => {
   const arrayBuffer = await file.arrayBuffer();
 
   // 使用 Web Crypto API 计算 SHA-256

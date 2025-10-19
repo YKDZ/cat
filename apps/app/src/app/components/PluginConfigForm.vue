@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { JSONType } from "@cat/shared/schema/json";
-import {
-  type PluginConfig,
-  type PluginConfigInstance,
+import type {
+  PluginConfig,
+  PluginConfigInstance,
 } from "@cat/shared/schema/drizzle/plugin";
 import { ref } from "vue";
 import type { ScopeType } from "@cat/db";

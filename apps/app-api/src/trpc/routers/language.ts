@@ -3,7 +3,7 @@ import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 
 export const languageRouter = router({
-  listAll: publicProcedure
+  getAll: publicProcedure
     .output(z.array(LanguageSchema))
     .query(async ({ ctx }) => {
       const {

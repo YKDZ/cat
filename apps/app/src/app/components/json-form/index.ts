@@ -1,4 +1,4 @@
-import type { DefineComponent, InjectionKey } from "vue";
+import type { DefineComponent } from "vue";
 import type {
   _JSONSchema,
   JSONSchema,
@@ -10,8 +10,6 @@ import BooleanRenderer from "./renderers/BooleanRenderer.vue";
 import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
-
-export const schemaKey = Symbol() as InjectionKey<_JSONSchema>;
 
 export interface RendererProps {
   propertyKey: string | number;
@@ -75,15 +73,15 @@ class Matcher {
         try {
           const ok = ruleValue(schemaValue);
           if (!ok) return null;
-          matchedKeys++;
-          predicateMatches++;
+          matchedKeys += 1;
+          predicateMatches += 1;
         } catch {
           return null;
         }
       } else {
         if (schemaValue !== ruleValue) return null;
-        matchedKeys++;
-        constMatches++;
+        matchedKeys += 1;
+        constMatches += 1;
       }
     }
 
@@ -108,7 +106,7 @@ function compareSpecificity(a: Specificity, b: Specificity): number {
 export class MatcherRegistry {
   public static matchers: Matcher[] = [];
 
-  public static register(m: Matcher) {
+  public static register(m: Matcher): void {
     this.matchers.push(m);
   }
 
@@ -165,17 +163,6 @@ const matchers: Matcher[] = [
 ];
 
 matchers.forEach((renderer) => MatcherRegistry.register(renderer));
-
-export const transferDataToString = (data: unknown, pretty = false): string => {
-  if (typeof data === "string") return data;
-  if (data === undefined) return "";
-  if (data === null) return "null";
-  try {
-    return pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
-  } catch {
-    return String(data);
-  }
-};
 
 const includesAll = <T>(arr: T[], target: T[]): boolean => {
   const s = new Set(arr);

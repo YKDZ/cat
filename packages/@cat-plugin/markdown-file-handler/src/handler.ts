@@ -118,7 +118,7 @@ const collectTranslatableElementsFromMarkdown = (md: string) => {
       Array.isArray(node.children) &&
       node.children.length > 0
     ) {
-      for (let i = 0; i < node.children.length; i++) {
+      for (let i = 0; i < node.children.length; i += 1) {
         traverse(node.children[i], [...path, i]);
       }
     }
@@ -180,7 +180,7 @@ export class MarkdownTranslatableFileHandler
         let parentNode: Node | undefined = modifiedRoot;
         let validPath = true;
 
-        for (let i = 0; i < path.length - 1; i++) {
+        for (let i = 0; i < path.length - 1; i += 1) {
           if (!isParent(parentNode)) {
             validPath = false;
             break;

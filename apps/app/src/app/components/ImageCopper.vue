@@ -85,8 +85,8 @@ const drawCheckerboard = () => {
   const cols = Math.ceil(copperWidth.value / tileSize);
   const rows = Math.ceil(copperHeight.value / tileSize);
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
       const isGray = (row + col) % 2 === 0;
       ctx.fillStyle = isGray ? "#DDD" : "#FFF";
       ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);

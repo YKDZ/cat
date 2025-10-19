@@ -20,7 +20,7 @@ export default defineConfig({
   },
 
   plugins: [
-    // @ts-expect-error
+    // @ts-expect-error tailwind error
     tailwindcss(),
     vike(),
     VueI18nPlugin({
