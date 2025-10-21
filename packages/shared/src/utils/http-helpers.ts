@@ -1,7 +1,7 @@
 export type setCookie = (
   key: string,
   value: string | undefined,
-  maxAge: number | undefined,
+  maxAge?: number,
 ) => void;
 export type delCookie = (key: string) => void;
 export type getCookie = (name: string) => string | null;

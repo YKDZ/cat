@@ -56,7 +56,7 @@ export const authRouter = router({
         user,
         pluginRegistry,
         helpers,
-        setCookie,
+        helpers: { setCookie },
       } = ctx;
       const { providerId, gotFromClient } = input;
 
@@ -148,20 +148,17 @@ export const authRouter = router({
       const {
         redisDB: { redis },
         drizzleDB: { client: drizzle },
-        getCookie,
-        setCookie,
-        delCookie,
-        pluginRegistry,
         helpers,
+        pluginRegistry,
       } = ctx;
       const { passToServer } = input;
 
       if (ctx.user)
         throw new TRPCError({ code: "CONFLICT", message: "Already logged in" });
 
-      const preAuthSessionId = getCookie("preAuthSessionId") ?? "";
+      const preAuthSessionId = helpers.getCookie("preAuthSessionId") ?? "";
       const preAuthSessionKey = `auth:preAuth:session:${preAuthSessionId}`;
-      delCookie("preAuthSessionId");
+      helpers.delCookie("preAuthSessionId");
 
       const providerId = Number(
         await redis.hGet(preAuthSessionKey, "_providerId"),
@@ -271,7 +268,7 @@ export const authRouter = router({
       });
       await redis.expire(sessionKey, 24 * 60 * 60);
 
-      setCookie("sessionId", sessionId);
+      helpers.setCookie("sessionId", sessionId);
     }),
   logout: publicProcedure.output(z.void()).mutation(async ({ ctx }) => {
     const {
@@ -280,7 +277,7 @@ export const authRouter = router({
       user,
       sessionId,
       pluginRegistry,
-      delCookie,
+      helpers,
     } = ctx;
 
     if (!user || !sessionId)
@@ -313,6 +310,6 @@ export const authRouter = router({
     }
 
     await redis.del(`user:session:${sessionId}`);
-    delCookie("sessionId");
+    helpers.delCookie("sessionId");
   }),
 });
