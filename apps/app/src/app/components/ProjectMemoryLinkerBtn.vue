@@ -3,10 +3,10 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import Modal from "./headless/HModal.vue";
 import MultiMemoryPicker from "./MultiMemoryPicker.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
+import SModal from "./headless-styled/SModal.vue";
 
 const { t } = useI18n();
 const { info, trpcWarn } = useToastStore();
@@ -59,13 +59,7 @@ const handleLink = async () => {
     @click="handleOpen"
     >{{ t("连接记忆库") }}</HButton
   >
-  <Modal
-    v-model="isOpen"
-    :classes="{
-      modal: 'modal',
-      'modal-backdrop': 'modal-backdrop',
-    }"
-  >
+  <SModal v-model="isOpen">
     <h3 class="text-lg font-bold">{{ t("连接或创建新记忆库") }}</h3>
     <MultiMemoryPicker v-model="memoryIds" full-width create-new />
     <HButton
@@ -76,5 +70,5 @@ const handleLink = async () => {
       @click="handleLink"
       >{{ t("连接") }}</HButton
     >
-  </Modal>
+  </SModal>
 </template>

@@ -7,8 +7,7 @@ export const guard = async (ctx: PageContextServer) => {
 
   const { elementId, documentId, languageToId } = ctx.routeParams;
 
-  if (!documentId || !languageToId || !elementId)
-    throw render("/", `Invalid route params`);
+  if (!documentId || !languageToId) throw render("/", `Invalid route params`);
 
   if (elementId !== "auto" || !isNaN(parseInt(elementId))) return;
 

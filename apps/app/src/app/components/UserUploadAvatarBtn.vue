@@ -9,7 +9,7 @@ import { useToastStore } from "@/app/stores/toast.ts";
 import { trpc } from "@cat/app-api/trpc/client";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import ImageCopper from "@/app/components/ImageCopper.vue";
-import Modal from "@/app/components/headless/HModal.vue";
+import SModal from "./headless-styled/SModal.vue";
 
 const { t } = useI18n();
 
@@ -93,18 +93,12 @@ const rawFileMime = computed(() => {
     accept="image/*"
     @change="handleFileChange"
   />
-  <Modal
-    v-model="isOpen"
-    :classes="{
-      modal: 'modal',
-      'modal-backdrop': 'modal-backdrop',
-    }"
-  >
+  <SModal v-model="isOpen">
     <ImageCopper
       v-if="src"
       v-model:is-processing="isProcessing"
       :src
       :on-submit="onSubmit"
     />
-  </Modal>
+  </SModal>
 </template>

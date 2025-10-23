@@ -3,10 +3,10 @@ import type { Document } from "@cat/shared/schema/drizzle/document";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";
 import { languageKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
+import SModal from "./headless-styled/SModal.vue";
 
 const { t } = useI18n();
 
@@ -44,13 +44,7 @@ const handleAutoApprove = async () => {
     icon="icon-[mdi--auto-fix]"
     @click.stop="isOpen = true"
   />
-  <Modal
-    v-model="isOpen"
-    :classes="{
-      modal: 'modal',
-      'modal-backdrop': 'modal-backdrop',
-    }"
-  >
+  <SModal v-model="isOpen">
     <article class="prose-highlight-content max-w-460px prose">
       <h3 class="text-highlight-content-darker">{{ t("自动批准") }}</h3>
       <p>
@@ -68,5 +62,5 @@ const handleAutoApprove = async () => {
       @click="handleAutoApprove"
       >确认</HButton
     >
-  </Modal>
+  </SModal>
 </template>

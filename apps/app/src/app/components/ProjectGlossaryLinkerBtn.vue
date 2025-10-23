@@ -4,9 +4,9 @@ import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
-import Modal from "./headless/HModal.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
+import SModal from "./headless-styled/SModal.vue";
 
 const { t } = useI18n();
 
@@ -62,13 +62,7 @@ const handleLink = async () => {
     @click="handleOpen"
     >{{ t("连接术语库") }}</HButton
   >
-  <Modal
-    v-model="isOpen"
-    :classes="{
-      modal: 'modal',
-      'modal-backdrop': 'modal-backdrop',
-    }"
-  >
+  <SModal v-model="isOpen">
     <h3 class="text-lg font-bold">{{ t("连接或创建新术语库") }}</h3>
     <MultiGlossaryPicker v-model="glossaryIds" full-width create-new />
     <HButton
@@ -79,5 +73,5 @@ const handleLink = async () => {
       @click="handleLink"
       >{{ t("连接") }}</HButton
     >
-  </Modal>
+  </SModal>
 </template>

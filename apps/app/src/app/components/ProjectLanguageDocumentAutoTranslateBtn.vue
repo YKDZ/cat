@@ -5,7 +5,6 @@ import { toShortFixed } from "@cat/shared/utils";
 import type { Document } from "@cat/shared/schema/drizzle/document";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import Modal from "./headless/HModal.vue";
 import InputLabel from "./InputLabel.vue";
 import RangeInput from "./RangeInput.vue";
 import type { PickerOption } from "./picker/index.ts";
@@ -13,6 +12,7 @@ import Picker from "./picker/Picker.vue";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { languageKey } from "@/app/utils/provide.ts";
+import SModal from "./headless-styled/SModal.vue";
 
 const props = defineProps<{
   document: Document;
@@ -81,13 +81,7 @@ onMounted(updateAvailableAdvisor);
     icon="icon-[mdi--translate]"
     @click.stop="isOpen = true"
   />
-  <Modal
-    v-model="isOpen"
-    :classes="{
-      modal: 'modal',
-      'modal-backdrop': 'modal-backdrop',
-    }"
-  >
+  <SModal v-model="isOpen">
     <article class="prose-highlight-content max-w-460px prose">
       <h3 class="text-highlight-content-darker">{{ t("自动翻译") }}</h3>
       <p>
@@ -134,5 +128,5 @@ onMounted(updateAvailableAdvisor);
       @click="handleAutoTranslate"
       >{{ t("确认") }}</HButton
     >
-  </Modal>
+  </SModal>
 </template>

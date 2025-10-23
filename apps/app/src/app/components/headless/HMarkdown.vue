@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { marked } from "marked";
+import { setOptions, marked } from "marked";
 
 type Classes = {
   container?: string;
@@ -8,7 +8,7 @@ type Classes = {
 
 const props = defineProps<{ content: string; classes?: Classes }>();
 
-marked.setOptions({
+setOptions({
   breaks: true,
 });
 

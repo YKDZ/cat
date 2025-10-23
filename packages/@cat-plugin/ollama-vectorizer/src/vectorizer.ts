@@ -24,7 +24,7 @@ export class Vectorizer implements TextVectorizer {
     return "ollama";
   }
 
-  canVectorize(languageId: string): boolean {
+  canVectorize(): boolean {
     return true;
   }
 
@@ -44,7 +44,9 @@ export class Vectorizer implements TextVectorizer {
     });
 
     if (response.statusCode !== 200) {
-      throw new Error(`Server responded with ${response.statusCode}`);
+      throw new Error(
+        `Server responded with ${response.statusCode}. ${response}`,
+      );
     }
 
     const data = (await response.body.json()) as { embeddings: number[][] };
