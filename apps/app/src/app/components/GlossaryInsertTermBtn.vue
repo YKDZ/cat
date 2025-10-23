@@ -2,8 +2,8 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
-import Modal from "@/app/components/headless/HModal.vue";
 import GlossaryInsertTermText from "@/app/components/GlossaryInsertTermText.vue";
+import SModal from "./headless-styled/SModal.vue";
 
 const { t } = useI18n();
 
@@ -23,13 +23,7 @@ const isOpen = ref(false);
     @click="isOpen = true"
     >{{ t("插入术语") }}</HButton
   >
-  <Modal
-    v-model="isOpen"
-    :classes="{
-      modal: 'modal',
-      'modal-backdrop': 'modal-backdrop',
-    }"
-  >
+  <SModal v-model="isOpen">
     <GlossaryInsertTermText :glossary-id />
-  </Modal>
+  </SModal>
 </template>

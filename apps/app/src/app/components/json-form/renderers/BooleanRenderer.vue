@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
-import HToggle from "@/app/components/headless/HToggle.vue";
 import { schemaKey } from "../utils.ts";
+import SToggle from "../../headless-styled/SToggle.vue";
 
 const props = defineProps<{
   propertyKey: string | number;
@@ -34,17 +34,6 @@ const handleUpdate = (value: boolean) => {
       schema.title ?? propertyKey
     }}</span>
     <span class="text-sm text-highlight-content">{{ schema.description }}</span>
-    <HToggle
-      :value
-      :classes="{
-        'base-checked': 'toggle toggle-md toggle-base',
-        'base-unchecked': 'toggle toggle-md toggle-highlight-darker',
-        'thumb-checked':
-          'toggle-thumb toggle-thumb-md toggle-thumb-highlight toggle-thumb-checked',
-        'thumb-unchecked':
-          'toggle-thumb toggle-thumb-md toggle-thumb-highlight',
-      }"
-      @update="handleUpdate"
-    />
+    <SToggle :value @update="handleUpdate" />
   </label>
 </template>

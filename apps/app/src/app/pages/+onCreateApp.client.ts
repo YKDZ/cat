@@ -4,7 +4,6 @@ import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import { getCookieFunc } from "@cat/shared/utils";
 import { usePreferredLanguages } from "@vueuse/core";
 import { createI18n } from "vue-i18n";
-import PrimeVue from "primevue/config";
 
 export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
   const { app } = ctx;
@@ -15,10 +14,6 @@ export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
   app.use(ctx.globalContext.pinia!);
 
   app.use(await hydrateI18n(ctx));
-
-  app.use(PrimeVue, {
-    unstyled: true,
-  });
 };
 
 const hydratePinia = (ctx: PageContextClient) => {

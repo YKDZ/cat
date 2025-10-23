@@ -1,5 +1,4 @@
+@import "./theme.css";
 @import "./tailwind.css";
 @import "./shortcuts.css";
-@import "./theme.css";
 @import "./misc.css";
-@import "./volt.css"
