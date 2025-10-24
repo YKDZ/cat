@@ -88,7 +88,7 @@ export type GetterOptions = {
 export interface CatPlugin {
   onInstalled?: () => Promise<void>;
   onUninstalled?: () => Promise<void>;
-  onLoaded?: () => Promise<void>;
+  onEnabled?: () => Promise<void>;
   getTextVectorizers?: (options: PluginGetterOptions) => TextVectorizer[];
   getTranslatableFileHandlers?: (
     options: PluginGetterOptions,
@@ -124,6 +124,18 @@ export class PluginRegistry implements IPluginRegistry {
   public constructor(
     public readonly scopeType: ScopeType,
     public readonly scopeId: string,
+    public readonly instancesCache = new Map<string, CatPlugin>(),
+    // type -> pluginId
+    public readonly serviceCache = new Map<
+      PluginServiceType,
+      Map<
+        string,
+        {
+          id: number;
+          service: IPluginService;
+        }
+      >
+    >(),
   ) {}
 
   public static get(scopeType: ScopeType, scopeId: string): PluginRegistry {
@@ -148,6 +160,7 @@ export class PluginRegistry implements IPluginRegistry {
         .values([
           {
             id: pluginId,
+            version: data.version,
             name: data.name,
             entry: data.entry ?? null,
             overview: data.overview,
@@ -158,6 +171,7 @@ export class PluginRegistry implements IPluginRegistry {
           target: plugin.id,
           set: {
             name: data.name,
+            version: data.version,
             entry: data.entry ?? null,
             overview: data.overview,
             iconUrl: data.iconURL,
@@ -182,22 +196,13 @@ export class PluginRegistry implements IPluginRegistry {
     drizzle: DrizzleClient,
     pluginId: string,
   ): Promise<void> {
-    const dbPlugin = await drizzle.query.plugin.findFirst({
-      where: (plugin, { eq }) => eq(plugin.id, pluginId),
-      columns: {
-        entry: true,
-      },
-    });
-
-    if (!dbPlugin) throw new Error(`Plugin ${pluginId} not found`);
-
     const manifest = await PluginRegistry.getPluginManifest(pluginId);
 
     logger.info("PLUGIN", {
       msg: `About to install plugin ${pluginId} in ${this.scopeType} ${this.scopeId}`,
     });
 
-    const pluginObj = await this.getPluginInstance(pluginId, dbPlugin.entry);
+    const pluginObj = await this.getPluginInstance(pluginId);
     if (pluginObj.onInstalled) await pluginObj.onInstalled();
 
     await drizzle.transaction(async (tx) => {
@@ -225,6 +230,7 @@ export class PluginRegistry implements IPluginRegistry {
           })),
         );
 
+      // 以插件声明而不是实现的服务为准
       if (manifest.services && manifest.services.length > 0)
         await tx.insert(pluginService).values(
           manifest.services.map((service) => ({
@@ -272,6 +278,16 @@ export class PluginRegistry implements IPluginRegistry {
     drizzle: OverallDrizzleClient,
     type: T,
   ): Promise<{ id: number; service: PluginServiceMap[T]; pluginId: string }[]> {
+    // 优先考虑缓存
+    if (this.serviceCache.has(type)) {
+      return Array.from(this.serviceCache.get(type)!.values()) as {
+        id: number;
+        service: PluginServiceMap[T];
+        pluginId: string;
+      }[];
+    }
+
+    // 本 scope 的所有插件安装
     const installations = await drizzle.query.pluginInstallation.findMany({
       where: (installation, { and, eq }) =>
         and(
@@ -280,14 +296,12 @@ export class PluginRegistry implements IPluginRegistry {
         ),
     });
 
+    // 本 scope 注册的所有指定类型的服务
     const servicesRows = await drizzle
       .select({
         id: pluginService.id,
         serviceId: pluginService.serviceId,
-        plugin: {
-          id: plugin.id,
-          entry: plugin.entry,
-        },
+        pluginId: plugin.id,
       })
       .from(pluginService)
       .innerJoin(
@@ -305,90 +319,38 @@ export class PluginRegistry implements IPluginRegistry {
         ),
       );
 
-    const pluginMap = new Map<
-      string,
-      { entry: string; rows: { id: number; serviceId: string }[] }
-    >();
+    const services: {
+      id: number;
+      service: PluginServiceMap[T];
+      pluginId: string;
+    }[] = [];
 
-    for (const r of servicesRows) {
-      const plugin = r.plugin;
-      if (!plugin?.id) continue;
-      const pluginId = plugin.id;
-      const entry = plugin.entry;
-      const existing = pluginMap.get(pluginId);
-      if (!existing) {
-        pluginMap.set(pluginId, {
-          entry,
-          rows: [{ id: r.id, serviceId: r.serviceId }],
-        });
-      } else {
-        existing.rows.push({ id: r.id, serviceId: r.serviceId });
-      }
-    }
-
-    const arrays = await Promise.all(
-      Array.from(pluginMap.entries()).map(
-        async ([pluginId, { entry, rows }]) => {
-          const instance = await this.getPluginInstance(pluginId, entry);
-
-          const methodName = PluginServiceGetterMap[type];
-
-          const getter = instance[methodName] as
-            | ((
-                opts: PluginGetterOptions,
-              ) => PluginServiceMap[T][] | PluginServiceMap[T])
-            | undefined;
-
-          if (!getter)
-            return [] as {
-              id: number;
-              service: PluginServiceMap[T];
-              pluginId: string;
-            }[];
-
-          const config = await getPluginConfig(
-            drizzle,
-            pluginId,
-            this.scopeType,
-            this.scopeId,
+    await Promise.all(
+      servicesRows.map(async (row) => {
+        const service = await this.getPluginService(
+          drizzle,
+          row.pluginId,
+          type,
+          row.serviceId,
+        );
+        if (!service)
+          throw new Error(
+            `Plugin ${row.pluginId} declare service '${type}:${row.serviceId}' but provided it in getter`,
           );
 
-          const result = getter.call(instance, { config });
-          const returnedServices = Array.isArray(result) ? result : [result];
+        const result = {
+          id: row.id,
+          service: service.service as PluginServiceMap[T],
+          pluginId: row.pluginId,
+        };
 
-          // For each returned service, find matching DB row by serviceId (service.getId())
-          const mapped = returnedServices
-            .map((service) => {
-              const sid = service.getId() as string | undefined;
-              if (!sid) return null;
-              const dbRow = rows.find((r) => r.serviceId === sid);
-              if (!dbRow) return null; // 如果 DB 没有对应的 row，就不返回（因为无法提供 db id）
-              return {
-                id: dbRow.id,
-                service,
-                pluginId,
-              } as {
-                id: number;
-                service: PluginServiceMap[T];
-                pluginId: string;
-              };
-            })
-            .filter(
-              (
-                x,
-              ): x is {
-                id: number;
-                service: PluginServiceMap[T];
-                pluginId: string;
-              } => !!x,
-            );
+        this.cacheService(type, result.pluginId, result);
 
-          return mapped;
-        },
-      ),
+        services.push(result);
+      }),
     );
 
-    return arrays.flat();
+    return services;
   }
 
   public async getPluginService<T extends PluginServiceType>(
@@ -397,6 +359,16 @@ export class PluginRegistry implements IPluginRegistry {
     type: T,
     id: string,
   ): Promise<{ id: number; service: PluginServiceMap[T] } | null> {
+    // 缓存
+    if (this.serviceCache.has(type)) {
+      const cached = this.serviceCache.get(type)!.get(pluginId);
+      if (cached)
+        return {
+          id: cached.id,
+          service: cached.service as PluginServiceMap[T],
+        };
+    }
+
     const installation = await drizzle.query.pluginInstallation.findFirst({
       where: (installation, { and, eq }) =>
         and(
@@ -416,10 +388,7 @@ export class PluginRegistry implements IPluginRegistry {
         .select({
           id: pluginService.id,
           serviceId: pluginService.serviceId,
-          plugin: {
-            id: plugin.id,
-            entry: plugin.entry,
-          },
+          pluginId: plugin.id,
         })
         .from(pluginService)
         .innerJoin(
@@ -438,8 +407,7 @@ export class PluginRegistry implements IPluginRegistry {
 
     if (!service) throw new Error(`Service ${type} ${id} not found`);
 
-    const entry = service.plugin.entry;
-    const instance = await this.getPluginInstance(pluginId, entry);
+    const instance = await this.getPluginInstance(pluginId);
 
     const getter = instance[PluginServiceGetterMap[type]] as
       | ((
@@ -466,11 +434,19 @@ export class PluginRegistry implements IPluginRegistry {
 
     if (!matched) return null;
 
-    return { id: service.id, service: matched };
+    const r = { id: service.id, service: matched };
+
+    this.cacheService(type, pluginId, r);
+
+    return r;
   }
 
-  private async getPluginInstance(pluginId: string, entry: string) {
-    const pluginFsPath = PluginRegistry.getPluginEntryFsPath(pluginId, entry);
+  private async getPluginInstance(pluginId: string): Promise<CatPlugin> {
+    if (this.instancesCache.has(pluginId)) {
+      return this.instancesCache.get(pluginId)!;
+    }
+
+    const pluginFsPath = await PluginRegistry.getPluginEntryFsPath(pluginId);
     // Vite build will sometimes remove inline /* @vite-ignore */ comments
     // and cause runtime warning
     const pluginUrl = /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
@@ -479,22 +455,25 @@ export class PluginRegistry implements IPluginRegistry {
     const instance = PluginObjectSchema.parse(imported.default ?? imported);
 
     try {
-      if (instance.onLoaded) await instance.onLoaded();
+      if (instance.onEnabled) await instance.onEnabled();
     } catch (err) {
       logger.error(
         "PLUGIN",
         {
-          msg: `Error when running plugin '${pluginId}''s 'onLoaded' hook`,
+          msg: `Error when running plugin '${pluginId}''s 'onEnabled hook' hook`,
         },
         err,
       );
     }
 
+    this.instancesCache.set(pluginId, instance);
+
     return instance;
   }
 
-  public static getPluginEntryFsPath(id: string, entry: string): string {
-    return join(PluginRegistry.getPluginFsPath(id), entry);
+  public static async getPluginEntryFsPath(id: string): Promise<string> {
+    const manifest = await PluginRegistry.getPluginManifest(id);
+    return join(PluginRegistry.getPluginFsPath(id), manifest.entry);
   }
 
   public static getPluginFsPath(id: string): string {
@@ -570,5 +549,23 @@ export class PluginRegistry implements IPluginRegistry {
     );
 
     return results;
+  }
+
+  private cacheService(
+    type: PluginServiceType,
+    pluginId: string,
+    service: {
+      id: number;
+      service: IPluginService;
+    },
+  ) {
+    const current = this.serviceCache.get(type) ?? new Map();
+    current.set(pluginId, service);
+    this.serviceCache.set(type, current);
+  }
+
+  public reload(): void {
+    this.instancesCache.clear();
+    this.serviceCache.clear();
   }
 }

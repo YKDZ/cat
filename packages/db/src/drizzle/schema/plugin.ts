@@ -1,12 +1,10 @@
 import {
   boolean,
   foreignKey,
-  index,
   integer,
   jsonb,
   pgEnum,
   pgTable,
-  primaryKey,
   serial,
   text,
   uniqueIndex,
@@ -43,6 +41,7 @@ export const scopeType = pgEnum("ScopeType", ["GLOBAL", "USER", "PROJECT"]);
 
 export const plugin = pgTable("Plugin", {
   id: text().primaryKey().notNull(),
+  version: text().notNull(),
   name: text().notNull(),
   overview: text(),
   isExternal: boolean().default(false).notNull(),
@@ -50,18 +49,6 @@ export const plugin = pgTable("Plugin", {
   iconUrl: text(),
   ...timestamps,
 });
-
-export const pluginTag = pgTable(
-  "PluginTag",
-  {
-    id: serial().primaryKey().notNull(),
-    name: text().notNull(),
-    ...timestamps,
-  },
-  (table) => [
-    uniqueIndex().using("btree", table.name.asc().nullsLast().op("text_ops")),
-  ],
-);
 
 export const pluginConfig = pgTable(
   "PluginConfig",
@@ -173,32 +160,6 @@ export const pluginInstallation = pgTable(
   ],
 );
 
-export const pluginToPluginTag = pgTable(
-  "PluginToPluginTag",
-  {
-    pluginId: text().notNull(),
-    pluginTagId: integer().notNull(),
-  },
-  (table) => [
-    index().using("btree", table.pluginTagId.asc().nullsLast().op("int4_ops")),
-    foreignKey({
-      columns: [table.pluginId],
-      foreignColumns: [plugin.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
-    foreignKey({
-      columns: [table.pluginTagId],
-      foreignColumns: [pluginTag.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
-    primaryKey({
-      columns: [table.pluginId, table.pluginTagId],
-    }),
-  ],
-);
-
 export const pluginServiceRelations = relations(
   pluginService,
   ({ one, many }) => ({
@@ -227,7 +188,6 @@ export const pluginInstallationRelations = relations(
 export const pluginRelations = relations(plugin, ({ one, many }) => ({
   PluginConfig: one(pluginConfig),
   PluginInstallations: many(pluginInstallation),
-  PluginToPluginTags: many(pluginToPluginTag),
 }));
 
 export const pluginConfigRelations = relations(
@@ -258,21 +218,3 @@ export const PluginConfigInstanceRelations = relations(
     }),
   }),
 );
-
-export const pluginToPluginTagRelations = relations(
-  pluginToPluginTag,
-  ({ one }) => ({
-    Plugin: one(plugin, {
-      fields: [pluginToPluginTag.pluginId],
-      references: [plugin.id],
-    }),
-    PluginTag: one(pluginTag, {
-      fields: [pluginToPluginTag.pluginTagId],
-      references: [pluginTag.id],
-    }),
-  }),
-);
-
-export const pluginTagRelations = relations(pluginTag, ({ many }) => ({
-  PluginToPluginTags: many(pluginToPluginTag),
-}));

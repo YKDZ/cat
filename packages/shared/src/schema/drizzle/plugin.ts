@@ -13,13 +13,6 @@ export const PluginInstallationSchema = z.object({
   pluginId: z.string(),
 });
 
-export const PluginTagSchema = z.object({
-  id: z.int(),
-  name: z.string(),
-  createdAt: DrizzleDateTimeSchema,
-  updatedAt: DrizzleDateTimeSchema,
-});
-
 export const PluginConfigSchema = z.object({
   id: z.int(),
   schema: JSONSchemaSchema,
@@ -83,7 +76,6 @@ export const PluginServiceSchema = z.object({
   pluginInstallationId: z.int(),
 });
 
-export type PluginTag = z.infer<typeof PluginTagSchema>;
 export type PluginVersion = z.infer<typeof PluginVersionSchema>;
 export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 export type PluginConfigInstance = z.infer<typeof PluginConfigInstanceSchema>;

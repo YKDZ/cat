@@ -2,6 +2,7 @@
   "$schema": "../../plugin-core/manifest-schema.json",
   "id": "email-password-auth-provider",
   "entry": "dist/index.js",
+  "version": "0.1.0",
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
     {
@@ -9,7 +10,5 @@
       "type": "AUTH_PROVIDER"
     }
   ],
-  "tags": [
-    "auth-provider"
-  ]
+  "tags": ["auth-provider"]
 }

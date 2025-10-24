@@ -2,6 +2,7 @@
   "$schema": "../../plugin-core/manifest-schema.json",
   "id": "ollama-vectorizer",
   "entry": "dist/index.js",
+  "version": "0.1.0",
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
     {
@@ -9,9 +10,7 @@
       "type": "TEXT_VECTORIZER"
     }
   ],
-  "tags": [
-    "text-vectorizer"
-  ],
+  "tags": ["text-vectorizer"],
   "config": {
     "type": "object",
     "properties": {

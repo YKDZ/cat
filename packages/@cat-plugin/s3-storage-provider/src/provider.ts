@@ -1,6 +1,5 @@
 import type { Readable } from "node:stream";
 import type { JSONType } from "@cat/shared/schema/json";
-import type { File } from "@cat/shared/schema/drizzle/file";
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
 import { S3Client } from "@aws-sdk/client-s3";
 import {
@@ -61,8 +60,6 @@ class S3DB {
     });
   }
 
-  async connect() {}
-
   async disconnect() {
     this.client.destroy();
   }
@@ -85,23 +82,23 @@ export class S3StorageProvider implements StorageProvider {
     this.db = new S3DB(this.config.s3);
   }
 
-  getId() {
+  getId(): string {
     return "S3";
   }
 
-  getBasicPath() {
+  getBasicPath(): string {
     return this.config.storage["basic-path"];
   }
 
-  async ping() {
+  async ping(): Promise<void> {
     await this.db.ping();
   }
 
-  async connect() {
-    if (!this.db.client) await this.db.connect();
+  async connect(): Promise<void> {
+    return;
   }
 
-  async disconnect() {
+  async disconnect(): Promise<void> {
     await this.db.disconnect();
   }
 
@@ -124,14 +121,14 @@ export class S3StorageProvider implements StorageProvider {
     });
   }
 
-  async generateUploadURL(path: string, expiresIn: number) {
+  async generateUploadURL(path: string, expiresIn: number): Promise<string> {
     const params: PutObjectCommandInput = {
       Bucket: this.config.s3["bucket-name"],
       Key: path.replaceAll("\\", "/"),
       ACL: this.config.s3["acl"],
     };
     const command = new PutObjectCommand(params);
-    const presignedUrl = await getSignedUrl(this.db.client!, command, {
+    const presignedUrl = await getSignedUrl(this.db.client, command, {
       expiresIn,
       signableHeaders: new Set(["x-amz-checksum-sha256"]),
     });
@@ -139,16 +136,20 @@ export class S3StorageProvider implements StorageProvider {
     return presignedUrl;
   }
 
-  async generateURL(path: string, expiresIn: number) {
+  async generateURL(path: string, expiresIn: number): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.config.s3["bucket-name"],
       Key: path.replaceAll("\\", "/"),
     });
 
-    return await getSignedUrl(this.db.client!, command, { expiresIn });
+    return await getSignedUrl(this.db.client, command, { expiresIn });
   }
 
-  async generateDownloadURL(path: string, fileName: string, expiresIn: number) {
+  async generateDownloadURL(
+    path: string,
+    fileName: string,
+    expiresIn: number,
+  ): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.config.s3["bucket-name"],
       Key: path.replaceAll("\\", "/"),
@@ -162,10 +163,10 @@ export class S3StorageProvider implements StorageProvider {
     return await getSignedUrl(this.db.client!, command, { expiresIn });
   }
 
-  async delete(file: File) {
+  async delete(storedPath: string): Promise<void> {
     const command = new DeleteObjectCommand({
       Bucket: this.config.s3["bucket-name"],
-      Key: file.storedPath.replaceAll("\\", "/"),
+      Key: storedPath.replaceAll("\\", "/"),
     });
 
     await this.db.client.send(command);

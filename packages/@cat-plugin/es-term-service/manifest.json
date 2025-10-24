@@ -2,6 +2,7 @@
   "$schema": "../../plugin-core/manifest-schema.json",
   "id": "es-term-service",
   "entry": "dist/index.js",
+  "version": "0.1.0",
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
     {
@@ -9,9 +10,7 @@
       "type": "TERM_SERVICE"
     }
   ],
-  "tags": [
-    "term-service"
-  ],
+  "tags": ["term-service"],
   "config": {
     "type": "object",
     "properties": {
