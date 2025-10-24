@@ -1,4 +1,3 @@
-import type { File } from "@cat/shared/schema/drizzle/file";
 import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface StorageProvider extends IPluginService {
@@ -15,7 +14,7 @@ export interface StorageProvider extends IPluginService {
     fileName: string,
     expiresIn: number,
   ): Promise<string>;
-  delete: (file: File) => Promise<void>;
+  delete: (storedPath: string) => Promise<void>;
   ping: () => Promise<void>;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;

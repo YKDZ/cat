@@ -3,7 +3,6 @@ import { getESTermService } from "./service.ts";
 import { ConfigSchema } from "./service.ts";
 
 class Plugin implements CatPlugin {
-  async onLoaded() {}
   getTermServices(options: PluginGetterOptions) {
     return [getESTermService(ConfigSchema.parse(options.config))];
   }

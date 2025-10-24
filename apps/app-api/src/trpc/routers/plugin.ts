@@ -13,29 +13,27 @@ import {
   type TranslationAdvisorData,
 } from "@cat/shared/schema/misc";
 import {
-  eq,
   plugin as pluginTable,
   pluginConfigInstance as pluginConfigInstanceTable,
   desc,
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
+import { PluginRegistry } from "@cat/plugin-core";
 
 export const pluginRouter = router({
-  delete: authedProcedure
+  reload: authedProcedure
     .input(
       z.object({
-        id: z.string(),
+        scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
+        scopeId: z.string(),
       }),
     )
-    .output(z.void())
-    .mutation(async ({ ctx, input }) => {
-      const {
-        drizzleDB: { client: drizzle },
-      } = ctx;
-      const { id } = input;
+    .mutation(async ({ input }) => {
+      const { scopeType, scopeId } = input;
 
-      await drizzle.delete(pluginTable).where(eq(pluginTable.id, id));
+      const registry = PluginRegistry.get(scopeType, scopeId);
+      registry.reload();
     }),
   queryConfigInstance: authedProcedure
     .input(

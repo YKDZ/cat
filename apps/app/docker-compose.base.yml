@@ -55,6 +55,13 @@ services:
       - ./ollama:/root/.ollama
     ports:
       - 11434:11434
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   libretranslate:
     container_name: cat_libretranslate

@@ -3,10 +3,7 @@
   "title": "CatPlugin Manifest",
   "description": "Schema for plugin system manifest",
   "type": "object",
-  "required": [
-    "id",
-    "entry"
-  ],
+  "required": ["id", "entry", "version"],
   "properties": {
     "$schema": {
       "description": "Optional JSON Schema identifier (URL or file path)",
@@ -28,6 +25,10 @@
     "entry": {
       "type": "string",
       "description": "Entry file path (relative or absolute)"
+    },
+    "version": {
+      "type": "string",
+      "description": "Plugin version"
     },
     "iconURL": {
       "type": "string",

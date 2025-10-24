@@ -2,6 +2,7 @@
   "$schema": "../../plugin-core/manifest-schema.json",
   "id": "libretranslate-advisor",
   "entry": "dist/index.js",
+  "version": "0.1.0",
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
     {
@@ -9,9 +10,7 @@
       "type": "TRANSLATION_ADVISOR"
     }
   ],
-  "tags": [
-    "translation-advisor"
-  ],
+  "tags": ["translation-advisor"],
   "config": {
     "type": "object",
     "properties": {
@@ -21,7 +20,7 @@
           "url": {
             "type": "string",
             "format": "url",
-            "default": "http://libreTranslate:5000/"
+            "default": "http://localhost:5000/"
           },
           "key": {
             "type": "string",

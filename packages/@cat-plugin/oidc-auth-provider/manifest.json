@@ -1,11 +1,10 @@
 {
   "$schema": "../../plugin-core/manifest-schema.json",
   "id": "oidc-auth-provider",
+  "version": "0.1.0",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
-  "tags": [
-    "auth-provider"
-  ],
+  "tags": ["auth-provider"],
   "config": {
     "type": "array",
     "items": {

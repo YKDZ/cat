@@ -64,6 +64,20 @@
       "when": 1759027866375,
       "tag": "0008_hot_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1761200609288,
+      "tag": "0009_workable_nomad",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1761226719746,
+      "tag": "0010_spooky_psynapse",
+      "breakpoints": true
     }
   ]
 }

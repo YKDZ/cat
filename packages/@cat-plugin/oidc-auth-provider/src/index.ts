@@ -20,8 +20,6 @@ export const ConfigSchema = z.array(ProviderConfigSchema);
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 
 class Plugin implements CatPlugin {
-  async onLoaded() {}
-
   getAuthProviders(options: PluginGetterOptions) {
     return ConfigSchema.parse(options.config).map(
       (config) => new Provider(config),

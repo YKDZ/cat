@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 import HButton from "./headless/HButton.vue";
-import { useToastStore } from "@/app/stores/toast.ts";
+import { useToastStore } from "../stores/toast";
 import { trpc } from "@cat/app-api/trpc/client";
+import type { ScopeType } from "@cat/db";
 
 const { t } = useI18n();
 
 const props = defineProps<{
-  id: string;
+  scopeType: ScopeType;
+  scopeId: string;
 }>();
 
 const { info, trpcWarn } = useToastStore();
 
-const handleDelete = async () => {
-  await trpc.plugin.delete
-    .mutate({ id: props.id })
+const handleReload = async () => {
+  await trpc.plugin.reload
+    .mutate({ scopeType: props.scopeType, scopeId: props.scopeId })
     .then(async () => {
-      info(`成功删除插件 ${props.id}`);
-      await navigate(`/plugins`);
+      info(`成功重载所有插件`);
     })
     .catch(trpcWarn);
 };
@@ -30,8 +30,8 @@ const handleDelete = async () => {
       base: 'btn btn-md btn-base',
       icon: 'btn-icon',
     }"
-    icon="icon-[mdi--trash-can]"
-    @click="handleDelete"
-    >{{ t("删除插件") }}</HButton
+    icon="icon-[mdi--reload]"
+    @click="handleReload"
+    >{{ t("重载插件") }}</HButton
   >
 </template>

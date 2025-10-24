@@ -3,9 +3,9 @@ import { JSONSchemaSchema } from "@/schema/json.ts";
 
 export const PluginManifestSchema = z.object({
   id: z.string(),
+  version: z.string(),
   entry: z.string(),
   iconURL: z.url().optional(),
-  tags: z.array(z.string()).optional(),
   services: z
     .array(
       z.object({

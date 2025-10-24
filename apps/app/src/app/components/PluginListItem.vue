@@ -43,7 +43,7 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
           v-show="plugin.iconUrl && isIconLoaded"
           ref="iconImgEl"
           :src="plugin.iconUrl ?? ``"
-          class="rounded-md max-h-12 max-h-12 min-h-12 min-w-12 aspect-ratio-square object-cover"
+          class="rounded-md max-h-12 min-h-12 min-w-12 aspect-ratio-square object-cover"
         />
         <span
           v-if="!isIconLoaded"
@@ -52,7 +52,7 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
         >
       </div>
       <!-- Text & base tag -->
-      <div class="flex flex-col gap-1 max-w-80% justify-start justify-between">
+      <div class="flex flex-col gap-1 max-w-80% justify-between">
         <h3
           class="text-lg text-highlight-content-darker font-bold text-nowrap text-ellipsis overflow-hidden"
         >

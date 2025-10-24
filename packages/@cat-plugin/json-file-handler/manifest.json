@@ -2,6 +2,7 @@
   "$schema": "../../plugin-core/manifest-schema.json",
   "id": "json-file-handler",
   "entry": "dist/index.js",
+  "version": "0.1.0",
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
     {
@@ -9,7 +10,5 @@
       "type": "TRANSLATABLE_FILE_HANDLER"
     }
   ],
-  "tags": [
-    "translatable-file-handler"
-  ]
+  "tags": ["translatable-file-handler"]
 }
