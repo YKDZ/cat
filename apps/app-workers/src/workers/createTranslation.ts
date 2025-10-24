@@ -4,11 +4,12 @@ import {
   memoryItem,
   translatableElement,
   translation as translationTable,
+  vector,
 } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
-import { vectorize } from "@cat/app-server-shared/utils";
+import { vectorizeWithGivenVectorizer } from "@cat/app-server-shared/utils";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
@@ -47,9 +48,11 @@ const worker = new Worker(
         .select({
           value: translatableElement.value,
           embeddingId: translatableElement.embeddingId,
+          vectorizerId: vector.vectorizerId,
           languageId: translatableElement.languageId,
         })
         .from(translatableElement)
+        .innerJoin(vector, eq(translatableElement.embeddingId, vector.id))
         .where(eq(translatableElement.id, elementId))
         .limit(1),
     );
@@ -59,12 +62,17 @@ const worker = new Worker(
 
     // 开始处理翻译的嵌入并插入
     const embeddingId = assertSingleNonNullish(
-      await vectorize(drizzle, pluginRegistry, [
-        {
-          value: translationValue,
-          languageId: translationLanguageId,
-        },
-      ]),
+      await vectorizeWithGivenVectorizer(
+        drizzle,
+        pluginRegistry,
+        element.vectorizerId,
+        [
+          {
+            value: translationValue,
+            languageId: translationLanguageId,
+          },
+        ],
+      ),
     );
 
     await drizzle.transaction(async (tx) => {

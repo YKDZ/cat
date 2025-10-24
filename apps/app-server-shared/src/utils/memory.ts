@@ -21,7 +21,7 @@ export const searchMemory = async (
   minSimilarity: number = 0.8,
   maxAmount: number = 3,
 ): Promise<MemorySuggestion[]> => {
-  const similarityExpr = sql<number>`1 - (${cosineDistance(vector.vector, embedding)})`;
+  const similarity = sql<number>`1 - (${cosineDistance(vector.vector, embedding)})`;
 
   // source -> translation
   const sourceResults = await drizzle
@@ -32,7 +32,7 @@ export const searchMemory = async (
       source: memoryItem.source,
       translation: memoryItem.translation,
       creatorId: memoryItem.creatorId,
-      similarity: similarityExpr,
+      similarity,
       createdAt: memoryItem.createdAt,
       updatedAt: memoryItem.updatedAt,
     })
@@ -43,10 +43,10 @@ export const searchMemory = async (
         eq(memoryItem.sourceLanguageId, sourceLanguageId),
         eq(memoryItem.translationLanguageId, translationLanguageId),
         inArray(memoryItem.memoryId, memoryIds),
-        gt(similarityExpr, minSimilarity),
+        gt(similarity, minSimilarity),
       ),
     )
-    .orderBy(desc(similarityExpr))
+    .orderBy(desc(similarity))
     .limit(maxAmount);
 
   // translation -> source
@@ -58,7 +58,7 @@ export const searchMemory = async (
       source: memoryItem.translation,
       translation: memoryItem.source,
       creatorId: memoryItem.creatorId,
-      similarity: similarityExpr,
+      similarity,
       createdAt: memoryItem.createdAt,
       updatedAt: memoryItem.updatedAt,
     })
@@ -69,10 +69,10 @@ export const searchMemory = async (
         eq(memoryItem.sourceLanguageId, translationLanguageId),
         eq(memoryItem.translationLanguageId, sourceLanguageId),
         inArray(memoryItem.memoryId, memoryIds),
-        gt(similarityExpr, minSimilarity),
+        gt(similarity, minSimilarity),
       ),
     )
-    .orderBy(desc(similarityExpr))
+    .orderBy(desc(similarity))
     .limit(maxAmount);
 
   const allResults = uniqueBy(
