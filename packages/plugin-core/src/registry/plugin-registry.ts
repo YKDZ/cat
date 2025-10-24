@@ -387,8 +387,6 @@ export class PluginRegistry implements IPluginRegistry {
       await drizzle
         .select({
           id: pluginService.id,
-          serviceId: pluginService.serviceId,
-          pluginId: plugin.id,
         })
         .from(pluginService)
         .innerJoin(
@@ -407,9 +405,31 @@ export class PluginRegistry implements IPluginRegistry {
 
     if (!service) throw new Error(`Service ${type} ${id} not found`);
 
-    const instance = await this.getPluginInstance(pluginId);
+    return this.getPluginServiceWithDBId(drizzle, service.id);
+  }
 
-    const getter = instance[PluginServiceGetterMap[type]] as
+  public async getPluginServiceWithDBId<T extends PluginServiceType>(
+    drizzle: OverallDrizzleClient,
+    id: number,
+  ): Promise<{ id: number; service: PluginServiceMap[T] } | null> {
+    const service = assertFirstNonNullish(
+      await drizzle
+        .select({
+          id: pluginService.id,
+          serviceId: pluginService.serviceId,
+          type: pluginService.serviceType,
+          pluginId: plugin.id,
+        })
+        .from(pluginService)
+        .where(and(eq(pluginService.id, id)))
+        .limit(1),
+    );
+
+    if (!service) throw new Error(`Service ${id} not found`);
+
+    const instance = await this.getPluginInstance(service.pluginId);
+
+    const getter = instance[PluginServiceGetterMap[service.type]] as
       | ((
           opts: PluginGetterOptions,
         ) => PluginServiceMap[T][] | PluginServiceMap[T])
@@ -419,7 +439,7 @@ export class PluginRegistry implements IPluginRegistry {
 
     const config = await getPluginConfig(
       drizzle,
-      pluginId,
+      service.pluginId,
       this.scopeType,
       this.scopeId,
     );
@@ -429,14 +449,14 @@ export class PluginRegistry implements IPluginRegistry {
 
     const matched = returned.find((svc) => {
       const sid = svc.getId();
-      return sid === id;
+      return sid === service.serviceId;
     });
 
     if (!matched) return null;
 
     const r = { id: service.id, service: matched };
 
-    this.cacheService(type, pluginId, r);
+    this.cacheService(service.type, service.pluginId, r);
 
     return r;
   }

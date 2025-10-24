@@ -1,4 +1,4 @@
-import { render } from "vike/abort";
+import { render, redirect } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
 
@@ -22,9 +22,10 @@ export const guard = async (ctx: PageContextServer) => {
       page: 0,
       pageSize: 1,
     });
-    if (!first[0]) throw render(`/editor/${documentId}/${languageToId}/empty`);
+    if (!first[0])
+      throw redirect(`/editor/${documentId}/${languageToId}/empty`);
     target = first[0];
   }
 
-  throw render(`/editor/${documentId}/${languageToId}/${target.id}`);
+  throw redirect(`/editor/${documentId}/${languageToId}/${target.id}`);
 };

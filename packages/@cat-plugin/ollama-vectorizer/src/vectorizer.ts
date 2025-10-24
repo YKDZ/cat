@@ -40,6 +40,7 @@ export class Vectorizer implements TextVectorizer {
       body: JSON.stringify({
         input: values,
         model: this.config["model-id"],
+        dimensions: 1024,
       }),
     });
 
