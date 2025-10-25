@@ -43,6 +43,36 @@
  *   in custom container, badges, etc.
  * -------------------------------------------------------------------------- */
 
+@import "tailwindcss";
+@plugin "@iconify/tailwind4";
+
+@theme {
+  --color-default-1: var(--vp-c-default-1);
+  --color-default-2: var(--vp-c-default-2);
+  --color-default-3: var(--vp-c-default-3);
+  --color-default-soft: var(--vp-c-default-soft);
+
+  --color-brand-1: var(--vp-c-brand-1);
+  --color-brand-2: var(--vp-c-brand-2);
+  --color-brand-3: var(--vp-c-brand-3);
+  --color-brand-soft: var(--vp-c-brand-soft);
+
+  --color-tip-1: var(--vp-c-tip-1);
+  --color-tip-2: var(--vp-c-tip-2);
+  --color-tip-3: var(--vp-c-tip-3);
+  --color-tip-soft: var(--vp-c-tip-soft);
+
+  --color-warning-1: var(--vp-c-warning-1);
+  --color-warning-2: var(--vp-c-warning-2);
+  --color-warning-3: var(--vp-c-warning-3);
+  --color-warning-soft: var(--vp-c-warning-soft);
+
+  --color-danger-1: var(--vp-c-danger-1);
+  --color-danger-2: var(--vp-c-danger-2);
+  --color-danger-3: var(--vp-c-danger-3);
+  --color-danger-soft: var(--vp-c-danger-soft);
+}
+
 :root {
   --vp-c-default-1: var(--vp-c-gray-1);
   --vp-c-default-2: var(--vp-c-gray-2);

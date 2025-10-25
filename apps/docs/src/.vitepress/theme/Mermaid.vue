@@ -36,10 +36,12 @@ const renderKey = ref(0);
 mermaid.registerIconPacks([
   {
     name: "@iconify/logos",
-    loader: () =>
-      fetch("https://unpkg.com/@iconify-json/logos/icons.json").then((res) =>
-        res.json(),
-      ),
+    loader: async () => {
+      const res = await fetch(
+        "https://unpkg.com/@iconify-json/logos/icons.json",
+      );
+      return res.json();
+    },
   },
 ]);
 
@@ -76,10 +78,7 @@ const renderChart = async () => {
 };
 
 const downloadSVG = (filename: string = props.id): void => {
-  if (!svg.value) {
-    console.error("SVG content not available");
-    return;
-  }
+  if (!svg.value) return;
 
   let source = svg.value;
 
