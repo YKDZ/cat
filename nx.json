@@ -24,6 +24,12 @@
     "preview": {
       "dependsOn": ["build"],
       "continuous": true
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
     }
   },
   "plugins": [
