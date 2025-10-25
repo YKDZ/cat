@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22]
+        node-version: [24]
 
     services:
       docker:
@@ -35,15 +35,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Check workspace structure
-        run: |
-          echo "🔍 pnpm workspace info"
-          pnpm list -r --depth 0
-          echo "🔍 Workspace packages"
-          pnpm m ls || true
-          echo "🔍 Check node_modules links"
-          ls -l node_modules/.pnpm/@cat* || true
 
       - name: Check whether nx workspace sync
         run: pnpm nx sync:check
