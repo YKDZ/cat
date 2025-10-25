@@ -3,6 +3,7 @@ import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { File } from "@cat/shared/schema/drizzle/file";
 import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { JSONType } from "@cat/shared/schema/json";
+import * as z from "zod";
 
 type JSONValue =
   | string
@@ -39,35 +40,30 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     const modifiedObj: unknown = JSON.parse(JSON.stringify(originalObj));
 
     for (const e of elements) {
-      try {
-        const meta = e.meta as {
-          key: string[];
-        };
-        const pathParts: string[] = meta.key;
+      const meta = z.object({ key: z.array(z.string()) }).parse(e.meta);
+      const pathParts: string[] = meta.key;
 
-        let current: unknown = modifiedObj;
-        let validPath = true;
+      let current: unknown = modifiedObj;
+      let validPath = true;
 
-        for (let i = 0; i < pathParts.length; i += 1) {
-          const part = pathParts[i];
-          if (typeof current !== "object" || current === null) {
-            validPath = false;
-            break;
-          }
-
-          const currentObj = current as Record<string, unknown>;
-
-          if (i === pathParts.length - 1) {
-            currentObj[part] = e.value;
-          } else {
-            current = currentObj[part];
-          }
+      for (let i = 0; i < pathParts.length; i += 1) {
+        const part = pathParts[i];
+        if (typeof current !== "object" || current === null) {
+          validPath = false;
+          break;
         }
 
-        if (!validPath) continue;
-      } catch (error) {
-        throw new Error("处理翻译时出错：" + error);
+        // oxlint-disable-next-line no-unsafe-type-assertion
+        const currentObj = current as Record<string, unknown>;
+
+        if (i === pathParts.length - 1) {
+          currentObj[part] = e.value;
+        } else {
+          current = currentObj[part];
+        }
       }
+
+      if (!validPath) continue;
     }
 
     return Buffer.from(JSON.stringify(modifiedObj, null, 2), "utf-8");
@@ -75,7 +71,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
 }
 
 const collectTranslatableElement = (json: string) => {
-  const parsedData = JSON.parse(json);
+  const parsedData = z.json().parse(JSON.parse(json));
   const result: TranslatableElementDataWithoutLanguageId[] = [];
 
   const traverse = (obj: JSONValue, currentPath: string[] = []) => {

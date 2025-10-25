@@ -19,7 +19,7 @@ const shutdownServer = () => {
 
         void (async () => {
           await closeAllProcessors();
-          await (await getRedisDB()).disconnect();
+          (await getRedisDB()).disconnect();
           await (await getDrizzleDB()).disconnect();
         })();
 

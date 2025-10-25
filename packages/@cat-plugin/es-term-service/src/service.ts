@@ -157,7 +157,9 @@ export const getESTermService = (config: Config): TermService => {
     },
 
     async insertTerms(...relations) {
-      await Promise.all(relations.map(this.insertTerm));
+      await Promise.all(
+        relations.map(async (relation) => this.insertTerm(relation)),
+      );
     },
 
     async searchTerm(text, languageId) {
@@ -247,7 +249,7 @@ export const getESTermService = (config: Config): TermService => {
         columns: { id: true },
       });
       await Promise.all(
-        langs.map(({ id }) => Indexer.ensureIndex(id.toLowerCase())),
+        langs.map(async ({ id }) => Indexer.ensureIndex(id.toLowerCase())),
       );
     },
   };

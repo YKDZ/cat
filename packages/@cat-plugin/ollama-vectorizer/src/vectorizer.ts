@@ -46,11 +46,15 @@ export class Vectorizer implements TextVectorizer {
 
     if (response.statusCode !== 200) {
       throw new Error(
-        `Server responded with ${response.statusCode}. ${response}`,
+        `Server responded with ${response.statusCode}. Response: ${JSON.stringify(response)}`,
       );
     }
 
-    const data = (await response.body.json()) as { embeddings: number[][] };
+    const data = z
+      .object({
+        embeddings: z.array(z.array(z.number())),
+      })
+      .parse(await response.body.json());
     return data.embeddings;
   }
 }

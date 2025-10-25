@@ -4,7 +4,7 @@ import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 import type { TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import { logger } from "@cat/shared/utils";
 import { Pool } from "undici";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const ApiConfigSchema = z.object({
   url: z.url(),
@@ -32,7 +32,13 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
   constructor(config: JSONType) {
     this.config = ConfigSchema.parse(config);
     this.pool = new Pool(this.config.api.url);
-    this.fetchSupportedLanguages();
+    this.fetchSupportedLanguages().catch((err: unknown) => {
+      logger.error(
+        "PLUGIN",
+        { msg: "Failed to fetch supported languages" },
+        err,
+      );
+    });
   }
 
   async fetchSupportedLanguages(): Promise<void> {
@@ -45,16 +51,20 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
         await res.body
           .json()
           .then((body) => {
-            const successBody = body as {
-              code: string;
-              name: string;
-              targets: string[];
-            }[];
+            const successBody = z
+              .array(
+                z.object({
+                  code: z.string(),
+                  name: z.string(),
+                  targets: z.array(z.string()),
+                }),
+              )
+              .parse(body);
             successBody.forEach((item) => {
               supportedLanguages.set(item.code, item.targets);
             });
           })
-          .catch((e) => {
+          .catch((e: unknown) => {
             logger.error(
               "PLUGIN",
               {
@@ -64,7 +74,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
             );
           });
       })
-      .catch((e) => {
+      .catch((e: unknown) => {
         logger.error(
           "PLUGIN",
           {
@@ -155,7 +165,9 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
     const body = await res.body.json();
 
     if (res.statusCode !== 200) {
-      const msg = (body as { error?: string }).error || "未知错误";
+      const msg =
+        z.object({ error: z.string().optional() }).parse(body).error ||
+        "未知错误";
       switch (res.statusCode) {
         case 429:
           return [
@@ -200,10 +212,12 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
       }
     }
 
-    const successBody = body as {
-      alternatives?: string[];
-      translatedText: string;
-    };
+    const successBody = z
+      .object({
+        alternatives: z.array(z.string()).optional(),
+        translatedText: z.string(),
+      })
+      .parse(body);
 
     const result: TranslationSuggestion[] = [
       {

@@ -61,7 +61,11 @@ export class Provider implements AuthProvider {
     if (
       !(await verifyPassword(
         password,
-        (account.meta as { password: string }).password,
+        z
+          .object({
+            password: z.string(),
+          })
+          .parse(account.meta).password,
       ))
     )
       throw Error("Wrong password");

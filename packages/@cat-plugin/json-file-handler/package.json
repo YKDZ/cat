@@ -34,6 +34,7 @@
   "peerDependencies": {
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*"
+    "@cat/shared": "workspace:*",
+    "zod": "^4.1.9"
   }
 }

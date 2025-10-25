@@ -104,11 +104,13 @@ export class Provider implements AuthProvider {
       throw new Error(`Failed to exchange token`);
     }
 
-    const body = (await response.body.json()) as {
-      error: unknown | undefined;
-      error_description: string;
-      id_token: string;
-    };
+    const body = z
+      .object({
+        error: z.unknown().optional(),
+        error_description: z.string(),
+        id_token: z.string(),
+      })
+      .parse(await response.body.json());
 
     if (body.error) {
       throw new Error(`Failed to exchange token: ${body.error_description}`);
@@ -133,15 +135,17 @@ export class Provider implements AuthProvider {
       email,
       email_verified: emailVerified,
       nonce,
-    } = payload as {
-      sub: string;
-      name: string;
-      preferred_username: string;
-      nickname: string;
-      email: string;
-      email_verified: boolean;
-      nonce: string;
-    };
+    } = z
+      .object({
+        sub: z.string(),
+        name: z.string(),
+        preferred_username: z.string(),
+        nickname: z.string(),
+        email: z.string(),
+        email_verified: z.boolean(),
+        nonce: z.string(),
+      })
+      .parse(payload);
 
     // 验证 Nonce
     if (nonce !== storedNonce) throw new Error("NONCE do not match");
@@ -177,7 +181,7 @@ export class Provider implements AuthProvider {
       state,
     });
 
-    const res = await fetch(`${this.config.logoutURI}?${params}`, {
+    const res = await fetch(`${this.config.logoutURI}?${params.toString()}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
