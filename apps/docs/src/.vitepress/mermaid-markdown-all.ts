@@ -1,5 +1,6 @@
 import type { MarkdownRenderer } from "vitepress";
 
+// oxlint-disable-next-line explicit-module-boundary-types
 const MermaidExample = (md: MarkdownRenderer) => {
   const defaultRenderer = md.renderer.rules.fence;
 

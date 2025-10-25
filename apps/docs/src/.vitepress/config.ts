@@ -1,7 +1,7 @@
 import { defineConfig } from "vitepress";
 import type { MarkdownOptions } from "vitepress";
-import UnoCSS from "unocss/vite";
 import MermaidExample from "./mermaid-markdown-all.js";
+import tailwindcss from "@tailwindcss/vite";
 
 const allMarkdownTransformers: MarkdownOptions = {
   theme: {
@@ -25,10 +25,7 @@ export default defineConfig({
   markdown: allMarkdownTransformers,
 
   vite: {
-    plugins: [
-      // @ts-expect-error UnoCSS Plugin types are not compatible with Vite 7 yet
-      UnoCSS(),
-    ],
+    plugins: [tailwindcss()],
   },
 
   head: [
@@ -53,16 +50,19 @@ export default defineConfig({
   ],
 
   themeConfig: {
-    nav: [{ text: "Developer", link: "/developer/" }],
+    nav: [
+      { text: "Developer", link: "/developer/future" },
+      { text: "User", link: "/user/intro" },
+    ],
 
     sidebar: [
       {
         text: "Developer",
-        items: [
-          { text: "Overview", link: "/developer/" },
-          { text: "ER", link: "/developer/db-er" },
-          { text: "Plugin System", link: "/developer/plugin-system" },
-        ],
+        items: [{ text: "Future", link: "/developer/future" }],
+      },
+      {
+        text: "User",
+        items: [{ text: "Intro", link: "/user/intro" }],
       },
     ],
 
