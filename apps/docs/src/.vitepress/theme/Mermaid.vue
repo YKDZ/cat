@@ -2,7 +2,6 @@
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import type { MermaidConfig } from "mermaid";
 import mermaid from "mermaid";
-import zenuml from "@zenuml/core";
 import { useData } from "vitepress";
 import { useElementHover } from "@vueuse/core";
 
@@ -22,8 +21,8 @@ const { isDark } = useData();
 const svg = ref("");
 const code = ref(decodeURIComponent(props.graph));
 const showModal = ref(false);
+const showSource = ref(false);
 const mermaidContainer = useTemplateRef<HTMLButtonElement>("mermaidContainer");
-const init = mermaid.registerExternalDiagrams([zenuml]);
 const isHovered = useElementHover(mermaidContainer);
 const isRendering = ref(false);
 // This is a hack to force v-html to re-render, otherwise the diagram disappears
@@ -50,6 +49,9 @@ const render = async (
   code: string,
   config: MermaidConfig,
 ): Promise<string> => {
+  const zenuml = await import("@zenuml/core");
+  const init = mermaid.registerExternalDiagrams([zenuml]);
+
   await init;
   mermaid.initialize(config);
   const { svg } = await mermaid.render(id, code);
@@ -62,6 +64,11 @@ const openModal = () => {
 
 const closeModal = () => {
   showModal.value = false;
+  showSource.value = false;
+};
+
+const toggleSource = () => {
+  showSource.value = !showSource.value;
 };
 
 const renderChart = async () => {
@@ -77,50 +84,34 @@ const renderChart = async () => {
   isRendering.value = false;
 };
 
-const downloadSVG = (filename: string = props.id): void => {
-  if (!svg.value) return;
-
-  let source = svg.value;
-
-  if (!source.startsWith("<?xml")) {
-    source = '<?xml version="1.0" standalone="no"?>\n' + source;
-  }
-
-  const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${filename}.svg`;
-
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  URL.revokeObjectURL(url);
-};
-
 watch(isDark, renderChart);
 
 onMounted(renderChart);
 </script>
 
 <template>
-  <div v-if="isRendering" class="w-full h-64" />
+  <div v-if="isRendering" class="w-full h-64 my-4" />
 
-  <div v-if="!isRendering" class="relative my-20px" ref="mermaidContainer">
+  <div v-if="!isRendering" class="relative my-4" ref="mermaidContainer">
     <div
+      v-if="!showSource"
       :key="`${id}-${renderKey}`"
       class="cursor-pointer transition-opacity hover:opacity-80"
       @click="openModal"
       v-html="svg"
     />
+    <div v-else class="w-full h-full overflow-auto">
+      <pre
+        class="bg-default-soft p-4 rounded-md text-sm"
+      ><code>{{ code }}</code></pre>
+    </div>
     <button
       v-if="isHovered"
-      class="absolute right-0 top-0 hover:bg-default-soft p-0.5 w-8 h-8 rounded-md"
-      @click="downloadSVG()"
+      class="absolute right-1 top-1 hover:bg-default-soft p-0.5 w-5.5 h-5.5 rounded-md"
+      @click.stop="toggleSource"
     >
-      <div class="icon-[mdi--download] w-full h-full" />
+      <div v-if="showSource" class="icon-[mdi--code] w-full h-full" />
+      <div v-else class="icon-[mdi--chart-box-outline] w-full h-full" />
     </button>
   </div>
 
@@ -130,14 +121,11 @@ onMounted(renderChart);
     @click="closeModal"
   >
     <div
-      class="relative rounded-lg bg-bg shadow-md p-5 overflow-auto w-9/10 h-9/10 md:m-2.5 md:p-4"
+      class="relative rounded-lg bg-bg shadow-md p-3 overflow-auto w-11/12 h-11/12 md:m-2.5 md:p-4"
       @click.stop
     >
-      <button
-        class="absolute right-3 top-3 hover:bg-default-soft p-0.5 w-8 h-8 rounded-md"
-        @click="downloadSVG()"
-      >
-        <div class="icon-[mdi--download] w-full h-full" />
+      <button @click="closeModal" class="absolute top-1 right-1 w-6 h-6">
+        <div class="icon-[mdi--close] w-full h-full" />
       </button>
       <div
         :key="`${id}-${renderKey}`"
