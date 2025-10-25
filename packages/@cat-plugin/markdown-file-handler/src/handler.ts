@@ -1,3 +1,4 @@
+// oxlint-disable no-unsafe-type-assertion
 import { extname } from "node:path";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
@@ -67,7 +68,7 @@ const nodeToMarkdown = (node: Node): string => {
 /** 收集可译元素：返回 TranslatableElementData[] */
 const collectTranslatableElementsFromMarkdown = (md: string) => {
   const processor = unified().use(remarkParse).use(remarkStringify);
-  const rootNode = processor.parse(md) as Root;
+  const rootNode = processor.parse(md);
   const result: TranslatableElementDataWithoutLanguageId[] = [];
 
   const traverse = (node: Node, path: number[] = []): void => {
@@ -159,8 +160,8 @@ export class MarkdownTranslatableFileHandler
   ): Promise<Buffer> {
     const original = fileContent.toString("utf-8");
     const processor = unified().use(remarkParse).use(remarkStringify);
-    const parsedRoot = processor.parse(original) as Root;
-    const modifiedRoot = cloneDeep(parsedRoot) as Root;
+    const parsedRoot = processor.parse(original);
+    const modifiedRoot = cloneDeep(parsedRoot);
 
     for (const e of elements) {
       try {
@@ -230,7 +231,7 @@ export class MarkdownTranslatableFileHandler
 
         // 如果是 image 属性替换
         if (meta.attribute && targetNode.type === "image") {
-          const imgNode = targetNode as Image;
+          const imgNode = targetNode;
           if (meta.attribute === "alt") {
             imgNode.alt = String(e.value);
           } else if (meta.attribute === "title") {
@@ -244,9 +245,9 @@ export class MarkdownTranslatableFileHandler
         if (BLOCK_NODE_TYPES.has(targetNode.type) || isParent(targetNode)) {
           const fragmentRoot = unified()
             .use(remarkParse)
-            .parse(String(e.value)) as Root;
+            .parse(String(e.value));
           const newChildren = Array.isArray(fragmentRoot.children)
-            ? (fragmentRoot.children as RootContent[])
+            ? fragmentRoot.children
             : [];
 
           if (newChildren.length === 0) {

@@ -11,6 +11,7 @@ import type { File } from "@cat/shared/schema/drizzle/file";
 import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { JSONType } from "@cat/shared/schema/json";
+import * as z from "zod";
 
 type YamlValue = string | number | boolean | null | YamlObject | YamlArray;
 
@@ -55,10 +56,11 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
       path: (string | number)[] = [],
       parentComments: string | undefined = undefined,
     ): void {
-      if (isScalar(node) && typeof (node as Scalar).value === "string") {
-        const scalarNode = node as Scalar;
+      if (isScalar(node) && typeof node.value === "string") {
+        const scalarNode = node;
         const comment = scalarNode.commentBefore || parentComments;
         elements.push({
+          // oxlint-disable-next-line no-unsafe-type-assertion
           value: scalarNode.value as string,
           meta: {
             path: path.join("."),
@@ -66,21 +68,22 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
           },
         });
       } else if (node instanceof YAMLSeq) {
-        node.items.forEach((item, idx) =>
+        node.items.forEach((item, idx) => {
           traverseNode(
             item,
             [...path, idx],
+            // oxlint-disable-next-line no-unsafe-type-assertion
             (item as Scalar)?.commentBefore ?? parentComments,
-          ),
-        );
+          );
+        });
       } else if (node instanceof YAMLMap) {
         node.items.forEach((pair: Pair) => {
-          const key = isScalar(pair.key)
-            ? (pair.key as Scalar).value
-            : pair.key;
+          const key = isScalar(pair.key) ? pair.key.value : pair.key;
           traverseNode(
             pair.value,
+            // oxlint-disable-next-line no-unsafe-type-assertion
             [...path, key as string],
+            // oxlint-disable-next-line no-unsafe-type-assertion
             (pair.value as Scalar)?.commentBefore ?? parentComments,
           );
         });
@@ -102,13 +105,14 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
     elements: { meta: JSONType; value: string }[],
   ): Promise<Buffer> {
     const content = fileContent.toString("utf8");
+    // oxlint-disable-next-line no-unsafe-type-assertion
     const doc = parse(content) as YamlValue;
 
     const translationMap = new Map<string, string>();
     for (const e of elements) {
-      const meta = e.meta as { path?: string };
+      const meta = z.object({ path: z.string().optional() }).parse(e.meta);
 
-      if (!meta) throw new Error("Translation meta is required");
+      if (!meta || !meta.path) throw new Error("Translation meta is required");
 
       if (meta.path) {
         translationMap.set(meta.path, e.value);
@@ -122,7 +126,7 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
       if (isString(obj)) {
         const key = path.join(".");
         if (translationMap.has(key)) {
-          return translationMap.get(key) as string;
+          return translationMap.get(key)!;
         }
         return obj;
       } else if (isArray(obj)) {

@@ -109,11 +109,15 @@ export class S3StorageProvider implements StorageProvider {
     });
 
     const response = await this.db.client.send(command);
+    // oxlint-disable-next-line no-unsafe-type-assertion
     const stream = response.Body as Readable;
 
     return new Promise<Buffer>((resolve, reject) => {
       const chunks: Uint8Array[] = [];
-      stream.on("data", (chunk) => chunks.push(chunk));
+      stream.on("data", (chunk) =>
+        // oxlint-disable-next-line no-unsafe-type-assertion
+        chunks.push(chunk as Uint8Array),
+      );
       stream.on("error", reject);
       stream.on("end", () => {
         resolve(Buffer.concat(chunks));
@@ -160,7 +164,7 @@ export class S3StorageProvider implements StorageProvider {
       ),
     });
 
-    return await getSignedUrl(this.db.client!, command, { expiresIn });
+    return await getSignedUrl(this.db.client, command, { expiresIn });
   }
 
   async delete(storedPath: string): Promise<void> {
