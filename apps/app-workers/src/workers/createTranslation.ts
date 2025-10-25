@@ -3,6 +3,7 @@ import {
   getDrizzleDB,
   memoryItem,
   translatableElement,
+  translatableString,
   translation as translationTable,
   vector,
 } from "@cat/db";
@@ -46,13 +47,17 @@ const worker = new Worker(
     const element = assertSingleNonNullish(
       await drizzle
         .select({
-          value: translatableElement.value,
-          embeddingId: translatableElement.embeddingId,
+          value: translatableString.value,
+          embeddingId: translatableString.embeddingId,
           vectorizerId: vector.vectorizerId,
-          languageId: translatableElement.languageId,
+          languageId: translatableString.languageId,
         })
         .from(translatableElement)
-        .innerJoin(vector, eq(translatableElement.embeddingId, vector.id))
+        .innerJoin(
+          translatableString,
+          eq(translatableElement.translableStringId, translatableString.id),
+        )
+        .innerJoin(vector, eq(translatableString.embeddingId, vector.id))
         .where(eq(translatableElement.id, elementId))
         .limit(1),
     );

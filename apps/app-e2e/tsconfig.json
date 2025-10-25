@@ -34,9 +34,6 @@
     },
     {
       "path": "../../packages/db"
-    },
-    {
-      "path": "../../packages/eslint-config"
     }
   ]
 }

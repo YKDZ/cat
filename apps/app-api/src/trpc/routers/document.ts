@@ -23,6 +23,9 @@ import {
   ilike,
   not,
   DrizzleClient,
+  translatableString,
+  translatableElement,
+  getTableColumns,
 } from "@cat/db";
 
 import {
@@ -407,7 +410,7 @@ export const documentRouter = router({
 
       if (searchQuery.trim().length !== 0) {
         whereConditions.push(
-          ilike(translatableElementTable.value, `%${searchQuery}%`),
+          ilike(translatableString.value, `%${searchQuery}%`),
         );
       }
 
@@ -419,6 +422,13 @@ export const documentRouter = router({
       const result = await drizzle
         .select({ count: count() })
         .from(translatableElementTable)
+        .innerJoin(
+          translatableString,
+          eq(
+            translatableElementTable.translableStringId,
+            translatableString.id,
+          ),
+        )
         .where(
           whereConditions.length === 1
             ? whereConditions[0]
@@ -458,7 +468,7 @@ export const documentRouter = router({
 
       if (searchQuery.trim().length !== 0) {
         whereConditions.push(
-          ilike(translatableElementTable.value, `%${searchQuery}%`),
+          ilike(translatableString.value, `%${searchQuery}%`),
         );
       }
 
@@ -473,18 +483,27 @@ export const documentRouter = router({
         ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
       );
 
-      const elements = await drizzle
-        .select()
-        .from(translatableElementTable)
-        .where(
-          whereConditions.length === 1
-            ? whereConditions[0]
-            : and(...whereConditions),
-        )
-        .orderBy(asc(translatableElementTable.sortIndex))
-        .limit(1);
+      const element = assertSingleNonNullish(
+        await drizzle
+          .select(getTableColumns(translatableElementTable))
+          .from(translatableElementTable)
+          .where(
+            whereConditions.length === 1
+              ? whereConditions[0]
+              : and(...whereConditions),
+          )
+          .innerJoin(
+            translatableString,
+            eq(
+              translatableElementTable.translableStringId,
+              translatableString.id,
+            ),
+          )
+          .orderBy(asc(translatableElementTable.sortIndex))
+          .limit(1),
+      );
 
-      return elements[0] || null;
+      return element;
     }),
   exportTranslatedFile: authedProcedure
     .input(
@@ -693,7 +712,14 @@ export const documentRouter = router({
         isTranslated: z.boolean().optional(),
       }),
     )
-    .output(z.array(TranslatableElementSchema))
+    .output(
+      z.array(
+        TranslatableElementSchema.extend({
+          value: z.string(),
+          languageId: z.string(),
+        }),
+      ),
+    )
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -720,7 +746,7 @@ export const documentRouter = router({
 
       if (searchQuery?.trim().length !== 0) {
         whereConditions.push(
-          ilike(translatableElementTable.value, `%${searchQuery}%`),
+          ilike(translatableString.value, `%${searchQuery}%`),
         );
       }
 
@@ -730,12 +756,23 @@ export const documentRouter = router({
       );
 
       const result = await drizzle
-        .select()
+        .select({
+          ...getTableColumns(translatableElementTable),
+          value: translatableString.value,
+          languageId: translatableString.languageId,
+        })
         .from(translatableElementTable)
         .where(
           whereConditions.length === 1
             ? whereConditions[0]
             : and(...whereConditions),
+        )
+        .innerJoin(
+          translatableString,
+          eq(
+            translatableElementTable.translableStringId,
+            translatableString.id,
+          ),
         )
         .orderBy(asc(translatableElementTable.sortIndex))
         .limit(pageSize)
@@ -796,7 +833,7 @@ export const documentRouter = router({
 
       if (searchQuery.trim().length !== 0) {
         whereConditions.push(
-          ilike(translatableElementTable.value, `%${searchQuery}%`),
+          ilike(translatableString.value, `%${searchQuery}%`),
         );
       }
 
@@ -808,6 +845,13 @@ export const documentRouter = router({
       const result = await drizzle
         .select({ count: count() })
         .from(translatableElementTable)
+        .innerJoin(
+          translatableString,
+          eq(
+            translatableElementTable.translableStringId,
+            translatableString.id,
+          ),
+        )
         .where(and(...whereConditions));
 
       return Math.floor(result[0].count / pageSize);
@@ -951,28 +995,27 @@ export const documentRouter = router({
       );
       const content = await provider.getContent(documentData.file.storedPath);
 
-      const elements = await drizzle.query.translatableElement.findMany({
-        where: (translatableElement, { eq, and }) =>
+      const elements = await drizzle
+        .select({
+          value: translatableString.value,
+          meta: translatableElement.meta,
+        })
+        .from(translatableElement)
+        .innerJoin(
+          translatableString,
+          eq(translatableElement.translableStringId, translatableString.id),
+        )
+        .where(
           and(
             eq(translatableElement.documentId, documentId),
             documentVersionId
               ? eq(translatableElement.documentVersionId, documentVersionId)
               : undefined,
           ),
-        columns: {
-          value: true,
-          meta: true,
-        },
-      });
+        );
 
       return (
-        await handler.getReplacedFileContent(
-          content,
-          elements.map(({ value, meta }) => ({
-            value,
-            meta: meta,
-          })),
-        )
+        await handler.getReplacedFileContent(content, elements)
       ).toString();
     }),
 });

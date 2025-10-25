@@ -1,15 +1,11 @@
 {
   "name": "@cat/eslint-config",
-  "type": "module",
   "private": true,
-  "exports": {
-    ".": "./eslint.config.ts"
-  },
   "scripts": {
     "format": "prettier --write ."
   },
   "files": [
-    "eslint.config.ts",
+    ".oxlintrc.json",
     "cspell.words.json",
     "package.json"
   ],

@@ -9,8 +9,8 @@ import {
 } from "yaml";
 import type { File } from "@cat/shared/schema/drizzle/file";
 import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
-import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
+import { JSONType } from "@cat/shared/schema/json";
 
 type YamlValue = string | number | boolean | null | YamlObject | YamlArray;
 
@@ -43,7 +43,9 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
     );
   }
 
-  async extractElement(fileContent: Buffer) {
+  async extractElement(
+    fileContent: Buffer,
+  ): Promise<TranslatableElementDataWithoutLanguageId[]> {
     const content = fileContent.toString("utf8");
     const doc = parseDocument(content);
     const elements: TranslatableElementDataWithoutLanguageId[] = [];
@@ -97,7 +99,7 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
 
   async getReplacedFileContent(
     fileContent: Buffer,
-    elements: Pick<TranslatableElement, "meta" | "value">[],
+    elements: { meta: JSONType; value: string }[],
   ): Promise<Buffer> {
     const content = fileContent.toString("utf8");
     const doc = parse(content) as YamlValue;

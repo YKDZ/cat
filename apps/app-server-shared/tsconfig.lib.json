@@ -20,9 +20,6 @@
     },
     {
       "path": "../../packages/plugin-core/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/eslint-config/tsconfig.lib.json"
     }
   ],
   "exclude": [

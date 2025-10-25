@@ -12,6 +12,7 @@ import {
   termRelation,
   translatableElement,
   vector,
+  translatableString,
 } from "@cat/db";
 import { PluginRegistry, type TranslationAdvisor } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
@@ -109,12 +110,16 @@ const worker = new Worker(
     const elements = await drizzle
       .select({
         id: translatableElement.id,
-        value: translatableElement.value,
-        languageId: translatableElement.languageId,
+        value: translatableString.value,
+        languageId: translatableString.languageId,
         embedding: vector.vector,
       })
       .from(translatableElement)
-      .innerJoin(vector, eq(translatableElement.embeddingId, vector.id))
+      .innerJoin(
+        translatableString,
+        eq(translatableElement.translableStringId, translatableString.id),
+      )
+      .innerJoin(vector, eq(translatableString.embeddingId, vector.id))
       .innerJoin(
         documentTable,
         eq(translatableElement.documentId, documentTable.id),

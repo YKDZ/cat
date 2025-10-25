@@ -13,9 +13,6 @@
       "path": "../../plugin-core"
     },
     {
-      "path": "../../eslint-config"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

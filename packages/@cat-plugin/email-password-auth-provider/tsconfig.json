@@ -7,13 +7,10 @@
       "path": "../../shared"
     },
     {
-      "path": "../../plugin-core"
-    },
-    {
       "path": "../../db"
     },
     {
-      "path": "../../eslint-config"
+      "path": "../../plugin-core"
     },
     {
       "path": "./tsconfig.lib.json"

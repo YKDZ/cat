@@ -167,6 +167,7 @@ export const pluginServiceRelations = relations(
       fields: [pluginService.pluginInstallationId],
       references: [pluginInstallation.id],
     }),
+
     Files: many(file),
     Documents: many(document),
     Vectors: many(vector),
@@ -176,12 +177,13 @@ export const pluginServiceRelations = relations(
 export const pluginInstallationRelations = relations(
   pluginInstallation,
   ({ one, many }) => ({
-    pluginServices: many(pluginService),
-    pluginConfigInstances: many(pluginConfigInstance),
-    plugin: one(plugin, {
+    Plugin: one(plugin, {
       fields: [pluginInstallation.pluginId],
       references: [plugin.id],
     }),
+
+    PluginServices: many(pluginService),
+    PluginConfigInstances: many(pluginConfigInstance),
   }),
 );
 

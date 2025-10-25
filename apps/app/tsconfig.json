@@ -26,9 +26,6 @@
       "path": "../app-api"
     },
     {
-      "path": "../../packages/eslint-config"
-    },
-    {
       "path": "./tsconfig.app.json"
     },
     {

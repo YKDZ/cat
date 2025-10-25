@@ -10,12 +10,6 @@
       "path": "../../plugin-core"
     },
     {
-      "path": "../../db"
-    },
-    {
-      "path": "../../eslint-config"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

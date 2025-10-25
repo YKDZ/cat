@@ -8,7 +8,7 @@ import { computedAsync } from "@vueuse/core";
 import type { PartData } from "@/app/components/tagger/index.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import {
-  TranslatableElementWithStatusSchema,
+  TranslatableElementWithDetailsSchema,
   useEditorElementStore,
 } from "@/app/stores/editor/element.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
@@ -107,7 +107,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
         if (elements.length === 0) return;
         elementRefStore.loadedPages.value.set(
           index,
-          z.array(TranslatableElementWithStatusSchema).parse(elements),
+          z.array(TranslatableElementWithDetailsSchema).parse(elements),
         );
         elementRefStore.loadedPageHashes.value.set(index, inputHash);
       });

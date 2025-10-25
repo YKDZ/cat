@@ -21,23 +21,23 @@ export class Provider implements AuthProvider {
     this.config = config;
   }
 
-  getId() {
+  getId(): string {
     return this.config.issuer;
   }
 
-  getType() {
+  getType(): string {
     return "OIDC";
   }
 
-  getName() {
+  getName(): string {
     return this.config.displayName;
   }
 
-  getIcon() {
+  getIcon(): string {
     return "icon-[mdi--ssh]";
   }
 
-  async handlePreAuth(sessionId: string) {
+  async handlePreAuth(sessionId: string): Promise<PreAuthResult> {
     if (!this.config.clientId) throw new Error("Config invalid");
 
     const state = randomChars();
@@ -59,7 +59,7 @@ export class Provider implements AuthProvider {
       urlSearchParams?: unknown;
     },
     { getCookie, delCookie }: HTTPHelpers,
-  ) {
+  ): Promise<AuthResult> {
     const { redis } = await getRedisDB();
     const { client: drizzle } = await getDrizzleDB();
 
@@ -159,7 +159,7 @@ export class Provider implements AuthProvider {
     } satisfies AuthResult;
   }
 
-  async handleLogout(sessionId: string) {
+  async handleLogout(sessionId: string): Promise<void> {
     const { redis } = await getRedisDB();
     const { client: drizzle } = await getDrizzleDB();
     const idToken = await redis.hGet(`user:session:${sessionId}`, "idToken");
@@ -187,7 +187,7 @@ export class Provider implements AuthProvider {
     if (!res.ok) throw new Error("Error when oidc logout");
   }
 
-  async isAvailable() {
+  async isAvailable(): Promise<boolean> {
     return true;
   }
 }

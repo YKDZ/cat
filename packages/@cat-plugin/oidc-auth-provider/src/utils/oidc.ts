@@ -2,7 +2,10 @@ import { getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
 import type { ProviderConfig } from "..";
 import { randomChars } from "./crypto.ts";
 
-export const createOIDCSession = async (state: string, nonce: string) => {
+export const createOIDCSession = async (
+  state: string,
+  nonce: string,
+): Promise<string> => {
   const { redis } = await getRedisDB();
   const sessionId = randomChars();
   const sessionKey = `auth:oidc:session:${sessionId}`;

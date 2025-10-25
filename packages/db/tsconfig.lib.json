@@ -11,20 +11,13 @@
     "declaration": true,
     "declarationMap": true,
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     }
   },
-  "include": [
-    "src/**/*.ts"
-  ],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../shared/tsconfig.lib.json"
-    },
-    {
-      "path": "../eslint-config/tsconfig.lib.json"
     }
   ],
   "exclude": [

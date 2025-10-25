@@ -9,19 +9,10 @@
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../eslint-config/tsconfig.lib.json"
-    }
-  ],
+  "include": ["src/**/*.ts"],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",
