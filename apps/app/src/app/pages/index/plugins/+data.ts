@@ -1,6 +1,4 @@
-import type { PageContextServer } from "vike/types";
-
-export const data = async (ctx: PageContextServer) => {
+export const data = () => {
   return { plugins: [] };
 };
 

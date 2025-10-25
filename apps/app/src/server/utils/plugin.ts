@@ -21,7 +21,9 @@ export const importLocalPlugins = async (
     await Promise.all(
       (await PluginRegistry.getPluginIdInLocalPlugins())
         .filter((id) => !existPluginIds.includes(id))
-        .map((id) => PluginRegistry.importPlugin(tx, id)),
+        .map(async (id) => {
+          await PluginRegistry.importPlugin(tx, id);
+        }),
     );
   });
 };
@@ -59,8 +61,8 @@ export const installDefaultPlugins = async (
   );
 
   await Promise.all(
-    needToBeInstalled.map((pluginId) =>
-      pluginRegistry.installPlugin(drizzle, pluginId),
-    ),
+    needToBeInstalled.map(async (pluginId) => {
+      await pluginRegistry.installPlugin(drizzle, pluginId);
+    }),
   );
 };

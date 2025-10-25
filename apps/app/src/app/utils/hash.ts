@@ -7,12 +7,9 @@ const stableStringify = <T>(value: T): string => {
     return `[${value.map(stableStringify).join(",")}]`;
   }
 
-  const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).sort();
-  const entries = keys.map((key) => {
-    const val = stableStringify(obj[key]);
-    return `${JSON.stringify(key)}:${val}`;
-  });
+  const entries = Object.entries(value).map(
+    ([key, val]) => `${JSON.stringify(key)}:${val}`,
+  );
 
   return `{${entries.join(",")}}`;
 };

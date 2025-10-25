@@ -28,7 +28,7 @@ export class Logger {
     ...args: unknown[]
   ): void {
     if (!msg) this.baseLogger.debug({ ...obj, situation });
-    else this.baseLogger.debug({ ...obj, situation }, msg, ...(args as []));
+    else this.baseLogger.debug({ ...obj, situation }, msg, ...args);
   }
 
   public info(
@@ -38,7 +38,7 @@ export class Logger {
     ...args: unknown[]
   ): void {
     if (!msg) this.baseLogger.info({ ...obj, situation });
-    else this.baseLogger.info({ ...obj, situation }, msg, ...(args as []));
+    else this.baseLogger.info({ ...obj, situation }, msg, ...args);
   }
 
   public warn(
@@ -48,7 +48,7 @@ export class Logger {
     ...args: unknown[]
   ): void {
     if (!msg) this.baseLogger.warn({ ...obj, situation });
-    else this.baseLogger.warn({ ...obj, situation }, msg, ...(args as []));
+    else this.baseLogger.warn({ ...obj, situation }, msg, ...args);
   }
 
   public error(
@@ -64,8 +64,7 @@ export class Logger {
         situation,
         err,
       });
-    else
-      this.baseLogger.error({ err, situation, ...obj }, msg, ...(args as []));
+    else this.baseLogger.error({ err, situation, ...obj }, msg, ...args);
   }
 }
 

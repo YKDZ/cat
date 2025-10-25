@@ -12,7 +12,10 @@ const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 const { updateElementStatus } = useEditorElementStore();
 
 const props = defineProps<{
-  element: TranslatableElement & { status?: "NO" | "TRANSLATED" | "APPROVED" };
+  element: Pick<TranslatableElement, "id"> & {
+    status?: "NO" | "TRANSLATED" | "APPROVED";
+    value: string;
+  };
 }>();
 
 const handleClick = async () => {

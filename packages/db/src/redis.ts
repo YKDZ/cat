@@ -25,7 +25,7 @@ export class RedisDB {
     if (!this.redisSub.isOpen) await this.redisSub.connect();
   }
 
-  async disconnect(): Promise<void> {
+  disconnect(): void {
     this.redis.destroy();
     this.redisPub.destroy();
     this.redisSub.destroy();

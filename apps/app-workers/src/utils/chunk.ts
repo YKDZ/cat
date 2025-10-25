@@ -178,7 +178,11 @@ const runDistributedTask = async <T>(
               msg: `Error in chunk ${event.chunkIndex}, task will be rollback when all finished.`,
             });
           } else {
-            reject(new Error("Invalid event type: " + event.type));
+            reject(
+              new Error(
+                `Invalid event with wrong type: ${JSON.stringify(event)}`,
+              ),
+            );
           }
 
           // 所有块全部执行完毕（无论错误与否）
@@ -194,7 +198,8 @@ const runDistributedTask = async <T>(
             if (failedChunks.length !== 0) {
               await rollbackAll(task, successfulChunks);
               await updateTaskStatus(task, "failed");
-              reject(assertFirstNonNullish(failedChunks).error);
+              const error = assertFirstNonNullish(failedChunks).error;
+              reject(error instanceof Error ? error : new Error(String(error)));
             }
             // 没有错误
             // 任务完成
@@ -206,7 +211,7 @@ const runDistributedTask = async <T>(
         } catch (error) {
           logger.error("PROCESSOR", { msg: `Error in task ${task.id}` }, error);
           await redisSub.unsubscribe(`${jobId}:events`);
-          reject(error);
+          reject(error instanceof Error ? error : new Error(String(error)));
         }
       });
 
@@ -235,7 +240,7 @@ const runDistributedTask = async <T>(
         logger.error("PROCESSOR", { msg: `Error in task ${task.id}` }, error);
         await redisSub.unsubscribe(`${jobId}:events`);
         await updateTaskStatus(task, "failed");
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     })();
   });

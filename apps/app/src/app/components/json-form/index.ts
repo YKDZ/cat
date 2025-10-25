@@ -55,9 +55,9 @@ class Matcher {
     public readonly renderer: RendererComponent,
   ) {}
 
-  getSpecificity(schema: unknown): Specificity | null {
+  getSpecificity(schema: JSONSchema): Specificity | null {
     if (!schema || typeof schema !== "object") return null;
-    const schemaObj = schema as Record<string, unknown>;
+    const schemaObj = schema;
 
     const ruleKeys = Object.keys(this.rule);
     if (!includesAll(Object.keys(schemaObj), ruleKeys)) return null;
@@ -140,7 +140,7 @@ export class MatcherRegistry {
     if (bestMatchers.length === 1) return bestMatchers[0]!.matcher;
 
     throw new Error(
-      `MatcherRegistry.match: ambiguous match — multiple equally-specific matchers: ${bestMatchers.map((b) => b.matcher.name)}`,
+      `MatcherRegistry.match: ambiguous match — multiple equally-specific matchers: ${JSON.stringify(bestMatchers.map((b) => b.matcher.name ?? "no_name"))}`,
     );
   }
 }
@@ -149,20 +149,28 @@ const matchers: Matcher[] = [
   new Matcher(
     "enum",
     { type: "string", enum: (value: unknown) => Array.isArray(value) },
+    // oxlint-disable-next-line no-unsafe-argument
     EnumRenderer,
   ),
+  // oxlint-disable-next-line no-unsafe-argument
   new Matcher("const", { const: true }, ConstRenderer),
   new Matcher(
     "string-secret",
     { type: "string", "x-secret": true },
+    // oxlint-disable-next-line no-unsafe-argument
     SecretRenderer,
   ),
+  // oxlint-disable-next-line no-unsafe-argument
   new Matcher("string", { type: "string" }, StringRenderer),
+  // oxlint-disable-next-line no-unsafe-argument
   new Matcher("number", { type: "number" }, NumberRenderer),
+  // oxlint-disable-next-line no-unsafe-argument
   new Matcher("boolean", { type: "boolean" }, BooleanRenderer),
 ];
 
-matchers.forEach((renderer) => MatcherRegistry.register(renderer));
+matchers.forEach((renderer) => {
+  MatcherRegistry.register(renderer);
+});
 
 const includesAll = <T>(arr: T[], target: T[]): boolean => {
   const s = new Set(arr);

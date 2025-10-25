@@ -7,9 +7,6 @@ export const transferDataToString = (data: unknown, pretty = false): string => {
   if (typeof data === "string") return data;
   if (data === undefined) return "";
   if (data === null) return "null";
-  try {
-    return pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
-  } catch {
-    return String(data);
-  }
+
+  return pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
 };

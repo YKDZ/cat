@@ -13,7 +13,7 @@ export const useEditorSuggestionStore = defineStore("editorSuggestion", () => {
 
   const suggestions = ref<TranslationSuggestion[]>([]);
 
-  const subSuggestions = async () => {
+  const subSuggestions = () => {
     if (!table.elementId.value || !context.languageToId.value) return;
 
     if (sub.value) sub.value.unsubscribe();

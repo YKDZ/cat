@@ -23,7 +23,7 @@ async function copyDir(src: string, dest: string): Promise<void> {
 }
 
 await (async () => {
-  copyDir(
+  await copyDir(
     join(workspaceRoot, "packages", "db", "drizzle"),
     join(cwd(), "drizzle"),
   );

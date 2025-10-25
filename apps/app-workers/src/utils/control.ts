@@ -15,9 +15,9 @@ const queues = [
 ];
 
 export const closeAllProcessors = async (): Promise<void> => {
-  await Promise.all(queues.map((queue) => queue.close()));
+  await Promise.all(queues.map(async (queue) => queue.close()));
 };
 
 export const resumeAllProcessors = async (): Promise<void> => {
-  await Promise.all(queues.map((queue) => queue.resume()));
+  await Promise.all(queues.map(async (queue) => queue.resume()));
 };

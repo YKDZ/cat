@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "build": "vite build",
-    "lint": "oxlint --fix",
+    "lint": "oxlint --fix --type-aware",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },

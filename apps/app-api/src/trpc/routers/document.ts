@@ -43,6 +43,7 @@ import { exportTranslatedFileQueue } from "@cat/app-workers/workers";
 import { upsertDocumentElementsFromFileQueue } from "@cat/app-workers/workers";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
+import { JSONType } from "@cat/shared/schema/json";
 
 /**
  * 构建翻译状态查询条件
@@ -390,7 +391,7 @@ export const documentRouter = router({
         isTranslated: z.boolean().optional(),
       }),
     )
-    .output(z.int().min(0))
+    .output(z.number().int().min(0))
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -442,7 +443,7 @@ export const documentRouter = router({
       z.object({
         documentId: z.string(),
         searchQuery: z.string().default(""),
-        greaterThan: z.int().optional(),
+        greaterThan: z.number().int().optional(),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
       }),
@@ -618,9 +619,7 @@ export const documentRouter = router({
         "",
       );
       const { provider } = storageResult;
-      const { fileId } = task.meta as {
-        fileId: number;
-      };
+      const { fileId } = z.object({ fileId: z.int() }).parse(task.meta);
 
       const file = await drizzle.query.file.findFirst({
         where: (file, { eq }) => eq(file.id, fileId),
@@ -1015,7 +1014,14 @@ export const documentRouter = router({
         );
 
       return (
-        await handler.getReplacedFileContent(content, elements)
+        await handler.getReplacedFileContent(
+          content,
+          // oxlint-disable-next-line no-unsafe-type-assertion
+          elements as {
+            meta: JSONType;
+            value: string;
+          }[],
+        )
       ).toString();
     }),
 });

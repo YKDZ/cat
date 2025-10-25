@@ -5,7 +5,7 @@ import { appRouter, createHttpContext } from "@cat/app-api/trpc";
 
 const app = new Hono();
 
-app.all("*", (c) => {
+app.all("*", async (c) => {
   return fetchRequestHandler({
     endpoint: "/api/trpc",
     req: c.req.raw,

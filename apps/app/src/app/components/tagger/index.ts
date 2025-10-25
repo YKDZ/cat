@@ -36,7 +36,7 @@ export type VerifyHandler = {
 export type ClickHandler = {
   id: number;
   name: string;
-  handler: (clipper: Clipper, part: PartData) => void;
+  handler: (clipper: Clipper, part: PartData) => Promise<void>;
 };
 
 export type PartData = {
@@ -96,6 +96,7 @@ const shouldMatchContent: VerifyHandler = {
       .map((part) => part.text)
       .join(", ");
     const isPass = source === translation;
+
     return {
       clipperId: clipper.id,
       isPass,
@@ -110,9 +111,9 @@ const copyContent: ClickHandler = {
   id: 1,
   name: "Copy Content",
 
-  handler(clipper: Clipper, part: PartData) {
+  async handler(clipper: Clipper, part: PartData) {
     const { insert } = useEditorTableStore();
-    insert(part.text);
+    await insert(part.text);
   },
 };
 

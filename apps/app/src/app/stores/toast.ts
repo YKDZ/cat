@@ -57,9 +57,9 @@ export const useToastStore = defineStore("toast", () => {
   };
 
   const zWarn = (e: ZodError, duration = defaultDuration) => {
-    e.issues.forEach((issue) =>
-      push(issue.message, undefined, duration, "WARNING"),
-    );
+    e.issues.forEach((issue) => {
+      push(issue.message, undefined, duration, "WARNING");
+    });
   };
 
   const trpcWarn = (e: TRPCError, duration = defaultDuration) => {

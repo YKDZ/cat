@@ -1,5 +1,19 @@
 import type { OverallDrizzleClient } from "@/drizzle/db.ts";
 
+const isSameType = <T>(value: unknown, sample: T): value is T => {
+  if (Array.isArray(sample)) {
+    return Array.isArray(value);
+  }
+  if (sample instanceof Date) {
+    return value instanceof Date;
+  }
+  const sampleType = typeof sample;
+  if (sampleType === "object") {
+    return typeof value === "object" && value !== null;
+  }
+  return typeof value === sampleType;
+};
+
 export const getSetting = async <T>(
   drizzle: OverallDrizzleClient,
   settingKey: string,
@@ -11,5 +25,9 @@ export const getSetting = async <T>(
       value: true,
     },
   });
-  return data ? (data.value as T) : fallback;
+
+  if (!data) return fallback;
+
+  const raw = data.value;
+  return isSameType<T>(raw, fallback) ? raw : fallback;
 };

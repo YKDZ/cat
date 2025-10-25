@@ -3,7 +3,7 @@ export const useStringTemplate = (
   ctx: Record<string, string | (() => string) | Date | number>,
 ): string => {
   const context = parseContext(ctx);
-  return template.replace(/\{(\w+)\}/g, (_, key) => {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => {
     const value = context[key];
     if (typeof value === "function") {
       return value();

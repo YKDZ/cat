@@ -40,7 +40,10 @@ const loadI18n = async (ctx: PageContextServer) => {
     await loadLocaleMessagesInServerSide(ctx.globalContext, key);
   }
 
-  i18n.global.setLocaleMessage(key, ctx.globalContext.i18nMessages[key]);
+  i18n.global.setLocaleMessage(
+    key,
+    ctx.globalContext.i18nMessages ? ctx.globalContext.i18nMessages[key] : {},
+  );
   i18n.global.locale.value = key;
   ctx.i18n = i18n;
 

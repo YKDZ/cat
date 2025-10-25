@@ -178,7 +178,7 @@ const batchDiff = async (
         };
       }),
       run: async ({ data }) => {
-        return await handleRemovedElements(data.map(({ id }) => id));
+        await handleRemovedElements(data.map(({ id }) => id));
       },
       rollback: async (_, data) => {
         const result = z.array(z.int()).parse(data);
@@ -280,7 +280,9 @@ const handleRemovedElements = async (elementIds: number[]): Promise<void> => {
     .where(inArray(translatableElement.id, elementIds));
 };
 
+// oxlint-disable-next-line require-await
 const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
+  // oxlint-disable-next-line restrict-template-expressions
   throw new Error(`Not implemented ${elementIds}`);
 };
 

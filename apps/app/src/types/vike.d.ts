@@ -1,5 +1,11 @@
 import type { Pinia, StateTree } from "pinia";
-import type { I18n, LocaleMessageValue, VueMessageType } from "vue-i18n";
+import type {
+  I18n,
+  LocaleMessageValue,
+  RemovedIndexResources,
+  VueMessageType,
+  Message,
+} from "vue-i18n";
 import type { DrizzleDB, RedisDB } from "@cat/db";
 import type { User } from "@cat/shared/schema/drizzle/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
@@ -23,9 +29,7 @@ declare global {
     interface GlobalContextServer {
       name: string;
       pinia?: Pinia;
-      i18nMessages?: RemoveIndexSignature<{
-        [x: string]: LocaleMessageValue<VueMessageType>;
-      }>;
+      i18nMessages?: Record<string, Message>;
       drizzleDB: DrizzleDB;
       redisDB: RedisDB;
       pluginRegistry: PluginRegistry;
@@ -33,9 +37,7 @@ declare global {
     interface GlobalContextClient {
       name: string;
       pinia?: Pinia;
-      i18nMessages?: RemoveIndexSignature<{
-        [x: string]: LocaleMessageValue<VueMessageType>;
-      }>;
+      i18nMessages?: Record<string, Message>;
     }
   }
 }
