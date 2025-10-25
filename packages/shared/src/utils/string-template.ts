@@ -1,11 +1,6 @@
-export type StringTemplateContext = Record<
-  string,
-  string | (() => string) | Date | number
->;
-
 export const useStringTemplate = (
   template: string,
-  ctx: StringTemplateContext,
+  ctx: Record<string, string | (() => string) | Date | number>,
 ): string => {
   const context = parseContext(ctx);
   return template.replace(/\{(\w+)\}/g, (_, key) => {
@@ -17,7 +12,9 @@ export const useStringTemplate = (
   });
 };
 
-const parseContext = (ctx: StringTemplateContext) => {
+const parseContext = (
+  ctx: Record<string, string | (() => string) | Date | number>,
+) => {
   const result: Record<string, string | number | (() => string)> = {};
 
   for (const [key, value] of Object.entries(ctx)) {

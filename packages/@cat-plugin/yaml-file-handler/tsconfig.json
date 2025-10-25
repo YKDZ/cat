@@ -4,16 +4,10 @@
   "include": [],
   "references": [
     {
-      "path": "../../shared"
-    },
-    {
       "path": "../../plugin-core"
     },
     {
-      "path": "../../db"
-    },
-    {
-      "path": "../../eslint-config"
+      "path": "../../shared"
     },
     {
       "path": "./tsconfig.lib.json"

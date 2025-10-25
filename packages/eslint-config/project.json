@@ -1,7 +1,4 @@
 {
-  "targets": {
-    "build": {
-      "executor": "nx:noop"
-    }
-  }
+  "projectType": "library",
+  "targets": {}
 }

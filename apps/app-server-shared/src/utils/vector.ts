@@ -65,6 +65,8 @@ export const vectorize = async (
   pluginRegistry: PluginRegistry,
   data: UnvectorizedTextData[],
 ): Promise<number[]> => {
+  if (data.length === 0) return [];
+
   const dataWithIndex = data.map((item, index) => ({
     ...item,
     originalIndex: index,

@@ -7,23 +7,16 @@
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src/**/*.ts"
-  ],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../shared/tsconfig.lib.json"
     },
     {
       "path": "../db/tsconfig.lib.json"
-    },
-    {
-      "path": "../eslint-config/tsconfig.lib.json"
     }
   ],
   "exclude": [

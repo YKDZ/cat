@@ -20,6 +20,8 @@ import {
   document as documentTable,
   project as projectTable,
   aliasedTable,
+  translatableElement,
+  translatableString,
 } from "@cat/db";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { authedProcedure, router } from "../server.ts";
@@ -404,15 +406,23 @@ export const glossaryRouter = router({
 
       if (!termService) throw new Error("Term service does not exists");
 
-      const element = await drizzle.query.translatableElement.findFirst({
-        where: (element, { eq }) => eq(element.id, elementId),
-        columns: {
-          id: true,
-          value: true,
-          documentId: true,
-          languageId: true,
-        },
-      });
+      const element = assertSingleNonNullish(
+        await drizzle
+          .select({
+            id: translatableElement.id,
+            value: translatableString.value,
+            meta: translatableElement.meta,
+            languageId: translatableString.languageId,
+            documentId: translatableElement.documentId,
+          })
+          .from(translatableElement)
+          .innerJoin(
+            translatableString,
+            eq(translatableElement.translableStringId, translatableString.id),
+          )
+          .where(eq(translatableElement.id, elementId))
+          .limit(1),
+      );
 
       if (!element || !element.documentId)
         throw new TRPCError({

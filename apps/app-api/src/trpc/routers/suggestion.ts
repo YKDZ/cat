@@ -4,8 +4,7 @@ import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
 } from "@cat/shared/schema/misc";
-import { TranslatableElementSchema } from "@cat/shared/schema/drizzle/document";
-import { logger } from "@cat/shared/utils";
+import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { hash } from "@cat/app-server-shared/utils";
 import {
@@ -16,6 +15,8 @@ import {
   term as termTable,
   termRelation as termRelationTable,
   getTableColumns,
+  translatableElement,
+  translatableString,
 } from "@cat/db";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
@@ -45,9 +46,19 @@ export const suggestionRouter = router({
 
       if (!termService) throw new Error("Term service does not exists");
 
-      const element = await drizzle.query.translatableElement.findFirst({
-        where: (el, { eq }) => eq(el.id, elementId),
-      });
+      const element = assertSingleNonNullish(
+        await drizzle
+          .select({
+            value: translatableString.value,
+          })
+          .from(translatableElement)
+          .innerJoin(
+            translatableString,
+            eq(translatableElement.translableStringId, translatableString.id),
+          )
+          .where(eq(translatableElement.id, elementId))
+          .limit(1),
+      );
 
       if (!element) {
         throw new TRPCError({
@@ -105,10 +116,9 @@ export const suggestionRouter = router({
           return;
         }
 
-        const zElement = TranslatableElementSchema.parse(element);
         const { termedText, translationIds } =
           await termService.termStore.termText(
-            zElement.value,
+            element.value,
             "zh_Hans",
             languageId,
           );
@@ -141,7 +151,7 @@ export const suggestionRouter = router({
           );
         advisor
           .getSuggestions(
-            zElement.value,
+            element.value,
             termedText,
             relations,
             "zh_Hans",

@@ -421,6 +421,11 @@ export class PluginRegistry implements IPluginRegistry {
           pluginId: plugin.id,
         })
         .from(pluginService)
+        .innerJoin(
+          pluginInstallation,
+          eq(pluginInstallation.id, pluginService.pluginInstallationId),
+        )
+        .innerJoin(plugin, eq(plugin.id, pluginInstallation.pluginId))
         .where(and(eq(pluginService.id, id)))
         .limit(1),
     );

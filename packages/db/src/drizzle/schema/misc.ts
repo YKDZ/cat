@@ -12,7 +12,7 @@ import { projectTargetLanguage } from "./project.ts";
 import { term } from "./glossary.ts";
 import { memoryItem } from "./memory.ts";
 import { translation } from "./translation.ts";
-import { documentToTask, translatableElement } from "./document.ts";
+import { documentToTask, translatableString } from "./document.ts";
 
 export const language = pgTable("Language", {
   id: text().primaryKey().notNull(),
@@ -49,7 +49,6 @@ export const task = pgTable(
 export const languageRelations = relations(language, ({ many }) => ({
   Translations: many(translation),
   Terms: many(term),
-  TranslatableElements: many(translatableElement),
   MemoryItemSourceLanguages: many(memoryItem, {
     relationName: "sourceLanguage",
   }),
@@ -57,6 +56,7 @@ export const languageRelations = relations(language, ({ many }) => ({
     relationName: "translationLanguage",
   }),
   ProjectTargetLanguages: many(projectTargetLanguage),
+  TranslatableStrings: many(translatableString),
 }));
 
 export const taskRelations = relations(task, ({ many }) => ({

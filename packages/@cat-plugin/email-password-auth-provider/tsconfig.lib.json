@@ -14,13 +14,10 @@
       "path": "../../shared/tsconfig.lib.json"
     },
     {
-      "path": "../../plugin-core/tsconfig.lib.json"
-    },
-    {
       "path": "../../db/tsconfig.lib.json"
     },
     {
-      "path": "../../eslint-config/tsconfig.lib.json"
+      "path": "../../plugin-core/tsconfig.lib.json"
     }
   ],
   "exclude": [

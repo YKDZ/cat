@@ -119,8 +119,7 @@ const worker = new Worker(
           eq(translatableElementTable.documentId, documentId),
           sql`EXISTS (SELECT 1 FROM "Approvements" a WHERE a."translationId" = ${translationTable.id} AND a."isActive" = true)`,
         ),
-      )
-      .execute();
+      );
 
     const translated = await handler.getReplacedFileContent(
       fileContent,
@@ -181,15 +180,15 @@ const worker = new Worker(
       const [task] = await tx
         .select()
         .from(taskTable)
-        .where(eq(taskTable.id, taskId))
-        .execute();
+        .where(eq(taskTable.id, taskId));
+
       if (!task) throw new Error("Task do not exists");
       if (typeof task.meta !== "object") throw new Error("Task has wrong meta");
+
       await tx
         .update(taskTable)
         .set({ meta: { ...task.meta, fileId: translatedFile.id } })
-        .where(eq(taskTable.id, taskId))
-        .execute();
+        .where(eq(taskTable.id, taskId));
     });
   },
   {

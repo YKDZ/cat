@@ -8,6 +8,7 @@ import {
   primaryKey,
   serial,
   text,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -58,14 +59,12 @@ export const translatableElement = pgTable(
   "TranslatableElement",
   {
     id: serial().primaryKey().notNull(),
-    value: text().notNull(),
     meta: jsonb(),
     documentId: uuid().notNull(),
-    embeddingId: integer().notNull(),
     documentVersionId: integer(),
     sortIndex: integer().notNull(),
     creatorId: uuid(),
-    languageId: text().notNull(),
+    translableStringId: integer().notNull(),
     ...timestamps,
   },
   (table) => [
@@ -75,12 +74,6 @@ export const translatableElement = pgTable(
     })
       .onUpdate("cascade")
       .onDelete("cascade"),
-    foreignKey({
-      columns: [table.embeddingId],
-      foreignColumns: [vector.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("restrict"),
     foreignKey({
       columns: [table.documentVersionId],
       foreignColumns: [documentVersion.id],
@@ -94,8 +87,45 @@ export const translatableElement = pgTable(
       .onUpdate("cascade")
       .onDelete("cascade"),
     foreignKey({
+      columns: [table.translableStringId],
+      foreignColumns: [translatableString.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("restrict"),
+  ],
+);
+
+export const translatableString = pgTable(
+  "TranslatableString",
+  {
+    id: serial().primaryKey().notNull(),
+    value: text().notNull(),
+    languageId: text().notNull(),
+    embeddingId: integer().notNull(),
+    projectId: uuid().notNull(),
+  },
+  (table) => [
+    uniqueIndex().using(
+      "btree",
+      table.value.asc().nullsLast().op("text_ops"),
+      table.languageId.asc().nullsLast().op("text_ops"),
+      table.projectId.asc().nullsLast().op("uuid_ops"),
+    ),
+    foreignKey({
       columns: [table.languageId],
       foreignColumns: [language.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("restrict"),
+    foreignKey({
+      columns: [table.embeddingId],
+      foreignColumns: [vector.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("restrict"),
+    foreignKey({
+      columns: [table.projectId],
+      foreignColumns: [project.id],
     })
       .onUpdate("cascade")
       .onDelete("restrict"),
@@ -168,13 +198,13 @@ export const documentRelations = relations(document, ({ one, many }) => ({
 export const translatableElementRelations = relations(
   translatableElement,
   ({ one, many }) => ({
+    TranslatableString: one(translatableString, {
+      fields: [translatableElement.translableStringId],
+      references: [translatableString.id],
+    }),
     Document: one(document, {
       fields: [translatableElement.documentId],
       references: [document.id],
-    }),
-    Embedding: one(vector, {
-      fields: [translatableElement.embeddingId],
-      references: [vector.id],
     }),
     DocumentVersion: one(documentVersion, {
       fields: [translatableElement.documentVersionId],
@@ -183,10 +213,6 @@ export const translatableElementRelations = relations(
     Creator: one(user, {
       fields: [translatableElement.creatorId],
       references: [user.id],
-    }),
-    Language: one(language, {
-      fields: [translatableElement.languageId],
-      references: [language.id],
     }),
     MemoryItems: many(memoryItem),
     Translations: many(translation),
@@ -214,3 +240,23 @@ export const documentToTaskRelations = relations(documentToTask, ({ one }) => ({
     references: [task.id],
   }),
 }));
+
+export const translatableStringRelations = relations(
+  translatableString,
+  ({ one, many }) => ({
+    Language: one(language, {
+      fields: [translatableString.languageId],
+      references: [language.id],
+    }),
+    Embedding: one(vector, {
+      fields: [translatableString.embeddingId],
+      references: [vector.id],
+    }),
+    Project: one(project, {
+      fields: [translatableString.projectId],
+      references: [project.id],
+    }),
+
+    TranslatableElements: many(translatableElement),
+  }),
+);

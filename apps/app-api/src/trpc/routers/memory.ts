@@ -21,6 +21,7 @@ import {
   memory as memoryTable,
   memoryToProject,
   translatableElement,
+  translatableString,
   vector,
 } from "@cat/db";
 import { authedProcedure, router } from "@/trpc/server.ts";
@@ -91,12 +92,16 @@ export const memoryRouter = router({
         await drizzle
           .select({
             id: translatableElement.id,
-            value: translatableElement.value,
+            value: translatableString.value,
             embedding: vector.vector,
             projectId: documentTable.projectId,
           })
           .from(translatableElement)
-          .innerJoin(vector, eq(translatableElement.embeddingId, vector.id))
+          .innerJoin(
+            translatableString,
+            eq(translatableElement.translableStringId, translatableString.id),
+          )
+          .innerJoin(vector, eq(translatableString.embeddingId, vector.id))
           .innerJoin(
             documentTable,
             eq(translatableElement.documentId, documentTable.id),

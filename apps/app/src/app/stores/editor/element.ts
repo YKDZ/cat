@@ -11,20 +11,22 @@ const TranslatableElementStatusSchema = z
   .enum(["NO", "TRANSLATED", "APPROVED"])
   .default("NO");
 
-export const TranslatableElementWithStatusSchema =
+export const TranslatableElementWithDetailsSchema =
   TranslatableElementSchema.extend({
+    value: z.string(),
+    languageId: z.string(),
     status: TranslatableElementStatusSchema,
   });
 
-type TranslatableElementWithStatus = z.infer<
-  typeof TranslatableElementWithStatusSchema
+type TranslatableElementWithDetails = z.infer<
+  typeof TranslatableElementWithDetailsSchema
 >;
 
 export const useEditorElementStore = defineStore("editorElement", () => {
   const context = storeToRefs(useEditorContextStore());
 
   const loadedPages = reactive(
-    new Map<number, TranslatableElementWithStatus[]>(),
+    new Map<number, TranslatableElementWithDetails[]>(),
   );
   const loadedPageHashes = reactive(new Map<number, string>());
 
@@ -61,7 +63,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
       if (index === -1) continue;
 
       elements[index] =
-        TranslatableElementWithStatusSchema.parse(updatedElement);
+        TranslatableElementWithDetailsSchema.parse(updatedElement);
       return;
     }
   };
@@ -73,7 +75,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
 
     const status = await getElementTranslationStatus(elementId);
 
-    const newEl = TranslatableElementWithStatusSchema.parse({
+    const newEl = TranslatableElementWithDetailsSchema.parse({
       ...element,
       status,
     });

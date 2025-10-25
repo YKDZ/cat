@@ -1,4 +1,14 @@
-import { getDrizzleDB, inArray, translatableElement, vector } from "@cat/db";
+import {
+  and,
+  document,
+  eq,
+  getDrizzleDB,
+  inArray,
+  project,
+  translatableElement,
+  translatableString,
+  vector,
+} from "@cat/db";
 import { Queue, QueueEvents, Worker } from "bullmq";
 import { PluginRegistry } from "@cat/plugin-core";
 import {
@@ -7,7 +17,12 @@ import {
 } from "@cat/shared/schema/misc";
 import * as z from "zod/v4";
 import { isEqual } from "lodash-es";
-import { chunk, chunkDual, getIndex } from "@cat/shared/utils";
+import {
+  assertSingleNonNullish,
+  chunk,
+  chunkDual,
+  getIndex,
+} from "@cat/shared/utils";
 import { diffArraysAndSeparate, vectorize } from "@cat/app-server-shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
@@ -54,18 +69,32 @@ const batchDiff = async (
   newElementsData: (TranslatableElementData & { sortIndex: number })[],
   documentId: string,
 ) => {
+  const { projectId } = assertSingleNonNullish(
+    await drizzle
+      .select({
+        projectId: project.id,
+      })
+      .from(document)
+      .innerJoin(project, eq(document.projectId, project.id))
+      .where(eq(document.id, documentId))
+      .limit(1),
+  );
+
   const oldElements = (
     await drizzle
       .select({
         id: translatableElement.id,
-        value: translatableElement.value,
+        value: translatableString.value,
         meta: translatableElement.meta,
-        languageId: translatableElement.languageId,
+        languageId: translatableString.languageId,
         sortIndex: translatableElement.sortIndex,
       })
       .from(translatableElement)
+      .innerJoin(
+        translatableString,
+        eq(translatableElement.translableStringId, translatableString.id),
+      )
       .where(inArray(translatableElement.id, oldElementIds))
-      .execute()
   ).map((element) => ({
     id: element.id,
     value: element.value,
@@ -81,76 +110,168 @@ const batchDiff = async (
     (a, b) => a.value === b.value && isEqual(a.meta, b.meta),
   );
 
-  const addedElements = added.map((element) => ({
-    value: element.value,
-    sortIndex: element.sortIndex,
-    languageId: element.languageId,
-    meta: element.meta,
-  }));
+  const addedElementsWithoutExistingString: (TranslatableElementData & {
+    sortIndex: number;
+  })[] = [];
+  const addedElementsWithExistingString: (TranslatableElementData & {
+    sortIndex: number;
+    stringId: number;
+  })[] = [];
 
-  const embeddingIds = await vectorize(drizzle, pluginRegistry, addedElements);
+  if (added.length > 0) {
+    const existingStrings = await drizzle
+      .select({
+        id: translatableString.id,
+        value: translatableString.value,
+        languageId: translatableString.languageId,
+      })
+      .from(translatableString)
+      .where(and(eq(translatableString.projectId, projectId)));
+
+    // 创建快速查找映射 (value + languageId -> stringId)
+    const stringMap = new Map<string, number>();
+    for (const str of existingStrings) {
+      const key = `${str.value}|${str.languageId}`;
+      stringMap.set(key, str.id);
+    }
+
+    // 分类 added 元素
+    for (const element of added) {
+      const key = `${element.value}|${element.languageId}`;
+      const existingStringId = stringMap.get(key);
+
+      if (existingStringId !== undefined) {
+        addedElementsWithExistingString.push({
+          value: element.value,
+          sortIndex: element.sortIndex,
+          languageId: element.languageId,
+          meta: element.meta,
+          stringId: existingStringId,
+        });
+      } else {
+        addedElementsWithoutExistingString.push({
+          value: element.value,
+          sortIndex: element.sortIndex,
+          languageId: element.languageId,
+          meta: element.meta,
+        });
+      }
+    }
+  }
+
+  const embeddingIds =
+    addedElementsWithoutExistingString.length !== 0
+      ? await vectorize(
+          drizzle,
+          pluginRegistry,
+          addedElementsWithoutExistingString,
+        )
+      : [];
 
   // 移除元素
-
-  await new DistributedTaskHandler("batchDiffElements_removeElements", {
-    chunks: chunk(removedElements, 100).map(({ index, chunk }) => {
-      return {
-        chunkIndex: index,
-        data: chunk,
-      };
-    }),
-    run: async ({ data }) => {
-      return await handleRemovedElements(data.map(({ id }) => id));
-    },
-    rollback: async (_, data) => {
-      const result = z.array(z.int()).parse(data);
-      await rollbackRemovedElements(result);
-    },
-  }).run();
-
-  // 添加元素
-  type ChunkElement = {
-    element: TranslatableElementData & { sortIndex: number };
-    embeddingId: number;
-  };
-
-  await new DistributedTaskHandler<ChunkElement>(
-    "batchDiffElements_addElement",
-    {
-      chunks: chunkDual<
-        TranslatableElementData & { sortIndex: number },
-        number
-      >(addedElements, embeddingIds, 100).map(({ index, chunk }) => {
+  if (removedElements.length !== 0)
+    await new DistributedTaskHandler("batchDiffElements_removeElements", {
+      chunks: chunk(removedElements, 100).map(({ index, chunk }) => {
         return {
           chunkIndex: index,
-          data: chunk.arr1.map((el, index) => ({
-            element: el,
-            embeddingId: getIndex(chunk.arr2, index),
-          })),
-        } satisfies ChunkData<{
-          element: TranslatableElementData & { sortIndex: number };
-          embeddingId: number;
-        }>;
+          data: chunk,
+        };
       }),
       run: async ({ data }) => {
-        const elementIds = await handleAddedElements(
-          data.map((element) => element.element),
-          data.map((element) => element.embeddingId),
-          documentId,
-        );
-        return { elementIds, embeddingIds };
+        return await handleRemovedElements(data.map(({ id }) => id));
       },
       rollback: async (_, data) => {
-        const { elementIds, embeddingIds } = z
-          .object({
-            elementIds: z.array(z.int()),
-            embeddingIds: z.array(z.int()),
-          })
-          .parse(data);
-        await rollbackAddedElements(elementIds, embeddingIds);
+        const result = z.array(z.int()).parse(data);
+        await rollbackRemovedElements(result);
       },
-    } satisfies DistributedTask<ChunkElement>,
-  ).run();
+    }).run();
+
+  // 添加不带 string 缓存的元素
+  if (addedElementsWithoutExistingString.length !== 0) {
+    type ChunkElement = {
+      element: TranslatableElementData & { sortIndex: number };
+      embeddingId: number;
+    };
+    await new DistributedTaskHandler<ChunkElement>(
+      "batchDiffElements_addElementWithoutExistingString",
+      {
+        chunks: chunkDual<
+          TranslatableElementData & { sortIndex: number },
+          number
+        >(addedElementsWithoutExistingString, embeddingIds, 100).map(
+          ({ index, chunk }) => {
+            return {
+              chunkIndex: index,
+              data: chunk.arr1.map((el, index) => ({
+                element: el,
+                embeddingId: getIndex(chunk.arr2, index),
+              })),
+            } satisfies ChunkData<{
+              element: TranslatableElementData & { sortIndex: number };
+              embeddingId: number;
+            }>;
+          },
+        ),
+        run: async ({ data }) => {
+          const elementIds = await handleAddedElementsWithoutExistingString(
+            data.map((element) => element.element),
+            data.map((element) => element.embeddingId),
+            documentId,
+            projectId,
+          );
+          return { elementIds, embeddingIds };
+        },
+        rollback: async (_, data) => {
+          const { elementIds, embeddingIds } = z
+            .object({
+              elementIds: z.array(z.int()),
+              embeddingIds: z.array(z.int()),
+            })
+            .parse(data);
+          await rollbackAddedElementsWithoutExistingString(
+            elementIds,
+            embeddingIds,
+          );
+        },
+      } satisfies DistributedTask<ChunkElement>,
+    ).run();
+  }
+
+  // 添加带 string 缓存的元素
+  if (addedElementsWithExistingString.length !== 0) {
+    type ChunkElement = TranslatableElementData & {
+      sortIndex: number;
+      stringId: number;
+    };
+    await new DistributedTaskHandler<ChunkElement>(
+      "batchDiffElements_addElementWithExistingString",
+      {
+        chunks: chunk<ChunkElement>(addedElementsWithExistingString, 100).map(
+          ({ index, chunk }) => {
+            return {
+              chunkIndex: index,
+              data: chunk,
+            } satisfies ChunkData<ChunkElement>;
+          },
+        ),
+        run: async ({ data }) => {
+          const elementIds = await handleAddedElementsWithExistingString(
+            data,
+            documentId,
+          );
+          return { elementIds };
+        },
+        rollback: async (_, data) => {
+          const { elementIds } = z
+            .object({
+              elementIds: z.array(z.int()),
+            })
+            .parse(data);
+          await rollbackAddedElementsWithExistingString(elementIds);
+        },
+      } satisfies DistributedTask<ChunkElement>,
+    ).run();
+  }
 };
 
 const handleRemovedElements = async (elementIds: number[]): Promise<void> => {
@@ -163,38 +284,80 @@ const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
   throw new Error(`Not implemented ${elementIds}`);
 };
 
-const handleAddedElements = async (
+const handleAddedElementsWithoutExistingString = async (
   elements: (TranslatableElementData & { sortIndex: number })[],
   embeddingIds: number[],
   documentId: string,
+  projectId: string,
 ): Promise<number[]> => {
   const elementWithEmbeddingIds = elements.map((element, index) => ({
     ...element,
     embeddingId: getIndex(embeddingIds, index),
   }));
 
-  return (
-    await drizzle
-      .insert(translatableElement)
-      .values(
-        elementWithEmbeddingIds.map((data) => {
-          return {
-            value: data.value,
+  return drizzle.transaction(async (tx) => {
+    const ids: number[] = [];
+
+    for (const data of elementWithEmbeddingIds) {
+      // eslint-disable-next-line no-await-in-loop
+      let [{ stringId } = {}] = await tx
+        .insert(translatableString)
+        .values({
+          value: data.value,
+          embeddingId: data.embeddingId,
+          languageId: data.languageId,
+          projectId: projectId,
+        })
+        .onConflictDoNothing({
+          target: [
+            translatableString.value,
+            translatableString.languageId,
+            translatableString.projectId,
+          ],
+        })
+        .returning({ stringId: translatableString.id });
+
+      if (!stringId) {
+        const existing = assertSingleNonNullish(
+          // eslint-disable-next-line no-await-in-loop
+          await tx
+            .select({ id: translatableString.id })
+            .from(translatableString)
+            .where(
+              and(
+                eq(translatableString.value, data.value),
+                eq(translatableString.languageId, data.languageId),
+                eq(translatableString.projectId, projectId),
+              ),
+            )
+            .limit(1),
+        );
+        stringId = existing.id;
+      }
+
+      const { id } = assertSingleNonNullish(
+        // eslint-disable-next-line no-await-in-loop
+        await tx
+          .insert(translatableElement)
+          .values({
             sortIndex: data.sortIndex,
             meta: data.meta,
-            embeddingId: data.embeddingId,
             documentId,
-            languageId: data.languageId,
-          };
-        }),
-      )
-      .returning({
-        id: translatableElement.id,
-      })
-  ).map(({ id }) => id);
+            translableStringId: stringId,
+          })
+          .returning({
+            id: translatableElement.id,
+          }),
+      );
+
+      ids.push(id);
+    }
+
+    return ids;
+  });
 };
 
-const rollbackAddedElements = async (
+const rollbackAddedElementsWithoutExistingString = async (
   elementIds: number[],
   embeddingIds: number[],
 ) => {
@@ -204,6 +367,38 @@ const rollbackAddedElements = async (
       .where(inArray(translatableElement.id, elementIds));
     await tx.delete(vector).where(inArray(vector.id, embeddingIds));
   });
+};
+
+const handleAddedElementsWithExistingString = async (
+  elements: (TranslatableElementData & {
+    sortIndex: number;
+    stringId: number;
+  })[],
+  documentId: string,
+): Promise<number[]> => {
+  return (
+    await drizzle
+      .insert(translatableElement)
+      .values(
+        elements.map((element) => ({
+          sortIndex: element.sortIndex,
+          meta: element.meta,
+          documentId,
+          translableStringId: element.stringId,
+        })),
+      )
+      .returning({
+        id: translatableElement.id,
+      })
+  ).map(({ id }) => id);
+};
+
+const rollbackAddedElementsWithExistingString = async (
+  elementIds: number[],
+) => {
+  await drizzle
+    .delete(translatableElement)
+    .where(inArray(translatableElement.id, elementIds));
 };
 
 registerTaskUpdateHandlers(drizzle, worker, queueId);

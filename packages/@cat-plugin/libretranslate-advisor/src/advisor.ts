@@ -35,7 +35,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
     this.fetchSupportedLanguages();
   }
 
-  async fetchSupportedLanguages() {
+  async fetchSupportedLanguages(): Promise<void> {
     await this.pool
       .request({
         method: "GET",
@@ -79,11 +79,11 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
     return "libretranslate";
   }
 
-  getName() {
+  getName(): string {
     return this.config.base["advisor-name"];
   }
 
-  canSuggest(languageFromId: string, languageToId: string) {
+  canSuggest(languageFromId: string, languageToId: string): boolean {
     const sourceLang = languageFromId.replaceAll("_", "-");
     const targetLang = languageToId.replaceAll("_", "-");
     return (

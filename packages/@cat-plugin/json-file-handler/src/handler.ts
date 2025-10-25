@@ -1,11 +1,8 @@
 import { extname } from "node:path";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { File } from "@cat/shared/schema/drizzle/file";
-import {
-  TranslatableElementData,
-  TranslatableElementDataWithoutLanguageId,
-} from "@cat/shared/schema/misc";
-import { TranslatableElement } from "@cat/shared/schema/drizzle/document";
+import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
+import { JSONType } from "@cat/shared/schema/json";
 
 type JSONValue =
   | string
@@ -24,18 +21,20 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     return extname(file.originName) === ".json";
   }
 
-  async extractElement(fileContent: Buffer) {
+  async extractElement(
+    fileContent: Buffer,
+  ): Promise<TranslatableElementDataWithoutLanguageId[]> {
     return collectTranslatableElement(fileContent.toString("utf-8"));
   }
 
-  canGetReplacedFileContent(file: File) {
+  canGetReplacedFileContent(file: File): boolean {
     return extname(file.originName) === ".json";
   }
 
   async getReplacedFileContent(
     fileContent: Buffer,
-    elements: Pick<TranslatableElement, "meta" | "value">[],
-  ) {
+    elements: { meta: JSONType; value: string }[],
+  ): Promise<Buffer> {
     const originalObj: unknown = JSON.parse(fileContent.toString("utf-8"));
     const modifiedObj: unknown = JSON.parse(JSON.stringify(originalObj));
 
@@ -65,9 +64,7 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
           }
         }
 
-        if (!validPath) {
-          console.warn(`路径 '${pathParts.join(".")}' 无效`);
-        }
+        if (!validPath) continue;
       } catch (error) {
         throw new Error("处理翻译时出错：" + error);
       }

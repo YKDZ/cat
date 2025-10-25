@@ -14,14 +14,11 @@ export const DocumentSchema = z.object({
 
 export const TranslatableElementSchema = z.object({
   id: z.int(),
-  value: z.string(),
   sortIndex: z.int(),
   meta: safeZDotJson,
-  embeddingId: z.int(),
   documentVersionId: z.int().nullable(),
   creatorId: z.uuidv7().nullable(),
   documentId: z.uuidv7(),
-  languageId: z.string(),
 });
 
 export const DocumentVersionSchema = z.object({
@@ -32,6 +29,15 @@ export const DocumentVersionSchema = z.object({
   documentId: z.uuidv7(),
 });
 
+export const TranslatableStringSchema = z.object({
+  id: z.int(),
+  value: z.string(),
+  embeddingId: z.int(),
+  languageId: z.string(),
+  projectId: z.uuidv7(),
+});
+
 export type Document = z.infer<typeof DocumentSchema>;
 export type DocumentVersion = z.infer<typeof DocumentVersionSchema>;
 export type TranslatableElement = z.infer<typeof TranslatableElementSchema>;
+export type TranslatableString = z.infer<typeof TranslatableStringSchema>;

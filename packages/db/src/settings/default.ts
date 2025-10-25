@@ -10,38 +10,6 @@ export type DefaultSettingData = z.infer<typeof DefaultSettingDataSchema>;
 
 export const DEFAULT_SETTINGS = z.array(DefaultSettingDataSchema).parse([
   {
-    key: "s3.region",
-    value: "cn-south-1",
-  },
-  {
-    key: "s3.access-key-id",
-    value: "your key id",
-  },
-  {
-    key: "s3.secret-access-key",
-    value: "your key",
-  },
-  {
-    key: "s3.bucket-name",
-    value: "cat",
-  },
-  {
-    key: "s3.endpoint-url",
-    value: "http://localhost:9001",
-  },
-  {
-    key: "s3.force-path-style",
-    value: true,
-  },
-  {
-    key: "s3.acl",
-    value: "private",
-  },
-  {
-    key: "server.storage-type",
-    value: "LOCAL",
-  },
-  {
     key: "server.url",
     value: "http://localhost:3000",
   },

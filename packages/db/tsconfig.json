@@ -7,9 +7,6 @@
       "path": "../shared"
     },
     {
-      "path": "../eslint-config"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

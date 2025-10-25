@@ -9,7 +9,8 @@ import type { Root, Parent, RootContent, Literal, Image } from "mdast";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { File } from "@cat/shared/schema/drizzle/file";
 import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
-import { TranslatableElement } from "@cat/shared/schema/drizzle/document";
+import { JSONType } from "@cat/shared/schema/json";
+import { logger } from "@cat/shared/utils";
 
 /** 可译块类型集合 */
 const BLOCK_NODE_TYPES = new Set<string>([
@@ -141,7 +142,9 @@ export class MarkdownTranslatableFileHandler
     return e === ".md" || e === ".markdown" || e === ".mdown";
   }
 
-  async extractElement(fileContent: Buffer) {
+  async extractElement(
+    fileContent: Buffer,
+  ): Promise<TranslatableElementDataWithoutLanguageId[]> {
     const text = fileContent.toString("utf-8");
     return collectTranslatableElementsFromMarkdown(text);
   }
@@ -152,7 +155,7 @@ export class MarkdownTranslatableFileHandler
 
   async getReplacedFileContent(
     fileContent: Buffer,
-    elements: Pick<TranslatableElement, "meta" | "value">[],
+    elements: { meta: JSONType; value: string }[],
   ): Promise<Buffer> {
     const original = fileContent.toString("utf-8");
     const processor = unified().use(remarkParse).use(remarkStringify);
@@ -163,8 +166,9 @@ export class MarkdownTranslatableFileHandler
       try {
         const parsed = MetaSchema.safeParse(e.meta as unknown);
         if (!parsed.success) {
-          console.warn(
-            "Invalid meta for markdown replacement, skip:",
+          logger.error(
+            "PLUGIN",
+            { msg: "Invalid meta for markdown replacement, skip:" },
             parsed.error,
           );
           continue;
@@ -173,7 +177,7 @@ export class MarkdownTranslatableFileHandler
         const path = meta.path;
 
         if (!Array.isArray(path) || path.length === 0) {
-          console.warn("Empty path in meta, skip");
+          logger.warn("PLUGIN", { msg: "Empty path in meta, skip" });
           continue;
         }
 
@@ -194,29 +198,33 @@ export class MarkdownTranslatableFileHandler
         }
 
         if (!validPath || !isParent(parentNode)) {
-          console.warn(
-            `路径 '${path.join(",")}' 无效（父节点不存在或非 Parent）`,
-          );
+          logger.warn("PLUGIN", {
+            msg: `路径 '${path.join(",")}' 无效（父节点不存在或非 Parent）`,
+          });
           continue;
         }
 
         const targetIndex = path[path.length - 1];
         if (targetIndex < 0 || targetIndex >= parentNode.children.length) {
-          console.warn(`路径 '${path.join(",")}' 无效（索引越界）`);
+          logger.warn("PLUGIN", {
+            msg: `路径 '${path.join(",")}' 无效（索引越界）`,
+          });
           continue;
         }
 
         const targetNode = parentNode.children[targetIndex];
 
         if (!targetNode || typeof targetNode.type !== "string") {
-          console.warn(`目标节点不存在或类型不合法，路径: ${path.join(",")}`);
+          logger.warn("PLUGIN", {
+            msg: `目标节点不存在或类型不合法，路径: ${path.join(",")}`,
+          });
           continue;
         }
 
         if (targetNode.type !== meta.nodeType) {
-          console.warn(
-            `目标节点类型与 meta 不匹配，期待 ${meta.nodeType}，实际 ${targetNode.type}，路径: ${path.join(",")}`,
-          );
+          logger.warn("PLUGIN", {
+            msg: `目标节点类型与 meta 不匹配，期待 ${meta.nodeType}，实际 ${targetNode.type}，路径: ${path.join(",")}`,
+          });
           continue;
         }
 
@@ -257,7 +265,9 @@ export class MarkdownTranslatableFileHandler
           if ((targetNode as Literal).value !== undefined) {
             (targetNode as Literal).value = String(e.value);
           } else {
-            console.warn("未能识别可替换节点类型，跳过：", targetNode.type);
+            logger.warn("PLUGIN", {
+              msg: `未能识别可替换节点类型，跳过：${targetNode.type}`,
+            });
           }
         }
       } catch (err: unknown) {
