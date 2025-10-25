@@ -3,8 +3,10 @@ import { RedisDB } from "./redis.ts";
 import { DrizzleDB } from "@/drizzle/db.ts";
 
 declare global {
-  const __DRIZZLE_DB__: DrizzleDB | undefined;
-  const __REDIS_DB__: RedisDB | undefined;
+  // oxlint-disable-next-line no-var
+  var __DRIZZLE_DB__: DrizzleDB | undefined;
+  // oxlint-disable-next-line no-var
+  var __REDIS_DB__: RedisDB | undefined;
 }
 
 export const getDrizzleDB = async (): Promise<DrizzleDB> => {
@@ -15,7 +17,7 @@ export const getDrizzleDB = async (): Promise<DrizzleDB> => {
     await db.ping();
     globalThis["__DRIZZLE_DB__"] = db;
   }
-  return globalThis["__DRIZZLE_DB__"]!;
+  return globalThis["__DRIZZLE_DB__"];
 };
 
 export const getRedisDB = async (): Promise<RedisDB> => {
@@ -26,5 +28,5 @@ export const getRedisDB = async (): Promise<RedisDB> => {
     await db.ping();
     globalThis["__REDIS_DB__"] = db;
   }
-  return globalThis["__REDIS_DB__"]!;
+  return globalThis["__REDIS_DB__"];
 };

@@ -4,7 +4,7 @@ import { nextTick } from "vue";
 import Collapse from "@/app/components/Collapse.vue";
 
 describe("Collapse.vue", () => {
-  it("should hide text when click outside", async () => {
+  it("should hide text when click outside", () => {
     const text = "Test Text";
 
     const wrapper = mount(Collapse, {

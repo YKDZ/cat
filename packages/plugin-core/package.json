@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "vite build",
-    "lint": "oxlint --fix",
+    "lint": "oxlint --fix --type-aware",
     "format": "prettier --write ."
   },
   "devDependencies": {

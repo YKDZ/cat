@@ -1,7 +1,7 @@
 import type { PageContextServer } from "vike/types";
 import { render } from "vike/abort";
 
-export const data = async (ctx: PageContextServer) => {
+export const data = (ctx: PageContextServer) => {
   const { projectId } = ctx.routeParams;
 
   if (!projectId) throw render(`/`, `Project id is required`);

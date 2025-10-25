@@ -144,8 +144,8 @@ export class PluginRegistry implements IPluginRegistry {
     if (!globalThis[key])
       // @ts-expect-error hard to declare type for globalThis
       globalThis[key] = new PluginRegistry(scopeType, scopeId);
-    // @ts-expect-error hard to declare type for globalThis
-    return globalThis[key];
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    return globalThis[key] as PluginRegistry;
   }
 
   public static async importPlugin(
@@ -280,6 +280,7 @@ export class PluginRegistry implements IPluginRegistry {
   ): Promise<{ id: number; service: PluginServiceMap[T]; pluginId: string }[]> {
     // 优先考虑缓存
     if (this.serviceCache.has(type)) {
+      // oxlint-disable-next-line no-unsafe-type-assertion
       return Array.from(this.serviceCache.get(type)!.values()) as {
         id: number;
         service: PluginServiceMap[T];
@@ -340,7 +341,7 @@ export class PluginRegistry implements IPluginRegistry {
 
         const result = {
           id: row.id,
-          service: service.service as PluginServiceMap[T],
+          service: service.service,
           pluginId: row.pluginId,
         };
 
@@ -365,6 +366,7 @@ export class PluginRegistry implements IPluginRegistry {
       if (cached)
         return {
           id: cached.id,
+          // oxlint-disable-next-line no-unsafe-type-assertion
           service: cached.service as PluginServiceMap[T],
         };
     }
@@ -434,6 +436,7 @@ export class PluginRegistry implements IPluginRegistry {
 
     const instance = await this.getPluginInstance(service.pluginId);
 
+    // oxlint-disable-next-line no-unsafe-type-assertion
     const getter = instance[PluginServiceGetterMap[service.type]] as
       | ((
           opts: PluginGetterOptions,
@@ -477,7 +480,19 @@ export class PluginRegistry implements IPluginRegistry {
     const pluginUrl = /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
     const imported = await import(/* @vite-ignore */ pluginUrl);
 
-    const instance = PluginObjectSchema.parse(imported.default ?? imported);
+    if (
+      !imported ||
+      typeof imported !== "object" ||
+      // oxlint-disable-next-line no-unsafe-member-access
+      typeof imported.default !== "object"
+    ) {
+      throw new Error(
+        `Plugin ${pluginId} does not have a default export object`,
+      );
+    }
+
+    // oxlint-disable-next-line no-unsafe-member-access
+    const instance = PluginObjectSchema.parse(imported.default);
 
     try {
       if (instance.onEnabled) await instance.onEnabled();
@@ -511,7 +526,9 @@ export class PluginRegistry implements IPluginRegistry {
     const dirPath = PluginRegistry.getPluginFsPath(pluginId);
     const manifestPath = join(dirPath, "manifest.json");
 
-    if (!access(manifestPath)) {
+    try {
+      await access(manifestPath);
+    } catch {
       logger.debug("PLUGIN", {
         msg: `Plugin ${pluginId} missing manifest.json`,
       });
@@ -534,9 +551,12 @@ export class PluginRegistry implements IPluginRegistry {
 
     const manifest = PluginManifestSchema.parse(JSON.parse(rawManifest));
 
-    const { name, version } = JSON.parse(
-      await readFile(packageDotJsonPath, "utf-8"),
-    );
+    const { name, version } = z
+      .object({
+        name: z.string(),
+        version: z.string(),
+      })
+      .parse(JSON.parse(await readFile(packageDotJsonPath, "utf-8")));
 
     return PluginDataSchema.parse({
       ...manifest,
@@ -584,7 +604,15 @@ export class PluginRegistry implements IPluginRegistry {
       service: IPluginService;
     },
   ) {
-    const current = this.serviceCache.get(type) ?? new Map();
+    const current =
+      this.serviceCache.get(type) ??
+      new Map<
+        string,
+        {
+          id: number;
+          service: IPluginService;
+        }
+      >();
     current.set(pluginId, service);
     this.serviceCache.set(type, current);
   }

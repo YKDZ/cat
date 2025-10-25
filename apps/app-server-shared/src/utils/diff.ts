@@ -22,6 +22,7 @@ export const diffArraysAndSeparate = <T extends K, K>(
     if (object.added) {
       added.push(...object.value);
     } else if (object.removed) {
+      // oxlint-disable-next-line no-unsafe-type-assertion
       removed.push(...(object.value as T[]));
     }
   });

@@ -56,13 +56,18 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
         translation.value +
         term.creatorId +
         translation.creatorId +
-        term.createdAt;
+        JSON.stringify(term.createdAt);
       if (
         !terms.value.find((relation) => {
           const { Term: t, Translation: tr } = relation;
           if (!t || !tr) return false;
           return (
-            t.value + tr.value + t.creatorId + tr.creatorId + t.createdAt === id
+            t.value +
+              tr.value +
+              t.creatorId +
+              tr.creatorId +
+              JSON.stringify(t.createdAt) ===
+            id
           );
         })
       )

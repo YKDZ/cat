@@ -97,22 +97,31 @@ export const suggestionRouter = router({
         return;
       }
 
-      advisors.forEach(async (advisor) => {
+      const processSuggestions = advisors.map(async (advisor) => {
         const elementHash = hash({
           ...element,
           targetLanguageId: languageId,
           advisorName: advisor.getName(),
         });
         const cacheKey = `cache:suggestions:${elementHash}`;
+
+        const cachedSuggestionStrings = await redis.sMembers(cacheKey);
         const cachedSuggestion = z
           .array(TranslationSuggestionSchema)
           .parse(
-            (await redis.sMembers(cacheKey)).map((str) => JSON.parse(str)),
+            cachedSuggestionStrings.map((str) => JSON.parse(str) as unknown),
           );
+
         if (cachedSuggestion.length > 0) {
-          cachedSuggestion.forEach((suggestion) => {
-            redisPub.publish(suggestionChannelKey, JSON.stringify(suggestion));
-          });
+          // Publish cached suggestions
+          await Promise.all(
+            cachedSuggestion.map(async (suggestion) =>
+              redisPub.publish(
+                suggestionChannelKey,
+                JSON.stringify(suggestion),
+              ),
+            ),
+          );
           return;
         }
 
@@ -149,39 +158,48 @@ export const suggestionRouter = router({
               eq(relationTranslation.languageId, languageId),
             ),
           );
-        advisor
-          .getSuggestions(
+
+        // Get suggestions from advisor
+        try {
+          const suggestions = await advisor.getSuggestions(
             element.value,
             termedText,
             relations,
             "zh_Hans",
             languageId,
-          )
-          .then((suggestions) => {
-            if (suggestions.length === 0) {
-              logger.warn("PLUGIN", {
-                msg: `Translation advisor ${advisor.getName()} does not return any suggestions, which is not recommended. Please at least return a suggestion with error message when error occurred.`,
-              });
-              return;
-            }
-            suggestions.forEach((suggestion) => {
-              const suggestionStr = JSON.stringify(suggestion);
-              redisPub.publish(suggestionChannelKey, suggestionStr);
-              // 缓存结果
-              if (suggestion.status === "SUCCESS") {
-                redis.sAdd(cacheKey, suggestionStr);
-                redis.expire(cacheKey, 60 * 60);
-              }
+          );
+
+          if (suggestions.length === 0) {
+            logger.warn("PLUGIN", {
+              msg: `Translation advisor ${advisor.getName()} does not return any suggestions, which is not recommended. Please at least return a suggestion with error message when error occurred.`,
             });
-          })
-          .catch((e) => {
-            logger.error(
-              "RPC",
-              { msg: "Error when generate translation suggestions" },
-              e,
-            );
-          });
+            return;
+          }
+
+          // Publish and cache suggestions
+          await Promise.all(
+            suggestions.map(async (suggestion) => {
+              const suggestionStr = JSON.stringify(suggestion);
+              await redisPub.publish(suggestionChannelKey, suggestionStr);
+
+              // Cache successful suggestions
+              if (suggestion.status === "SUCCESS") {
+                await redis.sAdd(cacheKey, suggestionStr);
+                await redis.expire(cacheKey, 60 * 60);
+              }
+            }),
+          );
+        } catch (e: unknown) {
+          logger.error(
+            "RPC",
+            { msg: "Error when generate translation suggestions" },
+            e,
+          );
+        }
       });
+
+      // Start all advisor processing without waiting
+      void Promise.all(processSuggestions);
 
       try {
         for await (const suggestion of suggestionsQueue.consume()) {

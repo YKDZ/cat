@@ -52,7 +52,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     return await trpc.document.countElement.query({
       documentId: context.documentId.value,
       searchQuery: searchQuery.value,
-      isTranslated: isProofreading.value === false ? undefined : true,
+      isTranslated: !isProofreading.value ? undefined : true,
     });
   });
 
@@ -69,7 +69,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       documentId: context.documentId.value,
       pageSize: context.pageSize.value,
       searchQuery: searchQuery.value,
-      isTranslated: isProofreading.value === false ? undefined : true,
+      isTranslated: !isProofreading.value ? undefined : true,
     });
     await toPage(page);
     elementId.value = id;
@@ -79,7 +79,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const toPage = async (index: number) => {
     if (!context.documentId.value) return;
 
-    const isTranslated = isProofreading.value === false ? undefined : true;
+    const isTranslated = !isProofreading.value ? undefined : true;
     const inputHash = await hashJSON({
       pageSize: context.pageSize.value,
       searchQuery: searchQuery.value,
@@ -102,7 +102,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
         searchQuery: searchQuery.value,
         isTranslated,
       })
-      .then(async (elements) => {
+      .then((elements) => {
         context.currentPageIndex.value = index;
         if (elements.length === 0) return;
         elementRefStore.loadedPages.value.set(
@@ -165,7 +165,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     translationValue.value = "";
   };
 
-  const insert = (value: string) => {
+  const insert = async (value: string) => {
     if (!element.value || !inputTextareaEl.value) return;
 
     const start = inputTextareaEl.value.selectionStart;
@@ -176,7 +176,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       value +
       translationValue.value.slice(end);
 
-    nextTick(() => {
+    await nextTick(() => {
       if (!inputTextareaEl.value) return;
 
       const position = start + value.length;

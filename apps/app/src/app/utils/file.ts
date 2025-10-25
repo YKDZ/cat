@@ -30,6 +30,9 @@ export const uploadFileToS3PresignedURL = async (
     mode: "cors",
     credentials: "omit",
   }).then((res) => {
-    if (!res.ok) throw new Error("Error when uploading file: " + res);
+    if (!res.ok)
+      throw new Error(
+        "Error when uploading file. Response: " + JSON.stringify(res),
+      );
   });
 };

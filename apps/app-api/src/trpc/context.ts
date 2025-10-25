@@ -41,6 +41,7 @@ export const createHttpContext = async ({
   };
 };
 
+// oxlint-disable-next-line require-await
 export const createWSContext = async ({
   req,
 }: Pick<CreateWSSContextFnOptions, "req">): Promise<{

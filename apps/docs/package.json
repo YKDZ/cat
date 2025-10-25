@@ -7,7 +7,7 @@
     "dev": "vitepress dev src",
     "build": "vitepress build src",
     "preview": "vitepress preview src",
-    "lint": "oxlint --fix",
+    "lint": "oxlint --fix --type-aware",
     "format": "prettier --write ."
   },
   "devDependencies": {

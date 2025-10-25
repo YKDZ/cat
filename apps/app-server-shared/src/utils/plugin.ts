@@ -39,5 +39,6 @@ export const getServiceFromDBId = async <T extends IPluginService>(
 
   if (!service) throw new Error(`Service ${id} not found`);
 
+  // oxlint-disable-next-line no-unsafe-type-assertion
   return service as unknown as T;
 };

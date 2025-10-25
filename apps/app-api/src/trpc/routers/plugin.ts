@@ -29,7 +29,7 @@ export const pluginRouter = router({
         scopeId: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(({ input }) => {
       const { scopeType, scopeId } = input;
 
       const registry = PluginRegistry.get(scopeType, scopeId);

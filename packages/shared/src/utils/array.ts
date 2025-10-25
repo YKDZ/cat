@@ -76,7 +76,7 @@ export const getIndex = <T>(arr: T[], index: number): T => {
       `Index ${index} is out of bounds for array of length ${arr.length}`,
     );
   }
-  return arr[index]!;
+  return arr[index];
 };
 
 export const zip = <T, U>(a: T[], b: U[]): [T, U][] => {

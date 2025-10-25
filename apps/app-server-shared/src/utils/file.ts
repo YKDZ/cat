@@ -3,10 +3,7 @@ import type {
   StorageProvider,
   TranslatableFileHandler,
 } from "@cat/plugin-core";
-import type {
-  TranslatableElementData,
-  TranslatableElementDataWithoutLanguageId,
-} from "@cat/shared/schema/misc";
+import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { OverallDrizzleClient } from "@cat/db";
 import { getServiceFromDBId } from "@/utils/plugin.ts";
 
@@ -54,19 +51,20 @@ const sortAndAssignIndex = (
 
   elements.forEach((item, idx) => {
     if (typeof item.sortIndex === "number") {
-      withSortIndex.push(
-        item as TranslatableElementData & { sortIndex: number },
-      );
+      withSortIndex.push({
+        ...item,
+        sortIndex: item.sortIndex,
+      });
     } else {
       withoutSortIndex.push({ item, originalIndex: idx });
     }
   });
 
-  withSortIndex.sort((a, b) => a.sortIndex! - b.sortIndex!);
+  withSortIndex.sort((a, b) => a.sortIndex - b.sortIndex);
 
   const maxSortIndex =
     withSortIndex.length > 0
-      ? Math.max(...withSortIndex.map((i) => i.sortIndex!))
+      ? Math.max(...withSortIndex.map((i) => i.sortIndex))
       : -1;
 
   let currentIndex = maxSortIndex + 1;

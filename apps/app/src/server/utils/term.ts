@@ -19,7 +19,7 @@ export const initTermService = async (
     services.map(
       async ({ service }) =>
         await Promise.all(
-          languageIds.map((langId) =>
+          languageIds.map(async (langId) =>
             service.termIndexer.ensureIndex(langId.toLowerCase()),
           ),
         ),

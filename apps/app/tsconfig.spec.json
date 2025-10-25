@@ -7,6 +7,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    "lib": ["DOM"],
     "paths": {
       "@/*": ["./src/*"]
     }

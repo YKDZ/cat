@@ -7,39 +7,69 @@ export const registerTaskUpdateHandlers = (
   worker: Worker,
   queueId: string,
 ): void => {
-  worker.on("active", async (job) => {
-    const id = job.name;
+  worker.on("active", (job) => {
+    const handler = async () => {
+      const id = job.name;
 
-    await updateTaskStatus(drizzle, id, "processing");
+      await updateTaskStatus(drizzle, id, "processing");
 
-    logger.info("PROCESSOR", { msg: `Active ${queueId} task: ${id}` });
+      logger.info("PROCESSOR", { msg: `Active ${queueId} task: ${id}` });
+    };
+
+    handler().catch((error: unknown) => {
+      logger.error(
+        "PROCESSOR",
+        { msg: `Failed when update status for task ${queueId} task` },
+        error,
+      );
+    });
   });
 
-  worker.on("completed", async (job) => {
-    const id = job.name;
+  worker.on("completed", (job) => {
+    const handler = async () => {
+      const id = job.name;
 
-    await updateTaskStatus(drizzle, id, "completed");
+      await updateTaskStatus(drizzle, id, "completed");
 
-    logger.info("PROCESSOR", { msg: `Completed ${queueId} task: ${id}` });
+      logger.info("PROCESSOR", { msg: `Completed ${queueId} task: ${id}` });
+    };
+
+    handler().catch((error: unknown) => {
+      logger.error(
+        "PROCESSOR",
+        { msg: `Failed when update status for task ${queueId} task` },
+        error,
+      );
+    });
   });
 
-  worker.on("failed", async (job) => {
+  worker.on("failed", (job) => {
     if (!job) return;
 
-    const id = job.name;
+    const handler = async () => {
+      const id = job.name;
 
-    await updateTaskStatus(drizzle, id, "failed", job.stacktrace);
+      await updateTaskStatus(drizzle, id, "failed", job.stacktrace);
 
-    logger.error(
-      "PROCESSOR",
-      {
-        msg: `Failed ${queueId} task: ${id}`,
-      },
-      job.stacktrace,
-    );
+      logger.error(
+        "PROCESSOR",
+        {
+          msg: `Failed ${queueId} task: ${id}`,
+        },
+        job.stacktrace,
+      );
+    };
+
+    handler().catch((error: unknown) => {
+      logger.error(
+        "PROCESSOR",
+        { msg: `Failed when update status for task ${queueId} task` },
+        error,
+      );
+    });
   });
 
-  worker.on("error", async (error) => {
+  worker.on("error", (error) => {
     logger.error("PROCESSOR", { msg: `Worker throw error` }, error);
   });
 };
