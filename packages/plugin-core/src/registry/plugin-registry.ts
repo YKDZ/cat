@@ -145,6 +145,7 @@ export class PluginRegistry implements IPluginRegistry {
       // @ts-expect-error hard to declare type for globalThis
       globalThis[key] = new PluginRegistry(scopeType, scopeId);
     // oxlint-disable-next-line no-unsafe-type-assertion
+    // @ts-expect-error hard to declare type for globalThis
     return globalThis[key] as PluginRegistry;
   }
 

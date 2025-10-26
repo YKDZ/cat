@@ -4,13 +4,10 @@
   "include": [],
   "references": [
     {
-      "path": "../../shared"
+      "path": "../../plugin-core"
     },
     {
       "path": "../../db"
-    },
-    {
-      "path": "../../plugin-core"
     },
     {
       "path": "./tsconfig.lib.json"
