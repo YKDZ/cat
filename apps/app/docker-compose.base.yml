@@ -55,6 +55,12 @@ services:
       - ./ollama:/root/.ollama
     ports:
       - 11434:11434
+    healthcheck:
+      test: ollama --version || exit 1
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
     deploy:
       resources:
         reservations:

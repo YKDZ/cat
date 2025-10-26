@@ -1,50 +1,85 @@
 # How to contribute
 
-This repo is a monorepo managed by nx.
+This repo is a monorepo managed by `nx`.
 
-The sub repo is stored under:
+The subpackages are located in:
 
-- `apps/`: The main app
-- `packages/`: Some shared packages and plugin-core etc.
-- `packages/@cat-plugin/`: Internal CAT plugin
+- `apps/`: Main application
+- `packages/`: Shared packages, plugin core, and related utilities
+- `packages/@cat-plugin/`: Internal CAT plugins
 
-The relating tech and framework are:
+The primary related technologies and frameworks are:
 
 - [vike](https://vike.dev/): SSR framework
 - [vue](https://vuejs.org/): frontend framework
 - [hono](https://hono.dev/): web application framework
 - [tRPC](https://trpc.io/): RPC library
-- [drizzle](https://orm.drizzle.team/): ORM (postgresql)
+- [drizzle](https://orm.drizzle.team/): ORM (PostgreSQL)
 - [redis](https://redis.io/): cache database
 - [vite](https://vite.dev/): bundler
-- [unocss](https://unocss.dev/): atom css library
+- [tailwindcss](https://tailwindcss.com/): utility-first CSS framework
 - [zod](https://zod.dev/): validation library
 - [nx](https://nx.dev/): monorepo manager
+- [oxlint](https://oxc.rs/docs/guide/usage/linter): linter
+- [prettier](https://prettier.io/): formatter
 
 ## Local Development
 
-To run CAT APP in `apps/app` locally, you can:
+You have two choices for running the CAT app in `apps/app` locally.
 
-### Through vite development server
+### Through Vite dev server (recommended)
 
-1. install Nodejs 22
-2. create `/apps/app/.env` file from `/apps/app/.env.example`
-3. run `pnpm install`
-4. run `pnpm nx dev --project=@cat/app`
-5. visit `http://localhost:${your_port}`.
+1. Install Node.js 24.x
+2. Run `pnpm install`
+3. Run `docker compose -f apps/app/docker-compose.base.yml up`
+4. Create `packages/db/.env` from `packages/db/.env.example`
+5. Run `pnpm --filter=@cat/db exec drizzle-kit migrate`
+6. Create `apps/app/.env` from `apps/app/.env.example`
+7. Run `pnpm nx dev app`
+8. Visit `http://localhost:3000`
 
-### Through Docker
-
-1. run `pnpm nx docker:build --project=@cat/app` to build app's docker image from `apps/app/Dockerfile`
-2. create `/apps/app/.env` file from `/apps/app/.env.example`
-3. run `docker compose up` for `docker-compose.yml`
-4. visit `http://localhost:${your_port}`.
-
-### Email & Password
-
-Default admin email-password account is:
+The default admin email/password account is:
 
 ```txt
 Email: admin@encmys.cn
 Password: password
 ```
+
+### Through Docker
+
+1. `nx docker:build app`
+2. `docker compose -f apps/app/docker-compose.yml up`
+3. Visit `http://localhost:3000`
+
+The default admin email/password account is:
+
+```txt
+Email: admin@encmys.cn
+The password will be printed in the Docker container log
+```
+
+## Before Submitting a Pull Request
+
+Please make sure your changes meet the following requirements **before** opening a PR:
+
+### Format the code
+
+```bash
+pnpm nx run-many --target=format --projects=*
+```
+
+### Lint the code
+
+```bash
+pnpm nx run-many --target=lint:fix --projects=*
+```
+
+Ensure there are no unresolved lint errors or warnings.
+
+### Run TypeScript type checking
+
+```bash
+pnpm nx run-many --target=typecheck --projects=*
+```
+
+The GitHub workflows `format-check.yml`, `lint-check.yml` and `typecheck.yml` perform check for the tasks above.

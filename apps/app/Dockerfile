@@ -6,19 +6,26 @@ ENV PNPM_HOME="/pnpm" \
 
 RUN corepack enable
 
-FROM base AS builder
+FROM base AS deps
+WORKDIR /deps
+
+COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+
+RUN pnpm fetch
+
+FROM deps AS builder
 WORKDIR /builder
 
 COPY . .
 
-RUN pnpm install --frozen-lockfile \
+RUN pnpm install --offline --frozen-lockfile --filter=@cat/app... --filter=@cat-plugin/*... \
+    && pnpm nx sync:check \
     && pnpm nx build @cat/app \
     && pnpm build-plugins \
     && pnpm load-plugins \
     && pnpm --filter=@cat/app copy-drizzle
 
 FROM builder AS deployer
-WORKDIR /builder
 
 RUN pnpm --filter=@cat/app deploy --prod --no-optional /deployer \
     && pnpm prune --prod --no-optional

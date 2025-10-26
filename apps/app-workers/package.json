@@ -34,6 +34,7 @@
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {
@@ -47,6 +48,7 @@
     "@cat/app-server-shared": "workspace:*",
     "zod": "^4.1.9",
     "bullmq": "^5.58.4",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "dotenv": "^17.2.3"
   }
 }

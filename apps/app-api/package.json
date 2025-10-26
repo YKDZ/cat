@@ -38,6 +38,7 @@
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {

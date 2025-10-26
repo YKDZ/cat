@@ -12,6 +12,7 @@ export default defineConfig({
       "zod",
       "lodash-es",
       "bullmq",
+      "dotenv",
     ],
   },
 
