@@ -77,6 +77,6 @@
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
     "cross-env": "^10.1.0",
-    "happy-dom": "^18.0.1"
+    "happy-dom": "^20.0.2"
   }
 }
