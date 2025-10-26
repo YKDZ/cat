@@ -46,6 +46,13 @@
 @import "tailwindcss";
 @plugin "@iconify/tailwind4";
 
+.VPLocalNav,
+.VPNav,
+.VPDocFooter,
+.VPSidebar {
+  @apply print:hidden;
+}
+
 @theme {
   --color-default-1: var(--vp-c-default-1);
   --color-default-2: var(--vp-c-default-2);
@@ -146,17 +153,6 @@
   :root {
     --vp-home-hero-image-filter: blur(68px);
   }
-}
-
-/**
- * Component: Custom Block
- * -------------------------------------------------------------------------- */
-
-:root {
-  --vp-custom-block-tip-border: transparent;
-  --vp-custom-block-tip-text: var(--vp-c-text-1);
-  --vp-custom-block-tip-bg: var(--vp-c-brand-soft);
-  --vp-custom-block-tip-code-bg: var(--vp-c-brand-soft);
 }
 
 /**
