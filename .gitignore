@@ -1,6 +1,8 @@
 # app
 apps/app/plugins
 
+out-tsc
+
 .vscode
 dist
 ollama
