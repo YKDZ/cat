@@ -22,7 +22,7 @@
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
+    "typecheck": "tsc --noEmit && vue-tsc --noEmit",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat",
     "copy-drizzle": "tsx scripts/copy-drizzle.ts"

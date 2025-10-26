@@ -7,9 +7,6 @@
       "path": "../app-server-shared"
     },
     {
-      "path": "../../packages/shared"
-    },
-    {
       "path": "../../packages/db"
     },
     {

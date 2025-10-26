@@ -9,7 +9,7 @@ export default {
   Layout: () => {
     return h(DefaultTheme.Layout, null, {});
   },
-  enhanceApp({ app, _router, _siteData }) {
+  enhanceApp({ app }) {
     app.component("Mermaid", Mermaid);
   },
 } satisfies Theme;
