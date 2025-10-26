@@ -1,5 +1,6 @@
 # app
 apps/app/plugins
+apps/app/drizzle
 
 **/out-tsc
 

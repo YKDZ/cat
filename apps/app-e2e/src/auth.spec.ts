@@ -11,7 +11,6 @@ test("should have basic auth outlook", async ({ page }) => {
     - img
     - heading "登录到 CAT" [level=1]
     - button "通过 邮箱 + 密码 登录"
-    - button "通过 My OIDC 登录"
     `);
 });
 
