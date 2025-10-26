@@ -60,14 +60,6 @@ jobs:
           docker compose up -d --wait
         working-directory: apps/app-e2e
 
-      - name: Prestart application
-        run: |
-          echo "🚀 Prepare db environment for app preview..."
-          pnpm run reset-db
-        working-directory: apps/app-e2e
-        env:
-          DATABASE_URL: "postgresql://user:pass@localhost:5432/cat?schema=public"
-
       - name: Run E2E tests
         run: |
           echo "🧪 Run E2E..."

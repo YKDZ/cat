@@ -3,18 +3,17 @@ import { type Page, expect } from "@playwright/test";
 export class AuthPage {
   constructor(public readonly page: Page) {}
 
-  async goto() {
+  async goto(): Promise<void> {
     await this.page.goto("http://localhost:3000/auth");
     await this.page.waitForSelector("body.hydrated");
   }
 
-  async login() {
+  async login(): Promise<void> {
     await this.goto();
     await expect(this.page.locator("#app")).toMatchAriaSnapshot(`
       - img
       - heading "登录到 CAT" [level=1]
       - button "通过 邮箱 + 密码 登录"
-      - button "通过 My OIDC 登录"
       `);
     await this.page.getByTestId("EMAIL_PASSWORD").click();
     await expect(this.page.locator("#app")).toMatchAriaSnapshot(`

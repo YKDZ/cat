@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
+  "scripts": {
+    "test": "playwright test"
+  },
   "devDependencies": {
     "@cat/db": "workspace:*",
     "@cat/eslint-config": "workspace:*",
