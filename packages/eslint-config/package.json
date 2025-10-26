@@ -2,7 +2,8 @@
   "name": "@cat/eslint-config",
   "private": true,
   "scripts": {
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "files": [
     ".oxlintrc.json",

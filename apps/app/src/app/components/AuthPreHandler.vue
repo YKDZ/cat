@@ -61,10 +61,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <JSONForm v-if="typeof schema === 'object' && !isEmpty" :schema :data @update="(to) => (data = to)" />
-  <HButton :data-testid="method.providerId" :classes="{
-    base: 'btn btn-w-full btn-base btn-md btn-center',
-  }" :icon="method.icon" @click="handlePreAuth">
+  <JSONForm
+    v-if="typeof schema === 'object' && !isEmpty"
+    :schema
+    :data
+    @update="(to) => (data = to)"
+  />
+  <HButton
+    :data-testid="method.providerId"
+    :classes="{
+      base: 'btn btn-w-full btn-base btn-md btn-center',
+    }"
+    :icon="method.icon"
+    @click="handlePreAuth"
+  >
     {{ t("通过 {name} 登录", { name: method.name }) }}
   </HButton>
 </template>

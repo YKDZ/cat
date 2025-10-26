@@ -1,3 +1,4 @@
+import "dotenv/config";
 import type { QueueOptions } from "bullmq";
 
 const url = new URL(process.env.REDIS_URL ?? "redis://localhost:6379");
