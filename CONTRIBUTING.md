@@ -62,6 +62,12 @@ The password will be printed in the Docker container log
 
 Please make sure your changes meet the following requirements **before** opening a PR:
 
+### Make sure nx workspace is sync
+
+```bash
+pnpm nx sync
+```
+
 ### Format the code
 
 ```bash
