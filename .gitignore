@@ -1,7 +1,7 @@
 # app
 apps/app/plugins
 
-out-tsc
+**/out-tsc
 
 .vscode
 dist
