@@ -93,19 +93,19 @@ importers:
     dependencies:
       '@cat/app-api':
         specifier: workspace:*
-        version: link:../app-api
+        version: file:apps/app-api(a8608c7b9be7991abbd72a95a4c1140f)
       '@cat/app-server-shared':
         specifier: workspace:*
-        version: link:../app-server-shared
+        version: file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)
       '@cat/app-workers':
         specifier: workspace:*
-        version: link:../app-workers
+        version: file:apps/app-workers(351c0e201c810b6b11ac05108e90fe62)
       '@cat/db':
         specifier: workspace:*
-        version: link:../../packages/db
+        version: file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
       '@cat/plugin-core':
         specifier: workspace:*
-        version: link:../../packages/plugin-core
+        version: file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -164,8 +164,8 @@ importers:
         specifier: ^9.14.0
         version: 9.14.0
       pino-http:
-        specifier: ^10.5.0
-        version: 10.5.0
+        specifier: ^11.0.0
+        version: 11.0.0
       tailwindcss:
         specifier: ^4.1.16
         version: 4.1.16
@@ -253,7 +253,7 @@ importers:
         version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       '@trpc/client':
         specifier: ^11.5.1
         version: 11.7.0(@trpc/server@11.7.0(typescript@5.9.3))(typescript@5.9.3)
@@ -284,7 +284,7 @@ importers:
         version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       '@playwright/test':
         specifier: ^1.56.1
         version: 1.56.1
@@ -302,7 +302,7 @@ importers:
         version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       diff:
         specifier: ^8.0.2
         version: 8.0.2
@@ -324,7 +324,7 @@ importers:
         version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       bullmq:
         specifier: ^5.58.4
         version: 5.61.2
@@ -389,7 +389,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       zod:
         specifier: ^4.1.9
         version: 4.1.12
@@ -408,7 +408,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       '@elastic/elasticsearch':
         specifier: ^9.2.0
         version: 9.2.0
@@ -430,7 +430,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       zod:
         specifier: ^4.1.9
         version: 4.1.12
@@ -449,7 +449,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       undici:
         specifier: 7.16.0
         version: 7.16.0
@@ -471,7 +471,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -511,7 +511,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       jose:
         specifier: ^6.1.0
         version: 6.1.0
@@ -536,7 +536,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       undici:
         specifier: 7.16.0
         version: 7.16.0
@@ -564,7 +564,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       zod:
         specifier: ^4.1.9
         version: 4.1.12
@@ -583,7 +583,7 @@ importers:
         version: link:../../plugin-core
       '@cat/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       yaml:
         specifier: ^2.8.1
         version: 2.8.1
@@ -599,7 +599,7 @@ importers:
     dependencies:
       '@cat/shared':
         specifier: workspace:*
-        version: link:../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -651,7 +651,7 @@ importers:
         version: link:../db
       '@cat/shared':
         specifier: workspace:*
-        version: link:../shared
+        version: file:packages/shared(pino@10.1.0)(zod@4.1.12)
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -1416,6 +1416,60 @@ packages:
 
   '@brillout/vite-plugin-server-entry@0.7.15':
     resolution: {integrity: sha512-0ClgcmjkhJoHbI6KhbjZlXMeA9qn/EPLXEVssjCE6IVYnVb4bTYuq635c44n7jV3GkjcgFHCQWBmNw0OAGiUvQ==}
+
+  '@cat/app-api@file:apps/app-api':
+    resolution: {directory: apps/app-api, type: directory}
+    peerDependencies:
+      '@cat/app-server-shared': workspace:*
+      '@cat/app-workers': workspace:*
+      '@cat/db': workspace:*
+      '@cat/plugin-core': workspace:*
+      '@cat/shared': workspace:*
+      '@trpc/client': ^11.5.1
+      '@trpc/server': ^11.5.1
+      vike: ^0.4.240
+      zod: ^4.1.9
+
+  '@cat/app-server-shared@file:apps/app-server-shared':
+    resolution: {directory: apps/app-server-shared, type: directory}
+    peerDependencies:
+      '@cat/db': workspace:*
+      '@cat/plugin-core': workspace:*
+      '@cat/shared': workspace:*
+      diff: ^8.0.2
+
+  '@cat/app-workers@file:apps/app-workers':
+    resolution: {directory: apps/app-workers, type: directory}
+    peerDependencies:
+      '@cat/app-server-shared': workspace:*
+      '@cat/db': workspace:*
+      '@cat/plugin-core': workspace:*
+      '@cat/shared': workspace:*
+      bullmq: ^5.58.4
+      lodash-es: ^4.17.21
+      zod: ^4.1.9
+
+  '@cat/db@file:packages/db':
+    resolution: {directory: packages/db, type: directory}
+    peerDependencies:
+      '@cat/shared': workspace:*
+      dotenv: ^17.2.3
+      zod: ^4.1.9
+
+  '@cat/plugin-core@file:packages/plugin-core':
+    resolution: {directory: packages/plugin-core, type: directory}
+    peerDependencies:
+      '@cat/db': workspace:*
+      '@cat/shared': workspace:*
+      '@types/lodash-es': ^4.17.12
+      lodash-es: ^4.17.21
+      zod: ^4.1.9
+
+  '@cat/shared@file:packages/shared':
+    resolution: {directory: packages/shared, type: directory}
+    peerDependencies:
+      pino: ^9.9.2
+      zod: ^4.1.9
 
   '@chevrotain/cst-dts-gen@11.0.3':
     resolution: {integrity: sha512-BvIKpRLeS/8UbfxXxgC33xOumsacaeCKAjAeLyOn7Pcp95HiRbrpl14S+9vaZLolnbssPIUuiUd8IvgkRyt6NQ==}
@@ -5976,8 +6030,8 @@ packages:
   pino-abstract-transport@2.0.0:
     resolution: {integrity: sha512-F63x5tizV6WCh4R6RHyi2Ml+M70DNRXt/+HANowMflpgGFMAym/VKm6G7ZOQRjqN7XbGxK1Lg9t6ZrtzOaivMw==}
 
-  pino-http@10.5.0:
-    resolution: {integrity: sha512-hD91XjgaKkSsdn8P7LaebrNzhGTdB086W3pyPihX0EzGPjq5uBJBXo4N5guqNaK6mUjg9aubMF7wDViYek9dRA==}
+  pino-http@11.0.0:
+    resolution: {integrity: sha512-wqg5XIAGRRIWtTk8qPGxkbrfiwEWz1lgedVLvhLALudKXvg1/L2lTFgTGPJ4Z2e3qcRmxoFxDuSdMdMGNM6I1g==}
 
   pino-pretty@13.1.2:
     resolution: {integrity: sha512-3cN0tCakkT4f3zo9RXDIhy6GTvtYD6bK4CRBLN9j3E/ePqN1tugAXD5rGVfoChW6s0hiek+eyYlLNqc/BG7vBQ==}
@@ -5988,6 +6042,10 @@ packages:
 
   pino-std-serializers@7.0.0:
     resolution: {integrity: sha512-e906FRY0+tV27iq4juKzSYPbUj2do2X2JX4EzSca1631EB2QJQUqGbDuERal7LCtOpxl6x3+nvo9NPZcmjkiFA==}
+
+  pino@10.1.0:
+    resolution: {integrity: sha512-0zZC2ygfdqvqK8zJIr1e+wT1T/L+LF6qvqvbzEQ6tiMAoTqEVK9a1K3YRu8HEUvGEvNqZyPJTtb2sNIoTkB83w==}
+    hasBin: true
 
   pino@8.21.0:
     resolution: {integrity: sha512-ip4qdzjkAyDDZklUaZkcRFb2iA118H9SgRh8yzTkSQK8HilsOJF7rSY8HoW5+I0M46AZgX/pxbprf2vvzQCE0Q==}
@@ -8336,6 +8394,92 @@ snapshots:
     dependencies:
       '@brillout/import': 0.2.6
       '@brillout/picocolors': 1.0.28
+
+  '@cat/app-api@file:apps/app-api(a8608c7b9be7991abbd72a95a4c1140f)':
+    dependencies:
+      '@cat/app-server-shared': file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)
+      '@cat/app-workers': file:apps/app-workers(351c0e201c810b6b11ac05108e90fe62)
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
+      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
+      '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
+      '@trpc/client': 11.7.0(@trpc/server@11.7.0(typescript@5.9.3))(typescript@5.9.3)
+      '@trpc/server': 11.7.0(typescript@5.9.3)
+      vike: 0.4.244(vite@7.1.12(@types/node@24.9.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))
+      zod: 4.1.12
+
+  '@cat/app-server-shared@file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)':
+    dependencies:
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
+      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
+      '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
+      diff: 8.0.2
+
+  '@cat/app-workers@file:apps/app-workers(351c0e201c810b6b11ac05108e90fe62)':
+    dependencies:
+      '@cat/app-server-shared': file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
+      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
+      '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
+      bullmq: 5.61.2
+      lodash-es: 4.17.21
+      zod: 4.1.12
+
+  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)':
+    dependencies:
+      '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
+      dotenv: 17.2.3
+      drizzle-orm: 0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))
+      pg: 8.16.3
+      redis: 5.9.0
+      zod: 4.1.12
+    transitivePeerDependencies:
+      - '@aws-sdk/client-rds-data'
+      - '@cloudflare/workers-types'
+      - '@electric-sql/pglite'
+      - '@libsql/client'
+      - '@libsql/client-wasm'
+      - '@neondatabase/serverless'
+      - '@op-engineering/op-sqlite'
+      - '@opentelemetry/api'
+      - '@planetscale/database'
+      - '@prisma/client'
+      - '@tidbcloud/serverless'
+      - '@types/better-sqlite3'
+      - '@types/pg'
+      - '@types/sql.js'
+      - '@upstash/redis'
+      - '@vercel/postgres'
+      - '@xata.io/client'
+      - better-sqlite3
+      - bun-types
+      - expo-sqlite
+      - gel
+      - knex
+      - kysely
+      - mysql2
+      - pg-native
+      - postgres
+      - prisma
+      - sql.js
+      - sqlite3
+
+  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)':
+    dependencies:
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.5)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
+      '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
+      '@types/lodash-es': 4.17.12
+      lodash-es: 4.17.21
+      zod: 4.1.12
+
+  '@cat/shared@file:packages/shared(pino@10.1.0)(zod@4.1.12)':
+    dependencies:
+      pino: 10.1.0
+      zod: 4.1.12
+
+  '@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12)':
+    dependencies:
+      pino: 9.14.0
+      zod: 4.1.12
 
   '@chevrotain/cst-dts-gen@11.0.3':
     dependencies:
@@ -11108,7 +11252,7 @@ snapshots:
       dotenv: 16.6.1
       exsolve: 1.0.7
       giget: 2.0.0
-      jiti: 2.6.1
+      jiti: 2.5.1
       ohash: 2.0.11
       pathe: 2.0.3
       perfect-debounce: 1.0.0
@@ -13187,10 +13331,10 @@ snapshots:
     dependencies:
       split2: 4.2.0
 
-  pino-http@10.5.0:
+  pino-http@11.0.0:
     dependencies:
       get-caller-file: 2.0.5
-      pino: 9.14.0
+      pino: 10.1.0
       pino-std-serializers: 7.0.0
       process-warning: 5.0.0
 
@@ -13213,6 +13357,20 @@ snapshots:
   pino-std-serializers@6.2.2: {}
 
   pino-std-serializers@7.0.0: {}
+
+  pino@10.1.0:
+    dependencies:
+      '@pinojs/redact': 0.4.0
+      atomic-sleep: 1.0.0
+      on-exit-leak-free: 2.1.2
+      pino-abstract-transport: 2.0.0
+      pino-std-serializers: 7.0.0
+      process-warning: 5.0.0
+      quick-format-unescaped: 4.0.4
+      real-require: 0.2.0
+      safe-stable-stringify: 2.5.0
+      sonic-boom: 4.2.0
+      thread-stream: 3.1.0
 
   pino@8.21.0:
     dependencies:

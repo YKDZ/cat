@@ -52,7 +52,7 @@
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
     "pino": "^9.14.0",
-    "pino-http": "^10.5.0",
+    "pino-http": "^11.0.0",
     "tailwindcss": "^4.1.16",
     "undici": "^7.16.0",
     "universal-cookie": "^8.0.1",
