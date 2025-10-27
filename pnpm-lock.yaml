@@ -90,7 +90,7 @@ importers:
         version: 8.0.3(vite@7.1.12(@types/node@24.9.1)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))(vue@3.5.22(typescript@5.9.3))
       vitest:
         specifier: ^3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@20.0.8)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
       vitest-mock-extended:
         specifier: ^3.1.0
         version: 3.1.0(typescript@5.9.3)(vitest@3.2.4)
@@ -240,8 +240,8 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0
       happy-dom:
-        specifier: ^18.0.1
-        version: 18.0.1
+        specifier: ^20.0.8
+        version: 20.0.8
 
   apps/app-api:
     dependencies:
@@ -765,6 +765,7 @@ packages:
   '@aws-sdk/credential-provider-web-identity@3.917.0':
     resolution: {integrity: sha512-pZncQhFbwW04pB0jcD5OFv3x2gAddDYCVxyJVixgyhSw7bKCYxqu6ramfq1NxyVpmm+qsw+ijwi/3cCmhUHF/A==}
     engines: {node: '>=18.0.0'}
+    deprecated: This version contains a compilation TypeScript error https://github.com/aws/aws-sdk-js-v3/issues/7457 - please use @aws-sdk/credential-providers@3.918.0 or higher
 
   '@aws-sdk/middleware-bucket-endpoint@3.914.0':
     resolution: {integrity: sha512-mHLsVnPPp4iq3gL2oEBamfpeETFV0qzxRHmcnCfEP3hualV8YF8jbXGmwPCPopUPQDpbYDBHYtXaoClZikCWPQ==}
@@ -5082,8 +5083,8 @@ packages:
   hachure-fill@0.5.2:
     resolution: {integrity: sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg==}
 
-  happy-dom@18.0.1:
-    resolution: {integrity: sha512-qn+rKOW7KWpVTtgIUi6RVmTBZJSe2k0Db0vh1f7CWrWclkkc7/Q+FrOfkZIb2eiErLyqu5AXEzE7XthO9JVxRA==}
+  happy-dom@20.0.8:
+    resolution: {integrity: sha512-TlYaNQNtzsZ97rNMBAm8U+e2cUQXNithgfCizkDgc11lgmN4j9CKMhO3FPGKWQYPwwkFcPpoXYF/CqEPLgzfOg==}
     engines: {node: '>=20.0.0'}
 
   has-flag@4.0.0:
@@ -9266,7 +9267,7 @@ snapshots:
       tsconfig-paths: 4.2.0
       tslib: 2.8.1
       vite: 7.1.12(@types/node@24.9.1)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
-      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
+      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@20.0.8)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
     transitivePeerDependencies:
       - '@babel/traverse'
       - '@swc-node/register'
@@ -10687,7 +10688,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 2.0.0
-      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
+      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@20.0.8)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
 
   '@vitest/utils@3.2.4':
     dependencies:
@@ -12240,7 +12241,7 @@ snapshots:
 
   hachure-fill@0.5.2: {}
 
-  happy-dom@18.0.1:
+  happy-dom@20.0.8:
     dependencies:
       '@types/node': 20.19.23
       '@types/whatwg-mimetype': 3.0.2
@@ -14380,9 +14381,9 @@ snapshots:
     dependencies:
       ts-essentials: 10.1.1(typescript@5.9.3)
       typescript: 5.9.3
-      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
+      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@20.0.8)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
 
-  vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1):
+  vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(@vitest/ui@3.2.4)(happy-dom@20.0.8)(jiti@2.5.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/expect': 3.2.4
@@ -14411,7 +14412,7 @@ snapshots:
       '@types/debug': 4.1.12
       '@types/node': 24.9.1
       '@vitest/ui': 3.2.4(vitest@3.2.4)
-      happy-dom: 18.0.1
+      happy-dom: 20.0.8
     transitivePeerDependencies:
       - jiti
       - less
