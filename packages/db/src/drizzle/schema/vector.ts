@@ -6,21 +6,35 @@ import {
   integer,
   jsonb,
   foreignKey,
+  index,
 } from "drizzle-orm/pg-core";
-import { translation } from "./translation.ts";
 import { translatableString } from "./document.ts";
-import { memoryItem } from "./memory.ts";
 import { pluginService } from "./plugin.ts";
+import { timestamps } from "./reuse.ts";
 
-export const vector = pgTable(
-  "Vector",
+export const chunkSet = pgTable("ChunkSet", {
+  id: serial().primaryKey().notNull(),
+  meta: jsonb(),
+  ...timestamps,
+});
+
+export const chunk = pgTable(
+  "Chunk",
   {
     id: serial().primaryKey().notNull(),
-    vector: pgVector({ dimensions: 1024 }).notNull(),
     meta: jsonb(),
+    chunkSetId: integer().notNull(),
     vectorizerId: integer().notNull(),
+    vectorStorageId: integer().notNull(),
+    ...timestamps,
   },
   (table) => [
+    foreignKey({
+      columns: [table.chunkSetId],
+      foreignColumns: [chunkSet.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
     foreignKey({
       columns: [table.vectorizerId],
       foreignColumns: [pluginService.id],
@@ -30,15 +44,50 @@ export const vector = pgTable(
   ],
 );
 
-export const vectorRelations = relations(vector, ({ one, many }) => ({
-  Vectorizer: one(pluginService),
+export const vector = pgTable(
+  "Vector",
+  {
+    id: serial().primaryKey().notNull(),
+    vector: pgVector({ dimensions: 1024 }).notNull(),
+    chunkId: integer().notNull(),
+  },
+  (table) => [
+    index().using("hnsw", table.vector.op("vector_cosine_ops")),
+    foreignKey({
+      columns: [table.chunkId],
+      foreignColumns: [chunk.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
 
-  Translations: many(translation),
-  MemoryItemSourceEmbeddings: many(memoryItem, {
-    relationName: "sourceEmbedding",
-  }),
-  MemoryItemTranslationEmbeddings: many(memoryItem, {
-    relationName: "translationEmbedding",
-  }),
+export const chunkSetRelations = relations(chunkSet, ({ many }) => ({
+  Chunks: many(chunk),
   TranslatableStrings: many(translatableString),
+}));
+
+export const chunkRelations = relations(chunk, ({ one }) => ({
+  Vectorizer: one(pluginService, {
+    fields: [chunk.vectorizerId],
+    references: [pluginService.id],
+    relationName: "chunkVectorizerService",
+  }),
+  VectorStorage: one(pluginService, {
+    fields: [chunk.vectorStorageId],
+    references: [pluginService.id],
+    relationName: "chunkVectorStorageService",
+  }),
+
+  ChunkSet: one(chunkSet, {
+    fields: [chunk.chunkSetId],
+    references: [chunkSet.id],
+  }),
+}));
+
+export const vectorRelations = relations(vector, ({ one }) => ({
+  Chunk: one(chunk, {
+    fields: [vector.chunkId],
+    references: [chunk.id],
+  }),
 }));

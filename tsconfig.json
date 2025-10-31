@@ -50,6 +50,9 @@
     },
     {
       "path": "./packages/@cat-plugin/markdown-file-handler"
+    },
+    {
+      "path": "./packages/@cat-plugin/pgvector-storage"
     }
   ]
 }

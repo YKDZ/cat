@@ -4,7 +4,13 @@ import dts from "unplugin-dts/vite";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/plugin-core", "@cat/shared", "zod", "lodash-es"],
+    external: [
+      "@cat/plugin-core",
+      "@cat/shared",
+      "@cat/db",
+      "zod",
+      "lodash-es",
+    ],
     noExternal: ["remark-parse", "remark-stringify", "unified"],
   },
 

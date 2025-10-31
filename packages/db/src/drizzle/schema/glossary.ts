@@ -12,7 +12,7 @@ import { relations } from "drizzle-orm";
 import { timestamps, uuidId } from "./reuse.ts";
 import { project } from "./project.ts";
 import { user } from "./user.ts";
-import { language } from "./misc.ts";
+import { translatableString } from "./document.ts";
 
 export const glossary = pgTable(
   "Glossary",
@@ -37,17 +37,15 @@ export const term = pgTable(
   "Term",
   {
     id: serial().primaryKey().notNull(),
-    value: text().notNull(),
-    languageId: text().notNull(),
+    stringId: integer().notNull(),
     creatorId: uuid().notNull(),
     glossaryId: uuid().notNull(),
     ...timestamps,
   },
   (table) => [
-    index().using("btree", table.languageId.asc().nullsLast().op("text_ops")),
     foreignKey({
-      columns: [table.languageId],
-      foreignColumns: [language.id],
+      columns: [table.stringId],
+      foreignColumns: [translatableString.id],
     })
       .onUpdate("cascade")
       .onDelete("restrict"),
@@ -83,13 +81,13 @@ export const termRelation = pgTable(
       foreignColumns: [term.id],
     })
       .onUpdate("cascade")
-      .onDelete("cascade"),
+      .onDelete("restrict"),
     foreignKey({
       columns: [table.translationId],
       foreignColumns: [term.id],
     })
       .onUpdate("cascade")
-      .onDelete("cascade"),
+      .onDelete("restrict"),
   ],
 );
 
@@ -129,10 +127,6 @@ export const glossaryRelations = relations(glossary, ({ one, many }) => ({
 }));
 
 export const termRelations = relations(term, ({ one, many }) => ({
-  Language: one(language, {
-    fields: [term.languageId],
-    references: [language.id],
-  }),
   Creator: one(user, {
     fields: [term.creatorId],
     references: [user.id],

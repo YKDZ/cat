@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import {
+  Translation,
   TranslationApprovementSchema,
   TranslationSchema,
   TranslationVoteSchema,
@@ -8,26 +9,29 @@ import {
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { autoTranslateQueue } from "@cat/app-workers/workers";
 import { createTranslationQueue } from "@cat/app-workers/workers";
-import { updateTranslationQueue } from "@cat/app-workers/workers";
-import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import {
-  eq,
-  translation as translationTable,
-  task as taskTable,
-  project as projectTable,
-  document as documentTable,
   and,
-  projectTargetLanguage,
-  translationApprovement as translationApprovementTable,
+  asc,
   count,
+  eq,
+  isNull,
+  project as projectTable,
+  projectTargetLanguage,
+  sql,
+  sum,
+  sumDistinct,
+  translation as translationTable,
+  translationApprovement as translationApprovementTable,
   translationVote as translationVoteTable,
   translatableElement as translatableElementTable,
-  sum,
-  isNull,
+  translatableString,
+  document as documentTable,
+  task as taskTable,
   desc,
-  sql,
 } from "@cat/db";
 import { authedProcedure, router } from "../server.ts";
+import { DrizzleDateTimeSchema } from "@cat/shared/schema/misc";
+import { safeZDotJson } from "@cat/shared/schema/json";
 
 export const translationRouter = router({
   delete: authedProcedure
@@ -109,89 +113,32 @@ export const translationRouter = router({
 
         return {
           id: 0,
-          embeddingId: 0,
+          stringId: 0,
           meta: null,
-          value,
-          languageId,
           translatableElementId: elementId,
           translatorId: user.id,
           createdAt: new Date(),
           updatedAt: new Date(),
           status: "PROCESSING",
-        };
+        } satisfies Translation & { status: "PROCESSING" | "COMPLETED" };
       });
-    }),
-  update: authedProcedure
-    .input(
-      z.object({
-        id: z.number().int(),
-        value: z.string(),
-      }),
-    )
-    .output(
-      TranslationSchema.extend({ status: z.enum(["PROCESSING", "COMPLETED"]) }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const {
-        drizzleDB: { client: drizzle },
-      } = ctx;
-      const { id, value } = input;
-
-      const translation = await drizzle.query.translation.findFirst({
-        where: (translation, { eq }) => eq(translation.id, id),
-      });
-
-      if (!translation)
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Translation with given id not found",
-        });
-
-      const task = assertSingleNonNullish(
-        await drizzle
-          .insert(taskTable)
-          .values({
-            type: "update_translation",
-          })
-          .returning({ id: taskTable.id }),
-      );
-
-      await updateTranslationQueue.add(
-        task.id,
-        {
-          translationId: id,
-          translationValue: value,
-        },
-        {
-          jobId: task.id,
-        },
-      );
-
-      return {
-        id: translation.id,
-        embeddingId: translation.embeddingId,
-        meta: null,
-        value,
-        languageId: translation.languageId,
-        translatableElementId: translation.translatableElementId,
-        translatorId: translation.translatorId,
-        createdAt: translation.createdAt,
-        updatedAt: new Date(),
-        status: "PROCESSING",
-      };
     }),
   getAll: authedProcedure
     .input(
       z.object({
-        elementId: z.number().int(),
+        elementId: z.int(),
         languageId: z.string(),
       }),
     )
     .output(
       z.array(
-        TranslationSchema.extend({
-          Translator: UserSchema,
-          TranslationApprovements: z.array(TranslationApprovementSchema),
+        z.object({
+          id: z.int(),
+          value: z.string(),
+          vote: z.int(),
+          translatorId: z.uuidv7(),
+          meta: safeZDotJson,
+          createdAt: DrizzleDateTimeSchema,
         }),
       ),
     )
@@ -201,17 +148,37 @@ export const translationRouter = router({
       } = ctx;
       const { elementId, languageId } = input;
 
-      const translations = await drizzle.query.translation.findMany({
-        where: (translations, { and, eq }) =>
-          and(
-            eq(translations.translatableElementId, elementId),
-            eq(translations.languageId, languageId),
+      const translations = await drizzle
+        .select({
+          id: translationTable.id,
+          value: translatableString.value,
+          vote: sql<number>`COALESCE(${sumDistinct(translationVoteTable.value)}, 0)`.mapWith(
+            Number,
           ),
-        with: {
-          Translator: true,
-          TranslationApprovements: true,
-        },
-      });
+          translatorId: translationTable.translatorId,
+          meta: translationTable.meta,
+          createdAt: translationTable.createdAt,
+        })
+        .from(translationTable)
+        .innerJoin(
+          translatableString,
+          eq(translatableString.id, translationTable.stringId),
+        )
+        .leftJoin(
+          translationApprovementTable,
+          eq(translationApprovementTable.translationId, translationTable.id),
+        )
+        .leftJoin(
+          translationVoteTable,
+          eq(translationVoteTable.translationId, translationTable.id),
+        )
+        .where(
+          and(
+            eq(translatableString.languageId, languageId),
+            eq(translationTable.translatableElementId, elementId),
+          ),
+        )
+        .groupBy(translationTable.id, translatableString.value);
 
       return translations;
     }),
@@ -315,53 +282,69 @@ export const translationRouter = router({
       const { documentId, languageId } = input;
 
       return await drizzle.transaction(async (tx) => {
-        const translationIds = (
-          await tx
-            .select({
-              translationId: translationTable.id,
-            })
-            .from(translatableElementTable)
-            .innerJoin(
-              translationTable,
-              eq(
-                translationTable.translatableElementId,
-                translatableElementTable.id,
-              ),
-            )
-            .leftJoin(
-              translationApprovementTable,
-              eq(
-                translationApprovementTable.translationId,
-                translationTable.id,
-              ),
-            )
-            .where(
-              and(
-                eq(translatableElementTable.documentId, documentId),
-                eq(translationTable.languageId, languageId),
-                isNull(translationApprovementTable.id),
-              ),
-            )
-            .orderBy(desc(sql`COUNT(${translationVoteTable.value})`))
-            .limit(1)
-        ).map((row) => row.translationId);
+        const voteSum =
+          sql<number>`COALESCE(SUM(${translationVoteTable.value}), 0)`.mapWith(
+            Number,
+          );
+
+        const topTranslations = await tx
+          .selectDistinctOn([translationTable.translatableElementId], {
+            translationId: translationTable.id,
+            elementId: translationTable.translatableElementId,
+            voteCount: voteSum,
+          })
+          .from(translationTable)
+          .innerJoin(
+            translatableElementTable,
+            eq(
+              translationTable.translatableElementId,
+              translatableElementTable.id,
+            ),
+          )
+          .innerJoin(
+            translatableString,
+            eq(translationTable.stringId, translatableString.id),
+          )
+          .leftJoin(
+            translationApprovementTable,
+            eq(translationApprovementTable.translationId, translationTable.id),
+          )
+          .leftJoin(
+            translationVoteTable,
+            eq(translationVoteTable.translationId, translationTable.id),
+          )
+          .where(
+            and(
+              eq(translatableElementTable.documentId, documentId),
+              eq(translatableString.languageId, languageId),
+              isNull(translationApprovementTable.id),
+            ),
+          )
+          .groupBy(translationTable.id, translationTable.translatableElementId)
+          .orderBy(
+            translationTable.translatableElementId,
+            desc(voteSum),
+            asc(translationTable.id),
+          );
+
+        const translationIds = topTranslations.map(
+          ({ translationId }) => translationId,
+        );
 
         if (translationIds.length === 0) return 0;
 
-        const result = assertSingleNonNullish(
-          await tx
-            .insert(translationApprovementTable)
-            .values(
-              translationIds.map((id) => ({
-                translationId: id,
-                isActive: true,
-                creatorId: user.id,
-              })),
-            )
-            .returning({ count: count() }),
-        );
+        const insertedRows = await tx
+          .insert(translationApprovementTable)
+          .values(
+            translationIds.map((id) => ({
+              translationId: id,
+              isActive: true,
+              creatorId: user.id,
+            })),
+          )
+          .returning({ id: translationApprovementTable.id });
 
-        return result.count;
+        return insertedRows.length;
       });
     }),
   approve: authedProcedure

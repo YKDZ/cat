@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { Queue, Worker } from "bullmq";
+import { fetch } from "undici";
 import {
   eq,
   mimeFromFileName,
@@ -10,8 +11,10 @@ import {
   translation as translationTable,
   translatableElement as translatableElementTable,
   getSetting,
-  sql,
   and,
+  translatableString,
+  translationApprovement as translationApprovementTable,
+  exists,
 } from "@cat/db";
 import * as z from "zod/v4";
 import { PluginRegistry } from "@cat/plugin-core";
@@ -93,6 +96,7 @@ const worker = new Worker(
 
     if (!file) throw new Error(`Document with id ${documentId} do not exists`);
 
+    // TODO 配置
     const { id, provider } = await useStorage(
       drizzle,
       "s3-storage-provider",
@@ -105,19 +109,36 @@ const worker = new Worker(
     // drizzle 查询 translation 及关联 TranslatableElement、Approvements
     const translationData = await drizzle
       .select({
-        value: translationTable.value,
+        value: translatableString.value,
         meta: translatableElementTable.meta,
       })
       .from(translationTable)
+      .innerJoin(
+        translatableString,
+        eq(translationTable.stringId, translatableString.id),
+      )
       .innerJoin(
         translatableElementTable,
         eq(translationTable.translatableElementId, translatableElementTable.id),
       )
       .where(
         and(
-          eq(translationTable.languageId, languageId),
+          eq(translatableString.languageId, languageId),
           eq(translatableElementTable.documentId, documentId),
-          sql`EXISTS (SELECT 1 FROM "Approvements" a WHERE a."translationId" = ${translationTable.id} AND a."isActive" = true)`,
+          exists(
+            drizzle
+              .select({ id: translationApprovementTable.id })
+              .from(translationApprovementTable)
+              .where(
+                and(
+                  eq(
+                    translationApprovementTable.translationId,
+                    translationTable.id,
+                  ),
+                  eq(translationApprovementTable.isActive, true),
+                ),
+              ),
+          ),
         ),
       );
 
@@ -187,7 +208,9 @@ const worker = new Worker(
 
       await tx
         .update(taskTable)
-        .set({ meta: { ...task.meta, fileId: translatedFile.id } })
+        .set({
+          meta: { ...task.meta, fileId: translatedFile.id, storedPath },
+        })
         .where(eq(taskTable.id, taskId));
     });
   },

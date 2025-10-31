@@ -6,3 +6,12 @@ export * from "./settings/index.ts";
 export * from "./getter.ts";
 export * from "./drizzle/index.ts";
 export * from "drizzle-orm";
+
+export {
+  union,
+  unionAll,
+  except,
+  exceptAll,
+  intersectAll,
+  alias,
+} from "drizzle-orm/pg-core";

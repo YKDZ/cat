@@ -28,7 +28,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const translationValue = ref<string>("");
   const sourceParts = ref<PartData[]>([]);
   const translationParts = ref<PartData[]>([]);
-  const selectedTranslationId = ref<number | null>(null);
   const searchQuery = ref("");
   const isProofreading = ref(false);
 
@@ -139,20 +138,13 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     )
       return;
 
-    if (!selectedTranslationId.value) {
-      await trpc.translation.create.mutate({
-        projectId: context.document.value.projectId,
-        elementId: elementId.value,
-        languageId: context.languageToId.value,
-        value: translationValue.value,
-        createMemory: profile.editorMemoryAutoCreateMemory.value,
-      });
-    } else {
-      await trpc.translation.update.mutate({
-        id: selectedTranslationId.value,
-        value: translationValue.value,
-      });
-    }
+    await trpc.translation.create.mutate({
+      projectId: context.document.value.projectId,
+      elementId: elementId.value,
+      languageId: context.languageToId.value,
+      value: translationValue.value,
+      createMemory: profile.editorMemoryAutoCreateMemory.value,
+    });
 
     await elementStore.updateElementStatus(elementId.value);
   };
@@ -196,7 +188,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     inputTextareaEl,
     sourceParts,
     translationParts,
-    selectedTranslationId,
     searchQuery,
     isProofreading,
     element,

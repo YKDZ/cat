@@ -7,40 +7,36 @@ export const PluginInstallationSchema = z.object({
   scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
   scopeId: z.string().nullable(),
   scopeMeta: safeZDotJson.nullable(),
+  pluginId: z.string(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-
-  pluginId: z.string(),
 });
 
 export const PluginConfigSchema = z.object({
   id: z.int(),
   schema: JSONSchemaSchema,
+  pluginId: z.string(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  pluginId: z.string(),
 });
 
 export const PluginConfigInstanceSchema = z.object({
   id: z.int(),
   value: safeZDotJson,
+  configId: z.int(),
+  creatorId: z.string().nullable(),
+  pluginInstallationId: z.int().nullable(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-
-  configId: z.int(),
-
-  creatorId: z.string().nullable(),
-
-  pluginInstallationId: z.int().nullable(),
 });
 
 export const PluginPermissionSchema = z.object({
   id: z.int(),
   permission: z.string(),
   description: z.string(),
+  pluginId: z.string(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  pluginId: z.string(),
 });
 
 export const PluginVersionSchema = z.object({
@@ -68,12 +64,12 @@ export const PluginServiceSchema = z.object({
     "TERM_SERVICE",
     "TRANSLATABLE_FILE_HANDLER",
     "TEXT_VECTORIZER",
+    "VECTOR_STORAGE",
   ]),
   serviceId: z.string(),
+  pluginInstallationId: z.int(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-
-  pluginInstallationId: z.int(),
 });
 
 export type PluginVersion = z.infer<typeof PluginVersionSchema>;

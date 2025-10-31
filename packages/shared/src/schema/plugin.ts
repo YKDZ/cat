@@ -17,6 +17,7 @@ export const PluginManifestSchema = z.object({
           "TERM_SERVICE",
           "TRANSLATABLE_FILE_HANDLER",
           "TEXT_VECTORIZER",
+          "VECTOR_STORAGE",
         ]),
       }),
     )

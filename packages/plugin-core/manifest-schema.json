@@ -53,19 +53,12 @@
               "TRANSLATABLE_FILE_HANDLER",
               "STORAGE_PROVIDER",
               "AUTH_PROVIDER",
-              "TEXT_VECTORIZER"
+              "TEXT_VECTORIZER",
+              "VECTOR_STORAGE"
             ]
           }
         }
       }
-    },
-    "tags": {
-      "type": "array",
-      "description": "Tags for categorization",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
     },
     "config": {
       "description": "Standard JSON Schema for this config",

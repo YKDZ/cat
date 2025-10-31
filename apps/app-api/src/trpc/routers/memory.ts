@@ -1,28 +1,30 @@
-import { tracked } from "@trpc/server";
+import { tracked, TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import {
   MemorySuggestionSchema,
   type MemorySuggestion,
 } from "@cat/shared/schema/misc";
-import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import {
-  MemoryItemSchema,
-  MemorySchema,
-} from "@cat/shared/schema/drizzle/memory";
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+  logger,
+} from "@cat/shared/utils";
+import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import { searchMemory } from "@cat/app-server-shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import {
+  chunk,
+  chunkSet,
   count,
   document as documentTable,
   eq,
-  inArray,
   memoryItem as memoryItemTable,
   memory as memoryTable,
   memoryToProject,
+  sql,
   translatableElement,
   translatableString,
-  vector,
 } from "@cat/db";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
@@ -70,7 +72,6 @@ export const memoryRouter = router({
     .input(
       z.object({
         elementId: z.number().int(),
-        sourceLanguageId: z.string(),
         translationLanguageId: z.string(),
         minMemorySimilarity: z.number().min(0).max(1).default(0.72),
       }),
@@ -79,13 +80,14 @@ export const memoryRouter = router({
       const {
         redisDB: { redisSub },
         drizzleDB: { client: drizzle },
+        pluginRegistry,
       } = ctx;
-      const {
-        elementId,
-        sourceLanguageId,
-        translationLanguageId,
-        minMemorySimilarity,
-      } = input;
+      const { elementId, translationLanguageId, minMemorySimilarity } = input;
+
+      // TODO 配置
+      const vectorStorage = assertFirstNonNullish(
+        await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+      );
 
       // 要匹配记忆的元素
       const element = assertSingleNonNullish(
@@ -93,22 +95,41 @@ export const memoryRouter = router({
           .select({
             id: translatableElement.id,
             value: translatableString.value,
-            embedding: vector.vector,
+            languageId: translatableString.languageId,
             projectId: documentTable.projectId,
+            chunkIds: sql<
+              number[]
+            >`coalesce(array_agg("Chunk"."id"), ARRAY[]::int[])`,
           })
           .from(translatableElement)
           .innerJoin(
             translatableString,
-            eq(translatableElement.translableStringId, translatableString.id),
+            eq(translatableElement.translatableStringId, translatableString.id),
           )
-          .innerJoin(vector, eq(translatableString.embeddingId, vector.id))
           .innerJoin(
             documentTable,
             eq(translatableElement.documentId, documentTable.id),
           )
+          .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
+          .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
           .where(eq(translatableElement.id, elementId))
-          .limit(1),
+          .groupBy(
+            translatableElement.id,
+            translatableString.value,
+            translatableString.languageId,
+            documentTable.projectId,
+          ),
       );
+
+      const chunks = await vectorStorage.service.retrieve(element.chunkIds);
+
+      if (!chunks)
+        throw new TRPCError({
+          code: "SERVICE_UNAVAILABLE",
+          message: `Failed to retrieve chunks`,
+        });
+
+      const embeddings = chunks.map((chunk) => chunk.vector);
 
       const memoryIds = (
         await drizzle
@@ -143,8 +164,9 @@ export const memoryRouter = router({
       memoriesQueue.push(
         ...(await searchMemory(
           drizzle,
-          element.embedding,
-          sourceLanguageId,
+          vectorStorage.service,
+          embeddings,
+          element.languageId,
           translationLanguageId,
           memoryIds,
           minMemorySimilarity,
@@ -224,53 +246,6 @@ export const memoryRouter = router({
           .where(eq(memoryItemTable.memoryId, id))
           .limit(1),
       ).count;
-    }),
-  queryItems: authedProcedure
-    .input(
-      z.object({
-        memoryId: z.uuidv7(),
-        sourceLanguageId: z.string().nullable(),
-        translationLanguageId: z.string().nullable(),
-      }),
-    )
-    .output(z.array(MemoryItemSchema))
-    .query(async ({ ctx, input }) => {
-      const {
-        drizzleDB: { client: drizzle },
-      } = ctx;
-      const { memoryId, sourceLanguageId, translationLanguageId } = input;
-
-      const items = await drizzle.query.memoryItem.findMany({
-        where: (memoryItem, { eq, and }) =>
-          and(
-            eq(memoryItem.memoryId, memoryId),
-            sourceLanguageId
-              ? eq(memoryItem.sourceLanguageId, sourceLanguageId)
-              : undefined,
-            translationLanguageId
-              ? eq(memoryItem.translationLanguageId, translationLanguageId)
-              : undefined,
-          ),
-      });
-
-      return items;
-    }),
-  deleteItems: authedProcedure
-    .input(
-      z.object({
-        ids: z.array(z.int()),
-      }),
-    )
-    .output(z.void())
-    .mutation(async ({ ctx, input }) => {
-      const {
-        drizzleDB: { client: drizzle },
-      } = ctx;
-      const { ids } = input;
-
-      await drizzle
-        .delete(memoryItemTable)
-        .where(inArray(memoryItemTable.id, ids));
     }),
   listProjectOwned: authedProcedure
     .input(

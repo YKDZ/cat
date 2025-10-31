@@ -10,7 +10,6 @@
       "type": "STORAGE_PROVIDER"
     }
   ],
-  "tags": ["storage-provider"],
   "config": {
     "type": "object",
     "properties": {

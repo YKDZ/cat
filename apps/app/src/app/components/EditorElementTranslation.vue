@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
-import type { TranslationApprovement } from "@cat/shared/schema/drizzle/translation";
 import EditorElementTranslationMeta from "./EditorElementTranslationMeta.vue";
 import EditorElementTranslationVote from "./EditorElementTranslationVote.vue";
 import TextTagger from "./tagger/TextTagger.vue";
@@ -12,38 +9,16 @@ import UserAvatar from "./UserAvatar.vue";
 import EditorElementTranslationApprovementBtn from "./EditorElementTranslationApprovementBtn.vue";
 import Icon from "./Icon.vue";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
-import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import type { User } from "@cat/shared/schema/drizzle/user";
+import type { TranslationApprovement } from "@cat/shared/schema/drizzle/translation";
 
 const { t } = useI18n();
 
-const { translationValue, selectedTranslationId } = storeToRefs(
-  useEditorTableStore(),
-);
-const { user } = usePageContext();
-
-const props = defineProps<{
-  translation: TranslationWithStatus & {
-    Translator: User;
-    TranslationApprovements: TranslationApprovement[];
-  };
+defineProps<{
+  translation: TranslationWithStatus;
 }>();
 
-const handleSelect = () => {
-  // TODO 目前只能修改自己的翻译
-  if (
-    selectedTranslationId.value !== props.translation.id &&
-    props.translation.translatorId === user?.id
-  ) {
-    selectedTranslationId.value = props.translation.id;
-    translationValue.value = props.translation.value;
-    return;
-  } else selectedTranslationId.value = null;
-};
-
-const approvement = computed(() => {
-  if (!props.translation.TranslationApprovements) return null;
-  return props.translation.TranslationApprovements.find((a) => a.isActive);
+const approvement = computed<TranslationApprovement | null>(() => {
+  return null;
 });
 </script>
 
@@ -52,12 +27,10 @@ const approvement = computed(() => {
     class="px-3 py-2 bg-highlight flex w-full cursor-pointer items-center justify-between relative hover:bg-highlight-darker"
     :class="{
       'bg-warning hover:bg-warning-darker': translation.status === 'PROCESSING',
-      'border-l-2 border-base': selectedTranslationId === translation.id,
     }"
-    @click="handleSelect"
   >
     <div class="flex gap-2 items-center">
-      <UserAvatar :user="translation.Translator" :size="36" />
+      <UserAvatar :user-id="translation.translatorId" :size="36" />
       <div class="flex flex-col gap-1 max-w-full">
         <TextTagger :text="translation.value" />
         <EditorElementTranslationMeta :translation />

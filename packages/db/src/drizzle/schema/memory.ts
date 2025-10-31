@@ -11,11 +11,9 @@ import {
 import { relations } from "drizzle-orm";
 import { timestamps, uuidId } from "./reuse.ts";
 import { project } from "./project.ts";
-import { language } from "./misc.ts";
 import { translation } from "./translation.ts";
-import { translatableElement } from "./document.ts";
+import { translatableElement, translatableString } from "./document.ts";
 import { user } from "./user.ts";
-import { vector } from "./vector.ts";
 
 export const memory = pgTable(
   "Memory",
@@ -40,25 +38,27 @@ export const memoryItem = pgTable(
   "MemoryItem",
   {
     id: serial().primaryKey().notNull(),
-    source: text().notNull(),
-    translation: text().notNull(),
-    sourceEmbeddingId: integer().notNull(),
+    sourceStringId: integer().notNull(),
+    translationStringId: integer().notNull(),
     creatorId: uuid().notNull(),
     memoryId: uuid().notNull(),
     sourceElementId: integer(),
     translationId: integer(),
-    sourceLanguageId: text().notNull(),
-    translationLanguageId: text().notNull(),
-    translationEmbeddingId: integer().notNull(),
     ...timestamps,
   },
   (table) => [
     foreignKey({
-      columns: [table.sourceEmbeddingId],
-      foreignColumns: [vector.id],
+      columns: [table.sourceStringId],
+      foreignColumns: [translatableString.id],
     })
       .onUpdate("cascade")
-      .onDelete("cascade"),
+      .onDelete("restrict"),
+    foreignKey({
+      columns: [table.translationStringId],
+      foreignColumns: [translatableString.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("restrict"),
     foreignKey({
       columns: [table.creatorId],
       foreignColumns: [user.id],
@@ -83,24 +83,6 @@ export const memoryItem = pgTable(
     })
       .onUpdate("cascade")
       .onDelete("set null"),
-    foreignKey({
-      columns: [table.sourceLanguageId],
-      foreignColumns: [language.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("restrict"),
-    foreignKey({
-      columns: [table.translationLanguageId],
-      foreignColumns: [language.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("restrict"),
-    foreignKey({
-      columns: [table.translationEmbeddingId],
-      foreignColumns: [vector.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
   ],
 );
 
@@ -156,25 +138,15 @@ export const memoryItemRelations = relations(memoryItem, ({ one }) => ({
     fields: [memoryItem.translationId],
     references: [translation.id],
   }),
-  SourceLanguage: one(language, {
-    fields: [memoryItem.sourceLanguageId],
-    references: [language.id],
-    relationName: "sourceLanguage",
+  SourceString: one(translatableString, {
+    fields: [memoryItem.sourceStringId],
+    references: [translatableString.id],
+    relationName: "memoryItemSourceString",
   }),
-  TranslationLanguage: one(language, {
-    fields: [memoryItem.translationLanguageId],
-    references: [language.id],
-    relationName: "translationLanguage",
-  }),
-  SourceEmbedding: one(vector, {
-    fields: [memoryItem.sourceEmbeddingId],
-    references: [vector.id],
-    relationName: "sourceEmbedding",
-  }),
-  TranslationEmbedding: one(vector, {
-    fields: [memoryItem.translationEmbeddingId],
-    references: [vector.id],
-    relationName: "translationEmbedding",
+  TranslationString: one(translatableString, {
+    fields: [memoryItem.translationStringId],
+    references: [translatableString.id],
+    relationName: "memoryItemTranslationString",
   }),
 }));
 

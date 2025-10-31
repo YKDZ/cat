@@ -1,25 +1,15 @@
 <script setup lang="ts">
-import type {
-  Translation,
-  TranslationApprovement,
-} from "@cat/shared/schema/drizzle/translation";
 import { computed } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";
 import HButton from "./headless/HButton.vue";
+import type { TranslationWithStatus } from "../stores/editor/translation";
 
 const props = defineProps<{
-  translation: Translation & {
-    TranslationApprovements: TranslationApprovement[];
-  };
+  translation: Pick<TranslationWithStatus, "id">;
 }>();
 
 const isApproved = computed(() => {
-  if (!props.translation.TranslationApprovements) return false;
-  return (
-    props.translation.TranslationApprovements.findIndex(
-      (approvement) => approvement.isActive,
-    ) !== -1
-  );
+  return true;
 });
 
 const handleApprove = async () => {

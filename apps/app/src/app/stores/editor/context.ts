@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { computedAsync } from "@vueuse/core";
 import { trpc } from "@cat/app-api/trpc/client";
 
@@ -18,6 +18,10 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     });
   });
 
+  const projectId = computed(() => {
+    return document.value?.projectId ?? null;
+  });
+
   const refresh = () => {
     currentPageIndex.value = -1;
   };
@@ -28,6 +32,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     pageSize,
     currentPageIndex,
     document,
+    projectId,
     refresh,
   };
 });

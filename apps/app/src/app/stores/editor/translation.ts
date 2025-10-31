@@ -1,20 +1,23 @@
 import { trpc } from "@cat/app-api/trpc/client";
-import {
-  TranslationSchema,
-  type TranslationApprovement,
-} from "@cat/shared/schema/drizzle/translation";
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
 import * as z from "zod";
-import type { User } from "@cat/shared/schema/drizzle/user";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { DrizzleDateTimeSchema } from "@cat/shared/schema/misc";
+import { safeZDotJson } from "@cat/shared/schema/json";
 
 const TranslationStatusSchema = z
   .enum(["PROCESSING", "COMPLETED"])
   .default("COMPLETED");
 
-const TranslationWithStatusSchema = TranslationSchema.extend({
+const TranslationWithStatusSchema = z.object({
+  id: z.int(),
+  value: z.string(),
+  vote: z.int(),
+  translatorId: z.uuidv7(),
+  meta: safeZDotJson.optional(),
+  createdAt: DrizzleDateTimeSchema,
   status: TranslationStatusSchema.optional(),
 });
 
@@ -26,12 +29,7 @@ export const useEditorTranslationStore = defineStore(
     const table = storeToRefs(useEditorTableStore());
     const context = storeToRefs(useEditorContextStore());
 
-    const translations = ref<
-      (TranslationWithStatus & {
-        Translator: User;
-        TranslationApprovements: TranslationApprovement[];
-      })[]
-    >([]);
+    const translations = ref<TranslationWithStatus[]>([]);
 
     const updateTranslations = async () => {
       if (!table.elementId.value || !context.languageToId.value) return;
@@ -42,7 +40,6 @@ export const useEditorTranslationStore = defineStore(
           languageId: context.languageToId.value,
         })
         .then((newTranslations) => {
-          // @ts-expect-error json optional
           translations.value = newTranslations;
         });
     };

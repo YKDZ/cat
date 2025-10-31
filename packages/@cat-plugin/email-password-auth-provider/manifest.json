@@ -9,6 +9,5 @@
       "id": "EMAIL_PASSWORD",
       "type": "AUTH_PROVIDER"
     }
-  ],
-  "tags": ["auth-provider"]
+  ]
 }

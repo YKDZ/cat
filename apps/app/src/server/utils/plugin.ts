@@ -40,6 +40,8 @@ export const installDefaultPlugins = async (
     "ollama-vectorizer",
     "yaml-file-handler",
     "s3-storage-provider",
+    "pgvector-storage",
+    "markdown-file-handler",
   ];
 
   const installedPlugins = (

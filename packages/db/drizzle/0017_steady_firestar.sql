@@ -1,0 +1,1 @@
+ALTER TYPE "public"."PluginServiceType" ADD VALUE 'VECTOR_STORAGE';

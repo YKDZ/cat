@@ -17,10 +17,10 @@ import { language, task } from "./misc.ts";
 import { project } from "./project.ts";
 import { user } from "./user.ts";
 import { pluginService } from "./plugin.ts";
-import { vector } from "./vector.ts";
 import { file } from "./file.ts";
 import { translation } from "./translation.ts";
 import { memoryItem } from "./memory.ts";
+import { chunkSet } from "./vector.ts";
 
 export const document = pgTable(
   "Document",
@@ -64,7 +64,7 @@ export const translatableElement = pgTable(
     documentVersionId: integer(),
     sortIndex: integer().notNull(),
     creatorId: uuid(),
-    translableStringId: integer().notNull(),
+    translatableStringId: integer().notNull(),
     ...timestamps,
   },
   (table) => [
@@ -87,7 +87,7 @@ export const translatableElement = pgTable(
       .onUpdate("cascade")
       .onDelete("cascade"),
     foreignKey({
-      columns: [table.translableStringId],
+      columns: [table.translatableStringId],
       foreignColumns: [translatableString.id],
     })
       .onUpdate("cascade")
@@ -101,15 +101,13 @@ export const translatableString = pgTable(
     id: serial().primaryKey().notNull(),
     value: text().notNull(),
     languageId: text().notNull(),
-    embeddingId: integer().notNull(),
-    projectId: uuid().notNull(),
+    chunkSetId: integer().notNull(),
   },
   (table) => [
     uniqueIndex().using(
       "btree",
       table.value.asc().nullsLast().op("text_ops"),
       table.languageId.asc().nullsLast().op("text_ops"),
-      table.projectId.asc().nullsLast().op("uuid_ops"),
     ),
     foreignKey({
       columns: [table.languageId],
@@ -118,14 +116,8 @@ export const translatableString = pgTable(
       .onUpdate("cascade")
       .onDelete("restrict"),
     foreignKey({
-      columns: [table.embeddingId],
-      foreignColumns: [vector.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("restrict"),
-    foreignKey({
-      columns: [table.projectId],
-      foreignColumns: [project.id],
+      columns: [table.chunkSetId],
+      foreignColumns: [chunkSet.id],
     })
       .onUpdate("cascade")
       .onDelete("restrict"),
@@ -199,7 +191,7 @@ export const translatableElementRelations = relations(
   translatableElement,
   ({ one, many }) => ({
     TranslatableString: one(translatableString, {
-      fields: [translatableElement.translableStringId],
+      fields: [translatableElement.translatableStringId],
       references: [translatableString.id],
     }),
     Document: one(document, {
@@ -248,15 +240,18 @@ export const translatableStringRelations = relations(
       fields: [translatableString.languageId],
       references: [language.id],
     }),
-    Embedding: one(vector, {
-      fields: [translatableString.embeddingId],
-      references: [vector.id],
-    }),
-    Project: one(project, {
-      fields: [translatableString.projectId],
-      references: [project.id],
+    ChunkSet: one(chunkSet, {
+      fields: [translatableString.chunkSetId],
+      references: [chunkSet.id],
     }),
 
     TranslatableElements: many(translatableElement),
+    Translations: many(translation),
+    SourceMemoryItems: many(memoryItem, {
+      relationName: "memoryItemSourceString",
+    }),
+    TranslationMemoryItems: many(memoryItem, {
+      relationName: "memoryItemTranslationString",
+    }),
   }),
 );

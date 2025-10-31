@@ -1,17 +1,16 @@
 import type { PageContextServer } from "vike/types";
 import { createPinia } from "pinia";
-import { createHTTPHelpers } from "@cat/shared/utils";
-import { userFromSessionId } from "@cat/app-server-shared/utils";
+import {
+  createHTTPHelpers,
+  userFromSessionId,
+} from "@cat/app-server-shared/utils";
 import { getSetting } from "@cat/db";
 import { parsePreferredLanguage } from "@/server/utils/i18n.ts";
 
 export const onCreatePageContext = async (ctx: PageContextServer) => {
   ctx.pinia = createPinia();
 
-  const helpers = createHTTPHelpers(
-    ctx.runtime.hono.req.raw,
-    ctx.runtime.hono.res.headers,
-  );
+  const helpers = createHTTPHelpers(ctx.runtime.req!, ctx.runtime.res!);
 
   ctx.sessionId = helpers.getCookie("sessionId");
   ctx.displayLanguage =

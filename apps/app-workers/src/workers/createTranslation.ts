@@ -1,19 +1,22 @@
 import {
+  document,
   eq,
   getDrizzleDB,
   memoryItem,
   translatableElement,
   translatableString,
   translation as translationTable,
-  vector,
 } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
-import { vectorizeWithGivenVectorizer } from "@cat/app-server-shared/utils";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import {
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+} from "@cat/shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
+import { createStringFromData } from "@cat/app-server-shared/utils";
 
 const { client: drizzle } = await getDrizzleDB();
 
@@ -44,20 +47,27 @@ const worker = new Worker(
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
+    // TODO 配置
+    const vectorStorage = assertFirstNonNullish(
+      await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+    );
+
+    // TODO 配置
+    const vectorizer = assertFirstNonNullish(
+      await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
+    );
+
     const element = assertSingleNonNullish(
       await drizzle
         .select({
-          value: translatableString.value,
-          embeddingId: translatableString.embeddingId,
-          vectorizerId: vector.vectorizerId,
-          languageId: translatableString.languageId,
+          stringId: translatableString.id,
         })
         .from(translatableElement)
         .innerJoin(
           translatableString,
-          eq(translatableElement.translableStringId, translatableString.id),
+          eq(translatableElement.translatableStringId, translatableString.id),
         )
-        .innerJoin(vector, eq(translatableString.embeddingId, vector.id))
+        .innerJoin(document, eq(translatableElement.documentId, document.id))
         .where(eq(translatableElement.id, elementId))
         .limit(1),
     );
@@ -65,53 +75,41 @@ const worker = new Worker(
     if (!element)
       throw new Error("TranslatableElement with given id doest not exists");
 
-    // 开始处理翻译的嵌入并插入
-    const embeddingId = assertSingleNonNullish(
-      await vectorizeWithGivenVectorizer(
-        drizzle,
-        pluginRegistry,
-        element.vectorizerId,
-        [
-          {
-            value: translationValue,
-            languageId: translationLanguageId,
-          },
-        ],
-      ),
-    );
-
     await drizzle.transaction(async (tx) => {
+      const stringId = assertSingleNonNullish(
+        await createStringFromData(
+          tx,
+          vectorizer.service,
+          vectorizer.id,
+          vectorStorage.service,
+          vectorStorage.id,
+          [{ value: translationValue, languageId: translationLanguageId }],
+        ),
+      );
       const translation = assertSingleNonNullish(
         await drizzle
           .insert(translationTable)
           .values([
             {
-              value: translationValue,
               translatorId: creatorId,
-              embeddingId,
-              languageId: translationLanguageId,
               translatableElementId: elementId,
+              stringId,
             },
           ])
           .returning({
             id: translationTable.id,
-            value: translationTable.value,
           }),
       );
 
       if (createMemory && memoryIds.length > 0) {
         await tx.insert(memoryItem).values(
           memoryIds.map((memoryId) => ({
-            source: element.value,
-            sourceLanguageId: element.languageId,
-            translation: translation.value,
-            translationLanguageId,
+            sourceStringId: element.stringId,
+            translationStringId: stringId,
             sourceElementId: elementId,
             translationId: translation.id,
             memoryId,
             creatorId,
-            sourceEmbeddingId: element.embeddingId,
-            translationEmbeddingId: embeddingId,
           })),
         );
       }

@@ -6,7 +6,23 @@ import remarkStringify from "remark-stringify";
 import { cloneDeep } from "lodash-es";
 import { z } from "zod";
 import type { Node } from "unist";
-import type { Root, Parent, RootContent, Literal, Image } from "mdast";
+import type {
+  Root,
+  Parent,
+  RootContent,
+  Literal,
+  Image,
+  ListItem,
+  Paragraph,
+  BlockContent,
+  Text,
+  Heading,
+  List,
+  Table,
+  TableCell,
+  PhrasingContent,
+  Code,
+} from "mdast";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { File } from "@cat/shared/schema/drizzle/file";
 import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
@@ -24,20 +40,60 @@ const BLOCK_NODE_TYPES = new Set<string>([
   "thematicBreak",
 ]);
 
-/** meta 的类型定义 */
-type Meta = {
-  path: number[]; // 在 AST 中从 root 开始的索引路径
-  nodeType: string;
-  attribute?: "alt" | "title";
-};
+const BLOCK_CONTENT_TYPES = new Set<string>([
+  "paragraph",
+  "heading",
+  "thematicBreak",
+  "blockquote",
+  "list",
+  "table",
+  "html",
+  "code",
+]);
 
 const MetaSchema = z.object({
   path: z.array(z.number()),
   nodeType: z.string(),
   attribute: z.union([z.literal("alt"), z.literal("title")]).optional(),
+  leadingWhitespace: z.string().optional(),
+  trailingWhitespace: z.string().optional(),
+  parentType: z.string().optional(),
+  blockType: z.string().optional(),
+  blockPath: z.array(z.number()).optional(),
+  headingDepth: z.number().optional(),
+  listInfo: z
+    .object({
+      ordered: z.boolean(),
+      start: z.number().optional(),
+      spread: z.boolean().optional(),
+    })
+    .optional(),
+  ancestors: z.array(z.string()).optional(),
+  originalValue: z.string().optional(),
+  tableInfo: z
+    .object({
+      tablePath: z.array(z.number()),
+      rowPath: z.array(z.number()),
+      cellPath: z.array(z.number()),
+      rowIndex: z.number(),
+      cellIndex: z.number(),
+      isHeaderRow: z.boolean().optional(),
+      columnAlign: z
+        .union([z.literal("left"), z.literal("right"), z.literal("center")])
+        .optional(),
+      rowCellCount: z.number().optional(),
+    })
+    .optional(),
+  codeInfo: z
+    .object({
+      lang: z.string().optional(),
+      meta: z.string().optional(),
+    })
+    .optional(),
 });
 
-/** 类型保护：是否为 Parent（拥有 children） */
+type Meta = z.infer<typeof MetaSchema>;
+
 const isParent = (n: Node): n is Parent => {
   return (
     Object.prototype.hasOwnProperty.call(n, "children") &&
@@ -45,59 +101,424 @@ const isParent = (n: Node): n is Parent => {
   );
 };
 
-/** 将 node 序列化为 markdown 片段字符串（尽量安全） */
-const nodeToMarkdown = (node: Node): string => {
-  const processor = unified().use(remarkStringify);
-
-  // 如果 node 已经是 Root 并且有 children，直接 stringify
-  if (node.type === "root" && "children" in node) {
-    return processor.stringify(node as Root);
-  }
-
-  // 否则把 node 包在一个临时的 Root 中再 stringify
-  // 把 node 视作 Content（mdast 除 Root 之外的可放进 children 的节点）
-  const wrapper: Root = {
-    type: "root",
-    children: [node as RootContent],
-  };
-
-  // processor.stringify 接受 Root，返回 markdown
-  return processor.stringify(wrapper);
+type AncestorInfo = {
+  node: Parent;
+  path: number[];
 };
 
-/** 收集可译元素：返回 TranslatableElementData[] */
+const hasLiteralValue = (node: Node): node is Literal & { value: string } => {
+  return (
+    Object.prototype.hasOwnProperty.call(node, "value") &&
+    typeof (node as Literal).value === "string"
+  );
+};
+
+const renderInlineChildren = (parent: Parent): string => {
+  const parts: string[] = [];
+
+  for (const child of parent.children) {
+    parts.push(renderInlineNode(child));
+  }
+
+  return parts.join("");
+};
+
+const renderInlineNode = (node: Node): string => {
+  switch (node.type) {
+    case "text":
+      return (node as Text).value ?? "";
+    case "inlineCode":
+      return `\`${(node as Literal).value ?? ""}\``;
+    case "strong":
+      return `**${renderInlineChildren(node as Parent)}**`;
+    case "emphasis":
+      return `*${renderInlineChildren(node as Parent)}*`;
+    case "delete":
+      return `~~${renderInlineChildren(node as Parent)}~~`;
+    case "break":
+      return "\n";
+    case "link": {
+      const linkNode = node as Parent & { url?: string; title?: string };
+      const titleSuffix =
+        typeof linkNode.title === "string" && linkNode.title !== ""
+          ? ` "${linkNode.title}"`
+          : "";
+      return `[${renderInlineChildren(linkNode)}](${linkNode.url ?? ""}${titleSuffix})`;
+    }
+    case "linkReference": {
+      const refNode = node as Parent & { identifier?: string };
+      const identifier =
+        typeof refNode.identifier === "string" ? refNode.identifier : "";
+      return identifier
+        ? `[${renderInlineChildren(refNode)}][${identifier}]`
+        : renderInlineChildren(refNode);
+    }
+    case "html":
+      return hasLiteralValue(node) ? node.value : "";
+    case "image":
+    case "imageReference":
+      return "";
+    default: {
+      if (isParent(node)) {
+        return renderInlineChildren(node);
+      }
+      if (hasLiteralValue(node)) {
+        return node.value ?? "";
+      }
+      return "";
+    }
+  }
+};
+
+const renderBlockForExtraction = (node: Node): string => {
+  switch (node.type) {
+    case "paragraph":
+    case "heading":
+      return renderInlineChildren(node as Parent);
+    case "blockquote":
+    case "list":
+    case "listItem": {
+      if (!isParent(node)) return "";
+      const parts = node.children
+        .map((child) => renderBlockForExtraction(child))
+        .filter((text) => text.trim() !== "");
+      return parts.join("\n");
+    }
+    case "tableCell": {
+      if (!isParent(node)) return "";
+      const parts: string[] = [];
+      for (const child of node.children) {
+        if (
+          child.type === "paragraph" ||
+          child.type === "heading" ||
+          child.type === "blockquote" ||
+          child.type === "list" ||
+          child.type === "listItem"
+        ) {
+          const text = renderBlockForExtraction(child);
+          if (text.trim() !== "") {
+            parts.push(text);
+          }
+        } else if (isParent(child)) {
+          const text = renderBlockForExtraction(child);
+          if (text.trim() !== "") {
+            parts.push(text);
+          }
+        } else if (hasLiteralValue(child)) {
+          const value = child.value.trim();
+          if (value !== "") {
+            parts.push(value);
+          }
+        } else {
+          const inlineValue = renderInlineNode(child);
+          if (inlineValue.trim() !== "") {
+            parts.push(inlineValue.trim());
+          }
+        }
+      }
+      return parts.join("\n");
+    }
+    case "tableRow": {
+      if (!isParent(node)) return "";
+      const parts = node.children
+        .map((child) =>
+          child.type === "tableCell" ? renderBlockForExtraction(child) : "",
+        )
+        .filter((text) => text.trim() !== "");
+      return parts.join(" | ");
+    }
+    case "table": {
+      if (!isParent(node)) return "";
+      const parts = node.children
+        .map((child) => renderBlockForExtraction(child))
+        .filter((text) => text.trim() !== "");
+      return parts.join("\n");
+    }
+    case "code":
+      return (node as Code).value ?? "";
+    default: {
+      if (isParent(node)) {
+        return renderInlineChildren(node);
+      }
+      if (hasLiteralValue(node)) {
+        return node.value ?? "";
+      }
+      return "";
+    }
+  }
+};
+
+const shouldExtractBlockNode = (node: Node, parentType?: string): boolean => {
+  if (node.type === "paragraph") {
+    return parentType !== "tableCell";
+  }
+  if (node.type === "heading") {
+    return true;
+  }
+  if (node.type === "code") {
+    return parentType !== "tableCell";
+  }
+  if (node.type === "tableCell") {
+    return true;
+  }
+  return false;
+};
+
+const createTextNode = (value: string): Text => ({
+  type: "text",
+  value,
+});
+
+const parseInlineChildrenFromMarkdown = (value: string): PhrasingContent[] => {
+  const fragmentRoot = unified().use(remarkParse).parse(value);
+  const results: PhrasingContent[] = [];
+
+  for (const child of fragmentRoot.children) {
+    if (child.type === "paragraph") {
+      results.push(...cloneDeep(child.children));
+      continue;
+    }
+    if (child.type === "heading") {
+      results.push(...cloneDeep(child.children));
+      continue;
+    }
+    if (hasLiteralValue(child)) {
+      const literalValue = child.value.trim();
+      if (literalValue !== "") {
+        results.push(createTextNode(literalValue));
+      }
+      continue;
+    }
+    const inlineValue = renderBlockForExtraction(child).trim();
+    if (inlineValue !== "") {
+      results.push(createTextNode(inlineValue));
+    }
+  }
+
+  if (results.length === 0 && value.trim() !== "") {
+    results.push(createTextNode(value.trim()));
+  }
+
+  return results;
+};
+
+const parseMarkdownToTableCellChildren = (
+  value: string,
+): TableCell["children"] => {
+  const fragmentRoot = unified().use(remarkParse).parse(value);
+  const children: TableCell["children"] = [];
+
+  for (const child of fragmentRoot.children) {
+    if (child.type === "table") {
+      children.push(
+        cloneDeep(child) as unknown as TableCell["children"][number],
+      );
+      continue;
+    }
+    if (
+      child.type === "paragraph" ||
+      child.type === "heading" ||
+      child.type === "list" ||
+      child.type === "blockquote" ||
+      child.type === "code"
+    ) {
+      children.push(
+        cloneDeep(child) as unknown as TableCell["children"][number],
+      );
+      continue;
+    }
+    if (child.type === "tableRow") {
+      children.push(
+        cloneDeep(child) as unknown as TableCell["children"][number],
+      );
+      continue;
+    }
+    if (isParent(child)) {
+      const rendered = renderBlockForExtraction(child);
+      if (rendered !== "") {
+        children.push(
+          cloneDeep(
+            createParagraphNode(rendered),
+          ) as unknown as TableCell["children"][number],
+        );
+      }
+      continue;
+    }
+    if (hasLiteralValue(child)) {
+      const literalValue = child.value.trim();
+      if (literalValue !== "") {
+        children.push(
+          cloneDeep(
+            createParagraphNode(literalValue),
+          ) as unknown as TableCell["children"][number],
+        );
+      }
+    }
+  }
+
+  if (children.length === 0 && value.trim() !== "") {
+    children.push(
+      cloneDeep(
+        createParagraphNode(value.trim()),
+      ) as unknown as TableCell["children"][number],
+    );
+  }
+
+  return children;
+};
+
 const collectTranslatableElementsFromMarkdown = (md: string) => {
-  const processor = unified().use(remarkParse).use(remarkStringify);
+  const processor = unified().use(remarkParse);
   const rootNode = processor.parse(md);
   const result: TranslatableElementDataWithoutLanguageId[] = [];
 
-  const traverse = (node: Node, path: number[] = []): void => {
+  const traverse = (
+    node: Node,
+    path: number[] = [],
+    ancestors: AncestorInfo[] = [],
+  ): void => {
     if (!node) return;
 
-    // 若为块级节点并能被识别，则提取其 markdown 表示
-    if (typeof node.type === "string" && BLOCK_NODE_TYPES.has(node.type)) {
-      const mdText = nodeToMarkdown(node).trim();
-      if (mdText !== "") {
+    const parentInfo =
+      ancestors.length > 0 ? ancestors[ancestors.length - 1] : undefined;
+    const reversedAncestors = [...ancestors].reverse();
+    const blockAncestor = reversedAncestors.find((ancestor) =>
+      BLOCK_NODE_TYPES.has(ancestor.node.type),
+    );
+    const blockType = blockAncestor?.node.type;
+    const blockPath = blockAncestor?.path;
+    const headingDepth =
+      blockAncestor?.node.type === "heading"
+        ? (blockAncestor.node as Heading).depth
+        : undefined;
+    const listAncestor = reversedAncestors.find(
+      (ancestor) => ancestor.node.type === "list",
+    );
+    let listInfo: Meta["listInfo"];
+    if (listAncestor) {
+      const listNode = listAncestor.node as List;
+      const listStart =
+        typeof listNode.start === "number" ? listNode.start : undefined;
+      const listSpread =
+        typeof listNode.spread === "boolean" ? listNode.spread : undefined;
+      listInfo = {
+        ordered: Boolean(listNode.ordered),
+        start: listStart,
+        spread: listSpread,
+      };
+    }
+    const tableAncestor = reversedAncestors.find(
+      (ancestor) => ancestor.node.type === "table",
+    );
+    const tableRowAncestor = reversedAncestors.find(
+      (ancestor) => ancestor.node.type === "tableRow",
+    );
+    const tableCellAncestor = reversedAncestors.find(
+      (ancestor) => ancestor.node.type === "tableCell",
+    );
+
+    let tableInfo: Meta["tableInfo"];
+    if (tableAncestor && tableRowAncestor && tableCellAncestor) {
+      const tablePath = [...tableAncestor.path];
+      const rowPath = [...tableRowAncestor.path];
+      const cellPath = [...tableCellAncestor.path];
+      const rowIndex = rowPath[rowPath.length - 1];
+      const cellIndex = cellPath[cellPath.length - 1];
+      const tableNode = tableAncestor.node as Table;
+      const alignValue =
+        Array.isArray(tableNode.align) && typeof cellIndex === "number"
+          ? tableNode.align[cellIndex]
+          : undefined;
+      const normalizedAlign =
+        alignValue === "left" ||
+        alignValue === "right" ||
+        alignValue === "center"
+          ? alignValue
+          : undefined;
+      const rowCellCount = Array.isArray(tableRowAncestor.node.children)
+        ? tableRowAncestor.node.children.length
+        : undefined;
+
+      if (
+        typeof rowIndex === "number" &&
+        typeof cellIndex === "number" &&
+        Number.isInteger(rowIndex) &&
+        Number.isInteger(cellIndex)
+      ) {
+        tableInfo = {
+          tablePath,
+          rowPath,
+          cellPath,
+          rowIndex,
+          cellIndex,
+          isHeaderRow: rowIndex === 0 ? true : undefined,
+          columnAlign: normalizedAlign,
+          rowCellCount,
+        };
+      }
+    }
+    const ancestorsTypes = ancestors.map((ancestor) => ancestor.node.type);
+
+    const baseMeta: Omit<Meta, "nodeType" | "attribute"> = {
+      path,
+      parentType: parentInfo?.node.type,
+      blockType,
+      blockPath,
+      headingDepth,
+      listInfo,
+      ancestors: ancestorsTypes,
+      tableInfo,
+      leadingWhitespace: undefined,
+      trailingWhitespace: undefined,
+      originalValue: undefined,
+      codeInfo: undefined,
+    };
+
+    if (shouldExtractBlockNode(node, parentInfo?.node.type)) {
+      const rawBlockValue = renderBlockForExtraction(node);
+      const blockValue =
+        node.type === "code" ? rawBlockValue : rawBlockValue.trim();
+      const hasContent =
+        node.type === "code" ? rawBlockValue !== "" : blockValue !== "";
+      if (hasContent) {
+        const codeInfo =
+          node.type === "code"
+            ? {
+                lang:
+                  typeof (node as Code).lang === "string"
+                    ? (node as Code).lang
+                    : undefined,
+                meta:
+                  typeof (node as Code).meta === "string"
+                    ? (node as Code).meta
+                    : undefined,
+              }
+            : undefined;
+
         result.push({
-          value: mdText,
+          value: blockValue,
           meta: {
-            path,
+            ...baseMeta,
             nodeType: node.type,
+            originalValue: rawBlockValue,
+            codeInfo,
           } as Meta,
         });
       }
     }
 
-    // image 节点：提取 alt / title（作为属性）
     if (node.type === "image") {
-      // node is Image in mdast (image has alt?: string and title?: string)
       const img = node as Image;
+      const imageBaseMeta: Meta = {
+        ...baseMeta,
+        nodeType: node.type,
+      };
+
       if (typeof img.alt === "string" && img.alt.trim() !== "") {
         result.push({
           value: img.alt,
           meta: {
-            path,
-            nodeType: node.type,
+            ...imageBaseMeta,
             attribute: "alt",
           } as Meta,
         });
@@ -106,22 +527,21 @@ const collectTranslatableElementsFromMarkdown = (md: string) => {
         result.push({
           value: img.title,
           meta: {
-            path,
-            nodeType: node.type,
+            ...imageBaseMeta,
             attribute: "title",
           } as Meta,
         });
       }
     }
 
-    // 递归 children（若存在）
     if (
       isParent(node) &&
       Array.isArray(node.children) &&
       node.children.length > 0
     ) {
+      const nextAncestors = [...ancestors, { node, path }];
       for (let i = 0; i < node.children.length; i += 1) {
-        traverse(node.children[i], [...path, i]);
+        traverse(node.children[i], [...path, i], nextAncestors);
       }
     }
   };
@@ -129,6 +549,64 @@ const collectTranslatableElementsFromMarkdown = (md: string) => {
   traverse(rootNode, []);
 
   return result;
+};
+
+const isBlockContent = (node: RootContent): node is BlockContent => {
+  return typeof node.type === "string" && BLOCK_CONTENT_TYPES.has(node.type);
+};
+
+const createParagraphNode = (text: string): Paragraph => {
+  const value = String(text);
+  const child: Text = {
+    type: "text",
+    value,
+  };
+  return {
+    type: "paragraph",
+    children: [child],
+  };
+};
+
+const extractListItemsFromFragment = (
+  fragmentRoot: Root,
+  fallbackValue: string,
+): RootContent[] => {
+  const items: RootContent[] = [];
+
+  for (const child of fragmentRoot.children) {
+    if (child.type === "list") {
+      const listNode = child;
+      if (Array.isArray(listNode.children)) {
+        for (const candidate of listNode.children) {
+          if (candidate && candidate.type === "listItem") {
+            items.push(cloneDeep(candidate));
+          }
+        }
+      }
+    } else if (child.type === "listItem") {
+      items.push(cloneDeep(child));
+    }
+  }
+
+  if (items.length === 0) {
+    const fallbackChildren = fragmentRoot.children
+      .filter(isBlockContent)
+      .map((n) => cloneDeep(n));
+
+    if (fallbackChildren.length === 0) {
+      fallbackChildren.push(createParagraphNode(fallbackValue));
+    }
+
+    const listItem: ListItem = {
+      type: "listItem",
+      spread: false,
+      children: fallbackChildren,
+    };
+
+    items.push(cloneDeep(listItem));
+  }
+
+  return items;
 };
 
 export class MarkdownTranslatableFileHandler
@@ -174,7 +652,7 @@ export class MarkdownTranslatableFileHandler
           );
           continue;
         }
-        const meta = parsed.data as Meta;
+        const meta = parsed.data;
         const path = meta.path;
 
         if (!Array.isArray(path) || path.length === 0) {
@@ -241,35 +719,98 @@ export class MarkdownTranslatableFileHandler
           continue;
         }
 
+        if (targetNode.type === "heading") {
+          const inlineChildren = parseInlineChildrenFromMarkdown(
+            String(e.value),
+          );
+          targetNode.children =
+            inlineChildren.length > 0 ? inlineChildren : [createTextNode("")];
+          continue;
+        }
+
+        if (targetNode.type === "paragraph") {
+          const inlineChildren = parseInlineChildrenFromMarkdown(
+            String(e.value),
+          );
+          targetNode.children =
+            inlineChildren.length > 0 ? inlineChildren : [createTextNode("")];
+          continue;
+        }
+
+        if (targetNode.type === "tableCell") {
+          const cellChildren = parseMarkdownToTableCellChildren(
+            String(e.value),
+          );
+          const finalChildren: TableCell["children"] =
+            cellChildren.length > 0
+              ? cellChildren
+              : ([createParagraphNode("")] as unknown as TableCell["children"]);
+          targetNode.children = finalChildren;
+          continue;
+        }
+
+        if (hasLiteralValue(targetNode)) {
+          const literalNode = targetNode;
+          if (literalNode.type === "text") {
+            const originalSource =
+              typeof meta.originalValue === "string"
+                ? meta.originalValue
+                : literalNode.value;
+            const leading =
+              typeof meta.leadingWhitespace === "string"
+                ? meta.leadingWhitespace
+                : (originalSource.match(/^\s*/)?.[0] ?? "");
+            const trailing =
+              typeof meta.trailingWhitespace === "string"
+                ? meta.trailingWhitespace
+                : (originalSource.match(/\s*$/)?.[0] ?? "");
+            literalNode.value = `${leading}${String(e.value)}${trailing}`;
+          } else {
+            literalNode.value = String(e.value);
+          }
+          continue;
+        }
+
         // 对于块级节点或带 children 的节点：把译文视为 markdown 片段解析并替换原节点
         if (BLOCK_NODE_TYPES.has(targetNode.type) || isParent(targetNode)) {
           const fragmentRoot = unified()
             .use(remarkParse)
             .parse(String(e.value));
-          const newChildren = Array.isArray(fragmentRoot.children)
-            ? fragmentRoot.children
-            : [];
 
-          if (newChildren.length === 0) {
-            // 用一个空的 paragraph 节点替换原节点
-            const emptyParagraph: RootContent = {
-              type: "paragraph",
-              children: [{ type: "text", value: "" } as Literal],
-            } as RootContent;
-            parentNode.children.splice(targetIndex, 1, emptyParagraph);
+          let replacementNodes: RootContent[] = [];
+
+          if (targetNode.type === "listItem") {
+            replacementNodes = extractListItemsFromFragment(
+              fragmentRoot,
+              String(e.value),
+            );
           } else {
-            // 用解析出来的节点替换原单一节点
-            parentNode.children.splice(targetIndex, 1, ...newChildren);
+            const candidates = Array.isArray(fragmentRoot.children)
+              ? fragmentRoot.children.filter(
+                  (child) => child.type === targetNode.type,
+                )
+              : [];
+
+            if (candidates.length > 0) {
+              replacementNodes = candidates.map((node) =>
+                cloneDeep<RootContent>(node),
+              );
+            }
+          }
+
+          const parentChildren =
+            parentNode.children as unknown as RootContent[];
+
+          if (replacementNodes.length === 0) {
+            // 用一个空的 paragraph 节点替换原节点
+            parentChildren.splice(targetIndex, 1, createParagraphNode(""));
+          } else {
+            parentChildren.splice(targetIndex, 1, ...replacementNodes);
           }
         } else {
-          // fallback：若节点是 Literal（如 text），直接替换 value
-          if ((targetNode as Literal).value !== undefined) {
-            (targetNode as Literal).value = String(e.value);
-          } else {
-            logger.warn("PLUGIN", {
-              msg: `未能识别可替换节点类型，跳过：${targetNode.type}`,
-            });
-          }
+          logger.warn("PLUGIN", {
+            msg: `未能识别可替换节点类型，跳过：${targetNode.type}`,
+          });
         }
       } catch (err: unknown) {
         throw new Error("处理 markdown 翻译时出错：" + String(err));

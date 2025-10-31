@@ -20,8 +20,11 @@
     "build": "nx vite:build",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "prettier . --write",
+    "format:check": "prettier . --check .",
+    "drizzle:studio": "drizzle-kit studio",
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "drizzle-orm": "^0.44.7",

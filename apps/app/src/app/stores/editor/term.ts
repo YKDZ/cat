@@ -1,18 +1,20 @@
 import { trpc } from "@cat/app-api/trpc/client";
-import type { Term, TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 
-type TermRelationWithDetails = TermRelation & {
-  Term: Term;
-  Translation: Term;
+type TermRelationWithDetails = {
+  term: string;
+  translation: string;
+  termLanguageId: string;
+  translationLanguageId: string;
 };
 
 export const useEditorTermStore = defineStore("editorTerm", () => {
   const { elementId, elementLanguageId } = storeToRefs(useEditorTableStore());
   const { languageToId } = storeToRefs(useEditorContextStore());
+  const { projectId } = storeToRefs(useEditorContextStore());
 
   const searchQuery = ref("");
   const terms = ref<TermRelationWithDetails[]>([]);
@@ -27,7 +29,8 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
   };
 
   const searchTerm = async () => {
-    if (!elementLanguageId.value || !languageToId.value) return 0;
+    if (!elementLanguageId.value || !languageToId.value || !projectId.value)
+      return 0;
 
     if (searchQuery.value.length === 0) return 0;
 
@@ -35,6 +38,7 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
       text: searchQuery.value,
       termLanguageId: elementLanguageId.value,
       translationLanguageId: languageToId.value,
+      projectId: projectId.value,
     });
 
     addTerms(...terms);
@@ -42,33 +46,16 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
     return terms.length;
   };
 
-  const addTerms = (
-    ...termsToAdd: (TermRelation & {
-      Term: Term;
-      Translation: Term;
-    })[]
-  ) => {
+  const addTerms = (...termsToAdd: TermRelationWithDetails[]) => {
     termsToAdd.forEach((relation) => {
-      const { Term: term, Translation: translation } = relation;
+      const { term, translation } = relation;
       if (!term || !translation) return;
-      const id =
-        term.value +
-        translation.value +
-        term.creatorId +
-        translation.creatorId +
-        JSON.stringify(term.createdAt);
+      const id = term + translation;
       if (
         !terms.value.find((relation) => {
-          const { Term: t, Translation: tr } = relation;
+          const { term: t, translation: tr } = relation;
           if (!t || !tr) return false;
-          return (
-            t.value +
-              tr.value +
-              t.creatorId +
-              tr.creatorId +
-              JSON.stringify(t.createdAt) ===
-            id
-          );
+          return t + tr === id;
         })
       )
         terms.value.push(relation);

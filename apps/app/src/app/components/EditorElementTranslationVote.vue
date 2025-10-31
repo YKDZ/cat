@@ -8,9 +8,10 @@ import { trpc } from "@cat/app-api/trpc/client";
 import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { watchClient } from "@/app/utils/vue.ts";
+import type { TranslationWithStatus } from "../stores/editor/translation";
 
 const props = defineProps<{
-  translation: Translation;
+  translation: Pick<TranslationWithStatus, "id" | "vote">;
 }>();
 
 const { info, trpcWarn } = useToastStore();

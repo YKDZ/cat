@@ -8,16 +8,22 @@ import {
   inArray,
   memoryToProject,
   projectTargetLanguage,
+  sql,
   term,
   termRelation,
   translatableElement,
-  vector,
   translatableString,
+  chunkSet,
+  chunk,
+  aliasedTable,
 } from "@cat/db";
 import { PluginRegistry, type TranslationAdvisor } from "@cat/plugin-core";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
-import { getServiceFromDBId, vectorize } from "@cat/app-server-shared/utils";
+import {
+  createStringFromData,
+  getServiceFromDBId,
+} from "@cat/app-server-shared/utils";
 import { searchMemory } from "@cat/app-server-shared/utils";
 import {
   assertFirstNonNullish,
@@ -51,6 +57,16 @@ const worker = new Worker(
       drizzle,
       pluginRegistry,
       advisorId,
+    );
+
+    // TODO 配置
+    const vectorStorage = assertFirstNonNullish(
+      await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+    );
+
+    // TODO 配置
+    const vectorizer = assertFirstNonNullish(
+      await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
     );
 
     const document = assertSingleNonNullish(
@@ -105,35 +121,51 @@ const worker = new Worker(
 
     if (!termService) throw new Error("Term service does not exists");
 
-    // 开自动始翻译
+    // 开始翻译
 
     const elements = await drizzle
       .select({
         id: translatableElement.id,
         value: translatableString.value,
         languageId: translatableString.languageId,
-        embedding: vector.vector,
+        chunkIds: sql<
+          number[]
+        >`coalesce(array_agg("Chunk"."id"), ARRAY[]::int[])`,
       })
       .from(translatableElement)
       .innerJoin(
         translatableString,
-        eq(translatableElement.translableStringId, translatableString.id),
+        eq(translatableElement.translatableStringId, translatableString.id),
       )
-      .innerJoin(vector, eq(translatableString.embeddingId, vector.id))
       .innerJoin(
         documentTable,
         eq(translatableElement.documentId, documentTable.id),
       )
-      .where(eq(documentTable.id, documentId));
+      .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
+      .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
+      .where(eq(documentTable.id, documentId))
+      .groupBy(
+        translatableElement.id,
+        translatableString.value,
+        translatableString.languageId,
+      );
 
     // 自动翻译数据
     // 只有翻译记忆和建议器两个来源
     // 将元素 map 为 translationTable 的 insert 数据
     const translations = await Promise.all(
       elements.map(async (element) => {
+        const chunks = await vectorStorage.service.retrieve(element.chunkIds);
+
+        if (!chunks)
+          throw new Error(`No embeddings found for element ${element.id}`);
+
+        const embeddings = chunks.map((chunk) => chunk.vector);
+
         const memories = await searchMemory(
           drizzle,
-          element.embedding,
+          vectorStorage.service,
+          embeddings,
           element.languageId,
           languageId,
           memoryIds,
@@ -151,7 +183,6 @@ const worker = new Worker(
             translatorId: memory.creatorId,
             translatableElementId: element.id,
             languageId,
-            embeddingId: memory.translationEmbeddingId,
             meta: {
               memorySimilarity: memory.similarity,
               memoryId: memory.memoryId,
@@ -172,28 +203,46 @@ const worker = new Worker(
               element.languageId,
               languageId,
             );
+          const sourceTerm = aliasedTable(term, "sourceTerm");
+          const translationTerm = aliasedTable(term, "translationTerm");
+          const sourceString = aliasedTable(translatableString, "sourceString");
+          const translationString = aliasedTable(
+            translatableString,
+            "translationString",
+          );
           const relations = await drizzle
             .select({
-              termId: termRelation.termId,
-              translationId: termRelation.translationId,
-              Term: term,
-              Translation: translationTable,
+              term: sourceString.value,
+              translation: translationString.value,
             })
             .from(termRelation)
             .innerJoin(
-              term,
+              sourceTerm,
               and(
-                eq(term.id, termRelation.termId),
-                eq(term.languageId, element.languageId),
-                inArray(term.glossaryId, glossaryIds),
+                eq(sourceTerm.id, termRelation.termId),
+                inArray(sourceTerm.glossaryId, glossaryIds),
               ),
             )
             .innerJoin(
-              translationTable,
+              translationTerm,
               and(
-                eq(translationTable.id, termRelation.translationId),
-                eq(translationTable.languageId, languageId),
-                inArray(termRelation.translationId, translationIds),
+                eq(translationTerm.id, termRelation.translationId),
+                inArray(translationTerm.glossaryId, glossaryIds),
+                inArray(translationTerm.id, translationIds),
+              ),
+            )
+            .innerJoin(
+              sourceString,
+              and(
+                eq(sourceString.id, sourceTerm.stringId),
+                eq(sourceString.languageId, element.languageId),
+              ),
+            )
+            .innerJoin(
+              translationString,
+              and(
+                eq(translationString.id, translationTerm.stringId),
+                eq(translationString.languageId, languageId),
               ),
             );
 
@@ -209,21 +258,11 @@ const worker = new Worker(
 
           if (!translation) return undefined;
 
-          const embeddingId = assertSingleNonNullish(
-            await vectorize(drizzle, pluginRegistry, [
-              {
-                value: translation.value,
-                languageId,
-              },
-            ]),
-          );
-
           return {
             value: translation.value,
             translatorId: userId,
             translatableElementId: element.id,
             languageId,
-            embeddingId,
             meta: {
               advisorId,
             },
@@ -235,7 +274,25 @@ const worker = new Worker(
     const filtered = translations.filter((z) => !!z);
 
     // 创建翻译
-    await drizzle.insert(translationTable).values(filtered);
+    await drizzle.transaction(async (tx) => {
+      const stringIds = await createStringFromData(
+        tx,
+        vectorizer.service,
+        vectorizer.id,
+        vectorStorage.service,
+        vectorStorage.id,
+        filtered.map((item) => ({
+          value: item.value,
+          languageId: item.languageId,
+        })),
+      );
+      await tx.insert(translationTable).values(
+        filtered.map((item, index) => ({
+          ...item,
+          stringId: stringIds[index],
+        })),
+      );
+    });
   },
   {
     ...config,

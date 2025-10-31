@@ -1,6 +1,9 @@
 import type { TextVectorizer } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
-import type { UnvectorizedTextData } from "@cat/shared/schema/misc";
+import type {
+  UnvectorizedTextData,
+  VectorizedTextData,
+} from "@cat/shared/schema/misc";
 import { Pool } from "undici";
 import * as z from "zod/v4";
 
@@ -28,7 +31,9 @@ export class Vectorizer implements TextVectorizer {
     return true;
   }
 
-  async vectorize(elements: UnvectorizedTextData[]): Promise<number[][]> {
+  async vectorize(
+    elements: UnvectorizedTextData[],
+  ): Promise<VectorizedTextData[]> {
     const values: string[] = elements.map((element) => element.value);
 
     const response = await this.pool.request({
@@ -55,6 +60,14 @@ export class Vectorizer implements TextVectorizer {
         embeddings: z.array(z.array(z.number())),
       })
       .parse(await response.body.json());
-    return data.embeddings;
+
+    return elements.map((_, index) => [
+      {
+        meta: {
+          modelId: this.config["model-id"],
+        },
+        vector: data.embeddings[index],
+      },
+    ]);
   }
 }
