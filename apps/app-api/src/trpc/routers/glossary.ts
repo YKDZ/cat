@@ -1,8 +1,4 @@
-import {
-  GlossarySchema,
-  TermRelationSchema,
-  TermSchema,
-} from "@cat/shared/schema/drizzle/glossary";
+import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { TermDataSchema } from "@cat/shared/schema/misc";
@@ -11,20 +7,22 @@ import {
   and,
   count,
   eq,
-  getTableColumns,
   glossary as glossaryTable,
   glossaryToProject,
   inArray,
   termRelation as termRelationTable,
   term as termTable,
   document as documentTable,
-  project as projectTable,
   aliasedTable,
   translatableElement,
   translatableString,
+  task,
+  OverallDrizzleClient,
 } from "@cat/db";
-import { assertSingleNonNullish, zip } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "../server.ts";
+import { insertTermsQueue } from "@cat/app-workers/workers";
+import { TermService } from "@cat/plugin-core";
 
 export const glossaryRouter = router({
   deleteTerm: authedProcedure
@@ -41,53 +39,6 @@ export const glossaryRouter = router({
       const { ids } = input;
 
       await drizzle.delete(termTable).where(inArray(termTable.id, ids));
-    }),
-  queryTerms: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-        sourceLanguageId: z.string().nullable(),
-        translationLanguageId: z.string().nullable(),
-      }),
-    )
-    .output(z.array(TermRelationSchema))
-    .query(async ({ ctx, input }) => {
-      const {
-        drizzleDB: { client: drizzle },
-      } = ctx;
-      const { id, sourceLanguageId, translationLanguageId } = input;
-
-      const relationTerm = aliasedTable(termTable, "relationTerm");
-      const relationTranslation = aliasedTable(
-        termTable,
-        "relationTranslation",
-      );
-      const relations = await drizzle
-        .select({
-          ...getTableColumns(termRelationTable),
-          Term: getTableColumns(relationTerm),
-          Translation: getTableColumns(relationTranslation),
-        })
-        .from(termRelationTable)
-        .innerJoin(relationTerm, eq(termRelationTable.termId, relationTerm.id))
-        .innerJoin(
-          relationTranslation,
-          eq(termRelationTable.translationId, relationTranslation.id),
-        )
-        .where(
-          and(
-            sourceLanguageId
-              ? eq(relationTranslation.languageId, sourceLanguageId)
-              : undefined,
-            translationLanguageId
-              ? eq(relationTerm.languageId, translationLanguageId)
-              : undefined,
-            eq(relationTranslation.glossaryId, id),
-            eq(relationTerm.glossaryId, id),
-          ),
-        );
-
-      return relations;
     }),
   get: authedProcedure
     .input(
@@ -231,7 +182,7 @@ export const glossaryRouter = router({
         pluginRegistry,
         user,
       } = ctx;
-      const { glossaryId, termsData } = input;
+      const { termsData, glossaryId } = input;
 
       // TODO 选择安装的服务或者继承
       const { service: termService } = (await pluginRegistry.getPluginService(
@@ -245,70 +196,26 @@ export const glossaryRouter = router({
 
       if (termsData.length === 0) return;
 
-      await drizzle.transaction(async (tx) => {
-        const terms = await tx
-          .insert(termTable)
-          .values(
-            termsData.map((term) => ({
-              value: term.term,
-              languageId: term.termLanguageId,
-              creatorId: user.id,
-              glossaryId,
-            })),
-          )
-          .returning({ id: termTable.id });
-
-        const translations = await tx
-          .insert(termTable)
-          .values(
-            termsData.map((term) => ({
-              value: term.translation,
-              languageId: term.translationLanguageId,
-              creatorId: user.id,
-              glossaryId,
-            })),
-          )
-          .returning({ id: termTable.id });
-
-        const relations = await drizzle
-          .insert(termRelationTable)
-          .values(
-            zip(terms, translations).flatMap(([term, translation]) => [
-              { termId: term.id, translationId: translation.id }, // 正向
-              { termId: translation.id, translationId: term.id }, // 反向
-            ]),
-          )
-          .returning({ id: termRelationTable.id });
-
-        const relationTerm = aliasedTable(termTable, "relationTerm");
-        const relationTranslation = aliasedTable(
-          termTable,
-          "relationTranslation",
-        );
-        const termRelations = await drizzle
-          .select({
-            ...getTableColumns(termRelationTable),
-            Term: getTableColumns(relationTerm),
-            Translation: getTableColumns(relationTranslation),
+      const dbTask = assertSingleNonNullish(
+        await drizzle
+          .insert(task)
+          .values({
+            type: "INSERT_TERMS",
           })
-          .from(termRelationTable)
-          .innerJoin(
-            relationTerm,
-            eq(termRelationTable.termId, relationTerm.id),
-          )
-          .innerJoin(
-            relationTranslation,
-            eq(termRelationTable.translationId, relationTranslation.id),
-          )
-          .where(
-            inArray(
-              termRelationTable.id,
-              relations.map((t) => t.id),
-            ),
-          );
+          .returning({ id: task.id }),
+      );
 
-        await termService.termStore.insertTerms(...termRelations);
-      });
+      await insertTermsQueue.add(
+        dbTask.id,
+        {
+          glossaryId,
+          termsData,
+          creatorId: user.id,
+        },
+        {
+          jobId: dbTask.id,
+        },
+      );
     }),
   searchTerm: authedProcedure
     .input(
@@ -316,13 +223,16 @@ export const glossaryRouter = router({
         text: z.string(),
         termLanguageId: z.string(),
         translationLanguageId: z.string(),
+        projectId: z.uuidv7(),
       }),
     )
     .output(
       z.array(
-        TermRelationSchema.extend({
-          Term: TermSchema,
-          Translation: TermSchema,
+        z.object({
+          term: z.string(),
+          translation: z.string(),
+          termLanguageId: z.string(),
+          translationLanguageId: z.string(),
         }),
       ),
     )
@@ -331,7 +241,7 @@ export const glossaryRouter = router({
         drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
-      const { text, termLanguageId, translationLanguageId } = input;
+      const { text, termLanguageId, translationLanguageId, projectId } = input;
 
       // TODO 选择安装的服务或者继承
       const { service: termService } = (await pluginRegistry.getPluginService(
@@ -341,38 +251,14 @@ export const glossaryRouter = router({
         "ES",
       ))!;
 
-      if (!termService) throw new Error("Term service does not exists");
-
-      const translationIds = await termService.termStore.searchTerm(
+      return await findTermRelationsInProject(
+        drizzle,
+        termService,
+        projectId,
         text,
         termLanguageId,
+        translationLanguageId,
       );
-
-      const relationTerm = aliasedTable(termTable, "relationTerm");
-      const relationTranslation = aliasedTable(
-        termTable,
-        "relationTranslation",
-      );
-      const relations = await drizzle
-        .select({
-          ...getTableColumns(termRelationTable),
-          Term: getTableColumns(relationTerm),
-          Translation: getTableColumns(relationTranslation),
-        })
-        .from(termRelationTable)
-        .innerJoin(relationTerm, eq(termRelationTable.termId, relationTerm.id))
-        .innerJoin(
-          relationTranslation,
-          eq(termRelationTable.translationId, relationTranslation.id),
-        )
-        .where(
-          and(
-            inArray(relationTranslation.id, translationIds),
-            eq(relationTranslation.languageId, translationLanguageId),
-          ),
-        );
-
-      return relations;
     }),
   findTerm: authedProcedure
     .input(
@@ -383,9 +269,11 @@ export const glossaryRouter = router({
     )
     .output(
       z.array(
-        TermRelationSchema.extend({
-          Term: TermSchema,
-          Translation: TermSchema,
+        z.object({
+          term: z.string(),
+          translation: z.string(),
+          termLanguageId: z.string(),
+          translationLanguageId: z.string(),
         }),
       ),
     )
@@ -418,7 +306,7 @@ export const glossaryRouter = router({
           .from(translatableElement)
           .innerJoin(
             translatableString,
-            eq(translatableElement.translableStringId, translatableString.id),
+            eq(translatableElement.translatableStringId, translatableString.id),
           )
           .where(eq(translatableElement.id, elementId))
           .limit(1),
@@ -440,57 +328,80 @@ export const glossaryRouter = router({
           .limit(1),
       );
 
-      const glossaryIds = (
-        await drizzle
-          .select({
-            id: glossaryToProject.glossaryId,
-          })
-          .from(projectTable)
-          .innerJoin(
-            glossaryToProject,
-            eq(projectTable.id, glossaryToProject.projectId),
-          )
-          .where(eq(projectTable.id, projectId))
-      ).map((item) => item.id);
-
-      if (!element)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "请求术语的元素不存在",
-        });
-
-      const translationIds = await termService.termStore.searchTerm(
+      return await findTermRelationsInProject(
+        drizzle,
+        termService,
+        projectId,
         element.value,
         element.languageId,
+        translationLanguageId,
       );
-
-      const relationTerm = aliasedTable(termTable, "relationTerm");
-      const relationTranslation = aliasedTable(
-        termTable,
-        "relationTranslation",
-      );
-      const relations = await drizzle
-        .select({
-          ...getTableColumns(termRelationTable),
-          Term: getTableColumns(relationTerm),
-          Translation: getTableColumns(relationTranslation),
-        })
-        .from(termRelationTable)
-        .innerJoin(relationTerm, eq(termRelationTable.termId, relationTerm.id))
-        .innerJoin(
-          relationTranslation,
-          eq(termRelationTable.translationId, relationTranslation.id),
-        )
-        .where(
-          and(
-            inArray(relationTranslation.id, translationIds),
-            inArray(relationTranslation.glossaryId, glossaryIds),
-            inArray(relationTerm.glossaryId, glossaryIds),
-            eq(relationTerm.languageId, element.languageId),
-            eq(relationTranslation.languageId, translationLanguageId),
-          ),
-        );
-
-      return relations;
     }),
 });
+
+const findTermRelationsInProject = async (
+  drizzle: OverallDrizzleClient,
+  termService: TermService,
+  projectId: string,
+  value: string,
+  sourceLanguageId: string,
+  translationLanguageId: string,
+) => {
+  const glossaryIds = (
+    await drizzle
+      .select({
+        id: glossaryToProject.glossaryId,
+      })
+      .from(glossaryToProject)
+      .where(eq(glossaryToProject.projectId, projectId))
+  ).map((item) => item.id);
+
+  if (glossaryIds.length === 0) {
+    return [];
+  }
+
+  const translationIds = await termService.termStore.searchTerm(
+    value,
+    sourceLanguageId,
+  );
+
+  if (translationIds.length === 0) {
+    return [];
+  }
+
+  const sourceTerm = aliasedTable(termTable, "sourceTerm");
+  const translationTerm = aliasedTable(termTable, "translationTerm");
+  const sourceString = aliasedTable(translatableString, "sourceString");
+  const translationString = aliasedTable(
+    translatableString,
+    "translationString",
+  );
+  const relations = await drizzle
+    .select({
+      term: sourceString.value,
+      translation: translationString.value,
+      termLanguageId: sourceString.languageId,
+      translationLanguageId: translationString.languageId,
+    })
+    .from(termRelationTable)
+    .innerJoin(sourceTerm, eq(termRelationTable.termId, sourceTerm.id))
+    .innerJoin(
+      translationTerm,
+      eq(termRelationTable.translationId, translationTerm.id),
+    )
+    .innerJoin(sourceString, eq(sourceTerm.stringId, sourceString.id))
+    .innerJoin(
+      translationString,
+      eq(translationTerm.stringId, translationString.id),
+    )
+    .where(
+      and(
+        inArray(translationTerm.id, translationIds),
+        eq(translationString.languageId, translationLanguageId),
+        inArray(sourceTerm.glossaryId, glossaryIds),
+        inArray(translationTerm.glossaryId, glossaryIds),
+      ),
+    );
+
+  return relations;
+};

@@ -3,13 +3,11 @@ import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const TermSchema = z.object({
   id: z.int(),
-  value: z.string(),
-  context: z.string().optional().nullable(),
+  stringId: z.int(),
+  glossaryId: z.uuidv7(),
+  creatorId: z.uuidv7(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  glossaryId: z.uuidv7(),
-  languageId: z.string(),
-  creatorId: z.uuidv7(),
 });
 
 export const TermRelationSchema = z.object({
@@ -21,9 +19,9 @@ export const GlossarySchema = z.object({
   id: z.uuidv7(),
   name: z.string(),
   description: z.string().nullable(),
+  creatorId: z.uuidv7(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  creatorId: z.uuidv7(),
 });
 
 export type Term = z.infer<typeof TermSchema>;

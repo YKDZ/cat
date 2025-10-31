@@ -18,6 +18,7 @@ import {
   translation as translationTable,
   translationApprovement as translationApprovementTable,
   count,
+  translatableString,
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
@@ -426,10 +427,14 @@ export const projectRouter = router({
             translatableElementTable.id,
           ),
         )
+        .innerJoin(
+          translatableString,
+          eq(translatableString.id, translationTable.stringId),
+        )
         .where(
           and(
             eq(translatableElementTable.documentId, id),
-            eq(translationTable.languageId, languageId),
+            eq(translatableString.languageId, languageId),
             isApproved
               ? eq(translationApprovementTable.isActive, isApproved)
               : undefined,

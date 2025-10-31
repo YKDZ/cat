@@ -6,38 +6,38 @@ import {
   jsonb,
   pgTable,
   serial,
-  text,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { timestamps } from "./reuse.ts";
 import { user } from "./user.ts";
-import { language } from "./misc.ts";
-import { translatableElement } from "./document.ts";
-import { vector } from "./vector.ts";
+import { translatableElement, translatableString } from "./document.ts";
 import { memoryItem } from "./memory.ts";
 
 export const translation = pgTable(
   "Translation",
   {
     id: serial().primaryKey().notNull(),
-    value: text().notNull(),
+    stringId: integer().notNull(),
     translatorId: uuid().notNull(),
     translatableElementId: integer().notNull(),
-    languageId: text().notNull(),
     meta: jsonb(),
-    embeddingId: integer().notNull(),
     ...timestamps,
   },
   (table) => [
     uniqueIndex().using(
       "btree",
       table.translatorId.asc().nullsLast(),
-      table.languageId.asc().nullsLast().op("text_ops"),
       table.translatableElementId.asc().nullsLast().op("int4_ops"),
-      table.value.asc().nullsLast().op("text_ops"),
+      table.stringId.asc().nullsLast().op("int4_ops"),
     ),
+    foreignKey({
+      columns: [table.stringId],
+      foreignColumns: [translatableString.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("restrict"),
     foreignKey({
       columns: [table.translatorId],
       foreignColumns: [user.id],
@@ -50,18 +50,6 @@ export const translation = pgTable(
     })
       .onUpdate("cascade")
       .onDelete("cascade"),
-    foreignKey({
-      columns: [table.languageId],
-      foreignColumns: [language.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
-    foreignKey({
-      columns: [table.embeddingId],
-      foreignColumns: [vector.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("restrict"),
   ],
 );
 
@@ -126,6 +114,10 @@ export const translationApprovement = pgTable(
 );
 
 export const translationRelations = relations(translation, ({ one, many }) => ({
+  TranslatableString: one(translatableString, {
+    fields: [translation.stringId],
+    references: [translatableString.id],
+  }),
   Translator: one(user, {
     fields: [translation.translatorId],
     references: [user.id],
@@ -133,14 +125,6 @@ export const translationRelations = relations(translation, ({ one, many }) => ({
   TranslatableElement: one(translatableElement, {
     fields: [translation.translatableElementId],
     references: [translatableElement.id],
-  }),
-  Language: one(language, {
-    fields: [translation.languageId],
-    references: [language.id],
-  }),
-  Embedding: one(vector, {
-    fields: [translation.embeddingId],
-    references: [vector.id],
   }),
   TranslationVotes: many(translationVote),
   MemoryItems: many(memoryItem),

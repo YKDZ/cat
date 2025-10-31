@@ -16,6 +16,7 @@ const FOLDER_INCLUDES = [
   "email-password-auth-provider",
   "es-term-service",
   "s3-storage-provider",
+  "pgvector-storage",
 ];
 
 const copyRecursive = async (srcPath, destPath) => {

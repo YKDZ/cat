@@ -83,7 +83,8 @@ const updateTaskStatus = async (
   await drizzle
     .update(task)
     .set({
-      meta: sql`COALESCE(${task.meta}, '{}' )::jsonb || ${JSON.stringify({ stacktrace })}::jsonb`,
+      status,
+      meta: sql`COALESCE(${task.meta}, '{}' )::jsonb || ${JSON.stringify({ stacktrace: stacktrace?.slice(0, 32) })}::jsonb`,
     })
     .where(eq(task.id, id));
 };

@@ -1,13 +1,13 @@
 import vikeVue from "vike-vue/config";
 import type { Config } from "vike/types";
-import vikeServer from "vike-server/config";
+import vikePhoton from "vike-photon/config";
 
 export default {
   passToClient: ["name", "user", "_piniaInitState", "i18nMessages"],
-  extends: [vikeVue, vikeServer],
+  extends: [vikeVue, vikePhoton],
 
-  server: {
-    entry: "src/server/index.ts",
+  photon: {
+    server: "src/server/index.ts",
   },
 
   filesystemRoutingRoot: "/",

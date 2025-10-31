@@ -1,7 +1,6 @@
 import type { TranslationAdvisor } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { TranslationSuggestion } from "@cat/shared/schema/misc";
-import type { TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import { logger } from "@cat/shared/utils";
 import { Pool } from "undici";
 import * as z from "zod";
@@ -105,7 +104,7 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
   async getSuggestions(
     value: string,
     termedValue: string,
-    termRelations: Required<TermRelation>[],
+    terms: { term: string; translation: string }[],
     languageFromId: string,
     languageToId: string,
   ): Promise<TranslationSuggestion[]> {

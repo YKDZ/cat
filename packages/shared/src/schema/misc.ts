@@ -39,7 +39,7 @@ export const TranslationSuggestionSchema = z.object({
 
 export const MemorySuggestionSchema = z.object({
   id: z.int(),
-  translationEmbeddingId: z.int(),
+  translationChunkSetId: z.int(),
   source: z.string(),
   translation: z.string(),
   memoryId: z.uuidv7(),
@@ -53,6 +53,13 @@ export const UnvectorizedTextDataSchema = z.object({
   value: z.string(),
   languageId: z.string(),
 });
+
+export const VectorizedTextDataSchema = z.array(
+  z.object({
+    meta: safeZDotJson,
+    vector: z.array(z.number()),
+  }),
+);
 
 export const TermDataSchema = z.object({
   term: z.string(),
@@ -84,6 +91,7 @@ export type TranslationSuggestionStatus = z.infer<
   typeof TranslationSuggestionStatusSchema
 >;
 export type UnvectorizedTextData = z.infer<typeof UnvectorizedTextDataSchema>;
+export type VectorizedTextData = z.infer<typeof VectorizedTextDataSchema>;
 export type TermData = z.infer<typeof TermDataSchema>;
 export type AuthMethod = z.infer<typeof AuthMethodSchema>;
 export type TranslationAdvisorData = z.infer<

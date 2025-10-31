@@ -426,7 +426,7 @@ export const documentRouter = router({
         .innerJoin(
           translatableString,
           eq(
-            translatableElementTable.translableStringId,
+            translatableElementTable.translatableStringId,
             translatableString.id,
           ),
         )
@@ -496,7 +496,7 @@ export const documentRouter = router({
           .innerJoin(
             translatableString,
             eq(
-              translatableElementTable.translableStringId,
+              translatableElementTable.translatableStringId,
               translatableString.id,
             ),
           )
@@ -676,12 +676,14 @@ export const documentRouter = router({
           id: translationTable.id,
         })
         .from(translationTable)
-        .where(
+        .innerJoin(
+          translatableString,
           and(
-            eq(translationTable.translatableElementId, elementId),
-            eq(translationTable.languageId, languageId),
+            eq(translationTable.stringId, translatableString.id),
+            eq(translatableString.languageId, languageId),
           ),
-        );
+        )
+        .where(eq(translationTable.translatableElementId, elementId));
 
       if (translations.length === 0) {
         return "NO";
@@ -769,7 +771,7 @@ export const documentRouter = router({
         .innerJoin(
           translatableString,
           eq(
-            translatableElementTable.translableStringId,
+            translatableElementTable.translatableStringId,
             translatableString.id,
           ),
         )
@@ -847,7 +849,7 @@ export const documentRouter = router({
         .innerJoin(
           translatableString,
           eq(
-            translatableElementTable.translableStringId,
+            translatableElementTable.translatableStringId,
             translatableString.id,
           ),
         )
@@ -1002,7 +1004,7 @@ export const documentRouter = router({
         .from(translatableElement)
         .innerJoin(
           translatableString,
-          eq(translatableElement.translableStringId, translatableString.id),
+          eq(translatableElement.translatableStringId, translatableString.id),
         )
         .where(
           and(

@@ -1,12 +1,12 @@
-import type { Term, TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import {
   getDrizzleDB,
   termRelation,
-  translation,
   eq,
   and,
   inArray,
   term,
+  translatableString,
+  aliasedTable,
 } from "@cat/db";
 import type {
   TermFormatter,
@@ -138,27 +138,19 @@ export const getESTermService = (config: Config): TermService => {
   };
 
   const Store: TermStore = {
-    async insertTerm(
-      relation: TermRelation & {
-        Term: Term;
-        Translation: Term;
-      },
-    ) {
-      const { Term: term, Translation: translation } = relation;
-      if (!term || !translation) return;
-      const index = `terms_${term.languageId.toLowerCase()}`;
-      await es.index({
-        index,
-        document: {
-          value: term.value,
-          translationId: translation.id,
-        },
-      });
-    },
-
-    async insertTerms(...relations) {
+    async insertTerms(relations) {
       await Promise.all(
-        relations.map(async (relation) => this.insertTerm(relation)),
+        relations.map(async (relation) => {
+          if (!relation.term || !relation.translationId) return;
+          const index = `terms_${relation.termLanguageId.toLowerCase()}`;
+          await es.index({
+            index,
+            document: {
+              value: relation.term,
+              translationId: relation.translationId,
+            },
+          });
+        }),
       );
     },
 
@@ -204,28 +196,43 @@ export const getESTermService = (config: Config): TermService => {
 
       const ids = [...new Set(deduped.map((m) => m.translationId))];
 
+      const sourceTerm = aliasedTable(term, "sourceTerm");
+      const translationTerm = aliasedTable(term, "translationTerm");
+      const sourceString = aliasedTable(translatableString, "sourceString");
+      const translationString = aliasedTable(
+        translatableString,
+        "translatableString",
+      );
       const relations = await drizzle
         .select({
           translationId: termRelation.translationId,
-          Translation: {
-            value: translation.value,
-          },
+          translation: translationString.value,
         })
         .from(termRelation)
-        .where(
+        .innerJoin(sourceTerm, eq(sourceTerm.id, termRelation.termId))
+        .innerJoin(
+          translationTerm,
+          eq(translationTerm.id, termRelation.translationId),
+        )
+        .innerJoin(
+          sourceString,
           and(
-            inArray(termRelation.translationId, ids),
-            eq(translation.languageId, targetLang),
-            eq(term.languageId, sourceLang),
+            eq(sourceString.id, sourceTerm.stringId),
+            eq(sourceString.languageId, sourceLang),
           ),
         )
-        .innerJoin(translation, eq(translation.id, termRelation.translationId))
-        .innerJoin(term, eq(term.id, termRelation.termId));
+        .innerJoin(
+          translationString,
+          and(
+            eq(translationString.id, translationTerm.stringId),
+            eq(translationString.languageId, targetLang),
+          ),
+        )
+        .where(and(inArray(termRelation.translationId, ids)));
 
-      const map = new Map<number, string>();
-      for (const r of relations) {
-        if (r.Translation?.value) map.set(r.translationId, r.Translation.value);
-      }
+      const map = new Map<number, string>(
+        relations.map((r) => [r.translationId, r.translation]),
+      );
 
       const formatted = Formatter.format(
         text,

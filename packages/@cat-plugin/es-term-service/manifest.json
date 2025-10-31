@@ -10,7 +10,6 @@
       "type": "TERM_SERVICE"
     }
   ],
-  "tags": ["term-service"],
   "config": {
     "type": "object",
     "properties": {

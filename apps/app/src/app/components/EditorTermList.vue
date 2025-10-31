@@ -19,7 +19,7 @@ watchClient(elementId, updateTerms, { immediate: true });
   <div class="flex flex-col gap-1">
     <EditorTermListItem
       v-for="(term, index) in terms"
-      :key="term.Term!.id"
+      :key="term.term + term.translation"
       :index
       :term
     />

@@ -9,6 +9,5 @@
       "id": "YAML",
       "type": "TRANSLATABLE_FILE_HANDLER"
     }
-  ],
-  "tags": ["translatable-file-handler"]
+  ]
 }

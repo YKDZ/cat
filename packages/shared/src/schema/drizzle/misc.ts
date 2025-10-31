@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
-import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 import { safeZDotJson } from "@/schema/json.ts";
+import { DrizzleDateTimeSchema } from "../misc";
 
 export const LanguageSchema = z.object({
   id: z.string(),
@@ -31,5 +31,3 @@ export const SettingSchema = z.object({
 export type Language = z.infer<typeof LanguageSchema>;
 export type Task = z.infer<typeof TaskSchema>;
 export type Setting = z.infer<typeof SettingSchema>;
-
-export { DrizzleDateTimeSchema };

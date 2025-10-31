@@ -145,7 +145,40 @@ export const clippers = ref<Clipper[]>([
     splitter: / /g,
     name: "空格",
     content: () => {
-      return h("span", "·");
+      return h(
+        "span",
+        {
+          style: {
+            display: "inline-block",
+            width: "0.5rem",
+            position: "relative",
+            verticalAlign: "middle",
+            lineHeight: "0",
+            WebkitTapHighlightColor: "transparent",
+            userSelect: "text",
+          },
+        },
+        [
+          "\u00A0",
+          h("span", {
+            style: {
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "0.2rem",
+              height: "0.2rem",
+              borderRadius: "50%",
+              background: "gray",
+              pointerEvents: "none",
+              userSelect: "none",
+              WebkitUserSelect: "none",
+              MozUserSelect: "none",
+            },
+            "aria-hidden": "true",
+          }),
+        ],
+      );
     },
     translatable: false,
     highlight: true,

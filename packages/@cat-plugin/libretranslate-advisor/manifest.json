@@ -10,7 +10,6 @@
       "type": "TRANSLATION_ADVISOR"
     }
   ],
-  "tags": ["translation-advisor"],
   "config": {
     "type": "object",
     "properties": {

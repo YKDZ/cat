@@ -7,7 +7,6 @@ export const RoleSchema = z.object({
   description: z.string().nullable(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-
   parentId: z.int().nullable(),
 });
 

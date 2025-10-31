@@ -14,7 +14,6 @@ import {
   inArray,
   term as termTable,
   termRelation as termRelationTable,
-  getTableColumns,
   translatableElement,
   translatableString,
 } from "@cat/db";
@@ -50,11 +49,12 @@ export const suggestionRouter = router({
         await drizzle
           .select({
             value: translatableString.value,
+            languageId: translatableString.languageId,
           })
           .from(translatableElement)
           .innerJoin(
             translatableString,
-            eq(translatableElement.translableStringId, translatableString.id),
+            eq(translatableElement.translatableStringId, translatableString.id),
           )
           .where(eq(translatableElement.id, elementId))
           .limit(1),
@@ -113,7 +113,7 @@ export const suggestionRouter = router({
           );
 
         if (cachedSuggestion.length > 0) {
-          // Publish cached suggestions
+          // 发布缓存的值
           await Promise.all(
             cachedSuggestion.map(async (suggestion) =>
               redisPub.publish(
@@ -128,44 +128,47 @@ export const suggestionRouter = router({
         const { termedText, translationIds } =
           await termService.termStore.termText(
             element.value,
-            "zh_Hans",
+            element.languageId,
             languageId,
           );
-        const relationTerm = aliasedTable(termTable, "relationTerm");
-        const relationTranslation = aliasedTable(
-          termTable,
-          "relationTranslation",
+
+        const sourceTerm = aliasedTable(termTable, "sourceTerm");
+        const translationTerm = aliasedTable(termTable, "translationTerm");
+        const sourceString = aliasedTable(translatableString, "sourceString");
+        const translationString = aliasedTable(
+          translatableString,
+          "translationString",
         );
         const relations = await drizzle
           .select({
-            ...getTableColumns(termRelationTable),
-            Term: getTableColumns(relationTerm),
-            Translation: getTableColumns(relationTranslation),
+            term: sourceString.value,
+            translation: translationString.value,
           })
           .from(termRelationTable)
+          .innerJoin(sourceTerm, eq(termRelationTable.termId, sourceTerm.id))
           .innerJoin(
-            relationTerm,
-            eq(termRelationTable.termId, relationTerm.id),
+            translationTerm,
+            eq(termRelationTable.translationId, translationTerm.id),
           )
+          .innerJoin(sourceString, eq(sourceString.id, sourceTerm.stringId))
           .innerJoin(
-            relationTranslation,
-            eq(termRelationTable.translationId, relationTranslation.id),
+            translationString,
+            eq(translationString.id, translationTerm.stringId),
           )
           .where(
             and(
-              inArray(relationTranslation.id, translationIds),
-              eq(relationTerm.languageId, "zh_Hans"),
-              eq(relationTranslation.languageId, languageId),
+              inArray(translationTerm.id, translationIds),
+              eq(sourceString.languageId, element.languageId),
+              eq(translationString.languageId, languageId),
             ),
           );
 
-        // Get suggestions from advisor
         try {
           const suggestions = await advisor.getSuggestions(
             element.value,
             termedText,
             relations,
-            "zh_Hans",
+            element.languageId,
             languageId,
           );
 

@@ -1,13 +1,10 @@
 import {
-  and,
-  document,
   eq,
   getDrizzleDB,
   inArray,
-  project,
+  sql,
   translatableElement,
   translatableString,
-  vector,
 } from "@cat/db";
 import { Queue, QueueEvents, Worker } from "bullmq";
 import { PluginRegistry } from "@cat/plugin-core";
@@ -17,13 +14,11 @@ import {
 } from "@cat/shared/schema/misc";
 import * as z from "zod/v4";
 import { isEqual } from "lodash-es";
+import { assertFirstNonNullish, chunk } from "@cat/shared/utils";
 import {
-  assertSingleNonNullish,
-  chunk,
-  chunkDual,
-  getIndex,
-} from "@cat/shared/utils";
-import { diffArraysAndSeparate, vectorize } from "@cat/app-server-shared/utils";
+  createStringFromData,
+  diffArraysAndSeparate,
+} from "@cat/app-server-shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 import {
@@ -69,17 +64,6 @@ const batchDiff = async (
   newElementsData: (TranslatableElementData & { sortIndex: number })[],
   documentId: string,
 ) => {
-  const { projectId } = assertSingleNonNullish(
-    await drizzle
-      .select({
-        projectId: project.id,
-      })
-      .from(document)
-      .innerJoin(project, eq(document.projectId, project.id))
-      .where(eq(document.id, documentId))
-      .limit(1),
-  );
-
   const oldElements = (
     await drizzle
       .select({
@@ -92,7 +76,7 @@ const batchDiff = async (
       .from(translatableElement)
       .innerJoin(
         translatableString,
-        eq(translatableElement.translableStringId, translatableString.id),
+        eq(translatableElement.translatableStringId, translatableString.id),
       )
       .where(inArray(translatableElement.id, oldElementIds))
   ).map((element) => ({
@@ -119,6 +103,8 @@ const batchDiff = async (
   })[] = [];
 
   if (added.length > 0) {
+    const tuples = added.map((el) => sql`(${el.value}, ${el.languageId})`);
+
     const existingStrings = await drizzle
       .select({
         id: translatableString.id,
@@ -126,7 +112,9 @@ const batchDiff = async (
         languageId: translatableString.languageId,
       })
       .from(translatableString)
-      .where(and(eq(translatableString.projectId, projectId)));
+      .where(
+        sql`(${translatableString.value}, ${translatableString.languageId}) in (${sql.join(tuples, sql`, `)})`,
+      );
 
     // 创建快速查找映射 (value + languageId -> stringId)
     const stringMap = new Map<string, number>();
@@ -159,15 +147,6 @@ const batchDiff = async (
     }
   }
 
-  const embeddingIds =
-    addedElementsWithoutExistingString.length !== 0
-      ? await vectorize(
-          drizzle,
-          pluginRegistry,
-          addedElementsWithoutExistingString,
-        )
-      : [];
-
   // 移除元素
   if (removedElements.length !== 0)
     await new DistributedTaskHandler("batchDiffElements_removeElements", {
@@ -190,48 +169,37 @@ const batchDiff = async (
   if (addedElementsWithoutExistingString.length !== 0) {
     type ChunkElement = {
       element: TranslatableElementData & { sortIndex: number };
-      embeddingId: number;
     };
     await new DistributedTaskHandler<ChunkElement>(
       "batchDiffElements_addElementWithoutExistingString",
       {
-        chunks: chunkDual<
-          TranslatableElementData & { sortIndex: number },
-          number
-        >(addedElementsWithoutExistingString, embeddingIds, 100).map(
-          ({ index, chunk }) => {
-            return {
-              chunkIndex: index,
-              data: chunk.arr1.map((el, index) => ({
-                element: el,
-                embeddingId: getIndex(chunk.arr2, index),
-              })),
-            } satisfies ChunkData<{
-              element: TranslatableElementData & { sortIndex: number };
-              embeddingId: number;
-            }>;
-          },
-        ),
+        chunks: chunk<TranslatableElementData & { sortIndex: number }>(
+          addedElementsWithoutExistingString,
+          100,
+        ).map(({ index, chunk }) => {
+          return {
+            chunkIndex: index,
+            data: chunk.map((el) => ({
+              element: el,
+            })),
+          } satisfies ChunkData<{
+            element: TranslatableElementData & { sortIndex: number };
+          }>;
+        }),
         run: async ({ data }) => {
           const elementIds = await handleAddedElementsWithoutExistingString(
             data.map((element) => element.element),
-            data.map((element) => element.embeddingId),
             documentId,
-            projectId,
           );
-          return { elementIds, embeddingIds };
+          return { elementIds };
         },
         rollback: async (_, data) => {
-          const { elementIds, embeddingIds } = z
+          const { elementIds } = z
             .object({
               elementIds: z.array(z.int()),
-              embeddingIds: z.array(z.int()),
             })
             .parse(data);
-          await rollbackAddedElementsWithoutExistingString(
-            elementIds,
-            embeddingIds,
-          );
+          await rollbackAddedElementsWithoutExistingString(elementIds);
         },
       } satisfies DistributedTask<ChunkElement>,
     ).run();
@@ -288,86 +256,58 @@ const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
 
 const handleAddedElementsWithoutExistingString = async (
   elements: (TranslatableElementData & { sortIndex: number })[],
-  embeddingIds: number[],
   documentId: string,
-  projectId: string,
 ): Promise<number[]> => {
-  const elementWithEmbeddingIds = elements.map((element, index) => ({
-    ...element,
-    embeddingId: getIndex(embeddingIds, index),
-  }));
+  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+
+  // TODO 配置
+  const vectorStorage = assertFirstNonNullish(
+    await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+  );
+
+  // TODO 配置
+  const vectorizer = assertFirstNonNullish(
+    await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
+  );
 
   return drizzle.transaction(async (tx) => {
-    const ids: number[] = [];
+    const stringIds = await createStringFromData(
+      tx,
+      vectorizer.service,
+      vectorizer.id,
+      vectorStorage.service,
+      vectorStorage.id,
+      elements.map((data) => ({
+        value: data.value,
+        languageId: data.languageId,
+      })),
+    );
 
-    for (const data of elementWithEmbeddingIds) {
-      // eslint-disable-next-line no-await-in-loop
-      let [{ stringId } = {}] = await tx
-        .insert(translatableString)
-        .values({
-          value: data.value,
-          embeddingId: data.embeddingId,
-          languageId: data.languageId,
-          projectId: projectId,
-        })
-        .onConflictDoNothing({
-          target: [
-            translatableString.value,
-            translatableString.languageId,
-            translatableString.projectId,
-          ],
-        })
-        .returning({ stringId: translatableString.id });
-
-      if (!stringId) {
-        const existing = assertSingleNonNullish(
-          // eslint-disable-next-line no-await-in-loop
-          await tx
-            .select({ id: translatableString.id })
-            .from(translatableString)
-            .where(
-              and(
-                eq(translatableString.value, data.value),
-                eq(translatableString.languageId, data.languageId),
-                eq(translatableString.projectId, projectId),
-              ),
-            )
-            .limit(1),
-        );
-        stringId = existing.id;
-      }
-
-      const { id } = assertSingleNonNullish(
-        // eslint-disable-next-line no-await-in-loop
-        await tx
-          .insert(translatableElement)
-          .values({
+    return (
+      await tx
+        .insert(translatableElement)
+        .values(
+          elements.map((data, index) => ({
             sortIndex: data.sortIndex,
             meta: data.meta,
             documentId,
-            translableStringId: stringId,
-          })
-          .returning({
-            id: translatableElement.id,
-          }),
-      );
-
-      ids.push(id);
-    }
-
-    return ids;
+            translatableStringId: stringIds[index],
+          })),
+        )
+        .returning({
+          id: translatableElement.id,
+        })
+    ).map(({ id }) => id);
   });
 };
 
 const rollbackAddedElementsWithoutExistingString = async (
   elementIds: number[],
-  embeddingIds: number[],
 ) => {
   await drizzle.transaction(async (tx) => {
     await tx
       .delete(translatableElement)
       .where(inArray(translatableElement.id, elementIds));
-    await tx.delete(vector).where(inArray(vector.id, embeddingIds));
   });
 };
 
@@ -386,7 +326,7 @@ const handleAddedElementsWithExistingString = async (
           sortIndex: element.sortIndex,
           meta: element.meta,
           documentId,
-          translableStringId: element.stringId,
+          translatableStringId: element.stringId,
         })),
       )
       .returning({

@@ -17,20 +17,17 @@ export const TranslationApprovementSchema = z.object({
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
   translationId: z.int(),
-
   creatorId: z.uuidv7(),
 });
 
 export const TranslationSchema = z.object({
   id: z.int(),
-  value: z.string(),
+  stringId: z.int(),
   meta: safeZDotJson.nullable(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
   translatorId: z.uuidv7(),
   translatableElementId: z.int(),
-  languageId: z.string(),
-  embeddingId: z.int(),
 });
 
 export type Translation = z.infer<typeof TranslationSchema>;

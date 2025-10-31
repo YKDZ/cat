@@ -16,7 +16,7 @@ import { timestamps } from "./reuse.ts";
 import { user } from "./user.ts";
 import { file } from "./file.ts";
 import { document } from "./document.ts";
-import { vector } from "./vector.ts";
+import { chunk } from "./vector.ts";
 
 export type PluginServiceType =
   | "AUTH_PROVIDER"
@@ -24,7 +24,8 @@ export type PluginServiceType =
   | "TERM_SERVICE"
   | "TRANSLATABLE_FILE_HANDLER"
   | "TRANSLATION_ADVISOR"
-  | "TEXT_VECTORIZER";
+  | "TEXT_VECTORIZER"
+  | "VECTOR_STORAGE";
 
 export const pluginServiceType = pgEnum("PluginServiceType", [
   "TRANSLATION_ADVISOR",
@@ -33,6 +34,7 @@ export const pluginServiceType = pgEnum("PluginServiceType", [
   "TERM_SERVICE",
   "TRANSLATABLE_FILE_HANDLER",
   "TEXT_VECTORIZER",
+  "VECTOR_STORAGE",
 ]);
 
 export type ScopeType = "GLOBAL" | "PROJECT" | "USER";
@@ -170,7 +172,12 @@ export const pluginServiceRelations = relations(
 
     Files: many(file),
     Documents: many(document),
-    Vectors: many(vector),
+    VectorizerChunks: many(chunk, {
+      relationName: "chunkVectorizerService",
+    }),
+    VectorStorageChunks: many(chunk, {
+      relationName: "chunkVectorStorageService",
+    }),
   }),
 );
 

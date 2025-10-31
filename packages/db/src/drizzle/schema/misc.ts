@@ -9,9 +9,6 @@ import {
 import { relations } from "drizzle-orm";
 import { timestamps, uuidId } from "./reuse.ts";
 import { projectTargetLanguage } from "./project.ts";
-import { term } from "./glossary.ts";
-import { memoryItem } from "./memory.ts";
-import { translation } from "./translation.ts";
 import { documentToTask, translatableString } from "./document.ts";
 
 export const language = pgTable("Language", {
@@ -47,14 +44,6 @@ export const task = pgTable(
 );
 
 export const languageRelations = relations(language, ({ many }) => ({
-  Translations: many(translation),
-  Terms: many(term),
-  MemoryItemSourceLanguages: many(memoryItem, {
-    relationName: "sourceLanguage",
-  }),
-  MemoryItemTranslationLanguages: many(memoryItem, {
-    relationName: "translationLanguage",
-  }),
   ProjectTargetLanguages: many(projectTargetLanguage),
   TranslatableStrings: many(translatableString),
 }));

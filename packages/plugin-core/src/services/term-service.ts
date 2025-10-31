@@ -1,4 +1,3 @@
-import type { Term, TermRelation } from "@cat/shared/schema/drizzle/glossary";
 import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export interface TermFormatter {
@@ -26,24 +25,23 @@ export interface TermMatcher {
 }
 
 export interface TermStore {
-  insertTerm(
-    relation: TermRelation & {
-      Term: Term;
-      Translation: Term;
-    },
-  ): Promise<void>;
   insertTerms(
-    ...relations: (TermRelation & {
-      Term: Term;
-      Translation: Term;
-    })[]
+    relations: {
+      term: string;
+      translationId: number;
+      termLanguageId: string;
+      translationLanguageId: string;
+    }[],
   ): Promise<void>;
+
   searchTerm(text: string, languageId: string): Promise<number[]>;
+
   termText(
     text: string,
     sourceLanguageId: string,
     targetLanguageId: string,
   ): Promise<{ translationIds: number[]; termedText: string }>;
+
   init(): Promise<void>;
 }
 

@@ -1,97 +1,155 @@
 import {
+  aliasedTable,
   and,
-  cosineDistance,
-  desc,
+  chunk,
   eq,
-  gt,
   inArray,
   memoryItem,
   OverallDrizzleClient,
-  sql,
-  vector,
+  translatableString,
+  union,
 } from "@cat/db";
+import { IVectorStorage } from "@cat/plugin-core";
 import { MemorySuggestion } from "@cat/shared/schema/misc";
 
 export const searchMemory = async (
   drizzle: OverallDrizzleClient,
-  embedding: number[],
+  vectorStorage: IVectorStorage,
+  embeddings: number[][],
   sourceLanguageId: string,
   translationLanguageId: string,
   memoryIds: string[],
   minSimilarity: number = 0.8,
   maxAmount: number = 3,
 ): Promise<MemorySuggestion[]> => {
-  const similarity = sql<number>`1 - (${cosineDistance(vector.vector, embedding)})`;
+  const sourceString = aliasedTable(translatableString, "sourceString");
+  const translationString = aliasedTable(
+    translatableString,
+    "translationString",
+  );
 
-  // source -> translation
-  const sourceResults = await drizzle
-    .select({
-      id: memoryItem.id,
-      translationEmbeddingId: memoryItem.sourceEmbeddingId,
-      memoryId: memoryItem.memoryId,
-      source: memoryItem.source,
-      translation: memoryItem.translation,
-      creatorId: memoryItem.creatorId,
-      similarity,
-      createdAt: memoryItem.createdAt,
-      updatedAt: memoryItem.updatedAt,
-    })
+  // 指定记忆库中该语言对对应的所有条目的 chunk 的 id 的集合
+  // 即为进行余弦相似度查找的 chunk 范围
+  const sourceChunkIds = await drizzle
+    .selectDistinct({ id: chunk.id })
     .from(memoryItem)
-    .innerJoin(vector, eq(memoryItem.sourceEmbeddingId, vector.id))
+    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+    .innerJoin(
+      translationString,
+      eq(translationString.id, memoryItem.translationStringId),
+    )
+    .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
     .where(
       and(
-        eq(memoryItem.sourceLanguageId, sourceLanguageId),
-        eq(memoryItem.translationLanguageId, translationLanguageId),
         inArray(memoryItem.memoryId, memoryIds),
-        gt(similarity, minSimilarity),
+        eq(sourceString.languageId, sourceLanguageId),
+        eq(translationString.languageId, translationLanguageId),
       ),
-    )
-    .orderBy(desc(similarity))
-    .limit(maxAmount);
+    );
 
-  // translation -> source
-  const transResults = await drizzle
-    .select({
-      id: memoryItem.id,
-      translationEmbeddingId: memoryItem.sourceEmbeddingId,
-      memoryId: memoryItem.memoryId,
-      source: memoryItem.translation,
-      translation: memoryItem.source,
-      creatorId: memoryItem.creatorId,
-      similarity,
-      createdAt: memoryItem.createdAt,
-      updatedAt: memoryItem.updatedAt,
-    })
+  const reversedChunkIds = await drizzle
+    .selectDistinct({ id: chunk.id })
     .from(memoryItem)
-    .innerJoin(vector, eq(memoryItem.translationEmbeddingId, vector.id))
+    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+    .innerJoin(
+      translationString,
+      eq(translationString.id, memoryItem.translationStringId),
+    )
+    .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
     .where(
       and(
-        eq(memoryItem.sourceLanguageId, translationLanguageId),
-        eq(memoryItem.translationLanguageId, sourceLanguageId),
         inArray(memoryItem.memoryId, memoryIds),
-        gt(similarity, minSimilarity),
+        eq(translationString.languageId, sourceLanguageId),
+        eq(sourceString.languageId, translationLanguageId),
       ),
+    );
+
+  const chunkIdRange = Array.from(
+    new Set([...sourceChunkIds, ...reversedChunkIds].map((row) => row.id)),
+  );
+
+  const vectorItems = await vectorStorage.cosineSimilarity(
+    embeddings,
+    chunkIdRange,
+    minSimilarity,
+    maxAmount,
+  );
+
+  const searchResult = new Map(
+    vectorItems.map((it) => [it.chunkId, it.similarity]),
+  );
+  const searchedChunkIds = Array.from(searchResult.keys());
+
+  if (searchedChunkIds.length === 0) return [];
+
+  const targetSetsQuery = drizzle
+    .selectDistinct({ chunkSetId: chunk.chunkSetId })
+    .from(chunk)
+    .where(inArray(chunk.id, searchedChunkIds))
+    .as("target_sets");
+
+  const sourceItemsQuery = drizzle
+    .select({
+      id: memoryItem.id,
+      source: sourceString.value,
+      translation: translationString.value,
+      sourceChunkSetId: sourceString.chunkSetId,
+      translationChunkSetId: translationString.chunkSetId,
+      memoryId: memoryItem.memoryId,
+      creatorId: memoryItem.creatorId,
+      createdAt: memoryItem.createdAt,
+      updatedAt: memoryItem.updatedAt,
+      chunkId: chunk.id,
+    })
+    .from(memoryItem)
+    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+    .innerJoin(
+      translationString,
+      eq(translationString.id, memoryItem.translationStringId),
     )
-    .orderBy(desc(similarity))
-    .limit(maxAmount);
+    .innerJoin(
+      targetSetsQuery,
+      eq(sourceString.chunkSetId, targetSetsQuery.chunkSetId),
+    )
+    .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
+    .where(inArray(chunk.id, searchedChunkIds));
 
-  const allResults = uniqueBy(
-    [...sourceResults, ...transResults],
-    (item) => item.source + item.translation,
-  )
-    .filter((item) => item.similarity >= minSimilarity)
-    .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, maxAmount);
+  const translationItemsQuery = drizzle
+    .select({
+      id: memoryItem.id,
+      source: sourceString.value,
+      translation: translationString.value,
+      sourceChunkSetId: sourceString.chunkSetId,
+      translationChunkSetId: translationString.chunkSetId,
+      memoryId: memoryItem.memoryId,
+      creatorId: memoryItem.creatorId,
+      createdAt: memoryItem.createdAt,
+      updatedAt: memoryItem.updatedAt,
+      chunkId: chunk.id,
+    })
+    .from(memoryItem)
+    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+    .innerJoin(
+      translationString,
+      eq(translationString.id, memoryItem.translationStringId),
+    )
+    .innerJoin(
+      targetSetsQuery,
+      eq(translationString.chunkSetId, targetSetsQuery.chunkSetId),
+    )
+    .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
+    .where(inArray(chunk.id, searchedChunkIds));
 
-  return allResults;
-};
+  const rows = await union(sourceItemsQuery, translationItemsQuery).limit(
+    maxAmount,
+  );
 
-const uniqueBy = <T, K>(arr: T[], keyFn: (item: T) => K): T[] => {
-  const seen = new Set<K>();
-  return arr.filter((item) => {
-    const key = keyFn(item);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const result = rows
+    .map((row) => ({
+      ...row,
+      similarity: searchResult.get(row.chunkId) ?? 0,
+    }))
+    .sort((a, b) => b.similarity - a.similarity);
+
+  return result;
 };

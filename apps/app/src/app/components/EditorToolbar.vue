@@ -9,7 +9,7 @@ const { t } = useI18n();
 
 const { translate, toNextUntranslated, replace, clear, undo, redo } =
   useEditorTableStore();
-const { element, selectedTranslationId } = storeToRefs(useEditorTableStore());
+const { element } = storeToRefs(useEditorTableStore());
 
 const handleTranslate = async (toNext: boolean) => {
   await translate();
@@ -69,7 +69,7 @@ const handleTranslate = async (toNext: boolean) => {
         @click="handleTranslate(false)"
         @magic-click="handleTranslate(false)"
       >
-        {{ selectedTranslationId ? t("更新") : t("提交") }}
+        {{ t("提交") }}
       </HButton>
       <HButton
         :classes="{
@@ -81,7 +81,7 @@ const handleTranslate = async (toNext: boolean) => {
         @click="handleTranslate(true)"
         @magic-click="handleTranslate(true)"
       >
-        {{ selectedTranslationId ? t("更新并继续") : t("提交并继续") }}
+        {{ t("提交并继续") }}
       </HButton>
     </div>
   </div>

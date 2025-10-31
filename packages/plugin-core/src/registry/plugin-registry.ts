@@ -30,13 +30,14 @@ import {
 } from "@cat/db";
 import { and } from "@cat/db";
 import { getPluginConfig } from "@/utils/config.ts";
-import type { TranslationAdvisor } from "@/registry/translation-advisor.ts";
-import type { TranslatableFileHandler } from "@/registry/translatable-file-handler.ts";
-import type { TextVectorizer } from "@/registry/text-vectorizer.ts";
-import type { TermService } from "@/registry/term-service.ts";
-import type { StorageProvider } from "@/registry/storage-provider.ts";
-import type { AuthProvider } from "@/registry/auth-provider.ts";
+import type { TranslationAdvisor } from "@/services/translation-advisor.ts";
+import type { TranslatableFileHandler } from "@/services/translatable-file-handler.ts";
+import type { TextVectorizer } from "@/services/text-vectorizer.ts";
+import type { TermService } from "@/services/term-service.ts";
+import type { StorageProvider } from "@/services/storage-provider.ts";
+import type { AuthProvider } from "@/services/auth-provider.ts";
 import { existsSync } from "node:fs";
+import { IVectorStorage } from "@/services/vector-storage";
 
 export type PluginServiceGetters = keyof Pick<
   CatPlugin,
@@ -46,6 +47,7 @@ export type PluginServiceGetters = keyof Pick<
   | "getTranslatableFileHandlers"
   | "getTranslationAdvisors"
   | "getTextVectorizers"
+  | "getVectorStorages"
 >;
 
 type PluginServiceMap = {
@@ -55,6 +57,7 @@ type PluginServiceMap = {
   ["TRANSLATABLE_FILE_HANDLER"]: TranslatableFileHandler;
   ["TRANSLATION_ADVISOR"]: TranslationAdvisor;
   ["TERM_SERVICE"]: TermService;
+  ["VECTOR_STORAGE"]: IVectorStorage;
 };
 
 const PluginServiceGetterMap: {
@@ -66,6 +69,7 @@ const PluginServiceGetterMap: {
   ["TRANSLATABLE_FILE_HANDLER"]: "getTranslatableFileHandlers",
   ["TRANSLATION_ADVISOR"]: "getTranslationAdvisors",
   ["TERM_SERVICE"]: "getTermServices",
+  ["VECTOR_STORAGE"]: "getVectorStorages",
 };
 
 export interface IPluginService {
@@ -99,6 +103,7 @@ export interface CatPlugin {
   getAuthProviders?: (options: PluginGetterOptions) => AuthProvider[];
   getTermServices?: (options: PluginGetterOptions) => TermService[];
   getStorageProviders?: (options: PluginGetterOptions) => StorageProvider[];
+  getVectorStorages?: (options: PluginGetterOptions) => IVectorStorage[];
 }
 
 const PluginObjectSchema = z.custom<CatPlugin>();
@@ -337,7 +342,7 @@ export class PluginRegistry implements IPluginRegistry {
         );
         if (!service)
           throw new Error(
-            `Plugin ${row.pluginId} declare service '${type}:${row.serviceId}' but provided it in getter`,
+            `Plugin ${row.pluginId} declare service '${type}:${row.serviceId}' but not provided it in getter`,
           );
 
         const result = {

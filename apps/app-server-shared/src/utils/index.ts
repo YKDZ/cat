@@ -7,3 +7,4 @@ export * from "./plugin.ts";
 export * from "./queue.ts";
 export * from "./user.ts";
 export * from "./vector.ts";
+export * from "./http-helpers.ts";

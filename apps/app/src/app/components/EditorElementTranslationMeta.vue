@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import type { Translation } from "@cat/shared/schema/drizzle/translation";
 import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
 import { toShortFixed } from "@cat/shared/utils";
 import { computed, onMounted, ref } from "vue";
@@ -9,11 +8,12 @@ import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import EditorElementTranslationMetaTag from "./EditorElementTranslationMetaTag.vue";
+import type { TranslationWithStatus } from "../stores/editor/translation";
 
 const { t } = useI18n();
 
 const props = defineProps<{
-  translation: Translation;
+  translation: Pick<TranslationWithStatus, "createdAt" | "meta">;
 }>();
 
 const meta = computed<TranslationMeta | null>(() => {

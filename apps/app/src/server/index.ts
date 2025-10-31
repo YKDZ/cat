@@ -1,8 +1,7 @@
 import "dotenv/config";
 import type { Server } from "node:http";
 import { logger } from "@cat/shared/utils";
-import { apply } from "vike-server/hono";
-import { serve } from "vike-server/hono/serve";
+import { apply, serve } from "@photonjs/hono";
 import { getDrizzleDB, getRedisDB } from "@cat/db";
 import { closeAllProcessors } from "@cat/app-workers/utils";
 import app from "./app.ts";
@@ -65,4 +64,4 @@ const startServer = async () => {
   });
 };
 
-export default startServer();
+export default await startServer();

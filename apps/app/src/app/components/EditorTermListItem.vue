@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import type {
-  Glossary,
-  Term,
-  TermRelation,
-} from "@cat/shared/schema/drizzle/glossary";
-import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
 import TextTagger from "./tagger/TextTagger.vue";
 import Icon from "./Icon.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
@@ -16,10 +9,7 @@ import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 
 const props = defineProps<{
-  term: TermRelation & {
-    Term: Term;
-    Translation: Term;
-  };
+  term: { term: string; translation: string };
   index: number;
 }>();
 
@@ -29,21 +19,11 @@ const { insert } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());
 
 const handleInsert = () => {
-  insert(props.term!.Translation!.value);
+  insert(props.term.term);
   info(t("成功插入术语"));
 };
 
-const glossary = ref<Glossary | null>(null);
-
 useHotKeys(`T+${props.index + 1}`, handleInsert);
-
-onMounted(async () => {
-  if (!props.term.Term) return;
-
-  glossary.value = await trpc.glossary.get.query({
-    id: props.term.Term.glossaryId,
-  });
-});
 </script>
 
 <template>
@@ -52,12 +32,9 @@ onMounted(async () => {
       class="text-start flex gap-1 cursor-pointer text-wrap items-center"
       @click="handleInsert"
     >
-      <TextTagger v-if="document" :text="term.Term!.value" />
+      <TextTagger v-if="document" :text="term.term" />
       <Icon small icon="icon-[mdi--arrow-right]" />
-      <TextTagger v-if="document" :text="term.Translation!.value" />
+      <TextTagger v-if="document" :text="term.translation" />
     </button>
-    <span v-if="glossary" class="text-sm text-highlight-content">{{
-      glossary.name
-    }}</span>
   </div>
 </template>
