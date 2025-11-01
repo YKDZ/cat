@@ -21,7 +21,7 @@ const parseContext = (
     if (value instanceof Date) {
       delete ctx[key];
       result["year"] = value.getFullYear();
-      result["month"] = value.getMonth();
+      result["month"] = value.getMonth() + 1;
       result["date"] = value.getDate();
       result["day"] = value.getDay();
       result["hours"] = value.getHours();

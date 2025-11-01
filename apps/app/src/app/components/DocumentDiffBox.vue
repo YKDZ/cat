@@ -6,22 +6,33 @@ import { trpc } from "@cat/app-api/trpc/client";
 import DiffBox from "./diff/DiffBox.vue";
 import Picker from "./picker/Picker.vue";
 import type { PickerOption } from "./picker/index.ts";
+import { logger } from "@cat/shared/utils";
 
 const props = defineProps<{
   documentId: string;
 }>();
 
 const versions = shallowRef<DocumentVersion[]>([]);
-const oldVersionId = ref(-1);
-const nowVersionId = ref(-1);
+const oldVersionId = ref<number | null>(null);
+const nowVersionId = ref<number | null>(null);
 const oldContent = ref<string | null>(null);
 const nowContent = ref<string | null>(null);
 
-const loadContent = async (documentVersionId: number) => {
-  return await trpc.document.getDocumentContent.query({
+const fetchDocumentContent = async (documentVersionId: number) => {
+  const fileUrl = await trpc.document.getDocumentFileUrl.query({
     documentId: props.documentId,
     documentVersionId,
   });
+
+  const response = await fetch(fileUrl);
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch document version content: ${response.status}`,
+    );
+  }
+
+  return await response.text();
 };
 
 const loadVersions = async () => {
@@ -44,11 +55,67 @@ const versionOptions = computed(() => {
   );
 });
 
+const lastRequestedOldVersionId = ref<number | null>(null);
+const lastRequestedNowVersionId = ref<number | null>(null);
+
 watch(
   [oldVersionId, nowVersionId],
   async ([old, now]) => {
-    if (old) oldContent.value = await loadContent(old);
-    if (now) nowContent.value = await loadContent(now);
+    const tasks: Promise<void>[] = [];
+
+    if (old !== null) {
+      const versionId = old;
+      lastRequestedOldVersionId.value = versionId;
+      oldContent.value = null;
+
+      tasks.push(
+        fetchDocumentContent(versionId)
+          .then((content) => {
+            if (lastRequestedOldVersionId.value === versionId) {
+              oldContent.value = content;
+            }
+          })
+          .catch((error) => {
+            logger.error(
+              "WEB",
+              { msg: "Failed to load old document version content" },
+              error,
+            );
+          }),
+      );
+    } else {
+      oldContent.value = null;
+      lastRequestedOldVersionId.value = null;
+    }
+
+    if (now !== null) {
+      const versionId = now;
+      lastRequestedNowVersionId.value = versionId;
+      nowContent.value = null;
+
+      tasks.push(
+        fetchDocumentContent(versionId)
+          .then((content) => {
+            if (lastRequestedNowVersionId.value === versionId) {
+              nowContent.value = content;
+            }
+          })
+          .catch((error) => {
+            logger.error(
+              "WEB",
+              { msg: "Failed to load current document version content" },
+              error,
+            );
+          }),
+      );
+    } else {
+      nowContent.value = null;
+      lastRequestedNowVersionId.value = null;
+    }
+
+    if (tasks.length) {
+      await Promise.all(tasks);
+    }
   },
   { immediate: true },
 );
@@ -62,8 +129,8 @@ onMounted(loadVersions);
     <Picker v-model="nowVersionId" :options="versionOptions" />
   </div>
   <DiffBox
-    v-if="oldContent && nowContent"
-    :old="oldContent"
-    :now="nowContent"
+    v-if="oldContent !== null && nowContent !== null"
+    :old="oldContent ?? ''"
+    :now="nowContent ?? ''"
   />
 </template>

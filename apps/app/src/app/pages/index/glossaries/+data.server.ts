@@ -7,7 +7,7 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!user) throw render("/", `You must login to access`);
 
-  const glossaries = await useSSCTRPC(ctx).glossary.listUserOwned({
+  const glossaries = await useSSCTRPC(ctx).glossary.getUserOwned({
     userId: user.id,
   });
 

@@ -59,7 +59,7 @@ const handleAutoTranslate = async () => {
 };
 
 const updateAvailableAdvisor = async () => {
-  await trpc.plugin.listAllAvailableAdvisors
+  await trpc.plugin.getAllTranslationAdvisors
     .query()
     .then((advisors) => (availableAdvisors.value = advisors));
 

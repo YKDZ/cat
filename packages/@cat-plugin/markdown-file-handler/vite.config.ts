@@ -11,7 +11,7 @@ export default defineConfig({
       "zod",
       "lodash-es",
     ],
-    noExternal: ["remark-parse", "remark-stringify", "unified"],
+    noExternal: ["remark-parse", "remark-stringify", "remark-gfm", "unified"],
   },
 
   resolve: {

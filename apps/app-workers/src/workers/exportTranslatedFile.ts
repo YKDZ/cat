@@ -66,6 +66,7 @@ const worker = new Worker(
         )
         .where(eq(documentTable.id, documentId))
         .limit(1),
+      `Document ${documentId} not found`,
     );
 
     if (!document.handlerId || !document.handlerPluginId)
@@ -106,7 +107,7 @@ const worker = new Worker(
     );
     const fileContent = await provider.getContent(file.storedPath);
 
-    // drizzle 查询 translation 及关联 TranslatableElement、Approvements
+    // 查询所有已被批准的翻译
     const translationData = await drizzle
       .select({
         value: translatableString.value,

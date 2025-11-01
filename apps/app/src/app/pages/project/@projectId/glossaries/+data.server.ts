@@ -7,7 +7,7 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!projectId) throw render(`/`, `Project id is required`);
 
-  const glossaries = await useSSCTRPC(ctx).glossary.listProjectOwned({
+  const glossaries = await useSSCTRPC(ctx).glossary.getProjectOwned({
     projectId,
   });
 

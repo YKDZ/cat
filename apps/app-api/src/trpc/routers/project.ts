@@ -22,6 +22,7 @@ import {
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
+import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 
 export const projectRouter = router({
   delete: authedProcedure
@@ -266,7 +267,7 @@ export const projectRouter = router({
           ),
         );
     }),
-  listUserOwned: authedProcedure
+  getUserOwned: authedProcedure
     .output(
       z.array(
         ProjectSchema.extend({
@@ -464,6 +465,34 @@ export const projectRouter = router({
         with: {
           File: true,
         },
+      });
+    }),
+  getTargetLanguages: authedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .output(z.array(LanguageSchema))
+    .query(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
+      const { projectId } = input;
+
+      return await drizzle.transaction(async (tx) => {
+        const ids = await tx.query.projectTargetLanguage.findMany({
+          where: (language, { eq }) => eq(language.projectId, projectId),
+          columns: { languageId: true },
+        });
+
+        return await tx.query.language.findMany({
+          where: (language, { inArray }) =>
+            inArray(
+              language.id,
+              ids.map((i) => i.languageId),
+            ),
+        });
       });
     }),
 });

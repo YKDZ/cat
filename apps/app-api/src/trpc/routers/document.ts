@@ -24,7 +24,6 @@ import {
   not,
   DrizzleClient,
   translatableString,
-  translatableElement,
   getTableColumns,
 } from "@cat/db";
 
@@ -43,7 +42,6 @@ import { exportTranslatedFileQueue } from "@cat/app-workers/workers";
 import { upsertDocumentElementsFromFileQueue } from "@cat/app-workers/workers";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
-import { JSONType } from "@cat/shared/schema/json";
 
 /**
  * 构建翻译状态查询条件
@@ -890,7 +888,7 @@ export const documentRouter = router({
         orderBy: (version, { desc }) => desc(version.createdAt),
       });
     }),
-  getDocumentContent: authedProcedure
+  getDocumentFileUrl: authedProcedure
     .input(
       z.object({
         documentId: z.uuidv7(),
@@ -994,36 +992,7 @@ export const documentRouter = router({
         "GLOBAL",
         "",
       );
-      const content = await provider.getContent(documentData.file.storedPath);
 
-      const elements = await drizzle
-        .select({
-          value: translatableString.value,
-          meta: translatableElement.meta,
-        })
-        .from(translatableElement)
-        .innerJoin(
-          translatableString,
-          eq(translatableElement.translatableStringId, translatableString.id),
-        )
-        .where(
-          and(
-            eq(translatableElement.documentId, documentId),
-            documentVersionId
-              ? eq(translatableElement.documentVersionId, documentVersionId)
-              : undefined,
-          ),
-        );
-
-      return (
-        await handler.getReplacedFileContent(
-          content,
-          // oxlint-disable-next-line no-unsafe-type-assertion
-          elements as {
-            meta: JSONType;
-            value: string;
-          }[],
-        )
-      ).toString();
+      return await provider.generateURL(documentData.file.storedPath, 1000);
     }),
 });

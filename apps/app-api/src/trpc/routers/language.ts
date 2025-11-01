@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
-import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
+import { publicProcedure, router } from "@/trpc/server.ts";
 
 export const languageRouter = router({
   getAll: publicProcedure
@@ -30,33 +30,5 @@ export const languageRouter = router({
           where: (language, { eq }) => eq(language.id, id),
         })) ?? null
       );
-    }),
-  getProjectTargetLanguages: authedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-      }),
-    )
-    .output(z.array(LanguageSchema))
-    .query(async ({ ctx, input }) => {
-      const {
-        drizzleDB: { client: drizzle },
-      } = ctx;
-      const { projectId } = input;
-
-      return await drizzle.transaction(async (tx) => {
-        const ids = await tx.query.projectTargetLanguage.findMany({
-          where: (language, { eq }) => eq(language.projectId, projectId),
-          columns: { languageId: true },
-        });
-
-        return await tx.query.language.findMany({
-          where: (language, { inArray }) =>
-            inArray(
-              language.id,
-              ids.map((i) => i.languageId),
-            ),
-        });
-      });
     }),
 });
