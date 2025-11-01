@@ -80,3 +80,15 @@ services:
         - ./venv/bin/python scripts/healthcheck.py
     environment:
       - LT_LOAD_ONLY=zh,en
+
+  minio:
+    image: minio/minio
+    container_name: cat_minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      - TZ=Asia/Shanghai
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+    command: server /data --console-address ":9001"

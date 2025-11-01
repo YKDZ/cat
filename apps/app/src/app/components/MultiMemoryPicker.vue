@@ -39,7 +39,7 @@ const options = computed(() => {
 
 onMounted(async () => {
   if (!user) return;
-  memories.value = await trpc.memory.listUserOwned.query({
+  memories.value = await trpc.memory.getUserOwned.query({
     userId: user.id,
   });
 });

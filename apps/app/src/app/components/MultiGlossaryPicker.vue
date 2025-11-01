@@ -47,7 +47,7 @@ const options = computed(() => {
 onMounted(async () => {
   if (!user) return;
 
-  glossaries.value = await trpc.glossary.listUserOwned.query({
+  glossaries.value = await trpc.glossary.getUserOwned.query({
     userId: user.id,
   });
 });

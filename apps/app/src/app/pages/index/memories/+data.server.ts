@@ -8,7 +8,7 @@ export const data = async (ctx: PageContextServer) => {
   if (!user) throw render("/", `You must login to access`);
 
   try {
-    const memories = await useSSCTRPC(ctx).memory.listUserOwned({
+    const memories = await useSSCTRPC(ctx).memory.getUserOwned({
       userId: user.id,
     });
 

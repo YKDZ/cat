@@ -1,36 +1,52 @@
 <script setup lang="ts">
 import { trpc } from "@cat/app-api/trpc/client";
 import type { Document } from "@cat/shared/schema/drizzle/document";
-import type { Project } from "@cat/shared/schema/drizzle/project";
 import { computed, ref } from "vue";
 import { watchClient } from "@/app/utils/vue.ts";
 import HMarkdown from "@/app/components/headless/HMarkdown.vue";
+import { logger } from "@cat/shared/utils";
 
 const props = defineProps<{
-  project: Project & {
-    Documents: Document[];
-  };
+  readme: Document;
 }>();
 
-const readme = computed(() => {
-  return props.project.Documents.filter((doc) => doc.name).find(
-    (doc) => doc.name === "README.md",
-  );
-});
-
-const content = ref("");
+const markdownContent = ref<string>("");
+let lastRequestedDocumentId: string | null = null;
 
 const updateContent = async () => {
-  if (!readme.value) {
+  if (!props.readme) {
     return;
   }
 
-  content.value = await trpc.document.getDocumentContent.query({
-    documentId: readme.value.id,
-  });
+  markdownContent.value = "";
+
+  const documentId = props.readme.id;
+  lastRequestedDocumentId = documentId;
+
+  try {
+    const fileUrl = await trpc.document.getDocumentFileUrl.query({
+      documentId,
+    });
+
+    const response = await fetch(fileUrl);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch README content: ${response.status}`);
+    }
+
+    const text = await response.text();
+
+    if (lastRequestedDocumentId !== documentId) {
+      return;
+    }
+
+    markdownContent.value = text;
+  } catch (error) {
+    logger.error("WEB", { msg: "Failed to load README markdown" }, error);
+  }
 };
 
-watchClient(readme, updateContent, { immediate: true });
+watchClient(() => props.readme, updateContent, { immediate: true });
 </script>
 
 <template>
@@ -38,6 +54,6 @@ watchClient(readme, updateContent, { immediate: true });
     :classes="{
       container: 'markdown markdown-highlight',
     }"
-    :content
+    :content="markdownContent"
   />
 </template>

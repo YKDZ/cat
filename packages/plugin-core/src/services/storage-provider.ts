@@ -4,11 +4,7 @@ export interface StorageProvider extends IPluginService {
   getBasicPath: () => string;
   getContent: (storedPath: string) => Promise<Buffer>;
   generateUploadURL: (path: string, expiresIn: number) => Promise<string>;
-  generateURL: (
-    path: string,
-    expiresIn: number,
-    isDownload?: boolean,
-  ) => Promise<string>;
+  generateURL: (path: string, expiresIn: number) => Promise<string>;
   generateDownloadURL(
     path: string,
     fileName: string,

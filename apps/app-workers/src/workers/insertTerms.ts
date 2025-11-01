@@ -1,5 +1,8 @@
 import { eq, getDrizzleDB, glossary, term, termRelation } from "@cat/db";
-import { assertFirstNonNullish } from "@cat/shared/utils";
+import {
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+} from "@cat/shared/utils";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
@@ -27,16 +30,16 @@ const worker = new Worker(
 
     if (termsData.length === 0) return;
 
-    const dbGlossary = await drizzle
-      .select({
-        id: glossary.id,
-      })
-      .from(glossary)
-      .where(eq(glossary.id, glossaryId))
-      .limit(1);
-
-    if (dbGlossary.length === 0)
-      throw new Error(`Glossary ${glossaryId} not found`);
+    assertSingleNonNullish(
+      await drizzle
+        .select({
+          id: glossary.id,
+        })
+        .from(glossary)
+        .where(eq(glossary.id, glossaryId))
+        .limit(1),
+      `Glossary ${glossaryId} not found`,
+    );
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 

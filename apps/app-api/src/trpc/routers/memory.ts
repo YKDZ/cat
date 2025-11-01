@@ -182,7 +182,7 @@ export const memoryRouter = router({
         memoriesQueue.clear();
       }
     }),
-  listUserOwned: authedProcedure
+  getUserOwned: authedProcedure
     .input(
       z.object({
         userId: z.uuidv7(),
@@ -226,28 +226,7 @@ export const memoryRouter = router({
         })) ?? null
       );
     }),
-  countMemoryItem: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-      }),
-    )
-    .output(z.number().int().min(0))
-    .query(async ({ ctx, input }) => {
-      const {
-        drizzleDB: { client: drizzle },
-      } = ctx;
-      const { id } = input;
-
-      return assertSingleNonNullish(
-        await drizzle
-          .select({ count: count() })
-          .from(memoryItemTable)
-          .where(eq(memoryItemTable.memoryId, id))
-          .limit(1),
-      ).count;
-    }),
-  listProjectOwned: authedProcedure
+  getProjectOwned: authedProcedure
     .input(
       z.object({
         projectId: z.uuidv7(),

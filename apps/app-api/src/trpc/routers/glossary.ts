@@ -66,7 +66,7 @@ export const glossaryRouter = router({
         })) ?? null
       );
     }),
-  listUserOwned: authedProcedure
+  getUserOwned: authedProcedure
     .input(
       z.object({
         userId: z.uuidv7(),
@@ -86,7 +86,7 @@ export const glossaryRouter = router({
         },
       });
     }),
-  listProjectOwned: authedProcedure
+  getProjectOwned: authedProcedure
     .input(
       z.object({
         projectId: z.uuidv7(),

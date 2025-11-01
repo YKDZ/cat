@@ -7,7 +7,7 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!projectId) throw render(`/`, `Project id is required`);
 
-  const memories = await useSSCTRPC(ctx).memory.listProjectOwned({
+  const memories = await useSSCTRPC(ctx).memory.getProjectOwned({
     projectId,
   });
 

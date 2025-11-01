@@ -174,7 +174,7 @@ export const pluginRouter = router({
         orderBy: desc(pluginTable.id),
       });
     }),
-  availableAuthMethod: publicProcedure
+  getAllAuthMethod: publicProcedure
     .output(z.array(AuthMethodSchema))
     .query(async ({ ctx }) => {
       const {
@@ -211,7 +211,7 @@ export const pluginRouter = router({
 
       return methods;
     }),
-  listAllAvailableAdvisors: authedProcedure
+  getAllTranslationAdvisors: authedProcedure
     .output(z.array(TranslationAdvisorDataSchema))
     .query(async ({ ctx }) => {
       const {

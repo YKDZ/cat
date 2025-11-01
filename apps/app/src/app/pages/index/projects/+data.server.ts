@@ -12,7 +12,7 @@ export const data = async (
   if (!user) throw render("/auth");
 
   const owned = await useSSCTRPC(ctx)
-    .project.listUserOwned()
+    .project.getUserOwned()
     .catch((e: unknown) => {
       logger.error("WEB", { msg: "Failed to fetch projects" }, e);
       throw render("/");
