@@ -22,7 +22,7 @@
     "@types/node": "^24.9.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/ui": "^3.2.4",
-    "jiti": "2.5.1",
+    "jiti": "2.6.1",
     "js-yaml": "^4.1.0",
     "nx": "22.0.1",
     "oxlint": "^1.24.0",
