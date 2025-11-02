@@ -1,44 +1,52 @@
 import {
+  boolean,
+  check,
   foreignKey,
   integer,
   pgTable,
   serial,
   text,
-  uniqueIndex,
-  uuid,
+  unique,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { timestamps } from "./reuse.ts";
+import { relations, sql } from "drizzle-orm";
+import { bytea, timestamps } from "./reuse.ts";
 import { pluginService } from "./plugin.ts";
-import { user } from "./user.ts";
 import { document } from "./document.ts";
+import { user } from "./user.ts";
 
 export const file = pgTable(
   "File",
   {
     id: serial().primaryKey().notNull(),
-    originName: text().notNull(),
-    storedPath: text().notNull(),
-    documentId: uuid(),
-    userId: uuid(),
-    storageProviderId: integer().notNull(),
-    ...timestamps,
+    name: text().notNull(),
+    blobId: integer().notNull(),
+    isActive: boolean().notNull().default(true),
+    createdAt: timestamps.createdAt,
   },
   (table) => [
-    uniqueIndex().using("btree", table.documentId.asc().nullsLast()),
-    uniqueIndex().using("btree", table.userId.asc().nullsLast()),
     foreignKey({
-      columns: [table.documentId],
-      foreignColumns: [document.id],
+      columns: [table.blobId],
+      foreignColumns: [blob.id],
     })
       .onUpdate("cascade")
-      .onDelete("set null"),
-    foreignKey({
-      columns: [table.userId],
-      foreignColumns: [user.id],
-    })
-      .onUpdate("cascade")
-      .onDelete("set null"),
+      .onDelete("restrict"),
+  ],
+);
+
+export const blob = pgTable(
+  "Blob",
+  {
+    id: serial().primaryKey().notNull(),
+    key: text().notNull(),
+    storageProviderId: integer().notNull(),
+    hash: bytea().unique(),
+    referenceCount: integer().notNull().default(1),
+    createdAt: timestamps.createdAt,
+  },
+  (table) => [
+    unique().on(table.storageProviderId, table.key),
+    check("referenceCount_check1", sql`${table.referenceCount} >= 0`),
+    check("hash_check1", sql`octet_length(${table.hash}) = 32`),
     foreignKey({
       columns: [table.storageProviderId],
       foreignColumns: [pluginService.id],
@@ -48,17 +56,21 @@ export const file = pgTable(
   ],
 );
 
-export const fileRelations = relations(file, ({ one }) => ({
+export const fileRelations = relations(file, ({ one, many }) => ({
   Document: one(document, {
-    fields: [file.documentId],
-    references: [document.id],
+    fields: [file.id],
+    references: [document.fileId],
   }),
-  User: one(user, {
-    fields: [file.userId],
-    references: [user.id],
+  AvatarUser: one(user, {
+    fields: [file.id],
+    references: [user.avatarFileId],
   }),
+  Blobs: many(blob),
+}));
+
+export const blobRelations = relations(blob, ({ one }) => ({
   StorageProvider: one(pluginService, {
-    fields: [file.storageProviderId],
+    fields: [blob.storageProviderId],
     references: [pluginService.id],
   }),
 }));

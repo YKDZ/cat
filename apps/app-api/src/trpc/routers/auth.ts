@@ -156,19 +156,20 @@ export const authRouter = router({
       if (ctx.user)
         throw new TRPCError({ code: "CONFLICT", message: "Already logged in" });
 
-      const preAuthSessionId = helpers.getCookie("preAuthSessionId") ?? "";
+      const preAuthSessionId = helpers.getCookie("preAuthSessionId");
+
+      if (!preAuthSessionId)
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Pre-auth session ID not found",
+        });
+
       const preAuthSessionKey = `auth:preAuth:session:${preAuthSessionId}`;
       helpers.delCookie("preAuthSessionId");
 
-      const providerId = Number(
-        await redis.hGet(preAuthSessionKey, "_providerId"),
-      );
-
-      if (!providerId)
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Provider ID not found in session",
-        });
+      const providerId = z.coerce
+        .number()
+        .parse(await redis.hGet(preAuthSessionKey, "_providerId"));
 
       const provider = await getServiceFromDBId<AuthProvider>(
         drizzle,

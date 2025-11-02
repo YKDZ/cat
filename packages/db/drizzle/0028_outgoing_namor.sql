@@ -1,0 +1,1 @@
+ALTER TABLE "File" RENAME COLUMN "origin_name" TO "name";

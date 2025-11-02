@@ -14,7 +14,7 @@ import { JSONSchema } from "@cat/shared/schema/json";
 import { relations } from "drizzle-orm";
 import { timestamps } from "./reuse.ts";
 import { user } from "./user.ts";
-import { file } from "./file.ts";
+import { blob } from "./file.ts";
 import { document } from "./document.ts";
 import { chunk } from "./vector.ts";
 
@@ -170,7 +170,7 @@ export const pluginServiceRelations = relations(
       references: [pluginInstallation.id],
     }),
 
-    Files: many(file),
+    Blobs: many(blob),
     Documents: many(document),
     VectorizerChunks: many(chunk, {
       relationName: "chunkVectorizerService",
@@ -210,7 +210,7 @@ export const pluginConfigRelations = relations(
   }),
 );
 
-export const PluginConfigInstanceRelations = relations(
+export const pluginConfigInstanceRelations = relations(
   pluginConfigInstance,
   ({ one }) => ({
     Creator: one(user, {

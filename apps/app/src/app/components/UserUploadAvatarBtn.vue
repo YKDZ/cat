@@ -35,11 +35,11 @@ const onSubmit = async (blob: Blob | null) => {
     size: file.size,
   });
 
-  await trpc.user.uploadAvatar
+  await trpc.user.prepareUploadAvatar
     .mutate({
       meta: meta,
     })
-    .then(async (url) => {
+    .then(async ({ url, putSessionId }) => {
       await uploadFileToS3PresignedURL(file, url)
         .then(() => {
           isOpen.value = false;
@@ -47,6 +47,8 @@ const onSubmit = async (blob: Blob | null) => {
         })
         .catch(trpcWarn)
         .finally(() => (isProcessing.value = false));
+
+      await trpc.user.finishUploadAvatar.mutate({ putSessionId });
     })
     .catch(trpcWarn)
     .finally(() => (isProcessing.value = false));

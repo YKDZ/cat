@@ -7,7 +7,6 @@ import {
   YAMLMap,
   YAMLSeq,
 } from "yaml";
-import type { File } from "@cat/shared/schema/drizzle/file";
 import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
 import { JSONType } from "@cat/shared/schema/json";
@@ -38,10 +37,8 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
     return "YAML";
   }
 
-  canExtractElement(file: File): boolean {
-    return (
-      file.originName.endsWith(".yaml") || file.originName.endsWith(".yml")
-    );
+  canExtractElement(name: string): boolean {
+    return name.endsWith(".yaml") || name.endsWith(".yml");
   }
 
   async extractElement(
@@ -96,8 +93,8 @@ export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
     return elements;
   }
 
-  canGetReplacedFileContent(file: File): boolean {
-    return this.canExtractElement(file);
+  canGetReplacedFileContent(name: string): boolean {
+    return this.canExtractElement(name);
   }
 
   async getReplacedFileContent(

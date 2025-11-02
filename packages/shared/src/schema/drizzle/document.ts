@@ -5,6 +5,7 @@ import { safeZDotJson } from "@/schema/json.ts";
 export const DocumentSchema = z.object({
   id: z.uuidv7(),
   name: z.string().nullable(),
+  fileId: z.int().nullable(),
   fileHandlerId: z.int().nullable(),
   creatorId: z.uuidv7(),
   projectId: z.uuidv7(),

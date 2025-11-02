@@ -7,8 +7,6 @@ import {
   document as documentTable,
   documentVersion as documentVersionTable,
   file as fileTable,
-  pluginService as pluginServiceTable,
-  pluginInstallation as pluginInstallationTable,
   task as taskTable,
   documentToTask as documentToTaskTable,
   translation as translationTable,
@@ -25,23 +23,29 @@ import {
   DrizzleClient,
   translatableString,
   getTableColumns,
+  blob as blobTable,
 } from "@cat/db";
 
 import {
   ElementTranslationStatusSchema,
   FileMetaSchema,
 } from "@cat/shared/schema/misc";
-import { FileSchema } from "@cat/shared/schema/drizzle/file";
 import {
   DocumentSchema,
   DocumentVersionSchema,
   TranslatableElementSchema,
 } from "@cat/shared/schema/drizzle/document";
-import { useStorage } from "@cat/app-server-shared/utils";
+import {
+  finishPresignedPutFile,
+  getServiceFromDBId,
+  preparePresignedPutFile,
+  useStorage,
+} from "@cat/app-server-shared/utils";
 import { exportTranslatedFileQueue } from "@cat/app-workers/workers";
 import { upsertDocumentElementsFromFileQueue } from "@cat/app-workers/workers";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
+import { StorageProvider } from "@cat/plugin-core";
 
 /**
  * 构建翻译状态查询条件
@@ -156,7 +160,7 @@ function buildTranslationStatusConditions(
 }
 
 export const documentRouter = router({
-  fileUploadURL: authedProcedure
+  prepareCreateFromFile: authedProcedure
     .input(
       z.object({
         meta: FileMetaSchema,
@@ -165,58 +169,57 @@ export const documentRouter = router({
     .output(
       z.object({
         url: z.url(),
-        file: FileSchema,
+        fileId: z.int(),
+        putSessionId: z.uuidv4(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
+        redisDB: { redis },
       } = ctx;
       const { meta } = input;
-      const storageResult = await useStorage(
+
+      // TODO 配置 storage
+      const { id: providerId, provider } = await useStorage(
         drizzle,
         "s3-storage-provider",
         "S3",
         "GLOBAL",
         "",
       );
-      const { id: providerId, provider } = storageResult;
 
       const name = sanitizeFileName(meta.name);
+      const key = join("documents", name);
 
-      const path = join(provider.getBasicPath(), "documents", name);
-
-      // TODO 校验文件类型
-      const file = assertSingleNonNullish(
-        await drizzle
-          .insert(fileTable)
-          .values({
-            originName: meta.name,
-            storedPath: path,
-            storageProviderId: providerId,
-          })
-          .returning(),
+      const { url, putSessionId, fileId } = await preparePresignedPutFile(
+        drizzle,
+        redis,
+        provider,
+        providerId,
+        key,
+        name,
       );
-
-      const url = await provider.generateUploadURL(path, 120);
 
       return {
         url,
-        file: FileSchema.parse(file),
+        putSessionId,
+        fileId,
       };
     }),
-  createFromFile: authedProcedure
+  finishCreateFromFile: authedProcedure
     .input(
       z.object({
         languageId: z.string(),
         projectId: z.string(),
-        fileId: z.number().int(),
+        putSessionId: z.uuidv4(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { projectId, fileId, languageId } = input;
+      const { projectId, putSessionId, languageId } = input;
       const {
         drizzleDB: { client: drizzle },
+        redisDB: { redis },
         user,
         pluginRegistry,
       } = ctx;
@@ -234,26 +237,30 @@ export const documentRouter = router({
           message: `Project ${projectId} not found`,
         });
 
-      const dbFile = await drizzle.query.file.findFirst({
-        where: (file, { eq }) => eq(file.id, fileId),
-      });
+      const fileId = await finishPresignedPutFile(
+        drizzle,
+        redis,
+        pluginRegistry,
+        putSessionId,
+      );
 
-      if (!dbFile)
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `File ${fileId} not found`,
-        });
+      const { fileName } = assertSingleNonNullish(
+        await drizzle
+          .select({ fileName: fileTable.name })
+          .from(fileTable)
+          .where(and(eq(fileTable.id, fileId), eq(fileTable.isActive, true))),
+      );
 
+      // 名称相同则视为重复文档
       const existDocumentRows = await drizzle
         .select({
           id: documentTable.id,
         })
         .from(documentTable)
-        .innerJoin(fileTable, eq(fileTable.documentId, documentTable.id))
         .where(
           and(
             eq(documentTable.projectId, projectId),
-            eq(documentTable.name, dbFile.originName),
+            eq(documentTable.name, fileName),
           ),
         )
         .limit(1);
@@ -264,7 +271,7 @@ export const documentRouter = router({
             drizzle,
             "TRANSLATABLE_FILE_HANDLER",
           )
-        ).find(({ service }) => service.canExtractElement(dbFile));
+        ).find(({ service }) => service.canExtractElement(fileName));
 
         if (!service)
           throw new TRPCError({
@@ -281,16 +288,16 @@ export const documentRouter = router({
                 creatorId: user.id,
                 projectId,
                 fileHandlerId: service.id,
-                name: dbFile.originName,
+                name: fileName,
               })
               .returning(),
           );
 
-          // 更新文件关联到文档
+          // 更新文档关联到文件
           await tx
-            .update(fileTable)
-            .set({ documentId: document.id })
-            .where(eq(fileTable.id, fileId));
+            .update(documentTable)
+            .set({ fileId: fileId })
+            .where(eq(documentTable.id, document.id));
 
           // 创建文档版本
           await tx.insert(documentVersionTable).values({
@@ -354,11 +361,7 @@ export const documentRouter = router({
     }),
   get: authedProcedure
     .input(z.object({ id: z.string() }))
-    .output(
-      DocumentSchema.extend({
-        File: FileSchema.nullable(),
-      }).nullable(),
-    )
+    .output(DocumentSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -369,16 +372,7 @@ export const documentRouter = router({
         where: (document, { eq }) => eq(document.id, id),
       });
 
-      if (!document) return null;
-
-      const file = await drizzle.query.file.findFirst({
-        where: (file, { eq }) => eq(file.documentId, id),
-      });
-
-      return {
-        ...document,
-        File: file ?? null,
-      };
+      return document ?? null;
     }),
   countElement: authedProcedure
     .input(
@@ -518,28 +512,18 @@ export const documentRouter = router({
       } = ctx;
       const { documentId, languageId } = input;
 
-      const document = await drizzle.query.document.findFirst({
-        where: (doc, { eq }) => eq(doc.id, documentId),
-        columns: {
-          projectId: true,
-          fileHandlerId: true,
-        },
-      });
+      const document = assertSingleNonNullish(
+        await drizzle
+          .select({
+            fileHandlerId: documentTable.fileHandlerId,
+            fileId: documentTable.fileId,
+            projectId: documentTable.projectId,
+          })
+          .from(documentTable)
+          .where(eq(documentTable.id, documentId)),
+      );
 
-      const file = await drizzle.query.file.findFirst({
-        where: (f, { eq }) => eq(f.documentId, documentId),
-        columns: {
-          id: true,
-        },
-      });
-
-      if (!document)
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "指定文档不存在",
-        });
-
-      if (!file || !document.fileHandlerId)
+      if (!document.fileId || !document.fileHandlerId)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "指定文档不是基于文件的",
@@ -571,10 +555,11 @@ export const documentRouter = router({
         },
       );
     }),
-  downloadTranslatedFile: authedProcedure
+  getTranslatedFilePresignedUrl: authedProcedure
     .input(
       z.object({
         taskId: z.uuidv7(),
+        expiresIn: z.int().max(120).default(120),
       }),
     )
     .output(
@@ -586,6 +571,7 @@ export const documentRouter = router({
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
+        pluginRegistry,
       } = ctx;
       const { taskId } = input;
 
@@ -609,23 +595,20 @@ export const documentRouter = router({
           code: "BAD_REQUEST",
         });
 
-      const storageResult = await useStorage(
-        drizzle,
-        "s3-storage-provider",
-        "S3",
-        "GLOBAL",
-        "",
-      );
-      const { provider } = storageResult;
       const { fileId } = z.object({ fileId: z.int() }).parse(task.meta);
 
-      const file = await drizzle.query.file.findFirst({
-        where: (file, { eq }) => eq(file.id, fileId),
-        columns: {
-          storedPath: true,
-          originName: true,
-        },
-      });
+      const file = assertSingleNonNullish(
+        await drizzle
+          .select({
+            name: fileTable.name,
+            key: blobTable.key,
+            storageProviderId: blobTable.storageProviderId,
+          })
+          .from(fileTable)
+          .innerJoin(blobTable, eq(fileTable.blobId, blobTable.id))
+          .where(and(eq(fileTable.id, fileId), eq(fileTable.isActive, true))),
+        `File ${fileId} not found`,
+      );
 
       if (!file)
         throw new TRPCError({
@@ -633,15 +616,17 @@ export const documentRouter = router({
           message: "File does not exists",
         });
 
-      const url = await provider.generateDownloadURL(
-        file.storedPath,
-        file.originName,
-        60,
+      const provider = await getServiceFromDBId<StorageProvider>(
+        drizzle,
+        pluginRegistry,
+        file.storageProviderId,
       );
+
+      const url = await provider.getPresignedGetUrl(file.key, 60, file.name);
 
       return {
         url,
-        fileName: file.originName,
+        fileName: file.name,
       };
     }),
   queryElementTranslationStatus: authedProcedure
@@ -895,7 +880,7 @@ export const documentRouter = router({
         documentVersionId: z.number().int().optional(),
       }),
     )
-    .output(z.string())
+    .output(z.url().nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -921,78 +906,36 @@ export const documentRouter = router({
         );
       }
 
-      const documentData = assertSingleNonNullish(
+      const { key, storageProviderId } = assertSingleNonNullish(
         await drizzle
           .select({
-            file: {
-              id: fileTable.id,
-              originName: fileTable.originName,
-              storedPath: fileTable.storedPath,
-              documentId: fileTable.documentId,
-              userId: fileTable.userId,
-              storageProviderId: fileTable.storageProviderId,
-              createdAt: fileTable.createdAt,
-              updatedAt: fileTable.updatedAt,
-            },
-            fileHandler: {
-              serviceId: pluginServiceTable.serviceId,
-              pluginId: pluginInstallationTable.pluginId,
-            },
+            key: blobTable.key,
+            storageProviderId: blobTable.storageProviderId,
           })
           .from(documentTable)
-          .leftJoin(fileTable, eq(fileTable.documentId, documentTable.id))
           .leftJoin(
-            pluginServiceTable,
-            eq(pluginServiceTable.id, documentTable.fileHandlerId),
-          )
-          .leftJoin(
-            pluginInstallationTable,
-            eq(
-              pluginInstallationTable.id,
-              pluginServiceTable.pluginInstallationId,
+            fileTable,
+            and(
+              eq(fileTable.id, documentTable.fileId),
+              eq(fileTable.isActive, true),
             ),
           )
+          .leftJoin(blobTable, eq(blobTable.id, fileTable.blobId))
           .where(
             whereConditions.length === 1
               ? whereConditions[0]
               : and(...whereConditions),
-          )
-          .limit(1),
+          ),
       );
 
-      if (
-        !documentData.file ||
-        !documentData.fileHandler ||
-        !documentData.fileHandler.pluginId ||
-        !documentData.fileHandler.serviceId
-      )
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "文档不是基于文件的",
-        });
+      if (!key || !storageProviderId) return null;
 
-      const { service: handler } = (await pluginRegistry.getPluginService(
+      const provider = await getServiceFromDBId<StorageProvider>(
         drizzle,
-        documentData.fileHandler.pluginId,
-        "TRANSLATABLE_FILE_HANDLER",
-        documentData.fileHandler.serviceId,
-      ))!;
-
-      if (!handler) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "文件的文件解析器不存在",
-        });
-      }
-
-      const { provider } = await useStorage(
-        drizzle,
-        "s3-storage-provider",
-        "S3",
-        "GLOBAL",
-        "",
+        pluginRegistry,
+        storageProviderId,
       );
 
-      return await provider.generateURL(documentData.file.storedPath, 1000);
+      return await provider.getPresignedGetUrl(key);
     }),
 });

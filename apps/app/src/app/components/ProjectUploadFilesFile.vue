@@ -27,21 +27,22 @@ const upload = async () => {
 
   isProcessing.value = true;
 
-  const { url, file } = await trpc.document.fileUploadURL.mutate({
-    meta: {
-      name: props.file.name,
-      size: props.file.size,
-      mimeType: props.file.type,
-    },
-  });
+  const { url, putSessionId } =
+    await trpc.document.prepareCreateFromFile.mutate({
+      meta: {
+        name: props.file.name,
+        size: props.file.size,
+        mimeType: props.file.type,
+      },
+    });
 
   await uploadFileToS3PresignedURL(props.file, url);
 
-  await trpc.document.createFromFile
+  await trpc.document.finishCreateFromFile
     .mutate({
       projectId: props.projectId,
-      fileId: file.id,
       languageId: languageId.value,
+      putSessionId,
     })
     .then(() => {
       info(`上传 ${props.file.name} 成功，等待处理完成后即可翻译`);

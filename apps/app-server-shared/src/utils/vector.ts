@@ -9,6 +9,7 @@ import {
 import { IVectorStorage, TextVectorizer } from "@cat/plugin-core";
 import { JSONType } from "@cat/shared/schema/json";
 import { UnvectorizedTextData } from "@cat/shared/schema/misc";
+import { logger } from "@cat/shared/utils";
 
 const vectorizeToChunkSetsBatch = async (
   drizzle: Omit<DrizzleClient, "$client">,
@@ -105,10 +106,12 @@ const vectorizeToChunkSetsBatch = async (
         }
       });
     } catch (cleanupErr) {
-      throw new Error(
-        `vectorStorage.store failed: ${(err as Error).message}; cleanup also failed: ${
-          (cleanupErr as Error).message
-        }`,
+      logger.error(
+        "PLUGIN",
+        {
+          msg: `vectorStorage.store failed; cleanup also failed`,
+        },
+        cleanupErr,
       );
     }
     throw err;
@@ -164,7 +167,7 @@ export const createStringFromData = async (
   }
 
   const chunkSetIds = await vectorizeToChunkSetsBatch(
-    tx as unknown as Omit<DrizzleClient, "$client">, // 根据你的类型调整传入
+    tx,
     vectorizer,
     vectorizerId,
     vectorStorage,
