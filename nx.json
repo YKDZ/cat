@@ -26,15 +26,15 @@
       "continuous": true
     },
     "lint": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "build"],
       "cache": true
     },
     "lint:fix": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "build"],
       "cache": true
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "build"],
       "cache": true
     },
     "format": {
