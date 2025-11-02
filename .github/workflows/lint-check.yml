@@ -40,4 +40,4 @@ jobs:
         run: pnpm nx sync:check
 
       - name: Lint Check
-        run: pnpm nx run-many --target=lint --projects=*
+        run: pnpm nx run-many --target=lint --projects=* --skip-nx-cache
