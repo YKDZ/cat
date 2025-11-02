@@ -13,8 +13,7 @@ type TermRelationWithDetails = {
 
 export const useEditorTermStore = defineStore("editorTerm", () => {
   const { elementId, elementLanguageId } = storeToRefs(useEditorTableStore());
-  const { languageToId } = storeToRefs(useEditorContextStore());
-  const { projectId } = storeToRefs(useEditorContextStore());
+  const { languageToId, projectId } = storeToRefs(useEditorContextStore());
 
   const searchQuery = ref("");
   const terms = ref<TermRelationWithDetails[]>([]);

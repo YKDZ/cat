@@ -28,6 +28,11 @@ const updateContent = async () => {
       documentId,
     });
 
+    if (!fileUrl) {
+      markdownContent.value = "";
+      return;
+    }
+
     const response = await fetch(fileUrl);
 
     if (!response.ok) {

@@ -1,12 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { join } from "node:path";
 import { Queue, Worker } from "bullmq";
-import { fetch } from "undici";
 import {
   eq,
-  mimeFromFileName,
-  pluginService as pluginServiceTable,
-  pluginInstallation as pluginInstallationTable,
   task as taskTable,
   translation as translationTable,
   translatableElement as translatableElementTable,
@@ -15,16 +10,26 @@ import {
   translatableString,
   translationApprovement as translationApprovementTable,
   exists,
+  blob as blobTable,
 } from "@cat/db";
 import * as z from "zod/v4";
-import { PluginRegistry } from "@cat/plugin-core";
+import {
+  PluginRegistry,
+  StorageProvider,
+  TranslatableFileHandler,
+} from "@cat/plugin-core";
 import {
   getDrizzleDB,
   file as fileTable,
   document as documentTable,
 } from "@cat/db";
 import { assertSingleNonNullish, useStringTemplate } from "@cat/shared/utils";
-import { useStorage } from "@cat/app-server-shared/utils";
+import {
+  getServiceFromDBId,
+  putBufferToStorage,
+  readableToBuffer,
+  useStorage,
+} from "@cat/app-server-shared/utils";
 import { config } from "./config.ts";
 import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 
@@ -49,63 +54,51 @@ const worker = new Worker(
     const document = assertSingleNonNullish(
       await drizzle
         .select({
-          handlerId: pluginServiceTable.serviceId,
-          handlerPluginId: pluginInstallationTable.pluginId,
+          fileId: documentTable.fileId,
+          fileHandlerId: documentTable.fileHandlerId,
         })
         .from(documentTable)
-        .leftJoin(
-          pluginServiceTable,
-          eq(documentTable.fileHandlerId, pluginServiceTable.id),
-        )
-        .leftJoin(
-          pluginInstallationTable,
-          eq(
-            pluginServiceTable.pluginInstallationId,
-            pluginInstallationTable.id,
-          ),
-        )
         .where(eq(documentTable.id, documentId))
         .limit(1),
       `Document ${documentId} not found`,
     );
 
-    if (!document.handlerId || !document.handlerPluginId)
-      throw new Error("Document not found");
+    if (!document.fileHandlerId || !document.fileId)
+      throw new Error("Document is not file based");
 
-    const { service: handler } = (await pluginRegistry.getPluginService(
+    const handler = await getServiceFromDBId<TranslatableFileHandler>(
       drizzle,
-      document.handlerPluginId,
-      "TRANSLATABLE_FILE_HANDLER",
-      document.handlerId,
-    ))!;
+      pluginRegistry,
+      document.fileHandlerId,
+    );
 
     if (!handler)
       throw new Error(
-        `Translatable File Handler with id ${document.handlerId} do not exists`,
+        `Translatable File Handler with id ${document.fileHandlerId} do not exists`,
       );
 
     const file = assertSingleNonNullish(
       await drizzle
         .select({
-          originName: fileTable.originName,
-          storedPath: fileTable.storedPath,
+          name: fileTable.name,
+          key: blobTable.key,
+          storageProviderId: blobTable.storageProviderId,
         })
         .from(fileTable)
-        .where(eq(fileTable.documentId, documentId))
-        .limit(1),
+        .where(
+          and(eq(fileTable.id, document.fileId), eq(fileTable.isActive, true)),
+        ),
+      `Document ${documentId} not have file`,
     );
 
-    if (!file) throw new Error(`Document with id ${documentId} do not exists`);
-
-    // TODO 配置
-    const { id, provider } = await useStorage(
+    const provider = await getServiceFromDBId<StorageProvider>(
       drizzle,
-      "s3-storage-provider",
-      "S3",
-      "GLOBAL",
-      "",
+      pluginRegistry,
+      file.storageProviderId,
     );
-    const fileContent = await provider.getContent(file.storedPath);
+    const fileContent = await readableToBuffer(
+      await provider.getStream(file.key),
+    );
 
     // 查询所有已被批准的翻译
     const translationData = await drizzle
@@ -151,52 +144,12 @@ const worker = new Worker(
       })),
     );
 
-    const uuid = randomUUID();
-    const date = new Date();
-    const template = await getSetting(
-      drizzle,
-      "storage.template.exported-translated-file",
-      "exported/document/translated/{year}/{month}/{date}/{uuid}-{languageId}-{fileName}",
-    );
-    const path = useStringTemplate(template, {
-      date,
+    const { fileId: translatedFileId } = await uploadTranslatedFile(
+      translated,
+      file.name,
       documentId,
       languageId,
-      uuid,
-      fileName: file.originName,
-    });
-    const storedPath = join(provider.getBasicPath(), path);
-
-    const translatedFile = assertSingleNonNullish(
-      await drizzle
-        .insert(fileTable)
-        .values([
-          {
-            storedPath: storedPath,
-            originName: file.originName,
-            storageProviderId: id,
-          },
-        ])
-        .returning({ id: fileTable.id }),
     );
-
-    const uploadURL = await provider.generateUploadURL(storedPath, 60);
-
-    const response = await fetch(uploadURL, {
-      method: "PUT",
-      headers: {
-        "Content-Type": await mimeFromFileName(drizzle, file.originName),
-      },
-      body: new Uint8Array(translated),
-      mode: "cors",
-      credentials: "omit",
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Upload translated file failed: ${response.status} ${response.statusText}`,
-      );
-    }
 
     await drizzle.transaction(async (tx) => {
       const [task] = await tx
@@ -210,7 +163,7 @@ const worker = new Worker(
       await tx
         .update(taskTable)
         .set({
-          meta: { ...task.meta, fileId: translatedFile.id, storedPath },
+          meta: { ...task.meta, fileId: translatedFileId },
         })
         .where(eq(taskTable.id, taskId));
     });
@@ -220,6 +173,46 @@ const worker = new Worker(
     concurrency: 50,
   },
 );
+
+const uploadTranslatedFile = async (
+  file: Buffer,
+  name: string,
+  documentId: string,
+  languageId: string,
+) => {
+  // TODO 配置 storage
+  const { id: storageProviderId, provider } = await useStorage(
+    drizzle,
+    "s3-storage-provider",
+    "S3",
+    "GLOBAL",
+    "",
+  );
+
+  const uuid = randomUUID();
+  const date = new Date();
+  const template = await getSetting(
+    drizzle,
+    "storage.template.exported-translated-file",
+    "exported/document/translated/{year}/{month}/{date}/{uuid}-{languageId}-{fileName}",
+  );
+  const path = useStringTemplate(template, {
+    date,
+    documentId,
+    languageId,
+    uuid,
+    fileName: name,
+  });
+
+  return await putBufferToStorage(
+    drizzle,
+    provider,
+    storageProviderId,
+    file,
+    path,
+    name,
+  );
+};
 
 registerTaskUpdateHandlers(drizzle, worker, queueId);
 

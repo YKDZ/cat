@@ -1,6 +1,7 @@
 import {
   boolean,
   foreignKey,
+  integer,
   jsonb,
   pgTable,
   primaryKey,
@@ -29,11 +30,18 @@ export const user = pgTable(
     name: text().notNull(),
     email: text().notNull(),
     emailVerified: boolean().default(false).notNull(),
+    avatarFileId: integer(),
     ...timestamps,
   },
   (table) => [
     uniqueIndex().using("btree", table.email.asc().nullsLast().op("text_ops")),
     uniqueIndex().using("btree", table.name.asc().nullsLast().op("text_ops")),
+    foreignKey({
+      columns: [table.avatarFileId],
+      foreignColumns: [file.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
   ],
 );
 

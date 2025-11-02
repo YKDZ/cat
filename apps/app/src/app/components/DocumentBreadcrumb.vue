@@ -3,7 +3,7 @@ import type { Document } from "@cat/shared/schema/drizzle/document";
 import { computed } from "vue";
 
 defineProps<{
-  document: Document;
+  document: Pick<Document, "name">;
 }>();
 
 // TODO 文件名 -> 图标

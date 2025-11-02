@@ -1,8 +1,4 @@
-export type setCookie = (
-  key: string,
-  value: string | undefined,
-  maxAge?: number,
-) => void;
+export type setCookie = (key: string, value: string, maxAge?: number) => void;
 export type delCookie = (key: string) => void;
 export type getCookie = (name: string) => string | null;
 export type getQueryParam = (name: string) => string | undefined;
@@ -26,8 +22,8 @@ export const createHTTPHelpers = (
   return {
     setCookie: (
       key: string,
-      value: string | undefined,
-      maxAge: number | undefined = 7 * 24 * 60 * 60,
+      value: string,
+      maxAge: number = 7 * 24 * 60 * 60,
     ) => {
       resHeaders.append(
         "Set-Cookie",

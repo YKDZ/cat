@@ -49,3 +49,16 @@ export const assertSingleNonNullish = <T>(arr: T[], message?: string): T => {
   }
   return arr[0];
 };
+
+export function assertKeysNonNullish<T, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+  message?: string,
+): asserts obj is T & { [P in K]-?: Exclude<T[P], null | undefined> } {
+  for (const key of keys) {
+    const value = obj[key];
+    if (value === null || value === undefined) {
+      throw new Error(message ?? `Expected ${String(key)} to be non-nullish`);
+    }
+  }
+}

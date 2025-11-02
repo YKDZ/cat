@@ -13,7 +13,6 @@ const props = defineProps<{
 
 const user = ref<User | null>(props.user ?? null);
 const avatar = ref<string>("");
-const avatarExpiresIn = ref<number>(0);
 const isFallback = ref(true);
 
 const containerStyle = computed(() => ({
@@ -33,11 +32,10 @@ const imgStyle = computed(() => ({
 const updateAvatar = async () => {
   if (!user.value) return;
 
-  await trpc.user.queryAvatar
+  await trpc.user.getAvatarPresignedUrl
     .query({ id: user.value.id })
-    .then(({ url, expiresIn }) => {
+    .then((url) => {
       avatar.value = url ?? "";
-      avatarExpiresIn.value = expiresIn;
     });
 };
 

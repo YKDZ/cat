@@ -183,6 +183,83 @@
       "when": 1761913184969,
       "tag": "0025_unknown_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1761991663854,
+      "tag": "0026_soft_chimera",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1761996525603,
+      "tag": "0027_productive_ben_grimm",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1761999938163,
+      "tag": "0028_outgoing_namor",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1762073202641,
+      "tag": "0029_normal_ikaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1762074254106,
+      "tag": "0030_broad_spitfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1762075318452,
+      "tag": "0031_classy_slapstick",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1762075332914,
+      "tag": "0032_panoramic_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1762076159680,
+      "tag": "0033_jazzy_mentallo",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1762076843000,
+      "tag": "0034_tense_johnny_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1762085053144,
+      "tag": "0035_third_wraith",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1762086948825,
+      "tag": "0036_purple_matthew_murdock",
+      "breakpoints": true
     }
   ]
 }

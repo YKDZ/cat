@@ -3,13 +3,19 @@ import { DrizzleDateTimeSchema } from "../misc.ts";
 
 export const FileSchema = z.object({
   id: z.int(),
-  originName: z.string(),
-  storedPath: z.string(),
-  storageProviderId: z.int(),
-  documentId: z.uuidv7().nullable(),
-  userId: z.uuidv7().nullable(),
+  name: z.string(),
+  blobId: z.int(),
+  isActive: z.boolean(),
   createdAt: DrizzleDateTimeSchema,
-  updatedAt: DrizzleDateTimeSchema,
+});
+
+export const Blob = z.object({
+  id: z.int(),
+  key: z.string(),
+  storageProviderId: z.int(),
+  hash: z.instanceof(Buffer),
+  createdAt: DrizzleDateTimeSchema,
 });
 
 export type File = z.infer<typeof FileSchema>;
+export type Blob = z.infer<typeof Blob>;

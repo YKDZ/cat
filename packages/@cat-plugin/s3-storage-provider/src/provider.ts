@@ -1,7 +1,7 @@
 import type { Readable } from "node:stream";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
-import { S3Client } from "@aws-sdk/client-s3";
+import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import {
   DeleteObjectCommand,
   GetObjectCommand,
@@ -9,9 +9,10 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { getDrizzleDB, mimeFromFileName } from "@cat/db";
-import { StorageProvider } from "@cat/plugin-core";
+import { PutStreamResult, StorageProvider } from "@cat/plugin-core";
 import * as z from "zod/v4";
+import { join } from "node:path";
+import { assertKeysNonNullish } from "@cat/shared/utils";
 
 const S3ConfigSchema = z.object({
   "endpoint-url": z.url(),
@@ -86,10 +87,6 @@ export class S3StorageProvider implements StorageProvider {
     return "S3";
   }
 
-  getBasicPath(): string {
-    return this.config.storage["basic-path"];
-  }
-
   async ping(): Promise<void> {
     await this.db.ping();
   }
@@ -102,33 +99,34 @@ export class S3StorageProvider implements StorageProvider {
     await this.db.disconnect();
   }
 
-  async getContent(storedPath: string): Promise<Buffer> {
-    const command = new GetObjectCommand({
+  async putStream(key: string, stream: Readable): Promise<PutStreamResult> {
+    const cmd = new PutObjectCommand({
       Bucket: this.config.s3["bucket-name"],
-      Key: storedPath.replaceAll("\\", "/"),
+      Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
+      Body: stream,
+      ChecksumAlgorithm: "SHA256",
     });
+    const output = await this.db.client.send(cmd);
 
-    const response = await this.db.client.send(command);
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    const stream = response.Body as Readable;
+    assertKeysNonNullish(output, ["ChecksumSHA256", "Size"]);
 
-    return new Promise<Buffer>((resolve, reject) => {
-      const chunks: Uint8Array[] = [];
-      stream.on("data", (chunk) =>
-        // oxlint-disable-next-line no-unsafe-type-assertion
-        chunks.push(chunk as Uint8Array),
-      );
-      stream.on("error", reject);
-      stream.on("end", () => {
-        resolve(Buffer.concat(chunks));
-      });
-    });
+    return { checksum: output.ChecksumSHA256, size: output.Size };
   }
 
-  async generateUploadURL(path: string, expiresIn: number): Promise<string> {
+  async getStream(key: string): Promise<Readable> {
+    const cmd = new GetObjectCommand({
+      Bucket: this.config.s3["bucket-name"],
+      Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
+    });
+    const res = await this.db.client.send(cmd);
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    return res.Body as Readable;
+  }
+
+  async getPresignedPutUrl(key: string, expiresIn: number): Promise<string> {
     const params: PutObjectCommandInput = {
       Bucket: this.config.s3["bucket-name"],
-      Key: path.replaceAll("\\", "/"),
+      Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
       ACL: this.config.s3["acl"],
     };
     const command = new PutObjectCommand(params);
@@ -140,37 +138,36 @@ export class S3StorageProvider implements StorageProvider {
     return presignedUrl;
   }
 
-  async generateURL(path: string, expiresIn: number): Promise<string> {
-    const command = new GetObjectCommand({
-      Bucket: this.config.s3["bucket-name"],
-      Key: path.replaceAll("\\", "/"),
-    });
-
-    return await getSignedUrl(this.db.client, command, { expiresIn });
-  }
-
-  async generateDownloadURL(
-    path: string,
-    fileName: string,
+  async getPresignedGetUrl(
+    key: string,
     expiresIn: number,
+    fileName?: string,
   ): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.config.s3["bucket-name"],
-      Key: path.replaceAll("\\", "/"),
-      ResponseContentDisposition: `attachment; filename="${fileName}"`,
-      ResponseContentType: await mimeFromFileName(
-        (await getDrizzleDB()).client,
-        fileName,
-      ),
+      Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
+      ...(fileName
+        ? {
+            ResponseContentDisposition: `attachment; filename="${fileName}"`,
+          }
+        : {}),
     });
 
     return await getSignedUrl(this.db.client, command, { expiresIn });
   }
 
-  async delete(storedPath: string): Promise<void> {
+  async head(key: string): Promise<void> {
+    const command = new HeadObjectCommand({
+      Bucket: this.config.s3["bucket-name"],
+      Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
+    });
+    await this.db.client.send(command);
+  }
+
+  async delete(key: string): Promise<void> {
     const command = new DeleteObjectCommand({
       Bucket: this.config.s3["bucket-name"],
-      Key: storedPath.replaceAll("\\", "/"),
+      Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
     });
 
     await this.db.client.send(command);

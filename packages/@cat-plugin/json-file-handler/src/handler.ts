@@ -1,6 +1,5 @@
 import { extname } from "node:path";
 import type { TranslatableFileHandler } from "@cat/plugin-core";
-import { File } from "@cat/shared/schema/drizzle/file";
 import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { JSONType } from "@cat/shared/schema/json";
 import * as z from "zod";
@@ -18,8 +17,8 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     return "JSON";
   }
 
-  canExtractElement(file: File): boolean {
-    return extname(file.originName) === ".json";
+  canExtractElement(name: string): boolean {
+    return extname(name) === ".json";
   }
 
   async extractElement(
@@ -28,8 +27,8 @@ export class JSONTranslatableFileHandler implements TranslatableFileHandler {
     return collectTranslatableElement(fileContent.toString("utf-8"));
   }
 
-  canGetReplacedFileContent(file: File): boolean {
-    return extname(file.originName) === ".json";
+  canGetReplacedFileContent(name: string): boolean {
+    return extname(name) === ".json";
   }
 
   async getReplacedFileContent(

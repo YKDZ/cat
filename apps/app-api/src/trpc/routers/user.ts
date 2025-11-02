@@ -1,13 +1,25 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
-import { useStorage } from "@cat/app-server-shared/utils";
-import { eq, file as fileTable, user as userTable } from "@cat/db";
+import {
+  finishPresignedPutFile,
+  getServiceFromDBId,
+  preparePresignedPutFile,
+  useStorage,
+} from "@cat/app-server-shared/utils";
+import {
+  eq,
+  file as fileTable,
+  user as userTable,
+  blob as blobTable,
+  and,
+} from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
+import { StorageProvider } from "@cat/plugin-core";
 
 export const userRouter = router({
   query: authedProcedure
@@ -59,20 +71,27 @@ export const userRouter = router({
           .returning(),
       );
     }),
-  uploadAvatar: authedProcedure
+  prepareUploadAvatar: authedProcedure
     .input(
       z.object({
         meta: FileMetaSchema,
       }),
     )
-    .output(z.url())
+    .output(
+      z.object({
+        url: z.url(),
+        putSessionId: z.uuidv4(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
+        redisDB: { redis },
         user,
       } = ctx;
       const { meta } = input;
 
+      // TODO 储存的配置
       const { id: storageProviderId, provider } = await useStorage(
         drizzle,
         "s3-storage-provider",
@@ -83,85 +102,94 @@ export const userRouter = router({
 
       const sanitizedName = meta.name.replace(/[^\w.-]/g, "_");
       const name = `${randomUUID()}-${sanitizedName}`;
-      const path = join(provider.getBasicPath(), "avatars", name);
-      const url = await provider.generateUploadURL(path, 120);
+      const key = join("avatars", name);
+      const ctxHash = createHash("sha256").update(user.id).digest("hex");
 
-      await drizzle.insert(fileTable).values([
-        {
-          originName: meta.name,
-          storageProviderId,
-          userId: user.id,
-          storedPath: path,
-        },
-      ]);
+      const { url, putSessionId } = await preparePresignedPutFile(
+        drizzle,
+        redis,
+        provider,
+        storageProviderId,
+        key,
+        name,
+        ctxHash,
+      );
 
-      return url;
+      return { url, putSessionId };
     }),
-  queryAvatar: authedProcedure
+  finishUploadAvatar: authedProcedure
+    .input(
+      z.object({
+        putSessionId: z.uuidv4(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+        redisDB: { redis },
+        pluginRegistry,
+        user,
+      } = ctx;
+      const { putSessionId } = input;
+
+      const ctxHash = createHash("sha256").update(user.id).digest("hex");
+
+      const fileId = await finishPresignedPutFile(
+        drizzle,
+        redis,
+        pluginRegistry,
+        putSessionId,
+        ctxHash,
+      );
+
+      await drizzle
+        .update(userTable)
+        .set({
+          avatarFileId: fileId,
+        })
+        .where(eq(userTable.id, user.id));
+    }),
+  getAvatarPresignedUrl: authedProcedure
     .input(
       z.object({
         id: z.uuidv7(),
+        expiresIn: z.int().max(120).default(120),
       }),
     )
-    .output(
-      z.object({
-        url: z.string().nullable(),
-        expiresIn: z.number().int(),
-      }),
-    )
+    .output(z.url().nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
+        pluginRegistry,
       } = ctx;
-      const { id } = input;
+      const { id, expiresIn } = input;
 
-      const user = await drizzle.query.user.findFirst({
-        where: (user, { eq }) => eq(user.id, id),
-        with: {
-          AvatarFile: {
-            columns: {
-              storedPath: true,
-            },
-            with: {
-              StorageProvider: {
-                columns: {
-                  id: true,
-                  serviceId: true,
-                },
-              },
-            },
-          },
-        },
-      });
+      const rows = await drizzle
+        .select({
+          key: blobTable.key,
+          storageProviderId: blobTable.storageProviderId,
+        })
+        .from(userTable)
+        .innerJoin(
+          fileTable,
+          and(
+            eq(userTable.avatarFileId, fileTable.id),
+            eq(fileTable.isActive, true),
+          ),
+        )
+        .innerJoin(blobTable, eq(fileTable.blobId, blobTable.id))
+        .where(eq(userTable.id, id));
 
-      if (!user)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "User do not exists",
-        });
-      if (!user.AvatarFile)
-        return {
-          url: null,
-          expiresIn: 0,
-        };
+      if (rows.length === 0) return null;
 
-      const expiresIn = 120;
+      const { key, storageProviderId } = assertSingleNonNullish(rows);
 
-      const { provider } = await useStorage(
+      const provider = await getServiceFromDBId<StorageProvider>(
         drizzle,
-        "s3-storage-provider",
-        user.AvatarFile.StorageProvider.serviceId,
-        "GLOBAL",
-        "",
-      );
-      const url = await provider.generateURL(
-        user.AvatarFile.storedPath,
-        expiresIn,
+        pluginRegistry,
+        storageProviderId,
       );
 
-      return {
-        url,
-        expiresIn,
-      };
+      return await provider.getPresignedGetUrl(key, expiresIn);
     }),
 });

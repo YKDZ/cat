@@ -32,7 +32,7 @@ const task = (cell: Cell<Task, Meta>) => {
 const handleDownload = async (cell: Cell<Task, Meta>) => {
   if (task(cell).status !== "completed") return;
 
-  await trpc.document.downloadTranslatedFile
+  await trpc.document.getTranslatedFilePresignedUrl
     .query({
       taskId: task(cell).id,
     })

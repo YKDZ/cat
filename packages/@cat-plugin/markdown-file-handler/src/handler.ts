@@ -1,6 +1,5 @@
 import { TranslatableFileHandler } from "@cat/plugin-core";
 import { extname } from "node:path";
-import { File } from "@cat/shared/schema/drizzle/file";
 import { JSONType } from "@cat/shared/schema/json";
 import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { unified } from "unified";
@@ -27,8 +26,8 @@ export class MarkdownTranslatableFileHandler
     return "MARKDOWN";
   }
 
-  canExtractElement(file: File): boolean {
-    const e = extname(file.originName).toLowerCase();
+  canExtractElement(name: string): boolean {
+    const e = extname(name).toLowerCase();
     return e === ".md" || e === ".markdown" || e === ".mdown";
   }
 
@@ -253,8 +252,8 @@ export class MarkdownTranslatableFileHandler
     return elements;
   }
 
-  canGetReplacedFileContent(file: File): boolean {
-    return this.canExtractElement(file);
+  canGetReplacedFileContent(name: string): boolean {
+    return this.canExtractElement(name);
   }
 
   async getReplacedFileContent(
@@ -342,7 +341,6 @@ export class MarkdownTranslatableFileHandler
                 if (replaced.type === "listItem") {
                   return replaced;
                 }
-                // 类型保护：如果不是 listItem，返回原值
                 return item;
               }),
             };
@@ -354,6 +352,7 @@ export class MarkdownTranslatableFileHandler
         // 使用类型断言确保类型兼容
         return {
           ...node,
+          // oxlint-disable-next-line no-unsafe-type-assertion
           children: newChildren as typeof node.children,
         };
       } else if (node.type === "code") {
@@ -366,6 +365,7 @@ export class MarkdownTranslatableFileHandler
       } else if (node.type === "blockquote" && "children" in node) {
         return {
           ...node,
+          // oxlint-disable-next-line no-unsafe-type-assertion
           children: node.children.map((child) =>
             replaceInNode(child),
           ) as typeof node.children,
@@ -394,7 +394,7 @@ export class MarkdownTranslatableFileHandler
               };
             }
             return row;
-          }) as typeof node.children,
+          }),
         };
       } else if (node.type === "list" && "children" in node) {
         return {
@@ -430,7 +430,8 @@ export class MarkdownTranslatableFileHandler
         }
         return {
           ...node,
-          children: newChildren as typeof node.children,
+          // oxlint-disable-next-line no-unsafe-type-assertion
+          children: newChildren as unknown as typeof node.children,
         };
       }
 

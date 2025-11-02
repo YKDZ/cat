@@ -29,6 +29,7 @@ export const document = pgTable(
     projectId: uuid().notNull(),
     creatorId: uuid().notNull(),
     fileHandlerId: integer(),
+    fileId: integer(),
     ...timestamps,
   },
   (table) => [
@@ -48,6 +49,12 @@ export const document = pgTable(
     foreignKey({
       columns: [table.fileHandlerId],
       foreignColumns: [pluginService.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+    foreignKey({
+      columns: [table.fileId],
+      foreignColumns: [file.id],
     })
       .onUpdate("cascade")
       .onDelete("set null"),

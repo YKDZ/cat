@@ -26,6 +26,7 @@ export const getServiceFromDBId = async <T extends IPluginService>(
       )
       .where(eq(pluginService.id, id))
       .limit(1),
+    `Service ${id} not found`,
   );
 
   if (!dbAdvisor) throw new Error(`Service ${id} not found`);

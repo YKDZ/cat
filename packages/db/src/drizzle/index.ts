@@ -9,3 +9,4 @@ export * from "./schema/project.ts";
 export * from "./schema/file.ts";
 export * from "./schema/misc.ts";
 export * from "./schema/glossary.ts";
+export * from "./utils/action.ts";

@@ -6,6 +6,7 @@ export const UserSchema = z.object({
   name: z.string(),
   email: z.email(),
   emailVerified: z.boolean(),
+  avatarFileId: z.int().nullable(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

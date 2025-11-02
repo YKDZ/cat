@@ -1,16 +1,22 @@
 import type { IPluginService } from "@/registry/plugin-registry.ts";
+import { Readable } from "node:stream";
+
+export type PutStreamResult = {
+  checksum: string;
+  size: number;
+};
 
 export interface StorageProvider extends IPluginService {
-  getBasicPath: () => string;
-  getContent: (storedPath: string) => Promise<Buffer>;
-  generateUploadURL: (path: string, expiresIn: number) => Promise<string>;
-  generateURL: (path: string, expiresIn: number) => Promise<string>;
-  generateDownloadURL(
-    path: string,
-    fileName: string,
-    expiresIn: number,
+  putStream(key: string, stream: Readable): Promise<PutStreamResult>;
+  getStream(key: string): Promise<Readable>;
+  getPresignedPutUrl: (key: string, expiresIn: number) => Promise<string>;
+  getPresignedGetUrl(
+    key: string,
+    expiresIn?: number,
+    fileName?: string,
   ): Promise<string>;
-  delete: (storedPath: string) => Promise<void>;
+  head: (key: string) => Promise<void>;
+  delete: (key: string) => Promise<void>;
   ping: () => Promise<void>;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;

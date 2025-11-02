@@ -3,7 +3,17 @@ import {
   timestamp,
   uuid as dbUUID,
   PgUUIDBuilderInitial,
+  customType,
 } from "drizzle-orm/pg-core";
+
+export const bytea = customType<{
+  data: Buffer;
+  default: false;
+}>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 export const timestamps = {
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
