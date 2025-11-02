@@ -26,13 +26,22 @@
       "continuous": true
     },
     "lint": {
-      "dependsOn": ["^build", "build"]
+      "dependsOn": ["^build"],
+      "cache": true
     },
     "lint:fix": {
-      "dependsOn": ["^build", "build"]
+      "dependsOn": ["^build"],
+      "cache": true
     },
     "typecheck": {
-      "dependsOn": ["^build", "build"]
+      "dependsOn": ["^build"],
+      "cache": true
+    },
+    "format": {
+      "cache": true
+    },
+    "format:check": {
+      "cache": true
     }
   },
   "plugins": [
