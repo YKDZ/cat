@@ -16,7 +16,7 @@
     "@playwright/test": "^1.56.1",
     "@pnpm/lockfile.pruner": "^1001.0.17",
     "@swc-node/register": "~1.11.1",
-    "@swc/core": "~1.13.5",
+    "@swc/core": "~1.14.0",
     "@swc/helpers": "~0.5.17",
     "@tsconfig/node24": "^24.0.1",
     "@types/node": "^24.9.1",
