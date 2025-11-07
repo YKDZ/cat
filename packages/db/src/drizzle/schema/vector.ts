@@ -30,6 +30,7 @@ export const chunk = pgTable(
     ...timestamps,
   },
   (table) => [
+    index().on(table.chunkSetId),
     foreignKey({
       columns: [table.chunkSetId],
       foreignColumns: [chunkSet.id],

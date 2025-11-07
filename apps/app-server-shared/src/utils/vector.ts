@@ -5,6 +5,8 @@ import {
   inArray,
   OverallDrizzleClient,
   translatableString,
+  and,
+  eq,
 } from "@cat/db";
 import { IVectorStorage, TextVectorizer } from "@cat/plugin-core";
 import { JSONType } from "@cat/shared/schema/json";
@@ -45,7 +47,7 @@ const vectorizeToChunkSetsBatch = async (
   }> = [];
 
   for (let i = 0; i < chunkDataList.length; i += 1) {
-    const chunkData = chunkDataList[i]; // array of { vector, meta }
+    const chunkData = chunkDataList[i];
     for (let j = 0; j < chunkData.length; j += 1) {
       flattened.push({
         vector: chunkData[j].vector,
@@ -120,6 +122,20 @@ const vectorizeToChunkSetsBatch = async (
   return chunkSetIds;
 };
 
+/**
+ * 根据给定数据按以下规则返回 TranslatableString ID：
+ * 若数据库中没有 value + languageId 唯一冲突的行，插入并返回 ID；
+ * 若有，返回现存 ID。
+ * 返回的 ID 顺序与 data 保持一致
+ *
+ * @param tx
+ * @param vectorizer
+ * @param vectorizerId
+ * @param vectorStorage
+ * @param vectorStorageId
+ * @param data
+ * @returns TranslatableString IDs
+ */
 export const createStringFromData = async (
   tx: OverallDrizzleClient,
   vectorizer: TextVectorizer,
@@ -130,10 +146,13 @@ export const createStringFromData = async (
 ): Promise<number[]> => {
   if (data.length === 0) return [];
 
+  const makeKey = (languageId: string, value: string) =>
+    `${languageId}::${value}`;
+
   const uniqueEntries: { key: string; data: UnvectorizedTextData }[] = [];
   const seenKeys = new Set<string>();
   for (const item of data) {
-    const key = item.value;
+    const key = makeKey(item.languageId, item.value);
     if (!seenKeys.has(key)) {
       seenKeys.add(key);
       uniqueEntries.push({ key, data: item });
@@ -142,80 +161,140 @@ export const createStringFromData = async (
 
   const idMap = new Map<string, number>();
 
-  const existing = await tx
-    .select({
-      id: translatableString.id,
-      value: translatableString.value,
-      languageId: translatableString.languageId,
-    })
-    .from(translatableString)
-    .where(
-      inArray(
-        translatableString.value,
-        uniqueEntries.map((e) => e.key),
-      ),
-    );
+  if (uniqueEntries.length > 0) {
+    const byLanguage = new Map<string, string[]>();
+    for (const entry of uniqueEntries) {
+      const langId = entry.data.languageId;
+      if (!byLanguage.has(langId)) {
+        byLanguage.set(langId, []);
+      }
+      byLanguage.get(langId)!.push(entry.data.value);
+    }
 
-  for (const r of existing) idMap.set(r.value, r.id);
+    const languageIds = Array.from(byLanguage.keys());
+    const queryPromises = languageIds.map((langId) => {
+      const values = byLanguage.get(langId)!;
+      return tx
+        .select({
+          id: translatableString.id,
+          value: translatableString.value,
+          languageId: translatableString.languageId,
+        })
+        .from(translatableString)
+        .where(
+          and(
+            eq(translatableString.languageId, langId),
+            inArray(translatableString.value, values),
+          ),
+        );
+    });
+
+    const results = await Promise.all(queryPromises);
+    for (const existing of results) {
+      for (const row of existing) {
+        const key = makeKey(row.languageId, row.value);
+        idMap.set(key, row.id);
+      }
+    }
+  }
 
   const missingEntries = uniqueEntries.filter((e) => !idMap.has(e.key));
   if (missingEntries.length === 0) {
     return data.map((item) => {
-      const id = idMap.get(item.value)!;
+      const key = makeKey(item.languageId, item.value);
+      const id = idMap.get(key)!;
       return id;
     });
   }
 
-  const chunkSetIds = await vectorizeToChunkSetsBatch(
-    tx,
-    vectorizer,
-    vectorizerId,
-    vectorStorage,
-    vectorStorageId,
-    missingEntries.map((e) => e.data),
-  );
+  const BATCH_SIZE = 100;
+  const missingChunks: (typeof missingEntries)[] = [];
+  for (let i = 0; i < missingEntries.length; i += BATCH_SIZE) {
+    missingChunks.push(missingEntries.slice(i, i + BATCH_SIZE));
+  }
 
-  const insertedRows = await tx
-    .insert(translatableString)
-    .values(
-      missingEntries.map((entry, index) => ({
-        value: entry.data.value,
-        languageId: entry.data.languageId,
-        chunkSetId: chunkSetIds[index],
-      })),
-    )
-    .onConflictDoNothing()
-    .returning({
-      id: translatableString.id,
-      value: translatableString.value,
-      chunkSetId: translatableString.chunkSetId,
-    });
+  for (const chunk of missingChunks) {
+    // eslint-disable-next-line no-await-in-loop 涉及向量化和数据库事务，不适合并行
+    const chunkSetIds = await vectorizeToChunkSetsBatch(
+      tx,
+      vectorizer,
+      vectorizerId,
+      vectorStorage,
+      vectorStorageId,
+      chunk.map((e) => e.data),
+    );
 
-  for (const row of insertedRows) idMap.set(row.value, row.id);
-
-  const stillMissing = missingEntries.filter((e) => !idMap.has(e.key));
-  if (stillMissing.length > 0) {
-    const found = await tx
-      .select({
+    // eslint-disable-next-line no-await-in-loop
+    const insertedRows = await tx
+      .insert(translatableString)
+      .values(
+        chunk.map((entry, index) => ({
+          value: entry.data.value,
+          languageId: entry.data.languageId,
+          chunkSetId: chunkSetIds[index],
+        })),
+      )
+      .onConflictDoNothing()
+      .returning({
         id: translatableString.id,
         value: translatableString.value,
-      })
-      .from(translatableString)
-      .where(
-        inArray(
-          translatableString.value,
-          stillMissing.map((s) => s.key),
-        ),
+        languageId: translatableString.languageId,
+        chunkSetId: translatableString.chunkSetId,
+      });
+
+    for (const row of insertedRows) {
+      const key = makeKey(row.languageId, row.value);
+      idMap.set(key, row.id);
+    }
+
+    // 处理并发插入的情况（onConflictDoNothing 导致的缺失）
+    const stillMissingInChunk = chunk.filter((e) => !idMap.has(e.key));
+    if (stillMissingInChunk.length > 0) {
+      // 使用优化后的查询方式
+      const byLanguage = new Map<string, string[]>();
+      for (const entry of stillMissingInChunk) {
+        const langId = entry.data.languageId;
+        if (!byLanguage.has(langId)) {
+          byLanguage.set(langId, []);
+        }
+        byLanguage.get(langId)!.push(entry.data.value);
+      }
+
+      // 并行查询所有语言
+      const queryPromises = Array.from(byLanguage.entries()).map(
+        ([langId, values]) =>
+          tx
+            .select({
+              id: translatableString.id,
+              value: translatableString.value,
+              languageId: translatableString.languageId,
+            })
+            .from(translatableString)
+            .where(
+              and(
+                eq(translatableString.languageId, langId),
+                inArray(translatableString.value, values),
+              ),
+            ),
       );
 
-    for (const r of found) idMap.set(r.value, r.id);
+      // eslint-disable-next-line no-await-in-loop
+      const foundResults = await Promise.all(queryPromises);
+      for (const found of foundResults) {
+        for (const r of found) {
+          const key = makeKey(r.languageId, r.value);
+          idMap.set(key, r.id);
+        }
+      }
+    }
   }
 
   return data.map((item) => {
-    const id = idMap.get(item.value);
+    const key = makeKey(item.languageId, item.value);
+    const id = idMap.get(key);
     if (id === undefined)
       throw new Error(
-        "Failed to resolve translatable string id for value: " + item.value,
+        `Failed to resolve translatable string id for languageId: ${item.languageId}, value: ${item.value}`,
       );
     return id;
   });
