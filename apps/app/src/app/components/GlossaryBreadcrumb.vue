@@ -5,21 +5,15 @@ import Slash from "./Slash.vue";
 import UserAvatar from "./UserAvatar.vue";
 
 defineProps<{
-  glossary: Glossary & {
-    Creator: User;
+  glossary: Pick<Glossary, "name"> & {
+    Creator: Pick<User, "id" | "name">;
   };
 }>();
 </script>
 
 <template>
   <div class="text-lg font-500 flex items-center">
-    <UserAvatar
-      v-if="glossary.Creator"
-      :user="glossary.Creator"
-      :size="30"
-      with-name
-      link
-    />
+    <UserAvatar :user="glossary.Creator" :size="30" with-name link />
     <Slash large />{{ glossary.name }}
   </div>
 </template>

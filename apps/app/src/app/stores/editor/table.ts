@@ -53,11 +53,10 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       searchQuery: searchQuery.value,
       isTranslated: !isProofreading.value ? undefined : true,
     });
-  });
+  }, 0);
 
-  const totalPageIndex = computed(() => {
-    if (!elementTotalAmount.value) return 0;
-    return Math.floor(elementTotalAmount.value / context.pageSize.value);
+  const pageTotalAmount = computed(() => {
+    return Math.ceil(elementTotalAmount.value / context.pageSize.value);
   });
 
   const toElement = async (id: number) => {
@@ -73,8 +72,12 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     await toPage(page);
     elementId.value = id;
     translationValue.value = "";
+    // 页码从 1 开始
+    context.currentPage.value = page + 1;
   };
 
+  // index 从 0 开始
+  // 前端需要以此为标准映射页码
   const toPage = async (index: number) => {
     if (!context.documentId.value) return;
 
@@ -89,7 +92,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       elementRefStore.loadedPagesIndex.value.includes(index) &&
       elementRefStore.loadedPageHashes.value.get(index) === inputHash
     ) {
-      context.currentPageIndex.value = index;
       return;
     }
 
@@ -102,7 +104,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
         isTranslated,
       })
       .then((elements) => {
-        context.currentPageIndex.value = index;
         if (elements.length === 0) return;
         elementRefStore.loadedPages.value.set(
           index,
@@ -192,8 +193,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     isProofreading,
     element,
     elementTotalAmount,
-    totalPageIndex,
     elementLanguageId,
+    pageTotalAmount,
     toElement,
     toPage,
     toNextUntranslated,

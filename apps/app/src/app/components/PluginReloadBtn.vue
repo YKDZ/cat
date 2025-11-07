@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import HButton from "./headless/HButton.vue";
 import { useToastStore } from "../stores/toast";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { ScopeType } from "@cat/db";
+import { Button } from "@/app/components/ui/button";
 
 const { t } = useI18n();
 
@@ -25,13 +25,8 @@ const handleReload = async () => {
 </script>
 
 <template>
-  <HButton
-    :classes="{
-      base: 'btn btn-md btn-base',
-      icon: 'btn-icon',
-    }"
-    icon="icon-[mdi--reload]"
-    @click="handleReload"
-    >{{ t("重载插件") }}</HButton
+  <Button @click="handleReload"
+    ><div class="icon-[mdi--reload] size-4" />
+    {{ t("重载插件") }}</Button
   >
 </template>

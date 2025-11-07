@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { inject } from "vue";
-import { useData } from "vike-vue/useData";
 import type { Data as LayoutData } from "../+data.server.ts";
-import type { Data } from "./+data.server.ts";
-import ProjectDocumentList from "@/app/components/ProjectDocumentList.vue";
+import ProjectDocumentTree from "@/app/components/ProjectDocumentTree.vue";
 import ProjectUploadFileBtn from "@/app/components/ProjectUploadFileBtn.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 
 const project = inject(useInjectionKey<LayoutData>()("project"))!;
-
-const { documents } = useData<Data>();
+const documents = inject(useInjectionKey<LayoutData>()("documents"))!;
 </script>
 
 <template>
   <div class="pt-3 flex flex-col gap-3 w-full">
     <ProjectUploadFileBtn :project />
-    <ProjectDocumentList :documents />
+    <ProjectDocumentTree :project :documents />
   </div>
 </template>

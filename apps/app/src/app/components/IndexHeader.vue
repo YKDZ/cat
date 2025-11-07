@@ -1,23 +1,9 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import Header from "./headless/HHeader.vue";
-import HButton from "./headless/HButton.vue";
-import { useSidebarStore } from "@/app/stores/sidebar.ts";
-
-const { isFolding } = storeToRefs(useSidebarStore());
+import { SidebarTrigger } from "@/app/components/ui/sidebar";
 </script>
 
 <template>
-  <Header
-    :classes="{
-      header: 'header',
-    }"
-  >
-    <HButton
-      :classes="{
-        base: 'btn btn-transparent',
-      }"
-      @click="isFolding = !isFolding"
-    />
-  </Header>
+  <div class="header">
+    <SidebarTrigger />
+  </div>
 </template>

@@ -56,7 +56,7 @@ export const blob = pgTable(
   ],
 );
 
-export const fileRelations = relations(file, ({ one, many }) => ({
+export const fileRelations = relations(file, ({ one }) => ({
   Document: one(document, {
     fields: [file.id],
     references: [document.fileId],
@@ -65,12 +65,16 @@ export const fileRelations = relations(file, ({ one, many }) => ({
     fields: [file.id],
     references: [user.avatarFileId],
   }),
-  Blobs: many(blob),
+  Blob: one(blob, {
+    fields: [file.blobId],
+    references: [blob.id],
+  }),
 }));
 
-export const blobRelations = relations(blob, ({ one }) => ({
+export const blobRelations = relations(blob, ({ one, many }) => ({
   StorageProvider: one(pluginService, {
     fields: [blob.storageProviderId],
     references: [pluginService.id],
   }),
+  Files: many(file),
 }));

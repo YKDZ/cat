@@ -20,6 +20,7 @@ import {
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 import { PluginRegistry } from "@cat/plugin-core";
+import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 
 export const pluginRouter = router({
   reload: authedProcedure
@@ -79,7 +80,7 @@ export const pluginRouter = router({
         configId: z.int(),
         scopeType: z.enum(["GLOBAL", "USER", "PROJECT"]),
         scopeId: z.string(),
-        value: z.json(),
+        value: nonNullSafeZDotJson,
       }),
     )
     .output(PluginConfigInstanceSchema)

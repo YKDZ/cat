@@ -22,6 +22,7 @@ import {
 import { memory, memoryItem } from "./memory.ts";
 import { glossary, term } from "./glossary.ts";
 import { pluginConfigInstance } from "./plugin.ts";
+import { JSONType } from "@cat/shared/schema/json";
 
 export const user = pgTable(
   "User",
@@ -52,7 +53,7 @@ export const account = pgTable(
     provider: text().notNull(),
     providedAccountId: text().notNull(),
     userId: uuid().notNull(),
-    meta: jsonb(),
+    meta: jsonb().$type<JSONType>(),
     ...timestamps,
   },
   (table) => [

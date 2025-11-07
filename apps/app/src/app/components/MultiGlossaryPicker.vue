@@ -12,28 +12,17 @@ const { user } = usePageContext();
 const props = withDefaults(
   defineProps<{
     width?: string;
-    createNew?: boolean;
   }>(),
   {
     width: "fit-content",
-    createNew: false,
   },
 );
 
-const { t } = useI18n();
-
-const memoryIds = defineModel<string[]>({ required: true });
+const memoryIds = defineModel<string[]>();
 
 const glossaries = ref<Glossary[]>([]);
 const options = computed(() => {
   const result: PickerOption[] = [];
-
-  if (props.createNew) {
-    result.push({
-      value: "createNew",
-      content: t("创建一个同名术语库"),
-    });
-  }
 
   glossaries.value.forEach((glo) => {
     result.push({

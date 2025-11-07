@@ -1,62 +1,84 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
-import Navbar from "./navbar/Navbar.vue";
-import type { NavbarItemType } from "./navbar/index.ts";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/app/components/ui/navigation-menu";
+import type { Project } from "@cat/shared/schema/drizzle/project";
+import {
+  Archive,
+  Book,
+  Box,
+  Home,
+  NotebookText,
+  Settings,
+} from "lucide-vue-next";
+import type { Component } from "vue";
+import NavigationMenuIndicator from "@/app/components/ui/navigation-menu/NavigationMenuIndicator.vue";
+import { usePageContext } from "vike-vue/usePageContext";
 
-const ctx = usePageContext();
+const props = defineProps<{
+  project: Pick<Project, "id">;
+}>();
+
 const { t } = useI18n();
+const ctx = usePageContext();
 
-const items = ref<NavbarItemType[]>([
+const items: { title: string; href: string; icon: Component }[] = [
   {
-    text: t("主页"),
-    to: "",
-    selected: false,
-    icon: "icon-[mdi--earth]",
+    title: t("主页"),
+    icon: Home,
+    href: `/project/${props.project.id}`,
   },
   {
-    text: t("文档"),
-    to: "/documents",
-    selected: false,
-    icon: "icon-[mdi--document]",
+    title: t("文档"),
+    icon: Book,
+    href: `/project/${props.project.id}/documents`,
   },
   {
-    text: t("记忆"),
-    to: "/memories",
-    selected: false,
-    icon: "icon-[mdi--zip-box]",
+    title: t("记忆"),
+    icon: Box,
+    href: `/project/${props.project.id}/memories`,
   },
   {
-    text: t("术语"),
-    to: "/glossaries",
-    selected: false,
-    icon: "icon-[mdi--file-word-box]",
+    title: t("术语"),
+    icon: Archive,
+    href: `/project/${props.project.id}/glossaries`,
   },
   {
-    text: t("成员"),
-    to: "/members",
-    selected: false,
-    icon: "icon-[mdi--account-group]",
+    title: t("任务"),
+    icon: NotebookText,
+    href: `/project/${props.project.id}/tasks`,
   },
   {
-    text: t("任务"),
-    to: "/tasks",
-    selected: false,
-    icon: "icon-[mdi--account-hard-hat]",
+    title: t("设置"),
+    icon: Settings,
+    href: `/project/${props.project.id}/settings`,
   },
-  {
-    text: t("设置"),
-    to: "/settings",
-    selected: false,
-    icon: "icon-[mdi--cog]",
-  },
-]);
+];
 </script>
 
 <template>
-  <Navbar
-    v-model="items"
-    :path-prefix="`/project/${ctx.routeParams.projectId}`"
-  />
+  <NavigationMenu>
+    <NavigationMenuList>
+      <NavigationMenuItem>
+        <NavigationMenuLink
+          v-for="item in items"
+          :key="item.title"
+          :href="item.href"
+          :class="navigationMenuTriggerStyle()"
+          :active="item.href === ctx.urlPathname"
+        >
+          <div class="flex gap-1 items-center">
+            <component :is="item.icon" />
+            {{ item.title }}
+          </div>
+        </NavigationMenuLink>
+      </NavigationMenuItem>
+    </NavigationMenuList>
+    <NavigationMenuIndicator />
+  </NavigationMenu>
 </template>

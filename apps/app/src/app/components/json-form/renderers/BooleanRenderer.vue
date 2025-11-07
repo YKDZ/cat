@@ -2,7 +2,7 @@
 import { computed, inject } from "vue";
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey } from "../utils.ts";
-import SToggle from "../../headless-styled/SToggle.vue";
+import { Switch } from "@/app/components/ui/switch";
 
 const props = defineProps<{
   propertyKey: string | number;
@@ -34,6 +34,6 @@ const handleUpdate = (value: boolean) => {
       schema.title ?? propertyKey
     }}</span>
     <span class="text-sm text-highlight-content">{{ schema.description }}</span>
-    <SToggle :value @update="handleUpdate" />
+    <Switch :value="String(value)" @update="handleUpdate" />
   </label>
 </template>

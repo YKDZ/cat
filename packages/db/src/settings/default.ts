@@ -1,9 +1,10 @@
 /* eslint-disable @cspell/spellchecker */
+import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import z from "zod/v4";
 
 export const DefaultSettingDataSchema = z.object({
   key: z.string(),
-  value: z.json(),
+  value: nonNullSafeZDotJson,
 });
 
 export type DefaultSettingData = z.infer<typeof DefaultSettingDataSchema>;

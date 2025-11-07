@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { safeZDotJson } from "@cat/shared/schema/json";
+import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import { eq, setting as settingTable } from "@cat/db";
 import { authedProcedure, router } from "@/trpc/server.ts";
 
@@ -9,7 +9,7 @@ export const settingRouter = router({
       z.array(
         z.object({
           key: z.string(),
-          value: z.json(),
+          value: nonNullSafeZDotJson,
         }),
       ),
     )

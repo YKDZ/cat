@@ -7,8 +7,8 @@ import type { Data } from "../../+data.server.ts";
 import { languageKey, useInjectionKey } from "@/app/utils/provide.ts";
 import { useLanguageStore } from "@/app/stores/language.ts";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
-import ProjectLanguageDocumentList from "@/app/components/ProjectLanguageDocumentList.vue";
-import HButton from "@/app/components/headless/HButton.vue";
+import ProjectLanguageDocumentTree from "@/app/components/ProjectLanguageDocumentTree.vue";
+import { Button } from "@/app/components/ui/button/index.ts";
 
 const ctx = usePageContext();
 const project = inject(useInjectionKey<Data>()("project"))!;
@@ -33,13 +33,9 @@ const handleBack = async () => {
   <div class="flex flex-col w-full">
     <div class="py-4 flex gap-4 w-full items-center justify-between">
       <div class="flex gap-4 items-center">
-        <HButton
-          :classes="{
-            base: 'btn btn-md btn-base btn-square',
-          }"
-          icon="icon-[mdi--arrow-left]"
-          @click="handleBack"
-        />
+        <Button @click="handleBack" size="icon" class="cursor-pointer">
+          <div class="icon-[mdi--arrow-left] size-4" />
+        </Button>
         <h3 v-if="language" class="text-xl font-bold">{{ language.name }}</h3>
       </div>
       <ProjectTranslationProgress
@@ -48,11 +44,6 @@ const handleBack = async () => {
         :project-id="project.id"
       />
     </div>
-    <ProjectLanguageDocumentList
-      v-if="language"
-      :documents="project.Documents"
-      :project
-      :language
-    />
+    <ProjectLanguageDocumentTree v-if="language" :project="project" :language />
   </div>
 </template>

@@ -10,7 +10,7 @@ import { relations } from "drizzle-orm";
 import { timestamps, uuidId } from "./reuse.ts";
 import { user } from "./user.ts";
 import { language } from "./misc.ts";
-import { document } from "./document.ts";
+import { document, documentClosure } from "./document.ts";
 import { memoryToProject } from "./memory.ts";
 import { glossaryToProject } from "./glossary.ts";
 
@@ -69,6 +69,7 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   ProjectTargetLanguages: many(projectTargetLanguage),
   GlossaryToProjects: many(glossaryToProject),
   MemoryToProjects: many(memoryToProject),
+  DocumentClosures: many(documentClosure),
 }));
 
 export const projectTargetLanguageRelations = relations(

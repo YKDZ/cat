@@ -4,11 +4,11 @@ import { onMounted, ref } from "vue";
 import { navigate } from "vike/client/router";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import HButton from "./headless/HButton.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { watchClient } from "@/app/utils/vue.ts";
+import { Button } from "@/app/components/ui/button";
 
 const { info, trpcWarn } = useToastStore();
 
@@ -62,13 +62,9 @@ onMounted(updateTermAmount);
     <TableCell>{{ memory.description }}</TableCell>
     <TableCell>{{ itemAmount }}</TableCell>
     <TableCell>
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-base btn-square',
-        }"
-        icon="icon-[mdi--link-off]"
-        @click.stop="handleUnlink"
-      />
+      <Button @click.stop="handleUnlink" size="icon"
+        ><div class="icon-[mdi--link-off] size-4"
+      /></Button>
     </TableCell>
   </TableRow>
 </template>

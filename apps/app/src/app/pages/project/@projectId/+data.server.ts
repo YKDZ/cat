@@ -11,11 +11,14 @@ export const data = async (ctx: PageContextServer) => {
   const targetLanguages = await useSSCTRPC(ctx).project.getTargetLanguages({
     projectId,
   });
+  const documents = await useSSCTRPC(ctx).project.getDocuments({
+    projectId,
+  });
 
   if (!project)
     throw render("/project", `Project ${projectId} does not exists`);
 
-  return { project, targetLanguages };
+  return { project, targetLanguages, documents };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

@@ -68,12 +68,9 @@ const worker = new Worker(
           eq(translatableElement.translatableStringId, translatableString.id),
         )
         .innerJoin(document, eq(translatableElement.documentId, document.id))
-        .where(eq(translatableElement.id, elementId))
-        .limit(1),
+        .where(eq(translatableElement.id, elementId)),
+      `Element ${elementId} not found`,
     );
-
-    if (!element)
-      throw new Error("TranslatableElement with given id doest not exists");
 
     await drizzle.transaction(async (tx) => {
       const stringId = assertSingleNonNullish(

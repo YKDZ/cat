@@ -8,16 +8,17 @@ import ProjectReadme from "@/app/components/ProjectReadme.vue";
 
 const project = inject(useInjectionKey<Data>()("project"))!;
 const targetLanguages = inject(useInjectionKey<Data>()("targetLanguages"))!;
+const documents = inject(useInjectionKey<Data>()("documents"))!;
 
 const readme = computed(() => {
-  return project!.Documents.filter((doc) => doc.name).find(
-    (doc) => doc.name === "README.md",
-  );
+  return documents.find((doc) => doc.name === "README.md") ?? null;
 });
 </script>
 
 <template>
-  <div class="mt-3 flex gap-2 items-start">
+  <div
+    class="mt-3 items-start w-full grid md:grid-cols-[2fr_1fr] grid-cols-1 gap-2 mx-auto"
+  >
     <div class="flex flex-col gap-6 w-full items-start">
       <ProjectLanguageList :project :languages="targetLanguages" />
       <ProjectReadme v-if="readme" :readme />

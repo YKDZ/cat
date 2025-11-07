@@ -9,6 +9,7 @@ export const DocumentSchema = z.object({
   fileHandlerId: z.int().nullable(),
   creatorId: z.uuidv7(),
   projectId: z.uuidv7(),
+  isDirectory: z.boolean(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

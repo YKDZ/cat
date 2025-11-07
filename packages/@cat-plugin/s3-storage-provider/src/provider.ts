@@ -9,10 +9,10 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { PutStreamResult, StorageProvider } from "@cat/plugin-core";
+import { StorageProvider } from "@cat/plugin-core";
 import * as z from "zod/v4";
 import { join } from "node:path";
-import { assertKeysNonNullish } from "@cat/shared/utils";
+import { Upload } from "@aws-sdk/lib-storage";
 
 const S3ConfigSchema = z.object({
   "endpoint-url": z.url(),
@@ -99,18 +99,46 @@ export class S3StorageProvider implements StorageProvider {
     await this.db.disconnect();
   }
 
-  async putStream(key: string, stream: Readable): Promise<PutStreamResult> {
-    const cmd = new PutObjectCommand({
-      Bucket: this.config.s3["bucket-name"],
-      Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
-      Body: stream,
-      ChecksumAlgorithm: "SHA256",
+  async putStream(
+    key: string,
+    stream: Readable,
+    onProgress?: (progress: {
+      loaded?: number;
+      total?: number;
+      part?: number;
+      percentage?: number;
+    }) => void,
+  ): Promise<void> {
+    const parallelUploads3 = new Upload({
+      client: this.db.client,
+      params: {
+        Bucket: this.config.s3["bucket-name"],
+        Key: key,
+        Body: stream,
+        ChecksumAlgorithm: "SHA256",
+      },
+      queueSize: 4,
+      partSize: 1024 * 1024 * 5,
+      leavePartsOnError: false,
     });
-    const output = await this.db.client.send(cmd);
 
-    assertKeysNonNullish(output, ["ChecksumSHA256", "Size"]);
+    if (onProgress) {
+      parallelUploads3.on("httpUploadProgress", (progress) => {
+        const percentage =
+          progress.loaded && progress.total
+            ? Math.round((progress.loaded / progress.total) * 100)
+            : undefined;
 
-    return { checksum: output.ChecksumSHA256, size: output.Size };
+        onProgress({
+          loaded: progress.loaded,
+          total: progress.total,
+          part: progress.part,
+          percentage,
+        });
+      });
+    }
+
+    await parallelUploads3.done();
   }
 
   async getStream(key: string): Promise<Readable> {

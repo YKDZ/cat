@@ -20,6 +20,7 @@ import { file } from "./file.ts";
 import { translation } from "./translation.ts";
 import { memoryItem } from "./memory.ts";
 import { chunkSet } from "./vector.ts";
+import { JSONType } from "@cat/shared/schema/json";
 
 export const document = pgTable(
   "Document",
@@ -30,6 +31,7 @@ export const document = pgTable(
     creatorId: uuid().notNull(),
     fileHandlerId: integer(),
     fileId: integer(),
+    isDirectory: boolean().default(false).notNull(),
     ...timestamps,
   },
   (table) => [
@@ -65,7 +67,7 @@ export const translatableElement = pgTable(
   "TranslatableElement",
   {
     id: serial().primaryKey().notNull(),
-    meta: jsonb(),
+    meta: jsonb().$type<JSONType>(),
     documentId: uuid().notNull(),
     documentVersionId: integer(),
     sortIndex: integer().notNull(),
@@ -167,6 +169,59 @@ export const documentToTask = pgTable(
       columns: [table.documentId, table.taskId],
     }),
   ],
+);
+
+export const documentClosure = pgTable(
+  "DocumentClosure",
+  {
+    ancestor: uuid().notNull(),
+    descendant: uuid().notNull(),
+    depth: integer().notNull(),
+    projectId: uuid().notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.ancestor, table.descendant],
+    }),
+    index().using("btree", table.ancestor.asc().nullsLast()),
+    index().using("btree", table.descendant.asc().nullsLast()),
+    foreignKey({
+      columns: [table.ancestor],
+      foreignColumns: [document.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.descendant],
+      foreignColumns: [document.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.projectId],
+      foreignColumns: [project.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const documentClosureRelations = relations(
+  documentClosure,
+  ({ one }) => ({
+    Ancestor: one(document, {
+      fields: [documentClosure.ancestor],
+      references: [document.id],
+    }),
+    Descendant: one(document, {
+      fields: [documentClosure.descendant],
+      references: [document.id],
+    }),
+    Project: one(project, {
+      fields: [documentClosure.projectId],
+      references: [project.id],
+    }),
+  }),
 );
 
 export const documentRelations = relations(document, ({ one, many }) => ({

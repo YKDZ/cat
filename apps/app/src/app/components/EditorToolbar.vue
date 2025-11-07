@@ -2,8 +2,8 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
-import HButton from "./headless/HButton.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { Button } from "@/app/components/ui/button";
 
 const { t } = useI18n();
 
@@ -20,69 +20,51 @@ const handleTranslate = async (toNext: boolean) => {
 <template>
   <div class="px-2 pb-4 pt-1 flex w-full items-center justify-between">
     <div class="flex gap-1 items-center">
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-transparent btn-square',
-          icon: 'btn-icon btn-icon-sm',
-        }"
-        icon="icon-[mdi--content-copy]"
-        @click="replace(element?.value ?? ``)"
-      />
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-transparent btn-square',
-          icon: 'btn-icon btn-icon-red btn-icon-sm',
-        }"
-        icon="icon-[mdi--trash-can]"
-        @click="clear"
-      />
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-transparent btn-square',
-          icon: 'btn-icon btn-icon-sm',
-        }"
-        icon="icon-[mdi--undo]"
+      <Button size="icon" variant="ghost" @click="replace(element?.value ?? ``)"
+        ><div class="icon-[mdi--content-copy] size-4"
+      /></Button>
+      <Button variant="ghost" size="icon" @click="clear">
+        <div class="icon-[mdi--trash-can] size-4 text-error" />
+      </Button>
+      <Button
+        size="icon"
+        variant="ghost"
         magic-key="Control+Z"
         @click="undo"
         @magic-click="undo"
-      />
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-transparent btn-square',
-          icon: 'btn-icon btn-icon-sm',
-        }"
-        icon="icon-[mdi--redo]"
+      >
+        <div class="icon-[mdi--undo] size-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
         magic-key="Control+Shift+Z"
         @click="redo"
         @magic-click="redo"
-      />
+      >
+        <div class="icon-[mdi--redo] size-4" />
+      </Button>
       <EditorTranslationVerifyResult />
     </div>
     <div class="flex gap-1 items-center">
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-transparent',
-          icon: 'btn-icon btn-icon-sm',
-        }"
-        icon="icon-[mdi--check]"
+      <Button
+        variant="ghost"
         magic-key="Control+Shift+Enter"
         @click="handleTranslate(false)"
         @magic-click="handleTranslate(false)"
       >
+        <div class="icon-[mdi--check] size-4" />
         {{ t("提交") }}
-      </HButton>
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-transparent',
-          icon: 'btn-icon btn-icon-sm',
-        }"
-        icon="icon-[mdi--arrow-right]"
+      </Button>
+      <Button
+        variant="ghost"
         magic-key="Control+Enter"
         @click="handleTranslate(true)"
         @magic-click="handleTranslate(true)"
       >
+        <div class="icon-[mdi--arrow-right] size-4" />
         {{ t("提交并继续") }}
-      </HButton>
+      </Button>
     </div>
   </div>
 </template>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";
-import HButton from "./headless/HButton.vue";
 import type { TranslationWithStatus } from "../stores/editor/translation";
+import { Button } from "@/app/components/ui/button";
 
 const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id">;
@@ -31,21 +31,16 @@ const handleUnapprove = async () => {
 
 <template>
   <div class="flex gap-1 items-center">
-    <HButton
-      v-if="!isApproved"
-      :classes="{
-        base: 'btn btn-md btn-transparent btn-square',
-      }"
-      icon="icon-[mdi--check]"
-      @click.stop="handleApprove"
-    />
-    <HButton
+    <Button v-if="!isApproved" size="icon" @click.stop="handleApprove">
+      <div class="icon-[mdi--check] size-4" />
+    </Button>
+    <Button
       v-if="isApproved"
-      :classes="{
-        base: 'btn btn-md btn-transparent btn-square',
-      }"
-      icon="icon-[mdi--close]"
+      variant="ghost"
+      size="icon"
       @click.stop="handleUnapprove"
-    />
+    >
+      <div class="icon-[mdi--close] size-4" />
+    </Button>
   </div>
 </template>

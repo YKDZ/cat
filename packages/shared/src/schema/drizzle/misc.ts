@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { safeZDotJson } from "@/schema/json.ts";
+import { nonNullSafeZDotJson, safeZDotJson } from "@/schema/json.ts";
 import { DrizzleDateTimeSchema } from "../misc";
 
 export const LanguageSchema = z.object({
@@ -23,7 +23,7 @@ export const TaskSchema = z.object({
 export const SettingSchema = z.object({
   id: z.int(),
   key: z.string(),
-  value: safeZDotJson,
+  value: nonNullSafeZDotJson,
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

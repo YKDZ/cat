@@ -12,12 +12,10 @@ const handleUpdate = (_: PartData[] | undefined, to: PartData[]) => {
 </script>
 
 <template>
-  <div class="text-lg mb-6">
-    <TextTagger
-      v-if="element"
-      :text="element.value"
-      interactable
-      @update="handleUpdate"
-    />
-  </div>
+  <TextTagger
+    v-if="element"
+    :text="element.value"
+    interactable
+    @update="handleUpdate"
+  />
 </template>

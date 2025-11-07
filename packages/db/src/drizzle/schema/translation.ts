@@ -14,6 +14,7 @@ import { timestamps } from "./reuse.ts";
 import { user } from "./user.ts";
 import { translatableElement, translatableString } from "./document.ts";
 import { memoryItem } from "./memory.ts";
+import { JSONType } from "@cat/shared/schema/json";
 
 export const translation = pgTable(
   "Translation",
@@ -22,7 +23,7 @@ export const translation = pgTable(
     stringId: integer().notNull(),
     translatorId: uuid().notNull(),
     translatableElementId: integer().notNull(),
-    meta: jsonb(),
+    meta: jsonb().$type<JSONType>(),
     ...timestamps,
   },
   (table) => [

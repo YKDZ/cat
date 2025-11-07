@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";
-import HButton from "./headless/HButton.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import LanguagePicker from "./LanguagePicker.vue";
+import { Button } from "@/app/components/ui/button";
 
 const { info } = useToastStore();
 
@@ -59,14 +59,9 @@ const upload = async () => {
     </TableCell>
     <TableCell>
       <div class="flex gap-2 items-center">
-        <HButton
-          :classes="{
-            base: 'btn btn-md btn-base btn-square',
-            icon: 'btn-icon btn-icon-md',
-          }"
-          icon="icon-[mdi--upload]"
-          @click="upload"
-        />
+        <Button @click="upload" size="icon"
+          ><div class="icon-[mdi--upload] size-4"
+        /></Button>
       </div>
     </TableCell>
   </TableRow>

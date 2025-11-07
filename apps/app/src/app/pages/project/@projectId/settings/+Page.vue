@@ -4,10 +4,10 @@ import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { Data } from "../+data.server.ts";
-import HButton from "@/app/components/headless/HButton.vue";
-import InputLabel from "@/app/components/InputLabel.vue";
-import HInput from "@/app/components/headless/form/HInput.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
 
 const { t } = useI18n();
 const project = inject(useInjectionKey<Data>()("project"))!;
@@ -48,37 +48,19 @@ const remove = async (): Promise<void> => {
 </script>
 
 <template>
-  <h1>{{ t("通用") }}</h1>
-  <h2>{{ t("项目信息") }}</h2>
-  <div>
-    <InputLabel>{{ t("项目名称") }}</InputLabel>
-    <div class="flex gap-1 items-center">
-      <HInput
-        v-model="name"
-        type="text"
-        placeholder="项目名称"
-        icon="icon-[mdi--book]"
-        :classes="{
-          input: 'input input-sm',
-          'input-container': 'input-container rounded-md',
-          'input-icon': 'input-icon',
-        }"
-      />
-      <HButton
-        :classes="{
-          base: 'btn btn-md btn-base',
-        }"
-        @click="updateName"
-      >
-        {{ t("重命名") }}
-      </HButton>
+  <div class="space-y-2 mt-2">
+    <div class="grid w-full max-w-sm items-center gap-1.5">
+      <Label for="name">{{ t("项目名称") }}</Label>
+      <div class="flex w-full max-w-sm items-center gap-1.5">
+        <Input
+          id="name"
+          type="text"
+          v-model="name"
+          :placeholder="t('项目名称')"
+        />
+        <Button type="submit" @click="updateName"> {{ t("重命名") }} </Button>
+      </div>
     </div>
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-base',
-      }"
-      @click="remove"
-      >{{ t("删除项目") }}</HButton
-    >
+    <Button variant="destructive" @click="remove">{{ t("删除项目") }}</Button>
   </div>
 </template>

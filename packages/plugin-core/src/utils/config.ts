@@ -1,6 +1,5 @@
 import type { OverallDrizzleClient, ScopeType } from "@cat/db";
 import type { JSONType } from "@cat/shared/schema/json";
-import * as z from "zod/v4";
 
 export const getPluginConfig = async (
   drizzle: OverallDrizzleClient,
@@ -56,5 +55,5 @@ export const getConfigInstance = async (
 
   if (!data) return {};
 
-  return z.json().parse(data.value);
+  return data.value;
 };

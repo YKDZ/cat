@@ -1,18 +1,25 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import { ref } from "vue";
 import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import HButton from "@/app/components/headless/HButton.vue";
-import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
 import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
-import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
-import Textarea from "@/app/components/Textarea.vue";
+import { Textarea } from "@/app/components/ui/textarea";
 import { useToastStore } from "@/app/stores/toast.ts";
-import HInput from "@/app/components/headless/form/HInput.vue";
-import HLabel from "@/app/components/headless/form/HLabel.vue";
-import HForm from "@/app/components/headless/form/HForm.vue";
+import { Button } from "@/app/components/ui/button";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/app/components/ui/form";
+import { Input } from "@/app/components/ui/input";
+import { useForm } from "vee-validate";
+import { toTypedSchema } from "@vee-validate/zod";
+import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
+import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
+import { Switch } from "@/app/components/ui/switch";
 
 const { t } = useI18n();
 const { info } = useToastStore();
@@ -20,127 +27,122 @@ const { info } = useToastStore();
 const progress = defineModel("progress", { type: Number, required: true });
 const project = defineModel<Project>("project");
 
-const isProcessing = ref<boolean>(false);
-const name = ref<string>("");
-const description = ref<string>("");
-const targetLanguageIds = ref<string[]>([]);
-const memoryIds = ref<string[]>(["createNew"]);
-const glossaryIds = ref<string[]>(["createNew"]);
+const schema = toTypedSchema(
+  z.object({
+    name: z
+      .string({ error: "项目必须有名称" })
+      .min(1, { error: "项目必须有名称" }),
+    description: z.string({ error: "项目简介必须是字符串" }),
+    targetLanguageIds: z.array(z.string()),
+    memoryIds: z.array(z.uuidv7()),
+    glossaryIds: z.array(z.uuidv7()),
+    createMemory: z.boolean(),
+    createGlossary: z.boolean(),
+  }),
+);
 
-const ProjectDataSchema = z.object({
-  name: z
-    .string({ error: "项目必须有名称" })
-    .min(1, { error: "项目必须有名称" }),
-  description: z.string({ error: "项目简介必须是字符串" }).nullable(),
-  targetLanguageIds: z.array(z.string()).default([]),
-  memoryIds: z.array(z.uuidv7()).default([]),
-  glossaryIds: z.array(z.uuidv7()).default([]),
-  createMemory: z.boolean().default(true),
-  createGlossary: z.boolean().default(true),
+const { handleSubmit } = useForm({
+  validationSchema: schema,
+  initialValues: {
+    name: "",
+    description: "",
+    targetLanguageIds: [],
+    memoryIds: [],
+    glossaryIds: [],
+    createMemory: true,
+    createGlossary: true,
+  },
 });
 
-const createProject = async () => {
-  if (isProcessing.value) return;
-
-  const rawMemIdsAmount = memoryIds.value.length;
-  const rawGloIdsAmount = glossaryIds.value.length;
-  const realMemIds = memoryIds.value.filter((id) => id !== "createNew");
-  const realGloIds = glossaryIds.value.filter((id) => id !== "createNew");
-
-  const projectData = ProjectDataSchema.parse({
-    name: name.value,
-    description: description.value,
-    targetLanguageIds: targetLanguageIds.value,
-    memoryIds: realMemIds,
-    glossaryIds: realGloIds,
-    createMemory: rawMemIdsAmount - realMemIds.length === 1,
-    createGlossary: rawGloIdsAmount - realGloIds.length === 1,
-  });
+const onSubmit = handleSubmit(async (values) => {
+  const createMemory = values.memoryIds.includes("createNew");
+  const createGlossary = values.glossaryIds.includes("createNew");
 
   project.value = await trpc.project.create.mutate({
-    name: projectData.name,
-    description: projectData.description,
-    targetLanguageIds: projectData.targetLanguageIds,
-    memoryIds: projectData.memoryIds,
-    glossaryIds: projectData.glossaryIds,
-    createMemory: projectData.createMemory,
-    createGlossary: projectData.createGlossary,
+    name: values.name,
+    description: values.description,
+    targetLanguageIds: values.targetLanguageIds,
+    memoryIds: values.memoryIds,
+    glossaryIds: values.glossaryIds,
+    createMemory,
+    createGlossary,
   });
 
   progress.value += 1;
   info("成功创建项目！");
-};
+});
 </script>
 
 <template>
-  <HForm
-    :classes="{
-      form: 'form',
-    }"
-  >
-    <HLabel
-      :classes="{
-        label: 'label',
-      }"
-      ><span class="label-text label-text-required">{{ t("名称") }}</span>
-      <HInput
-        v-model="name"
-        required
-        type="text"
-        placeholder="项目名称"
-        icon="icon-[mdi--book]"
-        :classes="{
-          input: 'input input-md',
-          'input-container': 'input-container rounded-md',
-          'input-icon': 'input-icon',
-        }"
-      />
-    </HLabel>
-
-    <HLabel
-      :classes="{
-        label: 'label',
-      }"
-      ><span class="label-text">{{ t("简介") }}</span
-      ><Textarea v-model="description" placeholder="用于描述项目的简短文本"
-    /></HLabel>
-
-    <HLabel
-      :classes="{
-        label: 'label',
-      }"
-      ><span class="label-text label-text-required">{{ t("目标语言") }}</span
-      ><MultiLanguagePicker v-model="targetLanguageIds"
-    /></HLabel>
-
-    <HLabel
-      :classes="{
-        label: 'label',
-      }"
-      ><span class="label-text label-text-required">{{ t("记忆库") }}</span>
-      <MultiMemoryPicker v-model="memoryIds" placeholder="选择一个或多个记忆库"
-    /></HLabel>
-
-    <HLabel
-      :classes="{
-        label: 'label',
-      }"
-      ><span class="label-text label-text-required">{{ t("术语库") }}</span>
-      <MultiGlossaryPicker
-        v-model="glossaryIds"
-        create-new
-        placeholder="选择一个或多个术语库"
-    /></HLabel>
-
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-base',
-      }"
-      icon="icon-[mdi--plus]"
-      :loading="isProcessing"
-      @click="createProject"
-    >
+  <form class="space-y-4" @submit="onSubmit">
+    <FormField v-slot="{ componentField }" name="name">
+      <FormItem>
+        <FormLabel>{{ t("名称") }}</FormLabel
+        ><FormControl>
+          <Input
+            type="text"
+            :placeholder="t('项目名称')"
+            v-bind="componentField"
+          /> </FormControl
+        ><FormMessage />
+      </FormItem> </FormField
+    ><FormField v-slot="{ componentField }" name="description">
+      <FormItem>
+        <FormLabel>{{ t("简介") }}</FormLabel
+        ><FormControl>
+          <Textarea
+            :placeholder="t('项目简介')"
+            v-bind="componentField"
+          /> </FormControl
+        ><FormMessage />
+      </FormItem>
+    </FormField>
+    <FormField v-slot="{ componentField }" name="targetLanguageIds">
+      <FormItem>
+        <FormLabel>{{ t("目标语言") }}</FormLabel
+        ><FormControl>
+          <MultiLanguagePicker v-bind="componentField" /> </FormControl
+        ><FormMessage />
+      </FormItem>
+    </FormField>
+    <FormField v-slot="{ componentField }" name="memoryIds">
+      <FormItem>
+        <FormLabel>{{ t("记忆库") }}</FormLabel
+        ><FormControl>
+          <MultiMemoryPicker v-bind="componentField" /> </FormControl
+        ><FormMessage />
+      </FormItem>
+    </FormField>
+    <FormField v-slot="{ componentField }" name="createMemory">
+      <FormItem>
+        <FormControl>
+          <div class="flex items-center space-x-2">
+            <Label for="createMemory">{{ t("创建同名记忆库") }}</Label>
+            <Switch id="createMemory" v-bind="componentField" />
+          </div> </FormControl
+        ><FormMessage />
+      </FormItem>
+    </FormField>
+    <FormField v-slot="{ componentField }" name="glossaryIds">
+      <FormItem>
+        <FormLabel>{{ t("术语库") }}</FormLabel
+        ><FormControl>
+          <MultiGlossaryPicker v-bind="componentField" /> </FormControl
+        ><FormMessage />
+      </FormItem>
+    </FormField>
+    <FormField v-slot="{ componentField }" name="createGlossary">
+      <FormItem>
+        <FormControl>
+          <div class="flex items-center space-x-2">
+            <Label for="createGlossary">{{ t("创建同名术语库") }}</Label>
+            <Switch id="createGlossary" v-bind="componentField" />
+          </div>
+        </FormControl>
+      </FormItem>
+    </FormField>
+    <Button type="submit">
       {{ t("创建项目") }}
-    </HButton>
-  </HForm>
+    </Button>
+  </form>
 </template>
