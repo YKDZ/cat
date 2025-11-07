@@ -8,6 +8,7 @@ import {
   primaryKey,
   serial,
   text,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -107,11 +108,12 @@ export const translatableString = pgTable(
   "TranslatableString",
   {
     id: serial().primaryKey().notNull(),
-    value: text().notNull().unique(),
+    value: text().notNull(),
     languageId: text().notNull(),
     chunkSetId: integer().notNull(),
   },
   (table) => [
+    unique().on(table.languageId, table.value),
     foreignKey({
       columns: [table.languageId],
       foreignColumns: [language.id],
