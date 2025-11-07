@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
-import { JSONSchemaSchema, safeZDotJson } from "@/schema/json.ts";
+import { _JSONSchemaSchema, safeZDotJson } from "@/schema/json.ts";
 
 export const PluginInstallationSchema = z.object({
   id: z.int(),
@@ -14,7 +14,7 @@ export const PluginInstallationSchema = z.object({
 
 export const PluginConfigSchema = z.object({
   id: z.int(),
-  schema: JSONSchemaSchema,
+  schema: _JSONSchemaSchema,
   pluginId: z.string(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,

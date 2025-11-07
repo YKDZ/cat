@@ -8,8 +8,6 @@ export type Clipper = {
   splitter: RegExp;
   highlight: boolean;
   /**
-   * String starts with 'i-' will be rendered as icon,
-   * Other string will be rendered normally,
    * A function returned VNode will be execute,
    * null will be rendered to the part text.
    */
@@ -121,8 +119,28 @@ export const clippers = ref<Clipper[]>([
   {
     id: 1,
     splitter: /(\n)/g,
-    name: "换行符",
-    content: "i-codicon:newline",
+    name: "\\n",
+    content: () => {
+      return h(
+        "span",
+        {
+          style: {
+            display: "inline",
+            whiteSpace: "pre-wrap",
+          },
+        },
+        [
+          h("span", {
+            class: "icon-[codicon--newline]",
+            style: {
+              display: "inline-block",
+            },
+            "aria-hidden": "true",
+          }),
+          "\n",
+        ],
+      );
+    },
     translatable: false,
     highlight: true,
     needConfirmation: true,
@@ -132,7 +150,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 2,
     splitter: /[%@][A-Za-z]/g,
-    name: "占位符",
+    name: "placeholder",
     content: null,
     translatable: false,
     highlight: true,
@@ -143,7 +161,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 3,
     splitter: / /g,
-    name: "空格",
+    name: "space",
     content: () => {
       return h(
         "span",
@@ -189,7 +207,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 4,
     splitter: /\d+/g,
-    name: "数字",
+    name: "number",
     content: null,
     translatable: false,
     highlight: true,

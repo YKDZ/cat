@@ -36,6 +36,7 @@ import {
   TranslatableElementSchema,
 } from "@cat/shared/schema/drizzle/document";
 import {
+  createDocumentUnderParent,
   finishPresignedPutFile,
   getServiceFromDBId,
   preparePresignedPutFile,
@@ -46,6 +47,7 @@ import { upsertDocumentElementsFromFileQueue } from "@cat/app-workers/workers";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
 import { StorageProvider } from "@cat/plugin-core";
+import { randomUUID } from "node:crypto";
 
 /**
  * 构建翻译状态查询条件
@@ -190,7 +192,7 @@ export const documentRouter = router({
       );
 
       const name = sanitizeFileName(meta.name);
-      const key = join("documents", name);
+      const key = join("documents", randomUUID() + name);
 
       const { url, putSessionId, fileId } = await preparePresignedPutFile(
         drizzle,
@@ -261,6 +263,7 @@ export const documentRouter = router({
           and(
             eq(documentTable.projectId, projectId),
             eq(documentTable.name, fileName),
+            eq(documentTable.isDirectory, false),
           ),
         )
         .limit(1);
@@ -281,17 +284,12 @@ export const documentRouter = router({
 
         const result = await drizzle.transaction(async (tx) => {
           // 创建文档
-          const document = assertSingleNonNullish(
-            await tx
-              .insert(documentTable)
-              .values({
-                creatorId: user.id,
-                projectId,
-                fileHandlerId: service.id,
-                name: fileName,
-              })
-              .returning(),
-          );
+          const document = await createDocumentUnderParent(tx, {
+            creatorId: user.id,
+            projectId,
+            fileHandlerId: service.id,
+            name: fileName,
+          });
 
           // 更新文档关联到文件
           await tx

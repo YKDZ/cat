@@ -2,13 +2,13 @@
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { computed, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
-import HButton from "./headless/HButton.vue";
 import Table from "@/app/components/table/Table.vue";
 import TableBody from "@/app/components/table/TableBody.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import ProjectUploadFilesFile from "./ProjectUploadFilesFile.vue";
-import SModal from "./headless-styled/SModal.vue";
+import { Button } from "@/app/components/ui/button";
+import { Spinner } from "@/app/components/ui/spinner";
 
 const { t } = useI18n();
 
@@ -72,15 +72,10 @@ const selectFile = () => {
     </TableBody>
   </Table>
   <div class="flex gap-4 items-center">
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-base',
-      }"
-      icon="icon-[mdi--folder]"
-      :is-processing
-      @click="fileInputEl && fileInputEl.click()"
-    >
+    <Button @click="fileInputEl && fileInputEl.click()">
+      <Spinner v-if="isProcessing" />
+      <div v-else class="icon-[mdi--folder] size-4" />
       {{ t("选择文件") }}
-    </HButton>
+    </Button>
   </div>
 </template>

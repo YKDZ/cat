@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { JSONSchema } from "@cat/shared/schema/json";
+import { _JSONSchema, JSONType } from "@cat/shared/schema/json";
 import { relations } from "drizzle-orm";
 import { timestamps } from "./reuse.ts";
 import { user } from "./user.ts";
@@ -57,7 +57,7 @@ export const pluginConfig = pgTable(
   {
     id: serial().primaryKey().notNull(),
     pluginId: text().notNull(),
-    schema: jsonb().notNull().$type<JSONSchema>(),
+    schema: jsonb().notNull().$type<_JSONSchema>(),
     ...timestamps,
   },
   (table) => [
@@ -103,7 +103,7 @@ export const pluginConfigInstance = pgTable(
   "PluginConfigInstance",
   {
     id: serial().primaryKey().notNull(),
-    value: jsonb().notNull(),
+    value: jsonb().notNull().$type<Exclude<JSONType, null>>(),
     creatorId: uuid(),
     configId: integer().notNull(),
     pluginInstallationId: integer().notNull(),
@@ -142,7 +142,7 @@ export const pluginInstallation = pgTable(
     id: serial().primaryKey().notNull(),
     scopeId: text().notNull(),
     pluginId: text().notNull(),
-    scopeMeta: jsonb(),
+    scopeMeta: jsonb().$type<JSONType>(),
     scopeType: scopeType().notNull(),
     ...timestamps,
   },

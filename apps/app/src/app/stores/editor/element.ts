@@ -41,7 +41,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
   });
 
   const displayedElements = computed(() => {
-    const elements = loadedPages.get(context.currentPageIndex.value);
+    const elements = loadedPages.get(context.currentPage.value - 1);
     if (!elements) return [];
     return elements;
   });
@@ -60,7 +60,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
   const updateElement = (updatedElement: TranslatableElement) => {
     for (const [, elements] of loadedPages.entries()) {
       const index = elements.findIndex((el) => el.id === updatedElement.id);
-      if (index === -1) continue;
+      if (index === 0) continue;
 
       elements[index] =
         TranslatableElementWithDetailsSchema.parse(updatedElement);

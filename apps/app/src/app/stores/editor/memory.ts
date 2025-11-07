@@ -25,7 +25,7 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
       {
         elementId: elementId.value,
         translationLanguageId: languageToId.value,
-        minMemorySimilarity: editorMemoryMinSimilarity.value,
+        minMemorySimilarity: editorMemoryMinSimilarity.value[0],
       },
       {
         onData: ({ data }) => {

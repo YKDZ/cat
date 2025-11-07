@@ -6,16 +6,18 @@ import EditorSuggestions from "@/app/components/EditorSuggestions.vue";
 import EditorTerms from "@/app/components/EditorTerms.vue";
 import EditorToolbar from "@/app/components/EditorToolbar.vue";
 import EditorTranslateInput from "@/app/components/EditorTranslateInput.vue";
+import { Separator } from "@/app/components/ui/separator";
 </script>
 
 <template>
   <EditorOriginElement />
+  <Separator />
   <EditorTranslateInput />
   <EditorToolbar />
   <EditorElementTranslations />
-  <div class="mt-3 flex gap-1 w-full">
-    <EditorSuggestions class="w-1/3" />
-    <EditorMemories class="w-1/3" />
-    <EditorTerms class="w-1/3" />
+  <div class="mt-3 gap-1 w-full grid grid-cols-3">
+    <EditorSuggestions />
+    <EditorMemories />
+    <EditorTerms />
   </div>
 </template>

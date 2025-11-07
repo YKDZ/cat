@@ -1,23 +1,30 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/drizzle/document";
-import { inject, ref } from "vue";
+import { inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import HButton from "./headless/HButton.vue";
 import { languageKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
-import SModal from "./headless-styled/SModal.vue";
+import Button from "./ui/button/Button.vue";
+import {
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "@/app/components/ui/dialog";
+import { Check } from "lucide-vue-next";
 
 const { t } = useI18n();
 
 const props = defineProps<{
-  document: Document;
+  document: Pick<Document, "id">;
 }>();
 
 const { info, trpcWarn } = useToastStore();
 
 const language = inject(languageKey);
-const isOpen = ref(false);
 
 const handleAutoApprove = async () => {
   if (!language || !language.value) return;
@@ -28,7 +35,6 @@ const handleAutoApprove = async () => {
       languageId: language.value.id,
     })
     .then((count) => {
-      isOpen.value = false;
       info(`成功自动批准 ${count} 条可用的翻译`);
     })
     .catch(trpcWarn);
@@ -36,31 +42,27 @@ const handleAutoApprove = async () => {
 </script>
 
 <template>
-  <HButton
-    :classes="{
-      base: 'btn btn-md btn-base btn-square',
-      icon: 'btn-icon btn-icon-md',
-    }"
-    icon="icon-[mdi--auto-fix]"
-    @click.stop="isOpen = true"
-  />
-  <SModal v-model="isOpen">
-    <article class="prose-highlight-content max-w-460px prose">
-      <h3 class="text-highlight-content-darker">{{ t("自动批准") }}</h3>
-      <p>
-        {{
-          t(
-            "这将自动选出各个可翻译元素的翻译中得票数最高的那一个，并自动批准它。",
-          )
-        }}
-      </p>
-    </article>
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-base btn-center btn-w-full',
-      }"
-      @click="handleAutoApprove"
-      >确认</HButton
-    >
-  </SModal>
+  <Dialog>
+    <DialogTrigger>
+      <Button variant="outline" size="icon"><Check /></Button>
+    </DialogTrigger>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{{ t("自动批准翻译") }}</DialogTitle>
+      </DialogHeader>
+      <article class="prose-highlight-content max-w-460px prose">
+        <h3 class="text-highlight-content-darker">{{ t("自动批准") }}</h3>
+        <p>
+          {{
+            t(
+              "这将自动选出各个可翻译元素的翻译中得票数最高的那一个，并自动批准它。",
+            )
+          }}
+        </p>
+      </article>
+      <DialogFooter>
+        <Button @click="handleAutoApprove">确认</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

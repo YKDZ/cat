@@ -1,86 +1,73 @@
 <script setup lang="ts">
 import type { User } from "@cat/shared/schema/drizzle/user";
-import { computed, onBeforeMount, ref } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/app/components/ui/avatar";
+import { computedAsync } from "@vueuse/core";
+import { Skeleton } from "@/app/components/ui/skeleton";
 
-const props = defineProps<{
-  user?: User;
-  userId?: string;
-  size: number;
-  withName?: boolean;
-  fullWidth?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    user?: Pick<User, "id" | "name"> | null;
+    userId?: string | null;
+    withName?: boolean;
+    size?: number;
+  }>(),
+  {
+    size: 16,
+    withName: false,
+  },
+);
 
-const user = ref<User | null>(props.user ?? null);
-const avatar = ref<string>("");
-const isFallback = ref(true);
+const user = computedAsync(async () => {
+  if (import.meta.env.SSR) return null;
 
-const containerStyle = computed(() => ({
-  gap: props.size * 0.2 + "px",
-}));
-
-const imgStyle = computed(() => ({
-  width: props.size + "px",
-  height: props.size + "px",
-  maxWidth: props.size + "px",
-  maxHeight: props.size + "px",
-  minWidth: props.size + "px",
-  minHeight: props.size + "px",
-  "font-size": props.size * 0.6 + "px",
-}));
-
-const updateAvatar = async () => {
-  if (!user.value) return;
-
-  await trpc.user.getAvatarPresignedUrl
-    .query({ id: user.value.id })
-    .then((url) => {
-      avatar.value = url ?? "";
-    });
-};
-
-const handleImgLoad = () => {
-  isFallback.value = false;
-};
-
-const handleImgError = () => {
-  isFallback.value = true;
-};
-
-onBeforeMount(async () => {
   if (!props.user && props.userId) {
-    user.value = await trpc.user.query.query({ id: props.userId });
+    return await trpc.user.query.query({ id: props.userId });
+  } else if (props.user) {
+    return props.user;
   }
-  await updateAvatar();
-});
+  return null;
+}, null);
+
+const avatarUrl = computedAsync(async () => {
+  if (!user.value) return "";
+
+  return (
+    (await trpc.user.getAvatarPresignedUrl.query({ id: user.value.id })) ?? ""
+  );
+}, "");
 </script>
 
 <template>
   <KeepAlive :max="16">
-    <div
-      v-if="user"
-      class="flex select-none items-center"
-      :class="{
-        'w-full': fullWidth,
-      }"
-      :style="containerStyle"
-    >
-      <img
-        v-show="!isFallback"
-        :src="avatar"
-        :style="imgStyle"
-        class="rounded-full aspect-square object-cover"
-        @load="handleImgLoad"
-        @error="handleImgError"
+    <div class="flex items-center gap-3" :class="$attrs.class">
+      <Skeleton
+        v-if="!user"
+        class="rounded-full aspect-square"
+        :style="{
+          width: `${size}px`,
+          height: `${size}px`,
+        }"
       />
-      <div
-        v-if="isFallback"
-        class="text-base-content text-center rounded-full bg-base flex items-center justify-center overflow-hidden"
-        :style="imgStyle"
+      <Skeleton v-if="!user && withName" class="h-8 w-24" />
+      <Avatar
+        v-if="user"
+        :style="{
+          width: `${size}px`,
+          height: `${size}px`,
+        }"
+        class="transition-all ease-linear"
       >
-        <span class="font-bold">{{ user.name.charAt(0).toUpperCase() }}</span>
-      </div>
-      <span v-if="withName">{{ user.name }}</span>
+        <AvatarImage :src="avatarUrl" />
+        <AvatarFallback>
+          <span class="font-bold">{{ user.name.charAt(0).toUpperCase() }}</span>
+        </AvatarFallback>
+      </Avatar>
+      <span v-if="user && withName">{{ user.name }}</span>
     </div>
   </KeepAlive>
 </template>

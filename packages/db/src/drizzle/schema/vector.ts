@@ -11,10 +11,11 @@ import {
 import { translatableString } from "./document.ts";
 import { pluginService } from "./plugin.ts";
 import { timestamps } from "./reuse.ts";
+import { JSONType } from "@cat/shared/schema/json";
 
 export const chunkSet = pgTable("ChunkSet", {
   id: serial().primaryKey().notNull(),
-  meta: jsonb(),
+  meta: jsonb().$type<JSONType>(),
   ...timestamps,
 });
 
@@ -22,7 +23,7 @@ export const chunk = pgTable(
   "Chunk",
   {
     id: serial().primaryKey().notNull(),
-    meta: jsonb(),
+    meta: jsonb().$type<JSONType>(),
     chunkSetId: integer().notNull(),
     vectorizerId: integer().notNull(),
     vectorStorageId: integer().notNull(),

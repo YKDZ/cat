@@ -2,7 +2,8 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import RangeInput from "./RangeInput.vue";
-import HButton from "./headless/HButton.vue";
+import { Button } from "@/app/components/ui/button";
+import { Spinner } from "@/app/components/ui/spinner";
 
 const { t } = useI18n();
 
@@ -257,13 +258,8 @@ onMounted(() => {
       step="any"
       class="w-5/6"
     />
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-base btn-w-full',
-      }"
-      :loading="isProcessing"
-      @click="handleSubmit"
-      >{{ t("裁剪") }}</HButton
+    <Button @click="handleSubmit"
+      ><Spinner v-if="isProcessing" /> {{ t("裁剪") }}</Button
     >
   </div>
 </template>

@@ -5,8 +5,8 @@ import Slash from "./Slash.vue";
 import UserAvatar from "./UserAvatar.vue";
 
 defineProps<{
-  memory: Memory & {
-    Creator: User;
+  memory: Pick<Memory, "name"> & {
+    Creator: Pick<User, "id" | "name">;
   };
 }>();
 </script>

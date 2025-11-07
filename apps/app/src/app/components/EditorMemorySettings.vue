@@ -1,43 +1,76 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { storeToRefs } from "pinia";
-import { toShortFixed } from "@cat/shared/utils";
 import { useI18n } from "vue-i18n";
-import RangeInput from "./RangeInput.vue";
-import InputLabel from "@/app/components/InputLabel.vue";
 import { useProfileStore } from "@/app/stores/profile.ts";
-import SModal from "./headless-styled/SModal.vue";
-import SToggle from "./headless-styled/SToggle.vue";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/app/components/ui/dialog";
+import { Slider } from "@/app/components/ui/slider";
+import { Button } from "@/app/components/ui/button";
+import { Settings } from "lucide-vue-next";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/app/components/ui/form";
+import Switch from "@/app/components/ui/switch/Switch.vue";
+import Label from "@/app/components/ui/label/Label.vue";
 
 const { t } = useI18n();
 
 const { editorMemoryMinSimilarity, editorMemoryAutoCreateMemory } =
   storeToRefs(useProfileStore());
-
-const isOpen = ref(false);
 </script>
 
 <template>
-  <button
-    class="icon-[mdi--cog] bg-highlight-content aspect-ratio-square cursor-pointer hover:bg-highlight-content-darker hover:scale-110"
-    @click="isOpen = !isOpen"
-  />
-  <SModal v-model="isOpen">
-    <div class="flex flex-col gap-1">
-      <InputLabel>{{
-        t("最低记忆匹配度 {similarity}%", {
-          similarity: toShortFixed(editorMemoryMinSimilarity * 100),
-        })
-      }}</InputLabel>
-      <RangeInput
-        v-model="editorMemoryMinSimilarity"
-        :min="0"
-        :max="1"
-        :step="0.001"
-      />
-    </div>
-    <div class="flex flex-col gap-1">
-      <InputLabel>{{ t("翻译时保留记忆") }}</InputLabel>
-      <SToggle v-model="editorMemoryAutoCreateMemory" /></div
-  ></SModal>
+  <Dialog>
+    <DialogTrigger>
+      <Button size="icon-sm" variant="ghost"> <Settings /> </Button>
+    </DialogTrigger>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{{ t("记忆设置") }}</DialogTitle>
+      </DialogHeader>
+      <form class="space-y-3">
+        <FormField name="editorMemoryMinSimilarity">
+          <FormItem>
+            <FormLabel>{{ t("最低匹配度") }}</FormLabel>
+            <FormControl>
+              <Slider
+                v-model="editorMemoryMinSimilarity"
+                :max="1"
+                :step="0.01"
+                :min="0"
+              />
+            </FormControl>
+            <FormDescription class="flex justify-between">
+              <span>{{ t("多高的匹配度视为相似？") }}</span>
+              <span>{{ editorMemoryMinSimilarity[0] }}</span>
+            </FormDescription>
+          </FormItem>
+        </FormField>
+        <FormField name="editorMemoryAutoCreateMemory">
+          <FormItem>
+            <FormControl>
+              <div class="flex items-center space-x-2">
+                <Label for="editorMemoryAutoCreateMemory">{{
+                  t("自动创建记忆")
+                }}</Label>
+                <Switch
+                  v-model="editorMemoryAutoCreateMemory"
+                  id="editorMemoryAutoCreateMemory"
+                />
+              </div>
+            </FormControl>
+          </FormItem>
+        </FormField>
+      </form>
+    </DialogContent>
+  </Dialog>
 </template>

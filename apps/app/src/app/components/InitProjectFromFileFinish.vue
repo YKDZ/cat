@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { navigate } from "vike/client/router";
-import HButton from "@/app/components/headless/HButton.vue";
+import { Button } from "@/app/components/ui/button";
 
 const project = defineModel<Project>("project");
 
@@ -15,13 +15,9 @@ const handleClick = async () => {
   <div class="flex flex-col">
     <h2 class="text-lg font-bold">成功创建项目！</h2>
     <p>现在你可以开始翻译工作了</p>
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-base',
-      }"
-      icon="icon-[mdi--check]"
-      @click="handleClick"
-      >前往项目界面</HButton
+    <Button @click="handleClick"
+      ><div class="icon-[mdi--check] size-4" />
+      前往项目界面</Button
     >
   </div>
 </template>

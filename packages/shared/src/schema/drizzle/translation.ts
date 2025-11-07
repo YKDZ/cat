@@ -23,7 +23,7 @@ export const TranslationApprovementSchema = z.object({
 export const TranslationSchema = z.object({
   id: z.int(),
   stringId: z.int(),
-  meta: safeZDotJson.nullable(),
+  meta: safeZDotJson,
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
   translatorId: z.uuidv7(),

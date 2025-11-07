@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import type {
-  Translation,
-  TranslationVote,
-} from "@cat/shared/schema/drizzle/translation";
+import type { TranslationVote } from "@cat/shared/schema/drizzle/translation";
 import { onMounted, ref } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";
-import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { watchClient } from "@/app/utils/vue.ts";
 import type { TranslationWithStatus } from "../stores/editor/translation";
+import { Button } from "@/app/components/ui/button";
 
 const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id" | "vote">;
@@ -66,25 +63,25 @@ watchClient(
 
 <template>
   <div class="flex gap-1 items-center">
-    <HButton
-      icon="icon-[mdi--minus]"
-      :classes="{
-        base: 'btn btn-md btn-transparent btn-square',
-      }"
+    <Button
+      variant="ghost"
+      size="icon"
       :focused="selfVote?.value === -1"
       @click.stop="handleVote(-1)"
-    />
+    >
+      <div class="icon-[mdi--minus] size-4" />
+    </Button>
     <span class="text-center min-h-24px min-w-24px inline-block">
       <span v-if="vote !== null">{{ vote }}</span>
       <span v-else class="icon-[mdi--help] inline-block" />
     </span>
-    <HButton
-      icon="icon-[mdi--plus]"
-      :classes="{
-        base: 'btn btn-md btn-transparent btn-square',
-      }"
+    <Button
+      variant="ghost"
+      size="icon"
       :focused="selfVote?.value === 1"
       @click.stop="handleVote(1)"
-    />
+    >
+      <div class="icon-[mdi--plus] size-4" />
+    </Button>
   </div>
 </template>

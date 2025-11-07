@@ -3,7 +3,11 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import * as z from "zod/v4";
-import { JSONSchemaSchema, type JSONType } from "@cat/shared/schema/json";
+import {
+  _JSONSchemaSchema,
+  JSONSchemaSchema,
+  type JSONType,
+} from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
   assertFirstNonNullish,
@@ -185,7 +189,7 @@ export class PluginRegistry implements IPluginRegistry {
         });
 
       if (data.config) {
-        const schema = JSONSchemaSchema.parse(data.config);
+        const schema = _JSONSchemaSchema.parse(data.config);
 
         await tx
           .insert(pluginConfig)

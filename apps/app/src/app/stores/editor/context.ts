@@ -7,7 +7,8 @@ export const useEditorContextStore = defineStore("editorContext", () => {
   const documentId = ref<string | null>(null);
   const languageToId = ref<string | null>(null);
   const pageSize = ref(16);
-  const currentPageIndex = ref(-1);
+  // 从 1 开始
+  const currentPage = ref(1);
 
   const document = computedAsync(async () => {
     if (import.meta.env.SSR) return null;
@@ -23,14 +24,14 @@ export const useEditorContextStore = defineStore("editorContext", () => {
   });
 
   const refresh = () => {
-    currentPageIndex.value = -1;
+    currentPage.value = 1;
   };
 
   return {
     documentId,
     languageToId,
     pageSize,
-    currentPageIndex,
+    currentPage,
     document,
     projectId,
     refresh,

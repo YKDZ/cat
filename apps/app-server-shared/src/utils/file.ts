@@ -81,6 +81,7 @@ export const putBufferToStorage = async (
       });
 
       logger.error("PROCESSOR", { msg: "Error putting file" }, error);
+      throw error;
     }
 
   return { fileId: file.id, blobId: blob.id };

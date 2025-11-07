@@ -4,12 +4,16 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { computed, ref, shallowRef } from "vue";
 import { useObjectUrl } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
-import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { trpc } from "@cat/app-api/trpc/client";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import ImageCopper from "@/app/components/ImageCopper.vue";
-import SModal from "./headless-styled/SModal.vue";
+import Button from "@/app/components/ui/button/Button.vue";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/app/components/ui/dialog";
 
 const { t } = useI18n();
 
@@ -54,10 +58,6 @@ const onSubmit = async (blob: Blob | null) => {
     .finally(() => (isProcessing.value = false));
 };
 
-const handleStart = () => {
-  fileInputEl.value?.click();
-};
-
 const handleFileChange = () => {
   if (
     !fileInputEl.value ||
@@ -79,28 +79,27 @@ const rawFileMime = computed(() => {
 </script>
 
 <template>
-  <HButton
-    :classes="{
-      base: 'btn btn-md btn-base',
-    }"
-    icon="icon-[mdi--upload]"
-    :class="$attrs.class"
-    @click="handleStart"
-    >{{ t("上传头像") }}</HButton
-  >
-  <input
-    ref="fileInputEl"
-    type="file"
-    class="hidden"
-    accept="image/*"
-    @change="handleFileChange"
-  />
-  <SModal v-model="isOpen">
-    <ImageCopper
-      v-if="src"
-      v-model:is-processing="isProcessing"
-      :src
-      :on-submit="onSubmit"
-    />
-  </SModal>
+  <Dialog>
+    <DialogTrigger>
+      <Button :class="$attrs.class"
+        ><div class="icon-[mdi--upload] size-4" />
+        {{ t("上传头像") }}</Button
+      >
+    </DialogTrigger>
+    <DialogContent>
+      <ImageCopper
+        v-if="src"
+        v-model:is-processing="isProcessing"
+        :src="src"
+        :on-submit="onSubmit"
+      />
+      <input
+        ref="fileInputEl"
+        type="file"
+        class="hidden"
+        accept="image/*"
+        @change="handleFileChange"
+      />
+    </DialogContent>
+  </Dialog>
 </template>

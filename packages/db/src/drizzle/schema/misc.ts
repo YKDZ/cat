@@ -10,6 +10,7 @@ import { relations } from "drizzle-orm";
 import { timestamps, uuidId } from "./reuse.ts";
 import { projectTargetLanguage } from "./project.ts";
 import { documentToTask, translatableString } from "./document.ts";
+import { JSONType } from "@cat/shared/schema/json";
 
 export const language = pgTable("Language", {
   id: text().primaryKey().notNull(),
@@ -21,7 +22,7 @@ export const setting = pgTable(
   {
     id: serial().primaryKey().notNull(),
     key: text().notNull(),
-    value: jsonb().notNull(),
+    value: jsonb().notNull().$type<Exclude<JSONType, null>>(),
     ...timestamps,
   },
   (table) => [
@@ -35,7 +36,7 @@ export const task = pgTable(
     id: uuidId(),
     status: text().default("pending").notNull(),
     type: text().notNull(),
-    meta: jsonb(),
+    meta: jsonb().$type<JSONType>(),
     ...timestamps,
   },
   (table) => [

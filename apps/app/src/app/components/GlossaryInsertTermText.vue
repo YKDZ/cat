@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import HButton from "./headless/HButton.vue";
 import Textarea from "@/app/components/Textarea.vue";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-
 import { useToastStore } from "@/app/stores/toast.ts";
 import { trpc } from "@cat/app-api/trpc/client";
+import { Button } from "@/app/components/ui/button";
 
 const { t } = useI18n();
 
@@ -72,11 +71,12 @@ const handleInsert = async () => {
 <template>
   <div class="flex flex-col gap-4">
     <article class="prose-highlight-content max-w-460px prose">
-      <h3 class="text-highlight-content-darker">
-        {{ t("以文本方式插入术语") }}
-      </h3>
       <p>
-        {{ t("选择术语语言与翻译语言并以换行分隔的方式插入一一对应的术语") }}
+        {{
+          t(
+            "选择术语语言与翻译语言，并以换行符分隔的方式键入左右一一对应的术语和翻译",
+          )
+        }}
       </p>
       <p>{{ t("通过箭头方向决定插入的术语是否是双向的") }}</p>
     </article>
@@ -85,29 +85,20 @@ const handleInsert = async () => {
         <LanguagePicker v-model="termLanguageId" full-width />
         <Textarea v-model="terms" full-width />
       </div>
-      <HButton
-        class="self-center"
-        :classes="{
-          base: 'btn btn-md btn-transparent btn-square',
-        }"
-        :icon="
-          canReverse
-            ? `icon-[mdi--arrow-left-right]`
-            : `icon-[mdi--arrow-right]`
-        "
-        @click="canReverse = !canReverse"
-      />
+      <Button class="self-center" size="icon" @click="canReverse = !canReverse"
+        ><div
+          :class="
+            canReverse
+              ? `icon-[mdi--arrow-left-right]`
+              : `icon-[mdi--arrow-right]`
+          "
+          class="size-4"
+      /></Button>
       <div class="flex flex-col gap-2">
         <LanguagePicker v-model="translationLanguageId" full-width />
         <Textarea v-model="translations" full-width />
       </div>
     </div>
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-base btn-w-full',
-      }"
-      @click="handleInsert"
-      >{{ t("提交") }}</HButton
-    >
+    <Button @click="handleInsert">{{ t("提交") }}</Button>
   </div>
 </template>

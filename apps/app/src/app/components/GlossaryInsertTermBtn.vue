@@ -1,29 +1,50 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import HButton from "./headless/HButton.vue";
+import { Button } from "@/app/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/app/components/ui/dialog";
 import GlossaryInsertTermText from "@/app/components/GlossaryInsertTermText.vue";
-import SModal from "./headless-styled/SModal.vue";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/app/components/ui/tabs";
 
 const { t } = useI18n();
 
 defineProps<{
   glossaryId: string;
 }>();
-
-const isOpen = ref(false);
 </script>
 
 <template>
-  <HButton
-    :classes="{
-      base: 'btn btn-md btn-base',
-    }"
-    icon="icon-[mdi--plus]"
-    @click="isOpen = true"
-    >{{ t("插入术语") }}</HButton
-  >
-  <SModal v-model="isOpen">
-    <GlossaryInsertTermText :glossary-id />
-  </SModal>
+  <Dialog>
+    <DialogTrigger>
+      <Button
+        ><div class="icon-[mdi--plus] size-4" />
+        {{ t("插入术语") }}</Button
+      >
+    </DialogTrigger>
+    <DialogContent>
+      <DialogHeader
+        ><DialogTitle>{{ t("插入术语") }}</DialogTitle></DialogHeader
+      >
+      <Tabs>
+        <TabsList class="grid w-full grid-cols-2">
+          <TabsTrigger value="string"> 文本 </TabsTrigger>
+          <TabsTrigger value="json"> JSON </TabsTrigger>
+        </TabsList>
+        <TabsContent value="string">
+          <GlossaryInsertTermText :glossary-id />
+        </TabsContent>
+        <TabsContent value="json"> 占位 </TabsContent>
+      </Tabs>
+    </DialogContent>
+  </Dialog>
 </template>

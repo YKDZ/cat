@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import HInput from "@/app/components/headless/form/HInput.vue";
 import { useEditorTermStore } from "@/app/stores/editor/term.ts";
+import { Input } from "@/app/components/ui/input";
+import { Search } from "lucide-vue-next";
 
 const { t } = useI18n();
 
@@ -15,15 +16,18 @@ const handleSearch = () => {
 </script>
 
 <template>
-  <HInput
-    v-model="searchQuery"
-    icon="icon-[mdi--magnify]"
-    :placeholder="t('搜索术语')"
-    :classes="{
-      input: 'input input-md',
-      'input-container': 'input-container rounded-md',
-      'input-icon': 'input-icon',
-    }"
-    @change="handleSearch"
-  />
+  <div class="relative w-full max-w-sm items-center">
+    <Input
+      class="rounded-none pl-8"
+      type="text"
+      :placeholder="t('搜索术语')"
+      v-model.trim="searchQuery"
+      @change="handleSearch"
+    />
+    <span
+      class="absolute start-0 inset-y-0 flex items-center justify-center px-2"
+    >
+      <Search class="size-4" />
+    </span>
+  </div>
 </template>

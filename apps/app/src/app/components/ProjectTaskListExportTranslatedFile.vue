@@ -5,8 +5,8 @@ import * as z from "zod/v4";
 import type { Cell } from "@tanstack/vue-table";
 import { trpc } from "@cat/app-api/trpc/client";
 import TaskTable from "./TaskTable.vue";
-import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
+import { Button } from "@/app/components/ui/button";
 
 defineProps<{
   tasks: Task[];
@@ -49,14 +49,12 @@ const handleDownload = async (cell: Cell<Task, Meta>) => {
 
 <template>
   <TaskTable v-slot="{ cell }" :data="tasks">
-    <HButton
+    <Button
       :disabled="task(cell).status !== 'completed'"
-      :classes="{
-        base: 'btn btn-md btn-base btn-square',
-      }"
-      icon="icon-[mdi--download]"
       @click.stop="handleDownload(cell)"
-    />
+      size="icon"
+      ><div class="icon-[mdi--download] size-4"
+    /></Button>
     <a ref="downloadAEl" target="_blank" class="hidden" />
   </TaskTable>
 </template>

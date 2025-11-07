@@ -187,6 +187,7 @@ const worker = new Worker(
               memorySimilarity: memory.similarity,
               memoryId: memory.memoryId,
               memoryItemId: memory.id,
+              advisorId: null,
             },
           };
         }
@@ -265,6 +266,9 @@ const worker = new Worker(
             languageId,
             meta: {
               advisorId,
+              memorySimilarity: null,
+              memoryId: null,
+              memoryItemId: null,
             },
           };
         }

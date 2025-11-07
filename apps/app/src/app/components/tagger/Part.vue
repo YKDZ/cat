@@ -18,12 +18,7 @@ const content = computed(() => {
   if (!clipper.value?.content) {
     return props.part.text;
   } else if (typeof clipper.value.content === "string") {
-    if (clipper.value.content.startsWith("i-")) {
-      // 图标
-      return h("span", { class: `${clipper.value.content} inline-block` });
-    } else {
-      return clipper.value.content;
-    }
+    return clipper.value.content;
   } else {
     return clipper.value.content(props.part);
   }
@@ -74,7 +69,6 @@ const bgHoverColor = computed(() => {
 
 <template>
   <span
-    class="inline-block"
     :class="[
       {
         'cursor-pointer text-highlight-content px-0.5':

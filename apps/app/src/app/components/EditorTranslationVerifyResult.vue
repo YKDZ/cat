@@ -3,81 +3,71 @@ import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import type { ClipperVerifyResult } from "./tagger/index.ts";
 import { clippers } from "./tagger/index.ts";
-import Collapse from "./Collapse.vue";
-import Icon from "./Icon.vue";
-import HButton from "./headless/HButton.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { Button } from "@/app/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuContent,
+} from "@/app/components/ui/dropdown-menu";
+import { computedAsync } from "@vueuse/core";
 
-const { sourceParts, translationParts, translationValue } = storeToRefs(
-  useEditorTableStore(),
-);
+const { sourceParts, translationParts } = storeToRefs(useEditorTableStore());
 
-const clipperVerifyResults = ref<ClipperVerifyResult[]>([]);
 const isProcessing = ref(false);
-const isCollapseOpen = ref(false);
+const isOpen = ref(false);
 
-const isAllPass = computed(
-  () => !clipperVerifyResults.value.find((result) => !result.isPass),
-);
-
-const verifyTranslation = async () => {
+const clipperVerifyResults = computedAsync(async () => {
   isProcessing.value = false;
 
-  clipperVerifyResults.value = [];
+  const result: ClipperVerifyResult[] = [];
+
   await Promise.all(
     clippers.value.map(async (clipper) => {
       if (clipper.verifyHandlers.length === 0) return;
       await Promise.all(
         clipper.verifyHandlers.map(async ({ handler }) => {
-          const result = await handler(
-            clipper,
-            sourceParts.value,
-            translationParts.value,
+          result.push(
+            await handler(clipper, sourceParts.value, translationParts.value),
           );
-          clipperVerifyResults.value.push(result);
         }),
       );
     }),
   );
-};
+
+  return result;
+}, []);
+
+const isAllPass = computed(
+  () => !clipperVerifyResults.value.find((result) => !result.isPass),
+);
 
 const failedResults = computed(() => {
   return clipperVerifyResults.value.filter((result) => !result.isPass);
 });
 
-watch([sourceParts, translationValue], async () => {
-  isProcessing.value = true;
-  await verifyTranslation();
-  isProcessing.value = false;
-});
-
 watch(isAllPass, (to) => {
-  isCollapseOpen.value = !to;
+  isOpen.value = !to;
 });
 </script>
 
 <template>
-  <div class="flex gap-1 items-center">
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-transparent btn-square',
-        icon:
-          'btn-icon btn-icon-sm' +
-          `${isAllPass ? ' btn-icon-green' : ' btn-icon-red'}`,
-      }"
-      :icon="isAllPass ? 'icon-[mdi--check]' : 'icon-[mdi--close]'"
-    />
-    <Collapse v-if="!isAllPass" v-model="isCollapseOpen">
-      <ul>
-        <li
-          v-for="(result, index) in failedResults"
-          :key="index"
-          class="text-highlight-content font-normal flex gap-0.5 text-nowrap items-center"
-        >
-          <Icon small icon="icon-[mdi--close]" class="color-red" />
-          {{ result.error }}
-        </li>
-      </ul></Collapse
-    >
-  </div>
+  <DropdownMenu
+    :modal="false"
+    :default-open="!isAllPass"
+    v-model:open="isOpen"
+    @open-auto-focus="(event: Event) => event.preventDefault()"
+  >
+    <DropdownMenuTrigger>
+      <Button v-if="!isAllPass" size="icon" variant="ghost"
+        ><div class="icon-[mdi--close] text-errorsize-4"
+      /></Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      <DropdownMenuItem v-for="(result, index) in failedResults" :key="index">{{
+        result.error
+      }}</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
 </template>

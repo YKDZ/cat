@@ -6,9 +6,9 @@ import { trpc } from "@cat/app-api/trpc/client";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import type { PickerOption } from "./picker/index.ts";
-import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
+import { Button } from "@/app/components/ui/button/index.ts";
 
 const { t } = useI18n();
 
@@ -57,13 +57,8 @@ const langFilter = (option: PickerOption) => {
 
 <template>
   <LanguagePicker v-model="languageId" :filter="langFilter" />
-  <HButton
-    icon="icon-[mdi--plus]"
-    :classes="{
-      base: 'btn btn-md btn-base',
-    }"
-    :disabled="languageId === ``"
-    @click="addNewLanguage"
-    >{{ t("添加新语言并开始翻译") }}</HButton
+  <Button :disabled="languageId === ``" @click="addNewLanguage"
+    ><div class="icon-[mdi--plus] size-4" />
+    {{ t("添加新语言并开始翻译") }}</Button
   >
 </template>

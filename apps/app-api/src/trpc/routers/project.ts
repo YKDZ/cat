@@ -2,7 +2,6 @@ import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
 import * as z from "zod/v4";
 import { DocumentSchema } from "@cat/shared/schema/drizzle/document";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
-import { FileSchema } from "@cat/shared/schema/drizzle/file";
 import {
   eq,
   glossaryToProject,
@@ -19,6 +18,8 @@ import {
   translationApprovement as translationApprovementTable,
   count,
   translatableString,
+  documentClosure,
+  getTableColumns,
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
@@ -121,6 +122,25 @@ export const projectRouter = router({
             })
             .returning(),
         );
+
+        const root = assertSingleNonNullish(
+          await tx
+            .insert(documentTable)
+            .values({
+              name: "<root>",
+              projectId: project.id,
+              creatorId: user.id,
+              isDirectory: true,
+            })
+            .returning({ id: documentTable.id }),
+        );
+
+        await tx.insert(documentClosure).values({
+          ancestor: root.id,
+          descendant: root.id,
+          depth: 0,
+          projectId: project.id,
+        });
 
         if (targetLanguageIds.length > 0)
           await tx.insert(projectTargetLanguage).values(
@@ -272,11 +292,6 @@ export const projectRouter = router({
       z.array(
         ProjectSchema.extend({
           Creator: UserSchema,
-          Documents: z.array(
-            DocumentSchema.extend({
-              File: FileSchema.nullable(),
-            }),
-          ),
         }),
       ),
     )
@@ -290,11 +305,6 @@ export const projectRouter = router({
         where: (project, { eq }) => eq(project.creatorId, user.id),
         with: {
           Creator: true,
-          Documents: {
-            with: {
-              File: true,
-            },
-          },
         },
       });
     }),
@@ -307,11 +317,6 @@ export const projectRouter = router({
     .output(
       ProjectSchema.extend({
         Creator: UserSchema,
-        Documents: z.array(
-          DocumentSchema.extend({
-            File: FileSchema.nullable(),
-          }),
-        ),
       }).nullable(),
     )
     .query(async ({ ctx, input }) => {
@@ -325,11 +330,6 @@ export const projectRouter = router({
           where: (project, { eq }) => eq(project.id, id),
           with: {
             Creator: true,
-            Documents: {
-              with: {
-                File: true,
-              },
-            },
           },
         })) ?? null
       );
@@ -453,19 +453,37 @@ export const projectRouter = router({
     }),
   getDocuments: authedProcedure
     .input(z.object({ projectId: z.string() }))
-    .output(z.array(DocumentSchema.extend({ File: FileSchema.nullable() })))
+    .output(
+      z.array(
+        DocumentSchema.extend({
+          parentId: z.string().nullable(),
+        }),
+      ),
+    )
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
       const { projectId } = input;
 
-      return await drizzle.query.document.findMany({
-        where: (document, { eq }) => eq(document.projectId, projectId),
-        with: {
-          File: true,
-        },
-      });
+      // 查询所有文档及其父文档关系
+      const documents = await drizzle
+        .select({
+          ...getTableColumns(documentTable),
+          parentId: documentClosure.ancestor,
+        })
+        .from(documentTable)
+        .leftJoin(
+          documentClosure,
+          and(
+            eq(documentClosure.descendant, documentTable.id),
+            eq(documentClosure.depth, 1),
+            eq(documentClosure.projectId, projectId),
+          ),
+        )
+        .where(and(eq(documentTable.projectId, projectId)));
+
+      return documents;
     }),
   getTargetLanguages: authedProcedure
     .input(

@@ -3,7 +3,8 @@ import type { Project } from "@cat/shared/schema/drizzle/project";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
-import HButton from "@/app/components/headless/HButton.vue";
+import { Button } from "@/app/components/ui/button";
+import { Spinner } from "@/app/components/ui/spinner";
 
 const { t } = useI18n();
 
@@ -15,13 +16,9 @@ const isProcessing = ref<boolean>(false);
 
 <template>
   <ProjectUploadFiles v-if="project" v-model:project="project" />
-  <HButton
-    icon="icon-[mdi--clock]"
-    :classes="{
-      base: 'btn btn-md btn-base',
-    }"
-    :loading="isProcessing"
-    @click="progress += 1"
-    >{{ t("先不上传文件") }}</HButton
+  <Button :loading="isProcessing" @click="progress += 1">
+    <Spinner v-if="isProcessing" />
+    <div v-else class="icon-[mdi--clock] size-4" />
+    {{ t("先不上传文件") }}</Button
   >
 </template>

@@ -85,6 +85,7 @@ const worker = new Worker(
           storageProviderId: blobTable.storageProviderId,
         })
         .from(fileTable)
+        .innerJoin(blobTable, eq(fileTable.blobId, blobTable.id))
         .where(
           and(eq(fileTable.id, document.fileId), eq(fileTable.isActive, true)),
         ),
@@ -140,7 +141,7 @@ const worker = new Worker(
       fileContent,
       translationData.map(({ value, meta }) => ({
         value,
-        meta: z.json().parse(meta),
+        meta,
       })),
     );
 

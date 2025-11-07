@@ -6,11 +6,13 @@ import IndexSidebar from "@/app/components/IndexSidebar.vue";
 import ProjectHeader from "@/app/components/ProjectHeader.vue";
 import ProjectNavbar from "@/app/components/ProjectNavbar.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
+import { Separator } from "@/app/components/ui/separator";
 
-const { project, targetLanguages } = useData<Data>();
+const { project, targetLanguages, documents } = useData<Data>();
 
 provide(useInjectionKey<Data>()("project"), project);
 provide(useInjectionKey<Data>()("targetLanguages"), targetLanguages);
+provide(useInjectionKey<Data>()("documents"), documents);
 </script>
 
 <template>
@@ -21,6 +23,7 @@ provide(useInjectionKey<Data>()("targetLanguages"), targetLanguages);
       <!-- Content -->
       <div class="p-4 pt-0 flex flex-col">
         <ProjectNavbar :project />
+        <Separator />
         <slot />
       </div>
     </div>

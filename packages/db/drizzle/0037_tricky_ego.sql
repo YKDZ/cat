@@ -1,0 +1,1 @@
+ALTER TABLE "Document" ADD COLUMN "is_directory" boolean DEFAULT false;

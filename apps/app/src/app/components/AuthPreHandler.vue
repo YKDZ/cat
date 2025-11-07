@@ -8,9 +8,9 @@ import { useI18n } from "vue-i18n";
 import type { TRPCError } from "@trpc/server";
 import { trpc } from "@cat/app-api/trpc/client";
 import JSONForm from "./json-form/JsonForm.vue";
-import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useAuthStore } from "@/app/stores/auth.ts";
+import { Button } from "@/app/components/ui/button";
 
 const { t } = useI18n();
 
@@ -67,14 +67,8 @@ onMounted(async () => {
     :data
     @update="(to) => (data = to)"
   />
-  <HButton
-    :data-testid="method.providerId"
-    :classes="{
-      base: 'btn btn-w-full btn-base btn-md btn-center',
-    }"
-    :icon="method.icon"
-    @click="handlePreAuth"
-  >
+  <Button :data-testid="method.providerId" @click="handlePreAuth">
+    <div :class="method.icon" class="size-4" />
     {{ t("通过 {name} 登录", { name: method.name }) }}
-  </HButton>
+  </Button>
 </template>

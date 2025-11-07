@@ -4,6 +4,10 @@ export const safeZDotJson = z.any().refine((data) => {
   return z.json().safeParse(data).success;
 });
 
+export const nonNullSafeZDotJson = z.any().refine((data) => {
+  return data !== null && z.json().safeParse(data).success;
+});
+
 export type JSONSchema = boolean | _JSONSchema;
 export type _JSONSchema = {
   [k: string]: unknown;

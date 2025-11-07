@@ -7,9 +7,9 @@ import { storeToRefs } from "pinia";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import HButton from "./headless/HButton.vue";
 import JSONForm from "@/app/components/json-form/JsonForm.vue";
 import { useAuthStore } from "@/app/stores/auth.ts";
+import { Button } from "@/app/components/ui/button";
 
 const { t } = useI18n();
 
@@ -74,14 +74,8 @@ onMounted(async () => {
     class="flex flex-col gap-1"
   >
     <JSONForm :schema :data @update="handleUpdate" />
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-w-full btn-base btn-center',
-      }"
-      magic-key="Enter"
-      @click="handleAuth"
-      @magic-click="handleAuth"
-      >{{ t("登录") }}</HButton
-    >
+    <Button magic-key="Enter" @click="handleAuth" @magic-click="handleAuth">{{
+      t("登录")
+    }}</Button>
   </div>
 </template>

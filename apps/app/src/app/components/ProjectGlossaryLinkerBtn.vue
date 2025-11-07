@@ -4,9 +4,17 @@ import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
-import HButton from "./headless/HButton.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import SModal from "./headless-styled/SModal.vue";
+import { Button } from "@/app/components/ui/button";
+import {
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "@/app/components/ui/dialog";
+import { Link2 } from "lucide-vue-next";
 
 const { t } = useI18n();
 
@@ -19,12 +27,6 @@ const props = defineProps<{
 }>();
 
 const glossaryIds = ref<string[]>([]);
-
-const isOpen = ref(false);
-
-const handleOpen = () => {
-  isOpen.value = true;
-};
 
 const handleLink = async () => {
   const createNewIndex = glossaryIds.value.findIndex(
@@ -53,25 +55,23 @@ const handleLink = async () => {
 </script>
 
 <template>
-  <HButton
-    icon="icon-[mdi--link]"
-    :classes="{
-      base: 'btn btn-md btn-base',
-    }"
-    :class="$attrs.class"
-    @click="handleOpen"
-    >{{ t("连接术语库") }}</HButton
-  >
-  <SModal v-model="isOpen">
-    <h3 class="text-lg font-bold">{{ t("连接或创建新术语库") }}</h3>
-    <MultiGlossaryPicker v-model="glossaryIds" full-width create-new />
-    <HButton
-      :classes="{
-        base: 'btn btn-md btn-base btn-w-full',
-      }"
-      icon="icon-[mdi--link]"
-      @click="handleLink"
-      >{{ t("连接") }}</HButton
-    >
-  </SModal>
+  <Dialog>
+    <DialogTrigger>
+      <Button :class="$attrs.class"><Link2 /> {{ t("连接术语库") }}</Button>
+    </DialogTrigger>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>
+          {{ t("连接或创建新术语库") }}
+        </DialogTitle>
+      </DialogHeader>
+      <MultiGlossaryPicker v-model="glossaryIds" full-width create-new />
+      <DialogFooter>
+        <Button @click="handleLink"
+          ><div class="icon-[mdi--link] size-4" />
+          {{ t("连接") }}</Button
+        >
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
