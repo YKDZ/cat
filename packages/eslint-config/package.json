@@ -15,6 +15,6 @@
     "@eslint/js": "^9.38.0",
     "@typescript-eslint/utils": "^8.46.2",
     "oxlint": "^1.24.0",
-    "oxlint-tsgolint": "^0.3.0"
+    "oxlint-tsgolint": "^0.5.1"
   }
 }
