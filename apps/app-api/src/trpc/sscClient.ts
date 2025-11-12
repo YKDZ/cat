@@ -25,16 +25,16 @@ const EMPTY_CONTEXT = {
   },
 };
 
-// oxlint-disable-next-line explicit-module-boundary-types
 export const useSSCTRPC = (
   ctx: PageContextServer,
   extraCtx?: Partial<HttpContext>,
-) =>
+): ReturnType<typeof appRouter.createCaller> =>
   appRouter.createCaller({
     ...EMPTY_CONTEXT,
     ...ctx,
     drizzleDB: ctx.globalContext.drizzleDB,
     redisDB: ctx.globalContext.redisDB,
     pluginRegistry: ctx.globalContext.pluginRegistry,
+    workerRegistry: ctx.globalContext.workerRegistry,
     ...(extraCtx ?? {}),
   });

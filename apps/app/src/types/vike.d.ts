@@ -9,6 +9,7 @@ import type {
 import type { DrizzleDB, RedisDB } from "@cat/db";
 import type { User } from "@cat/shared/schema/drizzle/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
+import type { WorkerRegistry } from "@cat/app-workers";
 
 declare global {
   namespace Vike {
@@ -23,6 +24,7 @@ declare global {
       pinia?: Pinia;
       helpers: HTTPHelpers;
       displayLanguage: string;
+      isMobile: boolean;
     }
     interface GlobalContextServer {
       name: string;
@@ -31,6 +33,7 @@ declare global {
       drizzleDB: DrizzleDB;
       redisDB: RedisDB;
       pluginRegistry: PluginRegistry;
+      workerRegistry: WorkerRegistry;
     }
     interface GlobalContextClient {
       name: string;

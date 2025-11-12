@@ -1,5 +1,6 @@
+import type { AcceptableInputValue } from "reka-ui";
+
 export type PickerOption = {
-  value: unknown;
+  value: AcceptableInputValue;
   content: string;
-  icon?: string;
 };

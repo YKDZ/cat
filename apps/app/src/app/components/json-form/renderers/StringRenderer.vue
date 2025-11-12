@@ -40,15 +40,15 @@ const handleUpdate = (event: Event) => {
 
 <template>
   <label class="flex flex-col gap-0.5">
-    <span class="text-highlight-content-darker font-semibold">{{
+    <span class="text-foreground font-semibold">{{
       schema.title ?? propertyKey
     }}</span>
-    <span class="text-sm text-highlight-content">{{ schema.description }}</span>
+    <span class="text-sm text-foreground">{{ schema.description }}</span>
     <input
       :value
       :type
       :autocomplete
-      class="text-highlight-content-darker px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-highlight-darkest ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-base"
+      class="text-foreground px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-background ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-primary"
       @change="handleUpdate"
     />
   </label>

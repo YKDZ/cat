@@ -44,7 +44,7 @@ const { displayedElements } = storeToRefs(useEditorElementStore());
           </SidebarMenu>
           <SidebarMenu v-else>
             <SidebarMenuItem v-for="i in 16" :key="i">
-              <SidebarMenuSkeleton />
+              <SidebarMenuSkeleton :show-icon="true" />
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>

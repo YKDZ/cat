@@ -50,7 +50,7 @@ const handleLogout = async () => {
         :with-name="state === 'expanded'"
         :user
         :size="state === 'collapsed' ? 16 : 24"
-        class="w-full h-full hover:bg-highlight-darkest px-2 py-1 cursor-pointer"
+        class="w-full h-full hover:bg-background px-2 py-1 cursor-pointer"
       />
     </DropdownMenuTrigger>
     <DropdownMenuContent class="w-56">

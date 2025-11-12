@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
-import Picker from "./picker/Picker.vue";
-import type { PickerOption } from "./picker/index.ts";
 import { useLanguageStore } from "@/app/stores/language.ts";
+import { useI18n } from "vue-i18n";
+import Picker from "@/app/components/picker/Picker.vue";
 
-interface Props {
-  filter?: (option: PickerOption) => boolean;
-  fullWidth?: boolean;
-}
+const props = withDefaults(
+  defineProps<{
+    filter?: (option: { value: string; content: string }) => boolean;
+  }>(),
+  {
+    filter: () => true,
+  },
+);
 
-const props = withDefaults(defineProps<Props>(), {
-  filter: () => true,
-  fullWidth: false,
-});
+const { t } = useI18n();
 
 const { languages } = storeToRefs(useLanguageStore());
 
@@ -23,8 +24,8 @@ const options = computed(() => {
   return languages.value
     .map((language) => {
       return {
-        value: language.id,
-        content: language.name,
+        content: language.id,
+        value: t(language.id),
       };
     })
     .filter((option) => props.filter(option));
@@ -32,10 +33,5 @@ const options = computed(() => {
 </script>
 
 <template>
-  <Picker
-    v-model="languageId"
-    :full-width
-    :options
-    :placeholder="$t('选择一个语言')"
-  />
+  <Picker v-model="languageId" :options :placeholer="t('选择一个语言...')" />
 </template>

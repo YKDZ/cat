@@ -3,7 +3,6 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import * as z from "zod/v4";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { useI18n } from "vue-i18n";
 
 const { element } = storeToRefs(useEditorTableStore());
 
@@ -29,9 +28,9 @@ const keys = computed(() => {
 <template>
   <div class="flex flex-col gap-1 overflow-y-auto">
     <div v-for="key in keys" :key="key">
-      <span class="mr-1 px-2 py-1 rounded-sm bg-highlight-darker select-none">{{
-        key
-      }}</span
+      <span
+        class="mr-1 px-2 py-1 rounded-sm bg-muted text-muted-foreground select-none"
+        >{{ key }}</span
       >{{ meta[key] }}
     </div>
   </div>

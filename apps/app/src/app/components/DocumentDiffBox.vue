@@ -24,6 +24,8 @@ const fetchDocumentContent = async (documentVersionId: number) => {
     documentVersionId,
   });
 
+  if (!fileUrl) return null;
+
   const response = await fetch(fileUrl);
 
   if (!response.ok) {

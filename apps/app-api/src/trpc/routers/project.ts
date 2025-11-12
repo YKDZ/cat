@@ -20,10 +20,151 @@ import {
   translatableString,
   documentClosure,
   getTableColumns,
+  not,
+  exists,
+  type DrizzleClient,
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
+
+const buildTranslationStatusConditions = (
+  drizzle: DrizzleClient,
+  isTranslated?: boolean,
+  isApproved?: boolean,
+  languageId?: string,
+) => {
+  const conditions = [];
+
+  if (isTranslated === undefined && isApproved === undefined) return [];
+  if (!languageId)
+    throw new Error(
+      "languageId must be provided when isApproved or isTranslated is set",
+    );
+  if (isTranslated === false && isApproved === true)
+    throw new Error("isTranslated must be true when isApproved is set");
+
+  if (isTranslated === false && isApproved === undefined) {
+    // 没有翻译
+    conditions.push(
+      not(
+        exists(
+          drizzle
+            .select()
+            .from(translationTable)
+            .innerJoin(
+              translatableString,
+              eq(translationTable.stringId, translatableString.id),
+            )
+            .where(
+              and(
+                eq(
+                  translationTable.translatableElementId,
+                  translatableElementTable.id,
+                ),
+                eq(translatableString.languageId, languageId),
+              ),
+            ),
+        ),
+      ),
+    );
+  } else if (isTranslated === true && isApproved === undefined) {
+    // 有翻译
+    conditions.push(
+      exists(
+        drizzle
+          .select()
+          .from(translationTable)
+          .innerJoin(
+            translatableString,
+            eq(translationTable.stringId, translatableString.id),
+          )
+          .where(
+            and(
+              eq(
+                translationTable.translatableElementId,
+                translatableElementTable.id,
+              ),
+              eq(translatableString.languageId, languageId),
+            ),
+          ),
+      ),
+    );
+  } else if (isTranslated === true && isApproved === false) {
+    // 有翻译但未审批
+    conditions.push(
+      exists(
+        drizzle
+          .select()
+          .from(translationTable)
+          .innerJoin(
+            translatableString,
+            eq(translationTable.stringId, translatableString.id),
+          )
+          .where(
+            and(
+              eq(
+                translationTable.translatableElementId,
+                translatableElementTable.id,
+              ),
+              eq(translatableString.languageId, languageId),
+              not(
+                exists(
+                  drizzle
+                    .select()
+                    .from(translationApprovementTable)
+                    .where(
+                      eq(
+                        translationApprovementTable.translationId,
+                        translationTable.id,
+                      ),
+                    ),
+                ),
+              ),
+            ),
+          ),
+      ),
+    );
+  } else if (isTranslated === true && isApproved === true) {
+    // 有翻译且已审批
+    conditions.push(
+      exists(
+        drizzle
+          .select()
+          .from(translationTable)
+          .innerJoin(
+            translatableString,
+            eq(translationTable.stringId, translatableString.id),
+          )
+          .where(
+            and(
+              eq(
+                translationTable.translatableElementId,
+                translatableElementTable.id,
+              ),
+              eq(translatableString.languageId, languageId),
+              exists(
+                drizzle
+                  .select()
+                  .from(translationApprovementTable)
+                  .where(
+                    and(
+                      eq(
+                        translationApprovementTable.translationId,
+                        translationTable.id,
+                      ),
+                      eq(translationApprovementTable.isActive, true),
+                    ),
+                  ),
+              ),
+            ),
+          ),
+      ),
+    );
+  }
+
+  return conditions;
+};
 
 export const projectRouter = router({
   delete: authedProcedure
@@ -358,6 +499,7 @@ export const projectRouter = router({
         id: z.uuidv7(),
         isTranslated: z.boolean().optional(),
         isApproved: z.boolean().optional(),
+        languageId: z.string().optional(),
       }),
     )
     .output(z.int().min(0))
@@ -365,43 +507,34 @@ export const projectRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id, isApproved, isTranslated } = input;
+      const { id, isApproved, isTranslated, languageId } = input;
 
-      const baseQuery = drizzle
-        .select({ count: count() })
-        .from(translatableElementTable)
-        .innerJoin(
-          documentTable,
-          eq(translatableElementTable.documentId, documentTable.id),
-        )
-        .innerJoin(projectTable, eq(documentTable.projectId, projectTable.id))
-        .where(
-          and(
-            eq(projectTable.id, id),
-            isApproved
-              ? eq(translationApprovementTable.isActive, isApproved)
-              : undefined,
+      const whereConditions = [eq(documentTable.projectId, id)];
+
+      // 添加翻译状态条件
+      whereConditions.push(
+        ...buildTranslationStatusConditions(
+          drizzle,
+          isTranslated,
+          isApproved,
+          languageId,
+        ),
+      );
+
+      return assertSingleNonNullish(
+        await drizzle
+          .select({ count: count() })
+          .from(translatableElementTable)
+          .innerJoin(
+            documentTable,
+            eq(translatableElementTable.documentId, documentTable.id),
+          )
+          .where(
+            whereConditions.length === 1
+              ? whereConditions[0]
+              : and(...whereConditions),
           ),
-        );
-
-      if (isTranslated !== undefined || isApproved !== undefined) {
-        baseQuery.innerJoin(
-          translationTable,
-          eq(
-            translationTable.translatableElementId,
-            translatableElementTable.id,
-          ),
-        );
-
-        if (isApproved !== undefined) {
-          baseQuery.innerJoin(
-            translationApprovementTable,
-            eq(translationApprovementTable.translationId, translationTable.id),
-          );
-        }
-      }
-
-      return assertSingleNonNullish(await baseQuery).count;
+      ).count;
     }),
   countTranslation: authedProcedure
     .input(

@@ -1,37 +1,56 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from "vue";
-import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
-import { toShortFixed } from "@cat/shared/utils";
+import { computed } from "vue";
 import type { Document } from "@cat/shared/schema/drizzle/document";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import InputLabel from "./InputLabel.vue";
-import RangeInput from "./RangeInput.vue";
 import type { PickerOption } from "./picker/index.ts";
 import Picker from "./picker/Picker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { languageKey } from "@/app/utils/provide.ts";
 import Button from "./ui/button/Button.vue";
 import {
   Dialog,
-  DialogFooter,
   DialogHeader,
   DialogContent,
   DialogTrigger,
   DialogTitle,
 } from "@/app/components/ui/dialog";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/app/components/ui/form/index.ts";
+import { Slider } from "@/app/components/ui/slider/index.ts";
+import { toTypedSchema } from "@vee-validate/zod";
+import z from "zod";
+import { useForm } from "vee-validate";
+import type { Language } from "@cat/shared/schema/drizzle/misc";
+import DialogDescription from "@/app/components/ui/dialog/DialogDescription.vue";
+import { computedAsyncClient } from "@/app/utils/vue.ts";
 
 const props = defineProps<{
   document: Pick<Document, "id">;
+  language: Pick<Language, "id">;
 }>();
 
-const { info, warn, trpcWarn } = useToastStore();
 const { t } = useI18n();
 
-const language = inject(languageKey);
-const minMemorySimilarity = ref(0.72);
-const availableAdvisors = ref<TranslationAdvisorData[]>([]);
-const advisorId = ref<number | null>(null);
+const schema = toTypedSchema(
+  z.object({
+    minMemorySimilarity: z
+      .array(z.number().min(0).max(1).default(0.72))
+      .length(1),
+    advisorId: z.int(),
+  }),
+);
+
+const { handleSubmit } = useForm({
+  validationSchema: schema,
+  initialValues: {
+    minMemorySimilarity: [0.72],
+  },
+});
 
 const advisorOptions = computed<PickerOption[]>(() => {
   return availableAdvisors.value.map(
@@ -43,38 +62,18 @@ const advisorOptions = computed<PickerOption[]>(() => {
   );
 });
 
-const handleAutoTranslate = async () => {
-  if (!language || !language.value) return;
-  if (!advisorId.value) {
-    warn(t("必须选择一个可用的翻译建议器"));
-    return;
-  }
+const onSubmit = handleSubmit((values) => {
+  trpc.translation.autoTranslate.mutate({
+    languageId: props.language.id,
+    documentId: props.document.id,
+    advisorId: values.advisorId,
+    minMemorySimilarity: values.minMemorySimilarity[0],
+  });
+});
 
-  await trpc.translation.autoTranslate
-    .mutate({
-      languageId: language.value.id,
-      documentId: props.document.id,
-      advisorId: advisorId.value,
-      minMemorySimilarity: minMemorySimilarity.value,
-    })
-    .then(() => {
-      info(t("成功创建自动翻译任务"));
-    })
-    .catch(trpcWarn);
-};
-
-const updateAvailableAdvisor = async () => {
-  await trpc.plugin.getAllTranslationAdvisors
-    .query()
-    .then((advisors) => (availableAdvisors.value = advisors));
-
-  if (availableAdvisors.value.length > 0 && !advisorId.value) {
-    const advisor = availableAdvisors.value[0];
-    if (advisor) advisorId.value = advisor.id;
-  }
-};
-
-onMounted(updateAvailableAdvisor);
+const availableAdvisors = computedAsyncClient(async () => {
+  return await trpc.plugin.getAllTranslationAdvisors.query();
+}, []);
 </script>
 
 <template>
@@ -89,49 +88,46 @@ onMounted(updateAvailableAdvisor);
         <DialogTitle>
           {{ t("自动翻译") }}
         </DialogTitle>
+        <DialogDescription>
+          {{
+            t(
+              "系统将使用你选择的翻译建议器，以及项目绑定的术语库和记忆库，自动为文档中尚未翻译的内容填充翻译。",
+            )
+          }}
+        </DialogDescription>
       </DialogHeader>
-      <article class="prose-highlight-content max-w-460px prose">
-        <h3 class="text-highlight-content-darker">{{ t("自动翻译") }}</h3>
-        <p>
-          {{
-            t(
-              "这将用你选中的翻译建议器以及项目绑定的术语库和记忆库自动为文档中还没有任何翻译的元素填充一条翻译。",
-            )
-          }}
-        </p>
-        <p>
-          {{ t("若不选择任何建议器，则只会应用翻译记忆。") }}
-        </p>
-        <p>
-          {{
-            t(
-              "自动翻译不会生成翻译记忆，且翻译出的条目带有“来自自动翻译”元数据，在工作台等位置具有特殊的颜色标记。",
-            )
-          }}
-        </p>
-      </article>
-      <form class="flex flex-col gap-1 w-full">
-        <div class="flex flex-col gap-1">
-          <InputLabel>{{
-            t("记忆最低匹配度：{similarity}%", {
-              similarity: toShortFixed(minMemorySimilarity * 100),
-            })
-          }}</InputLabel>
-          <RangeInput
-            v-model="minMemorySimilarity"
-            :min="0"
-            :max="1"
-            step="0.005"
-          />
-        </div>
-        <div class="flex flex-col gap-2">
-          <InputLabel>{{ t("使用的翻译建议器") }}</InputLabel>
-          <Picker v-model="advisorId" :options="advisorOptions" />
-        </div>
+      <form class="space-y-4" @submit="onSubmit">
+        <FormField v-slot="{ value, handleChange }" name="minMemorySimilarity">
+          <FormItem>
+            <FormLabel> {{ t("记忆最低匹配度") }}</FormLabel>
+            <FormControl>
+              <Slider
+                :min="0"
+                :max="1"
+                :step="0.01"
+                :default-value="value"
+                @update:model-value="(val) => handleChange(val)"
+              />
+            </FormControl>
+            <FormDescription class="flex justify-between">
+              <span>{{ t("多高匹配度的记忆会被采用？") }}</span>
+              <span>{{ value[0] }}</span>
+            </FormDescription>
+          </FormItem>
+        </FormField>
+        <FormField v-slot="{ handleChange }" name="advisorId">
+          <FormItem>
+            <FormLabel> {{ t("翻译建议器") }}</FormLabel>
+            <FormControl>
+              <Picker
+                :options="advisorOptions"
+                @update:model-value="handleChange"
+              />
+            </FormControl>
+          </FormItem>
+        </FormField>
+        <Button type="submit">{{ t("确认") }}</Button>
       </form>
-      <DialogFooter>
-        <Button @click="handleAutoTranslate">{{ t("确认") }}</Button>
-      </DialogFooter>
     </DialogContent>
   </Dialog>
 </template>

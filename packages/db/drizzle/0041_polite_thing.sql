@@ -1,0 +1,1 @@
+ALTER TABLE "Language" DROP COLUMN "name";

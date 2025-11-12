@@ -6,12 +6,12 @@ import { clippers } from "./tagger/index.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { Button } from "@/app/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownMenuContent,
-} from "@/app/components/ui/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/components/ui/popover";
 import { computedAsync } from "@vueuse/core";
+import { CircleQuestionMark } from "lucide-vue-next";
 
 const { sourceParts, translationParts } = storeToRefs(useEditorTableStore());
 
@@ -53,21 +53,18 @@ watch(isAllPass, (to) => {
 </script>
 
 <template>
-  <DropdownMenu
-    :modal="false"
-    :default-open="!isAllPass"
-    v-model:open="isOpen"
-    @open-auto-focus="(event: Event) => event.preventDefault()"
-  >
-    <DropdownMenuTrigger>
+  <Popover :modal="false" v-model:open="isOpen">
+    <PopoverTrigger>
       <Button v-if="!isAllPass" size="icon" variant="ghost"
-        ><div class="icon-[mdi--close] text-errorsize-4"
-      /></Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent>
-      <DropdownMenuItem v-for="(result, index) in failedResults" :key="index">{{
-        result.error
-      }}</DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
+        ><CircleQuestionMark class="text-yellow-500" />
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent class="w-auto">
+      <div class="flex flex-col gap-1 text-sm text-nowrap">
+        <p v-for="(result, index) in failedResults" :key="index">
+          {{ result.error }}
+        </p>
+      </div>
+    </PopoverContent>
+  </Popover>
 </template>

@@ -31,14 +31,14 @@ defineProps<{
         {{ t("插入术语") }}</Button
       >
     </DialogTrigger>
-    <DialogContent>
+    <DialogContent class="max-h-[90dvh] overflow-y-auto">
       <DialogHeader
         ><DialogTitle>{{ t("插入术语") }}</DialogTitle></DialogHeader
       >
       <Tabs>
         <TabsList class="grid w-full grid-cols-2">
-          <TabsTrigger value="string"> 文本 </TabsTrigger>
-          <TabsTrigger value="json"> JSON </TabsTrigger>
+          <TabsTrigger value="string"> {{ t("文本") }} </TabsTrigger>
+          <TabsTrigger value="json"> {{ t("JSON") }} </TabsTrigger>
         </TabsList>
         <TabsContent value="string">
           <GlossaryInsertTermText :glossary-id />

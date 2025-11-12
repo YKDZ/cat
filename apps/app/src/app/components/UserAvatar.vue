@@ -6,8 +6,8 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/app/components/ui/avatar";
-import { computedAsync } from "@vueuse/core";
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { computedAsyncClient } from "@/app/utils/vue";
 
 const props = withDefaults(
   defineProps<{
@@ -22,7 +22,7 @@ const props = withDefaults(
   },
 );
 
-const user = computedAsync(async () => {
+const user = computedAsyncClient(async () => {
   if (import.meta.env.SSR) return null;
 
   if (!props.user && props.userId) {
@@ -33,7 +33,7 @@ const user = computedAsync(async () => {
   return null;
 }, null);
 
-const avatarUrl = computedAsync(async () => {
+const avatarUrl = computedAsyncClient(async () => {
   if (!user.value) return "";
 
   return (

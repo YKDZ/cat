@@ -30,7 +30,7 @@ const { editorMemoryMinSimilarity, editorMemoryAutoCreateMemory } =
 
 <template>
   <Dialog>
-    <DialogTrigger>
+    <DialogTrigger as-child>
       <Button size="icon-sm" variant="ghost"> <Settings /> </Button>
     </DialogTrigger>
     <DialogContent>

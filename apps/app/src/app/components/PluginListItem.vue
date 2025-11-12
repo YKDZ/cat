@@ -7,6 +7,9 @@ import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
+import Card from "@/app/components/ui/card/Card.vue";
+import CardHeader from "@/app/components/ui/card/CardHeader.vue";
+import CardTitle from "@/app/components/ui/card/CardTitle.vue";
 
 const { t } = useI18n();
 
@@ -20,10 +23,6 @@ const props = defineProps<{
 const iconImgEl = ref<HTMLImageElement>();
 const isIconLoaded = ref(false);
 
-const handleNav = async () => {
-  await navigate(`${props.pathPrefix}/${props.plugin.id}`);
-};
-
 const simpleName = computed(() => {
   return props.plugin.name.replace("@cat-plugin/", "");
 });
@@ -32,13 +31,12 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
 </script>
 
 <template>
-  <div
-    class="text-highlight-content p-4 rounded-md bg-highlight-darker flex flex-col gap-2 cursor-pointer hover:scale-101"
-    @click="handleNav"
+  <Card
+    @click="navigate(`${props.pathPrefix}/${props.plugin.id}`)"
+    class="cursor-pointer hover:scale-101"
   >
-    <div class="flex gap-3 items-center">
-      <!-- Icon -->
-      <div>
+    <CardHeader class="flex gap-2"
+      ><div>
         <img
           v-show="plugin.iconUrl && isIconLoaded"
           ref="iconImgEl"
@@ -47,33 +45,27 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
         />
         <span
           v-if="!isIconLoaded"
-          class="text-3xl text-base-content rounded-md bg-base inline-flex h-12 w-12 aspect-ratio-square select-none items-center justify-center"
+          class="text-3xl text-primary-foreground rounded-md bg-primary inline-flex h-12 w-12 aspect-ratio-square select-none items-center justify-center"
           >{{ simpleName.charAt(0).toUpperCase() }}</span
         >
       </div>
-      <!-- Text & base tag -->
-      <div class="flex flex-col gap-1 max-w-80% justify-between">
-        <h3
-          class="text-lg text-highlight-content-darker font-bold text-nowrap text-ellipsis overflow-hidden"
-        >
-          {{ simpleName }}
-        </h3>
+      <div class="flex flex-col gap-2">
+        <CardTitle>{{ simpleName }}</CardTitle>
         <div
-          class="text-xs text-highlight-content flex gap-1 select-none text-nowrap items-center"
+          class="text-xs text-muted-foreground flex gap-1 select-none text-nowrap items-center"
         >
           <span
             v-if="plugin.isExternal"
-            class="px-2 py-1 rounded-sm bg-highlight-darkest"
+            class="px-2 py-1 rounded-sm bg-muted"
             >{{ t("内部插件") }}</span
           >
           <span
             v-if="plugin.PluginInstallations.length > 0"
-            class="px-2 py-1 rounded-sm bg-highlight-darkest"
+            class="px-2 py-1 rounded-sm bg-muted"
             >{{ t("已安装") }}</span
           >
         </div>
       </div>
-    </div>
-    <p>{{ plugin.overview }}</p>
-  </div>
+    </CardHeader>
+  </Card>
 </template>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import Icon from "./Icon.vue";
 import type { TreeNode } from "./DocumentTree.vue";
 import type { Document } from "@cat/shared/schema/drizzle/document";
 
@@ -37,7 +36,7 @@ const handleClick = () => {
   <div class="w-full">
     <!-- 当前节点 -->
     <div
-      class="flex items-center gap-2 px-3 py-2 hover:bg-highlight-darker cursor-pointer group transition-colors"
+      class="flex items-center gap-2 px-3 py-2 hover:bg-background cursor-pointer group transition-colors"
       :style="{ paddingLeft: `${(depth - 1) * 1.5 + 0.75}rem` }"
       @click="handleClick"
     >
@@ -45,34 +44,32 @@ const handleClick = () => {
       <button
         v-if="hasChildren"
         @click.stop="toggleNode"
-        class="shrink-0 w-5 h-5 flex items-center justify-center hover:bg-highlight-darkest rounded transition-colors"
+        class="shrink-0 w-5 h-5 flex items-center justify-center hover:bg-background rounded transition-colors"
       >
-        <Icon
-          small
-          :icon="
+        <div
+          :class="
             isExpanded
               ? 'icon-[mdi--chevron-down]'
               : 'icon-[mdi--chevron-right]'
           "
-          class="text-highlight-content"
+          class="text-foreground size-4"
         />
       </button>
       <div v-else class="w-5 h-5 shrink-0"></div>
 
       <!-- 文件/文件夹图标 -->
-      <Icon
-        small
-        :icon="
+      <div
+        :class="
           node.isDirectory
             ? 'icon-[mdi--folder]'
             : 'icon-[mdi--file-document-outline]'
         "
-        class="text-highlight-content shrink-0"
+        class="text-foreground shrink-0 size-4"
       />
 
       <!-- 文档名称 -->
       <span
-        class="flex-1 text-sm text-highlight-content-darker truncate"
+        class="flex-1 text-sm text-foreground truncate"
         :title="node.name || '未命名'"
       >
         {{ node.name || "未命名" }}

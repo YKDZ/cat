@@ -204,7 +204,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="px-8 py-8 rounded-lg bg-highlight flex flex-col gap-4 items-center justify-center"
+    class="px-8 py-8 rounded-lg bg-background flex flex-col gap-4 items-center justify-center"
   >
     <div
       class="relative"

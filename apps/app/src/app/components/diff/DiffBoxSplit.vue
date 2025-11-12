@@ -217,7 +217,7 @@ const diffedRows = computed<DiffedRow[]>(() => {
 </script>
 
 <template>
-  <div class="text-highlight-content py-2 bg-highlight-darker flex w-full">
+  <div class="text-foreground py-2 bg-background flex w-full">
     <!-- 左列整体容器 -->
     <div
       class="flex flex-col max-w-1/2 min-w-1/2 w-1/2 items-start overflow-x-auto"
@@ -227,14 +227,15 @@ const diffedRows = computed<DiffedRow[]>(() => {
         :key="index"
         class="text-sm font-mono flex w-full whitespace-pre"
         :class="{
-          'bg-error text-error-content': row.leftLine?.type === 'removed',
+          'bg-destructive text-destructive-foreground':
+            row.leftLine?.type === 'removed',
         }"
       >
         <span
           class="font-semibold pr-2 text-right max-w-12 min-w-12 w-12 select-none left-0 sticky"
           :class="{
-            'bg-highlight-darker': row.leftLine?.type !== 'removed',
-            'bg-error': row.leftLine?.type === 'removed',
+            'bg-background': row.leftLine?.type !== 'removed',
+            'bg-destructive': row.leftLine?.type === 'removed',
           }"
         >
           {{ row.leftLine?.lineNumber || "" }}
@@ -250,8 +251,9 @@ const diffedRows = computed<DiffedRow[]>(() => {
             :key="si"
             class="whitespace-pre-wrap"
             :class="{
-              'bg-error-darker text-error-content': seg.type === 'removed',
-              'bg-success-darker text-success-content': seg.type === 'added',
+              'bg-destructive text-destructive-foreground':
+                seg.type === 'removed',
+              'bg-secondary text-secondary-foreground': seg.type === 'added',
             }"
           >
             <template v-if="seg.type !== 'added'"> {{ seg.value }}</template>
@@ -272,14 +274,15 @@ const diffedRows = computed<DiffedRow[]>(() => {
         :key="index"
         class="text-sm font-mono flex w-full whitespace-pre"
         :class="{
-          'bg-success text-success-content': row.rightLine?.type === 'added',
+          'bg-secondary text-secondary-foreground':
+            row.rightLine?.type === 'added',
         }"
       >
         <span
           class="font-semibold pr-2 text-right max-w-12 min-w-12 w-12 select-none left-0 sticky"
           :class="{
-            'bg-highlight-darker': row.rightLine?.type !== 'added',
-            'bg-success': row.rightLine?.type === 'added',
+            'bg-background': row.rightLine?.type !== 'added',
+            'bg-secondary': row.rightLine?.type === 'added',
           }"
         >
           {{ row.rightLine?.lineNumber || "" }}
@@ -295,7 +298,7 @@ const diffedRows = computed<DiffedRow[]>(() => {
             :key="si"
             class="whitespace-pre-wrap"
             :class="{
-              'bg-success-darker text-success-content': seg.type === 'added',
+              'bg-secondary text-secondary-foreground': seg.type === 'added',
             }"
           >
             <template v-if="seg.type !== 'removed'"> {{ seg.value }}</template>

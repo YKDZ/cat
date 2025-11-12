@@ -3,11 +3,11 @@ import { trpc } from "@cat/app-api/trpc/client";
 import type { Document } from "@cat/shared/schema/drizzle/document";
 import { ref } from "vue";
 import { watchClient } from "@/app/utils/vue.ts";
-import HMarkdown from "@/app/components/headless/HMarkdown.vue";
+import Markdown from "@/app/components/Markdown.vue";
 import { logger } from "@cat/shared/utils";
 
 const props = defineProps<{
-  readme: Document;
+  readme: Pick<Document, "id">;
 }>();
 
 const markdownContent = ref<string>("");
@@ -55,10 +55,5 @@ watchClient(() => props.readme, updateContent, { immediate: true });
 </script>
 
 <template>
-  <HMarkdown
-    :classes="{
-      container: 'markdown markdown-highlight',
-    }"
-    :content="markdownContent"
-  />
+  <Markdown class="markdown markdown-background" :content="markdownContent" />
 </template>

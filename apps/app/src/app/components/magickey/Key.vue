@@ -48,11 +48,11 @@ const key = computed(() => {
 <template>
   <div
     :class="{
-      'bg-highlight-darker shadow-sm': !key.value,
-      'bg-highlight-darkest shadow-lg scale-90': key.value,
+      'bg-background shadow-sm': !key.value,
+      'bg-background shadow-lg scale-90': key.value,
     }"
     class="p-0.2 rounded-xs bg-op-60 inline-flex h-4 w-4 aspect-square items-center justify-center"
   >
-    <span :class="icon" class="color-highlight-content h-full w-full" />
+    <span :class="icon" class="color-foreground h-full w-full" />
   </div>
 </template>

@@ -1,41 +1,53 @@
 <script setup lang="ts">
-import type { TranslationVote } from "@cat/shared/schema/drizzle/translation";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { trpc } from "@cat/app-api/trpc/client";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { watchClient } from "@/app/utils/vue.ts";
+import { computedAsyncClient } from "@/app/utils/vue.ts";
 import type { TranslationWithStatus } from "../stores/editor/translation";
 import { Button } from "@/app/components/ui/button";
+import { useI18n } from "vue-i18n";
+import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { Minus, Plus } from "lucide-vue-next";
+import { Skeleton } from "@/app/components/ui/skeleton";
 
 const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id" | "vote">;
 }>();
 
+const { t } = useI18n();
 const { info, trpcWarn } = useToastStore();
 
-const selfVote = ref<TranslationVote | null>(null);
-const vote = ref<number | null>(null);
+const preVoteAmount = ref(1);
 const isProcessing = ref<boolean>(false);
 
-const handleVote = (value: number) => {
-  const modifiedVote = value === selfVote.value?.value ? 0 : value;
+const selfVote = computedAsyncClient(
+  () =>
+    trpc.translation.querySelfVote.query({
+      id: props.translation.id,
+    }),
+  null,
+);
 
-  if (vote.value === null) return;
+const vote = computedAsyncClient(() => {
+  // oxlint-disable-next-line no-unused-expressions
+  selfVote.value;
+  return trpc.translation.countVote.query({
+    id: props.translation.id,
+  });
+}, null);
+
+const handleUnvote = async () => {
+  if (!selfVote.value || selfVote.value.value === 0) return;
   if (isProcessing.value) return;
 
-  trpc.translation.vote
+  isProcessing.value = true;
+  await trpc.translation.vote
     .mutate({
       translationId: props.translation.id,
-      value: modifiedVote,
+      value: 0,
     })
     .then((newVote) => {
-      if (selfVote.value === null) {
-        info(`成功投票 ${newVote.value > 0 ? "+" : ""}${newVote.value}`);
-      } else {
-        info(
-          `成功修改投票数从 ${selfVote.value.value > 0 ? "+" : ""}${selfVote.value.value} 到 ${newVote.value > 0 ? "+" : ""}${newVote.value}`,
-        );
-      }
+      info(t("成功取消投票"));
       selfVote.value = newVote;
     })
     .finally(() => {
@@ -44,44 +56,81 @@ const handleVote = (value: number) => {
     .catch(trpcWarn);
 };
 
-onMounted(async () => {
-  selfVote.value = await trpc.translation.querySelfVote.query({
-    id: props.translation.id,
-  });
-});
-
-watchClient(
-  selfVote,
-  async () => {
-    vote.value = await trpc.translation.countVote.query({
-      id: props.translation.id,
-    });
-  },
-  { immediate: true },
-);
+const handleVote = async (value: number) => {
+  isProcessing.value = true;
+  await trpc.translation.vote
+    .mutate({
+      translationId: props.translation.id,
+      value,
+    })
+    .then((vote) => {
+      info(
+        t("成功投票 {value}", {
+          value: `${vote.value > 0 ? "+" : ""}${vote.value}`,
+        }),
+      );
+      selfVote.value = vote;
+    })
+    .finally(() => {
+      isProcessing.value = false;
+    })
+    .catch(trpcWarn);
+};
 </script>
 
 <template>
   <div class="flex gap-1 items-center">
-    <Button
-      variant="ghost"
-      size="icon"
-      :focused="selfVote?.value === -1"
-      @click.stop="handleVote(-1)"
+    <TextTooltip
+      :tooltip="
+        selfVote?.value === -preVoteAmount
+          ? t('放弃投 -{amount} 票', {
+              amount: preVoteAmount,
+            })
+          : t('投 -{amount} 票', {
+              amount: preVoteAmount,
+            })
+      "
     >
-      <div class="icon-[mdi--minus] size-4" />
-    </Button>
-    <span class="text-center min-h-24px min-w-24px inline-block">
-      <span v-if="vote !== null">{{ vote }}</span>
-      <span v-else class="icon-[mdi--help] inline-block" />
+      <Button
+        size="icon"
+        :variant="selfVote?.value === -preVoteAmount ? 'secondary' : 'ghost'"
+        :disabled="isProcessing"
+        @click.stop="
+          selfVote?.value !== -preVoteAmount
+            ? handleVote(-preVoteAmount)
+            : handleUnvote()
+        "
+      >
+        <Minus />
+      </Button>
+    </TextTooltip>
+    <span class="text-center size-6 inline-block">
+      <Skeleton v-if="vote === null" class="size-6" />
+      <TextTooltip v-else :tooltip="t('当前票数')">{{ vote }}</TextTooltip>
     </span>
-    <Button
-      variant="ghost"
-      size="icon"
-      :focused="selfVote?.value === 1"
-      @click.stop="handleVote(1)"
+    <TextTooltip
+      :tooltip="
+        selfVote?.value === preVoteAmount
+          ? t('放弃投 +{amount} 票', {
+              amount: preVoteAmount,
+            })
+          : t('投 +{amount} 票', {
+              amount: preVoteAmount,
+            })
+      "
     >
-      <div class="icon-[mdi--plus] size-4" />
-    </Button>
+      <Button
+        size="icon"
+        :variant="selfVote?.value === preVoteAmount ? 'secondary' : 'ghost'"
+        :disabled="isProcessing"
+        @click.stop="
+          selfVote?.value !== preVoteAmount
+            ? handleVote(preVoteAmount)
+            : handleUnvote()
+        "
+      >
+        <Plus />
+      </Button>
+    </TextTooltip>
   </div>
 </template>

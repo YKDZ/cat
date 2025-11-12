@@ -25,8 +25,8 @@
     "jiti": "2.5.1",
     "js-yaml": "^4.1.0",
     "nx": "22.0.2",
-    "oxlint": "^1.24.0",
-    "oxlint-tsgolint": "^0.3.0",
+    "oxlint": "^1.28.0",
+    "oxlint-tsgolint": "^0.5.1",
     "pino-pretty": "^13.1.2",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
@@ -37,5 +37,5 @@
     "vitest": "^3.2.4",
     "vitest-mock-extended": "^3.1.0"
   },
-  "packageManager": "pnpm@10.20.0+sha512.cf9998222162dd85864d0a8102e7892e7ba4ceadebbf5a31f9c2fce48dfce317a9c53b9f6464d1ef9042cba2e02ae02a9f7c143a2b438cd93c91840f0192b9dd"
+  "packageManager": "pnpm@10.21.0+sha512.da3337267e400fdd3d479a6c68079ac6db01d8ca4f67572083e722775a796788a7a9956613749e000fac20d424b594f7a791a5f4e2e13581c5ef947f26968a40"
 }

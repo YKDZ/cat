@@ -21,7 +21,6 @@ import {
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "../server.ts";
-import { insertTermsQueue } from "@cat/app-workers/workers";
 import { TermService } from "@cat/plugin-core";
 
 export const glossaryRouter = router({
@@ -180,6 +179,7 @@ export const glossaryRouter = router({
       const {
         drizzleDB: { client: drizzle },
         pluginRegistry,
+        workerRegistry,
         user,
       } = ctx;
       const { termsData, glossaryId } = input;
@@ -205,8 +205,8 @@ export const glossaryRouter = router({
           .returning({ id: task.id }),
       );
 
-      await insertTermsQueue.add(
-        dbTask.id,
+      await workerRegistry.addJob(
+        "insert-term",
         {
           glossaryId,
           termsData,

@@ -1,90 +1,65 @@
-import { eq, sql, task, type DrizzleClient } from "@cat/db";
+import type { DrizzleClient } from "@cat/db";
 import { logger } from "@cat/shared/utils";
-import type { Worker } from "bullmq";
+import { insertTermsWorker } from "@/workers/insertTerms.ts";
+import { autoTranslateFinalizeWorker } from "@/workers/autoTranslate.ts";
+import { batchDiffElementsFinalizeWorker } from "@/workers/batchDiffElements.ts";
+import { createTranslationWorker } from "@/workers/createTranslation.ts";
+import { exportTranslatedFileWorker } from "@/workers/exportTranslatedFile.ts";
+import { upsertDocumentElementsFinalizeWorker } from "@/workers/upsertDocumentElementsFromFile.ts";
+import type {
+  InferSchema,
+  WorkerContext,
+  WorkerDefinition,
+  WorkerRegistry,
+} from "@/core";
+import type { ZodType } from "zod/v4";
 
-export const registerTaskUpdateHandlers = (
+export async function initializeWorkers(
+  registry: WorkerRegistry,
   drizzle: DrizzleClient,
-  worker: Worker,
-  queueId: string,
-): void => {
-  worker.on("active", (job) => {
-    const handler = async () => {
-      const id = job.name;
+): Promise<WorkerRegistry> {
+  registry.register(autoTranslateFinalizeWorker);
+  registry.register(batchDiffElementsFinalizeWorker);
+  registry.register(createTranslationWorker);
+  registry.register(exportTranslatedFileWorker);
+  registry.register(insertTermsWorker);
+  registry.register(upsertDocumentElementsFinalizeWorker);
 
-      await updateTaskStatus(drizzle, id, "processing");
+  await registry.startAll(drizzle);
 
-      logger.info("PROCESSOR", { msg: `Active ${queueId} task: ${id}` });
-    };
+  logger.info("PROCESSOR", {
+    msg: "All workers initialized and started",
+    workers: registry.getRunningWorkers(),
+  });
 
-    handler().catch((error: unknown) => {
-      logger.error(
-        "PROCESSOR",
-        { msg: `Failed when update status for task ${queueId} task` },
-        error,
-      );
+  const shutdown = async () => {
+    logger.info("PROCESSOR", {
+      msg: "Shutting down workers...",
     });
-  });
 
-  worker.on("completed", (job) => {
-    const handler = async () => {
-      const id = job.name;
+    await registry.shutdown();
 
-      await updateTaskStatus(drizzle, id, "completed");
-
-      logger.info("PROCESSOR", { msg: `Completed ${queueId} task: ${id}` });
-    };
-
-    handler().catch((error: unknown) => {
-      logger.error(
-        "PROCESSOR",
-        { msg: `Failed when update status for task ${queueId} task` },
-        error,
-      );
+    logger.info("PROCESSOR", {
+      msg: "All workers shut down",
     });
-  });
 
-  worker.on("failed", (job) => {
-    if (!job) return;
+    process.exit(0);
+  };
 
-    const handler = async () => {
-      const id = job.name;
+  process.on("SIGTERM", () => void shutdown());
+  process.on("SIGINT", () => void shutdown());
 
-      await updateTaskStatus(drizzle, id, "failed", job.stacktrace);
+  return registry;
+}
 
-      logger.error(
-        "PROCESSOR",
-        {
-          msg: `Failed ${queueId} task: ${id}`,
-        },
-        job.stacktrace,
-      );
-    };
-
-    handler().catch((error: unknown) => {
-      logger.error(
-        "PROCESSOR",
-        { msg: `Failed when update status for task ${queueId} task` },
-        error,
-      );
-    });
-  });
-
-  worker.on("error", (error) => {
-    logger.error("PROCESSOR", { msg: `Worker throw error` }, error);
-  });
-};
-
-const updateTaskStatus = async (
-  drizzle: DrizzleClient,
-  id: string,
-  status: "processing" | "completed" | "failed",
-  stacktrace?: string[],
-) => {
-  await drizzle
-    .update(task)
-    .set({
-      status,
-      meta: sql`COALESCE(${task.meta}, '{}' )::jsonb || ${JSON.stringify({ stacktrace: stacktrace?.slice(0, 32) })}::jsonb`,
-    })
-    .where(eq(task.id, id));
-};
+export function defineWorker<
+  TInputSchema extends ZodType,
+  TOutputSchema extends ZodType | undefined = undefined,
+  TContext extends WorkerContext<InferSchema<TInputSchema>> = WorkerContext<
+    InferSchema<TInputSchema>
+  >,
+>(
+  config: WorkerDefinition<TInputSchema, TOutputSchema, TContext>,
+): WorkerDefinition<TInputSchema, TOutputSchema, TContext> {
+  return config;
+}

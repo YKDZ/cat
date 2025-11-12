@@ -1,44 +1,49 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
+import { computed } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { PickerOption } from "./picker";
 import MultiPicker from "./picker/MultiPicker.vue";
+import { computedAsyncClient } from "@/app/utils/vue";
+import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
 
-const { user } = usePageContext();
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
-    width?: string;
+    filter?: (option: PickerOption) => boolean;
+    getter?: () => Promise<Pick<Glossary, "id" | "name">[]>;
   }>(),
   {
-    width: "fit-content",
+    filter: () => true,
+    getter: async () => {
+      const { user } = usePageContext();
+      if (!user) return [];
+      return await trpc.glossary.getUserOwned.query({
+        userId: user.id,
+      });
+    },
   },
 );
 
 const memoryIds = defineModel<string[]>();
+const glossaries = computedAsyncClient(async () => {
+  return await props.getter();
+}, []);
 
-const glossaries = ref<Glossary[]>([]);
 const options = computed(() => {
-  const result: PickerOption[] = [];
-
-  glossaries.value.forEach((glo) => {
-    result.push({
+  return glossaries.value
+    .filter((glossary) =>
+      props.filter({
+        value: glossary.id,
+        content: glossary.name,
+      }),
+    )
+    .map((glo) => ({
       value: glo.id,
       content: glo.name,
-    });
-  });
-  return result;
-});
-
-onMounted(async () => {
-  if (!user) return;
-
-  glossaries.value = await trpc.glossary.getUserOwned.query({
-    userId: user.id,
-  });
+    }));
 });
 </script>
 
@@ -46,7 +51,6 @@ onMounted(async () => {
   <MultiPicker
     v-model="memoryIds"
     :options
-    :width
-    :placeholder="$t('选择一个或多个术语库')"
+    :placeholder="t('选择一个或多个术语库')"
   />
 </template>

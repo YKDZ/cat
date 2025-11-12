@@ -20,6 +20,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
 import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
 import { Switch } from "@/app/components/ui/switch";
+import { Label } from "@/app/components/ui/label";
 
 const { t } = useI18n();
 const { info } = useToastStore();
@@ -36,8 +37,8 @@ const schema = toTypedSchema(
     targetLanguageIds: z.array(z.string()),
     memoryIds: z.array(z.uuidv7()),
     glossaryIds: z.array(z.uuidv7()),
-    createMemory: z.boolean(),
-    createGlossary: z.boolean(),
+    createMemory: z.boolean({ error: "必须是布尔值" }),
+    createGlossary: z.boolean({ error: "必须是布尔值" }),
   }),
 );
 
@@ -55,17 +56,8 @@ const { handleSubmit } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  const createMemory = values.memoryIds.includes("createNew");
-  const createGlossary = values.glossaryIds.includes("createNew");
-
   project.value = await trpc.project.create.mutate({
-    name: values.name,
-    description: values.description,
-    targetLanguageIds: values.targetLanguageIds,
-    memoryIds: values.memoryIds,
-    glossaryIds: values.glossaryIds,
-    createMemory,
-    createGlossary,
+    ...values,
   });
 
   progress.value += 1;
@@ -97,46 +89,63 @@ const onSubmit = handleSubmit(async (values) => {
         ><FormMessage />
       </FormItem>
     </FormField>
-    <FormField v-slot="{ componentField }" name="targetLanguageIds">
+    <FormField v-slot="{ value, handleChange }" name="targetLanguageIds">
       <FormItem>
         <FormLabel>{{ t("目标语言") }}</FormLabel
         ><FormControl>
-          <MultiLanguagePicker v-bind="componentField" /> </FormControl
+          <MultiLanguagePicker
+            :model-value="value"
+            @update:model-value="handleChange"
+          /> </FormControl
         ><FormMessage />
       </FormItem>
     </FormField>
-    <FormField v-slot="{ componentField }" name="memoryIds">
+    <FormField v-slot="{ value, handleChange }" name="memoryIds">
       <FormItem>
         <FormLabel>{{ t("记忆库") }}</FormLabel
         ><FormControl>
-          <MultiMemoryPicker v-bind="componentField" /> </FormControl
+          <MultiMemoryPicker
+            :model-value="value"
+            @update:model-value="handleChange"
+          /> </FormControl
         ><FormMessage />
       </FormItem>
     </FormField>
-    <FormField v-slot="{ componentField }" name="createMemory">
+    <FormField v-slot="{ value, handleChange }" name="createMemory">
       <FormItem>
         <FormControl>
           <div class="flex items-center space-x-2">
             <Label for="createMemory">{{ t("创建同名记忆库") }}</Label>
-            <Switch id="createMemory" v-bind="componentField" />
+            <Switch
+              id="createMemory"
+              :model-value="value"
+              @update:model-value="handleChange"
+            />
           </div> </FormControl
         ><FormMessage />
       </FormItem>
     </FormField>
-    <FormField v-slot="{ componentField }" name="glossaryIds">
+    <FormField v-slot="{ value, handleChange }" name="glossaryIds">
       <FormItem>
         <FormLabel>{{ t("术语库") }}</FormLabel
         ><FormControl>
-          <MultiGlossaryPicker v-bind="componentField" /> </FormControl
+          <MultiGlossaryPicker
+            :model-value="value"
+            @update:model-value="handleChange"
+          /> </FormControl
         ><FormMessage />
       </FormItem>
     </FormField>
-    <FormField v-slot="{ componentField }" name="createGlossary">
+    <FormField v-slot="{ value, handleChange }" name="createGlossary">
       <FormItem>
         <FormControl>
           <div class="flex items-center space-x-2">
             <Label for="createGlossary">{{ t("创建同名术语库") }}</Label>
-            <Switch id="createGlossary" v-bind="componentField" />
+            <Switch
+              id="createGlossary"
+              :model-value="value"
+              @update:model-value="handleChange"
+            />
           </div>
         </FormControl>
       </FormItem>

@@ -2,6 +2,7 @@ import type { DrizzleDB, RedisDB } from "@cat/db";
 import type { User } from "../../packages/shared/dist/schema/drizzle/user.ts";
 import type { HTTPHelpers } from "@cat/shared/utils";
 import type { PluginRegistry } from "@cat/plugin-core";
+import type { WorkerRegistry } from "@cat/app-workers";
 
 declare global {
   namespace Vike {
@@ -18,6 +19,7 @@ declare global {
       drizzleDB: DrizzleDB;
       redisDB: RedisDB;
       pluginRegistry: PluginRegistry;
+      workerRegistry: WorkerRegistry;
     }
   }
 }

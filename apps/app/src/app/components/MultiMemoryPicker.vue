@@ -1,40 +1,47 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import { computed } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
+import { computedAsyncClient } from "@/app/utils/vue.ts";
+import type { Memory } from "@cat/shared/schema/drizzle/memory";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
-    width?: string;
+    filter?: (option: PickerOption) => boolean;
+    getter?: () => Promise<Pick<Memory, "id" | "name">[]>;
   }>(),
   {
-    width: "fit-content",
+    filter: () => true,
+    getter: async () => {
+      const { user } = usePageContext();
+      if (!user) return [];
+      return await trpc.memory.getUserOwned.query({
+        userId: user.id,
+      });
+    },
   },
 );
 
-const { user } = usePageContext();
 const memoryIds = defineModel<string[]>();
 
-const memories = ref<Memory[]>([]);
+const memories = computedAsyncClient(async () => {
+  return await props.getter();
+}, []);
+
 const options = computed(() => {
-  const result: PickerOption[] = [];
-  memories.value.forEach((mem) => {
-    result.push({
+  return memories.value
+    .filter((memory) =>
+      props.filter({
+        value: memory.id,
+        content: memory.name,
+      }),
+    )
+    .map((mem) => ({
       value: mem.id,
       content: mem.name,
-    });
-  });
-  return result;
-});
-
-onMounted(async () => {
-  if (!user) return;
-  memories.value = await trpc.memory.getUserOwned.query({
-    userId: user.id,
-  });
+    }));
 });
 </script>
 
@@ -42,7 +49,6 @@ onMounted(async () => {
   <MultiPicker
     v-model="memoryIds"
     :options
-    :width
     :placeholder="$t('选择一个或多个记忆库')"
   />
 </template>

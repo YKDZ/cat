@@ -5,16 +5,19 @@ import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { ref } from "vue";
 import { Input } from "@/app/components/ui/input";
 import { Search } from "lucide-vue-next";
+import { useEditorContextStore } from "@/app/stores/editor/context";
 
 const { t } = useI18n();
 
 const { searchQuery } = storeToRefs(useEditorTableStore());
+const { currentPage } = storeToRefs(useEditorContextStore());
 const { toPage } = useEditorTableStore();
 const isSearching = ref(false);
 
 const handleSearch = async () => {
   isSearching.value = true;
   await toPage(0);
+  currentPage.value = 1;
   isSearching.value = false;
 };
 </script>

@@ -6,13 +6,14 @@ import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";
 import { SidebarMenuButton } from "@/app/components/ui/sidebar";
+import type { ElementTranslationStatus } from "@cat/shared/schema/misc";
 
 const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 const { updateElementStatus } = useEditorElementStore();
 
 const props = defineProps<{
   element: Pick<TranslatableElement, "id"> & {
-    status: "NO" | "TRANSLATED" | "APPROVED";
+    status: ElementTranslationStatus;
     value: string;
   };
 }>();
@@ -33,9 +34,9 @@ onMounted(() => updateElementStatus(props.element.id));
     <span
       class="shrink-0 w-2 h-2"
       :class="{
-        ' bg-error-darkest': element.status === 'NO',
-        ' bg-info-darkest': element.status === 'TRANSLATED',
-        ' bg-success-darkest': element.status === 'APPROVED',
+        'bg-red-300': element.status === 'NO',
+        'bg-green-300': element.status === 'TRANSLATED',
+        'bg-blue-500': element.status === 'APPROVED',
       }"
     />
     <span class="min-w-0 truncate">{{ element.value }}</span></SidebarMenuButton

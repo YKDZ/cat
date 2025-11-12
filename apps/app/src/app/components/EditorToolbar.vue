@@ -4,6 +4,8 @@ import { useI18n } from "vue-i18n";
 import EditorTranslationVerifyResult from "./EditorTranslationVerifyResult.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { Button } from "@/app/components/ui/button";
+import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { Check, Copy, MoveRight, Redo, Trash, Undo } from "lucide-vue-next";
 
 const { t } = useI18n();
 
@@ -20,31 +22,44 @@ const handleTranslate = async (toNext: boolean) => {
 <template>
   <div class="px-2 pb-4 pt-1 flex w-full items-center justify-between">
     <div class="flex gap-1 items-center">
-      <Button size="icon" variant="ghost" @click="replace(element?.value ?? ``)"
-        ><div class="icon-[mdi--content-copy] size-4"
-      /></Button>
-      <Button variant="ghost" size="icon" @click="clear">
-        <div class="icon-[mdi--trash-can] size-4 text-error" />
-      </Button>
-      <Button
-        size="icon"
-        variant="ghost"
-        magic-key="Control+Z"
-        @click="undo"
-        @magic-click="undo"
-      >
-        <div class="icon-[mdi--undo] size-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        magic-key="Control+Shift+Z"
-        @click="redo"
-        @magic-click="redo"
-      >
-        <div class="icon-[mdi--redo] size-4" />
-      </Button>
-      <EditorTranslationVerifyResult />
+      <TextTooltip :tooltip="t('复制原文')">
+        <Button
+          size="icon"
+          variant="ghost"
+          @click="replace(element?.value ?? ``)"
+          ><Copy
+        /></Button>
+      </TextTooltip>
+      <TextTooltip :tooltip="t('清空译文')">
+        <Button variant="ghost" size="icon" @click="clear">
+          <Trash class="text-destructive" />
+        </Button>
+      </TextTooltip>
+      <TextTooltip :tooltip="t('撤销')">
+        <Button
+          size="icon"
+          variant="ghost"
+          magic-key="Control+Z"
+          @click="undo"
+          @magic-click="undo"
+        >
+          <Undo />
+        </Button>
+      </TextTooltip>
+      <TextTooltip :tooltip="t('重做')">
+        <Button
+          variant="ghost"
+          size="icon"
+          magic-key="Control+Shift+Z"
+          @click="redo"
+          @magic-click="redo"
+        >
+          <Redo />
+        </Button>
+      </TextTooltip>
+      <TextTooltip :tooltip="t('切分器 QA')">
+        <EditorTranslationVerifyResult />
+      </TextTooltip>
     </div>
     <div class="flex gap-1 items-center">
       <Button
@@ -53,7 +68,7 @@ const handleTranslate = async (toNext: boolean) => {
         @click="handleTranslate(false)"
         @magic-click="handleTranslate(false)"
       >
-        <div class="icon-[mdi--check] size-4" />
+        <Check />
         {{ t("提交") }}
       </Button>
       <Button
@@ -62,7 +77,7 @@ const handleTranslate = async (toNext: boolean) => {
         @click="handleTranslate(true)"
         @magic-click="handleTranslate(true)"
       >
-        <div class="icon-[mdi--arrow-right] size-4" />
+        <MoveRight />
         {{ t("提交并继续") }}
       </Button>
     </div>

@@ -58,7 +58,7 @@ const remove = async (): Promise<void> => {
           v-model="name"
           :placeholder="t('项目名称')"
         />
-        <Button type="submit" @click="updateName"> {{ t("重命名") }} </Button>
+        <Button @click="updateName"> {{ t("重命名") }} </Button>
       </div>
     </div>
     <Button variant="destructive" @click="remove">{{ t("删除项目") }}</Button>
