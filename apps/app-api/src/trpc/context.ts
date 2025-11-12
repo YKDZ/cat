@@ -10,6 +10,8 @@ import {
 } from "@cat/shared/utils";
 import { userFromSessionId } from "@cat/app-server-shared/utils";
 import { User } from "@cat/shared/schema/drizzle/user";
+import type { WorkerRegistry } from "@cat/app-workers";
+import { getWorkerRegistry } from "@cat/app-workers/utils";
 
 export const createHttpContext = async ({
   req,
@@ -20,6 +22,7 @@ export const createHttpContext = async ({
   pluginRegistry: PluginRegistry;
   drizzleDB: DrizzleDB;
   redisDB: RedisDB;
+  workerRegistry: WorkerRegistry;
   helpers: HTTPHelpers;
 }> => {
   const helpers = createHTTPHelpers(req, resHeaders);
@@ -27,6 +30,7 @@ export const createHttpContext = async ({
   const drizzleDB = await getDrizzleDB();
   const redisDB = await getRedisDB();
   const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+  const workerRegistry = await getWorkerRegistry();
 
   const sessionId = helpers.getCookie("sessionId") ?? null;
   const user = await userFromSessionId(drizzleDB.client, sessionId);
@@ -37,6 +41,7 @@ export const createHttpContext = async ({
     pluginRegistry,
     drizzleDB,
     redisDB,
+    workerRegistry,
     helpers,
   };
 };

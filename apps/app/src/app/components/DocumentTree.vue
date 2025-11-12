@@ -60,7 +60,7 @@ const handleClick = (document: Document) => {
 </script>
 
 <template>
-  <div class="w-full bg-highlight rounded-lg overflow-hidden">
+  <div class="w-full bg-background rounded-lg overflow-hidden">
     <template v-for="node in tree" :key="node.id">
       <DocumentTreeNode
         :node="node"
@@ -77,7 +77,7 @@ const handleClick = (document: Document) => {
 
     <div
       v-if="tree.length === 0"
-      class="flex items-center justify-center py-8 text-highlight-content"
+      class="flex items-center justify-center py-8 text-foreground"
     >
       <span class="text-sm">暂无文档</span>
     </div>

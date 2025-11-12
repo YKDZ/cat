@@ -30,7 +30,7 @@ onMounted(() => {
       position: isSticky ? 'sticky' : 'static',
       top: topHeight + 'px',
     }"
-    class="bg-highlight bg-op-50 flex h-fit max-w-full w-full backdrop-blur-sm"
+    class="bg-background bg-op-50 flex h-fit max-w-full w-full backdrop-blur-sm"
   >
     <textarea
       ref="inputTextareaEl"

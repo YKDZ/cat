@@ -4,6 +4,7 @@ import Empty from "./Empty.vue";
 import Part from "./Part.vue";
 import type { PartData } from "./index.ts";
 import { clippers, recursiveSplit } from "./index.ts";
+import { TooltipProvider } from "@/app/components/ui/tooltip";
 
 const props = withDefaults(
   defineProps<{
@@ -30,11 +31,13 @@ watch(partsData, (to, from) => emits("update", from, to), { immediate: true });
 <template>
   <div class="block select-text whitespace-pre-wrap wrap-break-words">
     <Empty v-if="text.length === 0" />
-    <Part
-      v-for="part in partsData"
-      :key="part.index + part.text"
-      :part
-      :interactive
-    />
+    <TooltipProvider>
+      <Part
+        v-for="part in partsData"
+        :key="part.index + part.text"
+        :part
+        :interactive
+      />
+    </TooltipProvider>
   </div>
 </template>

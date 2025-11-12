@@ -12,10 +12,7 @@ const handleCheck = async () => {
 </script>
 
 <template>
-  <TableRow
-    class="cursor-pointer hover:bg-highlight-darker"
-    @click="handleCheck"
-  >
+  <TableRow class="cursor-pointer hover:bg-background" @click="handleCheck">
     <TableCell>{{ glossary.name }}</TableCell>
     <TableCell>{{ glossary.description }}</TableCell>
     <TableCell>0</TableCell>

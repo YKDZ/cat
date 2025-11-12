@@ -10,3 +10,5 @@ export * from "./vector.ts";
 export * from "./http-helpers.ts";
 export * from "./stream.ts";
 export * from "./tree.ts";
+export * from "./mobile.ts";
+export * from "./term.ts";

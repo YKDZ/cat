@@ -46,12 +46,13 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   });
 
   const elementTotalAmount = computedAsync(async () => {
-    if (!context.documentId.value) return 0;
+    if (!context.documentId.value || !context.languageToId.value) return 0;
 
     return await trpc.document.countElement.query({
       documentId: context.documentId.value,
       searchQuery: searchQuery.value,
       isTranslated: !isProofreading.value ? undefined : true,
+      languageId: context.languageToId.value,
     });
   }, 0);
 
@@ -79,7 +80,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   // index 从 0 开始
   // 前端需要以此为标准映射页码
   const toPage = async (index: number) => {
-    if (!context.documentId.value) return;
+    if (!context.documentId.value || !context.languageToId.value) return;
 
     const isTranslated = !isProofreading.value ? undefined : true;
     const inputHash = await hashJSON({
@@ -102,6 +103,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
         pageSize: context.pageSize.value,
         searchQuery: searchQuery.value,
         isTranslated,
+        languageId: context.languageToId.value,
       })
       .then((elements) => {
         if (elements.length === 0) return;
@@ -114,13 +116,19 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   };
 
   const toNextUntranslated = async () => {
-    if (!context.documentId.value || !element.value) return;
+    if (
+      !context.documentId.value ||
+      !element.value ||
+      !context.languageToId.value
+    )
+      return;
 
     const firstUntranslatedElement =
       await trpc.document.queryFirstElement.query({
         documentId: context.documentId.value,
         greaterThan: element.value.sortIndex,
         isTranslated: false,
+        languageId: context.languageToId.value,
       });
 
     if (!firstUntranslatedElement) return;

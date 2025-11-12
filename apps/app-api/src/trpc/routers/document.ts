@@ -24,6 +24,7 @@ import {
   translatableString,
   getTableColumns,
   blob as blobTable,
+  inArray,
 } from "@cat/db";
 
 import {
@@ -42,8 +43,6 @@ import {
   preparePresignedPutFile,
   useStorage,
 } from "@cat/app-server-shared/utils";
-import { exportTranslatedFileQueue } from "@cat/app-workers/workers";
-import { upsertDocumentElementsFromFileQueue } from "@cat/app-workers/workers";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { authedProcedure, router } from "@/trpc/server.ts";
 import { StorageProvider } from "@cat/plugin-core";
@@ -60,8 +59,17 @@ function buildTranslationStatusConditions(
   drizzle: DrizzleClient,
   isTranslated?: boolean,
   isApproved?: boolean,
+  languageId?: string,
 ) {
   const conditions = [];
+
+  if (isTranslated === undefined && isApproved === undefined) return [];
+  if (!languageId)
+    throw new Error(
+      "languageId must be provided when isApproved or isTranslated is set",
+    );
+  if (isTranslated === false && isApproved === true)
+    throw new Error("isTranslated must be true when isApproved is set");
 
   if (isTranslated === false && isApproved === undefined) {
     // 没有翻译
@@ -71,10 +79,17 @@ function buildTranslationStatusConditions(
           drizzle
             .select()
             .from(translationTable)
+            .innerJoin(
+              translatableString,
+              eq(translationTable.stringId, translatableString.id),
+            )
             .where(
-              eq(
-                translationTable.translatableElementId,
-                translatableElementTable.id,
+              and(
+                eq(
+                  translationTable.translatableElementId,
+                  translatableElementTable.id,
+                ),
+                eq(translatableString.languageId, languageId),
               ),
             ),
         ),
@@ -87,10 +102,17 @@ function buildTranslationStatusConditions(
         drizzle
           .select()
           .from(translationTable)
+          .innerJoin(
+            translatableString,
+            eq(translationTable.stringId, translatableString.id),
+          )
           .where(
-            eq(
-              translationTable.translatableElementId,
-              translatableElementTable.id,
+            and(
+              eq(
+                translationTable.translatableElementId,
+                translatableElementTable.id,
+              ),
+              eq(translatableString.languageId, languageId),
             ),
           ),
       ),
@@ -102,12 +124,17 @@ function buildTranslationStatusConditions(
         drizzle
           .select()
           .from(translationTable)
+          .innerJoin(
+            translatableString,
+            eq(translationTable.stringId, translatableString.id),
+          )
           .where(
             and(
               eq(
                 translationTable.translatableElementId,
                 translatableElementTable.id,
               ),
+              eq(translatableString.languageId, languageId),
               not(
                 exists(
                   drizzle
@@ -132,12 +159,17 @@ function buildTranslationStatusConditions(
         drizzle
           .select()
           .from(translationTable)
+          .innerJoin(
+            translatableString,
+            eq(translationTable.stringId, translatableString.id),
+          )
           .where(
             and(
               eq(
                 translationTable.translatableElementId,
                 translatableElementTable.id,
               ),
+              eq(translatableString.languageId, languageId),
               exists(
                 drizzle
                   .select()
@@ -224,6 +256,7 @@ export const documentRouter = router({
         redisDB: { redis },
         user,
         pluginRegistry,
+        workerRegistry,
       } = ctx;
 
       const dbProject = await drizzle.query.project.findFirst({
@@ -326,11 +359,17 @@ export const documentRouter = router({
           return { document, task };
         });
 
-        await upsertDocumentElementsFromFileQueue.add(result.task.id, {
-          documentId: result.document.id,
-          fileId,
-          languageId,
-        });
+        await workerRegistry.addJob(
+          "upsert-document-elements-from-file",
+          {
+            documentId: result.document.id,
+            fileId,
+            languageId,
+          },
+          {
+            jobId: result.task.id,
+          },
+        );
       } else {
         const existDocument = assertSingleNonNullish(existDocumentRows);
 
@@ -350,11 +389,17 @@ export const documentRouter = router({
           taskId: task.id,
         });
 
-        await upsertDocumentElementsFromFileQueue.add(task.id, {
-          documentId: existDocument.id,
-          fileId,
-          languageId,
-        });
+        await workerRegistry.addJob(
+          "upsert-document-elements-from-file",
+          {
+            documentId: existDocument.id,
+            fileId,
+            languageId,
+          },
+          {
+            jobId: task.id,
+          },
+        );
       }
     }),
   get: authedProcedure
@@ -379,6 +424,7 @@ export const documentRouter = router({
         searchQuery: z.string().default(""),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
+        languageId: z.string().optional(),
       }),
     )
     .output(z.number().int().min(0))
@@ -386,14 +432,8 @@ export const documentRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { documentId, searchQuery, isApproved, isTranslated } = input;
-
-      if (isApproved !== undefined && isTranslated !== true) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "isTranslated must be true when isApproved is set",
-        });
-      }
+      const { documentId, searchQuery, isApproved, isTranslated, languageId } =
+        input;
 
       const whereConditions = [
         eq(translatableElementTable.documentId, documentId),
@@ -405,28 +445,33 @@ export const documentRouter = router({
         );
       }
 
-      // 添加翻译状态条件
-      whereConditions.push(
-        ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
-      );
-
-      const result = await drizzle
-        .select({ count: count() })
-        .from(translatableElementTable)
-        .innerJoin(
-          translatableString,
-          eq(
-            translatableElementTable.translatableStringId,
-            translatableString.id,
+      if (isTranslated || isApproved)
+        whereConditions.push(
+          ...buildTranslationStatusConditions(
+            drizzle,
+            isTranslated,
+            isApproved,
+            languageId,
           ),
-        )
-        .where(
-          whereConditions.length === 1
-            ? whereConditions[0]
-            : and(...whereConditions),
         );
 
-      return result[0].count;
+      return assertSingleNonNullish(
+        await drizzle
+          .select({ count: count() })
+          .from(translatableElementTable)
+          .innerJoin(
+            translatableString,
+            eq(
+              translatableElementTable.translatableStringId,
+              translatableString.id,
+            ),
+          )
+          .where(
+            whereConditions.length === 1
+              ? whereConditions[0]
+              : and(...whereConditions),
+          ),
+      ).count;
     }),
   queryFirstElement: authedProcedure
     .input(
@@ -436,6 +481,7 @@ export const documentRouter = router({
         greaterThan: z.number().int().optional(),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
+        languageId: z.string().optional(),
       }),
     )
     .output(TranslatableElementSchema.nullable())
@@ -443,15 +489,14 @@ export const documentRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { documentId, searchQuery, greaterThan, isApproved, isTranslated } =
-        input;
-
-      if (isApproved !== undefined && isTranslated !== true) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "isTranslated must be true when isApproved is set",
-        });
-      }
+      const {
+        documentId,
+        searchQuery,
+        greaterThan,
+        isApproved,
+        isTranslated,
+        languageId,
+      } = input;
 
       const whereConditions = [
         eq(translatableElementTable.documentId, documentId),
@@ -471,30 +516,33 @@ export const documentRouter = router({
 
       // 添加翻译状态条件
       whereConditions.push(
-        ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
+        ...buildTranslationStatusConditions(
+          drizzle,
+          isTranslated,
+          isApproved,
+          languageId,
+        ),
       );
 
-      const element = assertSingleNonNullish(
-        await drizzle
-          .select(getTableColumns(translatableElementTable))
-          .from(translatableElementTable)
-          .where(
-            whereConditions.length === 1
-              ? whereConditions[0]
-              : and(...whereConditions),
-          )
-          .innerJoin(
-            translatableString,
-            eq(
-              translatableElementTable.translatableStringId,
-              translatableString.id,
-            ),
-          )
-          .orderBy(asc(translatableElementTable.sortIndex))
-          .limit(1),
-      );
+      const element = await drizzle
+        .select(getTableColumns(translatableElementTable))
+        .from(translatableElementTable)
+        .where(
+          whereConditions.length === 1
+            ? whereConditions[0]
+            : and(...whereConditions),
+        )
+        .innerJoin(
+          translatableString,
+          eq(
+            translatableElementTable.translatableStringId,
+            translatableString.id,
+          ),
+        )
+        .orderBy(asc(translatableElementTable.sortIndex))
+        .limit(1);
 
-      return element;
+      return element[0] ?? null;
     }),
   exportTranslatedFile: authedProcedure
     .input(
@@ -507,6 +555,7 @@ export const documentRouter = router({
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
+        workerRegistry,
       } = ctx;
       const { documentId, languageId } = input;
 
@@ -519,6 +568,7 @@ export const documentRouter = router({
           })
           .from(documentTable)
           .where(eq(documentTable.id, documentId)),
+        `Document ${documentId} not found`,
       );
 
       if (!document.fileId || !document.fileHandlerId)
@@ -541,10 +591,9 @@ export const documentRouter = router({
           .returning({ id: taskTable.id }),
       );
 
-      await exportTranslatedFileQueue.add(
-        task.id,
+      await workerRegistry.addJob(
+        "export-translated-file",
         {
-          projectId: document.projectId,
           documentId,
           languageId,
         },
@@ -659,25 +708,35 @@ export const documentRouter = router({
         .from(translationTable)
         .innerJoin(
           translatableString,
+          eq(translationTable.stringId, translatableString.id),
+        )
+        .where(
           and(
-            eq(translationTable.stringId, translatableString.id),
+            eq(translationTable.translatableElementId, elementId),
             eq(translatableString.languageId, languageId),
           ),
-        )
-        .where(eq(translationTable.translatableElementId, elementId));
+        );
 
       if (translations.length === 0) {
         return "NO";
       }
 
       // 检查是否有活跃的审批
-      const activeApprovements = await drizzle
-        .select()
+      const activeApprovementAmount = await drizzle
+        .select({ id: translationApprovementTable.id })
         .from(translationApprovementTable)
-        .where(and(eq(translationApprovementTable.isActive, true)))
+        .where(
+          and(
+            eq(translationApprovementTable.isActive, true),
+            inArray(
+              translationApprovementTable.translationId,
+              translations.map((t) => t.id),
+            ),
+          ),
+        )
         .limit(1);
 
-      if (activeApprovements.length > 0) {
+      if (activeApprovementAmount.length > 0) {
         return "APPROVED";
       }
 
@@ -692,6 +751,7 @@ export const documentRouter = router({
         searchQuery: z.string().default(""),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
+        languageId: z.string().optional(),
       }),
     )
     .output(
@@ -713,6 +773,7 @@ export const documentRouter = router({
         searchQuery,
         isApproved,
         isTranslated,
+        languageId,
       } = input;
 
       if (isApproved !== undefined && isTranslated !== true) {
@@ -734,7 +795,12 @@ export const documentRouter = router({
 
       // 添加翻译状态条件
       whereConditions.push(
-        ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
+        ...buildTranslationStatusConditions(
+          drizzle,
+          isTranslated,
+          isApproved,
+          languageId,
+        ),
       );
 
       const result = await drizzle
@@ -771,6 +837,7 @@ export const documentRouter = router({
         searchQuery: z.string().default(""),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
+        languageId: z.string().optional(),
       }),
     )
     .output(z.number().int())
@@ -786,6 +853,7 @@ export const documentRouter = router({
         searchQuery,
         isApproved,
         isTranslated,
+        languageId,
       } = input;
 
       if (isApproved !== undefined && isTranslated !== true) {
@@ -821,7 +889,12 @@ export const documentRouter = router({
 
       // 添加翻译状态条件
       whereConditions.push(
-        ...buildTranslationStatusConditions(drizzle, isTranslated, isApproved),
+        ...buildTranslationStatusConditions(
+          drizzle,
+          isTranslated,
+          isApproved,
+          languageId,
+        ),
       );
 
       const result = await drizzle

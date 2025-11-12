@@ -50,8 +50,8 @@ const handleAutoApprove = async () => {
       <DialogHeader>
         <DialogTitle>{{ t("自动批准翻译") }}</DialogTitle>
       </DialogHeader>
-      <article class="prose-highlight-content max-w-460px prose">
-        <h3 class="text-highlight-content-darker">{{ t("自动批准") }}</h3>
+      <article class="prose-foreground max-w-460px prose">
+        <h3 class="text-foreground">{{ t("自动批准") }}</h3>
         <p>
           {{
             t(

@@ -47,6 +47,12 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
 
   ollama:
     image: ollama/ollama

@@ -1,21 +1,20 @@
 import { defineStore, storeToRefs } from "pinia";
 import { reactive, computed } from "vue";
 import * as z from "zod/v4";
-import type { ElementTranslationStatus } from "@cat/shared/schema/misc";
+import {
+  ElementTranslationStatusSchema,
+  type ElementTranslationStatus,
+} from "@cat/shared/schema/misc";
 import { TranslatableElementSchema } from "@cat/shared/schema/drizzle/document";
 import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import { trpc } from "@cat/app-api/trpc/client";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 
-const TranslatableElementStatusSchema = z
-  .enum(["NO", "TRANSLATED", "APPROVED"])
-  .default("NO");
-
 export const TranslatableElementWithDetailsSchema =
   TranslatableElementSchema.extend({
     value: z.string(),
     languageId: z.string(),
-    status: TranslatableElementStatusSchema,
+    status: ElementTranslationStatusSchema.default("NO"),
   });
 
 type TranslatableElementWithDetails = z.infer<
@@ -58,12 +57,16 @@ export const useEditorElementStore = defineStore("editorElement", () => {
   };
 
   const updateElement = (updatedElement: TranslatableElement) => {
-    for (const [, elements] of loadedPages.entries()) {
+    for (const [page, elements] of loadedPages.entries()) {
       const index = elements.findIndex((el) => el.id === updatedElement.id);
-      if (index === 0) continue;
 
-      elements[index] =
-        TranslatableElementWithDetailsSchema.parse(updatedElement);
+      if (index === -1) continue;
+
+      const parsed = TranslatableElementWithDetailsSchema.parse(updatedElement);
+
+      elements.splice(index, 1, parsed);
+      loadedPages.set(page, elements);
+
       return;
     }
   };
@@ -75,10 +78,10 @@ export const useEditorElementStore = defineStore("editorElement", () => {
 
     const status = await getElementTranslationStatus(elementId);
 
-    const newEl = TranslatableElementWithDetailsSchema.parse({
+    const newEl = {
       ...element,
       status,
-    });
+    };
 
     updateElement(newEl);
   };

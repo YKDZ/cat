@@ -17,101 +17,366 @@ import {
   chunk,
   aliasedTable,
 } from "@cat/db";
-import { PluginRegistry, type TranslationAdvisor } from "@cat/plugin-core";
-import { Queue, Worker } from "bullmq";
+import {
+  PluginRegistry,
+  type IVectorStorage,
+  type TermService,
+  type TranslationAdvisor,
+} from "@cat/plugin-core";
 import * as z from "zod/v4";
 import {
   createStringFromData,
   getServiceFromDBId,
+  searchMemory,
 } from "@cat/app-server-shared/utils";
-import { searchMemory } from "@cat/app-server-shared/utils";
 import {
   assertFirstNonNullish,
   assertSingleNonNullish,
+  logger,
 } from "@cat/shared/utils";
-import { config } from "./config.ts";
-import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
+import { defineFlow, defineWorker } from "@/utils";
 
 const { client: drizzle } = await getDrizzleDB();
 
-const queueId = "autoTranslate";
+const id = "auto-translate";
+const name = "Auto Translate";
 
-export const autoTranslateQueue = new Queue(queueId, config);
+declare module "../core/registry" {
+  interface WorkerInputTypeMap {
+    [id]: AutoTranslateInput;
+  }
+}
 
-const worker = new Worker(
-  queueId,
-  async (job) => {
-    const { documentId, advisorId, userId, languageId, minMemorySimilarity } = z
-      .object({
-        userId: z.uuidv7(),
-        documentId: z.uuidv7(),
-        advisorId: z.int(),
-        languageId: z.string(),
-        minMemorySimilarity: z.number().min(0).max(1),
+const AutoTranslateInputSchema = z.object({
+  userId: z.uuidv7(),
+  documentId: z.uuidv7(),
+  advisorId: z.int(),
+  languageId: z.string(),
+  minMemorySimilarity: z.number().min(0).max(1),
+});
+
+type AutoTranslateInput = z.infer<typeof AutoTranslateInputSchema>;
+
+const TranslateElementChunkInputSchema = z.object({
+  elementIds: z.array(z.int()),
+  documentId: z.uuidv7(),
+  userId: z.uuidv7(),
+  advisorId: z.int(),
+  languageId: z.string(),
+  minMemorySimilarity: z.number().min(0).max(1),
+  projectId: z.uuidv7(),
+  glossaryIds: z.array(z.uuidv7()),
+  memoryIds: z.array(z.uuidv7()),
+});
+
+const FinalizeInputSchema = z.object({
+  documentId: z.uuidv7(),
+  languageId: z.string(),
+  totalElements: z.number(),
+});
+
+const FinalizeOutputSchema = z.object({
+  documentId: z.uuidv7(),
+  languageId: z.string(),
+  totalElements: z.number(),
+  totalTranslated: z.number(),
+  chunksProcessed: z.number(),
+});
+
+interface ElementData {
+  id: number;
+  value: string;
+  languageId: string;
+  chunkIds: number[];
+}
+
+interface TranslationData {
+  value: string;
+  translatorId: string;
+  translatableElementId: number;
+  languageId: string;
+  meta: {
+    memorySimilarity: number | null;
+    memoryId: string | null;
+    memoryItemId: number | null;
+    advisorId: number | null;
+  };
+}
+
+/**
+ * 验证文档和目标语言
+ */
+async function validateDocumentAndLanguage(
+  documentId: string,
+  languageId: string,
+) {
+  const document = assertSingleNonNullish(
+    await drizzle
+      .select({
+        id: documentTable.id,
+        projectId: documentTable.projectId,
       })
-      .parse(job.data);
+      .from(documentTable)
+      .where(eq(documentTable.id, documentId)),
+    "Document not found",
+  );
+
+  const targetLangRows = await drizzle
+    .select({ languageId: projectTargetLanguage.languageId })
+    .from(projectTargetLanguage)
+    .where(
+      and(
+        eq(projectTargetLanguage.projectId, document.projectId),
+        eq(projectTargetLanguage.languageId, languageId),
+      ),
+    );
+
+  if (targetLangRows.length === 0) {
+    throw new Error("Language is not configured in project");
+  }
+
+  return document;
+}
+
+/**
+ * 获取项目相关的术语库和记忆库
+ */
+async function getProjectResources(projectId: string) {
+  const glossaryIds: string[] = (
+    await drizzle
+      .select({ glossaryId: glossaryToProject.glossaryId })
+      .from(glossaryToProject)
+      .where(eq(glossaryToProject.projectId, projectId))
+  ).map((r) => r.glossaryId);
+
+  const memoryIds: string[] = (
+    await drizzle
+      .select({ memoryId: memoryToProject.memoryId })
+      .from(memoryToProject)
+      .where(eq(memoryToProject.projectId, projectId))
+  ).map((r) => r.memoryId);
+
+  return { glossaryIds, memoryIds };
+}
+
+/**
+ * 获取文档元素
+ */
+async function getDocumentElements(documentId: string): Promise<ElementData[]> {
+  return await drizzle
+    .select({
+      id: translatableElement.id,
+      value: translatableString.value,
+      languageId: translatableString.languageId,
+      chunkIds: sql<
+        number[]
+      >`coalesce(array_agg("Chunk"."id"), ARRAY[]::int[])`,
+    })
+    .from(translatableElement)
+    .innerJoin(
+      translatableString,
+      eq(translatableElement.translatableStringId, translatableString.id),
+    )
+    .innerJoin(
+      documentTable,
+      eq(translatableElement.documentId, documentTable.id),
+    )
+    .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
+    .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
+    .where(eq(documentTable.id, documentId))
+    .groupBy(
+      translatableElement.id,
+      translatableString.value,
+      translatableString.languageId,
+    );
+}
+
+/**
+ * 使用记忆库翻译元素
+ */
+async function translateWithMemory(
+  element: ElementData,
+  targetLanguageId: string,
+  memoryIds: string[],
+  minSimilarity: number,
+  vectorStorage: IVectorStorage,
+  userId: string,
+): Promise<TranslationData | null> {
+  const chunks = await vectorStorage.retrieve(element.chunkIds);
+
+  if (!chunks) {
+    logger.warn("PROCESSOR", {
+      msg: `No embeddings found for element ${element.id}`,
+    });
+    return null;
+  }
+
+  const embeddings = chunks.map((chunk) => chunk.vector);
+
+  const memories = await searchMemory(
+    drizzle,
+    vectorStorage,
+    embeddings,
+    element.languageId,
+    targetLanguageId,
+    memoryIds,
+    minSimilarity,
+  );
+
+  if (memories.length === 0) return null;
+
+  // 使用相似度最高的记忆
+  const memory = assertFirstNonNullish(
+    memories.sort((a, b) => b.similarity - a.similarity),
+  );
+
+  return {
+    value: memory.translation,
+    translatorId: userId,
+    translatableElementId: element.id,
+    languageId: targetLanguageId,
+    meta: {
+      memorySimilarity: memory.similarity,
+      memoryId: memory.memoryId,
+      memoryItemId: memory.id,
+      advisorId: null,
+    },
+  };
+}
+
+async function translateWithAdvisor(
+  element: ElementData,
+  targetLanguageId: string,
+  advisor: TranslationAdvisor,
+  advisorId: number,
+  glossaryIds: string[],
+  termService: TermService,
+  userId: string,
+): Promise<TranslationData | null> {
+  if (!advisor.canSuggest(element.languageId, targetLanguageId)) {
+    logger.warn("PROCESSOR", {
+      msg: `Advisor cannot translate from ${element.languageId} to ${targetLanguageId}`,
+    });
+    return null;
+  }
+
+  // 获取术语化文本
+  const { termedText, translationIds } = await termService.termStore.termText(
+    element.value,
+    element.languageId,
+    targetLanguageId,
+  );
+
+  // 查询术语关系
+  const sourceTerm = aliasedTable(term, "sourceTerm");
+  const translationTerm = aliasedTable(term, "translationTerm");
+  const sourceString = aliasedTable(translatableString, "sourceString");
+  const translationString = aliasedTable(
+    translatableString,
+    "translationString",
+  );
+
+  const relations = await drizzle
+    .select({
+      term: sourceString.value,
+      translation: translationString.value,
+    })
+    .from(termRelation)
+    .innerJoin(
+      sourceTerm,
+      and(
+        eq(sourceTerm.id, termRelation.termId),
+        inArray(sourceTerm.glossaryId, glossaryIds),
+      ),
+    )
+    .innerJoin(
+      translationTerm,
+      and(
+        eq(translationTerm.id, termRelation.translationId),
+        inArray(translationTerm.glossaryId, glossaryIds),
+        inArray(translationTerm.id, translationIds),
+      ),
+    )
+    .innerJoin(
+      sourceString,
+      and(
+        eq(sourceString.id, sourceTerm.stringId),
+        eq(sourceString.languageId, element.languageId),
+      ),
+    )
+    .innerJoin(
+      translationString,
+      and(
+        eq(translationString.id, translationTerm.stringId),
+        eq(translationString.languageId, targetLanguageId),
+      ),
+    );
+
+  // 获取建议
+  const suggestions = await advisor.getSuggestions(
+    element.value,
+    termedText,
+    relations,
+    element.languageId,
+    targetLanguageId,
+  );
+
+  const translation = suggestions.find(({ status }) => status === "SUCCESS");
+
+  if (!translation || translation.status === "ERROR") {
+    return null;
+  }
+
+  return {
+    value: translation.value,
+    translatorId: userId,
+    translatableElementId: element.id,
+    languageId: targetLanguageId,
+    meta: {
+      advisorId,
+      memorySimilarity: null,
+      memoryId: null,
+      memoryItemId: null,
+    },
+  };
+}
+
+/**
+ * 翻译元素分块 Worker
+ */
+export const translateElementsChunkWorker = defineWorker({
+  id: "translate-elements-chunk",
+  taskType: "auto_translate_chunk",
+  inputSchema: TranslateElementChunkInputSchema,
+
+  async execute(ctx) {
+    const {
+      elementIds,
+      userId,
+      advisorId,
+      languageId,
+      minMemorySimilarity,
+      glossaryIds,
+      memoryIds,
+    } = ctx.input;
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
+    // 获取服务
     const advisor = await getServiceFromDBId<TranslationAdvisor>(
       drizzle,
       pluginRegistry,
       advisorId,
     );
 
-    // TODO 配置
     const vectorStorage = assertFirstNonNullish(
       await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
     );
 
-    // TODO 配置
     const vectorizer = assertFirstNonNullish(
       await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
     );
 
-    const document = assertSingleNonNullish(
-      await drizzle
-        .select({
-          id: documentTable.id,
-          projectId: documentTable.projectId,
-        })
-        .from(documentTable)
-        .where(eq(documentTable.id, documentId)),
-    );
-
-    const targetLangRows = await drizzle
-      .select({ languageId: projectTargetLanguage.languageId })
-      .from(projectTargetLanguage)
-      .where(
-        and(
-          eq(projectTargetLanguage.projectId, document.projectId),
-          eq(projectTargetLanguage.languageId, languageId),
-        ),
-      );
-
-    if (targetLangRows.length === 0)
-      throw new Error("Language does not claimed in project");
-
-    const glossaryIds = (
-      await drizzle
-        .select({ glossaryId: glossaryToProject.glossaryId })
-        .from(glossaryToProject)
-        .where(eq(glossaryToProject.projectId, document.projectId))
-    ).map((r) => r.glossaryId);
-
-    const memoryIds = (
-      await drizzle
-        .select({ memoryId: memoryToProject.memoryId })
-        .from(memoryToProject)
-        .where(eq(memoryToProject.projectId, document.projectId))
-    ).map((r) => r.memoryId);
-
-    if (!document)
-      throw new Error(
-        "Document does not exists or language does not claimed in project",
-      );
-
-    // TODO 选择安装的服务或者继承
     const { service: termService } = (await pluginRegistry.getPluginService(
       drizzle,
       "es-term-service",
@@ -119,10 +384,11 @@ const worker = new Worker(
       "ES",
     ))!;
 
-    if (!termService) throw new Error("Term service does not exists");
+    if (!termService) {
+      throw new Error("Term service does not exist");
+    }
 
-    // 开始翻译
-
+    // 获取元素
     const elements = await drizzle
       .select({
         id: translatableElement.id,
@@ -137,173 +403,212 @@ const worker = new Worker(
         translatableString,
         eq(translatableElement.translatableStringId, translatableString.id),
       )
-      .innerJoin(
-        documentTable,
-        eq(translatableElement.documentId, documentTable.id),
-      )
       .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
       .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
-      .where(eq(documentTable.id, documentId))
+      .where(inArray(translatableElement.id, elementIds))
       .groupBy(
         translatableElement.id,
         translatableString.value,
         translatableString.languageId,
       );
 
-    // 自动翻译数据
-    // 只有翻译记忆和建议器两个来源
-    // 将元素 map 为 translationTable 的 insert 数据
-    const translations = await Promise.all(
-      elements.map(async (element) => {
-        const chunks = await vectorStorage.service.retrieve(element.chunkIds);
+    // 翻译元素 - 使用 Promise.all 并行处理
+    const translationPromises = elements.map(async (element) => {
+      // 尝试使用记忆库
+      const memoryTranslation = await translateWithMemory(
+        element,
+        languageId,
+        memoryIds,
+        minMemorySimilarity,
+        vectorStorage.service,
+        userId,
+      );
 
-        if (!chunks)
-          throw new Error(`No embeddings found for element ${element.id}`);
+      if (memoryTranslation) {
+        return memoryTranslation;
+      }
 
-        const embeddings = chunks.map((chunk) => chunk.vector);
-
-        const memories = await searchMemory(
-          drizzle,
-          vectorStorage.service,
-          embeddings,
-          element.languageId,
+      // 尝试使用建议器
+      if (advisor) {
+        const advisorTranslation = await translateWithAdvisor(
+          element,
           languageId,
-          memoryIds,
-          minMemorySimilarity,
+          advisor,
+          advisorId,
+          glossaryIds,
+          termService,
+          userId,
         );
 
-        // 用记忆充当翻译结果
-        if (memories.length > 0) {
-          const memory = assertFirstNonNullish(
-            memories.sort((a, b) => b.similarity - a.similarity),
-          );
-
-          return {
-            value: memory.translation,
-            translatorId: memory.creatorId,
-            translatableElementId: element.id,
-            languageId,
-            meta: {
-              memorySimilarity: memory.similarity,
-              memoryId: memory.memoryId,
-              memoryItemId: memory.id,
-              advisorId: null,
-            },
-          };
+        if (advisorTranslation) {
+          return advisorTranslation;
         }
-        // 建议器
-        else {
-          if (!advisor) return undefined;
+      }
 
-          if (!advisor.canSuggest(element.languageId, languageId))
-            throw new Error("Advisor can not suggest element in document");
+      return null;
+    });
 
-          const { termedText, translationIds } =
-            await termService.termStore.termText(
-              element.value,
-              element.languageId,
-              languageId,
-            );
-          const sourceTerm = aliasedTable(term, "sourceTerm");
-          const translationTerm = aliasedTable(term, "translationTerm");
-          const sourceString = aliasedTable(translatableString, "sourceString");
-          const translationString = aliasedTable(
-            translatableString,
-            "translationString",
-          );
-          const relations = await drizzle
-            .select({
-              term: sourceString.value,
-              translation: translationString.value,
-            })
-            .from(termRelation)
-            .innerJoin(
-              sourceTerm,
-              and(
-                eq(sourceTerm.id, termRelation.termId),
-                inArray(sourceTerm.glossaryId, glossaryIds),
-              ),
-            )
-            .innerJoin(
-              translationTerm,
-              and(
-                eq(translationTerm.id, termRelation.translationId),
-                inArray(translationTerm.glossaryId, glossaryIds),
-                inArray(translationTerm.id, translationIds),
-              ),
-            )
-            .innerJoin(
-              sourceString,
-              and(
-                eq(sourceString.id, sourceTerm.stringId),
-                eq(sourceString.languageId, element.languageId),
-              ),
-            )
-            .innerJoin(
-              translationString,
-              and(
-                eq(translationString.id, translationTerm.stringId),
-                eq(translationString.languageId, languageId),
-              ),
-            );
-
-          const translation = (
-            await advisor.getSuggestions(
-              element.value,
-              termedText,
-              relations,
-              element.languageId,
-              languageId,
-            )
-          ).find(({ status }) => status === "SUCCESS");
-
-          if (!translation) return undefined;
-
-          return {
-            value: translation.value,
-            translatorId: userId,
-            translatableElementId: element.id,
-            languageId,
-            meta: {
-              advisorId,
-              memorySimilarity: null,
-              memoryId: null,
-              memoryItemId: null,
-            },
-          };
-        }
-      }),
+    const translationResults = await Promise.all(translationPromises);
+    const translations = translationResults.filter(
+      (t): t is TranslationData => t !== null,
     );
 
-    const filtered = translations.filter((z) => !!z);
-
     // 创建翻译
-    await drizzle.transaction(async (tx) => {
-      const stringIds = await createStringFromData(
-        tx,
-        vectorizer.service,
-        vectorizer.id,
-        vectorStorage.service,
-        vectorStorage.id,
-        filtered.map((item) => ({
-          value: item.value,
-          languageId: item.languageId,
-        })),
+    if (translations.length > 0) {
+      await drizzle.transaction(async (tx) => {
+        const stringIds = await createStringFromData(
+          tx,
+          vectorizer.service,
+          vectorizer.id,
+          vectorStorage.service,
+          vectorStorage.id,
+          translations.map((item) => ({
+            value: item.value,
+            languageId: item.languageId,
+          })),
+        );
+
+        await tx.insert(translationTable).values(
+          translations.map((item, index) => ({
+            ...item,
+            stringId: stringIds[index],
+          })),
+        );
+      });
+    }
+
+    return {
+      translatedCount: translations.length,
+      elementIds: translations.map((t) => t.translatableElementId),
+    };
+  },
+
+  hooks: {
+    onFailed: async (job, error) => {
+      logger.error(
+        "PROCESSOR",
+        {
+          msg: "Failed to translate elements chunk",
+          jobName: job.name,
+          elementCount: TranslateElementChunkInputSchema.parse(job.data)
+            .elementIds.length,
+        },
+        error,
       );
-      await tx.insert(translationTable).values(
-        filtered.map((item, index) => ({
-          ...item,
-          stringId: stringIds[index],
-        })),
-      );
+    },
+  },
+});
+
+/**
+ * 最终汇总 Worker
+ */
+export const autoTranslateFinalizeWorker = defineWorker({
+  id,
+  taskType: id,
+  inputSchema: FinalizeInputSchema,
+  outputSchema: FinalizeOutputSchema,
+
+  async execute(ctx) {
+    const childrenValues = await ctx.job.getChildrenValues();
+
+    // 汇总所有子任务的结果
+    let totalTranslated = 0;
+    const translatedElementIds: number[] = [];
+
+    for (const [_, r] of Object.entries(childrenValues)) {
+      const result = z
+        .object({
+          translatedCount: z.int(),
+          elementIds: z.array(z.int()),
+        })
+        .parse(r);
+
+      totalTranslated += result.translatedCount;
+      translatedElementIds.push(...result.elementIds);
+    }
+
+    logger.info("PROCESSOR", {
+      msg: "Auto-translation completed",
+      documentId: ctx.input.documentId,
+      languageId: ctx.input.languageId,
+      totalElements: ctx.input.totalElements,
+      totalTranslated,
+      chunksProcessed: Object.keys(childrenValues).length,
     });
-  },
-  {
-    ...config,
-    concurrency: 50,
-  },
-);
 
-registerTaskUpdateHandlers(drizzle, worker, queueId);
+    return {
+      documentId: ctx.input.documentId,
+      languageId: ctx.input.languageId,
+      totalElements: ctx.input.totalElements,
+      totalTranslated,
+      translatedElementIds,
+      chunksProcessed: Object.keys(childrenValues).length,
+    };
+  },
+});
 
-export const autoTranslateWorker = worker;
+export const autoTranslateFlow = defineFlow({
+  id,
+  name,
+  inputSchema: AutoTranslateInputSchema,
+
+  async build(input: AutoTranslateInput) {
+    const { documentId, languageId, userId, advisorId, minMemorySimilarity } =
+      input;
+
+    // 验证文档和语言
+    const document = await validateDocumentAndLanguage(documentId, languageId);
+
+    // 获取项目资源
+    const { glossaryIds, memoryIds } = await getProjectResources(
+      document.projectId,
+    );
+
+    // 获取所有元素
+    const elements = await getDocumentElements(documentId);
+
+    if (elements.length === 0) {
+      logger.warn("PROCESSOR", {
+        msg: "No elements found in document",
+        documentId,
+      });
+    }
+
+    // 将元素分块
+    const CHUNK_SIZE = 100;
+    const children = [];
+
+    for (let i = 0; i < elements.length; i += CHUNK_SIZE) {
+      const chunkElements = elements.slice(i, i + CHUNK_SIZE);
+      const chunkIndex = Math.floor(i / CHUNK_SIZE);
+
+      children.push({
+        name: `translate-chunk-${chunkIndex}`,
+        workerId: "translate-elements-chunk",
+        data: {
+          elementIds: chunkElements.map((e) => e.id),
+          documentId,
+          userId,
+          advisorId,
+          languageId,
+          minMemorySimilarity,
+          projectId: document.projectId,
+          glossaryIds,
+          memoryIds,
+        },
+      });
+    }
+
+    // 返回父子结构
+    return {
+      name: "finalize",
+      workerId: "auto-translate-finalize",
+      data: {
+        documentId,
+        languageId,
+        totalElements: elements.length,
+      },
+      children,
+    };
+  },
+});

@@ -17,7 +17,7 @@ withDefaults(
 
 <template>
   <div
-    class="rounded-xs bg-highlight-darkest inline-block relative overflow-hidden"
+    class="rounded-xs bg-muted inline-block relative overflow-hidden"
     :style="{
       width: width + 'px',
       height: height + 'px',

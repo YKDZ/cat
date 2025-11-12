@@ -30,10 +30,10 @@ const handleUpdate = (value: boolean) => {
 
 <template>
   <label class="flex flex-col gap-0.5"
-    ><span class="text-highlight-content-darker font-semibold">{{
+    ><span class="text-foreground font-semibold">{{
       schema.title ?? propertyKey
     }}</span>
-    <span class="text-sm text-highlight-content">{{ schema.description }}</span>
+    <span class="text-sm text-foreground">{{ schema.description }}</span>
     <Switch :value="String(value)" @update="handleUpdate" />
   </label>
 </template>

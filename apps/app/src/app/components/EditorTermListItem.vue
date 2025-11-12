@@ -2,7 +2,6 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import TextTagger from "./tagger/TextTagger.vue";
-import Icon from "./Icon.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
@@ -27,13 +26,13 @@ useHotKeys(`T+${props.index + 1}`, handleInsert);
 </script>
 
 <template>
-  <div class="px-3 py-2 flex flex-col gap-1 hover:bg-highlight-darker">
+  <div class="px-3 py-2 flex flex-col gap-1 hover:bg-background">
     <button
       class="text-start flex gap-1 cursor-pointer text-wrap items-center"
       @click="handleInsert"
     >
       <TextTagger v-if="document" :text="term.term" />
-      <Icon small icon="icon-[mdi--arrow-right]" />
+      <div class="icon-[mdi--arrow-right] size-4" />
       <TextTagger v-if="document" :text="term.translation" />
     </button>
   </div>

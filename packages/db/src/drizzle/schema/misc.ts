@@ -14,7 +14,6 @@ import { JSONType } from "@cat/shared/schema/json";
 
 export const language = pgTable("Language", {
   id: text().primaryKey().notNull(),
-  name: text().notNull(),
 });
 
 export const setting = pgTable(

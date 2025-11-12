@@ -37,6 +37,6 @@
     "@cat/shared": "workspace:*",
     "@types/lodash-es": "^4.17.12",
     "lodash-es": "^4.17.21",
-    "zod": "^4.1.9"
+    "zod": "^4.1.12"
   }
 }

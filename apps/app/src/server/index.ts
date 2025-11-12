@@ -3,7 +3,6 @@ import type { Server } from "node:http";
 import { logger } from "@cat/shared/utils";
 import { apply, serve } from "@photonjs/hono";
 import { getDrizzleDB, getRedisDB } from "@cat/db";
-import { closeAllProcessors } from "@cat/app-workers/utils";
 import app from "./app.ts";
 
 let server: Server | null = null;
@@ -17,7 +16,6 @@ const shutdownServer = () => {
         if (err) reject(err);
 
         void (async () => {
-          await closeAllProcessors();
           (await getRedisDB()).disconnect();
           await (await getDrizzleDB()).disconnect();
         })();

@@ -11,6 +11,9 @@ import { glossaryRouter } from "./routers/glossary.ts";
 import { pluginRouter } from "./routers/plugin.ts";
 import { settingRouter } from "./routers/setting.ts";
 import { taskRouter } from "./routers/task.ts";
+// @ts-expect-error workaround for zod utils.d.cts ts(2742)
+// oxlint-disable-next-line no-unused-vars no-unused-vars
+import type { z } from "zod/v4";
 
 export const appRouter = router({
   setting: settingRouter,

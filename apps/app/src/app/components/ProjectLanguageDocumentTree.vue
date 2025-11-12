@@ -10,7 +10,8 @@ import ProjectLanguageDocumentAutoApproveBtn from "./ProjectLanguageDocumentAuto
 import ProjectLanguageDocumentAutoTranslateBtn from "./ProjectLanguageDocumentAutoTranslateBtn.vue";
 import Button from "./ui/button/Button.vue";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import { computedAsync } from "@vueuse/core";
+import DocumentTranslationProgress from "@/app/components/DocumentTranslationProgress.vue";
+import { computedAsyncClient } from "@/app/utils/vue";
 
 const props = defineProps<{
   project: Pick<Project, "id">;
@@ -20,7 +21,7 @@ const props = defineProps<{
 const { info, trpcWarn } = useToastStore();
 const { t } = useI18n();
 
-const documents = computedAsync(async () => {
+const documents = computedAsyncClient(async () => {
   return await trpc.project.getDocuments.query({ projectId: props.project.id });
 }, []);
 
@@ -44,8 +45,9 @@ const handleExportTranslated = async (document: Pick<Document, "id">) => {
 <template>
   <DocumentTree :documents="documents" @click="handleEdit">
     <template #actions="{ document }">
+      <DocumentTranslationProgress :document :language />
       <ProjectLanguageDocumentAutoApproveBtn :document />
-      <ProjectLanguageDocumentAutoTranslateBtn :document />
+      <ProjectLanguageDocumentAutoTranslateBtn :document :language />
       <Button
         @click="handleExportTranslated(document)"
         variant="outline"

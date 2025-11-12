@@ -2,16 +2,18 @@ import type { PageContextServer } from "vike/types";
 import { createPinia } from "pinia";
 import {
   createHTTPHelpers,
+  detectMobile,
   userFromSessionId,
 } from "@cat/app-server-shared/utils";
 import { getSetting } from "@cat/db";
-import { parsePreferredLanguage } from "@/server/utils/i18n.ts";
+import { parsePreferredLanguage } from "@cat/shared/utils";
 
 export const onCreatePageContext = async (ctx: PageContextServer) => {
   ctx.pinia = createPinia();
 
   const helpers = createHTTPHelpers(ctx.runtime.req!, ctx.runtime.res!);
 
+  ctx.isMobile = detectMobile(ctx.runtime.req!);
   ctx.sessionId = helpers.getCookie("sessionId");
   ctx.displayLanguage =
     helpers.getCookie("displayLanguage") ??

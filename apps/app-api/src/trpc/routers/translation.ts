@@ -7,8 +7,6 @@ import {
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import { autoTranslateQueue } from "@cat/app-workers/workers";
-import { createTranslationQueue } from "@cat/app-workers/workers";
 import {
   and,
   asc,
@@ -69,6 +67,7 @@ export const translationRouter = router({
     .mutation(async ({ input, ctx }) => {
       const {
         drizzleDB: { client: drizzle },
+        workerRegistry,
         user,
       } = ctx;
       const { projectId, elementId, languageId, value, createMemory } = input;
@@ -96,8 +95,8 @@ export const translationRouter = router({
             .returning({ id: taskTable.id }),
         );
 
-        await createTranslationQueue.add(
-          task.id,
+        await workerRegistry.addJob(
+          "create-translation",
           {
             createMemory,
             elementId: elementId,
@@ -197,6 +196,7 @@ export const translationRouter = router({
       } = ctx;
       const { translationId, value } = input;
 
+      // 一个人用户对同一个翻译只能投票一次
       return assertSingleNonNullish(
         await drizzle
           .insert(translationVoteTable)
@@ -281,12 +281,12 @@ export const translationRouter = router({
       } = ctx;
       const { documentId, languageId } = input;
 
-      return await drizzle.transaction(async (tx) => {
-        const voteSum =
-          sql<number>`COALESCE(SUM(${translationVoteTable.value}), 0)`.mapWith(
-            Number,
-          );
+      const voteSum =
+        sql<number>`COALESCE(SUM(${translationVoteTable.value}), 0)`.mapWith(
+          Number,
+        );
 
+      return await drizzle.transaction(async (tx) => {
         const topTranslations = await tx
           .selectDistinctOn([translationTable.translatableElementId], {
             translationId: translationTable.id,
@@ -424,6 +424,7 @@ export const translationRouter = router({
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
+        workerRegistry,
         user,
       } = ctx;
       const { documentId, advisorId, languageId, minMemorySimilarity } = input;
@@ -468,8 +469,8 @@ export const translationRouter = router({
           .returning({ id: taskTable.id }),
       );
 
-      await autoTranslateQueue.add(
-        task.id,
+      await workerRegistry.addJob(
+        "auto-translate",
         {
           userId: user.id,
           documentId,
@@ -481,5 +482,32 @@ export const translationRouter = router({
           jobId: task.id,
         },
       );
+    }),
+  isApproved: authedProcedure
+    .input(
+      z.object({
+        translationId: z.int(),
+      }),
+    )
+    .output(z.boolean())
+    .query(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
+      const { translationId } = input;
+
+      const { exists } = assertSingleNonNullish(
+        await drizzle
+          .select({ exists: count() })
+          .from(translationApprovementTable)
+          .where(
+            and(
+              eq(translationApprovementTable.translationId, translationId),
+              eq(translationApprovementTable.isActive, true),
+            ),
+          ),
+      );
+
+      return exists > 0;
     }),
 });

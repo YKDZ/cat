@@ -14,6 +14,7 @@ export const guard = async (ctx: PageContextServer) => {
   let target = await useSSCTRPC(ctx).document.queryFirstElement({
     documentId: documentId,
     isTranslated: false,
+    languageId: languageToId,
   });
 
   if (!target) {

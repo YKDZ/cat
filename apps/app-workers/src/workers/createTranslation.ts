@@ -1,3 +1,9 @@
+/**
+ * 创建翻译 Worker (重构版)
+ *
+ * 功能：为可翻译元素创建翻译，可选择性地添加到记忆库
+ */
+
 import {
   document,
   eq,
@@ -8,114 +14,156 @@ import {
   translation as translationTable,
 } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import { Queue, Worker } from "bullmq";
 import * as z from "zod/v4";
 import {
   assertFirstNonNullish,
   assertSingleNonNullish,
 } from "@cat/shared/utils";
-import { config } from "./config.ts";
-import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
 import { createStringFromData } from "@cat/app-server-shared/utils";
+import { defineWorker } from "@/utils";
 
 const { client: drizzle } = await getDrizzleDB();
 
-const queueId = "createTranslation";
+const id = "create-translation";
 
-export const createTranslationQueue = new Queue(queueId, config);
+declare module "../core/registry" {
+  interface WorkerInputTypeMap {
+    [id]: CreateTranslationInput;
+  }
+}
 
-const worker = new Worker(
-  queueId,
-  async (job) => {
-    const {
-      translationValue,
-      translationLanguageId,
-      elementId,
-      creatorId,
-      createMemory,
-      memoryIds,
-    } = z
-      .object({
-        translationValue: z.string(),
-        translationLanguageId: z.string(),
-        elementId: z.number(),
-        creatorId: z.uuidv7(),
-        createMemory: z.boolean(),
-        memoryIds: z.array(z.uuidv7()),
+const CreateTranslationInputSchema = z.object({
+  translationValue: z.string(),
+  translationLanguageId: z.string(),
+  elementId: z.number(),
+  creatorId: z.uuidv7(),
+  createMemory: z.boolean(),
+  memoryIds: z.array(z.uuidv7()),
+});
+
+type CreateTranslationInput = z.infer<typeof CreateTranslationInputSchema>;
+
+/**
+ * 获取元素的源字符串 ID
+ */
+async function getElementSourceStringId(
+  elementId: number,
+): Promise<{ stringId: number }> {
+  return assertSingleNonNullish(
+    await drizzle
+      .select({
+        stringId: translatableString.id,
       })
-      .parse(job.data);
+      .from(translatableElement)
+      .innerJoin(
+        translatableString,
+        eq(translatableElement.translatableStringId, translatableString.id),
+      )
+      .innerJoin(document, eq(translatableElement.documentId, document.id))
+      .where(eq(translatableElement.id, elementId)),
+    `Element ${elementId} not found`,
+  );
+}
 
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+/**
+ * 创建翻译并可选地添加到记忆库
+ */
+async function createTranslationWithMemory(
+  input: CreateTranslationInput,
+  sourceStringId: number,
+): Promise<{ translationId: number; translationStringId: number }> {
+  const {
+    translationValue,
+    translationLanguageId,
+    elementId,
+    creatorId,
+    createMemory,
+    memoryIds,
+  } = input;
 
-    // TODO 配置
-    const vectorStorage = assertFirstNonNullish(
-      await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+
+  // 获取向量存储和向量化服务
+  const vectorStorage = assertFirstNonNullish(
+    await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+  );
+
+  const vectorizer = assertFirstNonNullish(
+    await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
+  );
+
+  return await drizzle.transaction(async (tx) => {
+    // 创建翻译字符串并生成向量
+    const stringId = assertSingleNonNullish(
+      await createStringFromData(
+        tx,
+        vectorizer.service,
+        vectorizer.id,
+        vectorStorage.service,
+        vectorStorage.id,
+        [{ value: translationValue, languageId: translationLanguageId }],
+      ),
     );
 
-    // TODO 配置
-    const vectorizer = assertFirstNonNullish(
-      await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
+    // 创建翻译记录
+    const translation = assertSingleNonNullish(
+      await tx
+        .insert(translationTable)
+        .values([
+          {
+            translatorId: creatorId,
+            translatableElementId: elementId,
+            stringId,
+          },
+        ])
+        .returning({
+          id: translationTable.id,
+        }),
     );
 
-    const element = assertSingleNonNullish(
-      await drizzle
-        .select({
-          stringId: translatableString.id,
-        })
-        .from(translatableElement)
-        .innerJoin(
-          translatableString,
-          eq(translatableElement.translatableStringId, translatableString.id),
-        )
-        .innerJoin(document, eq(translatableElement.documentId, document.id))
-        .where(eq(translatableElement.id, elementId)),
-      `Element ${elementId} not found`,
-    );
-
-    await drizzle.transaction(async (tx) => {
-      const stringId = assertSingleNonNullish(
-        await createStringFromData(
-          tx,
-          vectorizer.service,
-          vectorizer.id,
-          vectorStorage.service,
-          vectorStorage.id,
-          [{ value: translationValue, languageId: translationLanguageId }],
-        ),
+    // 如果需要，添加到记忆库
+    if (createMemory && memoryIds.length > 0) {
+      await tx.insert(memoryItem).values(
+        memoryIds.map((memoryId) => ({
+          sourceStringId: sourceStringId,
+          translationStringId: stringId,
+          sourceElementId: elementId,
+          translationId: translation.id,
+          memoryId,
+          creatorId,
+        })),
       );
-      const translation = assertSingleNonNullish(
-        await drizzle
-          .insert(translationTable)
-          .values([
-            {
-              translatorId: creatorId,
-              translatableElementId: elementId,
-              stringId,
-            },
-          ])
-          .returning({
-            id: translationTable.id,
-          }),
-      );
+    }
 
-      if (createMemory) {
-        await tx.insert(memoryItem).values(
-          memoryIds.map((memoryId) => ({
-            sourceStringId: element.stringId,
-            translationStringId: stringId,
-            sourceElementId: elementId,
-            translationId: translation.id,
-            memoryId,
-            creatorId,
-          })),
-        );
-      }
-    });
-  },
-  {
-    ...config,
-    concurrency: 50,
-  },
-);
+    return {
+      translationId: translation.id,
+      translationStringId: stringId,
+    };
+  });
+}
 
-registerTaskUpdateHandlers(drizzle, worker, queueId);
+export const createTranslationWorker = defineWorker({
+  id,
+  taskType: id,
+  inputSchema: CreateTranslationInputSchema,
+
+  async execute(ctx) {
+    const { elementId } = ctx.input;
+
+    // 获取源字符串 ID
+    const element = await getElementSourceStringId(elementId);
+
+    // 创建翻译（可能包含记忆库）
+    const result = await createTranslationWithMemory(
+      ctx.input,
+      element.stringId,
+    );
+
+    return {
+      ...result,
+      elementId,
+      memoryCreated: ctx.input.createMemory,
+      memoryCount: ctx.input.memoryIds.length,
+    };
+  },
+});

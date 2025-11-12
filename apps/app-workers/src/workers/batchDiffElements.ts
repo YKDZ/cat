@@ -6,7 +6,6 @@ import {
   translatableElement,
   translatableString,
 } from "@cat/db";
-import { Queue, QueueEvents, Worker } from "bullmq";
 import { PluginRegistry } from "@cat/plugin-core";
 import {
   TranslatableElementDataSchema,
@@ -14,322 +13,482 @@ import {
 } from "@cat/shared/schema/misc";
 import * as z from "zod/v4";
 import { isEqual } from "lodash-es";
-import { assertFirstNonNullish, chunk } from "@cat/shared/utils";
+import { assertFirstNonNullish, chunk, logger } from "@cat/shared/utils";
 import {
   createStringFromData,
   diffArraysAndSeparate,
 } from "@cat/app-server-shared/utils";
-import { config } from "./config.ts";
-import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
-import {
-  DistributedTaskHandler,
-  type ChunkData,
-  type DistributedTask,
-} from "@/utils/chunk.ts";
+import { defineWorker, defineFlow } from "@/utils";
+import type { FlowNode } from "@/core";
 
 const { client: drizzle } = await getDrizzleDB();
 
-const queueId = "batchDiffElements";
+const id = "batch-diff-element";
+const name = "Batch Diff Element";
 
-export const batchDiffElementsQueue = new Queue(queueId, config);
-export const batchDiffElementsQueueEvents = new QueueEvents(queueId);
+declare module "../core/registry" {
+  interface WorkerInputTypeMap {
+    [id]: BatchDiffElementsInput;
+  }
+}
 
-const worker = new Worker(
-  queueId,
-  async (job) => {
-    const { newElementsData, oldElementIds, documentId } = z
-      .object({
-        newElementsData: z.array(
-          TranslatableElementDataSchema.required({
-            sortIndex: true,
-          }),
-        ),
-        oldElementIds: z.array(z.int()),
-        documentId: z.uuidv7(),
+const BatchDiffElementsInputSchema = z.object({
+  newElementsData: z.array(
+    TranslatableElementDataSchema.required({
+      sortIndex: true,
+    }),
+  ),
+  oldElementIds: z.array(z.int()),
+  documentId: z.uuidv7(),
+});
+
+type BatchDiffElementsInput = z.infer<typeof BatchDiffElementsInputSchema>;
+
+const RemoveChunkInputSchema = z.object({
+  elementIds: z.array(z.int()),
+  rollbackData: z.array(
+    z.object({
+      id: z.int(),
+      translatableStringId: z.int(),
+      sortIndex: z.int(),
+      meta: z.json(),
+      documentId: z.uuidv7(),
+    }),
+  ),
+});
+
+const AddWithoutStringChunkInputSchema = z.object({
+  elements: z.array(
+    TranslatableElementDataSchema.required({
+      sortIndex: true,
+    }),
+  ),
+  documentId: z.uuidv7(),
+});
+
+const AddWithStringChunkInputSchema = z.object({
+  elements: z.array(
+    TranslatableElementDataSchema.required({
+      sortIndex: true,
+    }).extend({
+      stringId: z.int(),
+    }),
+  ),
+  documentId: z.uuidv7(),
+});
+
+async function analyzeElementsDiff(input: BatchDiffElementsInput) {
+  const { newElementsData, oldElementIds, documentId } = input;
+
+  const oldElements = (
+    await drizzle
+      .select({
+        id: translatableElement.id,
+        value: translatableString.value,
+        meta: translatableElement.meta,
+        languageId: translatableString.languageId,
+        sortIndex: translatableElement.sortIndex,
+        translatableStringId: translatableElement.translatableStringId,
       })
-      .parse(job.data);
+      .from(translatableElement)
+      .innerJoin(
+        translatableString,
+        eq(translatableElement.translatableStringId, translatableString.id),
+      )
+      .where(inArray(translatableElement.id, oldElementIds))
+  ).map((element) => ({
+    id: element.id,
+    value: element.value,
+    sortIndex: element.sortIndex,
+    languageId: element.languageId,
+    meta: element.meta,
+    translatableStringId: element.translatableStringId,
+    documentId: documentId,
+  }));
 
-    const oldElements = (
+  // 2. 计算差异
+  const { added, removed: removedElements } = diffArraysAndSeparate(
+    oldElements,
+    newElementsData,
+    (a, b) => a.value === b.value && isEqual(a.meta, b.meta),
+  );
+
+  // 3. 分类添加的元素（有无 string 缓存）
+  const addedElementsWithoutExistingString: (TranslatableElementData & {
+    sortIndex: number;
+  })[] = [];
+  const addedElementsWithExistingString: (TranslatableElementData & {
+    sortIndex: number;
+    stringId: number;
+  })[] = [];
+
+  if (added.length > 0) {
+    const tuples = added.map((el) => sql`(${el.value}, ${el.languageId})`);
+
+    const existingStrings = await drizzle
+      .select({
+        id: translatableString.id,
+        value: translatableString.value,
+        languageId: translatableString.languageId,
+      })
+      .from(translatableString)
+      .where(
+        sql`(${translatableString.value}, ${translatableString.languageId}) in (${sql.join(tuples, sql`, `)})`,
+      );
+
+    const stringMap = new Map<string, number>();
+    for (const str of existingStrings) {
+      const key = `${str.value}|${str.languageId}`;
+      stringMap.set(key, str.id);
+    }
+
+    for (const element of added) {
+      const key = `${element.value}|${element.languageId}`;
+      const existingStringId = stringMap.get(key);
+
+      if (existingStringId !== undefined) {
+        addedElementsWithExistingString.push({
+          ...element,
+          stringId: existingStringId,
+        });
+      } else {
+        addedElementsWithoutExistingString.push(element);
+      }
+    }
+  }
+
+  return {
+    removedElements: removedElements.map((el) => ({
+      id: el.id,
+      translatableStringId: el.translatableStringId,
+      sortIndex: el.sortIndex,
+      meta: el.meta,
+      documentId: el.documentId,
+    })),
+    addedElementsWithoutExistingString,
+    addedElementsWithExistingString,
+    documentId,
+  };
+}
+
+/**
+ * 删除元素
+ */
+export const removeElementsChunkWorker = defineWorker({
+  id: "remove-elements-chunk",
+  taskType: "batch_diff_remove_chunk",
+  inputSchema: RemoveChunkInputSchema,
+
+  async execute(ctx) {
+    const { elementIds } = ctx.input;
+
+    await drizzle
+      .delete(translatableElement)
+      .where(inArray(translatableElement.id, elementIds));
+
+    return {
+      deletedCount: elementIds.length,
+      elementIds,
+    };
+  },
+
+  hooks: {
+    onFailed: async (job, error) => {
+      // 失败时自动回滚
+      const { rollbackData } = RemoveChunkInputSchema.parse(job.data);
+
+      logger.info("PROCESSOR", {
+        msg: "Rolling back removed elements after failure",
+        jobName: job.name,
+        rollbackCount: rollbackData.length,
+      });
+
+      // 恢复被删除的元素
+      if (rollbackData.length > 0) {
+        await drizzle.insert(translatableElement).values(rollbackData);
+      }
+
+      logger.error(
+        "PROCESSOR",
+        {
+          msg: "Rollback completed",
+          jobName: job.name,
+        },
+        error,
+      );
+    },
+  },
+});
+
+/**
+ * 无 string 缓存的添加元素
+ */
+export const addElementsWithoutStringChunkWorker = defineWorker({
+  id: "add-elements-without-string-chunk",
+  taskType: "batch_diff_add_without_string_chunk",
+  inputSchema: AddWithoutStringChunkInputSchema,
+
+  async execute(ctx) {
+    const { elements, documentId } = ctx.input;
+
+    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+
+    const vectorStorage = assertFirstNonNullish(
+      await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+    );
+
+    const vectorizer = assertFirstNonNullish(
+      await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
+    );
+
+    const elementIds = await drizzle.transaction(async (tx) => {
+      const stringIds = await createStringFromData(
+        tx,
+        vectorizer.service,
+        vectorizer.id,
+        vectorStorage.service,
+        vectorStorage.id,
+        elements.map((data) => ({
+          value: data.value,
+          languageId: data.languageId,
+        })),
+      );
+
+      return (
+        await tx
+          .insert(translatableElement)
+          .values(
+            elements.map((data, index) => ({
+              sortIndex: data.sortIndex,
+              meta: data.meta,
+              documentId,
+              translatableStringId: stringIds[index],
+            })),
+          )
+          .returning({
+            id: translatableElement.id,
+          })
+      ).map(({ id }) => id);
+    });
+
+    return {
+      createdCount: elementIds.length,
+      elementIds,
+    };
+  },
+
+  hooks: {
+    onFailed: async (job, error) => {
+      logger.error(
+        "PROCESSOR",
+        {
+          msg: "Failed to add elements without string, attempting rollback",
+          jobName: job.name,
+        },
+        error,
+      );
+
+      // 尝试清理已创建的元素（如果有返回值）
+      const result = z
+        .object({
+          elementIds: z.array(z.number()).nullish(),
+        })
+        .nullish()
+        .parse(job.returnvalue);
+      if (result && result.elementIds && Array.isArray(result.elementIds)) {
+        await drizzle
+          .delete(translatableElement)
+          .where(inArray(translatableElement.id, result.elementIds));
+
+        logger.info("PROCESSOR", {
+          msg: "Rolled back elements",
+          jobName: job.name,
+          count: result.elementIds.length,
+        });
+      }
+    },
+  },
+});
+
+/**
+ * 有 string 缓存的添加元素
+ */
+export const addElementsWithStringChunkWorker = defineWorker({
+  id: "add-elements-with-string-chunk",
+  taskType: "batch_diff_add_with_string_chunk",
+  inputSchema: AddWithStringChunkInputSchema,
+
+  async execute(ctx) {
+    const { elements, documentId } = ctx.input;
+
+    const elementIds = (
       await drizzle
-        .select({
-          id: translatableElement.id,
-          value: translatableString.value,
-          meta: translatableElement.meta,
-          languageId: translatableString.languageId,
-          sortIndex: translatableElement.sortIndex,
-        })
-        .from(translatableElement)
-        .innerJoin(
-          translatableString,
-          eq(translatableElement.translatableStringId, translatableString.id),
-        )
-        .where(inArray(translatableElement.id, oldElementIds))
-    ).map((element) => ({
-      id: element.id,
-      value: element.value,
-      sortIndex: element.sortIndex,
-      languageId: element.languageId,
-      meta: element.meta,
-    }));
-
-    const { added, removed: removedElements } = diffArraysAndSeparate(
-      oldElements,
-      newElementsData,
-      // 值和元数据相等即视为相等
-      (a, b) => a.value === b.value && isEqual(a.meta, b.meta),
-    );
-
-    const addedElementsWithoutExistingString: (TranslatableElementData & {
-      sortIndex: number;
-    })[] = [];
-    const addedElementsWithExistingString: (TranslatableElementData & {
-      sortIndex: number;
-      stringId: number;
-    })[] = [];
-
-    if (added.length > 0) {
-      const tuples = added.map((el) => sql`(${el.value}, ${el.languageId})`);
-
-      const existingStrings = await drizzle
-        .select({
-          id: translatableString.id,
-          value: translatableString.value,
-          languageId: translatableString.languageId,
-        })
-        .from(translatableString)
-        .where(
-          sql`(${translatableString.value}, ${translatableString.languageId}) in (${sql.join(tuples, sql`, `)})`,
-        );
-
-      // 创建快速查找映射 (value + languageId -> stringId)
-      const stringMap = new Map<string, number>();
-      for (const str of existingStrings) {
-        const key = `${str.value}|${str.languageId}`;
-        stringMap.set(key, str.id);
-      }
-
-      // 分类 added 元素
-      for (const element of added) {
-        const key = `${element.value}|${element.languageId}`;
-        const existingStringId = stringMap.get(key);
-
-        if (existingStringId !== undefined) {
-          addedElementsWithExistingString.push({
-            value: element.value,
-            sortIndex: element.sortIndex,
-            languageId: element.languageId,
-            meta: element.meta,
-            stringId: existingStringId,
-          });
-        } else {
-          addedElementsWithoutExistingString.push({
-            value: element.value,
-            sortIndex: element.sortIndex,
-            languageId: element.languageId,
-            meta: element.meta,
-          });
-        }
-      }
-    }
-
-    // 移除元素
-    if (removedElements.length !== 0)
-      await new DistributedTaskHandler("batchDiffElements_removeElements", {
-        chunks: chunk(removedElements, 100).map(({ index, chunk }) => {
-          return {
-            chunkIndex: index,
-            data: chunk,
-          };
-        }),
-        run: async ({ data }) => {
-          await handleRemovedElements(data.map(({ id }) => id));
-        },
-        rollback: async (_, data) => {
-          const result = z.array(z.int()).parse(data);
-          await rollbackRemovedElements(result);
-        },
-      }).run();
-
-    // 添加不带 string 缓存的元素
-    if (addedElementsWithoutExistingString.length !== 0) {
-      type ChunkElement = {
-        element: TranslatableElementData & { sortIndex: number };
-      };
-      await new DistributedTaskHandler<ChunkElement>(
-        "batchDiffElements_addElementWithoutExistingString",
-        {
-          chunks: chunk<TranslatableElementData & { sortIndex: number }>(
-            addedElementsWithoutExistingString,
-            100,
-          ).map(({ index, chunk }) => {
-            return {
-              chunkIndex: index,
-              data: chunk.map((el) => ({
-                element: el,
-              })),
-            } satisfies ChunkData<{
-              element: TranslatableElementData & { sortIndex: number };
-            }>;
-          }),
-          run: async ({ data }) => {
-            const elementIds = await handleAddedElementsWithoutExistingString(
-              data.map((element) => element.element),
-              documentId,
-            );
-            return { elementIds };
-          },
-          rollback: async (_, data) => {
-            const { elementIds } = z
-              .object({
-                elementIds: z.array(z.int()),
-              })
-              .parse(data);
-            await rollbackAddedElementsWithoutExistingString(elementIds);
-          },
-        } satisfies DistributedTask<ChunkElement>,
-      ).run();
-    }
-
-    // 添加带 string 缓存的元素
-    if (addedElementsWithExistingString.length !== 0) {
-      type ChunkElement = TranslatableElementData & {
-        sortIndex: number;
-        stringId: number;
-      };
-      await new DistributedTaskHandler<ChunkElement>(
-        "batchDiffElements_addElementWithExistingString",
-        {
-          chunks: chunk<ChunkElement>(addedElementsWithExistingString, 100).map(
-            ({ index, chunk }) => {
-              return {
-                chunkIndex: index,
-                data: chunk,
-              } satisfies ChunkData<ChunkElement>;
-            },
-          ),
-          run: async ({ data }) => {
-            const elementIds = await handleAddedElementsWithExistingString(
-              data,
-              documentId,
-            );
-            return { elementIds };
-          },
-          rollback: async (_, data) => {
-            const { elementIds } = z
-              .object({
-                elementIds: z.array(z.int()),
-              })
-              .parse(data);
-            await rollbackAddedElementsWithExistingString(elementIds);
-          },
-        } satisfies DistributedTask<ChunkElement>,
-      ).run();
-    }
-  },
-  {
-    ...config,
-  },
-);
-
-const handleRemovedElements = async (elementIds: number[]): Promise<void> => {
-  await drizzle
-    .delete(translatableElement)
-    .where(inArray(translatableElement.id, elementIds));
-};
-
-// oxlint-disable-next-line require-await
-const rollbackRemovedElements = async (elementIds: number[]): Promise<void> => {
-  // oxlint-disable-next-line restrict-template-expressions
-  throw new Error(`Not implemented ${elementIds}`);
-};
-
-const handleAddedElementsWithoutExistingString = async (
-  elements: (TranslatableElementData & { sortIndex: number })[],
-  documentId: string,
-): Promise<number[]> => {
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-
-  // TODO 配置
-  const vectorStorage = assertFirstNonNullish(
-    await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
-  );
-
-  // TODO 配置
-  const vectorizer = assertFirstNonNullish(
-    await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
-  );
-
-  return drizzle.transaction(async (tx) => {
-    const stringIds = await createStringFromData(
-      tx,
-      vectorizer.service,
-      vectorizer.id,
-      vectorStorage.service,
-      vectorStorage.id,
-      elements.map((data) => ({
-        value: data.value,
-        languageId: data.languageId,
-      })),
-    );
-
-    return (
-      await tx
         .insert(translatableElement)
         .values(
-          elements.map((data, index) => ({
-            sortIndex: data.sortIndex,
-            meta: data.meta,
+          elements.map((element) => ({
+            sortIndex: element.sortIndex,
+            meta: element.meta,
             documentId,
-            translatableStringId: stringIds[index],
+            translatableStringId: element.stringId,
           })),
         )
         .returning({
           id: translatableElement.id,
         })
     ).map(({ id }) => id);
-  });
-};
 
-const rollbackAddedElementsWithoutExistingString = async (
-  elementIds: number[],
-) => {
-  await drizzle.transaction(async (tx) => {
-    await tx
-      .delete(translatableElement)
-      .where(inArray(translatableElement.id, elementIds));
-  });
-};
+    return {
+      createdCount: elementIds.length,
+      elementIds,
+    };
+  },
 
-const handleAddedElementsWithExistingString = async (
-  elements: (TranslatableElementData & {
-    sortIndex: number;
-    stringId: number;
-  })[],
-  documentId: string,
-): Promise<number[]> => {
-  return (
-    await drizzle
-      .insert(translatableElement)
-      .values(
-        elements.map((element) => ({
-          sortIndex: element.sortIndex,
-          meta: element.meta,
+  hooks: {
+    onFailed: async (job, error) => {
+      logger.error(
+        "PROCESSOR",
+        {
+          msg: "Failed to add elements with string, attempting rollback",
+          jobName: job.name,
+        },
+        error,
+      );
+
+      const result = z
+        .object({
+          elementIds: z.array(z.number()).nullish(),
+        })
+        .nullish()
+        .parse(job.returnvalue);
+      if (result && result.elementIds && Array.isArray(result.elementIds)) {
+        await drizzle
+          .delete(translatableElement)
+          .where(inArray(translatableElement.id, result.elementIds));
+
+        logger.info("PROCESSOR", {
+          msg: "Rolled back elements",
+          jobName: job.name,
+          count: result.elementIds.length,
+        });
+      }
+    },
+  },
+});
+
+const FinalizeInputSchema = z.object({
+  documentId: z.uuidv7(),
+  totalRemoved: z.number(),
+  totalAddedWithoutString: z.number(),
+  totalAddedWithString: z.number(),
+});
+
+export const batchDiffElementsFinalizeWorker = defineWorker({
+  id,
+  taskType: id,
+  inputSchema: FinalizeInputSchema,
+
+  async execute(ctx) {
+    const childrenValues = await ctx.job.getChildrenValues();
+
+    // 汇总所有子任务的结果
+    let totalDeleted = 0;
+    let totalCreated = 0;
+
+    for (const [_, r] of Object.entries(childrenValues)) {
+      const result = z
+        .object({
+          deletedCount: z.int().optional(),
+          createdCount: z.int().optional(),
+        })
+        .parse(r);
+      if (result && typeof result === "object") {
+        if ("deletedCount" in result && result.deletedCount) {
+          totalDeleted += result.deletedCount;
+        }
+        if ("createdCount" in result && result.createdCount) {
+          totalCreated += result.createdCount;
+        }
+      }
+    }
+
+    return {
+      documentId: ctx.input.documentId,
+      totalDeleted,
+      totalCreated,
+      chunksProcessed: Object.keys(childrenValues).length,
+    };
+  },
+});
+
+export const batchDiffElementsFlow = defineFlow({
+  id,
+  name,
+  inputSchema: BatchDiffElementsInputSchema,
+
+  async build(input: BatchDiffElementsInput) {
+    // 分析差异
+    const {
+      removedElements,
+      addedElementsWithoutExistingString,
+      addedElementsWithExistingString,
+      documentId,
+    } = await analyzeElementsDiff(input);
+
+    const children: FlowNode[] = [];
+
+    // 创建删除分块子任务
+    const removeChunks = chunk(removedElements, 100);
+    for (const { index, chunk: chunkData } of removeChunks) {
+      children.push({
+        name: `remove-chunk-${index}`,
+        workerId: "remove-elements-chunk",
+        data: {
+          elementIds: chunkData.map((el) => el.id),
+          rollbackData: chunkData, // 保存原始数据用于回滚
+        },
+      });
+    }
+
+    // 无 string 缓存
+    const addWithoutStringChunks = chunk(
+      addedElementsWithoutExistingString,
+      100,
+    );
+    for (const { index, chunk: chunkData } of addWithoutStringChunks) {
+      children.push({
+        name: `add-without-string-chunk-${index}`,
+        workerId: "add-elements-without-string-chunk",
+        data: {
+          elements: chunkData,
           documentId,
-          translatableStringId: element.stringId,
-        })),
-      )
-      .returning({
-        id: translatableElement.id,
-      })
-  ).map(({ id }) => id);
-};
+        },
+      });
+    }
 
-const rollbackAddedElementsWithExistingString = async (
-  elementIds: number[],
-) => {
-  await drizzle
-    .delete(translatableElement)
-    .where(inArray(translatableElement.id, elementIds));
-};
+    // 有 string 缓存
+    const addWithStringChunks = chunk(addedElementsWithExistingString, 100);
+    for (const { index, chunk: chunkData } of addWithStringChunks) {
+      children.push({
+        name: `add-with-string-chunk-${index}`,
+        workerId: "add-elements-with-string-chunk",
+        data: {
+          elements: chunkData,
+          documentId,
+        },
+      });
+    }
 
-registerTaskUpdateHandlers(drizzle, worker, queueId);
+    // 返回父子结构
+    return {
+      name: "finalize",
+      workerId: "batch-diff-elements-finalize",
+      data: {
+        documentId,
+        totalRemoved: removedElements.length,
+        totalAddedWithoutString: addedElementsWithoutExistingString.length,
+        totalAddedWithString: addedElementsWithExistingString.length,
+      },
+      children,
+    };
+  },
+});

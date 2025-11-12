@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import Toast from "@/app/components/Toast.vue";
 import { SidebarProvider } from "@/app/components/ui/sidebar";
 import { useCookies } from "@vueuse/integrations/useCookies";
 import { computed } from "vue";
+import { Toaster } from "@/app/components/ui/sonner";
 
 const sidebarState = useCookies(["sidebarState"]);
 
@@ -17,9 +17,9 @@ const defaultOpen = computed(() => {
     @update:open="(value) => sidebarState.set('sidebarState', value)"
   >
     <div
-      class="bg-highlight h-screen max-h-screen max-w-screen min-h-screen min-w-screen w-screen overflow-x-hidden overflow-y-auto"
+      class="bg-background h-screen max-h-screen max-w-screen min-h-screen min-w-screen w-screen overflow-x-hidden overflow-y-auto"
     >
       <slot /></div
   ></SidebarProvider>
-  <Toast />
+  <Toaster class="pointer-events-auto" />
 </template>

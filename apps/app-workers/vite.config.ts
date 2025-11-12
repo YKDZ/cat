@@ -30,7 +30,6 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(import.meta.dirname, "src/index.ts"),
-        workers: resolve(import.meta.dirname, "src/workers/index.ts"),
         utils: resolve(import.meta.dirname, "src/utils/index.ts"),
       },
       formats: ["es"],

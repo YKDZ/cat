@@ -3,7 +3,7 @@ import type { PageContextClient } from "vike/types";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import { getCookieFunc } from "@cat/shared/utils";
 import { usePreferredLanguages } from "@vueuse/core";
-import { createI18n } from "vue-i18n";
+import { i18n } from "@/app/utils/i18n";
 
 export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
   const { app } = ctx;
@@ -25,15 +25,6 @@ const hydratePinia = (ctx: PageContextClient) => {
 };
 
 const hydrateI18n = async (ctx: PageContextClient) => {
-  const i18n = createI18n({
-    legacy: false,
-    fallbackLocale: "zh_cn",
-    fallbackFormat: true,
-    missingWarn: false,
-    fallbackWarn: false,
-    formatFallbackMessages: true,
-    globalInjection: true,
-  });
   ctx.i18n = i18n;
 
   const key =

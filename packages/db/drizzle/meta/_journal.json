@@ -288,6 +288,13 @@
       "when": 1762514017068,
       "tag": "0040_secret_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1762917075273,
+      "tag": "0041_polite_thing",
+      "breakpoints": true
     }
   ]
 }

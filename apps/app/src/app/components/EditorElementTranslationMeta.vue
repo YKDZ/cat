@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import type { TranslationAdvisorData } from "@cat/shared/schema/misc";
 import { toShortFixed } from "@cat/shared/utils";
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 import * as z from "zod/v4";
 import { useDateFormat } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
-import EditorElementTranslationMetaTag from "./EditorElementTranslationMetaTag.vue";
 import type { TranslationWithStatus } from "../stores/editor/translation";
+import { Badge } from "@/app/components/ui/badge";
+import { computedAsyncClient } from "@/app/utils/vue";
 
 const { t } = useI18n();
 
@@ -16,54 +15,48 @@ const props = defineProps<{
   translation: Pick<TranslationWithStatus, "createdAt" | "meta">;
 }>();
 
-const meta = computed<TranslationMeta | null>(() => {
-  return TranslationMetaSchema.nullable().parse(props.translation.meta);
-});
-
 const TranslationMetaSchema = z.object({
-  isAutoTranslation: z.boolean().default(false),
-  isAdvisor: z.boolean().default(false),
-  isMemory: z.boolean().default(false),
-  advisorId: z.int().optional(),
-  memorySimilarity: z.number().min(0).max(1).default(0),
-  memoryId: z.uuidv7().optional(),
+  advisorId: z.int().nullable(),
+  memorySimilarity: z.number().min(0).max(1).default(0).nullable(),
+  memoryId: z.uuidv7().nullable(),
 });
 
 type TranslationMeta = z.infer<typeof TranslationMetaSchema>;
 
-const memory = ref<Memory | null>(null);
-const advisor = ref<TranslationAdvisorData | null>(null);
+const meta = computed<TranslationMeta | null>(() => {
+  return TranslationMetaSchema.nullable().parse(props.translation.meta);
+});
 
-onMounted(async () => {
-  if (meta.value && meta.value.memoryId)
-    memory.value = await trpc.memory.get.query({ id: meta.value.memoryId });
-  if (meta.value && meta.value.advisorId)
-    advisor.value = await trpc.plugin.getTranslationAdvisor.query({
-      advisorId: meta.value.advisorId,
-    });
+const memory = computedAsyncClient(async () => {
+  if (!meta.value || !meta.value.memoryId) return null;
+  return await trpc.memory.get.query({ id: meta.value.memoryId });
+}, null);
+
+const advisor = computedAsyncClient(async () => {
+  if (!meta.value || !meta.value.advisorId) return null;
+  return await trpc.plugin.getTranslationAdvisor.query({
+    advisorId: meta.value.advisorId,
+  });
 });
 </script>
 
 <template>
   <div v-if="meta" class="flex gap-0.5">
-    <EditorElementTranslationMetaTag>{{
+    <Badge variant="secondary">{{
       useDateFormat(translation.createdAt, "YYYY-MM-DD HH:mm:ss")
-    }}</EditorElementTranslationMetaTag>
-    <EditorElementTranslationMetaTag v-if="meta.isAutoTranslation">{{
-      t("自动翻译")
-    }}</EditorElementTranslationMetaTag>
-    <EditorElementTranslationMetaTag v-if="meta.isMemory && memory">{{
+    }}</Badge>
+    <Badge variant="secondary" v-if="memory">{{
       t("来自记忆库 {name}", { name: memory.name })
-    }}</EditorElementTranslationMetaTag>
-    <EditorElementTranslationMetaTag v-if="meta.isAdvisor && advisor">{{
+    }}</Badge>
+    <Badge variant="secondary" v-if="advisor">{{
       t("来自建议器 {name}", { name: advisor.name })
-    }}</EditorElementTranslationMetaTag>
-    <EditorElementTranslationMetaTag v-if="meta.isMemory"
+    }}</Badge>
+    <Badge variant="secondary" v-if="meta.memorySimilarity"
       >{{
         t("记忆匹配度：{similarity}%", {
           similarity: toShortFixed(meta.memorySimilarity * 100),
         })
       }}
-    </EditorElementTranslationMetaTag>
+    </Badge>
   </div>
 </template>

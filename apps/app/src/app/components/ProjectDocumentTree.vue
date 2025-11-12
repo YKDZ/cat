@@ -37,7 +37,7 @@ const handleDelete = async (document: Pick<Document, "id" | "name">) => {
         size="icon"
         @click="handleDelete(document)"
       >
-        <div class="icon-[mdi--delete] size-4 text-error-darker" />
+        <div class="icon-[mdi--delete] size-4 text-destructive" />
       </Button>
     </template>
   </DocumentTree>

@@ -1,6 +1,7 @@
 import type { VNode } from "vue";
 import { h, ref } from "vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { i18n } from "@/app/utils/i18n";
 
 export type Clipper = {
   id: number | string;
@@ -8,17 +9,18 @@ export type Clipper = {
   splitter: RegExp;
   highlight: boolean;
   /**
-   * A function returned VNode will be execute,
-   * null will be rendered to the part text.
-   */
-  content: string | ((part: PartData) => VNode) | null;
-  /**
    * Define whether the clipped part should be translated
    */
   translatable: boolean;
   needConfirmation: boolean;
   verifyHandlers: VerifyHandler[];
   clickHandlers: ClickHandler[];
+  tooltip?: string | ((part: PartData) => VNode);
+  /**
+   * A function returned VNode will be execute,
+   * null will be rendered to the part text.
+   */
+  content?: string | ((part: PartData) => VNode);
 };
 
 export type VerifyHandler = {
@@ -50,9 +52,11 @@ export type ClipperVerifyResult = {
   clipperId: string | number | null;
 };
 
+const { t } = i18n.global;
+
 const shouldMatchCount: VerifyHandler = {
   id: 1,
-  name: "Should Match Count",
+  name: t("应匹配数量"),
 
   handler: async (
     clipper: Clipper,
@@ -77,8 +81,8 @@ const shouldMatchCount: VerifyHandler = {
 };
 
 const shouldMatchContent: VerifyHandler = {
-  id: 1,
-  name: "Should Match Content",
+  id: 2,
+  name: t("应匹配内容"),
 
   handler: async (
     clipper: Clipper,
@@ -107,7 +111,7 @@ const shouldMatchContent: VerifyHandler = {
 
 const copyContent: ClickHandler = {
   id: 1,
-  name: "Copy Content",
+  name: t("复制内容"),
 
   async handler(clipper: Clipper, part: PartData) {
     const { insert } = useEditorTableStore();
@@ -119,7 +123,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 1,
     splitter: /(\n)/g,
-    name: "\\n",
+    name: "LF",
     content: () => {
       return h(
         "span",
@@ -150,8 +154,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 2,
     splitter: /[%@][A-Za-z]/g,
-    name: "placeholder",
-    content: null,
+    name: t("占位符"),
     translatable: false,
     highlight: true,
     needConfirmation: true,
@@ -161,7 +164,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 3,
     splitter: / /g,
-    name: "space",
+    name: t("空格"),
     content: () => {
       return h(
         "span",
@@ -207,8 +210,7 @@ export const clippers = ref<Clipper[]>([
   {
     id: 4,
     splitter: /\d+/g,
-    name: "number",
-    content: null,
+    name: t("数字"),
     translatable: false,
     highlight: true,
     needConfirmation: true,

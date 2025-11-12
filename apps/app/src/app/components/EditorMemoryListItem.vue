@@ -34,11 +34,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="px-3 py-2 flex flex-col gap-1 hover:bg-highlight-darker">
+  <div class="px-3 py-2 flex flex-col gap-1 hover:bg-background">
     <button class="text-start cursor-pointer text-wrap" @click="handleCopy">
       <TextTagger :text="memorySuggestion.translation" />
     </button>
-    <div class="text-sm text-highlight-content flex gap-2 items-center">
+    <div class="text-sm text-foreground flex gap-2 items-center">
       <span>{{
         t("{similarity}%", {
           similarity: toShortFixed(memorySuggestion.similarity * 100, 2),

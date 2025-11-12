@@ -4,7 +4,6 @@ import { DrizzleDateTimeSchema } from "../misc";
 
 export const LanguageSchema = z.object({
   id: z.string(),
-  name: z.string(),
 });
 
 export const TaskSchema = z.object({

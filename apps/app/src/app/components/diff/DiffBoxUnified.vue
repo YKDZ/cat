@@ -7,14 +7,14 @@ defineProps<{
 </script>
 
 <template>
-  <div class="text-highlight-content font-mono py-2 bg-highlight-darker w-full">
+  <div class="text-foreground font-mono py-2 bg-background w-full">
     <div
       v-for="line in diffedLines"
       :key="line.newLineNumber + line.content + line.oldLineNumber"
       class="text-sm flex whitespace-pre-wrap items-start"
       :class="{
-        'bg-success text-success-content': line.type === 'added',
-        'bg-error text-error-content': line.type === 'removed',
+        'bg-secondary text-secondary-foreground': line.type === 'added',
+        'bg-destructive text-destructive-foreground': line.type === 'removed',
       }"
     >
       <span

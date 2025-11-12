@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from "@/app/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -17,6 +18,7 @@ import {
   ChevronsLeftIcon,
 } from "lucide-vue-next";
 import { storeToRefs } from "pinia";
+import { computed } from "vue";
 
 const { currentPage } = storeToRefs(useEditorContextStore());
 const { elementTotalAmount, pageTotalAmount } = storeToRefs(
@@ -24,17 +26,21 @@ const { elementTotalAmount, pageTotalAmount } = storeToRefs(
 );
 
 const { toPage } = useEditorTableStore();
+
+const onInputChange = (value: number) => {
+  if (value < 1 || value > pageTotalAmount.value) currentPage.value = 1;
+  toPage(value - 1);
+};
 </script>
 
 <template>
   <Pagination
-    v-slot="{ page }"
     :items-per-page="16"
     :total="elementTotalAmount"
     :sibling-count="0"
     v-model:page="currentPage"
   >
-    <PaginationContent v-slot="{ items }">
+    <PaginationContent>
       <PaginationFirst @click="toPage(0)">
         <ChevronsLeftIcon />
       </PaginationFirst>
@@ -42,17 +48,12 @@ const { toPage } = useEditorTableStore();
         <ChevronLeftIcon />
       </PaginationPrevious>
 
-      <template v-for="(item, index) in items" :key="index">
-        <!-- item.value 就是页码 -->
-        <PaginationItem
-          v-if="item.type === 'page'"
-          :value="item.value"
-          :is-active="item.value === page"
-          @click="toPage(item.value - 1)"
-        >
-          {{ item.value }}
-        </PaginationItem>
-      </template>
+      <Input
+        type="text"
+        class="w-[10ch] text-center"
+        v-model="currentPage"
+        @change="onInputChange"
+      />
 
       <PaginationNext @click="toPage(currentPage - 1)">
         <ChevronRightIcon />

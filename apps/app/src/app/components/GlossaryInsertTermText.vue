@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import Textarea from "@/app/components/Textarea.vue";
+import { Textarea } from "@/app/components/ui/textarea";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { trpc } from "@cat/app-api/trpc/client";
@@ -70,7 +70,7 @@ const handleInsert = async () => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <article class="prose-highlight-content max-w-460px prose">
+    <article class="prose-foreground max-w-460px prose">
       <p>
         {{
           t(

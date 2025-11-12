@@ -39,6 +39,6 @@
   "peerDependencies": {
     "@cat/shared": "workspace:*",
     "dotenv": "^17.2.3",
-    "zod": "^4.1.9"
+    "zod": "^4.1.12"
   }
 }

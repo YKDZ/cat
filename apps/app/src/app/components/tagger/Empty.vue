@@ -2,7 +2,7 @@
 
 <template>
   <span
-    class="text-highlight-content font-bold mr-0.5 px-0.5 rounded-md bg-highlight-darker select-none"
+    class="inline-block text-muted-foreground bg-muted font-bold mr-0.5 px-1 rounded-md select-none"
     >~</span
   >
 </template>

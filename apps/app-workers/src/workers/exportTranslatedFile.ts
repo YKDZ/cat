@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { Queue, Worker } from "bullmq";
 import {
   eq,
   task as taskTable,
@@ -11,18 +10,17 @@ import {
   translationApprovement as translationApprovementTable,
   exists,
   blob as blobTable,
+  getDrizzleDB,
+  file as fileTable,
+  document as documentTable,
+  sql,
 } from "@cat/db";
 import * as z from "zod/v4";
 import {
   PluginRegistry,
-  StorageProvider,
-  TranslatableFileHandler,
+  type StorageProvider,
+  type TranslatableFileHandler,
 } from "@cat/plugin-core";
-import {
-  getDrizzleDB,
-  file as fileTable,
-  document as documentTable,
-} from "@cat/db";
 import { assertSingleNonNullish, useStringTemplate } from "@cat/shared/utils";
 import {
   getServiceFromDBId,
@@ -30,158 +28,172 @@ import {
   readableToBuffer,
   useStorage,
 } from "@cat/app-server-shared/utils";
-import { config } from "./config.ts";
-import { registerTaskUpdateHandlers } from "@/utils/worker.ts";
+import { defineWorker } from "@/utils";
 
 const { client: drizzle } = await getDrizzleDB();
 
-const queueId = "exportTranslatedFile";
+const id = "export-translated-file";
 
-export const exportTranslatedFileQueue = new Queue(queueId, config);
+declare module "../core/registry" {
+  interface WorkerInputTypeMap {
+    [id]: ExportTranslatedFileInput;
+  }
+}
 
-const worker = new Worker(
-  queueId,
-  async (job) => {
-    const { documentId, languageId } = z
-      .object({
-        documentId: z.string(),
-        languageId: z.string(),
-      })
-      .parse(job.data);
-    const taskId = z.string().parse(job.id);
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+const ExportTranslatedFileInputSchema = z.object({
+  documentId: z.string(),
+  languageId: z.string(),
+});
 
-    const document = assertSingleNonNullish(
-      await drizzle
-        .select({
-          fileId: documentTable.fileId,
-          fileHandlerId: documentTable.fileHandlerId,
-        })
-        .from(documentTable)
-        .where(eq(documentTable.id, documentId))
-        .limit(1),
-      `Document ${documentId} not found`,
-    );
+type ExportTranslatedFileInput = z.infer<
+  typeof ExportTranslatedFileInputSchema
+>;
 
-    if (!document.fileHandlerId || !document.fileId)
-      throw new Error("Document is not file based");
-
-    const handler = await getServiceFromDBId<TranslatableFileHandler>(
-      drizzle,
-      pluginRegistry,
-      document.fileHandlerId,
-    );
-
-    if (!handler)
-      throw new Error(
-        `Translatable File Handler with id ${document.fileHandlerId} do not exists`,
-      );
-
-    const file = assertSingleNonNullish(
-      await drizzle
-        .select({
-          name: fileTable.name,
-          key: blobTable.key,
-          storageProviderId: blobTable.storageProviderId,
-        })
-        .from(fileTable)
-        .innerJoin(blobTable, eq(fileTable.blobId, blobTable.id))
-        .where(
-          and(eq(fileTable.id, document.fileId), eq(fileTable.isActive, true)),
-        ),
-      `Document ${documentId} not have file`,
-    );
-
-    const provider = await getServiceFromDBId<StorageProvider>(
-      drizzle,
-      pluginRegistry,
-      file.storageProviderId,
-    );
-    const fileContent = await readableToBuffer(
-      await provider.getStream(file.key),
-    );
-
-    // 查询所有已被批准的翻译
-    const translationData = await drizzle
+/**
+ * 获取文档的文件信息
+ */
+async function getDocumentFileInfo(documentId: string): Promise<{
+  fileId: number;
+  fileHandlerId: number;
+  fileName: string;
+  fileKey: string;
+  storageProviderId: number;
+}> {
+  const document = assertSingleNonNullish(
+    await drizzle
       .select({
-        value: translatableString.value,
-        meta: translatableElementTable.meta,
+        fileId: documentTable.fileId,
+        fileHandlerId: documentTable.fileHandlerId,
       })
-      .from(translationTable)
-      .innerJoin(
-        translatableString,
-        eq(translationTable.stringId, translatableString.id),
-      )
-      .innerJoin(
-        translatableElementTable,
-        eq(translationTable.translatableElementId, translatableElementTable.id),
-      )
+      .from(documentTable)
+      .where(eq(documentTable.id, documentId))
+      .limit(1),
+    `Document ${documentId} not found`,
+  );
+
+  if (!document.fileHandlerId || !document.fileId) {
+    throw new Error("Document is not file based");
+  }
+
+  const file = assertSingleNonNullish(
+    await drizzle
+      .select({
+        name: fileTable.name,
+        key: blobTable.key,
+        storageProviderId: blobTable.storageProviderId,
+      })
+      .from(fileTable)
+      .innerJoin(blobTable, eq(fileTable.blobId, blobTable.id))
       .where(
-        and(
-          eq(translatableString.languageId, languageId),
-          eq(translatableElementTable.documentId, documentId),
-          exists(
-            drizzle
-              .select({ id: translationApprovementTable.id })
-              .from(translationApprovementTable)
-              .where(
-                and(
-                  eq(
-                    translationApprovementTable.translationId,
-                    translationTable.id,
-                  ),
-                  eq(translationApprovementTable.isActive, true),
+        and(eq(fileTable.id, document.fileId), eq(fileTable.isActive, true)),
+      ),
+    `Document ${documentId} does not have an active file`,
+  );
+
+  return {
+    fileId: document.fileId,
+    fileHandlerId: document.fileHandlerId,
+    fileName: file.name,
+    fileKey: file.key,
+    storageProviderId: file.storageProviderId,
+  };
+}
+
+/**
+ * 获取文件处理器
+ */
+async function getFileHandler(
+  fileHandlerId: number,
+): Promise<TranslatableFileHandler> {
+  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+
+  const handler = await getServiceFromDBId<TranslatableFileHandler>(
+    drizzle,
+    pluginRegistry,
+    fileHandlerId,
+  );
+
+  if (!handler) {
+    throw new Error(
+      `Translatable File Handler with id ${fileHandlerId} does not exist`,
+    );
+  }
+
+  return handler;
+}
+
+/**
+ * 获取已批准的翻译数据
+ */
+async function getApprovedTranslations(
+  documentId: string,
+  languageId: string,
+): Promise<
+  Array<{ value: string; meta: import("@cat/shared/schema/json").JSONType }>
+> {
+  return await drizzle
+    .select({
+      value: translatableString.value,
+      meta: translatableElementTable.meta,
+    })
+    .from(translationTable)
+    .innerJoin(
+      translatableString,
+      eq(translationTable.stringId, translatableString.id),
+    )
+    .innerJoin(
+      translatableElementTable,
+      eq(translationTable.translatableElementId, translatableElementTable.id),
+    )
+    .where(
+      and(
+        eq(translatableString.languageId, languageId),
+        eq(translatableElementTable.documentId, documentId),
+        exists(
+          drizzle
+            .select({ id: translationApprovementTable.id })
+            .from(translationApprovementTable)
+            .where(
+              and(
+                eq(
+                  translationApprovementTable.translationId,
+                  translationTable.id,
                 ),
+                eq(translationApprovementTable.isActive, true),
               ),
-          ),
+            ),
         ),
-      );
-
-    const translated = await handler.getReplacedFileContent(
-      fileContent,
-      translationData.map(({ value, meta }) => ({
-        value,
-        meta,
-      })),
+      ),
     );
+}
 
-    const { fileId: translatedFileId } = await uploadTranslatedFile(
-      translated,
-      file.name,
-      documentId,
-      languageId,
-    );
+/**
+ * 从存储中读取文件内容
+ */
+async function readFileContent(
+  fileKey: string,
+  storageProviderId: number,
+): Promise<Buffer> {
+  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    await drizzle.transaction(async (tx) => {
-      const [task] = await tx
-        .select()
-        .from(taskTable)
-        .where(eq(taskTable.id, taskId));
+  const provider = await getServiceFromDBId<StorageProvider>(
+    drizzle,
+    pluginRegistry,
+    storageProviderId,
+  );
 
-      if (!task) throw new Error("Task do not exists");
-      if (typeof task.meta !== "object") throw new Error("Task has wrong meta");
+  return await readableToBuffer(await provider.getStream(fileKey));
+}
 
-      await tx
-        .update(taskTable)
-        .set({
-          meta: { ...task.meta, fileId: translatedFileId },
-        })
-        .where(eq(taskTable.id, taskId));
-    });
-  },
-  {
-    ...config,
-    concurrency: 50,
-  },
-);
-
-const uploadTranslatedFile = async (
+/**
+ * 上传翻译后的文件
+ */
+async function uploadTranslatedFile(
   file: Buffer,
   name: string,
   documentId: string,
   languageId: string,
-) => {
-  // TODO 配置 storage
+): Promise<{ fileId: number }> {
   const { id: storageProviderId, provider } = await useStorage(
     drizzle,
     "s3-storage-provider",
@@ -197,6 +209,7 @@ const uploadTranslatedFile = async (
     "storage.template.exported-translated-file",
     "exported/document/translated/{year}/{month}/{date}/{uuid}-{languageId}-{fileName}",
   );
+
   const path = useStringTemplate(template, {
     date,
     documentId,
@@ -213,8 +226,62 @@ const uploadTranslatedFile = async (
     path,
     name,
   );
-};
+}
 
-registerTaskUpdateHandlers(drizzle, worker, queueId);
+export const exportTranslatedFileWorker = defineWorker({
+  id,
+  taskType: id,
+  inputSchema: ExportTranslatedFileInputSchema,
 
-export const exportTranslatedFileWorker = worker;
+  async execute(ctx) {
+    const { documentId, languageId } = ctx.input;
+    const taskId = ctx.taskId;
+
+    // 1. 获取文档文件信息
+    const fileInfo = await getDocumentFileInfo(documentId);
+
+    // 2. 获取文件处理器
+    const handler = await getFileHandler(fileInfo.fileHandlerId);
+
+    // 3. 从存储读取原始文件内容
+    const fileContent = await readFileContent(
+      fileInfo.fileKey,
+      fileInfo.storageProviderId,
+    );
+
+    // 4. 获取已批准的翻译
+    const translations = await getApprovedTranslations(documentId, languageId);
+
+    // 5. 生成翻译后的文件内容
+    const translatedContent = await handler.getReplacedFileContent(
+      fileContent,
+      translations.map(({ value, meta }) => ({ value, meta })),
+    );
+
+    // 6. 上传翻译后的文件
+    const { fileId: translatedFileId } = await uploadTranslatedFile(
+      translatedContent,
+      fileInfo.fileName,
+      documentId,
+      languageId,
+    );
+
+    const data = {
+      documentId,
+      languageId,
+      translatedFileId,
+      translationCount: translations.length,
+      originalFileName: fileInfo.fileName,
+    };
+
+    // 7. 更新任务元数据
+    await drizzle
+      .update(taskTable)
+      .set({
+        meta: sql`${taskTable.meta} || to_jsonb(${data}})`,
+      })
+      .where(eq(taskTable.id, taskId));
+
+    return data;
+  },
+});

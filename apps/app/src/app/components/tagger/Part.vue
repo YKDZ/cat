@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { computed, h } from "vue";
+import { computed } from "vue";
 import type { PartData } from "./index.ts";
 import { clippers } from "./index.ts";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 const props = withDefaults(
   defineProps<{ part: PartData; interactive: boolean; layerIndex?: number }>(),
@@ -15,16 +20,29 @@ const clipper = computed(() =>
 );
 
 const content = computed(() => {
-  if (!clipper.value?.content) {
-    return props.part.text;
-  } else if (typeof clipper.value.content === "string") {
+  if (!clipper.value || !clipper.value.content) return props.part.text;
+
+  if (typeof clipper.value.content === "string") {
     return clipper.value.content;
   } else {
     return clipper.value.content(props.part);
   }
 });
 
-const isString = computed(() => typeof content.value === "string");
+const tooltip = computed(() => {
+  if (!clipper.value) return null;
+
+  if (typeof clipper.value.tooltip === "string") {
+    return clipper.value.tooltip;
+  } else if (typeof clipper.value.tooltip === "function") {
+    return clipper.value.tooltip(props.part);
+  } else {
+    return clipper.value.name;
+  }
+});
+
+const isStringContent = computed(() => typeof content.value === "string");
+const isStringTooltip = computed(() => typeof tooltip.value === "string");
 
 const handleClick = () => {
   if (
@@ -68,36 +86,47 @@ const bgHoverColor = computed(() => {
 </script>
 
 <template>
-  <span
-    :class="[
-      {
-        'cursor-pointer text-highlight-content px-0.5':
-          !!clipper && clipper.highlight,
-        'cursor-pointer':
-          clipper && clipper.clickHandlers.length > 0 && interactive,
-        'pointer-events-none': !interactive,
-      },
-      !!clipper && clipper.highlight && bgColor,
-      clipper &&
-        clipper.clickHandlers.length > 0 &&
-        interactive &&
-        bgHoverColor,
-    ]"
-    :style="{
-      zIndex: 10 + layerIndex,
-    }"
-    @click.stop="handleClick"
-    ><span v-if="part.subParts.length === 0">
-      <span v-if="isString" class="whitespace-pre">{{ content }}</span>
-      <template v-else> <component :is="content" /> </template
-    ></span>
-    <span v-else>
-      <Part
-        v-for="subPart in part.subParts"
-        :key="subPart.text"
-        :part="subPart"
-        :interactive
-        :layer-index="layerIndex + 1"
-    /></span>
-  </span>
+  <Tooltip :disabled="!tooltip">
+    <TooltipTrigger>
+      <span
+        class="inline-block"
+        :class="[
+          {
+            'cursor-pointer text-foreground px-0.5':
+              !!clipper && clipper.highlight,
+            'cursor-pointer':
+              clipper && clipper.clickHandlers.length > 0 && interactive,
+            'pointer-events-none': !interactive,
+          },
+          !!clipper && clipper.highlight && bgColor,
+          clipper &&
+            clipper.clickHandlers.length > 0 &&
+            interactive &&
+            bgHoverColor,
+        ]"
+        :style="{
+          zIndex: 10 + layerIndex,
+        }"
+        @click.stop="handleClick"
+        ><span v-if="part.subParts.length === 0">
+          <span v-if="isStringContent" class="whitespace-pre">{{
+            content
+          }}</span>
+          <template v-else> <component :is="content" /> </template
+        ></span>
+        <span v-else>
+          <Part
+            v-for="subPart in part.subParts"
+            :key="subPart.text"
+            :part="subPart"
+            :interactive
+            :layer-index="layerIndex + 1"
+        /></span>
+      </span>
+    </TooltipTrigger>
+    <TooltipContent>
+      <span v-if="isStringTooltip" class="whitespace-pre">{{ tooltip }}</span>
+      <template v-else> <component :is="tooltip" /> </template>
+    </TooltipContent>
+  </Tooltip>
 </template>

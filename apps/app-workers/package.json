@@ -16,10 +16,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./workers": {
-      "types": "./dist/workers/index.d.ts",
-      "import": "./dist/workers.js"
-    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils.js"
@@ -46,7 +42,7 @@
     "@cat/db": "workspace:*",
     "@cat/shared": "workspace:*",
     "@cat/app-server-shared": "workspace:*",
-    "zod": "^4.1.9",
+    "zod": "^4.1.12",
     "bullmq": "^5.58.4",
     "lodash-es": "^4.17.21",
     "dotenv": "^17.2.3",
