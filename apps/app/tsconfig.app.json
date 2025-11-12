@@ -1,7 +1,6 @@
 {
   "extends": ["../../tsconfig.base.json", "@vue/tsconfig/tsconfig.dom.json"],
   "compilerOptions": {
-    "composite": true,
     "resolveJsonModule": true,
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "paths": {

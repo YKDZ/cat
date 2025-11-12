@@ -1,6 +1,6 @@
 /* eslint-disable @cspell/spellchecker */
 import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
-import z from "zod/v4";
+import * as z from "zod/v4";
 
 export const DefaultSettingDataSchema = z.object({
   key: z.string(),
