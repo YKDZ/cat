@@ -53,7 +53,7 @@
     "hono": "^4.10.3",
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.552.0",
-    "marked": "^16.4.1",
+    "marked": "^17.0.0",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
     "pino": "^9.14.0",
