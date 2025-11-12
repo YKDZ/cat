@@ -105,5 +105,4 @@ export const _JSONSchemaSchema = z.custom<_JSONSchema>((data) => {
 });
 
 export type JSONArray = JSONType[];
-
 export type NonNullJSONType = Exclude<JSONType, null>;

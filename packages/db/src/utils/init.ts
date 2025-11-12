@@ -21,11 +21,9 @@ export const init = async (): Promise<void> => {
     await tx.insert(languageTable).values([
       {
         id: "en",
-        name: "English",
       },
       {
         id: "zh_Hans",
-        name: "简体中文",
       },
     ]);
 

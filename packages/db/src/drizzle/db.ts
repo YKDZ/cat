@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
 import { sql } from "drizzle-orm";
@@ -15,25 +15,38 @@ import * as user from "./schema/user.ts";
 import * as vector from "./schema/vector.ts";
 import { init } from "@/utils/init.ts";
 
+type DrizzleSchema = typeof document &
+  typeof file &
+  typeof glossary &
+  typeof memory &
+  typeof misc &
+  typeof plugin &
+  typeof project &
+  typeof translation &
+  typeof user &
+  typeof vector;
+
+const schema: DrizzleSchema = {
+  ...document,
+  ...file,
+  ...glossary,
+  ...memory,
+  ...misc,
+  ...plugin,
+  ...project,
+  ...translation,
+  ...user,
+  ...vector,
+};
+
 export class DrizzleDB {
-  public client;
+  public client: NodePgDatabase<DrizzleSchema> & { $client: Client };
 
   constructor() {
     const client = new Client({ connectionString: process.env.DATABASE_URL });
     this.client = drizzle({
       client,
-      schema: {
-        ...document,
-        ...file,
-        ...glossary,
-        ...memory,
-        ...misc,
-        ...plugin,
-        ...project,
-        ...translation,
-        ...user,
-        ...vector,
-      },
+      schema,
       casing: "snake_case",
     });
   }
