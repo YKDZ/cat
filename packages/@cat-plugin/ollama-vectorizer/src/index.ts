@@ -1,9 +1,20 @@
-import type { CatPlugin, PluginGetterOptions } from "@cat/plugin-core";
+import type {
+  CatPlugin,
+  PluginInstallOptions,
+  ServiceMap,
+  ServiceMapRecord,
+} from "@cat/plugin-core";
 import { Vectorizer } from "./vectorizer.ts";
 
 class Plugin implements CatPlugin {
-  getTextVectorizers(options: PluginGetterOptions) {
-    return [new Vectorizer(options.config ?? {})];
+  async install(serviceMap: ServiceMap, options?: PluginInstallOptions) {
+    serviceMap.register(
+      {
+        type: "TEXT_VECTORIZER",
+        id: "ollama",
+      } satisfies ServiceMapRecord,
+      new Vectorizer(options?.config ?? {}),
+    );
   }
 }
 

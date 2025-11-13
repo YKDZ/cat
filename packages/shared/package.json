@@ -73,6 +73,10 @@
     "./schema/drizzle/vector": {
       "types": "./dist/schema/drizzle/vector.d.ts",
       "import": "./dist/schema/drizzle/vector.js"
+    },
+    "./schema/drizzle/enum": {
+      "types": "./dist/schema/drizzle/enum.d.ts",
+      "import": "./dist/schema/drizzle/enum.js"
     }
   },
   "files": [

@@ -1,9 +1,15 @@
-import type { CatPlugin } from "@cat/plugin-core";
+import type { CatPlugin, ServiceMap, ServiceMapRecord } from "@cat/plugin-core";
 import { Storage } from "./storage.ts";
 
 class Plugin implements CatPlugin {
-  getVectorStorages() {
-    return [new Storage()];
+  async install(serviceMap: ServiceMap) {
+    serviceMap.register(
+      {
+        type: "VECTOR_STORAGE",
+        id: "pgvector-storage",
+      } satisfies ServiceMapRecord,
+      new Storage(),
+    );
   }
 }
 

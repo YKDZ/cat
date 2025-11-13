@@ -36,12 +36,11 @@ export const suggestionRouter = router({
       const { elementId, languageId } = input;
 
       // TODO 选择安装的服务或者继承
-      const { service: termService } = (await pluginRegistry.getPluginService(
-        drizzle,
+      const termService = pluginRegistry.getPluginService(
         "es-term-service",
         "TERM_SERVICE",
         "ES",
-      ))!;
+      )!;
 
       if (!termService) throw new Error("Term service does not exists");
 
@@ -82,9 +81,9 @@ export const suggestionRouter = router({
       };
       await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-      const advisors = (
-        await pluginRegistry.getPluginServices(drizzle, "TRANSLATION_ADVISOR")
-      ).map(({ service }) => service);
+      const advisors = pluginRegistry
+        .getPluginServices("TRANSLATION_ADVISOR")
+        .map(({ service }) => service);
 
       const advisorAmount = advisors.length;
 

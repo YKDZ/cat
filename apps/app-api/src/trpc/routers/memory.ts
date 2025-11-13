@@ -86,7 +86,7 @@ export const memoryRouter = router({
 
       // TODO 配置
       const vectorStorage = assertFirstNonNullish(
-        await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+        pluginRegistry.getPluginServices("VECTOR_STORAGE"),
       );
 
       // 要匹配记忆的元素

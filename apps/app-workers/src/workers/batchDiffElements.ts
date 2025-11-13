@@ -23,14 +23,9 @@ import type { FlowNode } from "@/core";
 
 const { client: drizzle } = await getDrizzleDB();
 
-const id = "batch-diff-element";
+const flowId = "batch-diff-element";
+const finalizeWorkerId = "batch-diff-elements-finalize";
 const name = "Batch Diff Element";
-
-declare module "../core/registry" {
-  interface WorkerInputTypeMap {
-    [id]: BatchDiffElementsInput;
-  }
-}
 
 const BatchDiffElementsInputSchema = z.object({
   newElementsData: z.array(
@@ -43,6 +38,12 @@ const BatchDiffElementsInputSchema = z.object({
 });
 
 type BatchDiffElementsInput = z.infer<typeof BatchDiffElementsInputSchema>;
+
+type RemoveChunkInput = z.infer<typeof RemoveChunkInputSchema>;
+type AddWithoutStringChunkInput = z.infer<
+  typeof AddWithoutStringChunkInputSchema
+>;
+type AddWithStringChunkInput = z.infer<typeof AddWithStringChunkInputSchema>;
 
 const RemoveChunkInputSchema = z.object({
   elementIds: z.array(z.int()),
@@ -171,25 +172,137 @@ async function analyzeElementsDiff(input: BatchDiffElementsInput) {
   };
 }
 
+async function executeRemoveElementsChunk(
+  input: RemoveChunkInput,
+): Promise<{ deletedCount: number; elementIds: number[] }> {
+  const { elementIds } = input;
+
+  if (elementIds.length === 0) {
+    return {
+      deletedCount: 0,
+      elementIds: [],
+    };
+  }
+
+  await drizzle
+    .delete(translatableElement)
+    .where(inArray(translatableElement.id, elementIds));
+
+  return {
+    deletedCount: elementIds.length,
+    elementIds,
+  };
+}
+
+async function executeAddElementsWithoutStringChunk(
+  input: AddWithoutStringChunkInput,
+  pluginRegistry: PluginRegistry = PluginRegistry.get("GLOBAL", ""),
+): Promise<{ createdCount: number; elementIds: number[] }> {
+  const { elements, documentId } = input;
+
+  if (elements.length === 0) {
+    return {
+      createdCount: 0,
+      elementIds: [],
+    };
+  }
+
+  const vectorStorage = assertFirstNonNullish(
+    pluginRegistry.getPluginServices("VECTOR_STORAGE"),
+  );
+  const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
+    drizzle,
+    vectorStorage.record,
+  );
+
+  const vectorizer = assertFirstNonNullish(
+    pluginRegistry.getPluginServices("TEXT_VECTORIZER"),
+  );
+  const vectorizerId = await pluginRegistry.getPluginServiceDbId(
+    drizzle,
+    vectorizer.record,
+  );
+
+  const elementIds = await drizzle.transaction(async (tx) => {
+    const stringIds = await createStringFromData(
+      tx,
+      vectorizer.service,
+      vectorizerId,
+      vectorStorage.service,
+      vectorStorageId,
+      elements.map((data) => ({
+        value: data.value,
+        languageId: data.languageId,
+      })),
+    );
+
+    return (
+      await tx
+        .insert(translatableElement)
+        .values(
+          elements.map((data, index) => ({
+            sortIndex: data.sortIndex,
+            meta: data.meta,
+            documentId,
+            translatableStringId: stringIds[index],
+          })),
+        )
+        .returning({
+          id: translatableElement.id,
+        })
+    ).map(({ id }) => id);
+  });
+
+  return {
+    createdCount: elementIds.length,
+    elementIds,
+  };
+}
+
+async function executeAddElementsWithStringChunk(
+  input: AddWithStringChunkInput,
+): Promise<{ createdCount: number; elementIds: number[] }> {
+  const { elements, documentId } = input;
+
+  if (elements.length === 0) {
+    return {
+      createdCount: 0,
+      elementIds: [],
+    };
+  }
+
+  const elementIds = (
+    await drizzle
+      .insert(translatableElement)
+      .values(
+        elements.map((element) => ({
+          sortIndex: element.sortIndex,
+          meta: element.meta,
+          documentId,
+          translatableStringId: element.stringId,
+        })),
+      )
+      .returning({
+        id: translatableElement.id,
+      })
+  ).map(({ id }) => id);
+
+  return {
+    createdCount: elementIds.length,
+    elementIds,
+  };
+}
+
 /**
  * 删除元素
  */
-export const removeElementsChunkWorker = defineWorker({
+const removeElementsChunkWorker = defineWorker({
   id: "remove-elements-chunk",
   taskType: "batch_diff_remove_chunk",
   inputSchema: RemoveChunkInputSchema,
 
   async execute(ctx) {
-    const { elementIds } = ctx.input;
-
-    await drizzle
-      .delete(translatableElement)
-      .where(inArray(translatableElement.id, elementIds));
-
-    return {
-      deletedCount: elementIds.length,
-      elementIds,
-    };
+    return executeRemoveElementsChunk(ctx.input);
   },
 
   hooks: {
@@ -223,58 +336,13 @@ export const removeElementsChunkWorker = defineWorker({
 /**
  * 无 string 缓存的添加元素
  */
-export const addElementsWithoutStringChunkWorker = defineWorker({
+const addElementsWithoutStringChunkWorker = defineWorker({
   id: "add-elements-without-string-chunk",
   taskType: "batch_diff_add_without_string_chunk",
   inputSchema: AddWithoutStringChunkInputSchema,
 
   async execute(ctx) {
-    const { elements, documentId } = ctx.input;
-
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-
-    const vectorStorage = assertFirstNonNullish(
-      await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
-    );
-
-    const vectorizer = assertFirstNonNullish(
-      await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
-    );
-
-    const elementIds = await drizzle.transaction(async (tx) => {
-      const stringIds = await createStringFromData(
-        tx,
-        vectorizer.service,
-        vectorizer.id,
-        vectorStorage.service,
-        vectorStorage.id,
-        elements.map((data) => ({
-          value: data.value,
-          languageId: data.languageId,
-        })),
-      );
-
-      return (
-        await tx
-          .insert(translatableElement)
-          .values(
-            elements.map((data, index) => ({
-              sortIndex: data.sortIndex,
-              meta: data.meta,
-              documentId,
-              translatableStringId: stringIds[index],
-            })),
-          )
-          .returning({
-            id: translatableElement.id,
-          })
-      ).map(({ id }) => id);
-    });
-
-    return {
-      createdCount: elementIds.length,
-      elementIds,
-    };
+    return executeAddElementsWithoutStringChunk(ctx.input);
   },
 
   hooks: {
@@ -313,34 +381,13 @@ export const addElementsWithoutStringChunkWorker = defineWorker({
 /**
  * 有 string 缓存的添加元素
  */
-export const addElementsWithStringChunkWorker = defineWorker({
+const addElementsWithStringChunkWorker = defineWorker({
   id: "add-elements-with-string-chunk",
   taskType: "batch_diff_add_with_string_chunk",
   inputSchema: AddWithStringChunkInputSchema,
 
   async execute(ctx) {
-    const { elements, documentId } = ctx.input;
-
-    const elementIds = (
-      await drizzle
-        .insert(translatableElement)
-        .values(
-          elements.map((element) => ({
-            sortIndex: element.sortIndex,
-            meta: element.meta,
-            documentId,
-            translatableStringId: element.stringId,
-          })),
-        )
-        .returning({
-          id: translatableElement.id,
-        })
-    ).map(({ id }) => id);
-
-    return {
-      createdCount: elementIds.length,
-      elementIds,
-    };
+    return executeAddElementsWithStringChunk(ctx.input);
   },
 
   hooks: {
@@ -382,9 +429,30 @@ const FinalizeInputSchema = z.object({
   totalAddedWithString: z.number(),
 });
 
-export const batchDiffElementsFinalizeWorker = defineWorker({
-  id,
-  taskType: id,
+type BatchDiffElementsFinalizeInput = z.infer<typeof FinalizeInputSchema>;
+
+declare module "../core/registry" {
+  interface WorkerInputTypeMap {
+    "remove-elements-chunk": RemoveChunkInput;
+    "add-elements-without-string-chunk": AddWithoutStringChunkInput;
+    "add-elements-with-string-chunk": AddWithStringChunkInput;
+    [finalizeWorkerId]: BatchDiffElementsFinalizeInput;
+  }
+
+  interface FlowInputTypeMap {
+    [flowId]: BatchDiffElementsInput;
+  }
+}
+
+declare module "../core/registry" {
+  interface WorkerInputTypeMap {
+    [finalizeWorkerId]: BatchDiffElementsFinalizeInput;
+  }
+}
+
+const batchDiffElementsFinalizeWorker = defineWorker({
+  id: finalizeWorkerId,
+  taskType: flowId,
   inputSchema: FinalizeInputSchema,
 
   async execute(ctx) {
@@ -420,8 +488,8 @@ export const batchDiffElementsFinalizeWorker = defineWorker({
   },
 });
 
-export const batchDiffElementsFlow = defineFlow({
-  id,
+const batchDiffElementsFlow = defineFlow({
+  id: flowId,
   name,
   inputSchema: BatchDiffElementsInputSchema,
 
@@ -481,7 +549,7 @@ export const batchDiffElementsFlow = defineFlow({
     // 返回父子结构
     return {
       name: "finalize",
-      workerId: "batch-diff-elements-finalize",
+      workerId: finalizeWorkerId,
       data: {
         documentId,
         totalRemoved: removedElements.length,
@@ -492,3 +560,13 @@ export const batchDiffElementsFlow = defineFlow({
     };
   },
 });
+
+export default {
+  workers: {
+    batchDiffElementsFinalizeWorker,
+    removeElementsChunkWorker,
+    addElementsWithoutStringChunkWorker,
+    addElementsWithStringChunkWorker,
+  },
+  flows: { batchDiffElementsFlow },
+} as const;

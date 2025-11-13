@@ -67,6 +67,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/drizzle/vector.ts",
         ),
+        "schema/drizzle/enum": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/enum.ts",
+        ),
       },
       formats: ["es"],
     },

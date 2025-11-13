@@ -1,4 +1,5 @@
-import type { OverallDrizzleClient, ScopeType } from "@cat/db";
+import type { OverallDrizzleClient } from "@cat/db";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import type { JSONType } from "@cat/shared/schema/json";
 
 export const getPluginConfig = async (
@@ -8,7 +9,6 @@ export const getPluginConfig = async (
   scopeId: string,
 ): Promise<JSONType> => {
   const config = await getConfigInstance(drizzle, pluginId, scopeType, scopeId);
-
   // TODO 继承
   return config;
 };

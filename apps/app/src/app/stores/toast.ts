@@ -4,7 +4,7 @@ import type { Component } from "vue";
 import { toast } from "vue-sonner";
 import type { ZodError } from "zod/v4";
 
-const defaultDuration = 3;
+const defaultDuration = 3000;
 
 export type ToastItem = {
   icon?: string;

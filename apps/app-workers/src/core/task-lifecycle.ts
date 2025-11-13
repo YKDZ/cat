@@ -1,24 +1,10 @@
 import type { Worker } from "bullmq";
-import { eq, task, type DrizzleClient } from "@cat/db";
 import { logger } from "@cat/shared/utils";
 
 /**
- * 更新任务状态
- */
-const updateTaskStatus = async (
-  drizzle: DrizzleClient,
-  taskId: string,
-  status: "processing" | "completed" | "failed",
-): Promise<void> => {
-  await drizzle.update(task).set({ status }).where(eq(task.id, taskId));
-};
-
-/**
  * 创建任务生命周期处理器
- * 监听 Worker 事件并更新数据库中的任务状态
  */
 export function createTaskLifecycleHandler(
-  drizzle: DrizzleClient,
   worker: Worker,
   queueId: string,
 ): void {
@@ -26,7 +12,6 @@ export function createTaskLifecycleHandler(
   worker.on("active", (job) => {
     const handler = async () => {
       const taskId = job.name;
-      await updateTaskStatus(drizzle, taskId, "processing");
 
       logger.info("PROCESSOR", {
         msg: `Task ${taskId} started in queue ${queueId}`,
@@ -52,7 +37,6 @@ export function createTaskLifecycleHandler(
   worker.on("completed", (job) => {
     const handler = async () => {
       const taskId = job.name;
-      await updateTaskStatus(drizzle, taskId, "completed");
 
       logger.info("PROCESSOR", {
         msg: `Task ${taskId} completed in queue ${queueId}`,
@@ -80,7 +64,6 @@ export function createTaskLifecycleHandler(
 
     const handler = async () => {
       const taskId = job.name;
-      await updateTaskStatus(drizzle, taskId, "failed");
 
       logger.error(
         "PROCESSOR",

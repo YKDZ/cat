@@ -5,10 +5,7 @@ export const initTermService = async (
   drizzle: OverallDrizzleClient,
   pluginRegistry: PluginRegistry,
 ): Promise<void> => {
-  const services = await pluginRegistry.getPluginServices(
-    drizzle,
-    "TERM_SERVICE",
-  );
+  const services = pluginRegistry.getPluginServices("TERM_SERVICE");
   const languageIds = (
     await drizzle.query.language.findMany({
       columns: { id: true },

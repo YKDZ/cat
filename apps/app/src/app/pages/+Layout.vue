@@ -3,6 +3,7 @@ import { SidebarProvider } from "@/app/components/ui/sidebar";
 import { useCookies } from "@vueuse/integrations/useCookies";
 import { computed } from "vue";
 import { Toaster } from "@/app/components/ui/sonner";
+import "vue-sonner/style.css";
 
 const sidebarState = useCookies(["sidebarState"]);
 

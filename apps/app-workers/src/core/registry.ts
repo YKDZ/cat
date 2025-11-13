@@ -10,11 +10,14 @@ import type {
 import { createTaskLifecycleHandler } from "./task-lifecycle.ts";
 import { composeMiddleware } from "./middleware.ts";
 import { config } from "../utils/config.js";
-import type { DrizzleClient } from "@cat/db";
 import type { ZodType } from "zod/v4";
+import { FlowOrchestrator, type FlowDefinition } from "./workflow.ts";
 
 // oxlint-disable-next-line no-empty-object-type
 export interface WorkerInputTypeMap {}
+
+// oxlint-disable-next-line no-empty-object-type
+export interface FlowInputTypeMap {}
 
 export class WorkerRegistry {
   private workers = new Map<string, WorkerInstance>();
@@ -22,13 +25,15 @@ export class WorkerRegistry {
     string,
     WorkerDefinition<ZodType, ZodType, WorkerContext>
   >();
+  private flowDefinitions = new Map<string, FlowDefinition>();
+  private orchestrator?: FlowOrchestrator;
 
   constructor(private readonly queueConfig: QueueOptions = config) {}
 
   /**
    * 注册一个 Worker
    */
-  register<
+  public registerWorker<
     TInputSchema extends ZodType,
     TOutputSchema extends ZodType | undefined = undefined,
   >(definition: WorkerDefinition<TInputSchema, TOutputSchema>): void {
@@ -36,8 +41,6 @@ export class WorkerRegistry {
       throw new Error(`Worker "${definition.id}" is already registered`);
     }
 
-    // 类型擦除：将具体类型的 definition 存储为 unknown 类型
-    // 这是安全的，因为在使用时会通过 inputSchema 进行运行时验证
     this.definitions.set(
       definition.id,
       // oxlint-disable-next-line no-unsafe-type-assertion
@@ -49,12 +52,69 @@ export class WorkerRegistry {
     });
   }
 
+  public registerFlow<TInput>(definition: FlowDefinition<TInput>): void {
+    if (this.flowDefinitions.has(definition.id)) {
+      throw new Error(`Flow "${definition.id}" is already registered`);
+    }
+
+    this.flowDefinitions.set(
+      definition.id,
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      definition as FlowDefinition,
+    );
+
+    logger.info("PROCESSOR", {
+      msg: `Registered flow: ${definition.id}`,
+    });
+  }
+
+  /**
+   * 批量注册一个模块的 workers 和 flows
+   * 类型安全地注册模块导出的所有内容
+   *
+   * 注意: 使用类型擦除处理复杂泛型,在运行时保证类型安全
+   */
+  public registerModule(module: {
+    readonly workers?: Readonly<Record<string, unknown>>;
+    readonly flows?: Readonly<Record<string, unknown>>;
+  }): void {
+    if (module.workers) {
+      for (const worker of Object.values(module.workers)) {
+        // 类型擦除: worker 已在 defineWorker 中被正确类型化
+        // @ts-expect-error - 类型擦除用于简化复杂泛型的注册
+        this.registerWorker(worker);
+      }
+    }
+
+    if (module.flows) {
+      for (const flow of Object.values(module.flows)) {
+        // 类型擦除: flow 已在 defineFlow 中被正确类型化
+        // @ts-expect-error - 类型擦除用于简化复杂泛型的注册
+        this.registerFlow(flow);
+      }
+    }
+  }
+
+  /**
+   * 批量注册多个模块
+   */
+  public registerModules(
+    modules: ReadonlyArray<{
+      readonly workers?: Readonly<Record<string, unknown>>;
+      readonly flows?: Readonly<Record<string, unknown>>;
+    }>,
+  ): void {
+    for (const module of modules) {
+      this.registerModule(module);
+    }
+  }
+
   /**
    * 启动所有已注册的 Workers
    */
-  async startAll(drizzle: DrizzleClient): Promise<void> {
+  public async startAll(): Promise<void> {
     const startPromises = Array.from(this.definitions.values()).map(
-      async (def) => this.start(def.id, drizzle),
+      async (def) => this.start(def.id),
     );
 
     await Promise.all(startPromises);
@@ -66,10 +126,7 @@ export class WorkerRegistry {
   /**
    * 启动指定的 Worker
    */
-  async start(
-    workerId: string,
-    drizzle: DrizzleClient,
-  ): Promise<WorkerInstance> {
+  public async start(workerId: string): Promise<WorkerInstance> {
     if (this.workers.has(workerId)) {
       logger.warn("PROCESSOR", {
         msg: `Worker "${workerId}" is already running`,
@@ -88,13 +145,26 @@ export class WorkerRegistry {
       definition.id,
       async (job) => {
         // 验证输入数据
-        const input = definition.inputSchema.parse(job.data);
+        const inputResult = definition.inputSchema.safeParse(job.data);
+
+        if (!inputResult.success) {
+          logger.error(
+            "PROCESSOR",
+            {
+              msg: `Invalid input for worker ${definition.id}`,
+              jobId: job.id,
+              data: job.data,
+            },
+            inputResult.error,
+          );
+          throw new Error("Invalid input");
+        }
 
         // 构建执行上下文
         const ctx: WorkerContext = {
           job,
-          input,
-          taskId: job.name,
+          input: inputResult.data,
+          taskId: job.name + ":" + definition.id.replace(/[^a-zA-Z0-9_-]/g, ""),
           taskType: definition.taskType,
         };
 
@@ -124,7 +194,19 @@ export class WorkerRegistry {
 
           // 验证输出
           if (definition.outputSchema) {
-            result = definition.outputSchema.parse(result);
+            const parsed = definition.outputSchema.safeParse(result);
+            if (!parsed.success) {
+              logger.error(
+                "PROCESSOR",
+                {
+                  msg: `Invalid output for worker ${definition.id}`,
+                  jobId: job.id,
+                  data: result,
+                },
+                parsed.error,
+              );
+              throw new Error("Invalid output");
+            }
           }
 
           // 执行 onComplete 钩子
@@ -147,8 +229,8 @@ export class WorkerRegistry {
       },
     );
 
-    // 注册任务生命周期处理器 (更新数据库状态)
-    createTaskLifecycleHandler(drizzle, worker, definition.id);
+    // 注册任务生命周期处理器
+    createTaskLifecycleHandler(worker, definition.id);
 
     // 注册 onFailed 钩子
     if (definition.hooks?.onFailed) {
@@ -198,13 +280,13 @@ export class WorkerRegistry {
     return instance;
   }
 
-  async addJob<TWorkerId extends keyof WorkerInputTypeMap>(
+  public async addJob<TWorkerId extends keyof WorkerInputTypeMap>(
     workerId: TWorkerId,
     data: WorkerInputTypeMap[TWorkerId],
     options: QueueJobOptions,
   ): Promise<void>;
 
-  async addJob(
+  public async addJob(
     workerId: string,
     data: unknown,
     options: QueueJobOptions,
@@ -227,24 +309,52 @@ export class WorkerRegistry {
     });
   }
 
+  public async executeFlow<TFlowId extends keyof FlowInputTypeMap>(
+    flowId: TFlowId,
+    input: FlowInputTypeMap[TFlowId],
+    options: QueueJobOptions,
+  ): Promise<unknown> {
+    const definition = this.flowDefinitions.get(flowId as string);
+
+    if (!definition) {
+      throw new Error(`Flow "${String(flowId)}" is not registered`);
+    }
+
+    const orchestrator = this.getOrchestrator();
+
+    const result = await orchestrator.execute(
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      definition as FlowDefinition<FlowInputTypeMap[TFlowId]>,
+      input,
+      options,
+    );
+
+    logger.info("PROCESSOR", {
+      msg: `Enqueued flow: ${String(flowId)}`,
+      jobId: options.jobId,
+    });
+
+    return result;
+  }
+
   /**
    * 获取 Worker 实例
    */
-  getWorker(workerId: string): WorkerInstance | undefined {
+  public getWorker(workerId: string): WorkerInstance | undefined {
     return this.workers.get(workerId);
   }
 
   /**
    * 获取 Queue 实例
    */
-  getQueue(workerId: string): Queue | undefined {
+  public getQueue(workerId: string): Queue | undefined {
     return this.workers.get(workerId)?.queue;
   }
 
   /**
    * 关闭所有 Workers
    */
-  async shutdown(): Promise<void> {
+  public async shutdown(): Promise<void> {
     const shutdownPromises = Array.from(this.workers.values()).map(
       async (instance) => instance.shutdown(),
     );
@@ -252,6 +362,11 @@ export class WorkerRegistry {
     await Promise.all(shutdownPromises);
 
     this.workers.clear();
+
+    if (this.orchestrator) {
+      await this.orchestrator.close();
+      this.orchestrator = undefined;
+    }
 
     logger.info("PROCESSOR", {
       msg: "All workers shut down successfully",
@@ -261,7 +376,7 @@ export class WorkerRegistry {
   /**
    * 关闭指定 Worker
    */
-  async shutdownWorker(workerId: string): Promise<void> {
+  public async shutdownWorker(workerId: string): Promise<void> {
     const instance = this.workers.get(workerId);
     if (!instance) {
       logger.warn("PROCESSOR", {
@@ -281,14 +396,26 @@ export class WorkerRegistry {
   /**
    * 获取所有已注册的 Worker IDs
    */
-  getRegisteredWorkers(): string[] {
+  public getRegisteredWorkers(): string[] {
     return Array.from(this.definitions.keys());
   }
 
   /**
    * 获取所有正在运行的 Worker IDs
    */
-  getRunningWorkers(): string[] {
+  public getRunningWorkers(): string[] {
     return Array.from(this.workers.keys());
+  }
+
+  public getRegisteredFlows(): string[] {
+    return Array.from(this.flowDefinitions.keys());
+  }
+
+  private getOrchestrator(): FlowOrchestrator {
+    if (!this.orchestrator) {
+      this.orchestrator = new FlowOrchestrator(this.queueConfig);
+    }
+
+    return this.orchestrator;
   }
 }

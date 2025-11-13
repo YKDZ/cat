@@ -14,7 +14,7 @@ export const getServiceFromDBId = async <T extends IPluginService>(
   pluginRegistry: PluginRegistry,
   id: number,
 ): Promise<T> => {
-  const dbAdvisor = assertSingleNonNullish(
+  const dbService = assertSingleNonNullish(
     await drizzle
       .select({
         serviceId: pluginService.serviceId,
@@ -31,16 +31,11 @@ export const getServiceFromDBId = async <T extends IPluginService>(
     `Service ${id} not found`,
   );
 
-  if (!dbAdvisor) throw new Error(`Service ${id} not found`);
-
-  const { service } = (await pluginRegistry.getPluginService(
-    drizzle,
-    dbAdvisor.pluginId,
-    dbAdvisor.serviceType,
-    dbAdvisor.serviceId,
-  ))!;
-
-  if (!service) throw new Error(`Service ${id} not found`);
+  const service = pluginRegistry.getPluginService(
+    dbService.pluginId,
+    dbService.serviceType,
+    dbService.serviceId,
+  )!;
 
   // oxlint-disable-next-line no-unsafe-type-assertion
   return service as unknown as T;

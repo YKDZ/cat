@@ -1,4 +1,13 @@
-import { and, blob, type DrizzleClient, eq, file, getDrizzleDB } from "@cat/db";
+import {
+  and,
+  blob,
+  document,
+  type DrizzleClient,
+  eq,
+  file,
+  getDrizzleDB,
+  translatableElement,
+} from "@cat/db";
 import * as z from "zod/v4";
 import {
   PluginRegistry,
@@ -12,18 +21,13 @@ import {
 import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { defineFlow, defineWorker } from "@/utils";
-import { batchDiffElementsFlow } from "./batchDiffElements";
+import batchDiffElements from "./batchDiffElements.ts";
 
 const { client: drizzle } = await getDrizzleDB();
 
-const id = "upsert-document-elements-from-file";
+const flowId = "upsert-document-elements-from-file";
+const finalizeWorkerId = "upsert-document-elements-finalize";
 const name = "Upsert Document Elements From File";
-
-declare module "../core/registry" {
-  interface WorkerInputTypeMap {
-    [id]: UpsertDocumentElementsInput;
-  }
-}
 
 const UpsertDocumentElementsInputSchema = z.object({
   documentId: z.uuidv7(),
@@ -40,6 +44,18 @@ const FinalizeInputSchema = z.object({
   fileId: z.int(),
   languageId: z.string(),
 });
+
+type UpsertDocumentElementsFinalizeInput = z.infer<typeof FinalizeInputSchema>;
+
+declare module "../core/registry" {
+  interface WorkerInputTypeMap {
+    [finalizeWorkerId]: UpsertDocumentElementsFinalizeInput;
+  }
+
+  interface FlowInputTypeMap {
+    [flowId]: UpsertDocumentElementsInput;
+  }
+}
 
 /**
  * 从文件中提取元素
@@ -128,26 +144,31 @@ async function prepareUpsertContext(input: UpsertDocumentElementsInput) {
 
   const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-  // 获取文件信息
-  const dbFile = await drizzle.query.file.findFirst({
-    where: (file, { eq }) => eq(file.id, fileId),
-  });
-
-  if (!dbFile) {
-    throw new Error("File not found");
-  }
-
   // 获取文档和文件处理器
-  const dbDocument = await drizzle.query.document.findFirst({
-    where: (document, { eq }) => eq(document.id, documentId),
-    columns: {
-      fileHandlerId: true,
-    },
-  });
+  const dbDocument = assertSingleNonNullish(
+    await drizzle
+      .select({
+        fileHandlerId: document.fileHandlerId,
+      })
+      .from(document)
+      .where(eq(document.id, documentId)),
+    `Document ${documentId} not exists`,
+  );
 
-  if (!dbDocument || !dbDocument.fileHandlerId) {
-    throw new Error("Document not found");
+  if (!dbDocument.fileHandlerId) {
+    throw new Error(`Document ${documentId} is not file based`);
   }
+
+  // 获取文件信息
+  const dbFile = assertSingleNonNullish(
+    await drizzle
+      .select({
+        id: file.id,
+      })
+      .from(file)
+      .where(eq(file.id, fileId)),
+    `File ${fileId} not exists`,
+  );
 
   const handler = await getServiceFromDBId<TranslatableFileHandler>(
     drizzle,
@@ -162,12 +183,12 @@ async function prepareUpsertContext(input: UpsertDocumentElementsInput) {
 
   // 获取旧元素 IDs
   const oldElementIds = (
-    await drizzle.query.translatableElement.findMany({
-      where: (element, { eq }) => eq(element.documentId, documentId),
-      columns: {
-        id: true,
-      },
-    })
+    await drizzle
+      .select({
+        id: translatableElement.id,
+      })
+      .from(translatableElement)
+      .where(eq(translatableElement.documentId, documentId))
   ).map((el) => el.id);
 
   return {
@@ -177,24 +198,29 @@ async function prepareUpsertContext(input: UpsertDocumentElementsInput) {
   };
 }
 
-export const upsertDocumentElementsFinalizeWorker = defineWorker({
-  id,
-  taskType: id,
+const upsertDocumentElementsFinalizeWorker = defineWorker({
+  id: finalizeWorkerId,
+  taskType: flowId,
   inputSchema: FinalizeInputSchema,
 
   async execute(ctx) {
     const childrenValues = await ctx.job.getChildrenValues();
 
-    // 获取 batchDiffElements 的结果
-    const batchDiffResult = z
+    let totalDeleted = 0;
+    let totalCreated = 0;
+    let chunksProcessed = 0;
+
+    const parsed = z
       .object({
         totalDeleted: z.number().min(0).default(0),
         totalCreated: z.number().min(0).default(0),
         chunksProcessed: z.number().min(0).default(0),
       })
-      .parse(childrenValues["batch-diff-elements"]);
+      .parse(Object.values(childrenValues)[0]);
 
-    const { totalDeleted, totalCreated, chunksProcessed } = batchDiffResult;
+    totalDeleted = parsed.totalDeleted;
+    totalCreated = parsed.totalCreated;
+    chunksProcessed = parsed.chunksProcessed;
 
     logger.info("PROCESSOR", {
       msg: "Document elements updated from file",
@@ -217,14 +243,8 @@ export const upsertDocumentElementsFinalizeWorker = defineWorker({
   },
 });
 
-/**
- * 从文件更新文档元素的工作流
- *
- * 这个 Flow 会调用 batchDiffElementsFlow 来实际执行差异化更新
- * 展示了 Flow 之间的组合能力
- */
-export const upsertDocumentElementsFromFileFlow = defineFlow({
-  id,
+const upsertDocumentElementsFromFileFlow = defineFlow({
+  id: flowId,
   name,
   inputSchema: UpsertDocumentElementsInputSchema,
 
@@ -234,16 +254,17 @@ export const upsertDocumentElementsFromFileFlow = defineFlow({
       await prepareUpsertContext(input);
 
     // 构建 batchDiffElements flow 的树结构
-    const batchDiffTree = await batchDiffElementsFlow.build({
-      newElementsData,
-      oldElementIds,
-      documentId,
-    });
+    const batchDiffTree =
+      await batchDiffElements.flows.batchDiffElementsFlow.build({
+        newElementsData,
+        oldElementIds,
+        documentId,
+      });
 
     // 返回一个新的根节点，将 batchDiffElements 作为子节点
     return {
       name: "finalize",
-      workerId: "upsert-document-elements-finalize",
+      workerId: finalizeWorkerId,
       data: {
         documentId: input.documentId,
         fileId: input.fileId,
@@ -258,3 +279,8 @@ export const upsertDocumentElementsFromFileFlow = defineFlow({
     };
   },
 });
+
+export default {
+  workers: { upsertDocumentElementsFinalizeWorker },
+  flows: { upsertDocumentElementsFromFileFlow },
+} as const;

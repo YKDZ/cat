@@ -185,12 +185,11 @@ export const glossaryRouter = router({
       const { termsData, glossaryId } = input;
 
       // TODO 选择安装的服务或者继承
-      const { service: termService } = (await pluginRegistry.getPluginService(
-        drizzle,
+      const termService = pluginRegistry.getPluginService(
         "es-term-service",
         "TERM_SERVICE",
         "ES",
-      ))!;
+      )!;
 
       if (!termService) throw new Error("Term service does not exists");
 
@@ -244,12 +243,11 @@ export const glossaryRouter = router({
       const { text, termLanguageId, translationLanguageId, projectId } = input;
 
       // TODO 选择安装的服务或者继承
-      const { service: termService } = (await pluginRegistry.getPluginService(
-        drizzle,
+      const termService = pluginRegistry.getPluginService(
         "es-term-service",
         "TERM_SERVICE",
         "ES",
-      ))!;
+      )!;
 
       return await findTermRelationsInProject(
         drizzle,
@@ -285,12 +283,11 @@ export const glossaryRouter = router({
       const { elementId, translationLanguageId } = input;
 
       // TODO 选择安装的服务或者继承
-      const { service: termService } = (await pluginRegistry.getPluginService(
-        drizzle,
+      const termService = pluginRegistry.getPluginService(
         "es-term-service",
         "TERM_SERVICE",
         "ES",
-      ))!;
+      )!;
 
       if (!termService) throw new Error("Term service does not exists");
 

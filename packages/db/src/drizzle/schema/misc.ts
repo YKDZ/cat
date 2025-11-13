@@ -1,6 +1,7 @@
 import {
   index,
   jsonb,
+  pgEnum,
   pgTable,
   serial,
   text,
@@ -11,6 +12,9 @@ import { timestamps, uuidId } from "./reuse.ts";
 import { projectTargetLanguage } from "./project.ts";
 import { documentToTask, translatableString } from "./document.ts";
 import { JSONType } from "@cat/shared/schema/json";
+import { TaskStatusValues } from "@cat/shared/schema/drizzle/enum";
+
+export const taskStatus = pgEnum("TaskStatus", TaskStatusValues);
 
 export const language = pgTable("Language", {
   id: text().primaryKey().notNull(),
@@ -33,7 +37,7 @@ export const task = pgTable(
   "Task",
   {
     id: uuidId(),
-    status: text().default("pending").notNull(),
+    status: taskStatus().default("PENDING").notNull(),
     type: text().notNull(),
     meta: jsonb().$type<JSONType>(),
     ...timestamps,

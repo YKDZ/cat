@@ -85,11 +85,19 @@ async function createTranslationWithMemory(
 
   // 获取向量存储和向量化服务
   const vectorStorage = assertFirstNonNullish(
-    await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+    pluginRegistry.getPluginServices("VECTOR_STORAGE"),
+  );
+  const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
+    drizzle,
+    vectorStorage.record,
   );
 
   const vectorizer = assertFirstNonNullish(
-    await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
+    pluginRegistry.getPluginServices("TEXT_VECTORIZER"),
+  );
+  const vectorizerId = await pluginRegistry.getPluginServiceDbId(
+    drizzle,
+    vectorizer.record,
   );
 
   return await drizzle.transaction(async (tx) => {
@@ -98,9 +106,9 @@ async function createTranslationWithMemory(
       await createStringFromData(
         tx,
         vectorizer.service,
-        vectorizer.id,
+        vectorizerId,
         vectorStorage.service,
-        vectorStorage.id,
+        vectorStorageId,
         [{ value: translationValue, languageId: translationLanguageId }],
       ),
     );
@@ -142,7 +150,7 @@ async function createTranslationWithMemory(
   });
 }
 
-export const createTranslationWorker = defineWorker({
+const createTranslationWorker = defineWorker({
   id,
   taskType: id,
   inputSchema: CreateTranslationInputSchema,
@@ -167,3 +175,9 @@ export const createTranslationWorker = defineWorker({
     };
   },
 });
+
+export default {
+  workers: {
+    createTranslationWorker,
+  },
+} as const;

@@ -469,8 +469,8 @@ export const translationRouter = router({
           .returning({ id: taskTable.id }),
       );
 
-      await workerRegistry.addJob(
-        "auto-translate",
+      await workerRegistry.executeFlow(
+        "auto-translate-flow",
         {
           userId: user.id,
           documentId,

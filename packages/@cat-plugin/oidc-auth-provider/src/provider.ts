@@ -7,7 +7,8 @@ import * as z from "zod/v4";
 import { request, fetch } from "undici";
 import { randomChars } from "./utils/crypto.ts";
 import { createOIDCAuthURL } from "./utils/oidc.ts";
-import type { ProviderConfig } from "./index.ts";
+import { ProviderConfigSchema, type ProviderConfig } from "./index.ts";
+import type { JSONType } from "@cat/shared/schema/json";
 
 const SearchParasSchema = z.object({
   state: z.string(),
@@ -17,8 +18,8 @@ const SearchParasSchema = z.object({
 export class Provider implements AuthProvider {
   private config: ProviderConfig;
 
-  constructor(config: ProviderConfig) {
-    this.config = config;
+  constructor(config: JSONType) {
+    this.config = ProviderConfigSchema.parse(config);
   }
 
   getId(): string {

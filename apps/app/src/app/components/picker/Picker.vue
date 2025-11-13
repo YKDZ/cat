@@ -12,24 +12,25 @@ import {
   ComboboxList,
 } from "@/app/components/ui/combobox";
 import { Check, Search } from "lucide-vue-next";
+import type { AcceptableInputValue } from "reka-ui";
 
 const { t } = useI18n();
 
-defineProps<{
+const props = defineProps<{
   options: PickerOption[];
   placeholder?: string;
 }>();
+
+const contentFromValue = (value: AcceptableInputValue | undefined) => {
+  return props.options.find((option) => option.value === value)?.content ?? "";
+};
 </script>
 
 <template>
-  <Combobox by="label">
+  <Combobox by="label" :required="true">
     <ComboboxAnchor>
       <div class="relative w-full max-w-sm items-center">
-        <ComboboxInput
-          class="pl-9"
-          :display-value="(val) => val?.content ?? ''"
-          :placeholder
-        />
+        <ComboboxInput :display-value="contentFromValue" />
         <span
           class="absolute start-0 inset-y-0 flex items-center justify-center px-3"
         >
@@ -48,7 +49,6 @@ defineProps<{
           :value="option.value"
         >
           {{ option.content }}
-
           <ComboboxItemIndicator>
             <Check />
           </ComboboxItemIndicator>

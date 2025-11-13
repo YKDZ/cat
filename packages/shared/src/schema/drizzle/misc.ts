@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { nonNullSafeZDotJson, safeZDotJson } from "@/schema/json.ts";
 import { DrizzleDateTimeSchema } from "../misc";
+import { TaskStatusSchema } from "@/schema/drizzle/enum";
 
 export const LanguageSchema = z.object({
   id: z.string(),
@@ -10,11 +11,7 @@ export const TaskSchema = z.object({
   id: z.uuidv7(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  status: z
-    .string()
-    .refine((v) =>
-      z.enum(["pending", "processing", "completed", "failed"]).parse(v),
-    ),
+  status: TaskStatusSchema,
   meta: safeZDotJson,
   type: z.string(),
 });

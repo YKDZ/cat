@@ -8,8 +8,11 @@ const { originDivEl } = storeToRefs(useEditorTableStore());
 </script>
 
 <template>
-  <div ref="originDivEl" class="px-5 pt-4 bg-background flex min-h-34 w-full">
-    <EditorOriginElementValue class="w-2/3" />
-    <EditorTranslatableElementMeta class="w-1/3" />
+  <div
+    ref="originDivEl"
+    class="px-5 pt-4 bg-background min-h-34 grid grid-cols-3"
+  >
+    <EditorOriginElementValue class="col-span-2 min-w-0" />
+    <EditorTranslatableElementMeta class="col-span-1" />
   </div>
 </template>

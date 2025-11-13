@@ -30,7 +30,7 @@ const task = (cell: Cell<Task, Meta>) => {
 };
 
 const handleDownload = async (cell: Cell<Task, Meta>) => {
-  if (task(cell).status !== "completed") return;
+  if (task(cell).status !== "COMPLETED") return;
 
   await trpc.document.getTranslatedFilePresignedUrl
     .query({
@@ -50,7 +50,7 @@ const handleDownload = async (cell: Cell<Task, Meta>) => {
 <template>
   <TaskTable v-slot="{ cell }" :data="tasks">
     <Button
-      :disabled="task(cell).status !== 'completed'"
+      :disabled="task(cell).status !== 'COMPLETED'"
       @click.stop="handleDownload(cell)"
       size="icon"
       ><div class="icon-[mdi--download] size-4"

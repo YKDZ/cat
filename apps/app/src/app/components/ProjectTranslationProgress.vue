@@ -22,7 +22,7 @@ const translatableElementAmount = computedAsyncClient(async () => {
   return await trpc.project.countElement.query({
     id: props.project.id,
   });
-}, 1);
+}, 0);
 
 const translatedElementAmount = computedAsyncClient(async () => {
   return await trpc.project.countElement.query({
@@ -45,11 +45,13 @@ const progressBarLines = computed<ProgressBarLine[]>(() => {
   return [
     {
       color: "#5B89C6",
-      progress: translatedElementAmount.value / translatableElementAmount.value,
+      progress:
+        translatedElementAmount.value / translatableElementAmount.value || 0,
     },
     {
       color: "#38C800",
-      progress: approvedElementAmount.value / translatableElementAmount.value,
+      progress:
+        approvedElementAmount.value / translatableElementAmount.value || 0,
     },
   ];
 });

@@ -34,6 +34,6 @@ const handleUpdate = (value: boolean) => {
       schema.title ?? propertyKey
     }}</span>
     <span class="text-sm text-foreground">{{ schema.description }}</span>
-    <Switch :value="String(value)" @update="handleUpdate" />
+    <Switch :value="String(value)" @update:model-value="handleUpdate" />
   </label>
 </template>

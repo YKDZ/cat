@@ -1,11 +1,4 @@
-import type { DrizzleClient } from "@cat/db";
 import { logger } from "@cat/shared/utils";
-import { insertTermsWorker } from "@/workers/insertTerms.ts";
-import { autoTranslateFinalizeWorker } from "@/workers/autoTranslate.ts";
-import { batchDiffElementsFinalizeWorker } from "@/workers/batchDiffElements.ts";
-import { createTranslationWorker } from "@/workers/createTranslation.ts";
-import { exportTranslatedFileWorker } from "@/workers/exportTranslatedFile.ts";
-import { upsertDocumentElementsFinalizeWorker } from "@/workers/upsertDocumentElementsFromFile.ts";
 import type {
   InferSchema,
   WorkerContext,
@@ -13,19 +6,26 @@ import type {
   WorkerRegistry,
 } from "@/core";
 import type { ZodType } from "zod/v4";
+import autoTranslate from "@/workers/autoTranslate";
+import batchDiffElements from "@/workers/batchDiffElements";
+import createTranslation from "@/workers/createTranslation";
+import exportTranslatedFile from "@/workers/exportTranslatedFile";
+import insertTerms from "@/workers/insertTerms";
+import upsertDocumentElementsFromFile from "@/workers/upsertDocumentElementsFromFile";
 
 export async function initializeWorkers(
   registry: WorkerRegistry,
-  drizzle: DrizzleClient,
 ): Promise<WorkerRegistry> {
-  registry.register(autoTranslateFinalizeWorker);
-  registry.register(batchDiffElementsFinalizeWorker);
-  registry.register(createTranslationWorker);
-  registry.register(exportTranslatedFileWorker);
-  registry.register(insertTermsWorker);
-  registry.register(upsertDocumentElementsFinalizeWorker);
+  registry.registerModules([
+    autoTranslate,
+    batchDiffElements,
+    createTranslation,
+    exportTranslatedFile,
+    insertTerms,
+    upsertDocumentElementsFromFile,
+  ]);
 
-  await registry.startAll(drizzle);
+  await registry.startAll();
 
   logger.info("PROCESSOR", {
     msg: "All workers initialized and started",

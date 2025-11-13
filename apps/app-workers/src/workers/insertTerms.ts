@@ -53,21 +53,27 @@ async function insertTermsWithTranslations(
 
   // 获取向量存储服务
   const vectorStorage = assertFirstNonNullish(
-    await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+    pluginRegistry.getPluginServices("VECTOR_STORAGE"),
+  );
+  const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
+    drizzle,
+    vectorStorage.record,
   );
 
-  // 获取向量化服务
   const vectorizer = assertFirstNonNullish(
-    await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
+    pluginRegistry.getPluginServices("TEXT_VECTORIZER"),
+  );
+  const vectorizerId = await pluginRegistry.getPluginServiceDbId(
+    drizzle,
+    vectorizer.record,
   );
 
   // 获取术语服务
-  const { service: termService } = (await pluginRegistry.getPluginService(
-    drizzle,
+  const termService = pluginRegistry.getPluginService(
     "es-term-service",
     "TERM_SERVICE",
     "ES",
-  ))!;
+  )!;
 
   return await drizzle.transaction(async (tx) => {
     // 准备术语字符串数据
@@ -88,9 +94,9 @@ async function insertTermsWithTranslations(
     const termStringIds = await createStringFromData(
       tx,
       vectorizer.service,
-      vectorizer.id,
+      vectorizerId,
       vectorStorage.service,
-      vectorStorage.id,
+      vectorStorageId,
       termInputs,
     );
 
@@ -98,9 +104,9 @@ async function insertTermsWithTranslations(
     const translationStringIds = await createStringFromData(
       tx,
       vectorizer.service,
-      vectorizer.id,
+      vectorizerId,
       vectorStorage.service,
-      vectorStorage.id,
+      vectorStorageId,
       translationInputs,
     );
 
@@ -159,7 +165,7 @@ async function insertTermsWithTranslations(
   });
 }
 
-export const insertTermsWorker = defineWorker({
+const insertTermsWorker = defineWorker({
   id,
   taskType: id,
   inputSchema: InsertTermsInputSchema,
@@ -188,3 +194,7 @@ export const insertTermsWorker = defineWorker({
     };
   },
 });
+
+export default {
+  workers: { insertTermsWorker },
+} as const;

@@ -302,12 +302,9 @@ export const documentRouter = router({
         .limit(1);
 
       if (existDocumentRows.length === 0) {
-        const service = (
-          await pluginRegistry.getPluginServices(
-            drizzle,
-            "TRANSLATABLE_FILE_HANDLER",
-          )
-        ).find(({ service }) => service.canExtractElement(fileName));
+        const service = pluginRegistry
+          .getPluginServices("TRANSLATABLE_FILE_HANDLER")
+          .find(({ service }) => service.canExtractElement(fileName));
 
         if (!service)
           throw new TRPCError({
@@ -320,7 +317,10 @@ export const documentRouter = router({
           const document = await createDocumentUnderParent(tx, {
             creatorId: user.id,
             projectId,
-            fileHandlerId: service.id,
+            fileHandlerId: await pluginRegistry.getPluginServiceDbId(
+              drizzle,
+              service.record,
+            ),
             name: fileName,
           });
 
@@ -359,7 +359,7 @@ export const documentRouter = router({
           return { document, task };
         });
 
-        await workerRegistry.addJob(
+        await workerRegistry.executeFlow(
           "upsert-document-elements-from-file",
           {
             documentId: result.document.id,
@@ -389,7 +389,7 @@ export const documentRouter = router({
           taskId: task.id,
         });
 
-        await workerRegistry.addJob(
+        await workerRegistry.executeFlow(
           "upsert-document-elements-from-file",
           {
             documentId: existDocument.id,
@@ -633,10 +633,10 @@ export const documentRouter = router({
           message: "Do not find export task for this document and language",
           code: "BAD_REQUEST",
         });
-      if (task.status !== "completed")
+      if (task.status !== "COMPLETED")
         throw new TRPCError({
           message:
-            task.status === "failed"
+            task.status === "FAILED"
               ? "Task failed. Please retry or check console log"
               : "Do not find export task for this document and language",
           code: "BAD_REQUEST",
@@ -977,7 +977,7 @@ export const documentRouter = router({
         );
       }
 
-      const { key, storageProviderId } = assertSingleNonNullish(
+      const { key, storageProviderId } = (
         await drizzle
           .select({
             key: blobTable.key,
@@ -996,8 +996,8 @@ export const documentRouter = router({
             whereConditions.length === 1
               ? whereConditions[0]
               : and(...whereConditions),
-          ),
-      );
+          )
+      )[0];
 
       if (!key || !storageProviderId) return null;
 

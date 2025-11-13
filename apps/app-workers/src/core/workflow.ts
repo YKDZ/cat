@@ -43,6 +43,7 @@ export class FlowOrchestrator {
   async execute<TInput>(
     flow: FlowDefinition<TInput>,
     input: TInput,
+    rootJobOptions?: JobsOptions,
   ): Promise<{
     rootJob: unknown;
     tree: unknown;
@@ -51,7 +52,18 @@ export class FlowOrchestrator {
     const validatedInput = flow.inputSchema.parse(input);
 
     // 构建工作流树
-    const rootNode = await flow.build(validatedInput);
+    let rootNode = await flow.build(validatedInput);
+
+    if (rootJobOptions) {
+      rootNode = {
+        ...rootNode,
+        name: rootJobOptions.jobId ?? rootNode.name,
+        opts: {
+          ...rootNode.opts,
+          ...rootJobOptions,
+        },
+      };
+    }
 
     // 转换为 BullMQ FlowJob 格式
     const flowJob = this.convertToFlowJob(rootNode);
@@ -112,45 +124,4 @@ export class FlowOrchestrator {
   async close(): Promise<void> {
     await this.flowProducer.close();
   }
-}
-
-export function createChain(
-  steps: Array<{ workerId: string; data: unknown; name?: string }>,
-): FlowNode {
-  if (steps.length === 0) {
-    throw new Error("Chain must have at least one step");
-  }
-
-  // 从最后一个开始构建（因为 BullMQ 是先执行子节点）
-  let current: FlowNode | undefined;
-
-  for (let i = steps.length - 1; i >= 0; i -= 1) {
-    const step = steps[i];
-    current = {
-      name: step.name || `step-${i}`,
-      workerId: step.workerId,
-      data: step.data,
-      children: current ? [current] : undefined,
-    };
-  }
-
-  return current!;
-}
-
-export function createParallel(
-  parentName: string,
-  parentWorkerId: string,
-  parentData: unknown,
-  children: Array<{ workerId: string; data: unknown; name?: string }>,
-): FlowNode {
-  return {
-    name: parentName,
-    workerId: parentWorkerId,
-    data: parentData,
-    children: children.map((child, i) => ({
-      name: child.name || `child-${i}`,
-      workerId: child.workerId,
-      data: child.data,
-    })),
-  };
 }

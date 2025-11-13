@@ -38,11 +38,13 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     await installDefaultPlugins(drizzleDB.client, pluginRegistry);
 
+    await pluginRegistry.registerAllServices(drizzleDB.client);
+
     await initTermService(drizzleDB.client, pluginRegistry);
 
     const workerRegistry = await getWorkerRegistry();
 
-    await initializeWorkers(workerRegistry, drizzleDB.client);
+    await initializeWorkers(workerRegistry);
 
     ctx.drizzleDB = drizzleDB;
     ctx.redisDB = redisDB;

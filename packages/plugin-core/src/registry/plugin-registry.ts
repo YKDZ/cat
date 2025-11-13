@@ -10,7 +10,6 @@ import {
 } from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
-  assertFirstNonNullish,
   assertSingleNonNullish,
   logger,
 } from "@cat/shared/utils";
@@ -21,7 +20,6 @@ import {
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
 import {
   eq,
-  inArray,
   OverallDrizzleClient,
   plugin,
   pluginConfig,
@@ -29,11 +27,8 @@ import {
   pluginInstallation,
   pluginService,
   type DrizzleClient,
-  type PluginServiceType,
-  type ScopeType,
 } from "@cat/db";
 import { and } from "@cat/db";
-import { getPluginConfig } from "@/utils/config.ts";
 import type { TranslationAdvisor } from "@/services/translation-advisor.ts";
 import type { TranslatableFileHandler } from "@/services/translatable-file-handler.ts";
 import type { TextVectorizer } from "@/services/text-vectorizer.ts";
@@ -42,17 +37,19 @@ import type { StorageProvider } from "@/services/storage-provider.ts";
 import type { AuthProvider } from "@/services/auth-provider.ts";
 import { existsSync } from "node:fs";
 import { IVectorStorage } from "@/services/vector-storage";
-
-export type PluginServiceGetters = keyof Pick<
-  CatPlugin,
-  | "getAuthProviders"
-  | "getStorageProviders"
-  | "getTermServices"
-  | "getTranslatableFileHandlers"
-  | "getTranslationAdvisors"
-  | "getTextVectorizers"
-  | "getVectorStorages"
->;
+import {
+  ServiceMap,
+  ServiceRegistry,
+  ServiceRegistryRecordSchema,
+  type ServiceMapRecord,
+  type ServiceRegistryRecord,
+} from "@/registry/service-registry";
+import { haveSameObjects } from "@/utils/array";
+import { getPluginConfig } from "@/utils/config";
+import type {
+  PluginServiceType,
+  ScopeType,
+} from "@cat/shared/schema/drizzle/enum";
 
 type PluginServiceMap = {
   ["AUTH_PROVIDER"]: AuthProvider;
@@ -64,18 +61,6 @@ type PluginServiceMap = {
   ["VECTOR_STORAGE"]: IVectorStorage;
 };
 
-const PluginServiceGetterMap: {
-  [K in PluginServiceType]: PluginServiceGetters;
-} = {
-  ["AUTH_PROVIDER"]: "getAuthProviders",
-  ["STORAGE_PROVIDER"]: "getStorageProviders",
-  ["TEXT_VECTORIZER"]: "getTextVectorizers",
-  ["TRANSLATABLE_FILE_HANDLER"]: "getTranslatableFileHandlers",
-  ["TRANSLATION_ADVISOR"]: "getTranslationAdvisors",
-  ["TERM_SERVICE"]: "getTermServices",
-  ["VECTOR_STORAGE"]: "getVectorStorages",
-};
-
 export interface IPluginService {
   getId(): string;
 }
@@ -84,7 +69,7 @@ export type LoadPluginsOptions = {
   ids?: string[];
 };
 
-export type PluginGetterOptions = {
+export type PluginInstallOptions = {
   config?: JSONType;
 };
 
@@ -94,57 +79,22 @@ export type GetterOptions = {
 };
 
 export interface CatPlugin {
-  onInstalled?: () => Promise<void>;
-  onUninstalled?: () => Promise<void>;
-  onEnabled?: () => Promise<void>;
-  getTextVectorizers?: (options: PluginGetterOptions) => TextVectorizer[];
-  getTranslatableFileHandlers?: (
-    options: PluginGetterOptions,
-  ) => TranslatableFileHandler[];
-  getTranslationAdvisors?: (
-    options: PluginGetterOptions,
-  ) => TranslationAdvisor[];
-  getAuthProviders?: (options: PluginGetterOptions) => AuthProvider[];
-  getTermServices?: (options: PluginGetterOptions) => TermService[];
-  getStorageProviders?: (options: PluginGetterOptions) => StorageProvider[];
-  getVectorStorages?: (options: PluginGetterOptions) => IVectorStorage[];
+  install?: (
+    serviceMap: ServiceMap,
+    options?: PluginInstallOptions,
+  ) => Promise<void>;
+  uninstall?: () => Promise<void>;
 }
 
 const PluginObjectSchema = z.custom<CatPlugin>();
 
-interface IPluginRegistry {
-  installPlugin(drizzle: DrizzleClient, pluginId: string): Promise<void>;
-  uninstallPlugin(drizzle: DrizzleClient, pluginId: string): Promise<void>;
-  getPluginServices<T extends PluginServiceType>(
-    drizzle: DrizzleClient,
-    type: T,
-  ): Promise<{ id: number; service: PluginServiceMap[T]; pluginId: string }[]>;
-  getPluginService<T extends PluginServiceType>(
-    drizzle: DrizzleClient,
-    pluginId: string,
-    type: T,
-    id: string,
-  ): Promise<{ id: number; service: PluginServiceMap[T] } | null>;
-}
-
-export class PluginRegistry implements IPluginRegistry {
+export class PluginRegistry {
   public static readonly pluginsDir: string = join(process.cwd(), "plugins");
 
   public constructor(
     public readonly scopeType: ScopeType,
     public readonly scopeId: string,
-    public readonly instancesCache = new Map<string, CatPlugin>(),
-    // type -> pluginId
-    public readonly serviceCache = new Map<
-      PluginServiceType,
-      Map<
-        string,
-        {
-          id: number;
-          service: IPluginService;
-        }
-      >
-    >(),
+    private serviceRegistry: ServiceRegistry = new ServiceRegistry(),
   ) {}
 
   public static get(scopeType: ScopeType, scopeId: string): PluginRegistry {
@@ -158,6 +108,11 @@ export class PluginRegistry implements IPluginRegistry {
     return globalThis[key] as PluginRegistry;
   }
 
+  /**
+   * 将插件和其配置 schema 加载到数据库但不安装它
+   * @param drizzle
+   * @param pluginId
+   */
   public static async importPlugin(
     drizzle: OverallDrizzleClient,
     pluginId: string,
@@ -202,6 +157,11 @@ export class PluginRegistry implements IPluginRegistry {
     });
   }
 
+  /**
+   * 安装插件并将其 manifest 中声明的服务注册到数据库
+   * @param drizzle
+   * @param pluginId
+   */
   public async installPlugin(
     drizzle: DrizzleClient,
     pluginId: string,
@@ -211,9 +171,6 @@ export class PluginRegistry implements IPluginRegistry {
     logger.info("PLUGIN", {
       msg: `About to install plugin ${pluginId} in ${this.scopeType} ${this.scopeId}`,
     });
-
-    const pluginObj = await this.getPluginInstance(pluginId);
-    if (pluginObj.onInstalled) await pluginObj.onInstalled();
 
     await drizzle.transaction(async (tx) => {
       const installation = assertSingleNonNullish(
@@ -225,10 +182,13 @@ export class PluginRegistry implements IPluginRegistry {
           .returning({ id: pluginInstallation.id }),
       );
 
-      const pluginConfigs = await drizzle.query.pluginConfig.findMany({
-        where: (config, { eq }) => eq(config.pluginId, pluginId),
-        columns: { id: true, schema: true },
-      });
+      const pluginConfigs = await tx
+        .select({
+          id: pluginConfig.id,
+          schema: pluginConfig.schema,
+        })
+        .from(pluginConfig)
+        .where(eq(pluginConfig.pluginId, pluginId));
 
       if (pluginConfigs.length > 0)
         await tx.insert(pluginConfigInstance).values(
@@ -240,7 +200,6 @@ export class PluginRegistry implements IPluginRegistry {
           })),
         );
 
-      // 以插件声明而不是实现的服务为准
       if (manifest.services && manifest.services.length > 0)
         await tx.insert(pluginService).values(
           manifest.services.map((service) => ({
@@ -250,6 +209,99 @@ export class PluginRegistry implements IPluginRegistry {
           })),
         );
     });
+  }
+
+  /**
+   * 通过 install 加载插件的所有服务到一个 ServiceMap 中
+   * @param drizzle
+   * @param pluginId
+   * @returns
+   */
+  public async getPluginServiceMap(
+    drizzle: OverallDrizzleClient,
+    pluginId: string,
+  ): Promise<ServiceMap> {
+    const map = new ServiceMap();
+    const pluginObj = await this.getPluginInstance(pluginId);
+    if (pluginObj.install)
+      await pluginObj.install(map, {
+        config: await getPluginConfig(
+          drizzle,
+          pluginId,
+          this.scopeType,
+          this.scopeId,
+        ),
+      });
+    return map;
+  }
+
+  /**
+   * 将所有插件声明的服务（在 install 阶段加载到数据库）加载到服务注册表
+   * @param drizzle
+   */
+  public async registerAllServices(drizzle: DrizzleClient): Promise<void> {
+    const newRegistry = new ServiceRegistry();
+
+    await drizzle.transaction(async (tx) => {
+      const pluginIds = (
+        await tx
+          .select({ pluginId: pluginInstallation.pluginId })
+          .from(pluginInstallation)
+          .where(
+            and(
+              eq(pluginInstallation.scopeId, this.scopeId),
+              eq(pluginInstallation.scopeType, this.scopeType),
+            ),
+          )
+      ).map((row) => row.pluginId);
+
+      await Promise.all(
+        pluginIds.map(async (pluginId) => {
+          const map = await this.getPluginServiceMap(tx, pluginId);
+
+          // 与 install 时注册的服务是否一致
+          const services: ServiceMapRecord[] = (
+            await tx
+              .select({
+                serviceType: pluginService.serviceType,
+                serviceId: pluginService.serviceId,
+              })
+              .from(pluginInstallation)
+              .innerJoin(
+                pluginService,
+                eq(pluginService.pluginInstallationId, pluginInstallation.id),
+              )
+              .where(
+                and(
+                  eq(pluginInstallation.scopeType, this.scopeType),
+                  eq(pluginInstallation.scopeId, this.scopeId),
+                  eq(pluginInstallation.pluginId, pluginId),
+                ),
+              )
+          ).map(
+            (service) =>
+              ({
+                type: service.serviceType,
+                id: service.serviceId,
+              }) satisfies ServiceMapRecord,
+          );
+
+          if (!haveSameObjects(services, map.keys())) {
+            logger.warn("PLUGIN", {
+              msg: "Plugin has different services from and registered manifest",
+              pluginId,
+              dbServices: services,
+              registeredServices: map.keys(),
+            });
+            return;
+          }
+
+          newRegistry.combine(pluginId, map);
+        }),
+      );
+    });
+
+    this.serviceRegistry = newRegistry;
   }
 
   public async uninstallPlugin(
@@ -273,6 +325,21 @@ export class PluginRegistry implements IPluginRegistry {
 
     if (!installation) throw new Error(`Plugin ${pluginId} not installed`);
 
+    try {
+      const pluginObj = await this.getPluginInstance(pluginId);
+      if (pluginObj.uninstall) await pluginObj.uninstall();
+    } catch (e) {
+      logger.error(
+        "PLUGIN",
+        {
+          msg: "Plugin error when uninstall. Uninstall will not continue",
+          plugin,
+        },
+        e,
+      );
+      return;
+    }
+
     await drizzle
       .delete(pluginInstallation)
       .where(
@@ -284,241 +351,85 @@ export class PluginRegistry implements IPluginRegistry {
       );
   }
 
-  public async getPluginServices<T extends PluginServiceType>(
-    drizzle: OverallDrizzleClient,
-    type: T,
-  ): Promise<{ id: number; service: PluginServiceMap[T]; pluginId: string }[]> {
-    // 优先考虑缓存
-    if (this.serviceCache.has(type)) {
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      return Array.from(this.serviceCache.get(type)!.values()) as {
-        id: number;
-        service: PluginServiceMap[T];
-        pluginId: string;
-      }[];
-    }
-
-    // 本 scope 的所有插件安装
-    const installations = await drizzle.query.pluginInstallation.findMany({
-      where: (installation, { and, eq }) =>
-        and(
-          eq(installation.scopeType, this.scopeType),
-          eq(installation.scopeId, this.scopeId),
-        ),
-    });
-
-    // 本 scope 注册的所有指定类型的服务
-    const servicesRows = await drizzle
-      .select({
-        id: pluginService.id,
-        serviceId: pluginService.serviceId,
-        pluginId: plugin.id,
-      })
-      .from(pluginService)
-      .innerJoin(
-        pluginInstallation,
-        eq(pluginService.pluginInstallationId, pluginInstallation.id),
-      )
-      .innerJoin(plugin, eq(pluginInstallation.pluginId, plugin.id))
-      .where(
-        and(
-          inArray(
-            pluginService.pluginInstallationId,
-            installations.map((i) => i.id),
-          ),
-          eq(pluginService.serviceType, type),
-        ),
-      );
-
-    const services: {
-      id: number;
-      service: PluginServiceMap[T];
-      pluginId: string;
-    }[] = [];
-
-    await Promise.all(
-      servicesRows.map(async (row) => {
-        const service = await this.getPluginService(
-          drizzle,
-          row.pluginId,
-          type,
-          row.serviceId,
-        );
-        if (!service)
-          throw new Error(
-            `Plugin ${row.pluginId} declare service '${type}:${row.serviceId}' but not provided it in getter`,
-          );
-
-        const result = {
-          id: row.id,
-          service: service.service,
-          pluginId: row.pluginId,
-        };
-
-        this.cacheService(type, result.pluginId, result);
-
-        services.push(result);
-      }),
-    );
-
-    return services;
-  }
-
-  public async getPluginService<T extends PluginServiceType>(
-    drizzle: OverallDrizzleClient,
+  public getPluginService<T extends PluginServiceType>(
     pluginId: string,
     type: T,
     id: string,
-  ): Promise<{ id: number; service: PluginServiceMap[T] } | null> {
-    // 缓存
-    if (this.serviceCache.has(type)) {
-      const cached = this.serviceCache.get(type)!.get(pluginId);
-      if (cached)
-        return {
-          id: cached.id,
-          // oxlint-disable-next-line no-unsafe-type-assertion
-          service: cached.service as PluginServiceMap[T],
-        };
-    }
-
-    const installation = await drizzle.query.pluginInstallation.findFirst({
-      where: (installation, { and, eq }) =>
-        and(
-          eq(installation.pluginId, pluginId),
-          eq(installation.scopeType, this.scopeType),
-          eq(installation.scopeId, this.scopeId),
-        ),
-      columns: {
-        id: true,
-      },
+  ): PluginServiceMap[T] | null {
+    const record = ServiceRegistryRecordSchema.parse({
+      pluginId,
+      type,
+      id,
     });
 
-    if (!installation) throw new Error("Plugin not installed");
+    if (!this.serviceRegistry.has(record))
+      throw new Error(`Service ${id} not found`);
 
-    const service = assertFirstNonNullish(
-      await drizzle
-        .select({
-          id: pluginService.id,
-        })
-        .from(pluginService)
-        .innerJoin(
-          pluginInstallation,
-          eq(pluginService.pluginInstallationId, pluginInstallation.id),
-        )
-        .innerJoin(plugin, eq(pluginInstallation.pluginId, plugin.id))
-        .where(
-          and(
-            eq(pluginService.pluginInstallationId, installation.id),
-            eq(pluginService.serviceType, type),
-          ),
-        )
-        .limit(1),
-    );
-
-    if (!service) throw new Error(`Service ${type} ${id} not found`);
-
-    return this.getPluginServiceWithDBId(drizzle, service.id);
+    return this.serviceRegistry.get(record) as unknown as PluginServiceMap[T];
   }
 
-  public async getPluginServiceWithDBId<T extends PluginServiceType>(
+  public getPluginServices<T extends PluginServiceType>(
+    type: T,
+  ): {
+    record: ServiceRegistryRecord;
+    service: PluginServiceMap[T];
+  }[] {
+    return this.serviceRegistry
+      .entries()
+      .filter((entry) => entry.record.type === type)
+      .map((entry) => ({
+        record: entry.record,
+        service: entry.service as PluginServiceMap[T],
+      }));
+  }
+
+  public async getPluginServiceDbId(
     drizzle: OverallDrizzleClient,
-    id: number,
-  ): Promise<{ id: number; service: PluginServiceMap[T] } | null> {
-    const service = assertFirstNonNullish(
+    record: ServiceRegistryRecord,
+  ): Promise<number> {
+    const service = assertSingleNonNullish(
       await drizzle
         .select({
           id: pluginService.id,
-          serviceId: pluginService.serviceId,
-          type: pluginService.serviceType,
-          pluginId: plugin.id,
         })
-        .from(pluginService)
+        .from(pluginInstallation)
         .innerJoin(
-          pluginInstallation,
-          eq(pluginInstallation.id, pluginService.pluginInstallationId),
+          pluginService,
+          eq(pluginService.pluginInstallationId, pluginInstallation.id),
         )
-        .innerJoin(plugin, eq(plugin.id, pluginInstallation.pluginId))
-        .where(and(eq(pluginService.id, id)))
-        .limit(1),
+        .where(
+          and(
+            eq(pluginInstallation.pluginId, record.pluginId),
+            eq(pluginInstallation.scopeType, this.scopeType),
+            eq(pluginInstallation.scopeId, this.scopeId),
+            eq(pluginService.serviceType, record.type),
+            eq(pluginService.serviceId, record.id),
+          ),
+        ),
+      `Service ${record.id} not found`,
     );
-
-    if (!service) throw new Error(`Service ${id} not found`);
-
-    const instance = await this.getPluginInstance(service.pluginId);
-
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    const getter = instance[PluginServiceGetterMap[service.type]] as
-      | ((
-          opts: PluginGetterOptions,
-        ) => PluginServiceMap[T][] | PluginServiceMap[T])
-      | undefined;
-
-    if (!getter) return null;
-
-    const config = await getPluginConfig(
-      drizzle,
-      service.pluginId,
-      this.scopeType,
-      this.scopeId,
-    );
-
-    const result = getter.call(instance, { config });
-    const returned = Array.isArray(result) ? result : [result];
-
-    const matched = returned.find((svc) => {
-      const sid = svc.getId();
-      return sid === service.serviceId;
-    });
-
-    if (!matched) return null;
-
-    const r = { id: service.id, service: matched };
-
-    this.cacheService(service.type, service.pluginId, r);
-
-    return r;
+    return service.id;
   }
 
   private async getPluginInstance(pluginId: string): Promise<CatPlugin> {
-    if (this.instancesCache.has(pluginId)) {
-      return this.instancesCache.get(pluginId)!;
-    }
-
     const pluginFsPath = await PluginRegistry.getPluginEntryFsPath(pluginId);
     // Vite build will sometimes remove inline /* @vite-ignore */ comments
     // and cause runtime warning
     const pluginUrl = /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
-    const imported = await import(/* @vite-ignore */ pluginUrl);
+    const imported: unknown = await import(/* @vite-ignore */ pluginUrl);
 
     if (
-      !imported ||
-      typeof imported !== "object" ||
-      // oxlint-disable-next-line no-unsafe-member-access
-      typeof imported.default !== "object"
+      imported &&
+      typeof imported === "object" &&
+      "default" in imported &&
+      typeof imported.default === "object"
     ) {
-      throw new Error(
-        `Plugin ${pluginId} does not have a default export object`,
-      );
+      return PluginObjectSchema.parse(imported.default);
     }
 
-    // oxlint-disable-next-line no-unsafe-member-access
-    const instance = PluginObjectSchema.parse(imported.default);
-
-    try {
-      if (instance.onEnabled) await instance.onEnabled();
-    } catch (err) {
-      logger.error(
-        "PLUGIN",
-        {
-          msg: `Error when running plugin '${pluginId}''s 'onEnabled hook' hook`,
-        },
-        err,
-      );
-    }
-
-    this.instancesCache.set(pluginId, instance);
-
-    return instance;
+    throw new Error(
+      `Plugin ${pluginId} does not have a default export plugin object`,
+    );
   }
 
   public static async getPluginEntryFsPath(id: string): Promise<string> {
@@ -606,29 +517,7 @@ export class PluginRegistry implements IPluginRegistry {
     return results;
   }
 
-  private cacheService(
-    type: PluginServiceType,
-    pluginId: string,
-    service: {
-      id: number;
-      service: IPluginService;
-    },
-  ) {
-    const current =
-      this.serviceCache.get(type) ??
-      new Map<
-        string,
-        {
-          id: number;
-          service: IPluginService;
-        }
-      >();
-    current.set(pluginId, service);
-    this.serviceCache.set(type, current);
-  }
-
-  public reload(): void {
-    this.instancesCache.clear();
-    this.serviceCache.clear();
+  public async reload(drizzle: DrizzleClient): Promise<void> {
+    await this.registerAllServices(drizzle);
   }
 }
