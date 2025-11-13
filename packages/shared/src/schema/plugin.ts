@@ -1,5 +1,6 @@
 import * as z from "zod/v4";
 import { JSONSchemaSchema } from "@/schema/json.ts";
+import { PluginServiceTypeSchema } from "@/schema/drizzle/enum";
 
 export const PluginManifestSchema = z.object({
   id: z.string(),
@@ -10,15 +11,7 @@ export const PluginManifestSchema = z.object({
     .array(
       z.object({
         id: z.string(),
-        type: z.enum([
-          "TRANSLATION_ADVISOR",
-          "STORAGE_PROVIDER",
-          "AUTH_PROVIDER",
-          "TERM_SERVICE",
-          "TRANSLATABLE_FILE_HANDLER",
-          "TEXT_VECTORIZER",
-          "VECTOR_STORAGE",
-        ]),
+        type: PluginServiceTypeSchema,
       }),
     )
     .optional(),

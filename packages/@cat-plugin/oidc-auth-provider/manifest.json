@@ -4,6 +4,12 @@
   "version": "0.1.0",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "oidc",
+      "type": "AUTH_PROVIDER"
+    }
+  ],
   "config": {
     "type": "array",
     "items": {

@@ -86,47 +86,38 @@ const bgHoverColor = computed(() => {
 </script>
 
 <template>
-  <Tooltip :disabled="!tooltip">
-    <TooltipTrigger>
-      <span
-        class="inline-block"
-        :class="[
-          {
-            'cursor-pointer text-foreground px-0.5':
-              !!clipper && clipper.highlight,
-            'cursor-pointer':
-              clipper && clipper.clickHandlers.length > 0 && interactive,
-            'pointer-events-none': !interactive,
-          },
-          !!clipper && clipper.highlight && bgColor,
-          clipper &&
-            clipper.clickHandlers.length > 0 &&
-            interactive &&
-            bgHoverColor,
-        ]"
-        :style="{
-          zIndex: 10 + layerIndex,
-        }"
-        @click.stop="handleClick"
-        ><span v-if="part.subParts.length === 0">
-          <span v-if="isStringContent" class="whitespace-pre">{{
-            content
-          }}</span>
-          <template v-else> <component :is="content" /> </template
-        ></span>
-        <span v-else>
-          <Part
-            v-for="subPart in part.subParts"
-            :key="subPart.text"
-            :part="subPart"
-            :interactive
-            :layer-index="layerIndex + 1"
-        /></span>
-      </span>
-    </TooltipTrigger>
-    <TooltipContent>
-      <span v-if="isStringTooltip" class="whitespace-pre">{{ tooltip }}</span>
-      <template v-else> <component :is="tooltip" /> </template>
-    </TooltipContent>
-  </Tooltip>
+  <span
+    :class="[
+      'text-start wrap-break-word',
+      {
+        'cursor-pointer text-foreground px-0.5': !!clipper && clipper.highlight,
+        'cursor-pointer':
+          clipper && clipper.clickHandlers.length > 0 && interactive,
+        'pointer-events-none': !interactive,
+      },
+      !!clipper && clipper.highlight && bgColor,
+      clipper &&
+        clipper.clickHandlers.length > 0 &&
+        interactive &&
+        bgHoverColor,
+    ]"
+    :style="{
+      zIndex: 10 + layerIndex,
+    }"
+    @click.stop="handleClick"
+    ><span v-if="part.subParts.length === 0">
+      <span v-if="isStringContent" class="whitespace-pre-wrap">{{
+        content
+      }}</span>
+      <template v-else> <component :is="content" /> </template
+    ></span>
+    <span v-else>
+      <Part
+        v-for="subPart in part.subParts"
+        :key="subPart.text"
+        :part="subPart"
+        :interactive
+        :layer-index="layerIndex + 1"
+    /></span>
+  </span>
 </template>

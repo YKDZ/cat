@@ -17,29 +17,17 @@ import { user } from "./user.ts";
 import { blob } from "./file.ts";
 import { document } from "./document.ts";
 import { chunk } from "./vector.ts";
+import {
+  PluginServiceTypeValues,
+  ScopeTypeValues,
+} from "@cat/shared/schema/drizzle/enum";
 
-export type PluginServiceType =
-  | "AUTH_PROVIDER"
-  | "STORAGE_PROVIDER"
-  | "TERM_SERVICE"
-  | "TRANSLATABLE_FILE_HANDLER"
-  | "TRANSLATION_ADVISOR"
-  | "TEXT_VECTORIZER"
-  | "VECTOR_STORAGE";
+export const pluginServiceType = pgEnum(
+  "PluginServiceType",
+  PluginServiceTypeValues,
+);
 
-export const pluginServiceType = pgEnum("PluginServiceType", [
-  "TRANSLATION_ADVISOR",
-  "STORAGE_PROVIDER",
-  "AUTH_PROVIDER",
-  "TERM_SERVICE",
-  "TRANSLATABLE_FILE_HANDLER",
-  "TEXT_VECTORIZER",
-  "VECTOR_STORAGE",
-]);
-
-export type ScopeType = "GLOBAL" | "PROJECT" | "USER";
-
-export const scopeType = pgEnum("ScopeType", ["GLOBAL", "USER", "PROJECT"]);
+export const scopeType = pgEnum("ScopeType", ScopeTypeValues);
 
 export const plugin = pgTable("Plugin", {
   id: text().primaryKey().notNull(),

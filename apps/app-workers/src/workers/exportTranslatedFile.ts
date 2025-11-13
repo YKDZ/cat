@@ -228,7 +228,7 @@ async function uploadTranslatedFile(
   );
 }
 
-export const exportTranslatedFileWorker = defineWorker({
+const exportTranslatedFileWorker = defineWorker({
   id,
   taskType: id,
   inputSchema: ExportTranslatedFileInputSchema,
@@ -237,28 +237,22 @@ export const exportTranslatedFileWorker = defineWorker({
     const { documentId, languageId } = ctx.input;
     const taskId = ctx.taskId;
 
-    // 1. 获取文档文件信息
     const fileInfo = await getDocumentFileInfo(documentId);
 
-    // 2. 获取文件处理器
     const handler = await getFileHandler(fileInfo.fileHandlerId);
 
-    // 3. 从存储读取原始文件内容
     const fileContent = await readFileContent(
       fileInfo.fileKey,
       fileInfo.storageProviderId,
     );
 
-    // 4. 获取已批准的翻译
     const translations = await getApprovedTranslations(documentId, languageId);
 
-    // 5. 生成翻译后的文件内容
     const translatedContent = await handler.getReplacedFileContent(
       fileContent,
       translations.map(({ value, meta }) => ({ value, meta })),
     );
 
-    // 6. 上传翻译后的文件
     const { fileId: translatedFileId } = await uploadTranslatedFile(
       translatedContent,
       fileInfo.fileName,
@@ -274,14 +268,30 @@ export const exportTranslatedFileWorker = defineWorker({
       originalFileName: fileInfo.fileName,
     };
 
-    // 7. 更新任务元数据
     await drizzle
       .update(taskTable)
       .set({
+        status: "COMPLETED",
         meta: sql`${taskTable.meta} || to_jsonb(${data}})`,
       })
       .where(eq(taskTable.id, taskId));
 
     return data;
   },
+
+  hooks: {
+    onError: async (ctx) => {
+      const taskId = ctx.taskId;
+      await drizzle
+        .update(taskTable)
+        .set({
+          status: "FAILED",
+        })
+        .where(eq(taskTable.id, taskId));
+    },
+  },
 });
+
+export default {
+  workers: { exportTranslatedFileWorker },
+} as const;

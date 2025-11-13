@@ -30,11 +30,14 @@ export const pluginRouter = router({
         scopeId: z.string(),
       }),
     )
-    .mutation(({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
       const { scopeType, scopeId } = input;
 
       const registry = PluginRegistry.get(scopeType, scopeId);
-      registry.reload();
+      await registry.reload(drizzle);
     }),
   queryConfigInstance: authedProcedure
     .input(
@@ -194,19 +197,22 @@ export const pluginRouter = router({
 
       await Promise.all(
         providersData.map(async ({ serviceId }) => {
-          const providers = await pluginRegistry.getPluginServices(
-            drizzle,
-            "AUTH_PROVIDER",
+          const providers = pluginRegistry.getPluginServices("AUTH_PROVIDER");
+
+          await Promise.all(
+            providers
+              .filter(({ service }) => serviceId === service.getId())
+              .map(async ({ record, service }) => {
+                methods.push({
+                  providerId: await pluginRegistry.getPluginServiceDbId(
+                    drizzle,
+                    record,
+                  ),
+                  name: service.getName(),
+                  icon: service.getIcon(),
+                });
+              }),
           );
-          providers
-            .filter(({ service }) => serviceId === service.getId())
-            .forEach(({ id, service }) => {
-              methods.push({
-                providerId: id,
-                name: service.getName(),
-                icon: service.getIcon(),
-              });
-            });
         }),
       );
 
@@ -219,14 +225,15 @@ export const pluginRouter = router({
         drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
-      return (
-        await pluginRegistry.getPluginServices(drizzle, "TRANSLATION_ADVISOR")
-      ).map(
-        ({ id, service }) =>
-          ({
-            id,
-            name: service.getName(),
-          }) satisfies TranslationAdvisorData,
+
+      return Promise.all(
+        pluginRegistry.getPluginServices("TRANSLATION_ADVISOR").map(
+          async ({ record, service }) =>
+            ({
+              id: await pluginRegistry.getPluginServiceDbId(drizzle, record),
+              name: service.getName(),
+            }) satisfies TranslationAdvisorData,
+        ),
       );
     }),
   getTranslationAdvisor: authedProcedure
@@ -264,12 +271,11 @@ export const pluginRouter = router({
 
       if (!dbAdvisor) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const { service } = (await pluginRegistry.getPluginService(
-        drizzle,
+      const service = pluginRegistry.getPluginService(
         dbAdvisor.PluginInstallation.pluginId,
         "TRANSLATION_ADVISOR",
         dbAdvisor.serviceId,
-      ))!;
+      )!;
 
       if (!service) throw new TRPCError({ code: "NOT_FOUND" });
 

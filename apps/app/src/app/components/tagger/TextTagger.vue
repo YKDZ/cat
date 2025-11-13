@@ -29,15 +29,15 @@ watch(partsData, (to, from) => emits("update", from, to), { immediate: true });
 </script>
 
 <template>
-  <div class="block select-text whitespace-pre-wrap wrap-break-words">
+  <div
+    class="block select-text whitespace-pre-wrap wrap-break-words text-start"
+  >
     <Empty v-if="text.length === 0" />
-    <TooltipProvider>
-      <Part
-        v-for="part in partsData"
-        :key="part.index + part.text"
-        :part
-        :interactive
-      />
-    </TooltipProvider>
+    <Part
+      v-for="part in partsData"
+      :key="part.index + part.text"
+      :part
+      :interactive
+    />
   </div>
 </template>

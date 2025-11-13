@@ -1,10 +1,14 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 import { _JSONSchemaSchema, safeZDotJson } from "@/schema/json.ts";
+import {
+  PluginServiceTypeSchema,
+  ScopeTypeSchema,
+} from "@/schema/drizzle/enum";
 
 export const PluginInstallationSchema = z.object({
   id: z.int(),
-  scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
+  scopeType: ScopeTypeSchema,
   scopeId: z.string().nullable(),
   scopeMeta: safeZDotJson.nullable(),
   pluginId: z.string(),
@@ -57,15 +61,7 @@ export const PluginSchema = z.object({
 
 export const PluginServiceSchema = z.object({
   id: z.int(),
-  serviceType: z.enum([
-    "TRANSLATION_ADVISOR",
-    "STORAGE_PROVIDER",
-    "AUTH_PROVIDER",
-    "TERM_SERVICE",
-    "TRANSLATABLE_FILE_HANDLER",
-    "TEXT_VECTORIZER",
-    "VECTOR_STORAGE",
-  ]),
+  serviceType: PluginServiceTypeSchema,
   serviceId: z.string(),
   pluginInstallationId: z.int(),
   createdAt: DrizzleDateTimeSchema,

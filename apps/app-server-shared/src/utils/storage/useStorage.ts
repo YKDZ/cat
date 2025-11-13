@@ -1,7 +1,8 @@
-import type { DrizzleClient, OverallDrizzleClient, ScopeType } from "@cat/db";
+import type { DrizzleClient, OverallDrizzleClient } from "@cat/db";
 import type { StorageProvider } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
 import { getServiceFromDBId } from "../plugin";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
 export const useStorage = async (
   drizzle: OverallDrizzleClient,
@@ -13,10 +14,17 @@ export const useStorage = async (
   provider: StorageProvider;
   id: number;
 }> => {
-  const { id, service: storage } = (await PluginRegistry.get(
-    scopeType,
-    scopeId,
-  ).getPluginService(drizzle, pluginId, "STORAGE_PROVIDER", serviceId))!;
+  const registry = PluginRegistry.get(scopeType, scopeId);
+  const storage = registry.getPluginService(
+    pluginId,
+    "STORAGE_PROVIDER",
+    serviceId,
+  )!;
+  const id = await registry.getPluginServiceDbId(drizzle, {
+    pluginId,
+    type: "STORAGE_PROVIDER",
+    id: serviceId,
+  });
 
   if (!storage)
     throw new Error(

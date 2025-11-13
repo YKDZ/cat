@@ -41,12 +41,6 @@ const { client: drizzle } = await getDrizzleDB();
 const id = "auto-translate";
 const name = "Auto Translate";
 
-declare module "../core/registry" {
-  interface WorkerInputTypeMap {
-    [id]: AutoTranslateInput;
-  }
-}
-
 const AutoTranslateInputSchema = z.object({
   userId: z.uuidv7(),
   documentId: z.uuidv7(),
@@ -69,6 +63,10 @@ const TranslateElementChunkInputSchema = z.object({
   memoryIds: z.array(z.uuidv7()),
 });
 
+type TranslateElementChunkInput = z.infer<
+  typeof TranslateElementChunkInputSchema
+>;
+
 const FinalizeInputSchema = z.object({
   documentId: z.uuidv7(),
   languageId: z.string(),
@@ -82,6 +80,17 @@ const FinalizeOutputSchema = z.object({
   totalTranslated: z.number(),
   chunksProcessed: z.number(),
 });
+
+declare module "../core/registry" {
+  interface WorkerInputTypeMap {
+    [id]: AutoTranslateInput;
+    "translate-elements-chunk": TranslateElementChunkInput;
+  }
+
+  interface FlowInputTypeMap {
+    "auto-translate-flow": AutoTranslateInput;
+  }
+}
 
 interface ElementData {
   id: number;
@@ -344,7 +353,7 @@ async function translateWithAdvisor(
 /**
  * 翻译元素分块 Worker
  */
-export const translateElementsChunkWorker = defineWorker({
+const translateElementsChunkWorker = defineWorker({
   id: "translate-elements-chunk",
   taskType: "auto_translate_chunk",
   inputSchema: TranslateElementChunkInputSchema,
@@ -370,19 +379,26 @@ export const translateElementsChunkWorker = defineWorker({
     );
 
     const vectorStorage = assertFirstNonNullish(
-      await pluginRegistry.getPluginServices(drizzle, "VECTOR_STORAGE"),
+      pluginRegistry.getPluginServices("VECTOR_STORAGE"),
+    );
+    const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
+      drizzle,
+      vectorStorage.record,
     );
 
     const vectorizer = assertFirstNonNullish(
-      await pluginRegistry.getPluginServices(drizzle, "TEXT_VECTORIZER"),
+      pluginRegistry.getPluginServices("TEXT_VECTORIZER"),
+    );
+    const vectorizerId = await pluginRegistry.getPluginServiceDbId(
+      drizzle,
+      vectorizer.record,
     );
 
-    const { service: termService } = (await pluginRegistry.getPluginService(
-      drizzle,
+    const termService = pluginRegistry.getPluginService(
       "es-term-service",
       "TERM_SERVICE",
       "ES",
-    ))!;
+    )!;
 
     if (!termService) {
       throw new Error("Term service does not exist");
@@ -459,9 +475,9 @@ export const translateElementsChunkWorker = defineWorker({
         const stringIds = await createStringFromData(
           tx,
           vectorizer.service,
-          vectorizer.id,
+          vectorizerId,
           vectorStorage.service,
-          vectorStorage.id,
+          vectorStorageId,
           translations.map((item) => ({
             value: item.value,
             languageId: item.languageId,
@@ -502,7 +518,7 @@ export const translateElementsChunkWorker = defineWorker({
 /**
  * 最终汇总 Worker
  */
-export const autoTranslateFinalizeWorker = defineWorker({
+const autoTranslateFinalizeWorker = defineWorker({
   id,
   taskType: id,
   inputSchema: FinalizeInputSchema,
@@ -547,8 +563,8 @@ export const autoTranslateFinalizeWorker = defineWorker({
   },
 });
 
-export const autoTranslateFlow = defineFlow({
-  id,
+const autoTranslateFlow = defineFlow({
+  id: "auto-translate-flow",
   name,
   inputSchema: AutoTranslateInputSchema,
 
@@ -612,3 +628,8 @@ export const autoTranslateFlow = defineFlow({
     };
   },
 });
+
+export default {
+  workers: { autoTranslateFinalizeWorker, translateElementsChunkWorker },
+  flows: { autoTranslateFlow },
+} as const;

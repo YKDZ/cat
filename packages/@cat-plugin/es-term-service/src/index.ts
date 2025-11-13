@@ -1,10 +1,21 @@
-import type { CatPlugin, PluginGetterOptions } from "@cat/plugin-core";
+import type {
+  CatPlugin,
+  PluginInstallOptions,
+  ServiceMap,
+  ServiceMapRecord,
+} from "@cat/plugin-core";
 import { getESTermService } from "./service.ts";
 import { ConfigSchema } from "./service.ts";
 
 class Plugin implements CatPlugin {
-  getTermServices(options: PluginGetterOptions) {
-    return [getESTermService(ConfigSchema.parse(options.config))];
+  async install(serviceMap: ServiceMap, options?: PluginInstallOptions) {
+    serviceMap.register(
+      {
+        type: "TERM_SERVICE",
+        id: "ES",
+      } satisfies ServiceMapRecord,
+      getESTermService(ConfigSchema.parse(options?.config)),
+    );
   }
 }
 

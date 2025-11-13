@@ -22,7 +22,7 @@ export interface WorkerContext<TInput = unknown> {
  * 使用泛型确保类型安全
  */
 export interface WorkerDefinition<
-  TInputSchema extends ZodType,
+  TInputSchema extends ZodType | undefined = undefined,
   TOutputSchema extends ZodType | undefined = undefined,
   TContext extends WorkerContext<InferSchema<TInputSchema>> = WorkerContext<
     InferSchema<TInputSchema>

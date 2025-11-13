@@ -24,8 +24,8 @@ const options = computed(() => {
   return languages.value
     .map((language) => {
       return {
-        content: language.id,
-        value: t(language.id),
+        content: t(language.id),
+        value: language.id,
       };
     })
     .filter((option) => props.filter(option));
