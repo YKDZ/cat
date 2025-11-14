@@ -13,6 +13,7 @@ import { Button } from "@/app/components/ui/button";
 import { Plus } from "lucide-vue-next";
 import { useToastStore } from "@/app/stores/toast";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
+import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
 
 const { t } = useI18n();
 const { info } = useToastStore();
@@ -44,5 +45,6 @@ const { info } = useToastStore();
         </Button>
       </CardFooter>
     </Card>
+    <UserUploadAvatarBtn />
   </div>
 </template>

@@ -251,39 +251,67 @@ export const translatableElementContext = pgTable(
 );
 
 export const translatableElementComment = pgTable(
-  "translatableElementComment",
+  "TranslatableElementComment",
   {
     id: serial().primaryKey(),
     translatableElementId: integer().notNull(),
     userId: uuid().notNull(),
     content: text().notNull(),
-    parentCommentId: uuid(),
-    rootCommentId: uuid(),
+    parentCommentId: integer(),
+    /** Maintained by pg trigger. A root comment's rootCommentId is self id */
+    rootCommentId: integer(),
+    languageId: text().notNull(),
     ...timestamps,
   },
   (table) => [
+    index().on(table.translatableElementId),
+    index().on(table.userId),
+    index().on(table.parentCommentId),
+    index().on(table.rootCommentId),
     foreignKey({
       columns: [table.translatableElementId],
       foreignColumns: [translatableElement.id],
-    }),
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
     foreignKey({
       columns: [table.userId],
       foreignColumns: [user.id],
-    }),
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
     foreignKey({
       columns: [table.parentCommentId],
       foreignColumns: [table.id],
-    }),
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
     foreignKey({
       columns: [table.rootCommentId],
       foreignColumns: [table.id],
-    }),
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+    foreignKey({
+      columns: [table.languageId],
+      foreignColumns: [language.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("restrict"),
   ],
 );
 
 export const translatableElementCommentRelations = relations(
   translatableElementComment,
   ({ one }) => ({
+    User: one(user, {
+      fields: [translatableElementComment.userId],
+      references: [user.id],
+    }),
+    TranslatableElement: one(translatableElement, {
+      fields: [translatableElementComment.translatableElementId],
+      references: [translatableElement.id],
+    }),
     ParentComment: one(translatableElementComment, {
       fields: [translatableElementComment.parentCommentId],
       references: [translatableElementComment.id],
@@ -291,6 +319,10 @@ export const translatableElementCommentRelations = relations(
     RootComment: one(translatableElementComment, {
       fields: [translatableElementComment.rootCommentId],
       references: [translatableElementComment.id],
+    }),
+    Language: one(language, {
+      fields: [translatableElementComment.languageId],
+      references: [language.id],
     }),
   }),
 );

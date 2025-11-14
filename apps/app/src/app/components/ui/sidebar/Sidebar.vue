@@ -5,7 +5,13 @@ import { Sheet, SheetContent } from "@/app/components/ui/sheet";
 import SheetDescription from "@/app/components/ui/sheet/SheetDescription.vue";
 import SheetHeader from "@/app/components/ui/sheet/SheetHeader.vue";
 import SheetTitle from "@/app/components/ui/sheet/SheetTitle.vue";
-import { SIDEBAR_DEFAULT_ID, SIDEBAR_WIDTH_MOBILE, useSidebar } from "./utils";
+import {
+  SIDEBAR_DEFAULT_ID,
+  SIDEBAR_WIDTH,
+  SIDEBAR_WIDTH_ICON,
+  SIDEBAR_WIDTH_MOBILE,
+  useSidebar,
+} from "./utils";
 
 defineOptions({
   inheritAttrs: false,
@@ -16,6 +22,9 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   side: "left",
   variant: "sidebar",
   collapsible: "offcanvas",
+  width: SIDEBAR_WIDTH,
+  widthMobile: SIDEBAR_WIDTH_MOBILE,
+  widthIcon: SIDEBAR_WIDTH_ICON,
 });
 
 const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
@@ -25,6 +34,10 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
   <div
     v-if="collapsible === 'none'"
     data-slot="sidebar"
+    :style="{
+      '--sidebar-width': width,
+      '--sidebar-width-icon': widthIcon,
+    }"
     :class="
       cn(
         'bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col',
@@ -41,6 +54,10 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
     :open="openMobile"
     v-bind="$attrs"
     @update:open="setOpenMobile"
+    :style="{
+      '--sidebar-width': width,
+      '--sidebar-width-icon': widthIcon,
+    }"
   >
     <SheetContent
       data-sidebar="sidebar"
@@ -49,7 +66,7 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
       :side="side"
       class="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
       :style="{
-        '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
+        '--sidebar-width': widthMobile,
       }"
     >
       <SheetHeader class="sr-only">
@@ -70,6 +87,10 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
     :data-collapsible="state === 'collapsed' ? collapsible : ''"
     :data-variant="variant"
     :data-side="side"
+    :style="{
+      '--sidebar-width': width,
+      '--sidebar-width-icon': widthIcon,
+    }"
   >
     <!-- This is what handles the sidebar gap on desktop  -->
     <div

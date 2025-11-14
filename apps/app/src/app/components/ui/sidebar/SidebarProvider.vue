@@ -17,6 +17,7 @@ import {
   SIDEBAR_WIDTH,
   SIDEBAR_WIDTH_ICON,
   getSidebarCookieName,
+  SIDEBAR_WIDTH_MOBILE,
 } from "./utils";
 import { usePageContext } from "vike-vue/usePageContext";
 
@@ -105,10 +106,6 @@ provideSidebarContext(sidebarId.value, {
   <TooltipProvider :delay-duration="0">
     <div
       data-slot="sidebar-wrapper"
-      :style="{
-        '--sidebar-width': SIDEBAR_WIDTH,
-        '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-      }"
       :class="
         cn(
           'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar',

@@ -9,11 +9,7 @@ import { trpc } from "@cat/app-api/trpc/client";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import ImageCopper from "@/app/components/ImageCopper.vue";
 import Button from "@/app/components/ui/button/Button.vue";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/app/components/ui/dialog";
+import { Dialog, DialogContent } from "@/app/components/ui/dialog";
 
 const { t } = useI18n();
 
@@ -79,26 +75,24 @@ const rawFileMime = computed(() => {
 </script>
 
 <template>
-  <Dialog>
-    <DialogTrigger>
-      <Button :class="$attrs.class"
-        ><div class="icon-[mdi--upload] size-4" />
-        {{ t("上传头像") }}</Button
-      >
-    </DialogTrigger>
+  <Button :class="$attrs.class" @click="fileInputEl!.click()"
+    ><div class="icon-[mdi--upload] size-4" />
+    {{ t("上传头像") }}</Button
+  >
+  <input
+    ref="fileInputEl"
+    type="file"
+    class="hidden"
+    accept="image/*"
+    @change="handleFileChange"
+  />
+  <Dialog v-model:open="isOpen">
     <DialogContent>
       <ImageCopper
         v-if="src"
         v-model:is-processing="isProcessing"
         :src="src"
         :on-submit="onSubmit"
-      />
-      <input
-        ref="fileInputEl"
-        type="file"
-        class="hidden"
-        accept="image/*"
-        @change="handleFileChange"
       />
     </DialogContent>
   </Dialog>

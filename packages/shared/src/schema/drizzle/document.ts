@@ -52,10 +52,24 @@ export const TranslatableElementContextSchema = z.object({
   updatedAt: DrizzleDateTimeSchema,
 });
 
+export const TranslatableElementCommentSchema = z.object({
+  id: z.int(),
+  translatableElementId: z.int(),
+  userId: z.uuidv7(),
+  content: z.string(),
+  parentCommentId: z.int().nullable(),
+  rootCommentId: z.int().nullable(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
 export type Document = z.infer<typeof DocumentSchema>;
 export type DocumentVersion = z.infer<typeof DocumentVersionSchema>;
 export type TranslatableElement = z.infer<typeof TranslatableElementSchema>;
 export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
 export type TranslatableElementContext = z.infer<
   typeof TranslatableElementContextSchema
+>;
+export type TranslatableElementComment = z.infer<
+  typeof TranslatableElementCommentSchema
 >;
