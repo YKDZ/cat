@@ -11,6 +11,7 @@ import { glossaryRouter } from "./routers/glossary.ts";
 import { pluginRouter } from "./routers/plugin.ts";
 import { settingRouter } from "./routers/setting.ts";
 import { taskRouter } from "./routers/task.ts";
+import { elementRouter } from "@/trpc/routers/element.ts";
 
 type AppRouterRecord = {
   setting: typeof settingRouter;
@@ -25,6 +26,7 @@ type AppRouterRecord = {
   document: typeof documentRouter;
   auth: typeof authRouter;
   project: typeof projectRouter;
+  element: typeof elementRouter;
 };
 
 const appRouterRecord: AppRouterRecord = {
@@ -40,6 +42,7 @@ const appRouterRecord: AppRouterRecord = {
   document: documentRouter,
   auth: authRouter,
   project: projectRouter,
+  element: elementRouter,
 };
 
 export const appRouter = router(appRouterRecord);

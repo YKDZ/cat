@@ -200,7 +200,6 @@ async function prepareUpsertContext(input: UpsertDocumentElementsInput) {
 
 const upsertDocumentElementsFinalizeWorker = defineWorker({
   id: finalizeWorkerId,
-  taskType: flowId,
   inputSchema: FinalizeInputSchema,
 
   async execute(ctx) {

@@ -4,6 +4,7 @@ import {
   index,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   serial,
@@ -22,6 +23,12 @@ import { translation } from "./translation.ts";
 import { memoryItem } from "./memory.ts";
 import { chunkSet } from "./vector.ts";
 import { JSONType } from "@cat/shared/schema/json";
+import { TranslatableElementContextTypeValues } from "@cat/shared/schema/drizzle/enum";
+
+export const translatableElementContextType = pgEnum(
+  "TranslatableElementContextType",
+  TranslatableElementContextTypeValues,
+);
 
 export const document = pgTable(
   "Document",
@@ -208,6 +215,104 @@ export const documentClosure = pgTable(
   ],
 );
 
+export const translatableElementContext = pgTable(
+  "TranslatableElementContext",
+  {
+    id: serial().primaryKey(),
+    type: translatableElementContextType().notNull(),
+    jsonData: jsonb().$type<JSONType>(),
+    fileId: integer(),
+    storageProviderId: integer(),
+    textData: text(),
+    translatableElementId: integer().notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.translatableElementId),
+    foreignKey({
+      columns: [table.translatableElementId],
+      foreignColumns: [translatableElement.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.fileId],
+      foreignColumns: [file.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.storageProviderId],
+      foreignColumns: [pluginService.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const translatableElementComment = pgTable(
+  "translatableElementComment",
+  {
+    id: serial().primaryKey(),
+    translatableElementId: integer().notNull(),
+    userId: uuid().notNull(),
+    content: text().notNull(),
+    parentCommentId: uuid(),
+    rootCommentId: uuid(),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.translatableElementId],
+      foreignColumns: [translatableElement.id],
+    }),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+    }),
+    foreignKey({
+      columns: [table.parentCommentId],
+      foreignColumns: [table.id],
+    }),
+    foreignKey({
+      columns: [table.rootCommentId],
+      foreignColumns: [table.id],
+    }),
+  ],
+);
+
+export const translatableElementCommentRelations = relations(
+  translatableElementComment,
+  ({ one }) => ({
+    ParentComment: one(translatableElementComment, {
+      fields: [translatableElementComment.parentCommentId],
+      references: [translatableElementComment.id],
+    }),
+    RootComment: one(translatableElementComment, {
+      fields: [translatableElementComment.rootCommentId],
+      references: [translatableElementComment.id],
+    }),
+  }),
+);
+
+export const translatableElementContextRelations = relations(
+  translatableElementContext,
+  ({ one }) => ({
+    TranslatableElement: one(translatableElement, {
+      fields: [translatableElementContext.translatableElementId],
+      references: [translatableElement.id],
+    }),
+    StorageProvider: one(pluginService, {
+      fields: [translatableElementContext.storageProviderId],
+      references: [pluginService.id],
+    }),
+    File: one(file, {
+      fields: [translatableElementContext.fileId],
+      references: [file.id],
+    }),
+  }),
+);
+
 export const documentClosureRelations = relations(
   documentClosure,
   ({ one }) => ({
@@ -266,6 +371,7 @@ export const translatableElementRelations = relations(
     }),
     MemoryItems: many(memoryItem),
     Translations: many(translation),
+    Contexts: many(translatableElementContext),
   }),
 );
 

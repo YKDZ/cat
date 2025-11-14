@@ -20,7 +20,7 @@ const handleTranslate = async (toNext: boolean) => {
 </script>
 
 <template>
-  <div class="px-2 pb-4 pt-1 flex w-full items-center justify-between">
+  <div class="p-2 flex w-full items-center justify-between">
     <div class="flex gap-1 items-center">
       <TextTooltip :tooltip="t('复制原文')">
         <Button

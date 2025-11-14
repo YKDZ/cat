@@ -9,6 +9,8 @@
     "cat"
   ],
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -76,7 +78,8 @@
     },
     "./schema/drizzle/enum": {
       "types": "./dist/schema/drizzle/enum.d.ts",
-      "import": "./dist/schema/drizzle/enum.js"
+      "import": "./dist/schema/drizzle/enum.js",
+      "require": "./dist/schema/drizzle/enum.cjs"
     }
   },
   "files": [

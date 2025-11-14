@@ -591,16 +591,11 @@ export const documentRouter = router({
           .returning({ id: taskTable.id }),
       );
 
-      await workerRegistry.addJob(
-        "export-translated-file",
-        {
-          documentId,
-          languageId,
-        },
-        {
-          jobId: task.id,
-        },
-      );
+      await workerRegistry.addJob("export-translated-file", {
+        documentId,
+        languageId,
+        taskId: task.id,
+      });
     }),
   getTranslatedFilePresignedUrl: authedProcedure
     .input(
@@ -676,7 +671,7 @@ export const documentRouter = router({
         fileName: file.name,
       };
     }),
-  queryElementTranslationStatus: authedProcedure
+  getElementTranslationStatus: authedProcedure
     .input(
       z.object({
         elementId: z.number(),
@@ -742,7 +737,7 @@ export const documentRouter = router({
 
       return "TRANSLATED";
     }),
-  queryElements: authedProcedure
+  getElements: authedProcedure
     .input(
       z.object({
         documentId: z.string(),
@@ -828,7 +823,7 @@ export const documentRouter = router({
 
       return result;
     }),
-  queryPageIndexOfElement: authedProcedure
+  getPageIndexOfElement: authedProcedure
     .input(
       z.object({
         elementId: z.number(),

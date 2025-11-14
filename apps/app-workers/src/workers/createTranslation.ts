@@ -152,7 +152,6 @@ async function createTranslationWithMemory(
 
 const createTranslationWorker = defineWorker({
   id,
-  taskType: id,
   inputSchema: CreateTranslationInputSchema,
 
   async execute(ctx) {

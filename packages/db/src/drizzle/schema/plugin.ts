@@ -15,7 +15,7 @@ import { relations } from "drizzle-orm";
 import { timestamps } from "./reuse.ts";
 import { user } from "./user.ts";
 import { blob } from "./file.ts";
-import { document } from "./document.ts";
+import { document, translatableElementContext } from "./document.ts";
 import { chunk } from "./vector.ts";
 import {
   PluginServiceTypeValues,
@@ -166,6 +166,7 @@ export const pluginServiceRelations = relations(
     VectorStorageChunks: many(chunk, {
       relationName: "chunkVectorStorageService",
     }),
+    TranslatableElementContexts: many(translatableElementContext),
   }),
 );
 

@@ -355,7 +355,6 @@ async function translateWithAdvisor(
  */
 const translateElementsChunkWorker = defineWorker({
   id: "translate-elements-chunk",
-  taskType: "auto_translate_chunk",
   inputSchema: TranslateElementChunkInputSchema,
 
   async execute(ctx) {
@@ -520,7 +519,6 @@ const translateElementsChunkWorker = defineWorker({
  */
 const autoTranslateFinalizeWorker = defineWorker({
   id,
-  taskType: id,
   inputSchema: FinalizeInputSchema,
   outputSchema: FinalizeOutputSchema,
 

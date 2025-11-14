@@ -41,6 +41,7 @@ declare module "../core/registry" {
 }
 
 const ExportTranslatedFileInputSchema = z.object({
+  taskId: z.uuidv7(),
   documentId: z.string(),
   languageId: z.string(),
 });
@@ -230,12 +231,10 @@ async function uploadTranslatedFile(
 
 const exportTranslatedFileWorker = defineWorker({
   id,
-  taskType: id,
   inputSchema: ExportTranslatedFileInputSchema,
 
   async execute(ctx) {
-    const { documentId, languageId } = ctx.input;
-    const taskId = ctx.taskId;
+    const { documentId, languageId, taskId } = ctx.input;
 
     const fileInfo = await getDocumentFileInfo(documentId);
 
@@ -261,8 +260,6 @@ const exportTranslatedFileWorker = defineWorker({
     );
 
     const data = {
-      documentId,
-      languageId,
       translatedFileId,
       translationCount: translations.length,
       originalFileName: fileInfo.fileName,
@@ -272,7 +269,7 @@ const exportTranslatedFileWorker = defineWorker({
       .update(taskTable)
       .set({
         status: "COMPLETED",
-        meta: sql`${taskTable.meta} || to_jsonb(${data}})`,
+        meta: sql`${taskTable.meta} || ${data}::jsonb`,
       })
       .where(eq(taskTable.id, taskId));
 
@@ -280,14 +277,13 @@ const exportTranslatedFileWorker = defineWorker({
   },
 
   hooks: {
-    onError: async (ctx) => {
-      const taskId = ctx.taskId;
+    onFailed: async (ctx) => {
       await drizzle
         .update(taskTable)
         .set({
           status: "FAILED",
         })
-        .where(eq(taskTable.id, taskId));
+        .where(eq(taskTable.id, ctx.data.taskId));
     },
   },
 });

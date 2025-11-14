@@ -12,6 +12,7 @@ import { composeMiddleware } from "./middleware.ts";
 import { config } from "../utils/config.js";
 import type { ZodType } from "zod/v4";
 import { FlowOrchestrator, type FlowDefinition } from "./workflow.ts";
+import { randomUUID } from "node:crypto";
 
 // oxlint-disable-next-line no-empty-object-type
 export interface WorkerInputTypeMap {}
@@ -164,8 +165,6 @@ export class WorkerRegistry {
         const ctx: WorkerContext = {
           job,
           input: inputResult.data,
-          taskId: job.name + ":" + definition.id.replace(/[^a-zA-Z0-9_-]/g, ""),
-          taskType: definition.taskType,
         };
 
         try {
@@ -283,13 +282,13 @@ export class WorkerRegistry {
   public async addJob<TWorkerId extends keyof WorkerInputTypeMap>(
     workerId: TWorkerId,
     data: WorkerInputTypeMap[TWorkerId],
-    options: QueueJobOptions,
+    options?: QueueJobOptions,
   ): Promise<void>;
 
   public async addJob(
     workerId: string,
     data: unknown,
-    options: QueueJobOptions,
+    options?: QueueJobOptions,
   ): Promise<void> {
     const instance = this.workers.get(workerId);
     if (!instance) {
@@ -298,21 +297,23 @@ export class WorkerRegistry {
       );
     }
 
-    await instance.queue.add(options.jobId, data, {
+    const jobId = options?.jobId ?? randomUUID();
+
+    await instance.queue.add(jobId, data, {
       ...this.definitions.get(workerId)?.defaultJobOptions,
       ...options,
-      jobId: options.jobId,
+      jobId,
     });
 
     logger.info("PROCESSOR", {
-      msg: `Added job to ${workerId}: ${options.jobId}`,
+      msg: `Added job to ${workerId}: ${jobId}`,
     });
   }
 
   public async executeFlow<TFlowId extends keyof FlowInputTypeMap>(
     flowId: TFlowId,
     input: FlowInputTypeMap[TFlowId],
-    options: QueueJobOptions,
+    options?: QueueJobOptions,
   ): Promise<unknown> {
     const definition = this.flowDefinitions.get(flowId as string);
 
@@ -329,9 +330,11 @@ export class WorkerRegistry {
       options,
     );
 
+    const jobId = options?.jobId ?? randomUUID();
+
     logger.info("PROCESSOR", {
       msg: `Enqueued flow: ${String(flowId)}`,
-      jobId: options.jobId,
+      jobId,
     });
 
     return result;
