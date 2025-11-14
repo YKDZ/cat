@@ -167,7 +167,6 @@ async function insertTermsWithTranslations(
 
 const insertTermsWorker = defineWorker({
   id,
-  taskType: id,
   inputSchema: InsertTermsInputSchema,
 
   async execute(ctx) {

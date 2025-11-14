@@ -1,20 +1,19 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { onMounted, ref, watch } from "vue";
+import { onMounted } from "vue";
 import EditorTaggedTranslation from "./EditorTaggedTranslation.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useI18n } from "vue-i18n";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/app/components/ui/resizable";
 
-const { translationValue, inputTextareaEl, originDivEl } = storeToRefs(
+const { t } = useI18n();
+
+const { translationValue, inputTextareaEl } = storeToRefs(
   useEditorTableStore(),
-);
-
-const isSticky = ref(false);
-
-const topHeight = ref(originDivEl.value?.clientHeight);
-
-watch(
-  () => originDivEl.value?.clientHeight,
-  (to) => (topHeight.value = to),
 );
 
 onMounted(() => {
@@ -26,20 +25,23 @@ onMounted(() => {
 
 <template>
   <div
-    :style="{
-      position: isSticky ? 'sticky' : 'static',
-      top: topHeight + 'px',
-    }"
-    class="bg-background bg-op-50 flex h-fit max-w-full w-full backdrop-blur-sm"
+    class="bg-background border-t bg-op-50 flex h-fit max-w-full w-full backdrop-blur-sm"
   >
-    <textarea
-      ref="inputTextareaEl"
-      v-model="translationValue"
-      :placeholder="$t('在此输入译文')"
-      class="px-5 pt-5 outline-0 max-w-1/2 min-h-32 min-w-1/2"
-    />
-    <div class="px-5 pt-5 flex flex-col gap-5 max-w-1/2 min-h-32 min-w-1/2">
-      <EditorTaggedTranslation />
-    </div>
+    <ResizablePanelGroup direction="horizontal">
+      <ResizablePanel>
+        <textarea
+          ref="inputTextareaEl"
+          v-model="translationValue"
+          :placeholder="t('在此输入译文')"
+          class="px-5 pt-5 outline-0 min-h-32 w-full"
+        />
+      </ResizablePanel>
+      <ResizableHandle :with-handle="true" />
+      <ResizablePanel>
+        <div class="px-5 pt-5 flex flex-col gap-5 min-h-32">
+          <EditorTaggedTranslation />
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   </div>
 </template>

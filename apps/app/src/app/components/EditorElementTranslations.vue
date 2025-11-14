@@ -16,16 +16,13 @@ watchClient(elementId, updateTranslations, { immediate: true });
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col p-3">
     <h3 class="text-sm font-bold">{{ t("所有翻译") }}</h3>
-    <div v-for="translation in translations" :key="translation.id">
-      <EditorElementTranslation :translation="translation" />
-    </div>
-    <div
-      v-if="translations.length === 0"
-      class="px-3 py-2 flex gap-2 select-none"
-    >
+    <div v-if="translations.length === 0" class="px-3 py-2 select-none">
       {{ t("还没有任何翻译或翻译仍在处理") }}
+    </div>
+    <div v-else v-for="translation in translations" :key="translation.id">
+      <EditorElementTranslation :translation="translation" />
     </div>
   </div>
 </template>

@@ -18,7 +18,7 @@ export const guard = async (ctx: PageContextServer) => {
   });
 
   if (!target) {
-    const first = await useSSCTRPC(ctx).document.queryElements({
+    const first = await useSSCTRPC(ctx).document.getElements({
       documentId: documentId,
       page: 0,
       pageSize: 1,

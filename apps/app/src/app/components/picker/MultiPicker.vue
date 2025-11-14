@@ -10,6 +10,8 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxItemIndicator,
+  ComboboxTrigger,
 } from "@/app/components/ui/combobox";
 import {
   TagsInput,
@@ -18,6 +20,8 @@ import {
   TagsInputItemDelete,
 } from "@/app/components/ui/tags-input";
 import { useI18n } from "vue-i18n";
+import { Check, ChevronDown, Plus, Search } from "lucide-vue-next";
+import { Button } from "@/app/components/ui/button";
 
 const props = withDefaults(
   defineProps<{
@@ -66,46 +70,59 @@ const contentFromValue = (value: AcceptableInputValue): string => {
 </script>
 
 <template>
-  <Combobox v-model="modelValue" :ignore-filter="true">
-    <ComboboxAnchor as-child>
-      <TagsInput v-model="modelValue" class="px-2 gap-2 min-w-96 w-full">
-        <div class="flex gap-2 flex-wrap items-center">
-          <TagsInputItem
-            v-for="item in modelValue"
-            :key="item.toString()"
-            :value="item"
-          >
-            <span class="py-0.5 px-2 text-sm rounded bg-transparent">{{
-              contentFromValue(item)
-            }}</span>
-            <TagsInputItemDelete />
-          </TagsInputItem>
-        </div>
+  <Combobox v-model="modelValue">
+    <TagsInput v-model="modelValue" class="px-2 gap-2 min-w-96 w-full">
+      <div class="flex gap-2 flex-wrap items-center">
+        <TagsInputItem
+          v-for="item in modelValue"
+          :key="item.toString()"
+          :value="item"
+        >
+          <span class="py-0.5 px-2 text-sm rounded bg-transparent">{{
+            contentFromValue(item)
+          }}</span>
+          <TagsInputItemDelete />
+        </TagsInputItem>
+      </div>
 
-        <ComboboxInput v-model="searchTerm" as-child>
-          <TagsInputInput
-            :placeholder
-            class="w-full p-0 border-none focus-visible:ring-0 h-auto"
-            @keydown.enter.prevent
-          />
-        </ComboboxInput>
-      </TagsInput>
+      <ComboboxAnchor as-child>
+        <ComboboxTrigger as-child>
+          <Button variant="outline" size="icon">
+            <Plus />
+          </Button>
+        </ComboboxTrigger>
+      </ComboboxAnchor>
+    </TagsInput>
 
-      <ComboboxList>
-        <ComboboxEmpty>
-          {{ t("没有可用选项") }}
-        </ComboboxEmpty>
-        <ComboboxGroup>
-          <ComboboxItem
-            v-for="option in filteredOptions"
-            :key="option.content"
-            :value="option.value"
-            @select.prevent="onSelect(option.value)"
-          >
-            {{ option.content }}
-          </ComboboxItem>
-        </ComboboxGroup>
-      </ComboboxList>
-    </ComboboxAnchor>
+    <ComboboxList>
+      <div class="relative w-full max-w-sm items-center">
+        <ComboboxInput
+          class="focus-visible:ring-0 rounded-none h-10"
+          :placeholder
+        />
+        <span
+          class="absolute start-0 inset-y-0 flex items-center justify-center px-3"
+        >
+          <Search class="size-4 text-muted-foreground" />
+        </span>
+      </div>
+
+      <ComboboxEmpty> {{ t("没有可用选项") }} </ComboboxEmpty>
+
+      <ComboboxGroup>
+        <ComboboxItem
+          v-for="option in filteredOptions"
+          :key="option.content"
+          :value="option.value"
+          @select.prevent="onSelect(option.value)"
+        >
+          {{ option.content }}
+
+          <ComboboxItemIndicator>
+            <Check />
+          </ComboboxItemIndicator>
+        </ComboboxItem>
+      </ComboboxGroup>
+    </ComboboxList>
   </Combobox>
 </template>

@@ -5,19 +5,20 @@ import { Sheet, SheetContent } from "@/app/components/ui/sheet";
 import SheetDescription from "@/app/components/ui/sheet/SheetDescription.vue";
 import SheetHeader from "@/app/components/ui/sheet/SheetHeader.vue";
 import SheetTitle from "@/app/components/ui/sheet/SheetTitle.vue";
-import { SIDEBAR_WIDTH_MOBILE, useSidebar } from "./utils";
+import { SIDEBAR_DEFAULT_ID, SIDEBAR_WIDTH_MOBILE, useSidebar } from "./utils";
 
 defineOptions({
   inheritAttrs: false,
 });
 
 const props = withDefaults(defineProps<SidebarProps>(), {
+  id: SIDEBAR_DEFAULT_ID,
   side: "left",
   variant: "sidebar",
   collapsible: "offcanvas",
 });
 
-const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
 </script>
 
 <template>

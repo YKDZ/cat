@@ -12,24 +12,27 @@ import { cn } from "@/app/utils/lib/utils";
 import {
   provideSidebarContext,
   SIDEBAR_COOKIE_MAX_AGE,
-  SIDEBAR_COOKIE_NAME,
+  SIDEBAR_DEFAULT_ID,
   SIDEBAR_KEYBOARD_SHORTCUT,
   SIDEBAR_WIDTH,
   SIDEBAR_WIDTH_ICON,
+  getSidebarCookieName,
 } from "./utils";
 import { usePageContext } from "vike-vue/usePageContext";
 
 const props = withDefaults(
   defineProps<{
+    id?: string;
     defaultOpen?: boolean;
     open?: boolean;
+    inline?: boolean;
     class?: HTMLAttributes["class"];
   }>(),
   {
-    defaultOpen: !defaultDocument?.cookie.includes(
-      `${SIDEBAR_COOKIE_NAME}=false`,
-    ),
+    id: SIDEBAR_DEFAULT_ID,
+    defaultOpen: undefined,
     open: undefined,
+    inline: false,
   },
 );
 
@@ -39,13 +42,19 @@ const emits = defineEmits<{
 
 const ctx = usePageContext();
 
+const sidebarId = computed(() => props.id ?? SIDEBAR_DEFAULT_ID);
+const cookieName = computed(() => getSidebarCookieName(sidebarId.value));
+const initialDefaultOpen =
+  props.defaultOpen ??
+  !defaultDocument?.cookie.includes(`${cookieName.value}=false`);
+
 const isMobile = !ctx.isClientSide
   ? shallowRef(ctx.isMobile)
   : useMediaQuery("(max-width: 768px)");
 const openMobile = ref(false);
 
 const open = useVModel(props, "open", emits, {
-  defaultValue: props.defaultOpen ?? false,
+  defaultValue: initialDefaultOpen ?? false,
   passive: (props.open === undefined) as false,
 }) as Ref<boolean>;
 
@@ -53,7 +62,7 @@ function setOpen(value: boolean) {
   open.value = value; // emits('update:open', value)
 
   // This sets the cookie to keep the sidebar state.
-  document.cookie = `${SIDEBAR_COOKIE_NAME}=${open.value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+  document.cookie = `${cookieName.value}=${open.value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 }
 
 function setOpenMobile(value: boolean) {
@@ -81,7 +90,7 @@ useEventListener("keydown", (event: KeyboardEvent) => {
 // This makes it easier to style the sidebar with Tailwind classes.
 const state = computed(() => (open.value ? "expanded" : "collapsed"));
 
-provideSidebarContext({
+provideSidebarContext(sidebarId.value, {
   state,
   open,
   setOpen,
@@ -102,7 +111,7 @@ provideSidebarContext({
       }"
       :class="
         cn(
-          'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
+          'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar',
           props.class,
         )
       "

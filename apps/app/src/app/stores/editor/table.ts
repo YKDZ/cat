@@ -20,7 +20,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const elementRefStore = storeToRefs(elementStore);
   const profile = storeToRefs(useProfileStore());
 
-  const originDivEl = ref<HTMLDivElement>();
   const inputDivEl = ref<HTMLDivElement>();
   const inputTextareaEl = ref<HTMLTextAreaElement | null>(null);
 
@@ -63,7 +62,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const toElement = async (id: number) => {
     if (!context.documentId.value) return;
 
-    const page = await trpc.document.queryPageIndexOfElement.query({
+    const page = await trpc.document.getPageIndexOfElement.query({
       elementId: id,
       documentId: context.documentId.value,
       pageSize: context.pageSize.value,
@@ -96,7 +95,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       return;
     }
 
-    await trpc.document.queryElements
+    await trpc.document.getElements
       .query({
         documentId: context.documentId.value,
         page: index,
@@ -192,7 +191,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   return {
     elementId,
     translationValue,
-    originDivEl,
     inputDivEl,
     inputTextareaEl,
     sourceParts,

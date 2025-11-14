@@ -13,8 +13,6 @@ export interface WorkerContext<TInput = unknown> {
   /** BullMQ Job */
   job: Job<TInput>;
   input: TInput;
-  taskId: string;
-  taskType: string;
 }
 
 /**
@@ -29,7 +27,6 @@ export interface WorkerDefinition<
   >,
 > {
   id: string;
-  taskType: string;
   inputSchema: TInputSchema;
   outputSchema?: TOutputSchema;
   execute: (ctx: TContext) => Promise<InferSchema<TOutputSchema>>;
@@ -91,9 +88,6 @@ export interface WorkerInstance {
 }
 
 export interface QueueJobOptions extends JobsOptions {
-  /** 任务 ID (将作为 job.name) */
-  jobId: string;
-
-  /** 任务元数据 */
+  jobId?: string;
   meta?: Record<string, unknown>;
 }

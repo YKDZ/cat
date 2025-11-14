@@ -298,7 +298,6 @@ async function executeAddElementsWithStringChunk(
  */
 const removeElementsChunkWorker = defineWorker({
   id: "remove-elements-chunk",
-  taskType: "batch_diff_remove_chunk",
   inputSchema: RemoveChunkInputSchema,
 
   async execute(ctx) {
@@ -338,7 +337,6 @@ const removeElementsChunkWorker = defineWorker({
  */
 const addElementsWithoutStringChunkWorker = defineWorker({
   id: "add-elements-without-string-chunk",
-  taskType: "batch_diff_add_without_string_chunk",
   inputSchema: AddWithoutStringChunkInputSchema,
 
   async execute(ctx) {
@@ -383,7 +381,6 @@ const addElementsWithoutStringChunkWorker = defineWorker({
  */
 const addElementsWithStringChunkWorker = defineWorker({
   id: "add-elements-with-string-chunk",
-  taskType: "batch_diff_add_with_string_chunk",
   inputSchema: AddWithStringChunkInputSchema,
 
   async execute(ctx) {
@@ -452,7 +449,6 @@ declare module "../core/registry" {
 
 const batchDiffElementsFinalizeWorker = defineWorker({
   id: finalizeWorkerId,
-  taskType: flowId,
   inputSchema: FinalizeInputSchema,
 
   async execute(ctx) {

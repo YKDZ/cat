@@ -50,7 +50,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
   ): Promise<ElementTranslationStatus> => {
     if (!elementId || !context.languageToId.value) return "NO";
 
-    return await trpc.document.queryElementTranslationStatus.query({
+    return await trpc.document.getElementTranslationStatus.query({
       elementId,
       languageId: context.languageToId.value,
     });

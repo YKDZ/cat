@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "../misc.ts";
 import { safeZDotJson } from "@/schema/json.ts";
+import { TranslatableElementContextTypeSchema } from "@/schema/drizzle/enum.ts";
 
 export const DocumentSchema = z.object({
   id: z.uuidv7(),
@@ -39,7 +40,22 @@ export const TranslatableStringSchema = z.object({
   languageId: z.string(),
 });
 
+export const TranslatableElementContextSchema = z.object({
+  id: z.int(),
+  type: TranslatableElementContextTypeSchema,
+  jsonData: safeZDotJson,
+  fileId: z.int().nullable(),
+  storageProviderId: z.int().nullable(),
+  textData: z.string().nullable(),
+  translatableElementId: z.int(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
 export type Document = z.infer<typeof DocumentSchema>;
 export type DocumentVersion = z.infer<typeof DocumentVersionSchema>;
 export type TranslatableElement = z.infer<typeof TranslatableElementSchema>;
 export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
+export type TranslatableElementContext = z.infer<
+  typeof TranslatableElementContextSchema
+>;

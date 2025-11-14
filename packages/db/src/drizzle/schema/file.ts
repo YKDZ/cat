@@ -11,7 +11,7 @@ import {
 import { relations, sql } from "drizzle-orm";
 import { bytea, timestamps } from "./reuse.ts";
 import { pluginService } from "./plugin.ts";
-import { document } from "./document.ts";
+import { document, translatableElementContext } from "./document.ts";
 import { user } from "./user.ts";
 
 export const file = pgTable(
@@ -68,6 +68,10 @@ export const fileRelations = relations(file, ({ one }) => ({
   Blob: one(blob, {
     fields: [file.blobId],
     references: [blob.id],
+  }),
+  TranslatableElementContext: one(translatableElementContext, {
+    fields: [file.id],
+    references: [translatableElementContext.fileId],
   }),
 }));
 

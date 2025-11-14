@@ -9,7 +9,10 @@ const { document } = storeToRefs(useEditorContextStore());
 
 <template>
   <div class="header">
-    <SidebarTrigger />
-    <DocumentBreadcrumb v-if="document" :document />
+    <SidebarTrigger sidebarId="editor" />
+    <div class="flex w-full justify-between">
+      <DocumentBreadcrumb v-if="document" :document />
+      <SidebarTrigger sidebarId="editor-context-panel" />
+    </div>
   </div>
 </template>

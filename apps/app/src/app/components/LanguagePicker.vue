@@ -18,7 +18,7 @@ const { t } = useI18n();
 
 const { languages } = storeToRefs(useLanguageStore());
 
-const languageId = defineModel<string | null>({ default: null });
+const languageId = defineModel<string | undefined>();
 
 const options = computed(() => {
   return languages.value

@@ -302,6 +302,20 @@
       "when": 1763032702877,
       "tag": "0042_dashing_doctor_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1763050244241,
+      "tag": "0043_perfect_scalphunter",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1763091090426,
+      "tag": "0044_chubby_naoko",
+      "breakpoints": true
     }
   ]
 }
