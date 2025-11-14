@@ -10,7 +10,11 @@ import {
 import { relations } from "drizzle-orm";
 import { timestamps, uuidId } from "./reuse.ts";
 import { projectTargetLanguage } from "./project.ts";
-import { documentToTask, translatableString } from "./document.ts";
+import {
+  documentToTask,
+  translatableElementComment,
+  translatableString,
+} from "./document.ts";
 import { JSONType } from "@cat/shared/schema/json";
 import { TaskStatusValues } from "@cat/shared/schema/drizzle/enum";
 
@@ -50,6 +54,7 @@ export const task = pgTable(
 export const languageRelations = relations(language, ({ many }) => ({
   ProjectTargetLanguages: many(projectTargetLanguage),
   TranslatableStrings: many(translatableString),
+  TranslatableElementComment: many(translatableElementComment),
 }));
 
 export const taskRelations = relations(task, ({ many }) => ({

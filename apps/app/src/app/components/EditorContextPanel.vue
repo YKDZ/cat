@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import EditorElemenContexts from "@/app/components/EditorElemenContexts.vue";
+import EditorElementComments from "@/app/components/EditorElementComments.vue";
 import Sidebar from "@/app/components/ui/sidebar/Sidebar.vue";
 import SidebarContent from "@/app/components/ui/sidebar/SidebarContent.vue";
 import SidebarGroup from "@/app/components/ui/sidebar/SidebarGroup.vue";
@@ -17,7 +18,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <Sidebar side="right" id="editor-context-panel">
+  <Sidebar side="right" id="editor-context-panel" width="24rem">
     <Tabs default-value="context">
       <SidebarHeader>
         <TabsList class="grid w-full grid-cols-2">
@@ -32,7 +33,7 @@ const { t } = useI18n();
               <EditorElemenContexts />
             </TabsContent>
             <TabsContent value="discussion">
-              <EditorElemenContexts />
+              <EditorElementComments />
             </TabsContent>
           </SidebarGroupContent>
         </SidebarGroup>

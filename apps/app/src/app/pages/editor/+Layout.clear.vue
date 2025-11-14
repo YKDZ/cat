@@ -15,7 +15,6 @@ import { SidebarProvider } from "@/app/components/ui/sidebar";
 import { useCookies } from "@vueuse/integrations/useCookies";
 import { computed } from "vue";
 import { Toaster } from "@/app/components/ui/sonner";
-import "vue-sonner/style.css";
 
 const sidebarState = useCookies([
   "editorSidebarState",
@@ -63,6 +62,7 @@ watch(
 <template>
   <SidebarProvider
     id="editor-context-panel"
+    style="--sidebar-width: 40rem"
     :default-open="contextPanelDefaultOpen"
     @update:open="
       (value) => sidebarState.set('editorContextPanelSidebarState', value)
@@ -80,7 +80,17 @@ watch(
           class="flex flex-col h-full max-h-full w-full md:flex-row overflow-hidden"
         >
           <div class="shrink-0 h-full">
-            <EditorSidebar />
+            <SidebarProvider
+              id="editor-context-panel"
+              style="--sidebar-width: 40rem"
+              :default-open="contextPanelDefaultOpen"
+              @update:open="
+                (value) =>
+                  sidebarState.set('editorContextPanelSidebarState', value)
+              "
+            >
+              <EditorSidebar />
+            </SidebarProvider>
           </div>
 
           <div class="flex flex-col flex-1 h-full min-w-0 overflow-hidden">

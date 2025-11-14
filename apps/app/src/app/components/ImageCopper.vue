@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import RangeInput from "./RangeInput.vue";
 import { Button } from "@/app/components/ui/button";
 import { Spinner } from "@/app/components/ui/spinner";
+import { Slider } from "@/app/components/ui/slider";
 
 const { t } = useI18n();
 
@@ -28,7 +28,7 @@ const imgCanvasEl = ref<HTMLCanvasElement>();
 const copperCanvasEl = ref<HTMLCanvasElement>();
 const exportCanvasEl = ref<HTMLCanvasElement>();
 const image = ref<InstanceType<typeof Image>>();
-const scale = ref(0);
+const scales = ref([0]);
 const imgNaturalWidth = ref(0);
 const imgNaturalHeight = ref(0);
 const imageX = ref(0);
@@ -36,6 +36,8 @@ const imageY = ref(0);
 const isGrabbing = ref(false);
 const grabStartX = ref(0);
 const grabStartY = ref(0);
+
+const scale = computed(() => scales.value[0] ?? 0);
 
 const coppedRegion = computed(() => {
   return {
@@ -177,19 +179,19 @@ const handleImgLoad = () => {
 
   // 初始缩放
   if (imgNaturalWidth.value <= imgNaturalHeight.value) {
-    scale.value = Math.min(
+    scales.value[0] = Math.min(
       maxScale.value,
       Math.max(minScale.value, copperWidth.value / imgNaturalWidth.value),
     );
   } else {
-    scale.value = Math.min(
+    scales.value[0] = Math.min(
       maxScale.value,
       Math.max(minScale.value, copperHeight.value / imgNaturalHeight.value),
     );
   }
 };
 
-watch(scale, drawImage);
+watch(scales, drawImage);
 watch(imageX, drawImage);
 watch(imageY, drawImage);
 
@@ -251,11 +253,11 @@ onMounted(() => {
         :height="coppedRegion.height"
       />
     </div>
-    <RangeInput
-      v-model="scale"
+    <Slider
+      v-model="scales"
       :min="minScale"
       :max="maxScale"
-      step="any"
+      :step="0.01"
       class="w-5/6"
     />
     <Button @click="handleSubmit"

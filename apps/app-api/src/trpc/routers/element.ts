@@ -1,6 +1,14 @@
 import { authedProcedure, router } from "@/trpc/server";
-import { eq, translatableElement, translatableElementContext } from "@cat/db";
 import {
+  and,
+  eq,
+  isNull,
+  translatableElement,
+  translatableElementComment,
+  translatableElementContext,
+} from "@cat/db";
+import {
+  TranslatableElementCommentSchema,
   TranslatableElementContextSchema,
   type TranslatableElementContext,
 } from "@cat/shared/schema/drizzle/document";
@@ -57,5 +65,64 @@ export const elementRouter = router({
       } satisfies TranslatableElementContext;
 
       return [metaContext, ...contexts];
+    }),
+  comment: authedProcedure
+    .input(
+      z.object({
+        elementId: z.int(),
+        content: z.string(),
+        parentCommentId: z.int().optional(),
+      }),
+    )
+    .output(TranslatableElementCommentSchema)
+    .mutation(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+        user,
+      } = ctx;
+      const { elementId, content, parentCommentId } = input;
+
+      const comment = assertSingleNonNullish(
+        await drizzle
+          .insert(translatableElementComment)
+          .values({
+            translatableElementId: elementId,
+            userId: user.id,
+            content,
+            parentCommentId,
+          })
+          .returning(),
+      );
+
+      return comment;
+    }),
+  getRootComments: authedProcedure
+    .input(
+      z.object({
+        elementId: z.int(),
+        pageIndex: z.int().nonnegative(),
+        pageSize: z.int().positive(),
+      }),
+    )
+    .output(z.array(TranslatableElementCommentSchema))
+    .query(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
+      const { elementId, pageIndex, pageSize } = input;
+
+      const comments = await drizzle
+        .select()
+        .from(translatableElementComment)
+        .where(
+          and(
+            eq(translatableElementComment.translatableElementId, elementId),
+            isNull(translatableElementComment.parentCommentId),
+          ),
+        )
+        .offset(pageIndex * pageSize)
+        .limit(pageSize);
+
+      return comments;
     }),
 });

@@ -316,6 +316,20 @@
       "when": 1763091090426,
       "tag": "0044_chubby_naoko",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1763124123007,
+      "tag": "0045_bizarre_warpath",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1763135422796,
+      "tag": "0046_bizarre_sauron",
+      "breakpoints": true
     }
   ]
 }
