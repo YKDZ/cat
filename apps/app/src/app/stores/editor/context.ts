@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { computedAsync } from "@vueuse/core";
 import { trpc } from "@cat/app-api/trpc/client";
+import { computedAsyncClient } from "@/app/utils/vue";
 
 export const useEditorContextStore = defineStore("editorContext", () => {
   const documentId = ref<string | null>(null);
@@ -10,8 +10,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
   // 从 1 开始
   const currentPage = ref(1);
 
-  const document = computedAsync(async () => {
-    if (import.meta.env.SSR) return null;
+  const document = computedAsyncClient(async () => {
     if (!documentId.value) return null;
 
     return await trpc.document.get.query({

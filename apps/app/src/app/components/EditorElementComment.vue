@@ -3,7 +3,6 @@ import EditorElementCommentReaction from "@/app/components/EditorElementCommentR
 import Markdown from "@/app/components/Markdown.vue";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Badge } from "@/app/components/ui/badge";
-import { Separator } from "@/app/components/ui/separator";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import { i18nUseTimeAgoMessages } from "@/app/utils/i18n";
 import { computedAsyncClient } from "@/app/utils/vue";
