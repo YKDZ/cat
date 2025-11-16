@@ -4,7 +4,6 @@ import { trpc } from "@cat/app-api/trpc/client";
 import * as z from "zod";
 import { navigate } from "vike/client/router";
 import { useRefHistory } from "@vueuse/core";
-import { computedAsync } from "@vueuse/core";
 import type { PartData } from "@/app/components/tagger/index.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import {
@@ -13,6 +12,7 @@ import {
 } from "@/app/stores/editor/element.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { hashJSON } from "@/app/utils/hash.ts";
+import { computedAsyncClient } from "@/app/utils/vue";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
   const context = storeToRefs(useEditorContextStore());
@@ -44,7 +44,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     return element.value.languageId;
   });
 
-  const elementTotalAmount = computedAsync(async () => {
+  const elementTotalAmount = computedAsyncClient(async () => {
     if (!context.documentId.value || !context.languageToId.value) return 0;
 
     return await trpc.document.countElement.query({
