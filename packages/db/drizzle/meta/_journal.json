@@ -330,6 +330,13 @@
       "when": 1763135422796,
       "tag": "0046_bizarre_sauron",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1763214790293,
+      "tag": "0047_swift_gamora",
+      "breakpoints": true
     }
   ]
 }

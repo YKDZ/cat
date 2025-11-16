@@ -13,7 +13,7 @@ const ctx = usePageContext();
 
 <template>
   <div class="header">
-    <SidebarTrigger />
+    <SidebarTrigger sidebar-id="index" />
     <ProjectBreadcrumb v-if="project" :project />
     <div v-else class="text-lg font-500 flex items-center">
       {{ ctx.user?.name }}

@@ -4,8 +4,12 @@ import { navigate } from "vike/client/router";
 import logoURL from "@/app/assets/logo.png";
 import { useSidebar } from "@/app/components/ui/sidebar";
 
+const props = defineProps<{
+  sidebarId: string;
+}>();
+
 const ctx = usePageContext();
-const { state } = useSidebar();
+const { state } = useSidebar(props.sidebarId);
 </script>
 
 <template>

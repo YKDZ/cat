@@ -14,5 +14,11 @@ const compiled = computed(() => marked(props.content));
 </script>
 
 <template>
-  <div class="prose-sm" v-html="compiled" />
+  <div class="prose-sm markdown" v-html="compiled" />
 </template>
+
+<style lang="css" scoped>
+.markdown {
+  text-autospace: normal;
+}
+</style>

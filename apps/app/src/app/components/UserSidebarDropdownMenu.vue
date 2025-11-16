@@ -15,13 +15,14 @@ import { useToastStore } from "@/app/stores/toast";
 import { useSidebar } from "@/app/components/ui/sidebar";
 import { Spinner } from "@/app/components/ui/spinner";
 
-defineProps<{
+const props = defineProps<{
   user: Pick<User, "id" | "name"> | null;
+  sidebarId: string;
 }>();
 
 const { t } = useI18n();
 const { info, trpcWarn } = useToastStore();
-const { state } = useSidebar();
+const { state } = useSidebar(props.sidebarId);
 
 const isLoggingOut = ref(false);
 

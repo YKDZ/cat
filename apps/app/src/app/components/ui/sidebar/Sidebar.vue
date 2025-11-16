@@ -5,29 +5,27 @@ import { Sheet, SheetContent } from "@/app/components/ui/sheet";
 import SheetDescription from "@/app/components/ui/sheet/SheetDescription.vue";
 import SheetHeader from "@/app/components/ui/sheet/SheetHeader.vue";
 import SheetTitle from "@/app/components/ui/sheet/SheetTitle.vue";
-import {
-  SIDEBAR_DEFAULT_ID,
-  SIDEBAR_WIDTH,
-  SIDEBAR_WIDTH_ICON,
-  SIDEBAR_WIDTH_MOBILE,
-  useSidebar,
-} from "./utils";
+import { useSidebar } from "./utils";
 
 defineOptions({
   inheritAttrs: false,
 });
 
 const props = withDefaults(defineProps<SidebarProps>(), {
-  id: SIDEBAR_DEFAULT_ID,
-  side: "left",
   variant: "sidebar",
   collapsible: "offcanvas",
-  width: SIDEBAR_WIDTH,
-  widthMobile: SIDEBAR_WIDTH_MOBILE,
-  widthIcon: SIDEBAR_WIDTH_ICON,
 });
 
-const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
+const {
+  isMobile,
+  state,
+  openMobile,
+  setOpenMobile,
+  width,
+  widthIcon,
+  widthMobile,
+  side,
+} = useSidebar(props.id);
 </script>
 
 <template>
@@ -35,8 +33,8 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
     v-if="collapsible === 'none'"
     data-slot="sidebar"
     :style="{
-      '--sidebar-width': width,
-      '--sidebar-width-icon': widthIcon,
+      '--sidebar-width': width + 'px',
+      '--sidebar-width-icon': widthIcon + 'rem',
     }"
     :class="
       cn(
@@ -55,8 +53,8 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
     v-bind="$attrs"
     @update:open="setOpenMobile"
     :style="{
-      '--sidebar-width': width,
-      '--sidebar-width-icon': widthIcon,
+      '--sidebar-width': width + 'px',
+      '--sidebar-width-icon': widthIcon + 'rem',
     }"
   >
     <SheetContent
@@ -66,7 +64,7 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
       :side="side"
       class="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
       :style="{
-        '--sidebar-width': widthMobile,
+        '--sidebar-width': widthMobile + 'rem',
       }"
     >
       <SheetHeader class="sr-only">
@@ -88,8 +86,8 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar(props.id);
     :data-variant="variant"
     :data-side="side"
     :style="{
-      '--sidebar-width': width,
-      '--sidebar-width-icon': widthIcon,
+      '--sidebar-width': width + 'px',
+      '--sidebar-width-icon': widthIcon + 'rem',
     }"
   >
     <!-- This is what handles the sidebar gap on desktop  -->

@@ -30,7 +30,7 @@ onMounted(() => updateElementStatus(props.element.id));
 </script>
 
 <template>
-  <SidebarMenuButton @click="handleClick">
+  <SidebarMenuButton sidebarId="editor" @click="handleClick">
     <span
       class="shrink-0 w-2 h-2"
       :class="{

@@ -4,6 +4,6 @@ import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 <template>
   <div class="header">
-    <SidebarTrigger />
+    <SidebarTrigger sidebar-id="index" />
   </div>
 </template>

@@ -23,11 +23,19 @@ import { translation } from "./translation.ts";
 import { memoryItem } from "./memory.ts";
 import { chunkSet } from "./vector.ts";
 import { JSONType } from "@cat/shared/schema/json";
-import { TranslatableElementContextTypeValues } from "@cat/shared/schema/drizzle/enum";
+import {
+  TranslatableElementContextTypeValues,
+  TranslatableElementCommentReactionTypeValues,
+} from "@cat/shared/schema/drizzle/enum";
 
 export const translatableElementContextType = pgEnum(
   "TranslatableElementContextType",
   TranslatableElementContextTypeValues,
+);
+
+export const translatableElementCommentReactionType = pgEnum(
+  "TranslatableElementCommentReactionType",
+  TranslatableElementCommentReactionTypeValues,
 );
 
 export const document = pgTable(
@@ -301,9 +309,51 @@ export const translatableElementComment = pgTable(
   ],
 );
 
+export const translatableElementCommentReaction = pgTable(
+  "TranslatableElementCommentReaction",
+  {
+    id: serial().primaryKey(),
+    translatableElementCommentId: integer().notNull(),
+    userId: uuid().notNull(),
+    type: translatableElementCommentReactionType().notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    unique().on(table.translatableElementCommentId, table.userId),
+    index().on(table.translatableElementCommentId),
+    index().on(table.userId),
+    foreignKey({
+      columns: [table.translatableElementCommentId],
+      foreignColumns: [translatableElementComment.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const translatableElementCommentReactionRelations = relations(
+  translatableElementCommentReaction,
+  ({ one }) => ({
+    Comment: one(translatableElementComment, {
+      fields: [translatableElementCommentReaction.translatableElementCommentId],
+      references: [translatableElementComment.id],
+    }),
+    User: one(user, {
+      fields: [translatableElementCommentReaction.userId],
+      references: [user.id],
+    }),
+  }),
+);
+
 export const translatableElementCommentRelations = relations(
   translatableElementComment,
-  ({ one }) => ({
+  ({ one, many }) => ({
     User: one(user, {
       fields: [translatableElementComment.userId],
       references: [user.id],
@@ -324,6 +374,7 @@ export const translatableElementCommentRelations = relations(
       fields: [translatableElementComment.languageId],
       references: [language.id],
     }),
+    Reactions: many(translatableElementCommentReaction),
   }),
 );
 
