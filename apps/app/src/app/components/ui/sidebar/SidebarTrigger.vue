@@ -8,7 +8,7 @@ import { useSidebar } from "./utils";
 
 const props = defineProps<{
   class?: HTMLAttributes["class"];
-  sidebarId?: string;
+  sidebarId: string;
 }>();
 
 const triggerClass = computed(() => cn("h-7 w-7", props.class));

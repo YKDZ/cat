@@ -1,7 +1,10 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "../misc.ts";
 import { safeZDotJson } from "@/schema/json.ts";
-import { TranslatableElementContextTypeSchema } from "@/schema/drizzle/enum.ts";
+import {
+  TranslatableElementCommentReactionTypeSchema,
+  TranslatableElementContextTypeSchema,
+} from "@/schema/drizzle/enum.ts";
 
 export const DocumentSchema = z.object({
   id: z.uuidv7(),
@@ -63,6 +66,15 @@ export const TranslatableElementCommentSchema = z.object({
   updatedAt: DrizzleDateTimeSchema,
 });
 
+export const TranslatableElementCommentReactionSchema = z.object({
+  id: z.int(),
+  translatableElementCommentId: z.int(),
+  userId: z.uuidv7(),
+  type: TranslatableElementCommentReactionTypeSchema,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
 export type Document = z.infer<typeof DocumentSchema>;
 export type DocumentVersion = z.infer<typeof DocumentVersionSchema>;
 export type TranslatableElement = z.infer<typeof TranslatableElementSchema>;
@@ -72,4 +84,7 @@ export type TranslatableElementContext = z.infer<
 >;
 export type TranslatableElementComment = z.infer<
   typeof TranslatableElementCommentSchema
+>;
+export type TranslatableElementCommentReaction = z.infer<
+  typeof TranslatableElementCommentReactionSchema
 >;

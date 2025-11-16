@@ -28,8 +28,24 @@ export const TranslatableElementContextTypeSchema = z.enum(
   TranslatableElementContextTypeValues,
 );
 
+export const TranslatableElementCommentReactionTypeValues = [
+  "+1",
+  "-1",
+  "LAUGH",
+  "HOORAY",
+  "CONFUSED",
+  "HEART",
+  "ROCKET",
+  "EYES",
+] as const;
+export const TranslatableElementCommentReactionTypeSchema = z.enum(
+  TranslatableElementCommentReactionTypeValues,
+);
+
 export type PluginServiceType = (typeof PluginServiceTypeValues)[number];
 export type ScopeType = (typeof ScopeTypeValues)[number];
 export type TaskStatus = (typeof TaskStatusValues)[number];
 export type TranslatableElementContextType =
   (typeof TranslatableElementContextTypeValues)[number];
+export type TranslatableElementCommentReactionType =
+  (typeof TranslatableElementCommentReactionTypeValues)[number];

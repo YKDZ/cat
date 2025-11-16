@@ -13,7 +13,7 @@ defineProps<{
 
 <template>
   <div class="header">
-    <SidebarTrigger />
+    <SidebarTrigger sidebar-id="index" />
     <MemoryBreadcrumb :memory />
   </div>
 </template>

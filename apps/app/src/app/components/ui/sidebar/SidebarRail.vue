@@ -1,14 +1,47 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue";
+import { ref } from "vue";
 import { cn } from "@/app/utils/lib/utils";
 import { useSidebar } from "./utils";
 
 const props = defineProps<{
   class?: HTMLAttributes["class"];
-  sidebarId?: string;
+  sidebarId: string;
 }>();
 
-const { toggleSidebar } = useSidebar(props.sidebarId);
+const { width, minWidth, maxWidth, state, side } = useSidebar(props.sidebarId);
+
+let isDragging = ref(false);
+let startX = 0;
+let startWidth = 0;
+
+function startDrag(event: MouseEvent) {
+  if (state.value !== "expanded") return;
+
+  isDragging.value = true;
+  startX = event.clientX;
+  startWidth = width.value;
+  document.addEventListener("mousemove", onDrag);
+  document.addEventListener("mouseup", stopDrag);
+}
+
+function onDrag(event: MouseEvent) {
+  if (!isDragging.value) return;
+  const deltaX = event.clientX - startX;
+  const direction = side.value === "left" ? 1 : -1;
+  const deltaPx = direction * deltaX;
+  const newWidth = Math.max(
+    minWidth.value,
+    Math.min(maxWidth.value, startWidth + deltaPx),
+  );
+  width.value = newWidth;
+}
+
+function stopDrag() {
+  isDragging.value = false;
+  document.removeEventListener("mousemove", onDrag);
+  document.removeEventListener("mouseup", stopDrag);
+}
 </script>
 
 <template>
@@ -29,7 +62,7 @@ const { toggleSidebar } = useSidebar(props.sidebarId);
         props.class,
       )
     "
-    @click="toggleSidebar"
+    @mousedown="startDrag"
   >
     <slot />
   </button>

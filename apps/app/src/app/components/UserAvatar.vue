@@ -8,6 +8,7 @@ import {
 } from "@/app/components/ui/avatar";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { computedAsyncClient } from "@/app/utils/vue";
+import { watch } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -28,10 +29,12 @@ const user = computedAsyncClient(async () => {
   if (!props.user && props.userId) {
     return await trpc.user.query.query({ id: props.userId });
   } else if (props.user) {
-    return props.user;
+    return props.user as User;
   }
   return null;
 }, null);
+
+const modelValue = defineModel<User | null>({ default: null });
 
 const avatarUrl = computedAsyncClient(async () => {
   if (!user.value) return "";
@@ -40,6 +43,10 @@ const avatarUrl = computedAsyncClient(async () => {
     (await trpc.user.getAvatarPresignedUrl.query({ id: user.value.id })) ?? ""
   );
 }, "");
+
+watch(user, (newUser) => {
+  modelValue.value = newUser ?? null;
+});
 </script>
 
 <template>
@@ -67,7 +74,7 @@ const avatarUrl = computedAsyncClient(async () => {
           <span class="font-bold">{{ user.name.charAt(0).toUpperCase() }}</span>
         </AvatarFallback>
       </Avatar>
-      <span v-if="user && withName">{{ user.name }}</span>
+      <span v-if="user && withName" class="-ml-1.5">{{ user.name }}</span>
     </div>
   </KeepAlive>
 </template>

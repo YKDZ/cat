@@ -3,7 +3,6 @@ import { Input } from "@/app/components/ui/input";
 import {
   Pagination,
   PaginationContent,
-  PaginationItem,
   PaginationNext,
   PaginationPrevious,
   PaginationFirst,
@@ -18,7 +17,6 @@ import {
   ChevronsLeftIcon,
 } from "lucide-vue-next";
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
 
 const { currentPage } = storeToRefs(useEditorContextStore());
 const { elementTotalAmount, pageTotalAmount } = storeToRefs(

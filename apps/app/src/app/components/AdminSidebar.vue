@@ -20,6 +20,8 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 const { user } = usePageContext();
 
+const sidebarId = "admin";
+
 const items = ref([
   {
     url: "/admin",
@@ -40,11 +42,11 @@ const items = ref([
 </script>
 
 <template>
-  <Sidebar collapsible="icon">
+  <Sidebar :id="sidebarId" collapsible="icon">
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarLogo />
+          <SidebarLogo :sidebarId="sidebarId" />
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>
@@ -53,7 +55,7 @@ const items = ref([
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton :sidebarId asChild>
                 <a :href="item.url" class="h-10">
                   <component :is="item.icon" />
                   <span>{{ item.title }}</span>
@@ -67,7 +69,7 @@ const items = ref([
     <SidebarFooter>
       <SidebarMenu>
         <SidebarMenuItem>
-          <UserSidebarDropdownMenu :user />
+          <UserSidebarDropdownMenu :sidebarId :user />
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarFooter>

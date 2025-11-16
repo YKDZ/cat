@@ -1,17 +1,22 @@
 import { authedProcedure, router } from "@/trpc/server";
 import {
   and,
+  desc,
   eq,
+  isNotNull,
   isNull,
   translatableElement,
   translatableElementComment,
+  translatableElementCommentReaction,
   translatableElementContext,
 } from "@cat/db";
 import {
   TranslatableElementCommentSchema,
+  TranslatableElementCommentReactionSchema,
   TranslatableElementContextSchema,
   type TranslatableElementContext,
 } from "@cat/shared/schema/drizzle/document";
+import { TranslatableElementCommentReactionTypeSchema } from "@cat/shared/schema/drizzle/enum";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod";
 
@@ -72,6 +77,7 @@ export const elementRouter = router({
         elementId: z.int(),
         content: z.string(),
         parentCommentId: z.int().optional(),
+        languageId: z.string(),
       }),
     )
     .output(TranslatableElementCommentSchema)
@@ -80,7 +86,7 @@ export const elementRouter = router({
         drizzleDB: { client: drizzle },
         user,
       } = ctx;
-      const { elementId, content, parentCommentId } = input;
+      const { elementId, content, parentCommentId, languageId } = input;
 
       const comment = assertSingleNonNullish(
         await drizzle
@@ -90,6 +96,7 @@ export const elementRouter = router({
             userId: user.id,
             content,
             parentCommentId,
+            languageId,
           })
           .returning(),
       );
@@ -120,9 +127,147 @@ export const elementRouter = router({
             isNull(translatableElementComment.parentCommentId),
           ),
         )
+        .orderBy(desc(translatableElementComment.createdAt))
         .offset(pageIndex * pageSize)
         .limit(pageSize);
 
       return comments;
+    }),
+  getChildComments: authedProcedure
+    .input(
+      z.object({
+        rootCommentId: z.int(),
+      }),
+    )
+    .output(z.array(TranslatableElementCommentSchema))
+    .query(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
+      const { rootCommentId } = input;
+
+      const childComments = await drizzle
+        .select()
+        .from(translatableElementComment)
+        .where(
+          and(
+            eq(translatableElementComment.rootCommentId, rootCommentId),
+            isNotNull(translatableElementComment.parentCommentId),
+          ),
+        )
+        .orderBy(desc(translatableElementComment.createdAt));
+
+      return childComments;
+    }),
+  getCommentReactions: authedProcedure
+    .input(
+      z.object({
+        commentId: z.int(),
+      }),
+    )
+    .output(z.array(TranslatableElementCommentReactionSchema))
+    .query(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
+      const { commentId } = input;
+
+      const reactions = await drizzle
+        .select()
+        .from(translatableElementCommentReaction)
+        .where(
+          eq(
+            translatableElementCommentReaction.translatableElementCommentId,
+            commentId,
+          ),
+        );
+
+      return reactions;
+    }),
+  react: authedProcedure
+    .input(
+      z.object({
+        commentId: z.int(),
+        type: TranslatableElementCommentReactionTypeSchema,
+      }),
+    )
+    .output(TranslatableElementCommentReactionSchema)
+    .mutation(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+        user,
+      } = ctx;
+      const { commentId, type } = input;
+
+      const reaction = assertSingleNonNullish(
+        await drizzle
+          .insert(translatableElementCommentReaction)
+          .values({
+            translatableElementCommentId: commentId,
+            userId: user.id,
+            type,
+          })
+          .onConflictDoUpdate({
+            target: [
+              translatableElementCommentReaction.translatableElementCommentId,
+              translatableElementCommentReaction.userId,
+            ],
+            set: {
+              type,
+            },
+          })
+          .returning(),
+      );
+
+      return reaction;
+    }),
+  unReact: authedProcedure
+    .input(
+      z.object({
+        commentId: z.int(),
+      }),
+    )
+    .output(z.void())
+    .mutation(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+        user,
+      } = ctx;
+      const { commentId } = input;
+
+      await drizzle
+        .delete(translatableElementCommentReaction)
+        .where(
+          and(
+            eq(
+              translatableElementCommentReaction.translatableElementCommentId,
+              commentId,
+            ),
+            eq(translatableElementCommentReaction.userId, user.id),
+          ),
+        );
+    }),
+  deleteComment: authedProcedure
+    .input(
+      z.object({
+        commentId: z.int(),
+      }),
+    )
+    .output(z.void())
+    .mutation(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+        user,
+      } = ctx;
+      const { commentId } = input;
+
+      await drizzle
+        .delete(translatableElementComment)
+        .where(
+          and(
+            eq(translatableElementComment.id, commentId),
+            eq(translatableElementComment.userId, user.id),
+          ),
+        );
     }),
 });

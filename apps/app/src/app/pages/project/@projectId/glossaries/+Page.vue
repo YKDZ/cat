@@ -14,10 +14,7 @@ const project = inject(useInjectionKey<LayoutData>()("project"))!;
 
 <template>
   <div class="my-3 flex items-center justify-between">
-    <div></div>
-    <div>
-      <ProjectGlossaryLinkerBtn class="self-end" :project />
-    </div>
+    <ProjectGlossaryLinkerBtn class="self-end" :project />
   </div>
   <ProjectGlossaryList :glossaries :project />
 </template>

@@ -27,7 +27,7 @@ const props = withDefaults(
   },
 );
 
-const { isMobile, state } = useSidebar();
+const { isMobile, state } = useSidebar(props.sidebarId);
 
 const delegatedProps = reactiveOmit(props, "tooltip");
 </script>

@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
   SidebarFooter,
   SidebarMenuSkeleton,
+  SidebarRail,
 } from "@/app/components/ui/sidebar";
 import SidebarLogo from "@/app/components/SidebarLogo.vue";
 import EditorSidebarElement from "./EditorSidebarElement.vue";
@@ -19,14 +20,16 @@ import { useEditorElementStore } from "@/app/stores/editor/element";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
 
 const { displayedElements } = storeToRefs(useEditorElementStore());
+
+const sidebarId = "editor";
 </script>
 
 <template>
-  <Sidebar id="editor">
+  <Sidebar :id="sidebarId">
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarLogo />
+          <SidebarLogo :sidebarId="sidebarId" />
         </SidebarMenuItem>
         <SidebarMenuItem>
           <EditorElementSearcher />
@@ -60,5 +63,6 @@ const { displayedElements } = storeToRefs(useEditorElementStore());
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarFooter>
+    <SidebarRail :sidebarId="sidebarId" />
   </Sidebar>
 </template>

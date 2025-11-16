@@ -11,6 +11,7 @@ export interface SidebarMenuButtonProps extends PrimitiveProps {
   size?: SidebarMenuButtonVariants["size"];
   isActive?: boolean;
   class?: HTMLAttributes["class"];
+  sidebarId: string;
 }
 
 const props = withDefaults(defineProps<SidebarMenuButtonProps>(), {

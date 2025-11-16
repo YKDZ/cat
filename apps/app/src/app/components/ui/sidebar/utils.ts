@@ -1,37 +1,40 @@
-import type { ComputedRef, Ref, InjectionKey } from "vue";
+import type { ComputedRef, Ref } from "vue";
 import { inject, onScopeDispose, provide } from "vue";
 
-export const SIDEBAR_DEFAULT_ID = "sidebar";
-export const SIDEBAR_COOKIE_NAME = "sidebar_state";
-export const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-export const SIDEBAR_WIDTH = "16rem";
-export const SIDEBAR_WIDTH_MOBILE = "18rem";
-export const SIDEBAR_WIDTH_ICON = "3rem";
-export const SIDEBAR_KEYBOARD_SHORTCUT = "b";
+// px
+export const SIDEBAR_WIDTH = 240;
+export const SIDEBAR_MIN_WIDTH = SIDEBAR_WIDTH;
+export const SIDEBAR_MAX_WIDTH = 420;
 
-export const SIDEBAR_CONTEXT_KEY: InjectionKey<SidebarContextValue> =
-  Symbol("SidebarContext");
+// rem
+export const SIDEBAR_WIDTH_MOBILE = 18;
+export const SIDEBAR_WIDTH_ICON = 3;
+
+export const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 export type SidebarContextValue = {
   state: ComputedRef<"expanded" | "collapsed">;
+  side: Ref<"left" | "right">;
   open: Ref<boolean>;
   setOpen: (value: boolean) => void;
   isMobile: Ref<boolean>;
   openMobile: Ref<boolean>;
   setOpenMobile: (value: boolean) => void;
   toggleSidebar: () => void;
+  width: Ref<number>;
+  minWidth: Ref<number>;
+  maxWidth: Ref<number>;
+  widthIcon: Ref<number>;
+  widthMobile: Ref<number>;
 };
 
 const sidebarRegistry = new Map<string, SidebarContextValue>();
-
-export const getSidebarCookieName = (id: string): string =>
-  `${SIDEBAR_COOKIE_NAME}-${id}`;
 
 export function provideSidebarContext(
   id: string,
   context: SidebarContextValue,
 ): void {
-  provide(SIDEBAR_CONTEXT_KEY, context);
+  provide(Symbol.for(id), context);
   sidebarRegistry.set(id, context);
 
   onScopeDispose(() => {
@@ -42,7 +45,7 @@ export function provideSidebarContext(
   });
 }
 
-export function useSidebar(id?: string): SidebarContextValue {
+export function useSidebar(id: string): SidebarContextValue {
   if (id) {
     const target = sidebarRegistry.get(id);
     if (!target) {
@@ -53,7 +56,7 @@ export function useSidebar(id?: string): SidebarContextValue {
     return target;
   }
 
-  const context = inject(SIDEBAR_CONTEXT_KEY, null);
+  const context = inject(Symbol.for(id), null);
 
   if (!context) {
     throw new Error(
