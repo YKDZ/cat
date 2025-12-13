@@ -1,9 +1,7 @@
 import * as z from "zod/v4";
 import { safeZDotJson } from "@/schema/json.ts";
 
-export const DrizzleDateTimeSchema = z
-  .date()
-  .or(z.iso.datetime({ offset: true }));
+export const DrizzleDateTimeSchema = z.date();
 
 export const TranslationAdvisorDataSchema = z.object({
   id: z.int(),

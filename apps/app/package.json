@@ -23,7 +23,7 @@
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit && vue-tsc --noEmit",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && vue-tsc -p tsconfig.app.json --noEmit",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
     "docker:push": "docker push ykdz/cat"
   },
@@ -47,7 +47,9 @@
     "@vueuse/integrations": "^14.0.0",
     "bullmq": "^5.63.2",
     "class-variance-authority": "^0.7.1",
+    "cldr-core": "^48.0.0",
     "clsx": "^2.1.1",
+    "devalue": "^5.5.0",
     "diff": "^8.0.2",
     "dotenv": "^17.2.3",
     "hono": "^4.10.3",

@@ -11,7 +11,7 @@ export const guard = async (ctx: PageContextServer) => {
 
   if (elementId !== "auto" || !isNaN(parseInt(elementId))) return;
 
-  let target = await useSSCTRPC(ctx).document.queryFirstElement({
+  let target = await useSSCTRPC(ctx).document.getFirstElement({
     documentId: documentId,
     isTranslated: false,
     languageId: languageToId,

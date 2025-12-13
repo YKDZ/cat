@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { storeToRefs } from "pinia";
-import { useLanguageStore } from "@/app/stores/language.ts";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Picker from "@/app/components/picker/Picker.vue";
+import { computedAsyncClient } from "@/app/utils/vue";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const props = withDefaults(
   defineProps<{
@@ -16,9 +16,16 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
-const { languages } = storeToRefs(useLanguageStore());
-
 const languageId = defineModel<string | undefined>();
+const search = ref("");
+
+const languages = computedAsyncClient(async () => {
+  return (
+    await trpc.language.getAll.query({
+      searchQuery: search.value,
+    })
+  ).languages;
+}, []);
 
 const options = computed(() => {
   return languages.value
@@ -33,5 +40,10 @@ const options = computed(() => {
 </script>
 
 <template>
-  <Picker v-model="languageId" :options :placeholer="t('选择一个语言...')" />
+  <Picker
+    v-model="languageId"
+    v-model:search="search"
+    :options
+    :placeholder="t('选择一个语言...')"
+  />
 </template>

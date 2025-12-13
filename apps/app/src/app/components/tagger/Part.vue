@@ -2,11 +2,6 @@
 import { computed } from "vue";
 import type { PartData } from "./index.ts";
 import { clippers } from "./index.ts";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/app/components/ui/tooltip";
 
 const props = withDefaults(
   defineProps<{ part: PartData; interactive: boolean; layerIndex?: number }>(),
@@ -29,20 +24,7 @@ const content = computed(() => {
   }
 });
 
-const tooltip = computed(() => {
-  if (!clipper.value) return null;
-
-  if (typeof clipper.value.tooltip === "string") {
-    return clipper.value.tooltip;
-  } else if (typeof clipper.value.tooltip === "function") {
-    return clipper.value.tooltip(props.part);
-  } else {
-    return clipper.value.name;
-  }
-});
-
 const isStringContent = computed(() => typeof content.value === "string");
-const isStringTooltip = computed(() => typeof tooltip.value === "string");
 
 const handleClick = () => {
   if (

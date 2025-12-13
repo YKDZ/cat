@@ -3,6 +3,14 @@ import { computed, inject } from "vue";
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey } from "../utils.ts";
 import { Switch } from "@/app/components/ui/switch";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/app/components/ui/form";
 
 const props = defineProps<{
   propertyKey: string | number;
@@ -29,11 +37,14 @@ const handleUpdate = (value: boolean) => {
 </script>
 
 <template>
-  <label class="flex flex-col gap-0.5"
-    ><span class="text-foreground font-semibold">{{
-      schema.title ?? propertyKey
-    }}</span>
-    <span class="text-sm text-foreground">{{ schema.description }}</span>
-    <Switch :value="String(value)" @update:model-value="handleUpdate" />
-  </label>
+  <FormField :name="schema.title ?? String(propertyKey)">
+    <FormItem>
+      <FormLabel>{{ schema.title ?? propertyKey }}</FormLabel>
+      <FormControl>
+        <Switch :value="String(value)" @update:model-value="handleUpdate" />
+      </FormControl>
+      <FormDescription> {{ schema.description }} </FormDescription>
+      <FormMessage />
+    </FormItem>
+  </FormField>
 </template>

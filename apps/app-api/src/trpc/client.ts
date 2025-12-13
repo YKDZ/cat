@@ -6,6 +6,7 @@ import {
   splitLink,
 } from "@trpc/client";
 import { AppRouter } from "./_app.ts";
+import { transformer } from "./transformer.ts";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -17,9 +18,11 @@ export const trpc: ReturnType<typeof createTRPCClient<AppRouter>> =
         condition: (op) => op.type === "subscription",
         true: httpSubscriptionLink({
           url: `/api/trpc`,
+          transformer,
         }),
         false: httpBatchLink({
           url: `/api/trpc`,
+          transformer,
         }),
       }),
     ],

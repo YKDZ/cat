@@ -10,7 +10,7 @@ export const data = async (
 
   if (!user) throw render("/auth");
 
-  const owned = await useSSCTRPC(ctx).project.getUserOwned();
+  const owned = await useSSCTRPC(ctx).project.getUserOwned({});
 
   return { projects: owned };
 };

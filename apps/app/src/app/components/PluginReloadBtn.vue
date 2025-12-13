@@ -2,8 +2,8 @@
 import { useI18n } from "vue-i18n";
 import { useToastStore } from "../stores/toast";
 import { trpc } from "@cat/app-api/trpc/client";
-import type { ScopeType } from "@cat/db";
 import { Button } from "@/app/components/ui/button";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
 const { t } = useI18n();
 

@@ -11,7 +11,7 @@ export const data = async (
   if (!documentId) throw render("/", `Document id not provided`);
 
   const document = await useSSCTRPC(ctx).document.get({
-    id: documentId,
+    documentId,
   });
 
   if (!document) throw render("/", `Document ${documentId} not found`);

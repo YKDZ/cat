@@ -99,13 +99,13 @@ importers:
     dependencies:
       '@cat/app-api':
         specifier: workspace:*
-        version: file:apps/app-api(a41c9a616e60e306f42a0b245057d78a)
+        version: file:apps/app-api(18b3cb382e972680cbee68cdd0bf2249)
       '@cat/app-server-shared':
         specifier: workspace:*
         version: link:../app-server-shared
       '@cat/app-workers':
         specifier: workspace:*
-        version: file:apps/app-workers(c73622e1015fafb99fa325eb1eb70ad6)
+        version: file:apps/app-workers(9681ad518eed7a035cc41f1f11bb1893)
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -154,9 +154,15 @@ importers:
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
+      cldr-core:
+        specifier: ^48.0.0
+        version: 48.0.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      devalue:
+        specifier: ^5.5.0
+        version: 5.5.0
       diff:
         specifier: ^8.0.2
         version: 8.0.2
@@ -280,7 +286,7 @@ importers:
         version: link:../app-server-shared
       '@cat/app-workers':
         specifier: workspace:*
-        version: file:apps/app-workers(c73622e1015fafb99fa325eb1eb70ad6)
+        version: file:apps/app-workers(9681ad518eed7a035cc41f1f11bb1893)
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -296,6 +302,9 @@ importers:
       '@trpc/server':
         specifier: ^11.5.1
         version: 11.7.0(typescript@5.9.3)
+      devalue:
+        specifier: ^5.5.0
+        version: 5.5.0
       vike:
         specifier: ^0.4.240
         version: 0.4.244(vite@7.1.12(@types/node@24.9.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))
@@ -664,6 +673,9 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
+      cldr-core:
+        specifier: ^48.0.0
+        version: 48.0.0
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -1500,6 +1512,7 @@ packages:
       '@cat/shared': workspace:*
       '@trpc/client': ^11.5.1
       '@trpc/server': ^11.5.1
+      devalue: ^5.5.0
       vike: ^0.4.240
       zod: ^4.1.12
 
@@ -1529,6 +1542,7 @@ packages:
     resolution: {directory: packages/db, type: directory}
     peerDependencies:
       '@cat/shared': workspace:*
+      cldr-core: ^48.0.0
       dotenv: ^17.2.3
       zod: ^4.1.12
 
@@ -4719,6 +4733,9 @@ packages:
   class-variance-authority@0.7.1:
     resolution: {integrity: sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==}
 
+  cldr-core@48.0.0:
+    resolution: {integrity: sha512-iQnK68eOjEsHEOwCvi2CI7xbjcVlCdaSNTQrkwCgEMnyZUbHCgF0GPw2CXi0D2IGz+9Pj80cmcWzRFcF6zdrYQ==}
+
   clear-module@4.1.2:
     resolution: {integrity: sha512-LWAxzHqdHsAZlPlEyJ2Poz6AIs384mPeqLVCru2p0BrP9G/kVGuhNyZYClLO6cXlnuJjzC8xtsJIuMjKqLXoAw==}
     engines: {node: '>=8'}
@@ -5145,6 +5162,9 @@ packages:
     resolution: {integrity: sha512-CmnVc+Hek2egPx1PeTFVta2W78xy2K/9Rkf6cC4T59S50tVnzKj+tnx5mmx5lwvCkujZ4uRrpRSuV+IVs3f90Q==}
     engines: {node: '>= 4.0.0'}
     hasBin: true
+
+  devalue@5.5.0:
+    resolution: {integrity: sha512-69sM5yrHfFLJt0AZ9QqZXGCPfJ7fQjvpln3Rq5+PS03LD32Ost1Q9N+eEnaQwGRIriKkMImXD56ocjQmfjbV3w==}
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
@@ -9107,31 +9127,32 @@ snapshots:
       '@brillout/import': 0.2.6
       '@brillout/picocolors': 1.0.28
 
-  '@cat/app-api@file:apps/app-api(a41c9a616e60e306f42a0b245057d78a)':
+  '@cat/app-api@file:apps/app-api(18b3cb382e972680cbee68cdd0bf2249)':
     dependencies:
-      '@cat/app-server-shared': file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)(zod@4.1.12)
-      '@cat/app-workers': file:apps/app-workers(c73622e1015fafb99fa325eb1eb70ad6)
-      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
-      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
+      '@cat/app-server-shared': file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)(zod@4.1.12)
+      '@cat/app-workers': file:apps/app-workers(9681ad518eed7a035cc41f1f11bb1893)
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
+      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
       '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
       '@trpc/client': 11.7.1(@trpc/server@11.7.1(typescript@5.9.3))(typescript@5.9.3)
       '@trpc/server': 11.7.1(typescript@5.9.3)
+      devalue: 5.5.0
       vike: 0.4.246(vite@7.1.12(@types/node@24.9.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))
       zod: 4.1.12
 
-  '@cat/app-server-shared@file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)(zod@4.1.12)':
+  '@cat/app-server-shared@file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)(zod@4.1.12)':
     dependencies:
-      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
-      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
+      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
       '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
       diff: 8.0.2
       zod: 4.1.12
 
-  '@cat/app-workers@file:apps/app-workers(c73622e1015fafb99fa325eb1eb70ad6)':
+  '@cat/app-workers@file:apps/app-workers(9681ad518eed7a035cc41f1f11bb1893)':
     dependencies:
-      '@cat/app-server-shared': file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)(zod@4.1.12)
-      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
-      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
+      '@cat/app-server-shared': file:apps/app-server-shared(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(diff@8.0.2)(zod@4.1.12)
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
+      '@cat/plugin-core': file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)
       '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
       bullmq: 5.63.2
       dotenv: 17.2.3
@@ -9139,9 +9160,10 @@ snapshots:
       undici: 7.16.0
       zod: 4.1.12
 
-  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)':
+  '@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)':
     dependencies:
       '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
+      cldr-core: 48.0.0
       dotenv: 17.2.3
       drizzle-orm: 0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))
       pg: 8.16.3
@@ -9178,9 +9200,9 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)':
+  '@cat/plugin-core@file:packages/plugin-core(@cat/db@file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12))(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@types/lodash-es@4.17.12)(lodash-es@4.17.21)(zod@4.1.12)':
     dependencies:
-      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
+      '@cat/db': file:packages/db(@cat/shared@file:packages/shared(pino@9.14.0)(zod@4.1.12))(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(cldr-core@48.0.0)(dotenv@17.2.3)(prisma@6.16.1(typescript@5.9.3))(zod@4.1.12)
       '@cat/shared': file:packages/shared(pino@9.14.0)(zod@4.1.12)
       '@types/lodash-es': 4.17.12
       lodash-es: 4.17.21
@@ -12585,6 +12607,8 @@ snapshots:
     dependencies:
       clsx: 2.1.1
 
+  cldr-core@48.0.0: {}
+
   clear-module@4.1.2:
     dependencies:
       parent-module: 2.0.0
@@ -13032,6 +13056,8 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  devalue@5.5.0: {}
 
   devlop@1.1.0:
     dependencies:

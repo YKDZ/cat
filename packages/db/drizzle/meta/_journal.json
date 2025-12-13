@@ -337,6 +337,90 @@
       "when": 1763214790293,
       "tag": "0047_swift_gamora",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1763307572422,
+      "tag": "0048_skinny_gunslinger",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1763308024058,
+      "tag": "0049_keen_agent_brand",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1763308436227,
+      "tag": "0050_neat_living_mummy",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1763309146341,
+      "tag": "0051_flat_iron_patriot",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1763369719244,
+      "tag": "0052_solid_puck",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1763370970284,
+      "tag": "0053_normal_omega_flight",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1763374313925,
+      "tag": "0054_milky_skin",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1763478732730,
+      "tag": "0055_thick_sharon_ventura",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1763480183612,
+      "tag": "0056_redundant_ben_urich",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1763536847913,
+      "tag": "0057_charming_star_brand",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1763537264097,
+      "tag": "0058_careless_whiplash",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1763537416504,
+      "tag": "0059_silent_brother_voodoo",
+      "breakpoints": true
     }
   ]
 }

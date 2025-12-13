@@ -372,7 +372,7 @@ export class WorkerRegistry {
     }
 
     logger.info("PROCESSOR", {
-      msg: "All workers shut down successfully",
+      msg: "All workers shutdown successfully",
     });
   }
 
@@ -392,7 +392,7 @@ export class WorkerRegistry {
     this.workers.delete(workerId);
 
     logger.info("PROCESSOR", {
-      msg: `Worker "${workerId}" shut down successfully`,
+      msg: `Worker "${workerId}" shutdown successfully`,
     });
   }
 

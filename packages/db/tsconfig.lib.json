@@ -9,6 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "declarationMap": true,
+    "resolveJsonModule": true,
     "paths": {
       "@/*": ["./src/*"]
     }

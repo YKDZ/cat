@@ -6,7 +6,7 @@ import type { AuthProvider } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import { account as accountTable, user as userTable } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import { publicProcedure, router } from "@/trpc/server.ts";
+import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 
 export const authRouter = router({
   queryPreAuthFormSchema: publicProcedure
@@ -271,18 +271,14 @@ export const authRouter = router({
 
       helpers.setCookie("sessionId", sessionId);
     }),
-  logout: publicProcedure.output(z.void()).mutation(async ({ ctx }) => {
+  logout: authedProcedure.output(z.void()).mutation(async ({ ctx }) => {
     const {
       drizzleDB: { client: drizzle },
       redisDB: { redis },
-      user,
       sessionId,
       pluginRegistry,
       helpers,
     } = ctx;
-
-    if (!user || !sessionId)
-      throw new TRPCError({ code: "CONFLICT", message: "Currently not login" });
 
     const sessionKey = `user:session:${sessionId}`;
 

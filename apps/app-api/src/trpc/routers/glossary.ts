@@ -19,53 +19,53 @@ import {
   task,
   OverallDrizzleClient,
 } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
-import { authedProcedure, router } from "../server.ts";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
+import {
+  permissionProcedure,
+  permissionsProcedure,
+  router,
+} from "../server.ts";
 import { TermService } from "@cat/plugin-core";
 
 export const glossaryRouter = router({
-  deleteTerm: authedProcedure
-    .input(
-      z.object({
-        ids: z.array(z.number().int()),
-      }),
-    )
+  deleteTerm: permissionProcedure(
+    "TERM",
+    "delete",
+    z.object({
+      termId: z.int(),
+    }),
+  )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { ids } = input;
+      const { termId } = input;
 
-      await drizzle.delete(termTable).where(inArray(termTable.id, ids));
+      await drizzle.delete(termTable).where(eq(termTable.id, termId));
     }),
-  get: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-      }),
-    )
-    .output(
-      GlossarySchema.extend({
-        Creator: UserSchema,
-      }).nullable(),
-    )
+  get: permissionProcedure(
+    "GLOSSARY",
+    "get",
+    z.object({
+      glossaryId: z.uuidv7(),
+    }),
+  )
+    .output(GlossarySchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { glossaryId } = input;
 
-      return (
-        (await drizzle.query.glossary.findFirst({
-          where: (glossary, { eq }) => eq(glossary.id, id),
-          with: {
-            Creator: true,
-          },
-        })) ?? null
+      return assertSingleOrNull(
+        await drizzle
+          .select()
+          .from(glossaryTable)
+          .where(eq(glossaryTable.id, glossaryId)),
       );
     }),
-  getUserOwned: authedProcedure
+  getUserOwned: permissionProcedure("GLOSSARY", "get.user-owned")
     .input(
       z.object({
         userId: z.uuidv7(),
@@ -85,7 +85,7 @@ export const glossaryRouter = router({
         },
       });
     }),
-  getProjectOwned: authedProcedure
+  getProjectOwned: permissionProcedure("GLOSSARY", "get.project-owned")
     .input(
       z.object({
         projectId: z.uuidv7(),
@@ -108,27 +108,28 @@ export const glossaryRouter = router({
         })
       ).map((item) => item.Glossary);
     }),
-  countTerm: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-      }),
-    )
+  countTerm: permissionProcedure(
+    "GLOSSARY",
+    "count.term",
+    z.object({
+      glossaryId: z.uuidv7(),
+    }),
+  )
     .output(z.number().int())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { glossaryId } = input;
 
       return assertSingleNonNullish(
         await drizzle
           .select({ count: count() })
           .from(termTable)
-          .where(eq(termTable.glossaryId, id)),
+          .where(eq(termTable.glossaryId, glossaryId)),
       ).count;
     }),
-  create: authedProcedure
+  create: permissionProcedure("GLOSSARY", "create")
     .input(
       z.object({
         name: z.string(),
@@ -167,10 +168,15 @@ export const glossaryRouter = router({
         return glossary;
       });
     }),
-  insertTerm: authedProcedure
+  insertTerm: permissionProcedure(
+    "GLOSSARY",
+    "term.insert",
+    z.object({
+      glossaryId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        glossaryId: z.uuidv7(),
         termsData: z.array(TermDataSchema),
       }),
     )
@@ -216,13 +222,24 @@ export const glossaryRouter = router({
         },
       );
     }),
-  searchTerm: authedProcedure
+  searchTerm: permissionsProcedure([
+    {
+      resourceType: "PROJECT",
+      requiredPermission: "glossary.term.search",
+      inputSchema: z.object({
+        projectId: z.uuidv7(),
+      }),
+    },
+    {
+      resourceType: "TERM",
+      requiredPermission: "search",
+    },
+  ])
     .input(
       z.object({
         text: z.string(),
         termLanguageId: z.string(),
         translationLanguageId: z.string(),
-        projectId: z.uuidv7(),
       }),
     )
     .output(
@@ -258,10 +275,15 @@ export const glossaryRouter = router({
         translationLanguageId,
       );
     }),
-  findTerm: authedProcedure
+  findTerm: permissionProcedure(
+    "ELEMENT",
+    "find-term",
+    z.object({
+      elementId: z.int(),
+    }),
+  )
     .input(
       z.object({
-        elementId: z.number().int(),
         translationLanguageId: z.string(),
       }),
     )

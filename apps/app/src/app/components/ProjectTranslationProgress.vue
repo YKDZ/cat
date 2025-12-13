@@ -20,13 +20,13 @@ const { t } = useI18n();
 
 const translatableElementAmount = computedAsyncClient(async () => {
   return await trpc.project.countElement.query({
-    id: props.project.id,
+    projcetId: props.project.id,
   });
 }, 0);
 
 const translatedElementAmount = computedAsyncClient(async () => {
   return await trpc.project.countElement.query({
-    id: props.project.id,
+    projcetId: props.project.id,
     isTranslated: true,
     languageId: props.language.id,
   });
@@ -34,7 +34,7 @@ const translatedElementAmount = computedAsyncClient(async () => {
 
 const approvedElementAmount = computedAsyncClient(async () => {
   return await trpc.project.countElement.query({
-    id: props.project.id,
+    projcetId: props.project.id,
     isTranslated: true,
     isApproved: true,
     languageId: props.language.id,

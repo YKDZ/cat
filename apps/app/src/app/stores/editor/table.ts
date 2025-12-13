@@ -60,11 +60,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   });
 
   const toElement = async (id: number) => {
-    if (!context.documentId.value) return;
-
     const page = await trpc.document.getPageIndexOfElement.query({
       elementId: id,
-      documentId: context.documentId.value,
       pageSize: context.pageSize.value,
       searchQuery: searchQuery.value,
       isTranslated: !isProofreading.value ? undefined : true,
@@ -122,13 +119,12 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     )
       return;
 
-    const firstUntranslatedElement =
-      await trpc.document.queryFirstElement.query({
-        documentId: context.documentId.value,
-        greaterThan: element.value.sortIndex,
-        isTranslated: false,
-        languageId: context.languageToId.value,
-      });
+    const firstUntranslatedElement = await trpc.document.getFirstElement.query({
+      documentId: context.documentId.value,
+      greaterThan: element.value.sortIndex,
+      isTranslated: false,
+      languageId: context.languageToId.value,
+    });
 
     if (!firstUntranslatedElement) return;
 
@@ -147,7 +143,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       return;
 
     await trpc.translation.create.mutate({
-      projectId: context.document.value.projectId,
       elementId: elementId.value,
       languageId: context.languageToId.value,
       value: translationValue.value,

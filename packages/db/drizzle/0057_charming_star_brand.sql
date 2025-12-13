@@ -1,0 +1,2 @@
+ALTER TABLE "PermissionTemplate" ADD CONSTRAINT "PermissionTemplate_content_resourceType_unique" UNIQUE("content","resource_type");--> statement-breakpoint
+ALTER TABLE "Role" ADD CONSTRAINT "Role_name_scopeType_scopeId_unique" UNIQUE("name","scope_type","scope_id");

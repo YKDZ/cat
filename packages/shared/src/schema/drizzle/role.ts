@@ -1,67 +1,44 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
+import { ResourceTypeSchema, ScopeTypeSchema } from "@/schema/drizzle/enum";
+import { safeZDotJson } from "@/schema/json";
 
 export const RoleSchema = z.object({
   id: z.int(),
   name: z.string(),
-  description: z.string().nullable(),
+  creatorId: z.uuidv7().nullable(),
+  scopeType: ScopeTypeSchema,
+  scopeId: z.string(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  parentId: z.int().nullable(),
 });
 
 export const PermissionSchema = z.object({
   id: z.int(),
-  resource: z.string(),
-  action: z.string(),
-  description: z.string().nullable(),
+  templateId: z.int(),
+  resourceId: z.string(),
+});
+
+export const PermissionTemplateSchema = z.object({
+  id: z.int(),
+  content: z.string(),
+  meta: safeZDotJson,
+  resourceType: ResourceTypeSchema,
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-
-  get RolePermissions() {
-    return z.array(RolePermissionSchema).optional();
-  },
 });
 
 export const RolePermissionSchema = z.object({
-  id: z.int(),
-  isAllowed: z.boolean(),
-  conditions: z.any().nullable(),
+  roleId: z.int(),
+  permissionId: z.int(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-
-  roleId: z.int(),
-  get Role() {
-    return RoleSchema.optional();
-  },
-
-  permissionId: z.int(),
-  get Permission() {
-    return PermissionSchema.optional();
-  },
 });
 
 export const UserRoleSchema = z.object({
-  id: z.int(),
-  scope: z.any().nullable(),
-  isEnabled: z.boolean(),
-  expiresAt: DrizzleDateTimeSchema.nullable(),
+  userId: z.uuidv7(),
+  roleId: z.int(),
+  meta: safeZDotJson,
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-
-  userId: z.uuidv7(),
-  get User() {
-    return z
-      .object({
-        id: z.uuidv7(),
-        name: z.string(),
-        email: z.string().email(),
-      })
-      .optional();
-  },
-
-  roleId: z.int(),
-  get Role() {
-    return RoleSchema.optional();
-  },
 });

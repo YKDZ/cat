@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import type { User } from "@cat/shared/schema/drizzle/user";
 import MemoryBreadcrumb from "./MemoryBreadcrumb.vue";
 import { SidebarTrigger } from "@/app/components/ui/sidebar";
 
 defineProps<{
-  memory: Memory & {
-    Creator: User;
-  };
+  memory: Memory;
 }>();
 </script>
 

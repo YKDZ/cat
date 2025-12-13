@@ -50,7 +50,7 @@ watch(
       <EditorSidebar />
     </div>
 
-    <div class="flex flex-col flex-1 h-full min-w-0 overflow-hidden">
+    <div class="flex flex-col flex-1 h-full min-w-0">
       <div class="sticky top-0 z-10 border-b bg-background">
         <EditorHeader />
       </div>

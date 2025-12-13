@@ -6,6 +6,7 @@ import {
   pgTable,
   primaryKey,
   text,
+  unique,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -23,6 +24,7 @@ import { memory, memoryItem } from "./memory.ts";
 import { glossary, term } from "./glossary.ts";
 import { pluginConfigInstance } from "./plugin.ts";
 import { JSONType } from "@cat/shared/schema/json";
+import { userRole } from "./role.ts";
 
 export const user = pgTable(
   "User",
@@ -35,8 +37,7 @@ export const user = pgTable(
     ...timestamps,
   },
   (table) => [
-    uniqueIndex().using("btree", table.email.asc().nullsLast().op("text_ops")),
-    uniqueIndex().using("btree", table.name.asc().nullsLast().op("text_ops")),
+    unique().on(table.email, table.name),
     foreignKey({
       columns: [table.avatarFileId],
       foreignColumns: [file.id],
@@ -88,6 +89,7 @@ export const userRelations = relations(user, ({ one, many }) => ({
   TranslationApprovements: many(translationApprovement),
   PluginConfigInstances: many(pluginConfigInstance),
   Accounts: many(account),
+  Roles: many(userRole),
 }));
 
 export const accountRelations = relations(account, ({ one }) => ({

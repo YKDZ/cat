@@ -4,7 +4,7 @@ import {
   installDefaultPlugins,
 } from "@cat/app-server-shared/utils";
 import { initializeWorkers, getWorkerRegistry } from "@cat/app-workers/utils";
-import { getDrizzleDB, getRedisDB, getSetting, syncSettings } from "@cat/db";
+import { ensureDB, getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { assertPromise, logger } from "@cat/shared/utils";
 import { access } from "fs/promises";
@@ -25,12 +25,10 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
       await drizzleDB.migrate();
     }
 
-    await drizzleDB.init();
+    await ensureDB();
 
     const redisDB = await getRedisDB();
     await redisDB.ping();
-
-    await syncSettings(drizzleDB.client);
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 

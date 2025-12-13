@@ -96,20 +96,19 @@ provide(schemaKey, props.schema);
       :property-key="propertyKey"
       @_update="(to) => handleUpdate(to, props.schema, propertyKey, [])"
     />
-    <div v-if="isObject">
-      <IJsonForm
-        v-for="property in objectProperties"
-        :key="property.key"
-        :data="
-          dataOfPropertyKey(
-            property.key,
-            property.schema.default,
-          ) as NonNullJSONType
-        "
-        :property-key="property.key"
-        :schema="property.schema"
-        @_update="handleUpdate"
-      />
-    </div>
+    <IJsonForm
+      v-if="isObject"
+      v-for="property in objectProperties"
+      :key="property.key"
+      :data="
+        dataOfPropertyKey(
+          property.key,
+          property.schema.default,
+        ) as NonNullJSONType
+      "
+      :property-key="property.key"
+      :schema="property.schema"
+      @_update="handleUpdate"
+    />
   </template>
 </template>

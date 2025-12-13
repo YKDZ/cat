@@ -29,7 +29,7 @@ const meta = computed<TranslationMeta | null>(() => {
 
 const memory = computedAsyncClient(async () => {
   if (!meta.value || !meta.value.memoryId) return null;
-  return await trpc.memory.get.query({ id: meta.value.memoryId });
+  return await trpc.memory.get.query({ memoryId: meta.value.memoryId });
 }, null);
 
 const advisor = computedAsyncClient(async () => {

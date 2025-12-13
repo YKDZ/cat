@@ -28,7 +28,7 @@ useHotKeys(`M+${props.index + 1}`, handleCopy);
 
 onMounted(async () => {
   memory.value = await trpc.memory.get.query({
-    id: props.memorySuggestion.memoryId,
+    memoryId: props.memorySuggestion.memoryId,
   });
 });
 </script>

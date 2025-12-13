@@ -6,12 +6,7 @@ import Sidebar from "@/app/components/ui/sidebar/Sidebar.vue";
 import { useCookieStringRef } from "@/app/utils/cookie";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/app/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 
 const { t } = useI18n();
 

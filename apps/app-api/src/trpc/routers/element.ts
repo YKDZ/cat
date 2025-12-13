@@ -1,4 +1,8 @@
-import { authedProcedure, router } from "@/trpc/server";
+import {
+  permissionProcedure,
+  permissionsProcedure,
+  router,
+} from "@/trpc/server";
 import {
   and,
   desc,
@@ -21,12 +25,13 @@ import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod";
 
 export const elementRouter = router({
-  getContexts: authedProcedure
-    .input(
-      z.object({
-        elementId: z.int(),
-      }),
-    )
+  getContexts: permissionProcedure(
+    "ELEMENT",
+    "element.get.context",
+    z.object({
+      elementId: z.int(),
+    }),
+  )
     .output(z.array(TranslatableElementContextSchema))
     .query(async ({ ctx, input }) => {
       const {
@@ -71,12 +76,23 @@ export const elementRouter = router({
 
       return [metaContext, ...contexts];
     }),
-  comment: authedProcedure
+  comment: permissionsProcedure([
+    {
+      resourceType: "ELEMENT",
+      requiredPermission: "element.create.comment",
+      inputSchema: z.object({
+        elementId: z.int(),
+      }),
+    },
+    {
+      resourceType: "COMMENT",
+      requiredPermission: "create",
+    },
+  ])
     .input(
       z.object({
-        elementId: z.int(),
-        content: z.string(),
         parentCommentId: z.int().optional(),
+        content: z.string(),
         languageId: z.string(),
       }),
     )
@@ -103,10 +119,15 @@ export const elementRouter = router({
 
       return comment;
     }),
-  getRootComments: authedProcedure
+  getRootComments: permissionProcedure(
+    "ELEMENT",
+    "element.comment.get",
+    z.object({
+      elementId: z.int(),
+    }),
+  )
     .input(
       z.object({
-        elementId: z.int(),
         pageIndex: z.int().nonnegative(),
         pageSize: z.int().positive(),
       }),
@@ -133,12 +154,13 @@ export const elementRouter = router({
 
       return comments;
     }),
-  getChildComments: authedProcedure
-    .input(
-      z.object({
-        rootCommentId: z.int(),
-      }),
-    )
+  getChildComments: permissionProcedure(
+    "COMMENT",
+    "get",
+    z.object({
+      rootCommentId: z.int(),
+    }),
+  )
     .output(z.array(TranslatableElementCommentSchema))
     .query(async ({ ctx, input }) => {
       const {
@@ -159,12 +181,13 @@ export const elementRouter = router({
 
       return childComments;
     }),
-  getCommentReactions: authedProcedure
-    .input(
-      z.object({
-        commentId: z.int(),
-      }),
-    )
+  getCommentReactions: permissionProcedure(
+    "COMMENT",
+    "get",
+    z.object({
+      commentId: z.int(),
+    }),
+  )
     .output(z.array(TranslatableElementCommentReactionSchema))
     .query(async ({ ctx, input }) => {
       const {
@@ -184,10 +207,15 @@ export const elementRouter = router({
 
       return reactions;
     }),
-  react: authedProcedure
+  react: permissionProcedure(
+    "COMMENT",
+    "create.react",
+    z.object({
+      commentId: z.int(),
+    }),
+  )
     .input(
       z.object({
-        commentId: z.int(),
         type: TranslatableElementCommentReactionTypeSchema,
       }),
     )
@@ -221,12 +249,13 @@ export const elementRouter = router({
 
       return reaction;
     }),
-  unReact: authedProcedure
-    .input(
-      z.object({
-        commentId: z.int(),
-      }),
-    )
+  unReact: permissionProcedure(
+    "COMMENT",
+    "delete.react",
+    z.object({
+      commentId: z.int(),
+    }),
+  )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
@@ -247,12 +276,13 @@ export const elementRouter = router({
           ),
         );
     }),
-  deleteComment: authedProcedure
-    .input(
-      z.object({
-        commentId: z.int(),
-      }),
-    )
+  deleteComment: permissionProcedure(
+    "COMMENT",
+    "delete",
+    z.object({
+      commentId: z.int(),
+    }),
+  )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {

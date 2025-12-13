@@ -19,7 +19,7 @@ const emits = defineEmits<{
 </script>
 
 <template>
-  <form>
+  <form class="space-y-3">
     <IJsonForm
       :schema="schema"
       property-key=""

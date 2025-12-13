@@ -3,14 +3,9 @@ import { useData } from "vike-vue/useData";
 import type { Data } from "./+data.server.ts";
 import PluginConfig from "@/app/components/PluginConfig.vue";
 
-const { plugin } = useData<Data>();
+const { config } = useData<Data>();
 </script>
 
 <template>
-  <PluginConfig
-    v-if="plugin.PluginConfig"
-    :config="plugin.PluginConfig"
-    scope-type="GLOBAL"
-    scope-id=""
-  />
+  <PluginConfig :config scope-type="GLOBAL" scope-id="" />
 </template>

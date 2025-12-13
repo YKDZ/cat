@@ -14,7 +14,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     if (!documentId.value) return null;
 
     return await trpc.document.get.query({
-      id: documentId.value,
+      documentId: documentId.value,
     });
   });
 

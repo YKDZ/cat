@@ -8,8 +8,12 @@ import { useInjectionKey } from "@/app/utils/provide.ts";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
+import type { Project } from "@cat/shared/schema/drizzle/project";
+import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
+const { trpcWarn } = useToastStore();
+
 const project = inject(useInjectionKey<Data>()("project"))!;
 const name = ref(project.name);
 
@@ -19,31 +23,26 @@ const updateName = async (): Promise<void> => {
 };
 
 const update = async (
-  id: string,
-  {
-    name,
-    targetLanguageIds,
-  }: {
-    name?: string;
-    targetLanguageIds?: string[];
-  } = {},
+  projectId: string,
+  data: Partial<Pick<Project, "name">> = {},
 ): Promise<void> => {
   if (!project) return;
 
-  await trpc.project.update.mutate({
-    id,
-    name,
-
-    targetLanguageIds,
-  });
+  await trpc.project.update
+    .mutate({
+      projectId,
+      ...data,
+    })
+    .catch(trpcWarn);
 };
 
 const remove = async (): Promise<void> => {
   if (!project) return;
 
-  await trpc.project.delete.mutate({ id: project.id });
-
-  await navigate("/projects");
+  await trpc.project.delete
+    .mutate({ projectId: project.id })
+    .then(async () => await navigate("/projects"))
+    .catch(trpcWarn);
 };
 </script>
 

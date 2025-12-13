@@ -13,7 +13,7 @@ import * as project from "./schema/project.ts";
 import * as translation from "./schema/translation.ts";
 import * as user from "./schema/user.ts";
 import * as vector from "./schema/vector.ts";
-import { init } from "@/utils/init.ts";
+import * as role from "./schema/role.ts";
 
 type DrizzleSchema = typeof document &
   typeof file &
@@ -24,7 +24,8 @@ type DrizzleSchema = typeof document &
   typeof project &
   typeof translation &
   typeof user &
-  typeof vector;
+  typeof vector &
+  typeof role;
 
 const schema: DrizzleSchema = {
   ...document,
@@ -37,6 +38,7 @@ const schema: DrizzleSchema = {
   ...translation,
   ...user,
   ...vector,
+  ...role,
 };
 
 export class DrizzleDB {
@@ -67,10 +69,6 @@ export class DrizzleDB {
     await migrate(this.client, {
       migrationsFolder: join(process.cwd(), "drizzle"),
     });
-  }
-
-  async init(): Promise<void> {
-    await init();
   }
 }
 

@@ -3,6 +3,14 @@ import { computed, inject } from "vue";
 import * as z from "zod/v4";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "../utils.ts";
+import { Input } from "@/app/components/ui/input";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/app/components/ui/form";
 
 const props = defineProps<{
   propertyKey: string | number;
@@ -32,24 +40,24 @@ const autocomplete = computed(() => {
   }
 });
 
-const handleUpdate = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  emits("_update", input.value);
+const handleUpdate = (value: string | number) => {
+  emits("_update", value);
 };
 </script>
 
 <template>
-  <label class="flex flex-col gap-0.5">
-    <span class="text-foreground font-semibold">{{
-      schema.title ?? propertyKey
-    }}</span>
-    <span class="text-sm text-foreground">{{ schema.description }}</span>
-    <input
-      :value
-      :type
-      :autocomplete
-      class="text-foreground px-3 outline-0 bg-transparent h-10 w-full select-none ring-1 ring-background ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-primary"
-      @change="handleUpdate"
-    />
-  </label>
+  <FormField :name="schema.title ?? String(propertyKey)">
+    <FormItem>
+      <FormLabel>{{ schema.title ?? propertyKey }}</FormLabel>
+      <FormControl>
+        <Input
+          :model-value="value"
+          :type
+          :autocomplete
+          @update:model-value="handleUpdate"
+        />
+      </FormControl>
+      <FormDescription> {{ schema.description }} </FormDescription>
+    </FormItem>
+  </FormField>
 </template>

@@ -4,7 +4,6 @@ import Empty from "./Empty.vue";
 import Part from "./Part.vue";
 import type { PartData } from "./index.ts";
 import { clippers, recursiveSplit } from "./index.ts";
-import { TooltipProvider } from "@/app/components/ui/tooltip";
 
 const props = withDefaults(
   defineProps<{
