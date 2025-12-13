@@ -6,7 +6,7 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import {
   and,
   asc,
@@ -26,18 +26,26 @@ import {
   document as documentTable,
   task as taskTable,
   desc,
+  memoryToProject,
+  translationVote,
 } from "@cat/db";
-import { authedProcedure, router } from "../server.ts";
+import {
+  authedProcedure,
+  permissionProcedure,
+  permissionsProcedure,
+  router,
+} from "../server.ts";
 import { DrizzleDateTimeSchema } from "@cat/shared/schema/misc";
 import { safeZDotJson } from "@cat/shared/schema/json";
 
 export const translationRouter = router({
-  delete: authedProcedure
-    .input(
-      z.object({
-        translationId: z.int(),
-      }),
-    )
+  delete: permissionProcedure(
+    "TRANSLATION",
+    "delete.others",
+    z.object({
+      translationId: z.int(),
+    }),
+  )
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
       const {
@@ -49,11 +57,21 @@ export const translationRouter = router({
         .delete(translationTable)
         .where(eq(translationTable.id, translationId));
     }),
-  create: authedProcedure
+  create: permissionsProcedure([
+    {
+      resourceType: "TRANSLATION",
+      requiredPermission: "create",
+    },
+    {
+      resourceType: "ELEMENT",
+      requiredPermission: "translation.create",
+      inputSchema: z.object({
+        elementId: z.int(),
+      }),
+    },
+  ])
     .input(
       z.object({
-        projectId: z.uuidv7(),
-        elementId: z.number().int(),
         languageId: z.string(),
         value: z.string(),
         createMemory: z.boolean().default(true),
@@ -70,21 +88,30 @@ export const translationRouter = router({
         workerRegistry,
         user,
       } = ctx;
-      const { projectId, elementId, languageId, value, createMemory } = input;
+      const { elementId, languageId, value, createMemory } = input;
 
       return await drizzle.transaction(async (tx) => {
         const memoryIds = (
-          await drizzle.query.memoryToProject.findMany({
-            where: (memToProj, { eq }) => eq(memToProj.projectId, projectId),
-            columns: { memoryId: true },
-          })
-        ).map((memToProj) => memToProj.memoryId);
-
-        if (!memoryIds)
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Project not found",
-          });
+          await drizzle
+            .select({
+              memoryId: memoryToProject.memoryId,
+            })
+            .from(memoryToProject)
+            .innerJoin(
+              documentTable,
+              eq(documentTable.id, translatableElementTable.documentId),
+            )
+            .innerJoin(
+              translatableElementTable,
+              eq(translatableElementTable.id, elementId),
+            )
+            .where(
+              and(
+                eq(translatableElementTable.id, elementId),
+                eq(documentTable.projectId, memoryToProject.projectId),
+              ),
+            )
+        ).map((item) => item.memoryId);
 
         const task = assertSingleNonNullish(
           await tx
@@ -122,10 +149,15 @@ export const translationRouter = router({
         } satisfies Translation & { status: "PROCESSING" | "COMPLETED" };
       });
     }),
-  getAll: authedProcedure
+  getAll: permissionProcedure(
+    "ELEMENT",
+    "translation.get.all",
+    z.object({
+      elementId: z.int(),
+    }),
+  )
     .input(
       z.object({
-        elementId: z.int(),
         languageId: z.string(),
       }),
     )
@@ -181,27 +213,27 @@ export const translationRouter = router({
 
       return translations;
     }),
-  vote: authedProcedure
-    .input(
-      z.object({
-        translationId: z.number().int(),
-        value: z.number().int(),
-      }),
-    )
+  vote: permissionProcedure(
+    "TRANSLATION",
+    "vote",
+    z.object({
+      translationId: z.int(),
+    }),
+  )
     .output(TranslationVoteSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
         user,
       } = ctx;
-      const { translationId, value } = input;
+      const { translationId } = input;
 
       // 一个人用户对同一个翻译只能投票一次
       return assertSingleNonNullish(
         await drizzle
           .insert(translationVoteTable)
           .values({
-            value,
+            value: 1,
             translationId,
             voterId: user.id,
           })
@@ -211,7 +243,7 @@ export const translationRouter = router({
               translationVoteTable.voterId,
             ],
             set: {
-              value,
+              value: 1,
               translationId,
               voterId: user.id,
             },
@@ -219,18 +251,19 @@ export const translationRouter = router({
           .returning(),
       );
     }),
-  countVote: authedProcedure
-    .input(
-      z.object({
-        id: z.number().int(),
-      }),
-    )
+  countVote: permissionProcedure(
+    "TRANSLATION",
+    "vote.count",
+    z.object({
+      translationId: z.int(),
+    }),
+  )
     .output(z.number().int())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { translationId } = input;
 
       const { total } = assertSingleNonNullish(
         await drizzle
@@ -238,42 +271,59 @@ export const translationRouter = router({
             total: sum(translationVoteTable.value),
           })
           .from(translationVoteTable)
-          .where(eq(translationVoteTable.translationId, id)),
+          .where(eq(translationVoteTable.translationId, translationId)),
       );
 
       if (!total) return 0;
 
       return Number(total);
     }),
-  querySelfVote: authedProcedure
-    .input(
-      z.object({
-        id: z.number().int(),
-      }),
-    )
+  getSelfVote: permissionProcedure(
+    "TRANSLATION",
+    "vote.get.self",
+    z.object({
+      translationId: z.int(),
+    }),
+  )
     .output(TranslationVoteSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
         user,
       } = ctx;
-      const { id } = input;
+      const { translationId } = input;
 
-      return (
-        (await drizzle.query.translationVote.findFirst({
-          where: (vote, { and, eq }) =>
-            and(eq(vote.translationId, id), eq(vote.voterId, user.id)),
-        })) ?? null
+      return assertSingleOrNull(
+        await drizzle
+          .select()
+          .from(translationVote)
+          .where(
+            and(
+              eq(translationVote.translationId, translationId),
+              eq(translationVote.voterId, user.id),
+            ),
+          ),
       );
     }),
-  autoApprove: authedProcedure
+  autoApprove: permissionsProcedure([
+    {
+      resourceType: "TRANSLATION",
+      requiredPermission: "auto-approve",
+    },
+    {
+      resourceType: "DOCUMENT",
+      requiredPermission: "auto-approve",
+      inputSchema: z.object({
+        documentId: z.uuidv7(),
+      }),
+    },
+  ])
     .input(
       z.object({
-        documentId: z.uuidv7(),
         languageId: z.string(),
       }),
     )
-    .output(z.number())
+    .output(z.int())
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -347,12 +397,13 @@ export const translationRouter = router({
         return insertedRows.length;
       });
     }),
-  approve: authedProcedure
-    .input(
-      z.object({
-        translationId: z.int(),
-      }),
-    )
+  approve: permissionProcedure(
+    "TRANSLATION",
+    "approve.others",
+    z.object({
+      translationId: z.int(),
+    }),
+  )
     .output(TranslationApprovementSchema)
     .mutation(async ({ ctx, input }) => {
       const {
@@ -393,12 +444,13 @@ export const translationRouter = router({
         );
       });
     }),
-  unapprove: authedProcedure
-    .input(
-      z.object({
-        translationId: z.int(),
-      }),
-    )
+  unapprove: permissionProcedure(
+    "TRANSLATION",
+    "unapprove",
+    z.object({
+      translationId: z.int(),
+    }),
+  )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
@@ -483,12 +535,13 @@ export const translationRouter = router({
         },
       );
     }),
-  isApproved: authedProcedure
-    .input(
-      z.object({
-        translationId: z.int(),
-      }),
-    )
+  isApproved: permissionProcedure(
+    "TRANSLATION",
+    "is-approved.get.others",
+    z.object({
+      translationId: z.int(),
+    }),
+  )
     .output(z.boolean())
     .query(async ({ ctx, input }) => {
       const {

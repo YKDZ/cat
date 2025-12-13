@@ -13,6 +13,7 @@ ignoredBuiltDependencies:
   - protobufjs
 
 injectWorkspacePackages: true
+syncInjectedDepsAfterScripts: ["build"]
 
 onlyBuiltDependencies:
   - "@swc/core"

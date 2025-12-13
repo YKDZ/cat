@@ -26,7 +26,7 @@ const emits = defineEmits<{
 const updateTermAmount = async () => {
   await trpc.glossary.countTerm
     .query({
-      id: props.glossary.id,
+      glossaryId: props.glossary.id,
     })
     .then((amount) => (termAmount.value = amount));
 };
@@ -38,7 +38,7 @@ const handleCheck = async () => {
 const handleUnlink = async () => {
   await trpc.project.unlinkGlossary
     .mutate({
-      id: props.project.id,
+      projectId: props.project.id,
       glossaryIds: [props.glossary.id],
     })
     .then(() => {

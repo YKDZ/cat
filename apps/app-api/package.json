@@ -45,14 +45,15 @@
     "@cat/eslint-config": "workspace:*"
   },
   "peerDependencies": {
-    "@cat/plugin-core": "workspace:*",
-    "@cat/db": "workspace:*",
-    "@cat/shared": "workspace:*",
     "@cat/app-server-shared": "workspace:*",
     "@cat/app-workers": "workspace:*",
-    "zod": "^4.1.12",
+    "@cat/db": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
     "@trpc/client": "^11.5.1",
     "@trpc/server": "^11.5.1",
-    "vike": "^0.4.240"
+    "vike": "^0.4.240",
+    "zod": "^4.1.12",
+    "devalue": "^5.5.0"
   }
 }

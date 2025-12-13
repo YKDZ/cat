@@ -41,11 +41,6 @@ const selectFile = () => {
 </script>
 
 <template>
-  <p class="text-lg flex items-center">
-    <span class="icon-[mdi--file-upload] mr-1 inline-block" />
-    为项目
-    <span class="font-bold mx-1">{{ project.name }}</span> 上传需要翻译的文件
-  </p>
   <input
     ref="fileInputEl"
     type="file"

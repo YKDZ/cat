@@ -17,6 +17,22 @@ export const PluginServiceTypeSchema = z.enum(PluginServiceTypeValues);
 export const ScopeTypeValues = ["GLOBAL", "PROJECT", "USER"] as const;
 export const ScopeTypeSchema = z.enum(ScopeTypeValues);
 
+export const ResourceTypeValues = [
+  "PROJECT",
+  "DOCUMENT",
+  "ELEMENT",
+  "COMMENT",
+  "TERM",
+  "PLUGIN",
+  "GLOSSARY",
+  "MEMORY",
+  "SETTING",
+  "TASK",
+  "TRANSLATION",
+  "USER",
+] as const;
+export const ResourceTypeSchema = z.enum(ResourceTypeValues);
+
 export const TranslatableElementContextTypeValues = [
   "TEXT",
   "JSON",
@@ -49,3 +65,4 @@ export type TranslatableElementContextType =
   (typeof TranslatableElementContextTypeValues)[number];
 export type TranslatableElementCommentReactionType =
   (typeof TranslatableElementCommentReactionTypeValues)[number];
+export type ResourceType = (typeof ResourceTypeValues)[number];

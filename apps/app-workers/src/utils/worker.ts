@@ -40,7 +40,7 @@ export async function initializeWorkers(
     await registry.shutdown();
 
     logger.info("PROCESSOR", {
-      msg: "All workers shut down",
+      msg: "All workers shutdown",
     });
 
     process.exit(0);

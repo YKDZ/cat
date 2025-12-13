@@ -7,10 +7,13 @@ import DiffBox from "./diff/DiffBox.vue";
 import Picker from "./picker/Picker.vue";
 import type { PickerOption } from "./picker/index.ts";
 import { logger } from "@cat/shared/utils";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   documentId: string;
 }>();
+
+const { t } = useI18n();
 
 const versions = shallowRef<DocumentVersion[]>([]);
 const oldVersionId = ref<number | null>(null);
@@ -127,8 +130,18 @@ onMounted(loadVersions);
 
 <template>
   <div class="flex items-center justify-between">
-    <Picker v-model="oldVersionId" :options="versionOptions" />
-    <Picker v-model="nowVersionId" :options="versionOptions" />
+    <Picker
+      v-if="oldVersionId"
+      v-model="oldVersionId"
+      :placeholder="t('选择一个文档版本...')"
+      :options="versionOptions"
+    />
+    <Picker
+      v-if="nowVersionId"
+      v-model="nowVersionId"
+      :placeholder="t('选择一个文档版本...')"
+      :options="versionOptions"
+    />
   </div>
   <DiffBox
     v-if="oldContent !== null && nowContent !== null"

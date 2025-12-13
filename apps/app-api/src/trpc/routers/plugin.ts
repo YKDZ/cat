@@ -16,17 +16,23 @@ import {
   plugin as pluginTable,
   pluginConfigInstance as pluginConfigInstanceTable,
   desc,
+  pluginConfig,
+  eq,
+  and,
+  pluginInstallation,
+  getTableColumns,
 } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
-import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
+import { permissionProcedure, publicProcedure, router } from "@/trpc/server.ts";
 import { PluginRegistry } from "@cat/plugin-core";
 import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
+import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
 
 export const pluginRouter = router({
-  reload: authedProcedure
+  reload: permissionProcedure("PLUGIN", "reload")
     .input(
       z.object({
-        scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
+        scopeType: ScopeTypeSchema,
         scopeId: z.string(),
       }),
     )
@@ -39,12 +45,16 @@ export const pluginRouter = router({
       const registry = PluginRegistry.get(scopeType, scopeId);
       await registry.reload(drizzle);
     }),
-  queryConfigInstance: authedProcedure
+  getConfigInstance: permissionProcedure(
+    "PLUGIN",
+    "config-instance.get",
+    z.object({
+      pluginId: z.string(),
+    }),
+  )
     .input(
       z.object({
-        configId: z.int(),
-        pluginId: z.string(),
-        scopeType: z.enum(["GLOBAL", "USER", "PROJECT"]),
+        scopeType: ScopeTypeSchema,
         scopeId: z.string(),
       }),
     )
@@ -53,35 +63,72 @@ export const pluginRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { configId, pluginId, scopeId, scopeType } = input;
+      const { pluginId, scopeId, scopeType } = input;
 
-      const installation = await drizzle.query.pluginInstallation.findFirst({
-        where: (installation, { eq, and }) =>
-          and(
-            eq(installation.pluginId, pluginId),
-            eq(installation.scopeType, scopeType),
-            eq(installation.scopeId, scopeId),
+      const installation = assertSingleOrNull(
+        await drizzle
+          .select({
+            id: pluginInstallation.id,
+          })
+          .from(pluginInstallation)
+          .where(
+            and(
+              eq(pluginInstallation.pluginId, pluginId),
+              eq(pluginInstallation.scopeType, scopeType),
+              eq(pluginInstallation.scopeId, scopeId),
+            ),
           ),
-      });
+      );
 
       if (!installation) return null;
 
-      return (
-        (await drizzle.query.pluginConfigInstance.findFirst({
-          where: (instance, { eq, and }) =>
+      return assertSingleOrNull(
+        await drizzle
+          .select(getTableColumns(pluginConfigInstanceTable))
+          .from(pluginConfigInstanceTable)
+          .innerJoin(pluginConfig, eq(pluginConfig.pluginId, pluginId))
+          .where(
             and(
-              eq(instance.pluginInstallationId, installation.id),
-              eq(instance.configId, configId),
+              eq(pluginConfigInstanceTable.configId, pluginConfig.id),
+              eq(
+                pluginConfigInstanceTable.pluginInstallationId,
+                installation.id,
+              ),
             ),
-        })) ?? null
+          ),
       );
     }),
-  upsertConfigInstance: authedProcedure
+  getConfig: permissionProcedure(
+    "PLUGIN",
+    "config.get",
+    z.object({
+      pluginId: z.string(),
+    }),
+  )
+    .output(PluginConfigSchema.nullable())
+    .query(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
+      const { pluginId } = input;
+
+      return assertSingleOrNull(
+        await drizzle
+          .select()
+          .from(pluginConfig)
+          .where(eq(pluginConfig.pluginId, pluginId)),
+      );
+    }),
+  upsertConfigInstance: permissionProcedure(
+    "PLUGIN",
+    "config-instance.upsert",
+    z.object({
+      pluginId: z.string(),
+    }),
+  )
     .input(
       z.object({
-        pluginId: z.string(),
-        configId: z.int(),
-        scopeType: z.enum(["GLOBAL", "USER", "PROJECT"]),
+        scopeType: ScopeTypeSchema,
         scopeId: z.string(),
         value: nonNullSafeZDotJson,
       }),
@@ -92,73 +139,78 @@ export const pluginRouter = router({
         drizzleDB: { client: drizzle },
         user,
       } = ctx;
-      const { configId, pluginId, scopeType, scopeId, value } = input;
+      const { pluginId, scopeType, scopeId, value } = input;
 
-      const installation = await drizzle.query.pluginInstallation.findFirst({
-        where: (installation, { eq, and }) =>
-          and(
-            eq(installation.pluginId, pluginId),
-            eq(installation.scopeType, scopeType),
-            eq(installation.scopeId, scopeId),
-          ),
-      });
-
-      if (!installation)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Plugin not installed",
-        });
-
-      return assertSingleNonNullish(
+      const installation = assertSingleNonNullish(
         await drizzle
-          .insert(pluginConfigInstanceTable)
-          .values({
-            value,
-            creatorId: user.id,
-            configId,
-            pluginInstallationId: installation.id,
+          .select({
+            id: pluginInstallation.id,
           })
-          .onConflictDoUpdate({
-            target: [
-              pluginConfigInstanceTable.pluginInstallationId,
-              pluginConfigInstanceTable.configId,
-            ],
-            set: {
-              value,
-            },
-          })
-          .returning(),
+          .from(pluginInstallation)
+          .where(
+            and(
+              eq(pluginInstallation.pluginId, pluginId),
+              eq(pluginInstallation.scopeType, scopeType),
+              eq(pluginInstallation.scopeId, scopeId),
+            ),
+          ),
+        `Plugin not installed`,
       );
+
+      return await drizzle.transaction(async (tx) => {
+        const config = assertSingleNonNullish(
+          await drizzle
+            .select({
+              id: pluginConfig.id,
+            })
+            .from(pluginConfig)
+            .where(eq(pluginConfig.pluginId, pluginId)),
+        );
+
+        return assertSingleNonNullish(
+          await tx
+            .insert(pluginConfigInstanceTable)
+            .values({
+              value,
+              creatorId: user.id,
+              configId: config.id,
+              pluginInstallationId: installation.id,
+            })
+            .onConflictDoUpdate({
+              target: [
+                pluginConfigInstanceTable.pluginInstallationId,
+                pluginConfigInstanceTable.configId,
+              ],
+              set: {
+                value,
+              },
+            })
+            .returning(),
+        );
+      });
     }),
-  get: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
-    .output(
-      PluginSchema.extend({
-        PluginConfig: PluginConfigSchema.nullable(),
-        PluginInstallations: z.array(PluginInstallationSchema),
-      }).nullable(),
-    )
+  get: permissionProcedure(
+    "PLUGIN",
+    "get",
+    z.object({
+      pluginId: z.string(),
+    }),
+  )
+    .output(PluginSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { pluginId } = input;
 
-      return (
-        (await drizzle.query.plugin.findFirst({
-          where: (plugin, { eq }) => eq(plugin.id, id),
-          with: {
-            PluginConfig: true,
-            PluginInstallations: true,
-          },
-        })) ?? null
+      return assertSingleOrNull(
+        await drizzle
+          .select()
+          .from(pluginTable)
+          .where(eq(pluginTable.id, pluginId)),
       );
     }),
-  listAll: authedProcedure
+  getAll: permissionProcedure("PLUGIN", "get.all")
     .output(
       z.array(
         PluginSchema.extend({
@@ -218,7 +270,10 @@ export const pluginRouter = router({
 
       return methods;
     }),
-  getAllTranslationAdvisors: authedProcedure
+  getAllTranslationAdvisors: permissionProcedure(
+    "PLUGIN",
+    "translation-advisor.get.all",
+  )
     .output(z.array(TranslationAdvisorDataSchema))
     .query(async ({ ctx }) => {
       const {
@@ -236,7 +291,10 @@ export const pluginRouter = router({
         ),
       );
     }),
-  getTranslationAdvisor: authedProcedure
+  getTranslationAdvisor: permissionProcedure(
+    "PLUGIN",
+    "translation-advisor.get",
+  )
     .input(
       z.object({
         advisorId: z.int(),

@@ -27,6 +27,11 @@ export const pluginServiceType = pgEnum(
   PluginServiceTypeValues,
 );
 
+/**
+ * 代表对象生效的作用域
+ * 对 plugin 是其安装的位置
+ * 对 role 是其所属的作用域
+ */
 export const scopeType = pgEnum("ScopeType", ScopeTypeValues);
 
 export const plugin = pgTable("Plugin", {
@@ -128,10 +133,10 @@ export const pluginInstallation = pgTable(
   "PluginInstallation",
   {
     id: serial().primaryKey().notNull(),
+    scopeType: scopeType().notNull(),
     scopeId: text().notNull(),
     pluginId: text().notNull(),
     scopeMeta: jsonb().$type<JSONType>(),
-    scopeType: scopeType().notNull(),
     ...timestamps,
   },
   (table) => [

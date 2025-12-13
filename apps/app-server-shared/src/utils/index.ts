@@ -12,3 +12,4 @@ export * from "./stream.ts";
 export * from "./tree.ts";
 export * from "./mobile.ts";
 export * from "./term.ts";
+export * from "./permission.ts";

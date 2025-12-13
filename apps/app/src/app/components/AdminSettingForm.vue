@@ -28,7 +28,7 @@ const configSetter = async (
 
   if (!toValue) return;
 
-  await trpc.setting.set.mutate([{ key, value: toValue }]);
+  await trpc.setting.set.mutate({ key, value: toValue });
 };
 
 const configGetter = async () => {

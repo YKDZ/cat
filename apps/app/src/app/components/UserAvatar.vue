@@ -27,7 +27,7 @@ const user = computedAsyncClient(async () => {
   if (import.meta.env.SSR) return null;
 
   if (!props.user && props.userId) {
-    return await trpc.user.query.query({ id: props.userId });
+    return await trpc.user.get.query({ userId: props.userId });
   } else if (props.user) {
     return props.user as User;
   }
@@ -40,7 +40,8 @@ const avatarUrl = computedAsyncClient(async () => {
   if (!user.value) return "";
 
   return (
-    (await trpc.user.getAvatarPresignedUrl.query({ id: user.value.id })) ?? ""
+    (await trpc.user.getAvatarPresignedUrl.query({ userId: user.value.id })) ??
+    ""
   );
 }, "");
 

@@ -26,7 +26,6 @@ import {
   blob as blobTable,
   inArray,
 } from "@cat/db";
-
 import {
   ElementTranslationStatusSchema,
   FileMetaSchema,
@@ -43,8 +42,12 @@ import {
   preparePresignedPutFile,
   useStorage,
 } from "@cat/app-server-shared/utils";
-import { assertSingleNonNullish } from "@cat/shared/utils";
-import { authedProcedure, router } from "@/trpc/server.ts";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
+import {
+  permissionProcedure,
+  permissionsProcedure,
+  router,
+} from "@/trpc/server.ts";
 import { StorageProvider } from "@cat/plugin-core";
 import { randomUUID } from "node:crypto";
 
@@ -194,7 +197,16 @@ function buildTranslationStatusConditions(
 }
 
 export const documentRouter = router({
-  prepareCreateFromFile: authedProcedure
+  prepareCreateFromFile: permissionsProcedure([
+    {
+      resourceType: "DOCUMENT",
+      requiredPermission: "create.file",
+    },
+    {
+      resourceType: "PROJECT",
+      requiredPermission: "document.create",
+    },
+  ])
     .input(
       z.object({
         meta: FileMetaSchema,
@@ -241,11 +253,22 @@ export const documentRouter = router({
         fileId,
       };
     }),
-  finishCreateFromFile: authedProcedure
+  finishCreateFromFile: permissionsProcedure([
+    {
+      resourceType: "DOCUMENT",
+      requiredPermission: "create.file",
+    },
+    {
+      resourceType: "PROJECT",
+      requiredPermission: "document.create",
+      inputSchema: z.object({
+        projectId: z.uuidv7(),
+      }),
+    },
+  ])
     .input(
       z.object({
         languageId: z.string(),
-        projectId: z.string(),
         putSessionId: z.uuidv4(),
       }),
     )
@@ -402,25 +425,31 @@ export const documentRouter = router({
         );
       }
     }),
-  get: authedProcedure
-    .input(z.object({ id: z.string() }))
+  get: permissionProcedure("DOCUMENT", "get.others")
+    .input(z.object({ documentId: z.uuidv7() }))
     .output(DocumentSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { documentId } = input;
 
-      const document = await drizzle.query.document.findFirst({
-        where: (document, { eq }) => eq(document.id, id),
-      });
-
-      return document ?? null;
+      return assertSingleOrNull(
+        await drizzle
+          .select()
+          .from(documentTable)
+          .where(eq(documentTable.id, documentId)),
+      );
     }),
-  countElement: authedProcedure
+  countElement: permissionProcedure(
+    "DOCUMENT",
+    "element.count",
+    z.object({
+      documentId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        documentId: z.string(),
         searchQuery: z.string().default(""),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
@@ -473,10 +502,15 @@ export const documentRouter = router({
           ),
       ).count;
     }),
-  queryFirstElement: authedProcedure
+  getFirstElement: permissionProcedure(
+    "DOCUMENT",
+    "element.get",
+    z.object({
+      documentId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        documentId: z.string(),
         searchQuery: z.string().default(""),
         greaterThan: z.number().int().optional(),
         isApproved: z.boolean().optional(),
@@ -544,10 +578,15 @@ export const documentRouter = router({
 
       return element[0] ?? null;
     }),
-  exportTranslatedFile: authedProcedure
+  exportTranslatedFile: permissionProcedure(
+    "DOCUMENT",
+    "export-translated-file",
+    z.object({
+      documentId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        documentId: z.string(),
         languageId: z.string(),
       }),
     )
@@ -597,7 +636,10 @@ export const documentRouter = router({
         taskId: task.id,
       });
     }),
-  getTranslatedFilePresignedUrl: authedProcedure
+  getTranslatedFilePresignedUrl: permissionProcedure(
+    "DOCUMENT",
+    "exported-file.get",
+  )
     .input(
       z.object({
         taskId: z.uuidv7(),
@@ -671,10 +713,15 @@ export const documentRouter = router({
         fileName: file.name,
       };
     }),
-  getElementTranslationStatus: authedProcedure
+  getElementTranslationStatus: permissionProcedure(
+    "DOCUMENT",
+    "element.translation.get",
+    z.object({
+      elementId: z.int(),
+    }),
+  )
     .input(
       z.object({
-        elementId: z.number(),
         languageId: z.string(),
       }),
     )
@@ -737,12 +784,17 @@ export const documentRouter = router({
 
       return "TRANSLATED";
     }),
-  getElements: authedProcedure
+  getElements: permissionProcedure(
+    "DOCUMENT",
+    "element.get.others",
+    z.object({
+      documentId: z.string(),
+    }),
+  )
     .input(
       z.object({
-        documentId: z.string(),
-        page: z.number().int().int().default(0),
-        pageSize: z.number().int().int().default(16),
+        page: z.int().int().default(0),
+        pageSize: z.int().int().default(16),
         searchQuery: z.string().default(""),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
@@ -823,12 +875,16 @@ export const documentRouter = router({
 
       return result;
     }),
-  getPageIndexOfElement: authedProcedure
+  getPageIndexOfElement: permissionProcedure(
+    "DOCUMENT",
+    "element.get.others",
+    z.object({
+      elementId: z.int(),
+    }),
+  )
     .input(
       z.object({
-        elementId: z.number(),
-        documentId: z.string(),
-        pageSize: z.number().int().default(16),
+        pageSize: z.int().default(16),
         searchQuery: z.string().default(""),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
@@ -843,7 +899,6 @@ export const documentRouter = router({
 
       const {
         elementId,
-        documentId,
         pageSize,
         searchQuery,
         isApproved,
@@ -872,7 +927,6 @@ export const documentRouter = router({
         });
 
       const whereConditions = [
-        eq(translatableElementTable.documentId, documentId),
         lt(translatableElementTable.sortIndex, target.sortIndex),
       ];
 
@@ -906,12 +960,13 @@ export const documentRouter = router({
 
       return Math.floor(result[0].count / pageSize);
     }),
-  delete: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-      }),
-    )
+  delete: permissionProcedure(
+    "DOCUMENT",
+    "element.delete.others",
+    z.object({
+      id: z.uuidv7(),
+    }),
+  )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
@@ -921,12 +976,13 @@ export const documentRouter = router({
 
       await drizzle.delete(documentTable).where(eq(documentTable.id, id));
     }),
-  getDocumentVersions: authedProcedure
-    .input(
-      z.object({
-        documentId: z.uuidv7(),
-      }),
-    )
+  getDocumentVersions: permissionProcedure(
+    "DOCUMENT",
+    "version.get.others",
+    z.object({
+      documentId: z.uuidv7(),
+    }),
+  )
     .output(z.array(DocumentVersionSchema))
     .query(async ({ ctx, input }) => {
       const {
@@ -939,10 +995,15 @@ export const documentRouter = router({
         orderBy: (version, { desc }) => desc(version.createdAt),
       });
     }),
-  getDocumentFileUrl: authedProcedure
+  getDocumentFileUrl: permissionProcedure(
+    "DOCUMENT",
+    "file.get.url",
+    z.object({
+      documentId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        documentId: z.uuidv7(),
         documentVersionId: z.number().int().optional(),
       }),
     )
@@ -1003,5 +1064,58 @@ export const documentRouter = router({
       );
 
       return await provider.getPresignedGetUrl(key);
+    }),
+  countTranslation: permissionProcedure(
+    "DOCUMENT",
+    "translation.count",
+    z.object({
+      documentId: z.uuidv7(),
+    }),
+  )
+    .input(
+      z.object({
+        languageId: z.string(),
+        isApproved: z.boolean().optional(),
+      }),
+    )
+    .output(z.int().min(0))
+    .query(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
+      const { documentId, languageId, isApproved } = input;
+
+      const baseQuery = drizzle
+        .select({ count: count() })
+        .from(translationTable)
+        .innerJoin(
+          translatableElementTable,
+          eq(
+            translationTable.translatableElementId,
+            translatableElementTable.id,
+          ),
+        )
+        .innerJoin(
+          translatableString,
+          eq(translatableString.id, translationTable.stringId),
+        )
+        .where(
+          and(
+            eq(translatableElementTable.documentId, documentId),
+            eq(translatableString.languageId, languageId),
+            isApproved
+              ? eq(translationApprovementTable.isActive, isApproved)
+              : undefined,
+          ),
+        );
+
+      if (isApproved !== undefined) {
+        baseQuery.innerJoin(
+          translationApprovementTable,
+          eq(translationApprovementTable.translationId, translationTable.id),
+        );
+      }
+
+      return assertSingleNonNullish(await baseQuery).count;
     }),
 });

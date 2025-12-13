@@ -7,7 +7,7 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!projectId) throw render(`/`, `Project id is required`);
 
-  const project = await useSSCTRPC(ctx).project.get({ id: projectId });
+  const project = await useSSCTRPC(ctx).project.get({ projectId });
   const targetLanguages = await useSSCTRPC(ctx).project.getTargetLanguages({
     projectId,
   });

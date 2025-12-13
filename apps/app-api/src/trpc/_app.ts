@@ -10,12 +10,10 @@ import { memoryRouter } from "./routers/memory.ts";
 import { glossaryRouter } from "./routers/glossary.ts";
 import { pluginRouter } from "./routers/plugin.ts";
 import { settingRouter } from "./routers/setting.ts";
-import { taskRouter } from "./routers/task.ts";
 import { elementRouter } from "@/trpc/routers/element.ts";
 
 type AppRouterRecord = {
   setting: typeof settingRouter;
-  task: typeof taskRouter;
   plugin: typeof pluginRouter;
   glossary: typeof glossaryRouter;
   memory: typeof memoryRouter;
@@ -31,7 +29,6 @@ type AppRouterRecord = {
 
 const appRouterRecord: AppRouterRecord = {
   setting: settingRouter,
-  task: taskRouter,
   plugin: pluginRouter,
   glossary: glossaryRouter,
   memory: memoryRouter,

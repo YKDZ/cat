@@ -31,28 +31,28 @@ services:
       retries: 5
       timeout: 5s
 
-  elasticsearch:
-    image: elasticsearch:9.0.3
-    container_name: cat_elasticsearch
-    ports:
-      - 9200:9200
-    environment:
-      discovery.type: single-node
-      xpack.security.transport.ssl.enabled: false
-      xpack.security.http.ssl.enabled: false
-      xpack.security.enabled: false
-      ELASTIC_PASSWORD: 1256987qazA!
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 120
-    deploy:
-      resources:
-        limits:
-          memory: 8G
-        reservations:
-          memory: 4G
+  # elasticsearch:
+  #   image: elasticsearch:9.0.3
+  #   container_name: cat_elasticsearch
+  #   ports:
+  #     - 9200:9200
+  #   environment:
+  #     discovery.type: single-node
+  #     xpack.security.transport.ssl.enabled: false
+  #     xpack.security.http.ssl.enabled: false
+  #     xpack.security.enabled: false
+  #     ELASTIC_PASSWORD: 1256987qazA!
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 120
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 8G
+  #       reservations:
+  #         memory: 4G
 
   ollama:
     image: ollama/ollama

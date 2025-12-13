@@ -1,43 +1,35 @@
 import * as z from "zod/v4";
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import { eq, setting as settingTable } from "@cat/db";
-import { authedProcedure, router } from "@/trpc/server.ts";
+import { permissionProcedure, router } from "@/trpc/server.ts";
 
 export const settingRouter = router({
-  set: authedProcedure
+  set: permissionProcedure("SETTING", "set")
     .input(
-      z.array(
-        z.object({
-          key: z.string(),
-          value: nonNullSafeZDotJson,
-        }),
-      ),
+      z.object({
+        key: z.string(),
+        value: nonNullSafeZDotJson,
+      }),
     )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const arr = input;
+      const { key, value } = input;
 
-      await drizzle.transaction(async (tx) => {
-        await Promise.all(
-          arr.map(async (item) => {
-            const { key, value } = item;
-            await tx
-              .update(settingTable)
-              .set({ value })
-              .where(eq(settingTable.key, key));
-          }),
-        );
-      });
+      await drizzle
+        .update(settingTable)
+        .set({ value })
+        .where(eq(settingTable.key, key));
     }),
-  get: authedProcedure
-    .input(
-      z.object({
-        key: z.string(),
-      }),
-    )
+  get: permissionProcedure(
+    "SETTING",
+    "get",
+    z.object({
+      key: z.string(),
+    }),
+  )
     .output(safeZDotJson.nullable())
     .query(async ({ ctx, input }) => {
       const {

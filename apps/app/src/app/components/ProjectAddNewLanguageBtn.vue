@@ -23,7 +23,7 @@ const props = defineProps<{
 
 const languageId = ref<string>("");
 
-const addNewLanguage = () => {
+const addTargetLanguages = () => {
   if (languageId.value === "") {
     warn("你还没有选择语言");
     return;
@@ -37,7 +37,7 @@ const addNewLanguage = () => {
     return;
   }
 
-  trpc.project.addNewLanguage
+  trpc.project.addTargetLanguages
     .mutate({
       projectId: props.project.id,
       languageId: languageId.value,
@@ -57,7 +57,7 @@ const langFilter = (option: PickerOption) => {
 
 <template>
   <LanguagePicker v-model="languageId" :filter="langFilter" />
-  <Button :disabled="languageId === ``" @click="addNewLanguage"
+  <Button :disabled="languageId === ``" @click="addTargetLanguages"
     ><div class="icon-[mdi--plus] size-4" />
     {{ t("添加新语言并开始翻译") }}</Button
   >

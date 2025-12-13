@@ -17,13 +17,24 @@ import {
   translatableElement,
   translatableString,
 } from "@cat/db";
-import { authedProcedure, router } from "@/trpc/server.ts";
+import { permissionsProcedure, router } from "@/trpc/server.ts";
 
 export const suggestionRouter = router({
-  onNew: authedProcedure
+  onNew: permissionsProcedure([
+    {
+      resourceType: "ELEMENT",
+      requiredPermission: "suggestion.get",
+      inputSchema: z.object({
+        elementId: z.int(),
+      }),
+    },
+    {
+      resourceType: "PLUGIN",
+      requiredPermission: "suggestion.get",
+    },
+  ])
     .input(
       z.object({
-        elementId: z.number().int(),
         languageId: z.string(),
       }),
     )

@@ -1,7 +1,6 @@
 import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
 import * as z from "zod/v4";
 import { DocumentSchema } from "@cat/shared/schema/drizzle/document";
-import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import {
   eq,
   glossaryToProject,
@@ -23,9 +22,14 @@ import {
   not,
   exists,
   type DrizzleClient,
+  role as roleTable,
+  permissionTemplate as permissionTemplateTable,
+  permission as permissionTable,
+  rolePermission as rolePermissionTable,
+  userRole as userRoleTable,
 } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
-import { authedProcedure, router } from "@/trpc/server.ts";
+import { assertFirstOrNull, assertSingleNonNullish } from "@cat/shared/utils";
+import { permissionProcedure, router } from "@/trpc/server.ts";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 
 const buildTranslationStatusConditions = (
@@ -167,27 +171,32 @@ const buildTranslationStatusConditions = (
 };
 
 export const projectRouter = router({
-  delete: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-      }),
-    )
+  delete: permissionProcedure(
+    "PROJECT",
+    "delete",
+    z.object({
+      projectId: z.uuidv7(),
+    }),
+  )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { projectId } = input;
 
-      await drizzle.delete(projectTable).where(eq(projectTable.id, id));
+      await drizzle.delete(projectTable).where(eq(projectTable.id, projectId));
     }),
-  update: authedProcedure
+  update: permissionProcedure(
+    "PROJECT",
+    "update",
+    z.object({
+      projectId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        id: z.uuidv7(),
         name: z.string().min(1).optional(),
-        targetLanguageIds: z.array(z.string()).optional(),
         description: z.string().min(0).optional(),
       }),
     )
@@ -196,35 +205,20 @@ export const projectRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id, name, targetLanguageIds, description } = input;
+      const { projectId, name, description } = input;
 
-      return await drizzle.transaction(async (tx) => {
-        if (targetLanguageIds) {
-          await tx
-            .delete(projectTargetLanguage)
-            .where(eq(projectTargetLanguage.projectId, id));
-
-          await tx.insert(projectTargetLanguage).values(
-            targetLanguageIds.map((languageId) => ({
-              projectId: id,
-              languageId,
-            })),
-          );
-        }
-
-        return assertSingleNonNullish(
-          await tx
-            .update(projectTable)
-            .set({
-              name,
-              description,
-            })
-            .where(eq(projectTable.id, id))
-            .returning(),
-        );
-      });
+      return assertSingleNonNullish(
+        await drizzle
+          .update(projectTable)
+          .set({
+            name,
+            description,
+          })
+          .where(eq(projectTable.id, projectId))
+          .returning(),
+      );
     }),
-  create: authedProcedure
+  create: permissionProcedure("PROJECT", "create")
     .input(
       z.object({
         name: z.string(),
@@ -264,6 +258,59 @@ export const projectRouter = router({
             .returning(),
         );
 
+        // 为用户分配一个新角色
+        // 其中有一个作用于当前 project 的根权限
+        const role = assertSingleNonNullish(
+          await tx
+            .insert(roleTable)
+            .values({
+              name: "Project Owner",
+              scopeType: "PROJECT",
+              scopeId: project.id,
+            })
+            .returning({
+              id: roleTable.id,
+            }),
+        );
+
+        const permissionTemplate = assertSingleNonNullish(
+          await tx
+            .select({
+              id: permissionTemplateTable.id,
+            })
+            .from(permissionTemplateTable)
+            .where(
+              and(
+                eq(permissionTemplateTable.content, "*"),
+                eq(permissionTemplateTable.resourceType, "PROJECT"),
+              ),
+            ),
+        );
+
+        const permission = assertSingleNonNullish(
+          await tx
+            .insert(permissionTable)
+            .values({
+              templateId: permissionTemplate.id,
+              resourceId: project.id,
+            })
+            .returning({
+              id: permissionTable.id,
+            }),
+        );
+
+        await tx.insert(userRoleTable).values({
+          userId: user.id,
+          roleId: role.id,
+        });
+
+        await tx.insert(rolePermissionTable).values({
+          roleId: role.id,
+          permissionId: permission.id,
+        });
+        // 完成角色分配
+
+        // 创建一颗根树用于存放文档
         const root = assertSingleNonNullish(
           await tx
             .insert(documentTable)
@@ -282,6 +329,7 @@ export const projectRouter = router({
           depth: 0,
           projectId: project.id,
         });
+        // 完成创建根树
 
         if (targetLanguageIds.length > 0)
           await tx.insert(projectTargetLanguage).values(
@@ -336,10 +384,15 @@ export const projectRouter = router({
         return project;
       });
     }),
-  linkGlossary: authedProcedure
+  linkGlossary: permissionProcedure(
+    "PROJECT",
+    "glossary.link",
+    z.object({
+      projectId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        id: z.uuidv7(),
         glossaryIds: z.array(z.uuidv7()),
       }),
     )
@@ -348,21 +401,26 @@ export const projectRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id, glossaryIds } = input;
+      const { projectId, glossaryIds } = input;
 
       if (glossaryIds.length === 0) return;
 
       await drizzle.insert(glossaryToProject).values(
         glossaryIds.map((glossaryId) => ({
-          projectId: id,
+          projectId,
           glossaryId,
         })),
       );
     }),
-  linkMemory: authedProcedure
+  linkMemory: permissionProcedure(
+    "PROJECT",
+    "memory.link",
+    z.object({
+      projectId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        id: z.uuidv7(),
         memoryIds: z.array(z.uuidv7()),
       }),
     )
@@ -371,21 +429,26 @@ export const projectRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id, memoryIds } = input;
+      const { projectId, memoryIds } = input;
 
       if (memoryIds.length === 0) return;
 
       await drizzle.insert(memoryToProject).values(
         memoryIds.map((memoryId) => ({
-          projectId: id,
+          projectId,
           memoryId,
         })),
       );
     }),
-  unlinkGlossary: authedProcedure
+  unlinkGlossary: permissionProcedure(
+    "PROJECT",
+    "glossary.unlink",
+    z.object({
+      projectId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        id: z.uuidv7(),
         glossaryIds: z.array(z.uuidv7()),
       }),
     )
@@ -394,21 +457,26 @@ export const projectRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id, glossaryIds } = input;
+      const { projectId, glossaryIds } = input;
 
       await drizzle
         .delete(glossaryToProject)
         .where(
           and(
-            eq(glossaryToProject.projectId, id),
+            eq(glossaryToProject.projectId, projectId),
             inArray(glossaryToProject.glossaryId, glossaryIds),
           ),
         );
     }),
-  unlinkMemory: authedProcedure
+  unlinkMemory: permissionProcedure(
+    "PROJECT",
+    "memory.unlink",
+    z.object({
+      projectId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        id: z.uuidv7(),
         memoryIds: z.array(z.uuidv7()),
       }),
     )
@@ -417,68 +485,60 @@ export const projectRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id, memoryIds } = input;
+      const { projectId, memoryIds } = input;
 
       await drizzle
         .delete(memoryToProject)
         .where(
           and(
-            eq(memoryToProject.projectId, id),
+            eq(memoryToProject.projectId, projectId),
             inArray(memoryToProject.memoryId, memoryIds),
           ),
         );
     }),
-  getUserOwned: authedProcedure
-    .output(
-      z.array(
-        ProjectSchema.extend({
-          Creator: UserSchema,
-        }),
-      ),
-    )
+  getUserOwned: permissionProcedure("PROJECT", "get.user-owned")
+    .output(z.array(ProjectSchema))
     .query(async ({ ctx }) => {
       const {
         drizzleDB: { client: drizzle },
         user,
       } = ctx;
 
-      return await drizzle.query.project.findMany({
-        where: (project, { eq }) => eq(project.creatorId, user.id),
-        with: {
-          Creator: true,
-        },
-      });
+      return await drizzle
+        .select()
+        .from(projectTable)
+        .where(eq(projectTable.creatorId, user.id));
     }),
-  get: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
-    .output(
-      ProjectSchema.extend({
-        Creator: UserSchema,
-      }).nullable(),
-    )
+  get: permissionProcedure(
+    "PROJECT",
+    "get.others",
+    z.object({
+      projectId: z.uuidv7(),
+    }),
+  )
+    .output(ProjectSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { projectId } = input;
 
-      return (
-        (await drizzle.query.project.findFirst({
-          where: (project, { eq }) => eq(project.id, id),
-          with: {
-            Creator: true,
-          },
-        })) ?? null
+      return assertFirstOrNull(
+        await drizzle
+          .select()
+          .from(projectTable)
+          .where(eq(projectTable.id, projectId)),
       );
     }),
-  addNewLanguage: authedProcedure
+  addTargetLanguages: permissionProcedure(
+    "PROJECT",
+    "target-language.add",
+    z.object({
+      projectId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        projectId: z.string(),
         languageId: z.string(),
       }),
     )
@@ -493,10 +553,15 @@ export const projectRouter = router({
         languageId,
       });
     }),
-  countElement: authedProcedure
+  countElement: permissionProcedure(
+    "PROJECT",
+    "element.count",
+    z.object({
+      projcetId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        id: z.uuidv7(),
         isTranslated: z.boolean().optional(),
         isApproved: z.boolean().optional(),
         languageId: z.string().optional(),
@@ -507,9 +572,9 @@ export const projectRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id, isApproved, isTranslated, languageId } = input;
+      const { projcetId, isApproved, isTranslated, languageId } = input;
 
-      const whereConditions = [eq(documentTable.projectId, id)];
+      const whereConditions = [eq(documentTable.projectId, projcetId)];
 
       // 添加翻译状态条件
       whereConditions.push(
@@ -536,56 +601,11 @@ export const projectRouter = router({
           ),
       ).count;
     }),
-  countTranslation: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-        languageId: z.string(),
-        isApproved: z.boolean().optional(),
-      }),
-    )
-    .output(z.int().min(0))
-    .query(async ({ ctx, input }) => {
-      const {
-        drizzleDB: { client: drizzle },
-      } = ctx;
-      const { id, languageId, isApproved } = input;
-
-      const baseQuery = drizzle
-        .select({ count: count() })
-        .from(translationTable)
-        .innerJoin(
-          translatableElementTable,
-          eq(
-            translationTable.translatableElementId,
-            translatableElementTable.id,
-          ),
-        )
-        .innerJoin(
-          translatableString,
-          eq(translatableString.id, translationTable.stringId),
-        )
-        .where(
-          and(
-            eq(translatableElementTable.documentId, id),
-            eq(translatableString.languageId, languageId),
-            isApproved
-              ? eq(translationApprovementTable.isActive, isApproved)
-              : undefined,
-          ),
-        );
-
-      if (isApproved !== undefined) {
-        baseQuery.innerJoin(
-          translationApprovementTable,
-          eq(translationApprovementTable.translationId, translationTable.id),
-        );
-      }
-
-      return assertSingleNonNullish(await baseQuery).count;
-    }),
-  getDocuments: authedProcedure
-    .input(z.object({ projectId: z.string() }))
+  getDocuments: permissionProcedure(
+    "PROJECT",
+    "document.get",
+    z.object({ projectId: z.string() }),
+  )
     .output(
       z.array(
         DocumentSchema.extend({
@@ -618,12 +638,13 @@ export const projectRouter = router({
 
       return documents;
     }),
-  getTargetLanguages: authedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-      }),
-    )
+  getTargetLanguages: permissionProcedure(
+    "PROJECT",
+    "target-language.get",
+    z.object({
+      projectId: z.string(),
+    }),
+  )
     .output(z.array(LanguageSchema))
     .query(async ({ ctx, input }) => {
       const {

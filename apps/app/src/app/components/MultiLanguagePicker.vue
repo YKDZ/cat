@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { storeToRefs } from "pinia";
+import { computed, ref } from "vue";
 import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
-import { useLanguageStore } from "@/app/stores/language.ts";
 import { useI18n } from "vue-i18n";
+import { computedAsyncClient } from "@/app/utils/vue.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const props = withDefaults(
   defineProps<{
@@ -17,30 +17,34 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
-const { languages } = storeToRefs(useLanguageStore());
+const languageIds = defineModel<string[]>({ default: [] });
+const search = ref("");
 
-const languageIds = defineModel<string[]>();
+const languages = computedAsyncClient(async () => {
+  const searchQuery = search.value;
+  return (
+    await trpc.language.getAll.query({
+      searchQuery,
+    })
+  ).languages;
+}, []);
 
 const options = computed(() => {
   return languages.value
-    .filter((language) =>
-      props.filter({
-        value: language.id,
-        content: t(language.id),
-      }),
-    )
     .map((language) => {
       return {
         value: language.id,
         content: t(language.id),
       };
-    });
+    })
+    .filter((language) => props.filter(language));
 });
 </script>
 
 <template>
   <MultiPicker
     v-model="languageIds"
+    v-model:search="search"
     :options
     :placeholder="$t('选择一个或多个语言')"
   />

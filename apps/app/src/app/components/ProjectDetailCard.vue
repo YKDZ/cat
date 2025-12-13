@@ -49,7 +49,7 @@ const { handleSubmit } = useForm({
 
 const onSubmit = handleSubmit(async (values) => {
   await trpc.project.update.mutate({
-    id: props.project.id,
+    projectId: props.project.id,
     description: values.description ?? undefined,
   });
   info("保存成功");

@@ -26,7 +26,7 @@ const emits = defineEmits<{
 const updateTermAmount = async () => {
   await trpc.memory.countItem
     .query({
-      id: props.memory.id,
+      memoryId: props.memory.id,
     })
     .then((amount) => (itemAmount.value = amount));
 };
@@ -38,7 +38,7 @@ const handleCheck = async () => {
 const handleUnlink = async () => {
   await trpc.project.unlinkMemory
     .mutate({
-      id: props.project.id,
+      projectId: props.project.id,
       memoryIds: [props.memory.id],
     })
     .then(() => {

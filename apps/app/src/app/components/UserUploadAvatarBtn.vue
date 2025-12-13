@@ -9,7 +9,14 @@ import { trpc } from "@cat/app-api/trpc/client";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import ImageCopper from "@/app/components/ImageCopper.vue";
 import Button from "@/app/components/ui/button/Button.vue";
-import { Dialog, DialogContent } from "@/app/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/app/components/ui/dialog";
+import DialogTrigger from "@/app/components/ui/dialog/DialogTrigger.vue";
 
 const { t } = useI18n();
 
@@ -63,6 +70,7 @@ const handleFileChange = () => {
     return;
 
   file.value = fileInputEl.value.files[0];
+  if (!file.value) return;
   isOpen.value = true;
 };
 
@@ -75,10 +83,6 @@ const rawFileMime = computed(() => {
 </script>
 
 <template>
-  <Button :class="$attrs.class" @click="fileInputEl!.click()"
-    ><div class="icon-[mdi--upload] size-4" />
-    {{ t("上传头像") }}</Button
-  >
   <input
     ref="fileInputEl"
     type="file"
@@ -87,13 +91,29 @@ const rawFileMime = computed(() => {
     @change="handleFileChange"
   />
   <Dialog v-model:open="isOpen">
+    <DialogTrigger as-child>
+      <Button :class="$attrs.class" @click="fileInputEl!.click()"
+        ><div class="icon-[mdi--upload] size-4" />
+        {{ t("上传头像") }}</Button
+      >
+    </DialogTrigger>
     <DialogContent>
-      <ImageCopper
-        v-if="src"
-        v-model:is-processing="isProcessing"
-        :src="src"
-        :on-submit="onSubmit"
-      />
+      <DialogHeader>
+        <DialogTitle>
+          {{ t("裁减头像") }}
+        </DialogTitle>
+        <DialogDescription>
+          {{ t("拖动滑块调整裁剪框尺寸，拖动图片修改中心位置") }}
+        </DialogDescription>
+      </DialogHeader>
+      <div class="w-full flex flex-col gap-4 justify-center items-center">
+        <ImageCopper
+          v-if="src"
+          v-model:is-processing="isProcessing"
+          :src="src"
+          :on-submit="onSubmit"
+        />
+      </div>
     </DialogContent>
   </Dialog>
 </template>

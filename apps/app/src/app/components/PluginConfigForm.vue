@@ -5,10 +5,10 @@ import type {
   PluginConfigInstance,
 } from "@cat/shared/schema/drizzle/plugin";
 import { ref } from "vue";
-import type { ScopeType } from "@cat/db";
 import { navigate } from "vike/client/router";
 import { trpc } from "@cat/app-api/trpc/client";
 import SettingForm from "./SettingForm.vue";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
 const props = defineProps<{
   config: PluginConfig;
@@ -23,18 +23,16 @@ const configSetter = async (value: JSONType) => {
     pluginId: props.config.pluginId,
     scopeType: props.scopeType,
     scopeId: props.scopeId,
-    configId: props.config.id,
     value,
   });
 };
 
 const configGetter = async () => {
-  return await trpc.plugin.queryConfigInstance
+  return await trpc.plugin.getConfigInstance
     .query({
       pluginId: props.config.pluginId,
       scopeType: props.scopeType,
       scopeId: props.scopeId,
-      configId: props.config.id,
     })
     .then(async (data) => {
       if (!data) {

@@ -43,7 +43,7 @@ const handleLink = async () => {
 
   await trpc.project.linkGlossary
     .mutate({
-      id: props.project.id,
+      projectId: props.project.id,
       glossaryIds: realIds,
     })
     .then(() => {

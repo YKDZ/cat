@@ -9,7 +9,7 @@ const document = inject(documentKey)!;
 
 <template>
   <div class="header">
-    <SidebarTrigger />
+    <SidebarTrigger sidebar-id="index" />
     <DocumentBreadcrumb :document />
   </div>
 </template>

@@ -1,6 +1,7 @@
 import type { OverallDrizzleClient } from "@cat/db";
 import type { PluginRegistry } from "@cat/plugin-core";
 
+// TODO 重构
 export const initTermService = async (
   drizzle: OverallDrizzleClient,
   pluginRegistry: PluginRegistry,
@@ -12,14 +13,14 @@ export const initTermService = async (
     })
   ).map((l) => l.id);
 
-  await Promise.all(
-    services.map(
-      async ({ service }) =>
-        await Promise.all(
-          languageIds.map(async (langId) =>
-            service.termIndexer.ensureIndex(langId.toLowerCase()),
-          ),
-        ),
-    ),
-  );
+  // await Promise.all(
+  //   services.map(
+  //     async ({ service }) =>
+  //       await Promise.all(
+  //         languageIds.map(async (langId) =>
+  //           service.termIndexer.ensureIndex(langId.toLowerCase()),
+  //         ),
+  //       ),
+  //   ),
+  // );
 };

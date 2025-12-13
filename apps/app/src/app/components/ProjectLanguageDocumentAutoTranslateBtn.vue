@@ -5,7 +5,6 @@ import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import type { PickerOption } from "./picker/index.ts";
 import Picker from "./picker/Picker.vue";
-import { useToastStore } from "@/app/stores/toast.ts";
 import Button from "./ui/button/Button.vue";
 import {
   Dialog,
@@ -72,7 +71,7 @@ const onSubmit = handleSubmit((values) => {
 });
 
 const availableAdvisors = computedAsyncClient(async () => {
-  return await trpc.plugin.getAllTranslationAdvisors.query();
+  return await trpc.plugin.getAllTranslationAdvisors.query({});
 }, []);
 </script>
 
@@ -120,6 +119,7 @@ const availableAdvisors = computedAsyncClient(async () => {
             <FormLabel> {{ t("翻译建议器") }}</FormLabel>
             <FormControl>
               <Picker
+                :placeholder="t('选择一个建议器...')"
                 :options="advisorOptions"
                 @update:model-value="handleChange"
               />

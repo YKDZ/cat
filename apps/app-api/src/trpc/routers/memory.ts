@@ -7,6 +7,7 @@ import {
 import {
   assertFirstNonNullish,
   assertSingleNonNullish,
+  assertSingleOrNull,
   logger,
 } from "@cat/shared/utils";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
@@ -26,10 +27,10 @@ import {
   translatableElement,
   translatableString,
 } from "@cat/db";
-import { authedProcedure, router } from "@/trpc/server.ts";
+import { permissionProcedure, router } from "@/trpc/server.ts";
 
 export const memoryRouter = router({
-  create: authedProcedure
+  create: permissionProcedure("GLOSSARY", "create")
     .input(
       z.object({
         name: z.string(),
@@ -68,10 +69,15 @@ export const memoryRouter = router({
         return memory;
       });
     }),
-  onNew: authedProcedure
+  onNew: permissionProcedure(
+    "ELEMENT",
+    "find-memory",
+    z.object({
+      elementId: z.int(),
+    }),
+  )
     .input(
       z.object({
-        elementId: z.number().int(),
         translationLanguageId: z.string(),
         minMemorySimilarity: z.number().min(0).max(1).default(0.72),
       }),
@@ -182,7 +188,7 @@ export const memoryRouter = router({
         memoriesQueue.clear();
       }
     }),
-  getUserOwned: authedProcedure
+  getUserOwned: permissionProcedure("MEMORY", "get.user-owned.others")
     .input(
       z.object({
         userId: z.uuidv7(),
@@ -200,33 +206,28 @@ export const memoryRouter = router({
         where: (memory, { eq }) => eq(memory.creatorId, userId),
       });
     }),
-  get: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-      }),
-    )
-    .output(
-      MemorySchema.extend({
-        Creator: UserSchema,
-      }).nullable(),
-    )
+  get: permissionProcedure(
+    "MEMORY",
+    "get.others",
+    z.object({
+      memoryId: z.uuidv7(),
+    }),
+  )
+    .output(MemorySchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { memoryId } = input;
 
-      return (
-        (await drizzle.query.memory.findFirst({
-          where: (memory, { eq }) => eq(memory.id, id),
-          with: {
-            Creator: true,
-          },
-        })) ?? null
+      return assertSingleOrNull(
+        await drizzle
+          .select()
+          .from(memoryTable)
+          .where(eq(memoryTable.id, memoryId)),
       );
     }),
-  getProjectOwned: authedProcedure
+  getProjectOwned: permissionProcedure("MEMORY", "get.project-owned.others")
     .input(
       z.object({
         projectId: z.uuidv7(),
@@ -259,24 +260,25 @@ export const memoryRouter = router({
 
       return row.map((r) => r.Memory);
     }),
-  countItem: authedProcedure
-    .input(
-      z.object({
-        id: z.uuidv7(),
-      }),
-    )
+  countItem: permissionProcedure(
+    "MEMORY",
+    "count.item",
+    z.object({
+      memoryId: z.uuidv7(),
+    }),
+  )
     .output(z.number().int())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { memoryId } = input;
 
       return assertSingleNonNullish(
         await drizzle
           .select({ count: count() })
           .from(memoryItemTable)
-          .where(eq(memoryItemTable.memoryId, id))
+          .where(eq(memoryItemTable.memoryId, memoryId))
           .limit(1),
       ).count;
     }),

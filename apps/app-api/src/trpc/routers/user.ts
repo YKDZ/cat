@@ -17,15 +17,15 @@ import {
   blob as blobTable,
   and,
 } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
-import { authedProcedure, router } from "@/trpc/server.ts";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
+import { permissionProcedure, router } from "@/trpc/server.ts";
 import { StorageProvider } from "@cat/plugin-core";
 
 export const userRouter = router({
-  query: authedProcedure
+  get: permissionProcedure("USER", "get.others")
     .input(
       z.object({
-        id: z.uuidv7(),
+        userId: z.uuidv7(),
       }),
     )
     .output(UserSchema.nullable())
@@ -33,15 +33,13 @@ export const userRouter = router({
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
-      const { id } = input;
+      const { userId } = input;
 
-      return (
-        (await drizzle.query.user.findFirst({
-          where: (user, { eq }) => eq(user.id, id),
-        })) ?? null
+      return assertSingleOrNull(
+        await drizzle.select().from(userTable).where(eq(userTable.id, userId)),
       );
     }),
-  update: authedProcedure
+  update: permissionProcedure("USER", "update.self")
     .input(
       z.object({
         user: UserSchema,
@@ -58,7 +56,8 @@ export const userRouter = router({
       if (user.id !== newUser.id)
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: "你没有更新他人的信息的权限",
+          message:
+            "This endpoint should only be used to update the authenticated user's own information",
         });
 
       return assertSingleNonNullish(
@@ -71,7 +70,7 @@ export const userRouter = router({
           .returning(),
       );
     }),
-  prepareUploadAvatar: authedProcedure
+  prepareUploadAvatar: permissionProcedure("USER", "avatar.create.self")
     .input(
       z.object({
         meta: FileMetaSchema,
@@ -117,7 +116,7 @@ export const userRouter = router({
 
       return { url, putSessionId };
     }),
-  finishUploadAvatar: authedProcedure
+  finishUploadAvatar: permissionProcedure("USER", "avatar.create.self")
     .input(
       z.object({
         putSessionId: z.uuidv4(),
@@ -149,10 +148,15 @@ export const userRouter = router({
         })
         .where(eq(userTable.id, user.id));
     }),
-  getAvatarPresignedUrl: authedProcedure
+  getAvatarPresignedUrl: permissionProcedure(
+    "USER",
+    "avatar.get.others",
+    z.object({
+      userId: z.uuidv7(),
+    }),
+  )
     .input(
       z.object({
-        id: z.uuidv7(),
         expiresIn: z.int().max(120).default(120),
       }),
     )
@@ -162,7 +166,7 @@ export const userRouter = router({
         drizzleDB: { client: drizzle },
         pluginRegistry,
       } = ctx;
-      const { id, expiresIn } = input;
+      const { userId, expiresIn } = input;
 
       const rows = await drizzle
         .select({
@@ -178,7 +182,7 @@ export const userRouter = router({
           ),
         )
         .innerJoin(blobTable, eq(fileTable.blobId, blobTable.id))
-        .where(eq(userTable.id, id));
+        .where(eq(userTable.id, userId));
 
       if (rows.length === 0) return null;
 

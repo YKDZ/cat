@@ -10,7 +10,7 @@ export default defineConfig({
   },
 
   ssr: {
-    external: ["@cat/shared", "zod", "dotenv"],
+    external: ["@cat/shared", "zod", "dotenv", "cldr-core"],
     noExternal: ["drizzle-orm", "pg", "redis"],
   },
 

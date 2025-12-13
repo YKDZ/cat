@@ -22,8 +22,8 @@ const isProcessing = ref<boolean>(false);
 
 const selfVote = computedAsyncClient(
   () =>
-    trpc.translation.querySelfVote.query({
-      id: props.translation.id,
+    trpc.translation.getSelfVote.query({
+      translationId: props.translation.id,
     }),
   null,
 );
@@ -32,7 +32,7 @@ const vote = computedAsyncClient(() => {
   // oxlint-disable-next-line no-unused-expressions
   selfVote.value;
   return trpc.translation.countVote.query({
-    id: props.translation.id,
+    translationId: props.translation.id,
   });
 }, null);
 
@@ -44,7 +44,6 @@ const handleUnvote = async () => {
   await trpc.translation.vote
     .mutate({
       translationId: props.translation.id,
-      value: 0,
     })
     .then((newVote) => {
       info(t("成功取消投票"));
@@ -61,7 +60,6 @@ const handleVote = async (value: number) => {
   await trpc.translation.vote
     .mutate({
       translationId: props.translation.id,
-      value,
     })
     .then((vote) => {
       info(

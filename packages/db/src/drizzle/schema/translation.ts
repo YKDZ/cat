@@ -146,7 +146,7 @@ export const translationVoteRelations = relations(
   }),
 );
 
-export const TranslationApprovementRelations = relations(
+export const translationApprovementRelations = relations(
   translationApprovement,
   ({ one }) => ({
     Translation: one(translation, {

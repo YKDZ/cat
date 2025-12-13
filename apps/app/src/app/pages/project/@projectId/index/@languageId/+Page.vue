@@ -1,29 +1,28 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { computed, inject, provide } from "vue";
+import { inject, provide } from "vue";
 import type { Data } from "../../+data.server.ts";
 import { languageKey, useInjectionKey } from "@/app/utils/provide.ts";
-import { useLanguageStore } from "@/app/stores/language.ts";
 import ProjectTranslationProgress from "@/app/components/ProjectTranslationProgress.vue";
 import ProjectLanguageDocumentTree from "@/app/components/ProjectLanguageDocumentTree.vue";
 import { Button } from "@/app/components/ui/button/index.ts";
 import { useI18n } from "vue-i18n";
+import { computedAsyncClient } from "@/app/utils/vue.ts";
+import { trpc } from "@cat/app-api/trpc/client";
 
 const ctx = usePageContext();
-const { languages } = storeToRefs(useLanguageStore());
 const { t } = useI18n();
 
 const project = inject(useInjectionKey<Data>()("project"))!;
 
-const language = computed(() => {
-  return (
-    languages.value.find(
-      (language) => language.id === ctx.routeParams.languageId,
-    ) ?? null
-  );
-});
+const language = computedAsyncClient(async () => {
+  if (!ctx.routeParams.languageId) return null;
+
+  return await trpc.language.get.query({
+    languageId: ctx.routeParams.languageId,
+  });
+}, null);
 
 provide(languageKey, language);
 

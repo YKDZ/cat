@@ -189,6 +189,8 @@ const handleImgLoad = () => {
       Math.max(minScale.value, copperHeight.value / imgNaturalHeight.value),
     );
   }
+
+  drawImage();
 };
 
 watch(scales, drawImage);
@@ -206,62 +208,58 @@ onMounted(() => {
 
 <template>
   <div
-    class="px-8 py-8 rounded-lg bg-background flex flex-col gap-4 items-center justify-center"
+    class="relative w-full flex flex-col justify-center items-center"
+    :style="{
+      width: copperWidth + 'px',
+      height: copperHeight + 'px',
+    }"
   >
-    <div
-      class="relative"
-      :style="{
-        width: copperWidth + 'px',
-        height: copperHeight + 'px',
-      }"
-    >
-      <canvas
-        ref="bgCanvasEl"
-        class="rounded-md inset-0 absolute"
-        :width="copperWidth"
-        :height="copperHeight"
-      />
-
-      <!-- 图片层（添加绝对定位） -->
-      <canvas
-        ref="imgCanvasEl"
-        class="rounded-md inset-0 absolute"
-        :width="copperWidth"
-        :height="copperHeight"
-        :class="{
-          'cursor-grab': !isGrabbing,
-          'cursor-grabbing': isGrabbing,
-        }"
-        @mousedown="startGrabbing"
-        @mousemove="handleGrabbing"
-        @mouseup="stopGrabbing"
-        @mouseleave="stopGrabbing"
-      />
-
-      <!-- 覆盖层（裁剪蒙版） -->
-      <canvas
-        ref="copperCanvasEl"
-        class="pointer-events-none inset-0 absolute"
-        :width="copperWidth"
-        :height="copperHeight"
-      />
-
-      <canvas
-        ref="exportCanvasEl"
-        class="hidden"
-        :width="coppedRegion.width"
-        :height="coppedRegion.height"
-      />
-    </div>
-    <Slider
-      v-model="scales"
-      :min="minScale"
-      :max="maxScale"
-      :step="0.01"
-      class="w-5/6"
+    <canvas
+      ref="bgCanvasEl"
+      class="rounded-md inset-0 absolute"
+      :width="copperWidth"
+      :height="copperHeight"
     />
-    <Button @click="handleSubmit"
-      ><Spinner v-if="isProcessing" /> {{ t("裁剪") }}</Button
-    >
+
+    <!-- 图片层 -->
+    <canvas
+      ref="imgCanvasEl"
+      class="rounded-md inset-0 absolute"
+      :width="copperWidth"
+      :height="copperHeight"
+      :class="{
+        'cursor-grab': !isGrabbing,
+        'cursor-grabbing': isGrabbing,
+      }"
+      @mousedown="startGrabbing"
+      @mousemove="handleGrabbing"
+      @mouseup="stopGrabbing"
+      @mouseleave="stopGrabbing"
+    />
+
+    <!-- 覆盖层（裁剪蒙版） -->
+    <canvas
+      ref="copperCanvasEl"
+      class="pointer-events-none inset-0 absolute"
+      :width="copperWidth"
+      :height="copperHeight"
+    />
+
+    <canvas
+      ref="exportCanvasEl"
+      class="hidden"
+      :width="coppedRegion.width"
+      :height="coppedRegion.height"
+    />
   </div>
+  <Slider
+    v-model="scales"
+    :min="minScale"
+    :max="maxScale"
+    :step="0.01"
+    class="w-5/6"
+  />
+  <Button @click="handleSubmit" class="w-full"
+    ><Spinner v-if="isProcessing" /> {{ t("裁剪") }}</Button
+  >
 </template>

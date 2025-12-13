@@ -46,7 +46,7 @@ const handleLink = async () => {
 
   await trpc.project.linkMemory
     .mutate({
-      id: props.project.id,
+      projectId: props.project.id,
       memoryIds: realIds,
     })
     .then(() => {
