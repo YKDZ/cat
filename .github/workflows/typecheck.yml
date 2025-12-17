@@ -40,4 +40,4 @@ jobs:
         run: pnpm nx sync:check
 
       - name: Typecheck
-        run: pnpm nx run-many --target=typecheck --projects=* --skip-nx-cache
+        run: pnpm nx run-many --target=typecheck
