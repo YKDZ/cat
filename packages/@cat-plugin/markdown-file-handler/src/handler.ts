@@ -19,9 +19,7 @@ interface ElementMeta {
   identifier?: string;
 }
 
-export class MarkdownTranslatableFileHandler
-  implements TranslatableFileHandler
-{
+export class MarkdownTranslatableFileHandler implements TranslatableFileHandler {
   getId(): string {
     return "MARKDOWN";
   }
