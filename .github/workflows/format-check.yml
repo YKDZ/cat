@@ -40,4 +40,4 @@ jobs:
         run: pnpm nx sync:check
 
       - name: Format Check
-        run: pnpm nx run-many --target=format:check --projects=* --skip-nx-cache
+        run: pnpm nx run-many --target=format:check
