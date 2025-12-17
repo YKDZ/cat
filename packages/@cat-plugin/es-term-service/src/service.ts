@@ -7,6 +7,7 @@ import {
   term,
   translatableString,
   aliasedTable,
+  language,
 } from "@cat/db";
 import type {
   TermFormatter,
@@ -252,9 +253,11 @@ export const getESTermService = (config: Config): TermService => {
 
     async init() {
       const { client: drizzle } = await getDrizzleDB();
-      const langs = await drizzle.query.language.findMany({
-        columns: { id: true },
-      });
+      const langs = await drizzle
+        .select({
+          id: language.id,
+        })
+        .from(language);
       await Promise.all(
         langs.map(async ({ id }) => Indexer.ensureIndex(id.toLowerCase())),
       );

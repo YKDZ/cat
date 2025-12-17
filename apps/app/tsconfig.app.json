@@ -5,7 +5,12 @@
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "declaration": false,
+    "noEmit": true,
+    "composite": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false
   },
   "exclude": [
     "out-tsc",

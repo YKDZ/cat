@@ -1,0 +1,5807 @@
+{
+  "dialect": "postgres",
+  "id": "6a5d4bf3-ce43-4fbd-9dec-908cdae6f378",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "version": "8",
+  "ddl": [
+    {
+      "name": "drizzle",
+      "entityType": "schemas"
+    },
+    {
+      "values": [
+        "COMPLETED",
+        "PENDING",
+        "FAILED"
+      ],
+      "name": "TaskStatus",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "AUTH_PROVIDER",
+        "STORAGE_PROVIDER",
+        "TERM_SERVICE",
+        "TRANSLATABLE_FILE_HANDLER",
+        "TRANSLATION_ADVISOR",
+        "TEXT_VECTORIZER",
+        "VECTOR_STORAGE"
+      ],
+      "name": "PluginServiceType",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "GLOBAL",
+        "PROJECT",
+        "USER"
+      ],
+      "name": "ScopeType",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "TEXT",
+        "JSON",
+        "FILE",
+        "MARKDOWN",
+        "URL"
+      ],
+      "name": "TranslatableElementContextType",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "+1",
+        "-1",
+        "LAUGH",
+        "HOORAY",
+        "CONFUSED",
+        "HEART",
+        "ROCKET",
+        "EYES"
+      ],
+      "name": "TranslatableElementCommentReactionType",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "PROJECT",
+        "DOCUMENT",
+        "PLUGIN",
+        "GLOSSARY",
+        "MEMORY"
+      ],
+      "name": "ResourceType",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "__drizzle_migrations",
+      "entityType": "tables",
+      "schema": "drizzle"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Account",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Blob",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Chunk",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ChunkSet",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Document",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "DocumentClosure",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "DocumentToTask",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "DocumentVersion",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "File",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Glossary",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "GlossaryToProject",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Language",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Memory",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "MemoryItem",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "MemoryToProject",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Permission",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PermissionTemplate",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Plugin",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PluginConfig",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PluginConfigInstance",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PluginInstallation",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PluginService",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Project",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ProjectTargetLanguage",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Role",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "RolePermission",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Setting",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Task",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Term",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TermRelation",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TranslatableElement",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TranslatableElementComment",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TranslatableElementCommentReaction",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TranslatableElementContext",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TranslatableString",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Translation",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TranslationApprovement",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TranslationVote",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "User",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "UserRole",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "Vector",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "glossary_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GlossaryToProject"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "drizzle",
+      "table": "__drizzle_migrations"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TermRelation"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Memory"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PermissionTemplate"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "File"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "memory_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryToProject"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Language"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Setting"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Task"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "ancestor",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentVersion"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfig"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Glossary"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ChunkSet"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableString"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Vector"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UserRole"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "document_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentToTask"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "language_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectTargetLanguage"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "role_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "permission_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translatable_element_comment_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "role_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UserRole"
+    },
+    {
+      "type": "ScopeType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "scope_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "plugin_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfig"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectTargetLanguage"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryToProject"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "document_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentVersion"
+    },
+    {
+      "type": "vector(1024)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "vector",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Vector"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_active",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "File"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "task_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentToTask"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "key",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Setting"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "value",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Glossary"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provider",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "value",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "hash",
+      "entityType": "columns",
+      "schema": "drizzle",
+      "table": "__drizzle_migrations"
+    },
+    {
+      "type": "TranslatableElementContextType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "value",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableString"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "GlossaryToProject"
+    },
+    {
+      "type": "TaskStatus",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'PENDING'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Task"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "service_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "descendant",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "scope_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "term_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TermRelation"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PermissionTemplate"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Memory"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translatable_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ChunkSet"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "key",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "language_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableString"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "chunk_set_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Glossary"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TermRelation"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Memory"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UserRole"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "value",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Setting"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Task"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "overview",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "schema",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfig"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "plugin_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "plugin_installation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "drizzle",
+      "table": "__drizzle_migrations"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "voter_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provided_account_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "email",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "scope_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_active",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentVersion"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "json_data",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "depth",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "type": "ResourceType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "resource_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PermissionTemplate"
+    },
+    {
+      "type": "PluginServiceType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "service_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PermissionTemplate"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentVersion"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "scope_meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "config_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_external",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Task"
+    },
+    {
+      "type": "TranslatableElementCommentReactionType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "storage_provider_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UserRole"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Memory"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "file_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Setting"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "document_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ChunkSet"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Glossary"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translatable_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfig"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "email_verified",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "file_handler_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "glossary_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entry",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "plugin_installation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "type": "ScopeType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "scope_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "parent_comment_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "DocumentVersion"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Glossary"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Memory"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Setting"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Task"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfig"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ChunkSet"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "chunk_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Vector"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "storage_provider_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "UserRole"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "true",
+      "generated": null,
+      "identity": null,
+      "name": "is_allowed",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PermissionTemplate"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Task"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Glossary"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "text_data",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Memory"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PermissionTemplate"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "icon_url",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "vectorizer_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "root_comment_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "memory_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "chunk_set_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableString"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "document_version_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "vector_storage_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "1",
+      "generated": null,
+      "identity": null,
+      "name": "reference_count",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "avatar_file_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translatable_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sort_index",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "File"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "template_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "file_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "bytea",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "hash",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "language_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "version",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "blob_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "File"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_directory",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "resource_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "true",
+      "generated": null,
+      "identity": null,
+      "name": "is_active",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "File"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translatable_string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translation_string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "user_id"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "provider"
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "Account_user_id_provider_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "chunk_set_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "Chunk_chunk_set_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "project_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "Document_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "ancestor"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "DocumentClosure_ancestor_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "descendant"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "DocumentClosure_descendant_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "task_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "DocumentToTask_task_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "DocumentToTask"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "project_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "GlossaryToProject_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "GlossaryToProject"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "project_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "MemoryToProject_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "MemoryToProject"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "plugin_id"
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "PluginConfig_plugin_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "PluginConfig"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "plugin_installation_id"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "config_id"
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "PluginConfigInstance_plugin_installation_id_config_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "scope_type"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "scope_id"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "plugin_id"
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "PluginInstallation_scope_type_scope_id_plugin_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "service_type"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "service_id"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "plugin_installation_id"
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "PluginService_service_type_service_id_plugin_installation_id_in",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "creator_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "Project_creator_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "project_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ProjectTargetLanguage_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ProjectTargetLanguage"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "key"
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "Setting_key_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Setting"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "meta"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "Task_meta_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Task"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "translation_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TermRelation_translation_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TermRelation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "parent_comment_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslatableElementComment_parent_comment_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "root_comment_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslatableElementComment_root_comment_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "translatable_element_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslatableElementComment_translatable_element_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "user_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslatableElementComment_user_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "translatable_element_comment_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslatableElementCommentReaction_translatable_element_comment",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "user_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslatableElementCommentReaction_user_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "translatable_element_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslatableElementContext_translatable_element_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "translator_id"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "translatable_element_id"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "string_id"
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "Translation_translator_id_translatable_element_id_string_id_ind",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "translation_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslationVote_translation_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "voter_id"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslationVote_voter_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "voter_id"
+        },
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null,
+          "isExpression": false,
+          "value": "translation_id"
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "TranslationVote_voter_id_translation_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": {
+            "name": "hnsw",
+            "default": false
+          },
+          "isExpression": false,
+          "value": "vector"
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "hnsw",
+      "concurrently": false,
+      "name": "Vector_vector_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "Vector"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "Document_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "file_handler_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginService",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "Document_file_handler_id_PluginService_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "file_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "File",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "Document_file_id_File_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Document_project_id_Project_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "document_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Document",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "DocumentToTask_document_id_Document_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DocumentToTask"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "task_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Task",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "DocumentToTask_task_id_Task_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DocumentToTask"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "document_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Document",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "DocumentVersion_document_id_Document_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DocumentVersion"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElement_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "document_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Document",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElement_document_id_Document_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "document_version_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "DocumentVersion",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "TranslatableElement_document_version_id_DocumentVersion_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translatable_string_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableString",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "TranslatableElement_translatable_string_id_TranslatableString_i",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "blob_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Blob",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "File_blob_id_Blob_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "File"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Glossary_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Glossary"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "glossary_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Glossary",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "GlossaryToProject_glossary_id_Glossary_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "GlossaryToProject"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "GlossaryToProject_project_id_Project_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "GlossaryToProject"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Term_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "glossary_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Glossary",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Term_glossary_id_Glossary_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "string_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableString",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "Term_string_id_TranslatableString_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "term_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Term",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "TermRelation_term_id_Term_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TermRelation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Term",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "TermRelation_translation_id_Term_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TermRelation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "Memory_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Memory"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "MemoryItem_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "memory_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Memory",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "MemoryItem_memory_id_Memory_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "source_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElement",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "MemoryItem_source_element_id_TranslatableElement_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "source_string_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableString",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "MemoryItem_source_string_id_TranslatableString_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Translation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "MemoryItem_translation_id_Translation_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translation_string_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableString",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "MemoryItem_translation_string_id_TranslatableString_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "memory_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Memory",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "MemoryToProject_memory_id_Memory_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MemoryToProject"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "MemoryToProject_project_id_Project_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MemoryToProject"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "plugin_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Plugin",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "PluginConfig_plugin_id_Plugin_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PluginConfig"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "config_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginConfig",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "PluginConfigInstance_config_id_PluginConfig_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "PluginConfigInstance_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "plugin_installation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginInstallation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "PluginConfigInstance_plugin_installation_id_PluginInstallation_",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "plugin_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Plugin",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "PluginInstallation_plugin_id_Plugin_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "plugin_installation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginInstallation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "PluginService_plugin_installation_id_PluginInstallation_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "Project_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "language_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Language",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ProjectTargetLanguage_language_id_Language_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ProjectTargetLanguage"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ProjectTargetLanguage_project_id_Project_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ProjectTargetLanguage"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "string_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableString",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "Translation_string_id_TranslatableString_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translatable_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElement",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Translation_translatable_element_id_TranslatableElement_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Translation_translator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslationApprovement_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Translation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslationApprovement_translation_id_Translation_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Translation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslationVote_translation_id_Translation_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "voter_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslationVote_voter_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Account_user_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "avatar_file_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "File",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "User_avatar_file_id_File_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "chunk_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Chunk",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Vector_chunk_id_Chunk_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Vector"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "chunk_set_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ChunkSet",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "TranslatableString_chunk_set_id_ChunkSet_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableString"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "language_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Language",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "TranslatableString_language_id_Language_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableString"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "chunk_set_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ChunkSet",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Chunk_chunk_set_id_ChunkSet_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "vectorizer_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginService",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "Chunk_vectorizer_id_PluginService_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "storage_provider_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginService",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "Blob_storage_provider_id_PluginService_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "ancestor"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Document",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "DocumentClosure_ancestor_Document_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "descendant"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Document",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "DocumentClosure_descendant_Document_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "DocumentClosure_project_id_Project_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "file_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "File",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElementContext_file_id_File_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "storage_provider_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginService",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElementContext_storage_provider_id_PluginService_id",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translatable_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElement",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElementContext_translatable_element_id_Translatable",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "language_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Language",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "TranslatableElementComment_language_id_Language_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "parent_comment_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElementComment",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "TranslatableElementComment_parent_comment_id_TranslatableElemen",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "root_comment_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElementComment",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "TranslatableElementComment_root_comment_id_TranslatableElementC",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translatable_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElement",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElementComment_translatable_element_id_Translatable",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElementComment_user_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translatable_element_comment_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElementComment",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElementCommentReaction_translatable_element_comment",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslatableElementCommentReaction_user_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "template_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PermissionTemplate",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Permission_template_id_PermissionTemplate_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "Role_creator_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "permission_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Permission",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "RolePermission_permission_id_Permission_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "role_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Role",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "RolePermission_role_id_Role_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "role_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Role",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "UserRole_role_id_Role_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "UserRole"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "UserRole_user_id_User_id_fk",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "UserRole"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "__drizzle_migrations_pkey",
+      "entityType": "pks",
+      "schema": "drizzle",
+      "table": "__drizzle_migrations"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Document_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "columns": [
+        "document_id",
+        "task_id"
+      ],
+      "nameExplicit": true,
+      "name": "DocumentToTask_document_id_task_id_pk",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "DocumentToTask"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "DocumentVersion_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "DocumentVersion"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "TranslatableElement_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "File_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "File"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Glossary_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Glossary"
+    },
+    {
+      "columns": [
+        "glossary_id",
+        "project_id"
+      ],
+      "nameExplicit": true,
+      "name": "GlossaryToProject_glossary_id_project_id_pk",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "GlossaryToProject"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Term_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "TermRelation_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "TermRelation"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Memory_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Memory"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "MemoryItem_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "columns": [
+        "memory_id",
+        "project_id"
+      ],
+      "nameExplicit": true,
+      "name": "MemoryToProject_memory_id_project_id_pk",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "MemoryToProject"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Language_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Language"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Setting_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Setting"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Task_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Task"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Plugin_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "PluginConfig_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "PluginConfig"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "PluginConfigInstance_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "PluginConfigInstance"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "PluginInstallation_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "PluginInstallation"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "PluginService_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "PluginService"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Project_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Project"
+    },
+    {
+      "columns": [
+        "language_id",
+        "project_id"
+      ],
+      "nameExplicit": true,
+      "name": "ProjectTargetLanguage_language_id_project_id_pk",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "ProjectTargetLanguage"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Translation_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "TranslationApprovement_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "TranslationApprovement"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "TranslationVote_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "TranslationVote"
+    },
+    {
+      "columns": [
+        "provider",
+        "provided_account_id"
+      ],
+      "nameExplicit": true,
+      "name": "Account_provider_provided_account_id_pk",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "User_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Vector_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Vector"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "TranslatableString_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "TranslatableString"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Chunk_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "ChunkSet_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "ChunkSet"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Blob_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "columns": [
+        "ancestor",
+        "descendant"
+      ],
+      "nameExplicit": true,
+      "name": "DocumentClosure_ancestor_descendant_pk",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "DocumentClosure"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "TranslatableElementContext_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "TranslatableElementContext"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "TranslatableElementComment_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "TranslatableElementCommentReaction_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Permission_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "Role_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "columns": [
+        "role_id",
+        "permission_id"
+      ],
+      "nameExplicit": true,
+      "name": "RolePermission_role_id_permission_id_pk",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
+      "columns": [
+        "user_id",
+        "role_id"
+      ],
+      "nameExplicit": true,
+      "name": "UserRole_user_id_role_id_pk",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "UserRole"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": true,
+      "name": "PermissionTemplate_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "PermissionTemplate"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "email",
+        "name"
+      ],
+      "nullsNotDistinct": false,
+      "name": "User_email_name_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "User"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "language_id",
+        "value"
+      ],
+      "nullsNotDistinct": false,
+      "name": "TranslatableString_languageId_value_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "TranslatableString"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "hash"
+      ],
+      "nullsNotDistinct": false,
+      "name": "Blob_hash_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "storage_provider_id",
+        "key"
+      ],
+      "nullsNotDistinct": false,
+      "name": "Blob_storageProviderId_key_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "translatable_element_comment_id",
+        "user_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "TranslatableElementCommentReaction_translatableElementCommentId",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "TranslatableElementCommentReaction"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "name",
+        "scope_type",
+        "scope_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "Role_name_scopeType_scopeId_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "Role"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "content",
+        "resource_type"
+      ],
+      "nullsNotDistinct": false,
+      "name": "PermissionTemplate_content_resourceType_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "PermissionTemplate"
+    },
+    {
+      "value": "CHECK ((octet_length(hash) = 32))",
+      "name": "hash_check1",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "value": "CHECK ((reference_count >= 0))",
+      "name": "referenceCount_check1",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "Blob"
+    }
+  ],
+  "renames": []
+}

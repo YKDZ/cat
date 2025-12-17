@@ -4,8 +4,8 @@ import * as z from "zod/v4";
 import { JSONSchemaSchema } from "@cat/shared/schema/json";
 import type { AuthProvider } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
-import { account as accountTable, user as userTable } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { account as accountTable, and, eq, user as userTable } from "@cat/db";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { authedProcedure, publicProcedure, router } from "@/trpc/server.ts";
 
 export const authRouter = router({
@@ -194,29 +194,34 @@ export const authRouter = router({
       } = await provider.handleAuth(passToServer, helpers);
 
       const { userId, account } = await drizzle.transaction(async (tx) => {
-        let account = await tx.query.account.findFirst({
-          where: (account, { and, eq }) =>
-            and(
-              eq(account.provider, providerIssuer),
-              eq(account.providedAccountId, providedAccountId),
+        let account = assertSingleOrNull(
+          await tx
+            .select({
+              userId: accountTable.userId,
+              provider: accountTable.provider,
+              type: accountTable.type,
+              providedAccountId: accountTable.providedAccountId,
+            })
+            .from(accountTable)
+            .where(
+              and(
+                eq(accountTable.provider, providerIssuer),
+                eq(accountTable.providedAccountId, providedAccountId),
+              ),
             ),
-          columns: {
-            userId: true,
-            provider: true,
-            type: true,
-            providedAccountId: true,
-          },
-        });
+        );
 
         // 账户不存在
         // 用户可能存在
         if (!account) {
-          let user = await tx.query.user.findFirst({
-            where: (user, { eq }) => eq(user.email, email),
-            columns: {
-              id: true,
-            },
-          });
+          let user = assertSingleOrNull(
+            await tx
+              .select({
+                id: userTable.id,
+              })
+              .from(userTable)
+              .where(eq(userTable.email, email)),
+          );
 
           if (!user) {
             user = assertSingleNonNullish(

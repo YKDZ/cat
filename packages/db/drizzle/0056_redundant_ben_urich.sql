@@ -1,1 +1,0 @@
-ALTER TABLE "Permission" ADD COLUMN "resource_id" text;

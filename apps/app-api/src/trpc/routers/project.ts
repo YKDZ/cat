@@ -18,7 +18,7 @@ import {
   count,
   translatableString,
   documentClosure,
-  getTableColumns,
+  getColumns,
   not,
   exists,
   type DrizzleClient,
@@ -27,6 +27,7 @@ import {
   permission as permissionTable,
   rolePermission as rolePermissionTable,
   userRole as userRoleTable,
+  language,
 } from "@cat/db";
 import { assertFirstOrNull, assertSingleNonNullish } from "@cat/shared/utils";
 import { permissionProcedure, router } from "@/trpc/server.ts";
@@ -622,7 +623,7 @@ export const projectRouter = router({
       // 查询所有文档及其父文档关系
       const documents = await drizzle
         .select({
-          ...getTableColumns(documentTable),
+          ...getColumns(documentTable),
           parentId: documentClosure.ancestor,
         })
         .from(documentTable)
@@ -653,18 +654,19 @@ export const projectRouter = router({
       const { projectId } = input;
 
       return await drizzle.transaction(async (tx) => {
-        const ids = await tx.query.projectTargetLanguage.findMany({
-          where: (language, { eq }) => eq(language.projectId, projectId),
-          columns: { languageId: true },
-        });
+        const ids = (
+          await tx
+            .select({
+              languageId: language.id,
+            })
+            .from(projectTargetLanguage)
+            .where(eq(projectTargetLanguage.projectId, projectId))
+        ).map((i) => i.languageId);
 
-        return await tx.query.language.findMany({
-          where: (language, { inArray }) =>
-            inArray(
-              language.id,
-              ids.map((i) => i.languageId),
-            ),
-        });
+        return await tx
+          .select(getColumns(language))
+          .from(language)
+          .where(inArray(language.id, ids));
       });
     }),
 });

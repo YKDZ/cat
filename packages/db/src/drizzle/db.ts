@@ -3,42 +3,14 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
 import { sql } from "drizzle-orm";
-import * as document from "./schema/document.ts";
-import * as file from "./schema/file.ts";
-import * as glossary from "./schema/glossary.ts";
-import * as memory from "./schema/memory.ts";
-import * as misc from "./schema/misc.ts";
-import * as plugin from "./schema/plugin.ts";
-import * as project from "./schema/project.ts";
-import * as translation from "./schema/translation.ts";
-import * as user from "./schema/user.ts";
-import * as vector from "./schema/vector.ts";
-import * as role from "./schema/role.ts";
+import * as schema from "./schema/schema.ts";
+import * as relations from "./schema/relations.ts";
 
-type DrizzleSchema = typeof document &
-  typeof file &
-  typeof glossary &
-  typeof memory &
-  typeof misc &
-  typeof plugin &
-  typeof project &
-  typeof translation &
-  typeof user &
-  typeof vector &
-  typeof role;
+type DrizzleSchema = typeof schema & typeof relations;
 
-const schema: DrizzleSchema = {
-  ...document,
-  ...file,
-  ...glossary,
-  ...memory,
-  ...misc,
-  ...plugin,
-  ...project,
-  ...translation,
-  ...user,
-  ...vector,
-  ...role,
+const combinedSchema: DrizzleSchema = {
+  ...schema,
+  ...relations,
 };
 
 export class DrizzleDB {
@@ -48,7 +20,7 @@ export class DrizzleDB {
     const client = new Client({ connectionString: process.env.DATABASE_URL });
     this.client = drizzle({
       client,
-      schema,
+      schema: combinedSchema,
       casing: "snake_case",
     });
   }

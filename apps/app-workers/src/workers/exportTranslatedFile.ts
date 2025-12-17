@@ -29,6 +29,7 @@ import {
   useStorage,
 } from "@cat/app-server-shared/utils";
 import { defineWorker } from "@/utils";
+import type { JSONType } from "@cat/shared/schema/json";
 
 const { client: drizzle } = await getDrizzleDB();
 
@@ -129,9 +130,7 @@ async function getFileHandler(
 async function getApprovedTranslations(
   documentId: string,
   languageId: string,
-): Promise<
-  Array<{ value: string; meta: import("@cat/shared/schema/json").JSONType }>
-> {
+): Promise<Array<{ value: string; meta: JSONType }>> {
   return await drizzle
     .select({
       value: translatableString.value,

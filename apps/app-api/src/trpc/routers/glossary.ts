@@ -2,7 +2,6 @@ import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod/v4";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import {
   and,
   count,
@@ -18,6 +17,7 @@ import {
   translatableString,
   task,
   OverallDrizzleClient,
+  getColumns,
 } from "@cat/db";
 import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import {
@@ -71,19 +71,17 @@ export const glossaryRouter = router({
         userId: z.uuidv7(),
       }),
     )
-    .output(z.array(GlossarySchema.extend({ Creator: UserSchema })))
+    .output(z.array(GlossarySchema))
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
       const { userId } = input;
 
-      return await drizzle.query.glossary.findMany({
-        where: (glossary, { eq }) => eq(glossary.creatorId, userId),
-        with: {
-          Creator: true,
-        },
-      });
+      return await drizzle
+        .select(getColumns(glossaryTable))
+        .from(glossaryTable)
+        .where(eq(glossaryTable.creatorId, userId));
     }),
   getProjectOwned: permissionProcedure("GLOSSARY", "get.project-owned")
     .input(
@@ -98,15 +96,10 @@ export const glossaryRouter = router({
       } = ctx;
       const { projectId } = input;
 
-      return (
-        await drizzle.query.glossaryToProject.findMany({
-          where: (glossaryToProject, { eq }) =>
-            eq(glossaryToProject.projectId, projectId),
-          with: {
-            Glossary: true,
-          },
-        })
-      ).map((item) => item.Glossary);
+      return await drizzle
+        .select(getColumns(glossaryTable))
+        .from(glossaryTable)
+        .where(eq(glossaryToProject.projectId, projectId));
     }),
   countTerm: permissionProcedure(
     "GLOSSARY",

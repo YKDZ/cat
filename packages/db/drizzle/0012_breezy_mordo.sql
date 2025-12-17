@@ -1,1 +1,0 @@
-ALTER TABLE "TranslatableString" ADD CONSTRAINT "TranslatableString_language_id_Language_id_fk" FOREIGN KEY ("language_id") REFERENCES "public"."Language"("id") ON DELETE restrict ON UPDATE cascade;

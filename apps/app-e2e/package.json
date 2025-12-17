@@ -11,7 +11,9 @@
     "@cat/eslint-config": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@playwright/test": "^1.56.1",
-    "tsx": "^4.20.6"
+    "@playwright/test": "^1.57.0",
+    "tsx": "^4.21.0",
+    "unplugin-dts": "1.0.0-beta.6",
+    "vite": "^7.3.0"
   }
 }

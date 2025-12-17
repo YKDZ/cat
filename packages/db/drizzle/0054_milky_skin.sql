@@ -1,1 +1,0 @@
-ALTER TABLE "Permission" ALTER COLUMN "resource_id" DROP NOT NULL;

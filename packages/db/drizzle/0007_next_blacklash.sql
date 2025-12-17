@@ -1,1 +1,0 @@
-ALTER TABLE "Vector" ADD COLUMN "meta" jsonb;

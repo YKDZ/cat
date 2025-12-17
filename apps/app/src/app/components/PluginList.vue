@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import type {
-  Plugin,
-  PluginInstallation,
-} from "@cat/shared/schema/drizzle/plugin";
+import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
 import PluginListItem from "./PluginListItem.vue";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
 defineProps<{
-  plugins: (Plugin & {
-    PluginInstallations: PluginInstallation[];
-  })[];
+  plugins: Plugin[];
+  scopeType: ScopeType;
+  scopeId: string;
   pathPrefix: string;
 }>();
 </script>
@@ -19,6 +17,8 @@ defineProps<{
       v-for="plugin in plugins"
       :key="plugin.id"
       :plugin
+      :scope-type
+      :scope-id
       :path-prefix
     />
   </div>

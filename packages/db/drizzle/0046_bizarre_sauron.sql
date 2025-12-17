@@ -1,2 +1,0 @@
-ALTER TABLE "TranslatableElementComment" ADD COLUMN "language_id" text NOT NULL;--> statement-breakpoint
-ALTER TABLE "TranslatableElementComment" ADD CONSTRAINT "TranslatableElementComment_language_id_Language_id_fk" FOREIGN KEY ("language_id") REFERENCES "public"."Language"("id") ON DELETE restrict ON UPDATE cascade;

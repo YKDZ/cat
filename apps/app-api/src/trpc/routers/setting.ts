@@ -2,6 +2,7 @@ import * as z from "zod/v4";
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import { eq, setting as settingTable } from "@cat/db";
 import { permissionProcedure, router } from "@/trpc/server.ts";
+import { assertSingleOrNull } from "@cat/shared/utils";
 
 export const settingRouter = router({
   set: permissionProcedure("SETTING", "set")
@@ -37,12 +38,14 @@ export const settingRouter = router({
       } = ctx;
       const { key } = input;
 
-      const setting = await drizzle.query.setting.findFirst({
-        where: (setting, { eq }) => eq(setting.key, key),
-        columns: {
-          value: true,
-        },
-      });
+      const setting = assertSingleOrNull(
+        await drizzle
+          .select({
+            value: settingTable.value,
+          })
+          .from(settingTable)
+          .where(eq(settingTable.key, key)),
+      );
 
       if (!setting) return null;
 

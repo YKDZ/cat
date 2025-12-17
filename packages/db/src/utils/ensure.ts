@@ -5,11 +5,11 @@ import {
   assertSingleOrNull,
 } from "@cat/shared/utils";
 import { hashPassword } from "./password.ts";
-import { language as languageTable } from "@/drizzle/schema/misc.ts";
+import { language as languageTable } from "@/drizzle/schema/schema.ts";
 import {
   user as userTable,
   account as accountTable,
-} from "@/drizzle/schema/user.ts";
+} from "@/drizzle/schema/schema.ts";
 import { getDrizzleDB } from "@/getter.ts";
 import {
   permission as permissionTable,

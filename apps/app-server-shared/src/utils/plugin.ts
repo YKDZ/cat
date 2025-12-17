@@ -2,6 +2,7 @@ import {
   and,
   eq,
   OverallDrizzleClient,
+  plugin,
   pluginInstallation,
   pluginService,
   type DrizzleClient,
@@ -45,17 +46,13 @@ export const importLocalPlugins = async (
   drizzle: DrizzleClient,
 ): Promise<void> => {
   await drizzle.transaction(async (tx) => {
-    const existPluginIds: string[] = [];
-
-    existPluginIds.push(
-      ...(
-        await tx.query.plugin.findMany({
-          columns: {
-            id: true,
-          },
+    const existPluginIds: string[] = (
+      await tx
+        .select({
+          id: plugin.id,
         })
-      ).map((plugin) => plugin.id),
-    );
+        .from(plugin)
+    ).map((plugin) => plugin.id);
 
     await Promise.all(
       (await PluginRegistry.getPluginIdInLocalPlugins())

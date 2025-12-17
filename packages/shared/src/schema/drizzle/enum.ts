@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod";
 
 export const TaskStatusValues = ["COMPLETED", "PENDING", "FAILED"] as const;
 export const TaskStatusSchema = z.enum(TaskStatusValues);

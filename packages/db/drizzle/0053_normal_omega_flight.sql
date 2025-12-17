@@ -1,1 +1,0 @@
-ALTER TABLE "RolePermission" ADD COLUMN "is_allowed" boolean DEFAULT true NOT NULL;

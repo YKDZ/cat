@@ -13,13 +13,13 @@ import {
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import { searchMemory } from "@cat/app-server-shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
-import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import {
   chunk,
   chunkSet,
   count,
   document as documentTable,
   eq,
+  getColumns,
   memoryItem as memoryItemTable,
   memory as memoryTable,
   memoryToProject,
@@ -201,10 +201,10 @@ export const memoryRouter = router({
       } = ctx;
       const { userId } = input;
 
-      // TODO 按权限选择
-      return await drizzle.query.memory.findMany({
-        where: (memory, { eq }) => eq(memory.creatorId, userId),
-      });
+      return await drizzle
+        .select(getColumns(memoryTable))
+        .from(memoryTable)
+        .where(eq(memoryTable.creatorId, userId));
     }),
   get: permissionProcedure(
     "MEMORY",
@@ -233,32 +233,21 @@ export const memoryRouter = router({
         projectId: z.uuidv7(),
       }),
     )
-    .output(
-      z.array(
-        MemorySchema.extend({
-          Creator: UserSchema,
-        }),
-      ),
-    )
+    .output(z.array(MemorySchema))
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
       const { projectId } = input;
 
-      const row = await drizzle.query.memoryToProject.findMany({
-        where: (memoryToProject, { eq }) =>
-          eq(memoryToProject.projectId, projectId),
-        with: {
-          Memory: {
-            with: {
-              Creator: true,
-            },
-          },
-        },
-      });
-
-      return row.map((r) => r.Memory);
+      return await drizzle
+        .select(getColumns(memoryTable))
+        .from(memoryToProject)
+        .innerJoin(
+          memoryToProject,
+          eq(memoryToProject.memoryId, memoryTable.id),
+        )
+        .where(eq(memoryToProject.projectId, projectId));
     }),
   countItem: permissionProcedure(
     "MEMORY",

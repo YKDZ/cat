@@ -1,4 +1,7 @@
+import { setting } from "@/drizzle";
 import type { OverallDrizzleClient } from "@/drizzle/db.ts";
+import { assertFirstOrNull } from "@cat/shared/utils";
+import { eq } from "drizzle-orm";
 
 const isSameType = <T>(value: unknown, sample: T): value is T => {
   if (Array.isArray(sample)) {
@@ -19,12 +22,15 @@ export const getSetting = async <T>(
   settingKey: string,
   fallback: T,
 ): Promise<T> => {
-  const data = await drizzle.query.setting.findFirst({
-    where: ({ key }, { eq }) => eq(key, settingKey),
-    columns: {
-      value: true,
-    },
-  });
+  const data = assertFirstOrNull(
+    await drizzle
+      .select({
+        value: setting.value,
+      })
+      .from(setting)
+      .where(eq(setting.key, settingKey))
+      .limit(1),
+  );
 
   if (!data) return fallback;
 

@@ -1,6 +1,13 @@
-import { getRedisDB, OverallDrizzleClient } from "@cat/db";
+import {
+  eq,
+  getColumns,
+  getRedisDB,
+  OverallDrizzleClient,
+  user as userTable,
+} from "@cat/db";
 import type { User } from "@cat/shared/schema/drizzle/user";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
+import { assertSingleOrNull } from "@cat/shared/utils";
 
 export const userFromSessionId = async (
   drizzle: OverallDrizzleClient,
@@ -13,10 +20,13 @@ export const userFromSessionId = async (
   const userId = await redis.hGet(`user:session:${sessionId}`, "userId");
   if (!userId) return null;
 
-  const user =
-    (await drizzle.query.user.findFirst({
-      where: (user, { eq }) => eq(user.id, userId),
-    })) ?? null;
+  const user = assertSingleOrNull(
+    await drizzle
+      .select(getColumns(userTable))
+      .from(userTable)
+      .where(eq(userTable.id, userId))
+      .limit(1),
+  );
 
   return UserSchema.nullable().parse(user);
 };

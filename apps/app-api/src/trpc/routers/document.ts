@@ -11,6 +11,7 @@ import {
   documentToTask as documentToTaskTable,
   translation as translationTable,
   translationApprovement as translationApprovementTable,
+  project as projectTable,
   eq,
   exists,
   and,
@@ -22,9 +23,10 @@ import {
   not,
   DrizzleClient,
   translatableString,
-  getTableColumns,
+  getColumns,
   blob as blobTable,
   inArray,
+  desc,
 } from "@cat/db";
 import {
   ElementTranslationStatusSchema,
@@ -282,12 +284,12 @@ export const documentRouter = router({
         workerRegistry,
       } = ctx;
 
-      const dbProject = await drizzle.query.project.findFirst({
-        where: (project, { eq }) => eq(project.id, projectId),
-        columns: {
-          id: true,
-        },
-      });
+      const dbProject = await drizzle
+        .select({
+          id: projectTable.id,
+        })
+        .from(projectTable)
+        .where(eq(projectTable.id, projectId));
 
       if (!dbProject)
         throw new TRPCError({
@@ -559,7 +561,7 @@ export const documentRouter = router({
       );
 
       const element = await drizzle
-        .select(getTableColumns(translatableElementTable))
+        .select(getColumns(translatableElementTable))
         .from(translatableElementTable)
         .where(
           whereConditions.length === 1
@@ -659,17 +661,20 @@ export const documentRouter = router({
       } = ctx;
       const { taskId } = input;
 
-      const task = await drizzle.query.task.findFirst({
-        where: (task, { and, eq }) =>
-          and(eq(task.type, "export_translated_file"), eq(task.id, taskId)),
-        orderBy: (task, { desc }) => desc(task.createdAt),
-      });
+      const task = assertSingleNonNullish(
+        await drizzle
+          .select(getColumns(taskTable))
+          .from(taskTable)
+          .where(
+            and(
+              eq(taskTable.type, "export_translated_file"),
+              eq(taskTable.id, taskId),
+            ),
+          )
+          .orderBy(desc(taskTable.createdAt)),
+        "Do not find export task for this document and language",
+      );
 
-      if (!task)
-        throw new TRPCError({
-          message: "Do not find export task for this document and language",
-          code: "BAD_REQUEST",
-        });
       if (task.status !== "COMPLETED")
         throw new TRPCError({
           message:
@@ -732,15 +737,13 @@ export const documentRouter = router({
       } = ctx;
       const { elementId, languageId } = input;
 
-      const element = await drizzle.query.translatableElement.findFirst({
-        where: (element, { eq }) => eq(element.id, elementId),
-      });
-
-      if (!element)
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "指定元素不存在",
-        });
+      assertSingleNonNullish(
+        await drizzle
+          .select(getColumns(translatableElementTable))
+          .from(translatableElementTable)
+          .where(eq(translatableElementTable.id, elementId)),
+        `Element ${elementId} not found`,
+      );
 
       // 查询该元素在指定语言下的翻译
       const translations = await drizzle
@@ -852,7 +855,7 @@ export const documentRouter = router({
 
       const result = await drizzle
         .select({
-          ...getTableColumns(translatableElementTable),
+          ...getColumns(translatableElementTable),
           value: translatableString.value,
           languageId: translatableString.languageId,
         })
@@ -913,18 +916,13 @@ export const documentRouter = router({
         });
       }
 
-      const target = await drizzle.query.translatableElement.findFirst({
-        where: (element, { eq }) => eq(element.id, elementId),
-        columns: {
-          sortIndex: true,
-        },
-      });
-
-      if (!target)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Element with given id does not exists",
-        });
+      const target = assertSingleNonNullish(
+        await drizzle
+          .select(getColumns(translatableElementTable))
+          .from(translatableElementTable)
+          .where(eq(translatableElementTable.id, elementId)),
+        `Element ${elementId} with given id does not exists`,
+      );
 
       const whereConditions = [
         lt(translatableElementTable.sortIndex, target.sortIndex),
@@ -990,10 +988,11 @@ export const documentRouter = router({
       } = ctx;
       const { documentId } = input;
 
-      return await drizzle.query.documentVersion.findMany({
-        where: (version, { eq }) => eq(version.documentId, documentId),
-        orderBy: (version, { desc }) => desc(version.createdAt),
-      });
+      return await drizzle
+        .select(getColumns(documentVersionTable))
+        .from(documentVersionTable)
+        .where(eq(documentVersionTable.documentId, documentId))
+        .orderBy(desc(documentVersionTable.createdAt));
     }),
   getDocumentFileUrl: permissionProcedure(
     "DOCUMENT",
