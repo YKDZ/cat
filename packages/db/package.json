@@ -11,8 +11,9 @@
     }
   },
   "files": [
+    "src",
     "dist",
-    "drizzle/migrations/",
+    "drizzle/",
     "package.json",
     "drizzle.config.ts"
   ],
@@ -27,19 +28,21 @@
     "drizzle:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44.7",
+    "drizzle-orm": "1.0.0-beta.2-f9236e3",
     "pg": "^8.16.3",
-    "redis": "^5.9.0"
+    "redis": "^5.10.0"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "@types/pg": "^8.15.6",
-    "drizzle-kit": "^0.31.6"
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "1.0.0-beta.2-58a4521",
+    "unplugin-dts": "1.0.0-beta.6",
+    "vite": "^7.3.0"
   },
   "peerDependencies": {
     "@cat/shared": "workspace:*",
+    "cldr-core": "^48.0.0",
     "dotenv": "^17.2.3",
-    "zod": "^4.1.12",
-    "cldr-core": "^48.0.0"
+    "zod": "^4.1.12"
   }
 }

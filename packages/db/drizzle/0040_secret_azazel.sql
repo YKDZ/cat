@@ -1,1 +1,0 @@
-CREATE INDEX "Chunk_chunk_set_id_index" ON "Chunk" USING btree ("chunk_set_id");

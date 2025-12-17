@@ -1,1 +1,0 @@
-ALTER TABLE "PermissionTemplate" DROP CONSTRAINT "PermissionTemplate_content_unique";

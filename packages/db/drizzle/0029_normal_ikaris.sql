@@ -1,1 +1,0 @@
-ALTER TABLE "Blob" ADD COLUMN "hash" text;

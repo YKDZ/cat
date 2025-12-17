@@ -42,7 +42,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*"
+    "@cat/eslint-config": "workspace:*",
+    "unplugin-dts": "1.0.0-beta.6",
+    "vite": "^7.3.0"
   },
   "peerDependencies": {
     "@cat/app-server-shared": "workspace:*",
@@ -52,8 +54,8 @@
     "@cat/shared": "workspace:*",
     "@trpc/client": "^11.5.1",
     "@trpc/server": "^11.5.1",
+    "devalue": "^5.5.0",
     "vike": "^0.4.240",
-    "zod": "^4.1.12",
-    "devalue": "^5.5.0"
+    "zod": "^4.1.12"
   }
 }

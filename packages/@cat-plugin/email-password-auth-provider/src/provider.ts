@@ -1,6 +1,15 @@
-import { getDrizzleDB, verifyPassword } from "@cat/db";
+import {
+  eq,
+  getDrizzleDB,
+  verifyPassword,
+  user as userTable,
+  getColumns,
+  and,
+  account as accountTable,
+} from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
 import { JSONSchema } from "@cat/shared/schema/json";
+import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 const FormSchema = z.object({
@@ -37,21 +46,28 @@ export class Provider implements AuthProvider {
     const { email, password } = FormSchema.parse(gotFromClient.formData);
 
     const account = await drizzle.transaction(async (tx) => {
-      const user = await tx.query.user.findFirst({
-        where: (user, { eq }) => eq(user.email, email),
-        columns: {
-          id: true,
-        },
-      });
+      const user = assertSingleOrNull(
+        await tx
+          .select({
+            id: userTable.id,
+          })
+          .from(userTable)
+          .where(eq(userTable.email, email)),
+      );
 
       if (!user) return null;
 
-      const account = await tx.query.account.findFirst({
-        where: (account, { and, eq }) =>
-          and(eq(account.userId, user.id), eq(account.provider, this.getId())),
-      });
-
-      return account;
+      return assertSingleOrNull(
+        await drizzle
+          .select(getColumns(accountTable))
+          .from(accountTable)
+          .where(
+            and(
+              eq(accountTable.userId, user.id),
+              eq(accountTable.provider, this.getId()),
+            ),
+          ),
+      );
     });
 
     if (!account) throw new Error("User not exists");

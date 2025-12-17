@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX "TranslatableString_value_language_id_project_id_index" ON "TranslatableString" USING btree ("value" text_ops,"language_id" text_ops,"project_id" uuid_ops);

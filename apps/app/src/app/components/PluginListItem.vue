@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import type {
-  Plugin,
-  PluginInstallation,
-} from "@cat/shared/schema/drizzle/plugin";
+import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
 import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
@@ -10,13 +7,16 @@ import { useI18n } from "vue-i18n";
 import Card from "@/app/components/ui/card/Card.vue";
 import CardHeader from "@/app/components/ui/card/CardHeader.vue";
 import CardTitle from "@/app/components/ui/card/CardTitle.vue";
+import { computedAsyncClient } from "@/app/utils/vue";
+import { trpc } from "@cat/app-api/trpc/client";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
 const { t } = useI18n();
 
 const props = defineProps<{
-  plugin: Plugin & {
-    PluginInstallations: PluginInstallation[];
-  };
+  plugin: Plugin;
+  scopeType: ScopeType;
+  scopeId: string;
   pathPrefix: string;
 }>();
 
@@ -26,6 +26,14 @@ const isIconLoaded = ref(false);
 const simpleName = computed(() => {
   return props.plugin.name.replace("@cat-plugin/", "");
 });
+
+const isInstalled = computedAsyncClient(async () => {
+  return await trpc.plugin.isInstalled.query({
+    pluginId: props.plugin.id,
+    scopeType: props.scopeType,
+    scopeId: props.scopeId,
+  });
+}, false);
 
 useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
 </script>
@@ -59,11 +67,9 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
             class="px-2 py-1 rounded-sm bg-muted"
             >{{ t("内部插件") }}</span
           >
-          <span
-            v-if="plugin.PluginInstallations.length > 0"
-            class="px-2 py-1 rounded-sm bg-muted"
-            >{{ t("已安装") }}</span
-          >
+          <span v-if="isInstalled" class="px-2 py-1 rounded-sm bg-muted">{{
+            t("已安装")
+          }}</span>
         </div>
       </div>
     </CardHeader>

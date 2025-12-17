@@ -1,6 +1,14 @@
-import type { OverallDrizzleClient } from "@cat/db";
+import {
+  and,
+  eq,
+  pluginConfig,
+  pluginConfigInstance,
+  pluginInstallation,
+  type OverallDrizzleClient,
+} from "@cat/db";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import type { JSONType } from "@cat/shared/schema/json";
+import { assertSingleOrNull } from "@cat/shared/utils";
 
 export const getPluginConfig = async (
   drizzle: OverallDrizzleClient,
@@ -19,39 +27,47 @@ export const getConfigInstance = async (
   scopeType: ScopeType,
   scopeId: string,
 ): Promise<JSONType> => {
-  const installation = await drizzle.query.pluginInstallation.findFirst({
-    where: (installation, { and, eq }) =>
-      and(
-        eq(installation.pluginId, pluginId),
-        eq(installation.scopeId, scopeId),
-        eq(installation.scopeType, scopeType),
+  const installation = assertSingleOrNull(
+    await drizzle
+      .select({
+        id: pluginInstallation.id,
+      })
+      .from(pluginInstallation)
+      .where(
+        and(
+          eq(pluginInstallation.pluginId, pluginId),
+          eq(pluginInstallation.scopeId, scopeId),
+          eq(pluginInstallation.scopeType, scopeType),
+        ),
       ),
-    columns: {
-      id: true,
-    },
-  });
+  );
 
   if (!installation) return {};
 
-  const config = await drizzle.query.pluginConfig.findFirst({
-    where: (config, { eq }) => eq(config.pluginId, pluginId),
-    columns: {
-      id: true,
-    },
-  });
+  const config = assertSingleOrNull(
+    await drizzle
+      .select({
+        id: pluginConfig.id,
+      })
+      .from(pluginConfig)
+      .where(eq(pluginConfig.pluginId, pluginId)),
+  );
 
   if (!config) return {};
 
-  const data = await drizzle.query.pluginConfigInstance.findFirst({
-    where: (instance, { and, eq }) =>
-      and(
-        eq(instance.configId, config.id),
-        eq(instance.pluginInstallationId, installation.id),
+  const data = assertSingleOrNull(
+    await drizzle
+      .select({
+        value: pluginConfigInstance.value,
+      })
+      .from(pluginConfigInstance)
+      .where(
+        and(
+          eq(pluginConfigInstance.configId, config.id),
+          eq(pluginConfigInstance.pluginInstallationId, installation.id),
+        ),
       ),
-    columns: {
-      value: true,
-    },
-  });
+  );
 
   if (!data) return {};
 

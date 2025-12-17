@@ -46,6 +46,8 @@
     "bullmq": "^5.58.4",
     "lodash-es": "^4.17.21",
     "dotenv": "^17.2.3",
-    "undici": "^7.16.0"
+    "undici": "^7.16.0",
+    "unplugin-dts": "1.0.0-beta.6",
+    "vite": "^7.1.12"
   }
 }

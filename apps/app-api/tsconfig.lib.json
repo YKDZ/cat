@@ -10,7 +10,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "*.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "references": [
     {
       "path": "../app-workers/tsconfig.lib.json"

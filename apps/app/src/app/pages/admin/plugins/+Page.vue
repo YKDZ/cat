@@ -9,5 +9,5 @@ const { plugins } = useData<Data>();
 
 <template>
   <PluginReloadBtn scope-type="GLOBAL" scope-id="" />
-  <PluginList :plugins path-prefix="/admin/plugin" />
+  <PluginList :plugins scope-type="GLOBAL" scope-id="" path-prefix="/admin/plugin" />
 </template>

@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 import {
   PluginConfigInstanceSchema,
   PluginConfigSchema,
-  PluginInstallationSchema,
   PluginSchema,
 } from "@cat/shared/schema/drizzle/plugin";
 import {
@@ -20,7 +19,8 @@ import {
   eq,
   and,
   pluginInstallation,
-  getTableColumns,
+  getColumns,
+  pluginService,
 } from "@cat/db";
 import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { permissionProcedure, publicProcedure, router } from "@/trpc/server.ts";
@@ -84,7 +84,7 @@ export const pluginRouter = router({
 
       return assertSingleOrNull(
         await drizzle
-          .select(getTableColumns(pluginConfigInstanceTable))
+          .select(getColumns(pluginConfigInstanceTable))
           .from(pluginConfigInstanceTable)
           .innerJoin(pluginConfig, eq(pluginConfig.pluginId, pluginId))
           .where(
@@ -211,24 +211,16 @@ export const pluginRouter = router({
       );
     }),
   getAll: permissionProcedure("PLUGIN", "get.all")
-    .output(
-      z.array(
-        PluginSchema.extend({
-          PluginInstallations: z.array(PluginInstallationSchema),
-        }),
-      ),
-    )
+    .output(z.array(PluginSchema))
     .query(async ({ ctx }) => {
       const {
         drizzleDB: { client: drizzle },
       } = ctx;
 
-      return await drizzle.query.plugin.findMany({
-        with: {
-          PluginInstallations: true,
-        },
-        orderBy: desc(pluginTable.id),
-      });
+      return await drizzle
+        .select(getColumns(pluginTable))
+        .from(pluginTable)
+        .orderBy(desc(pluginTable.id));
     }),
   getAllAuthMethod: publicProcedure
     .output(z.array(AuthMethodSchema))
@@ -238,12 +230,12 @@ export const pluginRouter = router({
         pluginRegistry,
       } = ctx;
 
-      const providersData = await drizzle.query.pluginService.findMany({
-        where: (service, { eq }) => eq(service.serviceType, "AUTH_PROVIDER"),
-        columns: {
-          serviceId: true,
-        },
-      });
+      const providersData = await drizzle
+        .select({
+          serviceId: pluginService.serviceId,
+        })
+        .from(pluginService)
+        .where(eq(pluginService.serviceType, "AUTH_PROVIDER"));
 
       const methods: AuthMethod[] = [];
 
@@ -308,29 +300,29 @@ export const pluginRouter = router({
       } = ctx;
       const { advisorId } = input;
 
-      const dbAdvisor = await drizzle.query.pluginService.findFirst({
-        where: (service, { and, eq }) =>
-          and(
-            eq(service.id, advisorId),
-            eq(service.serviceType, "TRANSLATION_ADVISOR"),
+      const dbAdvisor = assertSingleNonNullish(
+        await drizzle
+          .select({
+            pluginId: pluginInstallation.pluginId,
+            serviceId: pluginService.serviceId,
+            serviceType: pluginService.serviceType,
+          })
+          .from(pluginService)
+          .innerJoin(
+            pluginInstallation,
+            eq(pluginService.pluginInstallationId, pluginInstallation.id),
+          )
+          .where(
+            and(
+              eq(pluginService.id, advisorId),
+              eq(pluginService.serviceType, "TRANSLATION_ADVISOR"),
+            ),
           ),
-        columns: {
-          serviceId: true,
-          serviceType: true,
-        },
-        with: {
-          PluginInstallation: {
-            columns: {
-              pluginId: true,
-            },
-          },
-        },
-      });
-
-      if (!dbAdvisor) throw new TRPCError({ code: "NOT_FOUND" });
+        "Translation Advisor not found",
+      );
 
       const service = pluginRegistry.getPluginService(
-        dbAdvisor.PluginInstallation.pluginId,
+        dbAdvisor.pluginId,
         "TRANSLATION_ADVISOR",
         dbAdvisor.serviceId,
       )!;
@@ -341,5 +333,42 @@ export const pluginRouter = router({
         id: advisorId,
         name: service.getName(),
       };
+    }),
+  isInstalled: permissionProcedure(
+    "PLUGIN",
+    "is-installed",
+    z.object({
+      pluginId: z.string(),
+    }),
+  )
+    .input(
+      z.object({
+        scopeType: ScopeTypeSchema,
+        scopeId: z.string(),
+      }),
+    )
+    .output(z.boolean())
+    .query(async ({ ctx, input }) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = ctx;
+      const { pluginId, scopeId, scopeType } = input;
+
+      const installation = assertSingleOrNull(
+        await drizzle
+          .select({
+            id: pluginInstallation.id,
+          })
+          .from(pluginInstallation)
+          .where(
+            and(
+              eq(pluginInstallation.pluginId, pluginId),
+              eq(pluginInstallation.scopeType, scopeType),
+              eq(pluginInstallation.scopeId, scopeId),
+            ),
+          ),
+      );
+
+      return !!installation;
     }),
 });

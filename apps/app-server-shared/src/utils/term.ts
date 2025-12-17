@@ -1,4 +1,4 @@
-import type { OverallDrizzleClient } from "@cat/db";
+import { language, type OverallDrizzleClient } from "@cat/db";
 import type { PluginRegistry } from "@cat/plugin-core";
 
 // TODO 重构
@@ -8,10 +8,15 @@ export const initTermService = async (
 ): Promise<void> => {
   const services = pluginRegistry.getPluginServices("TERM_SERVICE");
   const languageIds = (
-    await drizzle.query.language.findMany({
-      columns: { id: true },
-    })
+    await drizzle
+      .select({
+        id: language.id,
+      })
+      .from(language)
   ).map((l) => l.id);
+
+  void services;
+  void languageIds;
 
   // await Promise.all(
   //   services.map(

@@ -1,1 +1,0 @@
-ALTER TABLE "Plugin" ADD COLUMN "version" text NOT NULL;

@@ -20,6 +20,7 @@ import {
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
 import {
   eq,
+  getColumns,
   OverallDrizzleClient,
   plugin,
   pluginConfig,
@@ -308,22 +309,29 @@ export class PluginRegistry {
     drizzle: DrizzleClient,
     pluginId: string,
   ): Promise<void> {
-    const dbPlugin = await drizzle.query.plugin.findFirst({
-      where: ({ id }, { eq }) => eq(id, pluginId),
-    });
+    assertSingleNonNullish(
+      await drizzle
+        .select(getColumns(plugin))
+        .from(plugin)
+        .where(eq(plugin.id, pluginId)),
+      `Plugin ${pluginId} not found`,
+    );
 
-    if (!dbPlugin) throw new Error(`Plugin ${pluginId} not found`);
-
-    const installation = await drizzle.query.pluginInstallation.findFirst({
-      where: (installation, { and, eq }) =>
-        and(
-          eq(installation.pluginId, pluginId),
-          eq(installation.scopeId, this.scopeId),
-          eq(installation.scopeType, this.scopeType),
+    const installation = assertSingleNonNullish(
+      await drizzle
+        .select({
+          id: pluginInstallation.id,
+        })
+        .from(pluginInstallation)
+        .where(
+          and(
+            eq(pluginInstallation.pluginId, pluginId),
+            eq(pluginInstallation.scopeId, this.scopeId),
+            eq(pluginInstallation.scopeType, this.scopeType),
+          ),
         ),
-    });
-
-    if (!installation) throw new Error(`Plugin ${pluginId} not installed`);
+      `Plugin ${pluginId} not installed in scope ${this.scopeType}:${this.scopeId}`,
+    );
 
     try {
       const pluginObj = await this.getPluginInstance(pluginId);

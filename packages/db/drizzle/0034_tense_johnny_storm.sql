@@ -1,1 +1,0 @@
-ALTER TABLE "Blob" ALTER COLUMN "reference_count" SET DEFAULT 1;
