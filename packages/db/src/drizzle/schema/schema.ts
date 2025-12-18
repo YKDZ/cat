@@ -102,8 +102,8 @@ export const blob = pgTable(
   (table) => [
     unique().on(table.hash),
     unique().on(table.storageProviderId, table.key),
-    check("hash_check", sql`CHECK ((octet_length(hash) = 32))`),
-    check("referenceCount_check", sql`CHECK ((reference_count >= 0))`),
+    check("hash_check", sql`octet_length(${table.hash}) = 32`),
+    check("referenceCount_check", sql`${table.referenceCount} >= 0`),
   ],
 );
 
@@ -149,7 +149,7 @@ export const chunkSet = pgTable("ChunkSet", {
 export const document = pgTable(
   "Document",
   {
-    id: uuid().default("uuidv7()").primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     name: text(),
     projectId: uuid()
       .notNull()
@@ -262,7 +262,7 @@ export const file = pgTable("File", {
 });
 
 export const glossary = pgTable("Glossary", {
-  id: uuid().default("uuidv7()").primaryKey(),
+  id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
   creatorId: uuid()
@@ -305,7 +305,7 @@ export const language = pgTable("Language", {
 });
 
 export const memory = pgTable("Memory", {
-  id: uuid().default("uuidv7()").primaryKey(),
+  id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
   creatorId: uuid()
@@ -549,7 +549,7 @@ export const pluginService = pgTable(
 export const project = pgTable(
   "Project",
   {
-    id: uuid().default("uuidv7()").primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     name: text().notNull(),
     description: text(),
     creatorId: uuid()
@@ -656,7 +656,7 @@ export const setting = pgTable(
 export const task = pgTable(
   "Task",
   {
-    id: uuid().default("uuidv7()").primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     status: taskStatus().default("PENDING").notNull(),
     type: text().notNull(),
     meta: jsonb().$type<JSONType>(),
@@ -812,7 +812,8 @@ export const translatableElementCommentReaction = pgTable(
       .notNull(),
   },
   (table) => [
-    index().using(
+    // Default index name over 63 bytes
+    index("element_id_idx").using(
       "btree",
       table.translatableElementCommentId.asc().nullsLast(),
     ),
@@ -967,7 +968,7 @@ export const translationVote = pgTable(
 export const user = pgTable(
   "User",
   {
-    id: uuid().default("uuidv7()").primaryKey(),
+    id: uuid().defaultRandom().primaryKey(),
     name: text().notNull(),
     email: text().notNull(),
     emailVerified: boolean().default(false).notNull(),
@@ -1018,5 +1019,7 @@ export const vector = pgTable(
       .notNull()
       .references(() => chunk.id, { onDelete: "cascade", onUpdate: "cascade" }),
   },
-  (table) => [index().using("hnsw", table.vector.asc().nullsLast().op("hnsw"))],
+  (table) => [
+    index("embeddingIndex").using("hnsw", table.vector.op("vector_cosine_ops")),
+  ],
 );
