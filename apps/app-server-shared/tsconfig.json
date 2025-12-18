@@ -4,15 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../packages/shared"
-    },
-    {
-      "path": "../../packages/db"
-    },
-    {
-      "path": "../../packages/plugin-core"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

@@ -4,15 +4,13 @@ packages:
   - packages/@cat-plugin/*
 
 ignoredBuiltDependencies:
-  - "@prisma/client"
-  - "@prisma/engines"
   - esbuild
   - msgpackr-extract
   - oxc-resolver
-  - prisma
   - protobufjs
 
-injectWorkspacePackages: true
+linkWorkspacePackages: true
+
 syncInjectedDepsAfterScripts: ["build"]
 
 onlyBuiltDependencies:

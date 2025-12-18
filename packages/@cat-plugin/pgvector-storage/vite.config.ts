@@ -1,6 +1,5 @@
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
-import dts from "unplugin-dts/vite";
 
 export default defineConfig({
   ssr: {
@@ -25,10 +24,4 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
   },
-
-  plugins: [
-    dts({
-      tsconfigPath: resolve(import.meta.dirname, "tsconfig.lib.json"),
-    }),
-  ],
 });
