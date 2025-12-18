@@ -8,24 +8,6 @@
   },
   "references": [
     {
-      "path": "../../packages/shared"
-    },
-    {
-      "path": "../../packages/plugin-core"
-    },
-    {
-      "path": "../../packages/db"
-    },
-    {
-      "path": "../app-workers"
-    },
-    {
-      "path": "../app-server-shared"
-    },
-    {
-      "path": "../app-api"
-    },
-    {
       "path": "./tsconfig.app.json"
     }
   ]

@@ -7,8 +7,6 @@
     "incremental": true,
     "composite": true,
     "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
     "resolveJsonModule": true,
     "paths": {
       "@/*": ["./src/*"]

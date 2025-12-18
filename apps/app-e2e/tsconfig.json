@@ -6,7 +6,12 @@
     "sourceMap": false,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "declaration": false,
+    "noEmit": true,
+    "composite": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false
   },
   "include": [
     "**/*.ts",
@@ -25,15 +30,5 @@
     "eslint.config.mjs",
     "eslint.config.cjs"
   ],
-  "references": [
-    {
-      "path": "../../packages/shared"
-    },
-    {
-      "path": "../../packages/plugin-core"
-    },
-    {
-      "path": "../../packages/db"
-    }
-  ]
+  "references": []
 }

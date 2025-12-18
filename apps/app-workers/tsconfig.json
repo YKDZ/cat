@@ -4,18 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../app-server-shared"
-    },
-    {
-      "path": "../../packages/shared"
-    },
-    {
-      "path": "../../packages/db"
-    },
-    {
-      "path": "../../packages/plugin-core"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

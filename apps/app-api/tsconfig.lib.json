@@ -5,27 +5,27 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
-    "declaration": true,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "composite": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "references": [
     {
-      "path": "../app-workers/tsconfig.lib.json"
-    },
-    {
-      "path": "../app-server-shared/tsconfig.lib.json"
-    },
-    {
       "path": "../../packages/shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/plugin-core/tsconfig.lib.json"
     },
     {
       "path": "../../packages/db/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/plugin-core/tsconfig.lib.json"
+      "path": "../app-workers/tsconfig.lib.json"
+    },
+    {
+      "path": "../app-server-shared/tsconfig.lib.json"
     }
   ],
   "exclude": [
