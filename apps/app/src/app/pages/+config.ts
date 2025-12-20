@@ -4,11 +4,12 @@ import vikePhoton from "vike-photon/config";
 
 export default {
   passToClient: ["name", "user", "_piniaInitState", "i18nMessages"],
+
   extends: [vikeVue, vikePhoton],
 
-  photon: {
-    server: "src/server/index.ts",
-  },
-
   filesystemRoutingRoot: "/",
+
+  photon: {
+    server: "../../server/index.ts",
+  },
 } as Config;

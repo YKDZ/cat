@@ -139,10 +139,11 @@ function sortAndAssignIndex(
 /**
  * 准备文档更新上下文
  */
-async function prepareUpsertContext(input: UpsertDocumentElementsInput) {
+async function prepareUpsertContext(
+  input: UpsertDocumentElementsInput,
+  pluginRegistry: PluginRegistry,
+) {
   const { documentId, fileId, languageId } = input;
-
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
   // 获取文档和文件处理器
   const dbDocument = assertSingleNonNullish(
@@ -247,17 +248,16 @@ const upsertDocumentElementsFromFileFlow = defineFlow({
   name,
   inputSchema: UpsertDocumentElementsInputSchema,
 
-  async build(input) {
+  async build({ input, pluginRegistry }) {
     // 准备数据
     const { newElementsData, oldElementIds, documentId } =
-      await prepareUpsertContext(input);
+      await prepareUpsertContext(input, pluginRegistry);
 
     // 构建 batchDiffElements flow 的树结构
     const batchDiffTree =
       await batchDiffElements.flows.batchDiffElementsFlow.build({
-        newElementsData,
-        oldElementIds,
-        documentId,
+        input: { newElementsData, oldElementIds, documentId },
+        pluginRegistry,
       });
 
     // 返回一个新的根节点，将 batchDiffElements 作为子节点

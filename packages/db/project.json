@@ -1,0 +1,12 @@
+{
+  "targets": {
+    "drizzle:generate": {
+      "dependsOn": [
+        {
+          "projects": ["shared"],
+          "target": "build"
+        }
+      ]
+    }
+  }
+}

@@ -1,9 +1,3 @@
-/**
- * 创建翻译 Worker (重构版)
- *
- * 功能：为可翻译元素创建翻译，可选择性地添加到记忆库
- */
-
 import {
   document,
   eq,
@@ -71,6 +65,7 @@ async function getElementSourceStringId(
 async function createTranslationWithMemory(
   input: CreateTranslationInput,
   sourceStringId: number,
+  pluginRegistry: PluginRegistry,
 ): Promise<{ translationId: number; translationStringId: number }> {
   const {
     translationValue,
@@ -80,8 +75,6 @@ async function createTranslationWithMemory(
     createMemory,
     memoryIds,
   } = input;
-
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
   // 获取向量存储和向量化服务
   const vectorStorage = assertFirstNonNullish(
@@ -154,23 +147,24 @@ const createTranslationWorker = defineWorker({
   id,
   inputSchema: CreateTranslationInputSchema,
 
-  async execute(ctx) {
-    const { elementId } = ctx.input;
+  async execute({ input, pluginRegistry }) {
+    const { elementId } = input;
 
     // 获取源字符串 ID
     const element = await getElementSourceStringId(elementId);
 
     // 创建翻译（可能包含记忆库）
     const result = await createTranslationWithMemory(
-      ctx.input,
+      input,
       element.stringId,
+      pluginRegistry,
     );
 
     return {
       ...result,
       elementId,
-      memoryCreated: ctx.input.createMemory,
-      memoryCount: ctx.input.memoryIds.length,
+      memoryCreated: input.createMemory,
+      memoryCount: input.memoryIds.length,
     };
   },
 });

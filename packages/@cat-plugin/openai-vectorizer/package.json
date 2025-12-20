@@ -1,5 +1,5 @@
 {
-  "name": "@cat-plugin/ollama-vectorizer",
+  "name": "@cat-plugin/openai-vectorizer",
   "version": "0.1.0",
   "license": "MIT",
   "keywords": [

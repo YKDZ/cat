@@ -7,14 +7,14 @@ const DEST_DIR = resolve(import.meta.dirname, "../apps/app/plugins");
 const FILE_INCLUDES = ["dist", "package.json", "manifest.json"];
 
 const FOLDER_INCLUDES = [
-  "ollama-vectorizer",
+  "openai-vectorizer",
   "libretranslate-advisor",
   "json-file-handler",
   "yaml-file-handler",
   "markdown-file-handler",
   "oidc-auth-provider",
   "email-password-auth-provider",
-  "es-term-service",
+  "openai-term-extractor",
   "s3-storage-provider",
   "pgvector-storage",
 ];

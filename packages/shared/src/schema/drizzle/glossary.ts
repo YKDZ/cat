@@ -1,18 +1,22 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
+import { safeZDotJson } from "@/schema/json";
 
 export const TermSchema = z.object({
   id: z.int(),
   stringId: z.int(),
-  glossaryId: z.uuidv7(),
   creatorId: z.uuidv7(),
+  termEntryId: z.int(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
 
-export const TermRelationSchema = z.object({
-  termId: z.int(),
-  translationId: z.int(),
+export const TermEntrySchema = z.object({
+  id: z.int(),
+  meta: safeZDotJson,
+  glossaryId: z.uuidv7(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
 });
 
 export const GlossarySchema = z.object({
@@ -25,5 +29,5 @@ export const GlossarySchema = z.object({
 });
 
 export type Term = z.infer<typeof TermSchema>;
-export type TermRelation = z.infer<typeof TermRelationSchema>;
+export type TermEntry = z.infer<typeof TermEntrySchema>;
 export type Glossary = z.infer<typeof GlossarySchema>;

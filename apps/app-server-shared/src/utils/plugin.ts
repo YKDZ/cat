@@ -70,10 +70,10 @@ export const installDefaultPlugins = async (
 ): Promise<void> => {
   const localPlugins = [
     "email-password-auth-provider",
-    "es-term-service",
+    "openai-term-extractor",
     "json-file-handler",
     "libretranslate-advisor",
-    "ollama-vectorizer",
+    "openai-vectorizer",
     "yaml-file-handler",
     "s3-storage-provider",
     "pgvector-storage",

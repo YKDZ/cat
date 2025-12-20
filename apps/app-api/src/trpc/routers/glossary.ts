@@ -9,7 +9,6 @@ import {
   glossary as glossaryTable,
   glossaryToProject,
   inArray,
-  termRelation as termRelationTable,
   term as termTable,
   document as documentTable,
   aliasedTable,
@@ -18,14 +17,19 @@ import {
   task,
   OverallDrizzleClient,
   getColumns,
+  termEntry,
 } from "@cat/db";
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
+import {
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+  assertSingleOrNull,
+} from "@cat/shared/utils";
 import {
   permissionProcedure,
   permissionsProcedure,
   router,
 } from "../server.ts";
-import { TermService } from "@cat/plugin-core";
+import type { TermExtractor, TermRecognizer } from "@cat/plugin-core";
 
 export const glossaryRouter = router({
   deleteTerm: permissionProcedure(
@@ -118,8 +122,8 @@ export const glossaryRouter = router({
       return assertSingleNonNullish(
         await drizzle
           .select({ count: count() })
-          .from(termTable)
-          .where(eq(termTable.glossaryId, glossaryId)),
+          .from(termEntry)
+          .where(eq(termEntry.glossaryId, glossaryId)),
       ).count;
     }),
   create: permissionProcedure("GLOSSARY", "create")
@@ -177,22 +181,10 @@ export const glossaryRouter = router({
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
-        pluginRegistry,
         workerRegistry,
         user,
       } = ctx;
       const { termsData, glossaryId } = input;
-
-      // TODO 选择安装的服务或者继承
-      const termService = pluginRegistry.getPluginService(
-        "es-term-service",
-        "TERM_SERVICE",
-        "ES",
-      )!;
-
-      if (!termService) throw new Error("Term service does not exists");
-
-      if (termsData.length === 0) return;
 
       const dbTask = assertSingleNonNullish(
         await drizzle
@@ -252,16 +244,19 @@ export const glossaryRouter = router({
       } = ctx;
       const { text, termLanguageId, translationLanguageId, projectId } = input;
 
-      // TODO 选择安装的服务或者继承
-      const termService = pluginRegistry.getPluginService(
-        "es-term-service",
-        "TERM_SERVICE",
-        "ES",
-      )!;
+      const { service: termExtractor } = assertFirstNonNullish(
+        pluginRegistry.getPluginServices("TERM_EXTRACTOR"),
+        `No term extractor plugin found in this scope`,
+      );
+      const { service: termRecognizer } = assertFirstNonNullish(
+        pluginRegistry.getPluginServices("TERM_RECOGNIZER"),
+        `No term recognizer plugin found in this scope`,
+      );
 
       return await findTermRelationsInProject(
         drizzle,
-        termService,
+        termExtractor,
+        termRecognizer,
         projectId,
         text,
         termLanguageId,
@@ -297,14 +292,14 @@ export const glossaryRouter = router({
       } = ctx;
       const { elementId, translationLanguageId } = input;
 
-      // TODO 选择安装的服务或者继承
-      const termService = pluginRegistry.getPluginService(
-        "es-term-service",
-        "TERM_SERVICE",
-        "ES",
-      )!;
-
-      if (!termService) throw new Error("Term service does not exists");
+      const { service: termExtractor } = assertFirstNonNullish(
+        pluginRegistry.getPluginServices("TERM_EXTRACTOR"),
+        `No term extractor plugin found in this scope`,
+      );
+      const { service: termRecognizer } = assertFirstNonNullish(
+        pluginRegistry.getPluginServices("TERM_RECOGNIZER"),
+        `No term recognizer plugin found in this scope`,
+      );
 
       const element = assertSingleNonNullish(
         await drizzle
@@ -342,7 +337,8 @@ export const glossaryRouter = router({
 
       return await findTermRelationsInProject(
         drizzle,
-        termService,
+        termExtractor,
+        termRecognizer,
         projectId,
         element.value,
         element.languageId,
@@ -353,12 +349,20 @@ export const glossaryRouter = router({
 
 const findTermRelationsInProject = async (
   drizzle: OverallDrizzleClient,
-  termService: TermService,
+  termExtractor: TermExtractor,
+  termRecognizer: TermRecognizer,
   projectId: string,
-  value: string,
+  text: string,
   sourceLanguageId: string,
   translationLanguageId: string,
-) => {
+): Promise<
+  {
+    term: string;
+    translation: string;
+    termLanguageId: string;
+    translationLanguageId: string;
+  }[]
+> => {
   const glossaryIds = (
     await drizzle
       .select({
@@ -372,14 +376,16 @@ const findTermRelationsInProject = async (
     return [];
   }
 
-  const translationIds = await termService.termStore.searchTerm(
-    value,
-    sourceLanguageId,
-  );
-
-  if (translationIds.length === 0) {
-    return [];
-  }
+  const candidates = await termExtractor.extract(text, sourceLanguageId);
+  const entryIds = (
+    await termRecognizer.recognize(
+      {
+        text,
+        candidates,
+      },
+      sourceLanguageId,
+    )
+  ).map((entry) => entry.termEntryId);
 
   const sourceTerm = aliasedTable(termTable, "sourceTerm");
   const translationTerm = aliasedTable(termTable, "translationTerm");
@@ -395,12 +401,9 @@ const findTermRelationsInProject = async (
       termLanguageId: sourceString.languageId,
       translationLanguageId: translationString.languageId,
     })
-    .from(termRelationTable)
-    .innerJoin(sourceTerm, eq(termRelationTable.termId, sourceTerm.id))
-    .innerJoin(
-      translationTerm,
-      eq(termRelationTable.translationId, translationTerm.id),
-    )
+    .from(termEntry)
+    .innerJoin(sourceTerm, eq(termEntry.id, sourceTerm.termEntryId))
+    .innerJoin(translationTerm, eq(termEntry.id, translationTerm.termEntryId))
     .innerJoin(sourceString, eq(sourceTerm.stringId, sourceString.id))
     .innerJoin(
       translationString,
@@ -408,10 +411,10 @@ const findTermRelationsInProject = async (
     )
     .where(
       and(
-        inArray(translationTerm.id, translationIds),
+        inArray(termEntry.id, entryIds),
+        inArray(termEntry.glossaryId, glossaryIds),
+        eq(sourceString.languageId, sourceLanguageId),
         eq(translationString.languageId, translationLanguageId),
-        inArray(sourceTerm.glossaryId, glossaryIds),
-        inArray(translationTerm.glossaryId, glossaryIds),
       ),
     );
 

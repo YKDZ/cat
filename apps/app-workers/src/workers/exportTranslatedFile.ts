@@ -54,13 +54,15 @@ type ExportTranslatedFileInput = z.infer<
 /**
  * 获取文档的文件信息
  */
-async function getDocumentFileInfo(documentId: string): Promise<{
+const getDocumentFileInfo = async (
+  documentId: string,
+): Promise<{
   fileId: number;
   fileHandlerId: number;
   fileName: string;
   fileKey: string;
   storageProviderId: number;
-}> {
+}> => {
   const document = assertSingleNonNullish(
     await drizzle
       .select({
@@ -99,16 +101,15 @@ async function getDocumentFileInfo(documentId: string): Promise<{
     fileKey: file.key,
     storageProviderId: file.storageProviderId,
   };
-}
+};
 
 /**
  * 获取文件处理器
  */
-async function getFileHandler(
+const getFileHandler = async (
   fileHandlerId: number,
-): Promise<TranslatableFileHandler> {
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-
+  pluginRegistry: PluginRegistry,
+): Promise<TranslatableFileHandler> => {
   const handler = await getServiceFromDBId<TranslatableFileHandler>(
     drizzle,
     pluginRegistry,
@@ -122,15 +123,15 @@ async function getFileHandler(
   }
 
   return handler;
-}
+};
 
 /**
  * 获取已批准的翻译数据
  */
-async function getApprovedTranslations(
+const getApprovedTranslations = async (
   documentId: string,
   languageId: string,
-): Promise<Array<{ value: string; meta: JSONType }>> {
+): Promise<Array<{ value: string; meta: JSONType }>> => {
   return await drizzle
     .select({
       value: translatableString.value,
@@ -165,17 +166,16 @@ async function getApprovedTranslations(
         ),
       ),
     );
-}
+};
 
 /**
  * 从存储中读取文件内容
  */
-async function readFileContent(
+const readFileContent = async (
   fileKey: string,
   storageProviderId: number,
-): Promise<Buffer> {
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-
+  pluginRegistry: PluginRegistry,
+): Promise<Buffer> => {
   const provider = await getServiceFromDBId<StorageProvider>(
     drizzle,
     pluginRegistry,
@@ -183,17 +183,17 @@ async function readFileContent(
   );
 
   return await readableToBuffer(await provider.getStream(fileKey));
-}
+};
 
 /**
  * 上传翻译后的文件
  */
-async function uploadTranslatedFile(
+const uploadTranslatedFile = async (
   file: Buffer,
   name: string,
   documentId: string,
   languageId: string,
-): Promise<{ fileId: number }> {
+): Promise<{ fileId: number }> => {
   const { id: storageProviderId, provider } = await useStorage(
     drizzle,
     "s3-storage-provider",
@@ -226,22 +226,26 @@ async function uploadTranslatedFile(
     path,
     name,
   );
-}
+};
 
 const exportTranslatedFileWorker = defineWorker({
   id,
   inputSchema: ExportTranslatedFileInputSchema,
 
-  async execute(ctx) {
-    const { documentId, languageId, taskId } = ctx.input;
+  async execute({ input, pluginRegistry }) {
+    const { documentId, languageId, taskId } = input;
 
     const fileInfo = await getDocumentFileInfo(documentId);
 
-    const handler = await getFileHandler(fileInfo.fileHandlerId);
+    const handler = await getFileHandler(
+      fileInfo.fileHandlerId,
+      pluginRegistry,
+    );
 
     const fileContent = await readFileContent(
       fileInfo.fileKey,
       fileInfo.storageProviderId,
+      pluginRegistry,
     );
 
     const translations = await getApprovedTranslations(documentId, languageId);

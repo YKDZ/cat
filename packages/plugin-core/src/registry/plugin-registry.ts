@@ -33,7 +33,6 @@ import { and } from "@cat/db";
 import type { TranslationAdvisor } from "@/services/translation-advisor.ts";
 import type { TranslatableFileHandler } from "@/services/translatable-file-handler.ts";
 import type { TextVectorizer } from "@/services/text-vectorizer.ts";
-import type { TermService } from "@/services/term-service.ts";
 import type { StorageProvider } from "@/services/storage-provider.ts";
 import type { AuthProvider } from "@/services/auth-provider.ts";
 import { existsSync } from "node:fs";
@@ -51,15 +50,28 @@ import type {
   PluginServiceType,
   ScopeType,
 } from "@cat/shared/schema/drizzle/enum";
+import type {
+  TermAligner,
+  TermExtractor,
+  TermRecognizer,
+} from "@/services/term-services";
+import type { QAChecker } from "@/services/qa";
+
+type PluginServiceTypeMap = {
+  AUTH_PROVIDER: AuthProvider;
+  STORAGE_PROVIDER: StorageProvider;
+  TEXT_VECTORIZER: TextVectorizer;
+  TRANSLATABLE_FILE_HANDLER: TranslatableFileHandler;
+  TRANSLATION_ADVISOR: TranslationAdvisor;
+  TERM_EXTRACTOR: TermExtractor;
+  TERM_RECOGNIZER: TermRecognizer;
+  TERM_ALIGNER: TermAligner;
+  QA_CHECKER: QAChecker;
+  VECTOR_STORAGE: IVectorStorage;
+};
 
 type PluginServiceMap = {
-  ["AUTH_PROVIDER"]: AuthProvider;
-  ["STORAGE_PROVIDER"]: StorageProvider;
-  ["TEXT_VECTORIZER"]: TextVectorizer;
-  ["TRANSLATABLE_FILE_HANDLER"]: TranslatableFileHandler;
-  ["TRANSLATION_ADVISOR"]: TranslationAdvisor;
-  ["TERM_SERVICE"]: TermService;
-  ["VECTOR_STORAGE"]: IVectorStorage;
+  [K in PluginServiceType]: PluginServiceTypeMap[K];
 };
 
 export interface IPluginService {

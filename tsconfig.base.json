@@ -8,6 +8,7 @@
     "emitDeclarationOnly": true,
     "allowImportingTsExtensions": true,
     "noEmitOnError": true,
+    "noEmit": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,

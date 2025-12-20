@@ -44,20 +44,6 @@ services:
       retries: 5
       timeout: 5s
 
-  elasticsearch:
-    image: elasticsearch:9.0.3
-    environment:
-      discovery.type: single-node
-      xpack.security.transport.ssl.enabled: false
-      xpack.security.http.ssl.enabled: false
-      xpack.security.enabled: false
-      ELASTIC_PASSWORD: 1256987qazA!
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 120
-
   ollama:
     image: ollama/ollama
     healthcheck:
@@ -74,11 +60,11 @@ services:
               count: all
               capabilities: [gpu]
 
-  # libretranslate:
-  #   image: libretranslate/libretranslate
-  #   healthcheck:
-  #     test:
-  #       - CMD-SHELL
-  #       - ./venv/bin/python scripts/healthcheck.py
-  #   environment:
-  #     - LT_LOAD_ONLY=zh,en
+  libretranslate:
+    image: libretranslate/libretranslate
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - ./venv/bin/python scripts/healthcheck.py
+    environment:
+      - LT_LOAD_ONLY=zh,en

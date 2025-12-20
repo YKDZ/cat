@@ -194,10 +194,10 @@ async function executeRemoveElementsChunk(
   };
 }
 
-async function executeAddElementsWithoutStringChunk(
+const executeAddElementsWithoutStringChunk = async (
   input: AddWithoutStringChunkInput,
-  pluginRegistry: PluginRegistry = PluginRegistry.get("GLOBAL", ""),
-): Promise<{ createdCount: number; elementIds: number[] }> {
+  pluginRegistry: PluginRegistry,
+): Promise<{ createdCount: number; elementIds: number[] }> => {
   const { elements, documentId } = input;
 
   if (elements.length === 0) {
@@ -257,7 +257,7 @@ async function executeAddElementsWithoutStringChunk(
     createdCount: elementIds.length,
     elementIds,
   };
-}
+};
 
 async function executeAddElementsWithStringChunk(
   input: AddWithStringChunkInput,
@@ -339,8 +339,8 @@ const addElementsWithoutStringChunkWorker = defineWorker({
   id: "add-elements-without-string-chunk",
   inputSchema: AddWithoutStringChunkInputSchema,
 
-  async execute(ctx) {
-    return executeAddElementsWithoutStringChunk(ctx.input);
+  async execute({ input, pluginRegistry }) {
+    return executeAddElementsWithoutStringChunk(input, pluginRegistry);
   },
 
   hooks: {
@@ -489,7 +489,7 @@ const batchDiffElementsFlow = defineFlow({
   name,
   inputSchema: BatchDiffElementsInputSchema,
 
-  async build(input: BatchDiffElementsInput) {
+  async build({ input }) {
     // 分析差异
     const {
       removedElements,
@@ -508,7 +508,7 @@ const batchDiffElementsFlow = defineFlow({
         workerId: "remove-elements-chunk",
         data: {
           elementIds: chunkData.map((el) => el.id),
-          rollbackData: chunkData, // 保存原始数据用于回滚
+          rollbackData: chunkData,
         },
       });
     }

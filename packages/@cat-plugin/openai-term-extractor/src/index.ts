@@ -4,16 +4,16 @@ import type {
   ServiceMap,
   ServiceMapRecord,
 } from "@cat/plugin-core";
-import { Vectorizer } from "./vectorizer.ts";
+import { Extractor } from "./extractor.ts";
 
 class Plugin implements CatPlugin {
-  async install(serviceMap: ServiceMap, options?: PluginInstallOptions) {
+  async install(serviceMap: ServiceMap) {
     serviceMap.register(
       {
-        type: "TEXT_VECTORIZER",
-        id: "ollama",
+        type: "TERM_EXTRACTOR",
+        id: "openai",
       } satisfies ServiceMapRecord,
-      new Vectorizer(options?.config ?? {}),
+      new Extractor(),
     );
   }
 }

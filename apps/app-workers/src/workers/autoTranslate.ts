@@ -10,18 +10,18 @@ import {
   projectTargetLanguage,
   sql,
   term,
-  termRelation,
   translatableElement,
   translatableString,
   chunkSet,
   chunk,
   aliasedTable,
+  termEntry,
 } from "@cat/db";
-import {
-  PluginRegistry,
-  type IVectorStorage,
-  type TermService,
-  type TranslationAdvisor,
+import type {
+  IVectorStorage,
+  TermExtractor,
+  TermRecognizer,
+  TranslationAdvisor,
 } from "@cat/plugin-core";
 import * as z from "zod/v4";
 import {
@@ -253,15 +253,16 @@ async function translateWithMemory(
   };
 }
 
-async function translateWithAdvisor(
+const translateWithAdvisor = async (
   element: ElementData,
   targetLanguageId: string,
   advisor: TranslationAdvisor,
   advisorId: number,
   glossaryIds: string[],
-  termService: TermService,
+  termExtractor: TermExtractor,
+  termRecognizer: TermRecognizer,
   userId: string,
-): Promise<TranslationData | null> {
+): Promise<TranslationData | null> => {
   if (!advisor.canSuggest(element.languageId, targetLanguageId)) {
     logger.warn("PROCESSOR", {
       msg: `Advisor cannot translate from ${element.languageId} to ${targetLanguageId}`,
@@ -270,11 +271,20 @@ async function translateWithAdvisor(
   }
 
   // 获取术语化文本
-  const { termedText, translationIds } = await termService.termStore.termText(
+  const termCandidates = await termExtractor.extract(
     element.value,
     element.languageId,
-    targetLanguageId,
   );
+
+  const recognizedTerms = await termRecognizer.recognize(
+    {
+      text: element.value,
+      candidates: termCandidates,
+    },
+    element.languageId,
+  );
+
+  const termEntryIds = recognizedTerms.map((term) => term.termEntryId);
 
   // 查询术语关系
   const sourceTerm = aliasedTable(term, "sourceTerm");
@@ -285,27 +295,15 @@ async function translateWithAdvisor(
     "translationString",
   );
 
-  const relations = await drizzle
+  const terms = await drizzle
     .select({
       term: sourceString.value,
       translation: translationString.value,
+      subject: termEntry.subject,
     })
-    .from(termRelation)
-    .innerJoin(
-      sourceTerm,
-      and(
-        eq(sourceTerm.id, termRelation.termId),
-        inArray(sourceTerm.glossaryId, glossaryIds),
-      ),
-    )
-    .innerJoin(
-      translationTerm,
-      and(
-        eq(translationTerm.id, termRelation.translationId),
-        inArray(translationTerm.glossaryId, glossaryIds),
-        inArray(translationTerm.id, translationIds),
-      ),
-    )
+    .from(termEntry)
+    .innerJoin(sourceTerm, eq(sourceTerm.termEntryId, termEntry.id))
+    .innerJoin(translationTerm, eq(sourceTerm.termEntryId, termEntry.id))
     .innerJoin(
       sourceString,
       and(
@@ -319,13 +317,19 @@ async function translateWithAdvisor(
         eq(translationString.id, translationTerm.stringId),
         eq(translationString.languageId, targetLanguageId),
       ),
+    )
+    .where(
+      and(
+        inArray(termEntry.id, termEntryIds),
+        inArray(termEntry.glossaryId, glossaryIds),
+      ),
     );
 
   // 获取建议
   const suggestions = await advisor.getSuggestions(
     element.value,
-    termedText,
-    relations,
+    element.value,
+    terms,
     element.languageId,
     targetLanguageId,
   );
@@ -348,7 +352,7 @@ async function translateWithAdvisor(
       memoryItemId: null,
     },
   };
-}
+};
 
 /**
  * 翻译元素分块 Worker
@@ -357,7 +361,7 @@ const translateElementsChunkWorker = defineWorker({
   id: "translate-elements-chunk",
   inputSchema: TranslateElementChunkInputSchema,
 
-  async execute(ctx) {
+  async execute({ input, pluginRegistry }) {
     const {
       elementIds,
       userId,
@@ -366,9 +370,7 @@ const translateElementsChunkWorker = defineWorker({
       minMemorySimilarity,
       glossaryIds,
       memoryIds,
-    } = ctx.input;
-
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    } = input;
 
     // 获取服务
     const advisor = await getServiceFromDBId<TranslationAdvisor>(
@@ -393,15 +395,15 @@ const translateElementsChunkWorker = defineWorker({
       vectorizer.record,
     );
 
-    const termService = pluginRegistry.getPluginService(
-      "es-term-service",
-      "TERM_SERVICE",
-      "ES",
-    )!;
+    const { service: termExtractor } = assertFirstNonNullish(
+      pluginRegistry.getPluginServices("TERM_EXTRACTOR"),
+      `No term extractor installed in ${pluginRegistry.scopeType}:${pluginRegistry.scopeId}`,
+    );
 
-    if (!termService) {
-      throw new Error("Term service does not exist");
-    }
+    const { service: termRecognizer } = assertFirstNonNullish(
+      pluginRegistry.getPluginServices("TERM_RECOGNIZER"),
+      `No term recognizer installed in ${pluginRegistry.scopeType}:${pluginRegistry.scopeId}`,
+    );
 
     // 获取元素
     const elements = await drizzle
@@ -451,7 +453,8 @@ const translateElementsChunkWorker = defineWorker({
           advisor,
           advisorId,
           glossaryIds,
-          termService,
+          termExtractor,
+          termRecognizer,
           userId,
         );
 
@@ -566,7 +569,7 @@ const autoTranslateFlow = defineFlow({
   name,
   inputSchema: AutoTranslateInputSchema,
 
-  async build(input: AutoTranslateInput) {
+  async build({ input }) {
     const { documentId, languageId, userId, advisorId, minMemorySimilarity } =
       input;
 

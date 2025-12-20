@@ -168,7 +168,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.glossary.id.through(r.glossaryToProject.glossaryId),
         to: r.project.id.through(r.glossaryToProject.projectId),
       }),
-      terms: r.many.term(),
+      termEntries: r.many.termEntry(),
     },
     memory: {
       user: r.one.user({
@@ -350,13 +350,19 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.term.creatorId,
         to: r.user.id,
       }),
-      glossary: r.one.glossary({
-        from: r.term.glossaryId,
-        to: r.glossary.id,
-      }),
       translatableString: r.one.translatableString({
         from: r.term.stringId,
         to: r.translatableString.id,
+      }),
+      termEntry: r.one.termEntry({
+        from: r.term.termEntryId,
+        to: r.termEntry.id,
+      }),
+    },
+    termEntry: {
+      glossary: r.one.glossary({
+        from: r.termEntry.glossaryId,
+        to: r.glossary.id,
       }),
     },
     translatableElementComment: {

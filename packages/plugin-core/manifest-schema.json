@@ -48,7 +48,10 @@
           "type": {
             "type": "string",
             "enum": [
-              "TERM_SERVICE",
+              "TERM_EXTRACTOR",
+              "TERM_RECOGNIZER",
+              "TERM_ALIGNER",
+              "QA_CHECKER",
               "TRANSLATION_ADVISOR",
               "TRANSLATABLE_FILE_HANDLER",
               "STORAGE_PROVIDER",

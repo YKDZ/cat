@@ -4,17 +4,16 @@ import type {
   ServiceMap,
   ServiceMapRecord,
 } from "@cat/plugin-core";
-import { getESTermService } from "./service.ts";
-import { ConfigSchema } from "./service.ts";
+import { Vectorizer } from "./vectorizer.ts";
 
 class Plugin implements CatPlugin {
   async install(serviceMap: ServiceMap, options?: PluginInstallOptions) {
     serviceMap.register(
       {
-        type: "TERM_SERVICE",
-        id: "ES",
+        type: "TEXT_VECTORIZER",
+        id: "openai",
       } satisfies ServiceMapRecord,
-      getESTermService(ConfigSchema.parse(options?.config)),
+      new Vectorizer(options?.config ?? {}),
     );
   }
 }

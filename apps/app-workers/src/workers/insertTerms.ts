@@ -1,4 +1,13 @@
-import { eq, getDrizzleDB, glossary, term, termRelation } from "@cat/db";
+import {
+  and,
+  eq,
+  getDrizzleDB,
+  glossary,
+  inArray,
+  isNotNull,
+  term,
+  termEntry,
+} from "@cat/db";
 import {
   assertFirstNonNullish,
   assertSingleNonNullish,
@@ -27,143 +36,140 @@ const InsertTermsInputSchema = z.object({
 
 type InsertTermsInput = z.infer<typeof InsertTermsInputSchema>;
 
-/**
- * 验证词汇表是否存在
- */
-async function validateGlossaryExists(glossaryId: string): Promise<void> {
-  assertSingleNonNullish(
-    await drizzle
-      .select({ id: glossary.id })
-      .from(glossary)
-      .where(eq(glossary.id, glossaryId))
-      .limit(1),
-    `Glossary ${glossaryId} not found`,
-  );
-}
-
-/**
- * 插入术语及其翻译
- */
-async function insertTermsWithTranslations(
+const insertTermsWithTranslations = async (
   input: InsertTermsInput,
-): Promise<{ termCount: number; translationCount: number }> {
+  pluginRegistry: PluginRegistry,
+) => {
   const { glossaryId, termsData, creatorId } = input;
 
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-
-  // 获取向量存储服务
-  const vectorStorage = assertFirstNonNullish(
+  const vStorage = assertFirstNonNullish(
     pluginRegistry.getPluginServices("VECTOR_STORAGE"),
   );
-  const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
-    drizzle,
-    vectorStorage.record,
+  const vizer = assertFirstNonNullish(
+    pluginRegistry.getPluginServices("TEXT_VECTORIZER"),
   );
 
-  const vectorizer = assertFirstNonNullish(
-    pluginRegistry.getPluginServices("TEXT_VECTORIZER"),
+  const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
+    drizzle,
+    vStorage.record,
   );
   const vectorizerId = await pluginRegistry.getPluginServiceDbId(
     drizzle,
-    vectorizer.record,
+    vizer.record,
   );
 
-  // 获取术语服务
-  const termService = pluginRegistry.getPluginService(
-    "es-term-service",
-    "TERM_SERVICE",
-    "ES",
-  )!;
-
-  return await drizzle.transaction(async (tx) => {
-    // 准备术语字符串数据
-    const termInputs = termsData.map(({ term, termLanguageId }) => ({
-      value: term,
-      languageId: termLanguageId,
-    }));
-
-    // 准备翻译字符串数据
-    const translationInputs = termsData.map(
-      ({ translation, translationLanguageId }) => ({
-        value: translation,
-        languageId: translationLanguageId,
-      }),
-    );
-
-    // 创建术语字符串并生成向量
+  await drizzle.transaction(async (tx) => {
     const termStringIds = await createStringFromData(
       tx,
-      vectorizer.service,
+      vizer.service,
       vectorizerId,
-      vectorStorage.service,
+      vStorage.service,
       vectorStorageId,
-      termInputs,
-    );
-
-    // 创建翻译字符串并生成向量
-    const translationStringIds = await createStringFromData(
-      tx,
-      vectorizer.service,
-      vectorizerId,
-      vectorStorage.service,
-      vectorStorageId,
-      translationInputs,
-    );
-
-    // 插入术语
-    const termRows = await tx
-      .insert(term)
-      .values(
-        termsData.map((data, index) => ({
-          value: data.term,
-          languageId: data.termLanguageId,
-          stringId: termStringIds[index],
-          glossaryId,
-          creatorId,
-        })),
-      )
-      .returning({ id: term.id });
-
-    // 插入翻译
-    const translationRows = await tx
-      .insert(term)
-      .values(
-        termsData.map((data, index) => ({
-          value: data.translation,
-          languageId: data.translationLanguageId,
-          stringId: translationStringIds[index],
-          glossaryId,
-          creatorId,
-        })),
-      )
-      .returning({ id: term.id });
-
-    // 创建术语-翻译关系
-    await tx.insert(termRelation).values(
-      termsData.map((_, index) => ({
-        termId: termRows[index].id,
-        translationId: translationRows[index].id,
+      termsData.map((d) => ({
+        value: d.term,
+        languageId: d.termLanguageId,
       })),
     );
 
-    // 将术语索引到搜索服务
-    await termService.termStore.insertTerms(
-      termsData.map(
-        ({ term, termLanguageId, translationLanguageId }, index) => ({
-          term,
-          termLanguageId,
-          translationLanguageId,
-          translationId: translationRows[index].id,
-        }),
-      ),
+    const translationStringIds = await createStringFromData(
+      tx,
+      vizer.service,
+      vectorizerId,
+      vStorage.service,
+      vectorStorageId,
+      termsData.map((d) => ({
+        value: d.translation,
+        languageId: d.translationLanguageId,
+      })),
     );
 
-    return {
-      termCount: termRows.length,
-      translationCount: translationRows.length,
-    };
+    const subjects = [
+      ...new Set(
+        termsData.map((d) => d.subject).filter((s): s is string => s !== null),
+      ),
+    ];
+
+    const existingEntries = subjects.length
+      ? await tx
+          .select({
+            id: termEntry.id,
+            subject: termEntry.subject,
+          })
+          .from(termEntry)
+          .where(
+            and(
+              eq(termEntry.glossaryId, glossaryId),
+              inArray(termEntry.subject, subjects),
+              isNotNull(termEntry.subject),
+            ),
+          )
+      : [];
+
+    const entryMap = new Map<string, number>();
+    for (const e of existingEntries) {
+      if (!e.subject)
+        throw new Error(
+          "Subject is null. This could not happen due to isNotNull constraint",
+        );
+      entryMap.set(e.subject, e.id);
+    }
+
+    const missingSubjects = subjects.filter((s) => !entryMap.has(s));
+
+    if (missingSubjects.length > 0) {
+      const insertedEntries = await tx
+        .insert(termEntry)
+        .values(
+          missingSubjects.map((subject) => ({
+            subject,
+            glossaryId,
+          })),
+        )
+        .returning({
+          id: termEntry.id,
+          subject: termEntry.subject,
+        });
+
+      for (const e of insertedEntries) {
+        if (!e.subject)
+          throw new Error(
+            "Subject is null. This could not happen due to isNotNull constraint",
+          );
+        entryMap.set(e.subject, e.id);
+      }
+    }
+
+    const termRows: {
+      creatorId: string;
+      stringId: number;
+      termEntryId: number;
+    }[] = [];
+
+    for (let i = 0; i < termsData.length; i += 1) {
+      const data = termsData[i];
+      if (data.subject === null) continue;
+
+      const entryId = entryMap.get(data.subject);
+      if (!entryId) continue;
+
+      termRows.push({
+        creatorId,
+        stringId: termStringIds[i],
+        termEntryId: entryId,
+      });
+
+      termRows.push({
+        creatorId,
+        stringId: translationStringIds[i],
+        termEntryId: entryId,
+      });
+    }
+
+    if (termRows.length > 0) {
+      await tx.insert(term).values(termRows);
+    }
   });
-}
+};
 
 const insertTermsWorker = defineWorker({
   id,
@@ -172,23 +178,25 @@ const insertTermsWorker = defineWorker({
   async execute(ctx) {
     const { termsData, glossaryId } = ctx.input;
 
-    // 快速返回：如果没有术语需要插入
     if (termsData.length === 0) {
       return {
         termCount: 0,
         translationCount: 0,
-        message: "No terms to insert",
       };
     }
 
-    // 验证词汇表存在
-    await validateGlossaryExists(glossaryId);
+    assertSingleNonNullish(
+      await drizzle
+        .select({ id: glossary.id })
+        .from(glossary)
+        .where(eq(glossary.id, glossaryId))
+        .limit(1),
+      `Glossary ${glossaryId} not found`,
+    );
 
-    // 插入术语及翻译
-    const result = await insertTermsWithTranslations(ctx.input);
+    await insertTermsWithTranslations(ctx.input, ctx.pluginRegistry);
 
     return {
-      ...result,
       glossaryId,
     };
   },
