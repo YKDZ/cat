@@ -46,7 +46,7 @@ export class WorkerRegistry {
     // @ts-expect-error hard to declare type for globalThis
     if (!globalThis[key])
       // @ts-expect-error hard to declare type for globalThis
-      globalThis[key] = new WorkerRegistry(scopeType, scopeId);
+      globalThis[key] = new WorkerRegistry(config, scopeType, scopeId);
     // @ts-expect-error hard to declare type for globalThis oxlint-disable-next-line no-unsafe-type-assertion
     // oxlint-disable no-unsafe-type-assertion
     return globalThis[key] as WorkerRegistry;
@@ -75,10 +75,6 @@ export class WorkerRegistry {
   }
 
   public registerFlow<TInput>(definition: FlowDefinition<TInput>): void {
-    if (this.flowDefinitions.has(definition.id)) {
-      throw new Error(`Flow "${definition.id}" is already registered`);
-    }
-
     this.flowDefinitions.set(
       definition.id,
       // oxlint-disable-next-line no-unsafe-type-assertion

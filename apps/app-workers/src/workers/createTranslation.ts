@@ -30,9 +30,9 @@ const CreateTranslationInputSchema = z.object({
   translationValue: z.string(),
   translationLanguageId: z.string(),
   elementId: z.number(),
-  creatorId: z.uuidv7(),
+  creatorId: z.uuidv4(),
   createMemory: z.boolean(),
-  memoryIds: z.array(z.uuidv7()),
+  memoryIds: z.array(z.uuidv4()),
 });
 
 type CreateTranslationInput = z.infer<typeof CreateTranslationInputSchema>;
@@ -82,7 +82,8 @@ async function createTranslationWithMemory(
   );
   const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
     drizzle,
-    vectorStorage.record,
+    vectorStorage.record.pluginId,
+    vectorStorage.record.id,
   );
 
   const vectorizer = assertFirstNonNullish(
@@ -90,7 +91,8 @@ async function createTranslationWithMemory(
   );
   const vectorizerId = await pluginRegistry.getPluginServiceDbId(
     drizzle,
-    vectorizer.record,
+    vectorizer.record.pluginId,
+    vectorizer.record.id,
   );
 
   return await drizzle.transaction(async (tx) => {

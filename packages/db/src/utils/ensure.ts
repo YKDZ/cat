@@ -148,9 +148,9 @@ export const ensureDB = async (): Promise<void> => {
       await tx
         .insert(accountTable)
         .values({
-          type: "ID_PASSWORD",
-          provider: "EMAIL_PASSWORD",
+          providerIssuer: "PASSWORD",
           providedAccountId: "admin@encmys.cn",
+          authProviderId: 1,
           userId: admin.id,
           meta: {
             password: await hashPassword(password),

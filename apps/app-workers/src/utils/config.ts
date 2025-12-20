@@ -8,4 +8,4 @@ export const config = {
     host: url.hostname,
     port: Number(url.port),
   },
-} satisfies QueueOptions as QueueOptions;
+} satisfies QueueOptions;

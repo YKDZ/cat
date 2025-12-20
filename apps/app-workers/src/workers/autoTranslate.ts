@@ -42,8 +42,8 @@ const id = "auto-translate";
 const name = "Auto Translate";
 
 const AutoTranslateInputSchema = z.object({
-  userId: z.uuidv7(),
-  documentId: z.uuidv7(),
+  userId: z.uuidv4(),
+  documentId: z.uuidv4(),
   advisorId: z.int(),
   languageId: z.string(),
   minMemorySimilarity: z.number().min(0).max(1),
@@ -53,14 +53,14 @@ type AutoTranslateInput = z.infer<typeof AutoTranslateInputSchema>;
 
 const TranslateElementChunkInputSchema = z.object({
   elementIds: z.array(z.int()),
-  documentId: z.uuidv7(),
-  userId: z.uuidv7(),
+  documentId: z.uuidv4(),
+  userId: z.uuidv4(),
   advisorId: z.int(),
   languageId: z.string(),
   minMemorySimilarity: z.number().min(0).max(1),
-  projectId: z.uuidv7(),
-  glossaryIds: z.array(z.uuidv7()),
-  memoryIds: z.array(z.uuidv7()),
+  projectId: z.uuidv4(),
+  glossaryIds: z.array(z.uuidv4()),
+  memoryIds: z.array(z.uuidv4()),
 });
 
 type TranslateElementChunkInput = z.infer<
@@ -68,13 +68,13 @@ type TranslateElementChunkInput = z.infer<
 >;
 
 const FinalizeInputSchema = z.object({
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
   languageId: z.string(),
   totalElements: z.number(),
 });
 
 const FinalizeOutputSchema = z.object({
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
   languageId: z.string(),
   totalElements: z.number(),
   totalTranslated: z.number(),
@@ -384,7 +384,8 @@ const translateElementsChunkWorker = defineWorker({
     );
     const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
       drizzle,
-      vectorStorage.record,
+      vectorStorage.record.pluginId,
+      vectorStorage.record.id,
     );
 
     const vectorizer = assertFirstNonNullish(
@@ -392,7 +393,8 @@ const translateElementsChunkWorker = defineWorker({
     );
     const vectorizerId = await pluginRegistry.getPluginServiceDbId(
       drizzle,
-      vectorizer.record,
+      vectorizer.record.pluginId,
+      vectorizer.record.id,
     );
 
     const { service: termExtractor } = assertFirstNonNullish(

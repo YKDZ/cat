@@ -15,7 +15,7 @@ export const assertFirstOrNull = <T>(arr: T[], message?: string): T | null => {
   if (arr[0] === null || arr[0] === undefined) {
     throw new AssertError(
       message ??
-        `Expected first element in array to be non-nullish, but got ${JSON.stringify(arr[0])}. ${JSON.stringify(arr)}`,
+        `Expected first element in array to be non-nullish, but got ${JSON.stringify(arr[0])}. ${arrayPreview(arr)}`,
     );
   }
   return arr[0];
@@ -28,13 +28,13 @@ export const assertSingleOrNull = <T>(arr: T[], message?: string): T | null => {
   if (arr.length !== 1) {
     throw new AssertError(
       message ??
-        `Expected array of length 1, but got length ${arr.length}. ${JSON.stringify(arr)}`,
+        `Expected array of length 1, but got length ${arr.length}. ${arrayPreview(arr)}`,
     );
   }
   if (arr[0] === null || arr[0] === undefined) {
     throw new AssertError(
       message ??
-        `Expected only element in array to be non-nullish, but got ${JSON.stringify(arr[0])}. ${JSON.stringify(arr)}`,
+        `Expected only element in array to be non-nullish, but got ${JSON.stringify(arr[0])}. ${arrayPreview(arr)}`,
     );
   }
   return arr[0];
@@ -60,7 +60,7 @@ export const assertFirstNonNullish = <T>(arr: T[], message?: string): T => {
   if (arr[0] === null || arr[0] === undefined) {
     throw new AssertError(
       message ??
-        `Expected first element in array to be non-nullish, but got ${JSON.stringify(arr[0])}. ${JSON.stringify(arr)}`,
+        `Expected first element in array to be non-nullish, but got ${JSON.stringify(arr[0])}. ${arrayPreview(arr)}`,
     );
   }
   return arr[0];
@@ -70,13 +70,13 @@ export const assertSingleNonNullish = <T>(arr: T[], message?: string): T => {
   if (arr.length !== 1) {
     throw new AssertError(
       message ??
-        `Expected array of length 1, but got length ${arr.length}. ${JSON.stringify(arr)}`,
+        `Expected array of length 1, but got length ${arr.length}. ${arrayPreview(arr)}`,
     );
   }
   if (arr[0] === null || arr[0] === undefined) {
     throw new AssertError(
       message ??
-        `Expected only element in array to be non-nullish, but got ${JSON.stringify(arr[0])}. ${JSON.stringify(arr)}`,
+        `Expected only element in array to be non-nullish, but got ${JSON.stringify(arr[0])}. ${arrayPreview(arr)}`,
     );
   }
   return arr[0];
@@ -94,3 +94,20 @@ export function assertKeysNonNullish<T, K extends keyof T>(
     }
   }
 }
+
+const arrayPreview = <T>(arr: T[], previewKeys: (keyof T)[] = []): string => {
+  if (arr.length === 0) return "[]";
+  return (
+    arr
+      .slice(0, 3)
+      .map((item) => {
+        if (!item || typeof item !== "object") return String(item);
+        const preview: Partial<Record<keyof T, unknown>> = {};
+        for (const key of previewKeys) {
+          preview[key] = item[key];
+        }
+        return JSON.stringify(preview);
+      })
+      .join(", ") + (arr.length > 3 ? ", ..." : "")
+  );
+};

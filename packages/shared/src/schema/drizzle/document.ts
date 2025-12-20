@@ -7,12 +7,12 @@ import {
 } from "@/schema/drizzle/enum.ts";
 
 export const DocumentSchema = z.object({
-  id: z.uuidv7(),
+  id: z.uuidv4(),
   name: z.string().nullable(),
   fileId: z.int().nullable(),
   fileHandlerId: z.int().nullable(),
-  creatorId: z.uuidv7(),
-  projectId: z.uuidv7(),
+  creatorId: z.uuidv4(),
+  projectId: z.uuidv4(),
   isDirectory: z.boolean(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
@@ -23,15 +23,15 @@ export const TranslatableElementSchema = z.object({
   sortIndex: z.int(),
   meta: safeZDotJson,
   documentVersionId: z.int().nullable(),
-  creatorId: z.uuidv7().nullable(),
-  documentId: z.uuidv7(),
+  creatorId: z.uuidv4().nullable(),
+  documentId: z.uuidv4(),
   translatableStringId: z.int(),
 });
 
 export const DocumentVersionSchema = z.object({
   id: z.int(),
   isActive: z.boolean(),
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
@@ -58,7 +58,7 @@ export const TranslatableElementContextSchema = z.object({
 export const TranslatableElementCommentSchema = z.object({
   id: z.int(),
   translatableElementId: z.int(),
-  userId: z.uuidv7(),
+  userId: z.uuidv4(),
   content: z.string(),
   parentCommentId: z.int().nullable(),
   rootCommentId: z.int().nullable(),
@@ -69,7 +69,7 @@ export const TranslatableElementCommentSchema = z.object({
 export const TranslatableElementCommentReactionSchema = z.object({
   id: z.int(),
   translatableElementCommentId: z.int(),
-  userId: z.uuidv7(),
+  userId: z.uuidv4(),
   type: TranslatableElementCommentReactionTypeSchema,
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,

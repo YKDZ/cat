@@ -69,7 +69,7 @@ export const installDefaultPlugins = async (
   pluginRegistry: PluginRegistry,
 ): Promise<void> => {
   const localPlugins = [
-    "email-password-auth-provider",
+    "password-auth-provider",
     "openai-term-extractor",
     "json-file-handler",
     "libretranslate-advisor",

@@ -18,7 +18,7 @@ const props = defineProps<{
 const TranslationMetaSchema = z.object({
   advisorId: z.int().nullable(),
   memorySimilarity: z.number().min(0).max(1).default(0).nullable(),
-  memoryId: z.uuidv7().nullable(),
+  memoryId: z.uuidv4().nullable(),
 });
 
 type TranslationMeta = z.infer<typeof TranslationMetaSchema>;

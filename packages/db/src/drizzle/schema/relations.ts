@@ -8,6 +8,10 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.account.userId,
         to: r.user.id,
       }),
+      authProvider: r.one.pluginService({
+        from: r.account.authProviderId,
+        to: r.pluginService.id,
+      }),
     },
     user: {
       accounts: r.many.account(),

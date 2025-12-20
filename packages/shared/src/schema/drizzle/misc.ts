@@ -8,7 +8,7 @@ export const LanguageSchema = z.object({
 });
 
 export const TaskSchema = z.object({
-  id: z.uuidv7(),
+  id: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
   status: TaskStatusSchema,

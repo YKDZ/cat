@@ -7,7 +7,7 @@ export const TranslationVoteSchema = z.object({
   value: z.int(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  voterId: z.uuidv7(),
+  voterId: z.uuidv4(),
   translationId: z.int(),
 });
 
@@ -17,7 +17,7 @@ export const TranslationApprovementSchema = z.object({
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
   translationId: z.int(),
-  creatorId: z.uuidv7(),
+  creatorId: z.uuidv4(),
 });
 
 export const TranslationSchema = z.object({
@@ -26,7 +26,7 @@ export const TranslationSchema = z.object({
   meta: safeZDotJson,
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  translatorId: z.uuidv7(),
+  translatorId: z.uuidv4(),
   translatableElementId: z.int(),
 });
 

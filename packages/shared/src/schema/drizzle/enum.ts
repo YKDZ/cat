@@ -5,6 +5,7 @@ export const TaskStatusSchema = z.enum(TaskStatusValues);
 
 export const PluginServiceTypeValues = [
   "AUTH_PROVIDER",
+  "MFA_PROVIDER",
   "STORAGE_PROVIDER",
   "TERM_EXTRACTOR",
   "TERM_RECOGNIZER",

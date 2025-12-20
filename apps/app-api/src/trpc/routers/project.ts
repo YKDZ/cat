@@ -176,7 +176,7 @@ export const projectRouter = router({
     "PROJECT",
     "delete",
     z.object({
-      projectId: z.uuidv7(),
+      projectId: z.uuidv4(),
     }),
   )
     .output(z.void())
@@ -192,7 +192,7 @@ export const projectRouter = router({
     "PROJECT",
     "update",
     z.object({
-      projectId: z.uuidv7(),
+      projectId: z.uuidv4(),
     }),
   )
     .input(
@@ -225,8 +225,8 @@ export const projectRouter = router({
         name: z.string(),
         description: z.string().nullable(),
         targetLanguageIds: z.array(z.string()),
-        memoryIds: z.array(z.uuidv7()),
-        glossaryIds: z.array(z.uuidv7()),
+        memoryIds: z.array(z.uuidv4()),
+        glossaryIds: z.array(z.uuidv4()),
         createMemory: z.boolean(),
         createGlossary: z.boolean(),
       }),
@@ -389,12 +389,12 @@ export const projectRouter = router({
     "PROJECT",
     "glossary.link",
     z.object({
-      projectId: z.uuidv7(),
+      projectId: z.uuidv4(),
     }),
   )
     .input(
       z.object({
-        glossaryIds: z.array(z.uuidv7()),
+        glossaryIds: z.array(z.uuidv4()),
       }),
     )
     .output(z.void())
@@ -417,12 +417,12 @@ export const projectRouter = router({
     "PROJECT",
     "memory.link",
     z.object({
-      projectId: z.uuidv7(),
+      projectId: z.uuidv4(),
     }),
   )
     .input(
       z.object({
-        memoryIds: z.array(z.uuidv7()),
+        memoryIds: z.array(z.uuidv4()),
       }),
     )
     .output(z.void())
@@ -445,12 +445,12 @@ export const projectRouter = router({
     "PROJECT",
     "glossary.unlink",
     z.object({
-      projectId: z.uuidv7(),
+      projectId: z.uuidv4(),
     }),
   )
     .input(
       z.object({
-        glossaryIds: z.array(z.uuidv7()),
+        glossaryIds: z.array(z.uuidv4()),
       }),
     )
     .output(z.void())
@@ -473,12 +473,12 @@ export const projectRouter = router({
     "PROJECT",
     "memory.unlink",
     z.object({
-      projectId: z.uuidv7(),
+      projectId: z.uuidv4(),
     }),
   )
     .input(
       z.object({
-        memoryIds: z.array(z.uuidv7()),
+        memoryIds: z.array(z.uuidv4()),
       }),
     )
     .output(z.void())
@@ -514,7 +514,7 @@ export const projectRouter = router({
     "PROJECT",
     "get.others",
     z.object({
-      projectId: z.uuidv7(),
+      projectId: z.uuidv4(),
     }),
   )
     .output(ProjectSchema.nullable())
@@ -535,7 +535,7 @@ export const projectRouter = router({
     "PROJECT",
     "target-language.add",
     z.object({
-      projectId: z.uuidv7(),
+      projectId: z.uuidv4(),
     }),
   )
     .input(
@@ -558,7 +558,7 @@ export const projectRouter = router({
     "PROJECT",
     "element.count",
     z.object({
-      projcetId: z.uuidv7(),
+      projcetId: z.uuidv4(),
     }),
   )
     .input(

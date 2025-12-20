@@ -1,11 +1,27 @@
 import * as z from "zod/v4";
 
+const isJSONText = (value: unknown): value is string =>
+  typeof value === "string" && z.json().safeParse(value).success;
+
+const isJSONableObject = (value: unknown): value is Record<string, unknown> => {
+  if (typeof value !== "object" || value === null) return false;
+  try {
+    JSON.stringify(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const safeZDotJson = z.any().refine((data) => {
-  return z.json().safeParse(data).success;
+  if (isJSONText(data)) return true;
+  return isJSONableObject(data);
 });
 
 export const nonNullSafeZDotJson = z.any().refine((data) => {
-  return data !== null && z.json().safeParse(data).success;
+  if (data === null) return false;
+  if (isJSONText(data)) return true;
+  return isJSONableObject(data);
 });
 
 export type JSONSchema = boolean | _JSONSchema;
@@ -96,12 +112,22 @@ export interface JSONObject {
   [key: string]: JSONType;
 }
 
+const isJSONSchemaSerializable = (value: unknown): value is JSONSchema => {
+  if (typeof value === "boolean") return true;
+  if (isJSONText(value)) return true;
+  return isJSONableObject(value);
+};
+
 export const JSONSchemaSchema = z.custom<JSONSchema>((data) => {
-  return z.json().safeParse(data).success;
+  return isJSONSchemaSerializable(data);
 });
 
 export const _JSONSchemaSchema = z.custom<_JSONSchema>((data) => {
-  return z.json().safeParse(data).success;
+  if (isJSONText(data)) {
+    const parsed = z.json().parse(data);
+    return typeof parsed === "object" && parsed !== null;
+  }
+  return isJSONableObject(data);
 });
 
 export type JSONArray = JSONType[];

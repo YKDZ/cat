@@ -2,7 +2,7 @@ import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const UserSchema = z.object({
-  id: z.uuidv7(),
+  id: z.uuidv4(),
   name: z.string(),
   email: z.email(),
   emailVerified: z.boolean(),
@@ -12,12 +12,13 @@ export const UserSchema = z.object({
 });
 
 export const AccountSchema = z.object({
-  type: z.string(),
-  provider: z.string(),
+  id: z.int(),
+  providerIssuer: z.string(),
   providedAccountId: z.string(),
+  authProviderId: z.string(),
+  userId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  userId: z.uuidv7(),
 });
 
 export type User = z.infer<typeof UserSchema>;

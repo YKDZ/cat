@@ -27,11 +27,7 @@ export const useStorage = async (
     "STORAGE_PROVIDER",
     serviceId,
   )!;
-  const id = await registry.getPluginServiceDbId(drizzle, {
-    pluginId,
-    type: "STORAGE_PROVIDER",
-    id: serviceId,
-  });
+  const id = await registry.getPluginServiceDbId(drizzle, pluginId, serviceId);
 
   if (!storage)
     throw new Error(

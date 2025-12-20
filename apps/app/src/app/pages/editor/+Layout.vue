@@ -20,7 +20,7 @@ const { toElement } = useEditorTableStore();
 const { elementId } = storeToRefs(useEditorTableStore());
 const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 
-syncRefWith(documentId, () => z.uuidv7().parse(ctx.routeParams["documentId"]));
+syncRefWith(documentId, () => z.uuidv4().parse(ctx.routeParams["documentId"]));
 syncRefWith(languageToId, () => ctx.routeParams["languageToId"] ?? "");
 syncRefWith(elementId, () => parseInt(ctx.routeParams["elementId"] ?? ""));
 

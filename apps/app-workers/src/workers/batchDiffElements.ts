@@ -34,7 +34,7 @@ const BatchDiffElementsInputSchema = z.object({
     }),
   ),
   oldElementIds: z.array(z.int()),
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
 });
 
 type BatchDiffElementsInput = z.infer<typeof BatchDiffElementsInputSchema>;
@@ -53,7 +53,7 @@ const RemoveChunkInputSchema = z.object({
       translatableStringId: z.int(),
       sortIndex: z.int(),
       meta: z.json(),
-      documentId: z.uuidv7(),
+      documentId: z.uuidv4(),
     }),
   ),
 });
@@ -64,7 +64,7 @@ const AddWithoutStringChunkInputSchema = z.object({
       sortIndex: true,
     }),
   ),
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
 });
 
 const AddWithStringChunkInputSchema = z.object({
@@ -75,7 +75,7 @@ const AddWithStringChunkInputSchema = z.object({
       stringId: z.int(),
     }),
   ),
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
 });
 
 async function analyzeElementsDiff(input: BatchDiffElementsInput) {
@@ -212,7 +212,8 @@ const executeAddElementsWithoutStringChunk = async (
   );
   const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
     drizzle,
-    vectorStorage.record,
+    vectorStorage.record.pluginId,
+    vectorStorage.record.id,
   );
 
   const vectorizer = assertFirstNonNullish(
@@ -220,7 +221,8 @@ const executeAddElementsWithoutStringChunk = async (
   );
   const vectorizerId = await pluginRegistry.getPluginServiceDbId(
     drizzle,
-    vectorizer.record,
+    vectorizer.record.pluginId,
+    vectorizer.record.id,
   );
 
   const elementIds = await drizzle.transaction(async (tx) => {
@@ -420,7 +422,7 @@ const addElementsWithStringChunkWorker = defineWorker({
 });
 
 const FinalizeInputSchema = z.object({
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
   totalRemoved: z.number(),
   totalAddedWithoutString: z.number(),
   totalAddedWithString: z.number(),

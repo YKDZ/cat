@@ -46,6 +46,7 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     ctx.redisDB = redisDB;
     ctx.pluginRegistry = pluginRegistry;
     ctx.workerRegistry = workerRegistry;
+
     ctx.name = await getSetting(drizzleDB.client, "server.name", "CAT");
   } catch (err) {
     logger.error(

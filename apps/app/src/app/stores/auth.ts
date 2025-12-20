@@ -6,12 +6,14 @@ import { computed, ref } from "vue";
 export const useAuthStore = defineStore(
   "auth",
   () => {
+    const identifier = ref("");
     const error = ref<TRPCError | null>(null);
     const authMethod = ref<AuthMethod | null>(null);
 
     const isError = computed(() => !!error.value);
 
     return {
+      identifier,
       error,
       authMethod,
       isError,

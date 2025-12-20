@@ -6,7 +6,7 @@ import { safeZDotJson } from "@/schema/json";
 export const RoleSchema = z.object({
   id: z.int(),
   name: z.string(),
-  creatorId: z.uuidv7().nullable(),
+  creatorId: z.uuidv4().nullable(),
   scopeType: ScopeTypeSchema,
   scopeId: z.string(),
   createdAt: DrizzleDateTimeSchema,
@@ -36,7 +36,7 @@ export const RolePermissionSchema = z.object({
 });
 
 export const UserRoleSchema = z.object({
-  userId: z.uuidv7(),
+  userId: z.uuidv4(),
   roleId: z.int(),
   meta: safeZDotJson,
   createdAt: DrizzleDateTimeSchema,

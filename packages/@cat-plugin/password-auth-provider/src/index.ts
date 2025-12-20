@@ -6,7 +6,7 @@ class Plugin implements CatPlugin {
     serviceMap.register(
       {
         type: "AUTH_PROVIDER",
-        id: "EMAIL_PASSWORD",
+        id: "PASSWORD",
       } satisfies ServiceMapRecord,
       new Provider(),
     );

@@ -5,10 +5,15 @@ import type { Data } from "./+data.server.ts";
 import AuthError from "@/app/components/AuthError.vue";
 import logoUrl from "@/app/assets/logo.png";
 import AuthPreHandler from "@/app/components/AuthPreHandler.vue";
+import { Input } from "@/app/components/ui/input";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/app/stores/auth.ts";
 
 const ctx = usePageContext();
 
 const { methods } = useData<Data>();
+
+const { identifier } = storeToRefs(useAuthStore());
 </script>
 
 <template>
@@ -18,10 +23,12 @@ const { methods } = useData<Data>();
       登录到 <span class="font-bold">{{ ctx.globalContext.name }}</span>
     </h1>
     <AuthError class="-mt-1" />
+    <Input v-model="identifier" type="email" autocomplete="email" />
     <div class="flex flex-col gap-1.5 w-full">
       <AuthPreHandler
         v-for="method in methods"
         :key="method.providerId"
+        :identifier
         :method
       />
     </div>

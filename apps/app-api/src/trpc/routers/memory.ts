@@ -35,7 +35,7 @@ export const memoryRouter = router({
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        projectIds: z.array(z.uuidv7()).optional(),
+        projectIds: z.array(z.uuidv4()).optional(),
       }),
     )
     .output(MemorySchema)
@@ -191,7 +191,7 @@ export const memoryRouter = router({
   getUserOwned: permissionProcedure("MEMORY", "get.user-owned.others")
     .input(
       z.object({
-        userId: z.uuidv7(),
+        userId: z.uuidv4(),
       }),
     )
     .output(z.array(MemorySchema))
@@ -210,7 +210,7 @@ export const memoryRouter = router({
     "MEMORY",
     "get.others",
     z.object({
-      memoryId: z.uuidv7(),
+      memoryId: z.uuidv4(),
     }),
   )
     .output(MemorySchema.nullable())
@@ -230,7 +230,7 @@ export const memoryRouter = router({
   getProjectOwned: permissionProcedure("MEMORY", "get.project-owned.others")
     .input(
       z.object({
-        projectId: z.uuidv7(),
+        projectId: z.uuidv4(),
       }),
     )
     .output(z.array(MemorySchema))
@@ -253,7 +253,7 @@ export const memoryRouter = router({
     "MEMORY",
     "count.item",
     z.object({
-      memoryId: z.uuidv7(),
+      memoryId: z.uuidv4(),
     }),
   )
     .output(z.number().int())
