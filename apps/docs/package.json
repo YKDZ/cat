@@ -12,18 +12,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "tailwindcss": "^4.1.18"
+  },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/tailwind4": "^1.2.0",
-    "@vueuse/core": "^13.9.0",
+    "@vueuse/core": "^14.1.0",
     "@zenuml/core": "^3.43.2",
     "mermaid": "^11.12.2",
-    "vitepress": "2.0.0-alpha.12",
+    "vitepress": "2.0.0-alpha.15",
     "vue": "^3.5.25"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.1.18",
-    "tailwindcss": "^4.1.18"
   }
 }
