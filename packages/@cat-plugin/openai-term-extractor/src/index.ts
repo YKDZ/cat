@@ -1,9 +1,4 @@
-import type {
-  CatPlugin,
-  PluginInstallOptions,
-  ServiceMap,
-  ServiceMapRecord,
-} from "@cat/plugin-core";
+import type { CatPlugin, ServiceMap, ServiceMapRecord } from "@cat/plugin-core";
 import { Extractor } from "./extractor.ts";
 
 class Plugin implements CatPlugin {

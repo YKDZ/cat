@@ -147,7 +147,7 @@ const insertTermsWithTranslations = async (
 
     for (let i = 0; i < termsData.length; i += 1) {
       const data = termsData[i];
-      if (data.subject === null) continue;
+      if (!data.subject) continue;
 
       const entryId = entryMap.get(data.subject);
       if (!entryId) continue;
