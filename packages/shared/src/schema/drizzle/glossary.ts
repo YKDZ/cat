@@ -5,7 +5,7 @@ import { safeZDotJson } from "@/schema/json";
 export const TermSchema = z.object({
   id: z.int(),
   stringId: z.int(),
-  creatorId: z.uuidv7(),
+  creatorId: z.uuidv4(),
   termEntryId: z.int(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
@@ -14,16 +14,16 @@ export const TermSchema = z.object({
 export const TermEntrySchema = z.object({
   id: z.int(),
   meta: safeZDotJson,
-  glossaryId: z.uuidv7(),
+  glossaryId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
 
 export const GlossarySchema = z.object({
-  id: z.uuidv7(),
+  id: z.uuidv4(),
   name: z.string(),
   description: z.string().nullable(),
-  creatorId: z.uuidv7(),
+  creatorId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

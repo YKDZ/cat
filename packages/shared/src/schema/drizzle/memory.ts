@@ -5,17 +5,17 @@ export const MemoryItemSchema = z.object({
   id: z.int(),
   sourceStringId: z.int(),
   translationStringId: z.int(),
-  memoryId: z.uuidv7(),
-  creatorId: z.uuidv7(),
+  memoryId: z.uuidv4(),
+  creatorId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
 
 export const MemorySchema = z.object({
-  id: z.uuidv7(),
+  id: z.uuidv4(),
   name: z.string(),
   description: z.string().nullable(),
-  creatorId: z.uuidv7(),
+  creatorId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

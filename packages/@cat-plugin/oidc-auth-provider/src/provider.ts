@@ -1,6 +1,5 @@
 import { getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
 import type { AuthProvider, AuthResult, PreAuthResult } from "@cat/plugin-core";
-import type { HTTPHelpers } from "@cat/shared/utils";
 import { safeJoinURL } from "@cat/shared/utils";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import * as z from "zod/v4";
@@ -15,6 +14,12 @@ const SearchParasSchema = z.object({
   code: z.string(),
 });
 
+const PreAuthMetaSchema = z.object({
+  state: z.string(),
+  nonce: z.string(),
+});
+type PreAuthMeta = z.infer<typeof PreAuthMetaSchema>;
+
 export class Provider implements AuthProvider {
   private config: ProviderConfig;
 
@@ -26,10 +31,6 @@ export class Provider implements AuthProvider {
     return this.config.issuer;
   }
 
-  getType(): string {
-    return "OIDC";
-  }
-
   getName(): string {
     return this.config.displayName;
   }
@@ -38,7 +39,7 @@ export class Provider implements AuthProvider {
     return "icon-[mdi--ssh]";
   }
 
-  async handlePreAuth(sessionId: string): Promise<PreAuthResult> {
+  async handlePreAuth(): Promise<PreAuthResult> {
     if (!this.config.clientId) throw new Error("Config invalid");
 
     const state = randomChars();
@@ -47,39 +48,31 @@ export class Provider implements AuthProvider {
     const redirectURL = await createOIDCAuthURL(this.config, state, nonce);
 
     return {
-      sessionId: sessionId,
       passToClient: {
         redirectURL,
       },
-      sessionMeta: { state, nonce },
+      meta: { state, nonce } satisfies PreAuthMeta,
     } satisfies PreAuthResult;
   }
 
   async handleAuth(
+    userId: string,
+    identifier: string,
     gotFromClient: {
       urlSearchParams?: unknown;
     },
-    { getCookie, delCookie }: HTTPHelpers,
+    meta: JSONType,
   ): Promise<AuthResult> {
-    const { redis } = await getRedisDB();
     const { client: drizzle } = await getDrizzleDB();
 
     const { state, code } = SearchParasSchema.parse(
       gotFromClient.urlSearchParams,
     );
-
-    // 验证 OIDC 会话
-    const preAuthSessionId = getCookie("preAuthSessionId");
-    if (!preAuthSessionId) throw new Error("OIDC Session not found in cookie");
-    const oidcSessionKey = `auth:preAuth:session:${preAuthSessionId}`;
-    const { state: storedState, nonce: storedNonce } =
-      await redis.hGetAll(oidcSessionKey);
-    await redis.del(oidcSessionKey);
+    const preAuthMeta = PreAuthMetaSchema.parse(meta);
 
     // 验证 State
-    if (!storedState || storedState !== state || !storedNonce)
+    if (!preAuthMeta.state || preAuthMeta.state !== state || !preAuthMeta.nonce)
       throw new Error("State do not match");
-    delCookie("preAuthSessionId");
 
     // 请求 Token
     const params = new URLSearchParams({
@@ -128,15 +121,7 @@ export class Provider implements AuthProvider {
     });
 
     // 解析 ID Token 携带的信息
-    const {
-      sub,
-      name,
-      preferred_username: preferredUserName,
-      nickname,
-      email,
-      email_verified: emailVerified,
-      nonce,
-    } = z
+    const { sub, nonce } = z
       .object({
         sub: z.string(),
         name: z.string(),
@@ -149,18 +134,12 @@ export class Provider implements AuthProvider {
       .parse(payload);
 
     // 验证 Nonce
-    if (nonce !== storedNonce) throw new Error("NONCE do not match");
+    if (nonce !== preAuthMeta.nonce) throw new Error("NONCE do not match");
 
     // 所有验证完成
     return {
-      email,
-      emailVerified,
-      userName: preferredUserName ?? nickname ?? name,
       providerIssuer: this.config.issuer,
       providedAccountId: sub,
-      sessionMeta: {
-        idToken,
-      },
     } satisfies AuthResult;
   }
 

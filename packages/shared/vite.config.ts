@@ -23,6 +23,7 @@ export default defineConfig({
         "schema/json": resolve(import.meta.dirname, "src/schema/json.ts"),
         "schema/misc": resolve(import.meta.dirname, "src/schema/misc.ts"),
         "schema/plugin": resolve(import.meta.dirname, "src/schema/plugin.ts"),
+        "schema/redis": resolve(import.meta.dirname, "src/schema/redis.ts"),
         "schema/drizzle/document": resolve(
           import.meta.dirname,
           "src/schema/drizzle/document.ts",

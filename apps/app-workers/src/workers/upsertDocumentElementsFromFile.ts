@@ -30,7 +30,7 @@ const finalizeWorkerId = "upsert-document-elements-finalize";
 const name = "Upsert Document Elements From File";
 
 const UpsertDocumentElementsInputSchema = z.object({
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
   fileId: z.int(),
   languageId: z.string(),
 });
@@ -40,7 +40,7 @@ type UpsertDocumentElementsInput = z.infer<
 >;
 
 const FinalizeInputSchema = z.object({
-  documentId: z.uuidv7(),
+  documentId: z.uuidv4(),
   fileId: z.int(),
   languageId: z.string(),
 });

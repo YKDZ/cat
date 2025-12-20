@@ -250,7 +250,8 @@ export const pluginRouter = router({
                 methods.push({
                   providerId: await pluginRegistry.getPluginServiceDbId(
                     drizzle,
-                    record,
+                    record.pluginId,
+                    record.id,
                   ),
                   name: service.getName(),
                   icon: service.getIcon(),
@@ -277,7 +278,11 @@ export const pluginRouter = router({
         pluginRegistry.getPluginServices("TRANSLATION_ADVISOR").map(
           async ({ record, service }) =>
             ({
-              id: await pluginRegistry.getPluginServiceDbId(drizzle, record),
+              id: await pluginRegistry.getPluginServiceDbId(
+                drizzle,
+                record.pluginId,
+                record.id,
+              ),
               name: service.getName(),
             }) satisfies TranslationAdvisorData,
         ),

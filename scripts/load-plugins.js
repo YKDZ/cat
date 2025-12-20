@@ -13,7 +13,7 @@ const FOLDER_INCLUDES = [
   "yaml-file-handler",
   "markdown-file-handler",
   "oidc-auth-provider",
-  "email-password-auth-provider",
+  "password-auth-provider",
   "openai-term-extractor",
   "s3-storage-provider",
   "pgvector-storage",

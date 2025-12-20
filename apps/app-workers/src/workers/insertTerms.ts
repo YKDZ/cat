@@ -29,9 +29,9 @@ declare module "../core/registry" {
 }
 
 const InsertTermsInputSchema = z.object({
-  glossaryId: z.uuidv7(),
+  glossaryId: z.uuidv4(),
   termsData: z.array(TermDataSchema),
-  creatorId: z.uuidv7(),
+  creatorId: z.uuidv4(),
 });
 
 type InsertTermsInput = z.infer<typeof InsertTermsInputSchema>;
@@ -51,11 +51,13 @@ const insertTermsWithTranslations = async (
 
   const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
     drizzle,
-    vStorage.record,
+    vStorage.record.pluginId,
+    vStorage.record.id,
   );
   const vectorizerId = await pluginRegistry.getPluginServiceDbId(
     drizzle,
-    vizer.record,
+    vizer.record.pluginId,
+    vizer.record.id,
   );
 
   await drizzle.transaction(async (tx) => {

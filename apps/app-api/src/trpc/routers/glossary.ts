@@ -52,7 +52,7 @@ export const glossaryRouter = router({
     "GLOSSARY",
     "get",
     z.object({
-      glossaryId: z.uuidv7(),
+      glossaryId: z.uuidv4(),
     }),
   )
     .output(GlossarySchema.nullable())
@@ -72,7 +72,7 @@ export const glossaryRouter = router({
   getUserOwned: permissionProcedure("GLOSSARY", "get.user-owned")
     .input(
       z.object({
-        userId: z.uuidv7(),
+        userId: z.uuidv4(),
       }),
     )
     .output(z.array(GlossarySchema))
@@ -90,7 +90,7 @@ export const glossaryRouter = router({
   getProjectOwned: permissionProcedure("GLOSSARY", "get.project-owned")
     .input(
       z.object({
-        projectId: z.uuidv7(),
+        projectId: z.uuidv4(),
       }),
     )
     .output(z.array(GlossarySchema))
@@ -109,7 +109,7 @@ export const glossaryRouter = router({
     "GLOSSARY",
     "count.term",
     z.object({
-      glossaryId: z.uuidv7(),
+      glossaryId: z.uuidv4(),
     }),
   )
     .output(z.number().int())
@@ -131,7 +131,7 @@ export const glossaryRouter = router({
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        projectIds: z.array(z.uuidv7()).optional(),
+        projectIds: z.array(z.uuidv4()).optional(),
       }),
     )
     .output(GlossarySchema)
@@ -169,7 +169,7 @@ export const glossaryRouter = router({
     "GLOSSARY",
     "term.insert",
     z.object({
-      glossaryId: z.uuidv7(),
+      glossaryId: z.uuidv4(),
     }),
   )
     .input(
@@ -212,7 +212,7 @@ export const glossaryRouter = router({
       resourceType: "PROJECT",
       requiredPermission: "glossary.term.search",
       inputSchema: z.object({
-        projectId: z.uuidv7(),
+        projectId: z.uuidv4(),
       }),
     },
     {

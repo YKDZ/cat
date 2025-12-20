@@ -1,43 +1,66 @@
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
-import type { HTTPHelpers } from "@cat/shared/utils";
 import type { IPluginService } from "@/registry/plugin-registry.ts";
 
 export type PreAuthResult = {
-  sessionId: string;
-  sessionMeta: Record<string, number | string>;
-  passToClient: Record<string, unknown>;
+  /**
+   * 此预登录会话储存的额外元数据，将在 auth 阶段被作为参数传递给 handleAuth
+   */
+  meta: JSONType;
+  /**
+   * 预登录端点返回给客户端的数据
+   */
+  passToClient: JSONType;
 };
 
 export type AuthResult = {
-  email: string;
-  emailVerified?: boolean;
-  userName: string;
   providerIssuer: string;
   providedAccountId: string;
-  sessionMeta?: Record<string, number | string>;
+  /**
+   * 若创建新 Account，则在其中储存的额外元数据
+   */
   accountMeta?: JSONType;
 };
 
+export type MFAChallengeResult = {
+  /**
+   * 此获取挑战会话储存的额外元数据，将在验证阶段被作为参数传递给 verifyChallenge
+   */
+  meta: JSONType;
+  /**
+   * 获取挑战端点返回给客户端的挑战数据
+   */
+  passToClient: JSONType;
+};
+
+export type MFAVerifyResult = {
+  isSuccess: boolean;
+};
+
 export interface AuthProvider extends IPluginService {
-  getType: () => string;
   getName: () => string;
   getIcon: () => string;
-  getPreAuthFormSchema?: () => JSONSchema;
-  handlePreAuth?: (
-    sessionId: string,
-    gotFromClient: {
-      formData?: unknown;
-    },
-    helpers: HTTPHelpers,
-  ) => Promise<PreAuthResult>;
+  handlePreAuth?: (identifier: string) => Promise<PreAuthResult>;
   getAuthFormSchema?: () => JSONSchema;
   handleAuth: (
+    userId: string,
+    identifier: string,
     gotFromClient: {
       urlSearchParams: unknown;
       formData?: unknown;
     },
-    helpers: HTTPHelpers,
+    preAuthMeta: JSONType,
   ) => Promise<AuthResult>;
   handleLogout?: (sessionId: string) => Promise<void>;
   isAvailable: () => Promise<boolean>;
+}
+
+export interface MFAProvider extends IPluginService {
+  generateChallenge: () => Promise<MFAChallengeResult>;
+  getVerfifyChallengeFormSchema?: () => JSONSchema;
+  verifyChallenge: (
+    gotFromClient: {
+      formData?: unknown;
+    },
+    generateChallengeMeta: JSONType,
+  ) => Promise<MFAVerifyResult>;
 }

@@ -57,7 +57,7 @@ onMounted(async () => {
     return;
   }
 
-  schema.value = await trpc.auth.queryAuthFormSchema.query({
+  schema.value = await trpc.auth.getAuthFormSchema.query({
     providerId: authMethod.value.providerId,
   });
 

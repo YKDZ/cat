@@ -18,8 +18,8 @@ const downloadAEl = ref<HTMLAnchorElement>();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MetaSchema = z.object({
-  projectId: z.uuidv7(),
-  documentId: z.uuidv7(),
+  projectId: z.uuidv4(),
+  documentId: z.uuidv4(),
   languageId: z.string(),
 });
 

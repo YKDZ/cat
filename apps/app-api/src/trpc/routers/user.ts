@@ -25,7 +25,7 @@ export const userRouter = router({
   get: permissionProcedure("USER", "get.others")
     .input(
       z.object({
-        userId: z.uuidv7(),
+        userId: z.uuidv4(),
       }),
     )
     .output(UserSchema.nullable())
@@ -152,7 +152,7 @@ export const userRouter = router({
     "USER",
     "avatar.get.others",
     z.object({
-      userId: z.uuidv7(),
+      userId: z.uuidv4(),
     }),
   )
     .input(

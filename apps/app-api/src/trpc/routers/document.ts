@@ -264,7 +264,7 @@ export const documentRouter = router({
       resourceType: "PROJECT",
       requiredPermission: "document.create",
       inputSchema: z.object({
-        projectId: z.uuidv7(),
+        projectId: z.uuidv4(),
       }),
     },
   ])
@@ -344,7 +344,8 @@ export const documentRouter = router({
             projectId,
             fileHandlerId: await pluginRegistry.getPluginServiceDbId(
               drizzle,
-              service.record,
+              service.record.pluginId,
+              service.record.id,
             ),
             name: fileName,
           });
@@ -428,7 +429,7 @@ export const documentRouter = router({
       }
     }),
   get: permissionProcedure("DOCUMENT", "get.others")
-    .input(z.object({ documentId: z.uuidv7() }))
+    .input(z.object({ documentId: z.uuidv4() }))
     .output(DocumentSchema.nullable())
     .query(async ({ ctx, input }) => {
       const {
@@ -447,7 +448,7 @@ export const documentRouter = router({
     "DOCUMENT",
     "element.count",
     z.object({
-      documentId: z.uuidv7(),
+      documentId: z.uuidv4(),
     }),
   )
     .input(
@@ -508,7 +509,7 @@ export const documentRouter = router({
     "DOCUMENT",
     "element.get",
     z.object({
-      documentId: z.uuidv7(),
+      documentId: z.uuidv4(),
     }),
   )
     .input(
@@ -584,7 +585,7 @@ export const documentRouter = router({
     "DOCUMENT",
     "export-translated-file",
     z.object({
-      documentId: z.uuidv7(),
+      documentId: z.uuidv4(),
     }),
   )
     .input(
@@ -644,7 +645,7 @@ export const documentRouter = router({
   )
     .input(
       z.object({
-        taskId: z.uuidv7(),
+        taskId: z.uuidv4(),
         expiresIn: z.int().max(120).default(120),
       }),
     )
@@ -962,7 +963,7 @@ export const documentRouter = router({
     "DOCUMENT",
     "element.delete.others",
     z.object({
-      id: z.uuidv7(),
+      id: z.uuidv4(),
     }),
   )
     .output(z.void())
@@ -978,7 +979,7 @@ export const documentRouter = router({
     "DOCUMENT",
     "version.get.others",
     z.object({
-      documentId: z.uuidv7(),
+      documentId: z.uuidv4(),
     }),
   )
     .output(z.array(DocumentVersionSchema))
@@ -998,7 +999,7 @@ export const documentRouter = router({
     "DOCUMENT",
     "file.get.url",
     z.object({
-      documentId: z.uuidv7(),
+      documentId: z.uuidv4(),
     }),
   )
     .input(
@@ -1068,7 +1069,7 @@ export const documentRouter = router({
     "DOCUMENT",
     "translation.count",
     z.object({
-      documentId: z.uuidv7(),
+      documentId: z.uuidv4(),
     }),
   )
     .input(

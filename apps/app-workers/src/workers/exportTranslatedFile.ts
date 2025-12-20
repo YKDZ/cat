@@ -42,7 +42,7 @@ declare module "../core/registry" {
 }
 
 const ExportTranslatedFileInputSchema = z.object({
-  taskId: z.uuidv7(),
+  taskId: z.uuidv4(),
   documentId: z.string(),
   languageId: z.string(),
 });

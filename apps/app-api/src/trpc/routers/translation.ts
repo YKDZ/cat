@@ -167,7 +167,7 @@ export const translationRouter = router({
           id: z.int(),
           value: z.string(),
           vote: z.int(),
-          translatorId: z.uuidv7(),
+          translatorId: z.uuidv4(),
           meta: safeZDotJson,
           createdAt: DrizzleDateTimeSchema,
         }),
@@ -314,7 +314,7 @@ export const translationRouter = router({
       resourceType: "DOCUMENT",
       requiredPermission: "auto-approve",
       inputSchema: z.object({
-        documentId: z.uuidv7(),
+        documentId: z.uuidv4(),
       }),
     },
   ])

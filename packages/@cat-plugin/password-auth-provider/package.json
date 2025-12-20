@@ -1,5 +1,5 @@
 {
-  "name": "@cat-plugin/email-password-auth-provider",
+  "name": "@cat-plugin/password-auth-provider",
   "version": "0.1.0",
   "license": "MIT",
   "keywords": [

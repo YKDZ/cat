@@ -34,7 +34,7 @@ import type { TranslationAdvisor } from "@/services/translation-advisor.ts";
 import type { TranslatableFileHandler } from "@/services/translatable-file-handler.ts";
 import type { TextVectorizer } from "@/services/text-vectorizer.ts";
 import type { StorageProvider } from "@/services/storage-provider.ts";
-import type { AuthProvider } from "@/services/auth-provider.ts";
+import type { AuthProvider, MFAProvider } from "@/services/auth-provider.ts";
 import { existsSync } from "node:fs";
 import { IVectorStorage } from "@/services/vector-storage";
 import {
@@ -59,6 +59,7 @@ import type { QAChecker } from "@/services/qa";
 
 type PluginServiceTypeMap = {
   AUTH_PROVIDER: AuthProvider;
+  MFA_PROVIDER: MFAProvider;
   STORAGE_PROVIDER: StorageProvider;
   TEXT_VECTORIZER: TextVectorizer;
   TRANSLATABLE_FILE_HANDLER: TranslatableFileHandler;
@@ -405,7 +406,8 @@ export class PluginRegistry {
 
   public async getPluginServiceDbId(
     drizzle: OverallDrizzleClient,
-    record: ServiceRegistryRecord,
+    pluginId: string,
+    serviceId: string,
   ): Promise<number> {
     const service = assertSingleNonNullish(
       await drizzle
@@ -419,14 +421,13 @@ export class PluginRegistry {
         )
         .where(
           and(
-            eq(pluginInstallation.pluginId, record.pluginId),
+            eq(pluginInstallation.pluginId, pluginId),
             eq(pluginInstallation.scopeType, this.scopeType),
             eq(pluginInstallation.scopeId, this.scopeId),
-            eq(pluginService.serviceType, record.type),
-            eq(pluginService.serviceId, record.id),
+            eq(pluginService.serviceId, serviceId),
           ),
         ),
-      `Service ${record.id} not found`,
+      `Service ${pluginId}:${serviceId} not found`,
     );
     return service.id;
   }
