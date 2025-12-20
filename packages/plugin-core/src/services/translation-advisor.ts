@@ -7,7 +7,7 @@ export interface TranslationAdvisor extends IPluginService {
   getSuggestions(
     value: string,
     termedValue: string,
-    terms: { term: string; translation: string }[],
+    terms: { term: string; translation: string; subject: string | null }[],
     languageFromId: string,
     languageToId: string,
   ): Promise<TranslationSuggestion[]>;

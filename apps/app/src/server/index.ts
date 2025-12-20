@@ -38,7 +38,7 @@ const shutdownServer = () => {
   });
 };
 
-const startServer = async () => {
+const startServer = () => {
   apply(app);
 
   return serve(app, {
@@ -62,4 +62,4 @@ const startServer = async () => {
   });
 };
 
-export default await startServer();
+export default startServer();

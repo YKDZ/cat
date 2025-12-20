@@ -9,6 +9,7 @@ import * as z from "zod/v4";
 
 const ConfigSchema = z.object({
   url: z.url(),
+  path: z.string(),
   "model-id": z.string(),
 });
 
@@ -37,7 +38,7 @@ export class Vectorizer implements TextVectorizer {
     const values: string[] = elements.map((element) => element.value);
 
     const response = await this.pool.request({
-      path: "/api/embed",
+      path: this.config.path,
       method: "POST",
       headers: {
         "Content-Type": "application/json",

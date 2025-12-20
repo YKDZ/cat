@@ -9,11 +9,15 @@ import { getSetting } from "@cat/db";
 import { parsePreferredLanguage } from "@cat/shared/utils";
 
 export const onCreatePageContext = async (ctx: PageContextServer) => {
+  if (!ctx.runtime.req || !ctx.runtime.res) {
+    throw new Error("Request or Response object is missing in vike runtime.");
+  }
+
   ctx.pinia = createPinia();
 
-  const helpers = createHTTPHelpers(ctx.runtime.req!, ctx.runtime.res!);
+  const helpers = createHTTPHelpers(ctx.runtime.req, ctx.runtime.res);
 
-  ctx.isMobile = detectMobile(ctx.runtime.req!);
+  ctx.isMobile = detectMobile(ctx.runtime.req);
   ctx.sessionId = helpers.getCookie("sessionId");
   ctx.displayLanguage =
     helpers.getCookie("displayLanguage") ??

@@ -6,11 +6,14 @@ export const TaskStatusSchema = z.enum(TaskStatusValues);
 export const PluginServiceTypeValues = [
   "AUTH_PROVIDER",
   "STORAGE_PROVIDER",
-  "TERM_SERVICE",
+  "TERM_EXTRACTOR",
+  "TERM_RECOGNIZER",
+  "TERM_ALIGNER",
   "TRANSLATABLE_FILE_HANDLER",
   "TRANSLATION_ADVISOR",
   "TEXT_VECTORIZER",
   "VECTOR_STORAGE",
+  "QA_CHECKER",
 ] as const;
 export const PluginServiceTypeSchema = z.enum(PluginServiceTypeValues);
 

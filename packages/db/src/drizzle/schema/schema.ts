@@ -53,6 +53,15 @@ export const translatableElementCommentReactionType = pgEnum(
 
 export const resourceType = pgEnum("ResourceType", ResourceTypeValues);
 
+const timestamps = {
+  createdAt: timestamp({ withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+  updatedAt: timestamp({ withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+};
+
 export const account = pgTable(
   "Account",
   {
@@ -63,12 +72,7 @@ export const account = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
     meta: jsonb().$type<JSONType>(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [
     primaryKey({
@@ -118,12 +122,6 @@ export const chunk = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
     vectorizerId: integer()
       .notNull()
       .references(() => pluginService.id, {
@@ -131,6 +129,7 @@ export const chunk = pgTable(
         onUpdate: "cascade",
       }),
     vectorStorageId: integer().notNull(),
+    ...timestamps,
   },
   (table) => [index().using("btree", table.chunkSetId.asc().nullsLast())],
 );
@@ -138,12 +137,7 @@ export const chunk = pgTable(
 export const chunkSet = pgTable("ChunkSet", {
   id: serial().primaryKey(),
   meta: jsonb().$type<JSONType>(),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
+  ...timestamps,
 });
 
 export const document = pgTable(
@@ -164,17 +158,12 @@ export const document = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
     fileId: integer().references(() => file.id, {
       onDelete: "set null",
       onUpdate: "cascade",
     }),
     isDirectory: boolean().default(false).notNull(),
+    ...timestamps,
   },
   (table) => [index().using("btree", table.projectId.asc().nullsLast())],
 );
@@ -241,12 +230,7 @@ export const documentVersion = pgTable("DocumentVersion", {
       onUpdate: "cascade",
     }),
   isActive: boolean().default(false).notNull(),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
+  ...timestamps,
 });
 
 export const file = pgTable("File", {
@@ -268,12 +252,7 @@ export const glossary = pgTable("Glossary", {
   creatorId: uuid()
     .notNull()
     .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
+  ...timestamps,
 });
 
 export const glossaryToProject = pgTable(
@@ -311,12 +290,7 @@ export const memory = pgTable("Memory", {
   creatorId: uuid()
     .notNull()
     .references(() => user.id, { onDelete: "restrict", onUpdate: "cascade" }),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
+  ...timestamps,
 });
 
 export const memoryItem = pgTable("MemoryItem", {
@@ -335,12 +309,6 @@ export const memoryItem = pgTable("MemoryItem", {
     onDelete: "set null",
     onUpdate: "cascade",
   }),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
   sourceStringId: integer()
     .notNull()
     .references(() => translatableString.id, {
@@ -353,6 +321,7 @@ export const memoryItem = pgTable("MemoryItem", {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
+  ...timestamps,
 });
 
 export const memoryToProject = pgTable(
@@ -381,12 +350,6 @@ export const memoryToProject = pgTable(
 
 export const permission = pgTable("Permission", {
   id: serial().primaryKey(),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
   templateId: integer()
     .notNull()
     .references(() => permissionTemplate.id, {
@@ -394,6 +357,7 @@ export const permission = pgTable("Permission", {
       onUpdate: "cascade",
     }),
   resourceId: text(),
+  ...timestamps,
 });
 
 export const permissionTemplate = pgTable(
@@ -403,12 +367,7 @@ export const permissionTemplate = pgTable(
     content: text().notNull(),
     resourceType: resourceType().notNull(),
     meta: jsonb().$type<JSONType>(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [unique().on(table.content, table.resourceType)],
 );
@@ -420,13 +379,8 @@ export const plugin = pgTable("Plugin", {
   isExternal: boolean().default(false).notNull(),
   entry: text().notNull(),
   iconUrl: text(),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
   version: text().notNull(),
+  ...timestamps,
 });
 
 export const pluginConfig = pgTable(
@@ -440,12 +394,7 @@ export const pluginConfig = pgTable(
         onUpdate: "cascade",
       }),
     schema: jsonb().notNull().$type<_JSONSchema>(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [uniqueIndex().using("btree", table.pluginId.asc().nullsLast())],
 );
@@ -471,12 +420,7 @@ export const pluginConfigInstance = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [
     uniqueIndex().using(
@@ -500,12 +444,7 @@ export const pluginInstallation = pgTable(
       }),
     scopeMeta: jsonb().$type<JSONType>(),
     scopeType: scopeType().notNull(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [
     uniqueIndex().using(
@@ -529,12 +468,7 @@ export const pluginService = pgTable(
         onUpdate: "cascade",
       }),
     serviceType: pluginServiceType().notNull(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [
     uniqueIndex().using(
@@ -555,12 +489,7 @@ export const project = pgTable(
     creatorId: uuid()
       .notNull()
       .references(() => user.id, { onDelete: "restrict", onUpdate: "cascade" }),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [index().using("btree", table.creatorId.asc().nullsLast())],
 );
@@ -600,12 +529,7 @@ export const role = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [unique().on(table.name, table.scopeType, table.scopeId)],
 );
@@ -622,13 +546,8 @@ export const rolePermission = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
     isAllowed: boolean().default(true).notNull(),
+    ...timestamps,
   },
   (table) => [
     primaryKey({
@@ -643,12 +562,7 @@ export const setting = pgTable(
     id: serial().primaryKey(),
     key: text().notNull(),
     value: jsonb().notNull().$type<NonNullJSONType>(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [uniqueIndex().using("btree", table.key.asc().nullsLast())],
 );
@@ -660,12 +574,7 @@ export const task = pgTable(
     status: taskStatus().default("PENDING").notNull(),
     type: text().notNull(),
     meta: jsonb().$type<JSONType>(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [index().using("btree", table.meta.asc().nullsLast())],
 );
@@ -675,39 +584,32 @@ export const term = pgTable("Term", {
   creatorId: uuid()
     .notNull()
     .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  glossaryId: uuid()
-    .notNull()
-    .references(() => glossary.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
   stringId: integer()
     .notNull()
     .references(() => translatableString.id, {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
+  termEntryId: integer()
+    .notNull()
+    .references(() => termEntry.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  ...timestamps,
 });
 
-export const termRelation = pgTable(
-  "TermRelation",
-  {
-    id: serial().primaryKey(),
-    termId: integer()
-      .notNull()
-      .references(() => term.id, { onDelete: "restrict", onUpdate: "cascade" }),
-    translationId: integer()
-      .notNull()
-      .references(() => term.id, { onDelete: "restrict", onUpdate: "cascade" }),
-  },
-  (table) => [index().using("btree", table.translationId.asc().nullsLast())],
-);
+export const termEntry = pgTable("TermEntry", {
+  id: serial().primaryKey(),
+  subject: text(),
+  glossaryId: uuid()
+    .notNull()
+    .references(() => glossary.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  ...timestamps,
+});
 
 export const translatableElement = pgTable("TranslatableElement", {
   id: serial().primaryKey(),
@@ -727,18 +629,13 @@ export const translatableElement = pgTable("TranslatableElement", {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
   translatableStringId: integer()
     .notNull()
     .references(() => translatableString.id, {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
+  ...timestamps,
 });
 
 export const translatableElementComment = pgTable(
@@ -757,18 +654,13 @@ export const translatableElementComment = pgTable(
     content: text().notNull(),
     parentCommentId: integer(),
     rootCommentId: integer(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
     languageId: text()
       .notNull()
       .references(() => language.id, {
         onDelete: "restrict",
         onUpdate: "cascade",
       }),
+    ...timestamps,
   },
   (table) => [
     foreignKey({
@@ -804,12 +696,7 @@ export const translatableElementCommentReaction = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
     type: translatableElementCommentReactionType().notNull(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [
     // Default index name over 63 bytes
@@ -843,12 +730,7 @@ export const translatableElementContext = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [
     index().using("btree", table.translatableElementId.asc().nullsLast()),
@@ -890,18 +772,13 @@ export const translation = pgTable(
         onUpdate: "cascade",
       }),
     meta: jsonb().$type<JSONType>(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
     stringId: integer()
       .notNull()
       .references(() => translatableString.id, {
         onDelete: "restrict",
         onUpdate: "cascade",
       }),
+    ...timestamps,
   },
   (table) => [
     uniqueIndex().using(
@@ -925,12 +802,7 @@ export const translationApprovement = pgTable("TranslationApprovement", {
   creatorId: uuid()
     .notNull()
     .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
+  ...timestamps,
 });
 
 export const translationVote = pgTable(
@@ -947,12 +819,7 @@ export const translationVote = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [
     index().using("btree", table.translationId.asc().nullsLast()),
@@ -972,16 +839,11 @@ export const user = pgTable(
     name: text().notNull(),
     email: text().notNull(),
     emailVerified: boolean().default(false).notNull(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
     avatarFileId: integer().references(() => file.id, {
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    ...timestamps,
   },
   (table) => [unique().on(table.email, table.name)],
 );
@@ -996,12 +858,7 @@ export const userRole = pgTable(
       .notNull()
       .references(() => role.id, { onDelete: "cascade", onUpdate: "cascade" }),
     meta: jsonb().$type<JSONType>(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-    updatedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    ...timestamps,
   },
   (table) => [
     primaryKey({

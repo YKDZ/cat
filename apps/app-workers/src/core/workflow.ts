@@ -1,3 +1,4 @@
+import type { PluginRegistry } from "@cat/plugin-core";
 import { FlowProducer } from "bullmq";
 import type { QueueOptions, FlowJob, JobsOptions } from "bullmq";
 import type { ZodType } from "zod/v4";
@@ -20,7 +21,11 @@ export interface FlowDefinition<TInput = unknown> {
   id: string;
   name: string;
   inputSchema: ZodType<TInput>;
-  build: (input: TInput) => FlowNode | Promise<FlowNode>;
+
+  build: (ctx: {
+    input: TInput;
+    pluginRegistry: PluginRegistry;
+  }) => FlowNode | Promise<FlowNode>;
 }
 
 /**
@@ -28,8 +33,10 @@ export interface FlowDefinition<TInput = unknown> {
  */
 export class FlowOrchestrator {
   private flowProducer: FlowProducer;
+  private pluginRegistry: PluginRegistry;
 
-  constructor(queueConfig: QueueOptions) {
+  constructor(queueConfig: QueueOptions, pluginRegistry: PluginRegistry) {
+    this.pluginRegistry = pluginRegistry;
     this.flowProducer = new FlowProducer({
       connection: queueConfig.connection,
     });
@@ -52,7 +59,10 @@ export class FlowOrchestrator {
     const validatedInput = flow.inputSchema.parse(input);
 
     // 构建工作流树
-    let rootNode = await flow.build(validatedInput);
+    let rootNode = await flow.build({
+      input: validatedInput,
+      pluginRegistry: this.pluginRegistry,
+    });
 
     if (rootJobOptions) {
       rootNode = {
@@ -91,7 +101,12 @@ export class FlowOrchestrator {
 
     // 构建所有工作流树
     const rootNodes = await Promise.all(
-      validatedInputs.map(async (input) => flow.build(input)),
+      validatedInputs.map(async (input) =>
+        flow.build({
+          input,
+          pluginRegistry: this.pluginRegistry,
+        }),
+      ),
     );
 
     // 转换为 FlowJobs

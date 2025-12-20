@@ -1,19 +1,26 @@
-import { tracked, TRPCError } from "@trpc/server";
+import { tracked } from "@trpc/server";
 import * as z from "zod/v4";
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
 } from "@cat/shared/schema/misc";
-import { assertSingleNonNullish, logger } from "@cat/shared/utils";
+import {
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+  logger,
+} from "@cat/shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { hash } from "@cat/app-server-shared/utils";
 import {
   aliasedTable,
   and,
+  document,
   eq,
+  glossaryToProject,
   inArray,
+  project,
+  termEntry,
   term as termTable,
-  termRelation as termRelationTable,
   translatableElement,
   translatableString,
 } from "@cat/db";
@@ -46,36 +53,42 @@ export const suggestionRouter = router({
       } = ctx;
       const { elementId, languageId } = input;
 
-      // TODO 选择安装的服务或者继承
-      const termService = pluginRegistry.getPluginService(
-        "es-term-service",
-        "TERM_SERVICE",
-        "ES",
-      )!;
-
-      if (!termService) throw new Error("Term service does not exists");
+      const { service: termExtractor } = assertFirstNonNullish(
+        pluginRegistry.getPluginServices("TERM_EXTRACTOR"),
+        `No term extractor plugin found in this scope`,
+      );
+      const { service: termRecognizer } = assertFirstNonNullish(
+        pluginRegistry.getPluginServices("TERM_RECOGNIZER"),
+        `No term recognizer plugin found in this scope`,
+      );
 
       const element = assertSingleNonNullish(
         await drizzle
           .select({
             value: translatableString.value,
             languageId: translatableString.languageId,
+            projectId: project.id,
           })
           .from(translatableElement)
           .innerJoin(
             translatableString,
             eq(translatableElement.translatableStringId, translatableString.id),
           )
+          .innerJoin(document, eq(document.id, translatableElement.documentId))
+          .innerJoin(project, eq(project.id, document.projectId))
           .where(eq(translatableElement.id, elementId))
           .limit(1),
+        `Element with ID ${elementId} not found`,
       );
 
-      if (!element) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "请求建议的元素不存在",
-        });
-      }
+      const glossaryIds = (
+        await drizzle
+          .select({
+            id: glossaryToProject.glossaryId,
+          })
+          .from(glossaryToProject)
+          .where(eq(glossaryToProject.projectId, element.projectId))
+      ).map((item) => item.id);
 
       const suggestionsQueue = new AsyncMessageQueue<TranslationSuggestion>();
       const suggestionChannelKey = `suggestions:channel:${elementId}`;
@@ -135,12 +148,19 @@ export const suggestionRouter = router({
           return;
         }
 
-        const { termedText, translationIds } =
-          await termService.termStore.termText(
-            element.value,
+        const candidates = await termExtractor.extract(
+          element.value,
+          element.languageId,
+        );
+        const entryIds = (
+          await termRecognizer.recognize(
+            {
+              text: element.value,
+              candidates,
+            },
             element.languageId,
-            languageId,
-          );
+          )
+        ).map((entry) => entry.termEntryId);
 
         const sourceTerm = aliasedTable(termTable, "sourceTerm");
         const translationTerm = aliasedTable(termTable, "translationTerm");
@@ -153,12 +173,13 @@ export const suggestionRouter = router({
           .select({
             term: sourceString.value,
             translation: translationString.value,
+            subject: termEntry.subject,
           })
-          .from(termRelationTable)
-          .innerJoin(sourceTerm, eq(termRelationTable.termId, sourceTerm.id))
+          .from(termEntry)
+          .innerJoin(sourceTerm, eq(termEntry.id, sourceTerm.termEntryId))
           .innerJoin(
             translationTerm,
-            eq(termRelationTable.translationId, translationTerm.id),
+            eq(termEntry.id, translationTerm.termEntryId),
           )
           .innerJoin(sourceString, eq(sourceString.id, sourceTerm.stringId))
           .innerJoin(
@@ -167,7 +188,8 @@ export const suggestionRouter = router({
           )
           .where(
             and(
-              inArray(translationTerm.id, translationIds),
+              inArray(termEntry.id, entryIds),
+              inArray(termEntry.glossaryId, glossaryIds),
               eq(sourceString.languageId, element.languageId),
               eq(translationString.languageId, languageId),
             ),
@@ -176,7 +198,7 @@ export const suggestionRouter = router({
         try {
           const suggestions = await advisor.getSuggestions(
             element.value,
-            termedText,
+            element.value,
             relations,
             element.languageId,
             languageId,
@@ -211,7 +233,6 @@ export const suggestionRouter = router({
         }
       });
 
-      // Start all advisor processing without waiting
       void Promise.all(processSuggestions);
 
       try {

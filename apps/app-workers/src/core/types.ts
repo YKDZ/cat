@@ -1,3 +1,4 @@
+import type { PluginRegistry } from "@cat/plugin-core";
 import type { Job, JobsOptions, WorkerOptions } from "bullmq";
 import type { z, ZodType } from "zod/v4";
 
@@ -13,6 +14,8 @@ export interface WorkerContext<TInput = unknown> {
   /** BullMQ Job */
   job: Job<TInput>;
   input: TInput;
+
+  pluginRegistry: PluginRegistry;
 }
 
 /**

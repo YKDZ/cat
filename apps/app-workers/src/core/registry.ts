@@ -13,6 +13,8 @@ import { config } from "../utils/config.js";
 import type { ZodType } from "zod/v4";
 import { FlowOrchestrator, type FlowDefinition } from "./workflow.ts";
 import { randomUUID } from "node:crypto";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import { PluginRegistry } from "@cat/plugin-core";
 
 // oxlint-disable-next-line no-empty-object-type
 export interface WorkerInputTypeMap {}
@@ -29,7 +31,26 @@ export class WorkerRegistry {
   private flowDefinitions = new Map<string, FlowDefinition>();
   private orchestrator?: FlowOrchestrator;
 
-  constructor(private readonly queueConfig: QueueOptions = config) {}
+  constructor(
+    private readonly queueConfig: QueueOptions = config,
+    private readonly scopeType: ScopeType,
+    private readonly scopeId: string,
+    private readonly pluginRegistry: PluginRegistry = PluginRegistry.get(
+      scopeType,
+      scopeId,
+    ),
+  ) {}
+
+  public static get(scopeType: ScopeType, scopeId: string): WorkerRegistry {
+    const key = `__WORKER_REGISTRY_${scopeType}_${scopeId}__`;
+    // @ts-expect-error hard to declare type for globalThis
+    if (!globalThis[key])
+      // @ts-expect-error hard to declare type for globalThis
+      globalThis[key] = new WorkerRegistry(scopeType, scopeId);
+    // @ts-expect-error hard to declare type for globalThis oxlint-disable-next-line no-unsafe-type-assertion
+    // oxlint-disable no-unsafe-type-assertion
+    return globalThis[key] as WorkerRegistry;
+  }
 
   /**
    * 注册一个 Worker
@@ -165,6 +186,7 @@ export class WorkerRegistry {
         const ctx: WorkerContext = {
           job,
           input: inputResult.data,
+          pluginRegistry: this.pluginRegistry,
         };
 
         try {
@@ -416,9 +438,20 @@ export class WorkerRegistry {
 
   private getOrchestrator(): FlowOrchestrator {
     if (!this.orchestrator) {
-      this.orchestrator = new FlowOrchestrator(this.queueConfig);
+      this.orchestrator = new FlowOrchestrator(
+        this.queueConfig,
+        this.pluginRegistry,
+      );
     }
 
     return this.orchestrator;
+  }
+
+  public getScopeType(): ScopeType {
+    return this.scopeType;
+  }
+
+  public getScopeId(): string {
+    return this.scopeId;
   }
 }

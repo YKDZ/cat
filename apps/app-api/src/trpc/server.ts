@@ -94,9 +94,10 @@ export const permissionsProcedure = <T extends ZodObject>(
 ) => {
   const inputSchema = z.object({});
   permissions.forEach(({ inputSchema: schema }) => {
-    if (!schema) return;
-    inputSchema.extend(schema);
+    if (!schema || typeof schema !== "object") return;
+    inputSchema.extend(schema.shape);
   });
+
   return (
     authedProcedure
       // oxlint-disable-next-line no-unsafe-type-assertion
