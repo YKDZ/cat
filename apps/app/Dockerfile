@@ -47,4 +47,4 @@ HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
 
 EXPOSE 3000
 
-CMD ["node", "dist/server/index.js"]
+CMD ["node", "dist/server/index.mjs"]

@@ -20,15 +20,20 @@ export default defineConfig({
   },
 
   plugins: [
-    // @ts-expect-error tailwind error
     tailwindcss(),
     vike(),
     VueI18nPlugin({
       ssr: true,
       include: [resolve(import.meta.dirname, "./locales/**")],
     }),
+    // @ts-expect-error tailwind error
     vue({
       include: [/\.vue$/, /\.md$/],
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag.startsWith("weather-widget"),
+        },
+      },
     }),
     vueDevTools(),
   ],
