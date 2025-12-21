@@ -18,7 +18,7 @@
   "scripts": {
     "build": "vike build",
     "dev": "vike dev | pino-pretty",
-    "preview": "tsx scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.js",
+    "preview": "tsx scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.mjs",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier --write .",
@@ -69,7 +69,7 @@
     "vike": "^0.4.249",
     "vike-photon": "^0.1.24",
     "vike-vue": "^0.9.8",
-    "vue": "^3.5.25",
+    "vue": "^3.5.26",
     "vue-i18n": "^11.2.2",
     "vue-sonner": "^2.0.9",
     "vue-tsc": "^3.1.8",
@@ -90,6 +90,7 @@
     "cross-env": "^10.1.0",
     "happy-dom": "^18.0.1",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^7.3.0"
+    "vite": "^7.3.0",
+    "vite-plugin-vue-devtools": "^8.0.5"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@cat-plugin/openai-vectorizer",
+  "name": "@cat-plugin/tiny-widget",
   "version": "0.1.0",
   "license": "MIT",
   "keywords": [
@@ -29,13 +29,8 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
-    "vite": "^7.3.0"
-  },
-  "peerDependencies": {
-    "@cat/db": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "undici": "7.16.0",
-    "zod": "^4.1.12"
+    "@vitejs/plugin-vue": "^6.0.3",
+    "vite": "^7.3.0",
+    "vue": "^3.5.26"
   }
 }

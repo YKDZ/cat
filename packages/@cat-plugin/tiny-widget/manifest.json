@@ -1,0 +1,7 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "tiny-widget",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "iconURL": "https://unocss.dev/logo.svg"
+}
