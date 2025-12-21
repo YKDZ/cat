@@ -61,6 +61,7 @@ const WatingMFAPayloadSchema = z
   .object({
     userId: z.uuidv4(),
     authProviderId: z.coerce.number().int(),
+    mfaProviderIds: z.string(),
   })
   .catchall(HashTypeSchema);
 type WaitingMFAPayload = z.infer<typeof WatingMFAPayloadSchema>;
@@ -354,8 +355,20 @@ export const authRouter = router({
         );
       }
 
-      // TODO 检查用户是否配置了 MFA 提供器
-      if (pluginRegistry.getPluginServices("MFA_PROVIDER").length > 0) {
+      const mfaProviderIds: number[] = [];
+
+      await Promise.all(
+        pluginRegistry.getPluginServices("MFA_PROVIDER").map(async (p) => {
+          const id = await pluginRegistry.getPluginServiceDbId(
+            drizzle,
+            p.record.pluginId,
+            p.record.id,
+          );
+          mfaProviderIds.push(id);
+        }),
+      );
+
+      if (mfaProviderIds.length > 0) {
         const waitingMFASessionId = randomBytes(32).toString("hex");
         const waitingMFASessionKey =
           getWaitingMFASessionKey(waitingMFASessionId);
@@ -363,6 +376,7 @@ export const authRouter = router({
         await redis.hSet(waitingMFASessionKey, {
           userId,
           authProviderId,
+          mfaProviderIds: JSON.stringify(mfaProviderIds),
         } satisfies WaitingMFAPayload);
         await redis.expire(waitingMFASessionKey, 5 * 60);
 
@@ -549,8 +563,13 @@ export const authRouter = router({
         });
 
       const waitingMFASessionKey = getWaitingMFASessionKey(waitingMFASessionId);
-      const { userId: waitingMFAUserId, authProviderId } =
-        WatingMFAPayloadSchema.parse(await redis.hGetAll(waitingMFASessionKey));
+      const {
+        userId: waitingMFAUserId,
+        authProviderId,
+        mfaProviderIds,
+      } = WatingMFAPayloadSchema.parse(
+        await redis.hGetAll(waitingMFASessionKey),
+      );
 
       const successMFASessionId = helpers.getCookie("successMFASessionId");
       helpers.delCookie("successMFASessionId");
@@ -571,6 +590,15 @@ export const authRouter = router({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "User ID mismatch between waiting and success MFA sessions",
+        });
+
+      const allowedMFAProviderIds = z
+        .array(z.int())
+        .parse(JSON.parse(mfaProviderIds));
+      if (!allowedMFAProviderIds.includes(mfaProviderId))
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `MFA Provider ${mfaProviderId} is not allowed`,
         });
 
       await finishLogin(

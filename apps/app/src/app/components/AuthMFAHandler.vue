@@ -1,47 +1,36 @@
 <script setup lang="ts">
-import { usePageContext } from "vike-vue/usePageContext";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { navigate } from "vike/client/router";
-import type { TRPCError } from "@trpc/server";
-import { storeToRefs } from "pinia";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { useI18n } from "vue-i18n";
 import { trpc } from "@cat/app-api/trpc/client";
 import JSONForm from "@/app/components/json-form/JsonForm.vue";
 import { useAuthStore } from "@/app/stores/auth.ts";
 import { Button } from "@/app/components/ui/button";
+import { storeToRefs } from "pinia";
+
+const emits = defineEmits<{
+  mfa: [];
+}>();
 
 const { t } = useI18n();
 
-const ctx = usePageContext();
-const { error, authMethod } = storeToRefs(useAuthStore());
+const { authMethod } = storeToRefs(useAuthStore());
 const schema = ref<JSONSchema>({});
 const data = shallowRef<NonNullJSONType>({});
 
-const handleAuth = async (): Promise<void> => {
+const handleVerify = async (): Promise<void> => {
   const formData =
     typeof data.value === "object"
       ? {
           ...data.value,
         }
       : data.value;
-  await trpc.auth.auth
-    .mutate({
-      passToServer: {
-        urlSearchParams: {
-          ...ctx.urlParsed.search,
-        },
-        formData,
-      },
-    })
-    .then(async (result) => {
-      if (result.status === "SUCCESS") await navigate("/");
-      else if (result.status === "MFA_REQUIRED") await navigate("/auth/mfa");
-    })
-    .catch(async (e: TRPCError) => {
-      error.value = e;
-      await navigate("/auth");
-    });
+  await trpc.auth.mfa.mutate({
+    passToServer: {
+      formData,
+    },
+  });
 };
 
 const isEmpty = computed(() => {
@@ -62,10 +51,12 @@ onMounted(async () => {
     providerId: authMethod.value.providerId,
   });
 
-  // 无需填表则直接登录
+  // 无需填表则直接验证
   // 否则需要手动按钮
-  if (isEmpty.value) await handleAuth();
+  if (isEmpty.value) await handleVerify();
   authMethod.value = null;
+
+  emits("mfa");
 });
 </script>
 
@@ -75,8 +66,11 @@ onMounted(async () => {
     class="flex flex-col gap-1"
   >
     <JSONForm :schema :data @update="handleUpdate" />
-    <Button magic-key="Enter" @click="handleAuth" @magic-click="handleAuth">{{
-      t("登录")
-    }}</Button>
+    <Button
+      magic-key="Enter"
+      @click="handleVerify"
+      @magic-click="handleVerify"
+      >{{ t("验证") }}</Button
+    >
   </div>
 </template>
