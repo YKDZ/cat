@@ -17,7 +17,6 @@ declare global {
       user: User | null;
       sessionId: string | null;
       _piniaInitState?: StateTree;
-      i18n?: I18n;
       abortReason: string | undefined;
     }
     interface PageContextServer {
@@ -25,6 +24,7 @@ declare global {
       helpers: HTTPHelpers;
       displayLanguage: string;
       isMobile: boolean;
+      i18n?: I18n;
     }
     interface GlobalContextServer {
       name: string;
@@ -38,6 +38,7 @@ declare global {
     interface GlobalContextClient {
       name: string;
       pinia?: Pinia;
+      i18n?: I18n;
       i18nMessages?: Record<string, Message>;
     }
   }

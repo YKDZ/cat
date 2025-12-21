@@ -13,6 +13,11 @@ import { Button } from "@/app/components/ui/button";
 import { Plus } from "lucide-vue-next";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
+import { defineAsyncComponent } from "vue";
+
+const PluginSlot = defineAsyncComponent(
+  () => import("@/app/components/plugin/PluginSlot.vue"),
+);
 
 const { t } = useI18n();
 </script>
@@ -45,5 +50,8 @@ const { t } = useI18n();
     </Card>
     <UserUploadAvatarBtn />
     <LanguagePicker />
+    <Suspense>
+      <PluginSlot id="test" />
+    </Suspense>
   </div>
 </template>
