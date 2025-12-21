@@ -8,8 +8,12 @@ import AuthPreHandler from "@/app/components/AuthPreHandler.vue";
 import { Input } from "@/app/components/ui/input";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/app/stores/auth.ts";
+import { FormField, FormLabel, FormControl } from "@/app/components/ui/form";
+import { useI18n } from "vue-i18n";
 
 const ctx = usePageContext();
+
+const { t } = useI18n();
 
 const { methods } = useData<Data>();
 
@@ -23,7 +27,16 @@ const { identifier } = storeToRefs(useAuthStore());
       登录到 <span class="font-bold">{{ ctx.globalContext.name }}</span>
     </h1>
     <AuthError class="-mt-1" />
-    <Input v-model="identifier" type="email" autocomplete="email" />
+
+    <form>
+      <FormField name="identifier">
+        <FormLabel>{{ t("邮箱") }}</FormLabel>
+        <FormControl>
+          <Input v-model="identifier" type="email" autocomplete="email" />
+        </FormControl>
+      </FormField>
+    </form>
+
     <div class="flex flex-col gap-1.5 w-full">
       <AuthPreHandler
         v-for="method in methods"

@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const { trpcWarn } = useToastStore();
-const { authMethod } = storeToRefs(useAuthStore());
+const { authMethod, userId } = storeToRefs(useAuthStore());
 
 const handlePreAuth = async () => {
   authMethod.value = props.method;
@@ -27,8 +27,10 @@ const handlePreAuth = async () => {
       identifier: props.identifier,
       authProviderId: props.method.providerId,
     })
-    .then(async ({ gotFromServer, userId }) => {
-      if (!userId) {
+    .then(async ({ gotFromServer, userId: authedUserId }) => {
+      userId.value = authedUserId ?? null;
+
+      if (!userId.value) {
         await navigate("/auth/register");
         return;
       }

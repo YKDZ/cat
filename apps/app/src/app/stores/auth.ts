@@ -7,6 +7,7 @@ export const useAuthStore = defineStore(
   "auth",
   () => {
     const identifier = ref("");
+    const userId = ref<string | null>(null);
     const error = ref<TRPCError | null>(null);
     const authMethod = ref<AuthMethod | null>(null);
 
@@ -17,6 +18,7 @@ export const useAuthStore = defineStore(
       error,
       authMethod,
       isError,
+      userId,
     };
   },
   {
