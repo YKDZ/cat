@@ -13,18 +13,9 @@ import { Button } from "@/app/components/ui/button";
 import { Plus } from "lucide-vue-next";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
-import { onMounted } from "vue";
+import PluginComponentSlot from "@/app/components/plugin/PluginComponentSlot.vue";
 
 const { t } = useI18n();
-
-let ce = undefined;
-
-onMounted(async () => {
-  // @ts-expect-error dyn
-  const imported = await import("http://localhost:8000/tiny-widget.js");
-  ce = imported.WeatherWidget;
-  customElements.define("weather-widget", ce);
-});
 </script>
 
 <template>
@@ -55,6 +46,6 @@ onMounted(async () => {
     </Card>
     <UserUploadAvatarBtn />
     <LanguagePicker />
-    <weather-widget hello="hello from app" />
+    <PluginComponentSlot id="test" />
   </div>
 </template>

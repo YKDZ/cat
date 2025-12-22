@@ -3,7 +3,14 @@ import type { Config } from "vike/types";
 import vikePhoton from "vike-photon/config";
 
 export default {
-  passToClient: ["name", "user", "_piniaInitState", "i18nMessages"],
+  passToClient: [
+    "name",
+    "user",
+    "_piniaInitState",
+    "pluginComponents",
+    "i18nMessages",
+    "baseURL",
+  ],
 
   extends: [vikeVue, vikePhoton],
 

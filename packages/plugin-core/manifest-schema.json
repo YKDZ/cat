@@ -60,12 +60,36 @@
               "VECTOR_STORAGE"
             ]
           }
-        }
+        },
+        "required": ["id", "type"],
+        "additionalProperties": false
       }
     },
     "config": {
       "description": "Standard JSON Schema for this config",
       "$ref": "https://json-schema.org/draft-07/schema"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "slot": {
+            "type": "string"
+          },
+          "skeleton": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "url", "slot"],
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false

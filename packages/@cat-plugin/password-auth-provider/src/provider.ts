@@ -8,6 +8,7 @@ import {
   account as accountTable,
 } from "@cat/db";
 import type { AuthProvider, AuthResult } from "@cat/plugin-core";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import { JSONSchema } from "@cat/shared/schema/json";
 import { assertFirstNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
@@ -22,6 +23,10 @@ const FormSchema = z.object({
 export class Provider implements AuthProvider {
   getId(): string {
     return "PASSWORD";
+  }
+
+  getType(): PluginServiceType {
+    return "AUTH_PROVIDER";
   }
 
   getName(): string {

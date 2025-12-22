@@ -1,20 +1,18 @@
 import type {
   CatPlugin,
+  ComponentRecord,
+  IPluginService,
   PluginInstallOptions,
-  ServiceMap,
-  ServiceMapRecord,
 } from "@cat/plugin-core";
 import { S3StorageProvider } from "./provider.ts";
 
 class Plugin implements CatPlugin {
-  async install(serviceMap: ServiceMap, options?: PluginInstallOptions) {
-    serviceMap.register(
-      {
-        type: "STORAGE_PROVIDER",
-        id: "S3",
-      } satisfies ServiceMapRecord,
-      new S3StorageProvider(options?.config ?? {}),
-    );
+  async install(
+    services: IPluginService[],
+    components: ComponentRecord[],
+    options?: PluginInstallOptions,
+  ) {
+    services.push(new S3StorageProvider(options?.config ?? {}));
   }
 }
 

@@ -8,4 +8,5 @@ export * from "./services/storage-provider.ts";
 export * from "./services/vector-storage.ts";
 export * from "./registry/plugin-registry.ts";
 export * from "./registry/service-registry.ts";
+export * from "./registry/component-registry.ts";
 export * from "./utils/config.ts";

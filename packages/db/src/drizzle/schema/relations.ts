@@ -77,6 +77,12 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       }),
       translatableElementContexts: r.many.translatableElementContext(),
     },
+    pluginComponent: {
+      pluginInstallation: r.one.pluginInstallation({
+        from: r.pluginComponent.pluginInstallationId,
+        to: r.pluginInstallation.id,
+      }),
+    },
     chunkSet: {
       pluginServices: r.many.pluginService({
         from: r.chunkSet.id.through(r.chunk.chunkSetId),
@@ -326,6 +332,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.plugin.id,
       }),
       pluginServices: r.many.pluginService(),
+      pluginComponents: r.many.pluginComponent(),
     },
     language: {
       projects: r.many.project({

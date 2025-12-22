@@ -5,6 +5,7 @@ export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
 
   if (!app) return;
 
+  ctx.globalContext.pinia!.state.value = ctx._piniaInitState ?? {};
   app.use(ctx.globalContext.pinia!);
   app.use(ctx.globalContext.i18n!);
 };

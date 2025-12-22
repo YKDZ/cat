@@ -7,6 +7,7 @@ const DEST_DIR = resolve(import.meta.dirname, "../apps/app/plugins");
 const FILE_INCLUDES = ["dist", "package.json", "manifest.json"];
 
 const FOLDER_INCLUDES = [
+  "tiny-widget",
   "openai-vectorizer",
   "libretranslate-advisor",
   "json-file-handler",
