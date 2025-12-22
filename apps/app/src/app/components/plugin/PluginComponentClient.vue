@@ -26,7 +26,7 @@ onMounted(async () => {
         props.component.url,
         props.component.name,
         props.component.pluginId,
-      ),
+      )
     );
     if (!customElements.get(props.component.name)) {
       customElements.define(props.component.name, module.default);
@@ -41,7 +41,7 @@ onActivated(async () => {
         props.component.url,
         props.component.name,
         props.component.pluginId,
-      ),
+      )
     );
     if (!customElements.get(props.component.name)) {
       customElements.define(props.component.name, module.default);
@@ -51,5 +51,9 @@ onActivated(async () => {
 </script>
 
 <template>
-  <component :is="component.name" :key="component.name" style="display: block" />
+  <component
+    :is="component.name"
+    :key="component.name"
+    style="display: block"
+  />
 </template>
