@@ -1,8 +1,8 @@
 import type {
   CatPlugin,
   PluginInstallOptions,
-  ServiceMap,
-  ServiceMapRecord,
+  ComponentData,
+  IPluginService,
 } from "@cat/plugin-core";
 import * as z from "zod/v4";
 import { Provider } from "./provider.ts";
@@ -25,14 +25,12 @@ export const ConfigSchema = z.array(ProviderConfigSchema);
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 
 class Plugin implements CatPlugin {
-  async install(serviceMap: ServiceMap, options?: PluginInstallOptions) {
-    serviceMap.register(
-      {
-        type: "AUTH_PROVIDER",
-        id: "oidc",
-      } satisfies ServiceMapRecord,
-      new Provider(options?.config ?? {}),
-    );
+  async install(
+    serviceMap: IPluginService[],
+    components: ComponentData[],
+    options?: PluginInstallOptions,
+  ) {
+    serviceMap.push(new Provider(options?.config ?? {}));
   }
 }
 
