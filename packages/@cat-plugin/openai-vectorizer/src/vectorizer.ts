@@ -1,4 +1,5 @@
 import type { TextVectorizer } from "@cat/plugin-core";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import type { JSONType } from "@cat/shared/schema/json";
 import type {
   UnvectorizedTextData,
@@ -26,6 +27,10 @@ export class Vectorizer implements TextVectorizer {
 
   getId(): string {
     return "ollama";
+  }
+
+  getType(): PluginServiceType {
+    return "TEXT_VECTORIZER";
   }
 
   canVectorize(): boolean {

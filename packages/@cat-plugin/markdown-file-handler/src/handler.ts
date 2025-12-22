@@ -8,6 +8,7 @@ import remarkStringify from "remark-stringify";
 import remarkGfm from "remark-gfm";
 import type { Root, RootContent, PhrasingContent } from "mdast";
 import * as z from "zod";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 interface ElementMeta {
   index: number;
@@ -22,6 +23,10 @@ interface ElementMeta {
 export class MarkdownTranslatableFileHandler implements TranslatableFileHandler {
   getId(): string {
     return "MARKDOWN";
+  }
+
+  getType(): PluginServiceType {
+    return "TRANSLATABLE_FILE_HANDLER";
   }
 
   canExtractElement(name: string): boolean {

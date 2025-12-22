@@ -1,4 +1,5 @@
 import type { TranslationAdvisor } from "@cat/plugin-core";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 import { logger } from "@cat/shared/utils";
@@ -86,6 +87,10 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
 
   getId(): string {
     return "libretranslate";
+  }
+
+  getType(): PluginServiceType {
+    return "TRANSLATION_ADVISOR";
   }
 
   getName(): string {

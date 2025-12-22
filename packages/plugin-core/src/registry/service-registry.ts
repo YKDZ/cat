@@ -3,13 +3,6 @@ import { PluginServiceTypeSchema } from "@cat/shared/schema/drizzle/enum";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
-export const ServiceMapRecordSchema = z.object({
-  type: PluginServiceTypeSchema,
-  id: z.string(),
-});
-
-export type ServiceMapRecord = z.infer<typeof ServiceMapRecordSchema>;
-
 export const ServiceRegistryRecordSchema = z.object({
   pluginId: z.string(),
   type: PluginServiceTypeSchema,
@@ -17,64 +10,6 @@ export const ServiceRegistryRecordSchema = z.object({
 });
 
 export type ServiceRegistryRecord = z.infer<typeof ServiceRegistryRecordSchema>;
-
-export class ServiceMap {
-  public constructor(
-    private readonly services: Map<string, IPluginService> = new Map(),
-  ) {}
-
-  private static hasher({ type, id }: ServiceMapRecord) {
-    return `${type}:${id}`;
-  }
-
-  public register(record: ServiceMapRecord, service: IPluginService): void {
-    this.services.set(ServiceMap.hasher(record), service);
-  }
-
-  public entries(): Array<{
-    record: ServiceMapRecord;
-    service: IPluginService;
-  }> {
-    const out: Array<{ record: ServiceMapRecord; service: IPluginService }> =
-      [];
-    for (const [key, service] of this.services.entries()) {
-      const [type, id] = key.split(":");
-      const record = ServiceMapRecordSchema.safeParse({ type, id });
-      if (!record.success) {
-        logger.warn("PLUGIN", {
-          msg: `Invalid service map record`,
-          data: { type, id },
-        });
-        continue;
-      }
-      out.push({ record: record.data, service });
-    }
-    return out;
-  }
-
-  public keys(): ServiceMapRecord[] {
-    return this.services
-      .keys()
-      .map((key) => {
-        const [type, id] = key.split(":");
-        const record = ServiceMapRecordSchema.safeParse({ type, id });
-        if (!record.success) {
-          logger.warn("PLUGIN", {
-            msg: `Invalid service map record`,
-            data: { type, id },
-          });
-          return;
-        }
-        return record.data;
-      })
-      .filter((record): record is ServiceMapRecord => !!record)
-      .toArray();
-  }
-
-  public clear(): void {
-    this.services.clear();
-  }
-}
 
 export class ServiceRegistry {
   public constructor(
@@ -101,17 +36,20 @@ export class ServiceRegistry {
    * 将一个插件的 ServiceMap 合并到 registry 中。
    * 若出现插件相同 (pluginId) 且 type/id 冲突，会抛出错误。
    */
-  public combine(pluginId: string, serviceMap: ServiceMap): void {
-    for (const { record, service } of serviceMap.entries()) {
+  public combine(pluginId: string, services: IPluginService[]): void {
+    for (const service of services) {
+      const id = service.getId();
+      const type = service.getType();
+
       const registryRecord: ServiceRegistryRecord = {
         pluginId,
-        type: record.type,
-        id: record.id,
+        type,
+        id,
       };
 
       if (this.has(registryRecord)) {
         throw new Error(
-          `Service conflict when combining plugin ${pluginId}: service ${record.type}:${record.id} already registered`,
+          `Service conflict when combining plugin ${pluginId}: service ${type}:${id} already registered`,
         );
       }
 

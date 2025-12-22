@@ -1,15 +1,9 @@
-import type { CatPlugin, ServiceMap, ServiceMapRecord } from "@cat/plugin-core";
+import type { CatPlugin, IPluginService } from "@cat/plugin-core";
 import { MarkdownTranslatableFileHandler } from "./handler.ts";
 
 class Plugin implements CatPlugin {
-  async install(serviceMap: ServiceMap) {
-    serviceMap.register(
-      {
-        type: "TRANSLATABLE_FILE_HANDLER",
-        id: "MARKDOWN",
-      } satisfies ServiceMapRecord,
-      new MarkdownTranslatableFileHandler(),
-    );
+  async install(services: IPluginService[]) {
+    services.push(new MarkdownTranslatableFileHandler());
   }
 }
 

@@ -475,6 +475,20 @@ export const pluginService = pgTable(
   ],
 );
 
+export const pluginComponent = pgTable("PluginComponent", {
+  id: serial().primaryKey(),
+  componentId: text().notNull(),
+  slot: text().notNull(),
+  url: text().notNull(),
+  pluginInstallationId: integer()
+    .notNull()
+    .references(() => pluginInstallation.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  ...timestamps,
+});
+
 export const project = pgTable(
   "Project",
   {

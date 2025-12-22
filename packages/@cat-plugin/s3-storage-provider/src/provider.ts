@@ -13,6 +13,7 @@ import { StorageProvider } from "@cat/plugin-core";
 import * as z from "zod/v4";
 import { join } from "node:path";
 import { Upload } from "@aws-sdk/lib-storage";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 const S3ConfigSchema = z.object({
   "endpoint-url": z.url(),
@@ -85,6 +86,10 @@ export class S3StorageProvider implements StorageProvider {
 
   getId(): string {
     return "S3";
+  }
+
+  getType(): PluginServiceType {
+    return "STORAGE_PROVIDER";
   }
 
   async ping(): Promise<void> {

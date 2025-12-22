@@ -24,6 +24,7 @@ export default defineConfig({
         "schema/misc": resolve(import.meta.dirname, "src/schema/misc.ts"),
         "schema/plugin": resolve(import.meta.dirname, "src/schema/plugin.ts"),
         "schema/redis": resolve(import.meta.dirname, "src/schema/redis.ts"),
+        "schema/ce": resolve(import.meta.dirname, "src/schema/ce.ts"),
         "schema/drizzle/document": resolve(
           import.meta.dirname,
           "src/schema/drizzle/document.ts",
@@ -73,7 +74,7 @@ export default defineConfig({
           "src/schema/drizzle/enum.ts",
         ),
       },
-      formats: ["es", "cjs"],
+      formats: ["es"],
     },
   },
   plugins: [

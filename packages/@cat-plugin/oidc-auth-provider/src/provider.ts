@@ -8,6 +8,7 @@ import { randomChars } from "./utils/crypto.ts";
 import { createOIDCAuthURL } from "./utils/oidc.ts";
 import { ProviderConfigSchema, type ProviderConfig } from "./index.ts";
 import type { JSONType } from "@cat/shared/schema/json";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 const SearchParasSchema = z.object({
   state: z.string(),
@@ -29,6 +30,10 @@ export class Provider implements AuthProvider {
 
   getId(): string {
     return this.config.issuer;
+  }
+
+  getType(): PluginServiceType {
+    return "AUTH_PROVIDER";
   }
 
   getName(): string {

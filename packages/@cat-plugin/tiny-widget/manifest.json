@@ -3,5 +3,13 @@
   "id": "tiny-widget",
   "version": "0.1.0",
   "entry": "dist/index.js",
-  "iconURL": "https://unocss.dev/logo.svg"
+  "iconURL": "https://unocss.dev/logo.svg",
+  "components": [
+    {
+      "id": "daily-quote-widget",
+      "url": "dist/daily-quote-widget.js",
+      "skeleton": "dist/daily-quote-widget-skeleton.js",
+      "slot": "test"
+    }
+  ]
 }

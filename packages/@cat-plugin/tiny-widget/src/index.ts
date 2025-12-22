@@ -1,6 +1,20 @@
-import { defineCustomElement } from "vue";
-import WeatherWidgetCE from "./WeatherWidget.ce.vue";
+import type {
+  CatPlugin,
+  ComponentData,
+  IPluginService,
+} from "@cat/plugin-core";
 
-const WeatherWidget = defineCustomElement(WeatherWidgetCE);
+class Plugin implements CatPlugin {
+  async install(_services: IPluginService[], components: ComponentData[]) {
+    components.push({
+      name: "daily-quote-widget",
+      slot: "test",
+      url: "dist/daily-quote-widget.js",
+      skeleton: "dist/daily-quote-widget-skeleton.js",
+    } satisfies ComponentData);
+  }
+}
 
-export { WeatherWidget };
+const plugin = new Plugin();
+
+export default plugin;

@@ -15,6 +15,16 @@ export const PluginManifestSchema = z.object({
       }),
     )
     .optional(),
+  components: z
+    .array(
+      z.object({
+        id: z.string(),
+        slot: z.string(),
+        url: z.string(),
+        skeletion: z.string().optional(),
+      }),
+    )
+    .optional(),
   config: JSONSchemaSchema.optional(),
 });
 

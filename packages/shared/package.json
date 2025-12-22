@@ -28,6 +28,10 @@
       "types": "./dist/schema/misc.d.ts",
       "import": "./dist/schema/misc.js"
     },
+    "./schema/ce": {
+      "types": "./dist/schema/ce.d.ts",
+      "import": "./dist/schema/ce.js"
+    },
     "./schema/redis": {
       "types": "./dist/schema/redis.d.ts",
       "import": "./dist/schema/redis.js"

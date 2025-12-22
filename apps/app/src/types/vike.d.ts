@@ -10,6 +10,8 @@ import type { DrizzleDB, RedisDB } from "@cat/db";
 import type { User } from "@cat/shared/schema/drizzle/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
 import type { WorkerRegistry } from "@cat/app-workers";
+import type { ComponentRecord, PluginRegistry } from "@cat/plugin-core";
+import type { Component } from "vue";
 
 declare global {
   namespace Vike {
@@ -26,20 +28,21 @@ declare global {
       isMobile: boolean;
       i18n?: I18n;
     }
-    interface GlobalContextServer {
-      name: string;
+    interface GlobalContext {
       pinia?: Pinia;
+      name: string;
+      baseURL: string;
       i18nMessages?: Record<string, Message>;
+    }
+    interface GlobalContextServer {
       drizzleDB: DrizzleDB;
       redisDB: RedisDB;
       pluginRegistry: PluginRegistry;
       workerRegistry: WorkerRegistry;
+      resolvePluginComponentPath: typeof resolvePluginComponentPath;
     }
     interface GlobalContextClient {
-      name: string;
-      pinia?: Pinia;
       i18n?: I18n;
-      i18nMessages?: Record<string, Message>;
     }
   }
 }

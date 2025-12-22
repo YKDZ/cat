@@ -29,11 +29,6 @@ export default defineConfig({
     // @ts-expect-error tailwind error
     vue({
       include: [/\.vue$/, /\.md$/],
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => tag.startsWith("weather-widget"),
-        },
-      },
     }),
     vueDevTools(),
   ],

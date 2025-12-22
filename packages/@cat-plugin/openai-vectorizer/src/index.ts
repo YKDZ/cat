@@ -1,20 +1,18 @@
 import type {
   CatPlugin,
+  ComponentRecord,
+  IPluginService,
   PluginInstallOptions,
-  ServiceMap,
-  ServiceMapRecord,
 } from "@cat/plugin-core";
 import { Vectorizer } from "./vectorizer.ts";
 
 class Plugin implements CatPlugin {
-  async install(serviceMap: ServiceMap, options?: PluginInstallOptions) {
-    serviceMap.register(
-      {
-        type: "TEXT_VECTORIZER",
-        id: "openai",
-      } satisfies ServiceMapRecord,
-      new Vectorizer(options?.config ?? {}),
-    );
+  async install(
+    services: IPluginService[],
+    components: ComponentRecord[],
+    options?: PluginInstallOptions,
+  ) {
+    services.push(new Vectorizer(options?.config ?? {}));
   }
 }
 

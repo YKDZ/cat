@@ -23,6 +23,7 @@ import {
   getColumns,
   OverallDrizzleClient,
   plugin,
+  pluginComponent,
   pluginConfig,
   pluginConfigInstance,
   pluginInstallation,
@@ -38,14 +39,10 @@ import type { AuthProvider, MFAProvider } from "@/services/auth-provider.ts";
 import { existsSync } from "node:fs";
 import { IVectorStorage } from "@/services/vector-storage";
 import {
-  ServiceMap,
   ServiceRegistry,
   ServiceRegistryRecordSchema,
-  type ServiceMapRecord,
   type ServiceRegistryRecord,
 } from "@/registry/service-registry";
-import { haveSameObjects } from "@/utils/array";
-import { getPluginConfig } from "@/utils/config";
 import type {
   PluginServiceType,
   ScopeType,
@@ -56,6 +53,12 @@ import type {
   TermRecognizer,
 } from "@/services/term-services";
 import type { QAChecker } from "@/services/qa";
+import {
+  ComponentRegistry,
+  type ComponentData,
+  type ComponentRecord,
+} from "@/registry/component-registry";
+import { getPluginConfig } from "@/utils/config";
 
 type PluginServiceTypeMap = {
   AUTH_PROVIDER: AuthProvider;
@@ -77,6 +80,7 @@ type PluginServiceMap = {
 
 export interface IPluginService {
   getId(): string;
+  getType(): PluginServiceType;
 }
 
 export type LoadPluginsOptions = {
@@ -94,7 +98,8 @@ export type GetterOptions = {
 
 export interface CatPlugin {
   install?: (
-    serviceMap: ServiceMap,
+    services: IPluginService[],
+    components: ComponentData[],
     options?: PluginInstallOptions,
   ) => Promise<void>;
   uninstall?: () => Promise<void>;
@@ -109,6 +114,7 @@ export class PluginRegistry {
     public readonly scopeType: ScopeType,
     public readonly scopeId: string,
     private serviceRegistry: ServiceRegistry = new ServiceRegistry(),
+    private componentRegistry: ComponentRegistry = new ComponentRegistry(),
   ) {}
 
   public static get(scopeType: ScopeType, scopeId: string): PluginRegistry {
@@ -214,6 +220,18 @@ export class PluginRegistry {
           })),
         );
 
+      // TODO 真的有必要插入数据库吗
+      if (manifest.components && manifest.components.length > 0) {
+        await tx.insert(pluginComponent).values(
+          manifest.components.map((component) => ({
+            componentId: component.id,
+            slot: component.slot,
+            url: component.url,
+            pluginInstallationId: installation.id,
+          })),
+        );
+      }
+
       if (manifest.services && manifest.services.length > 0)
         await tx.insert(pluginService).values(
           manifest.services.map((service) => ({
@@ -223,99 +241,6 @@ export class PluginRegistry {
           })),
         );
     });
-  }
-
-  /**
-   * 通过 install 加载插件的所有服务到一个 ServiceMap 中
-   * @param drizzle
-   * @param pluginId
-   * @returns
-   */
-  public async getPluginServiceMap(
-    drizzle: OverallDrizzleClient,
-    pluginId: string,
-  ): Promise<ServiceMap> {
-    const map = new ServiceMap();
-    const pluginObj = await this.getPluginInstance(pluginId);
-    if (pluginObj.install)
-      await pluginObj.install(map, {
-        config: await getPluginConfig(
-          drizzle,
-          pluginId,
-          this.scopeType,
-          this.scopeId,
-        ),
-      });
-    return map;
-  }
-
-  /**
-   * 将所有插件声明的服务（在 install 阶段加载到数据库）加载到服务注册表
-   * @param drizzle
-   */
-  public async registerAllServices(drizzle: DrizzleClient): Promise<void> {
-    const newRegistry = new ServiceRegistry();
-
-    await drizzle.transaction(async (tx) => {
-      const pluginIds = (
-        await tx
-          .select({ pluginId: pluginInstallation.pluginId })
-          .from(pluginInstallation)
-          .where(
-            and(
-              eq(pluginInstallation.scopeId, this.scopeId),
-              eq(pluginInstallation.scopeType, this.scopeType),
-            ),
-          )
-      ).map((row) => row.pluginId);
-
-      await Promise.all(
-        pluginIds.map(async (pluginId) => {
-          const map = await this.getPluginServiceMap(tx, pluginId);
-
-          // 与 install 时注册的服务是否一致
-          const services: ServiceMapRecord[] = (
-            await tx
-              .select({
-                serviceType: pluginService.serviceType,
-                serviceId: pluginService.serviceId,
-              })
-              .from(pluginInstallation)
-              .innerJoin(
-                pluginService,
-                eq(pluginService.pluginInstallationId, pluginInstallation.id),
-              )
-              .where(
-                and(
-                  eq(pluginInstallation.scopeType, this.scopeType),
-                  eq(pluginInstallation.scopeId, this.scopeId),
-                  eq(pluginInstallation.pluginId, pluginId),
-                ),
-              )
-          ).map(
-            (service) =>
-              ({
-                type: service.serviceType,
-                id: service.serviceId,
-              }) satisfies ServiceMapRecord,
-          );
-
-          if (!haveSameObjects(services, map.keys())) {
-            logger.warn("PLUGIN", {
-              msg: "Plugin has different services from and registered manifest",
-              pluginId,
-              dbServices: services,
-              registeredServices: map.keys(),
-            });
-            return;
-          }
-
-          newRegistry.combine(pluginId, map);
-        }),
-      );
-    });
-
-    this.serviceRegistry = newRegistry;
   }
 
   public async uninstallPlugin(
@@ -432,6 +357,14 @@ export class PluginRegistry {
     return service.id;
   }
 
+  public getComponentOfSlot(slot: string): ComponentRecord[] {
+    return this.componentRegistry.getSlot(slot);
+  }
+
+  public getComponents(pluginId: string): ComponentRecord[] {
+    return this.componentRegistry.get(pluginId);
+  }
+
   private async getPluginInstance(pluginId: string): Promise<CatPlugin> {
     const pluginFsPath = await PluginRegistry.getPluginEntryFsPath(pluginId);
     // Vite build will sometimes remove inline /* @vite-ignore */ comments
@@ -538,7 +471,43 @@ export class PluginRegistry {
     return results;
   }
 
-  public async reload(drizzle: DrizzleClient): Promise<void> {
-    await this.registerAllServices(drizzle);
+  public async loadAllPlugins(drizzle: OverallDrizzleClient): Promise<void> {
+    const installations = await drizzle
+      .select({
+        pluginId: pluginInstallation.pluginId,
+      })
+      .from(pluginInstallation)
+      .where(
+        and(
+          eq(pluginInstallation.scopeType, this.scopeType),
+          eq(pluginInstallation.scopeId, this.scopeId),
+        ),
+      );
+
+    await Promise.all(
+      installations.map(async ({ pluginId }) => {
+        const services: IPluginService[] = [];
+        const compnents: Omit<ComponentRecord, "pluginId">[] = [];
+        const pluginObj = await this.getPluginInstance(pluginId);
+        if (pluginObj.install)
+          await pluginObj.install(services, compnents, {
+            config: await getPluginConfig(
+              drizzle,
+              pluginId,
+              this.scopeType,
+              this.scopeId,
+            ),
+          });
+        this.componentRegistry.combine(
+          pluginId,
+          compnents.map((component) => ({ ...component, pluginId })),
+        );
+        this.serviceRegistry.combine(pluginId, services);
+      }),
+    );
+  }
+
+  public async reload(drizzle: OverallDrizzleClient): Promise<void> {
+    await this.loadAllPlugins(drizzle);
   }
 }

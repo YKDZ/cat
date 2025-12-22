@@ -22,6 +22,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "dev": "vite dev",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier --write .",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
     "@vitejs/plugin-vue": "^6.0.3",
     "vite": "^7.3.0",
     "vue": "^3.5.26"
