@@ -1,14 +1,19 @@
 import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
-import type { IPluginService } from "@/registry/plugin-registry.ts";
+import type { IPluginService } from "@/services/service";
 import { JSONType } from "@cat/shared/schema/json";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
-export interface TranslatableFileHandler extends IPluginService {
-  canExtractElement(name: string): boolean;
-  extractElement(
+export abstract class TranslatableFileHandler implements IPluginService {
+  abstract getId(): string;
+  getType(): PluginServiceType {
+    return "TRANSLATABLE_FILE_HANDLER";
+  }
+  abstract canExtractElement(name: string): boolean;
+  abstract extractElement(
     fileContent: Buffer,
   ): Promise<TranslatableElementDataWithoutLanguageId[]>;
-  canGetReplacedFileContent(name: string): boolean;
-  getReplacedFileContent(
+  abstract canGetReplacedFileContent(name: string): boolean;
+  abstract getReplacedFileContent(
     fileContent: Buffer,
     elements: { meta: JSONType; value: string }[],
   ): Promise<Buffer>;

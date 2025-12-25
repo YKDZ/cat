@@ -8,16 +8,11 @@ import {
   sql,
   vector,
 } from "@cat/db";
-import type { IVectorStorage } from "@cat/plugin-core";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import { IVectorStorage } from "@cat/plugin-core";
 
-export class Storage implements IVectorStorage {
+export class Storage extends IVectorStorage {
   getId(): string {
     return "pgvector-storage";
-  }
-
-  getType(): PluginServiceType {
-    return "VECTOR_STORAGE";
   }
 
   async store(chunks: { vector: number[]; chunkId: number }[]): Promise<void> {

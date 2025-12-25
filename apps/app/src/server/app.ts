@@ -5,6 +5,15 @@ import { pinoLoggerMiddleware } from "./middleware/logger.ts";
 import { pluginHandler } from "@/server/handler/plugin.ts";
 
 const app = new Hono();
+globalThis.app = app;
+
+// @ts-expect-error This style is semantically correct
+app.use(async (c, next) => {
+  if (!globalThis.inited) {
+    return c.text("Server is initializing", 503);
+  }
+  await next();
+});
 
 app.use("*", pinoLoggerMiddleware);
 

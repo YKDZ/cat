@@ -37,6 +37,7 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     await installDefaultPlugins(drizzleDB.client, pluginRegistry);
 
     await pluginRegistry.loadAllPlugins(drizzleDB.client);
+    await pluginRegistry.applyPluginRoutes(drizzleDB.client, globalThis.app);
 
     const workerRegistry = WorkerRegistry.get("GLOBAL", "");
 
@@ -53,6 +54,8 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
       "server.url",
       "http://localhost:3000/",
     );
+
+    globalThis.inited = true;
   } catch (err) {
     logger.error(
       "SERVER",

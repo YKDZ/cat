@@ -1,11 +1,24 @@
-import type { IPluginService } from "@/registry/plugin-registry";
+import type { IPluginService } from "@/services/service";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import type { Term } from "@cat/shared/schema/drizzle/glossary";
 
-export interface QAChecker extends IPluginService {
+export type QAIssue = {
+  type: "missing" | "incorrect" | "deprecated";
+  sourceRange?: { start: number; end: number };
+  targetRange?: { start: number; end: number };
+  message?: string;
+  suggestedTranslation?: string;
+};
+
+export abstract class QAChecker implements IPluginService {
+  abstract getId(): string;
+  getType(): PluginServiceType {
+    return "QA_CHECKER";
+  }
   /**
    * 检查译文是否违反某些规范
    */
-  check(
+  abstract check(
     source: {
       text: string;
       languageId: string;
@@ -18,11 +31,3 @@ export interface QAChecker extends IPluginService {
     },
   ): Promise<QAIssue[]>;
 }
-
-export type QAIssue = {
-  type: "missing" | "incorrect" | "deprecated";
-  sourceRange?: { start: number; end: number };
-  targetRange?: { start: number; end: number };
-  message?: string;
-  suggestedTranslation?: string;
-};

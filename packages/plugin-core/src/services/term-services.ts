@@ -1,4 +1,5 @@
-import type { IPluginService } from "@/registry/plugin-registry.ts";
+import type { IPluginService } from "@/services/service";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 
 export type TermCandidate = {
@@ -19,28 +20,40 @@ export type TermPairCandidate = {
   alignmentScore: number;
 };
 
-export interface TermExtractor extends IPluginService {
+export abstract class TermExtractor implements IPluginService {
+  abstract getId(): string;
+  getType(): PluginServiceType {
+    return "TERM_EXTRACTOR";
+  }
   /**
    * 从给定语言的文本提取术语候选
    */
-  extract(text: string, languageId: string): Promise<TermCandidate[]>;
+  abstract extract(text: string, languageId: string): Promise<TermCandidate[]>;
 }
 
-export interface TermRecognizer extends IPluginService {
+export abstract class TermRecognizer implements IPluginService {
+  abstract getId(): string;
+  getType(): PluginServiceType {
+    return "TERM_RECOGNIZER";
+  }
   /**
    * 根据候选结果从数据库维护的术语库中查出所有匹配的 TermEntry
    */
-  recognize(
+  abstract recognize(
     source: { text: string; candidates: TermCandidate[] },
     languageId: string,
   ): Promise<RecognizedTermEntry[]>;
 }
 
-export interface TermAligner extends IPluginService {
+export abstract class TermAligner implements IPluginService {
+  abstract getId(): string;
+  getType(): PluginServiceType {
+    return "TERM_ALIGNER";
+  }
   /**
    * 对齐原文和译文中可能的术语
    */
-  align(
+  abstract align(
     source: { text: string; candidates: TermCandidate[]; sourceLang: string },
     target: { text: string; candidates: TermCandidate[]; targetLang: string },
   ): Promise<TermPairCandidate[]>;

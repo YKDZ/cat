@@ -1,13 +1,8 @@
-import type { TermCandidate, TermExtractor } from "@cat/plugin-core";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import { TermExtractor, type TermCandidate } from "@cat/plugin-core";
 
-export class Extractor implements TermExtractor {
+export class Extractor extends TermExtractor {
   getId(): string {
     return "openai";
-  }
-
-  getType(): PluginServiceType {
-    return "TERM_EXTRACTOR";
   }
 
   async extract(

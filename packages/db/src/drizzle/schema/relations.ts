@@ -13,6 +13,16 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.pluginService.id,
       }),
     },
+    mfaProvider: {
+      user: r.one.user({
+        from: r.mfaProvider.userId,
+        to: r.user.id,
+      }),
+      mfaSerivce: r.one.pluginService({
+        from: r.mfaProvider.mfaServiceId,
+        to: r.pluginService.id,
+      }),
+    },
     user: {
       accounts: r.many.account(),
       documents: r.many.document(),
@@ -59,6 +69,10 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.user.id.through(r.userRole.userId),
         to: r.role.id.through(r.userRole.roleId),
       }),
+      mfaProvider: r.many.mfaProvider({
+        from: r.user.id,
+        to: r.mfaProvider.userId,
+      }),
     },
     blob: {
       pluginService: r.one.pluginService({
@@ -68,14 +82,15 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       files: r.many.file(),
     },
     pluginService: {
-      blobs: r.many.blob(),
-      chunkSets: r.many.chunkSet(),
-      documents: r.many.document(),
       pluginInstallation: r.one.pluginInstallation({
         from: r.pluginService.pluginInstallationId,
         to: r.pluginInstallation.id,
       }),
+      blobs: r.many.blob(),
+      chunkSets: r.many.chunkSet(),
+      documents: r.many.document(),
       translatableElementContexts: r.many.translatableElementContext(),
+      mfaProviders: r.many.mfaProvider(),
     },
     pluginComponent: {
       pluginInstallation: r.one.pluginInstallation({

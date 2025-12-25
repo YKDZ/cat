@@ -74,7 +74,7 @@ export default defineConfig({
           "src/schema/drizzle/enum.ts",
         ),
       },
-      formats: ["es"],
+      formats: ["es", "cjs"],
     },
   },
   plugins: [

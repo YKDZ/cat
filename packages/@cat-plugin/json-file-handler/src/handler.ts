@@ -1,9 +1,8 @@
 import { extname } from "node:path";
-import type { TranslatableFileHandler } from "@cat/plugin-core";
+import { TranslatableFileHandler } from "@cat/plugin-core";
 import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { JSONType } from "@cat/shared/schema/json";
 import * as z from "zod";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 type JSONValue =
   | string
@@ -13,13 +12,9 @@ type JSONValue =
   | JSONValue[]
   | { [key: string]: JSONValue };
 
-export class JSONTranslatableFileHandler implements TranslatableFileHandler {
+export class Handler extends TranslatableFileHandler {
   getId(): string {
     return "JSON";
-  }
-
-  getType(): PluginServiceType {
-    return "TRANSLATABLE_FILE_HANDLER";
   }
 
   canExtractElement(name: string): boolean {

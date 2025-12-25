@@ -137,31 +137,3 @@ export const resolvePluginComponentPath = (
 
   return targetPath;
 };
-
-/**
- * 找到指定组件在本地插件目录中的位置
- */
-export const resolvePluginComponentSkeletonPath = (
-  pluginId: string,
-  componentName: string,
-): string => {
-  const component = PluginRegistry.get("GLOBAL", "")
-    .getComponents(pluginId)
-    .find((component) => component.name === componentName);
-  if (!component || !component.skeleton) {
-    throw new Error("missing skeleton of component");
-  }
-
-  const pluginRoot = resolve(PLUGIN_ROOT, pluginId);
-  const targetPath = resolve(pluginRoot, component.skeleton);
-
-  if (!targetPath.startsWith(pluginRoot + path.sep)) {
-    throw new Error("invalid path");
-  }
-
-  if (!/\.(m?js)$/.test(targetPath)) {
-    throw new Error("only js modules allowed");
-  }
-
-  return targetPath;
-};

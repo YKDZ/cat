@@ -1,18 +1,9 @@
-import type {
-  CatPlugin,
-  ComponentData,
-  IPluginService,
-  PluginInstallOptions,
-} from "@cat/plugin-core";
+import type { CatPlugin, ServicesContext } from "@cat/plugin-core";
 import { Vectorizer } from "./vectorizer.ts";
 
 class Plugin implements CatPlugin {
-  async install(
-    services: IPluginService[],
-    components: ComponentData[],
-    options?: PluginInstallOptions,
-  ) {
-    services.push(new Vectorizer(options?.config ?? {}));
+  services(ctx: ServicesContext) {
+    return [new Vectorizer(ctx.config ?? {})];
   }
 }
 

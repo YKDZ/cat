@@ -1,9 +1,9 @@
-import type { CatPlugin, IPluginService } from "@cat/plugin-core";
+import type { CatPlugin } from "@cat/plugin-core";
 import { YAMLTranslatableFileHandler } from "./handler";
 
 class Plugin implements CatPlugin {
-  async install(services: IPluginService[]) {
-    services.push(new YAMLTranslatableFileHandler());
+  services() {
+    return [new YAMLTranslatableFileHandler()];
   }
 }
 

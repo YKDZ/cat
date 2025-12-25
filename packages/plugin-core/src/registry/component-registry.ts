@@ -6,7 +6,6 @@ export const ComponentRecordSchema = z.object({
   name: CustomElementNameSchema,
   slot: z.string(),
   url: z.string(),
-  skeleton: z.string().optional(),
   pluginId: z.string(),
 });
 export const ComponentDataSchema = ComponentRecordSchema.omit({

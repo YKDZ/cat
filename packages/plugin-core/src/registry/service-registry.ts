@@ -1,4 +1,4 @@
-import type { IPluginService } from "@/registry/plugin-registry";
+import type { IPluginService } from "@/services/service";
 import { PluginServiceTypeSchema } from "@cat/shared/schema/drizzle/enum";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
