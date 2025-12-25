@@ -1,9 +1,9 @@
-import type { CatPlugin, IPluginService } from "@cat/plugin-core";
-import { MarkdownTranslatableFileHandler } from "./handler.ts";
+import type { CatPlugin } from "@cat/plugin-core";
+import { Handler } from "./handler.ts";
 
 class Plugin implements CatPlugin {
-  async install(services: IPluginService[]) {
-    services.push(new MarkdownTranslatableFileHandler());
+  services() {
+    return [new Handler()];
   }
 }
 

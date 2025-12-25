@@ -1,18 +1,9 @@
-import type {
-  CatPlugin,
-  ComponentData,
-  IPluginService,
-  PluginInstallOptions,
-} from "@cat/plugin-core";
-import { LibreTranslateTranslationAdvisor } from "./advisor.ts";
+import type { CatPlugin, ServicesContext } from "@cat/plugin-core";
+import { Advisor } from "./advisor.ts";
 
 class Plugin implements CatPlugin {
-  async install(
-    services: IPluginService[],
-    components: ComponentData[],
-    options?: PluginInstallOptions,
-  ) {
-    services.push(new LibreTranslateTranslationAdvisor(options?.config ?? {}));
+  services(ctx: ServicesContext) {
+    return [new Advisor(ctx.config ?? {})];
   }
 }
 

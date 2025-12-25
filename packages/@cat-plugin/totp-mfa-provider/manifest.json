@@ -1,0 +1,13 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "totp-mfa-provider",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "totp",
+      "type": "MFA_PROVIDER"
+    }
+  ]
+}

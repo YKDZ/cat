@@ -1,9 +1,9 @@
-import type { CatPlugin, IPluginService } from "@cat/plugin-core";
+import type { CatPlugin } from "@cat/plugin-core";
 import { Provider } from "./provider.ts";
 
 class Plugin implements CatPlugin {
-  async install(services: IPluginService[]) {
-    services.push(new Provider());
+  services() {
+    return [new Provider()];
   }
 }
 

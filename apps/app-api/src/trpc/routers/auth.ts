@@ -8,7 +8,9 @@ import {
   account as accountTable,
   and,
   eq,
+  getColumns,
   hashPassword,
+  mfaProvider,
   or,
   user as userTable,
   type RedisClientType,
@@ -65,6 +67,15 @@ const WatingMFAPayloadSchema = z
   })
   .catchall(HashTypeSchema);
 type WaitingMFAPayload = z.infer<typeof WatingMFAPayloadSchema>;
+
+const getPreInitMFASessionKey = (sessionId: string) =>
+  `auth:preInitMFA:${sessionId}`;
+const PreInitMFAPayloadSchema = z.object({
+  userId: z.uuidv4(),
+  mfaProviderId: z.coerce.number().int(),
+  payload: z.string(),
+});
+type PreInitMFAPayload = z.infer<typeof PreInitMFAPayloadSchema>;
 
 export const authRouter = router({
   register: publicProcedure
@@ -406,9 +417,11 @@ export const authRouter = router({
       }),
     )
     .output(
-      z.object({
-        gotFromServer: safeZDotJson,
-      }),
+      z
+        .object({
+          gotFromServer: safeZDotJson,
+        })
+        .optional(),
     )
     .mutation(async ({ ctx, input }) => {
       const {
@@ -424,6 +437,8 @@ export const authRouter = router({
         pluginRegistry,
         mfaProviderId,
       );
+
+      if (typeof provider.generateChallenge !== "function") return;
 
       const sessionId = randomBytes(32).toString("hex");
       const sessionKey = getPreMFASessionKey(sessionId);
@@ -466,16 +481,115 @@ export const authRouter = router({
         mfaProviderId,
       );
 
-      if (!provider)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `MFA Provider ${mfaProviderId} does not exists`,
-        });
-
-      if (typeof provider.getVerfifyChallengeFormSchema !== "function")
+      if (typeof provider.getVerifyChallengeFormSchema !== "function")
         return {};
 
-      return provider.getVerfifyChallengeFormSchema();
+      return provider.getVerifyChallengeFormSchema();
+    }),
+  preInitMFAForUser: authedProcedure
+    .input(
+      z.object({
+        mfaProviderId: z.int(),
+      }),
+    )
+    .output(z.void())
+    .mutation(async ({ ctx, input }) => {
+      const {
+        redisDB: { redis },
+        drizzleDB: { client: drizzle },
+        pluginRegistry,
+        user,
+        helpers,
+      } = ctx;
+      const { mfaProviderId } = input;
+
+      const provider = await getServiceFromDBId<MFAProvider>(
+        drizzle,
+        pluginRegistry,
+        mfaProviderId,
+      );
+
+      if (typeof provider.preInitForUser !== "function") return;
+
+      const result = await provider.preInitForUser({
+        userId: user.id,
+      });
+
+      const sessionId = randomBytes(32).toString("hex");
+      const sessionKey = getPreInitMFASessionKey(sessionId);
+
+      await redis.hSet(sessionKey, {
+        userId: user.id,
+        mfaProviderId,
+        payload: JSON.stringify(result.payload),
+      } satisfies PreInitMFAPayload);
+      await redis.expire(sessionKey, 5 * 60);
+
+      helpers.setCookie("preInitMFASessionId", sessionId);
+    }),
+  initMFAForUser: authedProcedure
+    .input(
+      z.object({
+        passToServer: safeZDotJson,
+      }),
+    )
+    .output(z.void())
+    .mutation(async ({ ctx, input }) => {
+      const {
+        redisDB: { redis },
+        drizzleDB: { client: drizzle },
+        pluginRegistry,
+        user,
+        helpers,
+      } = ctx;
+      const { passToServer } = input;
+
+      const sessionId = helpers.getCookie("preInitMFASessionId");
+      helpers.delCookie("preInitMFASessionId");
+
+      if (!sessionId)
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No preInitMFASessionId provided",
+        });
+
+      const sessionKey = getPreInitMFASessionKey(sessionId);
+      const { payload, mfaProviderId, userId } = PreInitMFAPayloadSchema.parse(
+        await redis.hGetAll(sessionKey),
+      );
+      await redis.del(sessionKey);
+
+      if (userId !== user.id)
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User ID mismatch",
+        });
+
+      const provider = await getServiceFromDBId<MFAProvider>(
+        drizzle,
+        pluginRegistry,
+        mfaProviderId,
+      );
+
+      if (typeof provider.initForUser !== "function") return;
+
+      const result = await provider.initForUser({
+        userId: user.id,
+        gotFromClient: passToServer,
+        preInitPayload: z.json().parse(JSON.parse(payload)) ?? {},
+      });
+
+      if (!result.isSuccess)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to initialize MFA for user",
+        });
+
+      await drizzle.insert(mfaProvider).values({
+        mfaServiceId: mfaProviderId,
+        userId: user.id,
+        payload: result.payload ?? {},
+      });
     }),
   mfa: publicProcedure
     .input(
@@ -522,10 +636,18 @@ export const authRouter = router({
           message: `MFA Provider ${mfaProviderId} does not exists`,
         });
 
-      const { isSuccess } = await provider.verifyChallenge(
-        passToServer,
-        z.json().parse(JSON.parse(meta)),
+      const dbProvider = assertSingleNonNullish(
+        await drizzle
+          .select(getColumns(mfaProvider))
+          .from(mfaProvider)
+          .where(eq(mfaProvider.id, mfaProviderId)),
       );
+
+      const { isSuccess } = await provider.verifyChallenge({
+        gotFromClient: passToServer,
+        generateChallengeMeta: z.json().parse(JSON.parse(meta)),
+        mfaProvider: dbProvider,
+      });
 
       if (!isSuccess)
         throw new TRPCError({

@@ -1,9 +1,9 @@
-import type { CatPlugin, IPluginService } from "@cat/plugin-core";
-import { JSONTranslatableFileHandler } from "./handler";
+import type { CatPlugin } from "@cat/plugin-core";
+import { Handler } from "./handler";
 
 class Plugin implements CatPlugin {
-  async install(services: IPluginService[]) {
-    services.push(new JSONTranslatableFileHandler());
+  services() {
+    return [new Handler()];
   }
 }
 

@@ -81,6 +81,23 @@ export const account = pgTable("Account", {
   ...timestamps,
 });
 
+export const mfaProvider = pgTable("MFAProvider", {
+  id: serial().primaryKey(),
+  failureCount: integer().notNull().default(0),
+  lastUsedAt: timestamp({ withTimezone: true }),
+  payload: jsonb().notNull().$type<NonNullJSONType>(),
+  userId: uuid()
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+  mfaServiceId: integer()
+    .notNull()
+    .references(() => pluginService.id, {
+      onDelete: "restrict",
+      onUpdate: "cascade",
+    }),
+  ...timestamps,
+});
+
 export const blob = pgTable(
   "Blob",
   {
@@ -92,11 +109,11 @@ export const blob = pgTable(
         onDelete: "restrict",
         onUpdate: "cascade",
       }),
+    referenceCount: integer().default(1).notNull(),
+    hash: bytea(),
     createdAt: timestamp({ withTimezone: true })
       .default(sql`now()`)
       .notNull(),
-    referenceCount: integer().default(1).notNull(),
-    hash: bytea(),
   },
   (table) => [
     unique().on(table.hash),

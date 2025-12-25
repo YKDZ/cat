@@ -1,10 +1,17 @@
-import { IPluginService } from "@/registry/plugin-registry";
+import type { IPluginService } from "@/services/service";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import type {
   UnvectorizedTextData,
   VectorizedTextData,
 } from "@cat/shared/schema/misc";
 
-export interface TextVectorizer extends IPluginService {
-  canVectorize(languageId: string): boolean;
-  vectorize(elements: UnvectorizedTextData[]): Promise<VectorizedTextData[]>;
+export abstract class TextVectorizer implements IPluginService {
+  abstract getId(): string;
+  getType(): PluginServiceType {
+    return "TEXT_VECTORIZER";
+  }
+  abstract canVectorize(languageId: string): boolean;
+  abstract vectorize(
+    elements: UnvectorizedTextData[],
+  ): Promise<VectorizedTextData[]>;
 }

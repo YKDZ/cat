@@ -43,6 +43,7 @@ const startServer = () => {
 
   return serve(app, {
     port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
+
     onCreate: (nodeServer) => {
       if (!nodeServer) {
         logger.debug("SERVER", {

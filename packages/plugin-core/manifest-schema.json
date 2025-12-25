@@ -20,7 +20,9 @@
     },
     "id": {
       "type": "string",
-      "description": "Unique plugin identifier"
+      "minLength": 1,
+      "pattern": "^(?:[A-Za-z0-9\\-_.!~*'()]+|%[0-9A-Fa-f]{2})+$",
+      "description": "Unique plugin identifier. It needs to be a string that can be used for URL fragments"
     },
     "entry": {
       "type": "string",
@@ -57,7 +59,8 @@
               "STORAGE_PROVIDER",
               "AUTH_PROVIDER",
               "TEXT_VECTORIZER",
-              "VECTOR_STORAGE"
+              "VECTOR_STORAGE",
+              "MFA_PROVIDER"
             ]
           }
         },

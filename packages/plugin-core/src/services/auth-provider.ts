@@ -1,5 +1,6 @@
 import type { JSONSchema, JSONType } from "@cat/shared/schema/json";
-import type { IPluginService } from "@/registry/plugin-registry.ts";
+import type { IPluginService } from "@/services/service";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 export type PreAuthResult = {
   /**
@@ -21,27 +22,14 @@ export type AuthResult = {
   accountMeta?: JSONType;
 };
 
-export type MFAChallengeResult = {
-  /**
-   * 此获取挑战会话储存的额外元数据，将在验证阶段被作为参数传递给 verifyChallenge
-   */
-  meta: JSONType;
-  /**
-   * 获取挑战端点返回给客户端的挑战数据
-   */
-  passToClient: JSONType;
-};
-
-export type MFAVerifyResult = {
-  isSuccess: boolean;
-};
-
-export interface AuthProvider extends IPluginService {
-  getName: () => string;
-  getIcon: () => string;
-  handlePreAuth?: (identifier: string) => Promise<PreAuthResult>;
-  getAuthFormSchema?: () => JSONSchema;
-  handleAuth: (
+export abstract class AuthProvider implements IPluginService {
+  abstract getId(): string;
+  getType(): PluginServiceType {
+    return "AUTH_PROVIDER";
+  }
+  abstract getName(): string;
+  abstract getIcon(): string;
+  abstract handleAuth(
     userId: string,
     identifier: string,
     gotFromClient: {
@@ -49,18 +37,10 @@ export interface AuthProvider extends IPluginService {
       formData?: unknown;
     },
     preAuthMeta: JSONType,
-  ) => Promise<AuthResult>;
-  handleLogout?: (sessionId: string) => Promise<void>;
-  isAvailable: () => Promise<boolean>;
-}
+  ): Promise<AuthResult>;
+  abstract isAvailable(): Promise<boolean>;
 
-export interface MFAProvider extends IPluginService {
-  generateChallenge: () => Promise<MFAChallengeResult>;
-  getVerfifyChallengeFormSchema?: () => JSONSchema;
-  verifyChallenge: (
-    gotFromClient: {
-      formData?: unknown;
-    },
-    generateChallengeMeta: JSONType,
-  ) => Promise<MFAVerifyResult>;
+  getAuthFormSchema?(): JSONSchema;
+  handlePreAuth?(identifier: string): Promise<PreAuthResult>;
+  handleLogout?(sessionId: string): Promise<void>;
 }

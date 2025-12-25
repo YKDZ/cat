@@ -1,5 +1,9 @@
 import { getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
-import type { AuthProvider, AuthResult, PreAuthResult } from "@cat/plugin-core";
+import {
+  AuthProvider,
+  type AuthResult,
+  type PreAuthResult,
+} from "@cat/plugin-core";
 import { safeJoinURL } from "@cat/shared/utils";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import * as z from "zod/v4";
@@ -8,7 +12,6 @@ import { randomChars } from "./utils/crypto.ts";
 import { createOIDCAuthURL } from "./utils/oidc.ts";
 import { ProviderConfigSchema, type ProviderConfig } from "./index.ts";
 import type { JSONType } from "@cat/shared/schema/json";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 const SearchParasSchema = z.object({
   state: z.string(),
@@ -21,19 +24,17 @@ const PreAuthMetaSchema = z.object({
 });
 type PreAuthMeta = z.infer<typeof PreAuthMetaSchema>;
 
-export class Provider implements AuthProvider {
+export class Provider extends AuthProvider {
   private config: ProviderConfig;
 
   constructor(config: JSONType) {
+    // oxlint-disable-next-line no-unsafe-call
+    super();
     this.config = ProviderConfigSchema.parse(config);
   }
 
   getId(): string {
     return this.config.issuer;
-  }
-
-  getType(): PluginServiceType {
-    return "AUTH_PROVIDER";
   }
 
   getName(): string {
@@ -44,7 +45,7 @@ export class Provider implements AuthProvider {
     return "icon-[mdi--ssh]";
   }
 
-  async handlePreAuth(): Promise<PreAuthResult> {
+  override async handlePreAuth(): Promise<PreAuthResult> {
     if (!this.config.clientId) throw new Error("Config invalid");
 
     const state = randomChars();
@@ -148,7 +149,7 @@ export class Provider implements AuthProvider {
     } satisfies AuthResult;
   }
 
-  async handleLogout(sessionId: string): Promise<void> {
+  override async handleLogout(sessionId: string): Promise<void> {
     const { redis } = await getRedisDB();
     const { client: drizzle } = await getDrizzleDB();
     const idToken = await redis.hGet(`user:session:${sessionId}`, "idToken");

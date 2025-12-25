@@ -1,18 +1,9 @@
-import type {
-  CatPlugin,
-  ComponentData,
-  IPluginService,
-  PluginInstallOptions,
-} from "@cat/plugin-core";
+import type { CatPlugin, ServicesContext } from "@cat/plugin-core";
 import { S3StorageProvider } from "./provider.ts";
 
 class Plugin implements CatPlugin {
-  async install(
-    services: IPluginService[],
-    components: ComponentData[],
-    options?: PluginInstallOptions,
-  ) {
-    services.push(new S3StorageProvider(options?.config ?? {}));
+  services(ctx: ServicesContext) {
+    return [new S3StorageProvider(ctx.config ?? {})];
   }
 }
 

@@ -1,5 +1,4 @@
-import type { TextVectorizer } from "@cat/plugin-core";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import { TextVectorizer } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type {
   UnvectorizedTextData,
@@ -16,21 +15,19 @@ const ConfigSchema = z.object({
 
 type Config = z.infer<typeof ConfigSchema>;
 
-export class Vectorizer implements TextVectorizer {
+export class Vectorizer extends TextVectorizer {
   private config: Config;
   private pool: Pool;
 
   constructor(config: JSONType) {
+    // oxlint-disable-next-line no-unsafe-call
+    super();
     this.config = ConfigSchema.parse(config);
     this.pool = new Pool(new URL(this.config.url));
   }
 
   getId(): string {
     return "ollama";
-  }
-
-  getType(): PluginServiceType {
-    return "TEXT_VECTORIZER";
   }
 
   canVectorize(): boolean {

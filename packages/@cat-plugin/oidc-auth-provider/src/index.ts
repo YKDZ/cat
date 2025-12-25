@@ -1,9 +1,4 @@
-import type {
-  CatPlugin,
-  PluginInstallOptions,
-  ComponentData,
-  IPluginService,
-} from "@cat/plugin-core";
+import type { CatPlugin, ServicesContext } from "@cat/plugin-core";
 import * as z from "zod/v4";
 import { Provider } from "./provider.ts";
 
@@ -25,12 +20,8 @@ export const ConfigSchema = z.array(ProviderConfigSchema);
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 
 class Plugin implements CatPlugin {
-  async install(
-    serviceMap: IPluginService[],
-    components: ComponentData[],
-    options?: PluginInstallOptions,
-  ) {
-    serviceMap.push(new Provider(options?.config ?? {}));
+  services(ctx: ServicesContext) {
+    return [new Provider(ctx.config ?? {})];
   }
 }
 

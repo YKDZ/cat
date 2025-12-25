@@ -1,5 +1,4 @@
-import type { TranslationAdvisor } from "@cat/plugin-core";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import { TranslationAdvisor } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 import { logger } from "@cat/shared/utils";
@@ -25,11 +24,14 @@ type Config = z.infer<typeof ConfigSchema>;
 
 const supportedLanguages = new Map<string, string[]>();
 
-export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
+export class Advisor extends TranslationAdvisor {
   private pool: Pool;
   private config: Config;
 
   constructor(config: JSONType) {
+    // oxlint-disable-next-line no-unsafe-call
+    super();
+
     this.config = ConfigSchema.parse(config);
     this.pool = new Pool(this.config.api.url);
     this.fetchSupportedLanguages().catch((err: unknown) => {
@@ -87,10 +89,6 @@ export class LibreTranslateTranslationAdvisor implements TranslationAdvisor {
 
   getId(): string {
     return "libretranslate";
-  }
-
-  getType(): PluginServiceType {
-    return "TRANSLATION_ADVISOR";
   }
 
   getName(): string {

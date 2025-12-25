@@ -3,11 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import * as z from "zod/v4";
-import {
-  _JSONSchemaSchema,
-  JSONSchemaSchema,
-  type JSONType,
-} from "@cat/shared/schema/json";
+import { _JSONSchemaSchema, JSONSchemaSchema } from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
   assertSingleNonNullish,
@@ -35,7 +31,7 @@ import type { TranslationAdvisor } from "@/services/translation-advisor.ts";
 import type { TranslatableFileHandler } from "@/services/translatable-file-handler.ts";
 import type { TextVectorizer } from "@/services/text-vectorizer.ts";
 import type { StorageProvider } from "@/services/storage-provider.ts";
-import type { AuthProvider, MFAProvider } from "@/services/auth-provider.ts";
+import type { AuthProvider } from "@/services/auth-provider.ts";
 import { existsSync } from "node:fs";
 import { IVectorStorage } from "@/services/vector-storage";
 import {
@@ -55,10 +51,12 @@ import type {
 import type { QAChecker } from "@/services/qa";
 import {
   ComponentRegistry,
-  type ComponentData,
   type ComponentRecord,
 } from "@/registry/component-registry";
+import type { CatPlugin } from "@/entities/plugin";
 import { getPluginConfig } from "@/utils/config";
+import { Hono } from "hono";
+import type { MFAProvider } from "@/services/mfa-provider";
 
 type PluginServiceTypeMap = {
   AUTH_PROVIDER: AuthProvider;
@@ -77,33 +75,6 @@ type PluginServiceTypeMap = {
 type PluginServiceMap = {
   [K in PluginServiceType]: PluginServiceTypeMap[K];
 };
-
-export interface IPluginService {
-  getId(): string;
-  getType(): PluginServiceType;
-}
-
-export type LoadPluginsOptions = {
-  ids?: string[];
-};
-
-export type PluginInstallOptions = {
-  config?: JSONType;
-};
-
-export type GetterOptions = {
-  scopeType: ScopeType;
-  scopeId: string;
-};
-
-export interface CatPlugin {
-  install?: (
-    services: IPluginService[],
-    components: ComponentData[],
-    options?: PluginInstallOptions,
-  ) => Promise<void>;
-  uninstall?: () => Promise<void>;
-}
 
 const PluginObjectSchema = z.custom<CatPlugin>();
 
@@ -271,21 +242,6 @@ export class PluginRegistry {
       `Plugin ${pluginId} not installed in scope ${this.scopeType}:${this.scopeId}`,
     );
 
-    try {
-      const pluginObj = await this.getPluginInstance(pluginId);
-      if (pluginObj.uninstall) await pluginObj.uninstall();
-    } catch (e) {
-      logger.error(
-        "PLUGIN",
-        {
-          msg: "Plugin error when uninstall. Uninstall will not continue",
-          plugin,
-        },
-        e,
-      );
-      return;
-    }
-
     await drizzle
       .delete(pluginInstallation)
       .where(
@@ -311,6 +267,7 @@ export class PluginRegistry {
     if (!this.serviceRegistry.has(record))
       throw new Error(`Service ${id} not found`);
 
+    // oxlint-disable-next-line no-unsafe-return
     return this.serviceRegistry.get(record) as unknown as PluginServiceMap[T];
   }
 
@@ -471,7 +428,10 @@ export class PluginRegistry {
     return results;
   }
 
-  public async loadAllPlugins(drizzle: OverallDrizzleClient): Promise<void> {
+  public async enableAllPlugins(
+    drizzle: OverallDrizzleClient,
+    app: Hono,
+  ): Promise<void> {
     const installations = await drizzle
       .select({
         pluginId: pluginInstallation.pluginId,
@@ -486,28 +446,73 @@ export class PluginRegistry {
 
     await Promise.all(
       installations.map(async ({ pluginId }) => {
-        const services: IPluginService[] = [];
-        const compnents: Omit<ComponentRecord, "pluginId">[] = [];
-        const pluginObj = await this.getPluginInstance(pluginId);
-        if (pluginObj.install)
-          await pluginObj.install(services, compnents, {
-            config: await getPluginConfig(
-              drizzle,
-              pluginId,
-              this.scopeType,
-              this.scopeId,
-            ),
-          });
-        this.componentRegistry.combine(
-          pluginId,
-          compnents.map((component) => ({ ...component, pluginId })),
-        );
-        this.serviceRegistry.combine(pluginId, services);
+        await this.enablePlugin(drizzle, pluginId, app);
       }),
     );
   }
 
-  public async reload(drizzle: OverallDrizzleClient): Promise<void> {
-    await this.loadAllPlugins(drizzle);
+  public async enablePlugin(
+    drizzle: OverallDrizzleClient,
+    pluginId: string,
+    app: Hono,
+  ): Promise<void> {
+    const pluginObj = await this.getPluginInstance(pluginId);
+    const config = await getPluginConfig(
+      drizzle,
+      pluginId,
+      this.scopeType,
+      this.scopeId,
+    );
+
+    const registeredServices = await drizzle
+      .select({
+        type: pluginService.serviceType,
+        id: pluginService.serviceId,
+        dbId: pluginService.id,
+      })
+      .from(pluginInstallation)
+      .innerJoin(
+        pluginService,
+        eq(pluginService.pluginInstallationId, pluginInstallation.id),
+      )
+      .where(
+        and(
+          eq(pluginInstallation.scopeType, this.scopeType),
+          eq(pluginInstallation.scopeId, this.scopeId),
+          eq(pluginInstallation.pluginId, pluginId),
+        ),
+      );
+
+    if (pluginObj.services) {
+      const services = await pluginObj.services({
+        config,
+        services: registeredServices,
+      });
+      this.serviceRegistry.combine(pluginId, services);
+    }
+
+    if (pluginObj.components) {
+      const components = await pluginObj.components({
+        config,
+        services: registeredServices,
+      });
+      this.componentRegistry.combine(
+        pluginId,
+        components.map((component) => ({ ...component, pluginId })),
+      );
+    }
+
+    if (pluginObj.routes) {
+      const route = new Hono();
+      const baseURL = `/_plugin_route/${pluginId}`;
+
+      await pluginObj.routes({ route, baseURL, services: registeredServices });
+
+      app.route(baseURL, route);
+    }
+  }
+
+  public async reload(drizzle: OverallDrizzleClient, app: Hono): Promise<void> {
+    await this.enableAllPlugins(drizzle, app);
   }
 }

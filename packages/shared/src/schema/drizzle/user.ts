@@ -1,5 +1,6 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
+import { nonNullSafeZDotJson } from "@/schema/json";
 
 export const UserSchema = z.object({
   id: z.uuidv4(),
@@ -21,5 +22,16 @@ export const AccountSchema = z.object({
   updatedAt: DrizzleDateTimeSchema,
 });
 
+export const MFAProviderSchema = z.object({
+  id: z.int(),
+  failureCount: z.int().min(0),
+  lastUsedAt: DrizzleDateTimeSchema.nullable(),
+  payload: nonNullSafeZDotJson,
+  mfaServiceId: z.int(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
 export type User = z.infer<typeof UserSchema>;
 export type Account = z.infer<typeof AccountSchema>;
+export type MFAProvider = z.infer<typeof MFAProviderSchema>;

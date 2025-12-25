@@ -8,10 +8,9 @@ import {
   YAMLSeq,
 } from "yaml";
 import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
-import type { TranslatableFileHandler } from "@cat/plugin-core";
+import { TranslatableFileHandler } from "@cat/plugin-core";
 import { JSONType } from "@cat/shared/schema/json";
 import * as z from "zod";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 type YamlValue = string | number | boolean | null | YamlObject | YamlArray;
 
@@ -33,13 +32,9 @@ function isString(val: unknown): val is string {
   return typeof val === "string";
 }
 
-export class YAMLTranslatableFileHandler implements TranslatableFileHandler {
+export class YAMLTranslatableFileHandler extends TranslatableFileHandler {
   getId(): string {
     return "YAML";
-  }
-
-  getType(): PluginServiceType {
-    return "TRANSLATABLE_FILE_HANDLER";
   }
 
   canExtractElement(name: string): boolean {

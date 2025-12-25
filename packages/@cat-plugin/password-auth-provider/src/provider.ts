@@ -7,8 +7,7 @@ import {
   and,
   account as accountTable,
 } from "@cat/db";
-import type { AuthProvider, AuthResult } from "@cat/plugin-core";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import { AuthProvider, type AuthResult } from "@cat/plugin-core";
 import { JSONSchema } from "@cat/shared/schema/json";
 import { assertFirstNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
@@ -20,13 +19,9 @@ const FormSchema = z.object({
     .meta({ "x-secret": true, "x-autocomplete": "current-password" }),
 });
 
-export class Provider implements AuthProvider {
+export class Provider extends AuthProvider {
   getId(): string {
     return "PASSWORD";
-  }
-
-  getType(): PluginServiceType {
-    return "AUTH_PROVIDER";
   }
 
   getName(): string {
@@ -37,7 +32,7 @@ export class Provider implements AuthProvider {
     return "icon-[mdi--ssh]";
   }
 
-  getAuthFormSchema(): JSONSchema {
+  override getAuthFormSchema(): JSONSchema {
     return z.toJSONSchema(FormSchema);
   }
 
