@@ -11,7 +11,19 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.vue"],
+  "include": ["**/*.ts", "**/*.d.ts", "**/*.vue"],
+  "exclude": [
+    "dist",
+    "dist/**",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx",
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    "src/**/*.test.jsx",
+    "src/**/*.spec.jsx"
+  ],
   "references": [
     {
       "path": "../../shared/tsconfig.lib.json"
@@ -22,15 +34,5 @@
     {
       "path": "../../db/tsconfig.lib.json"
     }
-  ],
-  "exclude": [
-    "src/**/*.test.ts",
-    "src/**/*.spec.ts",
-    "src/**/*.test.tsx",
-    "src/**/*.spec.tsx",
-    "src/**/*.test.js",
-    "src/**/*.spec.js",
-    "src/**/*.test.jsx",
-    "src/**/*.spec.jsx"
   ]
 }

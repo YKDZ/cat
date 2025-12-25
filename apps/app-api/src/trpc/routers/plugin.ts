@@ -43,7 +43,7 @@ export const pluginRouter = router({
       const { scopeType, scopeId } = input;
 
       const registry = PluginRegistry.get(scopeType, scopeId);
-      await registry.reload(drizzle);
+      await registry.reload(drizzle, globalThis.app);
     }),
   getConfigInstance: permissionProcedure(
     "PLUGIN",
