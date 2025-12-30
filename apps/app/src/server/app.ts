@@ -3,6 +3,7 @@ import { trpcHandler } from "./handler/trpc.ts";
 import { healthHandler } from "./handler/health.ts";
 import { pinoLoggerMiddleware } from "./middleware/logger.ts";
 import { pluginHandler } from "@/server/handler/plugin.ts";
+import { telefuncHandler } from "@/server/handler/telefunc.ts";
 
 const app = new Hono();
 globalThis.app = app;
@@ -17,6 +18,7 @@ app.use(async (c, next) => {
 
 app.use("*", pinoLoggerMiddleware);
 
+app.route("/_telefunc", telefuncHandler);
 app.route("/api/trpc", trpcHandler);
 
 app.route("/api/__health", healthHandler);

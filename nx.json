@@ -4,7 +4,7 @@
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
-      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/**/*.+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/src/test-setup.[jt]s"
     ],
@@ -35,6 +35,10 @@
     },
     "typecheck": {
       "dependsOn": ["^build", "build"],
+      "cache": true
+    },
+    "test": {
+      "dependsOn": ["build"],
       "cache": true
     },
     "format": {

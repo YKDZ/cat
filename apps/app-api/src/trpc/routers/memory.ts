@@ -256,7 +256,7 @@ export const memoryRouter = router({
       memoryId: z.uuidv4(),
     }),
   )
-    .output(z.number().int())
+    .output(z.int())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },

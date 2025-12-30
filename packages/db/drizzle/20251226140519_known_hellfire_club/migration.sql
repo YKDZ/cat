@@ -1,0 +1,4 @@
+ALTER TABLE "MemoryItem" ALTER COLUMN "creator_id" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "Translation" ALTER COLUMN "translator_id" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "MemoryItem" DROP CONSTRAINT "MemoryItem_creator_id_User_id_fkey", ADD CONSTRAINT "MemoryItem_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "Translation" DROP CONSTRAINT "Translation_translator_id_User_id_fkey", ADD CONSTRAINT "Translation_translator_id_User_id_fkey" FOREIGN KEY ("translator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

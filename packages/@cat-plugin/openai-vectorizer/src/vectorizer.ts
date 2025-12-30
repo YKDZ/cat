@@ -27,7 +27,7 @@ export class Vectorizer extends TextVectorizer {
   }
 
   getId(): string {
-    return "ollama";
+    return "openai";
   }
 
   canVectorize(): boolean {
@@ -37,7 +37,7 @@ export class Vectorizer extends TextVectorizer {
   async vectorize(
     elements: UnvectorizedTextData[],
   ): Promise<VectorizedTextData[]> {
-    const values: string[] = elements.map((element) => element.value);
+    const values: string[] = elements.map((element) => element.text);
 
     const response = await this.pool.request({
       path: this.config.path,

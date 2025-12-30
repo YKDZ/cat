@@ -11,7 +11,6 @@ export abstract class TranslationAdvisor implements IPluginService {
   abstract canSuggest(languageFromId: string, languageToId: string): boolean;
   abstract getSuggestions(
     value: string,
-    termedValue: string,
     terms: { term: string; translation: string; subject: string | null }[],
     languageFromId: string,
     languageToId: string,

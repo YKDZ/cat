@@ -1,0 +1,1 @@
+ALTER TABLE "TranslatableElement" ALTER COLUMN "sort_index" DROP NOT NULL;

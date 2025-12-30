@@ -8,6 +8,6 @@ test("should return correct string", () => {
   const result = useStringTemplate(template, { date });
 
   expect(result).toStrictEqual(
-    `/test/path/${date.getFullYear()}/${date.getMonth()}/${date.getDate()}`,
+    `/test/path/${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`,
   );
 });

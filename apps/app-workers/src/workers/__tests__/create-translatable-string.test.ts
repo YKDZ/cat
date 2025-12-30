@@ -1,0 +1,137 @@
+import { beforeAll, expect, test } from "vitest";
+import {
+  eq,
+  getColumns,
+  getDrizzleDB,
+  language,
+  plugin,
+  translatableString,
+} from "@cat/db";
+import { PluginRegistry, TestPluginLoader } from "@cat/plugin-core";
+import { firstOrGivenService } from "@cat/app-server-shared/utils";
+import { createTranslatableStringTask } from "@/workers/create-translatable-string";
+import { zip } from "@cat/shared/utils";
+import { setupTestDB } from "@cat/test-utils";
+
+beforeAll(async () => {
+  const { client: drizzle } = await setupTestDB();
+
+  const pluginRegistry = PluginRegistry.get(
+    "GLOBAL",
+    "",
+    new TestPluginLoader(),
+  );
+
+  await pluginRegistry.importAvailablePlugins(drizzle);
+  await pluginRegistry.installPlugin(drizzle, "mock");
+  // @ts-expect-error no need for hono here
+  await pluginRegistry.enableAllPlugins(drizzle, {});
+
+  // Seed
+  await drizzle.insert(language).values([
+    {
+      id: "en",
+    },
+    {
+      id: "zh_Hans",
+    },
+  ]);
+});
+
+test("language should exists in db", async () => {
+  const { client: drizzle } = await getDrizzleDB();
+
+  const langs = await drizzle.select(getColumns(language)).from(language);
+
+  expect(langs.length).toEqual(2);
+});
+
+test("plugin should exists in db", async () => {
+  const { client: drizzle } = await getDrizzleDB();
+
+  const plugs = await drizzle
+    .select({ id: plugin.id })
+    .from(plugin)
+    .where(eq(plugin.id, "mock"));
+
+  expect(plugs.length).toEqual(1);
+});
+
+test("vectorizer and vector storage should exists", async () => {
+  const { client: drizzle } = await getDrizzleDB();
+  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+
+  const vectorizer = await firstOrGivenService(
+    drizzle,
+    pluginRegistry,
+    "TEXT_VECTORIZER",
+    0,
+  );
+
+  const vectorStorage = await firstOrGivenService(
+    drizzle,
+    pluginRegistry,
+    "VECTOR_STORAGE",
+    0,
+  );
+
+  expect(vectorizer).toBeDefined();
+  expect(vectorStorage).toBeDefined();
+});
+
+test("worker should insert strings to db", async () => {
+  const { client: drizzle } = await getDrizzleDB();
+
+  const data = [
+    {
+      text: "Text 1",
+      languageId: "en",
+    },
+    {
+      text: "Text 2",
+      languageId: "en",
+    },
+    {
+      text: "Text 3",
+      languageId: "en",
+    },
+  ];
+
+  const { result } = await createTranslatableStringTask.run({
+    data,
+  });
+
+  const { stringIds } = await result();
+
+  const strings = await drizzle
+    .select(getColumns(translatableString))
+    .from(translatableString);
+
+  expect(strings.length).toEqual(data.length);
+
+  // 测试返回 stringId 的顺序是否与元数据相同
+
+  for (const [stringId, stringData] of zip(stringIds, data)) {
+    // oxlint-disable-next-line no-await-in-loop
+    const strings = await drizzle
+      .select({ value: translatableString.value })
+      .from(translatableString)
+      .where(eq(translatableString.id, stringId));
+
+    expect(strings.length).toEqual(1);
+
+    expect(strings[0].value).toEqual(stringData.text);
+  }
+});
+
+test("empty input should return empty array", async () => {
+  const data: { text: string; languageId: string }[] = [];
+
+  const { result } = await createTranslatableStringTask.run({
+    data,
+  });
+
+  const { stringIds } = await result();
+
+  expect(stringIds.length).toEqual(0);
+});

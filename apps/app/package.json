@@ -62,6 +62,7 @@
     "reka-ui": "^2.6.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
+    "telefunc": "^0.2.17",
     "tw-animate-css": "^1.4.0",
     "undici": "^7.16.0",
     "universal-cookie": "^8.0.1",

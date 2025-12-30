@@ -3,21 +3,15 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
 import { sql } from "drizzle-orm";
-import * as schema from "./schema/schema.ts";
-import * as relations from "./schema/relations.ts";
-
-type DrizzleSchema = typeof schema & typeof relations;
-
-const combinedSchema: DrizzleSchema = {
-  ...schema,
-  ...relations,
-};
+import { combinedSchema, type DrizzleSchema } from "@/drizzle/schema.ts";
 
 export class DrizzleDB {
   public client: NodePgDatabase<DrizzleSchema> & { $client: Client };
 
   constructor() {
-    const client = new Client({ connectionString: process.env.DATABASE_URL });
+    const client = new Client({
+      connectionString: process.env.DATABASE_URL,
+    });
     this.client = drizzle({
       client,
       schema: combinedSchema,

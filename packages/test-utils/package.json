@@ -1,0 +1,34 @@
+{
+  "name": "@cat/test-utils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.14"
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*",
+    "unplugin-dts": "1.0.0-beta.6",
+    "vite": "^7.3.0",
+    "drizzle-kit": "beta"
+  },
+  "peerDependencies": {
+    "@cat/db": "workspace:*",
+    "drizzle-orm": "1.0.0-beta.6-4414a19"
+  },
+  "packageManager": "pnpm@10.26.2"
+}

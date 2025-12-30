@@ -16,8 +16,8 @@ const diffedLines = computed<DiffedLine[]>(() => {
   const changes = diffLines(props.old, props.now);
   const result: DiffedLine[] = [];
 
-  let oldLineNum = 1;
-  let newLineNum = 1;
+  let oldLineNum = 0;
+  let newLineNum = 0;
 
   for (const change of changes) {
     const lines = change.value.split("\n");

@@ -1,7 +1,7 @@
 import type { IPluginService } from "@/services/service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
-export abstract class IVectorStorage implements IPluginService {
+export abstract class VectorStorage implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType {
     return "VECTOR_STORAGE";

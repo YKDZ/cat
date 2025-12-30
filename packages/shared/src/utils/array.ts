@@ -79,7 +79,48 @@ export const getIndex = <T>(arr: T[], index: number): T => {
   return arr[index];
 };
 
-export const zip = <T, U>(a: T[], b: U[]): [T, U][] => {
-  if (a.length !== b.length) throw new Error("length mismatch");
-  return a.map((x, i) => [x, b[i]] as [T, U]);
+type RowOf<T extends readonly unknown[][]> = {
+  [K in keyof T]: T[K][number];
+};
+
+const isRow = <T extends readonly unknown[][]>(
+  row: readonly unknown[],
+  arrays: T,
+): row is RowOf<T> => row.length === arrays.length;
+
+/**
+ * 输入任意个长度相同的数组 a, b, c...
+ * 输出由每个数组同一位置元素组成的数组的迭代器
+ */
+export const zip = <T extends readonly unknown[][]>(
+  ...arrays: T
+): Iterable<RowOf<T>> => {
+  const len = arrays[0]?.length ?? 0;
+
+  for (const arr of arrays) {
+    if (arr.length !== len) {
+      throw new Error("Array length mismatch");
+    }
+  }
+
+  let i = 0;
+
+  return {
+    [Symbol.iterator]: () => ({
+      next: () => {
+        if (i >= len) {
+          return { value: undefined, done: true as const };
+        }
+
+        const row = arrays.map((a) => a[i]);
+        i += 1;
+
+        if (!isRow(row, arrays)) {
+          throw new Error("Unexpected shape");
+        }
+
+        return { value: row, done: false as const };
+      },
+    }),
+  };
 };

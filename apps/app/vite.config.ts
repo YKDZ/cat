@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import vueDevTools from "vite-plugin-vue-devtools";
 import tailwindcss from "@tailwindcss/vite";
+import { telefunc } from "telefunc/vite";
 
 export default defineConfig({
   resolve: {
@@ -20,13 +21,13 @@ export default defineConfig({
   },
 
   plugins: [
+    telefunc(),
     tailwindcss(),
     vike(),
     VueI18nPlugin({
       ssr: true,
       include: [resolve(import.meta.dirname, "./locales/**")],
     }),
-    // @ts-expect-error tailwind error
     vue({
       include: [/\.vue$/, /\.md$/],
     }),

@@ -9,12 +9,12 @@ import {
   translatableString,
   union,
 } from "@cat/db";
-import { IVectorStorage } from "@cat/plugin-core";
+import { VectorStorage } from "@cat/plugin-core";
 import { MemorySuggestion } from "@cat/shared/schema/misc";
 
 export const searchMemory = async (
   drizzle: OverallDrizzleClient,
-  vectorStorage: IVectorStorage,
+  vectorStorage: VectorStorage,
   embeddings: number[][],
   sourceLanguageId: string,
   translationLanguageId: string,

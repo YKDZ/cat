@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends AcceptableInputValue">
 import { useI18n } from "vue-i18n";
 import type { PickerOption } from "./index.ts";
 import {
@@ -26,19 +26,19 @@ import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 const { t } = useI18n();
 
 defineProps<{
-  options: PickerOption[];
+  options: PickerOption<T>[];
   placeholder: string;
 }>();
 
-const modelValue = defineModel<AcceptableInputValue>();
+const modelValue = defineModel<T>();
 const search = defineModel<string>("search", { default: "" });
 
-const selectedOption = ref<PickerOption>();
+const selectedOption = ref<PickerOption<T>>();
 
-const onSelect = (value: PickerOption | undefined) => {
+const onSelect = (value: PickerOption<T> | undefined) => {
   selectedOption.value =
     selectedOption.value?.value === value?.value ? undefined : value;
-  modelValue.value = selectedOption.value ?? undefined;
+  modelValue.value = selectedOption.value?.value ?? undefined;
 };
 </script>
 
@@ -70,7 +70,7 @@ const onSelect = (value: PickerOption | undefined) => {
     <ComboboxList>
       <div class="relative w-full max-w-sm items-center">
         <ComboboxInput
-          class="focus-visible:ring-0 rounded-none h-10"
+          class="focus-visible:ring-0 rounded-none h-10 pointer-events-auto"
           v-model="search"
           :placeholder
         />
@@ -93,7 +93,7 @@ const onSelect = (value: PickerOption | undefined) => {
           >
             <ComboboxItem
               class="w-full"
-              @select="(e) => onSelect(e.detail.value as PickerOption)"
+              @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
               :value="option"
             >
               {{ option.content }}

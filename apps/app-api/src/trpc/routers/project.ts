@@ -657,7 +657,7 @@ export const projectRouter = router({
         const ids = (
           await tx
             .select({
-              languageId: language.id,
+              languageId: projectTargetLanguage.languageId,
             })
             .from(projectTargetLanguage)
             .where(eq(projectTargetLanguage.projectId, projectId))

@@ -19,7 +19,6 @@ declare global {
       drizzleDB: DrizzleDB;
       redisDB: RedisDB;
       pluginRegistry: PluginRegistry;
-      workerRegistry: WorkerRegistry;
     }
   }
 }

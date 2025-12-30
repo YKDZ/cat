@@ -8,7 +8,7 @@ import {
   and,
   eq,
 } from "@cat/db";
-import { IVectorStorage, TextVectorizer } from "@cat/plugin-core";
+import { VectorStorage, TextVectorizer } from "@cat/plugin-core";
 import { JSONType } from "@cat/shared/schema/json";
 import { UnvectorizedTextData } from "@cat/shared/schema/misc";
 import { logger } from "@cat/shared/utils";
@@ -17,7 +17,7 @@ const vectorizeToChunkSetsBatch = async (
   drizzle: Omit<DrizzleClient, "$client">,
   vectorizer: TextVectorizer,
   vectorizerId: number,
-  vectorStorage: IVectorStorage,
+  vectorStorage: VectorStorage,
   vectorStorageId: number,
   texts: UnvectorizedTextData[],
 ): Promise<number[]> => {
@@ -140,19 +140,19 @@ export const createStringFromData = async (
   tx: OverallDrizzleClient,
   vectorizer: TextVectorizer,
   vectorizerId: number,
-  vectorStorage: IVectorStorage,
+  vectorStorage: VectorStorage,
   vectorStorageId: number,
   data: UnvectorizedTextData[],
 ): Promise<number[]> => {
   if (data.length === 0) return [];
 
-  const makeKey = (languageId: string, value: string) =>
-    `${languageId}::${value}`;
+  const makeKey = (languageId: string, text: string) =>
+    `${languageId}::${text}`;
 
   const uniqueEntries: { key: string; data: UnvectorizedTextData }[] = [];
   const seenKeys = new Set<string>();
   for (const item of data) {
-    const key = makeKey(item.languageId, item.value);
+    const key = makeKey(item.languageId, item.text);
     if (!seenKeys.has(key)) {
       seenKeys.add(key);
       uniqueEntries.push({ key, data: item });
@@ -168,7 +168,7 @@ export const createStringFromData = async (
       if (!byLanguage.has(langId)) {
         byLanguage.set(langId, []);
       }
-      byLanguage.get(langId)!.push(entry.data.value);
+      byLanguage.get(langId)!.push(entry.data.text);
     }
 
     const languageIds = Array.from(byLanguage.keys());
@@ -201,7 +201,7 @@ export const createStringFromData = async (
   const missingEntries = uniqueEntries.filter((e) => !idMap.has(e.key));
   if (missingEntries.length === 0) {
     return data.map((item) => {
-      const key = makeKey(item.languageId, item.value);
+      const key = makeKey(item.languageId, item.text);
       const id = idMap.get(key)!;
       return id;
     });
@@ -229,7 +229,7 @@ export const createStringFromData = async (
       .insert(translatableString)
       .values(
         chunk.map((entry, index) => ({
-          value: entry.data.value,
+          value: entry.data.text,
           languageId: entry.data.languageId,
           chunkSetId: chunkSetIds[index],
         })),
@@ -257,7 +257,7 @@ export const createStringFromData = async (
         if (!byLanguage.has(langId)) {
           byLanguage.set(langId, []);
         }
-        byLanguage.get(langId)!.push(entry.data.value);
+        byLanguage.get(langId)!.push(entry.data.text);
       }
 
       // 并行查询所有语言
@@ -290,11 +290,11 @@ export const createStringFromData = async (
   }
 
   return data.map((item) => {
-    const key = makeKey(item.languageId, item.value);
+    const key = makeKey(item.languageId, item.text);
     const id = idMap.get(key);
     if (id === undefined)
       throw new Error(
-        `Failed to resolve translatable string id for languageId: ${item.languageId}, value: ${item.value}`,
+        `Failed to resolve translatable string id for languageId: ${item.languageId}, text: ${item.text}`,
       );
     return id;
   });

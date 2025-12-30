@@ -6,3 +6,4 @@ export * from "./string-template.ts";
 export * from "./json-schema.ts";
 export * from "./array.ts";
 export * from "./assert.ts";
+export * from "./object.ts";

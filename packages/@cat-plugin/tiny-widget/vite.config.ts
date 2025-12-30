@@ -12,7 +12,6 @@ const componentEnvironments = Object.fromEntries(
     {
       consumer: "client",
       build: {
-        ssr: false,
         emptyOutDir: false,
         lib: {
           entry,
@@ -37,7 +36,6 @@ export default defineConfig({
   environments: {
     server: {
       build: {
-        ssr: true,
         emptyOutDir: true,
         lib: {
           entry: "src/index.ts",

@@ -35,6 +35,5 @@ export const useSSCTRPC = (
     drizzleDB: ctx.globalContext.drizzleDB,
     redisDB: ctx.globalContext.redisDB,
     pluginRegistry: ctx.globalContext.pluginRegistry,
-    workerRegistry: ctx.globalContext.workerRegistry,
     ...(extraCtx ?? {}),
   });

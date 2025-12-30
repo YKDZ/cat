@@ -38,7 +38,6 @@ declare global {
       drizzleDB: DrizzleDB;
       redisDB: RedisDB;
       pluginRegistry: PluginRegistry;
-      workerRegistry: WorkerRegistry;
       resolvePluginComponentPath: typeof resolvePluginComponentPath;
     }
     interface GlobalContextClient {

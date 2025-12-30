@@ -307,9 +307,10 @@ export const memory = pgTable("Memory", {
 
 export const memoryItem = pgTable("MemoryItem", {
   id: serial().primaryKey(),
-  creatorId: uuid()
-    .notNull()
-    .references(() => user.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  creatorId: uuid().references(() => user.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
   memoryId: uuid()
     .notNull()
     .references(() => memory.id, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -607,9 +608,10 @@ export const task = pgTable(
 
 export const term = pgTable("Term", {
   id: serial().primaryKey(),
-  creatorId: uuid()
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+  creatorId: uuid().references(() => user.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
   stringId: integer()
     .notNull()
     .references(() => translatableString.id, {
@@ -650,7 +652,7 @@ export const translatableElement = pgTable("TranslatableElement", {
     onDelete: "set null",
     onUpdate: "cascade",
   }),
-  sortIndex: integer().notNull(),
+  sortIndex: integer(),
   creatorId: uuid().references(() => user.id, {
     onDelete: "cascade",
     onUpdate: "cascade",
@@ -788,9 +790,10 @@ export const translation = pgTable(
   "Translation",
   {
     id: serial().primaryKey(),
-    translatorId: uuid()
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    translatorId: uuid().references(() => user.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
     translatableElementId: integer()
       .notNull()
       .references(() => translatableElement.id, {

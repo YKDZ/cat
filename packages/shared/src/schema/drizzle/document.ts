@@ -20,7 +20,7 @@ export const DocumentSchema = z.object({
 
 export const TranslatableElementSchema = z.object({
   id: z.int(),
-  sortIndex: z.int(),
+  sortIndex: z.int().nullable(),
   meta: safeZDotJson,
   documentVersionId: z.int().nullable(),
   creatorId: z.uuidv4().nullable(),
