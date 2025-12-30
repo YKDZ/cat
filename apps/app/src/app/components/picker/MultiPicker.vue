@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends AcceptableInputValue">
 import type { PickerOption } from "./index.ts";
 import { ComboboxVirtualizer, type AcceptableInputValue } from "reka-ui";
 import {
@@ -21,29 +21,29 @@ import { useI18n } from "vue-i18n";
 import { Check, Plus, Search } from "lucide-vue-next";
 import { Button } from "@/app/components/ui/button";
 import ComboboxViewport from "@/app/components/ui/combobox/ComboboxViewport.vue";
-import { ref } from "vue";
+import { shallowRef } from "vue";
 
 const { t } = useI18n();
 
-defineProps<{
-  options: PickerOption[];
+const props = defineProps<{
+  options: PickerOption<T>[];
   placeholder?: string;
 }>();
 
-const modalValue = defineModel<AcceptableInputValue[]>({
+const modalValue = defineModel<T[]>({
   default: [],
 });
 
-const selectedOptions = ref<PickerOption[]>([]);
+const selectedOptions = shallowRef<PickerOption<T>[]>([]);
 const search = defineModel<string>("search", { default: "" });
 
-const onSelect = (value: PickerOption | undefined) => {
-  if (value) {
+const onSelect = (option: PickerOption<T> | undefined) => {
+  if (option) {
     const index = selectedOptions.value.findIndex(
-      (option) => option.value === value.value,
+      (selectedOption) => selectedOption.value === option.value,
     );
     if (index === -1) {
-      selectedOptions.value.push(value);
+      selectedOptions.value.push(option);
     } else {
       selectedOptions.value.splice(index, 1);
     }
@@ -103,7 +103,7 @@ const onSelect = (value: PickerOption | undefined) => {
           >
             <ComboboxItem
               class="w-full"
-              @select="(e) => onSelect(e.detail.value as PickerOption)"
+              @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
               :value="option"
             >
               {{ option.content }}

@@ -13,9 +13,9 @@ const TranslationStatusSchema = z
 
 const TranslationWithStatusSchema = z.object({
   id: z.int(),
-  value: z.string(),
+  text: z.string(),
   vote: z.int(),
-  translatorId: z.uuidv4(),
+  translatorId: z.uuidv4().nullable(),
   meta: safeZDotJson.optional(),
   createdAt: DrizzleDateTimeSchema,
   status: TranslationStatusSchema.optional(),

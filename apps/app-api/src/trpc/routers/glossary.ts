@@ -14,7 +14,6 @@ import {
   aliasedTable,
   translatableElement,
   translatableString,
-  task,
   OverallDrizzleClient,
   getColumns,
   termEntry,
@@ -30,6 +29,7 @@ import {
   router,
 } from "../server.ts";
 import type { TermExtractor, TermRecognizer } from "@cat/plugin-core";
+import { createTermTask } from "@cat/app-workers";
 
 export const glossaryRouter = router({
   deleteTerm: permissionProcedure(
@@ -112,7 +112,7 @@ export const glossaryRouter = router({
       glossaryId: z.uuidv4(),
     }),
   )
-    .output(z.number().int())
+    .output(z.int())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -179,33 +179,14 @@ export const glossaryRouter = router({
     )
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
-      const {
-        drizzleDB: { client: drizzle },
-        workerRegistry,
-        user,
-      } = ctx;
+      const { user } = ctx;
       const { termsData, glossaryId } = input;
 
-      const dbTask = assertSingleNonNullish(
-        await drizzle
-          .insert(task)
-          .values({
-            type: "INSERT_TERMS",
-          })
-          .returning({ id: task.id }),
-      );
-
-      await workerRegistry.addJob(
-        "insert-term",
-        {
-          glossaryId,
-          termsData,
-          creatorId: user.id,
-        },
-        {
-          jobId: dbTask.id,
-        },
-      );
+      await createTermTask.run({
+        glossaryId,
+        data: termsData,
+        creatorId: user.id,
+      });
     }),
   searchTerm: permissionsProcedure([
     {

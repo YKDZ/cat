@@ -171,6 +171,9 @@ importers:
       tailwindcss:
         specifier: ^4.1.18
         version: 4.1.18
+      telefunc:
+        specifier: ^0.2.17
+        version: 0.2.17(@babel/core@7.28.5)(@babel/parser@7.28.5)(@babel/types@7.28.5)(react@19.2.3)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -274,6 +277,12 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@orpc/client':
+        specifier: ^1.13.2
+        version: 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/server':
+        specifier: ^1.13.2
+        version: 1.13.2(@opentelemetry/api@1.9.0)
       '@trpc/client':
         specifier: ^11.5.1
         version: 11.8.0(@trpc/server@11.8.0(typescript@5.9.3))(typescript@5.9.3)
@@ -293,9 +302,6 @@ importers:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      hono:
-        specifier: ^4.11.1
-        version: 4.11.1
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.0.3))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.2)(rollup@4.53.5)(typescript@5.9.3)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
@@ -397,9 +403,15 @@ importers:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
+      '@cat/test-utils':
+        specifier: workspace:*
+        version: link:../../packages/test-utils
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
+      xstate:
+        specifier: ^5.25.0
+        version: 5.25.0
 
   apps/docs:
     dependencies:
@@ -782,8 +794,8 @@ importers:
         specifier: ^17.2.3
         version: 17.2.3
       drizzle-orm:
-        specifier: ^1.0.0-beta.5-0a7601e
-        version: 1.0.0-beta.5-e0482ac(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))
+        specifier: 1.0.0-beta.6-4414a19
+        version: 1.0.0-beta.6-4414a19(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -797,18 +809,27 @@ importers:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
+      '@types/node':
+        specifier: ^25.0.3
+        version: 25.0.3
       '@types/pg':
         specifier: ^8.16.0
         version: 8.16.0
       drizzle-kit:
-        specifier: ^1.0.0-beta.5-0a7601e
-        version: 1.0.0-beta.5-e0482ac
+        specifier: beta
+        version: 1.0.0-beta.6-4414a19
+      drizzle-seed:
+        specifier: ^0.3.1
+        version: 0.3.1(drizzle-orm@1.0.0-beta.6-4414a19(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3)))
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.0.3))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.25.12)(rollup@4.53.5)(typescript@5.9.3)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
       vite:
         specifier: ^7.3.0
         version: 7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+      vitest:
+        specifier: ^4.0.16
+        version: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@25.0.3)(@vitest/ui@4.0.16)(happy-dom@18.0.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/eslint-config:
     devDependencies:
@@ -871,6 +892,31 @@ importers:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
+      unplugin-dts:
+        specifier: 1.0.0-beta.6
+        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.0.3))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.2)(rollup@4.53.5)(typescript@5.9.3)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
+      vite:
+        specifier: ^7.3.0
+        version: 7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/test-utils:
+    dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../db
+      '@electric-sql/pglite':
+        specifier: ^0.3.14
+        version: 0.3.14
+      drizzle-orm:
+        specifier: 1.0.0-beta.6-4414a19
+        version: 1.0.0-beta.6-4414a19(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      drizzle-kit:
+        specifier: beta
+        version: 1.0.0-beta.6-4414a19
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.0.3))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.2)(rollup@4.53.5)(typescript@5.9.3)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
@@ -1939,6 +1985,9 @@ packages:
   '@drizzle-team/brocli@0.11.0':
     resolution: {integrity: sha512-hD3pekGiPg0WPCCGAZmusBBJsDqGUR66Y452YgQsZOnkdQ7ViEPKuyP4huUGEZQefp8g34RRodXYmJ2TbCH+tg==}
 
+  '@electric-sql/pglite@0.3.14':
+    resolution: {integrity: sha512-3DB258dhqdsArOI1fIt7cb9RpUOgcDg5hXWVgVHAeqVQ/qxtFy605QKs4gx6mFq3jWsSPqDN8TgSEsqC3OfV9Q==}
+
   '@emnapi/core@1.7.1':
     resolution: {integrity: sha512-o1uhUASyo921r2XtHYOHy7gdkGLge8ghBEQHMWmyJFoXlpU58kIrhhN3w26lpQb6dspetweapMn2CSNwQ8I4wg==}
 
@@ -2682,6 +2731,57 @@ packages:
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
     engines: {node: '>=8.0.0'}
+
+  '@orpc/client@1.13.2':
+    resolution: {integrity: sha512-xlT72B4EFVCEGPev5edEfN5uqu4fnxZyOoCq9UWUAyj0gNDTCF2Z5mfmA4mdBgwV90k+lIcGLMnUI25baedqpw==}
+
+  '@orpc/contract@1.13.2':
+    resolution: {integrity: sha512-td5ExzLPQ2y2zE9itgqod5gmC3WvCFIlkyJSNFRCRhff04PzokE9/hjqGhW5zsNgKuv4rcPYOrkh0e/YiyFndQ==}
+
+  '@orpc/interop@1.13.2':
+    resolution: {integrity: sha512-N6AHeREWsXBm0KPShIwwwuPEwGR+slWgyLchXfQYE0HLEQmf2wSZYhoawgaaETl5EoPc6Z7/LUaTqPCE380CzQ==}
+
+  '@orpc/server@1.13.2':
+    resolution: {integrity: sha512-sHGMT5eQ9eFSfXeRr6F3wkVRm76fUJzDurtCIZe5koStS20e5YZOkg7FH5kZb57c0d/EqvqPAbdHD8WRVl4qLQ==}
+    peerDependencies:
+      crossws: '>=0.3.4'
+      ws: '>=8.18.1'
+    peerDependenciesMeta:
+      crossws:
+        optional: true
+      ws:
+        optional: true
+
+  '@orpc/shared@1.13.2':
+    resolution: {integrity: sha512-1icIwoMxtXSTwGFJE2u/Hu4XhZQS81bk0hvRcG7jHATATTMLcNAFR+sv3AG56WTH6yF3C1A96VpYzvCYRUseFA==}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.9.0'
+    peerDependenciesMeta:
+      '@opentelemetry/api':
+        optional: true
+
+  '@orpc/standard-server-aws-lambda@1.13.2':
+    resolution: {integrity: sha512-Gkw72+b5eZKjsSJ5zT4vsnEbHww8An1hkkai4jmLvADtujQQMccjhWNTC7MKGBe1/M818plnfbhqmLx+2rU0IA==}
+
+  '@orpc/standard-server-fastify@1.13.2':
+    resolution: {integrity: sha512-N8GHu9GHDm7wQePdTfWxWaJQPGXyjsirHTjJZEBbUDR0R64C8b2JCt+eK1iq9DK3Oc5kYNJUWZQhwlZUCWCClg==}
+    peerDependencies:
+      fastify: '>=5.6.1'
+    peerDependenciesMeta:
+      fastify:
+        optional: true
+
+  '@orpc/standard-server-fetch@1.13.2':
+    resolution: {integrity: sha512-JanRDFk78kB8/P5NljV1nx3zcpBsTC9sCAhBcE3ezY1u3Kvt7teRhPxRXcoD0TEBdQjEUeXcqX+zEh4Op2E8nw==}
+
+  '@orpc/standard-server-node@1.13.2':
+    resolution: {integrity: sha512-asWTGGQEcBKkpz6qEsn0Gfdsj0eZ4zDp/P89jJFuYEREwqsWMrZSiyEQNcCU0Q6UoLai+Wvil575L58i3Adgmg==}
+
+  '@orpc/standard-server-peer@1.13.2':
+    resolution: {integrity: sha512-LMxaMSmp98jnm0jiHpqPgH5qHXeOvah7pmysrcLaqMfwH+GwRS6S+/ls2hAy9aIba4LrTZyIpTgSohHD/Ed73g==}
+
+  '@orpc/standard-server@1.13.2':
+    resolution: {integrity: sha512-qjxKOvCg2mYBQMPdjEqQEDI+F/v6qm9zKMeFsfxnWKvPhDrPSEk8x40vdXlLbbpW6TCXpQikpycfdvq5H4Nb+Q==}
 
   '@oxc-project/types@0.98.0':
     resolution: {integrity: sha512-Vzmd6FsqVuz5HQVcRC/hrx7Ujo3WEVeQP7C2UNP5uy1hUY4SQvMB+93jxkI1KRHz9a/6cni3glPOtvteN+zpsw==}
@@ -3748,6 +3848,9 @@ packages:
     peerDependencies:
       typescript: '>=5.7.2'
 
+  '@ts-morph/common@0.27.0':
+    resolution: {integrity: sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ==}
+
   '@tsconfig/node24@24.0.3':
     resolution: {integrity: sha512-vcERKtKQKHgzt/vfS3Gjasd8SUI2a0WZXpgJURdJsMySpS5+ctgbPfuLj2z/W+w4lAfTWxoN4upKfu2WzIRYnw==}
 
@@ -4691,6 +4794,9 @@ packages:
     resolution: {integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==}
     engines: {node: '>=0.10.0'}
 
+  code-block-writer@13.0.3:
+    resolution: {integrity: sha512-Oofo0pq3IKnsFtuHqSF7TqBfr71aeyZDVJ0HpmqB7FBM2qEigL0iPONSCZSO9pE9dZTAxANe5XHG9Uy0YMv8cg==}
+
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
     engines: {node: '>=7.0.0'}
@@ -5151,12 +5257,12 @@ packages:
     resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
     engines: {node: '>=12'}
 
-  drizzle-kit@1.0.0-beta.5-e0482ac:
-    resolution: {integrity: sha512-/W+c15L/ayzdRfaJbTlY6lFoO2W5uyFBY79S+sXWyOmuceNKmpm+ggjTZHS3O+JHHYJ8TBul7V/A5S6JEMkqcQ==}
+  drizzle-kit@1.0.0-beta.6-4414a19:
+    resolution: {integrity: sha512-tecGaCXKWVLIkE9f+rucGPovx8ALRFS0lvgUKWoXXLFTLpkmgc/iuN0cpJAalFiJK7bdQemMMRjF9hsCEcmphA==}
     hasBin: true
 
-  drizzle-orm@1.0.0-beta.5-e0482ac:
-    resolution: {integrity: sha512-wr/1ss/Xr6gyieVMCRLUtYt3IZ7PhNAptgu4bySLPNUhfY78grJRAPLKYZ2GQkodXKIHXXRfG5Vpvbvpoxj/Vw==}
+  drizzle-orm@1.0.0-beta.6-4414a19:
+    resolution: {integrity: sha512-UGpd61ZVeo1Myz0qzdRIpJoRMTzju6y2S25OTI5/nf6mdyAounZbqsoQtAkfms6wv9LLwOCnTtGhlskkgSfjcw==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -5253,6 +5359,14 @@ packages:
       sql.js:
         optional: true
       sqlite3:
+        optional: true
+
+  drizzle-seed@0.3.1:
+    resolution: {integrity: sha512-F/0lgvfOAsqlYoHM/QAGut4xXIOXoE5VoAdv2FIl7DpGYVXlAzKuJO+IphkKUFK3Dz+rFlOsQLnMNrvoQ0cx7g==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.4'
+    peerDependenciesMeta:
+      drizzle-orm:
         optional: true
 
   dunder-proto@1.0.1:
@@ -6530,6 +6644,9 @@ packages:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
 
+  openapi-types@12.1.3:
+    resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
+
   opener@1.5.2:
     resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
     hasBin: true
@@ -7314,6 +7431,10 @@ packages:
   tabbable@6.3.0:
     resolution: {integrity: sha512-EIHvdY5bPLuWForiR/AN2Bxngzpuwn1is4asboytXtpTgsArc+WmSJKVLlhdh71u7jFcryDqB2A8lQvj78MkyQ==}
 
+  tagged-tag@1.0.0:
+    resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
+    engines: {node: '>=20'}
+
   tailwind-merge@3.4.0:
     resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
 
@@ -7348,6 +7469,30 @@ packages:
   tedious@19.1.3:
     resolution: {integrity: sha512-6O6efTeYtcnar3Cqf/ptqJs+U10fYYjp/SHRNm3VGuCTUDys+AUgIbxWbT2kzl4baXAzuy9byV3qCgOimrRfTA==}
     engines: {node: '>=18.17'}
+
+  telefunc@0.2.17:
+    resolution: {integrity: sha512-UJxfQUgl8eIOk7xxtpj3kMrXvIxggaiwj0VGXjRnQM2AO9KYAjNREyb6Rz5lEEHlZR+s4yhiCLjuwfm5t4Nx1A==}
+    engines: {node: '>=12.19.0'}
+    peerDependencies:
+      '@babel/core': '>=7.0.0'
+      '@babel/parser': '>=7.0.0'
+      '@babel/types': '>=7.0.0'
+      react: '>=18.0.0'
+      react-streaming: '>=0.3.3'
+      vite: '>=6.3.0'
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      '@babel/parser':
+        optional: true
+      '@babel/types':
+        optional: true
+      react:
+        optional: true
+      react-streaming:
+        optional: true
+      vite:
+        optional: true
 
   thenify-all@1.6.0:
     resolution: {integrity: sha512-RNxQH/qI8/t3thXJDwcstUO4zeqo64+Uy/+sNVRBx4Xn2OX+OZ9oP+iJnNFqplFra2ZUVeKCSa2oVWi3T4uVmA==}
@@ -7438,6 +7583,9 @@ packages:
   ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
 
+  ts-morph@26.0.0:
+    resolution: {integrity: sha512-ztMO++owQnz8c/gIENcM9XfCEzgoGphTv+nKpYNM1bgsdOVC/jRZuEBf6N+mLLDNg68Kl+GgUZfOySaRiG1/Ug==}
+
   tsconfig-paths@4.2.0:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
     engines: {node: '>=6'}
@@ -7460,6 +7608,10 @@ packages:
   type-fest@4.41.0:
     resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
     engines: {node: '>=16'}
+
+  type-fest@5.3.1:
+    resolution: {integrity: sha512-VCn+LMHbd4t6sF3wfU/+HKT63C9OoyrSIf4b+vtWHpt2U7/4InZG467YDNMFMR70DdHjAdpPWmw2lzRdg0Xqqg==}
+    engines: {node: '>=20'}
 
   typescript@5.8.2:
     resolution: {integrity: sha512-aJn6wq13/afZp/jT9QZmwEjDqqvSGp1VT5GVg+f/t6/oVyrgXM6BY1h9BRh/O5p3PlUPAe+WuiEZOmb/49RqoQ==}
@@ -7906,6 +8058,9 @@ packages:
   xdg-basedir@5.1.0:
     resolution: {integrity: sha512-GCPAHLvrIH13+c0SuacwvRYj2SxJXQ4kaVTT5xgL3kPrz56XxkF21IGhjSE1+W0aw7gpBWRGXLCPnPby6lSpmQ==}
     engines: {node: '>=12'}
+
+  xstate@5.25.0:
+    resolution: {integrity: sha512-yyWzfhVRoTHNLjLoMmdwZGagAYfmnzpm9gPjlX2MhJZsDojXGqRxODDOi4BsgGRKD46NZRAdcLp6CKOyvQS0Bw==}
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -9608,6 +9763,8 @@ snapshots:
 
   '@drizzle-team/brocli@0.11.0': {}
 
+  '@electric-sql/pglite@0.3.14': {}
+
   '@emnapi/core@1.7.1':
     dependencies:
       '@emnapi/wasi-threads': 1.1.0
@@ -10021,13 +10178,11 @@ snapshots:
 
   '@ioredis/commands@1.4.0': {}
 
-  '@isaacs/balanced-match@4.0.1':
-    optional: true
+  '@isaacs/balanced-match@4.0.1': {}
 
   '@isaacs/brace-expansion@5.0.0':
     dependencies:
       '@isaacs/balanced-match': 4.0.1
-    optional: true
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -10332,6 +10487,95 @@ snapshots:
 
   '@opentelemetry/api@1.9.0':
     optional: true
+
+  '@orpc/client@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-fetch': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-peer': 1.13.2(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+
+  '@orpc/contract@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/client': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@standard-schema/spec': 1.1.0
+      openapi-types: 12.1.3
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+
+  '@orpc/interop@1.13.2': {}
+
+  '@orpc/server@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/client': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/contract': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/interop': 1.13.2
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-aws-lambda': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-fastify': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-fetch': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-node': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-peer': 1.13.2(@opentelemetry/api@1.9.0)
+      cookie: 1.1.1
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - fastify
+
+  '@orpc/shared@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      radash: 12.1.1
+      type-fest: 5.3.1
+    optionalDependencies:
+      '@opentelemetry/api': 1.9.0
+
+  '@orpc/standard-server-aws-lambda@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-fetch': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-node': 1.13.2(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+
+  '@orpc/standard-server-fastify@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-node': 1.13.2(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+
+  '@orpc/standard-server-fetch@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server': 1.13.2(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+
+  '@orpc/standard-server-node@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-fetch': 1.13.2(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+
+  '@orpc/standard-server-peer@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server': 1.13.2(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+
+  '@orpc/standard-server@1.13.2(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
 
   '@oxc-project/types@0.98.0': {}
 
@@ -11411,6 +11655,12 @@ snapshots:
     dependencies:
       typescript: 5.9.3
 
+  '@ts-morph/common@0.27.0':
+    dependencies:
+      fast-glob: 3.3.3
+      minimatch: 10.0.3
+      path-browserify: 1.0.1
+
   '@tsconfig/node24@24.0.3': {}
 
   '@tybys/wasm-util@0.10.1':
@@ -11586,7 +11836,7 @@ snapshots:
 
   '@types/mssql@9.1.8':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 25.0.3
       tarn: 3.0.2
       tedious: 19.1.3
     transitivePeerDependencies:
@@ -11608,7 +11858,7 @@ snapshots:
 
   '@types/pg@8.16.0':
     dependencies:
-      '@types/node': 25.0.3
+      '@types/node': 24.10.4
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
@@ -11618,7 +11868,7 @@ snapshots:
 
   '@types/readable-stream@4.0.23':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 25.0.3
 
   '@types/speakeasy@2.0.10':
     dependencies:
@@ -11826,6 +12076,14 @@ snapshots:
       magic-string: 0.30.21
     optionalDependencies:
       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+
+  '@vitest/mocker@4.0.16(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.16
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
 
   '@vitest/pretty-format@4.0.16':
     dependencies:
@@ -12610,6 +12868,8 @@ snapshots:
 
   cluster-key-slot@1.1.2: {}
 
+  code-block-writer@13.0.3: {}
+
   color-convert@2.0.1:
     dependencies:
       color-name: 1.1.4
@@ -13092,7 +13352,7 @@ snapshots:
 
   dotenv@17.2.3: {}
 
-  drizzle-kit@1.0.0-beta.5-e0482ac:
+  drizzle-kit@1.0.0-beta.6-4414a19:
     dependencies:
       '@drizzle-team/brocli': 0.11.0
       '@js-temporal/polyfill': 0.5.1
@@ -13101,16 +13361,23 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@1.0.0-beta.5-e0482ac(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3)):
+  drizzle-orm@1.0.0-beta.6-4414a19(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3)):
     dependencies:
       '@types/mssql': 9.1.8
       mssql: 11.0.1
     optionalDependencies:
+      '@electric-sql/pglite': 0.3.14
       '@opentelemetry/api': 1.9.0
       '@prisma/client': 6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3)
       '@types/pg': 8.16.0
       pg: 8.16.3
       prisma: 6.16.1(typescript@5.9.3)
+
+  drizzle-seed@0.3.1(drizzle-orm@1.0.0-beta.6-4414a19(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))):
+    dependencies:
+      pure-rand: 6.1.0
+    optionalDependencies:
+      drizzle-orm: 1.0.0-beta.6-4414a19(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))
 
   dunder-proto@1.0.1:
     dependencies:
@@ -14383,7 +14650,6 @@ snapshots:
   minimatch@10.0.3:
     dependencies:
       '@isaacs/brace-expansion': 5.0.0
-    optional: true
 
   minimatch@3.1.2:
     dependencies:
@@ -14613,6 +14879,8 @@ snapshots:
       define-lazy-prop: 2.0.0
       is-docker: 2.2.1
       is-wsl: 2.2.0
+
+  openapi-types@12.1.3: {}
 
   opener@1.5.2: {}
 
@@ -15028,8 +15296,7 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  pure-rand@6.1.0:
-    optional: true
+  pure-rand@6.1.0: {}
 
   qrcode@1.5.4:
     dependencies:
@@ -15509,6 +15776,8 @@ snapshots:
 
   tabbable@6.3.0: {}
 
+  tagged-tag@1.0.0: {}
+
   tailwind-merge@3.4.0: {}
 
   tailwindcss@3.4.19(tsx@4.21.0)(yaml@2.8.2):
@@ -15567,7 +15836,7 @@ snapshots:
       '@azure/identity': 4.13.0
       '@azure/keyvault-keys': 4.10.0
       '@js-joda/core': 5.6.5
-      '@types/node': 24.10.4
+      '@types/node': 25.0.3
       bl: 6.1.6
       iconv-lite: 0.6.3
       js-md4: 0.3.2
@@ -15582,7 +15851,7 @@ snapshots:
       '@azure/identity': 4.13.0
       '@azure/keyvault-keys': 4.10.0
       '@js-joda/core': 5.6.5
-      '@types/node': 24.10.4
+      '@types/node': 25.0.3
       bl: 6.1.6
       iconv-lite: 0.7.1
       js-md4: 0.3.2
@@ -15590,6 +15859,22 @@ snapshots:
       sprintf-js: 1.1.3
     transitivePeerDependencies:
       - supports-color
+
+  telefunc@0.2.17(@babel/core@7.28.5)(@babel/parser@7.28.5)(@babel/types@7.28.5)(react@19.2.3)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)):
+    dependencies:
+      '@brillout/import': 0.2.6
+      '@brillout/json-serializer': 0.5.21
+      '@brillout/picocolors': 1.0.30
+      '@brillout/vite-plugin-server-entry': 0.7.15
+      es-module-lexer: 1.7.0
+      magic-string: 0.30.21
+      ts-morph: 26.0.0
+    optionalDependencies:
+      '@babel/core': 7.28.5
+      '@babel/parser': 7.28.5
+      '@babel/types': 7.28.5
+      react: 19.2.3
+      vite: 7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
 
   thenify-all@1.6.0:
     dependencies:
@@ -15658,6 +15943,11 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
+  ts-morph@26.0.0:
+    dependencies:
+      '@ts-morph/common': 0.27.0
+      code-block-writer: 13.0.3
+
   tsconfig-paths@4.2.0:
     dependencies:
       json5: 2.2.3
@@ -15680,6 +15970,10 @@ snapshots:
       prelude-ls: 1.2.1
 
   type-fest@4.41.0: {}
+
+  type-fest@5.3.1:
+    dependencies:
+      tagged-tag: 1.0.0
 
   typescript@5.8.2:
     optional: true
@@ -16088,6 +16382,46 @@ snapshots:
       - tsx
       - yaml
 
+  vitest@4.0.16(@opentelemetry/api@1.9.0)(@types/node@25.0.3)(@vitest/ui@4.0.16)(happy-dom@18.0.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2):
+    dependencies:
+      '@vitest/expect': 4.0.16
+      '@vitest/mocker': 4.0.16(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
+      '@vitest/pretty-format': 4.0.16
+      '@vitest/runner': 4.0.16
+      '@vitest/snapshot': 4.0.16
+      '@vitest/spy': 4.0.16
+      '@vitest/utils': 4.0.16
+      es-module-lexer: 1.7.0
+      expect-type: 1.3.0
+      magic-string: 0.30.21
+      obug: 2.1.1
+      pathe: 2.0.3
+      picomatch: 4.0.3
+      std-env: 3.10.0
+      tinybench: 2.9.0
+      tinyexec: 1.0.2
+      tinyglobby: 0.2.15
+      tinyrainbow: 3.0.3
+      vite: 7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@opentelemetry/api': 1.9.0
+      '@types/node': 25.0.3
+      '@vitest/ui': 4.0.16(vitest@4.0.16)
+      happy-dom: 18.0.1
+    transitivePeerDependencies:
+      - jiti
+      - less
+      - lightningcss
+      - msw
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - terser
+      - tsx
+      - yaml
+
   vscode-jsonrpc@8.2.0: {}
 
   vscode-languageserver-protocol@3.17.5:
@@ -16205,6 +16539,8 @@ snapshots:
       is-wsl: 3.1.0
 
   xdg-basedir@5.1.0: {}
+
+  xstate@5.25.0: {}
 
   xtend@4.0.2: {}
 

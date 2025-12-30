@@ -24,10 +24,12 @@ import {
   translatableElement as translatableElementTable,
   translatableString,
   document as documentTable,
-  task as taskTable,
   desc,
   memoryToProject,
   translationVote,
+  chunkSet,
+  glossaryToProject,
+  chunk,
 } from "@cat/db";
 import {
   authedProcedure,
@@ -35,8 +37,10 @@ import {
   permissionsProcedure,
   router,
 } from "../server.ts";
-import { DrizzleDateTimeSchema } from "@cat/shared/schema/misc";
-import { safeZDotJson } from "@cat/shared/schema/json";
+import {
+  autoTranslateWorkflow,
+  createTranslationWorkflow,
+} from "@cat/app-workers";
 
 export const translationRouter = router({
   delete: permissionProcedure(
@@ -73,7 +77,7 @@ export const translationRouter = router({
     .input(
       z.object({
         languageId: z.string(),
-        value: z.string(),
+        text: z.string(),
         createMemory: z.boolean().default(true),
       }),
     )
@@ -85,69 +89,53 @@ export const translationRouter = router({
     .mutation(async ({ input, ctx }) => {
       const {
         drizzleDB: { client: drizzle },
-        workerRegistry,
         user,
       } = ctx;
-      const { elementId, languageId, value, createMemory } = input;
+      const { elementId, languageId, text, createMemory } = input;
 
-      return await drizzle.transaction(async (tx) => {
-        const memoryIds = (
-          await drizzle
-            .select({
-              memoryId: memoryToProject.memoryId,
-            })
-            .from(memoryToProject)
-            .innerJoin(
-              documentTable,
-              eq(documentTable.id, translatableElementTable.documentId),
-            )
-            .innerJoin(
-              translatableElementTable,
+      const memoryIds = (
+        await drizzle
+          .select({
+            memoryId: memoryToProject.memoryId,
+          })
+          .from(memoryToProject)
+          .innerJoin(
+            documentTable,
+            eq(documentTable.id, translatableElementTable.documentId),
+          )
+          .innerJoin(
+            translatableElementTable,
+            eq(translatableElementTable.id, elementId),
+          )
+          .where(
+            and(
               eq(translatableElementTable.id, elementId),
-            )
-            .where(
-              and(
-                eq(translatableElementTable.id, elementId),
-                eq(documentTable.projectId, memoryToProject.projectId),
-              ),
-            )
-        ).map((item) => item.memoryId);
+              eq(documentTable.projectId, memoryToProject.projectId),
+            ),
+          )
+      ).map((item) => item.memoryId);
 
-        const task = assertSingleNonNullish(
-          await tx
-            .insert(taskTable)
-            .values({
-              type: "create_translation",
-            })
-            .returning({ id: taskTable.id }),
-        );
-
-        await workerRegistry.addJob(
-          "create-translation",
+      await createTranslationWorkflow.run({
+        data: [
           {
-            createMemory,
-            elementId: elementId,
-            creatorId: user.id,
-            translationLanguageId: languageId,
-            translationValue: value,
-            memoryIds,
+            translatableElementId: elementId,
+            text,
+            languageId,
           },
-          {
-            jobId: task.id,
-          },
-        );
-
-        return {
-          id: 0,
-          stringId: 0,
-          meta: null,
-          translatableElementId: elementId,
-          translatorId: user.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          status: "PROCESSING",
-        } satisfies Translation & { status: "PROCESSING" | "COMPLETED" };
+        ],
+        memoryIds: createMemory ? memoryIds : [],
       });
+
+      return {
+        id: 0,
+        stringId: 0,
+        meta: null,
+        translatableElementId: elementId,
+        translatorId: user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: "PROCESSING",
+      } satisfies Translation & { status: "PROCESSING" | "COMPLETED" };
     }),
   getAll: permissionProcedure(
     "ELEMENT",
@@ -163,13 +151,13 @@ export const translationRouter = router({
     )
     .output(
       z.array(
-        z.object({
-          id: z.int(),
-          value: z.string(),
+        TranslationSchema.omit({
+          translatableElementId: true,
+          updatedAt: true,
+          stringId: true,
+        }).extend({
           vote: z.int(),
-          translatorId: z.uuidv4(),
-          meta: safeZDotJson,
-          createdAt: DrizzleDateTimeSchema,
+          text: z.string(),
         }),
       ),
     )
@@ -182,7 +170,7 @@ export const translationRouter = router({
       const translations = await drizzle
         .select({
           id: translationTable.id,
-          value: translatableString.value,
+          text: translatableString.value,
           vote: sql<number>`COALESCE(${sumDistinct(translationVoteTable.value)}, 0)`.mapWith(
             Number,
           ),
@@ -258,7 +246,7 @@ export const translationRouter = router({
       translationId: z.int(),
     }),
   )
-    .output(z.number().int())
+    .output(z.int())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -476,8 +464,6 @@ export const translationRouter = router({
     .mutation(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
-        workerRegistry,
-        user,
       } = ctx;
       const { documentId, advisorId, languageId, minMemorySimilarity } = input;
 
@@ -499,40 +485,67 @@ export const translationRouter = router({
             ),
           )
           .limit(1),
+        `Document does not exists or language does not claimed in project`,
       );
 
-      if (!document)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message:
-            "Document does not exists or language does not claimed in project",
-        });
-
-      const task = assertSingleNonNullish(
+      const memoryIds = (
         await drizzle
-          .insert(taskTable)
-          .values({
-            type: "auto_translate",
-            meta: {
-              projectId: document.projectId,
-              documentId,
-            },
+          .select({
+            id: memoryToProject.memoryId,
           })
-          .returning({ id: taskTable.id }),
-      );
+          .from(memoryToProject)
+          .where(eq(memoryToProject.projectId, document.projectId))
+      ).map((row) => row.id);
 
-      await workerRegistry.executeFlow(
-        "auto-translate-flow",
-        {
-          userId: user.id,
-          documentId,
-          advisorId,
-          languageId,
-          minMemorySimilarity,
-        },
-        {
-          jobId: task.id,
-        },
+      const glossaryIds = (
+        await drizzle
+          .select({
+            id: glossaryToProject.glossaryId,
+          })
+          .from(glossaryToProject)
+          .where(eq(glossaryToProject.projectId, document.projectId))
+      ).map((row) => row.id);
+
+      const elements = await drizzle
+        .select({
+          id: translatableElementTable.id,
+          value: translatableString.value,
+          languageId: translatableString.languageId,
+          chunkIds: sql<
+            number[]
+          >`coalesce(array_agg("Chunk"."id"), ARRAY[]::int[])`,
+        })
+        .from(translatableElementTable)
+        .innerJoin(
+          translatableString,
+          eq(
+            translatableElementTable.translatableStringId,
+            translatableString.id,
+          ),
+        )
+        .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
+        .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
+        .where(eq(translatableElementTable.documentId, documentId))
+        .groupBy(
+          translatableElementTable.id,
+          translatableString.value,
+          translatableString.languageId,
+        );
+
+      await Promise.all(
+        elements.map(async (element) => {
+          await autoTranslateWorkflow.run({
+            translationLanguageId: languageId,
+            translatableElementId: element.id,
+            advisorId,
+            text: element.value,
+            sourceLanguageId: element.languageId,
+            memoryIds,
+            glossaryIds,
+            chunkIds: element.chunkIds,
+            minMemorySimilarity,
+          });
+        }),
       );
     }),
   isApproved: permissionProcedure(

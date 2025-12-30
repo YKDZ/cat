@@ -41,14 +41,14 @@ export const MemorySuggestionSchema = z.object({
   source: z.string(),
   translation: z.string(),
   memoryId: z.uuidv4(),
-  creatorId: z.uuidv4(),
+  creatorId: z.uuidv4().nullable(),
   similarity: z.number().min(0).max(1),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
 
 export const UnvectorizedTextDataSchema = z.object({
-  value: z.string(),
+  text: z.string(),
   languageId: z.string(),
 });
 

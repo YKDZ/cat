@@ -51,7 +51,7 @@ const { handleSubmit } = useForm({
   },
 });
 
-const advisorOptions = computed<PickerOption[]>(() => {
+const advisorOptions = computed<PickerOption<number>[]>(() => {
   return availableAdvisors.value.map(
     (advisor) =>
       ({
@@ -61,8 +61,8 @@ const advisorOptions = computed<PickerOption[]>(() => {
   );
 });
 
-const onSubmit = handleSubmit((values) => {
-  trpc.translation.autoTranslate.mutate({
+const onSubmit = handleSubmit(async (values) => {
+  await trpc.translation.autoTranslate.mutate({
     languageId: props.language.id,
     documentId: props.document.id,
     advisorId: values.advisorId,
@@ -114,14 +114,14 @@ const availableAdvisors = computedAsyncClient(async () => {
             </FormDescription>
           </FormItem>
         </FormField>
-        <FormField v-slot="{ handleChange }" name="advisorId">
+        <FormField v-slot="{ setValue }" name="advisorId">
           <FormItem>
             <FormLabel> {{ t("翻译建议器") }}</FormLabel>
             <FormControl>
               <Picker
                 :placeholder="t('选择一个建议器...')"
                 :options="advisorOptions"
-                @update:model-value="handleChange"
+                @update:model-value="(v) => setValue(v)"
               />
             </FormControl>
           </FormItem>

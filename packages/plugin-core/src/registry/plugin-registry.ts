@@ -1,8 +1,9 @@
-import { access, mkdir, readdir } from "node:fs/promises";
-import { readFile } from "node:fs/promises";
+import { access, mkdir, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { existsSync } from "node:fs";
 import * as z from "zod/v4";
+import { Hono } from "hono";
 import { _JSONSchemaSchema, JSONSchemaSchema } from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
@@ -16,6 +17,7 @@ import {
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
 import {
   eq,
+  and,
   getColumns,
   OverallDrizzleClient,
   plugin,
@@ -26,14 +28,13 @@ import {
   pluginService,
   type DrizzleClient,
 } from "@cat/db";
-import { and } from "@cat/db";
+
 import type { TranslationAdvisor } from "@/services/translation-advisor.ts";
 import type { TranslatableFileHandler } from "@/services/translatable-file-handler.ts";
 import type { TextVectorizer } from "@/services/text-vectorizer.ts";
 import type { StorageProvider } from "@/services/storage-provider.ts";
 import type { AuthProvider } from "@/services/auth-provider.ts";
-import { existsSync } from "node:fs";
-import { IVectorStorage } from "@/services/vector-storage";
+import { VectorStorage } from "@/services/vector-storage";
 import {
   ServiceRegistry,
   ServiceRegistryRecordSchema,
@@ -55,9 +56,9 @@ import {
 } from "@/registry/component-registry";
 import type { CatPlugin } from "@/entities/plugin";
 import { getPluginConfig } from "@/utils/config";
-import { Hono } from "hono";
 import type { MFAProvider } from "@/services/mfa-provider";
 
+// Type Definitions
 type PluginServiceTypeMap = {
   AUTH_PROVIDER: AuthProvider;
   MFA_PROVIDER: MFAProvider;
@@ -69,95 +70,202 @@ type PluginServiceTypeMap = {
   TERM_RECOGNIZER: TermRecognizer;
   TERM_ALIGNER: TermAligner;
   QA_CHECKER: QAChecker;
-  VECTOR_STORAGE: IVectorStorage;
+  VECTOR_STORAGE: VectorStorage;
 };
 
-type PluginServiceMap = {
+export type PluginServiceMap = {
   [K in PluginServiceType]: PluginServiceTypeMap[K];
 };
 
 const PluginObjectSchema = z.custom<CatPlugin>();
 
-export class PluginRegistry {
-  public static readonly pluginsDir: string = join(process.cwd(), "plugins");
+/**
+ * 插件加载器接口
+ * 用于抽象插件数据的获取来源（文件系统、内存、网络等）
+ */
+export interface PluginLoader {
+  /**
+   * 获取插件的 Manifest 信息
+   */
+  getManifest: (pluginId: string) => Promise<PluginManifest>;
 
+  /**
+   * 获取插件的完整数据（Manifest + README + Package info）
+   * 通常用于导入数据库
+   */
+  getData: (pluginId: string) => Promise<PluginData>;
+
+  /**
+   * 获取插件的可执行实例（代码入口）
+   */
+  getInstance: (pluginId: string) => Promise<CatPlugin>;
+
+  /**
+   * 列出所有可用的插件 ID
+   */
+  listAvailablePlugins: () => Promise<string[]>;
+}
+
+/**
+ * 默认的文件系统加载器实现
+ */
+export class FileSystemPluginLoader implements PluginLoader {
+  private readonly pluginsDir: string;
+
+  constructor(pluginsDir?: string) {
+    this.pluginsDir = pluginsDir ?? join(process.cwd(), "plugins");
+  }
+
+  private getPluginFsPath = (id: string): string => {
+    return join(this.pluginsDir, id);
+  };
+
+  private getPluginEntryFsPath = async (id: string): Promise<string> => {
+    const manifest = await this.getManifest(id);
+    return join(this.getPluginFsPath(id), manifest.entry);
+  };
+
+  public getManifest = async (pluginId: string): Promise<PluginManifest> => {
+    const dirPath = this.getPluginFsPath(pluginId);
+    const manifestPath = join(dirPath, "manifest.json");
+
+    try {
+      await access(manifestPath);
+    } catch {
+      logger.debug("PLUGIN", {
+        msg: `Plugin ${pluginId} missing manifest.json`,
+      });
+      throw new Error(`Plugin ${pluginId} missing manifest.json`);
+    }
+
+    const data = await readFile(manifestPath, "utf8");
+    return PluginManifestSchema.parse(JSON.parse(data));
+  };
+
+  public getData = async (pluginId: string): Promise<PluginData> => {
+    const dir = this.getPluginFsPath(pluginId);
+
+    const manifestPath = join(dir, "manifest.json");
+    const packageDotJsonPath = join(dir, "package.json");
+    const readmePath = join(dir, "README.md");
+
+    const rawManifest = await readFile(manifestPath, "utf-8");
+    const rawREADME = await readFile(readmePath, "utf-8").catch(() => null);
+
+    const manifest = PluginManifestSchema.parse(JSON.parse(rawManifest));
+
+    const { name, version } = z
+      .object({
+        name: z.string(),
+        version: z.string(),
+      })
+      .parse(JSON.parse(await readFile(packageDotJsonPath, "utf-8")));
+
+    return PluginDataSchema.parse({
+      ...manifest,
+      name,
+      version,
+      overview: rawREADME,
+    });
+  };
+
+  public getInstance = async (pluginId: string): Promise<CatPlugin> => {
+    const pluginFsPath = await this.getPluginEntryFsPath(pluginId);
+    // Vite build will sometimes remove inline /* @vite-ignore */ comments
+    // and cause runtime warning
+    const pluginUrl = /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
+    const imported: unknown = await import(/* @vite-ignore */ pluginUrl);
+
+    if (
+      imported &&
+      typeof imported === "object" &&
+      "default" in imported &&
+      typeof imported.default === "object"
+    ) {
+      return PluginObjectSchema.parse(imported.default);
+    }
+
+    throw new Error(
+      `Plugin ${pluginId} does not have a default export plugin object`,
+    );
+  };
+
+  public listAvailablePlugins = async (): Promise<string[]> => {
+    if (!existsSync(this.pluginsDir)) await mkdir(this.pluginsDir);
+
+    const dirs = (
+      await readdir(this.pluginsDir, {
+        withFileTypes: true,
+      })
+    ).filter((dirent) => dirent.isDirectory());
+
+    const results: string[] = [];
+
+    await Promise.all(
+      dirs.map(async (dir) => {
+        try {
+          const manifest = await this.getManifest(dir.name);
+          results.push(manifest.id);
+        } catch (err) {
+          logger.error(
+            "PLUGIN",
+            { msg: `Error reading manifest.json in ${dir.name}:` },
+            err,
+          );
+        }
+      }),
+    );
+
+    return results;
+  };
+}
+
+export class PluginRegistry {
   public constructor(
     public readonly scopeType: ScopeType,
     public readonly scopeId: string,
     private serviceRegistry: ServiceRegistry = new ServiceRegistry(),
     private componentRegistry: ComponentRegistry = new ComponentRegistry(),
+    private loader: PluginLoader = new FileSystemPluginLoader(),
   ) {}
 
-  public static get(scopeType: ScopeType, scopeId: string): PluginRegistry {
+  /**
+   *
+   * @param scopeType
+   * @param scopeId
+   * @param loader 若不存在，用什么 loader 创建这个注册表
+   * @returns
+   */
+  public static get(
+    scopeType: ScopeType,
+    scopeId: string,
+    loader?: PluginLoader,
+  ): PluginRegistry {
     const key = `__PLUGIN_REGISTRY_${scopeType}_${scopeId}__`;
     // @ts-expect-error hard to declare type for globalThis
     if (!globalThis[key])
       // @ts-expect-error hard to declare type for globalThis
-      globalThis[key] = new PluginRegistry(scopeType, scopeId);
+      globalThis[key] = new PluginRegistry(
+        scopeType,
+        scopeId,
+        undefined,
+        undefined,
+        loader,
+      );
     // @ts-expect-error hard to declare type for globalThis oxlint-disable-next-line no-unsafe-type-assertion
     // oxlint-disable no-unsafe-type-assertion
     return globalThis[key] as PluginRegistry;
   }
 
   /**
-   * 将插件和其配置 schema 加载到数据库但不安装它
-   * @param drizzle
-   * @param pluginId
-   */
-  public static async importPlugin(
-    drizzle: OverallDrizzleClient,
-    pluginId: string,
-  ): Promise<void> {
-    const data = await this.getPluginData(pluginId);
-
-    await drizzle.transaction(async (tx) => {
-      await tx
-        .insert(plugin)
-        .values([
-          {
-            id: pluginId,
-            version: data.version,
-            name: data.name,
-            entry: data.entry ?? null,
-            overview: data.overview,
-            iconUrl: data.iconURL,
-          },
-        ])
-        .onConflictDoUpdate({
-          target: plugin.id,
-          set: {
-            name: data.name,
-            version: data.version,
-            entry: data.entry ?? null,
-            overview: data.overview,
-            iconUrl: data.iconURL,
-          },
-        });
-
-      if (data.config) {
-        const schema = _JSONSchemaSchema.parse(data.config);
-
-        await tx
-          .insert(pluginConfig)
-          .values([{ pluginId, schema }])
-          .onConflictDoUpdate({
-            target: [pluginConfig.pluginId],
-            set: { schema },
-          });
-      }
-    });
-  }
-
-  /**
    * 安装插件并将其 manifest 中声明的服务注册到数据库
-   * @param drizzle
-   * @param pluginId
    */
   public async installPlugin(
     drizzle: DrizzleClient,
     pluginId: string,
   ): Promise<void> {
-    const manifest = await PluginRegistry.getPluginManifest(pluginId);
+    // 使用实例绑定的 loader
+    const manifest = await this.loader.getManifest(pluginId);
 
     logger.info("PLUGIN", {
       msg: `About to install plugin ${pluginId} in ${this.scopeType} ${this.scopeId}`,
@@ -191,7 +299,6 @@ export class PluginRegistry {
           })),
         );
 
-      // TODO 真的有必要插入数据库吗
       if (manifest.components && manifest.components.length > 0) {
         await tx.insert(pluginComponent).values(
           manifest.components.map((component) => ({
@@ -322,112 +429,6 @@ export class PluginRegistry {
     return this.componentRegistry.get(pluginId);
   }
 
-  private async getPluginInstance(pluginId: string): Promise<CatPlugin> {
-    const pluginFsPath = await PluginRegistry.getPluginEntryFsPath(pluginId);
-    // Vite build will sometimes remove inline /* @vite-ignore */ comments
-    // and cause runtime warning
-    const pluginUrl = /* @vite-ignore */ pathToFileURL(pluginFsPath).href;
-    const imported: unknown = await import(/* @vite-ignore */ pluginUrl);
-
-    if (
-      imported &&
-      typeof imported === "object" &&
-      "default" in imported &&
-      typeof imported.default === "object"
-    ) {
-      return PluginObjectSchema.parse(imported.default);
-    }
-
-    throw new Error(
-      `Plugin ${pluginId} does not have a default export plugin object`,
-    );
-  }
-
-  public static async getPluginEntryFsPath(id: string): Promise<string> {
-    const manifest = await PluginRegistry.getPluginManifest(id);
-    return join(PluginRegistry.getPluginFsPath(id), manifest.entry);
-  }
-
-  public static getPluginFsPath(id: string): string {
-    return join(PluginRegistry.pluginsDir, id);
-  }
-
-  public static async getPluginManifest(
-    pluginId: string,
-  ): Promise<PluginManifest> {
-    const dirPath = PluginRegistry.getPluginFsPath(pluginId);
-    const manifestPath = join(dirPath, "manifest.json");
-
-    try {
-      await access(manifestPath);
-    } catch {
-      logger.debug("PLUGIN", {
-        msg: `Plugin ${pluginId} missing manifest.json`,
-      });
-      throw new Error(`Plugin ${pluginId} missing manifest.json`);
-    }
-
-    const data = await readFile(manifestPath, "utf8");
-    return PluginManifestSchema.parse(JSON.parse(data));
-  }
-
-  public static async getPluginData(pluginId: string): Promise<PluginData> {
-    const dir = PluginRegistry.getPluginFsPath(pluginId);
-
-    const manifestPath = join(dir, "manifest.json");
-    const packageDotJsonPath = join(dir, "package.json");
-    const readmePath = join(dir, "README.md");
-
-    const rawManifest = await readFile(manifestPath, "utf-8");
-    const rawREADME = await readFile(readmePath, "utf-8").catch(() => null);
-
-    const manifest = PluginManifestSchema.parse(JSON.parse(rawManifest));
-
-    const { name, version } = z
-      .object({
-        name: z.string(),
-        version: z.string(),
-      })
-      .parse(JSON.parse(await readFile(packageDotJsonPath, "utf-8")));
-
-    return PluginDataSchema.parse({
-      ...manifest,
-      name,
-      version,
-      overview: rawREADME,
-    });
-  }
-
-  public static async getPluginIdInLocalPlugins(): Promise<string[]> {
-    if (!existsSync(PluginRegistry.pluginsDir))
-      await mkdir(PluginRegistry.pluginsDir);
-
-    const dirs = (
-      await readdir(PluginRegistry.pluginsDir, {
-        withFileTypes: true,
-      })
-    ).filter((dirent) => dirent.isDirectory());
-
-    const results: string[] = [];
-
-    await Promise.all(
-      dirs.map(async (dir) => {
-        try {
-          const manifest = await PluginRegistry.getPluginManifest(dir.name);
-          results.push(manifest.id);
-        } catch (err) {
-          logger.error(
-            "PLUGIN",
-            { msg: `Error reading manifest.json in ${dir.name}:` },
-            err,
-          );
-        }
-      }),
-    );
-
-    return results;
-  }
-
   public async enableAllPlugins(
     drizzle: OverallDrizzleClient,
     app: Hono,
@@ -456,7 +457,8 @@ export class PluginRegistry {
     pluginId: string,
     app: Hono,
   ): Promise<void> {
-    const pluginObj = await this.getPluginInstance(pluginId);
+    const pluginObj = await this.loader.getInstance(pluginId);
+
     const config = await getPluginConfig(
       drizzle,
       pluginId,
@@ -512,7 +514,94 @@ export class PluginRegistry {
     }
   }
 
+  /**
+   * 扫描当前 Loader 可检测到的所有插件，将尚未入库的插件导入数据库
+   */
+  public async importAvailablePlugins(
+    drizzle: OverallDrizzleClient,
+  ): Promise<void> {
+    await drizzle.transaction(async (tx) => {
+      // 1. 获取数据库中已存在的插件 ID
+      const existPluginIds: string[] = (
+        await tx
+          .select({
+            id: plugin.id,
+          })
+          .from(plugin)
+      ).map((p) => p.id);
+
+      // 2. 获取 Loader 能发现的所有插件 ID
+      const availableIds = await this.loader.listAvailablePlugins();
+
+      // 3. 过滤出新的插件 ID
+      const newIds = availableIds.filter((id) => !existPluginIds.includes(id));
+
+      // 4. 导入新插件
+      await Promise.all(
+        newIds.map(async (id) => {
+          // 使用当前实例的 loader 进行导入
+          await PluginRegistry.importPlugin(tx, id, this.loader);
+        }),
+      );
+    });
+  }
+
+  /**
+   * 将插件和其配置 schema 加载到数据库但不安装它
+   * @param drizzle 数据库客户端
+   * @param pluginId 插件 ID
+   * @param loader 可选的加载器，如果不传则使用默认的文件系统加载器
+   */
+  private static async importPlugin(
+    drizzle: OverallDrizzleClient,
+    pluginId: string,
+    loader: PluginLoader = new FileSystemPluginLoader(),
+  ): Promise<void> {
+    const data = await loader.getData(pluginId);
+
+    await drizzle.transaction(async (tx) => {
+      await tx
+        .insert(plugin)
+        .values([
+          {
+            id: pluginId,
+            version: data.version,
+            name: data.name,
+            entry: data.entry ?? null,
+            overview: data.overview,
+            iconUrl: data.iconURL,
+          },
+        ])
+        .onConflictDoUpdate({
+          target: plugin.id,
+          set: {
+            name: data.name,
+            version: data.version,
+            entry: data.entry ?? null,
+            overview: data.overview,
+            iconUrl: data.iconURL,
+          },
+        });
+
+      if (data.config) {
+        const schema = _JSONSchemaSchema.parse(data.config);
+
+        await tx
+          .insert(pluginConfig)
+          .values([{ pluginId, schema }])
+          .onConflictDoUpdate({
+            target: [pluginConfig.pluginId],
+            set: { schema },
+          });
+      }
+    });
+  }
+
   public async reload(drizzle: OverallDrizzleClient, app: Hono): Promise<void> {
     await this.enableAllPlugins(drizzle, app);
+  }
+
+  public getLoader(): PluginLoader {
+    return this.loader;
   }
 }

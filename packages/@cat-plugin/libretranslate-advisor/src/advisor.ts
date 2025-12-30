@@ -106,7 +106,6 @@ export class Advisor extends TranslationAdvisor {
 
   async getSuggestions(
     value: string,
-    termedValue: string,
     terms: { term: string; translation: string }[],
     languageFromId: string,
     languageToId: string,
@@ -115,14 +114,7 @@ export class Advisor extends TranslationAdvisor {
     const targetLang = languageToId.replaceAll("_", "-");
 
     try {
-      const raw = await this.translate(value, sourceLang, targetLang);
-      const termed = [];
-      if (termedValue !== value) {
-        termed.push(
-          ...(await this.translate(termedValue, sourceLang, targetLang)),
-        );
-      }
-      return [...termed, ...raw];
+      return await this.translate(value, sourceLang, targetLang);
     } catch (e) {
       logger.error("PLUGIN", { msg: `LibreTranslate API 请求或解析错误` }, e);
       return [

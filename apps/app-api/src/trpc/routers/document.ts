@@ -8,7 +8,6 @@ import {
   documentVersion as documentVersionTable,
   file as fileTable,
   task as taskTable,
-  documentToTask as documentToTaskTable,
   translation as translationTable,
   translationApprovement as translationApprovementTable,
   project as projectTable,
@@ -52,6 +51,7 @@ import {
 } from "@/trpc/server.ts";
 import { StorageProvider } from "@cat/plugin-core";
 import { randomUUID } from "node:crypto";
+import { upsertDocumentFromFileWorkflow } from "@cat/app-workers";
 
 /**
  * 构建翻译状态查询条件
@@ -281,21 +281,17 @@ export const documentRouter = router({
         redisDB: { redis },
         user,
         pluginRegistry,
-        workerRegistry,
       } = ctx;
 
-      const dbProject = await drizzle
-        .select({
-          id: projectTable.id,
-        })
-        .from(projectTable)
-        .where(eq(projectTable.id, projectId));
-
-      if (!dbProject)
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Project ${projectId} not found`,
-        });
+      assertSingleNonNullish(
+        await drizzle
+          .select({
+            id: projectTable.id,
+          })
+          .from(projectTable)
+          .where(eq(projectTable.id, projectId)),
+        `Project ${projectId} not found`,
+      );
 
       const fileId = await finishPresignedPutFile(
         drizzle,
@@ -337,7 +333,7 @@ export const documentRouter = router({
             message: "No suitable file handler found for this file",
           });
 
-        const result = await drizzle.transaction(async (tx) => {
+        const { document, version } = await drizzle.transaction(async (tx) => {
           // 创建文档
           const document = await createDocumentUnderParent(tx, {
             creatorId: user.id,
@@ -357,75 +353,57 @@ export const documentRouter = router({
             .where(eq(documentTable.id, document.id));
 
           // 创建文档版本
-          await tx.insert(documentVersionTable).values({
-            documentId: document.id,
-          });
-
-          // 创建任务
-          const task = assertSingleNonNullish(
+          const version = assertSingleNonNullish(
             await tx
-              .insert(taskTable)
+              .insert(documentVersionTable)
               .values({
-                type: "upsertDocumentElementsFromFile",
-                meta: {
-                  projectId,
-                },
+                documentId: document.id,
               })
               .returning({
-                id: documentTable.id,
+                id: documentVersionTable.id,
               }),
           );
 
-          // 关联文档和任务
-          await tx.insert(documentToTaskTable).values({
-            documentId: document.id,
-            taskId: task.id,
-          });
-
-          return { document, task };
+          return { document, version };
         });
 
-        await workerRegistry.executeFlow(
-          "upsert-document-elements-from-file",
-          {
-            documentId: result.document.id,
-            fileId,
-            languageId,
-          },
-          {
-            jobId: result.task.id,
-          },
-        );
+        await upsertDocumentFromFileWorkflow.run({
+          documentId: document.id,
+          documentVersionId: version.id,
+          fileId,
+          languageId,
+        });
       } else {
         const existDocument = assertSingleNonNullish(existDocumentRows);
 
-        const task = assertSingleNonNullish(
-          await drizzle
-            .insert(taskTable)
-            .values({
-              type: "upsertDocumentElementsFromFile",
-              meta: { projectId },
+        // 已存在的文档，更新其版本
+        const version = await drizzle.transaction(async (tx) => {
+          await tx
+            .update(documentVersionTable)
+            .set({
+              isActive: false,
             })
-            .returning({ id: taskTable.id }),
-        );
+            .where(eq(documentVersionTable.documentId, existDocument.id));
 
-        // 关联文档和任务
-        await drizzle.insert(documentToTaskTable).values({
-          documentId: existDocument.id,
-          taskId: task.id,
+          return assertSingleNonNullish(
+            await tx
+              .insert(documentVersionTable)
+              .values({
+                documentId: existDocument.id,
+                isActive: true,
+              })
+              .returning({
+                id: documentVersionTable.id,
+              }),
+          );
         });
 
-        await workerRegistry.executeFlow(
-          "upsert-document-elements-from-file",
-          {
-            documentId: existDocument.id,
-            fileId,
-            languageId,
-          },
-          {
-            jobId: task.id,
-          },
-        );
+        await upsertDocumentFromFileWorkflow.run({
+          fileId,
+          languageId,
+          documentId: existDocument.id,
+          documentVersionId: version.id,
+        });
       }
     }),
   get: permissionProcedure("DOCUMENT", "get.others")
@@ -459,7 +437,7 @@ export const documentRouter = router({
         languageId: z.string().optional(),
       }),
     )
-    .output(z.number().int().min(0))
+    .output(z.int().min(0))
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -515,7 +493,7 @@ export const documentRouter = router({
     .input(
       z.object({
         searchQuery: z.string().default(""),
-        greaterThan: z.number().int().optional(),
+        greaterThan: z.int().optional(),
         isApproved: z.boolean().optional(),
         isTranslated: z.boolean().optional(),
         languageId: z.string().optional(),
@@ -597,9 +575,8 @@ export const documentRouter = router({
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
-        workerRegistry,
       } = ctx;
-      const { documentId, languageId } = input;
+      const { documentId } = input;
 
       const document = assertSingleNonNullish(
         await drizzle
@@ -619,25 +596,7 @@ export const documentRouter = router({
           message: "指定文档不是基于文件的",
         });
 
-      const task = assertSingleNonNullish(
-        await drizzle
-          .insert(taskTable)
-          .values({
-            type: "export_translated_file",
-            meta: {
-              projectId: document.projectId,
-              documentId,
-              languageId,
-            },
-          })
-          .returning({ id: taskTable.id }),
-      );
-
-      await workerRegistry.addJob("export-translated-file", {
-        documentId,
-        languageId,
-        taskId: task.id,
-      });
+      // TODO 导出文件
     }),
   getTranslatedFilePresignedUrl: permissionProcedure(
     "DOCUMENT",
@@ -895,7 +854,7 @@ export const documentRouter = router({
         languageId: z.string().optional(),
       }),
     )
-    .output(z.number().int())
+    .output(z.int())
     .query(async ({ ctx, input }) => {
       const {
         drizzleDB: { client: drizzle },
@@ -926,7 +885,7 @@ export const documentRouter = router({
       );
 
       const whereConditions = [
-        lt(translatableElementTable.sortIndex, target.sortIndex),
+        lt(translatableElementTable.sortIndex, target.sortIndex ?? 0),
       ];
 
       if (searchQuery.trim().length !== 0) {
@@ -1004,7 +963,7 @@ export const documentRouter = router({
   )
     .input(
       z.object({
-        documentVersionId: z.number().int().optional(),
+        documentVersionId: z.int().optional(),
       }),
     )
     .output(z.url().nullable())

@@ -10,6 +10,7 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { useToastStore } from "@/app/stores/toast.ts";
+import { onProjectDelete } from "./Page.telefunc.ts";
 
 const { t } = useI18n();
 const { trpcWarn } = useToastStore();
@@ -39,10 +40,9 @@ const update = async (
 const remove = async (): Promise<void> => {
   if (!project) return;
 
-  await trpc.project.delete
-    .mutate({ projectId: project.id })
-    .then(async () => await navigate("/projects"))
-    .catch(trpcWarn);
+  await onProjectDelete(project.id).then(
+    async () => await navigate("/projects"),
+  );
 };
 </script>
 

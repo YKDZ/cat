@@ -33,7 +33,7 @@ defineProps<{
         >
           <div class="flex gap-2 items-center">
             <UserAvatar :user-id="translation.translatorId" :size="36" />
-            <TextTagger :text="translation.value" />
+            <TextTagger :text="translation.text" />
           </div>
           <div class="flex gap-2 items-center">
             <EditorElementTranslationApprovementBtn

@@ -26,7 +26,7 @@ export const TranslationSchema = z.object({
   meta: safeZDotJson,
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
-  translatorId: z.uuidv4(),
+  translatorId: z.uuidv4().nullable(),
   translatableElementId: z.int(),
 });
 

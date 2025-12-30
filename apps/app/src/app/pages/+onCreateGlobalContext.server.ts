@@ -1,9 +1,4 @@
-import {
-  importLocalPlugins,
-  installDefaultPlugins,
-} from "@cat/app-server-shared/utils";
-import { WorkerRegistry } from "@cat/app-workers";
-import { initializeWorkers } from "@cat/app-workers/utils";
+import { installDefaultPlugins } from "@cat/app-server-shared/utils";
 import { ensureDB, getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { assertPromise, logger } from "@cat/shared/utils";
@@ -32,20 +27,15 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    await importLocalPlugins(drizzleDB.client);
+    await pluginRegistry.importAvailablePlugins(drizzleDB.client);
 
     await installDefaultPlugins(drizzleDB.client, pluginRegistry);
 
     await pluginRegistry.enableAllPlugins(drizzleDB.client, globalThis.app);
 
-    const workerRegistry = WorkerRegistry.get("GLOBAL", "");
-
-    await initializeWorkers(workerRegistry);
-
     ctx.drizzleDB = drizzleDB;
     ctx.redisDB = redisDB;
     ctx.pluginRegistry = pluginRegistry;
-    ctx.workerRegistry = workerRegistry;
 
     ctx.name = await getSetting(drizzleDB.client, "server.name", "CAT");
     ctx.baseURL = await getSetting(

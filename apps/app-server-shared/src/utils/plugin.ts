@@ -2,15 +2,65 @@ import {
   and,
   eq,
   OverallDrizzleClient,
-  plugin,
   pluginInstallation,
   pluginService,
   type DrizzleClient,
 } from "@cat/db";
-import { PluginRegistry, type IPluginService } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import {
+  PluginRegistry,
+  type IPluginService,
+  type PluginServiceMap,
+} from "@cat/plugin-core";
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import {
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+} from "@cat/shared/utils";
 import path, { join, resolve } from "node:path";
 import { cwd } from "node:process";
+
+export const firstOrGivenService = async <T extends PluginServiceType>(
+  drizzle: OverallDrizzleClient,
+  pluginRegistry: PluginRegistry,
+  type: T,
+  id?: number,
+): Promise<
+  | {
+      id: number;
+      service: PluginServiceMap[T];
+    }
+  | undefined
+> => {
+  if (id) {
+    return {
+      id,
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      service: (await getServiceFromDBId(
+        drizzle,
+        pluginRegistry,
+        id,
+      )) as unknown as PluginServiceMap[T],
+    };
+  } else {
+    const services = pluginRegistry.getPluginServices(type);
+
+    if (services.length === 0) return undefined;
+
+    const { record, service } = assertFirstNonNullish(
+      pluginRegistry.getPluginServices(type),
+    );
+    const id = await pluginRegistry.getPluginServiceDbId(
+      drizzle,
+      record.pluginId,
+      record.id,
+    );
+
+    return {
+      id,
+      service,
+    };
+  }
+};
 
 export const getServiceFromDBId = async <T extends IPluginService>(
   drizzle: OverallDrizzleClient,
@@ -42,28 +92,6 @@ export const getServiceFromDBId = async <T extends IPluginService>(
 
   // oxlint-disable-next-line no-unsafe-type-assertion
   return service as unknown as T;
-};
-
-export const importLocalPlugins = async (
-  drizzle: DrizzleClient,
-): Promise<void> => {
-  await drizzle.transaction(async (tx) => {
-    const existPluginIds: string[] = (
-      await tx
-        .select({
-          id: plugin.id,
-        })
-        .from(plugin)
-    ).map((plugin) => plugin.id);
-
-    await Promise.all(
-      (await PluginRegistry.getPluginIdInLocalPlugins())
-        .filter((id) => !existPluginIds.includes(id))
-        .map(async (id) => {
-          await PluginRegistry.importPlugin(tx, id);
-        }),
-    );
-  });
 };
 
 export const installDefaultPlugins = async (

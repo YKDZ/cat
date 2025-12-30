@@ -8,9 +8,9 @@ import {
   sql,
   vector,
 } from "@cat/db";
-import { IVectorStorage } from "@cat/plugin-core";
+import { VectorStorage } from "@cat/plugin-core";
 
-export class Storage extends IVectorStorage {
+export class Storage extends VectorStorage {
   getId(): string {
     return "pgvector-storage";
   }

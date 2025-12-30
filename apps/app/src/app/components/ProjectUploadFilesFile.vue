@@ -16,7 +16,7 @@ const props = defineProps<{
 }>();
 
 const isProcessing = ref<boolean>(false);
-const languageId = ref<string>("");
+const languageId = ref<string>("en");
 
 const upload = async () => {
   if (isProcessing.value) return;

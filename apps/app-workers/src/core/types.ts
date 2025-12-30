@@ -1,96 +1,105 @@
-import type { PluginRegistry } from "@cat/plugin-core";
-import type { Job, JobsOptions, WorkerOptions } from "bullmq";
-import type { z, ZodType } from "zod/v4";
-
-export type InferSchema<T extends ZodType | undefined> = T extends ZodType
-  ? z.infer<T>
-  : unknown;
+import type { FlowChildJob, Job, Worker } from "bullmq";
+import type z from "zod";
 
 /**
- * Worker 执行上下文
- * 提供给每个任务执行时的运行环境
+ * 约束 Input/Output 必须为 Zod Object，避免 spread 标量类型出错
+ * 使用 ZodRawShape 避免显式的 explicit any
  */
-export interface WorkerContext<TInput = unknown> {
-  /** BullMQ Job */
-  job: Job<TInput>;
-  input: TInput;
-
-  pluginRegistry: PluginRegistry;
-}
+export type ZodObjectAny = z.ZodObject<z.ZodRawShape>;
 
 /**
- * Worker 定义配置
- * 使用泛型确保类型安全
+ * run() 方法的返回结果
+ * 包含原始 Job 实例和一个类型安全的等待辅助函数
  */
-export interface WorkerDefinition<
-  TInputSchema extends ZodType | undefined = undefined,
-  TOutputSchema extends ZodType | undefined = undefined,
-  TContext extends WorkerContext<InferSchema<TInputSchema>> = WorkerContext<
-    InferSchema<TInputSchema>
-  >,
-> {
-  id: string;
-  inputSchema: TInputSchema;
-  outputSchema?: TOutputSchema;
-  execute: (ctx: TContext) => Promise<InferSchema<TOutputSchema>>;
-  options?: WorkerOptions;
-  defaultJobOptions?: JobsOptions;
-  hooks?: WorkerHooks<
-    InferSchema<TInputSchema>,
-    InferSchema<TOutputSchema>,
-    TContext
-  >;
-  middleware?: WorkerMiddleware<
-    InferSchema<TInputSchema>,
-    InferSchema<TOutputSchema>,
-    TContext
-  >[];
-}
-
-/**
- * Worker 生命周期钩子
- */
-export interface WorkerHooks<
-  TInput = unknown,
-  TOutput = unknown,
-  TContext extends WorkerContext<TInput> = WorkerContext<TInput>,
-> {
-  /** 执行前钩子 */
-  beforeExecute?: (ctx: TContext) => Promise<void> | void;
-
-  /** 执行后钩子 */
-  afterExecute?: (
-    ctx: TContext,
-    result: TOutput,
-  ) => Promise<void | TOutput> | void | TOutput;
-
-  /** 错误处理钩子 (在执行过程中抛出错误时调用) */
-  onError?: (ctx: TContext, error: unknown) => Promise<void> | void;
-
-  /** 完成钩子 (任务成功完成后调用) */
-  onComplete?: (ctx: TContext, result: TOutput) => Promise<void> | void;
-
+export type RunResult<I, O> = {
+  job: Job<I, O>;
   /**
-   * 失败钩子 (任务失败后调用，基于 BullMQ 的 'failed' 事件)
-   * 注意：此钩子接收的是原始 Job 对象，而不是 WorkerContext
+   * 等待任务完成并获取结果
+   * 如果任务失败，这里会抛出异常
    */
-  onFailed?: (job: Job<TInput>, error: Error) => Promise<void> | void;
-}
+  result: () => Promise<O>;
+};
 
-export type WorkerMiddleware<
-  TInput = unknown,
-  TOutput = unknown,
-  TContext extends WorkerContext<TInput> = WorkerContext<TInput>,
-> = (ctx: TContext, next: () => Promise<TOutput>) => Promise<TOutput> | TOutput;
+export type TaskDefinition<I extends ZodObjectAny, O extends ZodObjectAny> = {
+  name: string;
+  schema: {
+    input: I;
+    output?: O;
+  };
+  worker: Worker;
+  /**
+   * 启动独立任务
+   */
+  run: (
+    input: z.infer<I>,
+    meta?: { traceId?: string },
+  ) => Promise<RunResult<z.infer<I>, z.infer<O>>>;
+  /**
+   * 构建为子任务节点（用于 Workflow）
+   */
+  asChild: (input: z.infer<I>, meta?: { traceId?: string }) => FlowChildJob;
+};
 
-export interface WorkerInstance {
-  id: string;
-  queue: import("bullmq").Queue;
-  worker: import("bullmq").Worker;
-  shutdown: () => Promise<void>;
-}
+/**
+ * 获取子任务结果的上下文工具
+ */
+export type WorkflowHandlerContext = {
+  job: Job;
+  traceId: string;
+  /**
+   * 原始子任务结果，Key 为 JobID
+   */
+  results: Record<string, unknown>;
+  /**
+   * 类型安全地获取指定任务的输出结果
+   * 自动过滤出属于该 TaskDefinition 的结果，并使用 Schema 解析
+   */
+  getTaskResult: <Ti extends ZodObjectAny, To extends ZodObjectAny>(
+    task: TaskDefinition<Ti, To>,
+  ) => z.infer<To>[];
+  /**
+   * Workflow Barrier 回滚
+   */
+  onRollback: (fn: () => Promise<void>) => void;
+};
 
-export interface QueueJobOptions extends JobsOptions {
-  jobId?: string;
-  meta?: Record<string, unknown>;
-}
+export type DefineTaskOptions<
+  I extends ZodObjectAny,
+  O extends ZodObjectAny,
+> = {
+  name: string;
+  input: I;
+  output?: O;
+  handler: (
+    payload: z.infer<I>,
+    ctx: TaskHandlerContext,
+  ) => Promise<z.infer<O>>;
+  concurrency?: number;
+};
+
+export type DefineWorkflowOptions<
+  I extends ZodObjectAny,
+  O extends ZodObjectAny,
+> = {
+  name: string;
+  input: I;
+  output?: O;
+  dependencies: (
+    payload: z.infer<I>,
+    context: { traceId: string },
+  ) => FlowChildJob[];
+  handler: (
+    payload: z.infer<I>,
+    context: WorkflowHandlerContext,
+  ) => Promise<z.infer<O>>;
+};
+
+export type TaskHandlerContext = {
+  job: Job;
+  traceId: string;
+  /**
+   * 注册一个回滚函数。
+   * 当任务执行失败（抛出异常）时，框架会自动按注册顺序的**逆序**执行这些函数。
+   */
+  onRollback: (fn: () => Promise<void>) => void;
+};

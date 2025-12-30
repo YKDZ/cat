@@ -1,16 +1,10 @@
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
-import { DrizzleDB, getDrizzleDB, getRedisDB, RedisDB } from "@cat/db";
+import { DrizzleDB, RedisDB } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import {
-  createHTTPHelpers,
-  getCookie,
-  getCookieFunc,
-  HTTPHelpers,
-} from "@cat/shared/utils";
-import { userFromSessionId } from "@cat/app-server-shared/utils";
+import { getCookie, getCookieFunc, HTTPHelpers } from "@cat/shared/utils";
 import { User } from "@cat/shared/schema/drizzle/user";
-import { WorkerRegistry } from "@cat/app-workers";
+import { getHttpContext } from "@/utils/context";
 
 export const createHttpContext = async ({
   req,
@@ -21,28 +15,9 @@ export const createHttpContext = async ({
   pluginRegistry: PluginRegistry;
   drizzleDB: DrizzleDB;
   redisDB: RedisDB;
-  workerRegistry: WorkerRegistry;
   helpers: HTTPHelpers;
 }> => {
-  const helpers = createHTTPHelpers(req, resHeaders);
-
-  const drizzleDB = await getDrizzleDB();
-  const redisDB = await getRedisDB();
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-  const workerRegistry = WorkerRegistry.get("GLOBAL", "");
-
-  const sessionId = helpers.getCookie("sessionId") ?? null;
-  const user = await userFromSessionId(drizzleDB.client, sessionId);
-
-  return {
-    user,
-    sessionId,
-    pluginRegistry,
-    drizzleDB,
-    redisDB,
-    workerRegistry,
-    helpers,
-  };
+  return getHttpContext(req, resHeaders);
 };
 
 // oxlint-disable-next-line require-await

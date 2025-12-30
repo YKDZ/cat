@@ -198,7 +198,6 @@ export const suggestionRouter = router({
         try {
           const suggestions = await advisor.getSuggestions(
             element.value,
-            element.value,
             relations,
             element.languageId,
             languageId,

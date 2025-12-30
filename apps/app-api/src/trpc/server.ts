@@ -92,7 +92,7 @@ export const permissionsProcedure = <T extends ZodObject>(
     getId?: (input: inferParser<T>["out"]) => string | undefined;
   }[],
 ) => {
-  const inputSchema = z.object({});
+  const inputSchema = z.looseObject({});
   permissions.forEach(({ inputSchema: schema }) => {
     if (!schema || typeof schema !== "object") return;
     inputSchema.extend(schema.shape);
