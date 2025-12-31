@@ -28,7 +28,13 @@
   ],
   "references": [
     {
+      "path": "../plugin-core/tsconfig.lib.json"
+    },
+    {
       "path": "../db/tsconfig.lib.json"
+    },
+    {
+      "path": "../shared/tsconfig.lib.json"
     }
   ]
 }
