@@ -5,13 +5,19 @@ import type {
   VectorizedTextData,
 } from "@cat/shared/schema/misc";
 
+export type CanVectorizeContext = {
+  languageId: string;
+};
+
+export type VectorizeContext = {
+  elements: UnvectorizedTextData[];
+};
+
 export abstract class TextVectorizer implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType {
     return "TEXT_VECTORIZER";
   }
-  abstract canVectorize(languageId: string): boolean;
-  abstract vectorize(
-    elements: UnvectorizedTextData[],
-  ): Promise<VectorizedTextData[]>;
+  abstract canVectorize(ctx: CanVectorizeContext): boolean;
+  abstract vectorize(ctx: VectorizeContext): Promise<VectorizedTextData[]>;
 }

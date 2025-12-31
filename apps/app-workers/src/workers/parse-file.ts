@@ -55,11 +55,13 @@ export const parseFileTask = await defineTask({
     const { service: handler } = assertFirstNonNullish(
       pluginRegistry
         .getPluginServices("TRANSLATABLE_FILE_HANDLER")
-        .filter((h) => h.service.canExtractElement(name)),
+        .filter((h) => h.service.canExtractElement({ name })),
     );
 
-    const fileContent = await readableToBuffer(await provider.getStream(key));
-    const extracted = await handler.extractElement(fileContent);
+    const fileContent = await readableToBuffer(
+      await provider.getStream({ key }),
+    );
+    const extracted = await handler.extractElement({ fileContent });
 
     // 补全 sortIndex
     let maxSortIndex = -1;

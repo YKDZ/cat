@@ -7,11 +7,11 @@ import {
   plugin,
   translatableString,
 } from "@cat/db";
-import { PluginRegistry, TestPluginLoader } from "@cat/plugin-core";
+import { PluginRegistry } from "@cat/plugin-core";
 import { firstOrGivenService } from "@cat/app-server-shared/utils";
 import { createTranslatableStringTask } from "@/workers/create-translatable-string";
 import { zip } from "@cat/shared/utils";
-import { setupTestDB } from "@cat/test-utils";
+import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
 beforeAll(async () => {
   const { client: drizzle } = await setupTestDB();

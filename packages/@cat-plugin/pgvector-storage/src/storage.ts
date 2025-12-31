@@ -8,21 +8,26 @@ import {
   sql,
   vector,
 } from "@cat/db";
-import { VectorStorage } from "@cat/plugin-core";
+import {
+  VectorStorage,
+  type CosineSimilarityContext,
+  type RetrieveContext,
+  type StoreContext,
+} from "@cat/plugin-core";
 
 export class Storage extends VectorStorage {
   getId(): string {
     return "pgvector-storage";
   }
 
-  async store(chunks: { vector: number[]; chunkId: number }[]): Promise<void> {
+  async store({ chunks }: StoreContext): Promise<void> {
     const { client: drizzle } = await getDrizzleDB();
     await drizzle.insert(vector).values(chunks);
   }
 
-  async retrieve(
-    chunkIds: number[],
-  ): Promise<{ vector: number[]; chunkId: number }[]> {
+  async retrieve({
+    chunkIds,
+  }: RetrieveContext): Promise<{ vector: number[]; chunkId: number }[]> {
     const { client: drizzle } = await getDrizzleDB();
     const result = await drizzle
       .select()
@@ -31,12 +36,14 @@ export class Storage extends VectorStorage {
     return result as { vector: number[]; chunkId: number }[];
   }
 
-  async cosineSimilarity(
-    vectors: number[][],
-    chunkIdRange: number[],
-    minSimilarity: number,
-    maxAmount: number,
-  ): Promise<{ chunkId: number; similarity: number }[]> {
+  async cosineSimilarity({
+    vectors,
+    chunkIdRange,
+    minSimilarity,
+    maxAmount,
+  }: CosineSimilarityContext): Promise<
+    { chunkId: number; similarity: number }[]
+  > {
     const { client: drizzle } = await getDrizzleDB();
 
     const similarities = vectors.map(

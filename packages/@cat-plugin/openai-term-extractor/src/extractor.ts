@@ -1,15 +1,15 @@
-import { TermExtractor, type TermCandidate } from "@cat/plugin-core";
+import {
+  TermExtractor,
+  type ExtractContext,
+  type TermCandidate,
+} from "@cat/plugin-core";
 
 export class Extractor extends TermExtractor {
   getId(): string {
     return "openai";
   }
 
-  async extract(
-    _text: string,
-    _sourceLanguageId: string,
-    _options?: { maxResults?: number },
-  ): Promise<TermCandidate[]> {
+  async extract(_ctx: ExtractContext): Promise<TermCandidate[]> {
     throw new Error("Method not implemented.");
   }
 }

@@ -27,7 +27,9 @@
     "drizzle-kit": "beta"
   },
   "peerDependencies": {
+    "@cat/shared": "workspace:*",
     "@cat/db": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
     "drizzle-orm": "1.0.0-beta.6-4414a19"
   },
   "packageManager": "pnpm@10.26.2"

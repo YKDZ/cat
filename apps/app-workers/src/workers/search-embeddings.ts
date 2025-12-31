@@ -38,7 +38,7 @@ export const searchEmbeddingsTask = await defineTask({
       vectorStorageId,
     );
 
-    const chunks = await vectorStorage.retrieve(data.chunkIds);
+    const chunks = await vectorStorage.retrieve({ chunkIds: data.chunkIds });
     const embeddings = chunks.map((c) => c.vector);
 
     return {

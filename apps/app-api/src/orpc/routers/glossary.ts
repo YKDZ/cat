@@ -334,15 +334,18 @@ const findTermRelationsInProject = async (
     return [];
   }
 
-  const candidates = await termExtractor.extract(text, sourceLanguageId);
+  const candidates = await termExtractor.extract({
+    text,
+    languageId: sourceLanguageId,
+  });
   const entryIds = (
-    await termRecognizer.recognize(
-      {
+    await termRecognizer.recognize({
+      source: {
         text,
         candidates,
       },
-      sourceLanguageId,
-    )
+      languageId: sourceLanguageId,
+    })
   ).map((entry) => entry.termEntryId);
 
   const sourceTerm = aliasedTable(termTable, "sourceTerm");

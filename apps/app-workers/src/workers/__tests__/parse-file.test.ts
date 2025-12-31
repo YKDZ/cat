@@ -8,7 +8,7 @@ import {
   plugin,
   pluginService,
 } from "@cat/db";
-import { PluginRegistry, TestPluginLoader } from "@cat/plugin-core";
+import { PluginRegistry } from "@cat/plugin-core";
 import {
   firstOrGivenService,
   readableToString,
@@ -16,7 +16,7 @@ import {
 import { parseFileTask } from "@/workers/parse-file.ts";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { Readable } from "stream";
-import { setupTestDB } from "@cat/test-utils";
+import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
 const key = "/file/key";
 
@@ -119,9 +119,11 @@ test("storage provider should store and retrieve data correctly", async () => {
 
   const text = "Hello World!\nYKDZ";
 
-  await provider.putStream(key, Readable.from(text));
+  await provider.putStream({ key, stream: Readable.from(text) });
 
-  expect(await readableToString(await provider.getStream(key))).toEqual(text);
+  expect(await readableToString(await provider.getStream({ key }))).toEqual(
+    text,
+  );
 });
 
 test("worker should parse elements from file", async () => {

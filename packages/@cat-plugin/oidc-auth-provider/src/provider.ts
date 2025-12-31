@@ -2,6 +2,7 @@ import { getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
 import {
   AuthProvider,
   type AuthResult,
+  type HandleLogoutContext,
   type PreAuthResult,
 } from "@cat/plugin-core";
 import { safeJoinURL } from "@cat/shared/utils";
@@ -149,7 +150,9 @@ export class Provider extends AuthProvider {
     } satisfies AuthResult;
   }
 
-  override async handleLogout(sessionId: string): Promise<void> {
+  override async handleLogout({
+    sessionId,
+  }: HandleLogoutContext): Promise<void> {
     const { redis } = await getRedisDB();
     const { client: drizzle } = await getDrizzleDB();
     const idToken = await redis.hGet(`user:session:${sessionId}`, "idToken");

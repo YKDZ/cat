@@ -8,8 +8,13 @@ import {
   YAMLSeq,
 } from "yaml";
 import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
-import { TranslatableFileHandler } from "@cat/plugin-core";
-import { JSONType } from "@cat/shared/schema/json";
+import {
+  TranslatableFileHandler,
+  type CanExtractElementContext,
+  type CanGetReplacedFileContentContext,
+  type ExtractElementContext,
+  type GetReplacedFileContentContext,
+} from "@cat/plugin-core";
 import * as z from "zod";
 
 type YamlValue = string | number | boolean | null | YamlObject | YamlArray;
@@ -37,13 +42,15 @@ export class YAMLTranslatableFileHandler extends TranslatableFileHandler {
     return "YAML";
   }
 
-  canExtractElement(name: string): boolean {
+  canExtractElement({ name }: CanExtractElementContext): boolean {
     return name.endsWith(".yaml") || name.endsWith(".yml");
   }
 
-  async extractElement(
-    fileContent: Buffer,
-  ): Promise<TranslatableElementDataWithoutLanguageId[]> {
+  async extractElement({
+    fileContent,
+  }: ExtractElementContext): Promise<
+    TranslatableElementDataWithoutLanguageId[]
+  > {
     const content = fileContent.toString("utf8");
     const doc = parseDocument(content);
     const elements: TranslatableElementDataWithoutLanguageId[] = [];
@@ -93,14 +100,16 @@ export class YAMLTranslatableFileHandler extends TranslatableFileHandler {
     return elements;
   }
 
-  canGetReplacedFileContent(name: string): boolean {
-    return this.canExtractElement(name);
+  canGetReplacedFileContent({
+    name,
+  }: CanGetReplacedFileContentContext): boolean {
+    return this.canExtractElement({ name });
   }
 
-  async getReplacedFileContent(
-    fileContent: Buffer,
-    elements: { meta: JSONType; value: string }[],
-  ): Promise<Buffer> {
+  async getReplacedFileContent({
+    fileContent,
+    elements,
+  }: GetReplacedFileContentContext): Promise<Buffer> {
     const content = fileContent.toString("utf8");
     // oxlint-disable-next-line no-unsafe-type-assertion
     const doc = parse(content) as YamlValue;

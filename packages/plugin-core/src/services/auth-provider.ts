@@ -22,6 +22,14 @@ export type AuthResult = {
   accountMeta?: JSONType;
 };
 
+export type HandlePreAuthContext = {
+  identifier: string;
+};
+
+export type HandleLogoutContext = {
+  sessionId: string;
+};
+
 export abstract class AuthProvider implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType {
@@ -41,6 +49,6 @@ export abstract class AuthProvider implements IPluginService {
   abstract isAvailable(): Promise<boolean>;
 
   getAuthFormSchema?(): JSONSchema;
-  handlePreAuth?(identifier: string): Promise<PreAuthResult>;
-  handleLogout?(sessionId: string): Promise<void>;
+  handlePreAuth?(ctx: HandlePreAuthContext): Promise<PreAuthResult>;
+  handleLogout?(ctx: HandleLogoutContext): Promise<void>;
 }
