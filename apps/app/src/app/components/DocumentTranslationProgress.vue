@@ -6,7 +6,7 @@ import Dot from "./Dot.vue";
 import ProgressBar from "./progress/bar/ProgressBar.vue";
 import type { ProgressBarLine } from "@/app/components/progress/bar/index.ts";
 import { computedAsyncClient } from "@/app/utils/vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { Document } from "@cat/shared/schema/drizzle/document";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
@@ -19,13 +19,13 @@ const props = defineProps<{
 }>();
 
 const translatableElementAmount = computedAsyncClient(async () => {
-  return await trpc.document.countElement.query({
+  return await orpc.document.countElement({
     documentId: props.document.id,
   });
 }, 0);
 
 const translatedElementAmount = computedAsyncClient(async () => {
-  return await trpc.document.countElement.query({
+  return await orpc.document.countElement({
     documentId: props.document.id,
     isTranslated: true,
     languageId: props.language.id,
@@ -33,7 +33,7 @@ const translatedElementAmount = computedAsyncClient(async () => {
 }, 0);
 
 const approvedElementAmount = computedAsyncClient(async () => {
-  return await trpc.document.countElement.query({
+  return await orpc.document.countElement({
     documentId: props.document.id,
     isTranslated: true,
     isApproved: true,

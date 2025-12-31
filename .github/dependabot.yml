@@ -8,9 +8,9 @@ updates:
     versioning-strategy: widen
     open-pull-requests-limit: 64
     groups:
-      trpc:
+      orpc:
         patterns:
-          - "@trpc/*"
+          - "@orpc/*"
       aws-sdk:
         patterns:
           - "@aws-sdk/*"

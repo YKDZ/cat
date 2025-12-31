@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { useAuthStore } from "@/app/stores/auth.ts";
 import { Button } from "@/app/components/ui/button";
 
@@ -23,7 +23,7 @@ const { userId } = storeToRefs(useAuthStore());
 const handlePreMfa = async () => {
   if (!userId.value) return;
 
-  await trpc.auth.preMFA.mutate({
+  await orpc.auth.preMfa({
     userId: userId.value,
     mfaProviderId: props.method.providerId,
   });

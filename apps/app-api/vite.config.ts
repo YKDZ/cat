@@ -10,8 +10,8 @@ export default defineConfig({
       "@cat/plugin-core",
       "@cat/app-workers",
       "@cat/app-server-shared",
-      "@trpc/client",
-      "@trpc/server",
+      "@orpc/client",
+      "@orpc/server",
       "vike",
       "zod",
       "lodash-es",
@@ -32,11 +32,9 @@ export default defineConfig({
 
     lib: {
       entry: {
-        index: resolve(import.meta.dirname, "src/index.ts"),
-        utils: resolve(import.meta.dirname, "src/utils/index.ts"),
-        trpc: resolve(import.meta.dirname, "src/trpc/index.ts"),
-        "trpc/client": resolve(import.meta.dirname, "src/trpc/client.ts"),
-        "trpc/sscClient": resolve(import.meta.dirname, "src/trpc/sscClient.ts"),
+        app: resolve(import.meta.dirname, "src/app.ts"),
+        context: resolve(import.meta.dirname, "src/utils/context.ts"),
+        "orpc/router": resolve(import.meta.dirname, "src/orpc/router.ts"),
       },
       formats: ["es"],
     },

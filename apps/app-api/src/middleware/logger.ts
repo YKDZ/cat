@@ -1,7 +1,7 @@
 import { logger } from "@cat/shared/utils";
 import { createMiddleware } from "hono/factory";
 
-export const pinoLoggerMiddleware = createMiddleware(async (c, next) => {
+export const loggerMiddleware = createMiddleware(async (c, next) => {
   if (process.env.NODE_ENV === "production") {
     const start = Date.now();
     await next();

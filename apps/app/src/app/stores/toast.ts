@@ -1,8 +1,7 @@
-import type { TRPCError } from "@trpc/server";
 import { defineStore } from "pinia";
 import type { Component } from "vue";
 import { toast } from "vue-sonner";
-import type { ZodError } from "zod/v4";
+import { z, type ZodError } from "zod/v4";
 
 const defaultDuration = 3000;
 
@@ -42,14 +41,16 @@ export const useToastStore = defineStore("toast", () => {
     });
   };
 
-  const trpcWarn = (
-    e: TRPCError,
+  const rpcWarn = (
+    e: unknown,
     icon?: Component,
     duration = defaultDuration,
   ) => {
-    if (!e.message) return;
+    const { message } = z.object({ message: z.string().optional() }).parse(e);
 
-    warn(e.message, icon, duration);
+    if (!message) return;
+
+    warn(message, icon, duration);
   };
 
   const error = (
@@ -67,7 +68,7 @@ export const useToastStore = defineStore("toast", () => {
     info,
     warn,
     zWarn,
-    trpcWarn,
+    rpcWarn,
     error,
   };
 });

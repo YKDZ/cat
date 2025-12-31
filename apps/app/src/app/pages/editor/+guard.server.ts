@@ -1,6 +1,6 @@
 import { render, redirect } from "vike/abort";
 import type { PageContextServer } from "vike/types";
-import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
+import { ssc } from "@/server/ssc";
 
 export const guard = async (ctx: PageContextServer) => {
   if (!ctx.user) throw render("/auth", `You must login to access`);
@@ -11,14 +11,14 @@ export const guard = async (ctx: PageContextServer) => {
 
   if (elementId !== "auto" || !isNaN(parseInt(elementId))) return;
 
-  let target = await useSSCTRPC(ctx).document.getFirstElement({
+  let target = await ssc(ctx).document.getFirstElement({
     documentId: documentId,
     isTranslated: false,
     languageId: languageToId,
   });
 
   if (!target) {
-    const first = await useSSCTRPC(ctx).document.getElements({
+    const first = await ssc(ctx).document.getElements({
       documentId: documentId,
       page: 0,
       pageSize: 1,

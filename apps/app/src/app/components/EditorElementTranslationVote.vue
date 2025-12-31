@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { computedAsyncClient } from "@/app/utils/vue.ts";
 import type { TranslationWithStatus } from "../stores/editor/translation";
@@ -15,14 +15,14 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 
 const preVoteAmount = ref(1);
 const isProcessing = ref<boolean>(false);
 
 const selfVote = computedAsyncClient(
   () =>
-    trpc.translation.getSelfVote.query({
+    orpc.translation.getSelfVote({
       translationId: props.translation.id,
     }),
   null,
@@ -31,7 +31,7 @@ const selfVote = computedAsyncClient(
 const vote = computedAsyncClient(() => {
   // oxlint-disable-next-line no-unused-expressions
   selfVote.value;
-  return trpc.translation.countVote.query({
+  return orpc.translation.countVote({
     translationId: props.translation.id,
   });
 }, null);
@@ -41,8 +41,8 @@ const handleUnvote = async () => {
   if (isProcessing.value) return;
 
   isProcessing.value = true;
-  await trpc.translation.vote
-    .mutate({
+  await orpc.translation
+    .vote({
       translationId: props.translation.id,
     })
     .then((newVote) => {
@@ -52,13 +52,13 @@ const handleUnvote = async () => {
     .finally(() => {
       isProcessing.value = false;
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 
 const handleVote = async (value: number) => {
   isProcessing.value = true;
-  await trpc.translation.vote
-    .mutate({
+  await orpc.translation
+    .vote({
       translationId: props.translation.id,
     })
     .then((vote) => {
@@ -72,7 +72,7 @@ const handleVote = async (value: number) => {
     .finally(() => {
       isProcessing.value = false;
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 </script>
 

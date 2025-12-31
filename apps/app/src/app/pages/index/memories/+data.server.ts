@@ -1,6 +1,6 @@
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
-import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
+import { ssc } from "@/server/ssc";
 
 export const data = async (ctx: PageContextServer) => {
   const { user } = ctx;
@@ -8,7 +8,7 @@ export const data = async (ctx: PageContextServer) => {
   if (!user) throw render("/", `You must login to access`);
 
   try {
-    const memories = await useSSCTRPC(ctx).memory.getUserOwned({
+    const memories = await ssc(ctx).memory.getUserOwned({
       userId: user.id,
     });
 

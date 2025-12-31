@@ -2,7 +2,7 @@
 import { navigate } from "vike/client/router";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { Data } from "../+data.server.ts";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 import { Button } from "@/app/components/ui/button";
@@ -13,7 +13,7 @@ import { useToastStore } from "@/app/stores/toast.ts";
 import { onProjectDelete } from "./Page.telefunc.ts";
 
 const { t } = useI18n();
-const { trpcWarn } = useToastStore();
+const { rpcWarn } = useToastStore();
 
 const project = inject(useInjectionKey<Data>()("project"))!;
 const name = ref(project.name);
@@ -29,12 +29,12 @@ const update = async (
 ): Promise<void> => {
   if (!project) return;
 
-  await trpc.project.update
-    .mutate({
+  await orpc.project
+    .update({
       projectId,
       ...data,
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 
 const remove = async (): Promise<void> => {

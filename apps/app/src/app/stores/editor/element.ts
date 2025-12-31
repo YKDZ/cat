@@ -7,8 +7,8 @@ import {
 } from "@cat/shared/schema/misc";
 import { TranslatableElementSchema } from "@cat/shared/schema/drizzle/document";
 import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
-import { trpc } from "@cat/app-api/trpc/client";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { orpc } from "@/server/orpc";
 
 export const TranslatableElementWithDetailsSchema =
   TranslatableElementSchema.extend({
@@ -50,7 +50,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
   ): Promise<ElementTranslationStatus> => {
     if (!elementId || !context.languageToId.value) return "NO";
 
-    return await trpc.document.getElementTranslationStatus.query({
+    return await orpc.document.getElementTranslationStatus({
       elementId,
       languageId: context.languageToId.value,
     });

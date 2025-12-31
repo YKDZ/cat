@@ -1,8 +1,8 @@
 import type { PageContextServer } from "vike/types";
-import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
+import { ssc } from "@/server/ssc";
 
 export const data = async (ctx: PageContextServer) => {
-  const methods = await useSSCTRPC(ctx).plugin.getAllAuthMethod();
+  const methods = await ssc(ctx).plugin.getAllAuthMethod();
   return { methods };
 };
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import MultiMemoryPicker from "./MultiMemoryPicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
@@ -17,7 +17,7 @@ import {
 import { Link2 } from "lucide-vue-next";
 
 const { t } = useI18n();
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 
 const props = defineProps<{
   project: Project;
@@ -38,14 +38,14 @@ const handleLink = async () => {
   const realIds = memoryIds.value.splice(createNewIndex, 1);
 
   if (createNewIndex !== -1) {
-    await trpc.memory.create.mutate({
+    await orpc.memory.create({
       name: props.project.name,
       projectIds: [props.project.id],
     });
   }
 
-  await trpc.project.linkMemory
-    .mutate({
+  await orpc.project
+    .linkMemory({
       projectId: props.project.id,
       memoryIds: realIds,
     })
@@ -53,7 +53,7 @@ const handleLink = async () => {
       emits("link");
       info("成功连接新的记忆库到此项目");
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 </script>
 

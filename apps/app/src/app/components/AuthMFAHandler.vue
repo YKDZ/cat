@@ -3,7 +3,7 @@ import { computed, onMounted, ref, shallowRef } from "vue";
 import { navigate } from "vike/client/router";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import JSONForm from "@/app/components/json-form/JsonForm.vue";
 import { useAuthStore } from "@/app/stores/auth.ts";
 import { Button } from "@/app/components/ui/button";
@@ -26,7 +26,7 @@ const handleVerify = async (): Promise<void> => {
           ...data.value,
         }
       : data.value;
-  await trpc.auth.mfa.mutate({
+  await orpc.auth.mfa({
     passToServer: {
       formData,
     },
@@ -47,7 +47,7 @@ onMounted(async () => {
     return;
   }
 
-  schema.value = await trpc.auth.getAuthFormSchema.query({
+  schema.value = await orpc.auth.getAuthFormSchema({
     providerId: authMethod.value.providerId,
   });
 

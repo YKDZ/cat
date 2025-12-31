@@ -2,7 +2,7 @@
 import type { Document } from "@cat/shared/schema/drizzle/document";
 import { inject } from "vue";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { languageKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 import Button from "./ui/button/Button.vue";
@@ -22,22 +22,22 @@ const props = defineProps<{
   document: Pick<Document, "id">;
 }>();
 
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 
 const language = inject(languageKey);
 
 const handleAutoApprove = async () => {
   if (!language || !language.value) return;
 
-  await trpc.translation.autoApprove
-    .mutate({
+  await orpc.translation
+    .autoApprove({
       documentId: props.document.id,
       languageId: language.value.id,
     })
     .then((count) => {
       info(`成功自动批准 ${count} 条可用的翻译`);
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 </script>
 

@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Picker from "@/app/components/picker/Picker.vue";
 import { computedAsyncClient } from "@/app/utils/vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 
 const props = withDefaults(
   defineProps<{
@@ -21,7 +21,7 @@ const search = ref("");
 
 const languages = computedAsyncClient(async () => {
   return (
-    await trpc.language.getAll.query({
+    await orpc.language.getAll({
       searchQuery: search.value,
     })
   ).languages;

@@ -1,5 +1,4 @@
 import type { AuthMethod } from "@cat/shared/schema/misc";
-import type { TRPCError } from "@trpc/server";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
@@ -8,14 +7,12 @@ export const useAuthStore = defineStore(
   () => {
     const identifier = ref("");
     const userId = ref<string | null>(null);
-    const error = ref<TRPCError | null>(null);
     const authMethod = ref<AuthMethod | null>(null);
 
-    const isError = computed(() => !!error.value);
+    const isError = computed(() => false);
 
     return {
       identifier,
-      error,
       authMethod,
       isError,
       userId,

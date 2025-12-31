@@ -2,7 +2,7 @@
 import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
 import { onMounted, ref } from "vue";
 import { navigate } from "vike/client/router";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import TableRow from "@/app/components/table/TableRow.vue";
 import TableCell from "@/app/components/table/TableCell.vue";
@@ -10,7 +10,7 @@ import { useToastStore } from "@/app/stores/toast.ts";
 import { watchClient } from "@/app/utils/vue.ts";
 import { Button } from "@/app/components/ui/button";
 
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 
 const termAmount = ref(-1);
 
@@ -24,8 +24,8 @@ const emits = defineEmits<{
 }>();
 
 const updateTermAmount = async () => {
-  await trpc.glossary.countTerm
-    .query({
+  await orpc.glossary
+    .countTerm({
       glossaryId: props.glossary.id,
     })
     .then((amount) => (termAmount.value = amount));
@@ -36,8 +36,8 @@ const handleCheck = async () => {
 };
 
 const handleUnlink = async () => {
-  await trpc.project.unlinkGlossary
-    .mutate({
+  await orpc.project
+    .unlinkGlossary({
       projectId: props.project.id,
       glossaryIds: [props.glossary.id],
     })
@@ -45,7 +45,7 @@ const handleUnlink = async () => {
       emits("unlink");
       info(`成功将术语库 ${props.glossary.name} 从项目中移除`);
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 
 watchClient(() => props.glossary, updateTermAmount);

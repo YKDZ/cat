@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
-import * as z from "zod/v4";
 import { schemaKey, transferDataToString } from "../utils.ts";
 import type { PickerOption } from "@/app/components/picker/index.ts";
 import Picker from "@/app/components/picker/Picker.vue";
@@ -43,10 +42,8 @@ const options = computed(() => {
   });
 });
 
-const handleChange = (to: PickerOption) => {
-  const value = z.json().parse(to.value);
-  if (value === null) return;
-  emits("_update", value);
+const handleChange = (to: string | undefined) => {
+  emits("_update", to ?? "");
 };
 </script>
 
@@ -59,7 +56,7 @@ const handleChange = (to: PickerOption) => {
           :placeholder="schema.title ?? t('选择一项...')"
           :model-value="value"
           :options
-          @update:model-value="(v) => handleChange(v as PickerOption)"
+          @update:model-value="(v) => handleChange(v)"
         />
       </FormControl>
       <FormDescription> {{ schema.description }} </FormDescription>

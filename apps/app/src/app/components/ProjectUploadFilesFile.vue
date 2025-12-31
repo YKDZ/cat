@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
@@ -27,19 +27,18 @@ const upload = async () => {
 
   isProcessing.value = true;
 
-  const { url, putSessionId } =
-    await trpc.document.prepareCreateFromFile.mutate({
-      meta: {
-        name: props.file.name,
-        size: props.file.size,
-        mimeType: props.file.type,
-      },
-    });
+  const { url, putSessionId } = await orpc.document.prepareCreateFromFile({
+    meta: {
+      name: props.file.name,
+      size: props.file.size,
+      mimeType: props.file.type,
+    },
+  });
 
   await uploadFileToS3PresignedURL(props.file, url);
 
-  await trpc.document.finishCreateFromFile
-    .mutate({
+  await orpc.document
+    .finishCreateFromFile({
       projectId: props.projectId,
       languageId: languageId.value,
       putSessionId,

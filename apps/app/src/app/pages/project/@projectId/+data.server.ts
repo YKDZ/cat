@@ -1,17 +1,17 @@
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
-import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
+import { ssc } from "@/server/ssc";
 
 export const data = async (ctx: PageContextServer) => {
   const { projectId } = ctx.routeParams;
 
   if (!projectId) throw render(`/`, `Project id is required`);
 
-  const project = await useSSCTRPC(ctx).project.get({ projectId });
-  const targetLanguages = await useSSCTRPC(ctx).project.getTargetLanguages({
+  const project = await ssc(ctx).project.get({ projectId });
+  const targetLanguages = await ssc(ctx).project.getTargetLanguages({
     projectId,
   });
-  const documents = await useSSCTRPC(ctx).project.getDocuments({
+  const documents = await ssc(ctx).project.getDocuments({
     projectId,
   });
 

@@ -6,7 +6,7 @@ import { Badge } from "@/app/components/ui/badge";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import { i18nUseTimeAgoMessages } from "@/app/utils/i18n";
 import { computedAsyncClient } from "@/app/utils/vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type {
   TranslatableElementComment,
   TranslatableElementCommentReaction,
@@ -94,13 +94,13 @@ const createdAt = useDateFormat(props.comment.createdAt, "YYYY-MM-DD HH:mm:ss");
 const reactions = computedAsyncClient<
   Pick<TranslatableElementCommentReaction, "id" | "userId" | "type">[]
 >(async () => {
-  return trpc.element.getCommentReactions.query({
+  return orpc.element.getCommentReactions({
     commentId: props.comment.id,
   });
 }, []);
 
 const childComments = computedAsyncClient(async () => {
-  return trpc.element.getChildComments.query({
+  return orpc.element.getChildComments({
     rootCommentId: props.comment.id,
   });
 }, []);
@@ -127,7 +127,7 @@ const handleUnReact = (userId: string) => {
 };
 
 const handleDelete = async () => {
-  await trpc.element.deleteComment.mutate({
+  await orpc.element.deleteComment({
     commentId: props.comment.id,
   });
   emits("delete", props.comment.id);

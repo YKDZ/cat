@@ -3,8 +3,7 @@ import type { AuthMethod } from "@cat/shared/schema/misc";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
-import type { TRPCError } from "@trpc/server";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useAuthStore } from "@/app/stores/auth.ts";
 import { Button } from "@/app/components/ui/button";
@@ -16,14 +15,14 @@ const props = defineProps<{
   method: AuthMethod;
 }>();
 
-const { trpcWarn } = useToastStore();
+const { rpcWarn } = useToastStore();
 const { authMethod, userId } = storeToRefs(useAuthStore());
 
 const handlePreAuth = async () => {
   authMethod.value = props.method;
 
-  await trpc.auth.preAuth
-    .mutate({
+  await orpc.auth
+    .preAuth({
       identifier: props.identifier,
       authProviderId: props.method.providerId,
     })
@@ -43,9 +42,9 @@ const handlePreAuth = async () => {
         await navigate("/auth/callback");
       else await navigate(gotFromServer.redirectURL);
     })
-    .catch(async (e: TRPCError) => {
+    .catch(async (e) => {
       if (e.code === "CONFLICT") await navigate("/auth/callback");
-      else trpcWarn(e);
+      else rpcWarn(e);
     });
 };
 </script>

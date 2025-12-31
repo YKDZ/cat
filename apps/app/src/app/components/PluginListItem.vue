@@ -8,7 +8,7 @@ import Card from "@/app/components/ui/card/Card.vue";
 import CardHeader from "@/app/components/ui/card/CardHeader.vue";
 import CardTitle from "@/app/components/ui/card/CardTitle.vue";
 import { computedAsyncClient } from "@/app/utils/vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
 const { t } = useI18n();
@@ -28,7 +28,7 @@ const simpleName = computed(() => {
 });
 
 const isInstalled = computedAsyncClient(async () => {
-  return await trpc.plugin.isInstalled.query({
+  return await orpc.plugin.isInstalled({
     pluginId: props.plugin.id,
     scopeType: props.scopeType,
     scopeId: props.scopeId,

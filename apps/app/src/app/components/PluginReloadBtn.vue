@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import { useToastStore } from "../stores/toast";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { Button } from "@/app/components/ui/button";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
@@ -12,15 +12,15 @@ const props = defineProps<{
   scopeId: string;
 }>();
 
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 
 const handleReload = async () => {
-  await trpc.plugin.reload
-    .mutate({ scopeType: props.scopeType, scopeId: props.scopeId })
+  await orpc.plugin
+    .reload({ scopeType: props.scopeType, scopeId: props.scopeId })
     .then(async () => {
       info(`成功重载所有插件`);
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 </script>
 

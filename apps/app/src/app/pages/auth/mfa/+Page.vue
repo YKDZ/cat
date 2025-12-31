@@ -2,7 +2,7 @@
 import AuthMFAHandler from "@/app/components/AuthMFAHandler.vue";
 import AuthMFAPreHandler from "@/app/components/AuthMFAPreHandler.vue";
 import { useAuthStore } from "@/app/stores/auth";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { ref } from "vue";
@@ -17,7 +17,7 @@ const mfaProviders = ref([
 ]);
 
 const handleComplete = async () => {
-  await trpc.auth.completeAuthWithMFA.mutate();
+  await orpc.auth.completeAuthWithMFA();
   await navigate("/");
 };
 </script>

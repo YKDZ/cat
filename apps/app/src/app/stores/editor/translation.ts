@@ -1,4 +1,4 @@
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
 import * as z from "zod";
@@ -34,8 +34,8 @@ export const useEditorTranslationStore = defineStore(
     const updateTranslations = async () => {
       if (!table.elementId.value || !context.languageToId.value) return;
 
-      await trpc.translation.getAll
-        .query({
+      await orpc.translation
+        .getAll({
           elementId: table.elementId.value,
           languageId: context.languageToId.value,
         })

@@ -3,7 +3,7 @@ import EditorElemenContextJson from "@/app/components/EditorElemenContextJson.vu
 import EditorElemenContextMarkdown from "@/app/components/EditorElemenContextMarkdown.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { computedAsyncClient } from "@/app/utils/vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { TranslatableElementContextType } from "@cat/shared/schema/drizzle/enum";
 import { storeToRefs } from "pinia";
 import {
@@ -17,7 +17,7 @@ const { elementId } = storeToRefs(useEditorTableStore());
 
 const contexts = computedAsyncClient(async () => {
   if (!elementId.value) return [];
-  return trpc.element.getContexts.query({ elementId: elementId.value });
+  return orpc.element.getContexts({ elementId: elementId.value });
 }, []);
 
 const componentFromType = (type: TranslatableElementContextType) => {

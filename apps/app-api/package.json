@@ -16,21 +16,17 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils.js"
+    "./app": {
+      "types": "./dist/app.d.ts",
+      "import": "./dist/app.js"
     },
-    "./trpc": {
-      "types": "./dist/trpc/index.d.ts",
-      "import": "./dist/trpc.js"
+    "./orpc/router": {
+      "types": "./dist/orpc/router.d.ts",
+      "import": "./dist/orpc/router.js"
     },
-    "./trpc/client": {
-      "types": "./dist/trpc/client.d.ts",
-      "import": "./dist/trpc/client.js"
-    },
-    "./trpc/sscClient": {
-      "types": "./dist/trpc/sscClient.d.ts",
-      "import": "./dist/trpc/sscClient.js"
+    "./context": {
+      "types": "./dist/utils/context.d.ts",
+      "import": "./dist/context.js"
     }
   },
   "files": [
@@ -50,20 +46,19 @@
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "^7.3.0"
   },
-  "dependencies": {
-    "@orpc/client": "^1.13.2",
-    "@orpc/server": "^1.13.2"
-  },
   "peerDependencies": {
     "@cat/app-server-shared": "workspace:*",
     "@cat/app-workers": "workspace:*",
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@trpc/client": "^11.5.1",
-    "@trpc/server": "^11.5.1",
+    "@orpc/client": "^1.13.2",
+    "pino": "^10.1.0",
+    "telefunc": "^0.2.17",
+    "@orpc/server": "^1.13.2",
     "devalue": "^5.5.0",
     "vike": "^0.4.240",
+    "hono": "^4.11.1",
     "zod": "^4.1.12"
   }
 }
