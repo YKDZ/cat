@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import type { DocumentVersion } from "@cat/shared/schema/drizzle/document";
 import { useDateFormat } from "@vueuse/core";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import DiffBox from "./diff/DiffBox.vue";
 import Picker from "./picker/Picker.vue";
 import type { PickerOption } from "./picker/index.ts";
@@ -22,7 +22,7 @@ const oldContent = ref<string | null>(null);
 const nowContent = ref<string | null>(null);
 
 const fetchDocumentContent = async (documentVersionId: number) => {
-  const fileUrl = await trpc.document.getDocumentFileUrl.query({
+  const fileUrl = await orpc.document.getDocumentFileUrl({
     documentId: props.documentId,
     documentVersionId,
   });
@@ -41,7 +41,7 @@ const fetchDocumentContent = async (documentVersionId: number) => {
 };
 
 const loadVersions = async () => {
-  versions.value = await trpc.document.getDocumentVersions.query({
+  versions.value = await orpc.document.getDocumentVersions({
     documentId: props.documentId,
   });
   const latest = versions.value[0];

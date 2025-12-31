@@ -5,7 +5,7 @@ import { computed, ref, shallowRef } from "vue";
 import { useObjectUrl } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import ImageCopper from "@/app/components/ImageCopper.vue";
 import Button from "@/app/components/ui/button/Button.vue";
@@ -22,7 +22,7 @@ const { t } = useI18n();
 
 const ctx = usePageContext();
 
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 
 const fileInputEl = ref<HTMLInputElement>();
 const file = shallowRef();
@@ -42,8 +42,8 @@ const onSubmit = async (blob: Blob | null) => {
     size: file.size,
   });
 
-  await trpc.user.prepareUploadAvatar
-    .mutate({
+  await orpc.user
+    .prepareUploadAvatar({
       meta: meta,
     })
     .then(async ({ url, putSessionId }) => {
@@ -52,12 +52,12 @@ const onSubmit = async (blob: Blob | null) => {
           isOpen.value = false;
           info("成功上传头像");
         })
-        .catch(trpcWarn)
+        .catch(rpcWarn)
         .finally(() => (isProcessing.value = false));
 
-      await trpc.user.finishUploadAvatar.mutate({ putSessionId });
+      await orpc.user.finishUploadAvatar({ putSessionId });
     })
-    .catch(trpcWarn)
+    .catch(rpcWarn)
     .finally(() => (isProcessing.value = false));
 };
 

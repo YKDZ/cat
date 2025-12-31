@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
 import { computedAsyncClient } from "@/app/utils/vue.ts";
@@ -17,7 +17,7 @@ const props = withDefaults(
     getter: async () => {
       const { user } = usePageContext();
       if (!user) return [];
-      return await trpc.memory.getUserOwned.query({
+      return await orpc.memory.getUserOwned({
         userId: user.id,
       });
     },

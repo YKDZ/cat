@@ -4,7 +4,7 @@ import type {
   JSONSchema,
   NonNullJSONType,
 } from "@cat/shared/schema/json";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import SettingForm from "./SettingForm.vue";
 
 const props = defineProps<{
@@ -28,7 +28,7 @@ const configSetter = async (
 
   if (!toValue) return;
 
-  await trpc.setting.set.mutate({ key, value: toValue });
+  await orpc.setting.set({ key, value: toValue });
 };
 
 const configGetter = async () => {
@@ -42,7 +42,7 @@ const configGetter = async () => {
 
   await Promise.all(
     Object.keys(props.schema.properties).map(async (key) => {
-      const value = await trpc.setting.get.query({ key });
+      const value = await orpc.setting.get({ key });
       data[key] = value;
     }),
   );

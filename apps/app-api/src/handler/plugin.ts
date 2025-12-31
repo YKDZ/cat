@@ -25,7 +25,6 @@ app.get("/:pluginId/component/:componentName", async (c) => {
             "utf8",
           ) as ReadableStream,
         );
-        // @ts-expect-error no needed
         await s.pipe(stream);
       },
       async (err) => {

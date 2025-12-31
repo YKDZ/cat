@@ -6,7 +6,7 @@ import type {
 } from "@cat/shared/schema/drizzle/plugin";
 import { ref } from "vue";
 import { navigate } from "vike/client/router";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import SettingForm from "./SettingForm.vue";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
@@ -19,7 +19,7 @@ const props = defineProps<{
 const instance = ref<PluginConfigInstance | null>(null);
 
 const configSetter = async (value: JSONType) => {
-  await trpc.plugin.upsertConfigInstance.mutate({
+  await orpc.plugin.upsertConfigInstance({
     pluginId: props.config.pluginId,
     scopeType: props.scopeType,
     scopeId: props.scopeId,
@@ -28,8 +28,8 @@ const configSetter = async (value: JSONType) => {
 };
 
 const configGetter = async () => {
-  return await trpc.plugin.getConfigInstance
-    .query({
+  return await orpc.plugin
+    .getConfigInstance({
       pluginId: props.config.pluginId,
       scopeType: props.scopeType,
       scopeId: props.scopeId,

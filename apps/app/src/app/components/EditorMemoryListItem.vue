@@ -4,7 +4,7 @@ import type { Memory } from "@cat/shared/schema/drizzle/memory";
 import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import TextTagger from "./tagger/TextTagger.vue";
 import UserAvatar from "./UserAvatar.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
@@ -27,7 +27,7 @@ const memory = ref<Memory | null>(null);
 useHotKeys(`M+${props.index + 1}`, handleCopy);
 
 onMounted(async () => {
-  memory.value = await trpc.memory.get.query({
+  memory.value = await orpc.memory.get({
     memoryId: props.memorySuggestion.memoryId,
   });
 });

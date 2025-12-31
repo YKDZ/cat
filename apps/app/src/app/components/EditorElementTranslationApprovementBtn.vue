@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { TranslationWithStatus } from "../stores/editor/translation";
 import { Button } from "@/app/components/ui/button";
 import { computedAsync } from "@vueuse/core";
@@ -13,7 +13,7 @@ const props = defineProps<{
 }>();
 
 const isApproved = computedAsync(async () => {
-  return await trpc.translation.isApproved.query({
+  return await orpc.translation.isApproved({
     translationId: props.translation.id,
   });
 }, false);
@@ -21,7 +21,7 @@ const isApproved = computedAsync(async () => {
 const handleApprove = async () => {
   if (isApproved.value) return;
 
-  await trpc.translation.approve.mutate({
+  await orpc.translation.approve({
     translationId: props.translation.id,
   });
 };
@@ -29,7 +29,7 @@ const handleApprove = async () => {
 const handleUnapprove = async () => {
   if (!isApproved.value) return;
 
-  await trpc.translation.unapprove.mutate({
+  await orpc.translation.unapprove({
     translationId: props.translation.id,
   });
 };

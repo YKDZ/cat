@@ -4,4 +4,5 @@ export {};
 
 declare global {
   var app: Hono;
+  var inited: boolean;
 }

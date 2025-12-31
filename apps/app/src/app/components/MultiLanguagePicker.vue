@@ -4,7 +4,7 @@ import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
 import { useI18n } from "vue-i18n";
 import { computedAsyncClient } from "@/app/utils/vue.ts";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 
 const props = withDefaults(
   defineProps<{
@@ -23,7 +23,7 @@ const search = ref("");
 const languages = computedAsyncClient(async () => {
   const searchQuery = search.value;
   return (
-    await trpc.language.getAll.query({
+    await orpc.language.getAll({
       searchQuery,
     })
   ).languages;

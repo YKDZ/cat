@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import DocumentTree from "./DocumentTree.vue";
 import { navigate } from "vike/client/router";
@@ -23,7 +23,7 @@ const handleClick = async (document: Pick<Document, "id" | "isDirectory">) => {
 };
 
 const handleDelete = async (document: Pick<Document, "id" | "name">) => {
-  await trpc.document.delete.mutate({ id: document.id });
+  await orpc.document.del({ id: document.id });
   info(t("成功删除文档 {name}", { name: document.name }));
 };
 </script>

@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { Textarea } from "@/app/components/ui/textarea";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { Button } from "@/app/components/ui/button";
 
 const { t } = useI18n();
@@ -13,7 +13,7 @@ const props = defineProps<{
   glossaryId: string;
 }>();
 
-const { info, warn, trpcWarn } = useToastStore();
+const { info, warn, rpcWarn } = useToastStore();
 
 const termLanguageId = ref("");
 const terms = ref("");
@@ -56,15 +56,15 @@ const handleInsert = async () => {
     };
   });
 
-  await trpc.glossary.insertTerm
-    .mutate({
+  await orpc.glossary
+    .insertTerm({
       glossaryId: props.glossaryId,
       termsData: termsData,
     })
     .then(() => {
       info(t("成功插入所有术语"));
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 </script>
 

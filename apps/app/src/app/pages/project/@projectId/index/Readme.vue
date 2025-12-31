@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { Document } from "@cat/shared/schema/drizzle/document";
 import { ref } from "vue";
 import { watchClient } from "@/app/utils/vue.ts";
@@ -24,7 +24,7 @@ const updateContent = async () => {
   lastRequestedDocumentId = documentId;
 
   try {
-    const fileUrl = await trpc.document.getDocumentFileUrl.query({
+    const fileUrl = await orpc.document.getDocumentFileUrl({
       documentId,
     });
 

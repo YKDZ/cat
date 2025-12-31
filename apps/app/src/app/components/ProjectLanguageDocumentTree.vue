@@ -5,7 +5,7 @@ import DocumentTree from "./DocumentTree.vue";
 import { useToastStore } from "../stores/toast";
 import { useI18n } from "vue-i18n";
 import { navigate } from "vike/client/router";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import ProjectLanguageDocumentAutoApproveBtn from "./ProjectLanguageDocumentAutoApproveBtn.vue";
 import ProjectLanguageDocumentAutoTranslateBtn from "./ProjectLanguageDocumentAutoTranslateBtn.vue";
 import Button from "./ui/button/Button.vue";
@@ -18,11 +18,11 @@ const props = defineProps<{
   language: Pick<Language, "id">;
 }>();
 
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 const { t } = useI18n();
 
 const documents = computedAsyncClient(async () => {
-  return await trpc.project.getDocuments.query({ projectId: props.project.id });
+  return await orpc.project.getDocuments({ projectId: props.project.id });
 }, []);
 
 const handleEdit = async (document: Pick<Document, "id">) => {
@@ -30,15 +30,15 @@ const handleEdit = async (document: Pick<Document, "id">) => {
 };
 
 const handleExportTranslated = async (document: Pick<Document, "id">) => {
-  await trpc.document.exportTranslatedFile
-    .query({
+  await orpc.document
+    .exportTranslatedFile({
       documentId: document.id,
       languageId: props.language.id,
     })
     .then(() => {
       info(t("成功创建导出任务"));
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 </script>
 

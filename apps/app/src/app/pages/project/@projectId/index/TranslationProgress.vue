@@ -2,14 +2,14 @@
 import { computed } from "vue";
 import { toShortFixed } from "@cat/shared/utils";
 import type { ProgressBarLine } from "@/app/components/progress/bar/index.ts";
-import Dot from "./Dot.vue";
 import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { computedAsyncClient } from "@/app/utils/vue.ts";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { useI18n } from "vue-i18n";
+import Dot from "@/app/components/Dot.vue";
 
 const props = defineProps<{
   project: Pick<Project, "id">;
@@ -19,13 +19,13 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const translatableElementAmount = computedAsyncClient(async () => {
-  return await trpc.project.countElement.query({
+  return await orpc.project.countElement({
     projcetId: props.project.id,
   });
 }, 0);
 
 const translatedElementAmount = computedAsyncClient(async () => {
-  return await trpc.project.countElement.query({
+  return await orpc.project.countElement({
     projcetId: props.project.id,
     isTranslated: true,
     languageId: props.language.id,
@@ -33,7 +33,7 @@ const translatedElementAmount = computedAsyncClient(async () => {
 }, 0);
 
 const approvedElementAmount = computedAsyncClient(async () => {
-  return await trpc.project.countElement.query({
+  return await orpc.project.countElement({
     projcetId: props.project.id,
     isTranslated: true,
     isApproved: true,

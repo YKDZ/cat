@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/components/ui/card";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { Button } from "@/app/components/ui/button";
 import { Settings } from "lucide-vue-next";
 import {
@@ -48,7 +48,7 @@ const { handleSubmit } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  await trpc.project.update.mutate({
+  await orpc.project.update({
     projectId: props.project.id,
     description: values.description ?? undefined,
   });

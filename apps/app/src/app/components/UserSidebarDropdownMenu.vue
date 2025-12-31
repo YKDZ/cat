@@ -10,7 +10,7 @@ import {
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 import { ref } from "vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast";
 import { useSidebar } from "@/app/components/ui/sidebar";
 import { Spinner } from "@/app/components/ui/spinner";
@@ -21,7 +21,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 const { state } = useSidebar(props.sidebarId);
 
 const isLoggingOut = ref(false);
@@ -32,14 +32,14 @@ const handleLogout = async () => {
   isLoggingOut.value = true;
   info(t("登出中..."));
 
-  await trpc.auth.logout
-    .mutate()
+  await orpc.auth
+    .logout()
     .then(async () => {
       info(t("登出成功"));
       info(t("即将前往主界面..."));
       await navigate("/");
     })
-    .catch(trpcWarn)
+    .catch(rpcWarn)
     .finally(() => (isLoggingOut.value = false));
 };
 </script>

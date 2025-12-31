@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import type { Document } from "@cat/shared/schema/drizzle/document";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { PickerOption } from "./picker/index.ts";
 import Picker from "./picker/Picker.vue";
 import Button from "./ui/button/Button.vue";
@@ -62,7 +62,7 @@ const advisorOptions = computed<PickerOption<number>[]>(() => {
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  await trpc.translation.autoTranslate.mutate({
+  await orpc.translation.autoTranslate({
     languageId: props.language.id,
     documentId: props.document.id,
     advisorId: values.advisorId,
@@ -71,7 +71,7 @@ const onSubmit = handleSubmit(async (values) => {
 });
 
 const availableAdvisors = computedAsyncClient(async () => {
-  return await trpc.plugin.getAllTranslationAdvisors.query({});
+  return await orpc.plugin.getAllTranslationAdvisors({});
 }, []);
 </script>
 

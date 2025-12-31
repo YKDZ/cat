@@ -3,7 +3,7 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { useAuthStore } from "@/app/stores/auth";
 import { useToastStore } from "@/app/stores/toast";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { toTypedSchema } from "@vee-validate/zod";
 import { storeToRefs } from "pinia";
 import { useForm } from "vee-validate";
@@ -42,7 +42,7 @@ const { handleSubmit } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  await trpc.auth.register.mutate({
+  await orpc.auth.register({
     ...values,
   });
 

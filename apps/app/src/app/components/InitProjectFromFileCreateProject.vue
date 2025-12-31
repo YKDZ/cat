@@ -2,7 +2,7 @@
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToastStore } from "@/app/stores/toast.ts";
@@ -56,7 +56,7 @@ const { handleSubmit } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  project.value = await trpc.project.create.mutate({
+  project.value = await orpc.project.create({
     ...values,
   });
 

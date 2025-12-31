@@ -2,11 +2,10 @@
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { navigate } from "vike/client/router";
-import type { TRPCError } from "@trpc/server";
 import { storeToRefs } from "pinia";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import JSONForm from "@/app/components/json-form/JsonForm.vue";
 import { useAuthStore } from "@/app/stores/auth.ts";
 import { Button } from "@/app/components/ui/button";
@@ -14,7 +13,7 @@ import { Button } from "@/app/components/ui/button";
 const { t } = useI18n();
 
 const ctx = usePageContext();
-const { error, authMethod } = storeToRefs(useAuthStore());
+const { authMethod } = storeToRefs(useAuthStore());
 const schema = ref<JSONSchema>({});
 const data = shallowRef<NonNullJSONType>({});
 
@@ -25,8 +24,8 @@ const handleAuth = async (): Promise<void> => {
           ...data.value,
         }
       : data.value;
-  await trpc.auth.auth
-    .mutate({
+  await orpc.auth
+    .auth({
       passToServer: {
         urlSearchParams: {
           ...ctx.urlParsed.search,
@@ -38,8 +37,7 @@ const handleAuth = async (): Promise<void> => {
       if (result.status === "SUCCESS") await navigate("/");
       else if (result.status === "MFA_REQUIRED") await navigate("/auth/mfa");
     })
-    .catch(async (e: TRPCError) => {
-      error.value = e;
+    .catch(async (e) => {
       await navigate("/auth");
     });
 };
@@ -58,7 +56,7 @@ onMounted(async () => {
     return;
   }
 
-  schema.value = await trpc.auth.getAuthFormSchema.query({
+  schema.value = await orpc.auth.getAuthFormSchema({
     providerId: authMethod.value.providerId,
   });
 

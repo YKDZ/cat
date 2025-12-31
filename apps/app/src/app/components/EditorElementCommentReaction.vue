@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Badge } from "@/app/components/ui/badge";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type {
   TranslatableElementCommentReaction,
   TranslatableElementComment,
@@ -29,7 +29,7 @@ const emits = defineEmits<{
 }>();
 
 const react = async () => {
-  const reaction = await trpc.element.react.mutate({
+  const reaction = await orpc.element.react({
     commentId: props.comment.id,
     type: props.type,
   });
@@ -37,7 +37,7 @@ const react = async () => {
 };
 
 const unReact = async () => {
-  await trpc.element.unReact.mutate({
+  await orpc.element.unReact({
     commentId: props.comment.id,
   });
   emits("unReact", ctx.user!.id);

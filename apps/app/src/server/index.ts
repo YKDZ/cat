@@ -3,7 +3,7 @@ import type { Server } from "node:http";
 import { logger } from "@cat/shared/utils";
 import { apply, serve } from "@photonjs/hono";
 import { getDrizzleDB, getRedisDB } from "@cat/db";
-import app from "./app.ts";
+import app from "@cat/app-api/app";
 
 let server: Server | null = null;
 

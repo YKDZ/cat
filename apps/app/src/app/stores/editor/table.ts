@@ -1,6 +1,6 @@
 import { defineStore, storeToRefs } from "pinia";
 import { ref, computed, nextTick } from "vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import * as z from "zod";
 import { navigate } from "vike/client/router";
 import { useRefHistory } from "@vueuse/core";
@@ -47,7 +47,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const elementTotalAmount = computedAsyncClient(async () => {
     if (!context.documentId.value || !context.languageToId.value) return 0;
 
-    return await trpc.document.countElement.query({
+    return await orpc.document.countElement({
       documentId: context.documentId.value,
       searchQuery: searchQuery.value,
       isTranslated: !isProofreading.value ? undefined : true,
@@ -60,7 +60,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   });
 
   const toElement = async (id: number) => {
-    const page = await trpc.document.getPageIndexOfElement.query({
+    const page = await orpc.document.getPageIndexOfElement({
       elementId: id,
       pageSize: context.pageSize.value,
       searchQuery: searchQuery.value,
@@ -92,8 +92,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       return;
     }
 
-    await trpc.document.getElements
-      .query({
+    await orpc.document
+      .getElements({
         documentId: context.documentId.value,
         page: index,
         pageSize: context.pageSize.value,
@@ -119,9 +119,9 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     )
       return;
 
-    const firstUntranslatedElement = await trpc.document.getFirstElement.query({
+    const firstUntranslatedElement = await orpc.document.getFirstElement({
       documentId: context.documentId.value,
-      greaterThan: element.value.sortIndex,
+      greaterThan: element.value.sortIndex ?? 0,
       isTranslated: false,
       languageId: context.languageToId.value,
     });
@@ -142,10 +142,10 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     )
       return;
 
-    await trpc.translation.create.mutate({
+    await orpc.translation.create({
       elementId: elementId.value,
       languageId: context.languageToId.value,
-      value: translationValue.value,
+      text: translationValue.value,
       createMemory: profile.editorMemoryAutoCreateMemory.value,
     });
 

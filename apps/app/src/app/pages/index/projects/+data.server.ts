@@ -1,7 +1,7 @@
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
-import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
+import { ssc } from "@/server/ssc";
 
 export const data = async (
   ctx: PageContextServer,
@@ -10,7 +10,7 @@ export const data = async (
 
   if (!user) throw render("/auth");
 
-  const owned = await useSSCTRPC(ctx).project.getUserOwned({});
+  const owned = await ssc(ctx).project.getUserOwned({});
 
   return { projects: owned };
 };

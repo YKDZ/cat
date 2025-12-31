@@ -1,7 +1,7 @@
 import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
-import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
+import { ssc } from "@/server/ssc";
 
 export const data = async (
   ctx: PageContextServer,
@@ -10,7 +10,7 @@ export const data = async (
 
   if (!pluginId) throw render("/", "Plugin id is required");
 
-  const plugin = await useSSCTRPC(ctx).plugin.get({
+  const plugin = await ssc(ctx).plugin.get({
     pluginId,
   });
 

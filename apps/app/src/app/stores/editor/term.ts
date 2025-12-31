@@ -1,4 +1,4 @@
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
@@ -21,7 +21,7 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
   const updateTerms = async () => {
     if (!elementId.value || !languageToId.value) return;
 
-    terms.value = await trpc.glossary.findTerm.query({
+    terms.value = await orpc.glossary.findTerm({
       elementId: elementId.value,
       translationLanguageId: languageToId.value,
     });
@@ -33,7 +33,7 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
 
     if (searchQuery.value.length === 0) return 0;
 
-    const terms = await trpc.glossary.searchTerm.query({
+    const terms = await orpc.glossary.searchTerm({
       text: searchQuery.value,
       termLanguageId: elementLanguageId.value,
       translationLanguageId: languageToId.value,

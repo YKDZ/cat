@@ -3,7 +3,7 @@ import MarkdownEditor from "@/app/components/editor/MarkdownEditor.vue";
 import EditorElementComment from "@/app/components/EditorElementComment.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { computedAsyncClient } from "@/app/utils/vue";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import { storeToRefs } from "pinia";
 import {
   SidebarFooter,
@@ -25,7 +25,7 @@ const { elementId } = storeToRefs(useEditorTableStore());
 
 const rootComments = computedAsyncClient(async () => {
   if (!elementId.value) return [];
-  return await trpc.element.getRootComments.query({
+  return await orpc.element.getRootComments({
     elementId: elementId.value,
     pageIndex: 0,
     pageSize: 10,
@@ -39,7 +39,7 @@ const content = ref("");
 const comment = async () => {
   if (!elementId.value) return;
 
-  const comment = await trpc.element.comment.mutate({
+  const comment = await orpc.element.comment({
     elementId: elementId.value,
     content: content.value,
     languageId: "en",

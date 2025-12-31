@@ -2,7 +2,7 @@
 import { warn } from "node:console";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import type { PickerOption } from "./picker/index.ts";
@@ -12,7 +12,7 @@ import { Button } from "@/app/components/ui/button/index.ts";
 
 const { t } = useI18n();
 
-const { trpcWarn } = useToastStore();
+const { rpcWarn } = useToastStore();
 
 const props = defineProps<{
   project: Project & {
@@ -37,12 +37,12 @@ const addTargetLanguages = () => {
     return;
   }
 
-  trpc.project.addTargetLanguages
-    .mutate({
+  orpc.project
+    .addTargetLanguages({
       projectId: props.project.id,
       languageId: languageId.value,
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 
 const langFilter = (option: PickerOption) => {

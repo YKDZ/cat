@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import MultiGlossaryPicker from "./MultiGlossaryPicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
@@ -18,7 +18,7 @@ import { Link2 } from "lucide-vue-next";
 
 const { t } = useI18n();
 
-const { info, trpcWarn } = useToastStore();
+const { info, rpcWarn } = useToastStore();
 
 const emits = defineEmits(["link"]);
 
@@ -35,14 +35,14 @@ const handleLink = async () => {
   const realIds = glossaryIds.value.splice(createNewIndex, 1);
 
   if (createNewIndex !== -1) {
-    await trpc.glossary.create.mutate({
+    await orpc.glossary.create({
       name: props.project.name,
       projectIds: [props.project.id],
     });
   }
 
-  await trpc.project.linkGlossary
-    .mutate({
+  await orpc.project
+    .linkGlossary({
       projectId: props.project.id,
       glossaryIds: realIds,
     })
@@ -50,7 +50,7 @@ const handleLink = async () => {
       emits("link");
       info("成功连接新的术语库到此项目");
     })
-    .catch(trpcWarn);
+    .catch(rpcWarn);
 };
 </script>
 

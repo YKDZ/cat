@@ -7,14 +7,7 @@ import { User } from "@cat/shared/schema/drizzle/user";
 export const getHttpContext = async (
   req: Request,
   resHeaders: Headers,
-): Promise<{
-  user: User | null;
-  sessionId: string | null;
-  pluginRegistry: PluginRegistry;
-  drizzleDB: DrizzleDB;
-  redisDB: RedisDB;
-  helpers: HTTPHelpers;
-}> => {
+): Promise<HttpContext> => {
   const helpers = createHTTPHelpers(req, resHeaders);
 
   const drizzleDB = await getDrizzleDB();
@@ -32,4 +25,13 @@ export const getHttpContext = async (
     redisDB,
     helpers,
   };
+};
+
+export type HttpContext = {
+  user: User | null;
+  sessionId: string | null;
+  pluginRegistry: PluginRegistry;
+  drizzleDB: DrizzleDB;
+  redisDB: RedisDB;
+  helpers: HTTPHelpers;
 };

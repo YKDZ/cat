@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { User } from "@cat/shared/schema/drizzle/user";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import {
   Avatar,
   AvatarFallback,
@@ -27,7 +27,7 @@ const user = computedAsyncClient(async () => {
   if (import.meta.env.SSR) return null;
 
   if (!props.user && props.userId) {
-    return await trpc.user.get.query({ userId: props.userId });
+    return await orpc.user.get({ userId: props.userId });
   } else if (props.user) {
     return props.user as User;
   }
@@ -40,8 +40,7 @@ const avatarUrl = computedAsyncClient(async () => {
   if (!user.value) return "";
 
   return (
-    (await trpc.user.getAvatarPresignedUrl.query({ userId: user.value.id })) ??
-    ""
+    (await orpc.user.getAvatarPresignedUrl({ userId: user.value.id })) ?? ""
   );
 }, "");
 

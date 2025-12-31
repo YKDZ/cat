@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { trpc } from "@cat/app-api/trpc/client";
 import { computedAsyncClient } from "@/app/utils/vue";
+import { orpc } from "@/server/orpc";
 
 export const useEditorContextStore = defineStore("editorContext", () => {
   const documentId = ref<string | null>(null);
@@ -13,7 +13,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
   const document = computedAsyncClient(async () => {
     if (!documentId.value) return null;
 
-    return await trpc.document.get.query({
+    return await orpc.document.get({
       documentId: documentId.value,
     });
   });

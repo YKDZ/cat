@@ -1,7 +1,7 @@
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 import type { Document } from "@cat/shared/schema/drizzle/document";
-import { useSSCTRPC } from "@cat/app-api/trpc/sscClient";
+import { ssc } from "@/server/ssc";
 
 export const data = async (
   ctx: PageContextServer,
@@ -10,7 +10,7 @@ export const data = async (
 
   if (!documentId) throw render("/", `Document id not provided`);
 
-  const document = await useSSCTRPC(ctx).document.get({
+  const document = await ssc(ctx).document.get({
     documentId,
   });
 

@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
-import { trpc } from "@cat/app-api/trpc/client";
+import { orpc } from "@/server/orpc";
 import type { PickerOption } from "./picker";
 import MultiPicker from "./picker/MultiPicker.vue";
 import { computedAsyncClient } from "@/app/utils/vue";
@@ -20,7 +20,7 @@ const props = withDefaults(
     getter: async () => {
       const { user } = usePageContext();
       if (!user) return [];
-      return await trpc.glossary.getUserOwned.query({
+      return await orpc.glossary.getUserOwned({
         userId: user.id,
       });
     },

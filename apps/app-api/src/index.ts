@@ -1,1 +1,1 @@
-throw new Error("No export in . path");
+throw new Error("No exports in . path");
