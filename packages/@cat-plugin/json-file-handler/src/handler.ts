@@ -1,7 +1,11 @@
 import { extname } from "node:path";
-import { TranslatableFileHandler } from "@cat/plugin-core";
+import {
+  TranslatableFileHandler,
+  type CanExtractElementContext,
+  type ExtractElementContext,
+  type GetReplacedFileContentContext,
+} from "@cat/plugin-core";
 import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
-import { JSONType } from "@cat/shared/schema/json";
 import * as z from "zod";
 
 type JSONValue =
@@ -17,24 +21,26 @@ export class Handler extends TranslatableFileHandler {
     return "JSON";
   }
 
-  canExtractElement(name: string): boolean {
+  canExtractElement({ name }: CanExtractElementContext): boolean {
     return extname(name) === ".json";
   }
 
-  async extractElement(
-    fileContent: Buffer,
-  ): Promise<TranslatableElementDataWithoutLanguageId[]> {
+  async extractElement({
+    fileContent,
+  }: ExtractElementContext): Promise<
+    TranslatableElementDataWithoutLanguageId[]
+  > {
     return collectTranslatableElement(fileContent.toString("utf-8"));
   }
 
-  canGetReplacedFileContent(name: string): boolean {
+  canGetReplacedFileContent({ name }: CanExtractElementContext): boolean {
     return extname(name) === ".json";
   }
 
-  async getReplacedFileContent(
-    fileContent: Buffer,
-    elements: { meta: JSONType; value: string }[],
-  ): Promise<Buffer> {
+  async getReplacedFileContent({
+    fileContent,
+    elements,
+  }: GetReplacedFileContentContext): Promise<Buffer> {
     const originalObj: unknown = JSON.parse(fileContent.toString("utf-8"));
     const modifiedObj: unknown = JSON.parse(JSON.stringify(originalObj));
 

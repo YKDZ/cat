@@ -1,9 +1,6 @@
-import { TextVectorizer } from "@cat/plugin-core";
+import { TextVectorizer, type VectorizeContext } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
-import type {
-  UnvectorizedTextData,
-  VectorizedTextData,
-} from "@cat/shared/schema/misc";
+import type { VectorizedTextData } from "@cat/shared/schema/misc";
 import { Pool } from "undici";
 import * as z from "zod/v4";
 
@@ -34,9 +31,9 @@ export class Vectorizer extends TextVectorizer {
     return true;
   }
 
-  async vectorize(
-    elements: UnvectorizedTextData[],
-  ): Promise<VectorizedTextData[]> {
+  async vectorize({
+    elements,
+  }: VectorizeContext): Promise<VectorizedTextData[]> {
     const values: string[] = elements.map((element) => element.text);
 
     const response = await this.pool.request({

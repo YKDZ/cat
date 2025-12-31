@@ -4,13 +4,11 @@ import {
   type MemorySuggestion,
 } from "@cat/shared/schema/misc";
 import {
-  assertFirstNonNullish,
   assertSingleNonNullish,
   assertSingleOrNull,
   logger,
 } from "@cat/shared/utils";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
-import { searchMemory } from "@cat/app-server-shared/utils";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import {
   chunk,
@@ -27,7 +25,7 @@ import {
   translatableString,
 } from "@cat/db";
 import { authed } from "@/orpc/server";
-import { ORPCError } from "@orpc/client";
+import { searchMemoryWorkflow } from "@cat/app-workers";
 
 export const create = authed
   .input(
@@ -81,21 +79,13 @@ export const onNew = authed
     const {
       redisDB: { redisSub },
       drizzleDB: { client: drizzle },
-      pluginRegistry,
     } = context;
     const { elementId, translationLanguageId, minMemorySimilarity } = input;
-
-    // TODO 配置
-    const vectorStorage = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("VECTOR_STORAGE"),
-    );
 
     // 要匹配记忆的元素
     const element = assertSingleNonNullish(
       await drizzle
         .select({
-          id: translatableElement.id,
-          value: translatableString.value,
           languageId: translatableString.languageId,
           projectId: documentTable.projectId,
           chunkIds: sql<
@@ -121,12 +111,6 @@ export const onNew = authed
           documentTable.projectId,
         ),
     );
-
-    const chunks = await vectorStorage.service.retrieve(element.chunkIds);
-
-    if (!chunks) throw new ORPCError("SERVICE_UNAVAILABLE");
-
-    const embeddings = chunks.map((chunk) => chunk.vector);
 
     const memoryIds = (
       await drizzle
@@ -154,17 +138,15 @@ export const onNew = authed
     };
     await redisSub.subscribe(memoryChannelKey, onNewMemory);
 
-    memoriesQueue.push(
-      ...(await searchMemory(
-        drizzle,
-        vectorStorage.service,
-        embeddings,
-        element.languageId,
-        translationLanguageId,
-        memoryIds,
-        minMemorySimilarity,
-      )),
-    );
+    const { result } = await searchMemoryWorkflow.run({
+      chunkIds: element.chunkIds,
+      memoryIds,
+      sourceLanguageId: element.languageId,
+      translationLanguageId,
+      minSimilarity: minMemorySimilarity,
+    });
+
+    memoriesQueue.push(...(await result()).memories);
 
     try {
       for await (const memory of memoriesQueue.consume()) {

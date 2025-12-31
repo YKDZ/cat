@@ -20,6 +20,21 @@ export type TermPairCandidate = {
   alignmentScore: number;
 };
 
+export type ExtractContext = {
+  text: string;
+  languageId: string;
+};
+
+export type RecognizeContext = {
+  source: { text: string; candidates: TermCandidate[] };
+  languageId: string;
+};
+
+export type AlignContext = {
+  source: { text: string; candidates: TermCandidate[]; sourceLang: string };
+  target: { text: string; candidates: TermCandidate[]; targetLang: string };
+};
+
 export abstract class TermExtractor implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType {
@@ -28,7 +43,7 @@ export abstract class TermExtractor implements IPluginService {
   /**
    * 从给定语言的文本提取术语候选
    */
-  abstract extract(text: string, languageId: string): Promise<TermCandidate[]>;
+  abstract extract(ctx: ExtractContext): Promise<TermCandidate[]>;
 }
 
 export abstract class TermRecognizer implements IPluginService {
@@ -39,10 +54,7 @@ export abstract class TermRecognizer implements IPluginService {
   /**
    * 根据候选结果从数据库维护的术语库中查出所有匹配的 TermEntry
    */
-  abstract recognize(
-    source: { text: string; candidates: TermCandidate[] },
-    languageId: string,
-  ): Promise<RecognizedTermEntry[]>;
+  abstract recognize(ctx: RecognizeContext): Promise<RecognizedTermEntry[]>;
 }
 
 export abstract class TermAligner implements IPluginService {
@@ -53,8 +65,5 @@ export abstract class TermAligner implements IPluginService {
   /**
    * 对齐原文和译文中可能的术语
    */
-  abstract align(
-    source: { text: string; candidates: TermCandidate[]; sourceLang: string },
-    target: { text: string; candidates: TermCandidate[]; targetLang: string },
-  ): Promise<TermPairCandidate[]>;
+  abstract align(ctx: AlignContext): Promise<TermPairCandidate[]>;
 }

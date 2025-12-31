@@ -3,27 +3,21 @@ import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
 } from "@cat/shared/schema/misc";
+import { assertSingleNonNullish, logger } from "@cat/shared/utils";
+import { AsyncMessageQueue, hash } from "@cat/app-server-shared/utils";
 import {
-  assertFirstNonNullish,
-  assertSingleNonNullish,
-  logger,
-} from "@cat/shared/utils";
-import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
-import { hash } from "@cat/app-server-shared/utils";
-import {
-  aliasedTable,
   and,
   document,
   eq,
   glossaryToProject,
-  inArray,
+  pluginInstallation,
+  pluginService,
   project,
-  termEntry,
-  term as termTable,
   translatableElement,
   translatableString,
 } from "@cat/db";
 import { authed } from "@/orpc/server";
+import { fetchAdviseWorkflow } from "@cat/app-workers";
 
 export const onNew = authed
   .input(z.object({ elementId: z.int(), languageId: z.string() }))
@@ -34,15 +28,6 @@ export const onNew = authed
       pluginRegistry,
     } = context;
     const { elementId, languageId } = input;
-
-    const { service: termExtractor } = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("TERM_EXTRACTOR"),
-      `No term extractor plugin found in this scope`,
-    );
-    const { service: termRecognizer } = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("TERM_RECOGNIZER"),
-      `No term recognizer plugin found in this scope`,
-    );
 
     const element = assertSingleNonNullish(
       await drizzle
@@ -87,9 +72,7 @@ export const onNew = authed
     };
     await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-    const advisors = pluginRegistry
-      .getPluginServices("TRANSLATION_ADVISOR")
-      .map(({ service }) => service);
+    const advisors = pluginRegistry.getPluginServices("TRANSLATION_ADVISOR");
 
     const advisorAmount = advisors.length;
 
@@ -102,113 +85,56 @@ export const onNew = authed
       return;
     }
 
+    // TODO 复用建议工作流
     const processSuggestions = advisors.map(async (advisor) => {
+      const service = assertSingleNonNullish(
+        await drizzle
+          .select({
+            id: pluginService.id,
+          })
+          .from(pluginService)
+          .innerJoin(
+            pluginInstallation,
+            eq(pluginInstallation.id, pluginService.pluginInstallationId),
+          )
+          .where(
+            and(
+              eq(pluginService.serviceId, advisor.record.id),
+              eq(pluginService.serviceType, advisor.record.type),
+              eq(pluginInstallation.pluginId, advisor.record.pluginId),
+            ),
+          ),
+      );
+
       const elementHash = hash({
         ...element,
         targetLanguageId: languageId,
-        advisorName: advisor.getName(),
+        advisorId: service.id,
       });
       const cacheKey = `cache:suggestions:${elementHash}`;
 
-      const cachedSuggestionStrings = await redis.sMembers(cacheKey);
-      const cachedSuggestion = z
-        .array(TranslationSuggestionSchema)
-        .parse(
-          cachedSuggestionStrings.map((str) => JSON.parse(str) as unknown),
-        );
+      const { result } = await fetchAdviseWorkflow.run({
+        text: element.value,
+        glossaryIds,
+        advisorId: service.id,
+        sourceLanguageId: element.languageId,
+        translationLanguageId: languageId,
+      });
 
-      if (cachedSuggestion.length > 0) {
-        // 发布缓存的值
-        await Promise.all(
-          cachedSuggestion.map(async (suggestion) =>
-            redisPub.publish(suggestionChannelKey, JSON.stringify(suggestion)),
-          ),
-        );
-        return;
-      }
+      const { suggestions } = await result();
 
-      const candidates = await termExtractor.extract(
-        element.value,
-        element.languageId,
+      await Promise.all(
+        suggestions.map(async (suggestion) => {
+          const suggestionStr = JSON.stringify(suggestion);
+          await redisPub.publish(suggestionChannelKey, suggestionStr);
+
+          // Cache successful suggestions
+          if (suggestion.status === "SUCCESS") {
+            await redis.sAdd(cacheKey, suggestionStr);
+            await redis.expire(cacheKey, 60 * 60);
+          }
+        }),
       );
-      const entryIds = (
-        await termRecognizer.recognize(
-          {
-            text: element.value,
-            candidates,
-          },
-          element.languageId,
-        )
-      ).map((entry) => entry.termEntryId);
-
-      const sourceTerm = aliasedTable(termTable, "sourceTerm");
-      const translationTerm = aliasedTable(termTable, "translationTerm");
-      const sourceString = aliasedTable(translatableString, "sourceString");
-      const translationString = aliasedTable(
-        translatableString,
-        "translationString",
-      );
-      const relations = await drizzle
-        .select({
-          term: sourceString.value,
-          translation: translationString.value,
-          subject: termEntry.subject,
-        })
-        .from(termEntry)
-        .innerJoin(sourceTerm, eq(termEntry.id, sourceTerm.termEntryId))
-        .innerJoin(
-          translationTerm,
-          eq(termEntry.id, translationTerm.termEntryId),
-        )
-        .innerJoin(sourceString, eq(sourceString.id, sourceTerm.stringId))
-        .innerJoin(
-          translationString,
-          eq(translationString.id, translationTerm.stringId),
-        )
-        .where(
-          and(
-            inArray(termEntry.id, entryIds),
-            inArray(termEntry.glossaryId, glossaryIds),
-            eq(sourceString.languageId, element.languageId),
-            eq(translationString.languageId, languageId),
-          ),
-        );
-
-      try {
-        const suggestions = await advisor.getSuggestions(
-          element.value,
-          relations,
-          element.languageId,
-          languageId,
-        );
-
-        if (suggestions.length === 0) {
-          logger.warn("PLUGIN", {
-            msg: `Translation advisor ${advisor.getName()} does not return any suggestions, which is not recommended. Please at least return a suggestion with error message when error occurred.`,
-          });
-          return;
-        }
-
-        // Publish and cache suggestions
-        await Promise.all(
-          suggestions.map(async (suggestion) => {
-            const suggestionStr = JSON.stringify(suggestion);
-            await redisPub.publish(suggestionChannelKey, suggestionStr);
-
-            // Cache successful suggestions
-            if (suggestion.status === "SUCCESS") {
-              await redis.sAdd(cacheKey, suggestionStr);
-              await redis.expire(cacheKey, 60 * 60);
-            }
-          }),
-        );
-      } catch (e: unknown) {
-        logger.error(
-          "RPC",
-          { msg: "Error when generate translation suggestions" },
-          e,
-        );
-      }
     });
 
     void Promise.all(processSuggestions);

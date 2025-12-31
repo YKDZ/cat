@@ -1,42 +1,59 @@
 import { Readable } from "node:stream";
-import type { CatPlugin } from "@/entities/plugin";
-import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
-import type {
+import {
+  CatPlugin,
   MFAChallengeResult,
   MFAInitForUserContext,
   MFAInitForUserResult,
   MFAVerifyResult,
   VerifyChallengeContext,
-} from "@/services/mfa-provider";
-import type { AuthResult, PreAuthResult } from "@/services/auth-provider";
-import type { QAIssue } from "@/services/qa";
-import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
-import type {
+  AuthResult,
+  HandlePreAuthContext,
+  PreAuthResult,
+  VectorStorage,
+  type CosineSimilarityContext,
+  type RetrieveContext,
+  type StoreContext,
   TermCandidate,
   RecognizedTermEntry,
   TermPairCandidate,
-} from "@/services/term-services";
-import type {
-  UnvectorizedTextData,
-  VectorizedTextData,
-} from "@cat/shared/schema/misc";
-import type { TranslationSuggestion } from "@cat/shared/schema/misc";
-import type { Term } from "@cat/shared/schema/drizzle/glossary";
-import { JSONType } from "@cat/shared/schema/json";
-import { AuthProvider } from "@/services/auth-provider";
-import { MFAProvider } from "@/services/mfa-provider";
-import { StorageProvider } from "@/services/storage-provider";
-import { TextVectorizer } from "@/services/text-vectorizer";
-import { TranslatableFileHandler } from "@/services/translatable-file-handler";
-import { TranslationAdvisor } from "@/services/translation-advisor";
-import {
+  ExtractContext,
+  RecognizeContext,
+  AlignContext,
   TermExtractor,
   TermRecognizer,
   TermAligner,
-} from "@/services/term-services";
-import { QAChecker } from "@/services/qa";
-import { VectorStorage } from "@/services/vector-storage";
-import type { PluginLoader } from "@/registry/plugin-registry";
+  TranslationAdvisor,
+  type CanSuggestContext,
+  type GetSuggestionsContext,
+  TranslatableFileHandler,
+  type CanExtractElementContext,
+  type CanGetReplacedFileContentContext,
+  type ExtractElementContext,
+  type GetReplacedFileContentContext,
+  TextVectorizer,
+  type CanVectorizeContext,
+  type VectorizeContext,
+  StorageProvider,
+  type DeleteContext,
+  type GetPresignedGetUrlContext,
+  type GetPresignedPutUrlContext,
+  type GetStreamContext,
+  type HeadContext,
+  type PutStreamContext,
+  AuthProvider,
+  MFAProvider,
+  QAChecker,
+  type CheckContext,
+  type PluginLoader,
+  type QAIssue,
+} from "@cat/plugin-core";
+import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
+import type { JSONType } from "@cat/shared/schema/json";
+import type {
+  VectorizedTextData,
+  TranslationSuggestion,
+} from "@cat/shared/schema/misc";
+import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
 
 export class TestAuthProvider extends AuthProvider {
   public override getId = (): string => "auth-provider";
@@ -58,9 +75,9 @@ export class TestAuthProvider extends AuthProvider {
     };
   };
 
-  public override handlePreAuth = async (
-    identifier: string,
-  ): Promise<PreAuthResult> => {
+  public override handlePreAuth = async ({
+    identifier,
+  }: HandlePreAuthContext): Promise<PreAuthResult> => {
     return {
       meta: { identifier },
       passToClient: { message: "Ready to auth" },
@@ -96,10 +113,10 @@ export class TestStorageProvider extends StorageProvider {
 
   public override getId = (): string => "storage-provider";
 
-  public override putStream = async (
-    key: string,
-    stream: Readable,
-  ): Promise<void> => {
+  public override putStream = async ({
+    key,
+    stream,
+  }: PutStreamContext): Promise<void> => {
     const chunks: Buffer[] = [];
     for await (const chunk of stream) {
       // oxlint-disable-next-line no-unsafe-argument
@@ -108,25 +125,31 @@ export class TestStorageProvider extends StorageProvider {
     this.storage.set(key, Buffer.concat(chunks));
   };
 
-  public override getStream = async (key: string): Promise<Readable> => {
+  public override getStream = async ({
+    key,
+  }: GetStreamContext): Promise<Readable> => {
     const data = this.storage.get(key);
     if (!data) throw new Error(`File ${key} not found`);
     return Readable.from(data);
   };
 
-  public override getPresignedPutUrl = async (key: string): Promise<string> => {
+  public override getPresignedPutUrl = async ({
+    key,
+  }: GetPresignedPutUrlContext): Promise<string> => {
     return `memory://${key}`;
   };
 
-  public override getPresignedGetUrl = async (key: string): Promise<string> => {
+  public override getPresignedGetUrl = async ({
+    key,
+  }: GetPresignedGetUrlContext): Promise<string> => {
     return `memory://${key}`;
   };
 
-  public override head = async (key: string): Promise<void> => {
+  public override head = async ({ key }: HeadContext): Promise<void> => {
     if (!this.storage.has(key)) throw new Error("Not found");
   };
 
-  public override delete = async (key: string): Promise<void> => {
+  public override delete = async ({ key }: DeleteContext): Promise<void> => {
     this.storage.delete(key);
   };
 
@@ -143,11 +166,11 @@ export class TestStorageProvider extends StorageProvider {
 export class TestTextVectorizer extends TextVectorizer {
   public override getId = (): string => "text-vectorizer";
 
-  public override canVectorize = (_languageId: string): boolean => true;
+  public override canVectorize = (_ctx: CanVectorizeContext): boolean => true;
 
-  public override vectorize = async (
-    elements: UnvectorizedTextData[],
-  ): Promise<VectorizedTextData[]> => {
+  public override vectorize = async ({
+    elements,
+  }: VectorizeContext): Promise<VectorizedTextData[]> => {
     return elements.map(
       () =>
         [
@@ -165,26 +188,23 @@ export class TestVectorStorage extends VectorStorage {
 
   public override getId = (): string => "vector-storage";
 
-  public override store = async (
-    chunks: { vector: number[]; chunkId: number }[],
-  ): Promise<void> => {
+  public override store = async ({ chunks }: StoreContext): Promise<void> => {
     chunks.forEach((c) => this.vectors.set(c.chunkId, c.vector));
   };
 
-  public override retrieve = async (
-    chunkIds: number[],
-  ): Promise<{ vector: number[]; chunkId: number }[]> => {
+  public override retrieve = async ({
+    chunkIds,
+  }: RetrieveContext): Promise<{ vector: number[]; chunkId: number }[]> => {
     return chunkIds
       .filter((id) => this.vectors.has(id))
       .map((id) => ({ chunkId: id, vector: this.vectors.get(id)! }));
   };
 
-  public override cosineSimilarity = async (
-    _vectors: number[][],
-    chunkIdRange: number[],
-    _minSimilarity: number,
-    _maxAmount: number,
-  ): Promise<{ chunkId: number; similarity: number }[]> => {
+  public override cosineSimilarity = async ({
+    chunkIdRange,
+  }: CosineSimilarityContext): Promise<
+    { chunkId: number; similarity: number }[]
+  > => {
     return chunkIdRange
       .slice(0, 5)
       .map((id) => ({ chunkId: id, similarity: 1.0 }));
@@ -194,11 +214,15 @@ export class TestVectorStorage extends VectorStorage {
 export class TestTranslatableFileHandler extends TranslatableFileHandler {
   public override getId = (): string => "translatable-file-handler";
 
-  public override canExtractElement = (_name: string): boolean => true;
+  public override canExtractElement = (
+    _ctx: CanExtractElementContext,
+  ): boolean => true;
 
-  public override extractElement = async (
-    fileContent: Buffer,
-  ): Promise<TranslatableElementDataWithoutLanguageId[]> => {
+  public override extractElement = async ({
+    fileContent,
+  }: ExtractElementContext): Promise<
+    TranslatableElementDataWithoutLanguageId[]
+  > => {
     const text = fileContent.toString("utf-8");
 
     return text.split(/\r?\n/).map((line) => ({
@@ -207,12 +231,13 @@ export class TestTranslatableFileHandler extends TranslatableFileHandler {
     }));
   };
 
-  public override canGetReplacedFileContent = (_name: string): boolean => true;
+  public override canGetReplacedFileContent = (
+    _ctx: CanGetReplacedFileContentContext,
+  ): boolean => true;
 
-  public override getReplacedFileContent = async (
-    _fileContent: Buffer,
-    elements: { meta: JSONType; value: string }[],
-  ): Promise<Buffer> => {
+  public override getReplacedFileContent = async ({
+    elements,
+  }: GetReplacedFileContentContext): Promise<Buffer> => {
     // 简单地将所有翻译片段连接起来作为新文件
     return Buffer.from(elements.map((e) => e.value).join("\n"));
   };
@@ -222,11 +247,11 @@ export class TestTranslationAdvisor extends TranslationAdvisor {
   public override getId = (): string => "translation-advisor";
   public override getName = (): string => "Mock Advisor";
 
-  public override canSuggest = (_from: string, _to: string): boolean => true;
+  public override canSuggest = (_ctx: CanSuggestContext): boolean => true;
 
-  public override getSuggestions = async (
-    value: string,
-  ): Promise<TranslationSuggestion[]> => {
+  public override getSuggestions = async ({
+    value,
+  }: GetSuggestionsContext): Promise<TranslationSuggestion[]> => {
     return [
       {
         from: value,
@@ -240,10 +265,9 @@ export class TestTranslationAdvisor extends TranslationAdvisor {
 export class TestTermExtractor extends TermExtractor {
   public override getId = (): string => "term-extractor";
 
-  public override extract = async (
-    text: string,
-    _languageId: string,
-  ): Promise<TermCandidate[]> => {
+  public override extract = async ({
+    text,
+  }: ExtractContext): Promise<TermCandidate[]> => {
     // 假设所有用方括号括起来的都是术语，例如 [Term]
     const regex = /\[(.*?)\]/g;
     const candidates: TermCandidate[] = [];
@@ -262,10 +286,9 @@ export class TestTermExtractor extends TermExtractor {
 export class TestTermRecognizer extends TermRecognizer {
   public override getId = (): string => "term-recognizer";
 
-  public override recognize = async (
-    source: { text: string; candidates: TermCandidate[] },
-    _languageId: string,
-  ): Promise<RecognizedTermEntry[]> => {
+  public override recognize = async ({
+    source,
+  }: RecognizeContext): Promise<RecognizedTermEntry[]> => {
     // 假设所有候选词都被识别，ID 为 1
     return source.candidates.map(() => ({
       termEntryId: 1,
@@ -277,10 +300,10 @@ export class TestTermRecognizer extends TermRecognizer {
 export class TestTermAligner extends TermAligner {
   public override getId = (): string => "term-aligner";
 
-  public override align = async (
-    source: { text: string; candidates: TermCandidate[] },
-    target: { text: string; candidates: TermCandidate[] },
-  ): Promise<TermPairCandidate[]> => {
+  public override align = async ({
+    source,
+    target,
+  }: AlignContext): Promise<TermPairCandidate[]> => {
     // 简单地按顺序通过索引对齐
     const pairs: TermPairCandidate[] = [];
     const minLen = Math.min(source.candidates.length, target.candidates.length);
@@ -298,10 +321,9 @@ export class TestTermAligner extends TermAligner {
 export class TestQAChecker extends QAChecker {
   public override getId = (): string => "qa-checker";
 
-  public override check = async (
-    source: { text: string; languageId: string; terms?: Term[] },
-    target: { text: string; languageId: string; terms?: Term[] },
-  ): Promise<QAIssue[]> => {
+  public override check = async ({
+    target,
+  }: CheckContext): Promise<QAIssue[]> => {
     // 如果目标文本包含 "error"，则报错
     if (target.text.includes("error")) {
       return [

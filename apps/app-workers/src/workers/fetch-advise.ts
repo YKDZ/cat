@@ -64,12 +64,12 @@ export const fetchAdviseWorkflow = await defineWorkflow({
       return { suggestions: [] };
     }
 
-    const suggestions = await advisor.service.getSuggestions(
-      data.text,
+    const suggestions = await advisor.service.getSuggestions({
+      value: data.text,
       terms,
-      data.sourceLanguageId,
-      data.translationLanguageId,
-    );
+      languageFromId: data.sourceLanguageId,
+      languageToId: data.translationLanguageId,
+    });
 
     return { suggestions };
   },

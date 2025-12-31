@@ -23,7 +23,7 @@ const vectorizeToChunkSetsBatch = async (
 ): Promise<number[]> => {
   if (texts.length === 0) return [];
 
-  const chunkDataList = await vectorizer.vectorize(texts);
+  const chunkDataList = await vectorizer.vectorize({ elements: texts });
   if (chunkDataList.length !== texts.length) {
     throw new Error("Vectorizer result length mismatch with input texts");
   }
@@ -96,7 +96,7 @@ const vectorizeToChunkSetsBatch = async (
       meta: flattened[idx].meta,
     }));
 
-    await vectorStorage.store(storePayload);
+    await vectorStorage.store({ chunks: storePayload });
   } catch (err) {
     try {
       await drizzle.transaction(async (tx) => {

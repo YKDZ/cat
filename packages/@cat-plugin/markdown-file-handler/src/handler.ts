@@ -1,6 +1,11 @@
-import { TranslatableFileHandler } from "@cat/plugin-core";
+import {
+  TranslatableFileHandler,
+  type CanExtractElementContext,
+  type CanGetReplacedFileContentContext,
+  type ExtractElementContext,
+  type GetReplacedFileContentContext,
+} from "@cat/plugin-core";
 import { extname } from "node:path";
-import { JSONType } from "@cat/shared/schema/json";
 import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
@@ -24,14 +29,16 @@ export class Handler extends TranslatableFileHandler {
     return "MARKDOWN";
   }
 
-  canExtractElement(name: string): boolean {
+  canExtractElement({ name }: CanExtractElementContext): boolean {
     const e = extname(name).toLowerCase();
     return e === ".md" || e === ".markdown" || e === ".mdown";
   }
 
-  async extractElement(
-    fileContent: Buffer,
-  ): Promise<TranslatableElementDataWithoutLanguageId[]> {
+  async extractElement({
+    fileContent,
+  }: ExtractElementContext): Promise<
+    TranslatableElementDataWithoutLanguageId[]
+  > {
     const content = fileContent.toString("utf-8");
     const tree = unified().use(remarkParse).use(remarkGfm).parse(content);
 
@@ -250,14 +257,16 @@ export class Handler extends TranslatableFileHandler {
     return elements;
   }
 
-  canGetReplacedFileContent(name: string): boolean {
-    return this.canExtractElement(name);
+  canGetReplacedFileContent({
+    name,
+  }: CanGetReplacedFileContentContext): boolean {
+    return this.canExtractElement({ name });
   }
 
-  async getReplacedFileContent(
-    fileContent: Buffer,
-    elements: { meta: JSONType; value: string }[],
-  ): Promise<Buffer> {
+  async getReplacedFileContent({
+    fileContent,
+    elements,
+  }: GetReplacedFileContentContext): Promise<Buffer> {
     const content = fileContent.toString("utf-8");
     const tree = unified().use(remarkParse).use(remarkGfm).parse(content);
 

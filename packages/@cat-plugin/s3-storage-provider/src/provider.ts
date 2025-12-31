@@ -9,7 +9,15 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { StorageProvider } from "@cat/plugin-core";
+import {
+  StorageProvider,
+  type DeleteContext,
+  type GetPresignedGetUrlContext,
+  type GetPresignedPutUrlContext,
+  type GetStreamContext,
+  type HeadContext,
+  type PutStreamContext,
+} from "@cat/plugin-core";
 import * as z from "zod/v4";
 import { join } from "node:path";
 import { Upload } from "@aws-sdk/lib-storage";
@@ -101,16 +109,11 @@ export class S3StorageProvider extends StorageProvider {
     await this.db.disconnect();
   }
 
-  async putStream(
-    key: string,
-    stream: Readable,
-    onProgress?: (progress: {
-      loaded?: number;
-      total?: number;
-      part?: number;
-      percentage?: number;
-    }) => void,
-  ): Promise<void> {
+  async putStream({
+    key,
+    stream,
+    onProgress,
+  }: PutStreamContext): Promise<void> {
     const parallelUploads3 = new Upload({
       client: this.db.client,
       params: {
@@ -143,7 +146,7 @@ export class S3StorageProvider extends StorageProvider {
     await parallelUploads3.done();
   }
 
-  async getStream(key: string): Promise<Readable> {
+  async getStream({ key }: GetStreamContext): Promise<Readable> {
     const cmd = new GetObjectCommand({
       Bucket: this.config.s3["bucket-name"],
       Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
@@ -153,7 +156,10 @@ export class S3StorageProvider extends StorageProvider {
     return res.Body as Readable;
   }
 
-  async getPresignedPutUrl(key: string, expiresIn: number): Promise<string> {
+  async getPresignedPutUrl({
+    key,
+    expiresIn,
+  }: GetPresignedPutUrlContext): Promise<string> {
     const params: PutObjectCommandInput = {
       Bucket: this.config.s3["bucket-name"],
       Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
@@ -168,11 +174,11 @@ export class S3StorageProvider extends StorageProvider {
     return presignedUrl;
   }
 
-  async getPresignedGetUrl(
-    key: string,
-    expiresIn: number,
-    fileName?: string,
-  ): Promise<string> {
+  async getPresignedGetUrl({
+    key,
+    expiresIn,
+    fileName,
+  }: GetPresignedGetUrlContext): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.config.s3["bucket-name"],
       Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
@@ -186,7 +192,7 @@ export class S3StorageProvider extends StorageProvider {
     return await getSignedUrl(this.db.client, command, { expiresIn });
   }
 
-  async head(key: string): Promise<void> {
+  async head({ key }: HeadContext): Promise<void> {
     const command = new HeadObjectCommand({
       Bucket: this.config.s3["bucket-name"],
       Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),
@@ -194,7 +200,7 @@ export class S3StorageProvider extends StorageProvider {
     await this.db.client.send(command);
   }
 
-  async delete(key: string): Promise<void> {
+  async delete({ key }: DeleteContext): Promise<void> {
     const command = new DeleteObjectCommand({
       Bucket: this.config.s3["bucket-name"],
       Key: join(this.config.storage["basic-path"], key.replaceAll("\\", "/")),

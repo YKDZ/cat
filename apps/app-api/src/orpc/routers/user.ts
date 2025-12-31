@@ -187,5 +187,5 @@ export const getAvatarPresignedUrl = authed
       storageProviderId,
     );
 
-    return await provider.getPresignedGetUrl(key, expiresIn);
+    return await provider.getPresignedGetUrl({ key, expiresIn });
   });

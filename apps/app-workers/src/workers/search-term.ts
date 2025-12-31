@@ -69,18 +69,18 @@ export const searchTermTask = await defineTask({
     }
 
     // 获取术语化文本
-    const termCandidates = await termExtractor.service.extract(
-      data.text,
-      data.sourceLanguageId,
-    );
+    const termCandidates = await termExtractor.service.extract({
+      text: data.text,
+      languageId: data.sourceLanguageId,
+    });
 
-    const recognizedTerms = await termRecognizer.service.recognize(
-      {
+    const recognizedTerms = await termRecognizer.service.recognize({
+      source: {
         text: data.text,
         candidates: termCandidates,
       },
-      data.sourceLanguageId,
-    );
+      languageId: data.sourceLanguageId,
+    });
 
     const termEntryIds = recognizedTerms.map((t) => t.termEntryId);
 

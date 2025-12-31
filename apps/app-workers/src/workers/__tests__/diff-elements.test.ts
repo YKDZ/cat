@@ -13,10 +13,10 @@ import {
   translatableString,
   user,
 } from "@cat/db";
-import { PluginRegistry, TestPluginLoader } from "@cat/plugin-core";
+import { PluginRegistry } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { diffElementsTask } from "@/workers/diff-elements.ts";
-import { setupTestDB } from "@cat/test-utils";
+import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
 const oldElements = [
   {

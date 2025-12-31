@@ -1,4 +1,8 @@
-import { TranslationAdvisor } from "@cat/plugin-core";
+import {
+  TranslationAdvisor,
+  type CanSuggestContext,
+  type GetSuggestionsContext,
+} from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 import { logger } from "@cat/shared/utils";
@@ -95,7 +99,7 @@ export class Advisor extends TranslationAdvisor {
     return this.config.base["advisor-name"];
   }
 
-  canSuggest(languageFromId: string, languageToId: string): boolean {
+  canSuggest({ languageFromId, languageToId }: CanSuggestContext): boolean {
     const sourceLang = languageFromId.replaceAll("_", "-");
     const targetLang = languageToId.replaceAll("_", "-");
     return (
@@ -104,12 +108,11 @@ export class Advisor extends TranslationAdvisor {
     );
   }
 
-  async getSuggestions(
-    value: string,
-    terms: { term: string; translation: string }[],
-    languageFromId: string,
-    languageToId: string,
-  ): Promise<TranslationSuggestion[]> {
+  async getSuggestions({
+    value,
+    languageFromId,
+    languageToId,
+  }: GetSuggestionsContext): Promise<TranslationSuggestion[]> {
     const sourceLang = languageFromId.replaceAll("_", "-");
     const targetLang = languageToId.replaceAll("_", "-");
 

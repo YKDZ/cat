@@ -10,6 +10,19 @@ export type QAIssue = {
   suggestedTranslation?: string;
 };
 
+export type CheckContext = {
+  source: {
+    text: string;
+    languageId: string;
+    terms?: Term[];
+  };
+  target: {
+    text: string;
+    languageId: string;
+    terms?: Term[];
+  };
+};
+
 export abstract class QAChecker implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType {
@@ -18,16 +31,5 @@ export abstract class QAChecker implements IPluginService {
   /**
    * 检查译文是否违反某些规范
    */
-  abstract check(
-    source: {
-      text: string;
-      languageId: string;
-      terms?: Term[];
-    },
-    target: {
-      text: string;
-      languageId: string;
-      terms?: Term[];
-    },
-  ): Promise<QAIssue[]>;
+  abstract check(ctx: CheckContext): Promise<QAIssue[]>;
 }

@@ -68,12 +68,12 @@ export const searchMemory = async (
     new Set([...sourceChunkIds, ...reversedChunkIds].map((row) => row.id)),
   );
 
-  const vectorItems = await vectorStorage.cosineSimilarity(
-    embeddings,
+  const vectorItems = await vectorStorage.cosineSimilarity({
+    vectors: embeddings,
     chunkIdRange,
     minSimilarity,
     maxAmount,
-  );
+  });
 
   const searchResult = new Map(
     vectorItems.map((it) => [it.chunkId, it.similarity]),

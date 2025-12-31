@@ -64,7 +64,7 @@ export const putBufferToStorage = async (
 
   if (blob.referenceCount === 1)
     try {
-      await storageProvider.putStream(key, Readable.from(buffer));
+      await storageProvider.putStream({ key, stream: Readable.from(buffer) });
       await drizzle
         .update(fileTable)
         .set({ isActive: true })
@@ -135,7 +135,10 @@ export const preparePresignedPutFile = async (
   await redis.expire(redisKey, expiresInSeconds);
 
   return {
-    url: await storageProvider.getPresignedPutUrl(key, expiresInSeconds),
+    url: await storageProvider.getPresignedPutUrl({
+      key,
+      expiresIn: expiresInSeconds,
+    }),
     putSessionId,
     fileId,
   };
@@ -174,16 +177,16 @@ export const finishPresignedPutFile = async (
   );
 
   if (storedCtxHash !== ctxHash) {
-    await storageProvider.delete(key);
+    await storageProvider.delete({ key });
     await drizzle.transaction(async (tx) => {
       await tx.delete(blobTable).where(eq(blobTable.id, blobId));
       await tx.delete(fileTable).where(eq(fileTable.id, fileId));
     });
   }
 
-  await storageProvider.head(key);
+  await storageProvider.head({ key });
 
-  const hash = await hashFromReadable(await storageProvider.getStream(key));
+  const hash = await hashFromReadable(await storageProvider.getStream({ key }));
 
   // 查找是否有哈希相同的 blob，如果有则删除原 blob 并将 file 关联到这个 blob
   // 否则将 hash 更新到源 blob 上
@@ -215,7 +218,7 @@ export const finishPresignedPutFile = async (
     return conflictBlobRows.length > 0;
   });
 
-  if (conflicted) await storageProvider.delete(key);
+  if (conflicted) await storageProvider.delete({ key });
 
   return fileId;
 };

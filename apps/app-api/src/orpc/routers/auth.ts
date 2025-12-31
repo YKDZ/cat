@@ -223,7 +223,9 @@ export const preAuth = base
     const sessionId = randomBytes(32).toString("hex");
 
     if (typeof provider.handlePreAuth === "function") {
-      const { passToClient, meta } = await provider.handlePreAuth(identifier);
+      const { passToClient, meta } = await provider.handlePreAuth({
+        identifier,
+      });
 
       const sessionKey = getPreAuthSessionKey(sessionId);
       await redis.hSet(sessionKey, {
@@ -762,7 +764,7 @@ export const logout = authed.output(z.void()).handler(async ({ context }) => {
     );
 
     if (typeof provider.handleLogout === "function") {
-      await provider.handleLogout(sessionId);
+      await provider.handleLogout({ sessionId });
     }
   }
 

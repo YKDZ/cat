@@ -300,7 +300,7 @@ export const finishCreateFromFile = authed
     if (existDocumentRows.length === 0) {
       const service = pluginRegistry
         .getPluginServices("TRANSLATABLE_FILE_HANDLER")
-        .find(({ service }) => service.canExtractElement(fileName));
+        .find(({ service }) => service.canExtractElement({ name: fileName }));
 
       if (!service)
         throw new ORPCError("NOT_FOUND", {
@@ -876,7 +876,7 @@ export const getDocumentFileUrl = authed
       storageProviderId,
     );
 
-    return await provider.getPresignedGetUrl(key);
+    return await provider.getPresignedGetUrl({ key, expiresIn: 120 });
   });
 
 export const countTranslation = authed
