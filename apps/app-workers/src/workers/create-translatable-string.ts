@@ -49,14 +49,16 @@ export const createTranslatableStringTask = await defineTask({
     if (!vectorStorage) throw new Error("Vector storage service not found");
     if (!vectorizer) throw new Error("Vectorizer service not found");
 
-    const stringIds = await createStringFromData(
-      drizzle,
-      vectorizer.service,
-      vectorizer.id,
-      vectorStorage.service,
-      vectorStorage.id,
-      data.data,
-    );
+    const stringIds = await drizzle.transaction(async (tx) => {
+      return await createStringFromData(
+        tx,
+        vectorizer.service,
+        vectorizer.id,
+        vectorStorage.service,
+        vectorStorage.id,
+        data.data,
+      );
+    });
 
     return { stringIds };
   },

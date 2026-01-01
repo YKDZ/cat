@@ -3,10 +3,10 @@ import {
   chunkSet,
   DrizzleClient,
   inArray,
-  OverallDrizzleClient,
   translatableString,
   and,
   eq,
+  type DrizzleTransaction,
 } from "@cat/db";
 import { VectorStorage, TextVectorizer } from "@cat/plugin-core";
 import { JSONType } from "@cat/shared/schema/json";
@@ -123,10 +123,11 @@ const vectorizeToChunkSetsBatch = async (
 };
 
 /**
- * 根据给定数据按以下规则返回 TranslatableString ID：
- * 若数据库中没有 value + languageId 唯一冲突的行，插入并返回 ID；
- * 若有，返回现存 ID。
- * 返回的 ID 顺序与 data 保持一致
+ * 根据给定数据按以下规则返回 TranslatableString ID：\
+ * 若数据库中没有 value + languageId 唯一冲突的行，插入并返回 ID；\
+ * 若有，返回现存 ID。\
+ * 返回的 ID 顺序与 data 保持一致\
+ * 涉及多个数据库操作，需要一个事务传入
  *
  * @param tx
  * @param vectorizer
@@ -137,7 +138,7 @@ const vectorizeToChunkSetsBatch = async (
  * @returns TranslatableString IDs
  */
 export const createStringFromData = async (
-  tx: OverallDrizzleClient,
+  tx: DrizzleTransaction,
   vectorizer: TextVectorizer,
   vectorizerId: number,
   vectorStorage: VectorStorage,

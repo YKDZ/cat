@@ -4,14 +4,14 @@ import {
   pluginConfig,
   pluginConfigInstance,
   pluginInstallation,
-  type OverallDrizzleClient,
+  type DrizzleTransaction,
 } from "@cat/db";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import type { JSONType } from "@cat/shared/schema/json";
 import { assertSingleOrNull } from "@cat/shared/utils";
 
 export const getPluginConfig = async (
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleTransaction,
   pluginId: string,
   scopeType: ScopeType,
   scopeId: string,
@@ -22,7 +22,7 @@ export const getPluginConfig = async (
 };
 
 export const getConfigInstance = async (
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleTransaction,
   pluginId: string,
   scopeType: ScopeType,
   scopeId: string,

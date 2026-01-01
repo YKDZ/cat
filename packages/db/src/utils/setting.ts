@@ -1,5 +1,5 @@
 import { setting } from "@/drizzle";
-import type { OverallDrizzleClient } from "@/drizzle/db.ts";
+import type { DrizzleClient } from "@/drizzle/db.ts";
 import { assertFirstOrNull } from "@cat/shared/utils";
 import { eq } from "drizzle-orm";
 
@@ -18,7 +18,7 @@ const isSameType = <T>(value: unknown, sample: T): value is T => {
 };
 
 export const getSetting = async <T>(
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleClient,
   settingKey: string,
   fallback: T,
 ): Promise<T> => {

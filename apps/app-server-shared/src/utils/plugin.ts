@@ -1,10 +1,9 @@
 import {
   and,
   eq,
-  OverallDrizzleClient,
+  DrizzleClient,
   pluginInstallation,
   pluginService,
-  type DrizzleClient,
 } from "@cat/db";
 import {
   PluginRegistry,
@@ -20,7 +19,7 @@ import path, { join, resolve } from "node:path";
 import { cwd } from "node:process";
 
 export const firstOrGivenService = async <T extends PluginServiceType>(
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleClient,
   pluginRegistry: PluginRegistry,
   type: T,
   id?: number,
@@ -63,7 +62,7 @@ export const firstOrGivenService = async <T extends PluginServiceType>(
 };
 
 export const getServiceFromDBId = async <T extends IPluginService>(
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleClient,
   pluginRegistry: PluginRegistry,
   id: number,
 ): Promise<T> => {

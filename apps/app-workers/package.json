@@ -31,7 +31,8 @@
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit -p tsconfig.lib.json"
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",

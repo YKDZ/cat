@@ -5,15 +5,15 @@ import {
   eq,
   inArray,
   memoryItem,
-  OverallDrizzleClient,
   translatableString,
   union,
+  type DrizzleTransaction,
 } from "@cat/db";
 import { VectorStorage } from "@cat/plugin-core";
 import { MemorySuggestion } from "@cat/shared/schema/misc";
 
 export const searchMemory = async (
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleTransaction,
   vectorStorage: VectorStorage,
   embeddings: number[][],
   sourceLanguageId: string,

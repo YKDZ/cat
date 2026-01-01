@@ -20,19 +20,19 @@ import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
 const oldElements = [
   {
-    value: "Test 1",
+    text: "Test 1",
     languageId: "en",
     meta: { key: 1 },
     sortIndex: 1,
   },
   {
-    value: "Test 2",
+    text: "Test 2",
     languageId: "en",
     meta: { key: 2 },
     sortIndex: 2,
   },
   {
-    value: "Test 3",
+    text: "Test 3",
     languageId: "en",
     meta: { key: 3 },
     sortIndex: 3,
@@ -41,27 +41,27 @@ const oldElements = [
 
 const newElements = [
   {
-    value: "Test 1",
+    text: "Test 1",
     languageId: "en",
     meta: { key: 1 },
     sortIndex: 1,
   },
   {
-    value: "Test Changed 2",
+    text: "Test Changed 2",
     languageId: "en",
     meta: { key: 2 },
     // 排序不参与 diff，但也要被更新
     sortIndex: 3,
   },
   {
-    value: "Test 3",
+    text: "Test 3",
     languageId: "en",
     meta: { key: 3 },
     // 排序不参与 diff，但也要被更新
     sortIndex: 2,
   },
   {
-    value: "Test New 4",
+    text: "Test New 4",
     languageId: "en",
     // 新增一个元素
     meta: { key: 4 },
@@ -149,7 +149,7 @@ beforeAll(async () => {
             .insert(translatableString)
             .values({
               chunkSetId,
-              value: el.value,
+              value: el.text,
               languageId: el.languageId,
             })
             .returning({
@@ -176,16 +176,17 @@ test("language should exists in db", async () => {
   expect(langs.length).toEqual(2);
 });
 
-test("document should exists in db", async () => {
+test("document and active version should exists in db", async () => {
   const { client: drizzle } = await getDrizzleDB();
 
   const documents = await drizzle.select({ id: document.id }).from(document);
   const documentVersions = await drizzle
     .select({ id: documentVersion.id })
-    .from(documentVersion);
+    .from(documentVersion)
+    .where(eq(documentVersion.isActive, true));
 
   expect(documents.length).toEqual(1);
-  expect(documentVersions.length).toEqual(2);
+  expect(documentVersions.length).toEqual(1);
 });
 
 test("old elements should exists in db", async () => {

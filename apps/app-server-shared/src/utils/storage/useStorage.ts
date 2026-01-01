@@ -1,10 +1,4 @@
-import {
-  and,
-  eq,
-  pluginInstallation,
-  type DrizzleClient,
-  type OverallDrizzleClient,
-} from "@cat/db";
+import { and, eq, pluginInstallation, type DrizzleClient } from "@cat/db";
 import type { StorageProvider } from "@cat/plugin-core";
 import { PluginRegistry } from "@cat/plugin-core";
 import { getServiceFromDBId } from "../plugin";
@@ -12,7 +6,7 @@ import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 
 export const useStorage = async (
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleClient,
   pluginId: string,
   serviceId: string,
   scopeType: ScopeType,

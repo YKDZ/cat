@@ -44,22 +44,24 @@ export const searchMemoryWorkflow = await defineWorkflow({
 
     const { embeddings, vectorStorageId } = embeddingsResult;
 
-    const vectorStorage = await getServiceFromDBId<VectorStorage>(
-      drizzle,
-      pluginRegistry,
-      vectorStorageId,
-    );
+    const memories = await drizzle.transaction(async (tx) => {
+      const vectorStorage = await getServiceFromDBId<VectorStorage>(
+        tx,
+        pluginRegistry,
+        vectorStorageId,
+      );
 
-    const memories = await searchMemory(
-      drizzle,
-      vectorStorage,
-      embeddings,
-      data.sourceLanguageId,
-      data.translationLanguageId,
-      data.memoryIds,
-      data.minSimilarity,
-      data.maxAmount,
-    );
+      return await searchMemory(
+        tx,
+        vectorStorage,
+        embeddings,
+        data.sourceLanguageId,
+        data.translationLanguageId,
+        data.memoryIds,
+        data.minSimilarity,
+        data.maxAmount,
+      );
+    });
 
     return { memories };
   },

@@ -25,7 +25,7 @@ import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { PluginRegistry } from "@cat/plugin-core";
 import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
-import { authed } from "@/orpc/server";
+import { authed, base } from "@/orpc/server";
 import { ORPCError } from "@orpc/client";
 
 export const reload = authed
@@ -42,7 +42,10 @@ export const reload = authed
     const { scopeType, scopeId } = input;
 
     const registry = PluginRegistry.get(scopeType, scopeId);
-    await registry.reload(drizzle, globalThis.app);
+
+    await drizzle.transaction(async (tx) => {
+      await registry.reload(tx, globalThis.app);
+    });
   });
 
 export const getConfigInstance = authed
@@ -212,7 +215,7 @@ export const getAll = authed
       .orderBy(desc(pluginTable.id));
   });
 
-export const getAllAuthMethod = authed
+export const getAllAuthMethod = base
   .output(z.array(AuthMethodSchema))
   .handler(async ({ context }) => {
     const {

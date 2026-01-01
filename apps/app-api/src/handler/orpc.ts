@@ -23,7 +23,7 @@ app.all("*", async (c, next) => {
   const ctx = await getHttpContext(c.req.raw, c.res.headers);
 
   const { matched, response } = await handler.handle(c.req.raw, {
-    prefix: "/rpc",
+    prefix: "/api/rpc",
     context: { ...ctx },
   });
 

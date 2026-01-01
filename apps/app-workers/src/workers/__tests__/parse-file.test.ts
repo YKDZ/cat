@@ -62,6 +62,7 @@ beforeAll(async () => {
     await tx.insert(file).values({
       name: "Test File",
       blobId,
+      isActive: true,
     });
   });
 });
@@ -80,7 +81,10 @@ test("plugin should exists in db", async () => {
 test("file should exists in db", async () => {
   const { client: drizzle } = await getDrizzleDB();
 
-  const files = await drizzle.select({ id: file.id }).from(file);
+  const files = await drizzle
+    .select({ id: file.id })
+    .from(file)
+    .where(eq(file.isActive, true));
 
   expect(files.length).toEqual(1);
 });
@@ -98,7 +102,7 @@ test("storage provider should exists", async () => {
   const handler = await firstOrGivenService(
     drizzle,
     pluginRegistry,
-    "TRANSLATABLE_FILE_HANDLER",
+    "FILE_IMPORTER",
     0,
   );
 
@@ -141,8 +145,8 @@ test("worker should parse elements from file", async () => {
   const { elements } = await result();
 
   expect(elements.length).toEqual(2);
-  expect(elements[0].value).toEqual("Hello World!");
-  expect(elements[1].value).toEqual("YKDZ");
+  expect(elements[0].text).toEqual("Hello World!");
+  expect(elements[1].text).toEqual("YKDZ");
   // handler 没有给出 sortIndex 的情况下能否自动补齐
   // handler 没有给出 sortIndex 的情况下能否自动补齐
   expect(elements[0].sortIndex).toEqual(0);
