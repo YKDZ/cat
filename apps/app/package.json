@@ -52,7 +52,7 @@
     "dotenv": "^17.2.3",
     "hono": "^4.11.1",
     "lodash-es": "^4.17.22",
-    "lucide-vue-next": "^0.553.0",
+    "lucide-vue-next": "^0.562.0",
     "marked": "^17.0.1",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
