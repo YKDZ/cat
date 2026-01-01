@@ -9,14 +9,17 @@ import {
   inArray,
   sql,
 } from "@cat/db";
-import { TranslatableElementDataSchema } from "@cat/shared/schema/misc";
+import { safeZDotJson } from "@cat/shared/schema/json";
 import { isEqual } from "lodash-es";
 import z from "zod";
 
 export const DiffElementsInputSchema = z.object({
   elementData: z.array(
-    TranslatableElementDataSchema.extend({
+    z.object({
+      text: z.string(),
       sortIndex: z.int(),
+      languageId: z.string(),
+      meta: safeZDotJson,
     }),
   ),
   oldElementIds: z.array(z.int()),
@@ -42,7 +45,7 @@ export const diffElementsTask = await defineTask({
       await drizzle
         .select({
           id: translatableElement.id,
-          value: translatableString.value,
+          text: translatableString.value,
           meta: translatableElement.meta,
           languageId: translatableString.languageId,
           sortIndex: translatableElement.sortIndex,
@@ -56,7 +59,7 @@ export const diffElementsTask = await defineTask({
         .where(inArray(translatableElement.id, data.oldElementIds))
     ).map((element) => ({
       id: element.id,
-      value: element.value,
+      text: element.text,
       sortIndex: element.sortIndex ?? 0,
       languageId: element.languageId,
       meta: element.meta,
@@ -69,7 +72,7 @@ export const diffElementsTask = await defineTask({
     const { added, removed } = diffArraysAndSeparate(
       oldElements,
       data.elementData,
-      (a, b) => a.value === b.value && isEqual(a.meta, b.meta),
+      (a, b) => a.text === b.text && isEqual(a.meta, b.meta),
     );
 
     // 3. 删除移除的元素
@@ -92,16 +95,16 @@ export const diffElementsTask = await defineTask({
     // 为了高效匹配，将 keptNewElements 按 value 分组
     const newElementMap = new Map<string, typeof keptNewElements>();
     for (const el of keptNewElements) {
-      if (!newElementMap.has(el.value)) {
-        newElementMap.set(el.value, []);
+      if (!newElementMap.has(el.text)) {
+        newElementMap.set(el.text, []);
       }
-      newElementMap.get(el.value)!.push(el);
+      newElementMap.get(el.text)!.push(el);
     }
 
     const updates: { id: number; sortIndex: number }[] = [];
 
     for (const oldEl of keptOldElements) {
-      const candidates = newElementMap.get(oldEl.value);
+      const candidates = newElementMap.get(oldEl.text);
       if (candidates) {
         // 在同 value 的新元素中找到 meta 匹配的一个
         const index = candidates.findIndex((c) => isEqual(c.meta, oldEl.meta));
@@ -143,7 +146,7 @@ export const diffElementsTask = await defineTask({
 
     if (added.length > 0) {
       // 检查字符串缓存
-      const tuples = added.map((el) => sql`(${el.value}, ${el.languageId})`);
+      const tuples = added.map((el) => sql`(${el.text}, ${el.languageId})`);
       const existingStrings = await drizzle
         .select({
           id: translatableString.id,
@@ -164,9 +167,7 @@ export const diffElementsTask = await defineTask({
         [];
 
       for (const element of added) {
-        const stringId = stringMap.get(
-          `${element.value}|${element.languageId}`,
-        );
+        const stringId = stringMap.get(`${element.text}|${element.languageId}`);
         if (stringId !== undefined) {
           addedWithCache.push({ ...element, stringId });
         } else {
@@ -199,7 +200,7 @@ export const diffElementsTask = await defineTask({
           data: addedWithoutCache.map((el) => ({
             documentId: data.documentId,
             documentVersionId: data.documentVersionId,
-            text: el.value,
+            text: el.text,
             languageId: el.languageId,
             sortIndex: el.sortIndex,
             meta: el.meta ?? {},

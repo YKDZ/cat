@@ -299,8 +299,8 @@ export const finishCreateFromFile = authed
 
     if (existDocumentRows.length === 0) {
       const service = pluginRegistry
-        .getPluginServices("TRANSLATABLE_FILE_HANDLER")
-        .find(({ service }) => service.canExtractElement({ name: fileName }));
+        .getPluginServices("FILE_IMPORTER")
+        .find(({ service }) => service.canImport({ name: fileName }));
 
       if (!service)
         throw new ORPCError("NOT_FOUND", {

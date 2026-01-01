@@ -1,18 +1,19 @@
-import {
-  TranslatableFileHandler,
-  type CanExtractElementContext,
-  type CanGetReplacedFileContentContext,
-  type ExtractElementContext,
-  type GetReplacedFileContentContext,
-} from "@cat/plugin-core";
 import { extname } from "node:path";
-import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 import remarkGfm from "remark-gfm";
 import type { Root, RootContent, PhrasingContent } from "mdast";
 import * as z from "zod";
+import {
+  FileExporter,
+  FileImporter,
+  type CanExportContext,
+  type CanImportContext,
+  type ElementData,
+  type ExportContext,
+  type ImportContext,
+} from "@cat/plugin-core";
 
 interface ElementMeta {
   index: number;
@@ -24,25 +25,21 @@ interface ElementMeta {
   identifier?: string;
 }
 
-export class Handler extends TranslatableFileHandler {
+export class Importer extends FileImporter {
   getId(): string {
     return "MARKDOWN";
   }
 
-  canExtractElement({ name }: CanExtractElementContext): boolean {
+  canImport({ name }: CanImportContext): boolean {
     const e = extname(name).toLowerCase();
     return e === ".md" || e === ".markdown" || e === ".mdown";
   }
 
-  async extractElement({
-    fileContent,
-  }: ExtractElementContext): Promise<
-    TranslatableElementDataWithoutLanguageId[]
-  > {
+  async import({ fileContent }: ImportContext): Promise<ElementData[]> {
     const content = fileContent.toString("utf-8");
     const tree = unified().use(remarkParse).use(remarkGfm).parse(content);
 
-    const elements: TranslatableElementDataWithoutLanguageId[] = [];
+    const elements: ElementData[] = [];
     let elementIndex = 0;
 
     const extractTextFromPhrasingContent = (
@@ -84,7 +81,7 @@ export class Handler extends TranslatableFileHandler {
         const text = extractTextFromPhrasingContent(node.children).trim();
         if (text) {
           elements.push({
-            value: text,
+            text,
             sortIndex: elementIndex,
             meta: {
               index: elementIndex,
@@ -100,7 +97,7 @@ export class Handler extends TranslatableFileHandler {
         const text = extractTextFromPhrasingContent(node.children).trim();
         if (text) {
           elements.push({
-            value: text,
+            text,
             sortIndex: elementIndex,
             meta: {
               index: elementIndex,
@@ -117,7 +114,7 @@ export class Handler extends TranslatableFileHandler {
             const text = extractTextFromPhrasingContent(child.children).trim();
             if (text) {
               elements.push({
-                value: text,
+                text,
                 sortIndex: elementIndex,
                 meta: {
                   index: elementIndex,
@@ -141,12 +138,12 @@ export class Handler extends TranslatableFileHandler {
         const text = node.value.trim();
         if (text) {
           elements.push({
-            value: text,
+            text,
             sortIndex: elementIndex,
             meta: {
               index: elementIndex,
               type: "code",
-              lang: node.lang,
+              lang: node.lang ?? null,
             } satisfies ElementMeta,
           });
           elementIndex += 1;
@@ -175,7 +172,7 @@ export class Handler extends TranslatableFileHandler {
                 ).trim();
                 if (text) {
                   elements.push({
-                    value: text,
+                    text,
                     sortIndex: elementIndex,
                     meta: {
                       index: elementIndex,
@@ -196,7 +193,7 @@ export class Handler extends TranslatableFileHandler {
         const text = extractTextFromPhrasingContent(node.children).trim();
         if (text) {
           elements.push({
-            value: text,
+            text,
             sortIndex: elementIndex,
             meta: {
               index: elementIndex,
@@ -211,7 +208,7 @@ export class Handler extends TranslatableFileHandler {
         const text = node.alt?.trim();
         if (text) {
           elements.push({
-            value: text,
+            text,
             sortIndex: elementIndex,
             meta: {
               index: elementIndex,
@@ -229,7 +226,7 @@ export class Handler extends TranslatableFileHandler {
             const text = extractTextFromPhrasingContent(child.children).trim();
             if (text) {
               elements.push({
-                value: text,
+                text,
                 sortIndex: elementIndex,
                 meta: {
                   index: elementIndex,
@@ -256,17 +253,19 @@ export class Handler extends TranslatableFileHandler {
 
     return elements;
   }
+}
 
-  canGetReplacedFileContent({
-    name,
-  }: CanGetReplacedFileContentContext): boolean {
-    return this.canExtractElement({ name });
+export class Exporter extends FileExporter {
+  getId(): string {
+    return "MARKDOWN";
   }
 
-  async getReplacedFileContent({
-    fileContent,
-    elements,
-  }: GetReplacedFileContentContext): Promise<Buffer> {
+  canExport({ name }: CanExportContext): boolean {
+    const e = extname(name).toLowerCase();
+    return e === ".md" || e === ".markdown" || e === ".mdown";
+  }
+
+  async export({ fileContent, elements }: ExportContext): Promise<Buffer> {
     const content = fileContent.toString("utf-8");
     const tree = unified().use(remarkParse).use(remarkGfm).parse(content);
 
@@ -279,7 +278,7 @@ export class Handler extends TranslatableFileHandler {
           type: z.string(),
         })
         .parse(element.meta);
-      translationMap.set(meta.index, element.value);
+      translationMap.set(meta.index, element.text);
     }
 
     let currentIndex = 0;
