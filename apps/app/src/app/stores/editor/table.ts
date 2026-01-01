@@ -103,10 +103,10 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       })
       .then((elements) => {
         if (elements.length === 0) return;
-        elementRefStore.loadedPages.value.set(
-          index,
-          z.array(TranslatableElementWithDetailsSchema).parse(elements),
-        );
+        const pElements = z
+          .array(TranslatableElementWithDetailsSchema)
+          .parse(elements);
+        elementRefStore.loadedPages.value.set(index, pElements);
         elementRefStore.loadedPageHashes.value.set(index, inputHash);
       });
   };
