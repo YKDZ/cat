@@ -97,11 +97,12 @@ test("worker should insert strings to db", async () => {
     },
   ];
 
-  const { result } = await createTranslatableStringTask.run({
-    data,
-  });
-
-  const { stringIds } = await result();
+  const { stringIds } = await createTranslatableStringTask.handler(
+    {
+      data,
+    },
+    { traceId: "test" },
+  );
 
   const strings = await drizzle
     .select(getColumns(translatableString))
@@ -127,11 +128,12 @@ test("worker should insert strings to db", async () => {
 test("empty input should return empty array", async () => {
   const data: { text: string; languageId: string }[] = [];
 
-  const { result } = await createTranslatableStringTask.run({
-    data,
-  });
-
-  const { stringIds } = await result();
+  const { stringIds } = await createTranslatableStringTask.handler(
+    {
+      data,
+    },
+    { traceId: "test" },
+  );
 
   expect(stringIds.length).toEqual(0);
 });

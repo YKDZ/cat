@@ -224,14 +224,17 @@ test("worker should diff elements", async () => {
       .from(translatableElement)
   ).map((el) => el.id);
 
-  const { result } = await diffElementsTask.run({
-    documentId,
-    documentVersionId,
-    oldElementIds,
-    elementData: newElements,
-  });
-
-  const { addedElementIds, removedElementIds } = await result();
+  const { addedElementIds, removedElementIds } = await diffElementsTask.handler(
+    {
+      documentId,
+      documentVersionId,
+      oldElementIds,
+      elementData: newElements,
+    },
+    {
+      traceId: "test",
+    },
+  );
 
   expect(addedElementIds.length).toEqual(2);
   expect(removedElementIds.length).toEqual(1);

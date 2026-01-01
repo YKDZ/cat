@@ -37,6 +37,7 @@ export const diffElementsTask = await defineTask({
   name: "element.diff",
   input: DiffElementsInputSchema,
   output: DiffElementsOutputSchema,
+
   handler: async (data, { traceId }) => {
     const { client: drizzle } = await getDrizzleDB();
 
