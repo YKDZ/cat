@@ -22,8 +22,7 @@
     "format:check": "oxfmt --check",
     "typecheck": "tsc --noEmit && vue-tsc --noEmit",
     "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
-    "docker:push": "docker push ykdz/cat",
-    "test": "vitest run"
+    "docker:push": "docker push ykdz/cat"
   },
   "dependencies": {
     "@cat/app-api": "workspace:*",
