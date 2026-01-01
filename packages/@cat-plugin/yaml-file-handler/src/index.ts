@@ -1,9 +1,9 @@
 import type { CatPlugin } from "@cat/plugin-core";
-import { YAMLTranslatableFileHandler } from "./handler";
+import { Exporter, Importer } from "./handler";
 
 class Plugin implements CatPlugin {
   services() {
-    return [new YAMLTranslatableFileHandler()];
+    return [new Importer(), new Exporter()];
   }
 }
 

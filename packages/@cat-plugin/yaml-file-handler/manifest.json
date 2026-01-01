@@ -7,7 +7,11 @@
   "services": [
     {
       "id": "YAML",
-      "type": "TRANSLATABLE_FILE_HANDLER"
+      "type": "FILE_IMPORTER"
+    },
+    {
+      "id": "YAML",
+      "type": "FILE_EXPORTER"
     }
   ]
 }

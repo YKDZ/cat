@@ -78,10 +78,6 @@ export type TranslationSuggestion = z.infer<typeof TranslationSuggestionSchema>;
 export type TranslatableElementData = z.infer<
   typeof TranslatableElementDataSchema
 >;
-export type TranslatableElementDataWithoutLanguageId = Omit<
-  TranslatableElementData,
-  "languageId"
->;
 export type ElementTranslationStatus = z.infer<
   typeof ElementTranslationStatusSchema
 >;

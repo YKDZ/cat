@@ -7,7 +7,11 @@
   "services": [
     {
       "id": "JSON",
-      "type": "TRANSLATABLE_FILE_HANDLER"
+      "type": "FILE_IMPORTER"
+    },
+    {
+      "id": "JSON",
+      "type": "FILE_EXPORTER"
     }
   ]
 }

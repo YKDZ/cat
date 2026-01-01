@@ -25,11 +25,6 @@ import {
   TranslationAdvisor,
   type CanSuggestContext,
   type GetSuggestionsContext,
-  TranslatableFileHandler,
-  type CanExtractElementContext,
-  type CanGetReplacedFileContentContext,
-  type ExtractElementContext,
-  type GetReplacedFileContentContext,
   TextVectorizer,
   type CanVectorizeContext,
   type VectorizeContext,
@@ -46,8 +41,14 @@ import {
   type CheckContext,
   type PluginLoader,
   type QAIssue,
+  FileImporter,
+  type CanExportContext,
+  type ExportContext,
+  FileExporter,
+  type ImportContext,
+  type ElementData,
+  type CanImportContext,
 } from "@cat/plugin-core";
-import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
 import type { JSONType } from "@cat/shared/schema/json";
 import type {
   VectorizedTextData,
@@ -211,35 +212,32 @@ export class TestVectorStorage extends VectorStorage {
   };
 }
 
-export class TestTranslatableFileHandler extends TranslatableFileHandler {
-  public override getId = (): string => "translatable-file-handler";
+export class TestFileImporter extends FileImporter {
+  public override getId = (): string => "file-importer";
 
-  public override canExtractElement = (
-    _ctx: CanExtractElementContext,
-  ): boolean => true;
+  public override canImport = (_ctx: CanImportContext): boolean => true;
 
-  public override extractElement = async ({
+  public override import = async ({
     fileContent,
-  }: ExtractElementContext): Promise<
-    TranslatableElementDataWithoutLanguageId[]
-  > => {
+  }: ImportContext): Promise<ElementData[]> => {
     const text = fileContent.toString("utf-8");
 
     return text.split(/\r?\n/).map((line) => ({
-      value: line,
+      text: line,
       meta: {},
     }));
   };
+}
 
-  public override canGetReplacedFileContent = (
-    _ctx: CanGetReplacedFileContentContext,
-  ): boolean => true;
+export class TestFileExporter extends FileExporter {
+  public override getId = (): string => "file-exporter";
 
-  public override getReplacedFileContent = async ({
+  public override canExport = (_ctx: CanExportContext): boolean => true;
+
+  public override export = async ({
     elements,
-  }: GetReplacedFileContentContext): Promise<Buffer> => {
-    // 简单地将所有翻译片段连接起来作为新文件
-    return Buffer.from(elements.map((e) => e.value).join("\n"));
+  }: ExportContext): Promise<Buffer> => {
+    return Buffer.from(elements.map((e) => e.text).join("\n"));
   };
 }
 
@@ -354,7 +352,8 @@ const plugin = {
       new TestTermExtractor(),
       new TestTermRecognizer(),
       new TestTextVectorizer(),
-      new TestTranslatableFileHandler(),
+      new TestFileImporter(),
+      new TestFileExporter(),
       new TestTranslationAdvisor(),
       new TestVectorStorage(),
     ];
@@ -395,8 +394,12 @@ const manifest = {
       type: "TERM_RECOGNIZER",
     },
     {
-      id: "translatable-file-handler",
-      type: "TRANSLATABLE_FILE_HANDLER",
+      id: "file-importer",
+      type: "FILE_IMPORTER",
+    },
+    {
+      id: "file-exporter",
+      type: "FILE_EXPORTER",
     },
     {
       id: "translation-advisor",

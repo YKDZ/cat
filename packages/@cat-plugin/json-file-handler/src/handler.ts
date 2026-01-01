@@ -1,11 +1,13 @@
-import { extname } from "node:path";
 import {
-  TranslatableFileHandler,
-  type CanExtractElementContext,
-  type ExtractElementContext,
-  type GetReplacedFileContentContext,
+  FileExporter,
+  FileImporter,
+  type CanExportContext,
+  type CanImportContext,
+  type ElementData,
+  type ExportContext,
+  type ImportContext,
 } from "@cat/plugin-core";
-import { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
+import { extname } from "node:path";
 import * as z from "zod";
 
 type JSONValue =
@@ -16,31 +18,30 @@ type JSONValue =
   | JSONValue[]
   | { [key: string]: JSONValue };
 
-export class Handler extends TranslatableFileHandler {
+export class Importer extends FileImporter {
   getId(): string {
     return "JSON";
   }
 
-  canExtractElement({ name }: CanExtractElementContext): boolean {
+  canImport({ name }: CanImportContext): boolean {
     return extname(name) === ".json";
   }
 
-  async extractElement({
-    fileContent,
-  }: ExtractElementContext): Promise<
-    TranslatableElementDataWithoutLanguageId[]
-  > {
+  async import({ fileContent }: ImportContext): Promise<ElementData[]> {
     return collectTranslatableElement(fileContent.toString("utf-8"));
   }
+}
 
-  canGetReplacedFileContent({ name }: CanExtractElementContext): boolean {
+export class Exporter extends FileExporter {
+  getId(): string {
+    return "JSON";
+  }
+
+  canExport({ name }: CanExportContext): boolean {
     return extname(name) === ".json";
   }
 
-  async getReplacedFileContent({
-    fileContent,
-    elements,
-  }: GetReplacedFileContentContext): Promise<Buffer> {
+  async export({ fileContent, elements }: ExportContext): Promise<Buffer> {
     const originalObj: unknown = JSON.parse(fileContent.toString("utf-8"));
     const modifiedObj: unknown = JSON.parse(JSON.stringify(originalObj));
 
@@ -62,7 +63,7 @@ export class Handler extends TranslatableFileHandler {
         const currentObj = current as Record<string, unknown>;
 
         if (i === pathParts.length - 1) {
-          currentObj[part] = e.value;
+          currentObj[part] = e.text;
         } else {
           current = currentObj[part];
         }
@@ -77,7 +78,7 @@ export class Handler extends TranslatableFileHandler {
 
 const collectTranslatableElement = (json: string) => {
   const parsedData = z.json().parse(JSON.parse(json));
-  const result: TranslatableElementDataWithoutLanguageId[] = [];
+  const result: ElementData[] = [];
 
   const traverse = (obj: JSONValue, currentPath: string[] = []) => {
     if (typeof obj === "object" && obj !== null) {
@@ -96,7 +97,7 @@ const collectTranslatableElement = (json: string) => {
       }
     } else if (typeof obj === "string" && obj.trim() !== "") {
       result.push({
-        value: obj,
+        text: obj,
         meta: {
           key: currentPath,
         },

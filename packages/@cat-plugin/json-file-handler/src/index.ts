@@ -1,9 +1,9 @@
 import type { CatPlugin } from "@cat/plugin-core";
-import { Handler } from "./handler";
+import { Exporter, Importer } from "./handler";
 
 class Plugin implements CatPlugin {
   services() {
-    return [new Handler()];
+    return [new Importer(), new Exporter()];
   }
 }
 

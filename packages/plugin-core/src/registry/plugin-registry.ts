@@ -30,7 +30,6 @@ import {
 } from "@cat/db";
 
 import type { TranslationAdvisor } from "@/services/translation-advisor.ts";
-import type { TranslatableFileHandler } from "@/services/translatable-file-handler.ts";
 import type { TextVectorizer } from "@/services/text-vectorizer.ts";
 import type { StorageProvider } from "@/services/storage-provider.ts";
 import type { AuthProvider } from "@/services/auth-provider.ts";
@@ -57,6 +56,7 @@ import {
 import type { CatPlugin } from "@/entities/plugin";
 import { getPluginConfig } from "@/utils/config";
 import type { MFAProvider } from "@/services/mfa-provider";
+import type { FileExporter, FileImporter } from "@/services/file-handler";
 
 // Type Definitions
 type PluginServiceTypeMap = {
@@ -64,7 +64,8 @@ type PluginServiceTypeMap = {
   MFA_PROVIDER: MFAProvider;
   STORAGE_PROVIDER: StorageProvider;
   TEXT_VECTORIZER: TextVectorizer;
-  TRANSLATABLE_FILE_HANDLER: TranslatableFileHandler;
+  FILE_IMPORTER: FileImporter;
+  FILE_EXPORTER: FileExporter;
   TRANSLATION_ADVISOR: TranslationAdvisor;
   TERM_EXTRACTOR: TermExtractor;
   TERM_RECOGNIZER: TermRecognizer;

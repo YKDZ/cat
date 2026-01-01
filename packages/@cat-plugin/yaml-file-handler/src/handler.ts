@@ -1,3 +1,12 @@
+import {
+  FileExporter,
+  FileImporter,
+  type CanExportContext,
+  type CanImportContext,
+  type ElementData,
+  type ExportContext,
+  type ImportContext,
+} from "@cat/plugin-core";
 import type { Pair, Scalar } from "yaml";
 import {
   isScalar,
@@ -7,14 +16,6 @@ import {
   YAMLMap,
   YAMLSeq,
 } from "yaml";
-import type { TranslatableElementDataWithoutLanguageId } from "@cat/shared/schema/misc";
-import {
-  TranslatableFileHandler,
-  type CanExtractElementContext,
-  type CanGetReplacedFileContentContext,
-  type ExtractElementContext,
-  type GetReplacedFileContentContext,
-} from "@cat/plugin-core";
 import * as z from "zod";
 
 type YamlValue = string | number | boolean | null | YamlObject | YamlArray;
@@ -37,23 +38,19 @@ function isString(val: unknown): val is string {
   return typeof val === "string";
 }
 
-export class YAMLTranslatableFileHandler extends TranslatableFileHandler {
+export class Importer extends FileImporter {
   getId(): string {
     return "YAML";
   }
 
-  canExtractElement({ name }: CanExtractElementContext): boolean {
+  canImport({ name }: CanImportContext): boolean {
     return name.endsWith(".yaml") || name.endsWith(".yml");
   }
 
-  async extractElement({
-    fileContent,
-  }: ExtractElementContext): Promise<
-    TranslatableElementDataWithoutLanguageId[]
-  > {
+  async import({ fileContent }: ImportContext): Promise<ElementData[]> {
     const content = fileContent.toString("utf8");
     const doc = parseDocument(content);
-    const elements: TranslatableElementDataWithoutLanguageId[] = [];
+    const elements: ElementData[] = [];
 
     function traverseNode(
       node: unknown,
@@ -65,7 +62,7 @@ export class YAMLTranslatableFileHandler extends TranslatableFileHandler {
         const comment = scalarNode.commentBefore || parentComments;
         elements.push({
           // oxlint-disable-next-line no-unsafe-type-assertion
-          value: scalarNode.value as string,
+          text: scalarNode.value as string,
           meta: {
             path: path.join("."),
             ...(comment ? { comment } : {}),
@@ -99,17 +96,18 @@ export class YAMLTranslatableFileHandler extends TranslatableFileHandler {
     }
     return elements;
   }
+}
 
-  canGetReplacedFileContent({
-    name,
-  }: CanGetReplacedFileContentContext): boolean {
-    return this.canExtractElement({ name });
+export class Exporter extends FileExporter {
+  getId(): string {
+    return "YAML";
   }
 
-  async getReplacedFileContent({
-    fileContent,
-    elements,
-  }: GetReplacedFileContentContext): Promise<Buffer> {
+  canExport({ name }: CanExportContext): boolean {
+    return name.endsWith(".yaml") || name.endsWith(".yml");
+  }
+
+  async export({ fileContent, elements }: ExportContext): Promise<Buffer> {
     const content = fileContent.toString("utf8");
     // oxlint-disable-next-line no-unsafe-type-assertion
     const doc = parse(content) as YamlValue;
@@ -121,7 +119,7 @@ export class YAMLTranslatableFileHandler extends TranslatableFileHandler {
       if (!meta || !meta.path) throw new Error("Translation meta is required");
 
       if (meta.path) {
-        translationMap.set(meta.path, e.value);
+        translationMap.set(meta.path, e.text);
       }
     }
 

@@ -5,7 +5,7 @@ import {
 } from "@cat/app-server-shared/utils";
 import { and, blob, eq, file, getDrizzleDB } from "@cat/db";
 import { PluginRegistry, type StorageProvider } from "@cat/plugin-core";
-import { TranslatableElementDataSchema } from "@cat/shared/schema/misc";
+import { safeZDotJson } from "@cat/shared/schema/json";
 import {
   assertFirstNonNullish,
   assertSingleNonNullish,
@@ -19,8 +19,11 @@ export const ParseFileInputSchema = z.object({
 
 export const ParseFileOutputSchema = z.object({
   elements: z.array(
-    TranslatableElementDataSchema.extend({
+    z.object({
+      text: z.string(),
       sortIndex: z.int(),
+      languageId: z.string(),
+      meta: safeZDotJson,
     }),
   ),
 });
@@ -54,14 +57,14 @@ export const parseFileTask = await defineTask({
     );
     const { service: handler } = assertFirstNonNullish(
       pluginRegistry
-        .getPluginServices("TRANSLATABLE_FILE_HANDLER")
-        .filter((h) => h.service.canExtractElement({ name })),
+        .getPluginServices("FILE_IMPORTER")
+        .filter((h) => h.service.canImport({ name })),
     );
 
     const fileContent = await readableToBuffer(
       await provider.getStream({ key }),
     );
-    const extracted = await handler.extractElement({ fileContent });
+    const extracted = await handler.import({ fileContent });
 
     // 补全 sortIndex
     let maxSortIndex = -1;
