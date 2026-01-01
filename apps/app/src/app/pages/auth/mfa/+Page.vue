@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AuthMFAHandler from "@/app/components/AuthMFAHandler.vue";
-import AuthMFAPreHandler from "@/app/components/AuthMFAPreHandler.vue";
+import AuthMFAHandler from "./MfaHandler.vue";
+import AuthMFAPreHandler from "./MfaPreHandler.vue";
 import { useAuthStore } from "@/app/stores/auth";
 import { orpc } from "@/server/orpc";
 import { storeToRefs } from "pinia";

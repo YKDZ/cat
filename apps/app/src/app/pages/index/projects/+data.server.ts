@@ -1,18 +1,22 @@
-import type { Project } from "@cat/shared/schema/drizzle/project";
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
-import { ssc } from "@/server/ssc";
+import { eq, project } from "@cat/db";
 
-export const data = async (
-  ctx: PageContextServer,
-): Promise<{ projects: Project[] }> => {
+export const data = async (ctx: PageContextServer) => {
+  const { client: drizzle } = ctx.globalContext.drizzleDB;
   const { user } = ctx;
 
   if (!user) throw render("/auth");
 
-  const owned = await ssc(ctx).project.getUserOwned({});
+  const projects = await drizzle
+    .select({
+      id: project.id,
+      name: project.name,
+    })
+    .from(project)
+    .where(eq(project.creatorId, user.id));
 
-  return { projects: owned };
+  return { projects };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

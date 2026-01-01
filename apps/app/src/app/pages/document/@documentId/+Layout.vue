@@ -3,19 +3,19 @@ import { provide } from "vue";
 import { useData } from "vike-vue/useData";
 import type { Data } from "./+data.server.ts";
 import IndexSidebar from "@/app/components/IndexSidebar.vue";
-import { documentKey } from "@/app/utils/provide.ts";
-import DocumentHeader from "@/app/components/DocumentHeader.vue";
+import { useInjectionKey } from "@/app/utils/provide.ts";
+import Header from "./Header.vue";
 
 const { document } = useData<Data>();
 
-provide(documentKey, document);
+provide(useInjectionKey<Data>()("document"), document);
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full md:flex-row">
     <IndexSidebar />
     <div class="flex flex-col h-full w-full overflow-y-auto">
-      <DocumentHeader />
+      <Header :document />
       <div class="p-4 pt-0 flex flex-col">
         <slot />
       </div>

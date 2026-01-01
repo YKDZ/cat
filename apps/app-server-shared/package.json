@@ -1,12 +1,16 @@
 {
   "name": "@cat/app-server-shared",
   "version": "0.1.0",
-  "license": "MIT",
   "keywords": [
+    "cat",
     "plugins",
-    "typescript",
     "types",
-    "cat"
+    "typescript"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "package.json"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -21,16 +25,12 @@
       "import": "./dist/utils.js"
     }
   },
-  "files": [
-    "dist",
-    "package.json"
-  ],
   "scripts": {
     "build": "vite build",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {

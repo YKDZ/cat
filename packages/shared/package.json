@@ -1,12 +1,16 @@
 {
   "name": "@cat/shared",
   "version": "0.1.0",
-  "license": "MIT",
   "keywords": [
+    "cat",
     "plugins",
-    "typescript",
     "types",
-    "cat"
+    "typescript"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "package.json"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -90,16 +94,12 @@
       "require": "./dist/schema/drizzle/enum.cjs"
     }
   },
-  "files": [
-    "dist",
-    "package.json"
-  ],
   "scripts": {
     "build": "vite build",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",

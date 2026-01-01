@@ -12,6 +12,7 @@ export default defineConfig({
       "@cat/app-server-shared",
       "@orpc/client",
       "@orpc/server",
+      "@orpc/experimental-pino",
       "vike",
       "zod",
       "lodash-es",

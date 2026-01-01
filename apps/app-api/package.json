@@ -1,12 +1,16 @@
 {
   "name": "@cat/app-api",
   "version": "0.1.0",
-  "license": "MIT",
   "keywords": [
+    "cat",
     "plugins",
-    "typescript",
     "types",
-    "cat"
+    "typescript"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "package.json"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -29,16 +33,12 @@
       "import": "./dist/context.js"
     }
   },
-  "files": [
-    "dist",
-    "package.json"
-  ],
   "scripts": {
     "build": "vite build",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {
@@ -53,12 +53,13 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "@orpc/client": "^1.13.2",
-    "pino": "^10.1.0",
-    "telefunc": "^0.2.17",
+    "@orpc/experimental-pino": "^1.13.2",
     "@orpc/server": "^1.13.2",
     "devalue": "^5.5.0",
-    "vike": "^0.4.240",
     "hono": "^4.11.1",
+    "pino": "^10.1.0",
+    "telefunc": "^0.2.17",
+    "vike": "^0.4.240",
     "zod": "^4.1.12"
   }
 }

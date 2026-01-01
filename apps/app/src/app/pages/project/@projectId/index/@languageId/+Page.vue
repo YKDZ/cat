@@ -4,12 +4,12 @@ import { navigate } from "vike/client/router";
 import { inject, provide } from "vue";
 import type { Data } from "../../+data.server.ts";
 import { languageKey, useInjectionKey } from "@/app/utils/provide.ts";
-import ProjectLanguageDocumentTree from "@/app/components/ProjectLanguageDocumentTree.vue";
-import { Button } from "@/app/components/ui/button/index.ts";
+import DocumentTree from "./LanguageDocumentTree.vue";
+import { Button } from "@/app/components/ui/button";
 import { useI18n } from "vue-i18n";
 import { computedAsyncClient } from "@/app/utils/vue.ts";
 import { orpc } from "@/server/orpc";
-import TranslationProgress from "@/app/pages/project/@projectId/index/TranslationProgress.vue";
+import TranslationProgress from "../TranslationProgress.vue";
 
 const ctx = usePageContext();
 const { t } = useI18n();
@@ -17,7 +17,7 @@ const { t } = useI18n();
 const project = inject(useInjectionKey<Data>()("project"))!;
 
 const language = computedAsyncClient(async () => {
-  if (!ctx.routeParams.languageId) return null;
+  if (!ctx.routeParams || !ctx.routeParams.languageId) return null;
 
   return await orpc.language.get({
     languageId: ctx.routeParams.languageId,
@@ -43,6 +43,6 @@ const handleBack = async () => {
       </div>
       <TranslationProgress v-if="project && language" :language :project />
     </div>
-    <ProjectLanguageDocumentTree v-if="language" :project="project" :language />
+    <DocumentTree v-if="language" :project="project" :language />
   </div>
 </template>

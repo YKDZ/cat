@@ -23,7 +23,7 @@ import {
   assertSingleOrNull,
 } from "@cat/shared/utils";
 import type { TermExtractor, TermRecognizer } from "@cat/plugin-core";
-import { createTermTask } from "@cat/app-workers";
+import { createTermTask, searchTermTask } from "@cat/app-workers";
 import { authed } from "@/orpc/server";
 import { ORPCError } from "@orpc/client";
 
@@ -242,6 +242,7 @@ export const findTerm = authed
       z.object({
         term: z.string(),
         translation: z.string(),
+        subject: z.string().nullable(),
         termLanguageId: z.string(),
         translationLanguageId: z.string(),
       }),
@@ -250,18 +251,8 @@ export const findTerm = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      pluginRegistry,
     } = context;
     const { elementId, translationLanguageId } = input;
-
-    const { service: termExtractor } = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("TERM_EXTRACTOR"),
-      `No term extractor plugin found in this scope`,
-    );
-    const { service: termRecognizer } = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("TERM_RECOGNIZER"),
-      `No term recognizer plugin found in this scope`,
-    );
 
     const element = assertSingleNonNullish(
       await drizzle
@@ -296,17 +287,29 @@ export const findTerm = authed
         .limit(1),
     );
 
-    return await drizzle.transaction(async (tx) => {
-      return await findTermRelationsInProject(
-        tx,
-        termExtractor,
-        termRecognizer,
-        projectId,
-        element.value,
-        element.languageId,
-        translationLanguageId,
-      );
+    const glossaryIds = (
+      await drizzle
+        .select({
+          id: glossaryToProject.glossaryId,
+        })
+        .from(glossaryToProject)
+        .where(eq(glossaryToProject.projectId, projectId))
+    ).map((row) => row.id);
+
+    const { result } = await searchTermTask.run({
+      glossaryIds,
+      sourceLanguageId: element.languageId,
+      translationLanguageId,
+      text: element.value,
     });
+
+    return (await result()).terms.map((term) => ({
+      term: term.term,
+      translation: term.translation,
+      subject: term.subject,
+      termLanguageId: element.languageId,
+      translationLanguageId,
+    }));
   });
 
 const findTermRelationsInProject = async (

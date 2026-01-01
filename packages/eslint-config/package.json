@@ -1,15 +1,15 @@
 {
   "name": "@cat/eslint-config",
   "private": true,
-  "scripts": {
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
   "files": [
     ".oxlintrc.json",
     "cspell.words.json",
     "package.json"
   ],
+  "scripts": {
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
+  },
   "devDependencies": {
     "@cspell/eslint-plugin": "^9.4.0",
     "@eslint/js": "^9.39.2",

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import type { Data } from "../+data.server.ts";
-import ProjectDetailCard from "@/app/components/ProjectDetailCard.vue";
+import DetailCard from "./DetailCard.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
-import Readme from "@/app/pages/project/@projectId/index/Readme.vue";
-import LanguageTable from "@/app/pages/project/@projectId/index/LanguageTable.vue";
+import Readme from "./Readme.vue";
+import LanguageTable from "./LanguageTable.vue";
 
 const project = inject(useInjectionKey<Data>()("project"))!;
 const targetLanguages = inject(useInjectionKey<Data>()("targetLanguages"))!;
@@ -23,6 +23,6 @@ const readme = computed(() => {
       <LanguageTable :project :languages="targetLanguages" />
       <Readme v-if="readme" :readme />
     </div>
-    <ProjectDetailCard :project />
+    <DetailCard :project />
   </div>
 </template>

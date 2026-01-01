@@ -1,6 +1,5 @@
 import * as z from "zod/v4";
 import {
-  Translation,
   TranslationApprovementSchema,
   TranslationSchema,
   TranslationVoteSchema,
@@ -29,6 +28,7 @@ import {
   chunkSet,
   glossaryToProject,
   chunk,
+  getColumns,
 } from "@cat/db";
 import {
   autoTranslateWorkflow,
@@ -64,11 +64,7 @@ export const create = authed
       createMemory: z.boolean().default(true),
     }),
   )
-  .output(
-    TranslationSchema.extend({
-      status: z.enum(["PROCESSING", "COMPLETED"]),
-    }),
-  )
+  .output(TranslationSchema)
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -81,44 +77,42 @@ export const create = authed
         .select({
           memoryId: memoryToProject.memoryId,
         })
-        .from(memoryToProject)
+        .from(translatableElementTable)
         .innerJoin(
           documentTable,
           eq(documentTable.id, translatableElementTable.documentId),
         )
         .innerJoin(
-          translatableElementTable,
-          eq(translatableElementTable.id, elementId),
+          memoryToProject,
+          eq(memoryToProject.projectId, documentTable.projectId),
         )
-        .where(
-          and(
-            eq(translatableElementTable.id, elementId),
-            eq(documentTable.projectId, memoryToProject.projectId),
-          ),
-        )
+        .where(eq(translatableElementTable.id, elementId))
     ).map((item) => item.memoryId);
 
-    await createTranslationWorkflow.run({
+    const { result } = await createTranslationWorkflow.run({
       data: [
         {
           translatableElementId: elementId,
           text,
           languageId,
+          translatorId: user.id,
         },
       ],
       memoryIds: createMemory ? memoryIds : [],
     });
 
-    return {
-      id: 0,
-      stringId: 0,
-      meta: null,
-      translatableElementId: elementId,
-      translatorId: user.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      status: "PROCESSING",
-    } satisfies Translation & { status: "PROCESSING" | "COMPLETED" };
+    const translationId = assertSingleNonNullish(
+      (await result()).translationIds,
+    );
+
+    return assertSingleNonNullish(
+      await drizzle
+        .select({
+          ...getColumns(translationTable),
+        })
+        .from(translationTable)
+        .where(eq(translationTable.id, translationId)),
+    );
   });
 
 export const getAll = authed

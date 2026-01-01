@@ -14,22 +14,22 @@
     "build": "vite build",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.14"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
+    "drizzle-kit": "beta",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^7.3.0",
-    "drizzle-kit": "beta"
+    "vite": "^7.3.0"
   },
   "peerDependencies": {
-    "@cat/shared": "workspace:*",
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
     "drizzle-orm": "1.0.0-beta.6-4414a19"
   },
   "packageManager": "pnpm@10.26.2"
