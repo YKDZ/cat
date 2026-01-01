@@ -2,9 +2,9 @@
 import { useData } from "vike-vue/useData";
 import { usePageContext } from "vike-vue/usePageContext";
 import type { Data } from "./+data.server.ts";
-import AuthError from "@/app/components/AuthError.vue";
+import AuthError from "./AuthError.vue";
 import logoUrl from "@/app/assets/logo.png";
-import AuthPreHandler from "@/app/components/AuthPreHandler.vue";
+import AuthPreHandler from "./AuthPreHandler.vue";
 import { Input } from "@/app/components/ui/input";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/app/stores/auth.ts";

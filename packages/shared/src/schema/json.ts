@@ -14,6 +14,7 @@ const isJSONableObject = (value: unknown): value is Record<string, unknown> => {
 };
 
 export const safeZDotJson = z.any().refine((data) => {
+  if (data === null) return true;
   if (isJSONText(data)) return true;
   return isJSONableObject(data);
 });

@@ -1,12 +1,17 @@
 {
   "name": "@cat-plugin/totp-mfa-provider",
   "version": "0.1.0",
-  "license": "MIT",
   "keywords": [
+    "cat",
     "plugins",
-    "typescript",
     "types",
-    "cat"
+    "typescript"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "manifest.json",
+    "package.json"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -15,18 +20,13 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "package.json",
-    "manifest.json"
-  ],
   "scripts": {
     "build": "vite build",
     "dev": "vite dev",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

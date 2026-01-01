@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";
-import AdminSettingForm from "@/app/components/AdminSettingForm.vue";
+import SettingForm from "../SettingForm.vue";
 
 const { t } = useI18n();
 
@@ -29,5 +29,5 @@ const site = z.toJSONSchema(
 </script>
 
 <template>
-  <AdminSettingForm :schema="site" />
+  <SettingForm :schema="site" />
 </template>

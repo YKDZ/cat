@@ -5,7 +5,7 @@ import TableCell from "@/app/components/table/TableCell.vue";
 import TableRow from "@/app/components/table/TableRow.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
-import LanguagePicker from "./LanguagePicker.vue";
+import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { Button } from "@/app/components/ui/button";
 
 const { info } = useToastStore();

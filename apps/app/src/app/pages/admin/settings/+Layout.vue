@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import AdminSettingsNavbar from "@/app/components/AdminSettingsNavbar.vue";
+import Navbar from "./Navbar.vue";
 </script>
 
 <template>
   <div>
-    <AdminSettingsNavbar />
+    <Navbar />
     <slot />
   </div>
 </template>

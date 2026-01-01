@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import EditorElementTranslations from "@/app/components/EditorElementTranslations.vue";
-import EditorMemories from "@/app/components/EditorMemories.vue";
-import EditorOriginElement from "@/app/components/EditorOriginElement.vue";
-import EditorSuggestions from "@/app/components/EditorSuggestions.vue";
-import EditorTerms from "@/app/components/EditorTerms.vue";
-import EditorToolbar from "@/app/components/EditorToolbar.vue";
-import EditorTranslateInput from "@/app/components/EditorTranslateInput.vue";
+import ElementTranslations from "./ElementTranslations.vue";
+import Memories from "./Memories.vue";
+import OriginElement from "./OriginElement.vue";
+import Suggestions from "./Suggestions.vue";
+import Terms from "./Terms.vue";
+import Toolbar from "./Toolbar.vue";
+import TranslateInput from "./TranslateInput.vue";
 </script>
 
 <template>
-  <EditorOriginElement />
-  <EditorTranslateInput />
-  <EditorToolbar />
-  <EditorElementTranslations />
+  <OriginElement />
+  <TranslateInput />
+  <Toolbar />
+  <ElementTranslations />
   <div class="flex flex-col md:grid md:grid-cols-3">
-    <EditorSuggestions />
-    <EditorMemories />
-    <EditorTerms />
+    <Suggestions />
+    <Memories />
+    <Terms />
   </div>
 </template>

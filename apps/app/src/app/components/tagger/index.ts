@@ -141,7 +141,6 @@ export const clippers = ref<Clipper[]>([
             },
             "aria-hidden": "true",
           }),
-          "\n",
         ],
       );
     },

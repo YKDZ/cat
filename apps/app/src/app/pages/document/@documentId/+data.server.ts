@@ -1,18 +1,20 @@
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
-import type { Document } from "@cat/shared/schema/drizzle/document";
-import { ssc } from "@/server/ssc";
+import { document as documentTable, eq } from "@cat/db";
+import { assertSingleOrNull } from "@cat/shared/utils";
 
-export const data = async (
-  ctx: PageContextServer,
-): Promise<{ document: Document }> => {
+export const data = async (ctx: PageContextServer) => {
+  const { client: drizzle } = ctx.globalContext.drizzleDB;
   const { documentId } = ctx.routeParams;
 
   if (!documentId) throw render("/", `Document id not provided`);
 
-  const document = await ssc(ctx).document.get({
-    documentId,
-  });
+  const document = assertSingleOrNull(
+    await drizzle
+      .select({ id: documentTable.id, name: documentTable.name })
+      .from(documentTable)
+      .where(eq(documentTable.id, documentId)),
+  );
 
   if (!document) throw render("/", `Document ${documentId} not found`);
 

@@ -2,9 +2,9 @@
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import CreateProject from "@/app/components/InitProjectFromFileCreateProject.vue";
-import UploadFiles from "@/app/components/InitProjectFromFileUploadFiles.vue";
-import Finish from "@/app/components/InitProjectFromFileFinish.vue";
+import CreateProject from "./CreateProject.vue";
+import UploadFiles from "./UploadFiles.vue";
+import Finish from "./Finish.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { Settings } from "lucide-vue-next";
 import Separator from "@/app/components/ui/separator/Separator.vue";

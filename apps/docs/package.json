@@ -1,16 +1,16 @@
 {
   "name": "@cat/docs",
   "version": "0.1.0",
-  "type": "module",
   "license": "GPL-3.0-only",
+  "type": "module",
   "scripts": {
     "dev": "vitepress dev src",
     "build": "vitepress build src",
     "preview": "vitepress preview src",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

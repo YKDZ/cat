@@ -1,12 +1,16 @@
 {
   "name": "@cat/plugin-core",
   "version": "0.1.0",
-  "license": "MIT",
   "keywords": [
+    "cat",
     "plugins",
-    "typescript",
     "types",
-    "cat"
+    "typescript"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "package.json"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -17,23 +21,19 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "package.json"
-  ],
   "scripts": {
     "build": "vite build",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@types/lodash-es": "^4.17.12",
+    "hono": "^4.11.1",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^7.3.0",
-    "hono": "^4.11.1"
+    "vite": "^7.3.0"
   },
   "peerDependencies": {
     "@cat/db": "workspace:*",
