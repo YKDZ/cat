@@ -38,5 +38,7 @@ export class DrizzleDB {
   }
 }
 
-export type DrizzleClient = DrizzleDB["client"];
-export type OverallDrizzleClient = Omit<DrizzleClient, "$client">;
+export type DrizzleClient = Omit<DrizzleDB["client"], "$client">;
+export type DrizzleTransaction = Parameters<
+  Parameters<DrizzleClient["transaction"]>[0]
+>[0];

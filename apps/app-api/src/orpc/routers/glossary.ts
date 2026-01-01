@@ -13,9 +13,9 @@ import {
   aliasedTable,
   translatableElement,
   translatableString,
-  OverallDrizzleClient,
   getColumns,
   termEntry,
+  type DrizzleTransaction,
 } from "@cat/db";
 import {
   assertFirstNonNullish,
@@ -217,15 +217,17 @@ export const searchTerm = authed
       `No term recognizer plugin found in this scope`,
     );
 
-    return await findTermRelationsInProject(
-      drizzle,
-      termExtractor,
-      termRecognizer,
-      projectId,
-      text,
-      termLanguageId,
-      translationLanguageId,
-    );
+    return await drizzle.transaction(async (tx) => {
+      return await findTermRelationsInProject(
+        tx,
+        termExtractor,
+        termRecognizer,
+        projectId,
+        text,
+        termLanguageId,
+        translationLanguageId,
+      );
+    });
   });
 
 export const findTerm = authed
@@ -294,19 +296,21 @@ export const findTerm = authed
         .limit(1),
     );
 
-    return await findTermRelationsInProject(
-      drizzle,
-      termExtractor,
-      termRecognizer,
-      projectId,
-      element.value,
-      element.languageId,
-      translationLanguageId,
-    );
+    return await drizzle.transaction(async (tx) => {
+      return await findTermRelationsInProject(
+        tx,
+        termExtractor,
+        termRecognizer,
+        projectId,
+        element.value,
+        element.languageId,
+        translationLanguageId,
+      );
+    });
   });
 
 const findTermRelationsInProject = async (
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleTransaction,
   termExtractor: TermExtractor,
   termRecognizer: TermRecognizer,
   projectId: string,

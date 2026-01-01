@@ -83,7 +83,7 @@ export const diffElementsTask = await defineTask({
         .where(inArray(translatableElement.id, removedElementIds));
     }
 
-    // 4. [新增逻辑] 处理更新 (Updated)
+    // 处理更新
     // 找出既没被移除（旧），也没被新增（新）的元素，这些是 intersection
     // 我们需要检查它们的 sortIndex 是否发生了变化
     const removedIdsSet = new Set(removedElementIds);

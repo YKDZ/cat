@@ -2,7 +2,7 @@ import {
   eq,
   getColumns,
   getRedisDB,
-  OverallDrizzleClient,
+  DrizzleClient,
   user as userTable,
 } from "@cat/db";
 import type { User } from "@cat/shared/schema/drizzle/user";
@@ -10,7 +10,7 @@ import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { assertSingleOrNull } from "@cat/shared/utils";
 
 export const userFromSessionId = async (
-  drizzle: OverallDrizzleClient,
+  drizzle: DrizzleClient,
   sessionId: string | null,
 ): Promise<User | null> => {
   if (!sessionId) return null;

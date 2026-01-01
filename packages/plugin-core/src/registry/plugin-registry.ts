@@ -19,7 +19,6 @@ import {
   eq,
   and,
   getColumns,
-  OverallDrizzleClient,
   plugin,
   pluginComponent,
   pluginConfig,
@@ -27,6 +26,7 @@ import {
   pluginInstallation,
   pluginService,
   type DrizzleClient,
+  type DrizzleTransaction,
 } from "@cat/db";
 
 import type { TranslationAdvisor } from "@/services/translation-advisor.ts";
@@ -395,7 +395,7 @@ export class PluginRegistry {
   }
 
   public async getPluginServiceDbId(
-    drizzle: OverallDrizzleClient,
+    drizzle: DrizzleClient,
     pluginId: string,
     serviceId: string,
   ): Promise<number> {
@@ -431,7 +431,7 @@ export class PluginRegistry {
   }
 
   public async enableAllPlugins(
-    drizzle: OverallDrizzleClient,
+    drizzle: DrizzleTransaction,
     app: Hono,
   ): Promise<void> {
     const installations = await drizzle
@@ -454,7 +454,7 @@ export class PluginRegistry {
   }
 
   public async enablePlugin(
-    drizzle: OverallDrizzleClient,
+    drizzle: DrizzleTransaction,
     pluginId: string,
     app: Hono,
   ): Promise<void> {
@@ -518,9 +518,7 @@ export class PluginRegistry {
   /**
    * 扫描当前 Loader 可检测到的所有插件，将尚未入库的插件导入数据库
    */
-  public async importAvailablePlugins(
-    drizzle: OverallDrizzleClient,
-  ): Promise<void> {
+  public async importAvailablePlugins(drizzle: DrizzleClient): Promise<void> {
     await drizzle.transaction(async (tx) => {
       // 1. 获取数据库中已存在的插件 ID
       const existPluginIds: string[] = (
@@ -554,7 +552,7 @@ export class PluginRegistry {
    * @param loader 可选的加载器，如果不传则使用默认的文件系统加载器
    */
   private static async importPlugin(
-    drizzle: OverallDrizzleClient,
+    drizzle: DrizzleClient,
     pluginId: string,
     loader: PluginLoader = new FileSystemPluginLoader(),
   ): Promise<void> {
@@ -598,7 +596,7 @@ export class PluginRegistry {
     });
   }
 
-  public async reload(drizzle: OverallDrizzleClient, app: Hono): Promise<void> {
+  public async reload(drizzle: DrizzleTransaction, app: Hono): Promise<void> {
     await this.enableAllPlugins(drizzle, app);
   }
 

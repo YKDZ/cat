@@ -12,12 +12,10 @@ import { combinedSchema, type DrizzleDB, type DrizzleSchema } from "@cat/db";
  * 并完成迁移
  */
 export const setupTestDB = async (): Promise<DrizzleDB> => {
-  if (!globalThis["__DRIZZLE_DB__"]) {
-    const db = new TestDrizzleDB();
-    await db.migrate();
-    // @ts-expect-error Pglite cap with NodePg
-    globalThis["__DRIZZLE_DB__"] = db;
-  }
+  const db = new TestDrizzleDB();
+  await db.migrate();
+  // @ts-expect-error Pglite cap with NodePg
+  globalThis["__DRIZZLE_DB__"] = db;
   return globalThis["__DRIZZLE_DB__"]!;
 };
 
