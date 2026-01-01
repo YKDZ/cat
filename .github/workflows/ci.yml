@@ -11,6 +11,18 @@ jobs:
   main-ci:
     name: Run CI Checks
     runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -36,6 +48,8 @@ jobs:
         uses: nrwl/nx-set-shas@v4
 
       - name: Run Affected Tasks
+        env:
+          REDIS_URL: "redis://localhost:6379"
         run: |
           pnpm exec nx affected \
             --targets=lint,typecheck,format:check,test \
