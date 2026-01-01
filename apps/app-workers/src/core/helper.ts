@@ -14,6 +14,7 @@ import type {
   TaskDefinition,
   ZodObjectAny,
   RunResult,
+  WorkflowHandlerContext,
 } from "@/core/types";
 
 /**
@@ -127,7 +128,7 @@ export const defineTask = async <
         const parsedInput = inputSchema.parse(job.data);
 
         // 2. 注入 onRollback 到 handler
-        const result = await handler(parsedInput, { job, traceId, onRollback });
+        const result = await handler(parsedInput, { traceId, onRollback });
 
         logger.debug("PROCESSOR", {
           msg: `[Task:${name}] Success`,
@@ -163,6 +164,7 @@ export const defineTask = async <
     name,
     schema: { input: inputSchema, output: outputSchema },
     worker,
+    handler,
     run: async (payload, meta): Promise<RunResult<z.infer<I>, z.infer<O>>> => {
       const traceId = meta?.traceId ?? crypto.randomUUID();
       const queue = getQueue(queueName);
@@ -222,7 +224,7 @@ export const defineWorkflow = async <
   O extends ZodObjectAny,
 >(
   options: DefineWorkflowOptions<I, O>,
-): Promise<TaskDefinition<I, O>> => {
+): Promise<TaskDefinition<I, O, WorkflowHandlerContext>> => {
   const { name, input: inputSchema, dependencies, handler } = options;
   const queueName = name;
 
@@ -248,8 +250,12 @@ export const defineWorkflow = async <
       keys: Object.keys(childrenValues),
     });
 
-    const getTaskResult = <Ti extends ZodObjectAny, To extends ZodObjectAny>(
-      taskDef: TaskDefinition<Ti, To>,
+    const getTaskResult = <
+      Ti extends ZodObjectAny,
+      To extends ZodObjectAny,
+      Ctx,
+    >(
+      taskDef: TaskDefinition<Ti, To, Ctx>,
     ): z.infer<To>[] => {
       const results: z.infer<To>[] = [];
 
@@ -274,7 +280,6 @@ export const defineWorkflow = async <
 
     try {
       const result = await handler(payload, {
-        job,
         traceId,
         results: childrenValues,
         getTaskResult,
@@ -344,6 +349,8 @@ export const defineWorkflow = async <
     name,
     schema: { input: inputSchema, output: options.output },
     worker,
+    handler,
+
     run: async (payload, meta): Promise<RunResult<z.infer<I>, z.infer<O>>> => {
       const queueEvents = getQueueEvents(queueName);
 

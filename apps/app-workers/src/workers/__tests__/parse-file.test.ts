@@ -137,12 +137,13 @@ test("worker should parse elements from file", async () => {
     await drizzle.select({ id: file.id }).from(file),
   );
 
-  const { result } = await parseFileTask.run({
-    fileId,
-    languageId: "en",
-  });
-
-  const { elements } = await result();
+  const { elements } = await parseFileTask.handler(
+    {
+      fileId,
+      languageId: "en",
+    },
+    { traceId: "test" },
+  );
 
   expect(elements.length).toEqual(2);
   expect(elements[0].text).toEqual("Hello World!");

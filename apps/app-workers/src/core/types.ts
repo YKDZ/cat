@@ -20,13 +20,21 @@ export type RunResult<I, O> = {
   result: () => Promise<O>;
 };
 
-export type TaskDefinition<I extends ZodObjectAny, O extends ZodObjectAny> = {
+export type TaskDefinition<
+  I extends ZodObjectAny,
+  O extends ZodObjectAny,
+  Ctx = TaskHandlerContext,
+> = {
   name: string;
   schema: {
     input: I;
     output?: O;
   };
   worker: Worker;
+  /**
+   * 原始处理函数
+   */
+  handler: (payload: z.infer<I>, ctx: Ctx) => Promise<z.infer<O>>;
   /**
    * 启动独立任务
    */
@@ -44,7 +52,6 @@ export type TaskDefinition<I extends ZodObjectAny, O extends ZodObjectAny> = {
  * 获取子任务结果的上下文工具
  */
 export type WorkflowHandlerContext = {
-  job: Job;
   traceId: string;
   /**
    * 原始子任务结果，Key 为 JobID
@@ -54,13 +61,13 @@ export type WorkflowHandlerContext = {
    * 类型安全地获取指定任务的输出结果
    * 自动过滤出属于该 TaskDefinition 的结果，并使用 Schema 解析
    */
-  getTaskResult: <Ti extends ZodObjectAny, To extends ZodObjectAny>(
-    task: TaskDefinition<Ti, To>,
+  getTaskResult: <Ti extends ZodObjectAny, To extends ZodObjectAny, Ctx>(
+    task: TaskDefinition<Ti, To, Ctx>,
   ) => z.infer<To>[];
   /**
    * Workflow Barrier 回滚
    */
-  onRollback: (fn: () => Promise<void>) => void;
+  onRollback?: (fn: () => Promise<void>) => void;
 };
 
 export type DefineTaskOptions<
@@ -95,11 +102,10 @@ export type DefineWorkflowOptions<
 };
 
 export type TaskHandlerContext = {
-  job: Job;
   traceId: string;
   /**
    * 注册一个回滚函数。
    * 当任务执行失败（抛出异常）时，框架会自动按注册顺序的**逆序**执行这些函数。
    */
-  onRollback: (fn: () => Promise<void>) => void;
+  onRollback?: (fn: () => Promise<void>) => void;
 };
