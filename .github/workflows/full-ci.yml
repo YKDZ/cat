@@ -1,0 +1,56 @@
+name: Full CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Run Reason (Optional)"
+        required: false
+        default: "Full Check"
+  schedule:
+    - cron: "0 18 * * *" # UTC+8 02:00
+
+jobs:
+  full-ci:
+    name: Run All Checks (Full)
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Nx Sync
+        run: pnpm nx sync:check
+
+      - name: Run ALL Tasks
+        env:
+          REDIS_URL: "redis://localhost:6379"
+        run: |
+          pnpm exec nx run-many \
+            --targets=lint,typecheck,format:check,test \
+            --parallel=3
