@@ -13,6 +13,8 @@ export const hashPassword = async (password: string): Promise<string> => {
   });
 };
 
+const EXPECTED_KEY_LEN = 64;
+
 export const verifyPassword = async (
   password: string,
   storedSaltHash: string,
@@ -24,22 +26,26 @@ export const verifyPassword = async (
         resolve(false);
         return;
       }
+
       const keyBuffer = Buffer.from(keyHex, "hex");
+
+      if (keyBuffer.length !== EXPECTED_KEY_LEN) {
+        resolve(false);
+        return;
+      }
+
       pbkdf2(
         password,
         salt,
         1024,
-        keyBuffer.length,
+        EXPECTED_KEY_LEN,
         "sha512",
         (err, derivedKey) => {
           if (err) {
             reject(err);
             return;
           }
-          if (derivedKey.length !== keyBuffer.length) {
-            resolve(false);
-            return;
-          }
+
           const isMatch = timingSafeEqual(keyBuffer, derivedKey);
           resolve(isMatch);
         },
