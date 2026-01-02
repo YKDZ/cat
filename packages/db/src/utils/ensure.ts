@@ -3,9 +3,14 @@ import {
   assertFirstOrNull,
   assertSingleNonNullish,
   assertSingleOrNull,
+  logger,
 } from "@cat/shared/utils";
 import { hashPassword } from "./password.ts";
-import { language as languageTable } from "@/drizzle/schema/schema.ts";
+import {
+  language as languageTable,
+  pluginService,
+  role,
+} from "@/drizzle/schema/schema.ts";
 import {
   user as userTable,
   account as accountTable,
@@ -18,10 +23,12 @@ import {
   rolePermission as rolePermissionTable,
   userRole as userRoleTable,
   setting as settingTable,
+  type DrizzleTransaction,
 } from "@/drizzle/index.ts";
 import { ResourceTypeValues } from "@cat/shared/schema/drizzle/enum";
 import { DEFAULT_SETTINGS } from "@/utils/settings/default.ts";
 import { AvailableLocales } from "@/utils/languages/cldr.ts";
+import { eq } from "drizzle-orm";
 
 /**
  * 在应用启动前执行 \
@@ -122,54 +129,6 @@ export const ensureDB = async (): Promise<void> => {
         )
         .onConflictDoNothing();
 
-    const admin = assertSingleOrNull(
-      await tx
-        .insert(userTable)
-        .values({
-          name: "admin",
-          email: "admin@encmys.cn",
-          emailVerified: true,
-        })
-        .returning({ id: userTable.id })
-        .onConflictDoNothing({
-          target: [userTable.name, userTable.email],
-        }),
-    );
-
-    // 为根管理员分配角色和账户
-    // 只有在第一次创建管理员时才为他分配根角色
-    // 也即允许根角色被从根管理员处移除
-    if (admin) {
-      const password =
-        process.env.NODE_ENV !== "production"
-          ? "password"
-          : randomBytes(8).toString("hex");
-
-      await tx
-        .insert(accountTable)
-        .values({
-          providerIssuer: "PASSWORD",
-          providedAccountId: "admin@encmys.cn",
-          authProviderId: 1,
-          userId: admin.id,
-          meta: {
-            password: await hashPassword(password),
-          },
-        })
-        .onConflictDoNothing();
-
-      await tx
-        .insert(userRoleTable)
-        .values({
-          roleId: role.id,
-          userId: admin.id,
-        })
-        .onConflictDoNothing();
-
-      // oxlint-disable-next-line no-console
-      console.log(`Default admin account password is: ${password}`);
-    }
-
     // 插入设置
     if (DEFAULT_SETTINGS.length > 0)
       await tx
@@ -182,4 +141,75 @@ export const ensureDB = async (): Promise<void> => {
         )
         .onConflictDoNothing();
   });
+};
+
+/**
+ * 确保根管理员存在
+ * 只有在第一次创建管理员时才为他分配根角色
+ * 也即允许根角色和其默认的密码账户被从根管理员处移除
+ */
+export const ensureRootUser = async (tx: DrizzleTransaction): Promise<void> => {
+  const admin = assertSingleOrNull(
+    await tx
+      .insert(userTable)
+      .values({
+        name: "admin",
+        email: "admin@encmys.cn",
+        emailVerified: true,
+      })
+      .returning({ id: userTable.id })
+      .onConflictDoNothing({
+        target: [userTable.name, userTable.email],
+      }),
+  );
+
+  if (admin) {
+    const password =
+      process.env.NODE_ENV !== "production"
+        ? "password"
+        : randomBytes(8).toString("hex");
+
+    const { id: authProviderId } = assertSingleNonNullish(
+      await tx
+        .select({
+          id: pluginService.id,
+        })
+        .from(pluginService)
+        .where(eq(pluginService.serviceId, "PASSWORD")),
+    );
+
+    await tx
+      .insert(accountTable)
+      .values({
+        providerIssuer: "PASSWORD",
+        providedAccountId: "admin@encmys.cn",
+        authProviderId,
+        userId: admin.id,
+        meta: {
+          password: await hashPassword(password),
+        },
+      })
+      .onConflictDoNothing();
+
+    const { id: roleId } = assertSingleNonNullish(
+      await tx
+        .select({
+          id: role.id,
+        })
+        .from(role)
+        .where(eq(role.name, "Server Admin")),
+    );
+
+    await tx
+      .insert(userRoleTable)
+      .values({
+        roleId,
+        userId: admin.id,
+      })
+      .onConflictDoNothing();
+
+    logger.info("SERVER", {
+      msg: `Default admin account password is: ${password}`,
+    });
+  }
 };
