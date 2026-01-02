@@ -9,7 +9,8 @@ export const TranslationAdvisorDataSchema = z.object({
 });
 
 export const AuthMethodSchema = z.object({
-  providerId: z.int(),
+  providerId: z.string(),
+  providerDBId: z.int(),
   name: z.string(),
   icon: z.string(),
 });
