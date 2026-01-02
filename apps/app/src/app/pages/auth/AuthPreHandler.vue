@@ -24,7 +24,7 @@ const handlePreAuth = async () => {
   await orpc.auth
     .preAuth({
       identifier: props.identifier,
-      authProviderId: props.method.providerId,
+      authProviderId: props.method.providerDBId,
     })
     .then(async ({ gotFromServer, userId: authedUserId }) => {
       userId.value = authedUserId ?? null;
