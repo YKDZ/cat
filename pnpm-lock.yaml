@@ -326,27 +326,15 @@ importers:
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.57.0
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
-      unplugin-dts:
-        specifier: 1.0.0-beta.6
-        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.0.3))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.2)(rollup@4.53.5)(typescript@5.9.3)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
-      vite:
-        specifier: ^7.3.0
-        version: 7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+      '@types/node':
+        specifier: ^24.10.4
+        version: 24.10.4
 
   apps/app-server-shared:
     dependencies:
@@ -12131,13 +12119,13 @@ snapshots:
 
   '@types/pg@8.16.0':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 25.0.3
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
   '@types/qrcode@1.5.6':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 25.0.3
 
   '@types/readable-stream@4.0.23':
     dependencies:
@@ -12145,7 +12133,7 @@ snapshots:
 
   '@types/speakeasy@2.0.10':
     dependencies:
-      '@types/node': 24.10.4
+      '@types/node': 25.0.3
 
   '@types/trusted-types@2.0.7':
     optional: true

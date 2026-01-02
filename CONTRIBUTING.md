@@ -32,11 +32,13 @@ You have two choices for running the CAT app in `apps/app` locally.
 1. Install Node.js 24.x
 2. Run `pnpm install`
 3. Run `docker compose -f apps/app/docker-compose.base.yml up`
-4. Create `packages/db/.env` from `packages/db/.env.example`
-5. Run `nx drizzle:migrate db`
-6. Create `apps/app/.env` from `apps/app/.env.example`
-7. Run `pnpm nx dev app`
-8. Visit `http://localhost:3000`
+4. Run `pnpm exec build-plugins`
+5. Run `pnpm exec load-plugins`
+6. Create `packages/db/.env` from `packages/db/.env.example`
+7. Run `pnpm exec nx drizzle:migrate db`
+8. Create `apps/app/.env` from `apps/app/.env.example`
+9. Run `pnpm exec nx dev app`
+10. Visit `http://localhost:3000`
 
 The default admin email/password account is:
 
@@ -88,4 +90,4 @@ Ensure there are no unresolved lint errors or warnings.
 pnpm nx run-many --target=typecheck --projects=*
 ```
 
-The GitHub workflows `format-check.yml`, `lint-check.yml` and `typecheck.yml` perform check for the tasks above.
+The GitHub workflows `ci.yml` and `full-ci.yml` perform check for the tasks above.

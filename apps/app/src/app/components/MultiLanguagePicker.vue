@@ -21,10 +21,9 @@ const languageIds = defineModel<string[]>({ default: [] });
 const search = ref("");
 
 const languages = computedAsyncClient(async () => {
-  const searchQuery = search.value;
   return (
     await orpc.language.getAll({
-      searchQuery,
+      searchQuery: search.value,
     })
   ).languages;
 }, []);
