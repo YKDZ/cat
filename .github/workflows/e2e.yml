@@ -25,7 +25,7 @@ jobs:
           --health-retries 5
 
       postgresql:
-        image: pgvector/pgvector:18
+        image: pgvector/pgvector:pg18
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: pass
