@@ -1,0 +1,17 @@
+{
+  "extends": ["../../tsconfig.base.json"],
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
+    "paths": {
+      "@/*": ["./tests/*"]
+    },
+    "declaration": false,
+    "noEmit": true,
+    "composite": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false
+  },
+  "include": ["tests/**/*.ts"],
+  "references": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@cat/app-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cat/db": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^24.10.4"
+  }
+}

@@ -62,24 +62,28 @@ const timestamps = {
     .notNull(),
 };
 
-export const account = pgTable("Account", {
-  id: serial().primaryKey(),
-  providerIssuer: text().notNull(),
-  providedAccountId: text().notNull(),
-  meta: jsonb().$type<JSONType>(),
+export const account = pgTable(
+  "Account",
+  {
+    id: serial().primaryKey(),
+    providerIssuer: text().notNull(),
+    providedAccountId: text().notNull(),
+    meta: jsonb().$type<JSONType>(),
 
-  userId: uuid()
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  authProviderId: integer()
-    .notNull()
-    .references(() => pluginService.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
+    userId: uuid()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    authProviderId: integer()
+      .notNull()
+      .references(() => pluginService.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
 
-  ...timestamps,
-});
+    ...timestamps,
+  },
+  (table) => [unique().on(table.providerIssuer, table.providedAccountId)],
+);
 
 export const mfaProvider = pgTable("MFAProvider", {
   id: serial().primaryKey(),

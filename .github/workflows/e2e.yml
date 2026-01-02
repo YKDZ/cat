@@ -1,0 +1,59 @@
+name: E2E Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  e2e:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Start Docker Services
+        run: docker compose -f apps/app/docker-compose.base.yml up -d
+
+      - name: Build & Load Plugins
+        run: |
+          pnpm build-plugins
+          pnpm load-plugins
+
+      - name: Run E2E Tests
+        run: pnpm nx test:e2e app-e2e
+        env:
+          CI: true
+          PORT: 3000
+          DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
+          REDIS_URL: redis://localhost:6379
+
+      - name: Upload Playwright Report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/app-e2e/playwright-report/
+          retention-days: 30

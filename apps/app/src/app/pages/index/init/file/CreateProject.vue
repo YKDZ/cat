@@ -94,6 +94,7 @@ const onSubmit = handleSubmit(async (values) => {
         <FormLabel>{{ t("目标语言") }}</FormLabel
         ><FormControl>
           <MultiLanguagePicker
+            data-testid="create-project-multi-language-picker"
             :model-value="value"
             @update:model-value="handleChange"
           /> </FormControl
