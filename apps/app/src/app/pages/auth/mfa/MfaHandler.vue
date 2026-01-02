@@ -48,7 +48,7 @@ onMounted(async () => {
   }
 
   schema.value = await orpc.auth.getAuthFormSchema({
-    providerId: authMethod.value.providerId,
+    providerId: authMethod.value.providerDBId,
   });
 
   // 无需填表则直接验证
