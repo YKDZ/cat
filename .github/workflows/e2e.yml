@@ -79,7 +79,7 @@ jobs:
             printf '.'
             sleep 2
           done
-          echo "Service is up!"
+          echo "Server is up!"
 
       - name: Run E2E Tests
         run: pnpm exec nx test:e2e app-e2e
