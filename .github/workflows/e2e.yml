@@ -64,10 +64,26 @@ jobs:
           pnpm build-plugins
           pnpm load-plugins
 
-      - name: Run E2E Tests
-        run: pnpm nx test:e2e app-e2e
+      - name: Run App
+        run: pnpm exec nx preview app &
         env:
-          CI: true
+          PORT: 3000
+          DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
+          REDIS_URL: redis://localhost:6379
+
+      - name: Wait for Healthcheck
+        timeout-minutes: 1
+        run: |
+          echo "Waiting for service to be healthy..."
+          until curl --output /dev/null --silent --head --fail http://localhost:3000/_health; do
+            printf '.'
+            sleep 2
+          done
+          echo "Service is up!"
+
+      - name: Run E2E Tests
+        run: pnpm exec nx test:e2e app-e2e
+        env:
           PORT: 3000
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
           REDIS_URL: redis://localhost:6379
