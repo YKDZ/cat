@@ -24,6 +24,6 @@ app.route("/_telefunc", telefuncHandler);
 
 app.route("/api/rpc", orpcHandler);
 
-app.route("/_plugin/", pluginHandler);
+app.route("/_plugin", pluginHandler);
 
 export default app;
