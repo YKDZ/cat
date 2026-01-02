@@ -241,11 +241,12 @@ export const getAllAuthMethod = base
             .filter(({ service }) => serviceId === service.getId())
             .map(async ({ record, service }) => {
               methods.push({
-                providerId: await pluginRegistry.getPluginServiceDbId(
+                providerDBId: await pluginRegistry.getPluginServiceDbId(
                   drizzle,
                   record.pluginId,
                   record.id,
                 ),
+                providerId: record.id,
                 name: service.getName(),
                 icon: service.getIcon(),
               });

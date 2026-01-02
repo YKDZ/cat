@@ -38,7 +38,7 @@ export const test = baseTest.extend<{}, { workerStorageState: string }>({
       await page.goto("http://localhost:3000/");
       await page.getByRole("textbox", { name: "邮箱" }).click();
       await page.getByRole("textbox", { name: "邮箱" }).fill(account.email);
-      await page.getByTestId("12").click();
+      await page.getByTestId("PASSWORD").click();
       await page.locator('input[type="password"]').click();
       await page.locator('input[type="password"]').fill(account.password);
       await page.getByRole("button", { name: "登录" }).click();
