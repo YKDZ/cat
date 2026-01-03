@@ -13,7 +13,7 @@
   "config": {
     "type": "object",
     "properties": {
-      "basic-path": {
+      "root-path": {
         "type": "string",
         "default": "./storage"
       }
