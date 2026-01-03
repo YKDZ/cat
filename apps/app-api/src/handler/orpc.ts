@@ -37,4 +37,4 @@ app.all("*", async (c, next) => {
   await next();
 });
 
-export const orpcHandler = app;
+export default app;

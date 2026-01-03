@@ -19,4 +19,4 @@ app.all("*", async (c) => {
   return c.body(body, statusCode);
 });
 
-export const telefuncHandler = app;
+export default app;
