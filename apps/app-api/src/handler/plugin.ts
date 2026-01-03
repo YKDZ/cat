@@ -40,4 +40,4 @@ app.get("/:pluginId/component/:componentName", async (c) => {
   }
 });
 
-export const pluginHandler = app;
+export default app;
