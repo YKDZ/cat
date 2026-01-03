@@ -1,23 +1,16 @@
-name: Full CI
+name: Code Quality
 
 on:
+  push:
+    branches:
+      - main
+  pull_request:
   workflow_dispatch:
 
 jobs:
-  full-ci:
-    name: Run All Checks (Full)
+  quality:
+    name: Run Affected Typcheck, Lint and Format Checks
     runs-on: ubuntu-latest
-
-    services:
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout Repo
@@ -40,10 +33,11 @@ jobs:
       - name: Check Nx Sync
         run: pnpm nx sync:check
 
-      - name: Run ALL Tasks
-        env:
-          REDIS_URL: "redis://localhost:6379"
+      - name: Derive SHAs for affected
+        uses: nrwl/nx-set-shas@v4
+
+      - name: Run Affected Tasks
         run: |
-          pnpm exec nx run-many \
+          pnpm exec nx affected \
             --targets=lint,typecheck,format:check \
             --parallel=3
