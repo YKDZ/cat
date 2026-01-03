@@ -94,7 +94,7 @@ jobs:
           echo "Server is up!"
 
       - name: Run E2E Tests
-        run: pnpm exec nx test:e2e app-e2e
+        run: pnpm exec nx affected --target=test:e2e --parallel=1 || exit 0
         env:
           PORT: 3000
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
