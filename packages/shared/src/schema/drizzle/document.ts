@@ -22,18 +22,9 @@ export const TranslatableElementSchema = z.object({
   id: z.int(),
   sortIndex: z.int().nullable(),
   meta: safeZDotJson,
-  documentVersionId: z.int().nullable(),
   creatorId: z.uuidv4().nullable(),
   documentId: z.uuidv4(),
   translatableStringId: z.int(),
-});
-
-export const DocumentVersionSchema = z.object({
-  id: z.int(),
-  isActive: z.boolean(),
-  documentId: z.uuidv4(),
-  createdAt: DrizzleDateTimeSchema,
-  updatedAt: DrizzleDateTimeSchema,
 });
 
 export const TranslatableStringSchema = z.object({
@@ -76,7 +67,6 @@ export const TranslatableElementCommentReactionSchema = z.object({
 });
 
 export type Document = z.infer<typeof DocumentSchema>;
-export type DocumentVersion = z.infer<typeof DocumentVersionSchema>;
 export type TranslatableElement = z.infer<typeof TranslatableElementSchema>;
 export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
 export type TranslatableElementContext = z.infer<

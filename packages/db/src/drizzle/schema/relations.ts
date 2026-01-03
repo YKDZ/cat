@@ -137,7 +137,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.document.id.through(r.documentToTask.documentId),
         to: r.task.id.through(r.documentToTask.taskId),
       }),
-      documentVersions: r.many.documentVersion(),
       translatableElements: r.many.translatableElement(),
     },
     file: {
@@ -176,13 +175,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
     },
     task: {
       documents: r.many.document(),
-    },
-    documentVersion: {
-      document: r.one.document({
-        from: r.documentVersion.documentId,
-        to: r.document.id,
-      }),
-      translatableElements: r.many.translatableElement(),
     },
     glossary: {
       user: r.one.user({
@@ -247,10 +239,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       document: r.one.document({
         from: r.translatableElement.documentId,
         to: r.document.id,
-      }),
-      documentVersion: r.one.documentVersion({
-        from: r.translatableElement.documentVersionId,
-        to: r.documentVersion.id,
       }),
       translatableString: r.one.translatableString({
         from: r.translatableElement.translatableStringId,

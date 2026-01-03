@@ -1,9 +1,7 @@
 import { beforeAll, expect, test } from "vitest";
 import {
-  and,
   chunkSet,
   document,
-  documentVersion,
   eq,
   getColumns,
   getDrizzleDB,
@@ -14,10 +12,7 @@ import {
   user,
 } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import {
-  assertFirstNonNullish,
-  assertSingleNonNullish,
-} from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import { diffElementsTask } from "@/workers/diff-elements.ts";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
@@ -131,24 +126,6 @@ beforeAll(async () => {
         }),
     );
 
-    const { id: documentVersionId } = assertFirstNonNullish(
-      await tx
-        .insert(documentVersion)
-        .values([
-          {
-            documentId,
-            isActive: true,
-          },
-          {
-            documentId,
-            isActive: false,
-          },
-        ])
-        .returning({
-          id: documentVersion.id,
-        }),
-    );
-
     for (const el of oldElements) {
       const { id: chunkSetId } = assertSingleNonNullish(
         // oxlint-disable-next-line no-await-in-loop
@@ -175,7 +152,6 @@ beforeAll(async () => {
         documentId,
         translatableStringId: id,
         sortIndex: el.sortIndex,
-        documentVersionId,
       });
     }
   });
@@ -184,20 +160,12 @@ beforeAll(async () => {
 test("worker should diff elements", async () => {
   const { client: drizzle } = await getDrizzleDB();
 
-  const { documentId, documentVersionId } = assertSingleNonNullish(
+  const { documentId } = assertSingleNonNullish(
     await drizzle
       .select({
         documentId: document.id,
-        documentVersionId: documentVersion.id,
       })
-      .from(document)
-      .innerJoin(
-        documentVersion,
-        and(
-          eq(document.id, documentVersion.documentId),
-          eq(documentVersion.isActive, true),
-        ),
-      ),
+      .from(document),
   );
 
   const oldElementIds = (
@@ -208,7 +176,6 @@ test("worker should diff elements", async () => {
 
   const { result } = await diffElementsTask.run({
     documentId,
-    documentVersionId,
     oldElementIds,
     elementData: newElements,
   });
