@@ -3,21 +3,22 @@ import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import { chunk, eq, getDrizzleDB } from "@cat/db";
 import { PluginRegistry, type VectorStorage } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import z from "zod";
+import * as z from "zod";
 
-export const SearchEmbeddingsInputSchema = z.object({
+export const RetriveEmbeddingsInputSchema = z.object({
   chunkIds: z.array(z.int()),
 });
 
-export const SearchEmbeddingsOutputSchema = z.object({
+export const RetriveEmbeddingsOutputSchema = z.object({
   embeddings: z.array(z.array(z.number())),
   vectorStorageId: z.int(),
 });
 
-export const searchEmbeddingsTask = await defineTask({
-  name: "embeddings.search",
-  input: SearchEmbeddingsInputSchema,
-  output: SearchEmbeddingsOutputSchema,
+export const retriveEmbeddingsTask = await defineTask({
+  name: "embeddings.retrive",
+  input: RetriveEmbeddingsInputSchema,
+  output: RetriveEmbeddingsOutputSchema,
+
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");

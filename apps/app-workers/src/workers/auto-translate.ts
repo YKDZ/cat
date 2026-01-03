@@ -13,8 +13,11 @@ export const AutoTranslateInputSchema = z.object({
 
   advisorId: z.int().optional(),
   memoryIds: z.array(z.uuidv4()).default([]),
-  chunkIds: z.array(z.int()).default([]),
   glossaryIds: z.array(z.uuidv4()).default([]),
+  /**
+   * text 的 embeddings 的 chunkIds
+   */
+  chunkIds: z.array(z.int()).default([]),
   minMemorySimilarity: z.number().min(0).max(1).optional(),
 });
 
@@ -22,6 +25,9 @@ export const AutoTranslateOutputSchema = z.object({
   translationIds: z.array(z.int()).optional(),
 });
 
+/**
+ * 利用利用以及与机器翻译自动翻译给定的 text
+ */
 export const autoTranslateWorkflow = await defineWorkflow({
   name: "auto-translate",
   input: AutoTranslateInputSchema,

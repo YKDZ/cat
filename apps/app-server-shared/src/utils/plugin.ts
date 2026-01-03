@@ -61,6 +61,9 @@ export const firstOrGivenService = async <T extends PluginServiceType>(
   }
 };
 
+/**
+ * 不涉及插件函数调用，可以在事务中安全调用
+ */
 export const getServiceFromDBId = async <T extends IPluginService>(
   drizzle: DrizzleClient,
   pluginRegistry: PluginRegistry,

@@ -5,7 +5,9 @@ import {
   eq,
   inArray,
   memoryItem,
+  translatableElement,
   translatableString,
+  translation,
   union,
   type DrizzleTransaction,
 } from "@cat/db";
@@ -148,8 +150,53 @@ export const searchMemory = async (
     .map((row) => ({
       ...row,
       similarity: searchResult.get(row.chunkId) ?? 0,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
     }))
     .sort((a, b) => b.similarity - a.similarity);
 
   return result;
+};
+
+export const insertMemory = async (
+  tx: DrizzleTransaction,
+  memoryIds: string[],
+  translationIds: number[],
+): Promise<{ memoryItemIds: number[] }> => {
+  if (translationIds.length === 0 || memoryIds.length === 0) {
+    return { memoryItemIds: [] };
+  }
+
+  const translations = await tx
+    .select({
+      translationId: translation.id,
+      translationStringId: translation.stringId,
+      sourceStringId: translatableElement.translatableStringId,
+      creatorId: translation.translatorId,
+    })
+    .from(translation)
+    .innerJoin(
+      translatableElement,
+      eq(translation.translatableElementId, translatableElement.id),
+    )
+    .where(inArray(translation.id, translationIds));
+
+  const ids: number[] = [];
+
+  await Promise.all(
+    memoryIds.map(async (memoryId) => {
+      const inserted = await tx
+        .insert(memoryItem)
+        .values(
+          translations.map((t) => ({
+            ...t,
+            memoryId,
+          })),
+        )
+        .returning({ id: memoryItem.id });
+      ids.push(...inserted.map((i) => i.id));
+    }),
+  );
+
+  return { memoryItemIds: ids };
 };

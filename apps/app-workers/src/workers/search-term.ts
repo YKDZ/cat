@@ -12,7 +12,7 @@ import {
 } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
-import z from "zod";
+import * as z from "zod";
 
 export const SearchTermInputSchema = z.object({
   termExtractorId: z.int().optional(),

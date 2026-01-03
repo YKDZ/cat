@@ -14,6 +14,7 @@
   "devDependencies": {
     "@cat/db": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@cat/test-utils": "workspace:*",
     "@playwright/test": "^1.57.0",
     "@types/node": "^24.10.4"
   }

@@ -93,6 +93,7 @@ beforeAll(async () => {
         id: "zh_Hans",
       },
     ]);
+
     const { id: userId } = assertSingleNonNullish(
       await tx
         .insert(user)
@@ -138,65 +139,35 @@ beforeAll(async () => {
       },
     ]);
 
-    await Promise.all(
-      oldElements.map(async (el) => {
-        const { id: chunkSetId } = assertSingleNonNullish(
-          await tx.insert(chunkSet).values({}).returning({ id: chunkSet.id }),
-        );
+    for (const el of oldElements) {
+      const { id: chunkSetId } = assertSingleNonNullish(
+        // oxlint-disable-next-line no-await-in-loop
+        await tx.insert(chunkSet).values({}).returning({ id: chunkSet.id }),
+      );
 
-        const { id } = assertSingleNonNullish(
-          await tx
-            .insert(translatableString)
-            .values({
-              chunkSetId,
-              value: el.text,
-              languageId: el.languageId,
-            })
-            .returning({
-              id: translatableString.id,
-            }),
-        );
+      const { id } = assertSingleNonNullish(
+        // oxlint-disable-next-line no-await-in-loop
+        await tx
+          .insert(translatableString)
+          .values({
+            chunkSetId,
+            value: el.text,
+            languageId: el.languageId,
+          })
+          .returning({
+            id: translatableString.id,
+          }),
+      );
 
-        await tx.insert(translatableElement).values({
-          meta: el.meta,
-          documentId,
-          translatableStringId: id,
-          sortIndex: el.sortIndex,
-        });
-      }),
-    );
+      // oxlint-disable-next-line no-await-in-loop
+      await tx.insert(translatableElement).values({
+        meta: el.meta,
+        documentId,
+        translatableStringId: id,
+        sortIndex: el.sortIndex,
+      });
+    }
   });
-});
-
-test("language should exists in db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-
-  const langs = await drizzle.select(getColumns(language)).from(language);
-
-  expect(langs.length).toEqual(2);
-});
-
-test("document and active version should exists in db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-
-  const documents = await drizzle.select({ id: document.id }).from(document);
-  const documentVersions = await drizzle
-    .select({ id: documentVersion.id })
-    .from(documentVersion)
-    .where(eq(documentVersion.isActive, true));
-
-  expect(documents.length).toEqual(1);
-  expect(documentVersions.length).toEqual(1);
-});
-
-test("old elements should exists in db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-
-  const elements = await drizzle
-    .select({ id: translatableElement.id })
-    .from(translatableElement);
-
-  expect(elements.length).toEqual(3);
 });
 
 test("worker should diff elements", async () => {
@@ -224,17 +195,14 @@ test("worker should diff elements", async () => {
       .from(translatableElement)
   ).map((el) => el.id);
 
-  const { addedElementIds, removedElementIds } = await diffElementsTask.handler(
-    {
-      documentId,
-      documentVersionId,
-      oldElementIds,
-      elementData: newElements,
-    },
-    {
-      traceId: "test",
-    },
-  );
+  const { result } = await diffElementsTask.run({
+    documentId,
+    documentVersionId,
+    oldElementIds,
+    elementData: newElements,
+  });
+
+  const { addedElementIds, removedElementIds } = await result();
 
   expect(addedElementIds.length).toEqual(2);
   expect(removedElementIds.length).toEqual(1);
@@ -248,7 +216,8 @@ test("worker should diff elements", async () => {
     .innerJoin(
       translatableString,
       eq(translatableElement.translatableStringId, translatableString.id),
-    );
+    )
+    .where(eq(translatableElement.documentId, documentId));
 
   expect(allElements.length).toEqual(4);
   expect(allElements.map((el) => el.sortIndex).sort((a, b) => a! - b!)).toEqual(

@@ -4,11 +4,9 @@ import {
   getColumns,
   getDrizzleDB,
   language,
-  plugin,
   translatableString,
 } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import { firstOrGivenService } from "@cat/app-server-shared/utils";
 import { createTranslatableStringTask } from "@/workers/create-translatable-string";
 import { zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -33,50 +31,9 @@ beforeAll(async () => {
       id: "en",
     },
     {
-      id: "zh_Hans",
+      id: "zh-Hans",
     },
   ]);
-});
-
-test("language should exists in db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-
-  const langs = await drizzle.select(getColumns(language)).from(language);
-
-  expect(langs.length).toEqual(2);
-});
-
-test("plugin should exists in db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-
-  const plugs = await drizzle
-    .select({ id: plugin.id })
-    .from(plugin)
-    .where(eq(plugin.id, "mock"));
-
-  expect(plugs.length).toEqual(1);
-});
-
-test("vectorizer and vector storage should exists", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-
-  const vectorizer = await firstOrGivenService(
-    drizzle,
-    pluginRegistry,
-    "TEXT_VECTORIZER",
-    0,
-  );
-
-  const vectorStorage = await firstOrGivenService(
-    drizzle,
-    pluginRegistry,
-    "VECTOR_STORAGE",
-    0,
-  );
-
-  expect(vectorizer).toBeDefined();
-  expect(vectorStorage).toBeDefined();
 });
 
 test("worker should insert strings to db", async () => {
@@ -97,12 +54,11 @@ test("worker should insert strings to db", async () => {
     },
   ];
 
-  const { stringIds } = await createTranslatableStringTask.handler(
-    {
-      data,
-    },
-    { traceId: "test" },
-  );
+  const { result } = await createTranslatableStringTask.run({
+    data,
+  });
+
+  const { stringIds } = await result();
 
   const strings = await drizzle
     .select(getColumns(translatableString))
@@ -110,7 +66,7 @@ test("worker should insert strings to db", async () => {
 
   expect(strings.length).toEqual(data.length);
 
-  // 测试返回 stringId 的顺序是否与元数据相同
+  // 测试返回 stringId 的顺序是否与数据相同
 
   for (const [stringId, stringData] of zip(stringIds, data)) {
     // oxlint-disable-next-line no-await-in-loop

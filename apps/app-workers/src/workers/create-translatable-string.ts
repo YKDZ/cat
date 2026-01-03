@@ -5,7 +5,7 @@ import {
 } from "@cat/app-server-shared/utils";
 import { getDrizzleDB } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import z from "zod";
+import * as z from "zod";
 
 export const CreateTranslatableStringInputSchema = z.object({
   data: z.array(

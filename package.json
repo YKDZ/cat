@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "build-plugins": "nx run-many --target=build --projects=@cat-plugin/*",
-    "load-plugins": "node scripts/load-plugins.js"
+    "load-plugins": "node scripts/load-plugins.js",
+    "repeat-test": "node scripts/repeat-test.js"
   },
   "dependencies": {
     "tsx": "^4.21.0"

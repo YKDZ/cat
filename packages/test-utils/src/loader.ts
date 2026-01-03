@@ -55,6 +55,17 @@ import type {
   TranslationSuggestion,
 } from "@cat/shared/schema/misc";
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
+import {
+  and,
+  cosineDistance,
+  desc,
+  getDrizzleDB,
+  gt,
+  inArray,
+  sql,
+  termEntry,
+  vector,
+} from "@cat/db";
 
 export class TestAuthProvider extends AuthProvider {
   public override getId = (): string => "auth-provider";
@@ -172,44 +183,127 @@ export class TestTextVectorizer extends TextVectorizer {
   public override vectorize = async ({
     elements,
   }: VectorizeContext): Promise<VectorizedTextData[]> => {
-    return elements.map(
-      () =>
-        [
-          {
-            meta: {},
-            vector: Array.from({ length: 1024 }, () => Math.random()),
-          },
-        ] satisfies VectorizedTextData,
+    return elements.map((element) => {
+      // 1. 初始化 1024 维零向量
+      const vector = Array.from({ length: 1024 }, () => 0);
+      const text = element.text || ""; // 假设 element 有 content 字段
+
+      // 2. 简单的分词 (按空格和标点分割)
+      const tokens = text.toLowerCase().split(/[\s,.!?;]+/);
+
+      // 3. Feature Hashing: 将每个词映射到 0-1023 的下标并累加
+      tokens.forEach((token) => {
+        if (!token) return;
+        const hash = this.simpleHash(token);
+        const index = Math.abs(hash) % 1024;
+        vector[index] += 1;
+      });
+
+      // 4. (可选) L2 归一化，这对计算余弦相似度很重要
+      this.normalize(vector);
+
+      return [
+        {
+          meta: {},
+          vector: vector,
+        },
+      ] satisfies VectorizedTextData;
+    });
+  };
+
+  /**
+   * 简单的字符串哈希函数 (DJB2 算法变体)
+   */
+  private simpleHash = (str: string): number => {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash * 33) ^ str.charCodeAt(i);
+    }
+    return hash >>> 0; // 保证非负
+  };
+
+  /**
+   * 向量归一化 (L2 Norm)
+   */
+  private normalize = (vector: number[]): void => {
+    const magnitude = Math.sqrt(
+      vector.reduce((sum, val) => sum + val * val, 0),
     );
+    if (magnitude > 0) {
+      for (let i = 0; i < vector.length; i++) {
+        vector[i] /= magnitude;
+      }
+    }
   };
 }
 
 export class TestVectorStorage extends VectorStorage {
-  private vectors = new Map<number, number[]>();
-
   public override getId = (): string => "vector-storage";
 
-  public override store = async ({ chunks }: StoreContext): Promise<void> => {
-    chunks.forEach((c) => this.vectors.set(c.chunkId, c.vector));
-  };
+  async store({ chunks }: StoreContext): Promise<void> {
+    const { client: drizzle } = await getDrizzleDB();
+    if (chunks.length === 0) return;
 
-  public override retrieve = async ({
+    await drizzle.insert(vector).values(
+      chunks.map((c) => ({
+        chunkId: c.chunkId,
+        vector: c.vector,
+      })),
+    );
+  }
+
+  async retrieve({
     chunkIds,
-  }: RetrieveContext): Promise<{ vector: number[]; chunkId: number }[]> => {
-    return chunkIds
-      .filter((id) => this.vectors.has(id))
-      .map((id) => ({ chunkId: id, vector: this.vectors.get(id)! }));
-  };
+  }: RetrieveContext): Promise<{ vector: number[]; chunkId: number }[]> {
+    const { client: drizzle } = await getDrizzleDB();
+    const results = await drizzle
+      .select({ vector: vector.vector, chunkId: vector.chunkId })
+      .from(vector)
+      .where(inArray(vector.chunkId, chunkIds));
+    return results;
+  }
 
-  public override cosineSimilarity = async ({
+  async cosineSimilarity({
+    vectors,
     chunkIdRange,
+    minSimilarity,
+    maxAmount,
   }: CosineSimilarityContext): Promise<
     { chunkId: number; similarity: number }[]
-  > => {
-    return chunkIdRange
-      .slice(0, 5)
-      .map((id) => ({ chunkId: id, similarity: 1.0 }));
-  };
+  > {
+    if (chunkIdRange.length === 0) {
+      return [];
+    }
+
+    const { client: drizzle } = await getDrizzleDB();
+    const results: { chunkId: number; similarity: number }[] = [];
+
+    for (const queryVec of vectors) {
+      const distance = cosineDistance(vector.vector, queryVec);
+      const similarity = sql<number>`1 - (${distance})`;
+
+      const queryResults = await drizzle
+        .select({
+          chunkId: vector.chunkId,
+          similarity: similarity,
+        })
+        .from(vector)
+        .where(
+          and(
+            inArray(vector.chunkId, chunkIdRange),
+            gt(similarity, minSimilarity),
+          ),
+        )
+        .orderBy(desc(similarity))
+        .limit(maxAmount);
+
+      results.push(...queryResults);
+    }
+
+    return results
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, maxAmount);
+  }
 }
 
 export class TestFileImporter extends FileImporter {
@@ -287,9 +381,19 @@ export class TestTermRecognizer extends TermRecognizer {
   public override recognize = async ({
     source,
   }: RecognizeContext): Promise<RecognizedTermEntry[]> => {
-    // 假设所有候选词都被识别，ID 为 1
+    const { client: drizzle } = await getDrizzleDB();
+
+    const termEntries = await drizzle
+      .select({
+        id: termEntry.id,
+      })
+      .from(termEntry);
+
+    if (termEntries.length === 0) return [];
+
     return source.candidates.map(() => ({
-      termEntryId: 1,
+      termEntryId:
+        termEntries[Math.floor(Math.random() * termEntries.length)].id,
       confidence: 1.0,
     }));
   };
