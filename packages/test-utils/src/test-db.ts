@@ -22,7 +22,16 @@ export const setupTestDB = async (): Promise<DrizzleDB> => {
   await client.connect();
 
   // Ensure vector extension is installed in public schema
-  await client.query("CREATE EXTENSION IF NOT EXISTS vector SCHEMA public");
+  // CI 并行跑多个测试进程时可能会同时执行 CREATE EXTENSION，导致唯一约束冲突
+  try {
+    await client.query("CREATE EXTENSION IF NOT EXISTS vector SCHEMA public");
+  } catch (err: unknown) {
+    const pgError = err as { code?: string };
+    // 23505: duplicate key (并发创建), 42710: duplicate_object
+    if (pgError.code !== "23505" && pgError.code !== "42710") {
+      throw err;
+    }
+  }
   try {
     await client.query("ALTER EXTENSION vector SET SCHEMA public");
   } catch {

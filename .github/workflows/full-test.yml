@@ -1,11 +1,11 @@
-name: Test
+name: Full Test
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Run Tests
+  full-test:
+    name: Run All Tests
     runs-on: ubuntu-latest
 
     services:

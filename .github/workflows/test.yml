@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    name: Run Tests
+    name: Run Affected Tests
     runs-on: ubuntu-latest
 
     services:
