@@ -6,7 +6,6 @@ import { diffElementsTask } from "./diff-elements";
 
 export const UpsertDocumentInputSchema = z.object({
   documentId: z.uuidv4(),
-  documentVersionId: z.int(),
   fileId: z.int(),
   languageId: z.string(),
 });
@@ -49,7 +48,6 @@ export const upsertDocumentFromFileWorkflow = await defineWorkflow({
     const { result: diffResult } = await diffElementsTask.run(
       {
         documentId: data.documentId,
-        documentVersionId: data.documentVersionId,
         elementData: parseResult.elements,
         oldElementIds,
       },

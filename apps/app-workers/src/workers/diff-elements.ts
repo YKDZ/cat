@@ -24,7 +24,6 @@ export const DiffElementsInputSchema = z.object({
   ),
   oldElementIds: z.array(z.int()),
   documentId: z.uuidv4(),
-  documentVersionId: z.int(),
 });
 
 export const DiffElementsOutputSchema = z.object({
@@ -206,7 +205,6 @@ export const diffElementsTask = await defineTask({
               sortIndex: el.sortIndex,
               meta: el.meta,
               documentId: data.documentId,
-              documentVersionId: data.documentVersionId,
               translatableStringId: el.stringId,
             })),
           )
@@ -221,7 +219,6 @@ export const diffElementsTask = await defineTask({
         {
           data: addedWithoutCache.map((el) => ({
             documentId: data.documentId,
-            documentVersionId: data.documentVersionId,
             text: el.text,
             languageId: el.languageId,
             sortIndex: el.sortIndex,

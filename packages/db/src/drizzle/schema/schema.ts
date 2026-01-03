@@ -237,18 +237,6 @@ export const documentToTask = pgTable(
   ],
 );
 
-export const documentVersion = pgTable("DocumentVersion", {
-  id: serial().primaryKey(),
-  documentId: uuid()
-    .notNull()
-    .references(() => document.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-  isActive: boolean().default(false).notNull(),
-  ...timestamps,
-});
-
 export const file = pgTable("File", {
   id: serial().primaryKey(),
   name: text().notNull(),
@@ -649,12 +637,6 @@ export const translatableElement = pgTable("TranslatableElement", {
   documentId: uuid()
     .notNull()
     .references(() => document.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-  documentVersionId: integer()
-    .notNull()
-    .references(() => documentVersion.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),

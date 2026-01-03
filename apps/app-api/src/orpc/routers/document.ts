@@ -4,7 +4,6 @@ import {
   sanitizeFileName,
   translatableElement as translatableElementTable,
   document as documentTable,
-  documentVersion as documentVersionTable,
   file as fileTable,
   translation as translationTable,
   translationApprovement as translationApprovementTable,
@@ -23,7 +22,6 @@ import {
   getColumns,
   blob as blobTable,
   inArray,
-  desc,
 } from "@cat/db";
 import {
   ElementTranslationStatusSchema,
@@ -31,7 +29,6 @@ import {
 } from "@cat/shared/schema/misc";
 import {
   DocumentSchema,
-  DocumentVersionSchema,
   TranslatableElementSchema,
 } from "@cat/shared/schema/drizzle/document";
 import {
@@ -312,7 +309,7 @@ export const finishCreateFromFile = authed
           message: "No suitable file handler found for this file",
         });
 
-      const { document, version } = await drizzle.transaction(async (tx) => {
+      const { document } = await drizzle.transaction(async (tx) => {
         // 创建文档
         const document = await createDocumentUnderParent(tx, {
           creatorId: user.id,
@@ -332,57 +329,21 @@ export const finishCreateFromFile = authed
           .set({ fileId: fileId })
           .where(eq(documentTable.id, document.id));
 
-        // 创建文档版本
-        const version = assertSingleNonNullish(
-          await tx
-            .insert(documentVersionTable)
-            .values({
-              documentId: document.id,
-            })
-            .returning({
-              id: documentVersionTable.id,
-            }),
-        );
-
-        return { document, version };
+        return { document };
       });
 
       await upsertDocumentFromFileWorkflow.run({
         documentId: document.id,
-        documentVersionId: version.id,
         fileId,
         languageId,
       });
     } else {
       const existDocument = assertSingleNonNullish(existDocumentRows);
 
-      // 已存在的文档，更新其版本
-      const version = await drizzle.transaction(async (tx) => {
-        await tx
-          .update(documentVersionTable)
-          .set({
-            isActive: false,
-          })
-          .where(eq(documentVersionTable.documentId, existDocument.id));
-
-        return assertSingleNonNullish(
-          await tx
-            .insert(documentVersionTable)
-            .values({
-              documentId: existDocument.id,
-              isActive: true,
-            })
-            .returning({
-              id: documentVersionTable.id,
-            }),
-        );
-      });
-
       await upsertDocumentFromFileWorkflow.run({
         fileId,
         languageId,
         documentId: existDocument.id,
-        documentVersionId: version.id,
       });
     }
   });
@@ -799,31 +760,10 @@ export const del = authed
     await drizzle.delete(documentTable).where(eq(documentTable.id, id));
   });
 
-export const getDocumentVersions = authed
-  .input(
-    z.object({
-      documentId: z.uuidv4(),
-    }),
-  )
-  .output(z.array(DocumentVersionSchema))
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const { documentId } = input;
-
-    return await drizzle
-      .select(getColumns(documentVersionTable))
-      .from(documentVersionTable)
-      .where(eq(documentVersionTable.documentId, documentId))
-      .orderBy(desc(documentVersionTable.createdAt));
-  });
-
 export const getDocumentFileUrl = authed
   .input(
     z.object({
       documentId: z.uuidv4(),
-      documentVersionId: z.int().optional(),
     }),
   )
   .output(z.string().nullable())
@@ -833,25 +773,9 @@ export const getDocumentFileUrl = authed
       redisDB: { redis },
       pluginRegistry,
     } = context;
-    const { documentId, documentVersionId } = input;
+    const { documentId } = input;
 
     const whereConditions = [eq(documentTable.id, documentId)];
-
-    if (documentVersionId) {
-      whereConditions.push(
-        exists(
-          drizzle
-            .select()
-            .from(documentVersionTable)
-            .where(
-              and(
-                eq(documentVersionTable.documentId, documentId),
-                eq(documentVersionTable.id, documentVersionId),
-              ),
-            ),
-        ),
-      );
-    }
 
     const { key, storageProviderId } = assertFirstNonNullish(
       await drizzle

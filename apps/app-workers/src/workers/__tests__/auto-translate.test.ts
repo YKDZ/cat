@@ -1,10 +1,8 @@
 import { beforeAll, expect, test } from "vitest";
 import {
-  and,
   chunk,
   chunkSet,
   document,
-  documentVersion,
   eq,
   getDrizzleDB,
   glossary,
@@ -103,28 +101,15 @@ beforeAll(async () => {
         }),
     );
 
-    const { id: documentId } = assertSingleNonNullish(
-      await tx
-        .insert(document)
-        .values({
-          creatorId: userId,
-          projectId,
-        })
-        .returning({
-          id: document.id,
-        }),
-    );
-
-    await tx.insert(documentVersion).values([
-      {
-        documentId,
-        isActive: false,
-      },
-      {
-        documentId,
-        isActive: true,
-      },
-    ]);
+    await tx
+      .insert(document)
+      .values({
+        creatorId: userId,
+        projectId,
+      })
+      .returning({
+        id: document.id,
+      });
 
     await tx.insert(glossary).values({
       name: "Test",
@@ -141,20 +126,12 @@ beforeAll(async () => {
 test("prepare elements & translation & memory", async () => {
   const { client: drizzle } = await getDrizzleDB();
 
-  const { documentId, documentVersionId } = assertSingleNonNullish(
+  const { documentId } = assertSingleNonNullish(
     await drizzle
       .select({
         documentId: document.id,
-        documentVersionId: documentVersion.id,
       })
       .from(document)
-      .innerJoin(
-        documentVersion,
-        and(
-          eq(documentVersion.documentId, document.id),
-          eq(documentVersion.isActive, true),
-        ),
-      )
       .limit(1),
   );
 
@@ -162,7 +139,6 @@ test("prepare elements & translation & memory", async () => {
     data: data.map((d) => ({
       ...d,
       documentId,
-      documentVersionId,
     })),
   });
 

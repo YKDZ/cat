@@ -1,8 +1,6 @@
 import { beforeAll, expect, test } from "vitest";
 import {
-  and,
   document,
-  documentVersion,
   eq,
   getColumns,
   getDrizzleDB,
@@ -64,28 +62,15 @@ beforeAll(async () => {
         }),
     );
 
-    const { id: documentId } = assertSingleNonNullish(
-      await tx
-        .insert(document)
-        .values({
-          creatorId: userId,
-          projectId,
-        })
-        .returning({
-          id: document.id,
-        }),
-    );
-
-    await tx.insert(documentVersion).values([
-      {
-        documentId,
-        isActive: false,
-      },
-      {
-        documentId,
-        isActive: true,
-      },
-    ]);
+    await tx
+      .insert(document)
+      .values({
+        creatorId: userId,
+        projectId,
+      })
+      .returning({
+        id: document.id,
+      });
   });
 });
 
@@ -110,20 +95,12 @@ test("worker should create element, store it and return ids in order", async () 
     },
   ];
 
-  const { documentId, documentVersionId } = assertSingleNonNullish(
+  const { documentId } = assertSingleNonNullish(
     await drizzle
       .select({
         documentId: document.id,
-        documentVersionId: documentVersion.id,
       })
       .from(document)
-      .innerJoin(
-        documentVersion,
-        and(
-          eq(documentVersion.documentId, document.id),
-          eq(documentVersion.isActive, true),
-        ),
-      )
       .limit(1),
   );
 
@@ -131,7 +108,6 @@ test("worker should create element, store it and return ids in order", async () 
     data: data.map((d) => ({
       ...d,
       documentId,
-      documentVersionId,
     })),
   });
 

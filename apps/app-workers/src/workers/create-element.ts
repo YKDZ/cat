@@ -8,7 +8,6 @@ export const CreateElementInputSchema = z.object({
   data: z.array(
     z.object({
       meta: z.json().optional(),
-      documentVersionId: z.int().int(),
       creatorId: z.uuidv4().optional(),
       documentId: z.uuidv4(),
       text: z.string(),
@@ -52,7 +51,6 @@ export const createElementWorkflow = await defineWorkflow({
           ([element, stringId]) => ({
             meta: element.meta ?? {},
             sortIndex: element.sortIndex ?? 0,
-            documentVersionId: element.documentVersionId,
             creatorId: element.creatorId,
             documentId: element.documentId,
             translatableStringId: stringId,

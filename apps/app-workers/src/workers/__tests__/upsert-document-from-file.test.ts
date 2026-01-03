@@ -2,7 +2,6 @@ import { beforeAll, expect, test } from "vitest";
 import {
   blob,
   document,
-  documentVersion,
   eq,
   file,
   getDrizzleDB,
@@ -89,18 +88,6 @@ test("worker should upsert document from file", async () => {
       }),
   );
 
-  const { id: documentVersionId } = assertSingleNonNullish(
-    await drizzle
-      .insert(documentVersion)
-      .values({
-        documentId,
-        isActive: true,
-      })
-      .returning({
-        id: documentVersion.id,
-      }),
-  );
-
   const storageProvider = assertSingleNonNullish(
     pluginRegistry
       .getPluginServices("STORAGE_PROVIDER")
@@ -147,7 +134,6 @@ test("worker should upsert document from file", async () => {
 
   const { result } = await upsertDocumentFromFileWorkflow.run({
     documentId,
-    documentVersionId,
     fileId,
     languageId: "en",
   });
