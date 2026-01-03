@@ -652,10 +652,12 @@ export const translatableElement = pgTable("TranslatableElement", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  documentVersionId: integer().references(() => documentVersion.id, {
-    onDelete: "set null",
-    onUpdate: "cascade",
-  }),
+  documentVersionId: integer()
+    .notNull()
+    .references(() => documentVersion.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
   sortIndex: integer(),
   creatorId: uuid().references(() => user.id, {
     onDelete: "cascade",

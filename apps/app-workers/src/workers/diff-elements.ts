@@ -1,6 +1,6 @@
 import { defineTask } from "@/core";
 import { createElementWorkflow } from "@/workers/create-element";
-import { diffArraysAndSeparate } from "@cat/app-server-shared/utils";
+import { createTranslatableStringTask } from "@/workers/create-translatable-string";
 import {
   eq,
   translatableString,
@@ -48,9 +48,7 @@ export const diffElementsTask = await defineTask({
           id: translatableElement.id,
           text: translatableString.value,
           meta: translatableElement.meta,
-          languageId: translatableString.languageId,
           sortIndex: translatableElement.sortIndex,
-          translatableStringId: translatableElement.translatableStringId,
         })
         .from(translatableElement)
         .innerJoin(
@@ -63,66 +61,93 @@ export const diffElementsTask = await defineTask({
       id: element.id,
       text: element.text,
       sortIndex: element.sortIndex ?? 0,
-      languageId: element.languageId,
       meta: element.meta,
-      translatableStringId: element.translatableStringId,
-      documentId: data.documentId,
     }));
 
-    // 2. 计算差异 (Added / Removed)
-    // 注意：这里判定“相同”的标准仅是 value 和 meta，不包含 sortIndex
-    const { added, removed } = diffArraysAndSeparate(
-      oldElements,
-      data.elementData,
-      (a, b) => a.text === b.text && isEqual(a.meta, b.meta),
-    );
+    // 2. Match elements by meta
+    const oldElementsPool = [...oldElements];
+    const added: (typeof data.elementData)[number][] = [];
+    const matched: {
+      old: (typeof oldElements)[number];
+      new: (typeof data.elementData)[number];
+    }[] = [];
 
-    // 3. 准备移除的元素 ID
-    const removedElementIds = removed.map((el) => el.id);
-
-    // 处理更新
-    // 找出既没被移除（旧），也没被新增（新）的元素，这些是 intersection
-    // 我们需要检查它们的 sortIndex 是否发生了变化
-    const removedIdsSet = new Set(removedElementIds);
-    const keptOldElements = oldElements.filter((e) => !removedIdsSet.has(e.id));
-
-    const addedSet = new Set(added);
-    const keptNewElements = data.elementData.filter((e) => !addedSet.has(e));
-
-    // 为了高效匹配，将 keptNewElements 按 value 分组
-    const newElementMap = new Map<string, typeof keptNewElements>();
-    for (const el of keptNewElements) {
-      if (!newElementMap.has(el.text)) {
-        newElementMap.set(el.text, []);
-      }
-      newElementMap.get(el.text)!.push(el);
-    }
-
-    const updates: { id: number; sortIndex: number }[] = [];
-
-    for (const oldEl of keptOldElements) {
-      const candidates = newElementMap.get(oldEl.text);
-      if (candidates) {
-        // 在同 value 的新元素中找到 meta 匹配的一个
-        const index = candidates.findIndex((c) => isEqual(c.meta, oldEl.meta));
-        if (index !== -1) {
-          const newEl = candidates[index];
-          // 移除该候选项，防止重复匹配（应对重复内容的情况）
-          candidates.splice(index, 1);
-
-          // 核心检查：sortIndex 是否变动
-          if (oldEl.sortIndex !== newEl.sortIndex) {
-            updates.push({ id: oldEl.id, sortIndex: newEl.sortIndex });
-          }
-        }
+    for (const newEl of data.elementData) {
+      const matchIndex = oldElementsPool.findIndex((old) =>
+        isEqual(old.meta, newEl.meta),
+      );
+      if (matchIndex !== -1) {
+        matched.push({
+          old: oldElementsPool[matchIndex],
+          new: newEl,
+        });
+        oldElementsPool.splice(matchIndex, 1);
+      } else {
+        added.push(newEl);
       }
     }
 
-    // 批量更新 sortIndex
-    if (updates.length > 0) {
+    const removed = oldElementsPool;
+    const removedElementIds = removed.map((e) => e.id);
+
+    // 3. Identify updates
+    const sortIndexUpdates: { id: number; sortIndex: number }[] = [];
+    const textUpdates: { id: number; text: string; languageId: string }[] = [];
+
+    for (const pair of matched) {
+      if (pair.old.sortIndex !== pair.new.sortIndex) {
+        sortIndexUpdates.push({
+          id: pair.old.id,
+          sortIndex: pair.new.sortIndex,
+        });
+      }
+      if (pair.old.text !== pair.new.text) {
+        textUpdates.push({
+          id: pair.old.id,
+          text: pair.new.text,
+          languageId: pair.new.languageId,
+        });
+      }
+    }
+
+    // 4. Handle text updates
+    if (textUpdates.length > 0) {
+      const { result } = await createTranslatableStringTask.run(
+        {
+          data: textUpdates.map((u) => ({
+            text: u.text,
+            languageId: u.languageId,
+          })),
+        },
+        { traceId },
+      );
+      const { stringIds } = await result();
+
       const sqlChunks = [sql`(CASE`];
       const ids: number[] = [];
-      for (const u of updates) {
+      textUpdates.forEach((u, idx) => {
+        const newStringId = stringIds[idx];
+        sqlChunks.push(
+          sql`WHEN ${translatableElement.id} = ${u.id} THEN ${newStringId}`,
+        );
+        ids.push(u.id);
+      });
+      sqlChunks.push(
+        sql`ELSE ${translatableElement.translatableStringId} END)`,
+      );
+      const finalSql = sql.join(sqlChunks, sql` `);
+
+      await drizzle
+        .update(translatableElement)
+        .set({ translatableStringId: finalSql })
+        .where(inArray(translatableElement.id, ids));
+    }
+
+    // 5. Handle sortIndex updates
+    if (sortIndexUpdates.length > 0) {
+      const sqlChunks = [sql`(CASE`];
+      const ids: number[] = [];
+      for (const u of sortIndexUpdates) {
         sqlChunks.push(
           sql`WHEN ${translatableElement.id} = ${u.id} THEN ${u.sortIndex}`,
         );
@@ -137,7 +162,7 @@ export const diffElementsTask = await defineTask({
         .where(inArray(translatableElement.id, ids));
     }
 
-    // 5. 处理新增元素
+    // 6. Handle added elements
     const addedIds: number[] = [];
     const addedWithoutCache: typeof added = [];
 
@@ -190,7 +215,7 @@ export const diffElementsTask = await defineTask({
       }
     }
 
-    // 6. 对无缓存的元素调用 CreateElementWorkflow
+    // 7. 对无缓存的元素调用 CreateElementWorkflow
     if (addedWithoutCache.length > 0) {
       const { result } = await createElementWorkflow.run(
         {
@@ -211,7 +236,7 @@ export const diffElementsTask = await defineTask({
       addedIds.push(...elementIds);
     }
 
-    // 7. 删除移除的元素 (最后执行，确保任务幂等性)
+    // 8. 删除移除的元素 (最后执行，确保任务幂等性)
     if (removedElementIds.length > 0) {
       await drizzle
         .delete(translatableElement)
