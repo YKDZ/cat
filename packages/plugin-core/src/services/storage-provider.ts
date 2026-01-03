@@ -50,4 +50,7 @@ export abstract class StorageProvider implements IPluginService {
   abstract ping(): Promise<void>;
   abstract connect(): Promise<void>;
   abstract disconnect(): Promise<void>;
+  shouldProxy(): boolean {
+    return false;
+  }
 }

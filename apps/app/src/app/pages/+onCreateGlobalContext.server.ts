@@ -18,12 +18,13 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     await drizzleDB.ping();
 
     if (import.meta.env.PROD) {
+      const migrations = join(process.cwd(), "drizzle");
       await assertPromise(
-        async () => access(join(process.cwd(), "drizzle")),
+        async () => access(migrations),
         "Does not found drizzle migration folder.",
       );
       logger.info("SERVER", { msg: "Start to migrate database..." });
-      await drizzleDB.migrate();
+      await drizzleDB.migrate(migrations);
     }
 
     await ensureDB();

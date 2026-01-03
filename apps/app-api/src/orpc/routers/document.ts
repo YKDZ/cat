@@ -40,8 +40,13 @@ import {
   getServiceFromDBId,
   preparePresignedPutFile,
   useStorage,
+  getDownloadUrl,
 } from "@cat/app-server-shared/utils";
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
+import {
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+  assertSingleOrNull,
+} from "@cat/shared/utils";
 import { StorageProvider } from "@cat/plugin-core";
 import { randomUUID } from "node:crypto";
 import { upsertDocumentFromFileWorkflow } from "@cat/app-workers";
@@ -201,7 +206,7 @@ export const prepareCreateFromFile = authed
   )
   .output(
     z.object({
-      url: z.url(),
+      url: z.string(),
       fileId: z.int(),
       putSessionId: z.uuidv4(),
     }),
@@ -216,8 +221,8 @@ export const prepareCreateFromFile = authed
     // TODO 配置 storage
     const { id: providerId, provider } = await useStorage(
       drizzle,
-      "s3-storage-provider",
-      "S3",
+      "local-storage-provider",
+      "LOCAL",
       "GLOBAL",
       "",
     );
@@ -315,6 +320,7 @@ export const finishCreateFromFile = authed
           fileHandlerId: await pluginRegistry.getPluginServiceDbId(
             drizzle,
             service.record.pluginId,
+            service.record.type,
             service.record.id,
           ),
           name: fileName,
@@ -820,10 +826,11 @@ export const getDocumentFileUrl = authed
       documentVersionId: z.int().optional(),
     }),
   )
-  .output(z.url().nullable())
+  .output(z.string().nullable())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
+      redisDB: { redis },
       pluginRegistry,
     } = context;
     const { documentId, documentVersionId } = input;
@@ -846,7 +853,7 @@ export const getDocumentFileUrl = authed
       );
     }
 
-    const { key, storageProviderId } = (
+    const { key, storageProviderId } = assertFirstNonNullish(
       await drizzle
         .select({
           key: blobTable.key,
@@ -865,8 +872,8 @@ export const getDocumentFileUrl = authed
           whereConditions.length === 1
             ? whereConditions[0]
             : and(...whereConditions),
-        )
-    )[0];
+        ),
+    );
 
     if (!key || !storageProviderId) return null;
 
@@ -876,7 +883,7 @@ export const getDocumentFileUrl = authed
       storageProviderId,
     );
 
-    return await provider.getPresignedGetUrl({ key, expiresIn: 120 });
+    return await getDownloadUrl(redis, provider, storageProviderId, key, 120);
   });
 
 export const countTranslation = authed

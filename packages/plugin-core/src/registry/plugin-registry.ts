@@ -398,6 +398,7 @@ export class PluginRegistry {
   public async getPluginServiceDbId(
     drizzle: DrizzleClient,
     pluginId: string,
+    serviceType: PluginServiceType,
     serviceId: string,
   ): Promise<number> {
     const service = assertSingleNonNullish(
@@ -416,6 +417,7 @@ export class PluginRegistry {
             eq(pluginInstallation.scopeType, this.scopeType),
             eq(pluginInstallation.scopeId, this.scopeId),
             eq(pluginService.serviceId, serviceId),
+            eq(pluginService.serviceType, serviceType),
           ),
         ),
       `Service ${pluginId}:${serviceId} not found`,

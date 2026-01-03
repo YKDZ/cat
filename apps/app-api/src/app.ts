@@ -4,6 +4,7 @@ import { pluginHandler } from "@/handler/plugin.ts";
 import { telefuncHandler } from "@/handler/telefunc.ts";
 import { orpcHandler } from "@/handler/orpc.ts";
 import healthHandler from "@/handler/health.ts";
+import storageHandler from "@/handler/storage.ts";
 
 const app = new Hono();
 globalThis.app = app;
@@ -23,6 +24,8 @@ app.route("/_health", healthHandler);
 app.route("/_telefunc", telefuncHandler);
 
 app.route("/api/rpc", orpcHandler);
+
+app.route("/api/storage", storageHandler);
 
 app.route("/_plugin", pluginHandler);
 

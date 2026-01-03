@@ -74,7 +74,7 @@ export const prepareUploadAvatar = authed
   )
   .output(
     z.object({
-      url: z.url(),
+      url: z.string(),
       putSessionId: z.uuidv4(),
     }),
   )
@@ -89,8 +89,8 @@ export const prepareUploadAvatar = authed
     // TODO 储存的配置
     const { id: storageProviderId, provider } = await useStorage(
       drizzle,
-      "s3-storage-provider",
-      "S3",
+      "local-storage-provider",
+      "LOCAL",
       "GLOBAL",
       "",
     );
@@ -153,7 +153,7 @@ export const getAvatarPresignedUrl = authed
       expiresIn: z.int().max(120).default(120),
     }),
   )
-  .output(z.url().nullable())
+  .output(z.string().nullable())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },

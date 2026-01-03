@@ -1,0 +1,22 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "local-storage-provider",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "LOCAL",
+      "type": "STORAGE_PROVIDER"
+    }
+  ],
+  "config": {
+    "type": "object",
+    "properties": {
+      "basic-path": {
+        "type": "string",
+        "default": "./storage"
+      }
+    }
+  }
+}

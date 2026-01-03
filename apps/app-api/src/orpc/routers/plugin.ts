@@ -244,6 +244,7 @@ export const getAllAuthMethod = base
                 providerDBId: await pluginRegistry.getPluginServiceDbId(
                   drizzle,
                   record.pluginId,
+                  record.type,
                   record.id,
                 ),
                 providerId: record.id,
@@ -273,6 +274,7 @@ export const getAllTranslationAdvisors = authed
             id: await pluginRegistry.getPluginServiceDbId(
               drizzle,
               record.pluginId,
+              record.type,
               record.id,
             ),
             name: service.getName(),

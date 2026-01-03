@@ -119,6 +119,7 @@ export const register = base
     const authProviderId = await pluginRegistry.getPluginServiceDbId(
       drizzle,
       "password-auth-provider",
+      "AUTH_PROVIDER",
       "PASSWORD",
     );
 
@@ -392,6 +393,7 @@ export const auth = base
         const id = await pluginRegistry.getPluginServiceDbId(
           drizzle,
           p.record.pluginId,
+          p.record.type,
           p.record.id,
         );
         mfaProviderIds.push(id);

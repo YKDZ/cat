@@ -17,6 +17,17 @@ import * as z from "zod";
 import { getServiceFromDBId } from "./plugin";
 import { hashFromReadable } from "./stream";
 
+export const PresignedPutFileSessionPayloadSchema = z.object({
+  blobId: z.coerce.number().int(),
+  fileId: z.coerce.number().int(),
+  key: z.string(),
+  storageProviderId: z.coerce.number().int(),
+  ctxHash: z.string(),
+});
+export type PresignedPutFileSessionPayload = z.infer<
+  typeof PresignedPutFileSessionPayloadSchema
+>;
+
 export const putBufferToStorage = async (
   drizzle: DrizzleClient,
   storageProvider: StorageProvider,
@@ -90,8 +101,8 @@ export const putBufferToStorage = async (
 export const preparePresignedPutFile = async (
   drizzle: DrizzleClient,
   redis: RedisClientType,
-  storageProvider: StorageProvider,
-  storageProviderId: number,
+  storage: StorageProvider,
+  storageId: number,
   key: string,
   name: string,
   ctxHash: string = "",
@@ -103,7 +114,7 @@ export const preparePresignedPutFile = async (
         .insert(blobTable)
         .values({
           key,
-          storageProviderId,
+          storageProviderId: storageId,
         })
         .returning({ id: blobTable.id }),
     );
@@ -129,19 +140,62 @@ export const preparePresignedPutFile = async (
     blobId,
     fileId,
     key,
-    storageProviderId,
+    storageProviderId: storageId,
     ctxHash,
-  });
+  } satisfies PresignedPutFileSessionPayload);
   await redis.expire(redisKey, expiresInSeconds);
 
-  return {
-    url: await storageProvider.getPresignedPutUrl({
+  let url: string;
+  if (storage.shouldProxy()) {
+    url = `/api/storage/upload/${putSessionId}`;
+  } else {
+    url = await storage.getPresignedPutUrl({
       key,
       expiresIn: expiresInSeconds,
-    }),
+    });
+  }
+
+  return {
+    url,
     putSessionId,
     fileId,
   };
+};
+
+export const FileDownloadPayloadSchema = z.object({
+  key: z.string(),
+  storageProviderId: z.coerce.number().int(),
+  filename: z.string(),
+});
+export type FileDownloadPayload = z.infer<typeof FileDownloadPayloadSchema>;
+
+export const getDownloadUrl = async (
+  redis: RedisClientType,
+  storageProvider: StorageProvider,
+  storageProviderId: number,
+  key: string,
+  expiresInSeconds: number = 120,
+  filename?: string,
+): Promise<string> => {
+  if (storageProvider.shouldProxy()) {
+    const token = randomUUID();
+    const redisKey = `file:download:${token}`;
+
+    await redis.hSet(redisKey, {
+      key,
+      storageProviderId,
+      filename: filename ?? "",
+    } satisfies FileDownloadPayload);
+    await redis.expire(redisKey, expiresInSeconds);
+
+    return `/api/storage/download/${token}`;
+  }
+
+  return await storageProvider.getPresignedGetUrl({
+    key,
+    expiresIn: expiresInSeconds,
+    fileName: filename,
+  });
 };
 
 export const finishPresignedPutFile = async (
@@ -158,15 +212,7 @@ export const finishPresignedPutFile = async (
     key,
     storageProviderId,
     ctxHash: storedCtxHash,
-  } = z
-    .object({
-      blobId: z.coerce.number().int(),
-      fileId: z.coerce.number().int(),
-      key: z.string(),
-      storageProviderId: z.coerce.number().int(),
-      ctxHash: z.string(),
-    })
-    .parse(await redis.hGetAll(redisKey));
+  } = PresignedPutFileSessionPayloadSchema.parse(await redis.hGetAll(redisKey));
 
   await redis.del(redisKey);
 
