@@ -93,3 +93,32 @@ test("empty input should return empty array", async () => {
 
   expect(stringIds.length).toEqual(0);
 });
+
+test("worker should reuse existing strings", async () => {
+  const { client: drizzle } = await getDrizzleDB();
+
+  const data = [
+    {
+      text: "Duplicate Text",
+      languageId: "en",
+    },
+  ];
+
+  // First run
+  const { result: result1 } = await createTranslatableStringTask.run({ data });
+  const { stringIds: ids1 } = await result1();
+
+  // Second run
+  const { result: result2 } = await createTranslatableStringTask.run({ data });
+  const { stringIds: ids2 } = await result2();
+
+  expect(ids1[0]).toEqual(ids2[0]);
+
+  // Verify count in DB
+  const strings = await drizzle
+    .select()
+    .from(translatableString)
+    .where(eq(translatableString.value, "Duplicate Text"));
+
+  expect(strings).toHaveLength(1);
+});

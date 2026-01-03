@@ -14,7 +14,10 @@ import {
   user,
 } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import {
+  assertFirstNonNullish,
+  assertSingleNonNullish,
+} from "@cat/shared/utils";
 import { diffElementsTask } from "@/workers/diff-elements.ts";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
@@ -128,16 +131,23 @@ beforeAll(async () => {
         }),
     );
 
-    await tx.insert(documentVersion).values([
-      {
-        documentId,
-        isActive: false,
-      },
-      {
-        documentId,
-        isActive: true,
-      },
-    ]);
+    const { id: documentVersionId } = assertFirstNonNullish(
+      await tx
+        .insert(documentVersion)
+        .values([
+          {
+            documentId,
+            isActive: true,
+          },
+          {
+            documentId,
+            isActive: false,
+          },
+        ])
+        .returning({
+          id: documentVersion.id,
+        }),
+    );
 
     for (const el of oldElements) {
       const { id: chunkSetId } = assertSingleNonNullish(
@@ -165,6 +175,7 @@ beforeAll(async () => {
         documentId,
         translatableStringId: id,
         sortIndex: el.sortIndex,
+        documentVersionId,
       });
     }
   });
@@ -204,8 +215,8 @@ test("worker should diff elements", async () => {
 
   const { addedElementIds, removedElementIds } = await result();
 
-  expect(addedElementIds.length).toEqual(2);
-  expect(removedElementIds.length).toEqual(1);
+  expect(addedElementIds.length).toEqual(1);
+  expect(removedElementIds.length).toEqual(0);
 
   const allElements = await drizzle
     .select({
@@ -223,4 +234,12 @@ test("worker should diff elements", async () => {
   expect(allElements.map((el) => el.sortIndex).sort((a, b) => a! - b!)).toEqual(
     [1, 2, 3, 4],
   );
+
+  const changedElement = allElements.find(
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    (el) => (el.meta as { key: number }).key === 2,
+  );
+  expect(changedElement).toBeDefined();
+  expect(changedElement!.value).toEqual("Test Changed 2");
+  expect(changedElement!.sortIndex).toEqual(3);
 });
