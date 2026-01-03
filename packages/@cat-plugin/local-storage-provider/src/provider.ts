@@ -16,7 +16,7 @@ import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, stat, unlink, access } from "node:fs/promises";
 
 const ConfigSchema = z.object({
-  "basic-path": z.string().default("./storage"),
+  "root-path": z.string().default("./storage"),
 });
 
 type Config = z.infer<typeof ConfigSchema>;
@@ -39,7 +39,7 @@ export class Provider extends StorageProvider {
   }
 
   private getPath(key: string): string {
-    const basePath = resolve(process.cwd(), this.config["basic-path"]);
+    const basePath = resolve(process.cwd(), this.config["root-path"]);
     const fullPath = resolve(basePath, key);
     if (!fullPath.startsWith(basePath)) {
       throw new Error("Invalid key: Path traversal detected");
@@ -48,12 +48,12 @@ export class Provider extends StorageProvider {
   }
 
   async ping(): Promise<void> {
-    const basePath = resolve(process.cwd(), this.config["basic-path"]);
+    const basePath = resolve(process.cwd(), this.config["root-path"]);
     await access(basePath);
   }
 
   async connect(): Promise<void> {
-    const basePath = resolve(process.cwd(), this.config["basic-path"]);
+    const basePath = resolve(process.cwd(), this.config["root-path"]);
     await mkdir(basePath, { recursive: true });
   }
 
@@ -86,14 +86,10 @@ export class Provider extends StorageProvider {
   }
 
   async getPresignedPutUrl(_ctx: GetPresignedPutUrlContext): Promise<string> {
-    // Since shouldProxy() returns true, this method should not be called by the core logic.
-    // The core logic will generate a proxy URL instead.
     throw new Error("Method not implemented. Use proxy.");
   }
 
   async getPresignedGetUrl(_ctx: GetPresignedGetUrlContext): Promise<string> {
-    // Since shouldProxy() returns true, this method should not be called by the core logic.
-    // The core logic will generate a proxy URL instead.
     throw new Error("Method not implemented. Use proxy.");
   }
 
