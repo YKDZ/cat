@@ -8,7 +8,7 @@ import {
   type VerifyChallengeContext,
 } from "@cat/plugin-core";
 import type { JSONSchema } from "@cat/shared/schema/json";
-import z from "zod";
+import * as z from "zod";
 import speakeasy from "speakeasy";
 
 const TotpTokenSchema = z.string().regex(/^\d{6}$/);

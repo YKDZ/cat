@@ -1,52 +1,71 @@
-import { PGlite } from "@electric-sql/pglite";
-import { drizzle } from "drizzle-orm/pglite";
-import { vector } from "@electric-sql/pglite/vector";
-import { pushSchema } from "drizzle-kit/api-postgres";
-import type { PgDatabase } from "drizzle-orm/pg-core";
-import type { PgliteDatabase } from "drizzle-orm/pglite";
-import { sql } from "drizzle-orm/sql";
-import { combinedSchema, type DrizzleDB, type DrizzleSchema } from "@cat/db";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Client } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { combinedSchema, type DrizzleDB } from "@cat/db";
+import { afterAll } from "vitest";
+import { randomUUID } from "node:crypto";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
- * 向 globalThis 填充基于 Pglite 的测试数据库\
+ * 向 globalThis 填充基于 NodePg 的测试数据库
  * 并完成迁移
  */
 export const setupTestDB = async (): Promise<DrizzleDB> => {
-  const db = new TestDrizzleDB();
-  await db.migrate();
-  // @ts-expect-error Pglite cap with NodePg
-  globalThis["__DRIZZLE_DB__"] = db;
-  return globalThis["__DRIZZLE_DB__"]!;
+  const connectionString =
+    process.env.TEST_DATABASE_URL || "postgres://user:pass@localhost:5432/cat";
+
+  const client = new Client({ connectionString });
+  await client.connect();
+
+  // Ensure vector extension is installed in public schema
+  await client.query("CREATE EXTENSION IF NOT EXISTS vector SCHEMA public");
+  try {
+    await client.query("ALTER EXTENSION vector SET SCHEMA public");
+  } catch {
+    // Ignore
+  }
+
+  const schemaName = `test_${randomUUID().replace(/-/g, "_")}`;
+  await client.query(`CREATE SCHEMA "${schemaName}"`);
+  // Include public in search_path so that extensions installed in public (like vector) are visible
+  await client.query(`SET search_path TO "${schemaName}", public`);
+
+  const db = drizzle({
+    client,
+    schema: combinedSchema,
+    casing: "snake_case",
+  });
+
+  const migrationsFolder = path.resolve(__dirname, "../../db/drizzle");
+
+  try {
+    await migrate(db, { migrationsFolder, migrationsSchema: schemaName });
+  } catch (e) {
+    console.error("Migration failed:", e);
+    throw e;
+  }
+
+  const drizzleDB = {
+    client: db,
+    connect: async () => {},
+    disconnect: async () => {
+      await client.end();
+    },
+    ping: async () => {
+      await client.query("SELECT 1");
+    },
+  } as unknown as DrizzleDB;
+
+  globalThis["__DRIZZLE_DB__"] = drizzleDB;
+
+  afterAll(async () => {
+    await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
+    await client.end();
+  });
+
+  return drizzleDB;
 };
-
-export class TestDrizzleDB {
-  public client: PgliteDatabase<DrizzleSchema>;
-
-  constructor() {
-    const client = new PGlite({
-      extensions: { vector },
-    });
-    this.client = drizzle({
-      client,
-      schema: combinedSchema,
-      casing: "snake_case",
-    });
-  }
-
-  async ping(): Promise<void> {
-    await this.client.execute(sql`SELECT 1`);
-  }
-
-  async migrate(): Promise<void> {
-    await this.client.execute(sql`CREATE EXTENSION vector`);
-
-    const { apply } = await pushSchema(
-      combinedSchema,
-      // oxlint-disable-next-line no-explicit-any no-unsafe-type-assertion
-      this.client as unknown as PgDatabase<any>,
-      "snake_case",
-    );
-
-    await apply();
-  }
-}

@@ -3,12 +3,15 @@ import { getServiceFromDBId, searchMemory } from "@cat/app-server-shared/utils";
 import { getDrizzleDB } from "@cat/db";
 import { PluginRegistry, type VectorStorage } from "@cat/plugin-core";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
-import z from "zod";
-import { searchEmbeddingsTask } from "./search-embeddings";
+import * as z from "zod";
+import { retriveEmbeddingsTask } from "./retrive-embeddings.ts";
 
 export const SearchMemoryInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1).optional(),
   maxAmount: z.int().min(0).optional(),
+  /**
+   * 被查找是否存在记忆的原文本的 chunkIds
+   */
   chunkIds: z.array(z.int()),
   memoryIds: z.array(z.uuidv4()),
   sourceLanguageId: z.string(),
@@ -25,7 +28,7 @@ export const searchMemoryWorkflow = await defineWorkflow({
   output: SearchMemoryOutputSchema,
 
   dependencies: (data, { traceId }) => [
-    searchEmbeddingsTask.asChild(
+    retriveEmbeddingsTask.asChild(
       {
         chunkIds: data.chunkIds,
       },
@@ -37,7 +40,7 @@ export const searchMemoryWorkflow = await defineWorkflow({
     const { client: drizzle } = await getDrizzleDB();
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");
 
-    const [embeddingsResult] = getTaskResult(searchEmbeddingsTask);
+    const [embeddingsResult] = getTaskResult(retriveEmbeddingsTask);
     if (!embeddingsResult) {
       return { memories: [] };
     }

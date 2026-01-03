@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import z from "zod";
+import * as z from "zod";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { ref } from "vue";
 import JSONForm from "@/app/components/json-form/JsonForm.vue";

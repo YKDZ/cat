@@ -44,11 +44,15 @@ export class Storage extends VectorStorage {
   }: CosineSimilarityContext): Promise<
     { chunkId: number; similarity: number }[]
   > {
+    if (chunkIdRange.length === 0) {
+      return [];
+    }
+
     const { client: drizzle } = await getDrizzleDB();
 
     const similarities = vectors.map(
       (embedding) =>
-        sql<number>`1 - (${cosineDistance(vector.vector, embedding)})`,
+        sql<number>`1 - ${sql.raw("(")}${cosineDistance(vector.vector, embedding)}${sql.raw(")")}`,
     );
 
     const maxSimilarity = sql<number>`GREATEST(${sql.join(similarities, sql`, `)})`;

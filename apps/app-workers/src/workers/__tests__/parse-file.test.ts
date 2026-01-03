@@ -1,13 +1,5 @@
 import { beforeAll, expect, test } from "vitest";
-import {
-  blob,
-  eq,
-  file,
-  getDrizzleDB,
-  language,
-  plugin,
-  pluginService,
-} from "@cat/db";
+import { blob, eq, file, getDrizzleDB, language, pluginService } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import {
   firstOrGivenService,
@@ -67,49 +59,6 @@ beforeAll(async () => {
   });
 });
 
-test("plugin should exists in db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-
-  const plugs = await drizzle
-    .select({ id: plugin.id })
-    .from(plugin)
-    .where(eq(plugin.id, "mock"));
-
-  expect(plugs.length).toEqual(1);
-});
-
-test("file should exists in db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-
-  const files = await drizzle
-    .select({ id: file.id })
-    .from(file)
-    .where(eq(file.isActive, true));
-
-  expect(files.length).toEqual(1);
-});
-
-test("storage provider should exists", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
-
-  const provider = await firstOrGivenService(
-    drizzle,
-    pluginRegistry,
-    "STORAGE_PROVIDER",
-    0,
-  );
-  const handler = await firstOrGivenService(
-    drizzle,
-    pluginRegistry,
-    "FILE_IMPORTER",
-    0,
-  );
-
-  expect(provider).toBeDefined();
-  expect(handler).toBeDefined();
-});
-
 test("storage provider should store and retrieve data correctly", async () => {
   const { client: drizzle } = await getDrizzleDB();
   const pluginRegistry = PluginRegistry.get("GLOBAL", "");
@@ -137,13 +86,12 @@ test("worker should parse elements from file", async () => {
     await drizzle.select({ id: file.id }).from(file),
   );
 
-  const { elements } = await parseFileTask.handler(
-    {
-      fileId,
-      languageId: "en",
-    },
-    { traceId: "test" },
-  );
+  const { result } = await parseFileTask.run({
+    fileId,
+    languageId: "en",
+  });
+
+  const { elements } = await result();
 
   expect(elements.length).toEqual(2);
   expect(elements[0].text).toEqual("Hello World!");

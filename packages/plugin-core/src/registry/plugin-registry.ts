@@ -244,7 +244,7 @@ export class PluginRegistry {
   ): PluginRegistry {
     const key = `__PLUGIN_REGISTRY_${scopeType}_${scopeId}__`;
     // @ts-expect-error hard to declare type for globalThis
-    if (!globalThis[key])
+    if (!globalThis[key]) {
       // @ts-expect-error hard to declare type for globalThis
       globalThis[key] = new PluginRegistry(
         scopeType,
@@ -253,6 +253,7 @@ export class PluginRegistry {
         undefined,
         loader,
       );
+    }
     // @ts-expect-error hard to declare type for globalThis oxlint-disable-next-line no-unsafe-type-assertion
     // oxlint-disable no-unsafe-type-assertion
     return globalThis[key] as PluginRegistry;

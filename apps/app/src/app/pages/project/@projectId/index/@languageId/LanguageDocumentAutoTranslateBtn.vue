@@ -22,7 +22,7 @@ import {
 } from "@/app/components/ui/form/index.ts";
 import { Slider } from "@/app/components/ui/slider/index.ts";
 import { toTypedSchema } from "@vee-validate/zod";
-import z from "zod";
+import * as z from "zod";
 import { useForm } from "vee-validate";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import DialogDescription from "@/app/components/ui/dialog/DialogDescription.vue";

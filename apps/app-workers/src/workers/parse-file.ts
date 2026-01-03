@@ -10,7 +10,7 @@ import {
   assertFirstNonNullish,
   assertSingleNonNullish,
 } from "@cat/shared/utils";
-import z from "zod";
+import * as z from "zod";
 
 export const ParseFileInputSchema = z.object({
   fileId: z.int(),

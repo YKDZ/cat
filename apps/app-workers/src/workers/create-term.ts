@@ -12,7 +12,7 @@ import {
 import { PluginRegistry } from "@cat/plugin-core";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import { assertFirstNonNullish } from "@cat/shared/utils";
-import z from "zod";
+import * as z from "zod";
 
 export const CreateTermInputSchema = z.object({
   glossaryId: z.uuidv4(),
@@ -50,9 +50,7 @@ export const createTermTask = await defineTask({
       vizer.record.id,
     );
 
-    // ... 复用原有的事务逻辑 ...
     const termIds = await drizzle.transaction(async (tx) => {
-      // 1. 创建字符串
       const termStringIds = await createStringFromData(
         tx,
         vizer.service,
@@ -74,7 +72,6 @@ export const createTermTask = await defineTask({
         })),
       );
 
-      // 2. 处理 Subjects 和 Entry
       const subjects = [
         ...new Set(
           data.data
@@ -83,7 +80,6 @@ export const createTermTask = await defineTask({
         ),
       ];
 
-      // ... 获取现有 Entry ...
       const existingEntries = subjects.length
         ? await tx
             .select({ id: termEntry.id, subject: termEntry.subject })
@@ -115,7 +111,6 @@ export const createTermTask = await defineTask({
         inserted.forEach((e) => entryMap.set(e.subject!, e.id));
       }
 
-      // 3. 插入 Term
       const termRows = [];
       for (let i = 0; i < data.data.length; i += 1) {
         const item = data.data[i];

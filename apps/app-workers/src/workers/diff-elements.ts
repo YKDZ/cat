@@ -11,7 +11,7 @@ import {
 } from "@cat/db";
 import { safeZDotJson } from "@cat/shared/schema/json";
 import { isEqual } from "lodash-es";
-import z from "zod";
+import * as z from "zod";
 
 export const DiffElementsInputSchema = z.object({
   elementData: z.array(
@@ -58,6 +58,7 @@ export const diffElementsTask = await defineTask({
           eq(translatableElement.translatableStringId, translatableString.id),
         )
         .where(inArray(translatableElement.id, data.oldElementIds))
+        .orderBy(translatableElement.sortIndex)
     ).map((element) => ({
       id: element.id,
       text: element.text,
@@ -76,13 +77,8 @@ export const diffElementsTask = await defineTask({
       (a, b) => a.text === b.text && isEqual(a.meta, b.meta),
     );
 
-    // 3. 删除移除的元素
+    // 3. 准备移除的元素 ID
     const removedElementIds = removed.map((el) => el.id);
-    if (removedElementIds.length > 0) {
-      await drizzle
-        .delete(translatableElement)
-        .where(inArray(translatableElement.id, removedElementIds));
-    }
 
     // 处理更新
     // 找出既没被移除（旧），也没被新增（新）的元素，这些是 intersection
@@ -213,6 +209,13 @@ export const diffElementsTask = await defineTask({
       const { elementIds } = await result();
 
       addedIds.push(...elementIds);
+    }
+
+    // 7. 删除移除的元素 (最后执行，确保任务幂等性)
+    if (removedElementIds.length > 0) {
+      await drizzle
+        .delete(translatableElement)
+        .where(inArray(translatableElement.id, removedElementIds));
     }
 
     return {

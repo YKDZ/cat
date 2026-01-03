@@ -1,6 +1,6 @@
 import { defineWorkflow } from "@/core";
 import { eq, getDrizzleDB, translatableElement } from "@cat/db";
-import z from "zod";
+import * as z from "zod";
 import { parseFileTask } from "./parse-file";
 import { diffElementsTask } from "./diff-elements";
 
@@ -38,8 +38,7 @@ export const upsertDocumentFromFileWorkflow = await defineWorkflow({
 
     if (!parseResult) throw new Error("File parsing failed");
 
-    // 获取当前文档的旧元素 ID (逻辑从 Diff 移出，保持 Diff 纯粹接受 IDs)
-    // 或者，Diff Task 也可以自己查，但为了复用性，调用者传递 ID 集合更好
+    // 获取当前文档的旧元素 ID
     const oldElementIds = (
       await drizzle
         .select({ id: translatableElement.id })
@@ -47,7 +46,6 @@ export const upsertDocumentFromFileWorkflow = await defineWorkflow({
         .where(eq(translatableElement.documentId, data.documentId))
     ).map((el) => el.id);
 
-    // 显式调用 Diff Task
     const { result: diffResult } = await diffElementsTask.run(
       {
         documentId: data.documentId,

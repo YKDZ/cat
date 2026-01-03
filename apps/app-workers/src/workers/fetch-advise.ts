@@ -3,7 +3,7 @@ import { firstOrGivenService } from "@cat/app-server-shared/utils";
 import { getDrizzleDB } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { TranslationSuggestionSchema } from "@cat/shared/schema/misc";
-import z from "zod";
+import * as z from "zod";
 import { searchTermTask } from "./search-term";
 import { logger } from "@cat/shared/utils";
 

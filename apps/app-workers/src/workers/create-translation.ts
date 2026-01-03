@@ -1,8 +1,9 @@
 import { defineWorkflow } from "@/core";
 import { getDrizzleDB, translation } from "@cat/db";
 import { zip } from "@cat/shared/utils";
-import z from "zod";
+import * as z from "zod";
 import { createTranslatableStringTask } from "./create-translatable-string";
+import { insertMemory } from "@cat/app-server-shared/utils";
 
 export const CreateTranslationInputSchema = z.object({
   data: z.array(
@@ -21,7 +22,7 @@ export const CreateTranslationInputSchema = z.object({
 
 export const CreateTranslationOutputSchema = z.object({
   translationIds: z.array(z.int()),
-  memoryIds: z.array(z.uuidv4()),
+  memoryItemIds: z.array(z.int()),
 });
 
 export const createTranslationWorkflow = await defineWorkflow({
@@ -63,9 +64,19 @@ export const createTranslationWorkflow = await defineWorkflow({
         id: translation.id,
       });
 
+    const translationIds = translations.map((t) => t.id);
+    let memoryItemIds: number[] | undefined;
+
+    if (data.memoryIds.length > 0) {
+      await drizzle.transaction(async (tx) => {
+        memoryItemIds = (await insertMemory(tx, data.memoryIds, translationIds))
+          .memoryItemIds;
+      });
+    }
+
     return {
-      translationIds: translations.map((t) => t.id),
-      memoryIds: data.memoryIds,
+      translationIds,
+      memoryItemIds: memoryItemIds ?? [],
     };
   },
 });

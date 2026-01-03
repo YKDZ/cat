@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import z from "zod";
+import * as z from "zod";
 
 export const getTraceId = (
   payload: unknown,

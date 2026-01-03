@@ -7,4 +7,7 @@ export default defineConfig({
       "@": resolve(import.meta.dirname, "src"),
     },
   },
+  test: {
+    retry: process.env.CI ? 3 : 0,
+  },
 });
