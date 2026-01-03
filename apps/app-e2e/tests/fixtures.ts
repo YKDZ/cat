@@ -1,11 +1,24 @@
 import { test as baseTest, expect } from "@playwright/test";
 import fs from "fs";
 import path from "path";
+import { randomUUID } from "node:crypto";
 import { acquireAccount } from "@/utils/account";
 
 export * from "@playwright/test";
 
-export const test = baseTest.extend<{}, { workerStorageState: string }>({
+interface TestFixtures {
+  testId: string;
+}
+
+export const test = baseTest.extend<
+  TestFixtures,
+  { workerStorageState: string }
+>({
+  testId: async ({}, use) => {
+    // 为每个测试生成唯一的 ID
+    const id = randomUUID().split("-")[0];
+    await use(id);
+  },
   // Use the same storage state for all tests in this worker.
   storageState: ({ workerStorageState }, use) => use(workerStorageState),
 
@@ -32,7 +45,7 @@ export const test = baseTest.extend<{}, { workerStorageState: string }>({
       // Alternatively, you can have a list of precreated accounts for testing.
       // Make sure that accounts are unique, so that multiple team members
       // can run tests at the same time without interference.
-      const account = await acquireAccount(id);
+      const account = await acquireAccount(randomUUID().split("-")[0]);
 
       // Perform authentication steps. Replace these actions with your own.
       await page.goto("http://localhost:3000/");

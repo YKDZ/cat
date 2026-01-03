@@ -1,4 +1,5 @@
 import pino from "pino";
+import { summarizeError } from "./error";
 
 export type Situation =
   | "PLUGIN"
@@ -62,9 +63,14 @@ export class Logger {
       this.baseLogger.error({
         ...obj,
         situation,
-        err,
+        err: summarizeError(err),
       });
-    else this.baseLogger.error({ err, situation, ...obj }, msg, ...args);
+    else
+      this.baseLogger.error(
+        { err: summarizeError(err), situation, ...obj },
+        msg,
+        ...args,
+      );
   }
 }
 

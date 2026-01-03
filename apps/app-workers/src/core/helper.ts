@@ -108,12 +108,11 @@ export const defineTask = async <
   } = options;
   const queueName = name;
 
-  // 注册 Worker
   const worker = await createWorker(
     queueName,
     async (job) => {
       const traceId = getTraceId(job.data);
-      // 1. 初始化回滚栈
+      // 初始化回滚栈
       const rollbacks: (() => Promise<void>)[] = [];
       const onRollback = (fn: () => Promise<void>) => rollbacks.push(fn);
 
@@ -127,7 +126,7 @@ export const defineTask = async <
       try {
         const parsedInput = inputSchema.parse(job.data);
 
-        // 2. 注入 onRollback 到 handler
+        // 注入 onRollback 到 handler
         const result = await handler(parsedInput, { traceId, onRollback });
 
         logger.debug("PROCESSOR", {
@@ -142,7 +141,6 @@ export const defineTask = async <
         }
         return result;
       } catch (error) {
-        // 3. 发生错误时执行回滚
         await executeRollbacks(rollbacks, `Task:${name}`, traceId);
 
         logger.error(
@@ -168,7 +166,6 @@ export const defineTask = async <
     run: async (payload, meta): Promise<RunResult<z.infer<I>, z.infer<O>>> => {
       const traceId = meta?.traceId ?? crypto.randomUUID();
       const queue = getQueue(queueName);
-      // 提前获取 QueueEvents 实例 (sync)
       const queueEvents = getQueueEvents(queueName);
 
       const data = inputSchema.parse(payload);
@@ -210,7 +207,7 @@ export const defineTask = async <
         queueName,
         data: { ...data, traceId },
         opts: {
-          // 关键：ID 包含 name 前缀，供 getTaskResult 过滤使用
+          // 包含 name 前缀供 getTaskResult 过滤使用
           jobId: `${name}:${traceId}:${crypto.randomUUID().slice(0, 8)}`,
           removeOnComplete: true,
         },
@@ -243,7 +240,6 @@ export const defineWorkflow = async <
     const payload = inputSchema.parse(job.data);
     const childrenValues = await job.getChildrenValues();
 
-    // Debug: 打印获取到的子任务 keys，以便排查匹配问题
     logger.debug("PROCESSOR", {
       msg: `[Workflow:${name}] Children Values Keys`,
       traceId,

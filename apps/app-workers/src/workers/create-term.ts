@@ -42,11 +42,13 @@ export const createTermTask = await defineTask({
     const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
       drizzle,
       vStorage.record.pluginId,
+      vStorage.record.type,
       vStorage.record.id,
     );
     const vectorizerId = await pluginRegistry.getPluginServiceDbId(
       drizzle,
       vizer.record.pluginId,
+      vizer.record.type,
       vizer.record.id,
     );
 

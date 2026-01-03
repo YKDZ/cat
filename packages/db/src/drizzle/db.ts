@@ -1,4 +1,3 @@
-import { join } from "node:path";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
@@ -31,9 +30,9 @@ export class DrizzleDB {
     await this.client.execute(sql`SELECT 1`);
   }
 
-  async migrate(): Promise<void> {
+  async migrate(migrationsFolder: string): Promise<void> {
     await migrate(this.client, {
-      migrationsFolder: join(process.cwd(), "drizzle"),
+      migrationsFolder,
     });
   }
 }

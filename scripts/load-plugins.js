@@ -18,6 +18,7 @@ const FOLDER_INCLUDES = [
   "password-auth-provider",
   "openai-term-extractor",
   "s3-storage-provider",
+  "local-storage-provider",
   "pgvector-storage",
 ];
 

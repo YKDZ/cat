@@ -82,7 +82,7 @@ class S3DB {
   }
 }
 
-export class S3StorageProvider extends StorageProvider {
+export class Provider extends StorageProvider {
   private config: Config;
   private db: S3DB;
 

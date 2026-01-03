@@ -10,7 +10,7 @@ import {
 import { assertSingleNonNullish } from "@cat/shared/utils";
 
 export const acquireAccount = async (
-  id: number,
+  id: string,
 ): Promise<{
   email: string;
   password: string;

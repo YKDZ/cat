@@ -1,13 +1,17 @@
 import { expect, test } from "@/fixtures.ts";
 
-test("user create project", async ({ page }) => {
+test("user create project", async ({ page, testId }) => {
+  const projectName = `Test-${testId}`;
+
   await page.goto("http://localhost:3000/");
 
   await page.getByRole("button", { name: "创建项目" }).click();
   await page.getByRole("textbox", { name: "名称" }).click();
-  await page.getByRole("textbox", { name: "名称" }).fill("Test");
+  await page.getByRole("textbox", { name: "名称" }).fill(projectName);
   await page.getByRole("textbox", { name: "简介" }).click();
-  await page.getByRole("textbox", { name: "简介" }).fill("My Test Project");
+  await page
+    .getByRole("textbox", { name: "简介" })
+    .fill(`My Test Project @${testId}`);
   await page
     .getByTestId("create-project-multi-language-picker")
     .getByRole("button", { name: "Show popup" })
@@ -20,7 +24,7 @@ test("user create project", async ({ page }) => {
   await page.getByRole("button", { name: "前往项目界面" }).click();
 
   await expect(page.getByRole("paragraph")).toMatchAriaSnapshot(
-    `- paragraph: My Test Project`,
+    `- paragraph: My Test Project @${testId}`,
   );
   await expect(page.getByRole("row")).toMatchAriaSnapshot(`- cell "en"`);
 });

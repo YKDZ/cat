@@ -51,6 +51,7 @@ export const firstOrGivenService = async <T extends PluginServiceType>(
     const id = await pluginRegistry.getPluginServiceDbId(
       drizzle,
       record.pluginId,
+      record.type,
       record.id,
     );
 
@@ -107,7 +108,7 @@ export const installDefaultPlugins = async (
     "libretranslate-advisor",
     "openai-vectorizer",
     "yaml-file-handler",
-    "s3-storage-provider",
+    "local-storage-provider",
     "pgvector-storage",
     "markdown-file-handler",
     "tiny-widget",
