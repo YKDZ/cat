@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "b4525fdb-4bfe-46f4-94bb-f1c3a9853007",
+  "id": "020bd853-6a30-459d-aa41-1b18ecedc67b",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -9,12 +9,17 @@
     {
       "values": [
         "AUTH_PROVIDER",
+        "MFA_PROVIDER",
         "STORAGE_PROVIDER",
-        "TERM_SERVICE",
-        "TRANSLATABLE_FILE_HANDLER",
+        "TERM_EXTRACTOR",
+        "TERM_RECOGNIZER",
+        "TERM_ALIGNER",
+        "FILE_IMPORTER",
+        "FILE_EXPORTER",
         "TRANSLATION_ADVISOR",
         "TEXT_VECTORIZER",
-        "VECTOR_STORAGE"
+        "VECTOR_STORAGE",
+        "QA_CHECKER"
       ],
       "name": "PluginServiceType",
       "entityType": "enums",
@@ -130,12 +135,6 @@
     },
     {
       "isRlsEnabled": false,
-      "name": "DocumentVersion",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
       "name": "File",
       "entityType": "tables",
       "schema": "public"
@@ -178,6 +177,12 @@
     },
     {
       "isRlsEnabled": false,
+      "name": "MFAProvider",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
       "name": "Permission",
       "entityType": "tables",
       "schema": "public"
@@ -191,6 +196,12 @@
     {
       "isRlsEnabled": false,
       "name": "Plugin",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "PluginComponent",
       "entityType": "tables",
       "schema": "public"
     },
@@ -262,7 +273,7 @@
     },
     {
       "isRlsEnabled": false,
-      "name": "TermRelation",
+      "name": "TermEntry",
       "entityType": "tables",
       "schema": "public"
     },
@@ -304,7 +315,13 @@
     },
     {
       "isRlsEnabled": false,
-      "name": "TranslationApprovement",
+      "name": "TranslationSnapshot",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "TranslationSnapshotItem",
       "entityType": "tables",
       "schema": "public"
     },
@@ -333,14 +350,14 @@
       "schema": "public"
     },
     {
-      "type": "text",
+      "type": "serial",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "type",
+      "name": "id",
       "entityType": "columns",
       "schema": "public",
       "table": "Account"
@@ -353,7 +370,7 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "provider",
+      "name": "provider_issuer",
       "entityType": "columns",
       "schema": "public",
       "table": "Account"
@@ -372,6 +389,19 @@
       "table": "Account"
     },
     {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "meta",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -385,14 +415,14 @@
       "table": "Account"
     },
     {
-      "type": "jsonb",
+      "type": "integer",
       "typeSchema": null,
-      "notNull": false,
+      "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "meta",
+      "name": "auth_provider_id",
       "entityType": "columns",
       "schema": "public",
       "table": "Account"
@@ -463,19 +493,6 @@
       "table": "Blob"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Blob"
-    },
-    {
       "type": "integer",
       "typeSchema": null,
       "notNull": true,
@@ -497,6 +514,19 @@
       "generated": null,
       "identity": null,
       "name": "hash",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Blob"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
       "entityType": "columns",
       "schema": "public",
       "table": "Blob"
@@ -541,32 +571,6 @@
       "table": "Chunk"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Chunk"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Chunk"
-    },
-    {
       "type": "integer",
       "typeSchema": null,
       "notNull": true,
@@ -588,6 +592,32 @@
       "generated": null,
       "identity": null,
       "name": "vector_storage_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Chunk"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
       "entityType": "columns",
       "schema": "public",
       "table": "Chunk"
@@ -710,32 +740,6 @@
       "table": "Document"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
       "type": "integer",
       "typeSchema": null,
       "notNull": false,
@@ -757,6 +761,32 @@
       "generated": null,
       "identity": null,
       "name": "is_directory",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Document"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
       "entityType": "columns",
       "schema": "public",
       "table": "Document"
@@ -838,71 +868,6 @@
       "entityType": "columns",
       "schema": "public",
       "table": "DocumentToTask"
-    },
-    {
-      "type": "serial",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentVersion"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "document_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentVersion"
-    },
-    {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "false",
-      "generated": null,
-      "identity": null,
-      "name": "is_active",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentVersion"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentVersion"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentVersion"
     },
     {
       "type": "serial",
@@ -1180,7 +1145,7 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -1230,32 +1195,6 @@
       "table": "MemoryItem"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "MemoryItem"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "MemoryItem"
-    },
-    {
       "type": "integer",
       "typeSchema": null,
       "notNull": true,
@@ -1277,6 +1216,32 @@
       "generated": null,
       "identity": null,
       "name": "translation_string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MemoryItem"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
       "entityType": "columns",
       "schema": "public",
       "table": "MemoryItem"
@@ -1318,7 +1283,72 @@
       "name": "id",
       "entityType": "columns",
       "schema": "public",
-      "table": "Permission"
+      "table": "MFAProvider"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "failure_count",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MFAProvider"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "last_used_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MFAProvider"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payload",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MFAProvider"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MFAProvider"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "mfa_service_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MFAProvider"
     },
     {
       "type": "timestamp with time zone",
@@ -1331,7 +1361,7 @@
       "name": "created_at",
       "entityType": "columns",
       "schema": "public",
-      "table": "Permission"
+      "table": "MFAProvider"
     },
     {
       "type": "timestamp with time zone",
@@ -1342,6 +1372,19 @@
       "generated": null,
       "identity": null,
       "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "MFAProvider"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
       "entityType": "columns",
       "schema": "public",
       "table": "Permission"
@@ -1368,6 +1411,32 @@
       "generated": null,
       "identity": null,
       "name": "resource_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Permission"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
       "entityType": "columns",
       "schema": "public",
       "table": "Permission"
@@ -1529,6 +1598,19 @@
       "table": "Plugin"
     },
     {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "version",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Plugin"
+    },
+    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1555,6 +1637,19 @@
       "table": "Plugin"
     },
     {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginComponent"
+    },
+    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -1562,10 +1657,75 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "version",
+      "name": "component_id",
       "entityType": "columns",
       "schema": "public",
-      "table": "Plugin"
+      "table": "PluginComponent"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "slot",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginComponent"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "url",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginComponent"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "plugin_installation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginComponent"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginComponent"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PluginComponent"
     },
     {
       "type": "serial",
@@ -2114,6 +2274,19 @@
       "table": "RolePermission"
     },
     {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "true",
+      "generated": null,
+      "identity": null,
+      "name": "is_allowed",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "RolePermission"
+    },
+    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -2135,19 +2308,6 @@
       "generated": null,
       "identity": null,
       "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "RolePermission"
-    },
-    {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "true",
-      "generated": null,
-      "identity": null,
-      "name": "is_allowed",
       "entityType": "columns",
       "schema": "public",
       "table": "RolePermission"
@@ -2311,7 +2471,7 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -2322,14 +2482,27 @@
       "table": "Term"
     },
     {
-      "type": "uuid",
+      "type": "integer",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "glossary_id",
+      "name": "string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Term"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "term_entry_id",
       "entityType": "columns",
       "schema": "public",
       "table": "Term"
@@ -2361,19 +2534,6 @@
       "table": "Term"
     },
     {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "string_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Term"
-    },
-    {
       "type": "serial",
       "typeSchema": null,
       "notNull": true,
@@ -2384,33 +2544,59 @@
       "name": "id",
       "entityType": "columns",
       "schema": "public",
-      "table": "TermRelation"
+      "table": "TermEntry"
     },
     {
-      "type": "integer",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "subject",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TermEntry"
+    },
+    {
+      "type": "uuid",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "term_id",
+      "name": "glossary_id",
       "entityType": "columns",
       "schema": "public",
-      "table": "TermRelation"
+      "table": "TermEntry"
     },
     {
-      "type": "integer",
+      "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "translation_id",
+      "name": "created_at",
       "entityType": "columns",
       "schema": "public",
-      "table": "TermRelation"
+      "table": "TermEntry"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TermEntry"
     },
     {
       "type": "serial",
@@ -2459,19 +2645,6 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "document_version_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElement"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
       "name": "sort_index",
       "entityType": "columns",
       "schema": "public",
@@ -2486,6 +2659,32 @@
       "generated": null,
       "identity": null,
       "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translatable_string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "approved_translation_id",
       "entityType": "columns",
       "schema": "public",
       "table": "TranslatableElement"
@@ -2512,19 +2711,6 @@
       "generated": null,
       "identity": null,
       "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElement"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "translatable_string_id",
       "entityType": "columns",
       "schema": "public",
       "table": "TranslatableElement"
@@ -2608,6 +2794,19 @@
       "table": "TranslatableElementComment"
     },
     {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "language_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElementComment"
+    },
+    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -2629,19 +2828,6 @@
       "generated": null,
       "identity": null,
       "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementComment"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "language_id",
       "entityType": "columns",
       "schema": "public",
       "table": "TranslatableElementComment"
@@ -2909,7 +3095,7 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -2946,6 +3132,19 @@
       "table": "Translation"
     },
     {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "string_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "Translation"
+    },
+    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -2967,19 +3166,6 @@
       "generated": null,
       "identity": null,
       "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Translation"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "string_id",
       "entityType": "columns",
       "schema": "public",
       "table": "Translation"
@@ -2995,33 +3181,7 @@
       "name": "id",
       "entityType": "columns",
       "schema": "public",
-      "table": "TranslationApprovement"
-    },
-    {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "false",
-      "generated": null,
-      "identity": null,
-      "name": "is_active",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslationApprovement"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "translation_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslationApprovement"
+      "table": "TranslationSnapshot"
     },
     {
       "type": "uuid",
@@ -3031,10 +3191,23 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationSnapshot"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
       "name": "creator_id",
       "entityType": "columns",
       "schema": "public",
-      "table": "TranslationApprovement"
+      "table": "TranslationSnapshot"
     },
     {
       "type": "timestamp with time zone",
@@ -3047,7 +3220,7 @@
       "name": "created_at",
       "entityType": "columns",
       "schema": "public",
-      "table": "TranslationApprovement"
+      "table": "TranslationSnapshot"
     },
     {
       "type": "timestamp with time zone",
@@ -3060,7 +3233,72 @@
       "name": "updated_at",
       "entityType": "columns",
       "schema": "public",
-      "table": "TranslationApprovement"
+      "table": "TranslationSnapshot"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationSnapshotItem"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "snapshot_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationSnapshotItem"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationSnapshotItem"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationSnapshotItem"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslationSnapshotItem"
     },
     {
       "type": "serial",
@@ -3193,6 +3431,19 @@
       "table": "User"
     },
     {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "avatar_file_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "User"
+    },
+    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -3214,19 +3465,6 @@
       "generated": null,
       "identity": null,
       "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "User"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "avatar_file_id",
       "entityType": "columns",
       "schema": "public",
       "table": "User"
@@ -3334,34 +3572,6 @@
       "entityType": "columns",
       "schema": "public",
       "table": "Vector"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        {
-          "value": "user_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "provider",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": true,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "Account_user_id_provider_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "Account"
     },
     {
       "nameExplicit": false,
@@ -3717,27 +3927,6 @@
       "nameExplicit": false,
       "columns": [
         {
-          "value": "translation_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "TermRelation_translation_id_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "TermRelation"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        {
           "value": "parent_comment_id",
           "isExpression": false,
           "asc": true,
@@ -4030,6 +4219,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "auth_provider_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginService",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "Account_auth_provider_id_PluginService_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "Account"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "storage_provider_id"
       ],
       "schemaTo": "public",
@@ -4234,23 +4440,6 @@
     {
       "nameExplicit": false,
       "columns": [
-        "document_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "Document",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "DocumentVersion_document_id_Document_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "DocumentVersion"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
         "blob_id"
       ],
       "schemaTo": "public",
@@ -4344,7 +4533,7 @@
         "id"
       ],
       "onUpdate": "CASCADE",
-      "onDelete": "RESTRICT",
+      "onDelete": "SET NULL",
       "name": "MemoryItem_creator_id_User_id_fkey",
       "entityType": "fks",
       "schema": "public",
@@ -4472,6 +4661,40 @@
     {
       "nameExplicit": false,
       "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "MFAProvider_user_id_User_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MFAProvider"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "mfa_service_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginService",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "MFAProvider_mfa_service_id_PluginService_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "MFAProvider"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "template_id"
       ],
       "schemaTo": "public",
@@ -4485,6 +4708,23 @@
       "entityType": "fks",
       "schema": "public",
       "table": "Permission"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "plugin_installation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginInstallation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "PluginComponent_eAfVTu1efahR_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "PluginComponent"
     },
     {
       "nameExplicit": false,
@@ -4701,25 +4941,8 @@
         "id"
       ],
       "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
+      "onDelete": "SET NULL",
       "name": "Term_creator_id_User_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "Term"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "glossary_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "Glossary",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "Term_glossary_id_Glossary_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "Term"
@@ -4744,36 +4967,36 @@
     {
       "nameExplicit": false,
       "columns": [
-        "term_id"
+        "term_entry_id"
       ],
       "schemaTo": "public",
-      "tableTo": "Term",
+      "tableTo": "TermEntry",
       "columnsTo": [
         "id"
       ],
       "onUpdate": "CASCADE",
-      "onDelete": "RESTRICT",
-      "name": "TermRelation_term_id_Term_id_fkey",
+      "onDelete": "CASCADE",
+      "name": "Term_term_entry_id_TermEntry_id_fkey",
       "entityType": "fks",
       "schema": "public",
-      "table": "TermRelation"
+      "table": "Term"
     },
     {
       "nameExplicit": false,
       "columns": [
-        "translation_id"
+        "glossary_id"
       ],
       "schemaTo": "public",
-      "tableTo": "Term",
+      "tableTo": "Glossary",
       "columnsTo": [
         "id"
       ],
       "onUpdate": "CASCADE",
-      "onDelete": "RESTRICT",
-      "name": "TermRelation_translation_id_Term_id_fkey",
+      "onDelete": "CASCADE",
+      "name": "TermEntry_glossary_id_Glossary_id_fkey",
       "entityType": "fks",
       "schema": "public",
-      "table": "TermRelation"
+      "table": "TermEntry"
     },
     {
       "nameExplicit": false,
@@ -4788,23 +5011,6 @@
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElement_document_id_Document_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "TranslatableElement"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "document_version_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "DocumentVersion",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "CASCADE",
-      "onDelete": "SET NULL",
-      "name": "TranslatableElement_document_version_id_DocumentVersion_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "TranslatableElement"
@@ -4839,6 +5045,23 @@
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TranslatableElement_mKNyfTsRaxW6_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "approved_translation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Translation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "TranslatableElement_approved_translation_id_Translation_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "TranslatableElement"
@@ -5058,7 +5281,7 @@
         "id"
       ],
       "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
+      "onDelete": "SET NULL",
       "name": "Translation_translator_id_User_id_fkey",
       "entityType": "fks",
       "schema": "public",
@@ -5101,19 +5324,19 @@
     {
       "nameExplicit": false,
       "columns": [
-        "translation_id"
+        "project_id"
       ],
       "schemaTo": "public",
-      "tableTo": "Translation",
+      "tableTo": "Project",
       "columnsTo": [
         "id"
       ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
-      "name": "TranslationApprovement_translation_id_Translation_id_fkey",
+      "name": "TranslationSnapshot_project_id_Project_id_fkey",
       "entityType": "fks",
       "schema": "public",
-      "table": "TranslationApprovement"
+      "table": "TranslationSnapshot"
     },
     {
       "nameExplicit": false,
@@ -5126,11 +5349,45 @@
         "id"
       ],
       "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "TranslationApprovement_creator_id_User_id_fkey",
+      "onDelete": "SET NULL",
+      "name": "TranslationSnapshot_creator_id_User_id_fkey",
       "entityType": "fks",
       "schema": "public",
-      "table": "TranslationApprovement"
+      "table": "TranslationSnapshot"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "snapshot_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslationSnapshot",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "TranslationSnapshotItem_snapshot_id_TranslationSnapshot_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslationSnapshotItem"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "translation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Translation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "TranslationSnapshotItem_translation_id_Translation_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "TranslationSnapshotItem"
     },
     {
       "nameExplicit": false,
@@ -5236,17 +5493,6 @@
     },
     {
       "columns": [
-        "provider",
-        "provided_account_id"
-      ],
-      "nameExplicit": false,
-      "name": "Account_pkey",
-      "entityType": "pks",
-      "schema": "public",
-      "table": "Account"
-    },
-    {
-      "columns": [
         "ancestor",
         "descendant"
       ],
@@ -5327,6 +5573,16 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "Account_pkey",
+      "schema": "public",
+      "table": "Account",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "Blob_pkey",
       "schema": "public",
       "table": "Blob",
@@ -5360,16 +5616,6 @@
       "name": "Document_pkey",
       "schema": "public",
       "table": "Document",
-      "entityType": "pks"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "DocumentVersion_pkey",
-      "schema": "public",
-      "table": "DocumentVersion",
       "entityType": "pks"
     },
     {
@@ -5427,6 +5673,16 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "MFAProvider_pkey",
+      "schema": "public",
+      "table": "MFAProvider",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "Permission_pkey",
       "schema": "public",
       "table": "Permission",
@@ -5450,6 +5706,16 @@
       "name": "Plugin_pkey",
       "schema": "public",
       "table": "Plugin",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "PluginComponent_pkey",
+      "schema": "public",
+      "table": "PluginComponent",
       "entityType": "pks"
     },
     {
@@ -5547,9 +5813,9 @@
         "id"
       ],
       "nameExplicit": false,
-      "name": "TermRelation_pkey",
+      "name": "TermEntry_pkey",
       "schema": "public",
-      "table": "TermRelation",
+      "table": "TermEntry",
       "entityType": "pks"
     },
     {
@@ -5617,9 +5883,19 @@
         "id"
       ],
       "nameExplicit": false,
-      "name": "TranslationApprovement_pkey",
+      "name": "TranslationSnapshot_pkey",
       "schema": "public",
-      "table": "TranslationApprovement",
+      "table": "TranslationSnapshot",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "TranslationSnapshotItem_pkey",
+      "schema": "public",
+      "table": "TranslationSnapshotItem",
       "entityType": "pks"
     },
     {
@@ -5651,6 +5927,18 @@
       "schema": "public",
       "table": "Vector",
       "entityType": "pks"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "provider_issuer",
+        "provided_account_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "Account_provider_issuer_provided_account_id_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "Account"
     },
     {
       "nameExplicit": false,
