@@ -2,9 +2,11 @@
 import { orpc } from "@/server/orpc";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation";
 import { Button } from "@/app/components/ui/button";
-import { computedAsync } from "@vueuse/core";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { useI18n } from "vue-i18n";
+import { useEditorTableStore } from "@/app/stores/editor/table";
+import { computed } from "vue";
+import { storeToRefs } from "pinia";
 
 const { t } = useI18n();
 
@@ -12,11 +14,11 @@ const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id">;
 }>();
 
-const isApproved = computedAsync(async () => {
-  return await orpc.translation.isApproved({
-    translationId: props.translation.id,
-  });
-}, false);
+const { element } = storeToRefs(useEditorTableStore());
+
+const isApproved = computed<boolean>(() => {
+  return element?.value?.approvedTranslationId === props.translation.id;
+});
 
 const handleApprove = async () => {
   if (isApproved.value) return;

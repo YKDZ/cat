@@ -1,28 +1,29 @@
 CREATE EXTENSION IF NOT EXISTS vector;--> statement-breakpoint
-CREATE TYPE "PluginServiceType" AS ENUM('AUTH_PROVIDER', 'STORAGE_PROVIDER', 'TERM_SERVICE', 'TRANSLATABLE_FILE_HANDLER', 'TRANSLATION_ADVISOR', 'TEXT_VECTORIZER', 'VECTOR_STORAGE');--> statement-breakpoint
+CREATE TYPE "PluginServiceType" AS ENUM('AUTH_PROVIDER', 'MFA_PROVIDER', 'STORAGE_PROVIDER', 'TERM_EXTRACTOR', 'TERM_RECOGNIZER', 'TERM_ALIGNER', 'FILE_IMPORTER', 'FILE_EXPORTER', 'TRANSLATION_ADVISOR', 'TEXT_VECTORIZER', 'VECTOR_STORAGE', 'QA_CHECKER');--> statement-breakpoint
 CREATE TYPE "ResourceType" AS ENUM('PROJECT', 'DOCUMENT', 'ELEMENT', 'COMMENT', 'TERM', 'PLUGIN', 'GLOSSARY', 'MEMORY', 'SETTING', 'TASK', 'TRANSLATION', 'USER');--> statement-breakpoint
 CREATE TYPE "ScopeType" AS ENUM('GLOBAL', 'PROJECT', 'USER');--> statement-breakpoint
 CREATE TYPE "TaskStatus" AS ENUM('COMPLETED', 'PENDING', 'FAILED');--> statement-breakpoint
 CREATE TYPE "TranslatableElementCommentReactionType" AS ENUM('+1', '-1', 'LAUGH', 'HOORAY', 'CONFUSED', 'HEART', 'ROCKET', 'EYES');--> statement-breakpoint
 CREATE TYPE "TranslatableElementContextType" AS ENUM('TEXT', 'JSON', 'FILE', 'MARKDOWN', 'URL');--> statement-breakpoint
 CREATE TABLE "Account" (
-	"type" text NOT NULL,
-	"provider" text,
-	"provided_account_id" text,
-	"user_id" uuid NOT NULL,
+	"id" serial PRIMARY KEY,
+	"provider_issuer" text NOT NULL,
+	"provided_account_id" text NOT NULL,
 	"meta" jsonb,
+	"user_id" uuid NOT NULL,
+	"auth_provider_id" integer NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "Account_pkey" PRIMARY KEY("provider","provided_account_id")
+	CONSTRAINT "Account_provider_issuer_provided_account_id_unique" UNIQUE("provider_issuer","provided_account_id")
 );
 --> statement-breakpoint
 CREATE TABLE "Blob" (
 	"id" serial PRIMARY KEY,
 	"key" text NOT NULL,
 	"storage_provider_id" integer NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"reference_count" integer DEFAULT 1 NOT NULL,
 	"hash" bytea UNIQUE,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "Blob_storage_provider_id_key_unique" UNIQUE("storage_provider_id","key"),
 	CONSTRAINT "hash_check" CHECK (octet_length("hash") = 32),
 	CONSTRAINT "referenceCount_check" CHECK ("reference_count" >= 0)
@@ -32,10 +33,10 @@ CREATE TABLE "Chunk" (
 	"id" serial PRIMARY KEY,
 	"meta" jsonb,
 	"chunk_set_id" integer NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"vectorizer_id" integer NOT NULL,
-	"vector_storage_id" integer NOT NULL
+	"vector_storage_id" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "ChunkSet" (
@@ -51,10 +52,10 @@ CREATE TABLE "Document" (
 	"project_id" uuid NOT NULL,
 	"creator_id" uuid NOT NULL,
 	"file_handler_id" integer,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"file_id" integer,
-	"is_directory" boolean DEFAULT false NOT NULL
+	"is_directory" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "DocumentClosure" (
@@ -69,14 +70,6 @@ CREATE TABLE "DocumentToTask" (
 	"document_id" uuid,
 	"task_id" uuid,
 	CONSTRAINT "DocumentToTask_pkey" PRIMARY KEY("document_id","task_id")
-);
---> statement-breakpoint
-CREATE TABLE "DocumentVersion" (
-	"id" serial PRIMARY KEY,
-	"document_id" uuid NOT NULL,
-	"is_active" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "File" (
@@ -117,14 +110,14 @@ CREATE TABLE "Memory" (
 --> statement-breakpoint
 CREATE TABLE "MemoryItem" (
 	"id" serial PRIMARY KEY,
-	"creator_id" uuid NOT NULL,
+	"creator_id" uuid,
 	"memory_id" uuid NOT NULL,
 	"source_element_id" integer,
 	"translation_id" integer,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"source_string_id" integer NOT NULL,
-	"translation_string_id" integer NOT NULL
+	"translation_string_id" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "MemoryToProject" (
@@ -133,12 +126,23 @@ CREATE TABLE "MemoryToProject" (
 	CONSTRAINT "MemoryToProject_pkey" PRIMARY KEY("memory_id","project_id")
 );
 --> statement-breakpoint
+CREATE TABLE "MFAProvider" (
+	"id" serial PRIMARY KEY,
+	"failure_count" integer DEFAULT 0 NOT NULL,
+	"last_used_at" timestamp with time zone,
+	"payload" jsonb NOT NULL,
+	"user_id" uuid NOT NULL,
+	"mfa_service_id" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "Permission" (
 	"id" serial PRIMARY KEY,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"template_id" integer NOT NULL,
-	"resource_id" text
+	"resource_id" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "PermissionTemplate" (
@@ -158,9 +162,19 @@ CREATE TABLE "Plugin" (
 	"is_external" boolean DEFAULT false NOT NULL,
 	"entry" text NOT NULL,
 	"icon_url" text,
+	"version" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"version" text NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "PluginComponent" (
+	"id" serial PRIMARY KEY,
+	"component_id" text NOT NULL,
+	"slot" text NOT NULL,
+	"url" text NOT NULL,
+	"plugin_installation_id" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "PluginConfig" (
@@ -229,9 +243,9 @@ CREATE TABLE "Role" (
 CREATE TABLE "RolePermission" (
 	"role_id" integer,
 	"permission_id" integer,
+	"is_allowed" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"is_allowed" boolean DEFAULT true NOT NULL,
 	CONSTRAINT "RolePermission_pkey" PRIMARY KEY("role_id","permission_id")
 );
 --> statement-breakpoint
@@ -254,29 +268,31 @@ CREATE TABLE "Task" (
 --> statement-breakpoint
 CREATE TABLE "Term" (
 	"id" serial PRIMARY KEY,
-	"creator_id" uuid NOT NULL,
-	"glossary_id" uuid NOT NULL,
+	"creator_id" uuid,
+	"string_id" integer NOT NULL,
+	"term_entry_id" integer NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"string_id" integer NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "TermRelation" (
+CREATE TABLE "TermEntry" (
 	"id" serial PRIMARY KEY,
-	"term_id" integer NOT NULL,
-	"translation_id" integer NOT NULL
+	"subject" text,
+	"glossary_id" uuid NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "TranslatableElement" (
 	"id" serial PRIMARY KEY,
 	"meta" jsonb,
 	"document_id" uuid NOT NULL,
-	"document_version_id" integer,
-	"sort_index" integer NOT NULL,
+	"sort_index" integer,
 	"creator_id" uuid,
+	"translatable_string_id" integer NOT NULL,
+	"approved_translation_id" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"translatable_string_id" integer NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "TranslatableElementComment" (
@@ -286,9 +302,9 @@ CREATE TABLE "TranslatableElementComment" (
 	"content" text NOT NULL,
 	"parent_comment_id" integer,
 	"root_comment_id" integer,
+	"language_id" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"language_id" text NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "TranslatableElementCommentReaction" (
@@ -323,19 +339,26 @@ CREATE TABLE "TranslatableString" (
 --> statement-breakpoint
 CREATE TABLE "Translation" (
 	"id" serial PRIMARY KEY,
-	"translator_id" uuid NOT NULL,
+	"translator_id" uuid,
 	"translatable_element_id" integer NOT NULL,
 	"meta" jsonb,
+	"string_id" integer NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"string_id" integer NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "TranslationApprovement" (
+CREATE TABLE "TranslationSnapshot" (
 	"id" serial PRIMARY KEY,
-	"is_active" boolean DEFAULT false NOT NULL,
+	"project_id" uuid NOT NULL,
+	"creator_id" uuid,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "TranslationSnapshotItem" (
+	"id" serial PRIMARY KEY,
+	"snapshot_id" integer NOT NULL,
 	"translation_id" integer NOT NULL,
-	"creator_id" uuid NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -354,9 +377,9 @@ CREATE TABLE "User" (
 	"name" text NOT NULL,
 	"email" text NOT NULL,
 	"email_verified" boolean DEFAULT false NOT NULL,
+	"avatar_file_id" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"avatar_file_id" integer,
 	CONSTRAINT "User_email_name_unique" UNIQUE("email","name")
 );
 --> statement-breakpoint
@@ -375,7 +398,6 @@ CREATE TABLE "Vector" (
 	"chunk_id" integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX "Account_user_id_provider_index" ON "Account" ("user_id","provider");--> statement-breakpoint
 CREATE INDEX "Chunk_chunk_set_id_index" ON "Chunk" ("chunk_set_id");--> statement-breakpoint
 CREATE INDEX "Document_project_id_index" ON "Document" ("project_id");--> statement-breakpoint
 CREATE INDEX "DocumentClosure_ancestor_index" ON "DocumentClosure" ("ancestor");--> statement-breakpoint
@@ -391,7 +413,6 @@ CREATE INDEX "Project_creator_id_index" ON "Project" ("creator_id");--> statemen
 CREATE INDEX "ProjectTargetLanguage_project_id_index" ON "ProjectTargetLanguage" ("project_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "Setting_key_index" ON "Setting" ("key");--> statement-breakpoint
 CREATE INDEX "Task_meta_index" ON "Task" ("meta");--> statement-breakpoint
-CREATE INDEX "TermRelation_translation_id_index" ON "TermRelation" ("translation_id");--> statement-breakpoint
 CREATE INDEX "TranslatableElementComment_parent_comment_id_index" ON "TranslatableElementComment" ("parent_comment_id");--> statement-breakpoint
 CREATE INDEX "TranslatableElementComment_root_comment_id_index" ON "TranslatableElementComment" ("root_comment_id");--> statement-breakpoint
 CREATE INDEX "TranslatableElementComment_translatable_element_id_index" ON "TranslatableElementComment" ("translatable_element_id");--> statement-breakpoint
@@ -405,6 +426,7 @@ CREATE INDEX "TranslationVote_voter_id_index" ON "TranslationVote" ("voter_id");
 CREATE UNIQUE INDEX "TranslationVote_voter_id_translation_id_index" ON "TranslationVote" ("voter_id","translation_id");--> statement-breakpoint
 CREATE INDEX "embeddingIndex" ON "Vector" USING hnsw ("vector" vector_cosine_ops);--> statement-breakpoint
 ALTER TABLE "Account" ADD CONSTRAINT "Account_user_id_User_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "Account" ADD CONSTRAINT "Account_auth_provider_id_PluginService_id_fkey" FOREIGN KEY ("auth_provider_id") REFERENCES "PluginService"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Blob" ADD CONSTRAINT "Blob_storage_provider_id_PluginService_id_fkey" FOREIGN KEY ("storage_provider_id") REFERENCES "PluginService"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Chunk" ADD CONSTRAINT "Chunk_chunk_set_id_ChunkSet_id_fkey" FOREIGN KEY ("chunk_set_id") REFERENCES "ChunkSet"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Chunk" ADD CONSTRAINT "Chunk_vectorizer_id_PluginService_id_fkey" FOREIGN KEY ("vectorizer_id") REFERENCES "PluginService"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
@@ -417,13 +439,12 @@ ALTER TABLE "DocumentClosure" ADD CONSTRAINT "DocumentClosure_descendant_Documen
 ALTER TABLE "DocumentClosure" ADD CONSTRAINT "DocumentClosure_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "DocumentToTask" ADD CONSTRAINT "DocumentToTask_document_id_Document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "Document"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "DocumentToTask" ADD CONSTRAINT "DocumentToTask_task_id_Task_id_fkey" FOREIGN KEY ("task_id") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "DocumentVersion" ADD CONSTRAINT "DocumentVersion_document_id_Document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "Document"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "File" ADD CONSTRAINT "File_blob_id_Blob_id_fkey" FOREIGN KEY ("blob_id") REFERENCES "Blob"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Glossary" ADD CONSTRAINT "Glossary_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "GlossaryToProject" ADD CONSTRAINT "GlossaryToProject_glossary_id_Glossary_id_fkey" FOREIGN KEY ("glossary_id") REFERENCES "Glossary"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "GlossaryToProject" ADD CONSTRAINT "GlossaryToProject_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Memory" ADD CONSTRAINT "Memory_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "MemoryItem" ADD CONSTRAINT "MemoryItem_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "MemoryItem" ADD CONSTRAINT "MemoryItem_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "MemoryItem" ADD CONSTRAINT "MemoryItem_memory_id_Memory_id_fkey" FOREIGN KEY ("memory_id") REFERENCES "Memory"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "MemoryItem" ADD CONSTRAINT "MemoryItem_source_element_id_TranslatableElement_id_fkey" FOREIGN KEY ("source_element_id") REFERENCES "TranslatableElement"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "MemoryItem" ADD CONSTRAINT "MemoryItem_translation_id_Translation_id_fkey" FOREIGN KEY ("translation_id") REFERENCES "Translation"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
@@ -431,7 +452,10 @@ ALTER TABLE "MemoryItem" ADD CONSTRAINT "MemoryItem_source_string_id_Translatabl
 ALTER TABLE "MemoryItem" ADD CONSTRAINT "MemoryItem_translation_string_id_TranslatableString_id_fkey" FOREIGN KEY ("translation_string_id") REFERENCES "TranslatableString"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "MemoryToProject" ADD CONSTRAINT "MemoryToProject_memory_id_Memory_id_fkey" FOREIGN KEY ("memory_id") REFERENCES "Memory"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "MemoryToProject" ADD CONSTRAINT "MemoryToProject_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "MFAProvider" ADD CONSTRAINT "MFAProvider_user_id_User_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "MFAProvider" ADD CONSTRAINT "MFAProvider_mfa_service_id_PluginService_id_fkey" FOREIGN KEY ("mfa_service_id") REFERENCES "PluginService"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Permission" ADD CONSTRAINT "Permission_template_id_PermissionTemplate_id_fkey" FOREIGN KEY ("template_id") REFERENCES "PermissionTemplate"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "PluginComponent" ADD CONSTRAINT "PluginComponent_eAfVTu1efahR_fkey" FOREIGN KEY ("plugin_installation_id") REFERENCES "PluginInstallation"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "PluginConfig" ADD CONSTRAINT "PluginConfig_plugin_id_Plugin_id_fkey" FOREIGN KEY ("plugin_id") REFERENCES "Plugin"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "PluginConfigInstance" ADD CONSTRAINT "PluginConfigInstance_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "PluginConfigInstance" ADD CONSTRAINT "PluginConfigInstance_config_id_PluginConfig_id_fkey" FOREIGN KEY ("config_id") REFERENCES "PluginConfig"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
@@ -444,15 +468,14 @@ ALTER TABLE "ProjectTargetLanguage" ADD CONSTRAINT "ProjectTargetLanguage_projec
 ALTER TABLE "Role" ADD CONSTRAINT "Role_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "RolePermission" ADD CONSTRAINT "RolePermission_role_id_Role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "RolePermission" ADD CONSTRAINT "RolePermission_permission_id_Permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "Term" ADD CONSTRAINT "Term_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "Term" ADD CONSTRAINT "Term_glossary_id_Glossary_id_fkey" FOREIGN KEY ("glossary_id") REFERENCES "Glossary"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "Term" ADD CONSTRAINT "Term_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Term" ADD CONSTRAINT "Term_string_id_TranslatableString_id_fkey" FOREIGN KEY ("string_id") REFERENCES "TranslatableString"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TermRelation" ADD CONSTRAINT "TermRelation_term_id_Term_id_fkey" FOREIGN KEY ("term_id") REFERENCES "Term"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TermRelation" ADD CONSTRAINT "TermRelation_translation_id_Term_id_fkey" FOREIGN KEY ("translation_id") REFERENCES "Term"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "Term" ADD CONSTRAINT "Term_term_entry_id_TermEntry_id_fkey" FOREIGN KEY ("term_entry_id") REFERENCES "TermEntry"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "TermEntry" ADD CONSTRAINT "TermEntry_glossary_id_Glossary_id_fkey" FOREIGN KEY ("glossary_id") REFERENCES "Glossary"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_document_id_Document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "Document"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_document_version_id_DocumentVersion_id_fkey" FOREIGN KEY ("document_version_id") REFERENCES "DocumentVersion"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_mKNyfTsRaxW6_fkey" FOREIGN KEY ("translatable_string_id") REFERENCES "TranslatableString"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_approved_translation_id_Translation_id_fkey" FOREIGN KEY ("approved_translation_id") REFERENCES "Translation"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElementComment" ADD CONSTRAINT "TranslatableElementComment_XcPkwxltYBq7_fkey" FOREIGN KEY ("translatable_element_id") REFERENCES "TranslatableElement"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElementComment" ADD CONSTRAINT "TranslatableElementComment_user_id_User_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElementComment" ADD CONSTRAINT "TranslatableElementComment_language_id_Language_id_fkey" FOREIGN KEY ("language_id") REFERENCES "Language"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
@@ -465,11 +488,13 @@ ALTER TABLE "TranslatableElementContext" ADD CONSTRAINT "TranslatableElementCont
 ALTER TABLE "TranslatableElementContext" ADD CONSTRAINT "TranslatableElementContext_1bh40XM18KpL_fkey" FOREIGN KEY ("translatable_element_id") REFERENCES "TranslatableElement"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableString" ADD CONSTRAINT "TranslatableString_language_id_Language_id_fkey" FOREIGN KEY ("language_id") REFERENCES "Language"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableString" ADD CONSTRAINT "TranslatableString_chunk_set_id_ChunkSet_id_fkey" FOREIGN KEY ("chunk_set_id") REFERENCES "ChunkSet"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "Translation" ADD CONSTRAINT "Translation_translator_id_User_id_fkey" FOREIGN KEY ("translator_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "Translation" ADD CONSTRAINT "Translation_translator_id_User_id_fkey" FOREIGN KEY ("translator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Translation" ADD CONSTRAINT "Translation_translatable_element_id_TranslatableElement_id_fkey" FOREIGN KEY ("translatable_element_id") REFERENCES "TranslatableElement"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Translation" ADD CONSTRAINT "Translation_string_id_TranslatableString_id_fkey" FOREIGN KEY ("string_id") REFERENCES "TranslatableString"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TranslationApprovement" ADD CONSTRAINT "TranslationApprovement_translation_id_Translation_id_fkey" FOREIGN KEY ("translation_id") REFERENCES "Translation"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TranslationApprovement" ADD CONSTRAINT "TranslationApprovement_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "TranslationSnapshot" ADD CONSTRAINT "TranslationSnapshot_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "TranslationSnapshot" ADD CONSTRAINT "TranslationSnapshot_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "TranslationSnapshotItem" ADD CONSTRAINT "TranslationSnapshotItem_snapshot_id_TranslationSnapshot_id_fkey" FOREIGN KEY ("snapshot_id") REFERENCES "TranslationSnapshot"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "TranslationSnapshotItem" ADD CONSTRAINT "TranslationSnapshotItem_translation_id_Translation_id_fkey" FOREIGN KEY ("translation_id") REFERENCES "Translation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslationVote" ADD CONSTRAINT "TranslationVote_voter_id_User_id_fkey" FOREIGN KEY ("voter_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslationVote" ADD CONSTRAINT "TranslationVote_translation_id_Translation_id_fkey" FOREIGN KEY ("translation_id") REFERENCES "Translation"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "User" ADD CONSTRAINT "User_avatar_file_id_File_id_fkey" FOREIGN KEY ("avatar_file_id") REFERENCES "File"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint

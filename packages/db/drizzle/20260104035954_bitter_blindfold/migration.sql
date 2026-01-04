@@ -1,1 +1,0 @@
-ALTER TABLE "TranslatableElement" DROP CONSTRAINT "TranslatableElement_approved_translation_id_Translation_id_fkey";
