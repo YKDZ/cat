@@ -1,6 +1,5 @@
 export * from "./storage/index.ts";
 export * from "./crypto.ts";
-export * from "./diff.ts";
 export * from "./file.ts";
 export * from "./memory.ts";
 export * from "./plugin.ts";
@@ -12,3 +11,4 @@ export * from "./stream.ts";
 export * from "./tree.ts";
 export * from "./mobile.ts";
 export * from "./permission.ts";
+export * from "./snapshot.ts";

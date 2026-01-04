@@ -11,15 +11,6 @@ export const TranslationVoteSchema = z.object({
   translationId: z.int(),
 });
 
-export const TranslationApprovementSchema = z.object({
-  id: z.int(),
-  isActive: z.boolean(),
-  createdAt: DrizzleDateTimeSchema,
-  updatedAt: DrizzleDateTimeSchema,
-  translationId: z.int(),
-  creatorId: z.uuidv4(),
-});
-
 export const TranslationSchema = z.object({
   id: z.int(),
   stringId: z.int(),
@@ -31,7 +22,4 @@ export const TranslationSchema = z.object({
 });
 
 export type Translation = z.infer<typeof TranslationSchema>;
-export type TranslationApprovement = z.infer<
-  typeof TranslationApprovementSchema
->;
 export type TranslationVote = z.infer<typeof TranslationVoteSchema>;
