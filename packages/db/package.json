@@ -23,13 +23,12 @@
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier . --write",
     "format:check": "prettier . --check .",
-    "drizzle:studio": "drizzle-kit studio",
+    "drizzle:studio": "drizzle-kit studio --verbose",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
     "test": "vitest run"
   },
   "dependencies": {
-    "drizzle-orm": "1.0.0-beta.8-734e789",
     "pg": "^8.16.3",
     "redis": "^5.10.0"
   },
@@ -47,6 +46,7 @@
     "@cat/shared": "workspace:*",
     "cldr-core": "^48.0.0",
     "dotenv": "^17.2.3",
+    "drizzle-orm": "1.0.0-beta.8-734e789",
     "zod": "^4.3.4"
   }
 }

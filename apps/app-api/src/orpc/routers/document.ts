@@ -6,7 +6,6 @@ import {
   document as documentTable,
   file as fileTable,
   translation as translationTable,
-  translationApprovement as translationApprovementTable,
   project as projectTable,
   eq,
   exists,
@@ -21,7 +20,8 @@ import {
   translatableString,
   getColumns,
   blob as blobTable,
-  inArray,
+  isNotNull,
+  isNull,
 } from "@cat/db";
 import {
   ElementTranslationStatusSchema,
@@ -137,19 +137,7 @@ const buildTranslationStatusConditions = (
                 translatableElementTable.id,
               ),
               eq(translatableString.languageId, languageId),
-              not(
-                exists(
-                  drizzle
-                    .select()
-                    .from(translationApprovementTable)
-                    .where(
-                      eq(
-                        translationApprovementTable.translationId,
-                        translationTable.id,
-                      ),
-                    ),
-                ),
-              ),
+              isNull(translatableElementTable.approvedTranslationId),
             ),
           ),
       ),
@@ -171,21 +159,7 @@ const buildTranslationStatusConditions = (
                 translationTable.translatableElementId,
                 translatableElementTable.id,
               ),
-              eq(translatableString.languageId, languageId),
-              exists(
-                drizzle
-                  .select()
-                  .from(translationApprovementTable)
-                  .where(
-                    and(
-                      eq(
-                        translationApprovementTable.translationId,
-                        translationTable.id,
-                      ),
-                      eq(translationApprovementTable.isActive, true),
-                    ),
-                  ),
-              ),
+              isNotNull(translatableElementTable.approvedTranslationId),
             ),
           ),
       ),
@@ -536,9 +510,11 @@ export const getElementTranslationStatus = authed
     } = context;
     const { elementId, languageId } = input;
 
-    assertSingleNonNullish(
+    const { approvedTranslationId } = assertSingleNonNullish(
       await drizzle
-        .select(getColumns(translatableElementTable))
+        .select({
+          approvedTranslationId: translatableElementTable.approvedTranslationId,
+        })
         .from(translatableElementTable)
         .where(eq(translatableElementTable.id, elementId)),
       `Element ${elementId} not found`,
@@ -565,22 +541,7 @@ export const getElementTranslationStatus = authed
       return "NO";
     }
 
-    // 检查是否有活跃的审批
-    const activeApprovementAmount = await drizzle
-      .select({ id: translationApprovementTable.id })
-      .from(translationApprovementTable)
-      .where(
-        and(
-          eq(translationApprovementTable.isActive, true),
-          inArray(
-            translationApprovementTable.translationId,
-            translations.map((t) => t.id),
-          ),
-        ),
-      )
-      .limit(1);
-
-    if (activeApprovementAmount.length > 0) {
+    if (approvedTranslationId) {
       return "APPROVED";
     }
 
@@ -841,17 +802,10 @@ export const countTranslation = authed
           eq(translatableElementTable.documentId, documentId),
           eq(translatableString.languageId, languageId),
           isApproved
-            ? eq(translationApprovementTable.isActive, isApproved)
+            ? isNotNull(translatableElementTable.approvedTranslationId)
             : undefined,
         ),
       );
-
-    if (isApproved !== undefined) {
-      baseQuery.innerJoin(
-        translationApprovementTable,
-        eq(translationApprovementTable.translationId, translationTable.id),
-      );
-    }
 
     return assertSingleNonNullish(await baseQuery).count;
   });

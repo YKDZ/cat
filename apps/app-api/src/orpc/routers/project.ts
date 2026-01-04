@@ -14,7 +14,6 @@ import {
   document as documentTable,
   translatableElement as translatableElementTable,
   translation as translationTable,
-  translationApprovement as translationApprovementTable,
   count,
   translatableString,
   documentClosure,
@@ -28,10 +27,13 @@ import {
   rolePermission as rolePermissionTable,
   userRole as userRoleTable,
   language,
+  isNull,
+  isNotNull,
 } from "@cat/db";
 import { assertFirstOrNull, assertSingleNonNullish } from "@cat/shared/utils";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 import { authed } from "@/orpc/server";
+import { takeSnapshot } from "@cat/app-server-shared/utils";
 
 const buildTranslationStatusConditions = (
   drizzle: DrizzleClient,
@@ -113,19 +115,7 @@ const buildTranslationStatusConditions = (
                 translatableElementTable.id,
               ),
               eq(translatableString.languageId, languageId),
-              not(
-                exists(
-                  drizzle
-                    .select()
-                    .from(translationApprovementTable)
-                    .where(
-                      eq(
-                        translationApprovementTable.translationId,
-                        translationTable.id,
-                      ),
-                    ),
-                ),
-              ),
+              isNull(translatableElementTable.approvedTranslationId),
             ),
           ),
       ),
@@ -148,20 +138,7 @@ const buildTranslationStatusConditions = (
                 translatableElementTable.id,
               ),
               eq(translatableString.languageId, languageId),
-              exists(
-                drizzle
-                  .select()
-                  .from(translationApprovementTable)
-                  .where(
-                    and(
-                      eq(
-                        translationApprovementTable.translationId,
-                        translationTable.id,
-                      ),
-                      eq(translationApprovementTable.isActive, true),
-                    ),
-                  ),
-              ),
+              isNotNull(translatableElementTable.approvedTranslationId),
             ),
           ),
       ),
@@ -637,5 +614,24 @@ export const getTargetLanguages = authed
         .select(getColumns(language))
         .from(language)
         .where(inArray(language.id, ids));
+    });
+  });
+
+export const snapshot = authed
+  .input(
+    z.object({
+      projectId: z.uuidv4(),
+    }),
+  )
+  .output(z.int().min(0))
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+      user,
+    } = context;
+    const { projectId } = input;
+
+    return await drizzle.transaction(async (tx) => {
+      return await takeSnapshot(tx, projectId, user.id);
     });
   });

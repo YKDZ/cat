@@ -1,14 +1,11 @@
 import * as z from "zod/v4";
 import {
-  TranslationApprovementSchema,
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
 import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import {
   and,
-  asc,
-  count,
   eq,
   isNull,
   project as projectTable,
@@ -17,7 +14,6 @@ import {
   sum,
   sumDistinct,
   translation as translationTable,
-  translationApprovement as translationApprovementTable,
   translationVote as translationVoteTable,
   translatableElement as translatableElementTable,
   translatableString,
@@ -35,7 +31,6 @@ import {
   createTranslationWorkflow,
 } from "@cat/app-workers";
 import { authed } from "@/orpc/server";
-import { ORPCError } from "@orpc/client";
 
 export const translationRouter = authed
   .input(
@@ -157,10 +152,6 @@ export const getAll = authed
         eq(translatableString.id, translationTable.stringId),
       )
       .leftJoin(
-        translationApprovementTable,
-        eq(translationApprovementTable.translationId, translationTable.id),
-      )
-      .leftJoin(
         translationVoteTable,
         eq(translationVoteTable.translationId, translationTable.id),
       )
@@ -274,11 +265,10 @@ export const autoApprove = authed
       languageId: z.string(),
     }),
   )
-  .output(z.int())
+  .output(z.number())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      user,
     } = context;
     const { documentId, languageId } = input;
 
@@ -288,11 +278,11 @@ export const autoApprove = authed
       );
 
     return await drizzle.transaction(async (tx) => {
-      const topTranslations = await tx
+      const bestTranslations = await tx
         .selectDistinctOn([translationTable.translatableElementId], {
-          translationId: translationTable.id,
           elementId: translationTable.translatableElementId,
-          voteCount: voteSum,
+          translationId: translationTable.id,
+          // voteCount: voteSum,
         })
         .from(translationTable)
         .innerJoin(
@@ -307,10 +297,6 @@ export const autoApprove = authed
           eq(translationTable.stringId, translatableString.id),
         )
         .leftJoin(
-          translationApprovementTable,
-          eq(translationApprovementTable.translationId, translationTable.id),
-        )
-        .leftJoin(
           translationVoteTable,
           eq(translationVoteTable.translationId, translationTable.id),
         )
@@ -318,34 +304,39 @@ export const autoApprove = authed
           and(
             eq(translatableElementTable.documentId, documentId),
             eq(translatableString.languageId, languageId),
-            isNull(translationApprovementTable.id),
+            // 不自动批准已有被批准过的翻译的元素
+            isNull(translatableElementTable.approvedTranslationId),
           ),
         )
-        .groupBy(translationTable.id, translationTable.translatableElementId)
+        .groupBy(
+          translationTable.id,
+          translationTable.translatableElementId,
+          translationTable.createdAt, // 排序
+        )
         .orderBy(
           translationTable.translatableElementId,
+          // 票数最高
           desc(voteSum),
-          asc(translationTable.id),
+          // 时间最新
+          desc(translationTable.createdAt),
         );
 
-      const translationIds = topTranslations.map(
-        ({ translationId }) => translationId,
+      if (bestTranslations.length === 0) {
+        return 0;
+      }
+
+      const updatePromises = bestTranslations.map((item) =>
+        tx
+          .update(translatableElementTable)
+          .set({
+            approvedTranslationId: item.translationId,
+          })
+          .where(eq(translatableElementTable.id, item.elementId)),
       );
 
-      if (translationIds.length === 0) return 0;
+      await Promise.all(updatePromises);
 
-      const insertedRows = await tx
-        .insert(translationApprovementTable)
-        .values(
-          translationIds.map((id) => ({
-            translationId: id,
-            isActive: true,
-            creatorId: user.id,
-          })),
-        )
-        .returning({ id: translationApprovementTable.id });
-
-      return insertedRows.length;
+      return bestTranslations.length;
     });
   });
 
@@ -355,43 +346,30 @@ export const approve = authed
       translationId: z.int(),
     }),
   )
-  .output(TranslationApprovementSchema)
+  .output(z.void())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      user,
     } = context;
     const { translationId } = input;
 
-    return await drizzle.transaction(async (tx) => {
-      const { exists } = assertSingleNonNullish(
+    await drizzle.transaction(async (tx) => {
+      const { translatableElementId } = assertSingleNonNullish(
         await tx
-          .select({ exists: count() })
-          .from(translationApprovementTable)
-          .where(
-            and(
-              eq(translationApprovementTable.translationId, translationId),
-              eq(translationApprovementTable.isActive, true),
-            ),
-          ),
-      );
-
-      if (exists > 0) {
-        throw new ORPCError("BAD_REQUEST", {
-          message: "Some translations already have active approvement",
-        });
-      }
-
-      return assertSingleNonNullish(
-        await tx
-          .insert(translationApprovementTable)
-          .values({
-            translationId: translationId,
-            isActive: true,
-            creatorId: user.id,
+          .select({
+            id: translationTable.id,
+            translatableElementId: translationTable.translatableElementId,
           })
-          .returning(),
+          .from(translationTable)
+          .where(eq(translationTable.id, translationId)),
       );
+
+      await tx
+        .update(translatableElementTable)
+        .set({
+          approvedTranslationId: translationId,
+        })
+        .where(eq(translatableElementTable.id, translatableElementId));
     });
   });
 
@@ -408,10 +386,28 @@ export const unapprove = authed
     } = context;
     const { translationId } = input;
 
-    await drizzle
-      .update(translationApprovementTable)
-      .set({ isActive: false })
-      .where(eq(translationApprovementTable.id, translationId));
+    await drizzle.transaction(async (tx) => {
+      const { translatableElementId } = assertSingleNonNullish(
+        await tx
+          .select({
+            translatableElementId: translationTable.translatableElementId,
+          })
+          .from(translationTable)
+          .where(eq(translationTable.id, translationId)),
+      );
+
+      await tx
+        .update(translatableElementTable)
+        .set({
+          approvedTranslationId: null,
+        })
+        .where(
+          and(
+            eq(translatableElementTable.id, translatableElementId),
+            eq(translatableElementTable.approvedTranslationId, translationId),
+          ),
+        );
+    });
   });
 
 export const autoTranslate = authed
@@ -510,32 +506,4 @@ export const autoTranslate = authed
         });
       }),
     );
-  });
-
-export const isApproved = authed
-  .input(
-    z.object({
-      translationId: z.int(),
-    }),
-  )
-  .output(z.boolean())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const { translationId } = input;
-
-    const { exists } = assertSingleNonNullish(
-      await drizzle
-        .select({ exists: count() })
-        .from(translationApprovementTable)
-        .where(
-          and(
-            eq(translationApprovementTable.translationId, translationId),
-            eq(translationApprovementTable.isActive, true),
-          ),
-        ),
-    );
-
-    return exists > 0;
   });

@@ -25,6 +25,7 @@ export const TranslatableElementSchema = z.object({
   creatorId: z.uuidv4().nullable(),
   documentId: z.uuidv4(),
   translatableStringId: z.int(),
+  approvedTranslationId: z.int().nullable(),
 });
 
 export const TranslatableStringSchema = z.object({

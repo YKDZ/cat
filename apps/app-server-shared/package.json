@@ -42,7 +42,6 @@
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "diff": "^8.0.2",
     "zod": "^4.3.4"
   }
 }

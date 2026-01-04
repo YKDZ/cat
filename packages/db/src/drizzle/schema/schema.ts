@@ -17,7 +17,7 @@ import {
   check,
   bytea,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { sql, type AnyColumn } from "drizzle-orm";
 import {
   PluginServiceTypeValues,
   ResourceTypeValues,
@@ -651,6 +651,10 @@ export const translatableElement = pgTable("TranslatableElement", {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
+  approvedTranslationId: integer().references((): AnyColumn => translation.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
   ...timestamps,
 });
 
@@ -807,18 +811,35 @@ export const translation = pgTable(
   ],
 );
 
-export const translationApprovement = pgTable("TranslationApprovement", {
+export const translationSnapshot = pgTable("TranslationSnapshot", {
   id: serial().primaryKey(),
-  isActive: boolean().default(false).notNull(),
-  translationId: integer()
+  projectId: uuid()
     .notNull()
-    .references(() => translation.id, {
+    .references(() => project.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  creatorId: uuid()
+  creatorId: uuid().references(() => user.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  ...timestamps,
+});
+
+export const translationSnapshotItem = pgTable("TranslationSnapshotItem", {
+  id: serial().primaryKey(),
+  snapshotId: integer()
     .notNull()
-    .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    .references(() => translationSnapshot.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  translationId: integer()
+    .notNull()
+    .references(() => translation.id, {
+      onDelete: "restrict",
+      onUpdate: "cascade",
+    }),
   ...timestamps,
 });
 

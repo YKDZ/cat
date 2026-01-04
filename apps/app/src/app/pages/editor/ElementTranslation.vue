@@ -4,7 +4,7 @@ import ElementTranslationMeta from "./ElementTranslationMeta.vue";
 import ElementTranslationVote from "./ElementTranslationVote.vue";
 import TextTagger from "@/app/components/tagger/TextTagger.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
-import ElementTranslationApprovementBtn from "./ElementTranslationApprovementBtn.vue";
+import ElementTranslationApprovalBtn from "./ElementTranslationApprovalBtn.vue";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
 import {
   Collapsible,
@@ -36,7 +36,7 @@ defineProps<{
             <TextTagger :text="translation.text" />
           </div>
           <div class="flex gap-2 items-center">
-            <ElementTranslationApprovementBtn :translation="translation" />
+            <ElementTranslationApprovalBtn :translation="translation" />
             <ElementTranslationVote class="ml-auto" :translation />
           </div></div
       ></CollapsibleTrigger>

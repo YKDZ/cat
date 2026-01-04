@@ -53,10 +53,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.user.id,
         to: r.translation.translatorId,
       }),
-      translationsViaTranslationApprovement: r.many.translation({
-        from: r.user.id.through(r.translationApprovement.creatorId),
-        to: r.translation.id.through(r.translationApprovement.translationId),
-      }),
       translationsViaTranslationVote: r.many.translation({
         from: r.user.id,
         to: r.translation.id,
@@ -158,6 +154,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.user.id,
       }),
       languages: r.many.language(),
+      snapshots: r.many.translationSnapshot(),
     },
     documentClosure: {
       documentAncestor: r.one.document({
@@ -228,10 +225,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       }),
     },
     translatableElement: {
-      memoryItems: r.many.memoryItem({
-        from: r.translatableElement.id,
-        to: r.memoryItem.sourceElementId,
-      }),
       user: r.one.user({
         from: r.translatableElement.creatorId,
         to: r.user.id,
@@ -244,11 +237,19 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.translatableElement.translatableStringId,
         to: r.translatableString.id,
       }),
+      approvedTranslation: r.one.translation({
+        from: r.translatableElement.approvedTranslationId,
+        to: r.translation.id,
+      }),
       translatableElementComments: r.many.translatableElementComment({
         from: r.translatableElement.id,
         to: r.translatableElementComment.translatableElementId,
       }),
       translatableElementContexts: r.many.translatableElementContext(),
+      memoryItems: r.many.memoryItem({
+        from: r.translatableElement.id,
+        to: r.memoryItem.sourceElementId,
+      }),
       translations: r.many.translation(),
     },
     translatableString: {
@@ -265,10 +266,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       translations: r.many.translation(),
     },
     translation: {
-      memoryItems: r.many.memoryItem({
-        from: r.translation.id,
-        to: r.memoryItem.translationId,
-      }),
       translatableString: r.one.translatableString({
         from: r.translation.stringId,
         to: r.translatableString.id,
@@ -281,13 +278,34 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.translation.translatorId,
         to: r.user.id,
       }),
-      usersViaTranslationApprovement: r.many.user({
-        from: r.translation.id.through(r.translationApprovement.translationId),
-        to: r.user.id.through(r.translationApprovement.creatorId),
-      }),
       usersViaTranslationVote: r.many.user({
         from: r.translation.id.through(r.translationVote.translationId),
         to: r.user.id.through(r.translationVote.voterId),
+      }),
+      memoryItems: r.many.memoryItem({
+        from: r.translation.id,
+        to: r.memoryItem.translationId,
+      }),
+    },
+    translationSnapshot: {
+      project: r.one.project({
+        from: r.translationSnapshot.projectId,
+        to: r.project.id,
+      }),
+      creator: r.one.user({
+        from: r.translationSnapshot.creatorId,
+        to: r.user.id,
+      }),
+      snapshotItems: r.many.translationSnapshotItem(),
+    },
+    translationSnapshotItem: {
+      snapshot: r.one.translationSnapshot({
+        from: r.translationSnapshotItem.snapshotId,
+        to: r.translationSnapshot.id,
+      }),
+      translation: r.one.translation({
+        from: r.translationSnapshotItem.translationId,
+        to: r.translation.id,
       }),
     },
     permission: {

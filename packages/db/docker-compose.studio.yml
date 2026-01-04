@@ -1,0 +1,13 @@
+
+services:
+  drizzle-gate:
+    image: ghcr.io/drizzle-team/gateway:latest
+    container_name: drizzle-gate
+    restart: always
+    network_mode: host
+    environment:
+      - PORT=4983
+      - STORE_PATH=/app
+      - MASTERPASS=1256987
+    volumes:
+      - ./gateway:/app
