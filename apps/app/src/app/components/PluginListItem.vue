@@ -7,9 +7,9 @@ import { useI18n } from "vue-i18n";
 import Card from "@/app/components/ui/card/Card.vue";
 import CardHeader from "@/app/components/ui/card/CardHeader.vue";
 import CardTitle from "@/app/components/ui/card/CardTitle.vue";
-import { computedAsyncClient } from "@/app/utils/vue";
 import { orpc } from "@/server/orpc";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import { useQuery } from "@pinia/colada";
 
 const { t } = useI18n();
 
@@ -27,13 +27,16 @@ const simpleName = computed(() => {
   return props.plugin.name.replace("@cat-plugin/", "");
 });
 
-const isInstalled = computedAsyncClient(async () => {
-  return await orpc.plugin.isInstalled({
-    pluginId: props.plugin.id,
-    scopeType: props.scopeType,
-    scopeId: props.scopeId,
-  });
-}, false);
+const { state } = useQuery({
+  key: ["isInstalled", props.plugin.id],
+  placeholderData: false,
+  query: () =>
+    orpc.plugin.isInstalled({
+      pluginId: props.plugin.id,
+      scopeType: props.scopeType,
+      scopeId: props.scopeId,
+    }),
+});
 
 useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
 </script>
@@ -67,7 +70,7 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
             class="px-2 py-1 rounded-sm bg-muted"
             >{{ t("内部插件") }}</span
           >
-          <span v-if="isInstalled" class="px-2 py-1 rounded-sm bg-muted">{{
+          <span v-if="state.data" class="px-2 py-1 rounded-sm bg-muted">{{
             t("已安装")
           }}</span>
         </div>

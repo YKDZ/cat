@@ -17,7 +17,7 @@ declare global {
     interface PageContext {
       user: User | null;
       sessionId: string | null;
-      _piniaInitState?: StateTree;
+      _piniaInitState?: string;
       abortReason: string | undefined;
     }
     interface PageContextServer {

@@ -2,13 +2,13 @@
 import { ref } from "vue";
 import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { computedAsyncClient } from "@/app/utils/vue.ts";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation";
 import { Button } from "@/app/components/ui/button";
 import { useI18n } from "vue-i18n";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Minus, Plus } from "lucide-vue-next";
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { useQuery } from "@pinia/colada";
 
 const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id" | "vote">;
@@ -20,34 +20,38 @@ const { info, rpcWarn } = useToastStore();
 const preVoteAmount = ref(1);
 const isProcessing = ref<boolean>(false);
 
-const selfVote = computedAsyncClient(
-  () =>
+const { state: selfVoteState, refetch: refetchSelfVote } = useQuery({
+  key: ["selfVote", props.translation.id],
+  query: () =>
     orpc.translation.getSelfVote({
       translationId: props.translation.id,
     }),
-  null,
-);
+  enabled: !import.meta.env.SSR,
+});
 
-const vote = computedAsyncClient(() => {
-  // oxlint-disable-next-line no-unused-expressions
-  selfVote.value;
-  return orpc.translation.countVote({
-    translationId: props.translation.id,
-  });
-}, null);
+const { state: voteState, refetch: refetchVote } = useQuery({
+  key: ["vote", props.translation.id],
+  query: () =>
+    orpc.translation.countVote({
+      translationId: props.translation.id,
+    }),
+  enabled: !import.meta.env.SSR,
+});
 
 const handleUnvote = async () => {
-  if (!selfVote.value || selfVote.value.value === 0) return;
+  if (!selfVoteState.value || selfVoteState.value.data?.value === 0) return;
   if (isProcessing.value) return;
 
   isProcessing.value = true;
   await orpc.translation
     .vote({
       translationId: props.translation.id,
+      value: 0,
     })
-    .then((newVote) => {
+    .then(() => {
       info(t("成功取消投票"));
-      selfVote.value = newVote;
+      refetchSelfVote();
+      refetchVote();
     })
     .finally(() => {
       isProcessing.value = false;
@@ -60,6 +64,7 @@ const handleVote = async (value: number) => {
   await orpc.translation
     .vote({
       translationId: props.translation.id,
+      value,
     })
     .then((vote) => {
       info(
@@ -67,7 +72,8 @@ const handleVote = async (value: number) => {
           value: `${vote.value > 0 ? "+" : ""}${vote.value}`,
         }),
       );
-      selfVote.value = vote;
+      refetchSelfVote();
+      refetchVote();
     })
     .finally(() => {
       isProcessing.value = false;
@@ -80,7 +86,7 @@ const handleVote = async (value: number) => {
   <div class="flex gap-1 items-center">
     <TextTooltip
       :tooltip="
-        selfVote?.value === -preVoteAmount
+        selfVoteState?.data?.value === -preVoteAmount
           ? t('放弃投 -{amount} 票', {
               amount: preVoteAmount,
             })
@@ -91,10 +97,12 @@ const handleVote = async (value: number) => {
     >
       <Button
         size="icon"
-        :variant="selfVote?.value === -preVoteAmount ? 'secondary' : 'ghost'"
+        :variant="
+          selfVoteState?.data?.value === -preVoteAmount ? 'secondary' : 'ghost'
+        "
         :disabled="isProcessing"
         @click.stop="
-          selfVote?.value !== -preVoteAmount
+          selfVoteState?.data?.value !== -preVoteAmount
             ? handleVote(-preVoteAmount)
             : handleUnvote()
         "
@@ -103,12 +111,14 @@ const handleVote = async (value: number) => {
       </Button>
     </TextTooltip>
     <span class="text-center size-6 inline-block">
-      <Skeleton v-if="vote === null" class="size-6" />
-      <TextTooltip v-else :tooltip="t('当前票数')">{{ vote }}</TextTooltip>
+      <Skeleton v-if="voteState.data === null" class="size-6" />
+      <TextTooltip v-else :tooltip="t('当前票数')">{{
+        voteState.data
+      }}</TextTooltip>
     </span>
     <TextTooltip
       :tooltip="
-        selfVote?.value === preVoteAmount
+        selfVoteState?.data?.value === preVoteAmount
           ? t('放弃投 +{amount} 票', {
               amount: preVoteAmount,
             })
@@ -119,10 +129,12 @@ const handleVote = async (value: number) => {
     >
       <Button
         size="icon"
-        :variant="selfVote?.value === preVoteAmount ? 'secondary' : 'ghost'"
+        :variant="
+          selfVoteState?.data?.value === preVoteAmount ? 'secondary' : 'ghost'
+        "
         :disabled="isProcessing"
         @click.stop="
-          selfVote?.value !== preVoteAmount
+          selfVoteState?.data?.value !== preVoteAmount
             ? handleVote(preVoteAmount)
             : handleUnvote()
         "

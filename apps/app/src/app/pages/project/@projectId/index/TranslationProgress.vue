@@ -6,10 +6,10 @@ import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { orpc } from "@/server/orpc";
-import { computedAsyncClient } from "@/app/utils/vue.ts";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { useI18n } from "vue-i18n";
 import Dot from "@/app/components/Dot.vue";
+import { useQuery } from "@pinia/colada";
 
 const props = defineProps<{
   project: Pick<Project, "id">;
@@ -18,40 +18,54 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const translatableElementAmount = computedAsyncClient(async () => {
-  return await orpc.project.countElement({
-    projcetId: props.project.id,
-  });
-}, 0);
+const { state: elementAmountState } = useQuery({
+  key: ["elementAmount", props.project.id],
+  placeholderData: 0,
+  query: () =>
+    orpc.project.countElement({
+      projectId: props.project.id,
+    }),
+  enabled: !import.meta.env.SSR,
+});
 
-const translatedElementAmount = computedAsyncClient(async () => {
-  return await orpc.project.countElement({
-    projcetId: props.project.id,
-    isTranslated: true,
-    languageId: props.language.id,
-  });
-}, 0);
+const { state: translatedElementAmountState } = useQuery({
+  key: ["translatedElementAmount", props.project.id, props.language.id],
+  placeholderData: 0,
+  query: () =>
+    orpc.project.countElement({
+      projectId: props.project.id,
+      isTranslated: true,
+      languageId: props.language.id,
+    }),
+  enabled: !import.meta.env.SSR,
+});
 
-const approvedElementAmount = computedAsyncClient(async () => {
-  return await orpc.project.countElement({
-    projcetId: props.project.id,
-    isTranslated: true,
-    isApproved: true,
-    languageId: props.language.id,
-  });
-}, 0);
+const { state: approvedElementAmountState } = useQuery({
+  key: ["approvedElementAmount", props.project.id, props.language.id],
+  placeholderData: 0,
+  query: () =>
+    orpc.project.countElement({
+      projectId: props.project.id,
+      isTranslated: true,
+      isApproved: true,
+      languageId: props.language.id,
+    }),
+  enabled: !import.meta.env.SSR,
+});
 
 const progressBarLines = computed<ProgressBarLine[]>(() => {
   return [
     {
       color: "#5B89C6",
       progress:
-        translatedElementAmount.value / translatableElementAmount.value || 0,
+        (translatedElementAmountState.value.data ?? 0) /
+        ((elementAmountState.value.data ?? 0) || 1),
     },
     {
       color: "#38C800",
       progress:
-        approvedElementAmount.value / translatableElementAmount.value || 0,
+        (approvedElementAmountState.value.data ?? 0) /
+          (elementAmountState.value.data ?? 0) || 0,
     },
   ];
 });

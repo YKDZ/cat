@@ -3,8 +3,8 @@ import { computed, ref } from "vue";
 import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
 import { useI18n } from "vue-i18n";
-import { computedAsyncClient } from "@/app/utils/vue.ts";
 import { orpc } from "@/server/orpc";
+import { useQuery } from "@pinia/colada";
 
 const props = withDefaults(
   defineProps<{
@@ -20,16 +20,18 @@ const { t } = useI18n();
 const languageIds = defineModel<string[]>({ default: [] });
 const search = ref("");
 
-const languages = computedAsyncClient(async () => {
-  return (
-    await orpc.language.getAll({
+const { state } = useQuery({
+  key: ["languages", search.value],
+  query: () =>
+    orpc.language.getAll({
       searchQuery: search.value,
-    })
-  ).languages;
-}, []);
+    }),
+});
 
 const options = computed(() => {
-  return languages.value
+  if (!state.value || !state.value.data) return [];
+
+  return state.value.data.languages
     .map((language) => {
       return {
         value: language.id,

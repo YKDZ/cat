@@ -105,6 +105,9 @@ importers:
       '@photonjs/hono':
         specifier: ^0.1.12
         version: 0.1.12(@hono/node-server@1.19.7(hono@4.11.3))(hono@4.11.3)(srvx@0.9.8)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
+      '@pinia/colada':
+        specifier: ^0.20.0
+        version: 0.20.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
       '@pinia/testing':
         specifier: ^1.0.3
         version: 1.0.3(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))
@@ -238,6 +241,9 @@ importers:
       '@iconify/tailwind4':
         specifier: ^1.2.0
         version: 1.2.0(tailwindcss@4.1.18)
+      '@pinia/colada-devtools':
+        specifier: ^0.4.0
+        version: 0.4.0
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.1.18)
@@ -292,9 +298,6 @@ importers:
       '@orpc/server':
         specifier: ^1.13.2
         version: 1.13.2(@opentelemetry/api@1.9.0)
-      devalue:
-        specifier: ^5.5.0
-        version: 5.6.1
       hono:
         specifier: ^4.11.3
         version: 4.11.3
@@ -876,6 +879,9 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.22
+      vue:
+        specifier: ^3.5.26
+        version: 3.5.26(typescript@5.9.3)
       zod:
         specifier: ^4.3.4
         version: 4.3.4
@@ -3177,6 +3183,15 @@ packages:
     peerDependenciesMeta:
       vite:
         optional: true
+
+  '@pinia/colada-devtools@0.4.0':
+    resolution: {integrity: sha512-1AffG0DGXDpMB2m7pA7Bh7gWObaK95us9u4EPwjpVixZRK55K6KaULQm+51i6ysTVhniDK13LiRrogaR3dH37Q==}
+
+  '@pinia/colada@0.20.0':
+    resolution: {integrity: sha512-IY8ssG7xsVlIq5uvnkQtPMKJ4NHxGeeP04HFKR46DOe58UY07JQFKvbDOj3d+nX/Ki+VAb3TGeHIqQdBWf0eWQ==}
+    peerDependencies:
+      pinia: ^2.2.6 || ^3.0.0
+      vue: ^3.5.17
 
   '@pinia/testing@1.0.3':
     resolution: {integrity: sha512-g+qR49GNdI1Z8rZxKrQC3GN+LfnGTNf5Kk8Nz5Cz6mIGva5WRS+ffPXQfzhA0nu6TveWzPNYTjGl4nJqd3Cu9Q==}
@@ -11095,6 +11110,14 @@ snapshots:
       - h3
       - hono
       - srvx
+
+  '@pinia/colada-devtools@0.4.0': {}
+
+  '@pinia/colada@0.20.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
+    dependencies:
+      '@vue/devtools-api': 8.0.5
+      pinia: 3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
+      vue: 3.5.26(typescript@5.9.3)
 
   '@pinia/testing@1.0.3(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))':
     dependencies:

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ElementTranslations from "./ElementTranslations.vue";
 import Memories from "./Memories.vue";
-import OriginElement from "./OriginElement.vue";
+import CurrentElement from "./CurrentElement.vue";
 import Suggestions from "./Suggestions.vue";
 import Terms from "./Terms.vue";
 import Toolbar from "./Toolbar.vue";
@@ -9,7 +9,7 @@ import TranslateInput from "./TranslateInput.vue";
 </script>
 
 <template>
-  <OriginElement />
+  <CurrentElement />
   <TranslateInput />
   <Toolbar />
   <ElementTranslations />

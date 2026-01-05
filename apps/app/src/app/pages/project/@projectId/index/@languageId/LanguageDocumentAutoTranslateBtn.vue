@@ -26,7 +26,7 @@ import * as z from "zod";
 import { useForm } from "vee-validate";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import DialogDescription from "@/app/components/ui/dialog/DialogDescription.vue";
-import { computedAsyncClient } from "@/app/utils/vue.ts";
+import { useQuery } from "@pinia/colada";
 
 const props = defineProps<{
   document: Pick<Document, "id">;
@@ -52,7 +52,8 @@ const { handleSubmit } = useForm({
 });
 
 const advisorOptions = computed<PickerOption<number>[]>(() => {
-  return availableAdvisors.value.map(
+  if (!state.value || !state.value.data) return [];
+  return state.value.data.map(
     (advisor) =>
       ({
         value: advisor.id,
@@ -70,9 +71,11 @@ const onSubmit = handleSubmit(async (values) => {
   });
 });
 
-const availableAdvisors = computedAsyncClient(async () => {
-  return await orpc.plugin.getAllTranslationAdvisors({});
-}, []);
+const { state } = useQuery({
+  key: ["availableAdvisors"],
+  query: () => orpc.plugin.getAllTranslationAdvisors(),
+  enabled: !import.meta.env.SSR,
+});
 </script>
 
 <template>

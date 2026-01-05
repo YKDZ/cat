@@ -55,7 +55,6 @@
     "@orpc/client": "^1.13.2",
     "@orpc/experimental-pino": "^1.13.2",
     "@orpc/server": "^1.13.2",
-    "devalue": "^5.5.0",
     "hono": "^4.11.3",
     "pino": "^10.1.0",
     "telefunc": "^0.2.17",

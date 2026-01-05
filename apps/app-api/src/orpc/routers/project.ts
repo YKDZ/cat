@@ -511,7 +511,7 @@ export const addTargetLanguages = authed
 export const countElement = authed
   .input(
     z.object({
-      projcetId: z.uuidv4(),
+      projectId: z.uuidv4(),
       isTranslated: z.boolean().optional(),
       isApproved: z.boolean().optional(),
       languageId: z.string().optional(),
@@ -522,9 +522,9 @@ export const countElement = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projcetId, isApproved, isTranslated, languageId } = input;
+    const { projectId, isApproved, isTranslated, languageId } = input;
 
-    const whereConditions = [eq(documentTable.projectId, projcetId)];
+    const whereConditions = [eq(documentTable.projectId, projectId)];
 
     // 添加翻译状态条件
     whereConditions.push(

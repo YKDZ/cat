@@ -70,7 +70,6 @@ const handleLink = async () => {
         <DialogTitle>{{ t("连接或创建新记忆库") }}</DialogTitle>
         <MultiMemoryPicker v-model="memoryIds" full-width create-new />
         <DialogFooter>
-          <Button @click="handleLink">{{ t("连接") }}</Button
           ><Button @click="handleLink"
             ><div class="icon-[mdi--link] size-4" />
             {{ t("连接") }}</Button

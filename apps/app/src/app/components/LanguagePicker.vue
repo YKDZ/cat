@@ -2,8 +2,8 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Picker from "@/app/components/picker/Picker.vue";
-import { computedAsyncClient } from "@/app/utils/vue";
 import { orpc } from "@/server/orpc";
+import { useQuery } from "@pinia/colada";
 
 const props = withDefaults(
   defineProps<{
@@ -19,16 +19,18 @@ const { t } = useI18n();
 const languageId = defineModel<string | undefined>();
 const search = ref("");
 
-const languages = computedAsyncClient(async () => {
-  return (
-    await orpc.language.getAll({
+const { state } = useQuery({
+  key: ["languages"],
+  query: () =>
+    orpc.language.getAll({
       searchQuery: search.value,
-    })
-  ).languages;
-}, []);
+    }),
+});
 
 const options = computed(() => {
-  return languages.value
+  if (!state.value || !state.value.data) return [];
+
+  return state.value.data.languages
     .map((language) => {
       return {
         content: t(language.id),

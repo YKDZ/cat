@@ -4,7 +4,6 @@ import { orpc } from "@/server/orpc";
 import * as z from "zod";
 import { navigate } from "vike/client/router";
 import { useRefHistory } from "@vueuse/core";
-import type { PartData } from "@/app/components/tagger/index.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import {
   TranslatableElementWithDetailsSchema,
@@ -12,7 +11,8 @@ import {
 } from "@/app/stores/editor/element.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { hashJSON } from "@/app/utils/hash.ts";
-import { computedAsyncClient } from "@/app/utils/vue";
+import { useQuery } from "@pinia/colada";
+import type { Token } from "@cat/plugin-core/client";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
   const context = storeToRefs(useEditorContextStore());
@@ -25,8 +25,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
 
   const elementId = ref<number | null>(null);
   const translationValue = ref<string>("");
-  const sourceParts = ref<PartData[]>([]);
-  const translationParts = ref<PartData[]>([]);
+  const sourceTokens = ref<Token[]>([]);
+  const translationTokens = ref<Token[]>([]);
   const searchQuery = ref("");
   const isProofreading = ref(false);
 
@@ -44,16 +44,33 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     return element.value.languageId;
   });
 
-  const elementTotalAmount = computedAsyncClient(async () => {
-    if (!context.documentId.value || !context.languageToId.value) return 0;
+  const { state: elementTotalAmountState } = useQuery({
+    key: ["documents", context.documentId.value!, "elementTotalAmount"],
+    placeholderData: 0,
+    query: async () => {
+      if (!context.documentId.value || !context.languageToId.value) return 0;
 
-    return await orpc.document.countElement({
-      documentId: context.documentId.value,
-      searchQuery: searchQuery.value,
-      isTranslated: !isProofreading.value ? undefined : true,
-      languageId: context.languageToId.value,
-    });
-  }, 0);
+      return await orpc.document.countElement({
+        documentId: context.documentId.value,
+        searchQuery: searchQuery.value,
+        isTranslated: !isProofreading.value ? undefined : true,
+        languageId: context.languageToId.value,
+      });
+    },
+    enabled: !import.meta.env.SSR,
+  });
+
+  const elementTotalAmount = computed(() => {
+    if (
+      !context.documentId.value ||
+      !context.languageToId.value ||
+      !elementTotalAmountState.value ||
+      !elementTotalAmountState.value.data
+    )
+      return 0;
+
+    return elementTotalAmountState.value.data;
+  });
 
   const pageTotalAmount = computed(() => {
     return Math.ceil(elementTotalAmount.value / context.pageSize.value);
@@ -188,8 +205,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     translationValue,
     inputDivEl,
     inputTextareaEl,
-    sourceParts,
-    translationParts,
+    sourceTokens,
+    translationTokens,
     searchQuery,
     isProofreading,
     element,

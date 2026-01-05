@@ -11,7 +11,9 @@ import LanguageDocumentAutoTranslateBtn from "./LanguageDocumentAutoTranslateBtn
 import Button from "@/app/components/ui/button/Button.vue";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import DocumentTranslationProgress from "@/app/components/DocumentTranslationProgress.vue";
-import { computedAsyncClient } from "@/app/utils/vue";
+import { inject } from "vue";
+import { useInjectionKey } from "@/app/utils/provide";
+import type { Data } from "../../+data.server";
 
 const props = defineProps<{
   project: Pick<Project, "id">;
@@ -21,9 +23,7 @@ const props = defineProps<{
 const { info, rpcWarn } = useToastStore();
 const { t } = useI18n();
 
-const documents = computedAsyncClient(async () => {
-  return await orpc.project.getDocuments({ projectId: props.project.id });
-}, []);
+const documents = inject(useInjectionKey<Data>()("documents"))!;
 
 const handleEdit = async (document: Pick<Document, "id">) => {
   await navigate(`/editor/${document.id}/${props.language.id}/auto`);
@@ -43,10 +43,10 @@ const handleExportTranslated = async (document: Pick<Document, "id">) => {
 </script>
 
 <template>
-  <DocumentTree :documents="documents" @click="handleEdit">
+  <DocumentTree :documents @click="handleEdit">
     <template #actions="{ document }">
       <DocumentTranslationProgress :document :language />
-      <LanguageDocumentAutoApproveBtn :document />
+      <LanguageDocumentAutoApproveBtn :document :language />
       <LanguageDocumentAutoTranslateBtn :document :language />
       <Button
         @click="handleExportTranslated(document)"
