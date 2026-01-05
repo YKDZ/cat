@@ -98,7 +98,11 @@ export const getProjectOwned = authed
 
     return await drizzle
       .select(getColumns(glossaryTable))
-      .from(glossaryTable)
+      .from(glossaryToProject)
+      .innerJoin(
+        glossaryTable,
+        eq(glossaryToProject.glossaryId, glossaryTable.id),
+      )
       .where(eq(glossaryToProject.projectId, projectId));
   });
 

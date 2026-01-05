@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 import { storeToRefs } from "pinia";
-import TextTagger from "@/app/components/tagger/TextTagger.vue";
+import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
@@ -38,7 +38,7 @@ useHotKeys(`S+${props.index + 1}`, handleCopy);
       }"
       @click="handleCopy"
     >
-      <TextTagger v-if="document" :text="suggestion.value" />
+      <TokenRenderer v-if="document" :text="suggestion.value" />
     </button>
     <div class="text-sm text-foreground">{{ suggestion.from }}</div>
   </div>

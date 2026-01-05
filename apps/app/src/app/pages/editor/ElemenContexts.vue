@@ -2,7 +2,6 @@
 import ElemenContextJson from "./ElemenContextJson.vue";
 import ElemenContextMarkdown from "./ElemenContextMarkdown.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
-import { computedAsyncClient } from "@/app/utils/vue";
 import { orpc } from "@/server/orpc";
 import type { TranslatableElementContextType } from "@cat/shared/schema/drizzle/enum";
 import { storeToRefs } from "pinia";
@@ -12,13 +11,16 @@ import {
   SidebarContent,
 } from "@/app/components/ui/sidebar";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { useQuery } from "@pinia/colada";
 
 const { elementId } = storeToRefs(useEditorTableStore());
 
-const contexts = computedAsyncClient(async () => {
-  if (!elementId.value) return [];
-  return orpc.element.getContexts({ elementId: elementId.value });
-}, []);
+const { state } = useQuery({
+  key: ["context", elementId.value],
+  placeholderData: [],
+  query: () => orpc.element.getContexts({ elementId: elementId.value! }),
+  enabled: !import.meta.env.SSR,
+});
 
 const componentFromType = (type: TranslatableElementContextType) => {
   switch (type) {
@@ -38,7 +40,7 @@ const componentFromType = (type: TranslatableElementContextType) => {
       <SidebarGroup>
         <SidebarGroupContent class="flex flex-col gap-3">
           <component
-            v-for="context in contexts"
+            v-for="context in state.data"
             :key="context.id"
             :is="componentFromType(context.type)"
             :context

@@ -214,7 +214,7 @@ export const getProjectOwned = authed
     return await drizzle
       .select(getColumns(memoryTable))
       .from(memoryToProject)
-      .innerJoin(memoryToProject, eq(memoryToProject.memoryId, memoryTable.id))
+      .innerJoin(memoryTable, eq(memoryToProject.memoryId, memoryTable.id))
       .where(eq(memoryToProject.projectId, projectId));
   });
 export const countItem = authed

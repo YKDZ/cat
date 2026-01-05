@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import TextTagger from "@/app/components/tagger/TextTagger.vue";
+import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
@@ -31,9 +31,9 @@ useHotKeys(`T+${props.index + 1}`, handleInsert);
       class="text-start flex gap-1 cursor-pointer text-wrap items-center"
       @click="handleInsert"
     >
-      <TextTagger v-if="document" :text="term.term" />
+      <TokenRenderer v-if="document" :text="term.term" />
       <div class="icon-[mdi--arrow-right] size-4" />
-      <TextTagger v-if="document" :text="term.translation" />
+      <TokenRenderer v-if="document" :text="term.translation" />
     </button>
   </div>
 </template>

@@ -1,30 +1,27 @@
 <script setup lang="ts">
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { inject, provide } from "vue";
+import { computed, inject } from "vue";
 import type { Data } from "../../+data.server.ts";
-import { languageKey, useInjectionKey } from "@/app/utils/provide.ts";
-import DocumentTree from "./LanguageDocumentTree.vue";
+import { useInjectionKey } from "@/app/utils/provide.ts";
+import LanguageDocumentTree from "./LanguageDocumentTree.vue";
 import { Button } from "@/app/components/ui/button";
 import { useI18n } from "vue-i18n";
-import { computedAsyncClient } from "@/app/utils/vue.ts";
-import { orpc } from "@/server/orpc";
 import TranslationProgress from "../TranslationProgress.vue";
 
 const ctx = usePageContext();
 const { t } = useI18n();
 
 const project = inject(useInjectionKey<Data>()("project"))!;
+const targetLanguages = inject(useInjectionKey<Data>()("targetLanguages"))!;
 
-const language = computedAsyncClient(async () => {
-  if (!ctx.routeParams || !ctx.routeParams.languageId) return null;
-
-  return await orpc.language.get({
-    languageId: ctx.routeParams.languageId,
-  });
-}, null);
-
-provide(languageKey, language);
+const language = computed(() => {
+  const language = targetLanguages.find(
+    (lang) => lang.id === ctx.routeParams?.languageId,
+  );
+  if (!language) throw new Error("Language not found");
+  return language;
+});
 
 const handleBack = async () => {
   if (!project) return;
@@ -39,10 +36,10 @@ const handleBack = async () => {
         <Button @click="handleBack" size="icon" class="cursor-pointer">
           <div class="icon-[mdi--arrow-left] size-4" />
         </Button>
-        <h3 v-if="language" class="text-xl font-bold">{{ t(language.id) }}</h3>
+        <h3 class="text-xl font-bold">{{ t(language.id) }}</h3>
       </div>
-      <TranslationProgress v-if="project && language" :language :project />
+      <TranslationProgress :language :project />
     </div>
-    <DocumentTree v-if="language" :project="project" :language />
+    <LanguageDocumentTree :project="project" :language />
   </div>
 </template>

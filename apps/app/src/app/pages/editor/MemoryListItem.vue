@@ -5,7 +5,7 @@ import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
-import TextTagger from "@/app/components/tagger/TextTagger.vue";
+import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
@@ -36,7 +36,7 @@ onMounted(async () => {
 <template>
   <div class="px-3 py-2 flex flex-col gap-1 hover:bg-background">
     <button class="text-start cursor-pointer text-wrap" @click="handleCopy">
-      <TextTagger :text="memorySuggestion.translation" />
+      <TokenRenderer :text="memorySuggestion.translation" />
     </button>
     <div class="text-sm text-foreground flex gap-2 items-center">
       <span>{{

@@ -3,6 +3,7 @@ import { SidebarProvider } from "@/app/components/ui/sidebar";
 import { Toaster } from "@/app/components/ui/sonner";
 import { useCookieBooleanRef } from "@/app/utils/cookie";
 import { usePageContext } from "vike-vue/usePageContext";
+import { PiniaColadaDevtools } from "@pinia/colada-devtools";
 
 const ctx = usePageContext();
 
@@ -36,4 +37,6 @@ const adminSidebarOpen = useCookieBooleanRef(ctx, "adminSidebarOpen", true);
             <slot /></div></SidebarProvider></SidebarProvider></SidebarProvider
   ></SidebarProvider>
   <Toaster class="pointer-events-auto" />
+
+  <PiniaColadaDevtools />
 </template>

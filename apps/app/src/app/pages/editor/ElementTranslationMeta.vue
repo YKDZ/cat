@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation";
 import { Badge } from "@/app/components/ui/badge";
-import { computedAsyncClient } from "@/app/utils/vue";
+import { useQuery } from "@pinia/colada";
 
 const { t } = useI18n();
 
@@ -27,16 +27,24 @@ const meta = computed<TranslationMeta | null>(() => {
   return TranslationMetaSchema.nullable().parse(props.translation.meta);
 });
 
-const memory = computedAsyncClient(async () => {
-  if (!meta.value || !meta.value.memoryId) return null;
-  return await orpc.memory.get({ memoryId: meta.value.memoryId });
-}, null);
+const { state: memoryState } = useQuery({
+  key: ["memory", meta.value?.memoryId ?? ""],
+  query: () => {
+    if (!meta.value || !meta.value.memoryId) return Promise.resolve(null);
+    return orpc.memory.get({ memoryId: meta.value.memoryId });
+  },
+  enabled: !import.meta.env.SSR,
+});
 
-const advisor = computedAsyncClient(async () => {
-  if (!meta.value || !meta.value.advisorId) return null;
-  return await orpc.plugin.getTranslationAdvisor({
-    advisorId: meta.value.advisorId,
-  });
+const { state: advisorState } = useQuery({
+  key: ["advisor", meta.value?.advisorId ?? ""],
+  query: () => {
+    if (!meta.value || !meta.value.advisorId) return Promise.resolve(null);
+    return orpc.plugin.getTranslationAdvisor({
+      advisorId: meta.value.advisorId,
+    });
+  },
+  enabled: !import.meta.env.SSR,
 });
 </script>
 
@@ -45,11 +53,11 @@ const advisor = computedAsyncClient(async () => {
     <Badge variant="secondary">{{
       useDateFormat(translation.createdAt, "YYYY-MM-DD HH:mm:ss")
     }}</Badge>
-    <Badge variant="secondary" v-if="memory">{{
-      t("来自记忆库 {name}", { name: memory.name })
+    <Badge variant="secondary" v-if="memoryState.data">{{
+      t("来自记忆库 {name}", { name: memoryState.data.name })
     }}</Badge>
-    <Badge variant="secondary" v-if="advisor">{{
-      t("来自建议器 {name}", { name: advisor.name })
+    <Badge variant="secondary" v-if="advisorState.data">{{
+      t("来自建议器 {name}", { name: advisorState.data.name })
     }}</Badge>
     <Badge variant="secondary" v-if="meta.memorySimilarity"
       >{{

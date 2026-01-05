@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 import ElementTranslationMeta from "./ElementTranslationMeta.vue";
 import ElementTranslationVote from "./ElementTranslationVote.vue";
-import TextTagger from "@/app/components/tagger/TextTagger.vue";
+import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import ElementTranslationApprovalBtn from "./ElementTranslationApprovalBtn.vue";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
@@ -33,7 +33,7 @@ defineProps<{
         >
           <div class="flex gap-2 items-center">
             <UserAvatar :user-id="translation.translatorId" :size="36" />
-            <TextTagger :text="translation.text" />
+            <TokenRenderer :text="translation.text" />
           </div>
           <div class="flex gap-2 items-center">
             <ElementTranslationApprovalBtn :translation="translation" />

@@ -5,12 +5,8 @@ import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Badge } from "@/app/components/ui/badge";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import { i18nUseTimeAgoMessages } from "@/app/utils/i18n";
-import { computedAsyncClient } from "@/app/utils/vue";
 import { orpc } from "@/server/orpc";
-import type {
-  TranslatableElementComment,
-  TranslatableElementCommentReaction,
-} from "@cat/shared/schema/drizzle/document";
+import type { TranslatableElementComment } from "@cat/shared/schema/drizzle/document";
 import type { User } from "@cat/shared/schema/drizzle/user";
 import { useDateFormat, useTimeAgo } from "@vueuse/core";
 import { EllipsisVertical, Trash, Smile, Reply } from "lucide-vue-next";
@@ -25,6 +21,7 @@ import type { TranslatableElementCommentReactionType } from "@cat/shared/schema/
 import { Button } from "@/app/components/ui/button";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
+import { useQuery } from "@pinia/colada";
 
 const props = withDefaults(
   defineProps<{
@@ -91,39 +88,32 @@ const timeAgo = useTimeAgo(props.comment.createdAt, {
 });
 const createdAt = useDateFormat(props.comment.createdAt, "YYYY-MM-DD HH:mm:ss");
 
-const reactions = computedAsyncClient<
-  Pick<TranslatableElementCommentReaction, "id" | "userId" | "type">[]
->(async () => {
-  return orpc.element.getCommentReactions({
-    commentId: props.comment.id,
-  });
-}, []);
+const { state: reactionsState, refetch: refetchReactions } = useQuery({
+  key: ["reactions", props.comment.id],
+  placeholderData: [],
+  query: () =>
+    orpc.element.getCommentReactions({
+      commentId: props.comment.id,
+    }),
+  enabled: !import.meta.env.SSR,
+});
 
-const childComments = computedAsyncClient(async () => {
-  return orpc.element.getChildComments({
-    rootCommentId: props.comment.id,
-  });
-}, []);
+const { state: childCommentsState } = useQuery({
+  key: ["childComments", props.comment.id],
+  placeholderData: [],
+  query: () =>
+    orpc.element.getChildComments({
+      rootCommentId: props.comment.id,
+    }),
+  enabled: !import.meta.env.SSR,
+});
 
-const handleReact = (
-  reaction: Pick<TranslatableElementCommentReaction, "id" | "userId" | "type">,
-) => {
-  const reacted = reactions.value.findIndex(
-    (r) => r.userId === reaction.userId,
-  );
-  if (reacted !== -1) {
-    reactions.value.splice(reacted, 1, reaction);
-  } else {
-    reactions.value.push(reaction);
-  }
-
-  reactions.value = [...reactions.value];
+const handleReact = () => {
+  refetchReactions();
 };
 
-const handleUnReact = (userId: string) => {
-  reactions.value = reactions.value.filter(
-    (reaction) => reaction.userId !== userId,
-  );
+const handleUnReact = () => {
+  refetchReactions();
 };
 
 const handleDelete = async () => {
@@ -200,7 +190,7 @@ const handleDelete = async () => {
                 :comment="comment"
                 :type="emoji.type"
                 :emoji="emoji.emoji"
-                :reactions
+                :reactions="reactionsState.data ?? []"
                 @react="handleReact"
                 @un-react="handleUnReact"
               />
@@ -213,7 +203,7 @@ const handleDelete = async () => {
             :key="emoji.type"
             :emoji="emoji.emoji"
             :type="emoji.type"
-            :reactions="reactions"
+            :reactions="reactionsState.data ?? []"
             :comment
             @react="handleReact"
             @un-react="handleUnReact"
@@ -223,7 +213,7 @@ const handleDelete = async () => {
     </div>
     <div>
       <ElementComment
-        v-for="childComment in childComments"
+        v-for="childComment in childCommentsState.data ?? []"
         :key="childComment.id"
         :comment="childComment"
         :reply="true"

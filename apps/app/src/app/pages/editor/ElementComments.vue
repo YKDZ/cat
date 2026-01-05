@@ -2,7 +2,6 @@
 import MarkdownEditor from "@/app/components/editor/MarkdownEditor.vue";
 import ElementComment from "./ElementComment.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
-import { computedAsyncClient } from "@/app/utils/vue";
 import { orpc } from "@/server/orpc";
 import { storeToRefs } from "pinia";
 import {
@@ -18,19 +17,23 @@ import { Button } from "@/app/components/ui/button";
 import { useI18n } from "vue-i18n";
 import { ArrowRight, ChevronDown, ChevronUp } from "lucide-vue-next";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { useQuery } from "@pinia/colada";
 
 const { t } = useI18n();
 
 const { elementId } = storeToRefs(useEditorTableStore());
 
-const rootComments = computedAsyncClient(async () => {
-  if (!elementId.value) return [];
-  return await orpc.element.getRootComments({
-    elementId: elementId.value,
-    pageIndex: 0,
-    pageSize: 10,
-  });
-}, []);
+const { state, refetch } = useQuery({
+  key: ["rootComments", elementId.value, 10, 0],
+  placeholderData: [],
+  query: () =>
+    orpc.element.getRootComments({
+      elementId: elementId.value!,
+      pageIndex: 0,
+      pageSize: 10,
+    }),
+  enabled: !import.meta.env.SSR,
+});
 
 const openEditor = defineModel<boolean>("openEditor", { default: false });
 
@@ -39,21 +42,17 @@ const content = ref("");
 const comment = async () => {
   if (!elementId.value) return;
 
-  const comment = await orpc.element.comment({
+  await orpc.element.comment({
     elementId: elementId.value,
     content: content.value,
     languageId: "en",
   });
 
-  if (comment.rootCommentId === comment.id) {
-    rootComments.value = [comment, ...rootComments.value];
-  }
+  refetch();
 };
 
 const handleDelete = (commentId: number) => {
-  rootComments.value = rootComments.value.filter(
-    (comment) => comment.id !== commentId,
-  );
+  refetch();
 };
 </script>
 
@@ -63,7 +62,7 @@ const handleDelete = (commentId: number) => {
       <SidebarGroup>
         <SidebarGroupContent class="flex flex-col gap-3">
           <ElementComment
-            v-for="comment in rootComments"
+            v-for="comment in state.data"
             :key="comment.id"
             :comment
             @delete="handleDelete"

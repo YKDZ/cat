@@ -170,6 +170,7 @@ export const vote = authed
   .input(
     z.object({
       translationId: z.int(),
+      value: z.int(),
     }),
   )
   .output(TranslationVoteSchema)
@@ -178,14 +179,13 @@ export const vote = authed
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    const { translationId } = input;
+    const { translationId, value } = input;
 
-    // 一个人用户对同一个翻译只能投票一次
     return assertSingleNonNullish(
       await drizzle
         .insert(translationVoteTable)
         .values({
-          value: 1,
+          value,
           translationId,
           voterId: user.id,
         })
@@ -195,9 +195,7 @@ export const vote = authed
             translationVoteTable.voterId,
           ],
           set: {
-            value: 1,
-            translationId,
-            voterId: user.id,
+            value,
           },
         })
         .returning(),

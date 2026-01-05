@@ -4,8 +4,8 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { orpc } from "@/server/orpc";
 import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
-import { computedAsyncClient } from "@/app/utils/vue.ts";
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import { useQuery } from "@pinia/colada";
 
 const props = withDefaults(
   defineProps<{
@@ -26,12 +26,15 @@ const props = withDefaults(
 
 const memoryIds = defineModel<string[]>();
 
-const memories = computedAsyncClient(async () => {
-  return await props.getter();
-}, []);
+const { state } = useQuery({
+  key: ["memories"],
+  query: () => props.getter(),
+});
 
 const options = computed(() => {
-  return memories.value
+  if (!state.value || !state.value.data) return [];
+
+  return state.value.data
     .filter((memory) =>
       props.filter({
         value: memory.id,

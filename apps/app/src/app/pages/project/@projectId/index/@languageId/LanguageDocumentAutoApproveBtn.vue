@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/drizzle/document";
-import { inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
-import { languageKey } from "@/app/utils/provide.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 import Button from "@/app/components/ui/button/Button.vue";
 import {
@@ -15,24 +13,24 @@ import {
   DialogTitle,
 } from "@/app/components/ui/dialog";
 import { Check } from "lucide-vue-next";
+import type { Language } from "@cat/shared/schema/drizzle/misc";
 
 const { t } = useI18n();
 
 const props = defineProps<{
   document: Pick<Document, "id">;
+  language: Pick<Language, "id">;
 }>();
 
 const { info, rpcWarn } = useToastStore();
 
-const language = inject(languageKey);
-
 const handleAutoApprove = async () => {
-  if (!language || !language.value) return;
+  if (!props.language) return;
 
   await orpc.translation
     .autoApprove({
       documentId: props.document.id,
-      languageId: language.value.id,
+      languageId: props.language.id,
     })
     .then((count) => {
       info(`成功自动批准 ${count} 条可用的翻译`);
