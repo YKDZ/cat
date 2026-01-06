@@ -22,7 +22,7 @@ import {
   pluginService,
 } from "@cat/db";
 import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
-import { PluginRegistry } from "@cat/plugin-core";
+import { ComponentRecordSchema, PluginRegistry } from "@cat/plugin-core";
 import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
 import { authed, base } from "@/orpc/server";
@@ -363,4 +363,20 @@ export const isInstalled = authed
     );
 
     return !!installation;
+  });
+
+export const getAllComponentsOfSlot = authed
+  .input(
+    z.object({
+      slotId: z.string(),
+    }),
+  )
+  .output(z.array(ComponentRecordSchema))
+  .handler(async ({ context, input }) => {
+    const { pluginRegistry } = context;
+    const { slotId } = input;
+
+    const components = pluginRegistry.getComponentOfSlot(slotId);
+
+    return components;
   });

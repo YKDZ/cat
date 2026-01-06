@@ -45,7 +45,7 @@ const load = async () => {
     const sandbox = createSandbox(props.component.pluginId, window, {
       globalContextBuilder: (pluginId, win) => ({
         customElements: safeCustomElements(registry),
-        Vue,
+        Vue: { ...Vue },
         fetch: window.fetch,
         console: window.console,
       }),
@@ -56,8 +56,12 @@ const load = async () => {
     logger.error("WEB", { msg: "Failed to evaluate sandbox code" }, e);
   }
 
-  // TODO 逻辑上暂时不允许一次注册多个组件，实际可以考虑把这个组件整个搬到父组件
-  if (registry.size > 1 || registry.size === 0) return;
+  // TODO 逻辑上暂时不允许一次注册多个组件
+  if (registry.size > 1 || registry.size === 0) {
+    logger.warn("WEB", {
+      msg: `Plugin registered component enrty script should define only one component. Bot got ${registry.size}`,
+    });
+  }
 
   const [name, { constructor, options }] = registry.entries().next().value!;
 
@@ -67,13 +71,8 @@ const load = async () => {
     });
   }
 
-  if (customElements.get(name)) {
-    logger.warn("WEB", {
-      msg: `Component ${name} is already defined.`,
-    });
-  } else {
+  if (!customElements.get(name))
     customElements.define(scopedName.value, constructor, options);
-  }
 };
 
 onBeforeMount(load);
