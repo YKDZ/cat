@@ -4,7 +4,14 @@ import dts from "unplugin-dts/vite";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/db", "@cat/shared", "zod", "lodash-es"],
+    external: [
+      "@cat/db",
+      "@cat/shared",
+      "zod",
+      "vue",
+      "lodash-es",
+      "dompurify",
+    ],
   },
 
   resolve: {

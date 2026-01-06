@@ -1,5 +1,4 @@
 import { CustomElementNameSchema } from "@cat/shared/schema/ce";
-import { createHash } from "node:crypto";
 import * as z from "zod";
 
 export const ComponentRecordSchema = z.object({
@@ -48,23 +47,9 @@ export class ComponentRegistry {
       throw new Error("Invalid component data from plugin");
     }
 
-    const modified = components.map((compo) => {
-      compo.name =
-        compo.name +
-        "-" +
-        createHash("sha256")
-          .update(compo.name)
-          .update(compo.pluginId)
-          .update(compo.slot)
-          .update(compo.url)
-          .digest("hex")
-          .slice(0, 8);
-      return compo;
-    });
-
     if (!this.components.has(pluginId)) {
       this.components.set(pluginId, []);
     }
-    this.components.get(pluginId)!.push(...modified);
+    this.components.get(pluginId)!.push(...components);
   }
 }

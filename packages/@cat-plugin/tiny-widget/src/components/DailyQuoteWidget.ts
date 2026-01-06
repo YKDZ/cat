@@ -1,4 +1,6 @@
 import DailyQuoteWidget from "@/components/DailyQuoteWidget.ce.vue";
 import { defineCustomElement } from "vue";
 
-export default defineCustomElement(DailyQuoteWidget);
+const ce = defineCustomElement(DailyQuoteWidget);
+
+customElements.define("daily-quote-widget", ce);

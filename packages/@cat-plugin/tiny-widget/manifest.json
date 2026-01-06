@@ -8,7 +8,6 @@
     {
       "id": "daily-quote-widget",
       "url": "dist/daily-quote-widget.js",
-      "skeleton": "dist/daily-quote-widget-skeleton.js",
       "slot": "test"
     }
   ]

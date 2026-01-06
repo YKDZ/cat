@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { ComponentRecord } from "@cat/plugin-core";
 import { usePageContext } from "vike-vue/usePageContext";
-import { onActivated, onMounted } from "vue";
+import { computed, onBeforeMount } from "vue";
+import { createSandbox } from "@cat/plugin-core/client";
+import { logger } from "@cat/shared/utils";
 
 const props = defineProps<{
   component: ComponentRecord;
@@ -9,51 +11,41 @@ const props = defineProps<{
 
 const ctx = usePageContext();
 
-const parseURL = (url: string, id: string, pluginId: string) => {
-  if (url.startsWith("http")) return url;
+const registeredName = computed(() => {
+  return props.component.pluginId + "-" + props.component.name;
+});
+
+const url = computed(() => {
+  if (props.component.url.startsWith("http")) return props.component.url;
   const result = new URL(
-    "/_plugin/" + pluginId + "/component/" + id,
+    "/_plugin/" +
+      props.component.pluginId +
+      "/component/" +
+      props.component.name,
     ctx.globalContext.baseURL,
   );
-  result.searchParams.append("path", url);
+  result.searchParams.append("path", props.component.url);
   return result.href;
+});
+
+const load = async () => {
+  try {
+    const response = await fetch(url.value);
+    const code = await response.text();
+    const sandbox = createSandbox(props.component.pluginId, window);
+    sandbox.evaluate(code);
+  } catch (e) {
+    logger.error("WEB", { msg: "Failed to evaluate sandbox code" }, e);
+  }
 };
 
-onMounted(async () => {
-  if (!customElements.get(props.component.name)) {
-    const module = await import(
-      /* @vite-ignore */ parseURL(
-        props.component.url,
-        props.component.name,
-        props.component.pluginId,
-      )
-    );
-    if (!customElements.get(props.component.name)) {
-      customElements.define(props.component.name, module.default);
-    }
-  }
-});
-
-onActivated(async () => {
-  if (!customElements.get(props.component.name)) {
-    const module = await import(
-      /* @vite-ignore */ parseURL(
-        props.component.url,
-        props.component.name,
-        props.component.pluginId,
-      )
-    );
-    if (!customElements.get(props.component.name)) {
-      customElements.define(props.component.name, module.default);
-    }
-  }
-});
+onBeforeMount(load);
 </script>
 
 <template>
   <component
-    :is="component.name"
-    :key="component.name"
+    :is="registeredName"
+    :key="registeredName"
     style="display: block"
   />
 </template>
