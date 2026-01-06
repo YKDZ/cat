@@ -2,7 +2,7 @@ import { RPCHandler } from "@orpc/server/fetch";
 import { CORSPlugin } from "@orpc/server/plugins";
 import { logger } from "@cat/shared/utils";
 import { Hono } from "hono";
-import { getHttpContext } from "@/utils/context";
+import { getContext } from "@/utils/context";
 import { CompressionPlugin } from "@orpc/server/fetch";
 import router from "@/orpc/router.ts";
 import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
@@ -23,7 +23,7 @@ const handler = new RPCHandler(router, {
 
 // @ts-expect-error https://orpc.dev/docs/adapters/hono
 app.all("*", async (c, next) => {
-  const ctx = await getHttpContext(c.req.raw, c.res.headers);
+  const ctx = await getContext(c.req.raw, c.res.headers);
 
   const { matched, response } = await handler.handle(c.req.raw, {
     prefix: "/api/rpc",

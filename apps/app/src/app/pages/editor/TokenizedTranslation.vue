@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
-import TextTagger from "@/app/components/tagger/TextTagger.vue";
-import type { PartData } from "@/app/components/tagger/index.ts";
+import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import type { Token } from "@cat/plugin-core";
 
-const { translationValue, inputTextareaEl, translationParts } = storeToRefs(
+const { translationValue, inputTextareaEl, translationTokens } = storeToRefs(
   useEditorTableStore(),
 );
 const { document } = storeToRefs(useEditorContextStore());
 
-const handleUpdate = (from: PartData[] | undefined, to: PartData[]) => {
-  translationParts.value = to;
+const handleUpdate = (tokens: Token[]) => {
+  translationTokens.value = tokens;
 };
 
 onMounted(() => {
@@ -23,7 +23,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <TextTagger
+  <TokenRenderer
     v-if="document"
     :text="translationValue"
     interactable

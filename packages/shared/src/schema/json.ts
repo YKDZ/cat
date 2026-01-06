@@ -131,5 +131,9 @@ export const _JSONSchemaSchema = z.custom<_JSONSchema>((data) => {
   return isJSONableObject(data);
 });
 
+export const JSONObjectSchema = z.custom<JSONObject>((data) => {
+  return isJSONableObject(data);
+});
+
 export type JSONArray = JSONType[];
 export type NonNullJSONType = Exclude<JSONType, null>;

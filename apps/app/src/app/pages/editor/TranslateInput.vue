@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
-import TaggedTranslation from "./TaggedTranslation.vue";
+import TokenizedTranslation from "./TokenizedTranslation.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useI18n } from "vue-i18n";
 import {
@@ -39,7 +39,7 @@ onMounted(() => {
       <ResizableHandle :with-handle="true" />
       <ResizablePanel>
         <div class="px-5 pt-5 flex flex-col gap-5 min-h-32">
-          <TaggedTranslation />
+          <TokenizedTranslation />
         </div>
       </ResizablePanel>
     </ResizablePanelGroup>

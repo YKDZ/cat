@@ -37,10 +37,7 @@ import {
   type PutStreamContext,
   AuthProvider,
   MFAProvider,
-  QAChecker,
-  type CheckContext,
   type PluginLoader,
-  type QAIssue,
   FileImporter,
   type CanExportContext,
   type ExportContext,
@@ -420,25 +417,6 @@ export class TestTermAligner extends TermAligner {
   };
 }
 
-export class TestQAChecker extends QAChecker {
-  public override getId = (): string => "qa-checker";
-
-  public override check = async ({
-    target,
-  }: CheckContext): Promise<QAIssue[]> => {
-    // 如果目标文本包含 "error"，则报错
-    if (target.text.includes("error")) {
-      return [
-        {
-          type: "incorrect",
-          message: "Translation contains forbidden word 'error'",
-        },
-      ];
-    }
-    return [];
-  };
-}
-
 type RegisteredPlugin = {
   manifest: PluginManifest;
   data: PluginData;
@@ -450,7 +428,6 @@ const plugin = {
     return [
       new TestAuthProvider(),
       new TestMFAProvider(),
-      new TestQAChecker(),
       new TestStorageProvider(),
       new TestTermAligner(),
       new TestTermExtractor(),

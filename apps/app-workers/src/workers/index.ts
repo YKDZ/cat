@@ -10,3 +10,5 @@ export * from "./retrive-embeddings.ts";
 export * from "./search-memory.ts";
 export * from "./search-term.ts";
 export * from "./upsert-document-from-file.ts";
+export * from "./tokenize.ts";
+export * from "./qa.ts";

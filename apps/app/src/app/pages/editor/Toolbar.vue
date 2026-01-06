@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import TranslationVerifyResult from "./TranslationVerifyResult.vue";
+import TranslationQaResult from "./TranslationQaResult.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { Button } from "@/app/components/ui/button";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Check, Copy, MoveRight, Redo, Trash, Undo } from "lucide-vue-next";
+import { useEditorContextStore } from "@/app/stores/editor/context";
 
 const { t } = useI18n();
 
 const { translate, toNextUntranslated, replace, clear, undo, redo } =
   useEditorTableStore();
-const { element } = storeToRefs(useEditorTableStore());
+const { element, translationValue, sourceTokens, translationTokens } =
+  storeToRefs(useEditorTableStore());
+const { documentId } = storeToRefs(useEditorContextStore());
 
 const handleTranslate = async (toNext: boolean) => {
   await translate();
@@ -57,9 +60,21 @@ const handleTranslate = async (toNext: boolean) => {
           <Redo />
         </Button>
       </TextTooltip>
-      <TextTooltip :tooltip="t('切分器 QA')">
-        <TranslationVerifyResult />
-      </TextTooltip>
+
+      <TranslationQaResult
+        v-if="element"
+        :source="{
+          tokens: sourceTokens,
+          text: element.value,
+          languageId: element.languageId,
+        }"
+        :translation="{
+          tokens: translationTokens,
+          text: translationValue,
+          languageId: element?.languageId!,
+        }"
+        :documentId
+      />
     </div>
     <div class="flex gap-1 items-center">
       <Button

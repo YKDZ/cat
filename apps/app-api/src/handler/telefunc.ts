@@ -1,11 +1,11 @@
-import { getHttpContext } from "@/utils/context";
+import { getContext } from "@/utils/context";
 import { Hono } from "hono";
 import { telefunc } from "telefunc";
 
 const app = new Hono();
 
 app.all("*", async (c) => {
-  const ctx = await getHttpContext(c.req.raw, c.res.headers);
+  const ctx = await getContext(c.req.raw, c.res.headers);
 
   const httpResponse = await telefunc({
     context: { ...ctx },

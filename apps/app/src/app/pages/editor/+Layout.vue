@@ -50,16 +50,16 @@ watch(
       <Sidebar />
     </div>
 
-    <div class="flex flex-col flex-1 h-full min-w-0">
+    <div class="flex flex-col flex-1 h-full min-w-0 overflow-hidden">
       <div class="sticky top-0 z-10 border-b bg-background">
         <Header />
       </div>
 
-      <ScrollArea class="flex-1 w-full h-full">
-        <div class="flex flex-col h-full">
+      <div class="flex-1 min-h-0 w-full">
+        <ScrollArea class="h-full w-full">
           <slot />
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </div>
 
     <div

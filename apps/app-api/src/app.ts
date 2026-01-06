@@ -5,6 +5,7 @@ import telefuncHandler from "@/handler/telefunc.ts";
 import orpcHandler from "@/handler/orpc.ts";
 import healthHandler from "@/handler/health.ts";
 import storageHandler from "@/handler/storage.ts";
+import wsHandler, { wsHelper } from "@/handler/ws.ts";
 
 const app = new Hono();
 globalThis.app = app;
@@ -25,8 +26,12 @@ app.route("/_telefunc", telefuncHandler);
 
 app.route("/api/rpc", orpcHandler);
 
+app.route("/api/ws", wsHandler);
+
 app.route("/api/storage", storageHandler);
 
 app.route("/_plugin", pluginHandler);
+
+export { wsHelper };
 
 export default app;

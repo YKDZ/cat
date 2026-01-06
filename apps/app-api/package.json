@@ -52,6 +52,7 @@
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@hono/node-ws": "^1.2.0",
     "@orpc/client": "^1.13.2",
     "@orpc/experimental-pino": "^1.13.2",
     "@orpc/server": "^1.13.2",

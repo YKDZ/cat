@@ -12,7 +12,7 @@ import {
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { hashJSON } from "@/app/utils/hash.ts";
 import { useQuery } from "@pinia/colada";
-import type { Token } from "@cat/plugin-core/client";
+import type { Token } from "@cat/plugin-core";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
   const context = storeToRefs(useEditorContextStore());
