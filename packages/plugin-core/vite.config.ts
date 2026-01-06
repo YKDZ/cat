@@ -19,8 +19,10 @@ export default defineConfig({
     sourcemap: true,
 
     lib: {
-      entry: resolve(import.meta.dirname, "src/index.ts"),
-      fileName: "index.js",
+      entry: {
+        index: resolve(import.meta.dirname, "src/index.ts"),
+        client: resolve(import.meta.dirname, "src/client/index.ts"),
+      },
       formats: ["es"],
     },
   },

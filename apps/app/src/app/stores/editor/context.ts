@@ -4,14 +4,14 @@ import { orpc } from "@/server/orpc";
 import { useQuery } from "@pinia/colada";
 
 export const useEditorContextStore = defineStore("editorContext", () => {
-  const documentId = ref<string | null>(null);
-  const languageToId = ref<string | null>(null);
+  const documentId = ref<string | undefined>();
+  const languageToId = ref<string | undefined>();
   const pageSize = ref(16);
   // 从 1 开始
   const currentPage = ref(1);
 
   const { state: documentState } = useQuery({
-    key: ["documents", documentId.value],
+    key: ["documents", documentId.value!],
     query: async () =>
       orpc.document.get({
         documentId: documentId.value!,

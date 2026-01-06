@@ -19,6 +19,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client.js"
     }
   },
   "scripts": {
@@ -40,6 +44,7 @@
     "@cat/shared": "workspace:*",
     "@types/lodash-es": "^4.17.12",
     "lodash-es": "^4.17.21",
+    "vue": "^3.5.26",
     "zod": "^4.3.4"
   }
 }

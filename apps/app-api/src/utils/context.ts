@@ -4,10 +4,10 @@ import { createHTTPHelpers, HTTPHelpers } from "@cat/shared/utils";
 import { userFromSessionId } from "@cat/app-server-shared/utils";
 import { User } from "@cat/shared/schema/drizzle/user";
 
-export const getHttpContext = async (
+export const getContext = async (
   req: Request,
   resHeaders: Headers,
-): Promise<HttpContext> => {
+): Promise<Context> => {
   const helpers = createHTTPHelpers(req, resHeaders);
 
   const drizzleDB = await getDrizzleDB();
@@ -27,7 +27,7 @@ export const getHttpContext = async (
   };
 };
 
-export type HttpContext = {
+export type Context = {
   user: User | null;
   sessionId: string | null;
   pluginRegistry: PluginRegistry;

@@ -8,3 +8,4 @@ export * from "./translation-advisor.ts";
 export * from "./text-vectorizer.ts";
 export * from "./vector-storage.ts";
 export * from "./mfa-provider.ts";
+export * from "./tokenizer.ts";

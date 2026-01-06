@@ -5,6 +5,8 @@
     "outDir": "./dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
+    "types": ["vite/client"],
+    "lib": ["ESNext", "DOM"],
     "paths": {
       "@/*": ["./src/*"]
     },

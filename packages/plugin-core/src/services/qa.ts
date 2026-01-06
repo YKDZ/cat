@@ -1,35 +1,58 @@
-import type { IPluginService } from "@/services/service";
+import type { Token } from "@/services/tokenizer.ts";
+import z from "zod";
+import type { IPluginService } from "./service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
-import type { Term } from "@cat/shared/schema/drizzle/glossary";
 
-export type QAIssue = {
-  type: "missing" | "incorrect" | "deprecated";
-  sourceRange?: { start: number; end: number };
-  targetRange?: { start: number; end: number };
-  message?: string;
-  suggestedTranslation?: string;
-};
+export const QASeverityValues = ["error", "warning", "info"] as const;
 
-export type CheckContext = {
+export type QASeverity = (typeof QASeverityValues)[number];
+
+export interface QAIssue {
+  ruleId: number;
+  severity: QASeverity;
+  message: string;
+  targetTokenIndex?: number;
+}
+
+export const QAIssueSchema = z.object({
+  ruleId: z.int(),
+  severity: z.enum(QASeverityValues),
+  message: z.string(),
+  targetTokenIndex: z.number().optional(),
+});
+
+/**
+ * QA 上下文
+ */
+export interface CheckContext {
   source: {
     text: string;
     languageId: string;
-    terms?: Term[];
+    tokens: Token[];
+    flatTokens: Token[];
   };
-  target: {
+  translation: {
     text: string;
     languageId: string;
-    terms?: Term[];
+    tokens: Token[];
+    flatTokens: Token[];
   };
-};
+  terms: {
+    term: string;
+    translation: string;
+    subject: string | null;
+  }[];
+}
 
+/**
+ * QA 规则插件定义
+ */
 export abstract class QAChecker implements IPluginService {
   abstract getId(): string;
+
   getType(): PluginServiceType {
     return "QA_CHECKER";
   }
-  /**
-   * 检查译文是否违反某些规范
-   */
-  abstract check(ctx: CheckContext): Promise<QAIssue[]>;
+
+  abstract check: (ctx: CheckContext) => Promise<QAIssue[]> | QAIssue[];
 }

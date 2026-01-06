@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import type { Token } from "@cat/plugin-core/client";
+import type { Token } from "@cat/plugin-core";
 
 const { element, sourceTokens } = storeToRefs(useEditorTableStore());
 

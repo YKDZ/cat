@@ -48,7 +48,6 @@ import type {
   TermExtractor,
   TermRecognizer,
 } from "@/services/term-services";
-import type { QAChecker } from "@/services/qa";
 import {
   ComponentRegistry,
   type ComponentRecord,
@@ -57,6 +56,7 @@ import type { CatPlugin } from "@/entities/plugin";
 import { getPluginConfig } from "@/utils/config";
 import type { MFAProvider } from "@/services/mfa-provider";
 import type { FileExporter, FileImporter } from "@/services/file-handler";
+import type { QAChecker, Tokenizer } from "@/services";
 
 // Type Definitions
 type PluginServiceTypeMap = {
@@ -71,6 +71,7 @@ type PluginServiceTypeMap = {
   TERM_RECOGNIZER: TermRecognizer;
   TERM_ALIGNER: TermAligner;
   QA_CHECKER: QAChecker;
+  TOKENIZER: Tokenizer;
   VECTOR_STORAGE: VectorStorage;
 };
 

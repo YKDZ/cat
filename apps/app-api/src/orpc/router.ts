@@ -10,6 +10,8 @@ import * as plugin from "./routers/plugin.ts";
 import * as project from "./routers/project.ts";
 import * as suggestion from "./routers/suggestion.ts";
 import * as translation from "./routers/translation.ts";
+import * as tokenizer from "./routers/tokenizer.ts";
+import * as qa from "./routers/qa.ts";
 
 const router: AppRouter = {
   auth,
@@ -24,6 +26,8 @@ const router: AppRouter = {
   project,
   suggestion,
   translation,
+  tokenizer,
+  qa,
 };
 
 export type AppRouter = {
@@ -39,6 +43,8 @@ export type AppRouter = {
   project: typeof project;
   suggestion: typeof suggestion;
   translation: typeof translation;
+  tokenizer: typeof tokenizer;
+  qa: typeof qa;
 };
 
 export default router;

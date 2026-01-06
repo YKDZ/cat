@@ -16,6 +16,7 @@ export const PluginServiceTypeValues = [
   "TEXT_VECTORIZER",
   "VECTOR_STORAGE",
   "QA_CHECKER",
+  "TOKENIZER",
 ] as const;
 export const PluginServiceTypeSchema = z.enum(PluginServiceTypeValues);
 
