@@ -2,8 +2,9 @@
 import type { ComponentRecord } from "@cat/plugin-core";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed, onBeforeMount } from "vue";
-import { createSandbox } from "@cat/plugin-core/client";
+import { createSandbox, safeCustomElements } from "@cat/plugin-core/client";
 import { logger } from "@cat/shared/utils";
+import * as Vue from "vue";
 
 const props = defineProps<{
   component: ComponentRecord;
@@ -11,7 +12,7 @@ const props = defineProps<{
 
 const ctx = usePageContext();
 
-const registeredName = computed(() => {
+const scopedName = computed(() => {
   return props.component.pluginId + "-" + props.component.name;
 });
 
@@ -29,13 +30,49 @@ const url = computed(() => {
 });
 
 const load = async () => {
+  const registry = new Map<
+    string,
+    {
+      constructor: CustomElementConstructor;
+      options?: ElementDefinitionOptions;
+    }
+  >();
+
   try {
     const response = await fetch(url.value);
     const code = await response.text();
-    const sandbox = createSandbox(props.component.pluginId, window);
+
+    const sandbox = createSandbox(props.component.pluginId, window, {
+      globalContextBuilder: (pluginId, win) => ({
+        customElements: safeCustomElements(registry),
+        Vue,
+        fetch: window.fetch,
+        console: window.console,
+      }),
+    });
+
     sandbox.evaluate(code);
   } catch (e) {
     logger.error("WEB", { msg: "Failed to evaluate sandbox code" }, e);
+  }
+
+  // TODO 逻辑上暂时不允许一次注册多个组件，实际可以考虑把这个组件整个搬到父组件
+  if (registry.size > 1 || registry.size === 0) return;
+
+  const [name, { constructor, options }] = registry.entries().next().value!;
+
+  if (name !== props.component.name) {
+    logger.warn("WEB", {
+      msg: `Component name mismatch. Claimed ${props.component.name}, but got ${name}`,
+    });
+  }
+
+  if (customElements.get(name)) {
+    logger.warn("WEB", {
+      msg: `Component ${name} is already defined.`,
+    });
+  } else {
+    customElements.define(scopedName.value, constructor, options);
   }
 };
 
@@ -43,9 +80,5 @@ onBeforeMount(load);
 </script>
 
 <template>
-  <component
-    :is="registeredName"
-    :key="registeredName"
-    style="display: block"
-  />
+  <component :is="scopedName" :key="scopedName" style="display: block" />
 </template>

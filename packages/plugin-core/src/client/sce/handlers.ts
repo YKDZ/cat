@@ -71,11 +71,30 @@ export class BlueToRedHandler implements ProxyHandler<any> {
   }
 
   apply(target: any, thisArg: any, argArray: any[]): any {
+    // 1. 先进行解包和参数转换 (Red -> Blue)
+    // 这一点很重要：Distortion 接收到的应该是宿主环境的原始对象(Blue)，
+    // 这样你在写 Distortion 规则时（比如检查 input.url）处理的是真实对象，而不是 Proxy。
     const blueThis = unwrap(thisArg);
     // oxlint-disable-next-line no-explicit-any
     const blueArgs = argArray.map((arg: any) =>
       this.membrane.convertRedToBlue(arg),
     );
+
+    // 检查是否存在 apply 类型的 Distortion
+    const distortion = this.getDistortion(target);
+    if (distortion && distortion.apply) {
+      try {
+        // 执行畸变逻辑
+        const result = distortion.apply(target, blueThis, blueArgs);
+        // 别忘了把结果转回 Red (Blue -> Red)
+        return this.membrane.convertBlueToRed(result);
+      } catch (err) {
+        logger.error("WEB", { msg: `Distortion apply error` }, err);
+        throw err;
+      }
+    }
+
+    // 3. 如果没有畸变，执行默认行为
     const result = Reflect.apply(target, blueThis, blueArgs);
     return this.membrane.convertBlueToRed(result);
   }

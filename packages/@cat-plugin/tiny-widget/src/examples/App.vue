@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import DailyQuoteWidget from "@/components/DailyQuoteWidget";
-
-customElements.define("daily-quote-widget-ce", DailyQuoteWidget);
+import "@/components/DailyQuoteWidget.ts";
 </script>
 
 <template>
-  <daily-quote-widget-ce />
+  <daily-quote-widget />
 </template>
