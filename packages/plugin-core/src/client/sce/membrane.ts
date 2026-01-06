@@ -31,7 +31,7 @@ export class Membrane {
       return blueValue;
     }
 
-    // 1. [CRITICAL FIX] 检查是否为 RedToBlue Proxy (Blue Proxy)
+    // 检查是否为 RedToBlue Proxy (Blue Proxy)
     // 如果宿主传递进来的本来就是个“从沙箱传出来的 Blue Proxy”，我们需要解包拿到原始的 Red 对象
     // 否则会导致 Proxy(BlueProxy(RedObject)) 的多层嵌套
     if (this.blueProxies.has(blueValue)) {

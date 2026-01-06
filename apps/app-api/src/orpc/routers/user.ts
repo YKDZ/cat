@@ -5,6 +5,7 @@ import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
 import {
   finishPresignedPutFile,
+  getDownloadUrl,
   getServiceFromDBId,
   preparePresignedPutFile,
   useStorage,
@@ -157,6 +158,7 @@ export const getAvatarPresignedUrl = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
+      redisDB: { redis },
       pluginRegistry,
     } = context;
     const { userId, expiresIn } = input;
@@ -187,5 +189,11 @@ export const getAvatarPresignedUrl = authed
       storageProviderId,
     );
 
-    return await provider.getPresignedGetUrl({ key, expiresIn });
+    return await getDownloadUrl(
+      redis,
+      provider,
+      storageProviderId,
+      key,
+      expiresIn,
+    );
   });

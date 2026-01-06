@@ -43,7 +43,7 @@ export const createNodeDistortion = (win: Window): Distortion => ({
         // 获取真实的父节点
         const parent = Reflect.get(originalNode, key);
 
-        // [HARDENED CHECK] 结合引用检查和属性检查，防止漏网
+        // 结合引用检查和属性检查
         if (
           !parent ||
           parent === win.document ||
@@ -82,5 +82,47 @@ export const createPrototypeDistortion = (win: Window): Distortion => ({
       return false;
     }
     return true;
+  },
+});
+
+export const createVueDistortion = (): Distortion => ({
+  get: (target, key) => {
+    if (key === "config") {
+      return () => ({
+        globalProperties: {},
+        errorHandler: null,
+        warnHandler: null,
+        compilerOptions: {},
+      });
+    }
+    return undefined;
+  },
+  // 禁止在 Vue 根对象上写入
+  set: () => false,
+});
+
+export const createFetchDistortion = (
+  pluginId: string,
+  win: Window,
+): Distortion => ({
+  apply: (target, thisArg, argArray) => {
+    const [input] = argArray;
+    const urlStr = String(input instanceof Request ? input.url : input);
+
+    // 统一的策略检查
+    const allowedOrigins = ["https://dummyjson.com"];
+    const isAllowed = allowedOrigins.some((origin) =>
+      urlStr.startsWith(origin),
+    );
+
+    if (!isAllowed) {
+      logger.warn("WEB", { msg: `Plugin fetch blocked: ${urlStr}` });
+      throw new Error(`Permission denied: Fetch to ${urlStr} blocked.`);
+    }
+
+    logger.info("WEB", { msg: `Plugin ${pluginId} fetching ${urlStr}` });
+
+    // 调用原始 fetch，Membrane 会自动处理返回值的 wrapping
+    return Reflect.apply(target, win, argArray);
   },
 });
