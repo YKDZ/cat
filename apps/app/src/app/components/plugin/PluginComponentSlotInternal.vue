@@ -21,14 +21,12 @@ const slotComponents = computed(() => {
 });
 
 onServerPrefetch(() => {
-  // Type narrow
   if (ctx.isClientSide) return;
 
   const compos = ctx.globalContext.pluginRegistry.getComponentOfSlot(props.id);
+
   addComponents(props.id, compos);
 });
-
-// no-op
 </script>
 
 <template>

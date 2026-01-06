@@ -20,8 +20,9 @@ const fetchQuote = async () => {
 
     const json = (await res.json()) as Quote;
     quote.value = json;
-  } catch {
+  } catch (e) {
     error.value = "Can not fetch quote";
+    console.log(e);
   } finally {
     loading.value = false;
   }

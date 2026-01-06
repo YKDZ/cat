@@ -2,8 +2,16 @@ import { resolve } from "node:path";
 import { defineConfig, type EnvironmentOptions } from "vite";
 import vue from "@vitejs/plugin-vue";
 
+const pascalToKebab = (input: string): string => {
+  if (!input) return "";
+  return input
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .toLowerCase();
+};
+
 const components = {
-  "daily-quote-widget": "src/components/DailyQuoteWidget.ts",
+  DailyQuoteWidget: "src/components/DailyQuoteWidget.ts",
 };
 
 const componentEnvironments = Object.fromEntries(
@@ -15,11 +23,17 @@ const componentEnvironments = Object.fromEntries(
         emptyOutDir: false,
         lib: {
           entry,
-          formats: ["es"],
-          fileName: () => `${name}.js`,
+          name,
+          formats: ["iife"],
+          fileName: () => `${pascalToKebab(name)}.js`,
         },
         rollupOptions: {
           external: ["vue"],
+          output: {
+            globals: {
+              vue: "Vue",
+            },
+          },
         },
       },
     } satisfies EnvironmentOptions,
