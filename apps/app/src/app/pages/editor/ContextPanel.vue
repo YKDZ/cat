@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import ElemenContexts from "./ElemenContexts.vue";
-import ElementComments from "./ElementComments.vue";
+import Comments from "@/app/components/Comments.vue";
 import { SidebarHeader, SidebarRail } from "@/app/components/ui/sidebar";
 import Sidebar from "@/app/components/ui/sidebar/Sidebar.vue";
 import { useCookieStringRef } from "@/app/utils/cookie";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { useEditorTableStore } from "@/app/stores/editor/table";
+import { storeToRefs } from "pinia";
 
 const { t } = useI18n();
 
@@ -15,6 +17,8 @@ const panelOpen = useCookieStringRef(
   "editorContextPanelTab",
   "context",
 );
+
+const { elementId } = storeToRefs(useEditorTableStore());
 
 const id = "editor-context-panel";
 </script>
@@ -30,7 +34,11 @@ const id = "editor-context-panel";
       </Tabs>
     </SidebarHeader>
     <ElemenContexts v-if="panelOpen === 'context'" />
-    <ElementComments v-else-if="panelOpen === 'discussion'" />
+    <Comments
+      v-else-if="panelOpen === 'discussion'"
+      :targetType="'ELEMENT'"
+      :targetId="elementId!"
+    />
     <SidebarRail :sidebarId="id" />
   </Sidebar>
 </template>

@@ -2,29 +2,29 @@
 import { Button } from "@/app/components/ui/button";
 import { orpc } from "@/server/orpc";
 import type {
-  TranslatableElementComment,
-  TranslatableElementCommentReaction,
-} from "@cat/shared/schema/drizzle/document";
-import type { TranslatableElementCommentReactionType } from "@cat/shared/schema/drizzle/enum";
+  Comment,
+  CommentReaction,
+} from "@cat/shared/schema/drizzle/comment";
+import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 
 const props = defineProps<{
-  comment: Pick<TranslatableElementComment, "id">;
-  reactions: Pick<TranslatableElementCommentReaction, "userId" | "type">[];
+  comment: Pick<Comment, "id">;
+  reactions: Pick<CommentReaction, "userId" | "type">[];
   emoji: string;
-  type: TranslatableElementCommentReactionType;
+  type: CommentReactionType;
 }>();
 
 const ctx = usePageContext();
 
 const emits = defineEmits<{
-  react: [reaction: TranslatableElementCommentReaction];
+  react: [reaction: CommentReaction];
   unReact: [userId: string];
 }>();
 
 const react = async () => {
-  const reaction = await orpc.element.react({
+  const reaction = await orpc.comment.react({
     commentId: props.comment.id,
     type: props.type,
   });
@@ -32,7 +32,7 @@ const react = async () => {
 };
 
 const unReact = async () => {
-  await orpc.element.unReact({
+  await orpc.comment.unReact({
     commentId: props.comment.id,
   });
   emits("unReact", ctx.user!.id);

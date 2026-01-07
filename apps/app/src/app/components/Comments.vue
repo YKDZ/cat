@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import MarkdownEditor from "@/app/components/editor/MarkdownEditor.vue";
-import ElementComment from "./ElementComment.vue";
+import Comment from "./Comment.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { orpc } from "@/server/orpc";
 import { storeToRefs } from "pinia";
@@ -18,6 +18,12 @@ import { useI18n } from "vue-i18n";
 import { ArrowRight, ChevronDown, ChevronUp } from "lucide-vue-next";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { useQuery } from "@pinia/colada";
+import type { CommentTargetType } from "@cat/shared/schema/drizzle/enum";
+
+const props = defineProps<{
+  targetType: CommentTargetType;
+  targetId: number;
+}>();
 
 const { t } = useI18n();
 
@@ -27,8 +33,9 @@ const { state, refetch } = useQuery({
   key: ["rootComments", elementId.value, 10, 0],
   placeholderData: [],
   query: () =>
-    orpc.element.getRootComments({
-      elementId: elementId.value!,
+    orpc.comment.getRootComments({
+      targetType: props.targetType,
+      targetId: props.targetId,
       pageIndex: 0,
       pageSize: 10,
     }),
@@ -42,8 +49,9 @@ const content = ref("");
 const comment = async () => {
   if (!elementId.value) return;
 
-  await orpc.element.comment({
-    elementId: elementId.value,
+  await orpc.comment.comment({
+    targetType: props.targetType,
+    targetId: props.targetId,
     content: content.value,
     languageId: "en",
   });
@@ -61,7 +69,7 @@ const handleDelete = (commentId: number) => {
     <ScrollArea class="w-full h-full">
       <SidebarGroup>
         <SidebarGroupContent class="flex flex-col gap-3">
-          <ElementComment
+          <Comment
             v-for="comment in state.data"
             :key="comment.id"
             :comment
