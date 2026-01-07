@@ -8,14 +8,12 @@ export const QASeverityValues = ["error", "warning", "info"] as const;
 export type QASeverity = (typeof QASeverityValues)[number];
 
 export interface QAIssue {
-  ruleId: number;
   severity: QASeverity;
   message: string;
   targetTokenIndex?: number;
 }
 
 export const QAIssueSchema = z.object({
-  ruleId: z.int(),
   severity: z.enum(QASeverityValues),
   message: z.string(),
   targetTokenIndex: z.number().optional(),

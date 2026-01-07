@@ -54,6 +54,7 @@
               "TERM_RECOGNIZER",
               "TERM_ALIGNER",
               "QA_CHECKER",
+              "TOKENIZER",
               "TRANSLATION_ADVISOR",
               "FILE_IMPORTER",
               "FILE_EXPORTER",

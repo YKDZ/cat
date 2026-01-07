@@ -20,6 +20,8 @@ const FOLDER_INCLUDES = [
   "s3-storage-provider",
   "local-storage-provider",
   "pgvector-storage",
+  "basic-tokenizer",
+  "basic-qa-checker",
 ];
 
 const copyRecursive = async (srcPath, destPath) => {

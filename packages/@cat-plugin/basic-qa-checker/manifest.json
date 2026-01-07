@@ -1,0 +1,17 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "basic-qa-checker",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "number-consistency-checker",
+      "type": "QA_CHECKER"
+    },
+    {
+      "id": "variable-consistency-checker",
+      "type": "QA_CHECKER"
+    }
+  ]
+}

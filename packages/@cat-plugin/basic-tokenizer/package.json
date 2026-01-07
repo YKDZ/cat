@@ -1,0 +1,39 @@
+{
+  "name": "@cat-plugin/basic-tokenizer",
+  "version": "0.1.0",
+  "keywords": [
+    "cat",
+    "plugins",
+    "types",
+    "typescript"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "manifest.json",
+    "package.json"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*",
+    "vite": "^7.3.0"
+  },
+  "peerDependencies": {
+    "@cat/plugin-core": "workspace:*"
+  }
+}

@@ -28,6 +28,7 @@ export const createTermTask = await defineTask({
   name: "term.create",
   input: CreateTermInputSchema,
   output: CreateTermOutputSchema,
+
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();
     const pluginRegistry = PluginRegistry.get("GLOBAL", "");

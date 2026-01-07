@@ -33,8 +33,8 @@ export const autoTranslateWorkflow = await defineWorkflow({
   input: AutoTranslateInputSchema,
   output: AutoTranslateOutputSchema,
 
-  dependencies: (data, { traceId }) => [
-    fetchAdviseWorkflow.asChild(
+  dependencies: async (data, { traceId }) => [
+    await fetchAdviseWorkflow.asChild(
       {
         text: data.text,
         sourceLanguageId: data.sourceLanguageId,
@@ -44,7 +44,7 @@ export const autoTranslateWorkflow = await defineWorkflow({
       },
       { traceId },
     ),
-    searchMemoryWorkflow.asChild(
+    await searchMemoryWorkflow.asChild(
       {
         chunkIds: data.chunkIds,
         memoryIds: data.memoryIds,

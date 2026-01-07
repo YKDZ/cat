@@ -1,7 +1,7 @@
 import { authed } from "@/orpc/server.ts";
 import z from "zod";
 import { QAIssueSchema, TokenSchema, type QAIssue } from "@cat/plugin-core";
-import { QAWorkflow } from "@cat/app-workers";
+import { qaWorkflow } from "@cat/app-workers";
 import { document, eq, glossaryToProject, project } from "@cat/db";
 import { randomUUID } from "node:crypto";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
@@ -43,11 +43,19 @@ export const check = authed
 
     const traceId = randomUUID();
 
-    const issuesQueue = new AsyncMessageQueue<QAIssue>();
+    const issuesQueue = new AsyncMessageQueue<
+      QAIssue & { checkerId: number }
+    >();
     const issueChannelKey = `qa:issue:${traceId}`;
     const onNewIssue = async (issueData: string) => {
       try {
-        const issues = z.array(QAIssueSchema).parse(JSON.parse(issueData));
+        const issues = z
+          .array(
+            QAIssueSchema.extend({
+              checkerId: z.int(),
+            }),
+          )
+          .parse(JSON.parse(issueData));
         issuesQueue.push(...issues);
       } catch (err) {
         logger.error("RPC", { msg: "Invalid issue format: " }, err);
@@ -55,7 +63,7 @@ export const check = authed
     };
     await redisSub.subscribe(issueChannelKey, onNewIssue);
 
-    await QAWorkflow.run(
+    await qaWorkflow.run(
       { source, translation, glossaryIds, pub: true },
       {
         traceId,

@@ -459,6 +459,44 @@ importers:
         specifier: ^3.5.26
         version: 3.5.26(typescript@5.9.3)
 
+  packages/@cat-plugin/basic-qa-checker:
+    dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+      vite:
+        specifier: ^7.3.0
+        version: 7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/@cat-plugin/basic-tokenizer:
+    dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+      vite:
+        specifier: ^7.3.0
+        version: 7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+
   packages/@cat-plugin/json-file-handler:
     dependencies:
       '@cat/db':

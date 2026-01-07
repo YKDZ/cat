@@ -31,7 +31,7 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const isOpen = ref(false);
-const issues = ref<QAIssue[]>([]);
+const issues = ref<(QAIssue & { checkerId: number })[]>([]);
 let cancel: (() => Promise<void>) | undefined;
 
 const update = async () => {
@@ -126,7 +126,7 @@ watch(
           <div
             v-else
             v-for="(issue, index) in issues"
-            :key="index + issue.ruleId"
+            :key="issue.checkerId + index"
             class="flex items-start gap-2 text-sm max-w-62.5"
           >
             <component

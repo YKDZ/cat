@@ -45,7 +45,10 @@ export type TaskDefinition<
   /**
    * 构建为子任务节点（用于 Workflow）
    */
-  asChild: (input: z.infer<I>, meta?: { traceId?: string }) => FlowChildJob;
+  asChild: (
+    input: z.infer<I>,
+    meta?: { traceId?: string; taskId?: string },
+  ) => Promise<FlowChildJob> | FlowChildJob;
 };
 
 /**
@@ -60,9 +63,13 @@ export type WorkflowHandlerContext = {
   /**
    * 类型安全地获取指定任务的输出结果
    * 自动过滤出属于该 TaskDefinition 的结果，并使用 Schema 解析
+   *
+   * @param task 任务定义
+   * @param taskId 可选，指定特定的任务 ID (在 asChild 中定义)
    */
   getTaskResult: <Ti extends ZodObjectAny, To extends ZodObjectAny, Ctx>(
     task: TaskDefinition<Ti, To, Ctx>,
+    taskId?: string,
   ) => z.infer<To>[];
   /**
    * Workflow Barrier 回滚
@@ -94,7 +101,7 @@ export type DefineWorkflowOptions<
   dependencies: (
     payload: z.infer<I>,
     context: { traceId: string },
-  ) => FlowChildJob[];
+  ) => Promise<FlowChildJob[]>;
   handler: (
     payload: z.infer<I>,
     context: WorkflowHandlerContext,

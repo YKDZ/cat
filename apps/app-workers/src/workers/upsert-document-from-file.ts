@@ -21,8 +21,8 @@ export const upsertDocumentFromFileWorkflow = await defineWorkflow({
   input: UpsertDocumentInputSchema,
   output: UpsertDocumentOutputSchema,
 
-  dependencies: (data, { traceId }) => [
-    parseFileTask.asChild(
+  dependencies: async (data, { traceId }) => [
+    await parseFileTask.asChild(
       {
         fileId: data.fileId,
         languageId: data.languageId,
