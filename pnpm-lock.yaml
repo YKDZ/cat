@@ -92,7 +92,7 @@ importers:
         version: link:../../packages/shared
       '@hono/node-ws':
         specifier: ^1.2.0
-        version: 1.2.0(@hono/node-server@1.19.7(hono@4.11.3))(hono@4.11.3)
+        version: 1.3.0(@hono/node-server@1.19.7(hono@4.11.3))(hono@4.11.3)
       '@intlify/unplugin-vue-i18n':
         specifier: ^11.0.3
         version: 11.0.3(@vue/compiler-dom@3.5.26)(eslint@9.37.0(jiti@2.6.1))(rollup@4.53.5)(typescript@5.9.3)(vue-i18n@11.2.8(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
@@ -101,10 +101,10 @@ importers:
         version: 1.13.2(@opentelemetry/api@1.9.0)
       '@orpc/experimental-pino':
         specifier: ^1.13.2
-        version: 1.13.2(@opentelemetry/api@1.9.0)(pino@10.1.0)(ws@8.18.3)
+        version: 1.13.2(@opentelemetry/api@1.9.0)(pino@10.1.0)(ws@8.19.0)
       '@orpc/server':
         specifier: ^1.13.2
-        version: 1.13.2(@opentelemetry/api@1.9.0)(ws@8.18.3)
+        version: 1.13.2(@opentelemetry/api@1.9.0)(ws@8.19.0)
       '@photonjs/hono':
         specifier: ^0.1.12
         version: 0.1.12(@hono/node-server@1.19.7(hono@4.11.3))(hono@4.11.3)(srvx@0.9.8)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
@@ -880,7 +880,7 @@ importers:
         version: 1.0.0-beta.9-e89174b
       drizzle-seed:
         specifier: ^0.3.1
-        version: 0.3.1(drizzle-orm@1.0.0-beta.9-e89174b(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3)))
+        version: 0.3.1
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.10.4))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.2)(rollup@4.53.5)(typescript@5.9.3)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
@@ -2634,6 +2634,13 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       '@hono/node-server': ^1.11.1
+      hono: ^4.6.0
+
+  '@hono/node-ws@1.3.0':
+    resolution: {integrity: sha512-ju25YbbvLuXdqBCmLZLqnNYu1nbHIQjoyUqA8ApZOeL1k4skuiTcw5SW77/5SUYo2Xi2NVBJoVlfQurnKEp03Q==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      '@hono/node-server': ^1.19.2
       hono: ^4.6.0
 
   '@humanfs/core@0.19.1':
@@ -8538,6 +8545,7 @@ packages:
   whatwg-encoding@2.0.0:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
     engines: {node: '>=12'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
@@ -8580,6 +8588,18 @@ packages:
 
   ws@8.18.3:
     resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
+  ws@8.19.0:
+    resolution: {integrity: sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -10680,6 +10700,15 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@hono/node-ws@1.3.0(@hono/node-server@1.19.7(hono@4.11.3))(hono@4.11.3)':
+    dependencies:
+      '@hono/node-server': 1.19.7(hono@4.11.3)
+      hono: 4.11.3
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -11191,6 +11220,18 @@ snapshots:
       - fastify
       - ws
 
+  '@orpc/experimental-pino@1.13.2(@opentelemetry/api@1.9.0)(pino@10.1.0)(ws@8.19.0)':
+    dependencies:
+      '@orpc/client': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/server': 1.13.2(@opentelemetry/api@1.9.0)(ws@8.19.0)
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      pino: 10.1.0
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - crossws
+      - fastify
+      - ws
+
   '@orpc/interop@1.13.2': {}
 
   '@orpc/server@1.13.2(@opentelemetry/api@1.9.0)(ws@8.18.3)':
@@ -11208,6 +11249,25 @@ snapshots:
       cookie: 1.1.1
     optionalDependencies:
       ws: 8.18.3
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - fastify
+
+  '@orpc/server@1.13.2(@opentelemetry/api@1.9.0)(ws@8.19.0)':
+    dependencies:
+      '@orpc/client': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/contract': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/interop': 1.13.2
+      '@orpc/shared': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-aws-lambda': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-fastify': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-fetch': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-node': 1.13.2(@opentelemetry/api@1.9.0)
+      '@orpc/standard-server-peer': 1.13.2(@opentelemetry/api@1.9.0)
+      cookie: 1.1.1
+    optionalDependencies:
+      ws: 8.19.0
     transitivePeerDependencies:
       - '@opentelemetry/api'
       - fastify
@@ -14193,11 +14253,9 @@ snapshots:
       pg: 8.16.3
       prisma: 6.16.1(typescript@5.9.3)
 
-  drizzle-seed@0.3.1(drizzle-orm@1.0.0-beta.9-e89174b(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))):
+  drizzle-seed@0.3.1:
     dependencies:
       pure-rand: 6.1.0
-    optionalDependencies:
-      drizzle-orm: 1.0.0-beta.9-e89174b(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))
 
   dunder-proto@1.0.1:
     dependencies:
@@ -17465,6 +17523,8 @@ snapshots:
   wrappy@1.0.2: {}
 
   ws@8.18.3: {}
+
+  ws@8.19.0: {}
 
   wsl-utils@0.1.0:
     dependencies:
