@@ -92,6 +92,11 @@
       "types": "./dist/schema/drizzle/enum.d.ts",
       "import": "./dist/schema/drizzle/enum.js",
       "require": "./dist/schema/drizzle/enum.cjs"
+    },
+    "./schema/drizzle/comment": {
+      "types": "./dist/schema/drizzle/comment.d.ts",
+      "import": "./dist/schema/drizzle/comment.js",
+      "require": "./dist/schema/drizzle/comment.cjs"
     }
   },
   "scripts": {

@@ -12,6 +12,7 @@ import * as suggestion from "./routers/suggestion.ts";
 import * as translation from "./routers/translation.ts";
 import * as tokenizer from "./routers/tokenizer.ts";
 import * as qa from "./routers/qa.ts";
+import * as comment from "./routers/comment.ts";
 
 const router: AppRouter = {
   auth,
@@ -28,6 +29,7 @@ const router: AppRouter = {
   translation,
   tokenizer,
   qa,
+  comment,
 };
 
 export type AppRouter = {
@@ -45,6 +47,7 @@ export type AppRouter = {
   translation: typeof translation;
   tokenizer: typeof tokenizer;
   qa: typeof qa;
+  comment: typeof comment;
 };
 
 export default router;

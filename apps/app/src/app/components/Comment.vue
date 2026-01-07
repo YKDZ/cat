@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import ElementCommentReaction from "./ElementCommentReaction.vue";
+import CommentReaction from "./CommentReaction.vue";
 import Markdown from "@/app/components/Markdown.vue";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Badge } from "@/app/components/ui/badge";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import { i18nUseTimeAgoMessages } from "@/app/utils/i18n";
 import { orpc } from "@/server/orpc";
-import type { TranslatableElementComment } from "@cat/shared/schema/drizzle/document";
+import type { Comment } from "@cat/shared/schema/drizzle/comment";
 import type { User } from "@cat/shared/schema/drizzle/user";
 import { useDateFormat, useTimeAgo } from "@vueuse/core";
 import { EllipsisVertical, Trash, Smile, Reply } from "lucide-vue-next";
@@ -16,8 +16,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/app/components/ui/popover";
-import ElementCommentReact from "./ElementCommentReact.vue";
-import type { TranslatableElementCommentReactionType } from "@cat/shared/schema/drizzle/enum";
+import CommentReact from "./CommentReact.vue";
+import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
 import { Button } from "@/app/components/ui/button";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
@@ -25,10 +25,7 @@ import { useQuery } from "@pinia/colada";
 
 const props = withDefaults(
   defineProps<{
-    comment: Pick<
-      TranslatableElementComment,
-      "id" | "userId" | "content" | "createdAt"
-    >;
+    comment: Pick<Comment, "id" | "userId" | "content" | "createdAt">;
     reply?: boolean;
   }>(),
   {
@@ -45,7 +42,7 @@ const ctx = usePageContext();
 
 const emojis: {
   emoji: string;
-  type: TranslatableElementCommentReactionType;
+  type: CommentReactionType;
 }[] = [
   {
     emoji: "👍",
@@ -92,7 +89,7 @@ const { state: reactionsState, refetch: refetchReactions } = useQuery({
   key: ["reactions", props.comment.id],
   placeholderData: [],
   query: () =>
-    orpc.element.getCommentReactions({
+    orpc.comment.getCommentReactions({
       commentId: props.comment.id,
     }),
   enabled: !import.meta.env.SSR,
@@ -102,7 +99,7 @@ const { state: childCommentsState } = useQuery({
   key: ["childComments", props.comment.id],
   placeholderData: [],
   query: () =>
-    orpc.element.getChildComments({
+    orpc.comment.getChildComments({
       rootCommentId: props.comment.id,
     }),
   enabled: !import.meta.env.SSR,
@@ -117,7 +114,7 @@ const handleUnReact = () => {
 };
 
 const handleDelete = async () => {
-  await orpc.element.deleteComment({
+  await orpc.comment.deleteComment({
     commentId: props.comment.id,
   });
   emits("delete", props.comment.id);
@@ -184,7 +181,7 @@ const handleDelete = async () => {
           </PopoverTrigger>
           <PopoverContent>
             <div class="flex gap-1 items-center justify-between text-sm">
-              <ElementCommentReact
+              <CommentReact
                 v-for="emoji in emojis"
                 :key="emoji.type"
                 :comment="comment"
@@ -198,7 +195,7 @@ const handleDelete = async () => {
           </PopoverContent>
         </Popover>
         <div class="flex gap-1 h-6">
-          <ElementCommentReaction
+          <CommentReaction
             v-for="emoji in emojis"
             :key="emoji.type"
             :emoji="emoji.emoji"
@@ -212,7 +209,7 @@ const handleDelete = async () => {
       </div>
     </div>
     <div>
-      <ElementComment
+      <Comment
         v-for="childComment in childCommentsState.data ?? []"
         :key="childComment.id"
         :comment="childComment"

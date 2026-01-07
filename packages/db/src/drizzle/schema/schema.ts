@@ -23,8 +23,9 @@ import {
   ResourceTypeValues,
   ScopeTypeValues,
   TaskStatusValues,
-  TranslatableElementCommentReactionTypeValues,
+  CommentReactionTypeValues,
   TranslatableElementContextTypeValues,
+  CommentTargetTypeValues,
 } from "@cat/shared/schema/drizzle/enum";
 import type {
   _JSONSchema,
@@ -46,12 +47,17 @@ export const translatableElementContextType = pgEnum(
   TranslatableElementContextTypeValues,
 );
 
-export const translatableElementCommentReactionType = pgEnum(
-  "TranslatableElementCommentReactionType",
-  TranslatableElementCommentReactionTypeValues,
+export const commentReactionType = pgEnum(
+  "CommentReactionType",
+  CommentReactionTypeValues,
 );
 
 export const resourceType = pgEnum("ResourceType", ResourceTypeValues);
+
+export const commentTargetType = pgEnum(
+  "CommentTargetType",
+  CommentTargetTypeValues,
+);
 
 const timestamps = {
   createdAt: timestamp({ withTimezone: true })
@@ -658,16 +664,12 @@ export const translatableElement = pgTable("TranslatableElement", {
   ...timestamps,
 });
 
-export const translatableElementComment = pgTable(
-  "TranslatableElementComment",
+export const comment = pgTable(
+  "Comment",
   {
     id: serial().primaryKey(),
-    translatableElementId: integer()
-      .notNull()
-      .references(() => translatableElement.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
+    targetType: commentTargetType().notNull(),
+    targetId: integer().notNull(),
     userId: uuid()
       .notNull()
       .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -697,35 +699,32 @@ export const translatableElementComment = pgTable(
       .onDelete("set null"),
     index().using("btree", table.parentCommentId.asc().nullsLast()),
     index().using("btree", table.rootCommentId.asc().nullsLast()),
-    index().using("btree", table.translatableElementId.asc().nullsLast()),
     index().using("btree", table.userId.asc().nullsLast()),
+    index().on(table.targetType, table.targetId),
   ],
 );
 
-export const translatableElementCommentReaction = pgTable(
-  "TranslatableElementCommentReaction",
+export const commentReaction = pgTable(
+  "CommentReaction",
   {
     id: serial().primaryKey(),
-    translatableElementCommentId: integer()
+    commentId: integer()
       .notNull()
-      .references(() => translatableElementComment.id, {
+      .references(() => comment.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
     userId: uuid()
       .notNull()
       .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    type: translatableElementCommentReactionType().notNull(),
+    type: commentReactionType().notNull(),
     ...timestamps,
   },
   (table) => [
     // Default index name over 63 bytes
-    index("element_id_idx").using(
-      "btree",
-      table.translatableElementCommentId.asc().nullsLast(),
-    ),
+    index("element_id_idx").using("btree", table.commentId.asc().nullsLast()),
     index().using("btree", table.userId.asc().nullsLast()),
-    unique().on(table.translatableElementCommentId, table.userId),
+    unique().on(table.commentId, table.userId),
   ],
 );
 

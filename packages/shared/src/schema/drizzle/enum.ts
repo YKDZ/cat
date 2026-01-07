@@ -50,7 +50,7 @@ export const TranslatableElementContextTypeSchema = z.enum(
   TranslatableElementContextTypeValues,
 );
 
-export const TranslatableElementCommentReactionTypeValues = [
+export const CommentReactionTypeValues = [
   "+1",
   "-1",
   "LAUGH",
@@ -60,15 +60,16 @@ export const TranslatableElementCommentReactionTypeValues = [
   "ROCKET",
   "EYES",
 ] as const;
-export const TranslatableElementCommentReactionTypeSchema = z.enum(
-  TranslatableElementCommentReactionTypeValues,
-);
+export const CommentReactionTypeSchema = z.enum(CommentReactionTypeValues);
+
+export const CommentTargetTypeValues = ["TRANSLATION", "ELEMENT"] as const;
+export const CommentTargetTypeSchema = z.enum(CommentTargetTypeValues);
 
 export type PluginServiceType = (typeof PluginServiceTypeValues)[number];
 export type ScopeType = (typeof ScopeTypeValues)[number];
 export type TaskStatus = (typeof TaskStatusValues)[number];
 export type TranslatableElementContextType =
   (typeof TranslatableElementContextTypeValues)[number];
-export type TranslatableElementCommentReactionType =
-  (typeof TranslatableElementCommentReactionTypeValues)[number];
+export type CommentReactionType = (typeof CommentReactionTypeValues)[number];
 export type ResourceType = (typeof ResourceTypeValues)[number];
+export type CommentTargetType = (typeof CommentTargetTypeValues)[number];

@@ -40,15 +40,14 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       }),
       terms: r.many.term(),
       translatableElements: r.many.translatableElement(),
-      translatableElementCommentsUserId: r.many.translatableElementComment({
+      commentsUserId: r.many.comment({
         from: r.user.id,
-        to: r.translatableElementComment.userId,
+        to: r.comment.userId,
       }),
-      translatableElementCommentsViaTranslatableElementCommentReaction:
-        r.many.translatableElementComment({
-          from: r.user.id,
-          to: r.translatableElementComment.userId,
-        }),
+      commentsViaCommentReaction: r.many.comment({
+        from: r.user.id,
+        to: r.comment.userId,
+      }),
       translationsTranslatorId: r.many.translation({
         from: r.user.id,
         to: r.translation.translatorId,
@@ -241,10 +240,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.translatableElement.approvedTranslationId,
         to: r.translation.id,
       }),
-      translatableElementComments: r.many.translatableElementComment({
-        from: r.translatableElement.id,
-        to: r.translatableElementComment.translatableElementId,
-      }),
       translatableElementContexts: r.many.translatableElementContext(),
       memoryItems: r.many.memoryItem({
         from: r.translatableElement.id,
@@ -376,9 +371,9 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.language.id.through(r.projectTargetLanguage.languageId),
         to: r.project.id.through(r.projectTargetLanguage.projectId),
       }),
-      translatableElementComments: r.many.translatableElementComment({
+      comments: r.many.comment({
         from: r.language.id,
-        to: r.translatableElementComment.languageId,
+        to: r.comment.languageId,
       }),
       chunkSets: r.many.chunkSet(),
     },
@@ -413,45 +408,34 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.glossary.id,
       }),
     },
-    translatableElementComment: {
+    comment: {
       language: r.one.language({
-        from: r.translatableElementComment.languageId,
+        from: r.comment.languageId,
         to: r.language.id,
       }),
-      translatableElementCommentParentCommentId:
-        r.one.translatableElementComment({
-          from: r.translatableElementComment.parentCommentId,
-          to: r.translatableElementComment.id,
-        }),
-      translatableElementCommentsParentCommentId:
-        r.many.translatableElementComment({
-          from: r.translatableElementComment.id,
-          to: r.translatableElementComment.parentCommentId,
-        }),
-      translatableElementCommentRootCommentId: r.one.translatableElementComment(
-        {
-          from: r.translatableElementComment.rootCommentId,
-          to: r.translatableElementComment.id,
-        },
-      ),
-      translatableElementCommentsRootCommentId:
-        r.many.translatableElementComment({
-          from: r.translatableElementComment.id,
-          to: r.translatableElementComment.rootCommentId,
-        }),
-      translatableElement: r.one.translatableElement({
-        from: r.translatableElementComment.translatableElementId,
-        to: r.translatableElement.id,
+      commentParentCommentId: r.one.comment({
+        from: r.comment.parentCommentId,
+        to: r.comment.id,
+      }),
+      commentsParentCommentId: r.many.comment({
+        from: r.comment.id,
+        to: r.comment.parentCommentId,
+      }),
+      commentRootCommentId: r.one.comment({
+        from: r.comment.rootCommentId,
+        to: r.comment.id,
+      }),
+      commentsRootCommentId: r.many.comment({
+        from: r.comment.id,
+        to: r.comment.rootCommentId,
       }),
       user: r.one.user({
-        from: r.translatableElementComment.userId,
+        from: r.comment.userId,
         to: r.user.id,
       }),
       users: r.many.user({
-        from: r.translatableElementComment.id.through(
-          r.translatableElementCommentReaction.translatableElementCommentId,
-        ),
-        to: r.user.id.through(r.translatableElementCommentReaction.userId),
+        from: r.comment.id.through(r.commentReaction.commentId),
+        to: r.user.id.through(r.commentReaction.userId),
       }),
     },
     translatableElementContext: {

@@ -73,6 +73,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/drizzle/enum.ts",
         ),
+        "schema/drizzle/comment": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/comment.ts",
+        ),
       },
       formats: ["es", "cjs"],
     },
