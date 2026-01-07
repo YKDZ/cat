@@ -365,7 +365,7 @@ export const isInstalled = authed
     return !!installation;
   });
 
-export const getAllComponentsOfSlot = authed
+export const getComponentsOfSlot = authed
   .input(
     z.object({
       slotId: z.string(),

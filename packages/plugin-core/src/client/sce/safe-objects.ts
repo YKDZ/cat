@@ -1,37 +1,19 @@
-// oxlint-disable explicit-module-boundary-types no-unsafe-argument @typescript-eslint/no-explicit-any no-unsafe-member-access
-export const basicSandboxGlobal = (win: Window) => {
+import type { SandboxGlobal } from "./types";
+
+export const basicSandboxGlobal = (win: Window): SandboxGlobal => {
+  // oxlint-disable-next-line no-unsafe-type-assertion
   const basic = {
-    // oxlint-disable-next-line unbound-method
-    setTimeout: win.setTimeout,
-    // oxlint-disable-next-line unbound-method
-    setInterval: win.setInterval,
-    // oxlint-disable-next-line unbound-method
-    clearTimeout: win.clearTimeout,
-    // oxlint-disable-next-line unbound-method
-    clearInterval: win.clearInterval,
-
+    console: win.console,
     document: win.document,
+    localStorage: undefined,
+    sessionStorage: undefined,
+  } as SandboxGlobal;
 
-    parent: null,
-    top: null,
-    localStorage: null,
-    sessionStorage: null,
-
-    window: {},
-    self: {},
-    globalThis: {},
-  };
-
-  // oxlint-disable-next-line no-unsafe-member-access no-unsafe-type-assertion
-  (basic as any).window = basic;
-  // oxlint-disable-next-line no-unsafe-member-access no-unsafe-type-assertion
-  (basic as any).self = basic;
-  // oxlint-disable-next-line no-unsafe-member-access no-unsafe-type-assertion
-  (basic as any).globalThis = basic;
-  // oxlint-disable-next-line no-unsafe-member-access no-unsafe-type-assertion
-  (basic as any).parent = basic;
-  // oxlint-disable-next-line no-unsafe-member-access no-unsafe-type-assertion
-  (basic as any).top = basic;
+  basic.window = basic;
+  basic.self = basic;
+  basic.globalThis = basic;
+  basic.parent = basic;
+  basic.top = basic;
 
   return basic;
 };
