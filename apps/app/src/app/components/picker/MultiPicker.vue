@@ -25,10 +25,17 @@ import { shallowRef } from "vue";
 
 const { t } = useI18n();
 
-const props = defineProps<{
-  options: PickerOption<T>[];
-  placeholder?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    options: PickerOption<T>[];
+    placeholder?: string;
+    loadMore?: () => void;
+    portal?: boolean;
+  }>(),
+  {
+    portal: true,
+  },
+);
 
 const modalValue = defineModel<T[]>({
   default: [],
@@ -49,6 +56,13 @@ const onSelect = (option: PickerOption<T> | undefined) => {
     }
   }
   modalValue.value = selectedOptions.value.map((option) => option.value);
+};
+
+const onScroll = (e: Event) => {
+  const target = e.target as HTMLElement;
+  if (target.scrollTop + target.clientHeight >= target.scrollHeight - 20) {
+    props.loadMore?.();
+  }
 };
 </script>
 
@@ -77,7 +91,7 @@ const onSelect = (option: PickerOption<T> | undefined) => {
       </ComboboxAnchor>
     </TagsInput>
 
-    <ComboboxList>
+    <ComboboxList :portal="props.portal">
       <div class="relative w-full max-w-sm items-center">
         <ComboboxInput
           class="focus-visible:ring-0 rounded-none h-10"
@@ -91,10 +105,12 @@ const onSelect = (option: PickerOption<T> | undefined) => {
         </span>
       </div>
 
-      <ComboboxEmpty> {{ t("没有可用选项") }} </ComboboxEmpty>
+      <ComboboxEmpty v-if="options.length === 0">
+        {{ t("没有可用选项") }}
+      </ComboboxEmpty>
 
-      <ComboboxViewport>
-        <ComboboxGroup>
+      <ComboboxViewport @scroll="onScroll">
+        <ComboboxGroup v-if="options.length > 0">
           <ComboboxVirtualizer
             v-slot="{ option }"
             :options

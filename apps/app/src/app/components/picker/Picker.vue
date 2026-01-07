@@ -25,10 +25,17 @@ import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 
 const { t } = useI18n();
 
-defineProps<{
-  options: PickerOption<T>[];
-  placeholder: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    options: PickerOption<T>[];
+    placeholder: string;
+    loadMore?: () => void;
+    portal?: boolean;
+  }>(),
+  {
+    portal: true,
+  },
+);
 
 const modelValue = defineModel<T>();
 const search = defineModel<string>("search", { default: "" });
@@ -39,6 +46,13 @@ const onSelect = (value: PickerOption<T> | undefined) => {
   selectedOption.value =
     selectedOption.value?.value === value?.value ? undefined : value;
   modelValue.value = selectedOption.value?.value ?? undefined;
+};
+
+const onScroll = (e: Event) => {
+  const target = e.target as HTMLElement;
+  if (target.scrollTop + target.clientHeight >= target.scrollHeight - 20) {
+    props.loadMore?.();
+  }
 };
 </script>
 
@@ -67,7 +81,7 @@ const onSelect = (value: PickerOption<T> | undefined) => {
       </div>
     </ComboboxAnchor>
 
-    <ComboboxList>
+    <ComboboxList :portal="props.portal">
       <div class="relative w-full max-w-sm items-center">
         <ComboboxInput
           class="focus-visible:ring-0 rounded-none h-10 pointer-events-auto"
@@ -81,11 +95,13 @@ const onSelect = (value: PickerOption<T> | undefined) => {
         </span>
       </div>
 
-      <ComboboxEmpty> {{ t("没有可用选项") }} </ComboboxEmpty>
+      <ComboboxEmpty v-if="options.length === 0">
+        {{ t("没有可用选项") }}
+      </ComboboxEmpty>
 
-      <ComboboxViewport>
-        <ComboboxGroup
-          ><ComboboxVirtualizer
+      <ComboboxViewport @scroll="onScroll">
+        <ComboboxGroup v-if="options.length > 0">
+          <ComboboxVirtualizer
             v-slot="{ option }"
             :options
             :text-content="(x) => x.content"
