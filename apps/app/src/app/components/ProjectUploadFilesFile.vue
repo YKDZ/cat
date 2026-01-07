@@ -54,7 +54,7 @@ const upload = async () => {
     <TableCell>{{ file.name }}</TableCell>
     <TableCell>{{ formatSize(file.size) }}</TableCell>
     <TableCell>
-      <LanguagePicker v-model="languageId" />
+      <LanguagePicker v-model="languageId" :portal="false" />
     </TableCell>
     <TableCell>
       <div class="flex gap-2 items-center">

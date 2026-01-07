@@ -29,7 +29,7 @@ export const getAll = base
       .select()
       .from(language)
       .orderBy(asc(language.id))
-      .limit(pageSize)
+      .limit(pageSize + 1)
       .offset(page * pageSize);
 
     if (searchQuery.length !== 0) {
@@ -39,6 +39,10 @@ export const getAll = base
     const languages = await query;
 
     const hasMore = languages.length > pageSize;
+
+    if (hasMore) {
+      languages.pop();
+    }
 
     return {
       languages,
