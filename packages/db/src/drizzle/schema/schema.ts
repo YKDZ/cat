@@ -16,8 +16,9 @@ import {
   unique,
   check,
   bytea,
+  type PgColumn,
 } from "drizzle-orm/pg-core";
-import { sql, type AnyColumn } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   PluginServiceTypeValues,
   ResourceTypeValues,
@@ -657,7 +658,7 @@ export const translatableElement = pgTable("TranslatableElement", {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
-  approvedTranslationId: integer().references((): AnyColumn => translation.id, {
+  approvedTranslationId: integer().references((): PgColumn => translation.id, {
     onDelete: "set null",
     onUpdate: "cascade",
   }),
