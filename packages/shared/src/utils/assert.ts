@@ -82,18 +82,18 @@ export const assertSingleNonNullish = <T>(arr: T[], message?: string): T => {
   return arr[0];
 };
 
-export function assertKeysNonNullish<T, K extends keyof T>(
+export const assertKeysNonNullish = <T, K extends keyof T>(
   obj: T,
   keys: readonly K[],
   message?: string,
-): asserts obj is T & { [P in K]-?: Exclude<T[P], null | undefined> } {
+): asserts obj is T & { [P in K]-?: Exclude<T[P], null | undefined> } => {
   for (const key of keys) {
     const value = obj[key];
     if (value === null || value === undefined) {
       throw new Error(message ?? `Expected ${String(key)} to be non-nullish`);
     }
   }
-}
+};
 
 const arrayPreview = <T>(arr: T[], previewKeys: (keyof T)[] = []): string => {
   if (arr.length === 0) return "[]";
