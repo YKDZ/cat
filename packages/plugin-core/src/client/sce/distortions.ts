@@ -1,4 +1,3 @@
-// oxlint-disable no-unsafe-argument no-explicit-any explicit-module-boundary-types no-unsafe-return
 import { logger } from "@cat/shared/utils";
 import { Distortion } from "./types.ts";
 import DOMPurify from "dompurify";
@@ -7,7 +6,7 @@ export const createDocumentDistortion = (
   pluginId: string,
   _win: Window,
 ): Distortion => ({
-  get: (target, key) => {
+  get: (_target, key) => {
     if (key === "cookie") return () => "";
     if (key === "getElementById") {
       return () => (_id: string) => {
@@ -24,9 +23,13 @@ export const createDocumentDistortion = (
 export const createElementDistortion = (_win: Window): Distortion => ({
   set: (target, key, value) => {
     if (key === "innerHTML" || key === "outerHTML") {
-      // oxlint-disable-next-line no-unsafe-member-access
-      target[key] = DOMPurify.sanitize(value);
-      return false;
+      // 确保 value 是字符串，否则 sanitize 可能会出错
+      const strValue = typeof value === "string" ? value : String(value);
+
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      (target as Record<string | symbol, unknown>)[key] =
+        DOMPurify.sanitize(strValue);
+      return false; // 拦截并处理了赋值
     }
     return true;
   },
@@ -39,9 +42,10 @@ export const createNodeDistortion = (win: Window): Distortion => ({
       key === "parentElement" ||
       key === "ownerDocument"
     ) {
-      return (originalNode: Node) => {
+      return (originalNode: object) => {
         // 获取真实的父节点
-        const parent = Reflect.get(originalNode, key);
+        // oxlint-disable-next-line no-unsafe-type-assertion
+        const parent = Reflect.get(originalNode, key) as Node | null;
 
         // 结合引用检查和属性检查
         if (
@@ -49,13 +53,12 @@ export const createNodeDistortion = (win: Window): Distortion => ({
           parent === win.document ||
           parent === win.document.documentElement ||
           parent === win.document.head ||
-          (parent as Node).nodeType === 9 || // DOCUMENT_NODE
+          parent.nodeType === 9 || // DOCUMENT_NODE
           // oxlint-disable-next-line no-unsafe-type-assertion
           (parent as Element).tagName === "HTML" ||
           // oxlint-disable-next-line no-unsafe-type-assertion
           (parent as Element).tagName === "HEAD"
         ) {
-          // 如果这里被命中，返回 null，因为 Handler 现在会正确处理 convertBlueToRed(null) -> null
           return null;
         }
         return parent;
@@ -68,14 +71,8 @@ export const createNodeDistortion = (win: Window): Distortion => ({
 export const createPrototypeDistortion = (win: Window): Distortion => ({
   set: (target, _key, _value) => {
     if (
-      // @ts-expect-error No needed
-      // oxlint-disable-next-line no-unsafe-member-access
       target === win.Object.prototype ||
-      // @ts-expect-error No needed
-      // oxlint-disable-next-line no-unsafe-member-access
       target === win.Array.prototype ||
-      // @ts-expect-error No needed
-      // oxlint-disable-next-line no-unsafe-member-access
       target === win.Function.prototype
     ) {
       logger.warn("WEB", { msg: "Prototype pollution attempt blocked!" });
@@ -86,7 +83,7 @@ export const createPrototypeDistortion = (win: Window): Distortion => ({
 });
 
 export const createVueDistortion = (): Distortion => ({
-  get: (target, key) => {
+  get: (_target, key) => {
     if (key === "config") {
       return () => ({
         globalProperties: {},
@@ -105,11 +102,11 @@ export const createFetchDistortion = (
   pluginId: string,
   win: Window,
 ): Distortion => ({
-  apply: (target, thisArg, argArray) => {
+  apply: (target, _thisArg, argArray) => {
     const [input] = argArray;
     const urlStr = String(input instanceof Request ? input.url : input);
 
-    // 统一的策略检查
+    // TODO 基于插件 manifest 声明放通 fetch
     const allowedOrigins = ["https://dummyjson.com"];
     const isAllowed = allowedOrigins.some((origin) =>
       urlStr.startsWith(origin),
@@ -122,7 +119,7 @@ export const createFetchDistortion = (
 
     logger.info("WEB", { msg: `Plugin ${pluginId} fetching ${urlStr}` });
 
-    // 调用原始 fetch，Membrane 会自动处理返回值的 wrapping
-    return Reflect.apply(target, win, argArray);
+    // oxlint-disable-next-line no-unsafe-type-assertion no-unsafe-function-type no-unsafe-function-type no-unsafe-return
+    return Reflect.apply(target as Function, win, argArray);
   },
 });

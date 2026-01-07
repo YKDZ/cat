@@ -1,5 +1,3 @@
-// oxlint-disable no-unsafe-argument no-explicit-any explicit-module-boundary-types no-unsafe-return
-// oxlint-disable no-unsafe-member-access
 import { Membrane } from "./membrane.ts";
 import {
   createDocumentDistortion,
@@ -23,7 +21,7 @@ export type DistortionSetup = (
 export type GlobalContextBuilder = (
   pluginId: string,
   win: Window,
-) => Record<string, any>;
+) => Record<string, unknown>;
 
 export interface SandboxOptions {
   distortionSetup?: DistortionSetup;
@@ -46,26 +44,17 @@ export const setupDefaultDistortions: DistortionSetup = (
   const nodeDistortion = createNodeDistortion(win);
   const elementDistortion = createElementDistortion(win);
 
-  // 确保 Element 层级既有 Get 也有 Set 规则
   const compositeDistortion: Distortion = {
     get: nodeDistortion.get,
     set: elementDistortion.set,
   };
 
-  // @ts-expect-error type mismatch
   membrane.distortions.set(win.Node.prototype, nodeDistortion);
-
-  // Element/HTMLElement 原型：使用组合规则 (防御遍历 + 清洗写入)
-  // @ts-expect-error type mismatch
   membrane.distortions.set(win.Element.prototype, compositeDistortion);
-  // @ts-expect-error type mismatch
   membrane.distortions.set(win.HTMLElement.prototype, compositeDistortion);
 
-  // Object/Array Prototypes
   const protoDistortion = createPrototypeDistortion(win);
-  // @ts-expect-error type mismatch
   membrane.distortions.set(win.Object.prototype, protoDistortion);
-  // @ts-expect-error type mismatch
   membrane.distortions.set(win.Array.prototype, protoDistortion);
 };
 
@@ -100,8 +89,11 @@ export function createSandbox(
       const safeExecutor = new Function(
         "sandbox",
         `with(sandbox) { 
-            ${code} 
-         }`,
+          (function() { 
+            "use strict";
+            ${code}
+          })(); 
+        }`,
       );
       // oxlint-disable-next-line no-unsafe-call
       safeExecutor(redGlobal);

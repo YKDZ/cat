@@ -15,7 +15,7 @@ const { state } = useQuery({
   key: ["slot", props.id],
   placeholderData: [],
   query: () =>
-    orpc.plugin.getAllComponentsOfSlot({
+    orpc.plugin.getComponentsOfSlot({
       slotId: props.id,
     }),
   enabled: !import.meta.env.SSR,
