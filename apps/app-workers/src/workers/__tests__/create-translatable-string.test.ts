@@ -1,4 +1,4 @@
-import { beforeAll, expect, test } from "vitest";
+import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   eq,
   getColumns,
@@ -11,8 +11,16 @@ import { createTranslatableStringTask } from "@/workers/create-translatable-stri
 import { zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
+let cleanup: () => Promise<void>;
+
+afterAll(async () => {
+  await cleanup?.();
+});
+
 beforeAll(async () => {
-  const { client: drizzle } = await setupTestDB();
+  const db = await setupTestDB();
+  cleanup = db.cleanup;
+  const drizzle = db.client;
 
   const pluginRegistry = PluginRegistry.get(
     "GLOBAL",

@@ -4,17 +4,18 @@ import { Client } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { combinedSchema, type DrizzleDB } from "@cat/db";
-import { afterAll } from "vitest";
 import { randomUUID } from "node:crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export type TestDB = DrizzleDB & { cleanup: () => Promise<void> };
+
 /**
  * 向 globalThis 填充基于 NodePg 的测试数据库
  * 并完成迁移
  */
-export const setupTestDB = async (): Promise<DrizzleDB> => {
+export const setupTestDB = async (): Promise<TestDB> => {
   const connectionString =
     process.env.TEST_DATABASE_URL || "postgres://user:pass@localhost:5432/cat";
 
@@ -62,7 +63,8 @@ export const setupTestDB = async (): Promise<DrizzleDB> => {
     client: db,
     connect: async () => {},
     disconnect: async () => {
-      await client.end();
+      // 这里的 disconnect 会被应用逻辑调用，如果是真实环境应该断开连接
+      // 但在测试环境中，我们需要保持连接直到 cleanup 被调用
     },
     ping: async () => {
       await client.query("SELECT 1");
@@ -71,10 +73,15 @@ export const setupTestDB = async (): Promise<DrizzleDB> => {
 
   globalThis["__DRIZZLE_DB__"] = drizzleDB;
 
-  afterAll(async () => {
-    await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
-    await client.end();
-  });
+  const cleanup = async () => {
+    try {
+      await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
+    } catch (e) {
+      console.error(`Failed to cleanup schema ${schemaName}`, e);
+    } finally {
+      await client.end();
+    }
+  };
 
-  return drizzleDB;
+  return { ...drizzleDB, cleanup } as unknown as TestDB;
 };

@@ -32,7 +32,8 @@
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "drizzle-orm": "1.0.0-beta.8-734e789"
+    "drizzle-orm": "1.0.0-beta.8-734e789",
+    "vitest": "^2.1.8"
   },
   "packageManager": "pnpm@10.26.2"
 }

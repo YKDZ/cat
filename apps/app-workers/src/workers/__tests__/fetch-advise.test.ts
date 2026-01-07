@@ -1,12 +1,20 @@
-import { beforeAll, expect, test } from "vitest";
+import { afterAll, beforeAll, expect, test } from "vitest";
 import { getDrizzleDB, glossary, language, user } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { fetchAdviseWorkflow } from "../fetch-advise.ts";
 
+let cleanup: () => Promise<void>;
+
+afterAll(async () => {
+  await cleanup?.();
+});
+
 beforeAll(async () => {
-  const { client: drizzle } = await setupTestDB();
+  const db = await setupTestDB();
+  cleanup = db.cleanup;
+  const drizzle = db.client;
 
   const pluginRegistry = PluginRegistry.get(
     "GLOBAL",
