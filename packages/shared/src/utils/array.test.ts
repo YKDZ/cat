@@ -10,7 +10,7 @@ import {
 
 describe("Array Utility Functions", () => {
   describe("chunkGenerator", () => {
-    it("应该将数组按大小分块生成", () => {
+    it("should chunk an array into smaller arrays of given size", () => {
       const gen = chunkGenerator([1, 2, 3, 4, 5], 2);
       expect(gen.next().value).toEqual([1, 2]);
       expect(gen.next().value).toEqual([3, 4]);
@@ -18,14 +18,14 @@ describe("Array Utility Functions", () => {
       expect(gen.next().done).toBe(true);
     });
 
-    it("处理空数组", () => {
+    it("should handle empty arrays", () => {
       const gen = chunkGenerator([], 2);
       expect(gen.next().done).toBe(true);
     });
   });
 
   describe("dualChunkGenerator", () => {
-    it("应该同步对两个数组进行分块", () => {
+    it("should synchronously chunk two arrays", () => {
       const arr1 = ["a", "b", "c"];
       const arr2 = [1, 2, 3];
       const gen = dualChunkGenerator(arr1, arr2, 2);
@@ -38,20 +38,20 @@ describe("Array Utility Functions", () => {
       expect(gen.next().done).toBe(true);
     });
 
-    it("当数组长度不一致时，应以较短的数组长度作为循环终止条件", () => {
-      // arr1 长度为 3，arr2 长度为 1，min 长度为 1
+    it("should use the shorter array length as the loop termination condition when array lengths differ", () => {
+      // arr1 length is 3, arr2 length is 1, min length is 1
       const gen = dualChunkGenerator([1, 2, 3], ["a"], 2);
 
-      // 第一次迭代：i=0, size=2。arr1.slice(0, 2) 是 [1, 2]
+      // First iteration: i=0, size=2. arr1.slice(0, 2) is [1, 2]
       expect(gen.next().value).toEqual([[1, 2], ["a"]]);
 
-      // 第二次迭代：i=2, 不再小于 min 长度 1，结束
+      // Second iteration: i=2, no longer less than min length 1, end
       expect(gen.next().done).toBe(true);
     });
   });
 
   describe("chunk", () => {
-    it("应该返回带有索引的分块对象数组", () => {
+    it("should return an array of chunk objects with indices", () => {
       const result = chunk([10, 20, 30], 2);
       expect(result).toEqual([
         { index: 0, chunk: [10, 20] },
@@ -59,19 +59,19 @@ describe("Array Utility Functions", () => {
       ]);
     });
 
-    it("size 大于数组长度时返回单块", () => {
+    it("should return single block when chunk size is larger than array length", () => {
       expect(chunk([1], 5)).toHaveLength(1);
     });
   });
 
   describe("chunkDual", () => {
-    it("应该正确合并两个等长数组的分块", () => {
+    it("should correctly merge chunks of two arrays of equal length", () => {
       const r = chunkDual([1, 2], ["a", "b"], 1);
       expect(r).toHaveLength(2);
       expect(r[0].chunk).toEqual({ arr1: [1], arr2: ["a"] });
     });
 
-    it("当数组长度不匹配时应该抛出错误", () => {
+    it("should throw an error when array lengths do not match", () => {
       expect(() => chunkDual([1], [1, 2], 1)).toThrow(
         /Arrays must be of the same length/,
       );
@@ -79,15 +79,15 @@ describe("Array Utility Functions", () => {
   });
 
   describe("getIndex", () => {
-    it("应该返回正确的索引值", () => {
+    it("should return the correct index value", () => {
       expect(getIndex([10, 20], 1)).toBe(20);
     });
 
-    it("索引越界时抛出错误", () => {
+    it("should throw an error when index is out of bounds", () => {
       expect(() => getIndex([1], 5)).toThrow(/out of bounds/);
     });
 
-    it("对应位置为 falsy 值（如 undefined）时也应抛错", () => {
+    it("should also throw an error when the value at the index is falsy (e.g., undefined)", () => {
       expect(() => {
         getIndex([undefined], 0);
       }).toThrow();
@@ -95,7 +95,7 @@ describe("Array Utility Functions", () => {
   });
 
   describe("zip", () => {
-    it("应该像拉链一样组合多个数组", () => {
+    it("should zip multiple arrays", () => {
       const a = [1, 2];
       const b = ["a", "b"];
       const c = [true, false];
@@ -107,13 +107,13 @@ describe("Array Utility Functions", () => {
       ]);
     });
 
-    it("当输入数组长度不一致时抛出错误", () => {
+    it("should throw an error when input arrays have different lengths", () => {
       expect(() => Array.from(zip([1, 2], [1]))).toThrow(
         "Array length mismatch",
       );
     });
 
-    it("处理空参数或空数组", () => {
+    it("should handle empty arguments or empty arrays", () => {
       const result = Array.from(zip());
       expect(result).toEqual([]);
 
@@ -121,7 +121,7 @@ describe("Array Utility Functions", () => {
       expect(result2).toEqual([]);
     });
 
-    it("验证迭代器协议", () => {
+    it("should verify the iterator protocol", () => {
       const iterator = zip([1], ["a"])[Symbol.iterator]();
       expect(iterator.next()).toEqual({ value: [1, "a"], done: false });
       expect(iterator.next()).toEqual({ value: undefined, done: true });
