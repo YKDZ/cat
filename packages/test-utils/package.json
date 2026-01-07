@@ -24,7 +24,7 @@
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@types/pg": "^8.16.0",
-    "drizzle-kit": "1.0.0-beta.8-734e789",
+    "drizzle-kit": "1.0.0-beta.9-e89174b",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "^7.3.0"
   },
@@ -32,7 +32,7 @@
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "drizzle-orm": "1.0.0-beta.8-734e789",
+    "drizzle-orm": "1.0.0-beta.9-e89174b",
     "vitest": "^2.1.8"
   },
   "packageManager": "pnpm@10.26.2"
