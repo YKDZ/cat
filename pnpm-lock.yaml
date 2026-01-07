@@ -252,7 +252,7 @@ importers:
         version: 1.2.0(tailwindcss@4.1.18)
       '@pinia/colada-devtools':
         specifier: ^0.4.0
-        version: 0.4.0
+        version: 0.4.1
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.1.18)
@@ -880,7 +880,7 @@ importers:
         version: 1.0.0-beta.9-e89174b
       drizzle-seed:
         specifier: ^0.3.1
-        version: 0.3.1(drizzle-orm@1.0.0-beta.9-e89174b(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3)))
+        version: 0.3.1
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.10.4))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.2)(rollup@4.53.5)(typescript@5.9.3)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
@@ -3373,8 +3373,8 @@ packages:
       vite:
         optional: true
 
-  '@pinia/colada-devtools@0.4.0':
-    resolution: {integrity: sha512-1AffG0DGXDpMB2m7pA7Bh7gWObaK95us9u4EPwjpVixZRK55K6KaULQm+51i6ysTVhniDK13LiRrogaR3dH37Q==}
+  '@pinia/colada-devtools@0.4.1':
+    resolution: {integrity: sha512-BmurCHPmgfaq3fZEoKim/g0vrVpM5psAdYsh/kvpmwiARKRlNGR1GPj1Uhm+EE1fpCMfzuQDwRqffb+zydooRw==}
 
   '@pinia/colada@0.20.0':
     resolution: {integrity: sha512-IY8ssG7xsVlIq5uvnkQtPMKJ4NHxGeeP04HFKR46DOe58UY07JQFKvbDOj3d+nX/Ki+VAb3TGeHIqQdBWf0eWQ==}
@@ -8538,6 +8538,7 @@ packages:
   whatwg-encoding@2.0.0:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
     engines: {node: '>=12'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
@@ -11530,7 +11531,7 @@ snapshots:
       - hono
       - srvx
 
-  '@pinia/colada-devtools@0.4.0': {}
+  '@pinia/colada-devtools@0.4.1': {}
 
   '@pinia/colada@0.20.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
     dependencies:
@@ -14193,11 +14194,9 @@ snapshots:
       pg: 8.16.3
       prisma: 6.16.1(typescript@5.9.3)
 
-  drizzle-seed@0.3.1(drizzle-orm@1.0.0-beta.9-e89174b(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))):
+  drizzle-seed@0.3.1:
     dependencies:
       pure-rand: 6.1.0
-    optionalDependencies:
-      drizzle-orm: 1.0.0-beta.9-e89174b(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3))
 
   dunder-proto@1.0.1:
     dependencies:
