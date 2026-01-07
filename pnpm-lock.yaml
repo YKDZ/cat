@@ -876,8 +876,8 @@ importers:
         specifier: ^8.16.0
         version: 8.16.0
       drizzle-kit:
-        specifier: 1.0.0-beta.9-e89174b
-        version: 1.0.0-beta.9-e89174b
+        specifier: 1.0.0-beta.10-f8f663a
+        version: 1.0.0-beta.10-f8f663a
       drizzle-seed:
         specifier: ^0.3.1
         version: 0.3.1(drizzle-orm@1.0.0-beta.9-e89174b(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@prisma/client@6.16.1(prisma@6.16.1(typescript@5.9.3))(typescript@5.9.3))(@types/mssql@9.1.8)(@types/pg@8.16.0)(mssql@11.0.1)(pg@8.16.3)(prisma@6.16.1(typescript@5.9.3)))
@@ -981,7 +981,7 @@ importers:
         version: 8.16.3
       vitest:
         specifier: ^2.1.8
-        version: 2.1.9(@types/node@25.0.3)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.0.11)(lightningcss@1.30.2)
+        version: 2.1.9(@types/node@25.0.3)(@vitest/ui@4.0.16)(happy-dom@20.0.11)(lightningcss@1.30.2)
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
@@ -990,8 +990,8 @@ importers:
         specifier: ^8.16.0
         version: 8.16.0
       drizzle-kit:
-        specifier: 1.0.0-beta.9-e89174b
-        version: 1.0.0-beta.9-e89174b
+        specifier: 1.0.0-beta.10-f8f663a
+        version: 1.0.0-beta.10-f8f663a
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.0.3))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.2)(rollup@4.53.5)(typescript@5.9.3)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
@@ -5648,8 +5648,8 @@ packages:
     resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
     engines: {node: '>=12'}
 
-  drizzle-kit@1.0.0-beta.9-e89174b:
-    resolution: {integrity: sha512-Xrw3k8E2CbSZr+kqe3k5W4oxd2fbEyczjKtyGIkAq0x9Wqpa/VtAT6Mkh83sIzqG4OSN7lOoUafsDxSE/AR7RA==}
+  drizzle-kit@1.0.0-beta.10-f8f663a:
+    resolution: {integrity: sha512-K2/ALC2UkyRcPFxzbjT2E7Oq8qlxHN28cPhzoAv87RZ4jyfqWWYjy7f0tn668+W5lwENzED52XoSyfpwLsMTIQ==}
     hasBin: true
 
   drizzle-orm@1.0.0-beta.9-e89174b:
@@ -8538,6 +8538,7 @@ packages:
   whatwg-encoding@2.0.0:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
     engines: {node: '>=12'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
@@ -14174,7 +14175,7 @@ snapshots:
 
   dotenv@17.2.3: {}
 
-  drizzle-kit@1.0.0-beta.9-e89174b:
+  drizzle-kit@1.0.0-beta.10-f8f663a:
     dependencies:
       '@drizzle-team/brocli': 0.11.0
       '@js-temporal/polyfill': 0.5.1
@@ -17285,7 +17286,7 @@ snapshots:
       typescript: 5.9.3
       vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(@vitest/ui@4.0.16)(happy-dom@20.0.11)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
 
-  vitest@2.1.9(@types/node@25.0.3)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.0.11)(lightningcss@1.30.2):
+  vitest@2.1.9(@types/node@25.0.3)(@vitest/ui@4.0.16)(happy-dom@20.0.11)(lightningcss@1.30.2):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@25.0.3)(lightningcss@1.30.2))
