@@ -1,4 +1,4 @@
-import { beforeAll, expect, test } from "vitest";
+import { afterAll, beforeAll, expect, test } from "vitest";
 import { blob, eq, file, getDrizzleDB, language, pluginService } from "@cat/db";
 import { PluginRegistry } from "@cat/plugin-core";
 import {
@@ -12,8 +12,16 @@ import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
 const key = "/file/key";
 
+let cleanup: () => Promise<void>;
+
+afterAll(async () => {
+  await cleanup?.();
+});
+
 beforeAll(async () => {
-  const { client: drizzle } = await setupTestDB();
+  const db = await setupTestDB();
+  cleanup = db.cleanup;
+  const drizzle = db.client;
 
   const pluginRegistry = PluginRegistry.get(
     "GLOBAL",

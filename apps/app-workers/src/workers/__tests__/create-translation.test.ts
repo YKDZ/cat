@@ -1,4 +1,4 @@
-import { beforeAll, expect, test } from "vitest";
+import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   document,
   getDrizzleDB,
@@ -53,8 +53,16 @@ const data = [
   },
 ];
 
+let cleanup: () => Promise<void>;
+
+afterAll(async () => {
+  await cleanup?.();
+});
+
 beforeAll(async () => {
-  const { client: drizzle } = await setupTestDB();
+  const db = await setupTestDB();
+  cleanup = db.cleanup;
+  const drizzle = db.client;
 
   const pluginRegistry = PluginRegistry.get(
     "GLOBAL",

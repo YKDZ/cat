@@ -20,8 +20,11 @@ export default defineConfig({
 
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
-      fileName: "index.js",
+      fileName: "index",
       formats: ["es"],
+    },
+    rollupOptions: {
+      external: ["vitest", "@cat/db", "pg", "drizzle-orm"],
     },
   },
 
