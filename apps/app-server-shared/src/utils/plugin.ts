@@ -112,6 +112,8 @@ export const installDefaultPlugins = async (
     "pgvector-storage",
     "markdown-file-handler",
     "tiny-widget",
+    "basic-tokenizer",
+    "basic-qa-checker",
   ];
 
   const installedPlugins = (

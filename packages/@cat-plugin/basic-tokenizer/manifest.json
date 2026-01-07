@@ -1,0 +1,13 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "basic-tokenizer",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "iconURL": "https://unocss.dev/logo.svg",
+  "services": [
+    {
+      "id": "simple-pattern-tokenizer",
+      "type": "TOKENIZER"
+    }
+  ]
+}

@@ -870,6 +870,35 @@ export const translationVote = pgTable(
   ],
 );
 
+export const qaResult = pgTable("QaResult", {
+  id: serial().primaryKey(),
+  translationId: integer()
+    .notNull()
+    .references(() => translation.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  ...timestamps,
+});
+
+export const qaResultItem = pgTable("QaResultItem", {
+  id: serial().primaryKey(),
+  meta: jsonb().$type<JSONType>(),
+  resultId: integer()
+    .notNull()
+    .references(() => qaResult.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  checkerId: integer()
+    .notNull()
+    .references(() => pluginService.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  ...timestamps,
+});
+
 export const user = pgTable(
   "User",
   {

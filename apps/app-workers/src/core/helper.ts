@@ -199,8 +199,10 @@ export const defineTask = async <
         },
       };
     },
+
     asChild: (payload, meta) => {
       const traceId = meta?.traceId ?? crypto.randomUUID();
+      const taskId = meta?.taskId ?? crypto.randomUUID().slice(0, 8);
       const data = inputSchema.parse(payload);
       return {
         name,
@@ -208,7 +210,8 @@ export const defineTask = async <
         data: { ...data, traceId },
         opts: {
           // 包含 name 前缀供 getTaskResult 过滤使用
-          jobId: `${name}:${traceId}:${crypto.randomUUID().slice(0, 8)}`,
+          // 格式: taskName:traceId:taskId
+          jobId: `${name}:${traceId}:${taskId}`,
           removeOnComplete: true,
         },
       };
@@ -252,22 +255,31 @@ export const defineWorkflow = async <
       Ctx,
     >(
       taskDef: TaskDefinition<Ti, To, Ctx>,
+      taskId?: string,
     ): z.infer<To>[] => {
       const results: z.infer<To>[] = [];
 
       Object.entries(childrenValues).forEach(([key, value]) => {
         // BullMQ 返回的 Key 格式为 prefix:queueName:jobId
-        // 我们在 asChild 中生成的 JobId 格式为 taskName:traceId:uuid
-        // 因此，匹配 Key 是否包含 ":taskName:traceId:"
-        if (key.includes(`:${taskDef.name}:${traceId}:`)) {
-          // 如果定义了 Output Schema，则进行运行时验证，确保类型安全
-          if (taskDef.schema.output) {
-            results.push(taskDef.schema.output.parse(value));
-          } else {
-            // 如果没有 Schema，且 value 确有值，不得不进行断言
-            // oxlint-disable-next-line no-unsafe-type-assertion
-            results.push(value as z.infer<To>);
-          }
+        // 我们在 asChild 中生成的 JobId 格式为 taskName:traceId:taskId
+
+        // 基础过滤：必须包含该 Task 的基本标识
+        if (!key.includes(`:${taskDef.name}:${traceId}:`)) {
+          return;
+        }
+
+        // 如果指定了 taskId，则必须精确匹配后缀
+        if (taskId && !key.includes(`:${taskDef.name}:${traceId}:${taskId}`)) {
+          return;
+        }
+
+        // 如果定义了 Output Schema，则进行运行时验证，确保类型安全
+        if (taskDef.schema.output) {
+          results.push(taskDef.schema.output.parse(value));
+        } else {
+          // 如果没有 Schema，且 value 确有值，不得不进行断言
+          // oxlint-disable-next-line no-unsafe-type-assertion
+          results.push(value as z.infer<To>);
         }
       });
 
@@ -315,7 +327,7 @@ export const defineWorkflow = async <
 
     const flowProducer = getFlowProducer();
 
-    const children = dependencies(data, { traceId });
+    const children = await dependencies(data, { traceId });
 
     logger.debug("PROCESSOR", {
       msg: `[Workflow:${name}] Dependencies calculated`,
@@ -381,13 +393,14 @@ export const defineWorkflow = async <
       };
     },
 
-    asChild: (payload, meta) => {
+    asChild: async (payload, meta) => {
       const traceId = meta?.traceId ?? crypto.randomUUID();
+      const taskId = meta?.taskId ?? crypto.randomUUID().slice(0, 8);
       const data = inputSchema.parse(payload);
 
       // 递归构建依赖树
       // 这里的 children 是子工作流的 Barrier Job（如果是工作流）或原子 Task Job
-      const children = dependencies(data, { traceId });
+      const children = await dependencies(data, { traceId });
 
       return {
         name,
@@ -397,7 +410,8 @@ export const defineWorkflow = async <
         opts: {
           // 生成唯一的 JobID，格式需满足 getTaskResult 的匹配规则: :taskName:traceId:
           // 使用随机后缀允许在同一个父流程中多次调用同一个子工作流
-          jobId: `${name}:${traceId}:${crypto.randomUUID().slice(0, 8)}`,
+          // 格式: taskName:traceId:taskId
+          jobId: `${name}:${traceId}:${taskId}`,
           removeOnComplete: true,
         },
       };

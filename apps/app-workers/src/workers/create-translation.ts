@@ -4,6 +4,7 @@ import { zip } from "@cat/shared/utils";
 import * as z from "zod";
 import { createTranslatableStringTask } from "./create-translatable-string";
 import { insertMemory } from "@cat/app-server-shared/utils";
+import { qaTranslationWorkflow } from "./qa-translation";
 
 export const CreateTranslationInputSchema = z.object({
   data: z.array(
@@ -30,8 +31,8 @@ export const createTranslationWorkflow = await defineWorkflow({
   input: CreateTranslationInputSchema,
   output: CreateTranslationOutputSchema,
 
-  dependencies: (data, { traceId }) => [
-    createTranslatableStringTask.asChild(
+  dependencies: async (data, { traceId }) => [
+    await createTranslatableStringTask.asChild(
       {
         data: data.data.map((d) => ({
           text: d.text,
@@ -73,6 +74,12 @@ export const createTranslationWorkflow = await defineWorkflow({
           .memoryItemIds;
       });
     }
+
+    await Promise.all(
+      translationIds.map(
+        async (id) => await qaTranslationWorkflow.run({ translationId: id }),
+      ),
+    );
 
     return {
       translationIds,

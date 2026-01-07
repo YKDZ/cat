@@ -27,8 +27,8 @@ export const searchMemoryWorkflow = await defineWorkflow({
   input: SearchMemoryInputSchema,
   output: SearchMemoryOutputSchema,
 
-  dependencies: (data, { traceId }) => [
-    retriveEmbeddingsTask.asChild(
+  dependencies: async (data, { traceId }) => [
+    await retriveEmbeddingsTask.asChild(
       {
         chunkIds: data.chunkIds,
       },

@@ -26,8 +26,8 @@ export const createElementWorkflow = await defineWorkflow({
   input: CreateElementInputSchema,
   output: CreateElementOutputSchema,
 
-  dependencies: (data, { traceId }) => [
-    createTranslatableStringTask.asChild(
+  dependencies: async (data, { traceId }) => [
+    await createTranslatableStringTask.asChild(
       {
         data: data.data.map((d) => ({
           text: d.text,

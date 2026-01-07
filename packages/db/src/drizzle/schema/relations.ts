@@ -308,6 +308,22 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.translation.id,
       }),
     },
+    qaResult: {
+      translation: r.one.translation({
+        from: r.qaResult.translationId,
+        to: r.translation.id,
+      }),
+    },
+    qaResultItem: {
+      result: r.one.qaResult({
+        from: r.qaResultItem.resultId,
+        to: r.qaResult.id,
+      }),
+      checker: r.one.pluginService({
+        from: r.qaResultItem.checkerId,
+        to: r.pluginService.id,
+      }),
+    },
     permission: {
       permissionTemplate: r.one.permissionTemplate({
         from: r.permission.templateId,

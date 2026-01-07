@@ -27,8 +27,8 @@ export const fetchAdviseWorkflow = await defineWorkflow({
   input: FetchAdviseInputSchema,
   output: FetchAdviseOutputSchema,
 
-  dependencies: (data, { traceId }) => [
-    searchTermTask.asChild(
+  dependencies: async (data, { traceId }) => [
+    await searchTermTask.asChild(
       {
         text: data.text,
         sourceLanguageId: data.sourceLanguageId,
