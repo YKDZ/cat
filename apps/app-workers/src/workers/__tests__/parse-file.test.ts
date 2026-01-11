@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, test } from "vitest";
 import { blob, eq, file, getDrizzleDB, language, pluginService } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
 import {
   firstOrGivenService,
   readableToString,
@@ -23,16 +23,16 @@ beforeAll(async () => {
   cleanup = db.cleanup;
   const drizzle = db.client;
 
-  const pluginRegistry = PluginRegistry.get(
-    "GLOBAL",
-    "",
-    new TestPluginLoader(),
-  );
+  const pluginManager = PluginManager.get("GLOBAL", "", new TestPluginLoader());
 
-  await pluginRegistry.importAvailablePlugins(drizzle);
-  await pluginRegistry.installPlugin(drizzle, "mock");
-  // @ts-expect-error no need for hono here
-  await pluginRegistry.enableAllPlugins(drizzle, {});
+  await pluginManager.getDiscovery().syncDefinitions(drizzle);
+  await pluginManager.install(drizzle, "mock");
+  await drizzle.transaction(async (tx) => {
+    await pluginManager.restore(
+      tx, // @ts-expect-error no need for hono
+      {},
+    );
+  });
 
   // Seed
   await drizzle.transaction(async (tx) => {
@@ -68,15 +68,12 @@ beforeAll(async () => {
 });
 
 test("storage provider should store and retrieve data correctly", async () => {
-  const { client: drizzle } = await getDrizzleDB();
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+  const pluginManager = PluginManager.get("GLOBAL", "");
 
-  const { service: provider } = (await firstOrGivenService(
-    drizzle,
-    pluginRegistry,
+  const { service: provider } = firstOrGivenService(
+    pluginManager,
     "STORAGE_PROVIDER",
-    0,
-  ))!;
+  )!;
 
   const text = "Hello World!\nYKDZ";
 

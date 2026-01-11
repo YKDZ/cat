@@ -4,7 +4,11 @@ import {
   readableToBuffer,
 } from "@cat/app-server-shared/utils";
 import { and, blob, eq, file, getDrizzleDB } from "@cat/db";
-import { PluginRegistry, type StorageProvider } from "@cat/plugin-core";
+import {
+  PluginManager,
+  type FileImporter,
+  type StorageProvider,
+} from "@cat/plugin-core";
 import { safeZDotJson } from "@cat/shared/schema/json";
 import {
   assertFirstNonNullish,
@@ -35,7 +39,7 @@ export const parseFileTask = await defineTask({
 
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
     const { name, key, storageProviderId } = assertSingleNonNullish(
       await drizzle
@@ -50,16 +54,17 @@ export const parseFileTask = await defineTask({
       `File ${data.fileId} not found`,
     );
 
-    const provider = await getServiceFromDBId<StorageProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<StorageProvider>(
+      pluginManager,
       storageProviderId,
     );
-    const { service: handler } = assertFirstNonNullish(
-      pluginRegistry
-        .getPluginServices("FILE_IMPORTER")
-        .filter((h) => h.service.canImport({ name })),
-    );
+    const handler = assertFirstNonNullish(
+      pluginManager
+        .getServices("FILE_IMPORTER")
+        // oxlint-disable-next-line no-unsafe-type-assertion
+        .filter((h) => (h.service as FileImporter).canImport({ name }))
+        .map((h) => h.service),
+    ) as FileImporter;
 
     const fileContent = await readableToBuffer(
       await provider.getStream({ key }),

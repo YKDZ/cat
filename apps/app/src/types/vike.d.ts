@@ -9,7 +9,7 @@ import type {
 import type { DrizzleDB, RedisDB } from "@cat/db";
 import type { User } from "@cat/shared/schema/drizzle/user";
 import type { HTTPHelpers } from "@cat/shared/utils";
-import type { ComponentRecord, PluginRegistry } from "@cat/plugin-core";
+import type { ComponentRecord, PluginManager } from "@cat/plugin-core";
 import type { Component } from "vue";
 
 declare global {
@@ -36,7 +36,7 @@ declare global {
     interface GlobalContextServer {
       drizzleDB: DrizzleDB;
       redisDB: RedisDB;
-      pluginRegistry: PluginRegistry;
+      pluginManager: PluginManager;
       resolvePluginComponentPath: typeof resolvePluginComponentPath;
     }
     interface GlobalContextClient {

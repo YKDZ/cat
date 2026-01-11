@@ -28,6 +28,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     new Map<number, TranslatableElementWithDetails[]>(),
   );
   const loadedPageHashes = reactive(new Map<number, string>());
+  const pendingElements = reactive(new Set<number>());
 
   const loadedPagesIndex = computed(() => {
     return Array.from(loadedPages.keys());
@@ -54,6 +55,14 @@ export const useEditorElementStore = defineStore("editorElement", () => {
       elementId,
       languageId: context.languageToId.value,
     });
+  };
+
+  const setElementPending = (elementId: number, isPending: boolean) => {
+    if (isPending) {
+      pendingElements.add(elementId);
+    } else {
+      pendingElements.delete(elementId);
+    }
   };
 
   const updateElement = (updatedElement: TranslatableElement) => {
@@ -97,6 +106,8 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     loadedPagesIndex,
     storedElements,
     displayedElements,
+    pendingElements,
+    setElementPending,
     getElementTranslationStatus,
     updateElement,
     updateElementStatus,

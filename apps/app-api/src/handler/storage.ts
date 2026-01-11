@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { stream } from "hono/streaming";
-import { getDrizzleDB, getRedisDB } from "@cat/db";
-import { PluginRegistry, type StorageProvider } from "@cat/plugin-core";
+import { getRedisDB } from "@cat/db";
+import { PluginManager, type StorageProvider } from "@cat/plugin-core";
 import {
   FileDownloadPayloadSchema,
   getServiceFromDBId,
@@ -15,17 +15,15 @@ const app = new Hono();
 app.put("/upload/:sessionId", async (c) => {
   const sessionId = c.req.param("sessionId");
   const { redis } = await getRedisDB();
-  const drizzle = await getDrizzleDB();
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+  const pluginManager = PluginManager.get("GLOBAL", "");
 
   const redisKey = `file:client:put:${sessionId}`;
   const { key, storageProviderId } = PresignedPutFileSessionPayloadSchema.parse(
     await redis.hGetAll(redisKey),
   );
 
-  const provider = await getServiceFromDBId<StorageProvider>(
-    drizzle.client,
-    pluginRegistry,
+  const provider = getServiceFromDBId<StorageProvider>(
+    pluginManager,
     storageProviderId,
   );
 
@@ -48,8 +46,7 @@ app.put("/upload/:sessionId", async (c) => {
 app.get("/download/:token", async (c) => {
   const token = c.req.param("token");
   const { redis } = await getRedisDB();
-  const drizzle = await getDrizzleDB();
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+  const pluginManager = PluginManager.get("GLOBAL", "");
 
   const redisKey = `file:download:${token}`;
 
@@ -57,9 +54,8 @@ app.get("/download/:token", async (c) => {
     await redis.hGetAll(redisKey),
   );
 
-  const provider = await getServiceFromDBId<StorageProvider>(
-    drizzle.client,
-    pluginRegistry,
+  const provider = getServiceFromDBId<StorageProvider>(
+    pluginManager,
     storageProviderId,
   );
 

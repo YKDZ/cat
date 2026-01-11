@@ -8,20 +8,20 @@ import { watchClient } from "@/app/utils/vue.ts";
 
 const { t } = useI18n();
 
-const { translations } = storeToRefs(useEditorTranslationStore());
-const { updateTranslations } = useEditorTranslationStore();
+const { state } = storeToRefs(useEditorTranslationStore());
+const { refetch } = useEditorTranslationStore();
 const { elementId } = storeToRefs(useEditorTableStore());
 
-watchClient(elementId, updateTranslations, { immediate: true });
+watchClient(elementId, () => refetch(), { immediate: true });
 </script>
 
 <template>
-  <div class="flex flex-col p-3">
+  <div v-if="state.data" class="flex flex-col p-3">
     <h3 class="text-sm font-bold">{{ t("所有翻译") }}</h3>
-    <div v-if="translations.length === 0" class="px-3 py-2 select-none">
+    <div v-if="state.data.length === 0" class="px-3 py-2 select-none">
       {{ t("还没有任何翻译或翻译仍在处理") }}
     </div>
-    <div v-else v-for="translation in translations" :key="translation.id">
+    <div v-else v-for="translation in state.data" :key="translation.id">
       <ElementTranslation :translation="translation" />
     </div>
   </div>

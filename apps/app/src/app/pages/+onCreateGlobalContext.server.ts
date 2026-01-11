@@ -6,7 +6,7 @@ import {
   getSetting,
   ensureRootUser,
 } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
 import { assertPromise, logger } from "@cat/shared/utils";
 import { access } from "fs/promises";
 import { join } from "path";
@@ -32,21 +32,21 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     const redisDB = await getRedisDB();
     await redisDB.ping();
 
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
-    await pluginRegistry.importAvailablePlugins(drizzleDB.client);
+    await pluginManager.getDiscovery().syncDefinitions(drizzleDB.client);
 
     await drizzleDB.client.transaction(async (tx) => {
-      await installDefaultPlugins(tx, pluginRegistry);
+      await installDefaultPlugins(tx, pluginManager);
 
-      await pluginRegistry.enableAllPlugins(tx, globalThis.app);
+      await pluginManager.restore(tx, globalThis.app);
 
       await ensureRootUser(tx);
     });
 
     ctx.drizzleDB = drizzleDB;
     ctx.redisDB = redisDB;
-    ctx.pluginRegistry = pluginRegistry;
+    ctx.pluginManager = pluginManager;
 
     ctx.name = await getSetting(drizzleDB.client, "server.name", "CAT");
     ctx.baseURL = await getSetting(

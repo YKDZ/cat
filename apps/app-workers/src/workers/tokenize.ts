@@ -1,7 +1,6 @@
 import { defineTask } from "@/core";
-import { getDrizzleDB } from "@cat/db";
 import {
-  PluginRegistry,
+  PluginManager,
   tokenize,
   Tokenizer,
   TokenSchema,
@@ -22,31 +21,19 @@ export const tokenizeTask = await defineTask({
   output: TokenizeOutputSchema,
 
   handler: async (payload) => {
-    const { client: drizzle } = await getDrizzleDB();
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
     const { text } = payload;
 
-    const rules: { rule: Tokenizer; id: number }[] = await Promise.all(
-      pluginRegistry
-        .getPluginServices("TOKENIZER")
-        .map(async ({ record, service }) => {
-          const id = await pluginRegistry.getPluginServiceDbId(
-            drizzle,
-            record.pluginId,
-            record.type,
-            record.id,
-          );
-          return {
-            rule: service,
-            id,
-          };
-        }),
-    );
+    const rules: { service: Tokenizer; dbId: number }[] =
+      pluginManager.getServices("TOKENIZER");
 
-    const sorted = rules.sort(
-      (a, b) => b.rule.getPriority() - a.rule.getPriority(),
-    );
+    const sorted = rules
+      .sort((a, b) => b.service.getPriority() - a.service.getPriority())
+      .map((service) => ({
+        rule: service.service,
+        id: service.dbId,
+      }));
 
     const tokens = await tokenize(text, sorted);
 

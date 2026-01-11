@@ -3,7 +3,11 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
+import {
+  assertSingleNonNullish,
+  assertSingleOrNull,
+  logger,
+} from "@cat/shared/utils";
 import {
   and,
   eq,
@@ -24,13 +28,26 @@ import {
   chunkSet,
   glossaryToProject,
   chunk,
-  getColumns,
+  inArray,
 } from "@cat/db";
 import {
   autoTranslateWorkflow,
+  CreateTranslationPubPayloadSchema,
   createTranslationWorkflow,
+  getCreateTranslationPubKey,
 } from "@cat/app-workers";
 import { authed } from "@/orpc/server";
+import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
+
+const TranslationDataSchema = TranslationSchema.omit({
+  updatedAt: true,
+  stringId: true,
+}).extend({
+  vote: z.int(),
+  text: z.string(),
+});
+
+type TranslationData = z.infer<typeof TranslationDataSchema>;
 
 export const translationRouter = authed
   .input(
@@ -59,13 +76,26 @@ export const create = authed
       createMemory: z.boolean().default(true),
     }),
   )
-  .output(TranslationSchema)
+  .output(z.void())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
       user,
     } = context;
     const { elementId, languageId, text, createMemory } = input;
+
+    const { documentId } = assertSingleNonNullish(
+      await drizzle
+        .select({
+          documentId: documentTable.id,
+        })
+        .from(translatableElementTable)
+        .innerJoin(
+          documentTable,
+          eq(documentTable.id, translatableElementTable.documentId),
+        )
+        .where(eq(translatableElementTable.id, elementId)),
+    );
 
     const memoryIds = (
       await drizzle
@@ -84,7 +114,7 @@ export const create = authed
         .where(eq(translatableElementTable.id, elementId))
     ).map((item) => item.memoryId);
 
-    const { result } = await createTranslationWorkflow.run({
+    await createTranslationWorkflow.run({
       data: [
         {
           translatableElementId: elementId,
@@ -94,20 +124,71 @@ export const create = authed
         },
       ],
       memoryIds: createMemory ? memoryIds : [],
+      pub: true,
+      documentId,
     });
+  });
 
-    const translationId = assertSingleNonNullish(
-      (await result()).translationIds,
-    );
+export const onCreate = authed
+  .input(
+    z.object({
+      documentId: z.string(),
+    }),
+  )
+  .handler(async function* ({ context, input }) {
+    const {
+      drizzleDB: { client: drizzle },
+      redisDB: { redisSub },
+    } = context;
+    const { documentId } = input;
 
-    return assertSingleNonNullish(
-      await drizzle
-        .select({
-          ...getColumns(translationTable),
-        })
-        .from(translationTable)
-        .where(eq(translationTable.id, translationId)),
-    );
+    const key = getCreateTranslationPubKey(documentId);
+    const queue = new AsyncMessageQueue<TranslationData>();
+
+    const onCreate = async (message: string) => {
+      try {
+        const { translationIds } =
+          await CreateTranslationPubPayloadSchema.parseAsync(
+            JSON.parse(message),
+          );
+        const translations = await drizzle
+          .select({
+            id: translationTable.id,
+            translatableElementId: translationTable.translatableElementId,
+            text: translatableString.value,
+            vote: sql<number>`COALESCE(${sumDistinct(translationVoteTable.value)}, 0)`.mapWith(
+              Number,
+            ),
+            translatorId: translationTable.translatorId,
+            meta: translationTable.meta,
+            createdAt: translationTable.createdAt,
+          })
+          .from(translationTable)
+          .innerJoin(
+            translatableString,
+            eq(translatableString.id, translationTable.stringId),
+          )
+          .leftJoin(
+            translationVoteTable,
+            eq(translationVoteTable.translationId, translationTable.id),
+          )
+          .where(inArray(translationTable.id, translationIds))
+          .groupBy(translationTable.id, translatableString.value);
+        queue.push(...translations);
+      } catch (err) {
+        logger.error("RPC", { msg: "Invalid create translation payload" }, err);
+      }
+    };
+    await redisSub.subscribe(key, onCreate);
+
+    try {
+      for await (const translations of queue.consume()) {
+        yield translations;
+      }
+    } finally {
+      await redisSub.unsubscribe(key);
+      queue.clear();
+    }
   });
 
 export const getAll = authed
@@ -117,18 +198,7 @@ export const getAll = authed
       languageId: z.string(),
     }),
   )
-  .output(
-    z.array(
-      TranslationSchema.omit({
-        translatableElementId: true,
-        updatedAt: true,
-        stringId: true,
-      }).extend({
-        vote: z.int(),
-        text: z.string(),
-      }),
-    ),
-  )
+  .output(z.array(TranslationDataSchema))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -138,6 +208,7 @@ export const getAll = authed
     const translations = await drizzle
       .select({
         id: translationTable.id,
+        translatableElementId: translationTable.translatableElementId,
         text: translatableString.value,
         vote: sql<number>`COALESCE(${sumDistinct(translationVoteTable.value)}, 0)`.mapWith(
           Number,

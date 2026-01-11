@@ -1,63 +1,39 @@
+import { and, eq, DrizzleClient, pluginInstallation } from "@cat/db";
 import {
-  and,
-  eq,
-  DrizzleClient,
-  pluginInstallation,
-  pluginService,
-} from "@cat/db";
-import {
-  PluginRegistry,
+  PluginManager,
   type IPluginService,
   type PluginServiceMap,
 } from "@cat/plugin-core";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
-import {
-  assertFirstNonNullish,
-  assertSingleNonNullish,
-} from "@cat/shared/utils";
+import { assertFirstNonNullish } from "@cat/shared/utils";
 import path, { join, resolve } from "node:path";
 import { cwd } from "node:process";
 
-export const firstOrGivenService = async <T extends PluginServiceType>(
-  drizzle: DrizzleClient,
-  pluginRegistry: PluginRegistry,
+export const firstOrGivenService = <T extends PluginServiceType>(
+  pluginManager: PluginManager,
   type: T,
   id?: number,
-): Promise<
-  | {
-      id: number;
-      service: PluginServiceMap[T];
-    }
-  | undefined
-> => {
+): { id: number; service: PluginServiceMap[T] } | undefined => {
   if (id) {
     return {
       id,
       // oxlint-disable-next-line no-unsafe-type-assertion
-      service: (await getServiceFromDBId(
-        drizzle,
-        pluginRegistry,
+      service: getServiceFromDBId(
+        pluginManager,
         id,
-      )) as unknown as PluginServiceMap[T],
+      ) as unknown as PluginServiceMap[T],
     };
   } else {
-    const services = pluginRegistry.getPluginServices(type);
+    const services = pluginManager.getServices(type);
 
     if (services.length === 0) return undefined;
 
-    const { record, service } = assertFirstNonNullish(
-      pluginRegistry.getPluginServices(type),
-    );
-    const id = await pluginRegistry.getPluginServiceDbId(
-      drizzle,
-      record.pluginId,
-      record.type,
-      record.id,
-    );
+    const { dbId, service } = assertFirstNonNullish(services);
 
     return {
-      id,
-      service,
+      id: dbId,
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      service: service as unknown as PluginServiceMap[T],
     };
   }
 };
@@ -65,41 +41,23 @@ export const firstOrGivenService = async <T extends PluginServiceType>(
 /**
  * 不涉及插件函数调用，可以在事务中安全调用
  */
-export const getServiceFromDBId = async <T extends IPluginService>(
-  drizzle: DrizzleClient,
-  pluginRegistry: PluginRegistry,
+export const getServiceFromDBId = <T extends IPluginService>(
+  pluginManager: PluginManager,
   id: number,
-): Promise<T> => {
-  const dbService = assertSingleNonNullish(
-    await drizzle
-      .select({
-        serviceId: pluginService.serviceId,
-        serviceType: pluginService.serviceType,
-        pluginId: pluginInstallation.pluginId,
-      })
-      .from(pluginService)
-      .innerJoin(
-        pluginInstallation,
-        eq(pluginService.pluginInstallationId, pluginInstallation.id),
-      )
-      .where(eq(pluginService.id, id))
-      .limit(1),
-    `Service ${id} not found`,
-  );
+): T => {
+  const service = pluginManager
+    .getAllServices()
+    .find((service) => service.dbId === id);
 
-  const service = pluginRegistry.getPluginService(
-    dbService.pluginId,
-    dbService.serviceType,
-    dbService.serviceId,
-  )!;
+  if (!service) throw new Error("Service not exists");
 
   // oxlint-disable-next-line no-unsafe-type-assertion
-  return service as unknown as T;
+  return service?.service as unknown as T;
 };
 
 export const installDefaultPlugins = async (
   drizzle: DrizzleClient,
-  pluginRegistry: PluginRegistry,
+  pluginManager: PluginManager,
 ): Promise<void> => {
   const localPlugins = [
     "password-auth-provider",
@@ -136,7 +94,7 @@ export const installDefaultPlugins = async (
 
   await Promise.all(
     needToBeInstalled.map(async (pluginId) => {
-      await pluginRegistry.installPlugin(drizzle, pluginId);
+      await pluginManager.install(drizzle, pluginId);
     }),
   );
 };
@@ -147,10 +105,11 @@ const PLUGIN_ROOT = join(cwd(), "plugins");
  * 找到指定组件在本地插件目录中的位置
  */
 export const resolvePluginComponentPath = (
+  pluginManager: PluginManager,
   pluginId: string,
   componentName: string,
 ): string => {
-  const component = PluginRegistry.get("GLOBAL", "")
+  const component = pluginManager
     .getComponents(pluginId)
     .find((component) => component.name === componentName);
   if (!component) {

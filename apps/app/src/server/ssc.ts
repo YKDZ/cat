@@ -10,7 +10,7 @@ export const ssc = (ctx: PageContextServer): RouterClient<AppRouter> => {
         ...ctx,
         drizzleDB: ctx.globalContext.drizzleDB,
         redisDB: ctx.globalContext.redisDB,
-        pluginRegistry: ctx.globalContext.pluginRegistry,
+        pluginManager: ctx.globalContext.pluginManager,
       } satisfies Context;
     },
   });

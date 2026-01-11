@@ -1,4 +1,4 @@
-import type { PluginRegistry, StorageProvider } from "@cat/plugin-core";
+import type { PluginManager, StorageProvider } from "@cat/plugin-core";
 import {
   and,
   blob as blobTable,
@@ -201,7 +201,7 @@ export const getDownloadUrl = async (
 export const finishPresignedPutFile = async (
   drizzle: DrizzleClient,
   redis: RedisClientType,
-  pluginRegistry: PluginRegistry,
+  pluginManager: PluginManager,
   putSessionId: string,
   ctxHash: string = "",
 ): Promise<number> => {
@@ -216,9 +216,8 @@ export const finishPresignedPutFile = async (
 
   await redis.del(redisKey);
 
-  const storageProvider = await getServiceFromDBId<StorageProvider>(
-    drizzle,
-    pluginRegistry,
+  const storageProvider = getServiceFromDBId<StorageProvider>(
+    pluginManager,
     storageProviderId,
   );
 

@@ -36,8 +36,8 @@ import {
   finishPresignedPutFile,
   getServiceFromDBId,
   preparePresignedPutFile,
-  useStorage,
   getDownloadUrl,
+  firstOrGivenService,
 } from "@cat/app-server-shared/utils";
 import {
   assertFirstNonNullish,
@@ -186,17 +186,17 @@ export const prepareCreateFromFile = authed
     const {
       drizzleDB: { client: drizzle },
       redisDB: { redis },
+      pluginManager,
     } = context;
     const { meta } = input;
 
     // TODO 配置 storage
-    const { id: providerId, provider } = await useStorage(
-      drizzle,
-      "local-storage-provider",
-      "LOCAL",
-      "GLOBAL",
-      "",
-    );
+    const storage = firstOrGivenService(pluginManager, "STORAGE_PROVIDER");
+
+    if (!storage)
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: `No storage provider found`,
+      });
 
     const name = sanitizeFileName(meta.name);
     const key = join("documents", randomUUID() + name);
@@ -204,8 +204,8 @@ export const prepareCreateFromFile = authed
     const { url, putSessionId, fileId } = await preparePresignedPutFile(
       drizzle,
       redis,
-      provider,
-      providerId,
+      storage.service,
+      storage.id,
       key,
       name,
     );
@@ -231,7 +231,7 @@ export const finishCreateFromFile = authed
       drizzleDB: { client: drizzle },
       redisDB: { redis },
       user,
-      pluginRegistry,
+      pluginManager,
     } = context;
 
     assertSingleNonNullish(
@@ -247,7 +247,7 @@ export const finishCreateFromFile = authed
     const fileId = await finishPresignedPutFile(
       drizzle,
       redis,
-      pluginRegistry,
+      pluginManager,
       putSessionId,
     );
 
@@ -274,8 +274,8 @@ export const finishCreateFromFile = authed
       .limit(1);
 
     if (existDocumentRows.length === 0) {
-      const service = pluginRegistry
-        .getPluginServices("FILE_IMPORTER")
+      const service = pluginManager
+        .getServices("FILE_IMPORTER")
         .find(({ service }) => service.canImport({ name: fileName }));
 
       if (!service)
@@ -288,12 +288,7 @@ export const finishCreateFromFile = authed
         const document = await createDocumentUnderParent(tx, {
           creatorId: user.id,
           projectId,
-          fileHandlerId: await pluginRegistry.getPluginServiceDbId(
-            drizzle,
-            service.record.pluginId,
-            service.record.type,
-            service.record.id,
-          ),
+          fileHandlerId: service.dbId,
           name: fileName,
         });
 
@@ -732,7 +727,7 @@ export const getDocumentFileUrl = authed
     const {
       drizzleDB: { client: drizzle },
       redisDB: { redis },
-      pluginRegistry,
+      pluginManager,
     } = context;
     const { documentId } = input;
 
@@ -762,9 +757,8 @@ export const getDocumentFileUrl = authed
 
     if (!key || !storageProviderId) return null;
 
-    const provider = await getServiceFromDBId<StorageProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<StorageProvider>(
+      pluginManager,
       storageProviderId,
     );
 

@@ -5,10 +5,10 @@ import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
 import {
   finishPresignedPutFile,
+  firstOrGivenService,
   getDownloadUrl,
   getServiceFromDBId,
   preparePresignedPutFile,
-  useStorage,
 } from "@cat/app-server-shared/utils";
 import {
   eq,
@@ -84,17 +84,18 @@ export const prepareUploadAvatar = authed
       drizzleDB: { client: drizzle },
       redisDB: { redis },
       user,
+      pluginManager,
     } = context;
     const { meta } = input;
 
     // TODO 储存的配置
-    const { id: storageProviderId, provider } = await useStorage(
-      drizzle,
-      "local-storage-provider",
-      "LOCAL",
-      "GLOBAL",
-      "",
-    );
+    const storage = firstOrGivenService(pluginManager, "STORAGE_PROVIDER");
+
+    if (!storage) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "No storage provider available",
+      });
+    }
 
     const sanitizedName = meta.name.replace(/[^\w.-]/g, "_");
     const name = `${randomUUID()}-${sanitizedName}`;
@@ -104,8 +105,8 @@ export const prepareUploadAvatar = authed
     const { url, putSessionId } = await preparePresignedPutFile(
       drizzle,
       redis,
-      provider,
-      storageProviderId,
+      storage.service,
+      storage.id,
       key,
       name,
       ctxHash,
@@ -124,7 +125,7 @@ export const finishUploadAvatar = authed
     const {
       drizzleDB: { client: drizzle },
       redisDB: { redis },
-      pluginRegistry,
+      pluginManager,
       user,
     } = context;
     const { putSessionId } = input;
@@ -134,7 +135,7 @@ export const finishUploadAvatar = authed
     const fileId = await finishPresignedPutFile(
       drizzle,
       redis,
-      pluginRegistry,
+      pluginManager,
       putSessionId,
       ctxHash,
     );
@@ -159,7 +160,7 @@ export const getAvatarPresignedUrl = authed
     const {
       drizzleDB: { client: drizzle },
       redisDB: { redis },
-      pluginRegistry,
+      pluginManager,
     } = context;
     const { userId, expiresIn } = input;
 
@@ -183,9 +184,8 @@ export const getAvatarPresignedUrl = authed
 
     const { key, storageProviderId } = assertSingleNonNullish(rows);
 
-    const provider = await getServiceFromDBId<StorageProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<StorageProvider>(
+      pluginManager,
       storageProviderId,
     );
 

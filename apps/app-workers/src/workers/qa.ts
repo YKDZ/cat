@@ -1,7 +1,7 @@
 import { defineWorkflow } from "@/core";
-import { getDrizzleDB, getRedisDB } from "@cat/db";
+import { getRedisDB } from "@cat/db";
 import {
-  PluginRegistry,
+  PluginManager,
   QAChecker,
   QAIssueSchema,
   TokenSchema,
@@ -11,6 +11,10 @@ import {
 } from "@cat/plugin-core";
 import z from "zod";
 import { searchTermTask } from "./search-term";
+
+export const getQAPubKey = (id: string): string => {
+  return `qa:issue:${id}`;
+};
 
 export const QAInputSchema = z.object({
   source: z.object({
@@ -35,6 +39,16 @@ export const QAOutputSchema = z.object({
   ),
 });
 
+export const QAPubPayloadSchema = z.object({
+  issues: z.array(
+    QAIssueSchema.extend({
+      checkerId: z.int(),
+    }),
+  ),
+});
+
+export type QAPubPayload = z.infer<typeof QAPubPayloadSchema>;
+
 export const qaWorkflow = await defineWorkflow({
   name: "qa",
   input: QAInputSchema,
@@ -53,9 +67,8 @@ export const qaWorkflow = await defineWorkflow({
   ],
 
   handler: async (payload, { traceId, getTaskResult }) => {
-    const { client: drizzle } = await getDrizzleDB();
     const { redisPub } = await getRedisDB();
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
     const [termResult] = getTaskResult(searchTermTask);
     const terms = termResult?.terms ?? [];
@@ -74,36 +87,25 @@ export const qaWorkflow = await defineWorkflow({
       terms,
     } satisfies CheckContext;
 
-    const checkers: { checker: QAChecker; id: number }[] = await Promise.all(
-      pluginRegistry
-        .getPluginServices("QA_CHECKER")
-        .map(async ({ record, service }) => {
-          const id = await pluginRegistry.getPluginServiceDbId(
-            drizzle,
-            record.pluginId,
-            record.type,
-            record.id,
-          );
-          return {
-            checker: service,
-            id,
-          };
-        }),
-    );
+    const checkers: { service: QAChecker; dbId: number }[] =
+      pluginManager.getServices("QA_CHECKER");
 
     const issues: (QAIssue & { checkerId: number })[] = [];
 
     await Promise.all(
       checkers.map(async (checker) => {
-        const issue = (await checker.checker.check(ctx)).map((i) => ({
+        const issue = (await checker.service.check(ctx)).map((i) => ({
           ...i,
-          checkerId: checker.id,
+          checkerId: checker.dbId,
         }));
 
         issues.push(...issue);
 
         if (pub)
-          await redisPub.publish(`qa:issue:${traceId}`, JSON.stringify(issue));
+          await redisPub.publish(
+            getQAPubKey(traceId),
+            JSON.stringify({ issues } satisfies QAPubPayload),
+          );
       }),
     );
 

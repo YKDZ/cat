@@ -1,4 +1,4 @@
-import type { CatPlugin, ServicesContext } from "@cat/plugin-core";
+import type { CatPlugin, PluginContext } from "@cat/plugin-core";
 import * as z from "zod/v4";
 import { Provider } from "./provider.ts";
 
@@ -20,7 +20,7 @@ export const ConfigSchema = z.array(ProviderConfigSchema);
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 
 class Plugin implements CatPlugin {
-  services(ctx: ServicesContext) {
+  services(ctx: PluginContext) {
     return [new Provider(ctx.config ?? {})];
   }
 }

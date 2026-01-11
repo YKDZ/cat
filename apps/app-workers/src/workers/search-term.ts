@@ -10,7 +10,7 @@ import {
   termEntry,
   translatableString,
 } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod";
 
@@ -40,17 +40,15 @@ export const searchTermTask = await defineTask({
 
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
-    const termExtractor = await firstOrGivenService(
-      drizzle,
-      pluginRegistry,
+    const termExtractor = firstOrGivenService(
+      pluginManager,
       "TERM_EXTRACTOR",
       data.termExtractorId,
     );
-    const termRecognizer = await firstOrGivenService(
-      drizzle,
-      pluginRegistry,
+    const termRecognizer = firstOrGivenService(
+      pluginManager,
       "TERM_RECOGNIZER",
       data.termRecognizerId,
     );

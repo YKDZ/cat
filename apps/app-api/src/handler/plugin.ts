@@ -5,15 +5,22 @@ import { stream } from "hono/streaming";
 import { Readable } from "node:stream";
 import { logger } from "@cat/shared/utils";
 import { resolvePluginComponentPath } from "@cat/app-server-shared/utils";
+import { PluginManager } from "@cat/plugin-core";
 
 const app = new Hono();
 
 app.get("/:pluginId/component/:componentName", async (c) => {
+  // TODO 客户端传参
+  const pluginManager = PluginManager.get("GLOBAL", "");
   const pluginId = c.req.param("pluginId");
   const componentName = c.req.param("componentName");
 
   try {
-    const filePath = resolvePluginComponentPath(pluginId, componentName);
+    const filePath = resolvePluginComponentPath(
+      pluginManager,
+      pluginId,
+      componentName,
+    );
 
     const fileStat = await stat(filePath);
 

@@ -4,7 +4,8 @@ import {
   firstOrGivenService,
 } from "@cat/app-server-shared/utils";
 import { getDrizzleDB } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
+import { logger } from "@cat/shared/utils";
 import * as z from "zod";
 
 export const CreateTranslatableStringInputSchema = z.object({
@@ -29,33 +30,29 @@ export const createTranslatableStringTask = await defineTask({
 
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
     if (data.data.length === 0) return { stringIds: [] };
 
-    const vectorizer = await firstOrGivenService(
-      drizzle,
-      pluginRegistry,
-      "TEXT_VECTORIZER",
-      data.vectorizerId,
-    );
-    const vectorStorage = await firstOrGivenService(
-      drizzle,
-      pluginRegistry,
-      "VECTOR_STORAGE",
-      data.vectorStorageId,
-    );
+    const vStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+    const vizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
 
-    if (!vectorStorage) throw new Error("Vector storage service not found");
-    if (!vectorizer) throw new Error("Vectorizer service not found");
+    if (!vStorage || !vizer) {
+      logger.warn("PROCESSOR", {
+        msg: `No vector storage or text vectorizer service available. No string will be created`,
+      });
+      return {
+        stringIds: [],
+      };
+    }
 
     const stringIds = await drizzle.transaction(async (tx) => {
       return await createStringFromData(
         tx,
-        vectorizer.service,
-        vectorizer.id,
-        vectorStorage.service,
-        vectorStorage.id,
+        vizer.service,
+        vizer.id,
+        vStorage.service,
+        vStorage.id,
         data.data,
       );
     });

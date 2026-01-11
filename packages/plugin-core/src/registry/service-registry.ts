@@ -1,116 +1,98 @@
 import type { IPluginService } from "@/services/service";
-import { PluginServiceTypeSchema } from "@cat/shared/schema/drizzle/enum";
-import { logger } from "@cat/shared/utils";
+import {
+  and,
+  eq,
+  pluginInstallation,
+  pluginService,
+  type DrizzleClient,
+} from "@cat/db";
+import {
+  PluginServiceTypeSchema,
+  type PluginServiceType,
+  type ScopeType,
+} from "@cat/shared/schema/drizzle/enum";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
-export const ServiceRegistryRecordSchema = z.object({
+export const ReigsteredServiceSchema = z.object({
   pluginId: z.string(),
   type: PluginServiceTypeSchema,
   id: z.string(),
+  dbId: z.int(),
+  service: z.custom<IPluginService>(),
 });
-
-export type ServiceRegistryRecord = z.infer<typeof ServiceRegistryRecordSchema>;
+export type RegisteredService = z.infer<typeof ReigsteredServiceSchema>;
 
 export class ServiceRegistry {
-  public constructor(
-    private readonly services: Map<string, IPluginService> = new Map(),
-  ) {}
+  public constructor(public services: RegisteredService[] = []) {}
 
-  private static hasher({ pluginId, type, id }: ServiceRegistryRecord) {
-    return `${pluginId}:${type}:${id}`;
-  }
-
-  public set(record: ServiceRegistryRecord, service: IPluginService): void {
-    this.services.set(ServiceRegistry.hasher(record), service);
-  }
-
-  public get(record: ServiceRegistryRecord): IPluginService | null {
-    return this.services.get(ServiceRegistry.hasher(record)) ?? null;
-  }
-
-  public has(record: ServiceRegistryRecord): boolean {
-    return this.services.has(ServiceRegistry.hasher(record));
+  public get(
+    pluginId: string,
+    type: PluginServiceType,
+    id: string,
+  ): RegisteredService | null {
+    return (
+      this.services.find(
+        (service) =>
+          service.pluginId === pluginId &&
+          service.type === type &&
+          service.id === id,
+      ) ?? null
+    );
   }
 
   /**
    * 将一个插件的 ServiceMap 合并到 registry 中。
    * 若出现插件相同 (pluginId) 且 type/id 冲突，会抛出错误。
    */
-  public combine(pluginId: string, services: IPluginService[]): void {
+  public async combine(
+    drizzle: DrizzleClient,
+    scopeType: ScopeType,
+    scopeId: string,
+    pluginId: string,
+    services: IPluginService[],
+  ): Promise<void> {
     for (const service of services) {
       const id = service.getId();
       const type = service.getType();
 
-      const registryRecord: ServiceRegistryRecord = {
+      const { id: dbId } = assertSingleNonNullish(
+        // oxlint-disable-next-line no-await-in-loop
+        await drizzle
+          .select({
+            id: pluginService.id,
+          })
+          .from(pluginService)
+          .innerJoin(
+            pluginInstallation,
+            and(
+              eq(pluginInstallation.scopeType, scopeType),
+              eq(pluginInstallation.scopeId, scopeId),
+              eq(pluginInstallation.pluginId, pluginId),
+            ),
+          )
+          .where(
+            and(
+              eq(pluginService.pluginInstallationId, pluginInstallation.id),
+              eq(pluginService.serviceType, type),
+              eq(pluginService.serviceId, id),
+            ),
+          ),
+      );
+
+      const registeredService: RegisteredService = {
+        dbId,
         pluginId,
         type,
         id,
+        service,
       };
 
-      if (this.has(registryRecord)) {
-        throw new Error(
-          `Service conflict when combining plugin ${pluginId}: service ${type}:${id} already registered`,
-        );
-      }
-
-      this.set(registryRecord, service);
+      this.services.push(registeredService);
     }
-  }
-
-  public entries(): Array<{
-    record: ServiceRegistryRecord;
-    service: IPluginService;
-  }> {
-    const out: Array<{
-      record: ServiceRegistryRecord;
-      service: IPluginService;
-    }> = [];
-    for (const [key, service] of this.services.entries()) {
-      const [pluginId, type, id] = key.split(":");
-      const record = ServiceRegistryRecordSchema.safeParse({
-        pluginId,
-        type,
-        id,
-      });
-      if (!record.success) {
-        logger.warn("PLUGIN", {
-          msg: `Invalid service registry record`,
-          data: { pluginId, type, id },
-        });
-        continue;
-      }
-      out.push({
-        record: record.data,
-        service,
-      });
-    }
-    return out;
-  }
-
-  public keys(): ServiceRegistryRecord[] {
-    return this.services
-      .keys()
-      .map((key) => {
-        const [pluginId, type, id] = key.split(":");
-        const record = ServiceRegistryRecordSchema.safeParse({
-          pluginId,
-          type,
-          id,
-        });
-        if (!record.success) {
-          logger.warn("PLUGIN", {
-            msg: `Invalid service registry record`,
-            data: { pluginId, type, id },
-          });
-          return;
-        }
-        return record.data;
-      })
-      .filter((record): record is ServiceRegistryRecord => !!record)
-      .toArray();
   }
 
   public clear(): void {
-    this.services.clear();
+    this.services = [];
   }
 }

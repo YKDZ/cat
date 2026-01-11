@@ -26,6 +26,8 @@ const handleApprove = async () => {
   await orpc.translation.approve({
     translationId: props.translation.id,
   });
+
+  element.value!.approvedTranslationId = props.translation.id;
 };
 
 const handleUnapprove = async () => {
@@ -34,6 +36,8 @@ const handleUnapprove = async () => {
   await orpc.translation.unapprove({
     translationId: props.translation.id,
   });
+
+  element.value!.approvedTranslationId = null;
 };
 </script>
 
