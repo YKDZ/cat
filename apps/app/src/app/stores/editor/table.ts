@@ -159,14 +159,19 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     )
       return;
 
-    await orpc.translation.create({
-      elementId: elementId.value,
-      languageId: context.languageToId.value,
-      text: translationValue.value,
-      createMemory: profile.editorMemoryAutoCreateMemory.value,
-    });
+    elementStore.setElementPending(elementId.value, true);
 
-    await elementStore.updateElementStatus(elementId.value);
+    try {
+      await orpc.translation.create({
+        elementId: elementId.value,
+        languageId: context.languageToId.value,
+        text: translationValue.value,
+        createMemory: profile.editorMemoryAutoCreateMemory.value,
+      });
+    } catch (error) {
+      elementStore.setElementPending(elementId.value, false);
+      throw error;
+    }
   };
 
   const replace = (value: string) => {

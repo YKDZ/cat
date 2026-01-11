@@ -111,17 +111,23 @@ export const register = base
     const {
       redisDB: { redis },
       drizzleDB: { client: drizzle },
-      pluginRegistry,
+      pluginManager,
       helpers,
     } = context;
     const { email, name, password } = input;
 
-    const authProviderId = await pluginRegistry.getPluginServiceDbId(
-      drizzle,
+    // TODO 就算是内部插件 ID 也有可能变
+    const authProvider = pluginManager.getService(
       "password-auth-provider",
       "AUTH_PROVIDER",
       "PASSWORD",
     );
+
+    if (!authProvider) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "Auth Provider PASSWORD does not exists",
+      });
+    }
 
     const { account, user } = await drizzle.transaction(async (tx) => {
       const user = assertSingleNonNullish(
@@ -145,7 +151,7 @@ export const register = base
             meta: {
               password: await hashPassword(password),
             },
-            authProviderId,
+            authProviderId: authProvider.dbId,
           })
           .returning({
             providerIssuer: accountTable.providerIssuer,
@@ -161,7 +167,7 @@ export const register = base
       user.id,
       {
         ...account,
-        authProviderId,
+        authProviderId: authProvider.dbId,
       },
       helpers,
     );
@@ -187,7 +193,7 @@ export const preAuth = base
     const {
       redisDB: { redis },
       drizzleDB: { client: drizzle },
-      pluginRegistry,
+      pluginManager,
       helpers: { setCookie },
     } = context;
     const { identifier, authProviderId } = input;
@@ -210,9 +216,8 @@ export const preAuth = base
 
     const userId = user.id;
 
-    const provider = await getServiceFromDBId<AuthProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<AuthProvider>(
+      pluginManager,
       authProviderId,
     );
 
@@ -269,15 +274,11 @@ export const getAuthFormSchema = base
   )
   .output(JSONSchemaSchema)
   .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-      pluginRegistry,
-    } = context;
+    const { pluginManager } = context;
     const { providerId } = input;
 
-    const provider = await getServiceFromDBId<AuthProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<AuthProvider>(
+      pluginManager,
       providerId,
     );
 
@@ -310,7 +311,7 @@ export const auth = base
       redisDB: { redis },
       drizzleDB: { client: drizzle },
       helpers,
-      pluginRegistry,
+      pluginManager,
     } = context;
     const { passToServer } = input;
 
@@ -331,9 +332,8 @@ export const auth = base
       PreAuthSessionPayloadSchema.parse(await redis.hGetAll(preAuthSessionKey));
     await redis.del(preAuthSessionKey);
 
-    const provider = await getServiceFromDBId<AuthProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<AuthProvider>(
+      pluginManager,
       authProviderId,
     );
 
@@ -389,14 +389,8 @@ export const auth = base
     const mfaProviderIds: number[] = [];
 
     await Promise.all(
-      pluginRegistry.getPluginServices("MFA_PROVIDER").map(async (p) => {
-        const id = await pluginRegistry.getPluginServiceDbId(
-          drizzle,
-          p.record.pluginId,
-          p.record.type,
-          p.record.id,
-        );
-        mfaProviderIds.push(id);
+      pluginManager.getServices("MFA_PROVIDER").map(async (p) => {
+        mfaProviderIds.push(p.dbId);
       }),
     );
 
@@ -446,16 +440,14 @@ export const preMfa = base
   )
   .handler(async ({ context, input }) => {
     const {
-      drizzleDB: { client: drizzle },
       redisDB: { redis },
-      pluginRegistry,
+      pluginManager,
       helpers,
     } = context;
     const { userId, mfaProviderId } = input;
 
-    const provider = await getServiceFromDBId<MFAProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<MFAProvider>(
+      pluginManager,
       mfaProviderId,
     );
 
@@ -491,15 +483,11 @@ export const getMfaFormSchema = base
   )
   .output(JSONSchemaSchema)
   .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-      pluginRegistry,
-    } = context;
+    const { pluginManager } = context;
     const { mfaProviderId } = input;
 
-    const provider = await getServiceFromDBId<MFAProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<MFAProvider>(
+      pluginManager,
       mfaProviderId,
     );
 
@@ -518,16 +506,14 @@ export const preInitMfaForUser = authed
   .handler(async ({ context, input }) => {
     const {
       redisDB: { redis },
-      drizzleDB: { client: drizzle },
-      pluginRegistry,
+      pluginManager,
       user,
       helpers,
     } = context;
     const { mfaProviderId } = input;
 
-    const provider = await getServiceFromDBId<MFAProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<MFAProvider>(
+      pluginManager,
       mfaProviderId,
     );
 
@@ -561,7 +547,7 @@ export const initMfaForUser = authed
     const {
       redisDB: { redis },
       drizzleDB: { client: drizzle },
-      pluginRegistry,
+      pluginManager,
       user,
       helpers,
     } = context;
@@ -586,9 +572,8 @@ export const initMfaForUser = authed
         message: "User ID mismatch",
       });
 
-    const provider = await getServiceFromDBId<MFAProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<MFAProvider>(
+      pluginManager,
       mfaProviderId,
     );
 
@@ -625,7 +610,7 @@ export const mfa = base
     const {
       drizzleDB: { client: drizzle },
       redisDB: { redis },
-      pluginRegistry,
+      pluginManager,
       helpers,
     } = context;
     const { passToServer } = input;
@@ -644,9 +629,8 @@ export const mfa = base
     await redis.del(sessionKey);
     helpers.delCookie("preMFASessionId");
 
-    const provider = await getServiceFromDBId<MFAProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<MFAProvider>(
+      pluginManager,
       mfaProviderId,
     );
 
@@ -745,10 +729,9 @@ export const completeAuthWithMFA = base
 
 export const logout = authed.output(z.void()).handler(async ({ context }) => {
   const {
-    drizzleDB: { client: drizzle },
     redisDB: { redis },
     sessionId,
-    pluginRegistry,
+    pluginManager,
     helpers,
   } = context;
 
@@ -759,9 +742,8 @@ export const logout = authed.output(z.void()).handler(async ({ context }) => {
   if (authProviderIdData) {
     const authProviderId = Number(authProviderIdData);
 
-    const provider = await getServiceFromDBId<AuthProvider>(
-      drizzle,
-      pluginRegistry,
+    const provider = getServiceFromDBId<AuthProvider>(
+      pluginManager,
       authProviderId,
     );
 

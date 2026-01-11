@@ -1,7 +1,6 @@
 import { defineWorkflow } from "@/core";
 import { firstOrGivenService } from "@cat/app-server-shared/utils";
-import { getDrizzleDB } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
 import { TranslationSuggestionSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
 import { searchTermTask } from "./search-term";
@@ -42,17 +41,15 @@ export const fetchAdviseWorkflow = await defineWorkflow({
   ],
 
   handler: async (data, { getTaskResult }) => {
-    const { client: drizzle } = await getDrizzleDB();
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
     // 获取子任务（术语搜索）的结果
     // 注意：getTaskResult 返回数组，因为一个 Workflow 可能多次调用同一个 Task
     const [termResult] = getTaskResult(searchTermTask);
     const terms = termResult?.terms ?? [];
 
-    const advisor = await firstOrGivenService(
-      drizzle,
-      pluginRegistry,
+    const advisor = firstOrGivenService(
+      pluginManager,
       "TRANSLATION_ADVISOR",
       data.advisorId,
     );

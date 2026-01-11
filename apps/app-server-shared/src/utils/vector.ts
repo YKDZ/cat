@@ -1,7 +1,6 @@
 import {
   chunk,
   chunkSet,
-  DrizzleClient,
   inArray,
   translatableString,
   and,
@@ -11,10 +10,9 @@ import {
 import { VectorStorage, TextVectorizer } from "@cat/plugin-core";
 import { JSONType } from "@cat/shared/schema/json";
 import { UnvectorizedTextData } from "@cat/shared/schema/misc";
-import { logger } from "@cat/shared/utils";
 
 const vectorizeToChunkSetsBatch = async (
-  drizzle: Omit<DrizzleClient, "$client">,
+  tx: DrizzleTransaction,
   vectorizer: TextVectorizer,
   vectorizerId: number,
   vectorStorage: VectorStorage,
@@ -64,60 +62,34 @@ const vectorizeToChunkSetsBatch = async (
     }
   }
 
-  const { chunkSetIds, chunkIds } = await drizzle.transaction(async (tx) => {
-    const insertedChunkSets = await tx
-      .insert(chunkSet)
-      .values(chunkSetRows)
-      .returning({ id: chunkSet.id });
+  const insertedChunkSets = await tx
+    .insert(chunkSet)
+    .values(chunkSetRows)
+    .returning({ id: chunkSet.id });
 
-    const chunkSetIds: number[] = insertedChunkSets.map((r) => r.id);
+  const chunkSetIds: number[] = insertedChunkSets.map((r) => r.id);
 
-    const finalChunkRows = flattened.map((f) => ({
-      chunkSetId: chunkSetIds[f.textIndex],
-      vectorizerId,
-      vectorStorageId,
-      meta: f.meta,
-    }));
+  const finalChunkRows = flattened.map((f) => ({
+    chunkSetId: chunkSetIds[f.textIndex],
+    vectorizerId,
+    vectorStorageId,
+    meta: f.meta,
+  }));
 
-    const insertedChunks = await tx
-      .insert(chunk)
-      .values(finalChunkRows)
-      .returning({ id: chunk.id });
+  const insertedChunks = await tx
+    .insert(chunk)
+    .values(finalChunkRows)
+    .returning({ id: chunk.id });
 
-    const chunkIds: number[] = insertedChunks.map((r) => r.id);
+  const chunkIds: number[] = insertedChunks.map((r) => r.id);
 
-    return { chunkSetIds, chunkIds };
-  });
+  const storePayload = chunkIds.map((cid, idx) => ({
+    chunkId: cid,
+    vector: flattened[idx].vector,
+    meta: flattened[idx].meta,
+  }));
 
-  try {
-    const storePayload = chunkIds.map((cid, idx) => ({
-      chunkId: cid,
-      vector: flattened[idx].vector,
-      meta: flattened[idx].meta,
-    }));
-
-    await vectorStorage.store({ chunks: storePayload });
-  } catch (err) {
-    try {
-      await drizzle.transaction(async (tx) => {
-        if (chunkIds.length > 0) {
-          await tx.delete(chunk).where(inArray(chunk.id, chunkIds));
-        }
-        if (chunkSetIds.length > 0) {
-          await tx.delete(chunkSet).where(inArray(chunkSet.id, chunkSetIds));
-        }
-      });
-    } catch (cleanupErr) {
-      logger.error(
-        "PLUGIN",
-        {
-          msg: `vectorStorage.store failed; cleanup also failed`,
-        },
-        cleanupErr,
-      );
-    }
-    throw err;
-  }
+  await vectorStorage.store({ chunks: storePayload });
 
   return chunkSetIds;
 };

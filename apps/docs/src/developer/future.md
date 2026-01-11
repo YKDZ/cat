@@ -33,7 +33,7 @@ flowchart TD
   2. 建议器：DeepL、Azure Translator、Baidu 等主流 MT 服务，结合费用权益管理。
   3. 向量化：可选 OpenAI Embedding、Nomic 等模型，支持维度自动探测。
   4. 术语服务：除 Elasticsearch 外，加入 Postgres pgvector、Redis Stack 等备选实现。
-- **插件配置继承**：完善 `PluginRegistry` 的 scope 继承策略，支持 GLOBAL → PROJECT → USER 的级联读取与覆盖，减少重复配置。
+- **插件配置继承**：完善 `PluginManager` 的 scope 继承策略，支持 GLOBAL → PROJECT → USER 的级联读取与覆盖，减少重复配置。
 
 ## 后端与基础设施
 

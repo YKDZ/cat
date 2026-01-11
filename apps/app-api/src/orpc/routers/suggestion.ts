@@ -6,7 +6,6 @@ import {
 import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import { AsyncMessageQueue, hash } from "@cat/app-server-shared/utils";
 import {
-  and,
   document,
   eq,
   glossaryToProject,
@@ -25,7 +24,7 @@ export const onNew = authed
     const {
       redisDB: { redis, redisPub, redisSub },
       drizzleDB: { client: drizzle },
-      pluginRegistry,
+      pluginManager,
     } = context;
     const { elementId, languageId } = input;
 
@@ -72,7 +71,7 @@ export const onNew = authed
     };
     await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
 
-    const advisors = pluginRegistry.getPluginServices("TRANSLATION_ADVISOR");
+    const advisors = pluginManager.getServices("TRANSLATION_ADVISOR");
 
     const advisorAmount = advisors.length;
 
@@ -97,13 +96,7 @@ export const onNew = authed
             pluginInstallation,
             eq(pluginInstallation.id, pluginService.pluginInstallationId),
           )
-          .where(
-            and(
-              eq(pluginService.serviceId, advisor.record.id),
-              eq(pluginService.serviceType, advisor.record.type),
-              eq(pluginInstallation.pluginId, advisor.record.pluginId),
-            ),
-          ),
+          .where(eq(pluginService.id, advisor.dbId)),
       );
 
       const elementHash = hash({

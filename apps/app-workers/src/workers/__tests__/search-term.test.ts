@@ -8,7 +8,7 @@ import {
   termEntry,
   user,
 } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { searchTermTask } from "../search-term.ts";
@@ -25,16 +25,16 @@ beforeAll(async () => {
   cleanup = db.cleanup;
   const drizzle = db.client;
 
-  const pluginRegistry = PluginRegistry.get(
-    "GLOBAL",
-    "",
-    new TestPluginLoader(),
-  );
+  const pluginManager = PluginManager.get("GLOBAL", "", new TestPluginLoader());
 
-  await pluginRegistry.importAvailablePlugins(drizzle);
-  await pluginRegistry.installPlugin(drizzle, "mock");
-  // @ts-expect-error no need for hono here
-  await pluginRegistry.enableAllPlugins(drizzle, {});
+  await pluginManager.getDiscovery().syncDefinitions(drizzle);
+  await pluginManager.install(drizzle, "mock");
+  await drizzle.transaction(async (tx) => {
+    await pluginManager.restore(
+      tx, // @ts-expect-error no need for hono
+      {},
+    );
+  });
 
   // Seed
   await drizzle.transaction(async (tx) => {

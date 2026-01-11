@@ -544,7 +544,7 @@ export class TestPluginLoader implements PluginLoader {
     return plugin.instance;
   };
 
-  public listAvailablePlugins = async (): Promise<string[]> => {
-    return Array.from(this.plugins.keys());
+  public listAvailablePlugins = async (): Promise<PluginManifest[]> => {
+    return [manifest];
   };
 }

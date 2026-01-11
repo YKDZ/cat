@@ -16,8 +16,7 @@ import {
 import z from "zod";
 import { tokenizeTask } from "./tokenize";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import { qaWorkflow } from "./qa";
-import { QAIssueSchema } from "@cat/plugin-core";
+import { getQAPubKey, QAPubPayloadSchema, qaWorkflow } from "./qa";
 
 export const qaTranslationWorkflow = await defineWorkflow({
   name: "qa.translation",
@@ -138,13 +137,7 @@ export const qaTranslationWorkflow = await defineWorkflow({
     );
 
     const onNewQa = async (message: string) => {
-      const issues = z
-        .array(
-          QAIssueSchema.extend({
-            checkerId: z.number(),
-          }),
-        )
-        .parse(JSON.parse(message));
+      const { issues } = QAPubPayloadSchema.parse(JSON.parse(message));
 
       if (issues.length === 0) return;
 
@@ -160,7 +153,7 @@ export const qaTranslationWorkflow = await defineWorkflow({
         })),
       );
     };
-    await redisSub.subscribe(`qa:issue:${traceId}`, onNewQa);
+    await redisSub.subscribe(getQAPubKey(traceId), onNewQa);
 
     await qaWorkflow.run(
       {

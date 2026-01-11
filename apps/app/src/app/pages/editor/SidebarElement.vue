@@ -11,7 +11,7 @@ import { useEditorTableStore } from "@/app/stores/editor/table";
 
 const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 const { elementId } = storeToRefs(useEditorTableStore());
-const { updateElementStatus } = useEditorElementStore();
+const { updateElementStatus, pendingElements } = useEditorElementStore();
 
 const props = defineProps<{
   element: Pick<TranslatableElement, "id"> & {
@@ -40,9 +40,13 @@ onMounted(() => updateElementStatus(props.element.id));
     <span
       class="shrink-0 w-2 h-2"
       :class="{
-        'bg-red-300': element.status === 'NO',
-        'bg-green-300': element.status === 'TRANSLATED',
-        'bg-blue-500': element.status === 'APPROVED',
+        'bg-yellow-300': pendingElements.has(element.id),
+        'bg-red-300':
+          !pendingElements.has(element.id) && element.status === 'NO',
+        'bg-green-300':
+          !pendingElements.has(element.id) && element.status === 'TRANSLATED',
+        'bg-blue-500':
+          !pendingElements.has(element.id) && element.status === 'APPROVED',
       }"
     />
     <span class="min-w-0 truncate">{{ element.value }}</span></SidebarMenuButton

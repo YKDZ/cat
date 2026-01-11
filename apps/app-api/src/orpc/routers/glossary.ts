@@ -208,16 +208,17 @@ export const searchTerm = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      pluginRegistry,
+      pluginManager,
     } = context;
     const { text, termLanguageId, translationLanguageId, projectId } = input;
 
+    // TODO 配置
     const { service: termExtractor } = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("TERM_EXTRACTOR"),
+      pluginManager.getServices("TERM_EXTRACTOR"),
       `No term extractor plugin found in this scope`,
     );
     const { service: termRecognizer } = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("TERM_RECOGNIZER"),
+      pluginManager.getServices("TERM_RECOGNIZER"),
       `No term recognizer plugin found in this scope`,
     );
 

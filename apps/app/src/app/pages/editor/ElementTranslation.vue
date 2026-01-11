@@ -12,12 +12,21 @@ import {
   CollapsibleTrigger,
 } from "@/app/components/ui/collapsible";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { useEditorTableStore } from "@/app/stores/editor/table";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
 
 const { t } = useI18n();
 
-defineProps<{
+const props = defineProps<{
   translation: TranslationWithStatus;
 }>();
+
+const { element } = storeToRefs(useEditorTableStore());
+
+const isApproved = computed<boolean>(() => {
+  return element.value?.approvedTranslationId === props.translation.id;
+});
 </script>
 
 <template>
@@ -27,8 +36,7 @@ defineProps<{
         <div
           class="px-3 py-2 bg-background flex w-full cursor-pointer items-center justify-between"
           :class="{
-            'bg-destructive hover:bg-destructive-darker':
-              translation.status === 'PROCESSING',
+            'bg-green-100 hover:bg-green-200': isApproved,
           }"
         >
           <div class="flex gap-2 items-center">

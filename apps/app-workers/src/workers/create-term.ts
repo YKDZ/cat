@@ -1,5 +1,8 @@
 import { defineTask } from "@/core";
-import { createStringFromData } from "@cat/app-server-shared/utils";
+import {
+  createStringFromData,
+  firstOrGivenService,
+} from "@cat/app-server-shared/utils";
 import {
   and,
   eq,
@@ -9,9 +12,9 @@ import {
   term,
   termEntry,
 } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import { assertFirstNonNullish } from "@cat/shared/utils";
+import { logger } from "@cat/shared/utils";
 import * as z from "zod";
 
 export const CreateTermInputSchema = z.object({
@@ -31,44 +34,36 @@ export const createTermTask = await defineTask({
 
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
-    const vStorage = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("VECTOR_STORAGE"),
-    );
-    const vizer = assertFirstNonNullish(
-      pluginRegistry.getPluginServices("TEXT_VECTORIZER"),
-    );
+    const vStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+    const vizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
 
-    const vectorStorageId = await pluginRegistry.getPluginServiceDbId(
-      drizzle,
-      vStorage.record.pluginId,
-      vStorage.record.type,
-      vStorage.record.id,
-    );
-    const vectorizerId = await pluginRegistry.getPluginServiceDbId(
-      drizzle,
-      vizer.record.pluginId,
-      vizer.record.type,
-      vizer.record.id,
-    );
+    if (!vStorage || !vizer) {
+      logger.warn("PROCESSOR", {
+        msg: `No vector storage or text vectorizer service available. No term will be created`,
+      });
+      return {
+        termIds: [],
+      };
+    }
 
     const termIds = await drizzle.transaction(async (tx) => {
       const termStringIds = await createStringFromData(
         tx,
         vizer.service,
-        vectorizerId,
+        vizer.id,
         vStorage.service,
-        vectorStorageId,
+        vStorage.id,
         data.data.map((d) => ({ text: d.term, languageId: d.termLanguageId })),
       );
 
       const translationStringIds = await createStringFromData(
         tx,
         vizer.service,
-        vectorizerId,
+        vizer.id,
         vStorage.service,
-        vectorStorageId,
+        vStorage.id,
         data.data.map((d) => ({
           text: d.translation,
           languageId: d.translationLanguageId,

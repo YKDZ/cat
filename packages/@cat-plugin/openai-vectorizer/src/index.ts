@@ -1,8 +1,8 @@
-import type { CatPlugin, ServicesContext } from "@cat/plugin-core";
+import type { CatPlugin, PluginContext } from "@cat/plugin-core";
 import { Vectorizer } from "./vectorizer.ts";
 
 class Plugin implements CatPlugin {
-  services(ctx: ServicesContext) {
+  services(ctx: PluginContext) {
     return [new Vectorizer(ctx.config ?? {})];
   }
 }

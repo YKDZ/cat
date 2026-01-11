@@ -1,7 +1,7 @@
 import { defineWorkflow } from "@/core";
 import { getServiceFromDBId, searchMemory } from "@cat/app-server-shared/utils";
 import { getDrizzleDB } from "@cat/db";
-import { PluginRegistry, type VectorStorage } from "@cat/plugin-core";
+import { PluginManager, type VectorStorage } from "@cat/plugin-core";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
 import { retriveEmbeddingsTask } from "./retrive-embeddings.ts";
@@ -38,7 +38,7 @@ export const searchMemoryWorkflow = await defineWorkflow({
 
   handler: async (data, { getTaskResult }) => {
     const { client: drizzle } = await getDrizzleDB();
-    const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+    const pluginManager = PluginManager.get("GLOBAL", "");
 
     const [embeddingsResult] = getTaskResult(retriveEmbeddingsTask);
     if (!embeddingsResult) {
@@ -47,13 +47,12 @@ export const searchMemoryWorkflow = await defineWorkflow({
 
     const { embeddings, vectorStorageId } = embeddingsResult;
 
-    const memories = await drizzle.transaction(async (tx) => {
-      const vectorStorage = await getServiceFromDBId<VectorStorage>(
-        tx,
-        pluginRegistry,
-        vectorStorageId,
-      );
+    const vectorStorage = getServiceFromDBId<VectorStorage>(
+      pluginManager,
+      vectorStorageId,
+    );
 
+    const memories = await drizzle.transaction(async (tx) => {
       return await searchMemory(
         tx,
         vectorStorage,

@@ -11,7 +11,7 @@ import {
   translatableElement,
   user,
 } from "@cat/db";
-import { PluginRegistry } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { upsertDocumentFromFileWorkflow } from "../upsert-document-from-file";
@@ -28,16 +28,16 @@ beforeAll(async () => {
   cleanup = db.cleanup;
   const drizzle = db.client;
 
-  const pluginRegistry = PluginRegistry.get(
-    "GLOBAL",
-    "",
-    new TestPluginLoader(),
-  );
+  const pluginManager = PluginManager.get("GLOBAL", "", new TestPluginLoader());
 
-  await pluginRegistry.importAvailablePlugins(drizzle);
-  await pluginRegistry.installPlugin(drizzle, "mock");
-  // @ts-expect-error no need for hono here
-  await pluginRegistry.enableAllPlugins(drizzle, {});
+  await pluginManager.getDiscovery().syncDefinitions(drizzle);
+  await pluginManager.install(drizzle, "mock");
+  await drizzle.transaction(async (tx) => {
+    await pluginManager.restore(
+      tx, // @ts-expect-error no need for hono
+      {},
+    );
+  });
 
   // Seed
   await drizzle.transaction(async (tx) => {
@@ -76,7 +76,7 @@ beforeAll(async () => {
 
 test("worker should upsert document from file", async () => {
   const { client: drizzle } = await getDrizzleDB();
-  const pluginRegistry = PluginRegistry.get("GLOBAL", "");
+  const pluginManager = PluginManager.get("GLOBAL", "");
 
   // 1. Setup Document
   const [projectData] = await drizzle.select().from(project).limit(1);
@@ -97,8 +97,8 @@ test("worker should upsert document from file", async () => {
   );
 
   const storageProvider = assertSingleNonNullish(
-    pluginRegistry
-      .getPluginServices("STORAGE_PROVIDER")
+    pluginManager
+      .getServices("STORAGE_PROVIDER")
       .filter((p) => p.service.getId() === "storage-provider"),
   ).service;
 

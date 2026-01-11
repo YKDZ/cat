@@ -22,7 +22,7 @@ import {
   pluginService,
 } from "@cat/db";
 import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
-import { ComponentRecordSchema, PluginRegistry } from "@cat/plugin-core";
+import { ComponentRecordSchema, PluginManager } from "@cat/plugin-core";
 import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
 import { authed, base } from "@/orpc/server";
@@ -41,10 +41,10 @@ export const reload = authed
     } = context;
     const { scopeType, scopeId } = input;
 
-    const registry = PluginRegistry.get(scopeType, scopeId);
+    const registry = PluginManager.get(scopeType, scopeId);
 
     await drizzle.transaction(async (tx) => {
-      await registry.reload(tx, globalThis.app);
+      await registry.restore(tx, globalThis.app);
     });
   });
 
@@ -220,7 +220,7 @@ export const getAllAuthMethod = base
   .handler(async ({ context }) => {
     const {
       drizzleDB: { client: drizzle },
-      pluginRegistry,
+      pluginManager,
     } = context;
 
     const providersData = await drizzle
@@ -234,20 +234,15 @@ export const getAllAuthMethod = base
 
     await Promise.all(
       providersData.map(async ({ serviceId }) => {
-        const providers = pluginRegistry.getPluginServices("AUTH_PROVIDER");
+        const providers = pluginManager.getServices("AUTH_PROVIDER");
 
         await Promise.all(
           providers
             .filter(({ service }) => serviceId === service.getId())
-            .map(async ({ record, service }) => {
+            .map(async ({ dbId, id, service }) => {
               methods.push({
-                providerDBId: await pluginRegistry.getPluginServiceDbId(
-                  drizzle,
-                  record.pluginId,
-                  record.type,
-                  record.id,
-                ),
-                providerId: record.id,
+                providerDBId: dbId,
+                providerId: id,
                 name: service.getName(),
                 icon: service.getIcon(),
               });
@@ -262,21 +257,13 @@ export const getAllAuthMethod = base
 export const getAllTranslationAdvisors = authed
   .output(z.array(TranslationAdvisorDataSchema))
   .handler(async ({ context }) => {
-    const {
-      drizzleDB: { client: drizzle },
-      pluginRegistry,
-    } = context;
+    const { pluginManager } = context;
 
     return Promise.all(
-      pluginRegistry.getPluginServices("TRANSLATION_ADVISOR").map(
-        async ({ record, service }) =>
+      pluginManager.getServices("TRANSLATION_ADVISOR").map(
+        async ({ dbId, service }) =>
           ({
-            id: await pluginRegistry.getPluginServiceDbId(
-              drizzle,
-              record.pluginId,
-              record.type,
-              record.id,
-            ),
+            id: dbId,
             name: service.getName(),
           }) satisfies TranslationAdvisorData,
       ),
@@ -293,7 +280,7 @@ export const getTranslationAdvisor = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      pluginRegistry,
+      pluginManager,
     } = context;
     const { advisorId } = input;
 
@@ -318,17 +305,17 @@ export const getTranslationAdvisor = authed
       "Translation Advisor not found",
     );
 
-    const service = pluginRegistry.getPluginService(
+    const service = pluginManager.getService(
       dbAdvisor.pluginId,
       "TRANSLATION_ADVISOR",
       dbAdvisor.serviceId,
-    )!;
+    );
 
     if (!service) throw new ORPCError("NOT_FOUND");
 
     return {
       id: advisorId,
-      name: service.getName(),
+      name: service.service.getName(),
     };
   });
 
@@ -373,10 +360,10 @@ export const getComponentsOfSlot = authed
   )
   .output(z.array(ComponentRecordSchema))
   .handler(async ({ context, input }) => {
-    const { pluginRegistry } = context;
+    const { pluginManager } = context;
     const { slotId } = input;
 
-    const components = pluginRegistry.getComponentOfSlot(slotId);
+    const components = pluginManager.getComponentOfSlot(slotId);
 
     return components;
   });
