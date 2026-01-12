@@ -109,8 +109,8 @@ importers:
         specifier: ^0.1.12
         version: 0.1.12(@hono/node-server@1.19.7(hono@4.11.3))(hono@4.11.3)(srvx@0.9.8)(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
       '@pinia/colada':
-        specifier: ^0.20.0
-        version: 0.20.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
+        specifier: ^0.21.0
+        version: 0.21.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
       '@pinia/testing':
         specifier: ^1.0.3
         version: 1.0.3(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))
@@ -981,7 +981,7 @@ importers:
         version: 8.16.3
       vitest:
         specifier: ^2.1.8
-        version: 2.1.9(@types/node@25.0.3)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.0.11)(lightningcss@1.30.2)
+        version: 2.1.9(@types/node@25.0.3)(@vitest/ui@4.0.16)(happy-dom@20.0.11)(lightningcss@1.30.2)
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
@@ -3376,8 +3376,8 @@ packages:
   '@pinia/colada-devtools@0.4.0':
     resolution: {integrity: sha512-1AffG0DGXDpMB2m7pA7Bh7gWObaK95us9u4EPwjpVixZRK55K6KaULQm+51i6ysTVhniDK13LiRrogaR3dH37Q==}
 
-  '@pinia/colada@0.20.0':
-    resolution: {integrity: sha512-IY8ssG7xsVlIq5uvnkQtPMKJ4NHxGeeP04HFKR46DOe58UY07JQFKvbDOj3d+nX/Ki+VAb3TGeHIqQdBWf0eWQ==}
+  '@pinia/colada@0.21.0':
+    resolution: {integrity: sha512-Y7c4gRsZcZCOyxKFbvSadC55sHKJJqKjD3KC1wiOBFl9ubqBlzqOPZl7fj0LkoqbsZYGqAdA0FtNfe9cvgQOXA==}
     peerDependencies:
       pinia: ^2.2.6 || ^3.0.0
       vue: ^3.5.17
@@ -8538,6 +8538,7 @@ packages:
   whatwg-encoding@2.0.0:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
     engines: {node: '>=12'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
@@ -11532,9 +11533,8 @@ snapshots:
 
   '@pinia/colada-devtools@0.4.0': {}
 
-  '@pinia/colada@0.20.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
+  '@pinia/colada@0.21.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
     dependencies:
-      '@vue/devtools-api': 8.0.5
       pinia: 3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
       vue: 3.5.26(typescript@5.9.3)
 
@@ -17285,7 +17285,7 @@ snapshots:
       typescript: 5.9.3
       vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(@vitest/ui@4.0.16)(happy-dom@20.0.11)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
 
-  vitest@2.1.9(@types/node@25.0.3)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.0.11)(lightningcss@1.30.2):
+  vitest@2.1.9(@types/node@25.0.3)(@vitest/ui@4.0.16)(happy-dom@20.0.11)(lightningcss@1.30.2):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@25.0.3)(lightningcss@1.30.2))

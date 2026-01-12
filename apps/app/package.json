@@ -37,7 +37,7 @@
     "@orpc/experimental-pino": "^1.13.2",
     "@orpc/server": "^1.13.2",
     "@photonjs/hono": "^0.1.12",
-    "@pinia/colada": "^0.20.0",
+    "@pinia/colada": "^0.21.0",
     "@pinia/testing": "^1.0.3",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/vue-table": "^8.21.3",
