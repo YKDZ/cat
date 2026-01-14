@@ -114,10 +114,10 @@
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^7.3.0"
+    "vite": "^7.3.1"
   },
   "peerDependencies": {
     "pino": "^10.1.0",
-    "zod": "^4.3.4"
+    "zod": "^4.3.5"
   }
 }

@@ -21,7 +21,7 @@
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/tailwind4": "^1.2.0",
     "@vueuse/core": "^14.1.0",
-    "@zenuml/core": "^3.43.3",
+    "@zenuml/core": "^3.45.4",
     "mermaid": "^11.12.2",
     "vitepress": "2.0.0-alpha.15",
     "vue": "^3.5.26"
