@@ -37,15 +37,15 @@
     "@types/qrcode": "^1.5.6",
     "@types/speakeasy": "^2.0.10",
     "@vitejs/plugin-vue": "^6.0.3",
-    "hono": "^4.11.3",
-    "vite": "^7.3.0",
+    "hono": "^4.11.4",
+    "vite": "^7.3.1",
     "vue": "^3.5.26",
-    "vue-tsc": "^3.2.1"
+    "vue-tsc": "^3.2.2"
   },
   "peerDependencies": {
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "zod": "^4.3.4"
+    "zod": "^4.3.5"
   }
 }

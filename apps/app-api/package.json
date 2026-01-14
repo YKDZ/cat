@@ -44,7 +44,7 @@
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^7.3.0"
+    "vite": "^7.3.1"
   },
   "peerDependencies": {
     "@cat/app-server-shared": "workspace:*",
@@ -52,14 +52,14 @@
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@hono/node-ws": "^1.2.0",
+    "@hono/node-ws": "^1.3.0",
     "@orpc/client": "^1.13.2",
     "@orpc/experimental-pino": "^1.13.2",
     "@orpc/server": "^1.13.2",
-    "hono": "^4.11.3",
+    "hono": "^4.11.4",
     "pino": "^10.1.0",
     "telefunc": "^0.2.17",
     "vike": "^0.4.240",
-    "zod": "^4.3.4"
+    "zod": "^4.3.5"
   }
 }
