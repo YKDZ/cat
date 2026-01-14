@@ -29,6 +29,9 @@ import {
   glossaryToProject,
   chunk,
   inArray,
+  qaResult,
+  getColumns,
+  qaResultItem,
 } from "@cat/db";
 import {
   autoTranslateWorkflow,
@@ -37,7 +40,15 @@ import {
   getCreateTranslationPubKey,
 } from "@cat/app-workers";
 import { authed } from "@/orpc/server";
-import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
+import {
+  AsyncMessageQueue,
+  firstOrGivenService,
+} from "@cat/app-server-shared/utils";
+import { ORPCError } from "@orpc/client";
+import {
+  QaResultItemSchema,
+  QaResultSchema,
+} from "@cat/shared/schema/drizzle/qa";
 
 const TranslationDataSchema = TranslationSchema.omit({
   updatedAt: true,
@@ -81,8 +92,18 @@ export const create = authed
     const {
       drizzleDB: { client: drizzle },
       user,
+      pluginManager,
     } = context;
     const { elementId, languageId, text, createMemory } = input;
+
+    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+
+    if (!storage || !vectorizer) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "No storage provider available",
+      });
+    }
 
     const { documentId } = assertSingleNonNullish(
       await drizzle
@@ -126,6 +147,8 @@ export const create = authed
       memoryIds: createMemory ? memoryIds : [],
       pub: true,
       documentId,
+      vectorStorageId: storage.id,
+      vectorizerId: vectorizer.id,
     });
   });
 
@@ -486,14 +509,29 @@ export const autoTranslate = authed
       advisorId: z.int(),
       languageId: z.string(),
       minMemorySimilarity: z.number().min(0).max(1).default(0.72),
+      maxMemoryAmount: z.int().min(0).default(3),
     }),
   )
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
+      pluginManager,
     } = context;
-    const { documentId, advisorId, languageId, minMemorySimilarity } = input;
+    const {
+      documentId,
+      advisorId,
+      languageId,
+      minMemorySimilarity,
+      maxMemoryAmount,
+    } = input;
+
+    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+
+    if (!storage)
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: `No VECTOR_STORAGE service available`,
+      });
 
     const document = assertSingleNonNullish(
       await drizzle
@@ -572,7 +610,49 @@ export const autoTranslate = authed
           glossaryIds,
           chunkIds: element.chunkIds,
           minMemorySimilarity,
+          maxMemoryAmount,
+          memoryVectorStorageId: storage.id,
+          translationVectorStorageId: storage.id,
+          vectorizerId: storage.id,
         });
       }),
     );
+  });
+
+export const getQAResults = authed
+  .input(
+    z.object({
+      translationId: z.int(),
+    }),
+  )
+  .output(z.array(QaResultSchema))
+  .handler(async ({ input, context }) => {
+    const { translationId } = input;
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    return await drizzle
+      .select(getColumns(qaResult))
+      .from(qaResult)
+      .where(eq(qaResult.translationId, translationId));
+  });
+
+export const getQAResultItems = authed
+  .input(
+    z.object({
+      qaResultId: z.int(),
+    }),
+  )
+  .output(z.array(QaResultItemSchema))
+  .handler(async ({ input, context }) => {
+    const { qaResultId } = input;
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    return await drizzle
+      .select(getColumns(qaResultItem))
+      .from(qaResultItem)
+      .where(eq(qaResultItem.resultId, qaResultId));
   });

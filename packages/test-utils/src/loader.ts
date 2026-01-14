@@ -45,6 +45,8 @@ import {
   type ImportContext,
   type ElementData,
   type CanImportContext,
+  type UpdateDimensionContext,
+  type InitContext,
 } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type {
@@ -61,8 +63,31 @@ import {
   inArray,
   sql,
   termEntry,
-  vector,
 } from "@cat/db";
+import {
+  pgTable,
+  serial,
+  integer,
+  vector as dbVector,
+  index,
+  unique,
+} from "drizzle-orm/pg-core";
+import { chunk } from "@cat/db";
+
+const vector = pgTable(
+  "Vector",
+  {
+    id: serial().primaryKey(),
+    vector: dbVector({ dimensions: 1024 }).notNull(),
+    chunkId: integer()
+      .notNull()
+      .references(() => chunk.id, { onDelete: "cascade", onUpdate: "cascade" }),
+  },
+  (table) => [
+    index("embeddingIndex").using("hnsw", table.vector.op("vector_cosine_ops")),
+    unique().on(table.chunkId),
+  ],
+);
 
 export class TestAuthProvider extends AuthProvider {
   public override getId = (): string => "auth-provider";
@@ -300,6 +325,14 @@ export class TestVectorStorage extends VectorStorage {
     return results
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, maxAmount);
+  }
+
+  override async updateDimension(ctx: UpdateDimensionContext): Promise<void> {
+    return;
+  }
+
+  override async init(ctx: InitContext): Promise<void> {
+    return;
   }
 }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import ElementTranslation from "./ElementTranslation.vue";
+import Translation from "./Translation.vue";
 import { useEditorTranslationStore } from "@/app/stores/editor/translation.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { watchClient } from "@/app/utils/vue.ts";
@@ -22,7 +22,7 @@ watchClient(elementId, () => refetch(), { immediate: true });
       {{ t("还没有任何翻译或翻译仍在处理") }}
     </div>
     <div v-else v-for="translation in state.data" :key="translation.id">
-      <ElementTranslation :translation="translation" />
+      <Translation :translation="translation" />
     </div>
   </div>
 </template>

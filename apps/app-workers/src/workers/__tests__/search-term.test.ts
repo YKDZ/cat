@@ -66,6 +66,14 @@ beforeAll(async () => {
 
 test("create-term should insert and return term", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const { id: glossaryId } = assertSingleNonNullish(
     await drizzle
@@ -93,7 +101,12 @@ test("create-term should insert and return term", async () => {
     },
   ];
 
-  const { result } = await createTermTask.run({ glossaryId, data });
+  const { result } = await createTermTask.run({
+    glossaryId,
+    data,
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
+  });
 
   const { termIds } = await result();
 

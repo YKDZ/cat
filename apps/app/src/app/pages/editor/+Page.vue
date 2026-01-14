@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ElementTranslations from "./ElementTranslations.vue";
+import Translations from "./Translations.vue";
 import Memories from "./Memories.vue";
 import CurrentElement from "./CurrentElement.vue";
 import Suggestions from "./Suggestions.vue";
@@ -12,7 +12,7 @@ import TranslateInput from "./TranslateInput.vue";
   <CurrentElement />
   <TranslateInput />
   <Toolbar />
-  <ElementTranslations />
+  <Translations />
   <div class="flex flex-col md:grid md:grid-cols-3">
     <Suggestions />
     <Memories />

@@ -1,6 +1,5 @@
 import {
   aliasedTable,
-  and,
   chunk,
   eq,
   inArray,
@@ -11,17 +10,14 @@ import {
   union,
   type DrizzleTransaction,
 } from "@cat/db";
-import { VectorStorage } from "@cat/plugin-core";
 import { MemorySuggestion } from "@cat/shared/schema/misc";
 
 export const searchMemory = async (
   drizzle: DrizzleTransaction,
-  vectorStorage: VectorStorage,
-  embeddings: number[][],
+  chunks: { chunkId: number; similarity: number }[],
   sourceLanguageId: string,
   translationLanguageId: string,
   memoryIds: string[],
-  minSimilarity: number = 0.8,
   maxAmount: number = 3,
 ): Promise<MemorySuggestion[]> => {
   const sourceString = aliasedTable(translatableString, "sourceString");
@@ -30,56 +26,7 @@ export const searchMemory = async (
     "translationString",
   );
 
-  // 指定记忆库中该语言对对应的所有条目的 chunk 的 id 的集合
-  // 即为进行余弦相似度查找的 chunk 范围
-  const sourceChunkIds = await drizzle
-    .selectDistinct({ id: chunk.id })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
-    .where(
-      and(
-        inArray(memoryItem.memoryId, memoryIds),
-        eq(sourceString.languageId, sourceLanguageId),
-        eq(translationString.languageId, translationLanguageId),
-      ),
-    );
-
-  const reversedChunkIds = await drizzle
-    .selectDistinct({ id: chunk.id })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
-    .where(
-      and(
-        inArray(memoryItem.memoryId, memoryIds),
-        eq(translationString.languageId, sourceLanguageId),
-        eq(sourceString.languageId, translationLanguageId),
-      ),
-    );
-
-  const chunkIdRange = Array.from(
-    new Set([...sourceChunkIds, ...reversedChunkIds].map((row) => row.id)),
-  );
-
-  const vectorItems = await vectorStorage.cosineSimilarity({
-    vectors: embeddings,
-    chunkIdRange,
-    minSimilarity,
-    maxAmount,
-  });
-
-  const searchResult = new Map(
-    vectorItems.map((it) => [it.chunkId, it.similarity]),
-  );
+  const searchResult = new Map(chunks.map((it) => [it.chunkId, it.similarity]));
   const searchedChunkIds = Array.from(searchResult.keys());
 
   if (searchedChunkIds.length === 0) return [];

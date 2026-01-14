@@ -3,14 +3,16 @@ import { getRedisDB } from "@cat/db";
 import {
   PluginManager,
   QAChecker,
-  QAIssueSchema,
   TokenSchema,
   type CheckContext,
-  type QAIssue,
   type Token,
 } from "@cat/plugin-core";
 import z from "zod";
 import { searchTermTask } from "./search-term";
+import {
+  QaResultItemSchema,
+  type QaResultItem,
+} from "@cat/shared/schema/drizzle/qa";
 
 export const getQAPubKey = (id: string): string => {
   return `qa:issue:${id}`;
@@ -32,17 +34,23 @@ export const QAInputSchema = z.object({
 });
 
 export const QAOutputSchema = z.object({
-  issues: z.array(
-    QAIssueSchema.extend({
-      checkerId: z.int(),
+  result: z.array(
+    QaResultItemSchema.omit({
+      id: true,
+      resultId: true,
+      createdAt: true,
+      updatedAt: true,
     }),
   ),
 });
 
 export const QAPubPayloadSchema = z.object({
-  issues: z.array(
-    QAIssueSchema.extend({
-      checkerId: z.int(),
+  result: z.array(
+    QaResultItemSchema.omit({
+      id: true,
+      resultId: true,
+      createdAt: true,
+      updatedAt: true,
     }),
   ),
 });
@@ -90,26 +98,43 @@ export const qaWorkflow = await defineWorkflow({
     const checkers: { service: QAChecker; dbId: number }[] =
       pluginManager.getServices("QA_CHECKER");
 
-    const issues: (QAIssue & { checkerId: number })[] = [];
+    const result: Omit<
+      QaResultItem,
+      "id" | "createdAt" | "updatedAt" | "resultId"
+    >[] = (
+      await Promise.all(
+        checkers.map(async (checker) => {
+          const issues = (await checker.service.check(ctx)).map((i) => ({
+            isPassed: false,
+            meta: {
+              ...i,
+            },
+            checkerId: checker.dbId,
+          }));
 
-    await Promise.all(
-      checkers.map(async (checker) => {
-        const issue = (await checker.service.check(ctx)).map((i) => ({
-          ...i,
-          checkerId: checker.dbId,
-        }));
+          if (issues.length > 0) return issues;
 
-        issues.push(...issue);
+          return [
+            {
+              isPassed: true,
+              checkerId: checker.dbId,
+              meta: {},
+            } satisfies Omit<
+              QaResultItem,
+              "id" | "createdAt" | "updatedAt" | "resultId"
+            >,
+          ];
+        }),
+      )
+    ).flat();
 
-        if (pub)
-          await redisPub.publish(
-            getQAPubKey(traceId),
-            JSON.stringify({ issues } satisfies QAPubPayload),
-          );
-      }),
-    );
+    if (pub)
+      await redisPub.publish(
+        getQAPubKey(traceId),
+        JSON.stringify({ result } satisfies QAPubPayload),
+      );
 
-    return { issues };
+    return { result };
   },
 });
 

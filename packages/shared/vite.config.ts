@@ -33,6 +33,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/drizzle/file.ts",
         ),
+        "schema/drizzle/qa": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/qa.ts",
+        ),
         "schema/drizzle/glossary": resolve(
           import.meta.dirname,
           "src/schema/drizzle/glossary.ts",

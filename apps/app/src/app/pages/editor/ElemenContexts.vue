@@ -18,7 +18,12 @@ const { elementId } = storeToRefs(useEditorTableStore());
 const { state } = useQuery({
   key: ["context", elementId.value],
   placeholderData: [],
-  query: () => orpc.element.getContexts({ elementId: elementId.value! }),
+  query: () => {
+    if (elementId.value) {
+      return orpc.element.getContexts({ elementId: elementId.value });
+    }
+    return Promise.resolve([]);
+  },
   enabled: !import.meta.env.SSR,
 });
 

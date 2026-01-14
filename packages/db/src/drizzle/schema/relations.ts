@@ -452,13 +452,4 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.translatableElement.id,
       }),
     },
-    vector: {
-      chunk: r.one.chunk({
-        from: r.vector.chunkId,
-        to: r.chunk.id,
-      }),
-    },
-    chunk: {
-      vectors: r.many.vector(),
-    },
   }));

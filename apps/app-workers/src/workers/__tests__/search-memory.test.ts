@@ -132,6 +132,14 @@ beforeAll(async () => {
 
 test("prepare elements", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const { documentId } = assertSingleNonNullish(
     await drizzle
@@ -147,6 +155,8 @@ test("prepare elements", async () => {
       ...d,
       documentId,
     })),
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { elementIds } = await result();
@@ -156,6 +166,14 @@ test("prepare elements", async () => {
 
 test("create-translation should create memory when memoryIds are provided", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const elements = await drizzle
     .select({
@@ -183,6 +201,8 @@ test("create-translation should create memory when memoryIds are provided", asyn
       meta: datum.meta,
     })),
     memoryIds: [memoryId],
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { translationIds, memoryItemIds } = await result();
@@ -193,6 +213,14 @@ test("create-translation should create memory when memoryIds are provided", asyn
 
 test("worker should search memory", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const { result: createString } = await createTranslatableStringTask.run({
     data: [
@@ -201,6 +229,8 @@ test("worker should search memory", async () => {
         languageId: "en",
       },
     ],
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { stringIds } = await createString();
@@ -231,6 +261,9 @@ test("worker should search memory", async () => {
     memoryIds: [memoryId],
     sourceLanguageId: "en",
     translationLanguageId: "zh-Hans",
+    vectorStorageId: vectorStorage.dbId,
+    minSimilarity: 0.8,
+    maxAmount: 3,
   });
 
   const { memories } = await result();

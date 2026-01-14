@@ -6,7 +6,6 @@ import {
   file,
   getDrizzleDB,
   language,
-  pluginService,
   project,
   translatableElement,
   user,
@@ -78,7 +77,6 @@ test("worker should upsert document from file", async () => {
   const { client: drizzle } = await getDrizzleDB();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
-  // 1. Setup Document
   const [projectData] = await drizzle.select().from(project).limit(1);
   if (!projectData) throw new Error("Project not found");
   const [userData] = await drizzle.select().from(user).limit(1);
@@ -97,23 +95,19 @@ test("worker should upsert document from file", async () => {
   );
 
   const storageProvider = assertSingleNonNullish(
-    pluginManager
-      .getServices("STORAGE_PROVIDER")
-      .filter((p) => p.service.getId() === "storage-provider"),
-  ).service;
-
-  const [storageService] = await drizzle
-    .select()
-    .from(pluginService)
-    .where(eq(pluginService.serviceId, "storage-provider"))
-    .limit(1);
-
-  if (!storageService) throw new Error("Storage service not found in DB");
+    pluginManager.getServices("STORAGE_PROVIDER"),
+  );
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const fileContent = "Line 1\nLine 2\nLine 3";
   const key = `test-file-${Date.now()}.txt`;
 
-  await storageProvider.putStream({
+  await storageProvider.service.putStream({
     key,
     stream: Readable.from(Buffer.from(fileContent)),
   });
@@ -123,7 +117,7 @@ test("worker should upsert document from file", async () => {
       .insert(blob)
       .values({
         key,
-        storageProviderId: storageService.id,
+        storageProviderId: storageProvider.dbId,
         hash: Buffer.alloc(32),
       })
       .returning({ id: blob.id }),
@@ -144,6 +138,8 @@ test("worker should upsert document from file", async () => {
     documentId,
     fileId,
     languageId: "en",
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const output = await result();

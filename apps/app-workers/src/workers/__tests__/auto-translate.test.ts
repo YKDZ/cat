@@ -133,6 +133,14 @@ beforeAll(async () => {
 
 test("prepare elements & translation & memory", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const { documentId } = assertSingleNonNullish(
     await drizzle
@@ -148,6 +156,8 @@ test("prepare elements & translation & memory", async () => {
       ...d,
       documentId,
     })),
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { elementIds } = await elementResult();
@@ -168,6 +178,8 @@ test("prepare elements & translation & memory", async () => {
       ...tData.translation,
     })),
     memoryIds: [memoryId],
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { translationIds, memoryItemIds } = await translationResult();
@@ -178,6 +190,14 @@ test("prepare elements & translation & memory", async () => {
 
 test("worker should auto translate text", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const { id: memoryId } = assertSingleNonNullish(
     await drizzle
@@ -222,6 +242,11 @@ test("worker should auto translate text", async () => {
     glossaryIds: [glossaryId],
     translatableElementId: elementId,
     chunkIds,
+    vectorizerId: vectorizer.dbId,
+    memoryVectorStorageId: vectorStorage.dbId,
+    translationVectorStorageId: vectorStorage.dbId,
+    minMemorySimilarity: 0.8,
+    maxMemoryAmount: 3,
   });
 
   const { translationIds } = await result();

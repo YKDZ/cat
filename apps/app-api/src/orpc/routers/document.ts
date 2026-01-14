@@ -234,6 +234,15 @@ export const finishCreateFromFile = authed
       pluginManager,
     } = context;
 
+    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+
+    if (!storage || !vectorizer) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "No storage provider available",
+      });
+    }
+
     assertSingleNonNullish(
       await drizzle
         .select({
@@ -305,6 +314,8 @@ export const finishCreateFromFile = authed
         documentId: document.id,
         fileId,
         languageId,
+        vectorizerId: vectorizer.id,
+        vectorStorageId: storage.id,
       });
     } else {
       const existDocument = assertSingleNonNullish(existDocumentRows);
@@ -313,6 +324,8 @@ export const finishCreateFromFile = authed
         fileId,
         languageId,
         documentId: existDocument.id,
+        vectorizerId: vectorizer.id,
+        vectorStorageId: storage.id,
       });
     }
   });

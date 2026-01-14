@@ -1,145 +1,135 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { CircleAlert, TriangleAlert, Info, Check } from "lucide-vue-next";
-import { Button } from "@/app/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/components/ui/popover";
-import type { QAIssue, Token } from "@cat/plugin-core";
-import type { QASeverity } from "@cat/plugin-core";
+import { useQuery } from "@pinia/colada";
+import { orpc } from "@/server/orpc";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { ws } from "@/server/ws";
-import { consumeEventIterator } from "@orpc/client";
-import { logger } from "@cat/shared/utils";
+import { Check, TriangleAlert, Info, CircleX, Loader2 } from "lucide-vue-next";
 
 const props = defineProps<{
-  source: {
-    text: string;
-    tokens: Token[];
-    languageId: string;
-  };
-  translation: {
-    text: string;
-    tokens: Token[];
-    languageId: string;
-  };
-  documentId?: string;
+  translationId: number;
 }>();
 
 const { t } = useI18n();
 
-const isOpen = ref(false);
-const issues = ref<(QAIssue & { checkerId: number })[]>([]);
-let cancel: (() => Promise<void>) | undefined;
-
-const update = async () => {
-  if (!props.documentId) return;
-
-  if (cancel) {
-    await cancel();
-  }
-
-  issues.value = [];
-
-  cancel = consumeEventIterator(
-    ws.qa.check({
-      source: props.source,
-      translation: props.translation,
-      documentId: props.documentId,
-    }),
-    {
-      onEvent: (issue) => {
-        issues.value.push(issue);
-      },
-      onError: (error) => {
-        if (
-          error instanceof Error &&
-          error.message === "Stream was cancelled"
-        ) {
-          return;
-        }
-        logger.error("WEB", { msg: "Error when consume qa issues" }, error);
-      },
-    },
-  );
-};
-
-const hasIssues = computed(() => issues.value.length > 0);
-
-const getSeverityStyle = (severity: QASeverity) => {
-  switch (severity) {
-    case "error":
-      return { color: "text-red-500", icon: CircleAlert };
-    case "warning":
-      return { color: "text-yellow-500", icon: TriangleAlert };
-    case "info":
-    default:
-      return { color: "text-blue-500", icon: Info };
-  }
-};
-
-const primaryStatus = computed(() => {
-  if (issues.value.some((i) => i.severity === "error"))
-    return getSeverityStyle("error");
-  if (issues.value.some((i) => i.severity === "warning"))
-    return getSeverityStyle("warning");
-  return getSeverityStyle("info");
+const { state: qaResultsState } = useQuery({
+  key: () => ["qaResults", props.translationId],
+  query: () =>
+    orpc.translation.getQAResults({ translationId: props.translationId }),
 });
 
-watch(
-  () => [props.source, props.translation, props.documentId],
-  () => {
-    update();
-  },
+const latestResult = computed(() => {
+  const results = qaResultsState.value?.data;
+  if (!results || results.length === 0) return null;
+  // Sort by ID desc to get the latest result
+  return [...results].sort((a, b) => b.id - a.id)[0];
+});
+
+const { state: qaItemsState } = useQuery({
+  key: () => ["qaItems", latestResult.value?.id ?? 0],
+  enabled: () => !!latestResult.value,
+  query: () =>
+    orpc.translation.getQAResultItems({ qaResultId: latestResult.value!.id }),
+});
+
+const items = computed(
+  () => qaItemsState.value?.data?.filter((item) => !item.isPassed) ?? [],
 );
+
+interface QaIssueMeta {
+  severity: "error" | "warning" | "info";
+  message: string;
+  targetTokenIndex?: number | null;
+}
+
+const getSeverityIcon = (severity: string) => {
+  switch (severity) {
+    case "error":
+      return CircleX;
+    case "warning":
+      return TriangleAlert;
+    case "info":
+      return Info;
+    default:
+      return Info;
+  }
+};
 </script>
 
 <template>
-  <Popover :modal="false" v-model:open="isOpen">
-    <PopoverTrigger as-child>
-      <Button
-        size="icon"
-        variant="ghost"
-        class="h-8 w-8 transition-all duration-200"
-        :class="primaryStatus.color"
-      >
-        <component v-if="hasIssues" :is="primaryStatus.icon" class="h-4 w-4" />
-        <Check v-else />
-      </Button>
-    </PopoverTrigger>
+  <div class="space-y-2">
+    <!-- Loading State -->
+    <div
+      v-if="qaResultsState?.status === 'pending'"
+      class="flex items-center gap-2 p-2 text-sm text-muted-foreground"
+    >
+      <Loader2 class="w-4 h-4 animate-spin" />
+      <span>{{ t("正在加载 QA 结果...") }}</span>
+    </div>
 
-    <PopoverContent class="w-auto">
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center justify-between pb-1">
-          <span class="text-xs font-semibold text-muted-foreground">
-            {{ t("翻译质量检查 ({amount})", { amount: issues.length }) }}
-          </span>
-        </div>
+    <!-- Error State (Network/Server error, not QA error) -->
+    <div
+      v-else-if="qaResultsState?.error || qaItemsState?.error"
+      class="p-2 text-sm text-destructive bg-destructive/10 rounded-md"
+    >
+      {{ t("加载 QA 结果失败") }}
+    </div>
 
-        <div class="flex flex-col gap-1.5 max-h-75 overflow-y-auto">
-          <span v-if="!hasIssues" class="text-sm text-foreground/90">{{
-            t("无质量问题")
-          }}</span>
-
-          <div
-            v-else
-            v-for="(issue, index) in issues"
-            :key="issue.checkerId + index"
-            class="flex items-start gap-2 text-sm max-w-62.5"
-          >
-            <component
-              :is="getSeverityStyle(issue.severity).icon"
-              class="h-4 w-4 shrink-0 mt-0.5"
-              :class="getSeverityStyle(issue.severity).color"
-            />
-            <span class="text-foreground/90 wrap-break-word leading-tight">
-              {{ issue.message }}
-            </span>
+    <!-- Results Display -->
+    <div v-else-if="latestResult">
+      <!-- Has Issues -->
+      <div v-if="items.length > 0" class="flex flex-col gap-2">
+        <div
+          v-for="item in items"
+          :key="item.id"
+          class="flex gap-2 items-start text-sm p-3 rounded-md border bg-card text-card-foreground shadow-xs animate-in fade-in zoom-in-95 duration-200"
+        >
+          <component
+            :is="
+              getSeverityIcon((item.meta as unknown as QaIssueMeta).severity)
+            "
+            class="w-4 h-4 mt-0.5 shrink-0"
+            :class="{
+              'text-destructive':
+                (item.meta as unknown as QaIssueMeta).severity === 'error',
+              'text-amber-500':
+                (item.meta as unknown as QaIssueMeta).severity === 'warning',
+              'text-blue-500':
+                (item.meta as unknown as QaIssueMeta).severity === 'info',
+            }"
+          />
+          <div class="flex-1 min-w-0">
+            <div
+              class="font-semibold text-xs text-muted-foreground mb-1 uppercase tracking-wider"
+            >
+              {{ (item.meta as unknown as QaIssueMeta).severity }}
+            </div>
+            <div class="leading-relaxed">
+              {{ (item.meta as unknown as QaIssueMeta).message }}
+            </div>
           </div>
         </div>
       </div>
-    </PopoverContent>
-  </Popover>
+
+      <!-- No Issues (Positive feedback) -->
+      <div
+        v-else
+        class="flex flex-col items-center justify-center p-6 gap-2 text-green-600 bg-green-50/50 rounded-md border border-green-100 animate-in fade-in zoom-in-95 duration-200"
+      >
+        <div class="p-2 bg-green-100 rounded-full">
+          <Check class="w-5 h-5" />
+        </div>
+        <span class="text-sm font-medium">{{
+          t("QA 检查通过，未发现问题")
+        }}</span>
+      </div>
+    </div>
+
+    <!-- No QA Results (Not checked yet) -->
+    <div
+      v-else
+      class="p-4 text-center text-muted-foreground text-sm border border-dashed rounded-md bg-muted/30"
+    >
+      {{ t("暂无 QA 检查记录") }}
+    </div>
+  </div>
 </template>

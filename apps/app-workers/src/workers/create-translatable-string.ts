@@ -1,12 +1,8 @@
-import { defineTask } from "@/core";
-import {
-  createStringFromData,
-  firstOrGivenService,
-} from "@cat/app-server-shared/utils";
+import { defineWorkflow } from "@/core";
+import { createStringFromData } from "@cat/app-server-shared/utils";
 import { getDrizzleDB } from "@cat/db";
-import { PluginManager } from "@cat/plugin-core";
-import { logger } from "@cat/shared/utils";
 import * as z from "zod";
+import { vectorizeToChunkSetTask } from "./vectorize";
 
 export const CreateTranslatableStringInputSchema = z.object({
   data: z.array(
@@ -15,46 +11,39 @@ export const CreateTranslatableStringInputSchema = z.object({
       languageId: z.string(),
     }),
   ),
-  vectorizerId: z.int().optional(),
-  vectorStorageId: z.int().optional(),
+  vectorizerId: z.int(),
+  vectorStorageId: z.int(),
 });
 
 export const CreateTranslatableStringOutputSchema = z.object({
   stringIds: z.array(z.int()),
 });
 
-export const createTranslatableStringTask = await defineTask({
+export const createTranslatableStringTask = await defineWorkflow({
   name: "translatable-string.create",
   input: CreateTranslatableStringInputSchema,
   output: CreateTranslatableStringOutputSchema,
 
-  handler: async (data) => {
+  dependencies: async (payload, { traceId }) => [
+    await vectorizeToChunkSetTask.asChild(
+      {
+        data: payload.data,
+        vectorizerId: payload.vectorizerId,
+        vectorStorageId: payload.vectorStorageId,
+      },
+      { traceId },
+    ),
+  ],
+
+  handler: async (data, { getTaskResult }) => {
     const { client: drizzle } = await getDrizzleDB();
-    const pluginManager = PluginManager.get("GLOBAL", "");
+
+    const [{ chunkSetIds }] = getTaskResult(vectorizeToChunkSetTask);
 
     if (data.data.length === 0) return { stringIds: [] };
 
-    const vStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-    const vizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
-
-    if (!vStorage || !vizer) {
-      logger.warn("PROCESSOR", {
-        msg: `No vector storage or text vectorizer service available. No string will be created`,
-      });
-      return {
-        stringIds: [],
-      };
-    }
-
     const stringIds = await drizzle.transaction(async (tx) => {
-      return await createStringFromData(
-        tx,
-        vizer.service,
-        vizer.id,
-        vStorage.service,
-        vStorage.id,
-        data.data,
-      );
+      return await createStringFromData(tx, chunkSetIds, data.data);
     });
 
     return { stringIds };

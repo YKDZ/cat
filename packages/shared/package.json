@@ -52,6 +52,10 @@
       "types": "./dist/schema/drizzle/file.d.ts",
       "import": "./dist/schema/drizzle/file.js"
     },
+    "./schema/drizzle/qa": {
+      "types": "./dist/schema/drizzle/qa.d.ts",
+      "import": "./dist/schema/drizzle/qa.js"
+    },
     "./schema/drizzle/glossary": {
       "types": "./dist/schema/drizzle/glossary.d.ts",
       "import": "./dist/schema/drizzle/glossary.js"

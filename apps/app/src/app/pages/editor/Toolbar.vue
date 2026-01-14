@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import TranslationQaResult from "./TranslationQaResult.vue";
+import CurrentTranslationQaResult from "./CurrentTranslationQaResult.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { Button } from "@/app/components/ui/button";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
@@ -61,7 +61,7 @@ const handleTranslate = async (toNext: boolean) => {
         </Button>
       </TextTooltip>
 
-      <TranslationQaResult
+      <CurrentTranslationQaResult
         v-if="element"
         :source="{
           tokens: sourceTokens,

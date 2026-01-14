@@ -127,6 +127,14 @@ beforeAll(async () => {
 
 test("prepare elements", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const { documentId } = assertSingleNonNullish(
     await drizzle
@@ -142,6 +150,8 @@ test("prepare elements", async () => {
       ...d,
       documentId,
     })),
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { elementIds } = await result();
@@ -151,6 +161,14 @@ test("prepare elements", async () => {
 
 test("worker should create translation and return ids in order", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const elements = await drizzle
     .select({
@@ -164,6 +182,8 @@ test("worker should create translation and return ids in order", async () => {
       ...datum,
     })),
     memoryIds: [],
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { translationIds, memoryItemIds } = await result();
@@ -174,6 +194,14 @@ test("worker should create translation and return ids in order", async () => {
 
 test("worker should create memory when memoryIds are provided", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const elements = await drizzle
     .select({
@@ -199,6 +227,8 @@ test("worker should create memory when memoryIds are provided", async () => {
       ...datum,
     })),
     memoryIds: [memoryId],
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { translationIds, memoryItemIds } = await result();

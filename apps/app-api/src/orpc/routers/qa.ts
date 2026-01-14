@@ -1,11 +1,12 @@
 import { authed } from "@/orpc/server.ts";
 import z from "zod";
-import { TokenSchema, type QAIssue } from "@cat/plugin-core";
+import { TokenSchema } from "@cat/plugin-core";
 import { getQAPubKey, QAPubPayloadSchema, qaWorkflow } from "@cat/app-workers";
 import { document, eq, glossaryToProject, project } from "@cat/db";
 import { randomUUID } from "node:crypto";
 import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { logger } from "@cat/shared/utils";
+import type { QaResultItem } from "@cat/shared/schema/drizzle/qa";
 
 export const check = authed
   .input(
@@ -44,13 +45,13 @@ export const check = authed
     const traceId = randomUUID();
 
     const issuesQueue = new AsyncMessageQueue<
-      QAIssue & { checkerId: number }
+      Omit<QaResultItem, "id" | "createdAt" | "updatedAt" | "resultId">
     >();
     const issueChannelKey = getQAPubKey(traceId);
     const onNewIssue = async (issueData: string) => {
       try {
-        const { issues } = QAPubPayloadSchema.parse(JSON.parse(issueData));
-        issuesQueue.push(...issues);
+        const { result } = QAPubPayloadSchema.parse(JSON.parse(issueData));
+        issuesQueue.push(...result.filter((r) => !r.isPassed));
       } catch (err) {
         logger.error("RPC", { msg: "Invalid issue format: " }, err);
       }

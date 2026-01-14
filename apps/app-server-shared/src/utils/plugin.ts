@@ -129,3 +129,17 @@ export const resolvePluginComponentPath = (
 
   return targetPath;
 };
+
+export const initAllVectorStorage = async (
+  pluginManager: PluginManager,
+): Promise<void> => {
+  const services = pluginManager.getServices("VECTOR_STORAGE");
+
+  for (const serivce of services) {
+    // oxlint-disable-next-line no-await-in-loop
+    await serivce.service.init({
+      // TODO 维度协调
+      dimension: 1024,
+    });
+  }
+};

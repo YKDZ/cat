@@ -15,6 +15,8 @@ export const CreateElementInputSchema = z.object({
       sortIndex: z.int().optional(),
     }),
   ),
+  vectorizerId: z.int(),
+  vectorStorageId: z.int(),
 });
 
 export const CreateElementOutputSchema = z.object({
@@ -33,6 +35,8 @@ export const createElementWorkflow = await defineWorkflow({
           text: d.text,
           languageId: d.languageId,
         })),
+        vectorizerId: data.vectorizerId,
+        vectorStorageId: data.vectorStorageId,
       },
       { traceId },
     ),
