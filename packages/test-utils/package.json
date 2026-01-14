@@ -24,7 +24,7 @@
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "@types/pg": "^8.16.0",
-    "drizzle-kit": "1.0.0-beta.10-4a43a22",
+    "drizzle-kit": "1.0.0-beta.10-42c284e",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "^7.3.1"
   },
