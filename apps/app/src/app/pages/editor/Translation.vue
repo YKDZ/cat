@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import ElementTranslationMeta from "./ElementTranslationMeta.vue";
-import ElementTranslationVote from "./ElementTranslationVote.vue";
+import TranslationVote from "./TranslationVote.vue";
+import TranslationQaResult from "./TranslationQaResult.vue";
 import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
-import ElementTranslationApprovalBtn from "./ElementTranslationApprovalBtn.vue";
+import TranslationApprovalBtn from "./TranslationApprovalBtn.vue";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
 import {
   Collapsible,
@@ -44,12 +44,15 @@ const isApproved = computed<boolean>(() => {
             <TokenRenderer :text="translation.text" />
           </div>
           <div class="flex gap-2 items-center">
-            <ElementTranslationApprovalBtn :translation="translation" />
-            <ElementTranslationVote class="ml-auto" :translation />
+            <TranslationApprovalBtn :translation="translation" />
+            <TranslationVote class="ml-auto" :translation />
           </div></div
       ></CollapsibleTrigger>
       <CollapsibleContent class="CollapsibleContent">
-        <ElementTranslationMeta :translation class="mt-1" />
+        <TranslationQaResult
+          :translation-id="translation.id"
+          class="p-2 border-t"
+        />
       </CollapsibleContent>
     </Collapsible>
   </TextTooltip>

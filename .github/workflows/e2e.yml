@@ -38,6 +38,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      ollama:
+        image: ollama/ollama:latest
+        ports:
+          - 11434:11434
+        options: >-
+          --health-cmd "ollama list || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -61,6 +71,13 @@ jobs:
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
+
+      - name: Pull Ollama Models
+        run: |
+          echo "Pulling qwen2.5:0.5b..."
+          curl -X POST http://localhost:11434/api/pull -d '{"name": "qwen2.5:0.5b", "stream": false}'
+          echo "Pulling nomic-embed-text..."
+          curl -X POST http://localhost:11434/api/pull -d '{"name": "nomic-embed-text", "stream": false}'
 
       - name: Build & Load Plugins
         run: |

@@ -16,6 +16,14 @@ export type CosineSimilarityContext = {
   maxAmount: number;
 };
 
+export type InitContext = {
+  dimension: number;
+};
+
+export type UpdateDimensionContext = {
+  dimension: number;
+};
+
 export abstract class VectorStorage implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType {
@@ -28,4 +36,8 @@ export abstract class VectorStorage implements IPluginService {
   abstract cosineSimilarity(
     ctx: CosineSimilarityContext,
   ): Promise<{ chunkId: number; similarity: number }[]>;
+
+  abstract updateDimension(ctx: UpdateDimensionContext): Promise<void>;
+
+  abstract init(ctx: InitContext): Promise<void>;
 }

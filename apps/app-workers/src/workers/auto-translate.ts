@@ -18,7 +18,24 @@ export const AutoTranslateInputSchema = z.object({
    * text 的 embeddings 的 chunkIds
    */
   chunkIds: z.array(z.int()).default([]),
-  minMemorySimilarity: z.number().min(0).max(1).optional(),
+
+  minMemorySimilarity: z.number().min(0).max(1),
+  /**
+   * 用记忆作为翻译源时最多查找多少记忆
+   */
+  maxMemoryAmount: z.int().min(0).default(3),
+  /**
+   * 查找记忆时提供 cosine 距离计算的向量存储
+   */
+  memoryVectorStorageId: z.int(),
+  /**
+   * 查找记忆时提供 cosine 距离计算的向量存储
+   */
+  translationVectorStorageId: z.int(),
+  /**
+   * 创建翻译时用的向量化器
+   */
+  vectorizerId: z.int(),
 });
 
 export const AutoTranslateOutputSchema = z.object({
@@ -51,6 +68,8 @@ export const autoTranslateWorkflow = await defineWorkflow({
         sourceLanguageId: data.sourceLanguageId,
         translationLanguageId: data.translationLanguageId,
         minSimilarity: data.minMemorySimilarity,
+        maxAmount: data.maxMemoryAmount,
+        vectorStorageId: data.memoryVectorStorageId,
       },
       { traceId },
     ),
@@ -101,6 +120,8 @@ export const autoTranslateWorkflow = await defineWorkflow({
         ],
         // TODO 自动翻译暂时不创建记忆
         memoryIds: [],
+        vectorizerId: data.vectorizerId,
+        vectorStorageId: data.translationVectorStorageId,
       },
       { traceId },
     );

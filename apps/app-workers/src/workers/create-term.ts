@@ -1,8 +1,5 @@
-import { defineTask } from "@/core";
-import {
-  createStringFromData,
-  firstOrGivenService,
-} from "@cat/app-server-shared/utils";
+import { defineWorkflow } from "@/core";
+import { createStringFromData } from "@cat/app-server-shared/utils";
 import {
   and,
   eq,
@@ -12,62 +9,76 @@ import {
   term,
   termEntry,
 } from "@cat/db";
-import { PluginManager } from "@cat/plugin-core";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import { logger } from "@cat/shared/utils";
 import * as z from "zod";
+import { vectorizeToChunkSetTask } from "./vectorize";
 
 export const CreateTermInputSchema = z.object({
   glossaryId: z.uuidv4(),
   creatorId: z.uuidv4().optional(),
   data: z.array(TermDataSchema),
+  vectorizerId: z.int(),
+  vectorStorageId: z.int(),
 });
 
 export const CreateTermOutputSchema = z.object({
   termIds: z.array(z.int()),
 });
 
-export const createTermTask = await defineTask({
+export const createTermTask = await defineWorkflow({
   name: "term.create",
   input: CreateTermInputSchema,
   output: CreateTermOutputSchema,
 
-  handler: async (data) => {
+  dependencies: async (payload, { traceId }) => [
+    await vectorizeToChunkSetTask.asChild(
+      {
+        data: payload.data.flatMap((d) => [
+          {
+            text: d.term,
+            languageId: d.termLanguageId,
+          },
+          {
+            text: d.translation,
+            languageId: d.translationLanguageId,
+          },
+        ]),
+        vectorizerId: payload.vectorizerId,
+        vectorStorageId: payload.vectorStorageId,
+      },
+      { traceId },
+    ),
+  ],
+
+  handler: async (data, { getTaskResult }) => {
     const { client: drizzle } = await getDrizzleDB();
-    const pluginManager = PluginManager.get("GLOBAL", "");
 
-    const vStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-    const vizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+    const [{ chunkSetIds }] = getTaskResult(vectorizeToChunkSetTask);
 
-    if (!vStorage || !vizer) {
-      logger.warn("PROCESSOR", {
-        msg: `No vector storage or text vectorizer service available. No term will be created`,
-      });
-      return {
-        termIds: [],
-      };
-    }
+    const termChunkIds = chunkSetIds.filter((_, index) => index % 2 === 0);
+    const translationChunkIds = chunkSetIds.filter(
+      (_, index) => index % 2 !== 0,
+    );
+    const termDatas = data.data.map((term) => ({
+      text: term.term,
+      languageId: term.termLanguageId,
+    }));
+    const translationDatas = data.data.map((term) => ({
+      text: term.translation,
+      languageId: term.translationLanguageId,
+    }));
 
     const termIds = await drizzle.transaction(async (tx) => {
       const termStringIds = await createStringFromData(
         tx,
-        vizer.service,
-        vizer.id,
-        vStorage.service,
-        vStorage.id,
-        data.data.map((d) => ({ text: d.term, languageId: d.termLanguageId })),
+        termChunkIds,
+        termDatas,
       );
 
       const translationStringIds = await createStringFromData(
         tx,
-        vizer.service,
-        vizer.id,
-        vStorage.service,
-        vStorage.id,
-        data.data.map((d) => ({
-          text: d.translation,
-          languageId: d.translationLanguageId,
-        })),
+        translationChunkIds,
+        translationDatas,
       );
 
       const subjects = [

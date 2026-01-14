@@ -1,4 +1,7 @@
-import { installDefaultPlugins } from "@cat/app-server-shared/utils";
+import {
+  initAllVectorStorage,
+  installDefaultPlugins,
+} from "@cat/app-server-shared/utils";
 import {
   ensureDB,
   getDrizzleDB,
@@ -43,6 +46,8 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
       await ensureRootUser(tx);
     });
+
+    await initAllVectorStorage(pluginManager);
 
     ctx.drizzleDB = drizzleDB;
     ctx.redisDB = redisDB;

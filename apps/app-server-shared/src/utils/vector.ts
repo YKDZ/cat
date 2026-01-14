@@ -1,98 +1,11 @@
 import {
-  chunk,
-  chunkSet,
   inArray,
   translatableString,
   and,
   eq,
   type DrizzleTransaction,
 } from "@cat/db";
-import { VectorStorage, TextVectorizer } from "@cat/plugin-core";
-import { JSONType } from "@cat/shared/schema/json";
 import { UnvectorizedTextData } from "@cat/shared/schema/misc";
-
-const vectorizeToChunkSetsBatch = async (
-  tx: DrizzleTransaction,
-  vectorizer: TextVectorizer,
-  vectorizerId: number,
-  vectorStorage: VectorStorage,
-  vectorStorageId: number,
-  texts: UnvectorizedTextData[],
-): Promise<number[]> => {
-  if (texts.length === 0) return [];
-
-  const chunkDataList = await vectorizer.vectorize({ elements: texts });
-  if (chunkDataList.length !== texts.length) {
-    throw new Error("Vectorizer result length mismatch with input texts");
-  }
-
-  const numSets = chunkDataList.length;
-  const chunkSetRows = Array.from({ length: numSets }, () => ({}));
-
-  type Flattened = {
-    vector: number[];
-    meta: JSONType;
-    textIndex: number;
-    chunkIndex: number;
-  };
-  const flattened: Flattened[] = [];
-
-  const chunkRowsToInsert: Array<{
-    chunkSetId?: number;
-    vectorizerId: number;
-    vectorStorageId: number;
-    meta: JSONType;
-  }> = [];
-
-  for (let i = 0; i < chunkDataList.length; i += 1) {
-    const chunkData = chunkDataList[i];
-    for (let j = 0; j < chunkData.length; j += 1) {
-      flattened.push({
-        vector: chunkData[j].vector,
-        meta: chunkData[j].meta,
-        textIndex: i,
-        chunkIndex: j,
-      });
-
-      chunkRowsToInsert.push({
-        vectorizerId,
-        vectorStorageId,
-        meta: chunkData[j].meta,
-      });
-    }
-  }
-
-  const insertedChunkSets = await tx
-    .insert(chunkSet)
-    .values(chunkSetRows)
-    .returning({ id: chunkSet.id });
-
-  const chunkSetIds: number[] = insertedChunkSets.map((r) => r.id);
-
-  const finalChunkRows = flattened.map((f) => ({
-    chunkSetId: chunkSetIds[f.textIndex],
-    vectorizerId,
-    vectorStorageId,
-    meta: f.meta,
-  }));
-
-  const insertedChunks = await tx
-    .insert(chunk)
-    .values(finalChunkRows)
-    .returning({ id: chunk.id });
-
-  const chunkIds: number[] = insertedChunks.map((r) => r.id);
-
-  const storePayload = chunkIds.map((cid, idx) => ({
-    chunkId: cid,
-    vector: flattened[idx].vector,
-    meta: flattened[idx].meta,
-  }));
-
-  await vectorStorage.store({ chunks: storePayload });
-
-  return chunkSetIds;
-};
 
 /**
  * 根据给定数据按以下规则返回 TranslatableString ID：\
@@ -111,10 +24,7 @@ const vectorizeToChunkSetsBatch = async (
  */
 export const createStringFromData = async (
   tx: DrizzleTransaction,
-  vectorizer: TextVectorizer,
-  vectorizerId: number,
-  vectorStorage: VectorStorage,
-  vectorStorageId: number,
+  chunkSetIds: number[],
   data: UnvectorizedTextData[],
 ): Promise<number[]> => {
   if (data.length === 0) return [];
@@ -187,16 +97,6 @@ export const createStringFromData = async (
   }
 
   for (const chunk of missingChunks) {
-    // eslint-disable-next-line no-await-in-loop 涉及向量化和数据库事务，不适合并行
-    const chunkSetIds = await vectorizeToChunkSetsBatch(
-      tx,
-      vectorizer,
-      vectorizerId,
-      vectorStorage,
-      vectorStorageId,
-      chunk.map((e) => e.data),
-    );
-
     // eslint-disable-next-line no-await-in-loop
     const insertedRows = await tx
       .insert(translatableString)

@@ -8,7 +8,7 @@ import {
 } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
 import { createTranslatableStringTask } from "@/workers/create-translatable-string";
-import { zip } from "@cat/shared/utils";
+import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 
 let cleanup: () => Promise<void>;
@@ -46,6 +46,14 @@ beforeAll(async () => {
 
 test("worker should insert strings to db", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const data = [
     {
@@ -64,6 +72,8 @@ test("worker should insert strings to db", async () => {
 
   const { result } = await createTranslatableStringTask.run({
     data,
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { stringIds } = await result();
@@ -91,19 +101,36 @@ test("worker should insert strings to db", async () => {
 
 test("empty input should return empty array", async () => {
   const data: { text: string; languageId: string }[] = [];
+  const pluginManager = PluginManager.get("GLOBAL", "");
 
-  const { stringIds } = await createTranslatableStringTask.handler(
-    {
-      data,
-    },
-    { traceId: "test" },
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
   );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
+
+  const { result } = await createTranslatableStringTask.run({
+    data,
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
+  });
+
+  const { stringIds } = await result();
 
   expect(stringIds.length).toEqual(0);
 });
 
 test("worker should reuse existing strings", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const data = [
     {
@@ -113,11 +140,19 @@ test("worker should reuse existing strings", async () => {
   ];
 
   // First run
-  const { result: result1 } = await createTranslatableStringTask.run({ data });
+  const { result: result1 } = await createTranslatableStringTask.run({
+    data,
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
+  });
   const { stringIds: ids1 } = await result1();
 
   // Second run
-  const { result: result2 } = await createTranslatableStringTask.run({ data });
+  const { result: result2 } = await createTranslatableStringTask.run({
+    data,
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
+  });
   const { stringIds: ids2 } = await result2();
 
   expect(ids1[0]).toEqual(ids2[0]);

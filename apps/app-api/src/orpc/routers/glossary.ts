@@ -26,6 +26,7 @@ import type { TermExtractor, TermRecognizer } from "@cat/plugin-core";
 import { createTermTask, searchTermTask } from "@cat/app-workers";
 import { authed } from "@/orpc/server";
 import { ORPCError } from "@orpc/client";
+import { firstOrGivenService } from "@cat/app-server-shared/utils";
 
 export const deleteTerm = authed
   .input(
@@ -176,13 +177,24 @@ export const insertTerm = authed
   )
   .output(z.void())
   .handler(async ({ context, input }) => {
-    const { user } = context;
+    const { pluginManager, user } = context;
     const { termsData, glossaryId } = input;
+
+    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+
+    if (!storage || !vectorizer) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "No storage provider available",
+      });
+    }
 
     await createTermTask.run({
       glossaryId,
       data: termsData,
       creatorId: user.id,
+      vectorizerId: vectorizer.id,
+      vectorStorageId: storage.id,
     });
   });
 

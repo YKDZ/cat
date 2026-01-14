@@ -9,7 +9,10 @@ import {
   logger,
 } from "@cat/shared/utils";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
-import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
+import {
+  AsyncMessageQueue,
+  firstOrGivenService,
+} from "@cat/app-server-shared/utils";
 import {
   chunk,
   chunkSet,
@@ -26,6 +29,7 @@ import {
 } from "@cat/db";
 import { authed } from "@/orpc/server";
 import { searchMemoryWorkflow } from "@cat/app-workers";
+import { ORPCError } from "@orpc/client";
 
 export const create = authed
   .input(
@@ -73,14 +77,24 @@ export const onNew = authed
       elementId: z.int(),
       translationLanguageId: z.string(),
       minMemorySimilarity: z.number().min(0).max(1).default(0.72),
+      maxAmount: z.int().min(0).default(3),
     }),
   )
   .handler(async function* ({ context, input }) {
     const {
       redisDB: { redisSub },
       drizzleDB: { client: drizzle },
+      pluginManager,
     } = context;
-    const { elementId, translationLanguageId, minMemorySimilarity } = input;
+    const { elementId, translationLanguageId, minMemorySimilarity, maxAmount } =
+      input;
+
+    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+
+    if (!storage)
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: `No VECTOR_STORAGE service available`,
+      });
 
     // 要匹配记忆的元素
     const element = assertSingleNonNullish(
@@ -144,6 +158,8 @@ export const onNew = authed
       sourceLanguageId: element.languageId,
       translationLanguageId,
       minSimilarity: minMemorySimilarity,
+      maxAmount,
+      vectorStorageId: storage.id,
     });
 
     memoriesQueue.push(...(await result()).memories);

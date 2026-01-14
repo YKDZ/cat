@@ -45,7 +45,7 @@
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "bullmq": "^5.58.4",
+    "bullmq": "^5.66.4",
     "dotenv": "^17.2.3",
     "lodash-es": "^4.17.21",
     "undici": "^7.16.0",

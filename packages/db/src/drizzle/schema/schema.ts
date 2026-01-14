@@ -6,7 +6,6 @@ import {
   text,
   integer,
   jsonb,
-  vector as dbVector,
   boolean,
   timestamp,
   uniqueIndex,
@@ -883,7 +882,8 @@ export const qaResult = pgTable("QaResult", {
 
 export const qaResultItem = pgTable("QaResultItem", {
   id: serial().primaryKey(),
-  meta: jsonb().$type<JSONType>(),
+  meta: jsonb().$type<NonNullJSONType>(),
+  isPassed: boolean().notNull(),
   resultId: integer()
     .notNull()
     .references(() => qaResult.id, {
@@ -931,19 +931,5 @@ export const userRole = pgTable(
     primaryKey({
       columns: [table.userId, table.roleId],
     }),
-  ],
-);
-
-export const vector = pgTable(
-  "Vector",
-  {
-    id: serial().primaryKey(),
-    vector: dbVector({ dimensions: 1024 }).notNull(),
-    chunkId: integer()
-      .notNull()
-      .references(() => chunk.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  },
-  (table) => [
-    index("embeddingIndex").using("hnsw", table.vector.op("vector_cosine_ops")),
   ],
 );

@@ -167,6 +167,14 @@ beforeAll(async () => {
 
 test("worker should diff elements", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const { documentId } = assertSingleNonNullish(
     await drizzle
@@ -186,6 +194,8 @@ test("worker should diff elements", async () => {
     documentId,
     oldElementIds,
     elementData: newElements,
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { addedElementIds, removedElementIds } = await result();

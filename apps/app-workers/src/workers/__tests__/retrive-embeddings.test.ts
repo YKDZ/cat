@@ -10,6 +10,7 @@ import { PluginManager } from "@cat/plugin-core";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { retriveEmbeddingsTask } from "../retrive-embeddings.ts";
 import { createTranslatableStringTask } from "../create-translatable-string.ts";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 
 const data = [
   {
@@ -63,9 +64,19 @@ beforeAll(async () => {
 
 test("create-translatable-string should insert chunks to db", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const { result } = await createTranslatableStringTask.run({
     data,
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   await result();

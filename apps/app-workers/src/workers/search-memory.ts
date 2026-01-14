@@ -1,14 +1,22 @@
 import { defineWorkflow } from "@/core";
-import { getServiceFromDBId, searchMemory } from "@cat/app-server-shared/utils";
-import { getDrizzleDB } from "@cat/db";
-import { PluginManager, type VectorStorage } from "@cat/plugin-core";
+import { searchMemory } from "@cat/app-server-shared/utils";
+import {
+  aliasedTable,
+  and,
+  chunk,
+  eq,
+  getDrizzleDB,
+  inArray,
+  memoryItem,
+  translatableString,
+} from "@cat/db";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
-import { retriveEmbeddingsTask } from "./retrive-embeddings.ts";
+import { searchChunkWorkflow } from "./search-chunk.ts";
 
 export const SearchMemoryInputSchema = z.object({
-  minSimilarity: z.number().min(0).max(1).optional(),
-  maxAmount: z.int().min(0).optional(),
+  minSimilarity: z.number().min(0).max(1),
+  maxAmount: z.int().min(0),
   /**
    * 被查找是否存在记忆的原文本的 chunkIds
    */
@@ -16,6 +24,7 @@ export const SearchMemoryInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
+  vectorStorageId: z.int(),
 });
 
 export const SearchMemoryOutputSchema = z.object({
@@ -27,41 +36,85 @@ export const searchMemoryWorkflow = await defineWorkflow({
   input: SearchMemoryInputSchema,
   output: SearchMemoryOutputSchema,
 
-  dependencies: async (data, { traceId }) => [
-    await retriveEmbeddingsTask.asChild(
-      {
-        chunkIds: data.chunkIds,
-      },
-      { traceId },
-    ),
-  ],
+  dependencies: async (data, { traceId }) => {
+    const { client: drizzle } = await getDrizzleDB();
+
+    const sourceString = aliasedTable(translatableString, "sourceString");
+    const translationString = aliasedTable(
+      translatableString,
+      "translationString",
+    );
+
+    // 指定记忆库中该语言对对应的所有条目的 chunk 的 id 的集合
+    // 即为进行余弦相似度查找的 chunk 范围
+    const sourceChunkIds = await drizzle
+      .selectDistinct({ id: chunk.id })
+      .from(memoryItem)
+      .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+      .innerJoin(
+        translationString,
+        eq(translationString.id, memoryItem.translationStringId),
+      )
+      .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
+      .where(
+        and(
+          inArray(memoryItem.memoryId, data.memoryIds),
+          eq(sourceString.languageId, data.sourceLanguageId),
+          eq(translationString.languageId, data.translationLanguageId),
+        ),
+      );
+
+    const reversedChunkIds = await drizzle
+      .selectDistinct({ id: chunk.id })
+      .from(memoryItem)
+      .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+      .innerJoin(
+        translationString,
+        eq(translationString.id, memoryItem.translationStringId),
+      )
+      .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
+      .where(
+        and(
+          inArray(memoryItem.memoryId, data.memoryIds),
+          eq(translationString.languageId, data.sourceLanguageId),
+          eq(sourceString.languageId, data.translationLanguageId),
+        ),
+      );
+
+    const searchRange = Array.from(
+      new Set([...sourceChunkIds, ...reversedChunkIds].map((row) => row.id)),
+    );
+
+    return [
+      await searchChunkWorkflow.asChild(
+        {
+          minSimilarity: data.minSimilarity,
+          maxAmount: data.maxAmount,
+          searchRange,
+          vectorStorageId: data.vectorStorageId,
+        },
+        { traceId },
+      ),
+    ];
+  },
 
   handler: async (data, { getTaskResult }) => {
     const { client: drizzle } = await getDrizzleDB();
-    const pluginManager = PluginManager.get("GLOBAL", "");
 
-    const [embeddingsResult] = getTaskResult(retriveEmbeddingsTask);
-    if (!embeddingsResult) {
+    const [searchChunkResult] = getTaskResult(searchChunkWorkflow);
+    if (!searchChunkResult) {
       return { memories: [] };
     }
 
-    const { embeddings, vectorStorageId } = embeddingsResult;
-
-    const vectorStorage = getServiceFromDBId<VectorStorage>(
-      pluginManager,
-      vectorStorageId,
-    );
+    const { chunks } = searchChunkResult;
 
     const memories = await drizzle.transaction(async (tx) => {
       return await searchMemory(
         tx,
-        vectorStorage,
-        embeddings,
+        chunks,
         data.sourceLanguageId,
         data.translationLanguageId,
         data.memoryIds,
-        data.minSimilarity,
-        data.maxAmount,
       );
     });
 

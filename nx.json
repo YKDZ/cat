@@ -13,7 +13,13 @@
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["production", "^production"],
+      "inputs": [
+        "production",
+        "^production",
+        {
+          "env": "CI"
+        }
+      ],
       "outputs": ["{projectRoot}/dist/**/*"],
       "cache": true
     },

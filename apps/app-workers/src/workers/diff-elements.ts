@@ -24,6 +24,8 @@ export const DiffElementsInputSchema = z.object({
   ),
   oldElementIds: z.array(z.int()),
   documentId: z.uuidv4(),
+  vectorizerId: z.int(),
+  vectorStorageId: z.int(),
 });
 
 export const DiffElementsOutputSchema = z.object({
@@ -117,6 +119,8 @@ export const diffElementsTask = await defineTask({
             text: u.text,
             languageId: u.languageId,
           })),
+          vectorizerId: data.vectorizerId,
+          vectorStorageId: data.vectorStorageId,
         },
         { traceId },
       );
@@ -224,6 +228,8 @@ export const diffElementsTask = await defineTask({
             sortIndex: el.sortIndex,
             meta: el.meta ?? {},
           })),
+          vectorizerId: data.vectorizerId,
+          vectorStorageId: data.vectorStorageId,
         },
         { traceId },
       );

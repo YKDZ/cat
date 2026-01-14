@@ -59,6 +59,17 @@ export const setupTestDB = async (): Promise<TestDB> => {
     throw e;
   }
 
+  // Manually create Vector table for testing since it was removed from production schema
+  // but TestVectorStorage still relies on it.
+  await client.query(`
+    CREATE TABLE "${schemaName}"."Vector" (
+      "id" serial PRIMARY KEY,
+      "vector" vector(1024) NOT NULL,
+      "chunk_id" integer NOT NULL REFERENCES "${schemaName}"."Chunk"("id") ON DELETE CASCADE ON UPDATE CASCADE
+    );
+    CREATE INDEX "embeddingIndex" ON "${schemaName}"."Vector" USING hnsw ("vector" vector_cosine_ops);
+  `);
+
   const drizzleDB = {
     client: db,
     connect: async () => {},

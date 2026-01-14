@@ -21,8 +21,8 @@ export const CreateTranslationInputSchema = z.object({
     }),
   ),
   memoryIds: z.array(z.uuidv4()).default([]),
-  vectorizerId: z.int().optional(),
-  vectorStorageId: z.int().optional(),
+  vectorizerId: z.int(),
+  vectorStorageId: z.int(),
   /**
    * 为了 document 级 pub 做的妥协\
    * pub 为 true 时必须指定一个 documentId

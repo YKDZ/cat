@@ -137,19 +137,18 @@ export const qaTranslationWorkflow = await defineWorkflow({
     );
 
     const onNewQa = async (message: string) => {
-      const { issues } = QAPubPayloadSchema.parse(JSON.parse(message));
+      const { result } = QAPubPayloadSchema.parse(JSON.parse(message));
 
-      if (issues.length === 0) return;
+      if (result.length === 0) {
+        return;
+      }
 
       await drizzle.insert(qaResultItem).values(
-        issues.map((issue) => ({
-          checkerId: issue.checkerId,
+        result.map((item) => ({
+          isPassed: item.isPassed,
+          checkerId: item.checkerId,
           resultId,
-          meta: {
-            severity: issue.severity,
-            message: issue.message,
-            targetTokenIndex: issue.targetTokenIndex ?? null,
-          },
+          meta: item.meta,
         })),
       );
     };

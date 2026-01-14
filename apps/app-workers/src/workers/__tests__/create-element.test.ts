@@ -84,6 +84,14 @@ beforeAll(async () => {
 
 test("worker should create element, store it and return ids in order", async () => {
   const { client: drizzle } = await getDrizzleDB();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
 
   const data = [
     {
@@ -117,6 +125,8 @@ test("worker should create element, store it and return ids in order", async () 
       ...d,
       documentId,
     })),
+    vectorizerId: vectorizer.dbId,
+    vectorStorageId: vectorStorage.dbId,
   });
 
   const { elementIds } = await result();

@@ -8,6 +8,8 @@ export const UpsertDocumentInputSchema = z.object({
   documentId: z.uuidv4(),
   fileId: z.int(),
   languageId: z.string(),
+  vectorizerId: z.int(),
+  vectorStorageId: z.int(),
 });
 
 export const UpsertDocumentOutputSchema = z.object({
@@ -50,6 +52,8 @@ export const upsertDocumentFromFileWorkflow = await defineWorkflow({
         documentId: data.documentId,
         elementData: parseResult.elements,
         oldElementIds,
+        vectorizerId: data.vectorizerId,
+        vectorStorageId: data.vectorStorageId,
       },
       { traceId },
     );
