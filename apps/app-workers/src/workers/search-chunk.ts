@@ -8,6 +8,7 @@ const InputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),
   maxAmount: z.int().min(0),
   searchRange: z.array(z.int()),
+  queryChunkIds: z.array(z.int()),
   vectorStorageId: z.int(),
 });
 
@@ -28,7 +29,7 @@ export const searchChunkWorkflow = await defineWorkflow({
   dependencies: async (data, { traceId }) => [
     await retriveEmbeddingsTask.asChild(
       {
-        chunkIds: data.searchRange,
+        chunkIds: data.queryChunkIds,
       },
       { traceId },
     ),

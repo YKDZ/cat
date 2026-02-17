@@ -91,3 +91,5 @@ node_modules/
 .github/instructions/nx.instructions.md
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+
+.pnpm-store

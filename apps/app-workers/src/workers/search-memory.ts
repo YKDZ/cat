@@ -91,6 +91,7 @@ export const searchMemoryWorkflow = await defineWorkflow({
           minSimilarity: data.minSimilarity,
           maxAmount: data.maxAmount,
           searchRange,
+          queryChunkIds: data.chunkIds,
           vectorStorageId: data.vectorStorageId,
         },
         { traceId },
