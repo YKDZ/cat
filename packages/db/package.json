@@ -23,7 +23,7 @@
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier . --write",
     "format:check": "prettier . --check .",
-    "drizzle:studio": "docker compose -f docker-compose.studio.yml up",
+    "drizzle:studio": "drizzle-kit studio --host 0.0.0.0 --port 4983",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
     "test": "vitest run"

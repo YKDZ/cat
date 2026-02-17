@@ -3,7 +3,8 @@ services:
     image: ghcr.io/drizzle-team/gateway:latest
     container_name: drizzle-gate
     restart: always
-    network_mode: host
+    ports:
+      - "4983:4983"
     environment:
       - PORT=4983
       - STORE_PATH=/app
