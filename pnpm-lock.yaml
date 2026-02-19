@@ -163,8 +163,8 @@ importers:
         specifier: ^4.17.23
         version: 4.17.23
       lucide-vue-next:
-        specifier: ^0.562.0
-        version: 0.562.0(vue@3.5.28(typescript@5.9.3))
+        specifier: ^0.574.0
+        version: 0.574.0(vue@3.5.28(typescript@5.9.3))
       marked:
         specifier: ^17.0.3
         version: 17.0.3
@@ -892,7 +892,7 @@ importers:
         version: 7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/eslint-config:
     devDependencies:
@@ -984,7 +984,7 @@ importers:
         version: 8.18.0
       vitest:
         specifier: ^2.1.8
-        version: 2.1.9(@types/node@25.2.3)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.6.2)(lightningcss@1.31.1)
+        version: 2.1.9(@types/node@25.2.3)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(lightningcss@1.31.1)
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
@@ -6748,8 +6748,8 @@ packages:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
 
-  lucide-vue-next@0.562.0:
-    resolution: {integrity: sha512-LN0BLGKMFulv0lnfK29r14DcngRUhIqdcaL0zXTt2o0oS9odlrjCGaU3/X9hIihOjjN8l8e+Y9G/famcNYaI7Q==}
+  lucide-vue-next@0.574.0:
+    resolution: {integrity: sha512-WzsTQJ2YLINuGeN2iM2fmhHmgkyhGdAADbiXnbAvOuizry4ISFbE2oQGRz3ExjwK3wunW9oGe9EC8WNiXW2b9A==}
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -12729,7 +12729,7 @@ snapshots:
 
   '@types/mssql@9.1.8(@azure/core-client@1.10.1)':
     dependencies:
-      '@types/node': 25.2.3
+      '@types/node': 24.10.13
       tarn: 3.0.2
       tedious: 19.2.1(@azure/core-client@1.10.1)
     transitivePeerDependencies:
@@ -12758,7 +12758,7 @@ snapshots:
 
   '@types/readable-stream@4.0.23':
     dependencies:
-      '@types/node': 25.2.3
+      '@types/node': 24.10.13
 
   '@types/speakeasy@2.0.10':
     dependencies:
@@ -15217,7 +15217,7 @@ snapshots:
       yallist: 4.0.0
     optional: true
 
-  lucide-vue-next@0.562.0(vue@3.5.28(typescript@5.9.3)):
+  lucide-vue-next@0.574.0(vue@3.5.28(typescript@5.9.3)):
     dependencies:
       vue: 3.5.28(typescript@5.9.3)
 
@@ -16815,7 +16815,7 @@ snapshots:
       '@azure/identity': 4.13.0
       '@azure/keyvault-keys': 4.10.0(@azure/core-client@1.10.1)
       '@js-joda/core': 5.7.0
-      '@types/node': 25.2.3
+      '@types/node': 24.10.13
       bl: 6.1.6
       iconv-lite: 0.6.3
       js-md4: 0.3.2
@@ -16831,7 +16831,7 @@ snapshots:
       '@azure/identity': 4.13.0
       '@azure/keyvault-keys': 4.10.0(@azure/core-client@1.10.1)
       '@js-joda/core': 5.7.0
-      '@types/node': 25.2.3
+      '@types/node': 24.10.13
       bl: 6.1.6
       iconv-lite: 0.7.2
       js-md4: 0.3.2
@@ -17369,7 +17369,7 @@ snapshots:
       typescript: 5.9.3
       vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
-  vitest@2.1.9(@types/node@25.2.3)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.6.2)(lightningcss@1.31.1):
+  vitest@2.1.9(@types/node@25.2.3)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(lightningcss@1.31.1):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@25.2.3)(lightningcss@1.31.1))
@@ -17446,7 +17446,7 @@ snapshots:
       - tsx
       - yaml
 
-  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2):
+  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
       '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2))
