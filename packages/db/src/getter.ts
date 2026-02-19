@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { RedisDB } from "./redis.ts";
 import { DrizzleDB } from "@/drizzle/db.ts";
 

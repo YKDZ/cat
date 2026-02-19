@@ -1,4 +1,3 @@
-import "dotenv/config";
 import type { RedisClientType } from "redis";
 import { createClient } from "redis";
 
