@@ -38,7 +38,7 @@
     "@cat/eslint-config": "workspace:*",
     "@cat/test-utils": "workspace:*",
     "@types/lodash-es": "^4.17.12",
-    "xstate": "^5.25.0"
+    "xstate": "^5.28.0"
   },
   "peerDependencies": {
     "@cat/app-server-shared": "workspace:*",

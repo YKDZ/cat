@@ -31,26 +31,26 @@ services:
       retries: 5
       timeout: 5s
 
-  ollama:
-    image: ollama/ollama
-    container_name: cat_ollama
-    volumes:
-      - ./ollama:/root/.ollama
-    ports:
-      - 11434:11434
-    healthcheck:
-      test:
-        - "CMD-SHELL"
-        - |
-          test -f /tmp/ollama_ready && \
-          bash -c '</dev/tcp/localhost/11434'
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+  # ollama:
+  #   image: ollama/ollama
+  #   container_name: cat_ollama
+  #   volumes:
+  #     - ./ollama:/root/.ollama
+  #   ports:
+  #     - 11434:11434
+  #   healthcheck:
+  #     test:
+  #       - "CMD-SHELL"
+  #       - |
+  #         test -f /tmp/ollama_ready && \
+  #         bash -c '</dev/tcp/localhost/11434'
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
 
   libretranslate:
     container_name: cat_libretranslate

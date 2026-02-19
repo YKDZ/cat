@@ -28,9 +28,9 @@
     "format:check": "oxfmt --check"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.962.0",
-    "@aws-sdk/lib-storage": "^3.962.0",
-    "@aws-sdk/s3-request-presigner": "^3.962.0"
+    "@aws-sdk/client-s3": "^3.993.0",
+    "@aws-sdk/lib-storage": "^3.993.0",
+    "@aws-sdk/s3-request-presigner": "^3.993.0"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
