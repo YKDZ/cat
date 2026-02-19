@@ -456,8 +456,8 @@ importers:
         specifier: ^11.12.3
         version: 11.12.3
       vitepress:
-        specifier: 2.0.0-alpha.15
-        version: 2.0.0-alpha.15(@types/node@25.2.3)(axios@1.13.5)(jiti@1.21.7)(lightningcss@1.31.1)(postcss@8.5.6)(qrcode@1.5.4)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.0.1)(yaml@2.8.2)
+        specifier: 2.0.0-alpha.16
+        version: 2.0.0-alpha.16(@types/node@25.2.3)(axios@1.13.5)(jiti@1.21.7)(lightningcss@1.31.1)(postcss@8.5.6)(qrcode@1.5.4)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.0.1)(yaml@2.8.2)
       vue:
         specifier: ^3.5.28
         version: 3.5.28(typescript@5.9.3)
@@ -892,7 +892,7 @@ importers:
         version: 7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/eslint-config:
     devDependencies:
@@ -984,7 +984,7 @@ importers:
         version: 8.18.0
       vitest:
         specifier: ^2.1.8
-        version: 2.1.9(@types/node@25.2.3)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.6.2)(lightningcss@1.31.1)
+        version: 2.1.9(@types/node@25.2.3)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(lightningcss@1.31.1)
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
@@ -2074,6 +2074,9 @@ packages:
 
   '@docsearch/js@4.6.0':
     resolution: {integrity: sha512-9/rbgkm/BgTq46cwxIohvSAz3koOFjnPpg0mwkJItAfzKbQIj+310PvwtgUY1YITDuGCag6yOL50GW2DBkaaBw==}
+
+  '@docsearch/sidepanel-js@4.6.0':
+    resolution: {integrity: sha512-lFT5KLwlzUmpoGArCScNoK41l9a22JYsEPwBzMrz+/ILVR5Ax87UphCuiyDFQWEvEmbwzn/kJx5W/O5BUlN1Rw==}
 
   '@drizzle-team/brocli@0.11.0':
     resolution: {integrity: sha512-hD3pekGiPg0WPCCGAZmusBBJsDqGUR66Y452YgQsZOnkdQ7ViEPKuyP4huUGEZQefp8g34RRodXYmJ2TbCH+tg==}
@@ -8443,8 +8446,8 @@ packages:
       yaml:
         optional: true
 
-  vitepress@2.0.0-alpha.15:
-    resolution: {integrity: sha512-jhjSYd10Z6RZiKOa7jy0xMVf5NB5oSc/lS3bD/QoUc6V8PrvQR5JhC9104NEt6+oTGY/ftieVWxY9v7YI+1IjA==}
+  vitepress@2.0.0-alpha.16:
+    resolution: {integrity: sha512-w1nwsefDVIsje7BZr2tsKxkZutDGjG0YoQ2yxO7+a9tvYVqfljYbwj5LMYkPy8Tb7YbPwa22HtIhk62jbrvuEQ==}
     hasBin: true
     peerDependencies:
       markdown-it-mathjax3: ^4
@@ -10406,6 +10409,8 @@ snapshots:
   '@docsearch/css@4.6.0': {}
 
   '@docsearch/js@4.6.0': {}
+
+  '@docsearch/sidepanel-js@4.6.0': {}
 
   '@drizzle-team/brocli@0.11.0': {}
 
@@ -12729,7 +12734,7 @@ snapshots:
 
   '@types/mssql@9.1.8(@azure/core-client@1.10.1)':
     dependencies:
-      '@types/node': 25.2.3
+      '@types/node': 24.10.13
       tarn: 3.0.2
       tedious: 19.2.1(@azure/core-client@1.10.1)
     transitivePeerDependencies:
@@ -12758,7 +12763,7 @@ snapshots:
 
   '@types/readable-stream@4.0.23':
     dependencies:
-      '@types/node': 25.2.3
+      '@types/node': 24.10.13
 
   '@types/speakeasy@2.0.10':
     dependencies:
@@ -16815,7 +16820,7 @@ snapshots:
       '@azure/identity': 4.13.0
       '@azure/keyvault-keys': 4.10.0(@azure/core-client@1.10.1)
       '@js-joda/core': 5.7.0
-      '@types/node': 25.2.3
+      '@types/node': 24.10.13
       bl: 6.1.6
       iconv-lite: 0.6.3
       js-md4: 0.3.2
@@ -16831,7 +16836,7 @@ snapshots:
       '@azure/identity': 4.13.0
       '@azure/keyvault-keys': 4.10.0(@azure/core-client@1.10.1)
       '@js-joda/core': 5.7.0
-      '@types/node': 25.2.3
+      '@types/node': 24.10.13
       bl: 6.1.6
       iconv-lite: 0.7.2
       js-md4: 0.3.2
@@ -17316,10 +17321,11 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.8.2
 
-  vitepress@2.0.0-alpha.15(@types/node@25.2.3)(axios@1.13.5)(jiti@1.21.7)(lightningcss@1.31.1)(postcss@8.5.6)(qrcode@1.5.4)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.0.1)(yaml@2.8.2):
+  vitepress@2.0.0-alpha.16(@types/node@25.2.3)(axios@1.13.5)(jiti@1.21.7)(lightningcss@1.31.1)(postcss@8.5.6)(qrcode@1.5.4)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.0.1)(yaml@2.8.2):
     dependencies:
       '@docsearch/css': 4.6.0
       '@docsearch/js': 4.6.0
+      '@docsearch/sidepanel-js': 4.6.0
       '@iconify-json/simple-icons': 1.2.71
       '@shikijs/core': 3.22.0
       '@shikijs/transformers': 3.22.0
@@ -17369,7 +17375,7 @@ snapshots:
       typescript: 5.9.3
       vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
-  vitest@2.1.9(@types/node@25.2.3)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.6.2)(lightningcss@1.31.1):
+  vitest@2.1.9(@types/node@25.2.3)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(lightningcss@1.31.1):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@25.2.3)(lightningcss@1.31.1))
@@ -17446,7 +17452,7 @@ snapshots:
       - tsx
       - yaml
 
-  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16(vitest@4.0.16))(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2):
+  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/ui@4.0.16)(happy-dom@20.6.2)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
       '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2))
