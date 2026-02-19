@@ -17,7 +17,9 @@ export type TestDB = DrizzleDB & { cleanup: () => Promise<void> };
  */
 export const setupTestDB = async (): Promise<TestDB> => {
   const connectionString =
-    process.env.TEST_DATABASE_URL || "postgres://user:pass@localhost:5432/cat";
+    process.env.TEST_DATABASE_URL ||
+    process.env.DATABASE_URL ||
+    "postgres://user:pass@localhost:5432/cat";
 
   const client = new Client({ connectionString });
   await client.connect();
