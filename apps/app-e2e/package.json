@@ -15,7 +15,7 @@
     "@cat/db": "workspace:*",
     "@cat/shared": "workspace:*",
     "@cat/test-utils": "workspace:*",
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^24.10.4"
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^24.10.13"
   }
 }

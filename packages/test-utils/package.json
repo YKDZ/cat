@@ -19,7 +19,7 @@
     "format:check": "oxfmt --check"
   },
   "dependencies": {
-    "pg": "^8.16.3"
+    "pg": "^8.18.0"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
