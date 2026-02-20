@@ -1,12 +1,9 @@
 import {
   TermExtractor,
-  TermRecognizer,
   TermAligner,
   ExtractContext,
-  RecognizeContext,
   AlignContext,
   TermCandidate,
-  RecognizedTermEntry,
   TermPairCandidate,
 } from "@cat/plugin-core";
 import OpenAI from "openai";
@@ -104,26 +101,6 @@ export class OpenAITermExtractor extends TermExtractor {
       console.error("Failed to parse extraction result", e);
       return [];
     }
-  }
-}
-
-export class OpenAITermRecognizer extends TermRecognizer {
-  constructor(_config: unknown) {
-    super();
-  }
-
-  getId(): string {
-    return "openai-term-recognizer";
-  }
-
-  async recognize(_ctx: RecognizeContext): Promise<RecognizedTermEntry[]> {
-    // The previous implementation required glossaryCandidates which are no longer part of the interface.
-    // This recognizer needs to include a search step (e.g. vector or keyword) before calling LLM.
-    // For now, we return empty as this requires a larger refactor to support DB/Search access.
-    console.warn(
-      "OpenAITermRecognizer: recognize() requires access to glossary which is not yet implemented in this version. Returning empty.",
-    );
-    return [];
   }
 }
 
