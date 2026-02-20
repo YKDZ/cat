@@ -30,7 +30,9 @@ export const getQueue = (name: string): Queue => {
 
 export const getQueueEvents = (name: string): QueueEvents => {
   if (!queueEvents.has(name)) {
-    queueEvents.set(name, new QueueEvents(name, { ...config }));
+    const events = new QueueEvents(name, { ...config });
+    events.setMaxListeners(100);
+    queueEvents.set(name, events);
   }
   return queueEvents.get(name)!;
 };
@@ -41,7 +43,9 @@ export const getQueueEvents = (name: string): QueueEvents => {
 export const getFlowProducer = (): FlowProducer => {
   const key = "default-flow-producer";
   if (!flowProducers.has(key)) {
-    flowProducers.set(key, new FlowProducer({ ...config }));
+    const producer = new FlowProducer({ ...config });
+    producer.setMaxListeners(100);
+    flowProducers.set(key, producer);
   }
   return flowProducers.get(key)!;
 };

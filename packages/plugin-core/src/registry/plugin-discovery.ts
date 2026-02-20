@@ -1,10 +1,15 @@
-import { plugin, pluginConfig, type DrizzleClient } from "@cat/db";
+import {
+  plugin,
+  pluginConfig,
+  type DrizzleClient,
+  type DrizzleTransaction,
+} from "@cat/db";
 import { FileSystemPluginLoader, type PluginLoader } from "./loader";
 import { _JSONSchemaSchema } from "@cat/shared/schema/json";
 
 /**
  * 插件发现服务
- * 负责维护"物理世界"（文件系统）到"数字世界"（数据库 plugin 表）的同步
+ * 负责维护文件系统到数据库 plugin 表的同步
  * 这是一个全局单例服务，不涉及具体的作用域安装
  */
 export class PluginDiscoveryService {
@@ -29,17 +34,11 @@ export class PluginDiscoveryService {
    */
   public async syncDefinitions(drizzle: DrizzleClient): Promise<void> {
     await drizzle.transaction(async (tx) => {
-      const existPluginIds = (
-        await tx.select({ id: plugin.id }).from(plugin)
-      ).map((p) => p.id);
-
       const availableIds = await this.loader.listAvailablePlugins();
-      const newIds = availableIds.filter(
-        ({ id }) => !existPluginIds.includes(id),
-      );
 
+      // Update all available plugins definitions
       await Promise.all(
-        newIds.map(async ({ id }) => this.registerDefinition(tx, id)),
+        availableIds.map(async ({ id }) => this.registerDefinition(tx, id)),
       );
     });
   }
@@ -47,8 +46,8 @@ export class PluginDiscoveryService {
   /**
    * 注册单个插件定义到数据库
    */
-  private async registerDefinition(
-    drizzle: DrizzleClient,
+  public async registerDefinition(
+    drizzle: DrizzleClient | DrizzleTransaction,
     pluginId: string,
   ): Promise<void> {
     const data = await this.loader.getData(pluginId);

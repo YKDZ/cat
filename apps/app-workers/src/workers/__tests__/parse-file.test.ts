@@ -102,7 +102,6 @@ test("worker should parse elements from file", async () => {
   expect(elements[0].text).toEqual("Hello World!");
   expect(elements[1].text).toEqual("YKDZ");
   // handler 没有给出 sortIndex 的情况下能否自动补齐
-  // handler 没有给出 sortIndex 的情况下能否自动补齐
   expect(elements[0].sortIndex).toEqual(0);
   expect(elements[1].sortIndex).toEqual(1);
 });

@@ -104,7 +104,7 @@ export const onNew = authed
           projectId: documentTable.projectId,
           chunkIds: sql<
             number[]
-          >`coalesce(array_agg("Chunk"."id"), ARRAY[]::int[])`,
+          >`coalesce(array_agg("Chunk"."id") filter (where "Chunk"."id" is not null), ARRAY[]::int[])`,
         })
         .from(translatableElement)
         .innerJoin(
@@ -162,7 +162,13 @@ export const onNew = authed
       vectorStorageId: storage.id,
     });
 
-    memoriesQueue.push(...(await result()).memories);
+    void result()
+      .then((output) => {
+        memoriesQueue.push(...output.memories);
+      })
+      .catch((err: unknown) => {
+        logger.error("PROCESSOR", { msg: "Search memory failed" }, err);
+      });
 
     try {
       for await (const memory of memoriesQueue.consume()) {

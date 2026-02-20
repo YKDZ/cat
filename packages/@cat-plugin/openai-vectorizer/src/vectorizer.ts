@@ -1,26 +1,30 @@
 import { TextVectorizer, type VectorizeContext } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { VectorizedTextData } from "@cat/shared/schema/misc";
-import { Pool } from "undici";
+import OpenAI from "openai";
 import * as z from "zod/v4";
 
 const ConfigSchema = z.object({
-  url: z.url(),
-  path: z.string(),
-  "model-id": z.string(),
+  apiKey: z.string().optional(),
+  baseURL: z.string().optional(),
+  "model-id": z.string().default("text-embedding-3-small"),
 });
 
 type Config = z.infer<typeof ConfigSchema>;
 
 export class Vectorizer extends TextVectorizer {
   private config: Config;
-  private pool: Pool;
+  private openai: OpenAI;
 
   constructor(config: JSONType) {
     // oxlint-disable-next-line no-unsafe-call
     super();
     this.config = ConfigSchema.parse(config);
-    this.pool = new Pool(new URL(this.config.url));
+
+    this.openai = new OpenAI({
+      apiKey: this.config.apiKey || "dummy-key",
+      baseURL: this.config.baseURL,
+    });
   }
 
   getId(): string {
@@ -36,37 +40,18 @@ export class Vectorizer extends TextVectorizer {
   }: VectorizeContext): Promise<VectorizedTextData[]> {
     const values: string[] = elements.map((element) => element.text);
 
-    const response = await this.pool.request({
-      path: this.config.path,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        input: values,
-        model: this.config["model-id"],
-        dimensions: 1024,
-      }),
+    const response = await this.openai.embeddings.create({
+      model: this.config["model-id"],
+      input: values,
+      dimensions: 1024,
     });
 
-    if (response.statusCode !== 200) {
-      throw new Error(
-        `Server responded with ${response.statusCode}. Response: ${JSON.stringify(response)}`,
-      );
-    }
-
-    const data = z
-      .object({
-        embeddings: z.array(z.array(z.number())),
-      })
-      .parse(await response.body.json());
-
-    return elements.map((_, index) => [
+    return elements.map((element, index) => [
       {
         meta: {
           modelId: this.config["model-id"],
         },
-        vector: data.embeddings[index],
+        vector: response.data[index].embedding,
       },
     ]);
   }

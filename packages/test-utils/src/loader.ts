@@ -409,7 +409,7 @@ export class TestTermRecognizer extends TermRecognizer {
   public override getId = (): string => "term-recognizer";
 
   public override recognize = async ({
-    source,
+    candidates,
   }: RecognizeContext): Promise<RecognizedTermEntry[]> => {
     const { client: drizzle } = await getDrizzleDB();
 
@@ -421,10 +421,11 @@ export class TestTermRecognizer extends TermRecognizer {
 
     if (termEntries.length === 0) return [];
 
-    return source.candidates.map(() => ({
+    return candidates.map((_, idx) => ({
       termEntryId:
         termEntries[Math.floor(Math.random() * termEntries.length)].id,
-      confidence: 1.0,
+      score: 1.0,
+      candidateIndex: idx,
     }));
   };
 }

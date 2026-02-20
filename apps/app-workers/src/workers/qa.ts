@@ -1,5 +1,5 @@
 import { defineWorkflow } from "@/core";
-import { getRedisDB } from "@cat/db";
+import { getDrizzleDB, getRedisDB } from "@cat/db";
 import {
   PluginManager,
   QAChecker,
@@ -7,8 +7,8 @@ import {
   type CheckContext,
   type Token,
 } from "@cat/plugin-core";
+import { lookupTerms } from "@cat/app-server-shared/utils";
 import z from "zod";
-import { searchTermTask } from "./search-term";
 import {
   QaResultItemSchema,
   type QaResultItem,
@@ -62,24 +62,19 @@ export const qaWorkflow = await defineWorkflow({
   input: QAInputSchema,
   output: QAOutputSchema,
 
-  dependencies: async (payload, { traceId }) => [
-    await searchTermTask.asChild(
-      {
-        text: payload.source.text,
-        sourceLanguageId: payload.source.languageId,
-        translationLanguageId: payload.translation.languageId,
-        glossaryIds: payload.glossaryIds,
-      },
-      { traceId },
-    ),
-  ],
+  dependencies: async () => [],
 
-  handler: async (payload, { traceId, getTaskResult }) => {
+  handler: async (payload, { traceId }) => {
+    const { client: drizzle } = await getDrizzleDB();
     const { redisPub } = await getRedisDB();
     const pluginManager = PluginManager.get("GLOBAL", "");
 
-    const [termResult] = getTaskResult(searchTermTask);
-    const terms = termResult?.terms ?? [];
+    const terms = await lookupTerms(drizzle, {
+      text: payload.source.text,
+      sourceLanguageId: payload.source.languageId,
+      translationLanguageId: payload.translation.languageId,
+      glossaryIds: payload.glossaryIds,
+    });
 
     const { source, translation, pub } = payload;
 

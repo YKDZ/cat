@@ -1,5 +1,9 @@
 import { Hono } from "hono";
-import { _JSONSchemaSchema, JSONSchemaSchema } from "@cat/shared/schema/json";
+import {
+  _JSONSchemaSchema,
+  JSONSchemaSchema,
+  type JSONObject,
+} from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
   assertSingleNonNullish,
@@ -211,6 +215,72 @@ export class PluginManager {
     }
 
     const loader = this.discovery.getLoader();
+    // 确保定义是最新的
+    await this.discovery.registerDefinition(drizzle, pluginId);
+
+    // 检查并更新配置实例
+    const configDef = await drizzle
+      .select({ id: pluginConfig.id, schema: pluginConfig.schema })
+      .from(pluginConfig)
+      .where(eq(pluginConfig.pluginId, pluginId))
+      .then((res) => res[0]);
+
+    if (configDef) {
+      const instance = await drizzle
+        .select({
+          id: pluginConfigInstance.id,
+          value: pluginConfigInstance.value,
+        })
+        .from(pluginConfigInstance)
+        .innerJoin(
+          pluginInstallation,
+          eq(pluginInstallation.id, pluginConfigInstance.pluginInstallationId),
+        )
+        .where(
+          and(
+            eq(pluginInstallation.pluginId, pluginId),
+            eq(pluginInstallation.scopeId, this.scopeId),
+            eq(pluginInstallation.scopeType, this.scopeType),
+          ),
+        )
+        .then((res) => res[0]);
+
+      if (instance) {
+        const schema = JSONSchemaSchema.parse(configDef.schema);
+        const defaults = getDefaultFromSchema(schema);
+
+        // Ensure values are non-null objects before spreading
+        const defaultsObj =
+          defaults && typeof defaults === "object" && !Array.isArray(defaults)
+            ? defaults
+            : {};
+
+        const instanceObj =
+          instance.value &&
+          typeof instance.value === "object" &&
+          !Array.isArray(instance.value)
+            ? instance.value
+            : {};
+
+        // Merge defaults and current value
+        const newValue: JSONObject = {
+          ...defaultsObj,
+          ...instanceObj,
+        };
+
+        // 简单的深度比较可以通过 JSON.stringify (虽然不完美，但对配置对象通常足够)
+        if (JSON.stringify(newValue) !== JSON.stringify(instance.value)) {
+          logger.info("PLUGIN", {
+            msg: `Updating config instance for ${pluginId}`,
+          });
+          await drizzle
+            .update(pluginConfigInstance)
+            .set({ value: newValue })
+            .where(eq(pluginConfigInstance.id, instance.id));
+        }
+      }
+    }
+
     const pluginObj = await loader.getInstance(pluginId);
     const config = await getPluginConfig(
       drizzle,

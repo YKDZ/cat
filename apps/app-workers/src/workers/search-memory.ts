@@ -37,6 +37,8 @@ export const searchMemoryWorkflow = await defineWorkflow({
   output: SearchMemoryOutputSchema,
 
   dependencies: async (data, { traceId }) => {
+    if (data.chunkIds.length === 0) return [];
+
     const { client: drizzle } = await getDrizzleDB();
 
     const sourceString = aliasedTable(translatableString, "sourceString");

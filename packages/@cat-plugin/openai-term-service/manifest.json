@@ -1,0 +1,33 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "openai-term-service",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "services": [
+    {
+      "id": "openai-term-extractor",
+      "type": "TERM_EXTRACTOR"
+    },
+    {
+      "id": "openai-term-aligner",
+      "type": "TERM_ALIGNER"
+    }
+  ],
+  "config": {
+    "type": "object",
+    "required": ["apiKey"],
+    "properties": {
+      "apiKey": { "type": "string" },
+      "baseURL": { "type": "string" },
+      "model": { "type": "string", "default": "gpt-4o" },
+      "extractionPrompt": {
+        "type": "string",
+        "default": "Extract terminology from the following text (Language: {{languageId}}).\nProvide the output as a JSON list of objects with fields: \"text\", \"normalizedText\" (lemma form).\nOnly include specialized terms, not common words.\n\nText:\n\"\"\"\n{{text}}\n\"\"\"\n"
+      },
+      "alignmentPrompt": {
+        "type": "string",
+        "default": "Align the source terms with the target terms based on the translation context.\n\nSource Text ({{sourceLang}}):\n\"\"\"\n{{sourceText}}\n\"\"\"\n\nTarget Text ({{targetLang}}):\n\"\"\"\n{{targetText}}\n\"\"\"\n\nSource Terms: {{sourceTerms}}\nTarget Terms: {{targetTerms}}\n\nReturn a JSON list of pairs: { sourceIndex: number, targetIndex: number, score: number }.\n"
+      }
+    }
+  }
+}

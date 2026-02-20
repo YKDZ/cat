@@ -11,7 +11,8 @@ export type TermCandidate = {
 
 export type RecognizedTermEntry = {
   termEntryId: number;
-  confidence: number;
+  score: number;
+  candidateIndex: number;
 };
 
 export type TermPairCandidate = {
@@ -26,7 +27,9 @@ export type ExtractContext = {
 };
 
 export type RecognizeContext = {
-  source: { text: string; candidates: TermCandidate[] };
+  text: string;
+  candidates: TermCandidate[];
+  glossaryIds?: string[];
   languageId: string;
 };
 

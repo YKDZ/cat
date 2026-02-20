@@ -774,7 +774,14 @@ export const translatableString = pgTable(
         onUpdate: "cascade",
       }),
   },
-  (table) => [unique().on(table.languageId, table.value)],
+  (table) => [
+    unique().on(table.languageId, table.value),
+    // pg_trgm GIN index for fast bidirectional ILIKE matching (term.lookup)
+    index("idx_translatable_string_value_trgm").using(
+      "gin",
+      sql`${table.value} gin_trgm_ops`,
+    ),
+  ],
 );
 
 export const translation = pgTable(

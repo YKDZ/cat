@@ -41,6 +41,21 @@ export const setupTestDB = async (): Promise<TestDB> => {
     // Ignore
   }
 
+  // Ensure pg_trgm extension is installed in public schema (for ILIKE GIN indexes)
+  try {
+    await client.query("CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public");
+  } catch (err: unknown) {
+    const pgError = err as { code?: string };
+    if (pgError.code !== "23505" && pgError.code !== "42710") {
+      throw err;
+    }
+  }
+  try {
+    await client.query("ALTER EXTENSION pg_trgm SET SCHEMA public");
+  } catch {
+    // Ignore
+  }
+
   const schemaName = `test_${randomUUID().replace(/-/g, "_")}`;
   await client.query(`CREATE SCHEMA "${schemaName}"`);
   // Include public in search_path so that extensions installed in public (like vector) are visible

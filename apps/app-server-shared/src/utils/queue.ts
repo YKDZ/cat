@@ -1,13 +1,26 @@
 export class AsyncMessageQueue<T> {
   private queue: T[] = [];
   private resolve: (() => void) | null = null;
+  private closed = false;
 
   /**
    * Add message to queue
    * @param message Message to add
    */
   push(...messages: T[]): void {
+    if (this.closed) return;
     this.queue.push(...messages);
+    if (this.resolve) {
+      this.resolve();
+      this.resolve = null;
+    }
+  }
+
+  /**
+   * Close the queue
+   */
+  close(): void {
+    this.closed = true;
     if (this.resolve) {
       this.resolve();
       this.resolve = null;
@@ -22,6 +35,8 @@ export class AsyncMessageQueue<T> {
     while (true) {
       if (this.queue.length > 0) {
         yield this.queue.shift()!;
+      } else if (this.closed) {
+        return;
       } else {
         // oxlint-disable-next-line no-await-in-loop
         await new Promise<void>((res) => (this.resolve = res));
@@ -35,5 +50,6 @@ export class AsyncMessageQueue<T> {
   clear(): void {
     this.queue.length = 0;
     this.resolve = null;
+    this.closed = false;
   }
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { navigate } from "vike/client/router";
 import { storeToRefs } from "pinia";
-import { onMounted } from "vue";
 import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";
@@ -11,7 +10,7 @@ import { useEditorTableStore } from "@/app/stores/editor/table";
 
 const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 const { elementId } = storeToRefs(useEditorTableStore());
-const { updateElementStatus, pendingElements } = useEditorElementStore();
+const { pendingElements } = useEditorElementStore();
 
 const props = defineProps<{
   element: Pick<TranslatableElement, "id"> & {
@@ -25,10 +24,11 @@ const handleClick = async () => {
 
   await navigate(
     `/editor/${documentId.value}/${languageToId.value}/${props.element.id}`,
+    // 保持滚动位置，避免不必要的跳转
+    { keepScrollPosition: true },
   );
 };
-
-onMounted(() => updateElementStatus(props.element.id));
+/* onMounted(() => updateElementStatus(props.element.id)); */
 </script>
 
 <template>

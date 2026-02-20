@@ -1,13 +1,6 @@
 {
-  "name": "@cat-plugin/openai-term-extractor",
+  "name": "@cat-plugin/openai-term-service",
   "version": "0.1.0",
-  "keywords": [
-    "cat",
-    "plugins",
-    "types",
-    "typescript"
-  ],
-  "license": "MIT",
   "files": [
     "dist",
     "manifest.json",
@@ -15,8 +8,10 @@
   ],
   "type": "module",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
@@ -27,15 +22,16 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check"
   },
+  "dependencies": {
+    "openai": "^6.22.0"
+  },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "vite": "^7.3.1"
   },
   "peerDependencies": {
-    "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "undici": "7.18.2",
     "zod": "^4.3.5"
   }
 }
