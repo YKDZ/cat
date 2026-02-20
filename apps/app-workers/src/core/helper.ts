@@ -315,7 +315,7 @@ export const defineWorkflow = async <
     }
   });
 
-  const runFlow = async (payload: z.infer<I>, meta?: { traceId?: string }) => {
+  const runFlow = async (payload: z.input<I>, meta?: { traceId?: string }) => {
     const traceId = meta?.traceId ?? crypto.randomUUID();
     const data = inputSchema.parse(payload);
 

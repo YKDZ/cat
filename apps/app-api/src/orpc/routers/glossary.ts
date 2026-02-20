@@ -2,31 +2,30 @@ import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import * as z from "zod/v4";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import {
-  and,
   count,
   eq,
   glossary as glossaryTable,
   glossaryToProject,
-  inArray,
   term as termTable,
   document as documentTable,
-  aliasedTable,
   translatableElement,
   translatableString,
   getColumns,
   termEntry,
-  type DrizzleTransaction,
 } from "@cat/db";
 import {
-  assertFirstNonNullish,
   assertSingleNonNullish,
   assertSingleOrNull,
+  logger,
 } from "@cat/shared/utils";
-import type { TermExtractor, TermRecognizer } from "@cat/plugin-core";
-import { createTermTask, searchTermTask } from "@cat/app-workers";
+import { createTermTask, recognizeTermTask } from "@cat/app-workers";
 import { authed } from "@/orpc/server";
 import { ORPCError } from "@orpc/client";
-import { firstOrGivenService } from "@cat/app-server-shared/utils";
+import {
+  AsyncMessageQueue,
+  firstOrGivenService,
+  lookupTerms,
+} from "@cat/app-server-shared/utils";
 
 export const deleteTerm = authed
   .input(
@@ -220,31 +219,31 @@ export const searchTerm = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      pluginManager,
     } = context;
     const { text, termLanguageId, translationLanguageId, projectId } = input;
 
-    // TODO 配置
-    const { service: termExtractor } = assertFirstNonNullish(
-      pluginManager.getServices("TERM_EXTRACTOR"),
-      `No term extractor plugin found in this scope`,
-    );
-    const { service: termRecognizer } = assertFirstNonNullish(
-      pluginManager.getServices("TERM_RECOGNIZER"),
-      `No term recognizer plugin found in this scope`,
-    );
+    const glossaryIds = (
+      await drizzle
+        .select({
+          id: glossaryToProject.glossaryId,
+        })
+        .from(glossaryToProject)
+        .where(eq(glossaryToProject.projectId, projectId))
+    ).map((row) => row.id);
 
-    return await drizzle.transaction(async (tx) => {
-      return await findTermRelationsInProject(
-        tx,
-        termExtractor,
-        termRecognizer,
-        projectId,
-        text,
-        termLanguageId,
-        translationLanguageId,
-      );
+    const terms = await lookupTerms(drizzle, {
+      glossaryIds,
+      sourceLanguageId: termLanguageId,
+      translationLanguageId,
+      text,
     });
+
+    return terms.map((t) => ({
+      term: t.term,
+      translation: t.translation,
+      termLanguageId,
+      translationLanguageId,
+    }));
   });
 
 export const findTerm = authed
@@ -254,18 +253,8 @@ export const findTerm = authed
       translationLanguageId: z.string(),
     }),
   )
-  .output(
-    z.array(
-      z.object({
-        term: z.string(),
-        translation: z.string(),
-        subject: z.string().nullable(),
-        termLanguageId: z.string(),
-        translationLanguageId: z.string(),
-      }),
-    ),
-  )
-  .handler(async ({ context, input }) => {
+  // This endpoint streams term suggestions to avoid blocking response while waiting for worker
+  .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },
     } = context;
@@ -289,11 +278,6 @@ export const findTerm = authed
         .limit(1),
     );
 
-    if (!element || !element.documentId)
-      throw new ORPCError("BAD_REQUEST", {
-        message: "Element does not exists",
-      });
-
     const { projectId } = assertSingleNonNullish(
       await drizzle
         .select({
@@ -313,95 +297,75 @@ export const findTerm = authed
         .where(eq(glossaryToProject.projectId, projectId))
     ).map((row) => row.id);
 
-    const { result } = await searchTermTask.run({
+    const termsQueue = new AsyncMessageQueue<{
+      term: string;
+      translation: string;
+      subject: string | null;
+      termLanguageId: string;
+      translationLanguageId: string;
+    }>();
+
+    const seenTerms = new Set<string>();
+
+    const pushTerms = (
+      terms: {
+        term: string;
+        translation: string;
+        subject: string | null;
+      }[],
+    ) => {
+      const newTerms = terms.filter((t) => {
+        const key = `${t.term}:${t.translation}`;
+        if (seenTerms.has(key)) return false;
+        seenTerms.add(key);
+        return true;
+      });
+
+      termsQueue.push(
+        ...newTerms.map((term) => ({
+          term: term.term,
+          translation: term.translation,
+          subject: term.subject,
+          termLanguageId: element.languageId,
+          translationLanguageId,
+        })),
+      );
+    };
+
+    const taskInput = {
       glossaryIds,
       sourceLanguageId: element.languageId,
       translationLanguageId,
       text: element.value,
-    });
+    };
 
-    return (await result()).terms.map((term) => ({
-      term: term.term,
-      translation: term.translation,
-      subject: term.subject,
-      termLanguageId: element.languageId,
-      translationLanguageId,
-    }));
-  });
+    const runTasks = async () => {
+      await Promise.allSettled([
+        lookupTerms(drizzle, taskInput).then((terms) => {
+          pushTerms(terms);
+        }),
+        recognizeTermTask
+          .run(taskInput)
+          .then(async ({ result }) => await result())
+          .then((output) => {
+            pushTerms(output.terms);
+          }),
+      ]);
+    };
 
-const findTermRelationsInProject = async (
-  drizzle: DrizzleTransaction,
-  termExtractor: TermExtractor,
-  termRecognizer: TermRecognizer,
-  projectId: string,
-  text: string,
-  sourceLanguageId: string,
-  translationLanguageId: string,
-): Promise<
-  {
-    term: string;
-    translation: string;
-    termLanguageId: string;
-    translationLanguageId: string;
-  }[]
-> => {
-  const glossaryIds = (
-    await drizzle
-      .select({
-        id: glossaryToProject.glossaryId,
+    void runTasks()
+      .catch((err: unknown) => {
+        logger.error("PROCESSOR", { msg: "Find term failed" }, err);
       })
-      .from(glossaryToProject)
-      .where(eq(glossaryToProject.projectId, projectId))
-  ).map((item) => item.id);
+      .finally(() => {
+        termsQueue.close();
+      });
 
-  if (glossaryIds.length === 0) {
-    return [];
-  }
-
-  const candidates = await termExtractor.extract({
-    text,
-    languageId: sourceLanguageId,
+    try {
+      for await (const term of termsQueue.consume()) {
+        yield term;
+      }
+    } finally {
+      termsQueue.close();
+    }
   });
-  const entryIds = (
-    await termRecognizer.recognize({
-      source: {
-        text,
-        candidates,
-      },
-      languageId: sourceLanguageId,
-    })
-  ).map((entry) => entry.termEntryId);
-
-  const sourceTerm = aliasedTable(termTable, "sourceTerm");
-  const translationTerm = aliasedTable(termTable, "translationTerm");
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
-  const relations = await drizzle
-    .select({
-      term: sourceString.value,
-      translation: translationString.value,
-      termLanguageId: sourceString.languageId,
-      translationLanguageId: translationString.languageId,
-    })
-    .from(termEntry)
-    .innerJoin(sourceTerm, eq(termEntry.id, sourceTerm.termEntryId))
-    .innerJoin(translationTerm, eq(termEntry.id, translationTerm.termEntryId))
-    .innerJoin(sourceString, eq(sourceTerm.stringId, sourceString.id))
-    .innerJoin(
-      translationString,
-      eq(translationTerm.stringId, translationString.id),
-    )
-    .where(
-      and(
-        inArray(termEntry.id, entryIds),
-        inArray(termEntry.glossaryId, glossaryIds),
-        eq(sourceString.languageId, sourceLanguageId),
-        eq(translationString.languageId, translationLanguageId),
-      ),
-    );
-
-  return relations;
-};

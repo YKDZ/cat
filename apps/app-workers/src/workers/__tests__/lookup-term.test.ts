@@ -11,7 +11,7 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
-import { searchTermTask } from "../search-term.ts";
+import { lookupTerms } from "@cat/app-server-shared/utils";
 import { createTermTask } from "../create-term.ts";
 
 let cleanup: () => Promise<void>;
@@ -123,7 +123,7 @@ test("create-term should insert and return term", async () => {
   );
 });
 
-test("worker should serch term", async () => {
+test("lookupTerms should find matching terms", async () => {
   const { client: drizzle } = await getDrizzleDB();
 
   const { id: glossaryId } = assertSingleNonNullish(
@@ -134,14 +134,12 @@ test("worker should serch term", async () => {
       .from(glossary),
   );
 
-  const { result } = await searchTermTask.run({
+  const terms = await lookupTerms(drizzle, {
     glossaryIds: [glossaryId],
-    text: "Test [Term]",
+    text: "dirt",
     sourceLanguageId: "en",
     translationLanguageId: "zh-Hans",
   });
-
-  const { terms } = await result();
 
   expect(terms.length).toBeGreaterThan(0);
 });

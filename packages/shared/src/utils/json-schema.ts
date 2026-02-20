@@ -1,12 +1,14 @@
 import { JSONSchemaSchema } from "@/schema/json.ts";
 import type { JSONSchema, JSONType } from "@/schema/json.ts";
-import * as z from "zod";
 
-export const getDefaultFromSchema = (schema: JSONSchema): JSONType => {
-  if (typeof schema === "boolean") return null;
+export const getDefaultFromSchema = (
+  schema: JSONSchema,
+): JSONType | undefined => {
+  if (typeof schema === "boolean") return undefined;
 
   if (schema.default !== undefined && schema.default !== null) {
-    return z.json().parse(schema.default);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return schema.default as JSONType;
   }
 
   if (schema.type === "object" || schema.properties) {
@@ -20,7 +22,7 @@ export const getDefaultFromSchema = (schema: JSONSchema): JSONType => {
         obj[key] = value;
       }
     }
-    return Object.keys(obj).length > 0 ? obj : null;
+    return Object.keys(obj).length > 0 ? obj : undefined;
   }
 
   if (schema.type === "array" || schema.items) {
@@ -31,14 +33,14 @@ export const getDefaultFromSchema = (schema: JSONSchema): JSONType => {
       const arr = itemsSchema
         .map((item) => getDefaultFromSchema(JSONSchemaSchema.parse(item)))
         .filter((val) => val !== undefined);
-      return arr.length > 0 ? arr : null;
+      return arr.length > 0 ? arr : undefined;
     } else if (itemsSchema) {
       const itemDefault = getDefaultFromSchema(
         JSONSchemaSchema.parse(itemsSchema),
       );
-      return itemDefault !== undefined ? [itemDefault] : null;
+      return itemDefault !== undefined ? [itemDefault] : undefined;
     }
-    return null;
+    return undefined;
   }
 
   if (schema.oneOf || schema.anyOf) {
@@ -50,7 +52,7 @@ export const getDefaultFromSchema = (schema: JSONSchema): JSONType => {
         if (result !== undefined) return result;
       }
     }
-    return null;
+    return undefined;
   }
 
   if (schema.if && schema.then) {
@@ -66,5 +68,5 @@ export const getDefaultFromSchema = (schema: JSONSchema): JSONType => {
     }
   }
 
-  return {};
+  return undefined;
 };

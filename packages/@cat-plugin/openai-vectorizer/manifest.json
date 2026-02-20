@@ -17,15 +17,14 @@
         "type": "string",
         "default": "snowflake-arctic-embed2"
       },
-      "url": {
+      "baseURL": {
         "type": "string",
         "format": "url",
-        "default": "http://localhost:11434"
+        "default": "http://localhost:11434/v1"
       },
-      "path": {
+      "apiKey": {
         "type": "string",
-        "format": "url",
-        "default": "/v1/embeddings"
+        "default": "dummy-key"
       }
     }
   }

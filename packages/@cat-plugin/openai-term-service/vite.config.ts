@@ -3,7 +3,8 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/plugin-core", "@cat/shared", "undici", "zod"],
+    external: ["@cat/plugin-core", "@cat/shared", "zod"],
+    noExternal: ["openai"],
   },
 
   resolve: {
@@ -18,7 +19,7 @@ export default defineConfig({
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
       formats: ["es"],
-      fileName: `index.js`,
+      fileName: "index.js",
     },
 
     outDir: "dist",

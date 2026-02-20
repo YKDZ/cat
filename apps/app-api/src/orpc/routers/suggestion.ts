@@ -106,6 +106,16 @@ export const onNew = authed
       });
       const cacheKey = `cache:suggestions:${elementHash}`;
 
+      const cachedSuggestions = await redis.sMembers(cacheKey);
+      if (cachedSuggestions.length > 0) {
+        for (const s of cachedSuggestions) {
+          suggestionsQueue.push(
+            TranslationSuggestionSchema.parse(JSON.parse(s)),
+          );
+        }
+        return;
+      }
+
       const { result } = await fetchAdviseWorkflow.run({
         text: element.value,
         glossaryIds,
@@ -130,7 +140,14 @@ export const onNew = authed
       );
     });
 
-    void Promise.all(processSuggestions);
+    void Promise.all(processSuggestions)
+      .then(() => {
+        suggestionsQueue.close();
+      })
+      .catch((err: unknown) => {
+        logger.error("RPC", { msg: "Error processing suggestions" }, err);
+        suggestionsQueue.close();
+      });
 
     try {
       for await (const suggestion of suggestionsQueue.consume()) {

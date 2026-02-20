@@ -17,14 +17,36 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
 
   const searchQuery = ref("");
   const terms = ref<TermRelationWithDetails[]>([]);
+  let abortController: AbortController | null = null;
 
   const updateTerms = async () => {
+    if (abortController) {
+      abortController.abort();
+    }
+    abortController = new AbortController();
+
     if (!elementId.value || !languageToId.value) return;
 
-    terms.value = await orpc.glossary.findTerm({
-      elementId: elementId.value,
-      translationLanguageId: languageToId.value,
-    });
+    try {
+      const result = await orpc.glossary.findTerm(
+        {
+          elementId: elementId.value,
+          translationLanguageId: languageToId.value,
+        },
+        { signal: abortController.signal },
+      );
+
+      terms.value = [];
+
+      for await (const term of result) {
+        if (term) terms.value.push(term);
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
+      throw err;
+    }
   };
 
   const searchTerm = async () => {

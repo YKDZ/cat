@@ -39,14 +39,14 @@ export type TaskDefinition<
    * 启动独立任务
    */
   run: (
-    input: z.infer<I>,
+    input: z.input<I>,
     meta?: { traceId?: string },
   ) => Promise<RunResult<z.infer<I>, z.infer<O>>>;
   /**
    * 构建为子任务节点（用于 Workflow）
    */
   asChild: (
-    input: z.infer<I>,
+    input: z.input<I>,
     meta?: { traceId?: string; taskId?: string },
   ) => Promise<FlowChildJob> | FlowChildJob;
 };

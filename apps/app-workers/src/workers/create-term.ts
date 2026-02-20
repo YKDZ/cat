@@ -85,7 +85,7 @@ export const createTermTask = await defineWorkflow({
         ...new Set(
           data.data
             .map((d) => d.subject)
-            .filter((s): s is string => s !== null),
+            .filter((s): s is string => typeof s === "string"),
         ),
       ];
 
@@ -120,11 +120,38 @@ export const createTermTask = await defineWorkflow({
         inserted.forEach((e) => entryMap.set(e.subject!, e.id));
       }
 
+      const itemsWithoutSubject = data.data
+        .map((d, i) => ({ ...d, originalIndex: i }))
+        .filter((d) => !d.subject);
+
+      const noSubjectEntryIds =
+        itemsWithoutSubject.length > 0
+          ? await tx
+              .insert(termEntry)
+              .values(
+                itemsWithoutSubject.map(() => ({
+                  glossaryId: data.glossaryId,
+                })),
+              )
+              .returning({ id: termEntry.id })
+          : [];
+
+      const indexToEntryId = new Map<number, number>();
+      noSubjectEntryIds.forEach((entry, idx) => {
+        indexToEntryId.set(itemsWithoutSubject[idx].originalIndex, entry.id);
+      });
+
       const termRows = [];
       for (let i = 0; i < data.data.length; i += 1) {
         const item = data.data[i];
-        if (!item.subject) continue;
-        const entryId = entryMap.get(item.subject);
+        let entryId: number | undefined;
+
+        if (item.subject) {
+          entryId = entryMap.get(item.subject);
+        } else {
+          entryId = indexToEntryId.get(i);
+        }
+
         if (!entryId) continue;
 
         termRows.push({

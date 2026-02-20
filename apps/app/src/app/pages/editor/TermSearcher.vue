@@ -25,7 +25,7 @@ const handleSearch = () => {
       @change="handleSearch"
     />
     <span
-      class="absolute start-0 inset-y-0 flex items-center justify-center px-2"
+      class="absolute inset-s-0 inset-y-0 flex items-center justify-center px-2"
     >
       <Search class="size-4" />
     </span>

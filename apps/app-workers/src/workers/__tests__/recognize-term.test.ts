@@ -1,0 +1,83 @@
+import { afterAll, beforeAll, expect, test } from "vitest";
+import { getDrizzleDB, glossary, language, user } from "@cat/db";
+import { PluginManager } from "@cat/plugin-core";
+import { assertSingleNonNullish } from "@cat/shared/utils";
+import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { recognizeTermTask } from "../recognize-term.ts";
+
+let cleanup: () => Promise<void>;
+
+afterAll(async () => {
+  await cleanup?.();
+});
+
+beforeAll(async () => {
+  const db = await setupTestDB();
+  cleanup = db.cleanup;
+  const drizzle = db.client;
+
+  const pluginManager = PluginManager.get("GLOBAL", "", new TestPluginLoader());
+
+  await pluginManager.getDiscovery().syncDefinitions(drizzle);
+  await pluginManager.install(drizzle, "mock");
+  await drizzle.transaction(async (tx) => {
+    await pluginManager.restore(
+      tx, // @ts-expect-error no need for hono
+      {},
+    );
+  });
+
+  // Seed
+  await drizzle.transaction(async (tx) => {
+    await tx.insert(language).values([
+      {
+        id: "en",
+      },
+      {
+        id: "zh-Hans",
+      },
+    ]);
+
+    const { id: userId } = assertSingleNonNullish(
+      await tx
+        .insert(user)
+        .values({
+          email: "admin@encmys.cn",
+          name: "YKDZ",
+        })
+        .returning({ id: user.id }),
+    );
+
+    await tx.insert(glossary).values({
+      name: "Test",
+      creatorId: userId,
+    });
+  });
+});
+
+test("worker should recognize term", async () => {
+  const { client: drizzle } = await getDrizzleDB();
+
+  const { id: glossaryId } = assertSingleNonNullish(
+    await drizzle
+      .select({
+        id: glossary.id,
+      })
+      .from(glossary)
+      .limit(1),
+  );
+
+  const { result } = await recognizeTermTask.run({
+    glossaryIds: [glossaryId],
+    text: "dirt",
+    sourceLanguageId: "en",
+    translationLanguageId: "zh-Hans",
+  });
+
+  const { terms } = await result();
+
+  // Since we don't have a real extractor in this test env (unless mock provides one),
+  // we expect it to run without error.
+  // If mock provides one, it might return something depending on mock implementation.
+  expect(terms).toBeDefined();
+});

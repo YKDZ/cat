@@ -27,6 +27,9 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check"
   },
+  "dependencies": {
+    "openai": "^6.22.0"
+  },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
     "vite": "^7.3.1"
@@ -35,7 +38,6 @@
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "undici": "7.18.2",
     "zod": "^4.3.5"
   }
 }

@@ -22,9 +22,11 @@ import {
   blob as blobTable,
   isNotNull,
   isNull,
+  sql,
 } from "@cat/db";
 import {
   ElementTranslationStatusSchema,
+  type ElementTranslationStatus,
   FileMetaSchema,
 } from "@cat/shared/schema/misc";
 import {
@@ -573,6 +575,7 @@ export const getElements = authed
       TranslatableElementSchema.extend({
         value: z.string(),
         languageId: z.string(),
+        status: ElementTranslationStatusSchema,
       }),
     ),
   )
@@ -614,11 +617,57 @@ export const getElements = authed
       ),
     );
 
+    const statusSql = languageId
+      ? sql<ElementTranslationStatus>`CASE
+        WHEN ${and(
+          isNotNull(translatableElementTable.approvedTranslationId),
+          exists(
+            drizzle
+              .select()
+              .from(translationTable)
+              .innerJoin(
+                translatableString,
+                eq(translationTable.stringId, translatableString.id),
+              )
+              .where(
+                and(
+                  eq(
+                    translationTable.id,
+                    translatableElementTable.approvedTranslationId,
+                  ),
+                  eq(translatableString.languageId, languageId),
+                ),
+              ),
+          ),
+        )} THEN 'APPROVED'
+        WHEN ${exists(
+          drizzle
+            .select()
+            .from(translationTable)
+            .innerJoin(
+              translatableString,
+              eq(translationTable.stringId, translatableString.id),
+            )
+            .where(
+              and(
+                eq(
+                  translationTable.translatableElementId,
+                  translatableElementTable.id,
+                ),
+                eq(translatableString.languageId, languageId),
+              ),
+            ),
+        )} THEN 'TRANSLATED'
+        ELSE 'NO'
+      END`.as("status")
+      : sql<ElementTranslationStatus>`'NO'`.as("status");
+
     const result = await drizzle
       .select({
         ...getColumns(translatableElementTable),
         value: translatableString.value,
         languageId: translatableString.languageId,
+        status: statusSql,
       })
       .from(translatableElementTable)
       .where(

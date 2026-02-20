@@ -29,6 +29,10 @@ export default defineConfig({
       entry: {
         index: resolve(import.meta.dirname, "src/index.ts"),
         client: resolve(import.meta.dirname, "src/client/index.ts"),
+        "term-services": resolve(
+          import.meta.dirname,
+          "src/services/term-services.ts",
+        ),
       },
       formats: ["es"],
     },

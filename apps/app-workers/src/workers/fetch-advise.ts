@@ -1,9 +1,9 @@
 import { defineWorkflow } from "@/core";
-import { firstOrGivenService } from "@cat/app-server-shared/utils";
+import { firstOrGivenService, lookupTerms } from "@cat/app-server-shared/utils";
+import { getDrizzleDB } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
 import { TranslationSuggestionSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
-import { searchTermTask } from "./search-term";
 import { logger } from "@cat/shared/utils";
 
 export const FetchAdviseInputSchema = z.object({
@@ -26,27 +26,18 @@ export const fetchAdviseWorkflow = await defineWorkflow({
   input: FetchAdviseInputSchema,
   output: FetchAdviseOutputSchema,
 
-  dependencies: async (data, { traceId }) => [
-    await searchTermTask.asChild(
-      {
-        text: data.text,
-        sourceLanguageId: data.sourceLanguageId,
-        translationLanguageId: data.translationLanguageId,
-        glossaryIds: data.glossaryIds,
-        termExtractorId: data.termExtractorId,
-        termRecognizerId: data.termRecognizerId,
-      },
-      { traceId },
-    ),
-  ],
+  dependencies: async () => [],
 
-  handler: async (data, { getTaskResult }) => {
+  handler: async (data) => {
+    const { client: drizzle } = await getDrizzleDB();
     const pluginManager = PluginManager.get("GLOBAL", "");
 
-    // 获取子任务（术语搜索）的结果
-    // 注意：getTaskResult 返回数组，因为一个 Workflow 可能多次调用同一个 Task
-    const [termResult] = getTaskResult(searchTermTask);
-    const terms = termResult?.terms ?? [];
+    const terms = await lookupTerms(drizzle, {
+      text: data.text,
+      sourceLanguageId: data.sourceLanguageId,
+      translationLanguageId: data.translationLanguageId,
+      glossaryIds: data.glossaryIds,
+    });
 
     const advisor = firstOrGivenService(
       pluginManager,
