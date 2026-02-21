@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema",
-  "title": "CatPlugin Manifest",
+  "title": "CatPlugin Manifest Schema",
   "description": "Schema for plugin system manifest",
   "type": "object",
   "required": ["id", "entry", "version"],
