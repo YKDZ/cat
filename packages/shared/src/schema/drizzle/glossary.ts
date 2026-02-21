@@ -1,19 +1,32 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
-import { safeZDotJson } from "@/schema/json";
+import { TermStatusSchema, TermTypeSchema } from "./enum";
 
 export const TermSchema = z.object({
   id: z.int(),
+  type: TermTypeSchema,
+  status: TermStatusSchema,
   stringId: z.int(),
   creatorId: z.uuidv4(),
-  termEntryId: z.int(),
+  termConceptId: z.int(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
 
-export const TermEntrySchema = z.object({
+export const TermConceptSchema = z.object({
   id: z.int(),
-  meta: safeZDotJson,
+  definition: z.string().default(""),
+  subjectId: z.int().nullable(),
+  creatorId: z.uuidv4().nullable(),
+  glossaryId: z.uuidv4(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+export const TermConceptSubjectSchema = z.object({
+  id: z.int(),
+  subject: z.string(),
+  creatorId: z.uuidv4(),
   glossaryId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
@@ -29,5 +42,6 @@ export const GlossarySchema = z.object({
 });
 
 export type Term = z.infer<typeof TermSchema>;
-export type TermEntry = z.infer<typeof TermEntrySchema>;
+export type TermConcept = z.infer<typeof TermConceptSchema>;
+export type TermConceptSubject = z.infer<typeof TermConceptSubjectSchema>;
 export type Glossary = z.infer<typeof GlossarySchema>;

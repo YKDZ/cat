@@ -26,7 +26,7 @@ import { defineTask } from "@/core";
 import {
   chunk,
   term,
-  termEntry,
+  termConcept,
   translatableString,
   getDrizzleDB,
   eq,
@@ -53,7 +53,7 @@ export const RecognizeTermOutputSchema = z.object({
     z.object({
       term: z.string(),
       translation: z.string(),
-      subject: z.string().nullable(),
+      definition: z.string(),
     }),
   ),
 });
@@ -94,7 +94,7 @@ export const recognizeTermTask = await defineTask({
     const storage = pluginManager.getServices("VECTOR_STORAGE")[0]?.service;
 
     const recognizedEntries: Array<{
-      termEntryId: number;
+      termConceptId: number;
       candidateIndex: number;
     }> = [];
 
@@ -102,15 +102,15 @@ export const recognizeTermTask = await defineTask({
     if (vectorizer && storage) {
       try {
         // Resolve the search range: all chunk IDs belonging to source-language
-        // terms in the target glossaries, along with a chunkId → termEntryId map.
-        // Relation chain: TermEntry → Term → TranslatableString → ChunkSet → Chunk
+        // terms in the target glossaries, along with a chunkId → termConceptId map.
+        // Relation chain: termConcept → Term → TranslatableString → ChunkSet → Chunk
         const chunkTermRows = await drizzle
           .selectDistinct({
             chunkId: chunk.id,
-            termEntryId: termEntry.id,
+            termConceptId: termConcept.id,
           })
-          .from(termEntry)
-          .innerJoin(term, eq(term.termEntryId, termEntry.id))
+          .from(termConcept)
+          .innerJoin(term, eq(term.termConceptId, termConcept.id))
           .innerJoin(
             translatableString,
             eq(translatableString.id, term.stringId),
@@ -118,7 +118,7 @@ export const recognizeTermTask = await defineTask({
           .innerJoin(chunk, eq(chunk.chunkSetId, translatableString.chunkSetId))
           .where(
             and(
-              inArray(termEntry.glossaryId, data.glossaryIds),
+              inArray(termConcept.glossaryId, data.glossaryIds),
               eq(translatableString.languageId, data.sourceLanguageId),
             ),
           );
@@ -126,8 +126,8 @@ export const recognizeTermTask = await defineTask({
         const chunkIdRange = chunkTermRows.map((row) => row.chunkId);
 
         // Map from chunk ID back to term entry ID for result resolution
-        const chunkIdToTermEntryId = new Map(
-          chunkTermRows.map((row) => [row.chunkId, row.termEntryId]),
+        const chunkIdTotermConceptId = new Map(
+          chunkTermRows.map((row) => [row.chunkId, row.termConceptId]),
         );
 
         if (chunkIdRange.length === 0) {
@@ -194,12 +194,14 @@ export const recognizeTermTask = await defineTask({
             .filter((idx) => idx !== -1);
 
           for (const match of matches) {
-            const termEntryIdForChunk = chunkIdToTermEntryId.get(match.chunkId);
-            if (termEntryIdForChunk === undefined) continue;
+            const termConceptIdForChunk = chunkIdTotermConceptId.get(
+              match.chunkId,
+            );
+            if (termConceptIdForChunk === undefined) continue;
 
             for (const idx of matchingIndices) {
               recognizedEntries.push({
-                termEntryId: termEntryIdForChunk,
+                termConceptId: termConceptIdForChunk,
                 candidateIndex: idx,
               });
             }
@@ -222,31 +224,32 @@ export const recognizeTermTask = await defineTask({
       return { terms: [] };
     }
 
-    const termEntryIds = recognizedEntries.map((r) => r.termEntryId);
+    const termConceptIds = recognizedEntries.map((r) => r.termConceptId);
 
     // 3. Fetch translations
     // Need to filter by glossary and translation language
     // Note: 'term' table structure assumed
     const termResults = await drizzle
       .select({
-        termEntryId: term.termEntryId,
+        termConceptId: term.termConceptId,
         translation: translatableString.value,
+        definition: termConcept.definition,
       })
       .from(term)
-      .innerJoin(termEntry, eq(termEntry.id, term.termEntryId))
+      .innerJoin(termConcept, eq(termConcept.id, term.termConceptId))
       .innerJoin(translatableString, eq(translatableString.id, term.stringId))
       .where(
         and(
-          inArray(term.termEntryId, termEntryIds),
+          inArray(term.termConceptId, termConceptIds),
           eq(translatableString.languageId, data.translationLanguageId),
-          inArray(termEntry.glossaryId, data.glossaryIds),
+          inArray(termConcept.glossaryId, data.glossaryIds),
         ),
       );
 
     const resultTerms: Array<{
       term: string;
       translation: string;
-      subject: string | null;
+      definition: string;
     }> = [];
     const processedKeys = new Set<string>();
 
@@ -254,7 +257,7 @@ export const recognizeTermTask = await defineTask({
       const candidate = termCandidates[recog.candidateIndex];
       // Find all translations for this recognized term entry ID
       const translations = termResults.filter(
-        (t) => t.termEntryId === recog.termEntryId,
+        (t) => t.termConceptId === recog.termConceptId,
       );
 
       for (const t of translations) {
@@ -263,7 +266,7 @@ export const recognizeTermTask = await defineTask({
           resultTerms.push({
             term: candidate.text,
             translation: t.translation,
-            subject: null,
+            definition: t.definition,
           });
           processedKeys.add(key);
         }

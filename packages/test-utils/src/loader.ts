@@ -14,13 +14,10 @@ import {
   type RetrieveContext,
   type StoreContext,
   TermCandidate,
-  RecognizedTermEntry,
   TermPairCandidate,
   ExtractContext,
-  RecognizeContext,
   AlignContext,
   TermExtractor,
-  TermRecognizer,
   TermAligner,
   TranslationAdvisor,
   type CanSuggestContext,
@@ -62,7 +59,7 @@ import {
   gt,
   inArray,
   sql,
-  termEntry,
+  termConcept,
 } from "@cat/db";
 import {
   pgTable,
@@ -405,31 +402,6 @@ export class TestTermExtractor extends TermExtractor {
   };
 }
 
-export class TestTermRecognizer extends TermRecognizer {
-  public override getId = (): string => "term-recognizer";
-
-  public override recognize = async ({
-    candidates,
-  }: RecognizeContext): Promise<RecognizedTermEntry[]> => {
-    const { client: drizzle } = await getDrizzleDB();
-
-    const termEntries = await drizzle
-      .select({
-        id: termEntry.id,
-      })
-      .from(termEntry);
-
-    if (termEntries.length === 0) return [];
-
-    return candidates.map((_, idx) => ({
-      termEntryId:
-        termEntries[Math.floor(Math.random() * termEntries.length)].id,
-      score: 1.0,
-      candidateIndex: idx,
-    }));
-  };
-}
-
 export class TestTermAligner extends TermAligner {
   public override getId = (): string => "term-aligner";
 
@@ -465,7 +437,6 @@ const plugin = {
       new TestStorageProvider(),
       new TestTermAligner(),
       new TestTermExtractor(),
-      new TestTermRecognizer(),
       new TestTextVectorizer(),
       new TestFileImporter(),
       new TestFileExporter(),
@@ -503,10 +474,6 @@ const manifest = {
     {
       id: "term-extractor",
       type: "TERM_EXTRACTOR",
-    },
-    {
-      id: "term-recognizer",
-      type: "TERM_RECOGNIZER",
     },
     {
       id: "file-importer",

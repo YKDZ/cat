@@ -28,7 +28,7 @@ import {
   inArray,
   sql,
   term,
-  termEntry,
+  termConcept,
   translatableString,
 } from "@cat/db";
 
@@ -42,7 +42,7 @@ export interface LookupTermsInput {
 export interface LookedUpTerm {
   term: string;
   translation: string;
-  subject: string | null;
+  definition: string;
 }
 
 /**
@@ -62,14 +62,14 @@ export const lookupTerms = async (
   // 2. Reverse: input CONTAINS term value — for text scanning (full sentence)
   const matches = await drizzle
     .selectDistinct({
-      termEntryId: term.termEntryId,
+      termConceptId: term.termConceptId,
     })
     .from(term)
-    .innerJoin(termEntry, eq(termEntry.id, term.termEntryId))
+    .innerJoin(termConcept, eq(termConcept.id, term.termConceptId))
     .innerJoin(translatableString, eq(translatableString.id, term.stringId))
     .where(
       and(
-        inArray(termEntry.glossaryId, input.glossaryIds),
+        inArray(termConcept.glossaryId, input.glossaryIds),
         eq(translatableString.languageId, input.sourceLanguageId),
         or(
           // Forward: glossary term contains the input text
@@ -85,10 +85,10 @@ export const lookupTerms = async (
     return [];
   }
 
-  const termEntryIds = matches.map((m) => m.termEntryId);
+  const termConceptIds = matches.map((m) => m.termConceptId);
   return await fetchTerms(
     drizzle,
-    termEntryIds,
+    termConceptIds,
     input.glossaryIds,
     input.sourceLanguageId,
     input.translationLanguageId,
@@ -97,7 +97,7 @@ export const lookupTerms = async (
 
 const fetchTerms = async (
   drizzle: DrizzleDB["client"],
-  termEntryIds: number[],
+  termConceptIds: number[],
   glossaryIds: string[],
   sourceLanguageId: string,
   translationLanguageId: string,
@@ -114,11 +114,14 @@ const fetchTerms = async (
     .select({
       term: sourceString.value,
       translation: translationString.value,
-      subject: termEntry.subject,
+      definition: termConcept.definition,
     })
-    .from(termEntry)
-    .innerJoin(sourceTerm, eq(sourceTerm.termEntryId, termEntry.id))
-    .innerJoin(translationTerm, eq(translationTerm.termEntryId, termEntry.id))
+    .from(termConcept)
+    .innerJoin(sourceTerm, eq(sourceTerm.termConceptId, termConcept.id))
+    .innerJoin(
+      translationTerm,
+      eq(translationTerm.termConceptId, termConcept.id),
+    )
     .innerJoin(
       sourceString,
       and(
@@ -135,8 +138,8 @@ const fetchTerms = async (
     )
     .where(
       and(
-        inArray(termEntry.id, termEntryIds),
-        inArray(termEntry.glossaryId, glossaryIds),
+        inArray(termConcept.id, termConceptIds),
+        inArray(termConcept.glossaryId, glossaryIds),
       ),
     );
 };

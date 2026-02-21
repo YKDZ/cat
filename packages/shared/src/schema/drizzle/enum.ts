@@ -8,7 +8,6 @@ export const PluginServiceTypeValues = [
   "MFA_PROVIDER",
   "STORAGE_PROVIDER",
   "TERM_EXTRACTOR",
-  "TERM_RECOGNIZER",
   "TERM_ALIGNER",
   "FILE_IMPORTER",
   "FILE_EXPORTER",
@@ -65,6 +64,26 @@ export const CommentReactionTypeSchema = z.enum(CommentReactionTypeValues);
 export const CommentTargetTypeValues = ["TRANSLATION", "ELEMENT"] as const;
 export const CommentTargetTypeSchema = z.enum(CommentTargetTypeValues);
 
+export const TermTypeValues = [
+  "NOT_SPECIFIED",
+  "FULL_FORM",
+  "ACRONYM",
+  "ABBREVIATION",
+  "SHORT_FORM",
+  "VARIANT",
+  "PHRASE",
+] as const;
+export const TermTypeSchema = z.enum(TermTypeValues);
+
+export const TermStatusValues = [
+  "NOT_SPECIFIED",
+  "PREFERRED",
+  "ADMITTED",
+  "NOT_RECOMMENDED",
+  "OBSOLETE",
+] as const;
+export const TermStatusSchema = z.enum(TermStatusValues);
+
 export type PluginServiceType = (typeof PluginServiceTypeValues)[number];
 export type ScopeType = (typeof ScopeTypeValues)[number];
 export type TaskStatus = (typeof TaskStatusValues)[number];
@@ -73,3 +92,5 @@ export type TranslatableElementContextType =
 export type CommentReactionType = (typeof CommentReactionTypeValues)[number];
 export type ResourceType = (typeof ResourceTypeValues)[number];
 export type CommentTargetType = (typeof CommentTargetTypeValues)[number];
+export type TermType = (typeof TermTypeValues)[number];
+export type TermStatus = (typeof TermStatusValues)[number];

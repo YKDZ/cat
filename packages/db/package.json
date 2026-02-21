@@ -1,6 +1,13 @@
 {
   "name": "@cat/db",
   "version": "0.1.0",
+  "files": [
+    "src",
+    "dist",
+    "drizzle/",
+    "package.json",
+    "drizzle.config.ts"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,15 +17,8 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "src",
-    "dist",
-    "drizzle/",
-    "package.json",
-    "drizzle.config.ts"
-  ],
   "scripts": {
-    "build": "nx vite:build",
+    "build": "vite build",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
     "format": "prettier . --write",

@@ -26,6 +26,8 @@ import {
   CommentReactionTypeValues,
   TranslatableElementContextTypeValues,
   CommentTargetTypeValues,
+  TermTypeValues,
+  TermStatusValues,
 } from "@cat/shared/schema/drizzle/enum";
 import type {
   _JSONSchema,
@@ -58,6 +60,10 @@ export const commentTargetType = pgEnum(
   "CommentTargetType",
   CommentTargetTypeValues,
 );
+
+export const termType = pgEnum("TermType", TermTypeValues);
+
+export const termStatus = pgEnum("TermStatus", TermStatusValues);
 
 const timestamps = {
   createdAt: timestamp({ withTimezone: true })
@@ -606,6 +612,8 @@ export const task = pgTable(
 
 export const term = pgTable("Term", {
   id: serial().primaryKey(),
+  type: termType().notNull().default("NOT_SPECIFIED"),
+  status: termStatus().notNull().default("NOT_SPECIFIED"),
   creatorId: uuid().references(() => user.id, {
     onDelete: "set null",
     onUpdate: "cascade",
@@ -616,24 +624,46 @@ export const term = pgTable("Term", {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
-  termEntryId: integer()
+  termConceptId: integer()
     .notNull()
-    .references(() => termEntry.id, {
+    .references(() => termConcept.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
   ...timestamps,
 });
 
-export const termEntry = pgTable("TermEntry", {
+export const termConcept = pgTable("TermConcept", {
   id: serial().primaryKey(),
-  subject: text(),
+  definition: text().notNull().default(""),
+  subjectId: integer().references(() => termConceptSubject.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  creatorId: uuid().references(() => user.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
   glossaryId: uuid()
     .notNull()
     .references(() => glossary.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+  ...timestamps,
+});
+
+export const termConceptSubject = pgTable("TermConceptSubject", {
+  id: serial().primaryKey(),
+  subject: text().notNull(),
+  creatorId: uuid().references(() => user.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  glossaryId: uuid().references(() => glossary.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   ...timestamps,
 });
 

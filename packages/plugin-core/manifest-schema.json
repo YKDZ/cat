@@ -3,7 +3,11 @@
   "title": "CatPlugin Manifest",
   "description": "Schema for plugin system manifest",
   "type": "object",
-  "required": ["id", "entry", "version"],
+  "required": [
+    "id",
+    "entry",
+    "version"
+  ],
   "properties": {
     "$schema": {
       "description": "Optional JSON Schema identifier (URL or file path)",
@@ -51,7 +55,6 @@
             "type": "string",
             "enum": [
               "TERM_EXTRACTOR",
-              "TERM_RECOGNIZER",
               "TERM_ALIGNER",
               "QA_CHECKER",
               "TOKENIZER",
@@ -66,7 +69,10 @@
             ]
           }
         },
-        "required": ["id", "type"],
+        "required": [
+          "id",
+          "type"
+        ],
         "additionalProperties": false
       }
     },
@@ -92,7 +98,11 @@
             "type": "string"
           }
         },
-        "required": ["id", "url", "slot"],
+        "required": [
+          "id",
+          "url",
+          "slot"
+        ],
         "additionalProperties": false
       }
     }

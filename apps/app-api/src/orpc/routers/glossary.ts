@@ -11,7 +11,7 @@ import {
   translatableElement,
   translatableString,
   getColumns,
-  termEntry,
+  termConcept,
 } from "@cat/db";
 import {
   assertSingleNonNullish,
@@ -122,8 +122,8 @@ export const countTerm = authed
     return assertSingleNonNullish(
       await drizzle
         .select({ count: count() })
-        .from(termEntry)
-        .where(eq(termEntry.glossaryId, glossaryId)),
+        .from(termConcept)
+        .where(eq(termConcept.glossaryId, glossaryId)),
     ).count;
   });
 
@@ -300,7 +300,7 @@ export const findTerm = authed
     const termsQueue = new AsyncMessageQueue<{
       term: string;
       translation: string;
-      subject: string | null;
+      definition: string;
       termLanguageId: string;
       translationLanguageId: string;
     }>();
@@ -311,7 +311,7 @@ export const findTerm = authed
       terms: {
         term: string;
         translation: string;
-        subject: string | null;
+        definition: string;
       }[],
     ) => {
       const newTerms = terms.filter((t) => {
@@ -325,7 +325,7 @@ export const findTerm = authed
         ...newTerms.map((term) => ({
           term: term.term,
           translation: term.translation,
-          subject: term.subject,
+          definition: term.definition,
           termLanguageId: element.languageId,
           translationLanguageId,
         })),

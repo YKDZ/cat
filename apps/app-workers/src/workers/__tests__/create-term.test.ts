@@ -7,7 +7,7 @@ import {
   isNotNull,
   language,
   term,
-  termEntry,
+  termConcept,
   translatableString,
   user,
 } from "@cat/db";
@@ -15,30 +15,31 @@ import { PluginManager } from "@cat/plugin-core";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { createTermTask } from "../create-term.ts";
+import type { TermData } from "@cat/shared/schema/misc";
 
 const data = [
   {
-    subject: "Name of YKDZ",
+    definition: "Name of YKDZ",
     term: "YKDZ",
     termLanguageId: "en",
     translation: "一颗丁子",
     translationLanguageId: "zh-Hans",
   },
   {
-    subject: "Minecraft block",
+    definition: "Minecraft block",
     term: "dirt",
     termLanguageId: "en",
     translation: "泥土",
     translationLanguageId: "zh-Hans",
   },
   {
-    subject: "Minecraft block",
+    definition: "Minecraft block",
     term: "diamond block",
     termLanguageId: "en",
     translation: "钻石块",
     translationLanguageId: "zh-Hans",
   },
-];
+] satisfies TermData[];
 
 let cleanup: () => Promise<void>;
 
@@ -119,18 +120,18 @@ test("create-term should insert and return term", async () => {
 
   const flatRows = await drizzle
     .select({
-      entryId: termEntry.id,
-      subject: termEntry.subject,
+      entryId: termConcept.id,
+      subject: termConcept.definition,
       termValue: translatableString.value,
     })
-    .from(termEntry)
-    .leftJoin(term, eq(termEntry.id, term.termEntryId))
+    .from(termConcept)
+    .leftJoin(term, eq(termConcept.id, term.termConceptId))
     .leftJoin(translatableString, eq(term.stringId, translatableString.id))
-    .where(isNotNull(termEntry.subject));
+    .where(isNotNull(termConcept.definition));
 
   const expectedFlatList = data.flatMap((item) => [
-    { subject: item.subject, termValue: item.term },
-    { subject: item.subject, termValue: item.translation },
+    { subject: item.definition, termValue: item.term },
+    { subject: item.definition, termValue: item.translation },
   ]);
 
   const actualFlatList = flatRows.map((row) => ({

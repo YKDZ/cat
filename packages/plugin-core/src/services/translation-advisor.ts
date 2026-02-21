@@ -9,7 +9,7 @@ export type CanSuggestContext = {
 
 export type GetSuggestionsContext = {
   value: string;
-  terms: { term: string; translation: string; subject: string | null }[];
+  terms: { term: string; translation: string; definition: string }[];
   languageFromId: string;
   languageToId: string;
 };
