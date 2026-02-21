@@ -1,51 +1,56 @@
 {
-	"name": "Node.js & TypeScript",
-	"build": {
-		"dockerfile": "Dockerfile"
-	},
-	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {
-			"installZsh": false,
-			"installOhMyZsh": false,
-			"installOhMyZshConfig": false,
-			"upgradePackages": true,
-			"installSsl": true,
-			"username": "automatic",
-			"userUid": "automatic",
-			"userGid": "automatic"
-		},
-		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-			"moby": true,
-			"installDockerBuildx": true,
-			"installDockerComposeSwitch": true,
-			"version": "latest",
-			"dockerDashComposeVersion": "v2"
-		},
-		"ghcr.io/devcontainers/features/git-lfs:1": {
-			"autoPull": true,
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers/features/github-cli:1": {
-			"installDirectlyFromGitHubRelease": true,
-			"version": "latest"
-		}
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"antfu.iconify",
-				"nrwl.angular-console",
-				"oxc.oxc-vscode",
-				"ms-playwright.playwright",
-				"esbenp.prettier-vscode",
-				"Selemondev.shadcn-vue",
-				"bradlc.vscode-tailwindcss",
-				"Vue.volar",
-				"ms-azuretools.vscode-docker"
-			]
-		}
-	},
-	"remoteUser": "root",
-	"postCreateCommand": "pnpm install",
-	"forwardPorts": []
+  "name": "Node.js & TypeScript",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "installOhMyZsh": false,
+      "installOhMyZshConfig": false,
+      "upgradePackages": true,
+      "installSsl": true,
+      "username": "automatic",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": true,
+      "installDockerBuildx": true,
+      "installDockerComposeSwitch": true,
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/devcontainers/features/git-lfs:1": {
+      "autoPull": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Selemondev.shadcn-vue",
+        "nrwl.angular-console",
+        "antfu.iconify",
+        "Vue.volar",
+        "bradlc.vscode-tailwindcss",
+        "ms-playwright.playwright",
+        "oxc.oxc-vscode",
+        "GitHub.copilot-chat",
+        "ms-azuretools.vscode-docker",
+        "ms-azuretools.vscode-containers"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+      }
+    }
+  },
+  "remoteUser": "root",
+  "postCreateCommand": "pnpm install",
+  "forwardPorts": []
 }
