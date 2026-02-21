@@ -11,6 +11,7 @@ import { Label } from "@/app/components/ui/label";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { onProjectDelete } from "./Page.telefunc.ts";
+import SnapshotBtn from "./SnapshotBtn.vue";
 
 const { t } = useI18n();
 const { rpcWarn } = useToastStore();
@@ -61,5 +62,6 @@ const remove = async (): Promise<void> => {
       </div>
     </div>
     <Button variant="destructive" @click="remove">{{ t("删除项目") }}</Button>
+    <SnapshotBtn />
   </div>
 </template>

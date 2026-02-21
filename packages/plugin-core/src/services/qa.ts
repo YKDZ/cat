@@ -38,7 +38,7 @@ export interface CheckContext {
   terms: {
     term: string;
     translation: string;
-    subject: string | null;
+    definition: string;
   }[];
 }
 

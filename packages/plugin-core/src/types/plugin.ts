@@ -3,11 +3,7 @@ import type { TextVectorizer } from "@/services/text-vectorizer";
 import type { StorageProvider } from "@/services/storage-provider";
 import type { AuthProvider } from "@/services/auth-provider";
 import type { VectorStorage } from "@/services/vector-storage";
-import type {
-  TermAligner,
-  TermExtractor,
-  TermRecognizer,
-} from "@/services/term-services";
+import type { TermAligner, TermExtractor } from "@/services/term-services";
 import type { MFAProvider } from "@/services/mfa-provider";
 import type { FileExporter, FileImporter } from "@/services/file-handler";
 import type { QAChecker, Tokenizer } from "@/services";
@@ -22,7 +18,6 @@ export type PluginServiceTypeMap = {
   FILE_EXPORTER: FileExporter;
   TRANSLATION_ADVISOR: TranslationAdvisor;
   TERM_EXTRACTOR: TermExtractor;
-  TERM_RECOGNIZER: TermRecognizer;
   TERM_ALIGNER: TermAligner;
   QA_CHECKER: QAChecker;
   TOKENIZER: Tokenizer;

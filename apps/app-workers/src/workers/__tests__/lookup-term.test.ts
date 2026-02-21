@@ -5,7 +5,7 @@ import {
   glossary,
   language,
   term,
-  termEntry,
+  termConcept,
   user,
 } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
@@ -13,6 +13,7 @@ import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { lookupTerms } from "@cat/app-server-shared/utils";
 import { createTermTask } from "../create-term.ts";
+import type { TermData } from "@cat/shared/schema/misc";
 
 let cleanup: () => Promise<void>;
 
@@ -86,20 +87,20 @@ test("create-term should insert and return term", async () => {
 
   const data = [
     {
-      subject: "Minecraft block",
+      definition: "Minecraft block",
       term: "dirt",
       termLanguageId: "en",
       translation: "泥土",
       translationLanguageId: "zh-Hans",
     },
     {
-      subject: "Minecraft block",
+      definition: "Minecraft block",
       term: "diamond block",
       termLanguageId: "en",
       translation: "钻石块",
       translationLanguageId: "zh-Hans",
     },
-  ];
+  ] satisfies TermData[];
 
   const { result } = await createTermTask.run({
     glossaryId,
@@ -113,13 +114,13 @@ test("create-term should insert and return term", async () => {
   expect(termIds.length).toBe(termIds.length);
 
   const terms = await drizzle.select(getColumns(term)).from(term);
-  const termEntries = await drizzle
-    .select(getColumns(termEntry))
-    .from(termEntry);
+  const termConcepts = await drizzle
+    .select(getColumns(termConcept))
+    .from(termConcept);
 
   expect(terms.length).toBe(data.length * 2);
-  expect(termEntries.length).toBe(
-    new Set(data.map((item) => item.subject)).size,
+  expect(termConcepts.length).toBe(
+    new Set(data.map((item) => item.definition)).size,
   );
 });
 

@@ -7,7 +7,7 @@ import {
   inArray,
   isNotNull,
   term,
-  termEntry,
+  termConcept,
 } from "@cat/db";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
@@ -81,59 +81,62 @@ export const createTermTask = await defineWorkflow({
         translationDatas,
       );
 
-      const subjects = [
+      const definitions = [
         ...new Set(
           data.data
-            .map((d) => d.subject)
+            .map((d) => d.definition)
             .filter((s): s is string => typeof s === "string"),
         ),
       ];
 
-      const existingEntries = subjects.length
+      const existingEntries = definitions.length
         ? await tx
-            .select({ id: termEntry.id, subject: termEntry.subject })
-            .from(termEntry)
+            .select({ id: termConcept.id, definition: termConcept.definition })
+            .from(termConcept)
             .where(
               and(
-                eq(termEntry.glossaryId, data.glossaryId),
-                inArray(termEntry.subject, subjects),
-                isNotNull(termEntry.subject),
+                eq(termConcept.glossaryId, data.glossaryId),
+                inArray(termConcept.definition, definitions),
+                isNotNull(termConcept.definition),
               ),
             )
         : [];
 
       const entryMap = new Map<string, number>();
-      existingEntries.forEach((e) => entryMap.set(e.subject!, e.id));
+      existingEntries.forEach((e) => entryMap.set(e.definition, e.id));
 
-      const missingSubjects = subjects.filter((s) => !entryMap.has(s));
+      const missingDefinitions = definitions.filter((s) => !entryMap.has(s));
 
-      if (missingSubjects.length > 0) {
+      if (missingDefinitions.length > 0) {
         const inserted = await tx
-          .insert(termEntry)
+          .insert(termConcept)
           .values(
-            missingSubjects.map((subject) => ({
-              subject,
+            missingDefinitions.map((definition) => ({
+              definition,
               glossaryId: data.glossaryId,
             })),
           )
-          .returning({ id: termEntry.id, subject: termEntry.subject });
-        inserted.forEach((e) => entryMap.set(e.subject!, e.id));
+          .returning({
+            id: termConcept.id,
+            definition: termConcept.definition,
+          });
+        inserted.forEach((e) => entryMap.set(e.definition, e.id));
       }
 
       const itemsWithoutSubject = data.data
         .map((d, i) => ({ ...d, originalIndex: i }))
-        .filter((d) => !d.subject);
+        .filter((d) => !d.definition);
 
       const noSubjectEntryIds =
         itemsWithoutSubject.length > 0
           ? await tx
-              .insert(termEntry)
+              .insert(termConcept)
               .values(
                 itemsWithoutSubject.map(() => ({
                   glossaryId: data.glossaryId,
                 })),
               )
-              .returning({ id: termEntry.id })
+              .returning({ id: termConcept.id })
           : [];
 
       const indexToEntryId = new Map<number, number>();
@@ -146,8 +149,8 @@ export const createTermTask = await defineWorkflow({
         const item = data.data[i];
         let entryId: number | undefined;
 
-        if (item.subject) {
-          entryId = entryMap.get(item.subject);
+        if (item.definition) {
+          entryId = entryMap.get(item.definition);
         } else {
           entryId = indexToEntryId.get(i);
         }
@@ -157,12 +160,13 @@ export const createTermTask = await defineWorkflow({
         termRows.push({
           creatorId: data.creatorId,
           stringId: termStringIds[i],
-          termEntryId: entryId,
+          termConceptId: entryId,
         });
         termRows.push({
           creatorId: data.creatorId,
           stringId: translationStringIds[i],
-          termEntryId: entryId,
+          termConceptId: entryId,
+          termConceptSubjectId: 1,
         });
       }
 

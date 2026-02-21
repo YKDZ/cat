@@ -9,12 +9,6 @@ export type TermCandidate = {
   meta?: NonNullJSONType;
 };
 
-export type RecognizedTermEntry = {
-  termEntryId: number;
-  score: number;
-  candidateIndex: number;
-};
-
 export type TermPairCandidate = {
   source: TermCandidate;
   target: TermCandidate;
@@ -23,13 +17,6 @@ export type TermPairCandidate = {
 
 export type ExtractContext = {
   text: string;
-  languageId: string;
-};
-
-export type RecognizeContext = {
-  text: string;
-  candidates: TermCandidate[];
-  glossaryIds?: string[];
   languageId: string;
 };
 
@@ -47,17 +34,6 @@ export abstract class TermExtractor implements IPluginService {
    * 从给定语言的文本提取术语候选
    */
   abstract extract(ctx: ExtractContext): Promise<TermCandidate[]>;
-}
-
-export abstract class TermRecognizer implements IPluginService {
-  abstract getId(): string;
-  getType(): PluginServiceType {
-    return "TERM_RECOGNIZER";
-  }
-  /**
-   * 根据候选结果从数据库维护的术语库中查出所有匹配的 TermEntry
-   */
-  abstract recognize(ctx: RecognizeContext): Promise<RecognizedTermEntry[]>;
 }
 
 export abstract class TermAligner implements IPluginService {

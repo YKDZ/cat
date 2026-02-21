@@ -54,18 +54,18 @@ const { state: approvedElementAmountState } = useQuery({
 });
 
 const progressBarLines = computed<ProgressBarLine[]>(() => {
+  const total = elementAmountState.value.data ?? 0;
+  const translated = translatedElementAmountState.value.data ?? 0;
+  const approved = approvedElementAmountState.value.data ?? 0;
+
   return [
     {
       color: "#5B89C6",
-      progress:
-        (translatedElementAmountState.value.data ?? 0) /
-        ((elementAmountState.value.data ?? 0) || 1),
+      progress: total > 0 ? translated / total : 0,
     },
     {
       color: "#38C800",
-      progress:
-        (approvedElementAmountState.value.data ?? 0) /
-          (elementAmountState.value.data ?? 0) || 0,
+      progress: total > 0 ? approved / total : 0,
     },
   ];
 });

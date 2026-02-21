@@ -181,7 +181,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.glossary.id.through(r.glossaryToProject.glossaryId),
         to: r.project.id.through(r.glossaryToProject.projectId),
       }),
-      termEntries: r.many.termEntry(),
+      termConcepts: r.many.termConcept(),
     },
     memory: {
       user: r.one.user({
@@ -397,15 +397,37 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.term.stringId,
         to: r.translatableString.id,
       }),
-      termEntry: r.one.termEntry({
-        from: r.term.termEntryId,
-        to: r.termEntry.id,
+      termConcept: r.one.termConcept({
+        from: r.term.termConceptId,
+        to: r.termConcept.id,
       }),
     },
-    termEntry: {
+    termConcept: {
       glossary: r.one.glossary({
-        from: r.termEntry.glossaryId,
+        from: r.termConcept.glossaryId,
         to: r.glossary.id,
+      }),
+      creator: r.one.user({
+        from: r.termConcept.creatorId,
+        to: r.user.id,
+      }),
+      subject: r.one.termConceptSubject({
+        from: r.termConcept.subjectId,
+        to: r.termConceptSubject.id,
+      }),
+    },
+    termConceptSubject: {
+      creator: r.one.user({
+        from: r.termConceptSubject.creatorId,
+        to: r.user.id,
+      }),
+      glossary: r.one.glossary({
+        from: r.termConceptSubject.glossaryId,
+        to: r.glossary.id,
+      }),
+      termConcepts: r.many.termConcept({
+        from: r.termConceptSubject.id,
+        to: r.termConcept.subjectId,
       }),
     },
     comment: {
