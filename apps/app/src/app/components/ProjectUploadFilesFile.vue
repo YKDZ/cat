@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { orpc } from "@/server/orpc";
-import TableCell from "@/app/components/table/TableCell.vue";
-import TableRow from "@/app/components/table/TableRow.vue";
+import { TableCell, TableRow } from "@/app/components/ui/table";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";

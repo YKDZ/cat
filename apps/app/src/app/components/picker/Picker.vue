@@ -58,27 +58,25 @@ const onScroll = (e: Event) => {
 
 <template>
   <Combobox :modelValue="selectedOption" by="label" ignore-filter>
-    <ComboboxAnchor as-child>
-      <div class="flex gap-1 w-fit min-w-48">
-        <ComboboxTrigger as-child>
-          <Button variant="outline" class="w-full">
-            {{ selectedOption?.content ?? placeholder }}
-            <ChevronDown class="ml-auto h-4 w-4 shrink-0 opacity-50 self-end" />
+    <ComboboxAnchor class="flex gap-1 w-fit min-w-48">
+      <ComboboxTrigger as-child>
+        <Button variant="outline" class="w-full">
+          {{ selectedOption?.content ?? placeholder }}
+          <ChevronDown class="ml-auto h-4 w-4 shrink-0 opacity-50 self-end" />
+        </Button>
+      </ComboboxTrigger>
+      <ComboboxCancel as-child>
+        <TextTooltip :tooltip="t('清除选项')">
+          <Button
+            v-if="selectedOption"
+            @click="onSelect(selectedOption)"
+            variant="ghost"
+            size="icon"
+          >
+            <X />
           </Button>
-        </ComboboxTrigger>
-        <ComboboxCancel as-child>
-          <TextTooltip :tooltip="t('清除选项')">
-            <Button
-              v-if="selectedOption"
-              @click="onSelect(selectedOption)"
-              variant="ghost"
-              size="icon"
-            >
-              <X />
-            </Button>
-          </TextTooltip>
-        </ComboboxCancel>
-      </div>
+        </TextTooltip>
+      </ComboboxCancel>
     </ComboboxAnchor>
 
     <ComboboxList :portal="props.portal">
@@ -89,7 +87,7 @@ const onScroll = (e: Event) => {
           :placeholder
         />
         <span
-          class="absolute start-0 inset-y-0 flex items-center justify-center px-3"
+          class="absolute inset-s-0 inset-y-0 flex items-center justify-center px-3"
         >
           <Search class="size-4 text-muted-foreground" />
         </span>
@@ -105,7 +103,7 @@ const onScroll = (e: Event) => {
             v-slot="{ option }"
             :options
             :text-content="(x) => x.content"
-            :estimate-size="24"
+            :estimate-size="40"
           >
             <ComboboxItem
               class="w-full"

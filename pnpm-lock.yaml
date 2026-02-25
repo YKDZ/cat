@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
     devDependencies:
       '@nx/devkit':
         specifier: 22.4.5

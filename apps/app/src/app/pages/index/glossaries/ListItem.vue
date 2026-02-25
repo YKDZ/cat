@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
 import { navigate } from "vike/client/router";
-import TableRow from "@/app/components/table/TableRow.vue";
-import TableCell from "@/app/components/table/TableCell.vue";
+import TableCell from "@/app/components/ui/table/TableCell.vue";
+import TableRow from "@/app/components/ui/table/TableRow.vue";
+import { formatDate } from "@/app/utils/format";
 
-const props = defineProps<{ glossary: Glossary }>();
+const props = defineProps<{
+  glossary: Pick<
+    Glossary,
+    "id" | "name" | "description" | "createdAt" | "updatedAt"
+  >;
+}>();
 
 const handleCheck = async () => {
   await navigate(`/glossary/${props.glossary.id}`);
@@ -13,8 +19,15 @@ const handleCheck = async () => {
 
 <template>
   <TableRow class="cursor-pointer hover:bg-background" @click="handleCheck">
-    <TableCell>{{ glossary.name }}</TableCell>
-    <TableCell>{{ glossary.description }}</TableCell>
-    <TableCell>0</TableCell>
+    <TableCell class="font-medium">{{ glossary.name }}</TableCell>
+    <TableCell class="text-gray-600">{{
+      glossary.description || "—"
+    }}</TableCell>
+    <TableCell class="text-gray-500">{{
+      formatDate(glossary.createdAt)
+    }}</TableCell>
+    <TableCell class="text-gray-500">{{
+      formatDate(glossary.updatedAt)
+    }}</TableCell>
   </TableRow>
 </template>

@@ -14,6 +14,7 @@ const props = withDefaults(
   >(),
   {
     position: "popper",
+    side: "bottom",
     align: "center",
     sideOffset: 4,
     portal: true,

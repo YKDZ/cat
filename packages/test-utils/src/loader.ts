@@ -59,7 +59,6 @@ import {
   gt,
   inArray,
   sql,
-  termConcept,
 } from "@cat/db";
 import {
   pgTable,

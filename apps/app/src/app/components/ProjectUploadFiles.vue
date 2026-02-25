@@ -2,10 +2,12 @@
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { computed, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
-import Table from "@/app/components/table/Table.vue";
-import TableBody from "@/app/components/table/TableBody.vue";
-import TableCell from "@/app/components/table/TableCell.vue";
-import TableRow from "@/app/components/table/TableRow.vue";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@/app/components/ui/table";
 import ProjectUploadFilesFile from "./ProjectUploadFilesFile.vue";
 import { Button } from "@/app/components/ui/button";
 import { Spinner } from "@/app/components/ui/spinner";

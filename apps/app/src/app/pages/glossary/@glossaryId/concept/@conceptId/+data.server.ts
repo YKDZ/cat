@@ -58,9 +58,19 @@ export const data = async (ctx: PageContextServer) => {
         eq(termTable.stringId, translatableString.id),
       );
 
+    const availableSubjects = await tx
+      .select({
+        id: termConceptSubject.id,
+        subject: termConceptSubject.subject,
+      })
+      .from(termConceptSubject)
+      .where(eq(termConceptSubject.glossaryId, glossaryId))
+      .orderBy(termConceptSubject.subject);
+
     return {
       concept,
       terms,
+      availableSubjects,
     };
   });
 };
