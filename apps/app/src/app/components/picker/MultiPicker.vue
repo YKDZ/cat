@@ -82,7 +82,7 @@ const onScroll = (e: Event) => {
         </TagsInputItem>
       </div>
 
-      <ComboboxAnchor as-child>
+      <ComboboxAnchor>
         <ComboboxTrigger as-child>
           <Button variant="outline" size="icon">
             <Plus />
@@ -115,7 +115,7 @@ const onScroll = (e: Event) => {
             v-slot="{ option }"
             :options
             :text-content="(x) => x.content"
-            :estimate-size="24"
+            :estimate-size="48"
           >
             <ComboboxItem
               class="w-full"

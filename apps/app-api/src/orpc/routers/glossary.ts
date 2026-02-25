@@ -12,7 +12,12 @@ import {
   translatableString,
   getColumns,
   termConcept,
+  termConceptSubject,
 } from "@cat/db";
+import {
+  TermStatusValues,
+  TermTypeValues,
+} from "@cat/shared/schema/drizzle/enum";
 import {
   assertSingleNonNullish,
   assertSingleOrNull,
@@ -369,3 +374,120 @@ export const findTerm = authed
       termsQueue.close();
     }
   });
+
+export const updateConcept = authed
+  .input(
+    z.object({
+      conceptId: z.number(),
+      subjectId: z.number().nullable().optional(),
+      definition: z.string().optional(),
+    }),
+  )
+  .output(z.void())
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const { conceptId, subjectId, definition } = input;
+
+    await drizzle.transaction(async (tx) => {
+      // 如果提供了 subjectId，则更新主题关联
+      if (subjectId !== undefined) {
+        await tx
+          .update(termConcept)
+          .set({ subjectId })
+          .where(eq(termConcept.id, conceptId));
+      }
+
+      // 更新概念定义
+      if (definition !== undefined) {
+        await tx
+          .update(termConcept)
+          .set({ definition: definition || "" })
+          .where(eq(termConcept.id, conceptId));
+      }
+    });
+  });
+
+export const addTermToConcept = authed
+  .input(
+    z.object({
+      conceptId: z.number(),
+      text: z.string(),
+      languageId: z.string(),
+      type: z.enum(TermTypeValues).optional().default("NOT_SPECIFIED"),
+      status: z.enum(TermStatusValues).optional().default("PREFERRED"),
+    }),
+  )
+  .output(z.object({ termId: z.number() }))
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+      user,
+    } = context;
+    const { conceptId, text, languageId, type, status } = input;
+
+    // 创建可翻译字符串
+    const [translatableStringResult] = await drizzle
+      .insert(translatableString)
+      .values({
+        value: text,
+        languageId,
+        chunkSetId: 1, // 使用默认的chunkSetId，实际应用中可能需要从上下文获取
+      })
+      .returning({ id: translatableString.id });
+
+    // 创建术语
+    const [termResult] = await drizzle
+      .insert(termTable)
+      .values({
+        termConceptId: conceptId,
+        stringId: translatableStringResult.id,
+        type: type,
+        status: status,
+        creatorId: user.id,
+      })
+      .returning({ id: termTable.id });
+
+    return { termId: termResult.id };
+  });
+
+export const getConceptSubjects = authed
+  .input(
+    z.object({
+      glossaryId: z.string(),
+    }),
+  )
+  .output(z.array(z.object({ id: z.number(), subject: z.string() })))
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const { glossaryId } = input;
+
+    const subjects = await drizzle
+      .select({
+        id: termConceptSubject.id,
+        subject: termConceptSubject.subject,
+      })
+      .from(termConceptSubject)
+      .where(eq(termConceptSubject.glossaryId, glossaryId))
+      .orderBy(termConceptSubject.subject);
+
+    return subjects;
+  });
+
+export const glossaryRouter = {
+  deleteTerm,
+  get,
+  getUserOwned,
+  getProjectOwned,
+  countTerm,
+  create,
+  insertTerm,
+  searchTerm,
+  findTerm,
+  updateConcept,
+  addTermToConcept,
+  getConceptSubjects,
+};

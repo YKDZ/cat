@@ -3,71 +3,172 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
   TableRow,
 } from "@/app/components/ui/table";
-import { inject, onMounted, ref, watch } from "vue";
+import { inject, onMounted, ref, watch, computed } from "vue";
 import { onRequestTermPair, type PairData } from "./PairTable.telefunc";
 import { useInjectionKey } from "@/app/utils/provide";
 import type { Data } from "./+data.server";
 import { logger } from "@cat/shared/utils";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { navigate } from "vike/client/router";
+import { Button } from "@/app/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import Skeleton from "@/app/components/ui/skeleton/Skeleton.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const glossary = inject(useInjectionKey<Data>()("glossary"))!;
 
 const terms = ref<PairData[]>([]);
 const pageIndex = ref(0);
 const pageSize = ref(10);
+const total = ref(0);
 const sourceLanguageId = ref("zh-Hans");
 const targetLanguageId = ref("en");
+const isLoading = ref(false);
+
+const totalPages = computed(() =>
+  total.value > 0 ? Math.ceil(total.value / pageSize.value) : 0,
+);
+
+const fetchTerms = async () => {
+  isLoading.value = true;
+  try {
+    const result = await onRequestTermPair(
+      glossary.id,
+      sourceLanguageId.value,
+      targetLanguageId.value,
+      pageIndex.value,
+      pageSize.value,
+    );
+    terms.value = result.data;
+    total.value = result.total;
+  } catch (err) {
+    logger.error("WEB", { msg: "Failed to fetch term pairs:" }, err);
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 onMounted(() => {
-  onRequestTermPair(
-    glossary.id,
-    sourceLanguageId.value,
-    targetLanguageId.value,
-    pageIndex.value,
-    pageSize.value,
-  )
-    .then((data) => {
-      terms.value = data;
-    })
-    .catch((err) => {
-      logger.error("WEB", { msg: "Failed to fetch term pairs:" }, err);
-    });
+  fetchTerms();
 });
 
 watch([sourceLanguageId, targetLanguageId, pageIndex], () => {
-  onRequestTermPair(
-    glossary.id,
-    sourceLanguageId.value,
-    targetLanguageId.value,
-    pageIndex.value,
-    pageSize.value,
-  )
-    .then((data) => {
-      terms.value = data;
-    })
-    .catch((err) => {
-      logger.error("WEB", { msg: "Failed to fetch term pairs:" }, err);
-    });
+  fetchTerms();
 });
+
+const goToPage = (page: number) => {
+  if (page >= 0 && page < totalPages.value) {
+    pageIndex.value = page;
+  }
+};
 </script>
 
 <template>
-  <LanguagePicker v-model="sourceLanguageId" />
-  <LanguagePicker v-model="targetLanguageId" />
-  <Table>
-    <TableBody>
-      <TableRow
-        v-for="term in terms"
-        :key="term.conceptId"
-        @click="navigate(`/glossary/${glossary.id}/concept/${term.conceptId}`)"
-      >
-        <TableCell>{{ term.source.text }}</TableCell>
-        <TableCell>{{ term.target.text }}</TableCell>
-        <TableCell>{{ term.definition }}</TableCell>
-      </TableRow>
-    </TableBody>
-  </Table>
+  <Card>
+    <CardHeader>
+      <CardTitle>{{ t("术语对") }}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div class="flex gap-4 mb-4">
+        <LanguagePicker v-model="sourceLanguageId" :placeholder="t('源语言')" />
+        <LanguagePicker
+          v-model="targetLanguageId"
+          :placeholder="t('目标语言')"
+        />
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{{ t("术语") }}</TableHead>
+            <TableHead>{{ t("翻译") }}</TableHead>
+            <TableHead>{{ t("主题") }}</TableHead>
+            <TableHead>{{ t("定义") }}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <template v-if="isLoading">
+            <TableRow v-for="i in pageSize" :key="i">
+              <TableCell>
+                <Skeleton class="h-4 w-32" />
+              </TableCell>
+              <TableCell>
+                <Skeleton class="h-4 w-32" />
+              </TableCell>
+              <TableCell>
+                <Skeleton class="h-4 w-48" />
+              </TableCell>
+            </TableRow>
+          </template>
+          <template v-else-if="terms.length === 0">
+            <TableRow>
+              <TableCell :colspan="3" class="text-center text-gray-500 py-8">
+                {{ t("暂无数据") }}
+              </TableCell>
+            </TableRow>
+          </template>
+          <template v-else>
+            <TableRow
+              v-for="term in terms"
+              :key="term.conceptId"
+              class="cursor-pointer hover:bg-gray-100"
+              @click="
+                navigate(`/glossary/${glossary.id}/concept/${term.conceptId}`)
+              "
+            >
+              <TableCell>{{ term.source.text }}</TableCell>
+              <TableCell>{{ term.target.text }}</TableCell>
+              <TableCell>{{ term.subject || t("-") }}</TableCell>
+              <TableCell>{{ term.definition || t("-") }}</TableCell>
+            </TableRow>
+          </template>
+        </TableBody>
+      </Table>
+
+      <!-- 分页 -->
+      <div v-if="total > 0" class="flex items-center justify-between mt-4">
+        <div class="text-sm text-gray-600">
+          {{
+            t("显示 {from} - {to} 条，共 {total} 条", {
+              from: pageIndex * pageSize + 1,
+              to: Math.min((pageIndex + 1) * pageSize, total),
+              total: total,
+            })
+          }}
+        </div>
+        <div class="flex gap-2">
+          <Button
+            variant="outline"
+            :disabled="pageIndex <= 0"
+            @click="goToPage(pageIndex - 1)"
+          >
+            {{ t("上一页") }}
+          </Button>
+
+          <span class="px-3 py-1 border rounded">
+            {{ pageIndex + 1 }} / {{ totalPages }}
+          </span>
+
+          <Button
+            variant="outline"
+            :disabled="pageIndex >= totalPages - 1"
+            @click="goToPage(pageIndex + 1)"
+          >
+            {{ t("下一页") }}
+          </Button>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
 </template>

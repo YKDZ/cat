@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { navigate } from "vike/client/router";
-import TableCell from "@/app/components/table/TableCell.vue";
-import TableRow from "@/app/components/table/TableRow.vue";
+import TableCell from "@/app/components/ui/table/TableCell.vue";
+import TableRow from "@/app/components/ui/table/TableRow.vue";
+import { formatDate } from "@/app/utils/format";
 
 const props = defineProps<{
-  project: Pick<Project, "id" | "name">;
+  project: Pick<
+    Project,
+    "id" | "name" | "description" | "createdAt" | "updatedAt"
+  >;
 }>();
 
 const handleCheck = async () => {
@@ -15,6 +19,15 @@ const handleCheck = async () => {
 
 <template>
   <TableRow class="cursor-pointer hover:bg-background" @click="handleCheck">
-    <TableCell>{{ project.name }}</TableCell>
+    <TableCell class="font-medium">{{ project.name }}</TableCell>
+    <TableCell class="text-gray-600">{{
+      project.description || "—"
+    }}</TableCell>
+    <TableCell class="text-gray-500">{{
+      formatDate(project.createdAt)
+    }}</TableCell>
+    <TableCell class="text-gray-500">{{
+      formatDate(project.updatedAt)
+    }}</TableCell>
   </TableRow>
 </template>
