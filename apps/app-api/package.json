@@ -35,10 +35,10 @@
   },
   "scripts": {
     "build": "vite build",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {

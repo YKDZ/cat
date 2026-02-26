@@ -15,14 +15,14 @@
   "scripts": {
     "build": "vike build",
     "dev": "vike dev | pino-pretty",
-    "preview": "tsx scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.mjs",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
+    "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
+    "docker:push": "docker push ykdz/cat",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "typecheck": "tsc --noEmit && vue-tsc --noEmit",
-    "docker:build": "docker buildx build ../../ -f Dockerfile -t ykdz/cat",
-    "docker:push": "docker push ykdz/cat"
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "preview": "tsx scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.mjs",
+    "typecheck": "tsc --noEmit && vue-tsc --noEmit"
   },
   "dependencies": {
     "@cat/app-api": "workspace:*",

@@ -27,12 +27,12 @@
   },
   "scripts": {
     "build": "vite build",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
-    "test": "vitest run"
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
