@@ -3,7 +3,7 @@ import type { Language } from "@cat/shared/schema/drizzle/misc";
 import { navigate } from "vike/client/router";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import TranslationProgress from "./TranslationProgress.vue";
-import { TableRow, TableCell } from "@/app/components/ui/table";
+import { TableRow, TableCell } from "@cat/app-ui";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
@@ -21,7 +21,7 @@ const { t } = useI18n();
     class="cursor-pointer hover:bg-background"
     @click="navigate(`/project/${props.project.id}/${props.language.id}`)"
   >
-    <TableCell class="pl-6 w-full font-medium text-lg">{{
+    <TableCell class="w-full pl-6 text-lg font-medium">{{
       t(language.id)
     }}</TableCell>
     <TableCell>

@@ -1,8 +1,9 @@
-import { orpc } from "@/server/orpc";
 import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue";
-import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { orpc } from "@/server/orpc";
 
 type TermRelationWithDetails = {
   term: string;

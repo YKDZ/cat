@@ -8,7 +8,7 @@ import type { Language } from "@cat/shared/schema/drizzle/misc";
 import type { PickerOption } from "./picker/index.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { Button } from "@/app/components/ui/button/index.ts";
+import { Button } from "@cat/app-ui";
 
 const { t } = useI18n();
 

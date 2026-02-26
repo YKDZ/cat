@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="gap-3 grid grid-cols-1 md:grid-cols-3">
+  <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
     <PluginListItem
       v-for="plugin in plugins"
       :key="plugin.id"

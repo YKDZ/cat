@@ -1,3 +1,8 @@
+import { firstOrGivenService } from "@cat/app-server-shared/utils";
+import { PluginManager } from "@cat/plugin-core";
+import { logger } from "@cat/shared/utils";
+import * as z from "zod";
+
 /**
  * @module spot-term
  *
@@ -17,10 +22,6 @@
  * @see {@link lookupTerms} for fast lexical glossary lookup
  */
 import { defineTask } from "@/core";
-import { firstOrGivenService } from "@cat/app-server-shared/utils";
-import { PluginManager } from "@cat/plugin-core";
-import { logger } from "@cat/shared/utils";
-import * as z from "zod";
 
 const TermCandidateSchema = z.object({
   text: z.string(),
@@ -43,6 +44,11 @@ export const spotTermTask = await defineTask({
   name: "term.spot",
   input: SpotTermInputSchema,
   output: SpotTermOutputSchema,
+
+  cache: {
+    enabled: true,
+    ttl: 3600,
+  },
 
   handler: async (data) => {
     const pluginManager = PluginManager.get("GLOBAL", "");

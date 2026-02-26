@@ -1,7 +1,8 @@
-import { authed } from "@/orpc/server.ts";
-import z from "zod";
-import { TokenSchema } from "@cat/plugin-core";
 import { tokenizeTask } from "@cat/app-workers";
+import { TokenSchema } from "@cat/plugin-core";
+import z from "zod";
+
+import { authed } from "@/orpc/server.ts";
 
 export const tokenize = authed
   .input(

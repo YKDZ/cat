@@ -8,7 +8,7 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/app/components/ui/resizable";
+} from "@cat/app-ui";
 
 const { t } = useI18n();
 
@@ -25,7 +25,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="bg-background border-t bg-op-50 flex h-fit max-w-full w-full backdrop-blur-sm"
+    class="bg-op-50 flex h-fit w-full max-w-full border-t bg-background backdrop-blur-sm"
   >
     <ResizablePanelGroup direction="horizontal">
       <ResizablePanel>
@@ -33,12 +33,12 @@ onMounted(() => {
           ref="inputTextareaEl"
           v-model="translationValue"
           :placeholder="t('在此输入译文')"
-          class="px-5 pt-5 outline-0 min-h-32 w-full"
+          class="min-h-32 w-full px-5 pt-5 outline-0"
         />
       </ResizablePanel>
       <ResizableHandle :with-handle="true" />
       <ResizablePanel>
-        <div class="px-5 pt-5 flex flex-col gap-5 min-h-32">
+        <div class="flex min-h-32 flex-col gap-5 px-5 pt-5">
           <TokenizedTranslation />
         </div>
       </ResizablePanel>

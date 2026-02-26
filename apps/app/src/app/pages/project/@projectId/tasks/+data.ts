@@ -1,4 +1,5 @@
 import type { PageContextServer } from "vike/types";
+
 import { render } from "vike/abort";
 
 export const data = (ctx: PageContextServer) => {

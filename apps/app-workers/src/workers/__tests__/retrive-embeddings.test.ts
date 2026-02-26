@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   chunk,
   getColumns,
@@ -7,10 +6,12 @@ import {
   translatableString,
 } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
-import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
-import { retriveEmbeddingsTask } from "../retrive-embeddings.ts";
-import { createTranslatableStringTask } from "../create-translatable-string.ts";
 import { assertSingleNonNullish } from "@cat/shared/utils";
+import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
+import { createTranslatableStringTask } from "../create-translatable-string.ts";
+import { retriveEmbeddingsTask } from "../retrive-embeddings.ts";
 
 const data = [
   {

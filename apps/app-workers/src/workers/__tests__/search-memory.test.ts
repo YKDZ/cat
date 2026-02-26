@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   chunk,
   document,
@@ -14,10 +13,12 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
-import { createTranslationWorkflow } from "../create-translation.ts";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
 import { createElementWorkflow } from "../create-element.ts";
-import { searchMemoryWorkflow } from "../search-memory.ts";
 import { createTranslatableStringTask } from "../create-translatable-string.ts";
+import { createTranslationWorkflow } from "../create-translation.ts";
+import { searchMemoryWorkflow } from "../search-memory.ts";
 
 const data = [
   {

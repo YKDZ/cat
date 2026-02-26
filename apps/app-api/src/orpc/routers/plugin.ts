@@ -1,15 +1,3 @@
-import * as z from "zod/v4";
-import {
-  PluginConfigInstanceSchema,
-  PluginConfigSchema,
-  PluginSchema,
-} from "@cat/shared/schema/drizzle/plugin";
-import {
-  AuthMethodSchema,
-  TranslationAdvisorDataSchema,
-  type AuthMethod,
-  type TranslationAdvisorData,
-} from "@cat/shared/schema/misc";
 import {
   plugin as pluginTable,
   pluginConfigInstance as pluginConfigInstanceTable,
@@ -21,12 +9,25 @@ import {
   getColumns,
   pluginService,
 } from "@cat/db";
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { ComponentRecordSchema, PluginManager } from "@cat/plugin-core";
-import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
-import { authed, base } from "@/orpc/server";
+import {
+  PluginConfigInstanceSchema,
+  PluginConfigSchema,
+  PluginSchema,
+} from "@cat/shared/schema/drizzle/plugin";
+import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
+import {
+  AuthMethodSchema,
+  TranslationAdvisorDataSchema,
+  type AuthMethod,
+  type TranslationAdvisorData,
+} from "@cat/shared/schema/misc";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
+import * as z from "zod/v4";
+
+import { authed, base } from "@/orpc/server";
 
 export const reload = authed
   .input(

@@ -1,7 +1,9 @@
-import { defineWorkflow } from "@/core";
 import { createStringFromData } from "@cat/app-server-shared/utils";
 import { getDrizzleDB } from "@cat/db";
 import * as z from "zod";
+
+import { defineWorkflow } from "@/core";
+
 import { vectorizeToChunkSetTask } from "./vectorize";
 
 export const CreateTranslatableStringInputSchema = z.object({

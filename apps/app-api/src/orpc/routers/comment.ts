@@ -1,4 +1,3 @@
-import { authed } from "@/orpc/server";
 import {
   and,
   desc,
@@ -18,6 +17,8 @@ import {
 } from "@cat/shared/schema/drizzle/enum";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod";
+
+import { authed } from "@/orpc/server";
 
 export const comment = authed
   .input(

@@ -36,7 +36,7 @@ const handleClick = () => {
   <div class="w-full">
     <!-- 当前节点 -->
     <div
-      class="flex items-center gap-2 px-3 py-2 hover:bg-background cursor-pointer group transition-colors"
+      class="group flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-background"
       :style="{ paddingLeft: `${(depth - 1) * 1.5 + 0.75}rem` }"
       @click="handleClick"
     >
@@ -44,7 +44,7 @@ const handleClick = () => {
       <button
         v-if="hasChildren"
         @click.stop="toggleNode"
-        class="shrink-0 w-5 h-5 flex items-center justify-center hover:bg-background rounded transition-colors"
+        class="flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors hover:bg-background"
       >
         <div
           :class="
@@ -52,10 +52,10 @@ const handleClick = () => {
               ? 'icon-[mdi--chevron-down]'
               : 'icon-[mdi--chevron-right]'
           "
-          class="text-foreground size-4"
+          class="size-4 text-foreground"
         />
       </button>
-      <div v-else class="w-5 h-5 shrink-0"></div>
+      <div v-else class="h-5 w-5 shrink-0"></div>
 
       <!-- 文件/文件夹图标 -->
       <div
@@ -64,19 +64,19 @@ const handleClick = () => {
             ? 'icon-[mdi--folder]'
             : 'icon-[mdi--file-document-outline]'
         "
-        class="text-foreground shrink-0 size-4"
+        class="size-4 shrink-0 text-foreground"
       />
 
       <!-- 文档名称 -->
       <span
-        class="flex-1 text-sm text-foreground truncate"
+        class="flex-1 truncate text-sm text-foreground"
         :title="node.name || '未命名'"
       >
         {{ node.name || "未命名" }}
       </span>
 
       <!-- 右侧按钮栏(具名插槽) -->
-      <div class="shrink-0 flex items-center gap-1" @click.stop>
+      <div class="flex shrink-0 items-center gap-1" @click.stop>
         <slot name="actions" :document="node" />
       </div>
     </div>

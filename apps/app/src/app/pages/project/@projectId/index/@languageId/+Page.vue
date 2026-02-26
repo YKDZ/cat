@@ -5,7 +5,7 @@ import { computed, inject } from "vue";
 import type { Data } from "../../+data.server.ts";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 import LanguageDocumentTree from "./LanguageDocumentTree.vue";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { useI18n } from "vue-i18n";
 import TranslationProgress from "../TranslationProgress.vue";
 
@@ -30,9 +30,9 @@ const handleBack = async () => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full">
-    <div class="py-4 flex gap-4 w-full items-center justify-between">
-      <div class="flex gap-4 items-center">
+  <div class="flex w-full flex-col">
+    <div class="flex w-full items-center justify-between gap-4 py-4">
+      <div class="flex items-center gap-4">
         <Button @click="handleBack" size="icon" class="cursor-pointer">
           <div class="icon-[mdi--arrow-left] size-4" />
         </Button>

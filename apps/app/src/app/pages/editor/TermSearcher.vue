@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useEditorTermStore } from "@/app/stores/editor/term.ts";
-import { Input } from "@/app/components/ui/input";
+import { Input } from "@cat/app-ui";
 import { Search } from "lucide-vue-next";
 
 const { t } = useI18n();
@@ -25,7 +25,7 @@ const handleSearch = () => {
       @change="handleSearch"
     />
     <span
-      class="absolute inset-s-0 inset-y-0 flex items-center justify-center px-2"
+      class="absolute inset-y-0 inset-s-0 flex items-center justify-center px-2"
     >
       <Search class="size-4" />
     </span>

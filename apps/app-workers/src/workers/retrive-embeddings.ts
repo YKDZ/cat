@@ -1,9 +1,10 @@
-import { defineTask } from "@/core";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import { chunk, eq, getDrizzleDB } from "@cat/db";
 import { PluginManager, type VectorStorage } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod";
+
+import { defineTask } from "@/core";
 
 export const RetriveEmbeddingsInputSchema = z.object({
   chunkIds: z.array(z.int()),
@@ -18,6 +19,10 @@ export const retriveEmbeddingsTask = await defineTask({
   name: "embeddings.retrive",
   input: RetriveEmbeddingsInputSchema,
   output: RetriveEmbeddingsOutputSchema,
+
+  cache: {
+    enabled: true,
+  },
 
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();

@@ -5,7 +5,7 @@ import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import {
   Dialog,
   DialogFooter,
@@ -13,7 +13,7 @@ import {
   DialogContent,
   DialogTrigger,
   DialogTitle,
-} from "@/app/components/ui/dialog";
+} from "@cat/app-ui";
 import { Link2 } from "lucide-vue-next";
 
 const { t } = useI18n();

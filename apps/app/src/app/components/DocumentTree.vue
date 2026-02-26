@@ -60,7 +60,7 @@ const handleClick = (document: Document) => {
 </script>
 
 <template>
-  <div class="w-full bg-background rounded-lg overflow-hidden">
+  <div class="w-full overflow-hidden rounded-lg bg-background">
     <template v-for="node in tree" :key="node.id">
       <DocumentTreeNode
         :node="node"

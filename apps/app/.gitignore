@@ -2,3 +2,4 @@ storage/
 plugins/
 ollama/
 drizzle/
+dist/

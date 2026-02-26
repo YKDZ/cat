@@ -2,15 +2,10 @@
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { computed, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/app/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@cat/app-ui";
 import ProjectUploadFilesFile from "./ProjectUploadFilesFile.vue";
-import { Button } from "@/app/components/ui/button";
-import { Spinner } from "@/app/components/ui/spinner";
+import { Button } from "@cat/app-ui";
+import { Spinner } from "@cat/app-ui";
 
 const { t } = useI18n();
 
@@ -68,7 +63,7 @@ const selectFile = () => {
       </TableRow>
     </TableBody>
   </Table>
-  <div class="flex gap-4 items-center">
+  <div class="flex items-center gap-4">
     <Button @click="fileInputEl && fileInputEl.click()">
       <Spinner v-if="isProcessing" />
       <div v-else class="icon-[mdi--folder] size-4" />

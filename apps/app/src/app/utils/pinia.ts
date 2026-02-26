@@ -1,11 +1,12 @@
-import { parse, stringify } from "devalue";
+import type { Pinia, StateTree } from "pinia";
+
 import {
   isQueryCache,
   serializeQueryCache,
   useQueryCache,
   type _UseQueryEntryNodeValueSerialized,
 } from "@pinia/colada";
-import type { Pinia, StateTree } from "pinia";
+import { parse, stringify } from "devalue";
 
 export interface DehydratedState {
   vanilla: StateTree;

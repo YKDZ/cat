@@ -1,5 +1,7 @@
 import * as z from "zod/v4";
+
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
+
 import { TermStatusSchema, TermTypeSchema } from "./enum";
 
 export const TermSchema = z.object({
@@ -15,7 +17,7 @@ export const TermSchema = z.object({
 
 export const TermConceptSchema = z.object({
   id: z.int(),
-  definition: z.string().default(""),
+  definition: z.string().nullable(),
   subjectId: z.int().nullable(),
   creatorId: z.uuidv4().nullable(),
   glossaryId: z.uuidv4(),
@@ -26,6 +28,7 @@ export const TermConceptSchema = z.object({
 export const TermConceptSubjectSchema = z.object({
   id: z.int(),
   subject: z.string(),
+  defaultDefinition: z.string().nullable(),
   creatorId: z.uuidv4(),
   glossaryId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,

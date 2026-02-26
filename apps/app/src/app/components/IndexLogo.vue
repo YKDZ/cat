@@ -6,7 +6,7 @@ const ctx = usePageContext();
 </script>
 
 <template>
-  <div class="flex gap-3 items-center">
+  <div class="flex items-center gap-3">
     <img :src="logoURL" alt="Logo" class="h-6 w-6" /><span
       class="text-lg font-bold"
       >{{ ctx.globalContext.name }}</span

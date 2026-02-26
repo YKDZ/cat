@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { Plus } from "lucide-vue-next";
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/app/components/ui/dialog";
+} from "@cat/app-ui";
 
 defineProps<{
   project: Project;

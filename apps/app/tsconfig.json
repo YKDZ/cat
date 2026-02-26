@@ -11,7 +11,9 @@
     "noEmit": true,
     "composite": false,
     "declarationMap": false,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "moduleResolution": "bundler",
+    "customConditions": ["import", "types"]
   },
   "exclude": [
     "out-tsc",

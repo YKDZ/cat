@@ -8,8 +8,8 @@ import {
   NumberFieldDecrement,
   NumberFieldIncrement,
   NumberFieldInput,
-} from "@/app/components/ui/number-field";
-import { Label } from "@/app/components/ui/label";
+} from "@cat/app-ui";
+import { Label } from "@cat/app-ui";
 
 const props = defineProps<{
   propertyKey: string | number;

@@ -1,5 +1,12 @@
-import { join } from "node:path";
-import * as z from "zod/v4";
+import {
+  createDocumentUnderParent,
+  finishPresignedPutFile,
+  getServiceFromDBId,
+  preparePresignedPutFile,
+  getDownloadUrl,
+  firstOrGivenService,
+} from "@cat/app-server-shared/utils";
+import { upsertDocumentFromFileWorkflow } from "@cat/app-workers";
 import {
   sanitizeFileName,
   translatableElement as translatableElementTable,
@@ -24,33 +31,27 @@ import {
   isNull,
   sql,
 } from "@cat/db";
+import { StorageProvider } from "@cat/plugin-core";
+import {
+  DocumentSchema,
+  TranslatableElementSchema,
+} from "@cat/shared/schema/drizzle/document";
 import {
   ElementTranslationStatusSchema,
   type ElementTranslationStatus,
   FileMetaSchema,
 } from "@cat/shared/schema/misc";
 import {
-  DocumentSchema,
-  TranslatableElementSchema,
-} from "@cat/shared/schema/drizzle/document";
-import {
-  createDocumentUnderParent,
-  finishPresignedPutFile,
-  getServiceFromDBId,
-  preparePresignedPutFile,
-  getDownloadUrl,
-  firstOrGivenService,
-} from "@cat/app-server-shared/utils";
-import {
   assertFirstNonNullish,
   assertSingleNonNullish,
   assertSingleOrNull,
 } from "@cat/shared/utils";
-import { StorageProvider } from "@cat/plugin-core";
-import { randomUUID } from "node:crypto";
-import { upsertDocumentFromFileWorkflow } from "@cat/app-workers";
-import { authed } from "@/orpc/server";
 import { ORPCError } from "@orpc/client";
+import { randomUUID } from "node:crypto";
+import { join } from "node:path";
+import * as z from "zod/v4";
+
+import { authed } from "@/orpc/server";
 
 /**
  * 构建翻译状态查询条件

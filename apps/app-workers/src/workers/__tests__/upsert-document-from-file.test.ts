@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   blob,
   document,
@@ -13,8 +12,10 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
-import { upsertDocumentFromFileWorkflow } from "../upsert-document-from-file";
 import { Readable } from "node:stream";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
+import { upsertDocumentFromFileWorkflow } from "../upsert-document-from-file";
 
 let cleanup: () => Promise<void>;
 

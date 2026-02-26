@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@cat/app-ui";
 import { orpc } from "@/server/orpc";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { Settings } from "lucide-vue-next";
 import {
   Dialog,
@@ -16,16 +11,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/app/components/ui/dialog";
-import {
-  FormField,
-  FormItem,
-  FormControl,
-  FormLabel,
-} from "@/app/components/ui/form";
+} from "@cat/app-ui";
+import { FormField, FormItem, FormControl, FormLabel } from "@cat/app-ui";
 import * as z from "zod";
 import { useForm } from "vee-validate";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Textarea } from "@cat/app-ui";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useToastStore } from "@/app/stores/toast";
 
@@ -59,7 +49,7 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <Card>
     <CardHeader>
-      <div class="flex w-full justify-between items-center">
+      <div class="flex w-full items-center justify-between">
         <CardTitle>{{ t("关于") }}</CardTitle>
         <Dialog>
           <DialogTrigger>

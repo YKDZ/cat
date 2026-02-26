@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   eq,
   getColumns,
@@ -7,9 +6,11 @@ import {
   translatableString,
 } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
-import { createTranslatableStringTask } from "@/workers/create-translatable-string";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
+import { createTranslatableStringTask } from "@/workers/create-translatable-string";
 
 let cleanup: () => Promise<void>;
 

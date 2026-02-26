@@ -15,7 +15,7 @@ const width = computed(() => {
 
 <template>
   <div
-    class="left-0 top-0 absolute"
+    class="absolute top-0 left-0"
     :style="{
       width: width + 'px',
       height: height + 'px',

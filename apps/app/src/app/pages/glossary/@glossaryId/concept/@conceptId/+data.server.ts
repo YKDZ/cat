@@ -1,3 +1,5 @@
+import type { PageContextServer } from "vike/types";
+
 import {
   eq,
   getColumns,
@@ -10,7 +12,6 @@ import {
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { redirect } from "vike/abort";
-import type { PageContextServer } from "vike/types";
 
 export const data = async (ctx: PageContextServer) => {
   const { client: drizzle } = await getDrizzleDB();
@@ -31,6 +32,7 @@ export const data = async (ctx: PageContextServer) => {
         .select({
           ...getColumns(termConcept),
           subject: termConceptSubject.subject,
+          defaultDefinition: termConceptSubject.defaultDefinition,
         })
         .from(termConcept)
         .where(

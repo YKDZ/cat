@@ -1,7 +1,9 @@
-import { defineConfig } from "vitepress";
 import type { MarkdownOptions } from "vitepress";
-import MermaidExample from "./mermaid-markdown-all.js";
+
 import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vitepress";
+
+import MermaidExample from "./mermaid-markdown-all.js";
 
 const allMarkdownTransformers: MarkdownOptions = {
   theme: {

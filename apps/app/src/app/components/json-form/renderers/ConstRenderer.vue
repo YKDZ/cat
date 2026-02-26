@@ -21,7 +21,7 @@ const constValue = computed(() => {
 
 <template>
   <label class="flex flex-col gap-0.5">
-    <span class="text-foreground font-semibold">{{
+    <span class="font-semibold text-foreground">{{
       schema.title ?? propertyKey
     }}</span>
     <span class="text-sm text-foreground">{{ schema.description }}</span>

@@ -25,7 +25,7 @@ useHotKeys(`S+${props.index + 1}`, handleCopy);
 
 <template>
   <div
-    class="px-3 py-2 flex flex-col gap-1"
+    class="flex flex-col gap-1 px-3 py-2"
     :class="{
       'hover:bg-accent': suggestion.status === 'SUCCESS',
       'hover:bg-red-100': suggestion.status === 'ERROR',

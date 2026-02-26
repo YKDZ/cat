@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import InsertTermBtn from "./InsertTermBtn.vue";
+import InsertConceptBtn from "./InsertConceptBtn.vue";
+import InsertConceptSubjectBtn from "./InsertConceptSubjectBtn.vue";
 import { useInjectionKey } from "@/app/utils/provide";
 import { inject } from "vue";
 import type { Data } from "./+data.server.ts";
@@ -16,7 +18,7 @@ const currentView = ref<"pairs" | "concepts">("pairs"); // 默认显示pair模�
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex justify-between items-center">
+    <div class="flex items-center justify-between">
       <div class="flex gap-2">
         <Button
           variant="outline"
@@ -32,7 +34,11 @@ const currentView = ref<"pairs" | "concepts">("pairs"); // 默认显示pair模�
         >
           {{ t("概念") }}
         </Button>
+      </div>
+      <div class="flex gap-2">
+        <InsertConceptSubjectBtn :glossary-id="glossary.id" />
         <InsertTermBtn :glossary-id="glossary.id" />
+        <InsertConceptBtn :glossary-id="glossary.id" />
       </div>
     </div>
 

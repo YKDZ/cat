@@ -1,7 +1,9 @@
-import { defineWorkflow } from "@/core";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import { PluginManager, type VectorStorage } from "@cat/plugin-core";
 import * as z from "zod";
+
+import { defineWorkflow } from "@/core";
+
 import { retriveEmbeddingsTask } from "./retrive-embeddings";
 
 const InputSchema = z.object({
@@ -25,6 +27,11 @@ export const searchChunkWorkflow = await defineWorkflow({
   name: "chunk.search",
   input: InputSchema,
   output: OutputSchema,
+
+  cache: {
+    enabled: true,
+    ttl: 60,
+  },
 
   dependencies: async (data, { traceId }) => [
     await retriveEmbeddingsTask.asChild(

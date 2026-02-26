@@ -1,39 +1,76 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
+import { navigate } from "vike/client/router";
 import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
-import { useToastStore } from "@/app/stores/toast.ts";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { Button } from "@cat/app-ui";
+import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { ArrowRight } from "lucide-vue-next";
 
 const props = defineProps<{
-  term: { term: string; translation: string };
+  term: {
+    term: string;
+    translation: string;
+    definition?: string | null;
+    subjectId?: number | null;
+    conceptId?: number;
+    glossaryId?: string;
+  };
   index: number;
 }>();
 
 const { t } = useI18n();
-const { info } = useToastStore();
 const { insert } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());
 
 const handleInsert = () => {
-  insert(props.term.term);
-  info(t("成功插入术语"));
+  insert(props.term.translation);
+};
+
+const handleViewConcept = () => {
+  if (props.term.glossaryId && props.term.conceptId) {
+    navigate(
+      `/glossary/${props.term.glossaryId}/concept/${props.term.conceptId}`,
+    );
+  }
 };
 
 useHotKeys(`T+${props.index + 1}`, handleInsert);
 </script>
 
 <template>
-  <div class="px-3 py-2 flex flex-col gap-1 hover:bg-background">
-    <button
-      class="text-start flex gap-1 cursor-pointer text-wrap items-center"
+  <TextTooltip :tooltip="term.definition || t('无显式定义')">
+    <div
+      class="group flex cursor-pointer flex-col gap-1.5 border-b border-border px-3 py-2 transition-colors last:border-b-0 hover:bg-muted/50"
       @click="handleInsert"
     >
-      <TokenRenderer v-if="document" :text="term.term" />
-      <div class="icon-[mdi--arrow-right] size-4" />
-      <TokenRenderer v-if="document" :text="term.translation" />
-    </button>
-  </div>
+      <div class="flex items-center gap-2">
+        <div class="flex min-w-0 flex-1 items-center gap-2">
+          <TokenRenderer
+            v-if="document"
+            :text="term.term"
+            class="truncate font-medium text-foreground"
+          />
+          <ArrowRight class="mx-1 size-4 shrink-0 text-muted-foreground" />
+          <TokenRenderer
+            v-if="document"
+            :text="term.translation"
+            class="truncate text-foreground"
+          />
+        </div>
+        <Button
+          v-if="term.glossaryId && term.conceptId"
+          size="icon"
+          variant="ghost"
+          class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+          @click.stop="handleViewConcept"
+        >
+          <div class="icon-[mdi--information-outline] size-4" />
+        </Button>
+      </div>
+    </div>
+  </TextTooltip>
 </template>

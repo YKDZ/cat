@@ -39,5 +39,5 @@ jobs:
       - name: Run Affected Tasks
         run: |
           pnpm exec nx affected \
-            --targets=lint,typecheck,format:check \
+            --targets=lint,typecheck,fmt:check \
             --parallel=3

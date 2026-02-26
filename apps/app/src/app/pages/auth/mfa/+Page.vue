@@ -23,7 +23,7 @@ const handleComplete = async () => {
 </script>
 
 <template>
-  <div v-if="userId && isPre" class="flex flex-col w-full gap-2">
+  <div v-if="userId && isPre" class="flex w-full flex-col gap-2">
     <AuthMFAPreHandler
       v-for="provider in mfaProviders"
       @pre-mfa="isPre = false"
@@ -34,7 +34,7 @@ const handleComplete = async () => {
       }"
     />
   </div>
-  <div v-if="userId && !isPre" class="flex flex-col w-full gap-2">
+  <div v-if="userId && !isPre" class="flex w-full flex-col gap-2">
     <AuthMFAHandler
       v-for="provider in mfaProviders"
       @mfa="handleComplete"

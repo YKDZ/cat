@@ -1,4 +1,6 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
+import type { TermData } from "@cat/shared/schema/misc";
+
+import { lookupTerms } from "@cat/app-server-shared/utils";
 import {
   getColumns,
   getDrizzleDB,
@@ -11,9 +13,9 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
-import { lookupTerms } from "@cat/app-server-shared/utils";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
 import { createTermTask } from "../create-term.ts";
-import type { TermData } from "@cat/shared/schema/misc";
 
 let cleanup: () => Promise<void>;
 

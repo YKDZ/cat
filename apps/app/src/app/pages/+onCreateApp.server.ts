@@ -1,13 +1,15 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { stat } from "node:fs/promises";
 import type { GlobalContextServer, PageContextServer } from "vike/types";
 import type { ComputedRef } from "vue";
+
+import { getSetting } from "@cat/db";
+import { parsePreferredLanguage } from "@cat/shared/utils";
+import { readFile } from "node:fs/promises";
+import { stat } from "node:fs/promises";
+import { join } from "node:path";
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
-import { getSetting } from "@cat/db";
+
 import { i18n } from "@/app/utils/i18n";
-import { parsePreferredLanguage } from "@cat/shared/utils";
 
 export const onCreateApp = async (ctx: PageContextServer) => {
   const { app } = ctx;

@@ -24,7 +24,7 @@ watchClient(elementId, updateTerms, { immediate: true });
       :term
     />
     <div v-if="terms.length === 0" class="px-3 py-2">
-      {{ t("还没有可用的术语") }}
+      {{ t("没有找到可用的术语") }}
     </div>
   </div>
 </template>

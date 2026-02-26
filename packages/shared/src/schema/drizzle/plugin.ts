@@ -1,10 +1,11 @@
 import * as z from "zod/v4";
-import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
-import { _JSONSchemaSchema, safeZDotJson } from "@/schema/json.ts";
+
 import {
   PluginServiceTypeSchema,
   ScopeTypeSchema,
 } from "@/schema/drizzle/enum";
+import { _JSONSchemaSchema, safeZDotJson } from "@/schema/json.ts";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const PluginInstallationSchema = z.object({
   id: z.int(),

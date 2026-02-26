@@ -1,4 +1,4 @@
-import { defineWorkflow } from "@/core";
+import { lookupTerms } from "@cat/app-server-shared/utils";
 import { getDrizzleDB, getRedisDB } from "@cat/db";
 import {
   PluginManager,
@@ -7,12 +7,13 @@ import {
   type CheckContext,
   type Token,
 } from "@cat/plugin-core";
-import { lookupTerms } from "@cat/app-server-shared/utils";
-import z from "zod";
 import {
   QaResultItemSchema,
   type QaResultItem,
 } from "@cat/shared/schema/drizzle/qa";
+import z from "zod";
+
+import { defineWorkflow } from "@/core";
 
 export const getQAPubKey = (id: string): string => {
   return `qa:issue:${id}`;

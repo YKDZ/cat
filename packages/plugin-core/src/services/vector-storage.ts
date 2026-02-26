@@ -1,5 +1,6 @@
-import type { IPluginService } from "@/services/service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+
+import type { IPluginService } from "@/services/service";
 
 export type StoreContext = {
   chunks: { vector: number[]; chunkId: number }[];

@@ -1,4 +1,5 @@
 import type { RedisClientType } from "redis";
+
 import { createClient } from "redis";
 
 export class RedisDB {

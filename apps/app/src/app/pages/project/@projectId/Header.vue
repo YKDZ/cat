@@ -2,7 +2,7 @@
 import { usePageContext } from "vike-vue/usePageContext";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import HeaderBreadcrumb from "./HeaderBreadcrumb.vue";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { SidebarTrigger } from "@cat/app-ui";
 
 defineProps<{
   project: Project;
@@ -15,7 +15,7 @@ const ctx = usePageContext();
   <div class="header">
     <SidebarTrigger sidebar-id="index" />
     <HeaderBreadcrumb v-if="project" :project />
-    <div v-else class="text-lg font-500 flex items-center">
+    <div v-else class="font-500 flex items-center text-lg">
       {{ ctx.user?.name }}
     </div>
   </div>

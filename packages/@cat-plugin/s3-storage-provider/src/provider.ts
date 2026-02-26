@@ -1,6 +1,7 @@
-import type { Readable } from "node:stream";
-import type { JSONType } from "@cat/shared/schema/json";
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
+import type { JSONType } from "@cat/shared/schema/json";
+import type { Readable } from "node:stream";
+
 import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import {
   DeleteObjectCommand,
@@ -8,6 +9,7 @@ import {
   HeadBucketCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
   StorageProvider,
@@ -18,9 +20,8 @@ import {
   type HeadContext,
   type PutStreamContext,
 } from "@cat/plugin-core";
-import * as z from "zod/v4";
 import { join } from "node:path";
-import { Upload } from "@aws-sdk/lib-storage";
+import * as z from "zod/v4";
 
 const S3ConfigSchema = z.object({
   "endpoint-url": z.url(),

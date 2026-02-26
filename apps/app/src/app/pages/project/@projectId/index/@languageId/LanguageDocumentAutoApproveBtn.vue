@@ -3,15 +3,15 @@ import type { Document } from "@cat/shared/schema/drizzle/document";
 import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
-import Button from "@/app/components/ui/button/Button.vue";
 import {
+  Button,
   Dialog,
+  DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogContent,
-  DialogTrigger,
   DialogTitle,
-} from "@/app/components/ui/dialog";
+  DialogTrigger,
+} from "@cat/app-ui";
 import { Check } from "lucide-vue-next";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 

@@ -1,7 +1,8 @@
-import * as z from "zod/v4";
-import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import { eq, setting as settingTable } from "@cat/db";
+import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import { assertSingleOrNull } from "@cat/shared/utils";
+import * as z from "zod/v4";
+
 import { authed } from "@/orpc/server";
 
 export const set = authed

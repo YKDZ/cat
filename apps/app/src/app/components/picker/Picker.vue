@@ -11,15 +11,15 @@ import {
   ComboboxItemIndicator,
   ComboboxList,
   ComboboxTrigger,
-} from "@/app/components/ui/combobox";
+  ComboboxViewport,
+  Button,
+} from "@cat/app-ui";
 import { Check, ChevronDown, Search, X } from "lucide-vue-next";
 import {
   ComboboxCancel,
   ComboboxVirtualizer,
   type AcceptableInputValue,
 } from "reka-ui";
-import { Button } from "@/app/components/ui/button";
-import ComboboxViewport from "@/app/components/ui/combobox/ComboboxViewport.vue";
 import { ref } from "vue";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 
@@ -58,11 +58,11 @@ const onScroll = (e: Event) => {
 
 <template>
   <Combobox :modelValue="selectedOption" by="label" ignore-filter>
-    <ComboboxAnchor class="flex gap-1 w-fit min-w-48">
+    <ComboboxAnchor class="flex w-fit min-w-48 gap-1">
       <ComboboxTrigger as-child>
         <Button variant="outline" class="w-full">
           {{ selectedOption?.content ?? placeholder }}
-          <ChevronDown class="ml-auto h-4 w-4 shrink-0 opacity-50 self-end" />
+          <ChevronDown class="ml-auto h-4 w-4 shrink-0 self-end opacity-50" />
         </Button>
       </ComboboxTrigger>
       <ComboboxCancel as-child>
@@ -82,12 +82,12 @@ const onScroll = (e: Event) => {
     <ComboboxList :portal="props.portal">
       <div class="relative w-full max-w-sm items-center">
         <ComboboxInput
-          class="focus-visible:ring-0 rounded-none h-10 pointer-events-auto"
+          class="pointer-events-auto h-10 rounded-none focus-visible:ring-0"
           v-model="search"
           :placeholder
         />
         <span
-          class="absolute inset-s-0 inset-y-0 flex items-center justify-center px-3"
+          class="absolute inset-y-0 inset-s-0 flex items-center justify-center px-3"
         >
           <Search class="size-4 text-muted-foreground" />
         </span>
@@ -107,7 +107,10 @@ const onScroll = (e: Event) => {
           >
             <ComboboxItem
               class="w-full"
-              @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
+              @select="
+                (e: { detail: { value: PickerOption<T> } }) =>
+                  onSelect(e.detail.value as PickerOption<T>)
+              "
               :value="option"
             >
               {{ option.content }}

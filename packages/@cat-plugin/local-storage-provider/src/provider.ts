@@ -1,6 +1,6 @@
-import type { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import type { JSONType } from "@cat/shared/schema/json";
+import type { Readable } from "node:stream";
+
 import {
   StorageProvider,
   type DeleteContext,
@@ -10,10 +10,11 @@ import {
   type HeadContext,
   type PutStreamContext,
 } from "@cat/plugin-core";
-import * as z from "zod/v4";
-import { dirname, resolve } from "node:path";
 import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, stat, unlink, access } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { pipeline } from "node:stream/promises";
+import * as z from "zod/v4";
 
 const ConfigSchema = z.object({
   "root-path": z.string().default("./storage"),

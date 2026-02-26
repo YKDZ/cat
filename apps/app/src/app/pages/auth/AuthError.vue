@@ -11,7 +11,7 @@ const { isError, authMethod } = storeToRefs(useAuthStore());
 <template>
   <div
     v-if="isError"
-    class="text-destructive-foreground px-3 py-2 rounded-md bg-destructive"
+    class="rounded-md bg-destructive px-3 py-2 text-destructive-foreground"
   >
     <div v-if="authMethod" class="flex flex-col items-center">
       <p>{{ t("当前无法通过 {name} 登录", { name: authMethod.name }) }}</p>

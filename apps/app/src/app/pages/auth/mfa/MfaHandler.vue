@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
 import JSONForm from "@/app/components/json-form/JsonForm.vue";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { storeToRefs } from "pinia";
 
 const emits = defineEmits<{

@@ -29,7 +29,7 @@ watchClient(
     :suggestion
     :index
   />
-  <div v-if="suggestions.length === 0" class="px-3 py-2 flex flex-col gap-1">
+  <div v-if="suggestions.length === 0" class="flex flex-col gap-1 px-3 py-2">
     {{ t("还没有可用的翻译建议") }}
   </div>
 </template>

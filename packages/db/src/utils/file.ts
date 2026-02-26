@@ -1,6 +1,8 @@
 import { extname } from "node:path";
-import { getSetting } from "./setting.ts";
+
 import type { DrizzleClient } from "@/drizzle/db.ts";
+
+import { getSetting } from "./setting.ts";
 
 export const sanitizeFileName = (name: string): string => {
   return name.replace(/[^\w.-]/g, "_");

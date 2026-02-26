@@ -1,4 +1,5 @@
 import type { AuthMethod } from "@cat/shared/schema/misc";
+
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 

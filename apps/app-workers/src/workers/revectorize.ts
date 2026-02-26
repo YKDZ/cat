@@ -1,4 +1,3 @@
-import { defineTask } from "@/core";
 import {
   chunk,
   chunkSet,
@@ -9,6 +8,8 @@ import {
 } from "@cat/db";
 import { PluginManager, TextVectorizer, VectorStorage } from "@cat/plugin-core";
 import { z } from "zod";
+
+import { defineTask } from "@/core";
 
 export const RevectorizeInputSchema = z.object({
   chunkIds: z.array(z.int()),

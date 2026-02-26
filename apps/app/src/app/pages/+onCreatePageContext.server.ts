@@ -1,5 +1,5 @@
 import type { PageContextServer } from "vike/types";
-import { createPinia } from "pinia";
+
 import {
   createHTTPHelpers,
   detectMobile,
@@ -7,6 +7,7 @@ import {
 } from "@cat/app-server-shared/utils";
 import { getSetting } from "@cat/db";
 import { parsePreferredLanguage } from "@cat/shared/utils";
+import { createPinia } from "pinia";
 
 export const onCreatePageContext = async (ctx: PageContextServer) => {
   if (!ctx.runtime.req || !ctx.runtime.res) {

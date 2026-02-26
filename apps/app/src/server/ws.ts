@@ -1,8 +1,9 @@
 import type { AppRouter } from "@cat/app-api/orpc/router";
+import type { RouterClient } from "@orpc/server";
+
 import { logger } from "@cat/shared/utils";
 import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
-import type { RouterClient } from "@orpc/server";
 import { WebSocket } from "partysocket";
 
 const link = new RPCLink({

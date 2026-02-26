@@ -1,10 +1,11 @@
-import { defineWorkflow } from "@/core";
 import { firstOrGivenService, lookupTerms } from "@cat/app-server-shared/utils";
 import { getDrizzleDB } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
 import { TranslationSuggestionSchema } from "@cat/shared/schema/misc";
-import * as z from "zod";
 import { logger } from "@cat/shared/utils";
+import * as z from "zod";
+
+import { defineTask } from "@/core";
 
 export const FetchAdviseInputSchema = z.object({
   advisorId: z.number().optional(),
@@ -21,12 +22,15 @@ export const FetchAdviseOutputSchema = z.object({
   suggestions: z.array(TranslationSuggestionSchema),
 });
 
-export const fetchAdviseWorkflow = await defineWorkflow({
+export const fetchAdviseWorkflow = await defineTask({
   name: "advise.fetch",
   input: FetchAdviseInputSchema,
   output: FetchAdviseOutputSchema,
 
-  dependencies: async () => [],
+  cache: {
+    enabled: true,
+    ttl: 3600,
+  },
 
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();

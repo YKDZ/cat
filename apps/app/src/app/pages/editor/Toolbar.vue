@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import CurrentTranslationQaResult from "./CurrentTranslationQaResult.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Check, Copy, MoveRight, Redo, Trash, Undo } from "lucide-vue-next";
 import { useEditorContextStore } from "@/app/stores/editor/context";
@@ -23,8 +23,8 @@ const handleTranslate = async (toNext: boolean) => {
 </script>
 
 <template>
-  <div class="p-2 flex w-full items-center justify-between">
-    <div class="flex gap-1 items-center">
+  <div class="flex w-full items-center justify-between p-2">
+    <div class="flex items-center gap-1">
       <TextTooltip :tooltip="t('复制原文')">
         <Button
           size="icon"
@@ -76,7 +76,7 @@ const handleTranslate = async (toNext: boolean) => {
         :documentId
       />
     </div>
-    <div class="flex gap-1 items-center">
+    <div class="flex items-center gap-1">
       <Button
         variant="ghost"
         magic-key="Control+Shift+Enter"

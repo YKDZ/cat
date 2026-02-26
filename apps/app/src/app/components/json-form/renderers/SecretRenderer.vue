@@ -3,7 +3,7 @@ import { computed, inject, ref } from "vue";
 import * as z from "zod/v4";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "../utils.ts";
-import { Input } from "@/app/components/ui/input";
+import { Input } from "@cat/app-ui";
 import {
   FormControl,
   FormDescription,
@@ -11,8 +11,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/app/components/ui/form";
-import { Button } from "@/app/components/ui/button/index.ts";
+} from "@cat/app-ui";
+import { Button } from "@cat/app-ui";
 import { Eye, EyeOff } from "lucide-vue-next";
 
 const props = defineProps<{

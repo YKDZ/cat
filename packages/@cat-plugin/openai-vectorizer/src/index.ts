@@ -1,4 +1,5 @@
 import type { CatPlugin, PluginContext } from "@cat/plugin-core";
+
 import { Vectorizer } from "./vectorizer.ts";
 
 class Plugin implements CatPlugin {

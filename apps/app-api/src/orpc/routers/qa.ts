@@ -1,12 +1,14 @@
-import { authed } from "@/orpc/server.ts";
-import z from "zod";
-import { TokenSchema } from "@cat/plugin-core";
+import type { QaResultItem } from "@cat/shared/schema/drizzle/qa";
+
+import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import { getQAPubKey, QAPubPayloadSchema, qaWorkflow } from "@cat/app-workers";
 import { document, eq, glossaryToProject, project } from "@cat/db";
-import { randomUUID } from "node:crypto";
-import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
+import { TokenSchema } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
-import type { QaResultItem } from "@cat/shared/schema/drizzle/qa";
+import { randomUUID } from "node:crypto";
+import z from "zod";
+
+import { authed } from "@/orpc/server.ts";
 
 export const check = authed
   .input(

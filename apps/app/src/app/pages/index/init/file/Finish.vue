@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { navigate } from "vike/client/router";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

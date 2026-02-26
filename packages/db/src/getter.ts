@@ -1,6 +1,7 @@
 import "dotenv/config";
-import { RedisDB } from "./redis.ts";
 import { DrizzleDB } from "@/drizzle/db.ts";
+
+import { RedisDB } from "./redis.ts";
 
 declare global {
   // oxlint-disable-next-line no-var

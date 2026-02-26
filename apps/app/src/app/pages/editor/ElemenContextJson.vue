@@ -2,8 +2,7 @@
 import { computed } from "vue";
 import * as z from "zod/v4";
 import type { TranslatableElementContext } from "@cat/shared/schema/drizzle/document";
-import Card from "@/app/components/ui/card/Card.vue";
-import CardContent from "@/app/components/ui/card/CardContent.vue";
+import { Card, CardContent } from "@cat/app-ui";
 
 type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
@@ -38,7 +37,7 @@ const keys = computed(() => {
       <div class="flex flex-col gap-1">
         <div v-for="key in keys" :key="key">
           <span
-            class="mr-1 px-2 py-1 rounded-sm bg-muted text-muted-foreground select-none"
+            class="mr-1 rounded-sm bg-muted px-2 py-1 text-muted-foreground select-none"
             >{{ key }}</span
           ><span class="break-all">{{ meta[key] }}</span>
         </div>

@@ -1,6 +1,7 @@
 import { logger } from "@cat/shared/utils";
-import { Distortion } from "./types.ts";
 import DOMPurify from "dompurify";
+
+import { Distortion } from "./types.ts";
 
 export const createDocumentDistortion = (
   pluginId: string,

@@ -1,14 +1,8 @@
-import { Hono } from "hono";
-import {
-  _JSONSchemaSchema,
-  JSONSchemaSchema,
-  type JSONObject,
-} from "@cat/shared/schema/json";
-import {
-  getDefaultFromSchema,
-  assertSingleNonNullish,
-  logger,
-} from "@cat/shared/utils";
+import type {
+  PluginServiceType,
+  ScopeType,
+} from "@cat/shared/schema/drizzle/enum";
+
 import {
   eq,
   and,
@@ -21,22 +15,32 @@ import {
   type DrizzleTransaction,
 } from "@cat/db";
 import {
-  ServiceRegistry,
-  type RegisteredService,
-} from "@/registry/service-registry";
-import type {
-  PluginServiceType,
-  ScopeType,
-} from "@cat/shared/schema/drizzle/enum";
+  _JSONSchemaSchema,
+  JSONSchemaSchema,
+  type JSONObject,
+} from "@cat/shared/schema/json";
+import {
+  getDefaultFromSchema,
+  assertSingleNonNullish,
+  logger,
+} from "@cat/shared/utils";
+import { Hono } from "hono";
+
+import type { CatPlugin, PluginContext } from "@/entities/plugin";
+import type { PluginServiceMap } from "@/types/plugin";
+
 import {
   ComponentRegistry,
   type ComponentRecord,
 } from "@/registry/component-registry";
-import type { CatPlugin, PluginContext } from "@/entities/plugin";
+import {
+  ServiceRegistry,
+  type RegisteredService,
+} from "@/registry/service-registry";
 import { getPluginConfig } from "@/utils/config";
+
 import { FileSystemPluginLoader, type PluginLoader } from "./loader";
 import { PluginDiscoveryService } from "./plugin-discovery";
-import type { PluginServiceMap } from "@/types/plugin";
 
 /**
  * 作用域插件管理器

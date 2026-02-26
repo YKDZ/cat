@@ -1,6 +1,7 @@
 import z from "zod";
-import { DrizzleDateTimeSchema } from "../misc";
+
 import { nonNullSafeZDotJson } from "../json";
+import { DrizzleDateTimeSchema } from "../misc";
 
 export const QaResultSchema = z.object({
   id: z.int(),

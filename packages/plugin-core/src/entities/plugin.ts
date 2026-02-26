@@ -1,8 +1,9 @@
+import type { JSONType } from "@cat/shared/schema/json";
+import type { Hono } from "hono";
+
 import type { ComponentData } from "@/registry/component-registry";
 import type { RegisteredService } from "@/registry/service-registry";
 import type { IPluginService } from "@/services/service";
-import type { JSONType } from "@cat/shared/schema/json";
-import type { Hono } from "hono";
 
 /**
  * 插件运行时上下文

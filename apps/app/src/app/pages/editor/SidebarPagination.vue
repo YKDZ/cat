@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Input } from "@/app/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -7,7 +6,7 @@ import {
   PaginationPrevious,
   PaginationFirst,
   PaginationLast,
-} from "@/app/components/ui/pagination";
+} from "@cat/app-ui";
 import { useEditorContextStore } from "@/app/stores/editor/context";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import {
@@ -17,6 +16,11 @@ import {
   ChevronsLeftIcon,
 } from "lucide-vue-next";
 import { storeToRefs } from "pinia";
+import { computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { useSidebar } from "@cat/app-ui";
+
+const { t } = useI18n();
 
 const { currentPage } = storeToRefs(useEditorContextStore());
 const { elementTotalAmount, pageTotalAmount } = storeToRefs(
@@ -25,40 +29,113 @@ const { elementTotalAmount, pageTotalAmount } = storeToRefs(
 
 const { toPage } = useEditorTableStore();
 
-const onInputChange = (value: number) => {
-  if (value < 1 || value > pageTotalAmount.value) currentPage.value = 1;
-  toPage(value - 1);
-};
+// 获取侧边栏宽度
+const sidebarId = "editor";
+const { width: sidebarWidth } = useSidebar(sidebarId);
+
+// 根据宽度判断是否应该显示大尺寸
+const isWideSidebar = computed(() => {
+  return (sidebarWidth.value || 240) >= 320;
+});
+
+watch(
+  currentPage,
+  (newPage, oldPage) => {
+    if (
+      newPage !== oldPage &&
+      newPage >= 1 &&
+      newPage <= pageTotalAmount.value
+    ) {
+      toPage(newPage - 1);
+    }
+  },
+  { immediate: false },
+);
+
+const displayRange = computed(() => {
+  const from = (currentPage.value - 1) * 16 + 1;
+  const to = Math.min(currentPage.value * 16, elementTotalAmount.value);
+  return { from, to };
+});
 </script>
 
 <template>
-  <Pagination
-    :items-per-page="16"
-    :total="elementTotalAmount"
-    :sibling-count="0"
-    v-model:page="currentPage"
-  >
-    <PaginationContent>
-      <PaginationFirst @click="toPage(0)">
-        <ChevronsLeftIcon />
-      </PaginationFirst>
-      <PaginationPrevious size="icon" @click="toPage(currentPage - 1)">
-        <ChevronLeftIcon />
-      </PaginationPrevious>
+  <div class="flex w-full flex-col gap-1">
+    <div
+      :class="[
+        'flex items-center justify-center gap-0.5',
+        isWideSidebar ? 'gap-1' : 'gap-0.5',
+      ]"
+    >
+      <Pagination
+        :items-per-page="16"
+        :total="elementTotalAmount"
+        :sibling-count="0"
+        v-model:page="currentPage"
+      >
+        <PaginationContent :class="isWideSidebar ? 'gap-1' : 'gap-0.5'">
+          <PaginationFirst
+            :size="isWideSidebar ? undefined : 'icon-sm'"
+            :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
+            @click="currentPage = 1"
+          >
+            <ChevronsLeftIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
+          </PaginationFirst>
+          <PaginationPrevious
+            :size="isWideSidebar ? undefined : 'icon-sm'"
+            :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
+          >
+            <ChevronLeftIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
+          </PaginationPrevious>
 
-      <Input
-        type="text"
-        class="w-[10ch] text-center"
-        v-model="currentPage"
-        @change="onInputChange"
-      />
+          <div
+            :class="[
+              'pointer-events-none flex items-center justify-center px-1',
+              isWideSidebar ? 'min-w-14' : 'min-w-12',
+            ]"
+          >
+            <span
+              :class="[
+                'font-medium tabular-nums',
+                isWideSidebar ? 'text-sm' : 'text-xs',
+              ]"
+            >
+              {{ currentPage }}/{{ Math.max(1, pageTotalAmount) }}
+            </span>
+          </div>
 
-      <PaginationNext @click="toPage(currentPage - 1)">
-        <ChevronRightIcon />
-      </PaginationNext>
-      <PaginationLast @click="toPage(pageTotalAmount - 1)">
-        <ChevronsRightIcon />
-      </PaginationLast>
-    </PaginationContent>
-  </Pagination>
+          <PaginationNext
+            :size="isWideSidebar ? undefined : 'icon-sm'"
+            :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
+          >
+            <ChevronRightIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
+          </PaginationNext>
+          <PaginationLast
+            :size="isWideSidebar ? undefined : 'icon-sm'"
+            :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
+            @click="currentPage = pageTotalAmount"
+          >
+            <ChevronsRightIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
+          </PaginationLast>
+        </PaginationContent>
+      </Pagination>
+    </div>
+
+    <div class="flex items-center justify-center">
+      <span
+        :class="[
+          'text-muted-foreground',
+          isWideSidebar ? 'text-sm' : 'text-xs',
+        ]"
+      >
+        {{
+          t("显示 {from} - {to} 条，共 {total} 条", {
+            from: displayRange.from,
+            to: displayRange.to,
+            total: elementTotalAmount,
+          })
+        }}
+      </span>
+    </div>
+  </div>
 </template>

@@ -1,4 +1,5 @@
-import { Membrane } from "./membrane.ts";
+import * as Vue from "vue";
+
 import {
   createDocumentDistortion,
   createElementDistortion,
@@ -8,9 +9,9 @@ import {
   createVueDistortion,
 } from "./distortions.ts";
 import { SandboxGlobalHandler } from "./handlers.ts";
-import { Distortion } from "./types.ts";
+import { Membrane } from "./membrane.ts";
 import { basicSandboxGlobal } from "./safe-objects.ts";
-import * as Vue from "vue";
+import { Distortion } from "./types.ts";
 
 export type DistortionSetup = (
   membrane: Membrane,

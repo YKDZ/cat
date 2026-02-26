@@ -1,6 +1,8 @@
-import type { IPluginService } from "@/services/service";
-import { JSONType } from "@cat/shared/schema/json";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+
+import { JSONType } from "@cat/shared/schema/json";
+
+import type { IPluginService } from "@/services/service";
 
 export type CanImportContext = {
   name: string;

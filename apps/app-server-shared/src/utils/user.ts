@@ -1,3 +1,5 @@
+import type { User } from "@cat/shared/schema/drizzle/user";
+
 import {
   eq,
   getColumns,
@@ -5,7 +7,6 @@ import {
   DrizzleClient,
   user as userTable,
 } from "@cat/db";
-import type { User } from "@cat/shared/schema/drizzle/user";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { assertSingleOrNull } from "@cat/shared/utils";
 

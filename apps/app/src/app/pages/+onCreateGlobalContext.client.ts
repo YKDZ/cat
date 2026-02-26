@@ -1,9 +1,11 @@
 import type { GlobalContextClient } from "vike/types";
-import { i18n } from "@/app/utils/i18n";
-import { createPinia } from "pinia";
-import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
+
 import { getCookieFunc } from "@cat/shared/utils";
 import { usePreferredLanguages } from "@vueuse/core";
+import { createPinia } from "pinia";
+import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
+
+import { i18n } from "@/app/utils/i18n";
 
 export const onCreateGlobalContext = async (ctx: GlobalContextClient) => {
   await hydrateI18n(ctx);

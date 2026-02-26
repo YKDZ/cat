@@ -5,9 +5,9 @@ import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
 import type { Data } from "../+data.server.ts";
 import { useInjectionKey } from "@/app/utils/provide.ts";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Label } from "@/app/components/ui/label";
+import { Button } from "@cat/app-ui";
+import { Input } from "@cat/app-ui";
+import { Label } from "@cat/app-ui";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { onProjectDelete } from "./Page.telefunc.ts";
@@ -48,7 +48,7 @@ const remove = async (): Promise<void> => {
 </script>
 
 <template>
-  <div class="space-y-2 mt-2">
+  <div class="mt-2 space-y-2">
     <div class="grid w-full max-w-sm items-center gap-1.5">
       <Label for="name">{{ t("项目名称") }}</Label>
       <div class="flex w-full max-w-sm items-center gap-1.5">

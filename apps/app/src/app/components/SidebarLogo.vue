@@ -2,7 +2,7 @@
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import logoURL from "@/app/assets/logo.png";
-import { useSidebar } from "@/app/components/ui/sidebar";
+import { useSidebar } from "@cat/app-ui";
 
 const props = defineProps<{
   sidebarId: string;
@@ -14,15 +14,15 @@ const { state } = useSidebar(props.sidebarId);
 
 <template>
   <div
-    class="px-2 py-1 cursor-pointer text-center rounded-sm inline-flex gap-3 h-full w-full select-none items-center"
+    class="inline-flex h-full w-full cursor-pointer items-center gap-3 rounded-sm px-2 py-1 text-center select-none"
     @click="navigate(`/`)"
   >
     <img
       :src="logoURL"
       alt="Logo"
       :class="{
-        'w-6 h-6': state === 'expanded',
-        'w-4 h-4': state === 'collapsed',
+        'h-6 w-6': state === 'expanded',
+        'h-4 w-4': state === 'collapsed',
       }"
       class="aspect-square transition-all ease-linear"
     />

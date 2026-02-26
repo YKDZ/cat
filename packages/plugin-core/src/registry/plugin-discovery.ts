@@ -4,8 +4,9 @@ import {
   type DrizzleClient,
   type DrizzleTransaction,
 } from "@cat/db";
-import { FileSystemPluginLoader, type PluginLoader } from "./loader";
 import { _JSONSchemaSchema } from "@cat/shared/schema/json";
+
+import { FileSystemPluginLoader, type PluginLoader } from "./loader";
 
 /**
  * 插件发现服务

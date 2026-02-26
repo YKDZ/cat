@@ -1,0 +1,66 @@
+<script setup lang="ts">
+import type { HTMLAttributes } from "vue";
+import { ref } from "vue";
+import { cn } from "@/utils/lib/utils";
+import { useSidebar } from "./utils";
+
+const props = defineProps<{
+  class?: HTMLAttributes["class"];
+  sidebarId: string;
+}>();
+
+const { width, minWidth, maxWidth, state, side } = useSidebar(props.sidebarId);
+
+let isDragging = ref(false);
+let startX = 0;
+let startWidth = 0;
+
+function startDrag(event: MouseEvent) {
+  if (state.value !== "expanded") return;
+
+  isDragging.value = true;
+  startX = event.clientX;
+  startWidth = width.value;
+  document.addEventListener("mousemove", onDrag);
+  document.addEventListener("mouseup", stopDrag);
+}
+
+function onDrag(event: MouseEvent) {
+  if (!isDragging.value) return;
+  const deltaX = event.clientX - startX;
+  const direction = side.value === "left" ? 1 : -1;
+  const deltaPx = direction * deltaX;
+  const newWidth = Math.max(minWidth.value, Math.min(maxWidth.value, startWidth + deltaPx));
+  width.value = newWidth;
+}
+
+function stopDrag() {
+  isDragging.value = false;
+  document.removeEventListener("mousemove", onDrag);
+  document.removeEventListener("mouseup", stopDrag);
+}
+</script>
+
+<template>
+  <button
+    data-sidebar="rail"
+    data-slot="sidebar-rail"
+    aria-label="Drag Sidebar"
+    :tabindex="-1"
+    title="Drag Sidebar"
+    :class="
+      cn(
+        'hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-0.5 sm:flex',
+        'in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize',
+        '[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize',
+        'hover:group-data-[collapsible=offcanvas]:bg-sidebar group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full',
+        '[[data-side=left][data-collapsible=offcanvas]_&]:-right-2',
+        '[[data-side=right][data-collapsible=offcanvas]_&]:-left-2',
+        props.class,
+      )
+    "
+    @mousedown="startDrag"
+  >
+    <slot />
+  </button>
+</template>

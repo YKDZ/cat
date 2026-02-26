@@ -1,7 +1,9 @@
-import { setting } from "@/drizzle";
-import type { DrizzleClient } from "@/drizzle/db.ts";
 import { assertFirstOrNull } from "@cat/shared/utils";
 import { eq } from "drizzle-orm";
+
+import type { DrizzleClient } from "@/drizzle/db.ts";
+
+import { setting } from "@/drizzle";
 
 const isSameType = <T>(value: unknown, sample: T): value is T => {
   if (Array.isArray(sample)) {

@@ -1,3 +1,5 @@
+import type { GlobalContextServer } from "vike/types";
+
 import {
   initAllVectorStorage,
   installDefaultPlugins,
@@ -13,7 +15,6 @@ import { PluginManager } from "@cat/plugin-core";
 import { assertPromise, logger } from "@cat/shared/utils";
 import { access } from "fs/promises";
 import { join } from "path";
-import type { GlobalContextServer } from "vike/types";
 
 export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
   try {

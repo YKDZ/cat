@@ -90,7 +90,7 @@ onMounted(renderChart);
 </script>
 
 <template>
-  <div v-if="isRendering" class="w-full h-64 my-4" />
+  <div v-if="isRendering" class="my-4 h-64 w-full" />
 
   <div v-if="!isRendering" class="relative my-4" ref="mermaidContainer">
     <div
@@ -100,36 +100,36 @@ onMounted(renderChart);
       @click="openModal"
       v-html="svg"
     />
-    <div v-else class="w-full h-full overflow-auto">
+    <div v-else class="h-full w-full overflow-auto">
       <pre
-        class="bg-default-soft p-4 rounded-md text-sm"
+        class="bg-default-soft rounded-md p-4 text-sm"
       ><code>{{ code }}</code></pre>
     </div>
     <button
       v-if="isHovered"
-      class="absolute right-1 top-1 hover:bg-default-soft p-0.5 w-5.5 h-5.5 rounded-md"
+      class="hover:bg-default-soft absolute top-1 right-1 h-5.5 w-5.5 rounded-md p-0.5"
       @click.stop="toggleSource"
     >
-      <div v-if="showSource" class="icon-[mdi--code] w-full h-full" />
-      <div v-else class="icon-[mdi--chart-box-outline] w-full h-full" />
+      <div v-if="showSource" class="icon-[mdi--code] h-full w-full" />
+      <div v-else class="icon-[mdi--chart-box-outline] h-full w-full" />
     </button>
   </div>
 
   <div
     v-if="showModal"
-    class="fixed inset-0 w-full h-full bg-default-1/80 flex justify-center items-center z-40 p-5 box-border overflow-auto"
+    class="bg-default-1/80 fixed inset-0 z-40 box-border flex h-full w-full items-center justify-center overflow-auto p-5"
     @click="closeModal"
   >
     <div
-      class="relative rounded-lg bg-bg shadow-md p-3 overflow-auto w-11/12 h-11/12 md:m-2.5 md:p-4"
+      class="bg-bg relative h-11/12 w-11/12 overflow-auto rounded-lg p-3 shadow-md md:m-2.5 md:p-4"
       @click.stop
     >
-      <button @click="closeModal" class="absolute top-1 right-1 w-6 h-6">
-        <div class="icon-[mdi--close] w-full h-full" />
+      <button @click="closeModal" class="absolute top-1 right-1 h-6 w-6">
+        <div class="icon-[mdi--close] h-full w-full" />
       </button>
       <div
         :key="`${id}-${renderKey}`"
-        class="w-full h-full overflow-auto flex items-start justify-center"
+        class="flex h-full w-full items-start justify-center overflow-auto"
         v-html="svg"
       />
     </div>

@@ -3,11 +3,11 @@ import { ref } from "vue";
 import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { useI18n } from "vue-i18n";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Minus, Plus } from "lucide-vue-next";
-import { Skeleton } from "@/app/components/ui/skeleton";
+import { Skeleton } from "@cat/app-ui";
 import { useQuery } from "@pinia/colada";
 
 const props = defineProps<{
@@ -83,7 +83,7 @@ const handleVote = async (value: number) => {
 </script>
 
 <template>
-  <div class="flex gap-1 items-center">
+  <div class="flex items-center gap-1">
     <TextTooltip
       :tooltip="
         selfVoteState?.data?.value === -preVoteAmount
@@ -110,7 +110,7 @@ const handleVote = async (value: number) => {
         <Minus />
       </Button>
     </TextTooltip>
-    <span class="text-center size-6 inline-block">
+    <span class="inline-block size-6 text-center">
       <Skeleton v-if="voteState.data === null" class="size-6" />
       <TextTooltip v-else :tooltip="t('当前票数')">{{
         voteState.data

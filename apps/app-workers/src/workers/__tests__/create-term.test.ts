@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
+import type { TermData } from "@cat/shared/schema/misc";
+
 import {
   eq,
   getColumns,
@@ -12,10 +13,11 @@ import {
   user,
 } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
-import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { assertSingleNonNullish } from "@cat/shared/utils";
+import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
 import { createTermTask } from "../create-term.ts";
-import type { TermData } from "@cat/shared/schema/misc";
 
 const data = [
   {

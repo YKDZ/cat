@@ -1,18 +1,8 @@
-import * as z from "zod/v4";
-import {
-  MemorySuggestionSchema,
-  type MemorySuggestion,
-} from "@cat/shared/schema/misc";
-import {
-  assertSingleNonNullish,
-  assertSingleOrNull,
-  logger,
-} from "@cat/shared/utils";
-import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import {
   AsyncMessageQueue,
   firstOrGivenService,
 } from "@cat/app-server-shared/utils";
+import { searchMemoryWorkflow } from "@cat/app-workers";
 import {
   chunk,
   chunkSet,
@@ -27,9 +17,20 @@ import {
   translatableElement,
   translatableString,
 } from "@cat/db";
-import { authed } from "@/orpc/server";
-import { searchMemoryWorkflow } from "@cat/app-workers";
+import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
+import {
+  MemorySuggestionSchema,
+  type MemorySuggestion,
+} from "@cat/shared/schema/misc";
+import {
+  assertSingleNonNullish,
+  assertSingleOrNull,
+  logger,
+} from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
+import * as z from "zod/v4";
+
+import { authed } from "@/orpc/server";
 
 export const create = authed
   .input(

@@ -12,7 +12,7 @@ import {
 
 export type PairData = {
   conceptId: number;
-  definition: string;
+  definition: string | null;
   subject: string | null;
   source: {
     termId: number;

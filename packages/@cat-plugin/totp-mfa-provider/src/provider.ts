@@ -1,3 +1,5 @@
+import type { JSONSchema } from "@cat/shared/schema/json";
+
 import {
   MFAProvider,
   type MFAInitForUserContext,
@@ -7,9 +9,8 @@ import {
   type MFAVerifyResult,
   type VerifyChallengeContext,
 } from "@cat/plugin-core";
-import type { JSONSchema } from "@cat/shared/schema/json";
-import * as z from "zod";
 import speakeasy from "speakeasy";
+import * as z from "zod";
 
 const TotpTokenSchema = z.string().regex(/^\d{6}$/);
 

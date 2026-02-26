@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { safeJoinURL } from "./url.ts";
 
 test("should return joined url", () => {

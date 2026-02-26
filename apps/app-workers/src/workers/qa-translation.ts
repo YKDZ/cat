@@ -1,4 +1,3 @@
-import { defineWorkflow } from "@/core";
 import {
   alias,
   document,
@@ -13,10 +12,13 @@ import {
   translatableString,
   translation,
 } from "@cat/db";
-import z from "zod";
-import { tokenizeTask } from "./tokenize";
 import { assertSingleNonNullish } from "@cat/shared/utils";
+import z from "zod";
+
+import { defineWorkflow } from "@/core";
+
 import { getQAPubKey, QAPubPayloadSchema, qaWorkflow } from "./qa";
+import { tokenizeTask } from "./tokenize";
 
 export const qaTranslationWorkflow = await defineWorkflow({
   name: "qa.translation",

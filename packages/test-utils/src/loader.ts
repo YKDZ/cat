@@ -1,4 +1,20 @@
-import { Readable } from "node:stream";
+import type { JSONType } from "@cat/shared/schema/json";
+import type {
+  VectorizedTextData,
+  TranslationSuggestion,
+} from "@cat/shared/schema/misc";
+import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
+
+import {
+  and,
+  cosineDistance,
+  desc,
+  getDrizzleDB,
+  gt,
+  inArray,
+  sql,
+} from "@cat/db";
+import { chunk } from "@cat/db";
 import {
   CatPlugin,
   MFAChallengeResult,
@@ -45,21 +61,6 @@ import {
   type UpdateDimensionContext,
   type InitContext,
 } from "@cat/plugin-core";
-import type { JSONType } from "@cat/shared/schema/json";
-import type {
-  VectorizedTextData,
-  TranslationSuggestion,
-} from "@cat/shared/schema/misc";
-import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
-import {
-  and,
-  cosineDistance,
-  desc,
-  getDrizzleDB,
-  gt,
-  inArray,
-  sql,
-} from "@cat/db";
 import {
   pgTable,
   serial,
@@ -68,7 +69,7 @@ import {
   index,
   unique,
 } from "drizzle-orm/pg-core";
-import { chunk } from "@cat/db";
+import { Readable } from "node:stream";
 
 const vector = pgTable(
   "Vector",
