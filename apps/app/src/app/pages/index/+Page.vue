@@ -7,9 +7,9 @@ import {
   CardTitle,
   CardDescription,
   CardFooter,
-} from "@/app/components/ui/card";
+} from "@cat/app-ui";
 import { useI18n } from "vue-i18n";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { Plus } from "lucide-vue-next";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
@@ -19,7 +19,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div class="px-4 py-2 h-full w-full md:py-4 flex">
+  <div class="flex h-full w-full px-4 py-2 md:py-4">
     <Card class="w-full md:w-1/2 lg:w-1/3">
       <CardHeader>
         <CardTitle>

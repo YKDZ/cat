@@ -1,15 +1,16 @@
-import type { DefineComponent } from "vue";
 import type {
   _JSONSchema,
   JSONSchema,
   NonNullJSONType,
 } from "@cat/shared/schema/json";
-import StringRenderer from "./renderers/StringRenderer.vue";
-import NumberRenderer from "./renderers/NumberRenderer.vue";
+import type { DefineComponent } from "vue";
+
 import BooleanRenderer from "./renderers/BooleanRenderer.vue";
-import EnumRenderer from "./renderers/EnumRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
+import EnumRenderer from "./renderers/EnumRenderer.vue";
+import NumberRenderer from "./renderers/NumberRenderer.vue";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
+import StringRenderer from "./renderers/StringRenderer.vue";
 
 export interface RendererProps {
   propertyKey: string | number;

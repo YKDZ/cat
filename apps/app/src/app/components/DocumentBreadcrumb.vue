@@ -12,8 +12,8 @@ const icon = computed(() => "icon-[mdi--file]");
 
 <template>
   <div class="flex items-center">
-    <div class="text-lg font-bold flex gap-2 items-center">
-      <span :class="icon" class="h-6 w-6 inline-block" /><span>{{
+    <div class="flex items-center gap-2 text-lg font-bold">
+      <span :class="icon" class="inline-block h-6 w-6" /><span>{{
         document.name
       }}</span>
     </div>

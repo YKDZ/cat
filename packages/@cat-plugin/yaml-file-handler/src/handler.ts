@@ -1,3 +1,5 @@
+import type { Pair, Scalar } from "yaml";
+
 import {
   FileExporter,
   FileImporter,
@@ -7,7 +9,6 @@ import {
   type ExportContext,
   type ImportContext,
 } from "@cat/plugin-core";
-import type { Pair, Scalar } from "yaml";
 import {
   isScalar,
   parse,

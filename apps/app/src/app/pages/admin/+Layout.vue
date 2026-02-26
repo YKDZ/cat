@@ -4,11 +4,11 @@ import Header from "./Header.vue";
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full md:flex-row">
+  <div class="flex h-full w-full flex-col md:flex-row">
     <Sidebar />
-    <div class="flex flex-col h-full w-full overflow-y-auto">
+    <div class="flex h-full w-full flex-col overflow-y-auto">
       <Header />
-      <div class="p-4 flex flex-col gap-2">
+      <div class="flex flex-col gap-2 p-4">
         <slot />
       </div>
     </div>

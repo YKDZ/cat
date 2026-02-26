@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Button } from "@/app/components/ui/button";
-import { Spinner } from "@/app/components/ui/spinner";
-import { Slider } from "@/app/components/ui/slider";
+import { Button } from "@cat/app-ui";
+import { Spinner } from "@cat/app-ui";
+import { Slider } from "@cat/app-ui";
 
 const { t } = useI18n();
 
@@ -208,7 +208,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="relative w-full flex flex-col justify-center items-center"
+    class="relative flex w-full flex-col items-center justify-center"
     :style="{
       width: copperWidth + 'px',
       height: copperHeight + 'px',
@@ -216,7 +216,7 @@ onMounted(() => {
   >
     <canvas
       ref="bgCanvasEl"
-      class="rounded-md inset-0 absolute"
+      class="absolute inset-0 rounded-md"
       :width="copperWidth"
       :height="copperHeight"
     />
@@ -224,7 +224,7 @@ onMounted(() => {
     <!-- 图片层 -->
     <canvas
       ref="imgCanvasEl"
-      class="rounded-md inset-0 absolute"
+      class="absolute inset-0 rounded-md"
       :width="copperWidth"
       :height="copperHeight"
       :class="{
@@ -240,7 +240,7 @@ onMounted(() => {
     <!-- 覆盖层（裁剪蒙版） -->
     <canvas
       ref="copperCanvasEl"
-      class="pointer-events-none inset-0 absolute"
+      class="pointer-events-none absolute inset-0"
       :width="copperWidth"
       :height="copperHeight"
     />

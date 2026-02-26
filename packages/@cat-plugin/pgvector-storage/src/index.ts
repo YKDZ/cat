@@ -1,4 +1,5 @@
 import type { CatPlugin } from "@cat/plugin-core";
+
 import { Storage } from "./storage.ts";
 
 class Plugin implements CatPlugin {

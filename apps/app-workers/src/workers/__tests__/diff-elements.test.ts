@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   chunkSet,
   document,
@@ -13,8 +12,10 @@ import {
 } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import { diffElementsTask } from "@/workers/diff-elements.ts";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
+import { diffElementsTask } from "@/workers/diff-elements.ts";
 
 const oldElements = [
   {

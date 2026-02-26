@@ -4,23 +4,23 @@ import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
 import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Textarea } from "@cat/app-ui";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/app/components/ui/form";
-import { Input } from "@/app/components/ui/input";
+} from "@cat/app-ui";
+import { Input } from "@cat/app-ui";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
 import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
-import { Switch } from "@/app/components/ui/switch";
-import { Label } from "@/app/components/ui/label";
+import { Switch } from "@cat/app-ui";
+import { Label } from "@cat/app-ui";
 
 const { t } = useI18n();
 const { info } = useToastStore();

@@ -1,4 +1,3 @@
-import { defineTask } from "@/core";
 import {
   getServiceFromDBId,
   readableToBuffer,
@@ -15,6 +14,8 @@ import {
   assertSingleNonNullish,
 } from "@cat/shared/utils";
 import * as z from "zod";
+
+import { defineTask } from "@/core";
 
 export const ParseFileInputSchema = z.object({
   fileId: z.int(),
@@ -36,6 +37,10 @@ export const parseFileTask = await defineTask({
   name: "file.parse",
   input: ParseFileInputSchema,
   output: ParseFileOutputSchema,
+
+  cache: {
+    enabled: true,
+  },
 
   handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();

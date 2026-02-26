@@ -72,10 +72,10 @@ const progressBarLines = computed<ProgressBarLine[]>(() => {
 </script>
 
 <template>
-  <div class="flex gap-2 items-center">
+  <div class="flex items-center gap-2">
     <ProgressBar :lines="progressBarLines" />
     <div
-      class="text-xs px-3 py-1 rounded-sm bg-muted text-muted-foreground flex gap-0.5 w-36 items-center justify-center"
+      class="flex w-36 items-center justify-center gap-0.5 rounded-sm bg-muted px-3 py-1 text-xs text-muted-foreground"
     >
       <TextTooltip :tooltip="t('翻译进度')">
         <span v-if="progressBarLines[0]"

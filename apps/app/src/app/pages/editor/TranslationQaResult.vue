@@ -62,14 +62,14 @@ const getSeverityIcon = (severity: string) => {
       v-if="qaResultsState?.status === 'pending'"
       class="flex items-center gap-2 p-2 text-sm text-muted-foreground"
     >
-      <Loader2 class="w-4 h-4 animate-spin" />
+      <Loader2 class="h-4 w-4 animate-spin" />
       <span>{{ t("正在加载 QA 结果...") }}</span>
     </div>
 
     <!-- Error State (Network/Server error, not QA error) -->
     <div
       v-else-if="qaResultsState?.error || qaItemsState?.error"
-      class="p-2 text-sm text-destructive bg-destructive/10 rounded-md"
+      class="rounded-md bg-destructive/10 p-2 text-sm text-destructive"
     >
       {{ t("加载 QA 结果失败") }}
     </div>
@@ -81,13 +81,13 @@ const getSeverityIcon = (severity: string) => {
         <div
           v-for="item in items"
           :key="item.id"
-          class="flex gap-2 items-start text-sm p-3 rounded-md border bg-card text-card-foreground shadow-xs animate-in fade-in zoom-in-95 duration-200"
+          class="flex animate-in items-start gap-2 rounded-md border bg-card p-3 text-sm text-card-foreground shadow-xs duration-200 zoom-in-95 fade-in"
         >
           <component
             :is="
               getSeverityIcon((item.meta as unknown as QaIssueMeta).severity)
             "
-            class="w-4 h-4 mt-0.5 shrink-0"
+            class="mt-0.5 h-4 w-4 shrink-0"
             :class="{
               'text-destructive':
                 (item.meta as unknown as QaIssueMeta).severity === 'error',
@@ -97,9 +97,9 @@ const getSeverityIcon = (severity: string) => {
                 (item.meta as unknown as QaIssueMeta).severity === 'info',
             }"
           />
-          <div class="flex-1 min-w-0">
+          <div class="min-w-0 flex-1">
             <div
-              class="font-semibold text-xs text-muted-foreground mb-1 uppercase tracking-wider"
+              class="mb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
             >
               {{ (item.meta as unknown as QaIssueMeta).severity }}
             </div>
@@ -113,10 +113,10 @@ const getSeverityIcon = (severity: string) => {
       <!-- No Issues (Positive feedback) -->
       <div
         v-else
-        class="flex flex-col items-center justify-center p-6 gap-2 text-green-600 bg-green-50/50 rounded-md border border-green-100 animate-in fade-in zoom-in-95 duration-200"
+        class="flex animate-in flex-col items-center justify-center gap-2 rounded-md border border-green-100 bg-green-50/50 p-6 text-green-600 duration-200 zoom-in-95 fade-in"
       >
-        <div class="p-2 bg-green-100 rounded-full">
-          <Check class="w-5 h-5" />
+        <div class="rounded-full bg-green-100 p-2">
+          <Check class="h-5 w-5" />
         </div>
         <span class="text-sm font-medium">{{
           t("QA 检查通过，未发现问题")
@@ -127,7 +127,7 @@ const getSeverityIcon = (severity: string) => {
     <!-- No QA Results (Not checked yet) -->
     <div
       v-else
-      class="p-4 text-center text-muted-foreground text-sm border border-dashed rounded-md bg-muted/30"
+      class="rounded-md border border-dashed bg-muted/30 p-4 text-center text-sm text-muted-foreground"
     >
       {{ t("暂无 QA 检查记录") }}
     </div>

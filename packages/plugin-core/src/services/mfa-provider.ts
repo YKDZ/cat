@@ -1,11 +1,12 @@
-import type { IPluginService } from "@/services/service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import type { MFAProvider as MFAProviderDB } from "@cat/shared/schema/drizzle/user";
 import type {
   JSONSchema,
   JSONType,
   NonNullJSONType,
 } from "@cat/shared/schema/json";
-import type { MFAProvider as MFAProviderDB } from "@cat/shared/schema/drizzle/user";
+
+import type { IPluginService } from "@/services/service";
 
 export type MFAChallengeResult = {
   /**

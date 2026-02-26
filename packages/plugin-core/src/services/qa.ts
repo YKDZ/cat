@@ -1,7 +1,10 @@
-import type { Token } from "@/services/tokenizer.ts";
-import z from "zod";
-import type { IPluginService } from "./service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+
+import z from "zod";
+
+import type { Token } from "@/services/tokenizer.ts";
+
+import type { IPluginService } from "./service";
 
 export const QASeverityValues = ["error", "warning", "info"] as const;
 
@@ -38,7 +41,7 @@ export interface CheckContext {
   terms: {
     term: string;
     translation: string;
-    definition: string;
+    definition: string | null;
   }[];
 }
 

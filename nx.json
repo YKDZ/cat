@@ -47,10 +47,10 @@
       "dependsOn": ["build"],
       "cache": true
     },
-    "format": {
+    "fmt": {
       "cache": true
     },
-    "format:check": {
+    "fmt:check": {
       "cache": true
     }
   },

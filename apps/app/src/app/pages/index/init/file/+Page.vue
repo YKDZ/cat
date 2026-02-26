@@ -7,7 +7,7 @@ import UploadFiles from "./UploadFiles.vue";
 import Finish from "./Finish.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { Settings } from "lucide-vue-next";
-import Separator from "@/app/components/ui/separator/Separator.vue";
+import { Separator } from "@cat/app-ui";
 import { watchClient } from "@/app/utils/vue";
 
 const { t } = useI18n();
@@ -30,7 +30,7 @@ watchClient(progress, (to, from) => {
 </script>
 
 <template>
-  <h1 class="text-2xl font-bold flex gap-2 items-center">
+  <h1 class="flex items-center gap-2 text-2xl font-bold">
     <Settings />
     {{ t("初始化项目") }}
   </h1>

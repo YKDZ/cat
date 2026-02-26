@@ -3,14 +3,14 @@ import { computed, inject } from "vue";
 import * as z from "zod/v4";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "../utils.ts";
-import { Input } from "@/app/components/ui/input";
+import { Input } from "@cat/app-ui";
 import {
   FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
-} from "@/app/components/ui/form";
+} from "@cat/app-ui";
 
 const props = defineProps<{
   propertyKey: string | number;

@@ -49,9 +49,9 @@ const key = computed(() => {
   <div
     :class="{
       'bg-background shadow-sm': !key.value,
-      'bg-background shadow-lg scale-90': key.value,
+      'scale-90 bg-background shadow-lg': key.value,
     }"
-    class="p-0.2 rounded-xs bg-op-60 inline-flex h-4 w-4 aspect-square items-center justify-center"
+    class="p-0.2 bg-op-60 inline-flex aspect-square h-4 w-4 items-center justify-center rounded-xs"
   >
     <span :class="icon" class="color-foreground h-full w-full" />
   </div>

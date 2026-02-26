@@ -9,11 +9,11 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarContent,
-} from "@/app/components/ui/sidebar";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Input } from "@/app/components/ui/input";
+} from "@cat/app-ui";
+import { ScrollArea } from "@cat/app-ui";
+import { Input } from "@cat/app-ui";
 import { ref } from "vue";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { useI18n } from "vue-i18n";
 import { ArrowRight, ChevronDown, ChevronUp } from "lucide-vue-next";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
@@ -66,7 +66,7 @@ const handleDelete = (commentId: number) => {
 
 <template>
   <SidebarContent>
-    <ScrollArea class="w-full h-full">
+    <ScrollArea class="h-full w-full">
       <SidebarGroup>
         <SidebarGroupContent class="flex flex-col gap-3">
           <Comment
@@ -82,7 +82,7 @@ const handleDelete = (commentId: number) => {
   <SidebarFooter>
     <button
       @click="openEditor = !openEditor"
-      class="h-3 py-1 rounded-md transition-colors hover:bg-muted-foreground/10 text-sm flex items-center justify-center bg-muted text-muted-foreground"
+      class="flex h-3 items-center justify-center rounded-md bg-muted py-1 text-sm text-muted-foreground transition-colors hover:bg-muted-foreground/10"
     >
       <ChevronUp class="size-4" v-if="!openEditor" />
       <ChevronDown class="size-4" v-else />

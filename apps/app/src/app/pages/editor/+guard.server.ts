@@ -1,5 +1,7 @@
-import { render, redirect } from "vike/abort";
 import type { PageContextServer } from "vike/types";
+
+import { render, redirect } from "vike/abort";
+
 import { ssc } from "@/server/ssc";
 
 export const guard = async (ctx: PageContextServer) => {

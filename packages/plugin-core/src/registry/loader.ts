@@ -1,4 +1,3 @@
-import type { CatPlugin } from "@/entities/plugin";
 import {
   PluginDataSchema,
   PluginManifestSchema,
@@ -11,6 +10,8 @@ import { access, mkdir, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import z from "zod";
+
+import type { CatPlugin } from "@/entities/plugin";
 
 const PluginObjectSchema = z.custom<CatPlugin>();
 

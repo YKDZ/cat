@@ -1,6 +1,6 @@
+import vue from "@vitejs/plugin-vue";
 import { resolve } from "node:path";
 import { defineConfig, type EnvironmentOptions } from "vite";
-import vue from "@vitejs/plugin-vue";
 
 const components = {
   "user-verify-totp": "src/components/UserVerifyTotp.ts",

@@ -1,3 +1,21 @@
+import type {
+  _JSONSchema,
+  JSONType,
+  NonNullJSONType,
+} from "@cat/shared/schema/json";
+
+import {
+  PluginServiceTypeValues,
+  ResourceTypeValues,
+  ScopeTypeValues,
+  TaskStatusValues,
+  CommentReactionTypeValues,
+  TranslatableElementContextTypeValues,
+  CommentTargetTypeValues,
+  TermTypeValues,
+  TermStatusValues,
+} from "@cat/shared/schema/drizzle/enum";
+import { sql } from "drizzle-orm";
 import {
   pgEnum,
   pgTable,
@@ -17,23 +35,6 @@ import {
   bytea,
   type PgColumn,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
-import {
-  PluginServiceTypeValues,
-  ResourceTypeValues,
-  ScopeTypeValues,
-  TaskStatusValues,
-  CommentReactionTypeValues,
-  TranslatableElementContextTypeValues,
-  CommentTargetTypeValues,
-  TermTypeValues,
-  TermStatusValues,
-} from "@cat/shared/schema/drizzle/enum";
-import type {
-  _JSONSchema,
-  JSONType,
-  NonNullJSONType,
-} from "@cat/shared/schema/json";
 
 export const taskStatus = pgEnum("TaskStatus", TaskStatusValues);
 
@@ -91,7 +92,6 @@ export const account = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-
     ...timestamps,
   },
   (table) => [unique().on(table.providerIssuer, table.providedAccountId)],
@@ -635,7 +635,7 @@ export const term = pgTable("Term", {
 
 export const termConcept = pgTable("TermConcept", {
   id: serial().primaryKey(),
-  definition: text().notNull().default(""),
+  definition: text(),
   subjectId: integer().references(() => termConceptSubject.id, {
     onDelete: "set null",
     onUpdate: "cascade",
@@ -656,6 +656,7 @@ export const termConcept = pgTable("TermConcept", {
 export const termConceptSubject = pgTable("TermConceptSubject", {
   id: serial().primaryKey(),
   subject: text().notNull(),
+  defaultDefinition: text(),
   creatorId: uuid().references(() => user.id, {
     onDelete: "set null",
     onUpdate: "cascade",

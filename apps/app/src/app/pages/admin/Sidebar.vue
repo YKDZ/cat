@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
-} from "@/app/components/ui/sidebar";
+} from "@cat/app-ui";
 import SidebarLogo from "@/app/components/SidebarLogo.vue";
 import { AppWindow, Settings, BrickWall } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";

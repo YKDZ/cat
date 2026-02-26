@@ -1,10 +1,11 @@
+import { logger } from "@cat/shared/utils";
 import { createNodeWebSocket } from "@hono/node-ws";
-import { Hono } from "hono";
+import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
 import { RPCHandler } from "@orpc/server/websocket";
+import { Hono } from "hono";
+
 import router from "@/orpc/router";
 import { getContext } from "@/utils";
-import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
-import { logger } from "@cat/shared/utils";
 
 const app = new Hono();
 

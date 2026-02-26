@@ -1,9 +1,11 @@
+import type { TranslationSuggestion } from "@cat/shared/schema/misc";
+
 import { defineStore, storeToRefs } from "pinia";
 import { ref, shallowRef } from "vue";
-import type { TranslationSuggestion } from "@cat/shared/schema/misc";
-import { orpc } from "@/server/orpc";
+
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { orpc } from "@/server/orpc";
 
 export const useEditorSuggestionStore = defineStore("editorSuggestion", () => {
   const context = storeToRefs(useEditorContextStore());

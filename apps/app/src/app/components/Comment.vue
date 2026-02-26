@@ -2,7 +2,7 @@
 import CommentReaction from "./CommentReaction.vue";
 import Markdown from "@/app/components/Markdown.vue";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
-import { Badge } from "@/app/components/ui/badge";
+import { Badge } from "@cat/app-ui";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import { i18nUseTimeAgoMessages } from "@/app/utils/i18n";
 import { orpc } from "@/server/orpc";
@@ -11,14 +11,10 @@ import type { User } from "@cat/shared/schema/drizzle/user";
 import { useDateFormat, useTimeAgo } from "@vueuse/core";
 import { EllipsisVertical, Trash, Smile, Reply } from "lucide-vue-next";
 import { ref } from "vue";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@cat/app-ui";
 import CommentReact from "./CommentReact.vue";
 import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 import { useQuery } from "@pinia/colada";
@@ -128,10 +124,10 @@ const handleDelete = async () => {
         'bg-accent text-accent-foreground': !reply,
         'bg-muted text-muted-foreground': reply,
       }"
-      class="relative inline-block w-full outline rounded-xs"
+      class="relative inline-block w-full rounded-xs outline"
     >
       <div class="flex items-center justify-between">
-        <div class="px-2 py-2 relative flex gap-1 w-full text-sm">
+        <div class="relative flex w-full gap-1 px-2 py-2 text-sm">
           <UserAvatar
             v-model="user"
             :user-id="comment.userId"
@@ -161,18 +157,18 @@ const handleDelete = async () => {
         </Popover>
       </div>
 
-      <div class="flex px-2 py-1 w-full items-start">
+      <div class="flex w-full items-start px-2 py-1">
         <Reply
           v-if="reply"
-          class="size-4 shrink-0 mr-1 text-muted-foreground"
+          class="mr-1 size-4 shrink-0 text-muted-foreground"
         />
         <Markdown
           :content="comment.content"
-          class="bg-muted flex-1 min-w-0 wrap-break-word"
+          class="min-w-0 flex-1 bg-muted wrap-break-word"
         />
       </div>
 
-      <div class="bg-muted flex gap-1 p-1">
+      <div class="flex gap-1 bg-muted p-1">
         <Popover>
           <PopoverTrigger as-child>
             <Badge variant="outline" class="cursor-pointer">
@@ -180,7 +176,7 @@ const handleDelete = async () => {
             </Badge>
           </PopoverTrigger>
           <PopoverContent>
-            <div class="flex gap-1 items-center justify-between text-sm">
+            <div class="flex items-center justify-between gap-1 text-sm">
               <CommentReact
                 v-for="emoji in emojis"
                 :key="emoji.type"
@@ -194,7 +190,7 @@ const handleDelete = async () => {
             </div>
           </PopoverContent>
         </Popover>
-        <div class="flex gap-1 h-6">
+        <div class="flex h-6 gap-1">
           <CommentReaction
             v-for="emoji in emojis"
             :key="emoji.type"

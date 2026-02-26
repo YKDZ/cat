@@ -1,3 +1,18 @@
+import {
+  chunk,
+  term,
+  termConcept,
+  termConceptSubject,
+  translatableString,
+  getDrizzleDB,
+  eq,
+  and,
+  inArray,
+} from "@cat/db";
+import { PluginManager } from "@cat/plugin-core";
+import { logger } from "@cat/shared/utils";
+import * as z from "zod";
+
 /**
  * @module recognize-term
  *
@@ -23,19 +38,7 @@
  * @see {@link lookupTerms} for fast deterministic lexical matching
  */
 import { defineTask } from "@/core";
-import {
-  chunk,
-  term,
-  termConcept,
-  translatableString,
-  getDrizzleDB,
-  eq,
-  and,
-  inArray,
-} from "@cat/db";
-import { PluginManager } from "@cat/plugin-core";
-import { logger } from "@cat/shared/utils";
-import * as z from "zod";
+
 import { spotTermTask } from "./spot-term.ts";
 
 export const RecognizeTermInputSchema = z.object({
@@ -53,7 +56,7 @@ export const RecognizeTermOutputSchema = z.object({
     z.object({
       term: z.string(),
       translation: z.string(),
-      definition: z.string(),
+      definition: z.string().nullable(),
     }),
   ),
 });
@@ -62,6 +65,11 @@ export const recognizeTermTask = await defineTask({
   name: "term.recognize",
   input: RecognizeTermInputSchema,
   output: RecognizeTermOutputSchema,
+
+  cache: {
+    enabled: true,
+    ttl: 3600,
+  },
 
   handler: async (data, ctx) => {
     const { client: drizzle } = await getDrizzleDB();
@@ -234,10 +242,17 @@ export const recognizeTermTask = await defineTask({
         termConceptId: term.termConceptId,
         translation: translatableString.value,
         definition: termConcept.definition,
+        defaultDefinition: termConceptSubject.defaultDefinition,
+        conceptId: termConcept.id,
+        glossaryId: termConcept.glossaryId,
       })
       .from(term)
       .innerJoin(termConcept, eq(termConcept.id, term.termConceptId))
       .innerJoin(translatableString, eq(translatableString.id, term.stringId))
+      .leftJoin(
+        termConceptSubject,
+        eq(termConcept.subjectId, termConceptSubject.id),
+      )
       .where(
         and(
           inArray(term.termConceptId, termConceptIds),
@@ -249,7 +264,9 @@ export const recognizeTermTask = await defineTask({
     const resultTerms: Array<{
       term: string;
       translation: string;
-      definition: string;
+      definition: string | null;
+      conceptId: number;
+      glossaryId: string;
     }> = [];
     const processedKeys = new Set<string>();
 
@@ -266,7 +283,9 @@ export const recognizeTermTask = await defineTask({
           resultTerms.push({
             term: candidate.text,
             translation: t.translation,
-            definition: t.definition,
+            definition: t.definition || t.defaultDefinition,
+            conceptId: t.conceptId,
+            glossaryId: t.glossaryId,
           });
           processedKeys.add(key);
         }

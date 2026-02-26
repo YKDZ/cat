@@ -20,8 +20,7 @@ The primary related technologies and frameworks are:
 - [tailwindcss](https://tailwindcss.com/): utility-first CSS framework
 - [zod](https://zod.dev/): validation library
 - [nx](https://nx.dev/): monorepo manager
-- [oxlint](https://oxc.rs/): linter & formatter
-- [prettier](https://prettier.io/): formatter
+- [oxc](https://oxc.rs/): linter & formatter
 
 ## Local Development
 
@@ -73,7 +72,7 @@ pnpm nx sync
 ### Format the code
 
 ```bash
-pnpm nx run-many --target=format --projects=*
+pnpm nx run-many --target=fmt --projects=*
 ```
 
 ### Lint the code

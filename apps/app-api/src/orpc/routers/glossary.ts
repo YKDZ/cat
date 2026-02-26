@@ -1,6 +1,9 @@
-import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
-import * as z from "zod/v4";
-import { TermDataSchema } from "@cat/shared/schema/misc";
+import {
+  AsyncMessageQueue,
+  firstOrGivenService,
+  lookupTerms,
+} from "@cat/app-server-shared/utils";
+import { createTermTask, recognizeTermTask } from "@cat/app-workers";
 import {
   count,
   eq,
@@ -18,19 +21,17 @@ import {
   TermStatusValues,
   TermTypeValues,
 } from "@cat/shared/schema/drizzle/enum";
+import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
+import { TermDataSchema } from "@cat/shared/schema/misc";
 import {
   assertSingleNonNullish,
   assertSingleOrNull,
   logger,
 } from "@cat/shared/utils";
-import { createTermTask, recognizeTermTask } from "@cat/app-workers";
-import { authed } from "@/orpc/server";
 import { ORPCError } from "@orpc/client";
-import {
-  AsyncMessageQueue,
-  firstOrGivenService,
-  lookupTerms,
-} from "@cat/app-server-shared/utils";
+import * as z from "zod/v4";
+
+import { authed } from "@/orpc/server";
 
 export const deleteTerm = authed
   .input(
@@ -305,7 +306,7 @@ export const findTerm = authed
     const termsQueue = new AsyncMessageQueue<{
       term: string;
       translation: string;
-      definition: string;
+      definition: string | null;
       termLanguageId: string;
       translationLanguageId: string;
     }>();
@@ -316,7 +317,9 @@ export const findTerm = authed
       terms: {
         term: string;
         translation: string;
-        definition: string;
+        definition: string | null;
+        conceptId?: number;
+        glossaryId?: string;
       }[],
     ) => {
       const newTerms = terms.filter((t) => {
@@ -331,6 +334,8 @@ export const findTerm = authed
           term: term.term,
           translation: term.translation,
           definition: term.definition,
+          conceptId: term.conceptId,
+          glossaryId: term.glossaryId,
           termLanguageId: element.languageId,
           translationLanguageId,
         })),

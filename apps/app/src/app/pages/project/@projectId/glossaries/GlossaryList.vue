@@ -6,7 +6,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/components/ui/table";
+} from "@cat/app-ui";
 import GlossaryListItem from "./GlossaryListItem.vue";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { useI18n } from "vue-i18n";

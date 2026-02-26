@@ -1,3 +1,5 @@
+import type { ResourceType } from "@cat/shared/schema/drizzle/enum";
+
 import {
   and,
   eq,
@@ -12,7 +14,6 @@ import {
   userRole,
   type DrizzleClient,
 } from "@cat/db";
-import type { ResourceType } from "@cat/shared/schema/drizzle/enum";
 
 type PermissionCheckInput = {
   resourceType: ResourceType;

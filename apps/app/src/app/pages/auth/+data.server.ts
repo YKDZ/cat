@@ -1,4 +1,5 @@
 import type { PageContextServer } from "vike/types";
+
 import { ssc } from "@/server/ssc";
 
 export const data = async (ctx: PageContextServer) => {

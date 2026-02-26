@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import {
   account,
   eq,
@@ -8,6 +7,7 @@ import {
   user as userTable,
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
+import { randomBytes } from "node:crypto";
 
 export const acquireAccount = async (
   id: string,

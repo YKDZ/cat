@@ -48,7 +48,7 @@ watch(text, async () => {
 </script>
 
 <template>
-  <div class="w-full text-base leading-relaxed wrap-break-word font-sans">
+  <div class="w-full font-sans text-base leading-relaxed wrap-break-word">
     <div v-if="text.length === 0">
       <Empty />
     </div>
@@ -63,9 +63,9 @@ watch(text, async () => {
       />
     </div>
 
-    <div v-if="showRaw" class="text-xs text-gray-500 border-t pt-2">
+    <div v-if="showRaw" class="border-t pt-2 text-xs text-gray-500">
       <pre
-        class="bg-gray-900 text-green-400 p-2 rounded overflow-auto max-h-40 mt-1"
+        class="mt-1 max-h-40 overflow-auto rounded bg-gray-900 p-2 text-green-400"
         >{{ state.data }}</pre
       >
     </div>

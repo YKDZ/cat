@@ -2,7 +2,7 @@
 import { computed, inject } from "vue";
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey } from "../utils.ts";
-import { Switch } from "@/app/components/ui/switch";
+import { Switch } from "@cat/app-ui";
 import {
   FormControl,
   FormDescription,
@@ -10,7 +10,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/app/components/ui/form";
+} from "@cat/app-ui";
 
 const props = defineProps<{
   propertyKey: string | number;

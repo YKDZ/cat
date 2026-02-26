@@ -1,5 +1,6 @@
 import "dotenv/config";
 import type { QueueOptions } from "bullmq";
+
 import { randomUUID } from "node:crypto";
 
 const url = new URL(process.env.REDIS_URL ?? "redis://localhost:6379");

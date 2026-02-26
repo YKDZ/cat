@@ -1,7 +1,5 @@
-import { randomBytes } from "node:crypto";
-import * as z from "zod/v4";
-import { JSONSchemaSchema, safeZDotJson } from "@cat/shared/schema/json";
 import type { AuthProvider, MFAProvider } from "@cat/plugin-core";
+
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import {
   account as accountTable,
@@ -14,11 +12,14 @@ import {
   user as userTable,
   type RedisClientType,
 } from "@cat/db";
+import { JSONSchemaSchema, safeZDotJson } from "@cat/shared/schema/json";
 import {
   assertSingleNonNullish,
   assertSingleOrNull,
   type HTTPHelpers,
 } from "@cat/shared/utils";
+import { randomBytes } from "node:crypto";
+import * as z from "zod/v4";
 
 const finishLogin = async (
   redis: RedisClientType,
@@ -41,8 +42,9 @@ const finishLogin = async (
 };
 
 import { HashTypeSchema, type RedisPayload } from "@cat/shared/schema/redis";
-import { authed, base } from "@/orpc/server";
 import { ORPCError } from "@orpc/client";
+
+import { authed, base } from "@/orpc/server";
 
 const getPreAuthSessionKey = (sessionId: string) =>
   `auth:preAuth:session:${sessionId}`;

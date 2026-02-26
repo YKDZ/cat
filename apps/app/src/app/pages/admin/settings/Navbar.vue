@@ -7,7 +7,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   navigationMenuTriggerStyle,
-} from "@/app/components/ui/navigation-menu";
+} from "@cat/app-ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { Server } from "lucide-vue-next";
 
@@ -34,7 +34,7 @@ const items = ref([
           :class="navigationMenuTriggerStyle()"
           :active="item.href === ctx.urlPathname"
         >
-          <div class="flex gap-1 items-center">
+          <div class="flex items-center gap-1">
             <component :is="item.icon" />
             {{ item.title }}
           </div>

@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+
 import { safeZDotJson } from "@/schema/json.ts";
 
 export const DrizzleDateTimeSchema = z.coerce.date();
@@ -67,6 +68,8 @@ export const TermDataSchema = z.object({
   translationLanguageId: z.string(),
   definition: z.string().nullish(),
   subjectId: z.int().nullish(),
+  conceptId: z.int().nullish(),
+  glossaryId: z.string().nullish(),
 });
 
 export const FileMetaSchema = z.object({

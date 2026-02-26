@@ -1,6 +1,8 @@
-import type { IPluginService } from "@/services/service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+
 import { Readable } from "node:stream";
+
+import type { IPluginService } from "@/services/service";
 
 export type PutStreamContext = {
   key: string;

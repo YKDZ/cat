@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   document,
   eq,
@@ -13,6 +12,8 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
 import { createElementWorkflow } from "../create-element";
 
 let cleanup: () => Promise<void>;

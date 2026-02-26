@@ -11,13 +11,13 @@ import {
   SidebarFooter,
   SidebarMenuSkeleton,
   SidebarRail,
-} from "@/app/components/ui/sidebar";
+} from "@cat/app-ui";
 import SidebarLogo from "@/app/components/SidebarLogo.vue";
 import SidebarElement from "./SidebarElement.vue";
 import ElementSearcher from "./ElementSearcher.vue";
 import SidebarPagination from "./SidebarPagination.vue";
 import { useEditorElementStore } from "@/app/stores/editor/element";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { ScrollArea } from "@cat/app-ui";
 
 const { displayedElements } = storeToRefs(useEditorElementStore());
 
@@ -36,7 +36,7 @@ const sidebarId = "editor";
         </SidebarMenuItem> </SidebarMenu
     ></SidebarHeader>
     <SidebarContent class="overflow-x-hidden">
-      <ScrollArea class="w-full h-full">
+      <ScrollArea class="h-full w-full">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu v-if="displayedElements.length > 0">

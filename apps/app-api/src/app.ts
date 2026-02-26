@@ -1,11 +1,12 @@
 import { Hono } from "hono";
-import loggerMiddleware from "@/middleware/logger.ts";
-import pluginHandler from "@/handler/plugin.ts";
-import telefuncHandler from "@/handler/telefunc.ts";
-import orpcHandler from "@/handler/orpc.ts";
+
 import healthHandler from "@/handler/health.ts";
+import orpcHandler from "@/handler/orpc.ts";
+import pluginHandler from "@/handler/plugin.ts";
 import storageHandler from "@/handler/storage.ts";
+import telefuncHandler from "@/handler/telefunc.ts";
 import wsHandler, { wsHelper } from "@/handler/ws.ts";
+import loggerMiddleware from "@/middleware/logger.ts";
 
 const app = new Hono();
 globalThis.app = app;

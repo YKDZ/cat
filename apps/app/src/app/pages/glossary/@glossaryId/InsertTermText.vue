@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Textarea } from "@cat/app-ui";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { orpc } from "@/server/orpc";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 
 const { t } = useI18n();
 
@@ -92,7 +92,7 @@ const handleInsert = async () => {
       </p>
       <p>{{ t("术语都是双向的") }}</p>
     </article>
-    <div class="flex gap-3 items-start">
+    <div class="flex items-start gap-3">
       <div class="flex flex-col gap-2">
         <span>{{ t("{amount} 条术语", { amount: terms.length }) }}</span>
         <LanguagePicker v-model="termLanguageId" full-width />

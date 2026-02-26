@@ -6,14 +6,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
+} from "@cat/app-ui";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 import { ref } from "vue";
 import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast";
-import { useSidebar } from "@/app/components/ui/sidebar";
-import { Spinner } from "@/app/components/ui/spinner";
+import { useSidebar } from "@cat/app-ui";
+import { Spinner } from "@cat/app-ui";
 
 const props = defineProps<{
   user: Pick<User, "id" | "name"> | null;
@@ -51,7 +51,7 @@ const handleLogout = async () => {
         :with-name="state === 'expanded'"
         :user
         :size="state === 'collapsed' ? 16 : 24"
-        class="w-full h-full hover:bg-background px-2 py-1 cursor-pointer"
+        class="h-full w-full cursor-pointer px-2 py-1 hover:bg-background"
       />
     </DropdownMenuTrigger>
     <DropdownMenuContent class="w-56">

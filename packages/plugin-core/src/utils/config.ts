@@ -1,3 +1,6 @@
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import type { JSONType } from "@cat/shared/schema/json";
+
 import {
   and,
   eq,
@@ -6,8 +9,6 @@ import {
   pluginInstallation,
   type DrizzleTransaction,
 } from "@cat/db";
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
-import type { JSONType } from "@cat/shared/schema/json";
 import { assertSingleOrNull } from "@cat/shared/utils";
 
 export const getPluginConfig = async (

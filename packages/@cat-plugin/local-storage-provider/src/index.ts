@@ -1,4 +1,5 @@
 import type { CatPlugin, PluginContext } from "@cat/plugin-core";
+
 import { Provider } from "./provider.ts";
 
 class Plugin implements CatPlugin {

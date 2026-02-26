@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 
 const ctx = usePageContext();
 

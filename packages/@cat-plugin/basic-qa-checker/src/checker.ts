@@ -1,6 +1,8 @@
-import { countTokenValues } from "@/utils/token.ts";
 import type { CheckContext, QAIssue } from "@cat/plugin-core";
+
 import { QAChecker } from "@cat/plugin-core";
+
+import { countTokenValues } from "@/utils/token.ts";
 
 export class NumberConsistencyChecker extends QAChecker {
   getId = (): string => "number-consistency-checker";

@@ -1,12 +1,14 @@
-import { defineStore, storeToRefs } from "pinia";
-import { reactive, computed } from "vue";
-import * as z from "zod/v4";
+import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
+
+import { TranslatableElementSchema } from "@cat/shared/schema/drizzle/document";
 import {
   ElementTranslationStatusSchema,
   type ElementTranslationStatus,
 } from "@cat/shared/schema/misc";
-import { TranslatableElementSchema } from "@cat/shared/schema/drizzle/document";
-import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
+import { defineStore, storeToRefs } from "pinia";
+import { reactive, computed } from "vue";
+import * as z from "zod/v4";
+
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { orpc } from "@/server/orpc";
 

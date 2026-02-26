@@ -8,20 +8,17 @@ import {
   ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
-  ComboboxList,
   ComboboxItemIndicator,
+  ComboboxList,
   ComboboxTrigger,
-} from "@/app/components/ui/combobox";
-import {
+  ComboboxViewport,
   TagsInput,
   TagsInputItem,
   TagsInputItemDelete,
-} from "@/app/components/ui/tags-input";
-import { useI18n } from "vue-i18n";
-import { Check, Plus, Search } from "lucide-vue-next";
-import { Button } from "@/app/components/ui/button";
-import ComboboxViewport from "@/app/components/ui/combobox/ComboboxViewport.vue";
+  Button,
+} from "@cat/app-ui";
 import { shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
@@ -68,14 +65,14 @@ const onScroll = (e: Event) => {
 
 <template>
   <Combobox :modelValue="selectedOptions" ignore-filter>
-    <TagsInput v-model="selectedOptions" class="px-2 gap-2 min-w-96 w-full">
-      <div class="flex gap-2 flex-wrap items-center">
+    <TagsInput v-model="selectedOptions" class="w-full min-w-96 gap-2 px-2">
+      <div class="flex flex-wrap items-center gap-2">
         <TagsInputItem
           v-for="option in selectedOptions"
           :key="option.toString()"
           :value="option"
         >
-          <span class="py-0.5 px-2 text-sm rounded bg-transparent">{{
+          <span class="rounded bg-transparent px-2 py-0.5 text-sm">{{
             option.content
           }}</span>
           <TagsInputItemDelete />
@@ -94,12 +91,12 @@ const onScroll = (e: Event) => {
     <ComboboxList :portal="props.portal">
       <div class="relative w-full max-w-sm items-center">
         <ComboboxInput
-          class="focus-visible:ring-0 rounded-none h-10"
+          class="h-10 rounded-none focus-visible:ring-0"
           v-model="search"
           :placeholder
         />
         <span
-          class="absolute start-0 inset-y-0 flex items-center justify-center px-3"
+          class="absolute inset-y-0 inset-s-0 flex items-center justify-center px-3"
         >
           <Search class="size-4 text-muted-foreground" />
         </span>
@@ -115,11 +112,14 @@ const onScroll = (e: Event) => {
             v-slot="{ option }"
             :options
             :text-content="(x) => x.content"
-            :estimate-size="48"
+            :estimate-size="40"
           >
             <ComboboxItem
               class="w-full"
-              @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
+              @select="
+                (e: { detail: { value: PickerOption<T> } }) =>
+                  onSelect(e.detail.value as PickerOption<T>)
+              "
               :value="option"
             >
               {{ option.content }}

@@ -14,7 +14,7 @@ const compiled = computed(() => marked(props.content));
 </script>
 
 <template>
-  <div class="prose-sm markdown" v-html="compiled" />
+  <div class="markdown prose-sm" v-html="compiled" />
 </template>
 
 <style lang="css" scoped>

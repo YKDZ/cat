@@ -5,12 +5,8 @@ import { useEditorTableStore } from "@/app/stores/editor/table";
 import { orpc } from "@/server/orpc";
 import type { TranslatableElementContextType } from "@cat/shared/schema/drizzle/enum";
 import { storeToRefs } from "pinia";
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarContent,
-} from "@/app/components/ui/sidebar";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { SidebarGroup, SidebarGroupContent, SidebarContent } from "@cat/app-ui";
+import { ScrollArea } from "@cat/app-ui";
 import { useQuery } from "@pinia/colada";
 
 const { elementId } = storeToRefs(useEditorTableStore());
@@ -41,7 +37,7 @@ const componentFromType = (type: TranslatableElementContextType) => {
 
 <template>
   <SidebarContent>
-    <ScrollArea class="w-full h-full">
+    <ScrollArea class="h-full w-full">
       <SidebarGroup>
         <SidebarGroupContent class="flex flex-col gap-3">
           <component

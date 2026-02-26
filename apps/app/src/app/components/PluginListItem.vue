@@ -4,9 +4,7 @@ import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
-import Card from "@/app/components/ui/card/Card.vue";
-import CardHeader from "@/app/components/ui/card/CardHeader.vue";
-import CardTitle from "@/app/components/ui/card/CardTitle.vue";
+import { Card, CardHeader, CardTitle } from "@cat/app-ui";
 import { orpc } from "@/server/orpc";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import { useQuery } from "@pinia/colada";
@@ -52,25 +50,25 @@ useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
           v-show="plugin.iconUrl && isIconLoaded"
           ref="iconImgEl"
           :src="plugin.iconUrl ?? ``"
-          class="rounded-md max-h-12 min-h-12 min-w-12 aspect-ratio-square object-cover"
+          class="aspect-ratio-square max-h-12 min-h-12 min-w-12 rounded-md object-cover"
         />
         <span
           v-if="!isIconLoaded"
-          class="text-3xl text-primary-foreground rounded-md bg-primary inline-flex h-12 w-12 aspect-ratio-square select-none items-center justify-center"
+          class="aspect-ratio-square inline-flex h-12 w-12 items-center justify-center rounded-md bg-primary text-3xl text-primary-foreground select-none"
           >{{ simpleName.charAt(0).toUpperCase() }}</span
         >
       </div>
       <div class="flex flex-col gap-2">
         <CardTitle>{{ simpleName }}</CardTitle>
         <div
-          class="text-xs text-muted-foreground flex gap-1 select-none text-nowrap items-center"
+          class="flex items-center gap-1 text-xs text-nowrap text-muted-foreground select-none"
         >
           <span
             v-if="plugin.isExternal"
-            class="px-2 py-1 rounded-sm bg-muted"
+            class="rounded-sm bg-muted px-2 py-1"
             >{{ t("内部插件") }}</span
           >
-          <span v-if="state.data" class="px-2 py-1 rounded-sm bg-muted">{{
+          <span v-if="state.data" class="rounded-sm bg-muted px-2 py-1">{{
             t("已安装")
           }}</span>
         </div>

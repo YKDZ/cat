@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
 import {
   chunk,
   chunkSet,
@@ -17,9 +16,11 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
+import { autoTranslateWorkflow } from "../auto-translate.ts";
 import { createElementWorkflow } from "../create-element.ts";
 import { createTranslationWorkflow } from "../create-translation.ts";
-import { autoTranslateWorkflow } from "../auto-translate.ts";
 
 const data = [
   {

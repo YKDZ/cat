@@ -1,0 +1,63 @@
+name: Sync Shadcn-Vue Components
+
+on:
+  schedule:
+    # Run at 00:00 UTC on the 1st day of every month
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+jobs:
+  check-components:
+    name: Check Shadcn-Vue Components
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Nx Sync
+        run: pnpm nx sync:check
+
+      - name: Check Component Sync Status
+        run: node apps/app/scripts/sync-shadcn-components.js --check
+        id: check-components
+        continue-on-error: true
+
+      - name: Create Issue if Updates Needed
+        if: steps.check-components.outcome == 'failure'
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: "🔄 Shadcn-Vue Components Update Available"
+          content-filepath: .github/ISSUE_TEMPLATE/sync-components.md
+          labels: |
+            dependencies
+            shadcn-vue
+            automated
+          assignees: ""
+
+      - name: Output Summary
+        run: |
+          echo "## Component Sync Check Summary"
+          echo ""
+          if [ "${{ steps.check-components.outcome }}" == "success" ]; then
+            echo "✅ All components are up to date"
+          else
+            echo "❌ Updates available - please run locally:"
+            echo "\`\`\`bash"
+            echo "node apps/app/scripts/sync-shadcn-components.js"
+            echo "\`\`\`"
+          fi

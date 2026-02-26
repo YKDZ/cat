@@ -10,7 +10,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/app/components/ui/collapsible";
+} from "@cat/app-ui";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { storeToRefs } from "pinia";
@@ -34,16 +34,16 @@ const isApproved = computed<boolean>(() => {
     <Collapsible>
       <CollapsibleTrigger class="w-full">
         <div
-          class="px-3 py-2 bg-background flex w-full cursor-pointer items-center justify-between"
+          class="flex w-full cursor-pointer items-center justify-between bg-background px-3 py-2"
           :class="{
             'bg-green-100 hover:bg-green-200': isApproved,
           }"
         >
-          <div class="flex gap-2 items-center">
+          <div class="flex items-center gap-2">
             <UserAvatar :user-id="translation.translatorId" :size="36" />
             <TokenRenderer :text="translation.text" />
           </div>
-          <div class="flex gap-2 items-center">
+          <div class="flex items-center gap-2">
             <TranslationApprovalBtn :translation="translation" />
             <TranslationVote class="ml-auto" :translation />
           </div></div
@@ -51,7 +51,7 @@ const isApproved = computed<boolean>(() => {
       <CollapsibleContent class="CollapsibleContent">
         <TranslationQaResult
           :translation-id="translation.id"
-          class="p-2 border-t"
+          class="border-t p-2"
         />
       </CollapsibleContent>
     </Collapsible>

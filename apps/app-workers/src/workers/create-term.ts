@@ -1,4 +1,3 @@
-import { defineWorkflow } from "@/core";
 import { createStringFromData } from "@cat/app-server-shared/utils";
 import {
   and,
@@ -11,6 +10,9 @@ import {
 } from "@cat/db";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
+
+import { defineWorkflow } from "@/core";
+
 import { vectorizeToChunkSetTask } from "./vectorize";
 
 export const CreateTermInputSchema = z.object({
@@ -103,7 +105,11 @@ export const createTermTask = await defineWorkflow({
         : [];
 
       const entryMap = new Map<string, number>();
-      existingEntries.forEach((e) => entryMap.set(e.definition, e.id));
+      existingEntries.forEach((e) => {
+        if (e.definition !== null) {
+          entryMap.set(e.definition, e.id);
+        }
+      });
 
       const missingDefinitions = definitions.filter((s) => !entryMap.has(s));
 
@@ -120,7 +126,11 @@ export const createTermTask = await defineWorkflow({
             id: termConcept.id,
             definition: termConcept.definition,
           });
-        inserted.forEach((e) => entryMap.set(e.definition, e.id));
+        inserted.forEach((e) => {
+          if (e.definition !== null) {
+            entryMap.set(e.definition, e.id);
+          }
+        });
       }
 
       const itemsWithoutSubject = data.data

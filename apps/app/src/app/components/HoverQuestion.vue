@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { Button } from "@/app/components/ui/button";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/app/components/ui/hover-card";
+import { Button } from "@cat/app-ui";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@cat/app-ui";
 import { BadgeQuestionMark, CircleQuestionMark } from "lucide-vue-next";
 </script>
 
@@ -16,7 +12,7 @@ import { BadgeQuestionMark, CircleQuestionMark } from "lucide-vue-next";
     <HoverCardContent class="w-80">
       <div class="flex justify-between space-x-4">
         <BadgeQuestionMark :size="32" class="shrink-0" />
-        <div class="flex-1 prose-sm">
+        <div class="prose-sm flex-1">
           <slot />
         </div>
       </div>

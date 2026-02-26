@@ -1,10 +1,5 @@
-import { extname } from "node:path";
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkStringify from "remark-stringify";
-import remarkGfm from "remark-gfm";
 import type { Root, RootContent, PhrasingContent } from "mdast";
-import * as z from "zod";
+
 import {
   FileExporter,
   FileImporter,
@@ -14,6 +9,12 @@ import {
   type ExportContext,
   type ImportContext,
 } from "@cat/plugin-core";
+import { extname } from "node:path";
+import remarkGfm from "remark-gfm";
+import remarkParse from "remark-parse";
+import remarkStringify from "remark-stringify";
+import { unified } from "unified";
+import * as z from "zod";
 
 interface ElementMeta {
   index: number;

@@ -34,5 +34,5 @@ jobs:
           REDIS_URL: "redis://localhost:6379"
         run: |
           pnpm exec nx run-many \
-            --targets=lint,typecheck,format:check \
+            --targets=lint,typecheck,fmt:check \
             --parallel=3

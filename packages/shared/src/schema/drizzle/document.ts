@@ -1,7 +1,9 @@
 import * as z from "zod/v4";
-import { DrizzleDateTimeSchema } from "../misc.ts";
-import { safeZDotJson } from "@/schema/json.ts";
+
 import { TranslatableElementContextTypeSchema } from "@/schema/drizzle/enum.ts";
+import { safeZDotJson } from "@/schema/json.ts";
+
+import { DrizzleDateTimeSchema } from "../misc.ts";
 
 export const DocumentSchema = z.object({
   id: z.uuidv4(),

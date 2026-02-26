@@ -4,7 +4,7 @@ import { storeToRefs } from "pinia";
 import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";
-import { SidebarMenuButton } from "@/app/components/ui/sidebar";
+import { SidebarMenuButton } from "@cat/app-ui";
 import type { ElementTranslationStatus } from "@cat/shared/schema/misc";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 
@@ -35,10 +35,10 @@ const handleClick = async () => {
   <SidebarMenuButton
     sidebarId="editor"
     @click="handleClick"
-    :class="{ 'font-bold bg-muted': element.id === elementId }"
+    :class="{ 'bg-muted font-bold': element.id === elementId }"
   >
     <span
-      class="shrink-0 w-2 h-2"
+      class="h-2 w-2 shrink-0"
       :class="{
         'bg-yellow-300': pendingElements.has(element.id),
         'bg-red-300':

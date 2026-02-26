@@ -1,4 +1,3 @@
-import { defineWorkflow } from "@/core";
 import { searchMemory } from "@cat/app-server-shared/utils";
 import {
   aliasedTable,
@@ -12,6 +11,9 @@ import {
 } from "@cat/db";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
+
+import { defineWorkflow } from "@/core";
+
 import { searchChunkWorkflow } from "./search-chunk.ts";
 
 export const SearchMemoryInputSchema = z.object({

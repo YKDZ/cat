@@ -1,5 +1,6 @@
-import { Membrane } from "./membrane.ts";
 import { logger } from "@cat/shared/utils";
+
+import { Membrane } from "./membrane.ts";
 
 export const UNWRAP = Symbol.for("sce.unwrap");
 

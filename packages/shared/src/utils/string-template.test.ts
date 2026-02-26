@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { useStringTemplate } from "./string-template";
 
 test("should return correct string", () => {

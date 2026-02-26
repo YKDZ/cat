@@ -1,4 +1,5 @@
 import type { CatPlugin, PluginContext } from "@cat/plugin-core";
+
 import { OpenAITermExtractor, OpenAITermAligner } from "./service";
 
 class Plugin implements CatPlugin {

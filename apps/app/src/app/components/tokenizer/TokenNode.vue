@@ -60,7 +60,7 @@ const tokenTypeClass = computed(() => {
 
 <template>
   <span
-    class="inline-block transition-colors duration-200 whitespace-pre-wrap"
+    class="inline-block whitespace-pre-wrap transition-colors duration-200"
     :class="[
       bgColorClass,
       tokenTypeClass,

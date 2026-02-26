@@ -1,9 +1,11 @@
-import { defineWorkflow } from "@/core";
+import { insertMemory } from "@cat/app-server-shared/utils";
 import { getDrizzleDB, getRedisDB, translation } from "@cat/db";
 import { zip } from "@cat/shared/utils";
 import * as z from "zod";
+
+import { defineWorkflow } from "@/core";
+
 import { createTranslatableStringTask } from "./create-translatable-string";
-import { insertMemory } from "@cat/app-server-shared/utils";
 import { qaTranslationWorkflow } from "./qa-translation";
 
 export const getCreateTranslationPubKey = (documentId: string): string => {

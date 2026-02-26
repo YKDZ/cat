@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="text-lg font-500 flex items-center">
+  <div class="font-500 flex items-center text-lg">
     <UserAvatar :user-id="glossary.creatorId" :size="30" with-name link />
     <Slash large />{{ glossary.name }}
   </div>

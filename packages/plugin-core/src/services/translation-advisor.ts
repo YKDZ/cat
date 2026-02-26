@@ -1,6 +1,7 @@
-import type { TranslationSuggestion } from "@cat/shared/schema/misc";
-import type { IPluginService } from "@/services/service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import type { TranslationSuggestion } from "@cat/shared/schema/misc";
+
+import type { IPluginService } from "@/services/service";
 
 export type CanSuggestContext = {
   languageFromId: string;
@@ -9,7 +10,7 @@ export type CanSuggestContext = {
 
 export type GetSuggestionsContext = {
   value: string;
-  terms: { term: string; translation: string; definition: string }[];
+  terms: { term: string; translation: string; definition: string | null }[];
   languageFromId: string;
   languageToId: string;
 };

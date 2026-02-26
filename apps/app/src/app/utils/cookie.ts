@@ -1,6 +1,7 @@
-import { customRef, ref, watch, type Ref } from "vue";
 import type { PageContext, PageContextServer } from "vike/types";
+
 import { useCookies } from "@vueuse/integrations/useCookies";
+import { customRef, ref, watch, type Ref } from "vue";
 
 type CookieRefOptions<T> = {
   defaultValue?: T | undefined;

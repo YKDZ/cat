@@ -5,7 +5,7 @@ import { orpc } from "@/server/orpc";
 import { inject } from "vue";
 import type { Data } from "../+data.server";
 import { useI18n } from "vue-i18n";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 import {
   Dialog,
   DialogFooter,
@@ -13,7 +13,7 @@ import {
   DialogContent,
   DialogTrigger,
   DialogTitle,
-} from "@/app/components/ui/dialog";
+} from "@cat/app-ui";
 
 const { info } = useToastStore();
 const { t } = useI18n();
@@ -40,7 +40,7 @@ const snapshot = async () => {
           {{ t("拍摄快照") }}
         </DialogTitle>
       </DialogHeader>
-      <article class="prose prose-foreground max-w-460px">
+      <article class="prose-foreground max-w-460px prose">
         <p>
           {{
             t(

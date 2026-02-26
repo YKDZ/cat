@@ -12,11 +12,11 @@ provide(useInjectionKey<Data>()("document"), document);
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full md:flex-row">
+  <div class="flex h-full w-full flex-col md:flex-row">
     <IndexSidebar />
-    <div class="flex flex-col h-full w-full overflow-y-auto">
+    <div class="flex h-full w-full flex-col overflow-y-auto">
       <Header :document />
-      <div class="p-4 pt-0 flex flex-col">
+      <div class="flex flex-col p-4 pt-0">
         <slot />
       </div>
     </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { SidebarTrigger } from "@cat/app-ui";
 </script>
 
 <template>

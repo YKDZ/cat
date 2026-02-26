@@ -1,5 +1,6 @@
-import { JSONSchemaSchema } from "@/schema/json.ts";
 import type { JSONSchema, JSONType } from "@/schema/json.ts";
+
+import { JSONSchemaSchema } from "@/schema/json.ts";
 
 export const getDefaultFromSchema = (
   schema: JSONSchema,

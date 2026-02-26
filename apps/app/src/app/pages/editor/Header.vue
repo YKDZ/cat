@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import DocumentBreadcrumb from "@/app/components/DocumentBreadcrumb.vue";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
-import { SidebarTrigger } from "@/app/components/ui/sidebar";
+import { SidebarTrigger } from "@cat/app-ui";
 
 const { document } = storeToRefs(useEditorContextStore());
 </script>

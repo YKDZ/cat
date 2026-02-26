@@ -1,8 +1,9 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
 import { language, user } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
 import { spotTermTask } from "../spot-term.ts";
 
 let cleanup: () => Promise<void>;

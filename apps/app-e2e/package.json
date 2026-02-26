@@ -7,8 +7,8 @@
     "test:e2e": "playwright test",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "format": "oxfmt",
-    "format:check": "oxfmt --check",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

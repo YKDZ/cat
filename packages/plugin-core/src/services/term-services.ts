@@ -1,6 +1,7 @@
-import type { IPluginService } from "@/services/service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
+
+import type { IPluginService } from "@/services/service";
 
 export type TermCandidate = {
   text: string;

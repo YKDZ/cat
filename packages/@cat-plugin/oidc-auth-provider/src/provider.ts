@@ -1,3 +1,5 @@
+import type { JSONType } from "@cat/shared/schema/json";
+
 import { getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
 import {
   AuthProvider,
@@ -7,12 +9,12 @@ import {
 } from "@cat/plugin-core";
 import { safeJoinURL } from "@cat/shared/utils";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import * as z from "zod/v4";
 import { request, fetch } from "undici";
+import * as z from "zod/v4";
+
+import { ProviderConfigSchema, type ProviderConfig } from "./index.ts";
 import { randomChars } from "./utils/crypto.ts";
 import { createOIDCAuthURL } from "./utils/oidc.ts";
-import { ProviderConfigSchema, type ProviderConfig } from "./index.ts";
-import type { JSONType } from "@cat/shared/schema/json";
 
 const SearchParasSchema = z.object({
   state: z.string(),

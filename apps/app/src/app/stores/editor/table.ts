@@ -1,9 +1,12 @@
-import { defineStore, storeToRefs } from "pinia";
-import { ref, computed, nextTick } from "vue";
-import { orpc } from "@/server/orpc";
-import * as z from "zod";
-import { navigate } from "vike/client/router";
+import type { Token } from "@cat/plugin-core";
+
+import { useQuery } from "@pinia/colada";
 import { useRefHistory } from "@vueuse/core";
+import { defineStore, storeToRefs } from "pinia";
+import { navigate } from "vike/client/router";
+import { ref, computed, nextTick } from "vue";
+import * as z from "zod";
+
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import {
   TranslatableElementWithDetailsSchema,
@@ -11,8 +14,7 @@ import {
 } from "@/app/stores/editor/element.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { hashJSON } from "@/app/utils/hash.ts";
-import { useQuery } from "@pinia/colada";
-import type { Token } from "@cat/plugin-core";
+import { orpc } from "@/server/orpc";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
   const context = storeToRefs(useEditorContextStore());

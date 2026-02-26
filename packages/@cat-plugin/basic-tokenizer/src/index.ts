@@ -1,4 +1,5 @@
 import type { CatPlugin } from "@cat/plugin-core";
+
 import { SimplePatternTokenizer } from "@/tokenizer.ts";
 
 class Plugin implements CatPlugin {

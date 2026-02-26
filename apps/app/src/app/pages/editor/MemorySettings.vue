@@ -3,24 +3,22 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/app/components/ui/dialog";
-import { Slider } from "@/app/components/ui/slider";
-import { Button } from "@/app/components/ui/button";
-import { Settings } from "lucide-vue-next";
-import {
   FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
-} from "@/app/components/ui/form";
-import Switch from "@/app/components/ui/switch/Switch.vue";
-import Label from "@/app/components/ui/label/Label.vue";
+  Label,
+  Slider,
+  Switch,
+} from "@cat/app-ui";
+import { Settings } from "lucide-vue-next";
 
 const { t } = useI18n();
 

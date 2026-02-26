@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { orpc } from "@/server/orpc";
-import { TableCell, TableRow } from "@/app/components/ui/table";
+import { TableCell, TableRow } from "@cat/app-ui";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@cat/app-ui";
 
 const { info } = useToastStore();
 
@@ -56,7 +56,7 @@ const upload = async () => {
       <LanguagePicker v-model="languageId" :portal="false" />
     </TableCell>
     <TableCell>
-      <div class="flex gap-2 items-center">
+      <div class="flex items-center gap-2">
         <Button @click="upload" size="icon"
           ><div class="icon-[mdi--upload] size-4"
         /></Button>

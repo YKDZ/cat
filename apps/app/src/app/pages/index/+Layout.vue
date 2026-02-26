@@ -4,14 +4,14 @@ import IndexSidebar from "@/app/components/IndexSidebar.vue";
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full md:flex-row">
+  <div class="flex h-full w-full flex-col md:flex-row">
     <IndexSidebar />
-    <div class="flex flex-col h-full w-full overflow-y-auto">
+    <div class="flex h-full w-full flex-col overflow-y-auto">
       <header>
         <IndexHeader />
       </header>
       <main>
-        <div class="p-4 flex flex-col gap-2">
+        <div class="flex flex-col gap-2 p-4">
           <slot />
         </div>
       </main>

@@ -29,6 +29,7 @@ import {
   sql,
   term,
   termConcept,
+  termConceptSubject,
   translatableString,
 } from "@cat/db";
 
@@ -42,7 +43,9 @@ export interface LookupTermsInput {
 export interface LookedUpTerm {
   term: string;
   translation: string;
-  definition: string;
+  definition: string | null;
+  conceptId: number;
+  glossaryId: string;
 }
 
 /**
@@ -63,6 +66,7 @@ export const lookupTerms = async (
   const matches = await drizzle
     .selectDistinct({
       termConceptId: term.termConceptId,
+      glossaryId: termConcept.glossaryId,
     })
     .from(term)
     .innerJoin(termConcept, eq(termConcept.id, term.termConceptId))
@@ -86,10 +90,13 @@ export const lookupTerms = async (
   }
 
   const termConceptIds = matches.map((m) => m.termConceptId);
+  const glossaryIdMap = new Map(
+    matches.map((m) => [m.termConceptId, m.glossaryId]),
+  );
   return await fetchTerms(
     drizzle,
     termConceptIds,
-    input.glossaryIds,
+    glossaryIdMap,
     input.sourceLanguageId,
     input.translationLanguageId,
   );
@@ -98,7 +105,7 @@ export const lookupTerms = async (
 const fetchTerms = async (
   drizzle: DrizzleDB["client"],
   termConceptIds: number[],
-  glossaryIds: string[],
+  glossaryIdMap: Map<number, string>,
   sourceLanguageId: string,
   translationLanguageId: string,
 ): Promise<LookedUpTerm[]> => {
@@ -110,11 +117,14 @@ const fetchTerms = async (
     "translationString",
   );
 
-  return drizzle
+  const results = await drizzle
     .select({
       term: sourceString.value,
       translation: translationString.value,
       definition: termConcept.definition,
+      defaultDefinition: termConceptSubject.defaultDefinition,
+      conceptId: termConcept.id,
+      glossaryId: termConcept.glossaryId,
     })
     .from(termConcept)
     .innerJoin(sourceTerm, eq(sourceTerm.termConceptId, termConcept.id))
@@ -136,10 +146,22 @@ const fetchTerms = async (
         eq(translationString.languageId, translationLanguageId),
       ),
     )
+    .leftJoin(
+      termConceptSubject,
+      eq(termConcept.subjectId, termConceptSubject.id),
+    )
     .where(
       and(
         inArray(termConcept.id, termConceptIds),
-        inArray(termConcept.glossaryId, glossaryIds),
+        inArray(termConcept.glossaryId, Array.from(glossaryIdMap.values())),
       ),
     );
+
+  return results.map((r) => ({
+    term: r.term,
+    translation: r.translation,
+    definition: r.definition || r.defaultDefinition,
+    conceptId: r.conceptId,
+    glossaryId: r.glossaryId,
+  }));
 };

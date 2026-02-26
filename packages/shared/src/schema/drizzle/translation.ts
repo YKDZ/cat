@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
-import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
+
 import { safeZDotJson } from "@/schema/json.ts";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const TranslationVoteSchema = z.object({
   id: z.int(),

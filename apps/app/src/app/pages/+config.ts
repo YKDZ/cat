@@ -1,6 +1,7 @@
-import vikeVue from "vike-vue/config";
 import type { Config } from "vike/types";
+
 import vikePhoton from "vike-photon/config";
+import vikeVue from "vike-vue/config";
 
 export default {
   passToClient: [

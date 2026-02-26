@@ -1,11 +1,22 @@
-import { randomBytes } from "node:crypto";
+import { ResourceTypeValues } from "@cat/shared/schema/drizzle/enum";
 import {
   assertFirstOrNull,
   assertSingleNonNullish,
   assertSingleOrNull,
   logger,
 } from "@cat/shared/utils";
-import { hashPassword } from "./password.ts";
+import { eq } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
+
+import {
+  permission as permissionTable,
+  permissionTemplate as permissionTemplateTable,
+  role as roleTable,
+  rolePermission as rolePermissionTable,
+  userRole as userRoleTable,
+  setting as settingTable,
+  type DrizzleTransaction,
+} from "@/drizzle/index.ts";
 import {
   language as languageTable,
   pluginService,
@@ -16,19 +27,10 @@ import {
   account as accountTable,
 } from "@/drizzle/schema/schema.ts";
 import { getDrizzleDB } from "@/getter.ts";
-import {
-  permission as permissionTable,
-  permissionTemplate as permissionTemplateTable,
-  role as roleTable,
-  rolePermission as rolePermissionTable,
-  userRole as userRoleTable,
-  setting as settingTable,
-  type DrizzleTransaction,
-} from "@/drizzle/index.ts";
-import { ResourceTypeValues } from "@cat/shared/schema/drizzle/enum";
-import { DEFAULT_SETTINGS } from "@/utils/settings/default.ts";
 import { AvailableLocales } from "@/utils/languages/cldr.ts";
-import { eq } from "drizzle-orm";
+import { DEFAULT_SETTINGS } from "@/utils/settings/default.ts";
+
+import { hashPassword } from "./password.ts";
 
 /**
  * 在应用启动前执行 \

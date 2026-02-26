@@ -1,6 +1,7 @@
-import { TextVectorizer, type VectorizeContext } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { VectorizedTextData } from "@cat/shared/schema/misc";
+
+import { TextVectorizer, type VectorizeContext } from "@cat/plugin-core";
 import OpenAI from "openai";
 import * as z from "zod/v4";
 

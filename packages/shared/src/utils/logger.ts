@@ -1,4 +1,5 @@
 import pino from "pino";
+
 import { summarizeError } from "./error";
 
 export type Situation =

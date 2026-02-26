@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { CircleAlert, TriangleAlert, Info, Check } from "lucide-vue-next";
-import { Button } from "@/app/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/components/ui/popover";
+import { Button } from "@cat/app-ui";
+import { Popover, PopoverContent, PopoverTrigger } from "@cat/app-ui";
 import type { Token } from "@cat/plugin-core";
 import type { QASeverity } from "@cat/plugin-core";
 import { useI18n } from "vue-i18n";
@@ -131,7 +127,7 @@ watch(
           </span>
         </div>
 
-        <div class="flex flex-col gap-1.5 max-h-75 overflow-y-auto">
+        <div class="flex max-h-75 flex-col gap-1.5 overflow-y-auto">
           <span v-if="!hasIssues" class="text-sm text-foreground/90">{{
             t("无质量问题")
           }}</span>
@@ -140,14 +136,14 @@ watch(
             v-else
             v-for="(issue, index) in issues"
             :key="issue.checkerId + index"
-            class="flex items-start gap-2 text-sm max-w-62.5"
+            class="flex max-w-62.5 items-start gap-2 text-sm"
           >
             <component
               :is="getSeverityStyle(issue.meta.severity).icon"
-              class="h-4 w-4 shrink-0 mt-0.5"
+              class="mt-0.5 h-4 w-4 shrink-0"
               :class="getSeverityStyle(issue.meta.severity).color"
             />
-            <span class="text-foreground/90 wrap-break-word leading-tight">
+            <span class="leading-tight wrap-break-word text-foreground/90">
               {{ issue.meta.message }}
             </span>
           </div>

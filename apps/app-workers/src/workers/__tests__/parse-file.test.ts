@@ -1,14 +1,15 @@
-import { afterAll, beforeAll, expect, test } from "vitest";
-import { blob, eq, file, getDrizzleDB, language, pluginService } from "@cat/db";
-import { PluginManager } from "@cat/plugin-core";
 import {
   firstOrGivenService,
   readableToString,
 } from "@cat/app-server-shared/utils";
-import { parseFileTask } from "@/workers/parse-file.ts";
+import { blob, eq, file, getDrizzleDB, language, pluginService } from "@cat/db";
+import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import { Readable } from "stream";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import { Readable } from "stream";
+import { afterAll, beforeAll, expect, test } from "vitest";
+
+import { parseFileTask } from "@/workers/parse-file.ts";
 
 const key = "/file/key";
 

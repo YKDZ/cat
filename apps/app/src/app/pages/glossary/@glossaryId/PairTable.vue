@@ -6,7 +6,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/components/ui/table";
+  Pagination,
+  PaginationContent,
+  PaginationFirst,
+  PaginationLast,
+  PaginationNext,
+  PaginationPrevious,
+} from "@cat/app-ui";
 import { inject, onMounted, ref, watch, computed } from "vue";
 import { onRequestTermPair, type PairData } from "./PairTable.telefunc";
 import { useInjectionKey } from "@/app/utils/provide";
@@ -14,15 +20,20 @@ import type { Data } from "./+data.server";
 import { logger } from "@cat/shared/utils";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { navigate } from "vike/client/router";
-import { Button } from "@/app/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/app/components/ui/card";
-import Skeleton from "@/app/components/ui/skeleton/Skeleton.vue";
+  Skeleton,
+} from "@cat/app-ui";
 import { useI18n } from "vue-i18n";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+} from "lucide-vue-next";
 
 const { t } = useI18n();
 
@@ -36,9 +47,22 @@ const sourceLanguageId = ref("zh-Hans");
 const targetLanguageId = ref("en");
 const isLoading = ref(false);
 
-const totalPages = computed(() =>
-  total.value > 0 ? Math.ceil(total.value / pageSize.value) : 0,
+const currentPage = computed({
+  get: () => pageIndex.value + 1,
+  set: (value) => {
+    pageIndex.value = value - 1;
+  },
+});
+
+const pageTotalAmount = computed(() =>
+  total.value > 0 ? Math.ceil(total.value / pageSize.value) : 1,
 );
+
+const displayRange = computed(() => {
+  const from = pageIndex.value * pageSize.value + 1;
+  const to = Math.min((pageIndex.value + 1) * pageSize.value, total.value);
+  return { from, to };
+});
 
 const fetchTerms = async () => {
   isLoading.value = true;
@@ -66,12 +90,6 @@ onMounted(() => {
 watch([sourceLanguageId, targetLanguageId, pageIndex], () => {
   fetchTerms();
 });
-
-const goToPage = (page: number) => {
-  if (page >= 0 && page < totalPages.value) {
-    pageIndex.value = page;
-  }
-};
 </script>
 
 <template>
@@ -80,7 +98,7 @@ const goToPage = (page: number) => {
       <CardTitle>{{ t("术语对") }}</CardTitle>
     </CardHeader>
     <CardContent>
-      <div class="flex gap-4 mb-4">
+      <div class="mb-4 flex gap-4">
         <LanguagePicker v-model="sourceLanguageId" :placeholder="t('源语言')" />
         <LanguagePicker
           v-model="targetLanguageId"
@@ -113,7 +131,7 @@ const goToPage = (page: number) => {
           </template>
           <template v-else-if="terms.length === 0">
             <TableRow>
-              <TableCell :colspan="3" class="text-center text-gray-500 py-8">
+              <TableCell :colspan="3" class="py-8 text-center text-gray-500">
                 {{ t("暂无数据") }}
               </TableCell>
             </TableRow>
@@ -137,37 +155,46 @@ const goToPage = (page: number) => {
       </Table>
 
       <!-- 分页 -->
-      <div v-if="total > 0" class="flex items-center justify-between mt-4">
-        <div class="text-sm text-gray-600">
+      <div v-if="total > 0" class="mt-4 flex items-center justify-between">
+        <div class="text-sm text-muted-foreground">
           {{
             t("显示 {from} - {to} 条，共 {total} 条", {
-              from: pageIndex * pageSize + 1,
-              to: Math.min((pageIndex + 1) * pageSize, total),
+              from: displayRange.from,
+              to: displayRange.to,
               total: total,
             })
           }}
         </div>
-        <div class="flex gap-2">
-          <Button
-            variant="outline"
-            :disabled="pageIndex <= 0"
-            @click="goToPage(pageIndex - 1)"
-          >
-            {{ t("上一页") }}
-          </Button>
+        <Pagination
+          :items-per-page="pageSize"
+          :total="total"
+          :sibling-count="0"
+          v-model:page="currentPage"
+        >
+          <PaginationContent class="gap-0.5">
+            <PaginationFirst size="icon-sm" class="!px-1.5 !pr-1.5">
+              <ChevronsLeftIcon class="h-3 w-3" />
+            </PaginationFirst>
+            <PaginationPrevious size="icon-sm" class="!px-1.5 !pr-1.5">
+              <ChevronLeftIcon class="h-3 w-3" />
+            </PaginationPrevious>
 
-          <span class="px-3 py-1 border rounded">
-            {{ pageIndex + 1 }} / {{ totalPages }}
-          </span>
+            <div
+              class="pointer-events-none flex min-w-[3rem] items-center justify-center px-1"
+            >
+              <span class="text-xs font-medium tabular-nums">
+                {{ currentPage }}/{{ Math.max(1, pageTotalAmount) }}
+              </span>
+            </div>
 
-          <Button
-            variant="outline"
-            :disabled="pageIndex >= totalPages - 1"
-            @click="goToPage(pageIndex + 1)"
-          >
-            {{ t("下一页") }}
-          </Button>
-        </div>
+            <PaginationNext size="icon-sm" class="!px-1.5 !pr-1.5">
+              <ChevronRightIcon class="h-3 w-3" />
+            </PaginationNext>
+            <PaginationLast size="icon-sm" class="!px-1.5 !pr-1.5">
+              <ChevronsRightIcon class="h-3 w-3" />
+            </PaginationLast>
+          </PaginationContent>
+        </Pagination>
       </div>
     </CardContent>
   </Card>

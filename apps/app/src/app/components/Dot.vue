@@ -6,7 +6,7 @@ defineProps<{
 
 <template>
   <span
-    class="icon-[mdi--circle-small] text-foreground inline-block"
+    class="icon-[mdi--circle-small] inline-block text-foreground"
     :class="{
       'h-6 w-6': large,
     }"

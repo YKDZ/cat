@@ -17,9 +17,9 @@ const readme = computed(() => {
 
 <template>
   <div
-    class="mt-3 items-start w-full grid md:grid-cols-[2fr_1fr] grid-cols-1 gap-2 mx-auto"
+    class="mx-auto mt-3 grid w-full grid-cols-1 items-start gap-2 md:grid-cols-[2fr_1fr]"
   >
-    <div class="flex flex-col gap-6 w-full items-start">
+    <div class="flex w-full flex-col items-start gap-6">
       <LanguageTable :project :languages="targetLanguages" />
       <Readme v-if="readme" :readme />
     </div>

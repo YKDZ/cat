@@ -8,7 +8,7 @@ const { t } = useI18n();
 
 <template>
   <div class="flex flex-col gap-2 p-3 pb-0">
-    <h3 class="text-sm font-bold inline-flex gap-2 items-center">
+    <h3 class="inline-flex items-center gap-2 text-sm font-bold">
       <span> {{ t("翻译记忆") }}</span>
       <MemorySettings />
     </h3>

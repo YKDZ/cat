@@ -5,27 +5,25 @@ import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
 import type { PickerOption } from "@/app/components/picker";
 import Picker from "@/app/components/picker/Picker.vue";
-import Button from "@/app/components/ui/button/Button.vue";
 import {
+  Button,
   Dialog,
-  DialogHeader,
   DialogContent,
-  DialogTrigger,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
-} from "@/app/components/ui/dialog";
-import {
+  DialogTrigger,
   FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
-} from "@/app/components/ui/form/index.ts";
-import { Slider } from "@/app/components/ui/slider/index.ts";
+  Slider,
+} from "@cat/app-ui";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
-import DialogDescription from "@/app/components/ui/dialog/DialogDescription.vue";
 import { useQuery } from "@pinia/colada";
 
 const props = defineProps<{
@@ -108,7 +106,7 @@ const { state } = useQuery({
                 :max="1"
                 :step="0.01"
                 :default-value="value"
-                @update:model-value="(val) => handleChange(val)"
+                @update:model-value="(val: number[]) => handleChange(val)"
               />
             </FormControl>
             <FormDescription class="flex justify-between">

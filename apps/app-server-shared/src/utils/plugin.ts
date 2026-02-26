@@ -1,10 +1,11 @@
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+
 import { and, eq, DrizzleClient, pluginInstallation } from "@cat/db";
 import {
   PluginManager,
   type IPluginService,
   type PluginServiceMap,
 } from "@cat/plugin-core";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import { assertFirstNonNullish } from "@cat/shared/utils";
 import path, { join, resolve } from "node:path";
 import { cwd } from "node:process";

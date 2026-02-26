@@ -1,6 +1,8 @@
 import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
-import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
+
+import { render } from "vike/abort";
+
 import { ssc } from "@/server/ssc";
 
 export const data = async (

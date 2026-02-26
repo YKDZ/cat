@@ -1,7 +1,8 @@
-import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
+
 import { document as documentTable, eq } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";
+import { render } from "vike/abort";
 
 export const data = async (ctx: PageContextServer) => {
   const { client: drizzle } = ctx.globalContext.drizzleDB;

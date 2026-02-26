@@ -10,7 +10,7 @@ const documents = inject(useInjectionKey<LayoutData>()("documents"))!;
 </script>
 
 <template>
-  <div class="pt-3 flex flex-col gap-3 w-full">
+  <div class="flex w-full flex-col gap-3 pt-3">
     <UploadFileBtn :project />
     <DocumentTree :project :documents />
   </div>

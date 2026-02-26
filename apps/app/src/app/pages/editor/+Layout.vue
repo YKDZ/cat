@@ -10,7 +10,7 @@ import { syncRefWith, watchClient } from "@/app/utils/vue.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element";
 import { watch } from "vue";
 import ContextPanel from "./ContextPanel.vue";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { ScrollArea } from "@cat/app-ui";
 
 const ctx = usePageContext();
 
@@ -44,18 +44,18 @@ watch(
 
 <template>
   <div
-    class="flex flex-col h-full max-h-full w-full md:flex-row overflow-hidden"
+    class="flex h-full max-h-full w-full flex-col overflow-hidden md:flex-row"
   >
-    <div class="shrink-0 h-full">
+    <div class="h-full shrink-0">
       <Sidebar />
     </div>
 
-    <div class="flex flex-col flex-1 h-full min-w-0 overflow-hidden">
+    <div class="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
       <div class="sticky top-0 z-10 border-b bg-background">
         <Header />
       </div>
 
-      <div class="flex-1 min-h-0 w-full">
+      <div class="min-h-0 w-full flex-1">
         <ScrollArea class="h-full w-full">
           <slot />
         </ScrollArea>
@@ -63,7 +63,7 @@ watch(
     </div>
 
     <div
-      class="w-full h-full border-t md:border-t-0 md:border-l flex flex-col overflow-hidden shrink-0 md:w-auto"
+      class="flex h-full w-full shrink-0 flex-col overflow-hidden border-t md:w-auto md:border-t-0 md:border-l"
     >
       <ContextPanel />
     </div>

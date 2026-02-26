@@ -1,6 +1,8 @@
 import type { FlowChildJob, Job, Worker } from "bullmq";
 import type z from "zod";
 
+import type { CacheOptions } from "@/utils/cache";
+
 /**
  * 约束 Input/Output 必须为 Zod Object，避免 spread 标量类型出错
  * 使用 ZodRawShape 避免显式的 explicit any
@@ -89,6 +91,11 @@ export type DefineTaskOptions<
     ctx: TaskHandlerContext,
   ) => Promise<z.infer<O>>;
   concurrency?: number;
+  /**
+   * 缓存配置
+   * 启用后，相同输入的任务会直接返回缓存的结果
+   */
+  cache?: CacheOptions;
 };
 
 export type DefineWorkflowOptions<
@@ -106,6 +113,11 @@ export type DefineWorkflowOptions<
     payload: z.infer<I>,
     context: WorkflowHandlerContext,
   ) => Promise<z.infer<O>>;
+  /**
+   * 缓存配置
+   * 启用后，相同输入的 Workflow 会直接返回缓存的结果
+   */
+  cache?: CacheOptions;
 };
 
 export type TaskHandlerContext = {

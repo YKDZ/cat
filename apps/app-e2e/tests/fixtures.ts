@@ -1,7 +1,8 @@
 import { test as baseTest, expect } from "@playwright/test";
 import fs from "fs";
-import path from "path";
 import { randomUUID } from "node:crypto";
+import path from "path";
+
 import { acquireAccount } from "@/utils/account";
 
 export * from "@playwright/test";

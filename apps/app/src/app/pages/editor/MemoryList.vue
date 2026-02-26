@@ -35,7 +35,7 @@ watchClientThrottled(editorMemoryMinSimilarity, subMemories);
     :index
     :memory-suggestion="memory"
   />
-  <div v-if="memories.length === 0" class="px-3 py-2 flex flex-col gap-1">
+  <div v-if="memories.length === 0" class="flex flex-col gap-1 px-3 py-2">
     {{ t("还没有可用的记忆") }}
   </div>
 </template>

@@ -1,9 +1,10 @@
-import type { IPluginService } from "@/services/service";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import type {
   UnvectorizedTextData,
   VectorizedTextData,
 } from "@cat/shared/schema/misc";
+
+import type { IPluginService } from "@/services/service";
 
 export type CanVectorizeContext = {
   languageId: string;

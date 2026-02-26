@@ -1,7 +1,8 @@
 import * as z from "zod/v4";
-import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
+
 import { ResourceTypeSchema, ScopeTypeSchema } from "@/schema/drizzle/enum";
 import { safeZDotJson } from "@/schema/json";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const RoleSchema = z.object({
   id: z.int(),

@@ -2,13 +2,8 @@
 import { useData } from "vike-vue/useData";
 import type { Data } from "./+data.server";
 import { computed, ref } from "vue";
-import { Button } from "@/app/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card";
+import { Button } from "@cat/app-ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@cat/app-ui";
 import {
   Table,
   TableBody,
@@ -16,11 +11,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/components/ui/table";
-import { Input } from "@/app/components/ui/input";
-import { Textarea } from "@/app/components/ui/textarea";
-import { Badge } from "@/app/components/ui/badge";
-import { Label } from "@/app/components/ui/label";
+} from "@cat/app-ui";
+import { Input } from "@cat/app-ui";
+import { Textarea } from "@cat/app-ui";
+import { Badge } from "@cat/app-ui";
+import { Label } from "@cat/app-ui";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import Picker from "@/app/components/picker/Picker.vue";
 import type { PickerOption } from "@/app/components/picker";
@@ -30,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/app/components/ui/dialog";
+} from "@cat/app-ui";
 import { useToastStore } from "@/app/stores/toast";
 import { orpc } from "@/server/orpc";
 import { logger } from "@cat/shared/utils";
@@ -138,7 +133,7 @@ const addNewTerm = async () => {
   <div class="container mx-auto py-6">
     <Card class="mb-6">
       <CardHeader>
-        <div class="flex justify-between items-start">
+        <div class="flex items-start justify-between">
           <div>
             <CardTitle v-if="!isEditingConcept" class="text-2xl">
               {{ concept.subject || t("（未命名）") }}
@@ -191,14 +186,18 @@ const addNewTerm = async () => {
         </div>
 
         <div v-if="!isEditingConcept" class="mt-2">
-          <p class="text-gray-600">{{ concept.definition || t("暂无定义") }}</p>
+          <p class="text-gray-600">
+            {{
+              concept.definition || concept.defaultDefinition || t("暂无定义")
+            }}
+          </p>
         </div>
       </CardHeader>
     </Card>
 
     <Card>
       <CardHeader>
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
           <CardTitle>{{ t("术语条目") }}</CardTitle>
           <Dialog v-model:open="isNewTermDialogOpen">
             <DialogTrigger as-child>

@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { ref } from "vue";
-import { Input } from "@/app/components/ui/input";
+import { Input } from "@cat/app-ui";
 import { Search } from "lucide-vue-next";
 import { useEditorContextStore } from "@/app/stores/editor/context";
 
@@ -32,7 +32,7 @@ const handleSearch = async () => {
       @change="handleSearch"
     />
     <span
-      class="absolute start-0 inset-y-0 flex items-center justify-center px-2"
+      class="absolute inset-y-0 start-0 flex items-center justify-center px-2"
     >
       <Search class="size-4" />
     </span>

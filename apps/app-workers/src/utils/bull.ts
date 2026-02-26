@@ -1,4 +1,5 @@
 import { Queue, Worker, FlowProducer, type Job, QueueEvents } from "bullmq";
+
 import { config } from "@/utils/config";
 
 // 缓存实例，避免重复创建

@@ -23,7 +23,7 @@ whenever(
 </script>
 
 <template>
-  <div class="m-y-auto p-0.5 inline-flex gap-1 items-center">
+  <div class="m-y-auto inline-flex items-center gap-1 p-0.5">
     <Key v-for="key in requiredKeys" :key :key-string="key" />
   </div>
 </template>

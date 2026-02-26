@@ -1,4 +1,3 @@
-import { defineTask } from "@/core";
 import {
   PluginManager,
   tokenize,
@@ -6,6 +5,8 @@ import {
   TokenSchema,
 } from "@cat/plugin-core";
 import z from "zod";
+
+import { defineTask } from "@/core";
 
 export const TokenizeInputSchema = z.object({
   text: z.string(),
@@ -19,6 +20,10 @@ export const tokenizeTask = await defineTask({
   name: "tokenizer",
   input: TokenizeInputSchema,
   output: TokenizeOutputSchema,
+
+  cache: {
+    enabled: true,
+  },
 
   handler: async (payload) => {
     const pluginManager = PluginManager.get("GLOBAL", "");

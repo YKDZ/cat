@@ -1,9 +1,11 @@
-import { defineTask } from "@/core";
+import type { JSONType } from "@cat/shared/schema/json";
+
 import { chunk, chunkSet, getDrizzleDB } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
-import type { JSONType } from "@cat/shared/schema/json";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import z from "zod";
+
+import { defineTask } from "@/core";
 
 const InputSchema = z.object({
   vectorizerId: z.int(),
@@ -24,6 +26,10 @@ export const vectorizeToChunkSetTask = await defineTask({
   name: "vectorize",
   input: InputSchema,
   output: OutputSchema,
+
+  cache: {
+    enabled: true,
+  },
 
   handler: async ({ data, vectorStorageId, vectorizerId }) => {
     const { client: drizzle } = await getDrizzleDB();

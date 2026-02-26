@@ -8,15 +8,15 @@ import { useToastStore } from "@/app/stores/toast.ts";
 import { orpc } from "@/server/orpc";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import ImageCopper from "@/app/components/ImageCopper.vue";
-import Button from "@/app/components/ui/button/Button.vue";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/app/components/ui/dialog";
-import DialogTrigger from "@/app/components/ui/dialog/DialogTrigger.vue";
+  DialogTrigger,
+} from "@cat/app-ui";
 
 const { t } = useI18n();
 
@@ -106,7 +106,7 @@ const rawFileMime = computed(() => {
           {{ t("拖动滑块调整裁剪框尺寸，拖动图片修改中心位置") }}
         </DialogDescription>
       </DialogHeader>
-      <div class="w-full flex flex-col gap-4 justify-center items-center">
+      <div class="flex w-full flex-col items-center justify-center gap-4">
         <ImageCopper
           v-if="src"
           v-model:is-processing="isProcessing"

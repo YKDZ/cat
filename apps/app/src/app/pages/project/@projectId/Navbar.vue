@@ -4,9 +4,10 @@ import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
+  NavigationMenuIndicator,
   NavigationMenuList,
   navigationMenuTriggerStyle,
-} from "@/app/components/ui/navigation-menu";
+} from "@cat/app-ui";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import {
   Archive,
@@ -17,7 +18,6 @@ import {
   Settings,
 } from "lucide-vue-next";
 import type { Component } from "vue";
-import NavigationMenuIndicator from "@/app/components/ui/navigation-menu/NavigationMenuIndicator.vue";
 import { usePageContext } from "vike-vue/usePageContext";
 
 const props = defineProps<{
@@ -72,7 +72,7 @@ const items: { title: string; href: string; icon: Component }[] = [
           :class="navigationMenuTriggerStyle()"
           :active="item.href === ctx.urlPathname"
         >
-          <div class="flex gap-1 items-center">
+          <div class="flex items-center gap-1">
             <component :is="item.icon" />
             {{ item.title }}
           </div>

@@ -4,7 +4,7 @@ import {
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
-} from "@/app/components/ui/tooltip";
+} from "@cat/app-ui";
 import type { TooltipContentProps } from "reka-ui";
 
 const props = withDefaults(
@@ -18,7 +18,7 @@ const props = withDefaults(
 <template>
   <TooltipProvider>
     <Tooltip>
-      <TooltipTrigger :class="$attrs.class">
+      <TooltipTrigger as-child>
         <slot />
       </TooltipTrigger>
       <TooltipContent v-bind="props">

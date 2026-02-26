@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import type { User } from "@cat/shared/schema/drizzle/user";
 import { orpc } from "@/server/orpc";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/app/components/ui/avatar";
-import { Skeleton } from "@/app/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@cat/app-ui";
+import { Skeleton } from "@cat/app-ui";
 import { computed } from "vue";
 import { useQuery } from "@pinia/colada";
 
@@ -54,7 +50,7 @@ const { state: avatarUrlState } = useQuery({
     <div class="flex items-center gap-3" :class="$attrs.class">
       <Skeleton
         v-if="!userState.data"
-        class="rounded-full aspect-square"
+        class="aspect-square rounded-full"
         :style="{
           width: `${size}px`,
           height: `${size}px`,

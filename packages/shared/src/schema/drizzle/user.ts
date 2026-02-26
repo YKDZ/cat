@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
-import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
+
 import { nonNullSafeZDotJson } from "@/schema/json";
+import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
 export const UserSchema = z.object({
   id: z.uuidv4(),

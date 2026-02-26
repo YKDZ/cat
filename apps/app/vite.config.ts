@@ -1,11 +1,11 @@
-import { resolve } from "node:path";
+import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
+import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
+import { resolve } from "node:path";
+import { telefunc } from "telefunc/vite";
 import vike from "vike/plugin";
 import { defineConfig } from "vite";
-import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import vueDevTools from "vite-plugin-vue-devtools";
-import tailwindcss from "@tailwindcss/vite";
-import { telefunc } from "telefunc/vite";
 export default defineConfig({
   resolve: {
     alias: {
@@ -21,7 +21,6 @@ export default defineConfig({
 
   plugins: [
     telefunc(),
-    tailwindcss(),
     vike(),
     VueI18nPlugin({
       ssr: true,
@@ -30,6 +29,7 @@ export default defineConfig({
     vue({
       include: [/\.vue$/, /\.md$/],
     }),
+    tailwindcss(),
     vueDevTools(),
   ],
 

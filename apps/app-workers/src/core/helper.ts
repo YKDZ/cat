@@ -1,13 +1,8 @@
 import type { Job } from "bullmq";
-import { z } from "zod";
-import {
-  getQueue,
-  getFlowProducer,
-  createWorker,
-  getQueueEvents,
-} from "@/utils/bull";
-import { getTraceId } from "@/utils/message";
+
 import { logger } from "@cat/shared/utils";
+import { z } from "zod";
+
 import type {
   DefineTaskOptions,
   DefineWorkflowOptions,
@@ -16,6 +11,15 @@ import type {
   RunResult,
   WorkflowHandlerContext,
 } from "@/core/types";
+
+import {
+  getQueue,
+  getFlowProducer,
+  createWorker,
+  getQueueEvents,
+} from "@/utils/bull";
+import { createCacheContext } from "@/utils/cache";
+import { getTraceId } from "@/utils/message";
 
 /**
  * 辅助函数：折叠大对象用于日志输出
@@ -105,6 +109,7 @@ export const defineTask = async <
     output: outputSchema,
     handler,
     concurrency,
+    cache,
   } = options;
   const queueName = name;
 
@@ -125,9 +130,56 @@ export const defineTask = async <
 
       try {
         const parsedInput = inputSchema.parse(job.data);
+        let cacheContext:
+          | Awaited<ReturnType<typeof createCacheContext>>
+          | undefined;
+
+        // 检查缓存
+        if (cache?.enabled) {
+          cacheContext = await createCacheContext(parsedInput, cache);
+
+          if (cacheContext.cacheKey) {
+            const cachedResult = await cacheContext.checkCache<z.infer<O>>(
+              cacheContext.cacheKey,
+            );
+
+            if (cachedResult !== null) {
+              logger.info("PROCESSOR", {
+                msg: `[Task:${name}] Cache hit`,
+                jobId: job.id,
+                traceId,
+                cacheKey: cacheContext.cacheKey,
+              });
+
+              if (outputSchema) {
+                return outputSchema.parse(cachedResult);
+              }
+              return cachedResult;
+            }
+
+            logger.debug("PROCESSOR", {
+              msg: `[Task:${name}] Cache miss`,
+              jobId: job.id,
+              traceId,
+              cacheKey: cacheContext.cacheKey,
+            });
+          }
+        }
 
         // 注入 onRollback 到 handler
         const result = await handler(parsedInput, { traceId, onRollback });
+
+        // 缓存结果
+        if (cache?.enabled && cacheContext?.cacheKey) {
+          await cacheContext.setCache(cacheContext.cacheKey, result);
+
+          logger.info("PROCESSOR", {
+            msg: `[Task:${name}] Result cached`,
+            jobId: job.id,
+            traceId,
+            cacheKey: cacheContext.cacheKey,
+          });
+        }
 
         logger.debug("PROCESSOR", {
           msg: `[Task:${name}] Success`,
@@ -225,7 +277,7 @@ export const defineWorkflow = async <
 >(
   options: DefineWorkflowOptions<I, O>,
 ): Promise<TaskDefinition<I, O, WorkflowHandlerContext>> => {
-  const { name, input: inputSchema, dependencies, handler } = options;
+  const { name, input: inputSchema, dependencies, handler, cache } = options;
   const queueName = name;
 
   // 注册 Barrier Worker
@@ -349,6 +401,104 @@ export const defineWorkflow = async <
     return flowProducer.add(flowNode);
   };
 
+  // 带缓存的 run 方法
+  const runWithCache = async (
+    payload: z.input<I>,
+    meta?: { traceId?: string },
+  ): Promise<RunResult<z.infer<I>, z.infer<O>>> => {
+    const queueEvents = getQueueEvents(queueName);
+    const parsedPayload = inputSchema.parse(payload);
+
+    // 检查缓存
+    if (cache?.enabled) {
+      const cacheContext = await createCacheContext(parsedPayload, cache);
+
+      if (cacheContext.cacheKey) {
+        const cachedResult = await cacheContext.checkCache<z.infer<O>>(
+          cacheContext.cacheKey,
+        );
+
+        if (cachedResult !== null) {
+          logger.info("PROCESSOR", {
+            msg: `[Workflow:${name}] Cache hit`,
+            traceId: meta?.traceId,
+            cacheKey: cacheContext.cacheKey,
+          });
+
+          // 创建一个虚拟的 job 对象用于返回
+          // oxlint-disable-next-line no-unsafe-type-assertion
+          const virtualJob = {
+            id: `cache:${name}:${cacheContext.cacheKey}`,
+            data: parsedPayload,
+            returnvalue: cachedResult,
+          } as unknown as Job<z.infer<I>, z.infer<O>>;
+
+          return {
+            job: virtualJob,
+            result: async () => {
+              if (options.output) {
+                return options.output.parse(cachedResult);
+              }
+              return cachedResult;
+            },
+          };
+        }
+
+        logger.debug("PROCESSOR", {
+          msg: `[Workflow:${name}] Cache miss`,
+          traceId: meta?.traceId,
+          cacheKey: cacheContext.cacheKey,
+        });
+      }
+    }
+
+    const jobNode = await runFlow(payload, meta);
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    const job = jobNode.job as Job<z.infer<I>, z.infer<O>>;
+
+    logger.debug("PROCESSOR", {
+      msg: `[Workflow:${name}] Flow Dispatched`,
+      jobId: job.id,
+      traceId: meta?.traceId,
+    });
+
+    // 立即启动监听，避免 Job 在 removeOnComplete 后丢失事件
+    // 捕获 catch 是为了防止 promise 拒绝时触发 UnhandledPromiseRejection，
+    // 真正的错误处理会在用户 await result() 时发生。
+    const finishedPromise = job.waitUntilFinished(queueEvents);
+    // oxlint-disable-next-line no-empty-function
+    finishedPromise.catch(() => {});
+
+    const resultWrapper = {
+      job,
+      result: async () => {
+        const rawResult = await finishedPromise;
+
+        // 缓存结果
+        if (cache?.enabled) {
+          const cacheContext = await createCacheContext(parsedPayload, cache);
+          if (cacheContext.cacheKey) {
+            await cacheContext.setCache(cacheContext.cacheKey, rawResult);
+
+            logger.info("PROCESSOR", {
+              msg: `[Workflow:${name}] Result cached`,
+              jobId: job.id,
+              traceId: meta?.traceId,
+              cacheKey: cacheContext.cacheKey,
+            });
+          }
+        }
+
+        if (options.output) {
+          return options.output.parse(rawResult);
+        }
+        return rawResult;
+      },
+    };
+
+    return resultWrapper;
+  };
+
   logger.debug("PROCESSOR", {
     msg: `Defined workflow ${name}`,
   });
@@ -359,39 +509,7 @@ export const defineWorkflow = async <
     worker,
     handler,
 
-    run: async (payload, meta): Promise<RunResult<z.infer<I>, z.infer<O>>> => {
-      const queueEvents = getQueueEvents(queueName);
-
-      const jobNode = await runFlow(payload, meta);
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      const job = jobNode.job as Job<z.infer<I>, z.infer<O>>;
-
-      logger.debug("PROCESSOR", {
-        msg: `[Workflow:${name}] Flow Dispatched`,
-        jobId: job.id,
-        traceId: meta?.traceId,
-      });
-
-      // 立即启动监听，避免 Job 在 removeOnComplete 后丢失事件
-      // 捕获 catch 是为了防止 promise 拒绝时触发 UnhandledPromiseRejection，
-      // 真正的错误处理会在用户 await result() 时发生。
-      const finishedPromise = job.waitUntilFinished(queueEvents);
-      // oxlint-disable-next-line no-empty-function
-      finishedPromise.catch(() => {});
-
-      return {
-        job,
-
-        result: async () => {
-          const rawResult = await finishedPromise;
-
-          if (options.output) {
-            return options.output.parse(rawResult);
-          }
-          return rawResult;
-        },
-      };
-    },
+    run: runWithCache,
 
     asChild: async (payload, meta) => {
       const traceId = meta?.traceId ?? crypto.randomUUID();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { SidebarProvider } from "@/app/components/ui/sidebar";
-import { Toaster } from "@/app/components/ui/sonner";
+import { SidebarProvider } from "@cat/app-ui";
+import { Toaster } from "@cat/app-ui";
 import { useCookieBooleanRef } from "@/app/utils/cookie";
 import { usePageContext } from "vike-vue/usePageContext";
 import { PiniaColadaDevtools } from "@pinia/colada-devtools";
@@ -32,7 +32,7 @@ const adminSidebarOpen = useCookieBooleanRef(ctx, "adminSidebarOpen", true);
       <SidebarProvider id="editor" v-model="editorSidebarOpen">
         <SidebarProvider id="admin" v-model="adminSidebarOpen">
           <div
-            class="bg-background h-screen max-h-screen max-w-screen min-h-screen min-w-screen w-screen overflow-x-hidden overflow-y-auto"
+            class="h-screen max-h-screen min-h-screen w-screen max-w-screen min-w-screen overflow-x-hidden overflow-y-auto bg-background"
           >
             <slot /></div></SidebarProvider></SidebarProvider></SidebarProvider
   ></SidebarProvider>

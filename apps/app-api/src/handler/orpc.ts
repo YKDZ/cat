@@ -1,11 +1,12 @@
-import { RPCHandler } from "@orpc/server/fetch";
-import { CORSPlugin } from "@orpc/server/plugins";
 import { logger } from "@cat/shared/utils";
-import { Hono } from "hono";
-import { getContext } from "@/utils/context";
-import { CompressionPlugin } from "@orpc/server/fetch";
-import router from "@/orpc/router.ts";
 import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
+import { RPCHandler } from "@orpc/server/fetch";
+import { CompressionPlugin } from "@orpc/server/fetch";
+import { CORSPlugin } from "@orpc/server/plugins";
+import { Hono } from "hono";
+
+import router from "@/orpc/router.ts";
+import { getContext } from "@/utils/context";
 
 const app = new Hono();
 

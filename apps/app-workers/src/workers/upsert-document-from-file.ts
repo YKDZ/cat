@@ -1,8 +1,10 @@
-import { defineWorkflow } from "@/core";
 import { eq, getDrizzleDB, translatableElement } from "@cat/db";
 import * as z from "zod";
-import { parseFileTask } from "./parse-file";
+
+import { defineWorkflow } from "@/core";
+
 import { diffElementsTask } from "./diff-elements";
+import { parseFileTask } from "./parse-file";
 
 export const UpsertDocumentInputSchema = z.object({
   documentId: z.uuidv4(),

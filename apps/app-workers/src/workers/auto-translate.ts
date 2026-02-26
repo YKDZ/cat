@@ -1,9 +1,12 @@
-import { defineWorkflow } from "@/core";
+import type { JSONObject } from "@cat/shared/schema/json";
+
 import { z } from "zod";
+
+import { defineWorkflow } from "@/core";
+
+import { createTranslationWorkflow } from "./create-translation";
 import { fetchAdviseWorkflow } from "./fetch-advise";
 import { searchMemoryWorkflow } from "./search-memory";
-import { createTranslationWorkflow } from "./create-translation";
-import type { JSONObject } from "@cat/shared/schema/json";
 
 export const AutoTranslateInputSchema = z.object({
   translatableElementId: z.int(),
@@ -49,6 +52,10 @@ export const autoTranslateWorkflow = await defineWorkflow({
   name: "auto-translate",
   input: AutoTranslateInputSchema,
   output: AutoTranslateOutputSchema,
+
+  cache: {
+    enabled: true,
+  },
 
   dependencies: async (data, { traceId }) => [
     await fetchAdviseWorkflow.asChild(

@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import ElemenContexts from "./ElemenContexts.vue";
 import Comments from "@/app/components/Comments.vue";
-import { SidebarHeader, SidebarRail } from "@/app/components/ui/sidebar";
-import Sidebar from "@/app/components/ui/sidebar/Sidebar.vue";
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarRail,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@cat/app-ui";
 import { useCookieStringRef } from "@/app/utils/cookie";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
-import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { storeToRefs } from "pinia";
 

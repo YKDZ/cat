@@ -1,4 +1,3 @@
-import type { IPluginService } from "@/services/service";
 import {
   and,
   eq,
@@ -13,6 +12,8 @@ import {
 } from "@cat/shared/schema/drizzle/enum";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
+
+import type { IPluginService } from "@/services/service";
 
 export const ReigsteredServiceSchema = z.object({
   pluginId: z.string(),

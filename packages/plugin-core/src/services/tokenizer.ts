@@ -1,7 +1,9 @@
+import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+
 import { JSONObjectSchema, type JSONObject } from "@cat/shared/schema/json";
 import z from "zod";
+
 import type { IPluginService } from "./service";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 const TokenTypeValues = [
   "text",
