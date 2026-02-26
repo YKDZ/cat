@@ -17,5 +17,8 @@
     "stylesheet": "./apps/app/src/app/assets/style.css",
     "functions": ["clsx", "cn"],
     "preserveWhitespace": true
+  },
+  "sortPackageJson": {
+    "sortScripts": true
   }
 }
