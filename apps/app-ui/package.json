@@ -18,13 +18,13 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "typecheck": "tsc --noEmit && vue-tsc --noEmit",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
     "sync": "node scripts/sync-shadcn-components.js",
-    "sync:check": "node scripts/sync-shadcn-components.js --check"
+    "sync:check": "node scripts/sync-shadcn-components.js --check",
+    "typecheck": "tsc --noEmit && vue-tsc --noEmit"
   },
   "dependencies": {
     "@vee-validate/zod": "^4.15.1",

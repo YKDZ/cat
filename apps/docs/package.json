@@ -4,13 +4,13 @@
   "license": "GPL-3.0-only",
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev src",
     "build": "vitepress build src",
-    "preview": "vitepress preview src",
+    "dev": "vitepress dev src",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check"
+    "preview": "vitepress preview src"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.0",

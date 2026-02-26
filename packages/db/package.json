@@ -19,13 +19,13 @@
   },
   "scripts": {
     "build": "vite build",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "drizzle:studio": "drizzle-kit studio --host 0.0.0.0 --port 4983",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:studio": "drizzle-kit studio --host 0.0.0.0 --port 4983",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
     "test": "vitest run"
   },
   "dependencies": {
