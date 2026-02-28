@@ -102,6 +102,10 @@ export const setupTestDB = async (): Promise<TestDB> => {
   globalThis["__DRIZZLE_DB__"] = drizzleDB;
 
   const cleanup = async () => {
+    // 清除全局引用，防止其他测试获取到已关闭的连接
+    if (globalThis["__DRIZZLE_DB__"] === drizzleDB) {
+      delete globalThis["__DRIZZLE_DB__"];
+    }
     try {
       await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
     } catch (e) {
@@ -111,5 +115,6 @@ export const setupTestDB = async (): Promise<TestDB> => {
     }
   };
 
+  // oxlint-disable-next-line typescript/no-misused-spread
   return { ...drizzleDB, cleanup } as unknown as TestDB;
 };
