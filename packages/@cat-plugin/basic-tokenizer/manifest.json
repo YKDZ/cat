@@ -6,11 +6,23 @@
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
     {
-      "id": "simple-pattern-tokenizer",
+      "id": "newline-tokenizer",
+      "type": "TOKENIZER"
+    },
+    {
+      "id": "number-tokenizer",
+      "type": "TOKENIZER"
+    },
+    {
+      "id": "whitespace-tokenizer",
       "type": "TOKENIZER"
     },
     {
       "id": "term-tokenizer",
+      "type": "TOKENIZER"
+    },
+    {
+      "id": "punctuation-tokenizer",
       "type": "TOKENIZER"
     }
   ]

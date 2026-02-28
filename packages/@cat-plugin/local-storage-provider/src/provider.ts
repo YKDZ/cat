@@ -6,6 +6,7 @@ import {
   type DeleteContext,
   type GetPresignedGetUrlContext,
   type GetPresignedPutUrlContext,
+  type GetRangeContext,
   type GetStreamContext,
   type HeadContext,
   type PutStreamContext,
@@ -84,6 +85,47 @@ export class Provider extends StorageProvider {
   async getStream({ key }: GetStreamContext): Promise<Readable> {
     const filePath = this.getPath(key);
     return createReadStream(filePath);
+  }
+
+  async getRange({
+    key,
+    start,
+    end,
+  }: GetRangeContext): Promise<{
+    data: string;
+    total: number;
+    actualEnd: number;
+  }> {
+    const filePath = this.getPath(key);
+    const stats = await stat(filePath);
+    const totalBytes = stats.size;
+
+    // 读取整个文件为 UTF-8 字符串，确保正确处理多字节字符
+    const fd = await import("node:fs/promises").then(async (m) =>
+      m.open(filePath, "r"),
+    );
+    let fullContent: string;
+
+    try {
+      const buffer = Buffer.alloc(totalBytes);
+      await fd.read(buffer, 0, totalBytes, 0);
+      fullContent = buffer.toString("utf-8");
+    } finally {
+      await fd.close();
+    }
+
+    // 按字符位置截取（而非字节位置）
+    // 使用 Number() 转换确保类型安全
+    const startNum = Number(start);
+    const endNum = Number(end);
+    const actualEnd = Math.min(endNum, fullContent.length - 1);
+    const data = fullContent.substring(startNum, actualEnd + 1);
+
+    return {
+      data,
+      total: fullContent.length,
+      actualEnd,
+    };
   }
 
   async getPresignedPutUrl(_ctx: GetPresignedPutUrlContext): Promise<string> {

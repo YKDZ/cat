@@ -5,30 +5,19 @@ import {
   type ParseResult,
 } from "@cat/plugin-core";
 
-export class SimplePatternTokenizer extends Tokenizer {
-  getId = (): string => "simple-pattern-tokenizer";
+/**
+ * 换行符分词器
+ * 匹配 \n 换行符
+ */
+export class NewlineTokenizer extends Tokenizer {
+  getId = (): string => "newline-tokenizer";
 
-  getPriority = (): TokenizerPriority => TokenizerPriority.VARIABLE;
+  getPriority = (): TokenizerPriority => TokenizerPriority.STRUCTURE;
 
   parse = (ctx: ParserContext): ParseResult | undefined => {
     const { source, cursor } = ctx;
     const remainingText = source.slice(cursor);
 
-    // 1. 匹配变量: % + 一个英文小写字母 (例如 %s, %d)
-    const variableMatch = remainingText.match(/^%[a-z]/);
-    if (variableMatch) {
-      const value = variableMatch[0];
-      return {
-        token: {
-          type: "variable",
-          value,
-          start: cursor,
-          end: cursor + value.length,
-        },
-      };
-    }
-
-    // 2. 匹配换行符
     if (remainingText.startsWith("\n")) {
       return {
         token: {
@@ -40,7 +29,23 @@ export class SimplePatternTokenizer extends Tokenizer {
       };
     }
 
-    // 3. 匹配所有阿拉伯数字
+    return undefined;
+  };
+}
+
+/**
+ * 阿拉伯数字分词器
+ * 匹配连续的阿拉伯数字序列
+ */
+export class NumberTokenizer extends Tokenizer {
+  getId = (): string => "number-tokenizer";
+
+  getPriority = (): TokenizerPriority => TokenizerPriority.LITERAL;
+
+  parse = (ctx: ParserContext): ParseResult | undefined => {
+    const { source, cursor } = ctx;
+    const remainingText = source.slice(cursor);
+
     const numberMatch = remainingText.match(/^[0-9]+/);
     if (numberMatch) {
       const value = numberMatch[0];
@@ -58,6 +63,41 @@ export class SimplePatternTokenizer extends Tokenizer {
   };
 }
 
+/**
+ * 空白字符分词器
+ * 匹配空格和制表符
+ */
+export class WhitespaceTokenizer extends Tokenizer {
+  getId = (): string => "whitespace-tokenizer";
+
+  getPriority = (): TokenizerPriority => TokenizerPriority.LITERAL;
+
+  parse = (ctx: ParserContext): ParseResult | undefined => {
+    const { source, cursor } = ctx;
+    const remainingText = source.slice(cursor);
+
+    // 匹配连续的空格和制表符
+    const whitespaceMatch = remainingText.match(/^[ \t]+/);
+    if (whitespaceMatch) {
+      const value = whitespaceMatch[0];
+      return {
+        token: {
+          type: "whitespace",
+          value,
+          start: cursor,
+          end: cursor + value.length,
+        },
+      };
+    }
+
+    return undefined;
+  };
+}
+
+/**
+ * 术语分词器
+ * 匹配术语表中的术语
+ */
 export class TermTokenizer extends Tokenizer {
   getId = (): string => "term-tokenizer";
 
@@ -66,14 +106,12 @@ export class TermTokenizer extends Tokenizer {
   parse = (ctx: ParserContext): ParseResult | undefined => {
     const { source, cursor, terms } = ctx;
 
-    // 如果没有提供术语数据，直接返回
     if (!terms || terms.length === 0) {
       return undefined;
     }
 
     const remainingText = source.slice(cursor);
 
-    // 寻找匹配的术语
     // 按长度降序排列，优先匹配更长的术语
     const sortedTerms = [...terms].sort(
       (a, b) => b.term.length - a.term.length,
@@ -82,12 +120,12 @@ export class TermTokenizer extends Tokenizer {
     for (const termData of sortedTerms) {
       const { term, translation, definition, conceptId, glossaryId } = termData;
 
-      // 大小写不敏感匹配（可根据需要调整）
+      // 大小写不敏感匹配
       const lowerRemaining = remainingText.toLowerCase();
       const lowerTerm = term.toLowerCase();
 
       if (lowerRemaining.startsWith(lowerTerm)) {
-        // 找到匹配，使用原始文本保持大小写
+        // 使用原始文本保持大小写
         const matchedValue = remainingText.slice(0, term.length);
 
         return {
@@ -106,6 +144,56 @@ export class TermTokenizer extends Tokenizer {
           },
         };
       }
+    }
+
+    return undefined;
+  };
+}
+
+/**
+ * 标点符号分词器
+ * 匹配常见的中文和英文标点符号
+ * 注意：这个分词器优先级较低，让其他分词器有机会先匹配
+ */
+export class PunctuationTokenizer extends Tokenizer {
+  getId = (): string => "punctuation-tokenizer";
+
+  getPriority = (): TokenizerPriority => TokenizerPriority.LOWEST;
+
+  parse = (ctx: ParserContext): ParseResult | undefined => {
+    const { source, cursor } = ctx;
+    const remainingText = source.slice(cursor);
+
+    // 匹配中文标点符号
+    const cjkPunctuationMatch = remainingText.match(
+      /^[，。！？；：""''、…—【】《》（）「」『』【】〔〕]/,
+    );
+    if (cjkPunctuationMatch) {
+      const value = cjkPunctuationMatch[0];
+      return {
+        token: {
+          type: "text",
+          value,
+          start: cursor,
+          end: cursor + value.length,
+        },
+      };
+    }
+
+    // 匹配英文标点符号
+    const asciiPunctuationMatch = remainingText.match(
+      /^[,.!?;:'"()[\]{}<>@#$%^&*\-+=|\\/_]/,
+    );
+    if (asciiPunctuationMatch) {
+      const value = asciiPunctuationMatch[0];
+      return {
+        token: {
+          type: "text",
+          value,
+          start: cursor,
+          end: cursor + value.length,
+        },
+      };
     }
 
     return undefined;
