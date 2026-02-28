@@ -99,9 +99,9 @@ export class TermTokenizer extends Tokenizer {
             meta: {
               term,
               translation,
-              definition: definition ?? undefined,
-              conceptId: conceptId ?? undefined,
-              glossaryId: glossaryId ?? undefined,
+              definition: definition ?? null,
+              conceptId: conceptId ?? null,
+              glossaryId: glossaryId ?? null,
             },
           },
         };
