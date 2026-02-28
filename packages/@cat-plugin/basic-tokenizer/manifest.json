@@ -8,6 +8,10 @@
     {
       "id": "simple-pattern-tokenizer",
       "type": "TOKENIZER"
+    },
+    {
+      "id": "term-tokenizer",
+      "type": "TOKENIZER"
     }
   ]
 }

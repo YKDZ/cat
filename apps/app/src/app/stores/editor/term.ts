@@ -1,5 +1,5 @@
 import { defineStore, storeToRefs } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
@@ -84,9 +84,19 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
     });
   };
 
+  const termDataList = computed(() => {
+    return terms.value.map((term) => ({
+      term: term.term,
+      termLanguageId: term.termLanguageId,
+      translation: term.translation,
+      translationLanguageId: term.translationLanguageId,
+    }));
+  });
+
   return {
     terms,
     searchQuery,
+    termDataList,
     updateTerms,
     addTerms,
     searchTerm,

@@ -816,6 +816,22 @@ importers:
         specifier: ^7.3.1
         version: 7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
 
+  packages/@cat-plugin/term-tokenizer:
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
+
   packages/@cat-plugin/tiny-widget:
     devDependencies:
       '@cat/eslint-config':

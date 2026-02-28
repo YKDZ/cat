@@ -325,6 +325,52 @@ export class PluginManager {
       await pluginObj.onActivate(context);
     }
 
+    // 同步 manifest 中声明的服务到数据库（处理插件更新后新增服务的情况）
+    const manifest = await loader.getManifest(pluginId);
+    if (manifest.services?.length) {
+      // 获取当前安装记录
+      const installation = await drizzle
+        .select({ id: pluginInstallation.id })
+        .from(pluginInstallation)
+        .where(
+          and(
+            eq(pluginInstallation.pluginId, pluginId),
+            eq(pluginInstallation.scopeType, this.scopeType),
+            eq(pluginInstallation.scopeId, this.scopeId),
+          ),
+        )
+        .then((res) => res[0]);
+
+      if (installation) {
+        // 同步服务记录
+        const existingServices = await drizzle
+          .select({
+            serviceId: pluginService.serviceId,
+            serviceType: pluginService.serviceType,
+          })
+          .from(pluginService)
+          .where(eq(pluginService.pluginInstallationId, installation.id));
+
+        const existingKeys = new Set(
+          existingServices.map((s) => `${s.serviceType}:${s.serviceId}`),
+        );
+
+        const newServices = manifest.services.filter(
+          (s) => !existingKeys.has(`${s.type}:${s.id}`),
+        );
+
+        if (newServices.length > 0) {
+          await drizzle.insert(pluginService).values(
+            newServices.map((s) => ({
+              serviceId: s.id,
+              serviceType: s.type,
+              pluginInstallationId: installation.id,
+            })),
+          );
+        }
+      }
+    }
+
     // 注册 services
     if (pluginObj.services) {
       const services = await pluginObj.services(context);
