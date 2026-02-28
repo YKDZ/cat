@@ -19,6 +19,12 @@ export type GetStreamContext = {
   key: string;
 };
 
+export type GetRangeContext = {
+  key: string;
+  start: number;
+  end: number;
+};
+
 export type GetPresignedPutUrlContext = {
   key: string;
   expiresIn: number;
@@ -45,6 +51,9 @@ export abstract class StorageProvider implements IPluginService {
   }
   abstract putStream(ctx: PutStreamContext): Promise<void>;
   abstract getStream(ctx: GetStreamContext): Promise<Readable>;
+  abstract getRange(
+    ctx: GetRangeContext,
+  ): Promise<{ data: string; total: number; actualEnd: number }>;
   abstract getPresignedPutUrl(ctx: GetPresignedPutUrlContext): Promise<string>;
   abstract getPresignedGetUrl(ctx: GetPresignedGetUrlContext): Promise<string>;
   abstract head(ctx: HeadContext): Promise<void>;

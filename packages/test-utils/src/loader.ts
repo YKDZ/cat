@@ -45,6 +45,7 @@ import {
   type DeleteContext,
   type GetPresignedGetUrlContext,
   type GetPresignedPutUrlContext,
+  type GetRangeContext,
   type GetStreamContext,
   type HeadContext,
   type PutStreamContext,
@@ -182,6 +183,46 @@ export class TestStorageProvider extends StorageProvider {
 
   public override delete = async ({ key }: DeleteContext): Promise<void> => {
     this.storage.delete(key);
+  };
+
+  public override getRange = async ({
+    key,
+    start,
+    end,
+  }: GetRangeContext): Promise<{
+    data: string;
+    total: number;
+    actualEnd: number;
+  }> => {
+    const data = this.storage.get(key);
+    if (!data) throw new Error(`File ${key} not found`);
+
+    const total = data.length;
+    const actualStart = Math.max(0, start);
+    const actualEnd = Math.min(total - 1, end);
+
+    if (actualStart > actualEnd) {
+      return { data: "", total, actualEnd: actualStart - 1 };
+    }
+
+    const slice = data.slice(actualStart, actualEnd + 1);
+
+    // 处理 UTF-8 边界：如果最后一个字节是不完整的 UTF-8 字符，去掉它
+    let sliceEnd = slice.length;
+    while (sliceEnd > 0) {
+      const lastByte = slice[sliceEnd - 1];
+      // UTF-8 continuation bytes: 10xxxxxx (128-191)
+      if (lastByte >= 128 && lastByte < 192) {
+        sliceEnd -= 1;
+      } else {
+        break;
+      }
+    }
+
+    const dataStr = slice.slice(0, sliceEnd).toString("utf-8");
+    // 返回实际读取的字节位置（包括被截断的无效 UTF-8 字节）
+    // 这样客户端下次会从正确的位置继续，不会跳过任何内容
+    return { data: dataStr, total, actualEnd: actualStart + slice.length - 1 };
   };
 
   // oxlint-disable-next-line no-empty-function

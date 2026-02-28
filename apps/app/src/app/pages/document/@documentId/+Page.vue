@@ -1,9 +1,25 @@
 <script setup lang="ts">
-import { inject } from "vue";
-import { useInjectionKey } from "@/app/utils/provide.ts";
+import { BlobView } from "@/app/components/blob-view";
 import type { Data } from "./+data.server";
+import { useData } from "vike-vue/useData";
+import { usePageContext } from "vike-vue/usePageContext";
 
-const document = inject(useInjectionKey<Data>()("document"));
+const { fileInfo, fileUrl } = useData<Data>();
+const pageContext = usePageContext();
+// 从路由中提取 documentId
+const documentId = pageContext.urlParsed.pathname.split("/").pop();
 </script>
 
-<template>文档内容和相关信息展示 {{ document }}</template>
+<template>
+  <div class="p-6">
+    <div v-if="!fileInfo" class="text-muted-foreground">
+      {{ $t("该文档没有关联的文件") }}
+    </div>
+    <BlobView
+      v-else
+      :document-id="documentId"
+      :file-url="fileUrl"
+      :file-name="fileInfo.fileName"
+    />
+  </div>
+</template>

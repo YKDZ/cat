@@ -4,6 +4,7 @@
   "scripts": {
     "build-plugins": "nx run-many --target=build --projects=@cat-plugin/*",
     "load-plugins": "node scripts/load-plugins.js",
+    "precommit": "nx run-many --target=lint:fix,fmt,test,typecheck",
     "repeat-test": "node scripts/repeat-test.js"
   },
   "devDependencies": {
