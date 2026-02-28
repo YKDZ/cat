@@ -16,6 +16,7 @@ import {
   type DeleteContext,
   type GetPresignedGetUrlContext,
   type GetPresignedPutUrlContext,
+  type GetRangeContext,
   type GetStreamContext,
   type HeadContext,
   type PutStreamContext,
@@ -208,5 +209,91 @@ export class Provider extends StorageProvider {
     });
 
     await this.db.client.send(command);
+  }
+
+  async getRange({ key, start, end }: GetRangeContext): Promise<{
+    data: string;
+    total: number;
+    actualEnd: number;
+  }> {
+    const fullKey = join(
+      this.config.storage["basic-path"],
+      key.replaceAll("\\", "/"),
+    );
+
+    const headCommand = new HeadObjectCommand({
+      Bucket: this.config.s3["bucket-name"],
+      Key: fullKey,
+    });
+    const headResponse = await this.db.client.send(headCommand);
+    const total = headResponse.ContentLength ?? 0;
+
+    const actualStart = Math.max(0, start);
+    const actualEnd = Math.min(total - 1, end);
+
+    if (actualStart > actualEnd) {
+      return { data: "", total, actualEnd: actualStart - 1 };
+    }
+
+    const getCommand = new GetObjectCommand({
+      Bucket: this.config.s3["bucket-name"],
+      Key: fullKey,
+      Range: `bytes=${actualStart}-${actualEnd}`,
+    });
+    const response = await this.db.client.send(getCommand);
+
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    const blob = response.Body as Blob;
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // 处理 UTF-8 边界：确保最后一个字符是完整的
+    let sliceEnd = buffer.length;
+
+    // 去掉末尾的 continuation bytes
+    while (sliceEnd > 0) {
+      const lastByte = buffer[sliceEnd - 1];
+      // UTF-8 continuation bytes: 10xxxxxx (128-191)
+      if (lastByte >= 128 && lastByte < 192) {
+        sliceEnd -= 1;
+      } else {
+        break;
+      }
+    }
+
+    // 检查最后一个字符是否完整
+    if (sliceEnd > 0) {
+      const lastByte = buffer[sliceEnd - 1];
+      let expectedLength = 0;
+
+      if (lastByte < 128) {
+        expectedLength = 1;
+      } else if (lastByte >= 192 && lastByte < 224) {
+        expectedLength = 2;
+      } else if (lastByte >= 224 && lastByte < 240) {
+        expectedLength = 3;
+      } else if (lastByte >= 240 && lastByte < 248) {
+        expectedLength = 4;
+      }
+
+      // 如果是不完整的 UTF-8 字符，去掉起始字节
+      if (expectedLength > 1 && sliceEnd >= expectedLength) {
+        let isComplete = true;
+        for (let i = sliceEnd - expectedLength + 1; i < sliceEnd; i += 1) {
+          const byte = buffer[i];
+          if (byte < 128 || byte >= 192) {
+            isComplete = false;
+            break;
+          }
+        }
+
+        if (!isComplete) {
+          sliceEnd -= 1;
+        }
+      }
+    }
+
+    const data = buffer.slice(0, sliceEnd).toString("utf-8");
+    return { data, total, actualEnd: actualStart + sliceEnd - 1 };
   }
 }

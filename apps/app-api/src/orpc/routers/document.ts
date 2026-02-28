@@ -828,6 +828,63 @@ export const getDocumentFileUrl = authed
     return await getDownloadUrl(redis, provider, storageProviderId, key, 120);
   });
 
+export const getDocumentFileInfo = authed
+  .input(
+    z.object({
+      documentId: z.uuidv4(),
+    }),
+  )
+  .output(
+    z
+      .object({
+        key: z.string(),
+        storageProviderId: z.number().int(),
+        fileName: z.string(),
+      })
+      .nullable(),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const { documentId } = input;
+
+    const whereConditions = [eq(documentTable.id, documentId)];
+
+    const result = assertFirstNonNullish(
+      await drizzle
+        .select({
+          key: blobTable.key,
+          storageProviderId: blobTable.storageProviderId,
+          fileName: fileTable.name,
+        })
+        .from(documentTable)
+        .leftJoin(
+          fileTable,
+          and(
+            eq(fileTable.id, documentTable.fileId),
+            eq(fileTable.isActive, true),
+          ),
+        )
+        .leftJoin(blobTable, eq(blobTable.id, fileTable.blobId))
+        .where(
+          whereConditions.length === 1
+            ? whereConditions[0]
+            : and(...whereConditions),
+        ),
+    );
+
+    if (!result || !result.key || !result.storageProviderId) {
+      return null;
+    }
+
+    return {
+      key: result.key,
+      storageProviderId: result.storageProviderId,
+      fileName: result.fileName || documentId,
+    };
+  });
+
 export const countTranslation = authed
   .input(
     z.object({
