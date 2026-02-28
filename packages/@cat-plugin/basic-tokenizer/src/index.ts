@@ -1,10 +1,10 @@
 import type { CatPlugin } from "@cat/plugin-core";
 
-import { SimplePatternTokenizer } from "@/tokenizer.ts";
+import { SimplePatternTokenizer, TermTokenizer } from "@/tokenizer.ts";
 
 class Plugin implements CatPlugin {
   services() {
-    return [new SimplePatternTokenizer()];
+    return [new SimplePatternTokenizer(), new TermTokenizer()];
   }
 }
 

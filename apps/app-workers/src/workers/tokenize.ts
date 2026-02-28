@@ -4,12 +4,14 @@ import {
   Tokenizer,
   TokenSchema,
 } from "@cat/plugin-core";
+import { TermDataSchema } from "@cat/shared/schema/misc";
 import z from "zod";
 
 import { defineTask } from "@/core";
 
 export const TokenizeInputSchema = z.object({
   text: z.string(),
+  terms: z.array(TermDataSchema).optional(),
 });
 
 export const TokenizeOutputSchema = z.object({
@@ -28,7 +30,7 @@ export const tokenizeTask = await defineTask({
   handler: async (payload) => {
     const pluginManager = PluginManager.get("GLOBAL", "");
 
-    const { text } = payload;
+    const { text, terms } = payload;
 
     const rules: { service: Tokenizer; dbId: number }[] =
       pluginManager.getServices("TOKENIZER");
@@ -40,7 +42,7 @@ export const tokenizeTask = await defineTask({
         id: service.dbId,
       }));
 
-    const tokens = await tokenize(text, sorted);
+    const tokens = await tokenize(text, sorted, { terms });
 
     return { tokens };
   },

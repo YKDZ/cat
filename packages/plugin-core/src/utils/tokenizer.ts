@@ -1,8 +1,15 @@
+import type { TermData } from "@cat/shared/schema/misc";
+
 import type { Token, Tokenizer } from "@/services/tokenizer.ts";
+
+export interface TokenizeOptions {
+  terms?: TermData[];
+}
 
 export const tokenize = async (
   text: string,
   rules: { rule: Tokenizer; id: number }[],
+  options?: TokenizeOptions,
 ): Promise<Token[]> => {
   let cursor = 0;
   const tokens: Token[] = [];
@@ -17,6 +24,7 @@ export const tokenize = async (
       const result = await rule.rule.parse({
         source: text,
         cursor,
+        terms: options?.terms,
       });
       matchedToken = result?.token;
 
@@ -64,8 +72,9 @@ export const parseInner = async (
   content: string,
   offsetInParent: number,
   rules: { rule: Tokenizer; id: number }[],
+  options?: TokenizeOptions,
 ): Promise<Token[]> => {
-  const rawTokens = await tokenize(content, rules);
+  const rawTokens = await tokenize(content, rules, options);
   return shiftTokens(rawTokens, offsetInParent);
 };
 

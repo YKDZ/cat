@@ -1,4 +1,5 @@
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import type { TermData } from "@cat/shared/schema/misc";
 
 import { JSONObjectSchema, type JSONObject } from "@cat/shared/schema/json";
 import z from "zod";
@@ -54,6 +55,7 @@ export interface Token {
 export interface ParserContext {
   source: string;
   cursor: number;
+  terms?: TermData[];
 }
 
 export type ParseResult = {
