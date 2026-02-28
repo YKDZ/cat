@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/drizzle/document";
-import { computed, ref } from "vue";
+import { computed, shallowRef } from "vue";
 import DocumentTreeNode from "./DocumentTreeNode.vue";
 
 const props = defineProps<{
@@ -44,7 +44,7 @@ const tree = computed(() => {
   return roots;
 });
 
-const expandedNodes = ref<Set<string>>(new Set());
+const expandedNodes = shallowRef<Set<string>>(new Set());
 
 const toggleNode = (nodeId: string) => {
   if (expandedNodes.value.has(nodeId)) {
@@ -77,6 +77,7 @@ const handleClick = (document: Document) => {
 
     <div
       v-if="tree.length === 0"
+      :key="'empty-state'"
       class="flex items-center justify-center py-8 text-foreground"
     >
       <span class="text-sm">暂无文档</span>

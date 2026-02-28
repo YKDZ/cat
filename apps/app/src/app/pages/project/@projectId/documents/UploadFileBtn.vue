@@ -22,7 +22,7 @@ const { t } = useI18n();
 
 <template>
   <Dialog>
-    <DialogTrigger>
+    <DialogTrigger as-child>
       <Button :class="$attrs.class"><Plus /> {{ t("上传文件") }}</Button>
     </DialogTrigger>
 
