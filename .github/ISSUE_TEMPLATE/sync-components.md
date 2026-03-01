@@ -14,13 +14,13 @@ The automated check has detected that some shadcn-vue components can be synced w
 Please run the following command locally to sync the components:
 
 ```bash
-node apps/app/scripts/sync-shadcn-components.js
+node apps/app-ui/scripts/sync-shadcn-components.js
 ```
 
 Then verify the changes:
 
 ```bash
-pnpm exec nx run-many --target=lint,typecheck --projects=@cat/app
+pnpm exec nx run-many --target=lint,typecheck --projects=@cat/app-ui
 ```
 
 ## Components to Sync
@@ -40,6 +40,5 @@ The sync script will automatically:
 
 ---
 
-**Detected by**: [sync-shadcn-components.js](/apps/app/scripts/sync-shadcn-components.js)  
+**Detected by**: [sync-shadcn-components.js](/apps/app-ui/scripts/sync-shadcn-components.js)  
 **Workflow**: [Sync Shadcn-Vue Components](/.github/workflows/sync-shadcn-components.yml)
-**Date**: ${date}
