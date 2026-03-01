@@ -16,7 +16,7 @@ const ctx = usePageContext();
 
 const { refresh: refreshContext } = useEditorContextStore();
 const { refresh: refreshElement } = useEditorElementStore();
-const { toElement, toPage } = useEditorTableStore();
+const { toElement } = useEditorTableStore();
 const { elementId } = storeToRefs(useEditorTableStore());
 const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 
