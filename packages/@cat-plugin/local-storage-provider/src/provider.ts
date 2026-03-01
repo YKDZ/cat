@@ -87,11 +87,7 @@ export class Provider extends StorageProvider {
     return createReadStream(filePath);
   }
 
-  async getRange({
-    key,
-    start,
-    end,
-  }: GetRangeContext): Promise<{
+  async getRange({ key, start, end }: GetRangeContext): Promise<{
     data: string;
     total: number;
     actualEnd: number;
