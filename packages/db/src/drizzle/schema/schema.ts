@@ -668,32 +668,46 @@ export const termConceptSubject = pgTable("TermConceptSubject", {
   ...timestamps,
 });
 
-export const translatableElement = pgTable("TranslatableElement", {
-  id: serial().primaryKey(),
-  meta: jsonb().$type<JSONType>(),
-  documentId: uuid()
-    .notNull()
-    .references(() => document.id, {
+export const translatableElement = pgTable(
+  "TranslatableElement",
+  {
+    id: serial().primaryKey(),
+    meta: jsonb().$type<JSONType>(),
+    documentId: uuid()
+      .notNull()
+      .references(() => document.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    sortIndex: integer(),
+    creatorId: uuid().references(() => user.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  sortIndex: integer(),
-  creatorId: uuid().references(() => user.id, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
-  translatableStringId: integer()
-    .notNull()
-    .references(() => translatableString.id, {
-      onDelete: "restrict",
-      onUpdate: "cascade",
-    }),
-  approvedTranslationId: integer().references((): PgColumn => translation.id, {
-    onDelete: "set null",
-    onUpdate: "cascade",
-  }),
-  ...timestamps,
-});
+    translatableStringId: integer()
+      .notNull()
+      .references(() => translatableString.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    approvedTranslationId: integer().references(
+      (): PgColumn => translation.id,
+      {
+        onDelete: "set null",
+        onUpdate: "cascade",
+      },
+    ),
+    ...timestamps,
+  },
+  (table) => [
+    // Composite index for faster element listing by document and sort order
+    index("idx_translatable_element_document_sort").using(
+      "btree",
+      table.documentId.asc().nullsLast(),
+      table.sortIndex.asc().nullsLast(),
+    ),
+  ],
+);
 
 export const comment = pgTable(
   "Comment",
@@ -812,6 +826,11 @@ export const translatableString = pgTable(
       "gin",
       sql`${table.value} gin_trgm_ops`,
     ),
+    // Index for faster language lookup
+    index("idx_translatable_string_language").using(
+      "btree",
+      table.languageId.asc().nullsLast(),
+    ),
   ],
 );
 
@@ -844,6 +863,11 @@ export const translation = pgTable(
       table.translatorId.asc().nullsLast(),
       table.translatableElementId.asc().nullsLast(),
       table.stringId.asc().nullsLast(),
+    ),
+    // Index for faster translation lookup by element
+    index("idx_translation_element").using(
+      "btree",
+      table.translatableElementId.asc().nullsLast(),
     ),
   ],
 );
