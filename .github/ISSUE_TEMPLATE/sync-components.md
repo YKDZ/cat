@@ -30,15 +30,8 @@ The sync script will automatically:
 - ⚠️ Skip components marked with `@shadcn-do-not-sync`
 - ⚠️ Skip components that have been abandoned by upstream
 
-## Verification Checklist
-
-- [ ] Components synced successfully
-- [ ] Lint passed
-- [ ] Typecheck passed
-- [ ] Manual testing completed (if needed)
-- [ ] Commit and push changes
-
 ---
 
 **Detected by**: [sync-shadcn-components.js](/apps/app-ui/scripts/sync-shadcn-components.js)  
-**Workflow**: [Sync Shadcn-Vue Components](/.github/workflows/sync-shadcn-components.yml)
+**Workflow**: [Sync Shadcn-Vue Components](/.github/workflows/sync-shadcn-components.yml)  
+**Action Run**: [View Workflow Run](ACTION_RUN_URL_PLACEHOLDER)
