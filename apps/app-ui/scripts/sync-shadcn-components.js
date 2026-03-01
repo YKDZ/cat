@@ -19,7 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_DIR = path.join(__dirname, "..");
-const UI_DIR = path.join(APP_DIR, "src/components/ui");
+const UI_DIR = path.join(APP_DIR, "src/components");
 
 const doNotSyncComponents = new Set();
 let upstreamComponents = [];
