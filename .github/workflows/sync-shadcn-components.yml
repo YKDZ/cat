@@ -43,9 +43,10 @@ jobs:
       - name: Generate Issue Content from Template
         if: steps.check-components.outcome == 'failure'
         run: |
-          # Replace placeholder with actual action run link
-          sed "s|\*\*Action Run\*\*:.*|**Action Run**: [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})|" \
-            .github/ISSUE_TEMPLATE/sync-components.md > /tmp/issue-content.md
+          # Remove frontmatter (lines between ---) and replace placeholder
+          tail -n +5 .github/ISSUE_TEMPLATE/sync-components.md | \
+            sed "s|ACTION_RUN_URL_PLACEHOLDER|https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|" \
+            > /tmp/issue-content.md
 
       - name: Create Issue if Updates Needed
         if: steps.check-components.outcome == 'failure'
