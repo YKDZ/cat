@@ -43,8 +43,9 @@ jobs:
       - name: Generate Issue Content from Template
         if: steps.check-components.outcome == 'failure'
         run: |
-          # Remove frontmatter (lines between ---) and replace placeholder
-          tail -n +5 .github/ISSUE_TEMPLATE/sync-components.md | \
+          # Remove YAML frontmatter (everything between first two ---) and replace placeholder
+          awk 'BEGIN {in_frontmatter=0; count=0} /^---$/ {count++; next} count==2 && !in_frontmatter {in_frontmatter=1} in_frontmatter {print}' \
+            .github/ISSUE_TEMPLATE/sync-components.md | \
             sed "s|ACTION_RUN_URL_PLACEHOLDER|https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|" \
             > /tmp/issue-content.md
 
