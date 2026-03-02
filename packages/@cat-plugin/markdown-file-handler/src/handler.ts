@@ -76,6 +76,20 @@ export class Importer extends FileImporter {
         .join("");
     };
 
+    const locationFromNode = (n: {
+      type: string;
+      position?: { start: { line: number }; end: { line: number } };
+    }) =>
+      n.position
+        ? {
+            location: {
+              startLine: n.position.start.line,
+              endLine: n.position.end.line,
+              custom: { nodeType: n.type },
+            },
+          }
+        : {};
+
     const processNode = (node: RootContent): void => {
       // 处理标题
       if (node.type === "heading" && "children" in node) {
@@ -89,6 +103,7 @@ export class Importer extends FileImporter {
               type: "heading",
               depth: node.depth,
             } satisfies ElementMeta,
+            ...locationFromNode(node),
           });
           elementIndex += 1;
         }
@@ -104,6 +119,7 @@ export class Importer extends FileImporter {
               index: elementIndex,
               type: "paragraph",
             } satisfies ElementMeta,
+            ...locationFromNode(node),
           });
           elementIndex += 1;
         }
@@ -121,6 +137,7 @@ export class Importer extends FileImporter {
                   index: elementIndex,
                   type: "listItem",
                 } satisfies ElementMeta,
+                ...locationFromNode(child),
               });
               elementIndex += 1;
             }
@@ -146,6 +163,7 @@ export class Importer extends FileImporter {
               type: "code",
               lang: node.lang ?? null,
             } satisfies ElementMeta,
+            ...locationFromNode(node),
           });
           elementIndex += 1;
         }
@@ -181,6 +199,7 @@ export class Importer extends FileImporter {
                       rowIndex,
                       cellIndex,
                     } satisfies ElementMeta,
+                    ...locationFromNode(cell),
                   });
                   elementIndex += 1;
                 }
@@ -200,6 +219,7 @@ export class Importer extends FileImporter {
               index: elementIndex,
               type: "linkReference",
             } satisfies ElementMeta,
+            ...locationFromNode(node),
           });
           elementIndex += 1;
         }
@@ -215,6 +235,7 @@ export class Importer extends FileImporter {
               index: elementIndex,
               type: "imageReference",
             } satisfies ElementMeta,
+            ...locationFromNode(node),
           });
           elementIndex += 1;
         }
@@ -234,6 +255,7 @@ export class Importer extends FileImporter {
                   type: "footnoteDefinition",
                   identifier: node.identifier,
                 } satisfies ElementMeta,
+                ...locationFromNode(child),
               });
               elementIndex += 1;
             }

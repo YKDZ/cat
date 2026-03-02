@@ -29,6 +29,9 @@ export const ParseFileOutputSchema = z.object({
       sortIndex: z.int(),
       languageId: z.string(),
       meta: safeZDotJson,
+      sourceStartLine: z.int().nullable().optional(),
+      sourceEndLine: z.int().nullable().optional(),
+      sourceLocationMeta: safeZDotJson.nullable().optional(),
     }),
   ),
 });
@@ -94,6 +97,9 @@ export const parseFileTask = await defineTask({
         ...item,
         sortIndex,
         languageId: data.languageId,
+        sourceStartLine: item.location?.startLine ?? null,
+        sourceEndLine: item.location?.endLine ?? null,
+        sourceLocationMeta: item.location?.custom ?? null,
       };
     });
 

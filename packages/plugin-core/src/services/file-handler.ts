@@ -21,10 +21,20 @@ export type ExportContext = {
   elements: { meta: JSONType; text: string; sortIndex?: number }[];
 };
 
+export type ElementLocation = {
+  /** 元素在源文件中的起始行（1-based），适用于纯文本文件 */
+  startLine?: number;
+  /** 元素在源文件中的结束行（1-based），适用于纯文本文件 */
+  endLine?: number;
+  /** 插件自定义定位信息（如 PDF 页码、markdown AST 路径等） */
+  custom?: Record<string, unknown>;
+};
+
 export type ElementData = {
   meta: JSONType;
   text: string;
   sortIndex?: number;
+  location?: ElementLocation;
 };
 
 export abstract class FileImporter implements IPluginService {

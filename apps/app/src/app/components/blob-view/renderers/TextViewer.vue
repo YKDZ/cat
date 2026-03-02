@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { codeToHtml } from "shiki";
-import { Button } from "@cat/app-ui";
+import { Button, ScrollArea, ScrollBar } from "@cat/app-ui";
 import { toast } from "vue-sonner";
 import { detectLanguage } from "../types";
 import type { FileInfo } from "../types";
@@ -235,6 +235,13 @@ watch(
   { immediate: true },
 );
 
+// 高亮行自动滚动
+watch(highlightedHtml, async () => {
+  await nextTick();
+  const el = document.querySelector(".line-highlight");
+  el?.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
 defineExpose({
   loadMore,
   hasMoreContent: computed(() => hasMoreContent.value),
@@ -255,14 +262,24 @@ defineExpose({
 
     <div
       v-else-if="highlightedHtml"
-      class="overflow-auto"
       :style="{ maxHeight: hasMoreContent ? '500px' : '600px' }"
-      v-html="highlightedHtml"
-    ></div>
-
-    <div v-else-if="content" class="p-4 font-mono text-sm whitespace-pre-wrap">
-      {{ content }}
+    >
+      <ScrollArea class="h-full w-full">
+        <div class="min-w-max" v-html="highlightedHtml"></div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
     </div>
+
+    <ScrollArea
+      v-else-if="content"
+      class="w-full"
+      :style="{ maxHeight: hasMoreContent ? '500px' : '600px' }"
+    >
+      <pre class="min-w-max p-4 font-mono text-sm whitespace-pre">{{
+        content
+      }}</pre>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
 
     <div
       v-if="hasMoreContent"
@@ -298,7 +315,6 @@ defineExpose({
 :deep(.shiki) {
   padding: 1rem 0;
   background-color: transparent !important;
-  overflow-x: auto;
   font-family:
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
     monospace;
@@ -346,6 +362,12 @@ defineExpose({
 }
 
 :deep(.line-highlight) {
+  width: 100%;
+  min-width: fit-content;
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+:deep(.line-highlight .line-number) {
   background-color: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 </style>
