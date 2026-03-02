@@ -1,6 +1,6 @@
 ---
 description: Component reuse and discovery guidelines for Vue component development.
-applyTo: "apps/app/**/*.{vue,ts}"
+applyTo: "**/*.{vue,ts}"
 ---
 
 # Vue Component Reuse Guidelines
