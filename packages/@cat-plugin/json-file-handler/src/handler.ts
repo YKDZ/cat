@@ -80,6 +80,33 @@ const collectTranslatableElement = (json: string) => {
   const parsedData = z.json().parse(JSON.parse(json));
   const result: ElementData[] = [];
 
+  // 按行分割用于行号计算
+  const lines = json.split("\n");
+  // 构建每行起始字符偏移量的累计表
+  const lineOffsets: number[] = [];
+  let offset = 0;
+  for (const line of lines) {
+    lineOffsets.push(offset);
+    offset += line.length + 1; // +1 for '\n'
+  }
+
+  const offsetToLine = (charOffset: number): number => {
+    let lo = 0;
+    let hi = lineOffsets.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (lineOffsets[mid] <= charOffset) {
+        lo = mid;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    return lo + 1; // 1-based
+  };
+
+  // 用于在原始文本中搜索字符串值位置的当前搜索偏移
+  let searchOffset = 0;
+
   const traverse = (obj: JSONValue, currentPath: string[] = []) => {
     if (typeof obj === "object" && obj !== null) {
       if (Array.isArray(obj)) {
@@ -96,11 +123,25 @@ const collectTranslatableElement = (json: string) => {
         }
       }
     } else if (typeof obj === "string" && obj.trim() !== "") {
+      // 在原始 JSON 文本中查找该字符串值的位置
+      const escaped = JSON.stringify(obj);
+      const foundIndex = json.indexOf(escaped, searchOffset);
+      let startLine: number | undefined;
+      let endLine: number | undefined;
+      if (foundIndex !== -1) {
+        startLine = offsetToLine(foundIndex);
+        endLine = offsetToLine(foundIndex + escaped.length - 1);
+        searchOffset = foundIndex + escaped.length;
+      }
+
       result.push({
         text: obj,
         meta: {
           key: currentPath,
         },
+        ...(startLine !== undefined && endLine !== undefined
+          ? { location: { startLine, endLine } }
+          : {}),
       });
     }
   };

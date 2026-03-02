@@ -21,6 +21,9 @@ export const DiffElementsInputSchema = z.object({
       sortIndex: z.int(),
       languageId: z.string(),
       meta: safeZDotJson,
+      sourceStartLine: z.int().nullable().optional(),
+      sourceEndLine: z.int().nullable().optional(),
+      sourceLocationMeta: safeZDotJson.nullable().optional(),
     }),
   ),
   oldElementIds: z.array(z.int()),
@@ -51,6 +54,9 @@ export const diffElementsTask = await defineTask({
           text: translatableString.value,
           meta: translatableElement.meta,
           sortIndex: translatableElement.sortIndex,
+          sourceStartLine: translatableElement.sourceStartLine,
+          sourceEndLine: translatableElement.sourceEndLine,
+          sourceLocationMeta: translatableElement.sourceLocationMeta,
         })
         .from(translatableElement)
         .innerJoin(
@@ -64,6 +70,9 @@ export const diffElementsTask = await defineTask({
       text: element.text,
       sortIndex: element.sortIndex ?? 0,
       meta: element.meta,
+      sourceStartLine: element.sourceStartLine,
+      sourceEndLine: element.sourceEndLine,
+      sourceLocationMeta: element.sourceLocationMeta,
     }));
 
     // 2. Match elements by meta
@@ -95,6 +104,12 @@ export const diffElementsTask = await defineTask({
     // 3. Identify updates
     const sortIndexUpdates: { id: number; sortIndex: number }[] = [];
     const textUpdates: { id: number; text: string; languageId: string }[] = [];
+    const locationUpdates: {
+      id: number;
+      sourceStartLine: number | null;
+      sourceEndLine: number | null;
+      sourceLocationMeta: (typeof data.elementData)[number]["sourceLocationMeta"];
+    }[] = [];
 
     for (const pair of matched) {
       if (pair.old.sortIndex !== pair.new.sortIndex) {
@@ -108,6 +123,21 @@ export const diffElementsTask = await defineTask({
           id: pair.old.id,
           text: pair.new.text,
           languageId: pair.new.languageId,
+        });
+      }
+      const newStartLine = pair.new.sourceStartLine ?? null;
+      const newEndLine = pair.new.sourceEndLine ?? null;
+      const newLocMeta = pair.new.sourceLocationMeta ?? null;
+      if (
+        pair.old.sourceStartLine !== newStartLine ||
+        pair.old.sourceEndLine !== newEndLine ||
+        !isEqual(pair.old.sourceLocationMeta, newLocMeta)
+      ) {
+        locationUpdates.push({
+          id: pair.old.id,
+          sourceStartLine: newStartLine,
+          sourceEndLine: newEndLine,
+          sourceLocationMeta: newLocMeta,
         });
       }
     }
@@ -166,6 +196,40 @@ export const diffElementsTask = await defineTask({
         .where(inArray(translatableElement.id, ids));
     }
 
+    // 5.5. Handle location updates
+    if (locationUpdates.length > 0) {
+      const startLineChunks = [sql`(CASE`];
+      const endLineChunks = [sql`(CASE`];
+      const metaChunks = [sql`(CASE`];
+      const ids: number[] = [];
+      for (const u of locationUpdates) {
+        startLineChunks.push(
+          sql`WHEN ${translatableElement.id} = ${u.id} THEN ${u.sourceStartLine}`,
+        );
+        endLineChunks.push(
+          sql`WHEN ${translatableElement.id} = ${u.id} THEN ${u.sourceEndLine}`,
+        );
+        metaChunks.push(
+          sql`WHEN ${translatableElement.id} = ${u.id} THEN ${u.sourceLocationMeta ? sql`${JSON.stringify(u.sourceLocationMeta)}::jsonb` : sql`NULL`}`,
+        );
+        ids.push(u.id);
+      }
+      startLineChunks.push(
+        sql`ELSE ${translatableElement.sourceStartLine} END)`,
+      );
+      endLineChunks.push(sql`ELSE ${translatableElement.sourceEndLine} END)`);
+      metaChunks.push(sql`ELSE ${translatableElement.sourceLocationMeta} END)`);
+
+      await drizzle
+        .update(translatableElement)
+        .set({
+          sourceStartLine: sql.join(startLineChunks, sql` `),
+          sourceEndLine: sql.join(endLineChunks, sql` `),
+          sourceLocationMeta: sql.join(metaChunks, sql` `),
+        })
+        .where(inArray(translatableElement.id, ids));
+    }
+
     // 6. Handle added elements
     const addedIds: number[] = [];
     const addedWithoutCache: typeof added = [];
@@ -211,6 +275,9 @@ export const diffElementsTask = await defineTask({
               meta: el.meta,
               documentId: data.documentId,
               translatableStringId: el.stringId,
+              sourceStartLine: el.sourceStartLine ?? null,
+              sourceEndLine: el.sourceEndLine ?? null,
+              sourceLocationMeta: el.sourceLocationMeta ?? null,
             })),
           )
           .returning({ id: translatableElement.id });
@@ -228,6 +295,9 @@ export const diffElementsTask = await defineTask({
             languageId: el.languageId,
             sortIndex: el.sortIndex,
             meta: el.meta ?? {},
+            sourceStartLine: el.sourceStartLine ?? null,
+            sourceEndLine: el.sourceEndLine ?? null,
+            sourceLocationMeta: el.sourceLocationMeta ?? null,
           })),
           vectorizerId: data.vectorizerId,
           vectorStorageId: data.vectorStorageId,

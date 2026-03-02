@@ -19,6 +19,8 @@ const props = defineProps<{
   highlightStartLine?: number | null;
   /** 要高亮显示的行号范围 */
   highlightEndLine?: number | null;
+  /** 紧凑模式（用于侧边栏等空间受限场景，隐藏头部工具栏和外围边框） */
+  compact?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -52,9 +54,14 @@ watch(
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-lg border">
+  <div
+    :class="compact ? 'overflow-hidden' : 'overflow-hidden rounded-lg border'"
+  >
     <!-- 头部工具栏 -->
-    <div class="flex items-center justify-between border-b bg-muted px-4 py-2">
+    <div
+      v-if="!compact"
+      class="flex items-center justify-between border-b bg-muted px-4 py-2"
+    >
       <div class="flex items-center gap-2">
         <FileText class="h-4 w-4 text-muted-foreground" />
         <span class="text-sm font-medium">{{ fileName }}</span>

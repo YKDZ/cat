@@ -53,14 +53,45 @@ export class Importer extends FileImporter {
     const doc = parseDocument(content);
     const elements: ElementData[] = [];
 
-    function traverseNode(
+    // 构建字符偏移到行号的映射
+    const lines = content.split("\n");
+    const lineOffsets: number[] = [];
+    let offset = 0;
+    for (const line of lines) {
+      lineOffsets.push(offset);
+      offset += line.length + 1; // +1 for '\n'
+    }
+
+    const offsetToLine = (charOffset: number): number => {
+      let lo = 0;
+      let hi = lineOffsets.length - 1;
+      while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (lineOffsets[mid] <= charOffset) {
+          lo = mid;
+        } else {
+          hi = mid - 1;
+        }
+      }
+      return lo + 1; // 1-based
+    };
+
+    const traverseNode = (
       node: unknown,
       path: (string | number)[] = [],
       parentComments: string | undefined = undefined,
-    ): void {
+    ): void => {
       if (isScalar(node) && typeof node.value === "string") {
         const scalarNode = node;
         const comment = scalarNode.commentBefore || parentComments;
+        const range = scalarNode.range;
+        const location =
+          range && range.length >= 2
+            ? {
+                startLine: offsetToLine(range[0]),
+                endLine: offsetToLine(range[1] - 1),
+              }
+            : undefined;
         elements.push({
           // oxlint-disable-next-line no-unsafe-type-assertion
           text: scalarNode.value as string,
@@ -68,6 +99,7 @@ export class Importer extends FileImporter {
             path: path.join("."),
             ...(comment ? { comment } : {}),
           },
+          ...(location ? { location } : {}),
         });
       } else if (node instanceof YAMLSeq) {
         node.items.forEach((item, idx) => {
@@ -90,7 +122,7 @@ export class Importer extends FileImporter {
           );
         });
       }
-    }
+    };
 
     if (doc.contents) {
       traverseNode(doc.contents);

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ElemenContexts from "./ElemenContexts.vue";
+import ElementSourcePreview from "./ElementSourcePreview.vue";
 import Comments from "@/app/components/Comments.vue";
 import {
   Sidebar,
@@ -32,13 +33,15 @@ const id = "editor-context-panel";
   <Sidebar :id>
     <SidebarHeader>
       <Tabs v-model="panelOpen">
-        <TabsList class="grid w-full grid-cols-2">
+        <TabsList class="grid w-full grid-cols-3">
           <TabsTrigger value="context">{{ t("上下文") }}</TabsTrigger>
+          <TabsTrigger value="source">{{ t("源文件") }}</TabsTrigger>
           <TabsTrigger value="discussion">{{ t("讨论") }}</TabsTrigger>
         </TabsList>
       </Tabs>
     </SidebarHeader>
     <ElemenContexts v-if="panelOpen === 'context'" />
+    <ElementSourcePreview v-else-if="panelOpen === 'source'" />
     <Comments
       v-else-if="panelOpen === 'discussion'"
       :targetType="'ELEMENT'"

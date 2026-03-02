@@ -680,6 +680,9 @@ export const translatableElement = pgTable(
         onUpdate: "cascade",
       }),
     sortIndex: integer(),
+    sourceStartLine: integer(),
+    sourceEndLine: integer(),
+    sourceLocationMeta: jsonb().$type<JSONType>(),
     creatorId: uuid().references(() => user.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
