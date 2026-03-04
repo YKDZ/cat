@@ -22,6 +22,7 @@ export const CreateTranslationInputSchema = z.object({
       meta: z.json().optional(),
     }),
   ),
+  translatorId: z.uuidv4().nullable(),
   memoryIds: z.array(z.uuidv4()).default([]),
   vectorizerId: z.int(),
   vectorStorageId: z.int(),

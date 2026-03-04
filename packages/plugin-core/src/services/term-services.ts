@@ -19,6 +19,8 @@ export type TermPairCandidate = {
 export type ExtractContext = {
   text: string;
   languageId: string;
+  /** Optional AbortSignal to cancel the extraction request */
+  signal?: AbortSignal;
 };
 
 export type AlignContext = {

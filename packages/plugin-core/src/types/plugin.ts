@@ -1,8 +1,10 @@
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 import type { QAChecker, Tokenizer } from "@/services";
+import type { AgentToolProvider } from "@/services/agent-tool-provider";
 import type { AuthProvider } from "@/services/auth-provider";
 import type { FileExporter, FileImporter } from "@/services/file-handler";
+import type { LLMProvider } from "@/services/llm-provider";
 import type { MFAProvider } from "@/services/mfa-provider";
 import type { StorageProvider } from "@/services/storage-provider";
 import type { TermAligner, TermExtractor } from "@/services/term-services";
@@ -23,6 +25,8 @@ export type PluginServiceTypeMap = {
   QA_CHECKER: QAChecker;
   TOKENIZER: Tokenizer;
   VECTOR_STORAGE: VectorStorage;
+  LLM_PROVIDER: LLMProvider;
+  AGENT_TOOL_PROVIDER: AgentToolProvider;
 };
 
 export type PluginServiceMap = {

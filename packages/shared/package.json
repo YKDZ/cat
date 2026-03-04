@@ -101,6 +101,10 @@
       "types": "./dist/schema/drizzle/comment.d.ts",
       "import": "./dist/schema/drizzle/comment.js",
       "require": "./dist/schema/drizzle/comment.cjs"
+    },
+    "./schema/agent": {
+      "types": "./dist/schema/agent.d.ts",
+      "import": "./dist/schema/agent.js"
     }
   },
   "scripts": {
@@ -118,6 +122,6 @@
   },
   "peerDependencies": {
     "pino": "^10.1.0",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   }
 }

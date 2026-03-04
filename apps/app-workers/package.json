@@ -41,6 +41,7 @@
     "xstate": "^5.28.0"
   },
   "peerDependencies": {
+    "@cat/app-agent": "workspace:*",
     "@cat/app-server-shared": "workspace:*",
     "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
@@ -51,6 +52,6 @@
     "undici": "^7.18.2",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "^7.3.1",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   }
 }

@@ -4,9 +4,11 @@ import { summarizeError } from "./error";
 
 export type Situation =
   | "PLUGIN"
+  | "CACHE"
+  | "AGENT"
   | "RPC"
   | "WEB"
-  | "PROCESSOR"
+  | "WORKER"
   | "DB"
   | "SERVER";
 

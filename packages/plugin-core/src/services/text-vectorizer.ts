@@ -12,6 +12,8 @@ export type CanVectorizeContext = {
 
 export type VectorizeContext = {
   elements: UnvectorizedTextData[];
+  /** Optional AbortSignal to cancel the vectorization request */
+  signal?: AbortSignal;
 };
 
 export abstract class TextVectorizer implements IPluginService {

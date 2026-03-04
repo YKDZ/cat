@@ -365,7 +365,7 @@ export const findTerm = authed
 
     void runTasks()
       .catch((err: unknown) => {
-        logger.error("PROCESSOR", { msg: "Find term failed" }, err);
+        logger.error("WORKER", { msg: "Find term failed" }, err);
       })
       .finally(() => {
         termsQueue.close();
@@ -383,8 +383,8 @@ export const findTerm = authed
 export const updateConcept = authed
   .input(
     z.object({
-      conceptId: z.number(),
-      subjectId: z.number().nullable().optional(),
+      conceptId: z.int(),
+      subjectId: z.int().nullable().optional(),
       definition: z.string().optional(),
     }),
   )
@@ -417,14 +417,14 @@ export const updateConcept = authed
 export const addTermToConcept = authed
   .input(
     z.object({
-      conceptId: z.number(),
+      conceptId: z.int(),
       text: z.string(),
       languageId: z.string(),
       type: z.enum(TermTypeValues).optional().default("NOT_SPECIFIED"),
       status: z.enum(TermStatusValues).optional().default("PREFERRED"),
     }),
   )
-  .output(z.object({ termId: z.number() }))
+  .output(z.object({ termId: z.int() }))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -463,7 +463,7 @@ export const getConceptSubjects = authed
       glossaryId: z.string(),
     }),
   )
-  .output(z.array(z.object({ id: z.number(), subject: z.string() })))
+  .output(z.array(z.object({ id: z.int(), subject: z.string() })))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },

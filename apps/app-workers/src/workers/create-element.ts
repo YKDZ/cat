@@ -25,7 +25,7 @@ export const CreateElementInputSchema = z.object({
 });
 
 export const CreateElementOutputSchema = z.object({
-  elementIds: z.array(z.number()),
+  elementIds: z.array(z.int()),
 });
 
 export const createElementWorkflow = await defineWorkflow({

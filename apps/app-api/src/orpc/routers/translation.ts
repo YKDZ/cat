@@ -150,6 +150,7 @@ export const create = authed
       documentId,
       vectorStorageId: storage.id,
       vectorizerId: vectorizer.id,
+      translatorId: user.id,
     });
   });
 
@@ -358,7 +359,7 @@ export const autoApprove = authed
       languageId: z.string(),
     }),
   )
-  .output(z.number())
+  .output(z.int())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -518,6 +519,7 @@ export const autoTranslate = authed
     const {
       drizzleDB: { client: drizzle },
       pluginManager,
+      user,
     } = context;
     const {
       documentId,
@@ -615,6 +617,7 @@ export const autoTranslate = authed
           memoryVectorStorageId: storage.id,
           translationVectorStorageId: storage.id,
           vectorizerId: storage.id,
+          translatorId: user.id,
         });
       }),
     );

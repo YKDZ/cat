@@ -181,6 +181,7 @@ test("prepare elements & translation & memory", async () => {
     memoryIds: [memoryId],
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
+    translatorId: null,
   });
 
   const { translationIds, memoryItemIds } = await translationResult();
@@ -248,6 +249,7 @@ test("worker should auto translate text", async () => {
     translationVectorStorageId: vectorStorage.dbId,
     minMemorySimilarity: 0.8,
     maxMemoryAmount: 3,
+    translatorId: null,
   });
 
   const { translationIds } = await result();

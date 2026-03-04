@@ -148,7 +148,7 @@ export const onNew = authed
         );
         memoriesQueue.push(suggestion);
       } catch (err) {
-        logger.error("PROCESSOR", { msg: "Invalid suggestion format: " }, err);
+        logger.error("WORKER", { msg: "Invalid suggestion format: " }, err);
       }
     };
     await redisSub.subscribe(memoryChannelKey, onNewMemory);
@@ -168,7 +168,7 @@ export const onNew = authed
         memoriesQueue.push(...output.memories);
       })
       .catch((err: unknown) => {
-        logger.error("PROCESSOR", { msg: "Search memory failed" }, err);
+        logger.error("WORKER", { msg: "Search memory failed" }, err);
       });
 
     try {

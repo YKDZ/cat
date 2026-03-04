@@ -16,6 +16,8 @@ export const PluginServiceTypeValues = [
   "VECTOR_STORAGE",
   "QA_CHECKER",
   "TOKENIZER",
+  "LLM_PROVIDER",
+  "AGENT_TOOL_PROVIDER",
 ] as const;
 export const PluginServiceTypeSchema = z.enum(PluginServiceTypeValues);
 
@@ -94,3 +96,48 @@ export type ResourceType = (typeof ResourceTypeValues)[number];
 export type CommentTargetType = (typeof CommentTargetTypeValues)[number];
 export type TermType = (typeof TermTypeValues)[number];
 export type TermStatus = (typeof TermStatusValues)[number];
+
+export const AgentSessionStatusValues = [
+  "ACTIVE",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
+] as const;
+export const AgentSessionStatusSchema = z.enum(AgentSessionStatusValues);
+
+export const AgentMessageRoleValues = [
+  "SYSTEM",
+  "USER",
+  "ASSISTANT",
+  "TOOL",
+] as const;
+export const AgentMessageRoleSchema = z.enum(AgentMessageRoleValues);
+
+export type AgentSessionStatus = (typeof AgentSessionStatusValues)[number];
+export type AgentMessageRole = (typeof AgentMessageRoleValues)[number];
+
+export const AgentToolTargetValues = ["SERVER", "CLIENT"] as const;
+export const AgentToolTargetSchema = z.enum(AgentToolTargetValues);
+
+export const AgentToolConfirmationStatusValues = [
+  "AUTO_ALLOWED",
+  "USER_APPROVED",
+  "USER_DENIED",
+] as const;
+export const AgentToolConfirmationStatusSchema = z.enum(
+  AgentToolConfirmationStatusValues,
+);
+
+export const AgentSessionTrustPolicyValues = [
+  "CONFIRM_ALL",
+  "TRUST_SESSION",
+] as const;
+export const AgentSessionTrustPolicySchema = z.enum(
+  AgentSessionTrustPolicyValues,
+);
+
+export type AgentToolTarget = (typeof AgentToolTargetValues)[number];
+export type AgentToolConfirmationStatus =
+  (typeof AgentToolConfirmationStatusValues)[number];
+export type AgentSessionTrustPolicy =
+  (typeof AgentSessionTrustPolicyValues)[number];

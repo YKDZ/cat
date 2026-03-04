@@ -9,6 +9,7 @@ export * from "./recognize-term.ts";
 export * from "./fetch-advise.ts";
 export * from "./parse-file.ts";
 export * from "./retrive-embeddings.ts";
+export * from "./run-agent.ts";
 export * from "./search-memory.ts";
 export * from "./upsert-document-from-file.ts";
 export * from "./tokenize.ts";

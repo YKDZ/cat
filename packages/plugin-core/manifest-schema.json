@@ -61,7 +61,8 @@
               "AUTH_PROVIDER",
               "TEXT_VECTORIZER",
               "VECTOR_STORAGE",
-              "MFA_PROVIDER"
+              "MFA_PROVIDER",
+              "LLM_PROVIDER"
             ]
           }
         },

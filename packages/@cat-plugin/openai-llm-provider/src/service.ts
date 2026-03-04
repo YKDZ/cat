@@ -1,0 +1,259 @@
+import type {
+  ChatCompletionRequest,
+  ChatCompletionResponse,
+  ChatStreamChunk,
+  ToolCall,
+} from "@cat/plugin-core";
+import type {
+  ChatCompletionMessageParam,
+  ChatCompletionTool,
+} from "openai/resources/chat/completions";
+
+import { LLMProvider } from "@cat/plugin-core";
+import OpenAI from "openai";
+import { z } from "zod";
+
+const ConfigSchema = z.object({
+  apiKey: z.string().optional(),
+  baseURL: z.string().optional(),
+  model: z.string().optional().default("gpt-4o"),
+});
+
+type Config = z.infer<typeof ConfigSchema>;
+
+export class OpenAILLMProvider extends LLMProvider {
+  private client: OpenAI;
+  private config: Config;
+
+  constructor(config: unknown) {
+    super();
+    this.config = ConfigSchema.parse(config);
+    this.client = new OpenAI({
+      apiKey: this.config.apiKey || "dummy-key",
+      baseURL: this.config.baseURL,
+    });
+  }
+
+  getId(): string {
+    return "openai-llm-provider";
+  }
+
+  getModelName(): string {
+    return this.config.model;
+  }
+
+  supportsStreaming(): boolean {
+    return true;
+  }
+
+  async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+    const messages = request.messages.map(toOpenAIMessage);
+    const tools = request.tools?.map(toOpenAITool);
+
+    if (request.onChunk) {
+      return this.chatStreaming(request, messages, tools);
+    }
+
+    return this.chatNonStreaming(request, messages, tools);
+  }
+
+  private async chatNonStreaming(
+    request: ChatCompletionRequest,
+    messages: ChatCompletionMessageParam[],
+    tools: ChatCompletionTool[] | undefined,
+  ): Promise<ChatCompletionResponse> {
+    const completion = await this.client.chat.completions.create(
+      {
+        model: this.config.model,
+        messages,
+        tools: tools && tools.length > 0 ? tools : undefined,
+        temperature: request.temperature,
+        max_tokens: request.maxTokens,
+      },
+      { signal: request.signal },
+    );
+
+    const choice = completion.choices[0];
+    const toolCalls: ToolCall[] =
+      choice.message.tool_calls
+        ?.filter(
+          (tc): tc is Extract<typeof tc, { type: "function" }> =>
+            tc.type === "function",
+        )
+        .map((tc) => ({
+          id: tc.id,
+          name: tc.function.name,
+          arguments: tc.function.arguments,
+        })) ?? [];
+
+    return {
+      content: choice.message.content,
+      toolCalls,
+      usage: {
+        promptTokens: completion.usage?.prompt_tokens ?? 0,
+        completionTokens: completion.usage?.completion_tokens ?? 0,
+      },
+      finishReason: mapFinishReason(choice.finish_reason),
+    };
+  }
+
+  private async chatStreaming(
+    request: ChatCompletionRequest,
+    messages: ChatCompletionMessageParam[],
+    tools: ChatCompletionTool[] | undefined,
+  ): Promise<ChatCompletionResponse> {
+    const onChunk = request.onChunk!;
+
+    const stream = await this.client.chat.completions.create(
+      {
+        model: this.config.model,
+        messages,
+        tools: tools && tools.length > 0 ? tools : undefined,
+        temperature: request.temperature,
+        max_tokens: request.maxTokens,
+        stream: true,
+        stream_options: { include_usage: true },
+      },
+      { signal: request.signal },
+    );
+
+    let contentAcc = "";
+    const toolCallAccMap = new Map<
+      number,
+      { id: string; name: string; arguments: string }
+    >();
+    let finishReason: ChatCompletionResponse["finishReason"] = "stop";
+    let promptTokens = 0;
+    let completionTokens = 0;
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta;
+
+      // Handle reasoning/thinking content (e.g. DeepSeek, o1 models)
+      // oxlint-disable-next-line no-unsafe-type-assertion -- OpenAI-compatible APIs may include reasoning_content outside official types
+      const reasoningContent = (delta as Record<string, unknown> | undefined)
+        ?.reasoning_content as string | undefined;
+      if (reasoningContent) {
+        onChunk({ type: "thinking_delta", thinkingDelta: reasoningContent });
+      }
+
+      if (delta?.content) {
+        contentAcc += delta.content;
+        onChunk({ type: "text_delta", textDelta: delta.content });
+      }
+
+      if (delta?.tool_calls) {
+        for (const tc of delta.tool_calls) {
+          const idx = tc.index;
+          const existing = toolCallAccMap.get(idx);
+
+          if (!existing) {
+            toolCallAccMap.set(idx, {
+              id: tc.id ?? "",
+              name: tc.function?.name ?? "",
+              arguments: tc.function?.arguments ?? "",
+            });
+          } else {
+            if (tc.function?.arguments) {
+              existing.arguments += tc.function.arguments;
+            }
+          }
+
+          const toolCallChunk: ChatStreamChunk = {
+            type: "tool_call_delta",
+            toolCallDelta: {
+              id: tc.id ?? existing?.id ?? "",
+              name: tc.function?.name,
+              argumentsDelta: tc.function?.arguments,
+            },
+          };
+          onChunk(toolCallChunk);
+        }
+      }
+
+      if (chunk.choices[0]?.finish_reason) {
+        finishReason = mapFinishReason(chunk.choices[0].finish_reason);
+      }
+
+      if (chunk.usage) {
+        promptTokens = chunk.usage.prompt_tokens ?? 0;
+        completionTokens = chunk.usage.completion_tokens ?? 0;
+      }
+    }
+
+    onChunk({ type: "done" });
+
+    const toolCalls: ToolCall[] = [...toolCallAccMap.values()];
+
+    return {
+      content: contentAcc || null,
+      toolCalls,
+      usage: { promptTokens, completionTokens },
+      finishReason,
+    };
+  }
+}
+
+// ─── Helpers ───
+
+const toOpenAIMessage = (
+  msg: ChatCompletionRequest["messages"][number],
+): ChatCompletionMessageParam => {
+  if (msg.role === "tool") {
+    return {
+      role: "tool",
+      content: msg.content ?? "",
+      tool_call_id: msg.toolCallId ?? "",
+    };
+  }
+
+  if (msg.role === "assistant" && msg.toolCalls && msg.toolCalls.length > 0) {
+    return {
+      role: "assistant",
+      content: msg.content,
+      tool_calls: msg.toolCalls.map((tc) => ({
+        id: tc.id,
+        type: "function" as const,
+        function: { name: tc.name, arguments: tc.arguments },
+      })),
+    };
+  }
+
+  if (msg.role === "system") {
+    return {
+      role: "system",
+      content: msg.content ?? "",
+    };
+  }
+
+  return {
+    role: "user",
+    content: msg.content ?? "",
+  };
+};
+
+const toOpenAITool = (
+  tool: NonNullable<ChatCompletionRequest["tools"]>[number],
+): ChatCompletionTool => ({
+  type: "function",
+  function: {
+    name: tool.name,
+    description: tool.description,
+    parameters: tool.parameters as Record<string, unknown>,
+  },
+});
+
+const mapFinishReason = (
+  reason: string | null,
+): ChatCompletionResponse["finishReason"] => {
+  switch (reason) {
+    case "stop":
+      return "stop";
+    case "tool_calls":
+      return "tool_calls";
+    case "length":
+      return "length";
+    default:
+      return "stop";
+  }
+};

@@ -1,0 +1,37 @@
+{
+  "name": "@cat-plugin/openai-llm-provider",
+  "version": "0.1.0",
+  "files": [
+    "dist",
+    "manifest.json",
+    "package.json"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware"
+  },
+  "dependencies": {
+    "openai": "^6.25.0"
+  },
+  "devDependencies": {
+    "@cat/eslint-config": "workspace:*",
+    "vite": "^7.3.1"
+  },
+  "peerDependencies": {
+    "@cat/plugin-core": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "zod": "^4.3.6"
+  }
+}

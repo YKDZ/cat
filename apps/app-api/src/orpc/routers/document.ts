@@ -563,8 +563,8 @@ export const getElements = authed
   .input(
     z.object({
       documentId: z.string(),
-      page: z.int().int().default(0),
-      pageSize: z.int().int().default(16),
+      page: z.int().default(0),
+      pageSize: z.int().default(16),
       searchQuery: z.string().default(""),
       isApproved: z.boolean().optional(),
       isTranslated: z.boolean().optional(),
@@ -838,7 +838,7 @@ export const getDocumentFileInfo = authed
     z
       .object({
         key: z.string(),
-        storageProviderId: z.number().int(),
+        storageProviderId: z.int(),
         fileName: z.string(),
       })
       .nullable(),
