@@ -475,4 +475,34 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.translatableElement.id,
       }),
     },
+
+    // ─── Agent System Relations ───
+
+    agentDefinition: {
+      sessions: r.many.agentSession(),
+    },
+    agentSession: {
+      agentDefinition: r.one.agentDefinition({
+        from: r.agentSession.agentDefinitionId,
+        to: r.agentDefinition.id,
+      }),
+      user: r.one.user({
+        from: r.agentSession.userId,
+        to: r.user.id,
+      }),
+      messages: r.many.agentMessage(),
+    },
+    agentMessage: {
+      session: r.one.agentSession({
+        from: r.agentMessage.sessionId,
+        to: r.agentSession.id,
+      }),
+      toolCalls: r.many.agentToolCall(),
+    },
+    agentToolCall: {
+      message: r.one.agentMessage({
+        from: r.agentToolCall.messageId,
+        to: r.agentMessage.id,
+      }),
+    },
   }));

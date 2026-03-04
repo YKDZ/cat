@@ -92,7 +92,7 @@ export class RedisCacheStore implements CacheStore {
 
     this.storage.set(fullKey, { value, expires });
 
-    logger.debug("PROCESSOR", {
+    logger.debug("WORKER", {
       msg: "Cache set",
       key: fullKey,
       ttl,
@@ -104,7 +104,7 @@ export class RedisCacheStore implements CacheStore {
     const fullKey = `${this.keyPrefix}:${key}`;
     this.storage.delete(fullKey);
 
-    logger.debug("PROCESSOR", {
+    logger.debug("WORKER", {
       msg: "Cache deleted",
       key: fullKey,
     });

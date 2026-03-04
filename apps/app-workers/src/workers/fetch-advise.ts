@@ -1,26 +1,12 @@
-import { firstOrGivenService, lookupTerms } from "@cat/app-server-shared/utils";
-import { getDrizzleDB } from "@cat/db";
-import { PluginManager } from "@cat/plugin-core";
-import { TranslationSuggestionSchema } from "@cat/shared/schema/misc";
-import { logger } from "@cat/shared/utils";
-import * as z from "zod";
+import {
+  fetchAdviseOp,
+  FetchAdviseInputSchema,
+  FetchAdviseOutputSchema,
+} from "@cat/app-server-shared/operations";
 
 import { defineTask } from "@/core";
 
-export const FetchAdviseInputSchema = z.object({
-  advisorId: z.number().optional(),
-  text: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
-
-  glossaryIds: z.array(z.uuidv4()).default([]),
-  termExtractorId: z.int().optional(),
-  termRecognizerId: z.int().optional(),
-});
-
-export const FetchAdviseOutputSchema = z.object({
-  suggestions: z.array(TranslationSuggestionSchema),
-});
+export { FetchAdviseInputSchema, FetchAdviseOutputSchema };
 
 export const fetchAdviseWorkflow = await defineTask({
   name: "advise.fetch",
@@ -32,37 +18,5 @@ export const fetchAdviseWorkflow = await defineTask({
     ttl: 3600,
   },
 
-  handler: async (data) => {
-    const { client: drizzle } = await getDrizzleDB();
-    const pluginManager = PluginManager.get("GLOBAL", "");
-
-    const terms = await lookupTerms(drizzle, {
-      text: data.text,
-      sourceLanguageId: data.sourceLanguageId,
-      translationLanguageId: data.translationLanguageId,
-      glossaryIds: data.glossaryIds,
-    });
-
-    const advisor = firstOrGivenService(
-      pluginManager,
-      "TRANSLATION_ADVISOR",
-      data.advisorId,
-    );
-
-    if (!advisor) {
-      logger.warn("PROCESSOR", {
-        msg: `Translation advisor service not found. No suggestion will be given.`,
-      });
-      return { suggestions: [] };
-    }
-
-    const suggestions = await advisor.service.getSuggestions({
-      value: data.text,
-      terms,
-      languageFromId: data.sourceLanguageId,
-      languageToId: data.translationLanguageId,
-    });
-
-    return { suggestions };
-  },
+  handler: async (data, ctx) => fetchAdviseOp(data, ctx),
 });

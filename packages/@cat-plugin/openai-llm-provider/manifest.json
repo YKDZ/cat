@@ -1,0 +1,31 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "openai-llm-provider",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "services": [
+    {
+      "id": "openai-llm-provider",
+      "type": "LLM_PROVIDER"
+    }
+  ],
+  "config": {
+    "type": "object",
+    "required": ["apiKey"],
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "description": "OpenAI API key"
+      },
+      "baseURL": {
+        "type": "string",
+        "description": "Custom API base URL (for OpenAI-compatible providers like DeepSeek)"
+      },
+      "model": {
+        "type": "string",
+        "default": "gpt-4o",
+        "description": "Model identifier"
+      }
+    }
+  }
+}

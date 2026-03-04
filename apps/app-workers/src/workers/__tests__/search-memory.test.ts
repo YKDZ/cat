@@ -204,6 +204,7 @@ test("create-translation should create memory when memoryIds are provided", asyn
     memoryIds: [memoryId],
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
+    translatorId: null,
   });
 
   const { translationIds, memoryItemIds } = await result();

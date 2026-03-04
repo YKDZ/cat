@@ -1,4 +1,5 @@
 export * from "./service.ts";
+export * from "./agent-tool-provider.ts";
 export * from "./auth-provider.ts";
 export * from "./qa.ts";
 export * from "./storage-provider.ts";
@@ -9,3 +10,4 @@ export * from "./text-vectorizer.ts";
 export * from "./vector-storage.ts";
 export * from "./mfa-provider.ts";
 export * from "./tokenizer.ts";
+export * from "./llm-provider.ts";

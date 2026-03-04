@@ -14,6 +14,11 @@ import {
   CommentTargetTypeValues,
   TermTypeValues,
   TermStatusValues,
+  AgentSessionStatusValues,
+  AgentMessageRoleValues,
+  AgentToolTargetValues,
+  AgentToolConfirmationStatusValues,
+  AgentSessionTrustPolicyValues,
 } from "@cat/shared/schema/drizzle/enum";
 import { sql } from "drizzle-orm";
 import {
@@ -997,4 +1002,118 @@ export const userRole = pgTable(
       columns: [table.userId, table.roleId],
     }),
   ],
+);
+
+// ─── Agent System ───
+
+export const agentSessionStatus = pgEnum(
+  "AgentSessionStatus",
+  AgentSessionStatusValues,
+);
+
+export const agentMessageRole = pgEnum(
+  "AgentMessageRole",
+  AgentMessageRoleValues,
+);
+
+export const agentToolTarget = pgEnum("AgentToolTarget", AgentToolTargetValues);
+
+export const agentToolConfirmationStatus = pgEnum(
+  "AgentToolConfirmationStatus",
+  AgentToolConfirmationStatusValues,
+);
+
+export const agentSessionTrustPolicy = pgEnum(
+  "AgentSessionTrustPolicy",
+  AgentSessionTrustPolicyValues,
+);
+
+export const agentDefinition = pgTable("AgentDefinition", {
+  id: serial().primaryKey(),
+  externalId: uuid().defaultRandom().notNull().unique(),
+  scopeType: scopeType().notNull().default("GLOBAL"),
+  /** Empty string for GLOBAL scope; project externalId for PROJECT scope */
+  scopeId: text().notNull().default(""),
+  name: text().notNull(),
+  description: text().notNull().default(""),
+  /** Full Agent JSON definition (validated against AgentDefinitionSchema) */
+  definition: jsonb().$type<JSONType>().notNull(),
+  isBuiltin: boolean().notNull().default(false),
+  ...timestamps,
+});
+
+export const agentSession = pgTable(
+  "AgentSession",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    agentDefinitionId: integer()
+      .notNull()
+      .references(() => agentDefinition.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: uuid().references(() => user.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    status: agentSessionStatus().notNull().default("ACTIVE"),
+    /** Session-level trust policy for tool confirmation */
+    trustPolicy: agentSessionTrustPolicy().notNull().default("CONFIRM_ALL"),
+    /** Business context metadata (e.g. projectId, documentId) */
+    metadata: jsonb().$type<JSONType>().notNull().default({}),
+    ...timestamps,
+  },
+  (table) => [index().on(table.agentDefinitionId), index().on(table.userId)],
+);
+
+export const agentMessage = pgTable(
+  "AgentMessage",
+  {
+    id: serial().primaryKey(),
+    sessionId: integer()
+      .notNull()
+      .references(() => agentSession.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    role: agentMessageRole().notNull(),
+    content: text(),
+    /** When role=TOOL, identifies which tool_call this responds to */
+    toolCallId: text(),
+    /** ReAct loop step index */
+    stepIndex: integer(),
+    createdAt: timestamp({ withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+  },
+  (table) => [index().on(table.sessionId), index().on(table.stepIndex)],
+);
+
+export const agentToolCall = pgTable(
+  "AgentToolCall",
+  {
+    id: serial().primaryKey(),
+    messageId: integer()
+      .notNull()
+      .references(() => agentMessage.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    /** LLM-generated tool call ID */
+    toolCallId: text().notNull(),
+    toolName: text().notNull(),
+    arguments: jsonb().$type<JSONType>().notNull(),
+    result: jsonb().$type<JSONType>(),
+    error: text(),
+    durationMs: integer(),
+    /** Whether this tool ran on server or client */
+    target: agentToolTarget().notNull().default("SERVER"),
+    /** How this tool call was authorized */
+    confirmationStatus: agentToolConfirmationStatus(),
+    createdAt: timestamp({ withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+  },
+  (table) => [index().on(table.messageId)],
 );

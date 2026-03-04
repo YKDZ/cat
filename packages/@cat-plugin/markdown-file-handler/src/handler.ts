@@ -297,7 +297,7 @@ export class Exporter extends FileExporter {
     for (const element of elements) {
       const meta = z
         .object({
-          index: z.number(),
+          index: z.int(),
           type: z.string(),
         })
         .parse(element.meta);

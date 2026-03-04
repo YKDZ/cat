@@ -73,6 +73,7 @@ export const installDefaultPlugins = async (
     "tiny-widget",
     "basic-tokenizer",
     "basic-qa-checker",
+    "openai-llm-provider",
   ];
 
   const installedPlugins = (

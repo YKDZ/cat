@@ -21,4 +21,11 @@ const compiled = computed(() => marked(props.content));
 .markdown {
   text-autospace: normal;
 }
+
+/* Allow wide tables to scroll horizontally instead of overflowing the viewport */
+.markdown :deep(table) {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
 </style>

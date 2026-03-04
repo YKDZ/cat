@@ -14,6 +14,8 @@ export const AutoTranslateInputSchema = z.object({
   translationLanguageId: z.string(),
   sourceLanguageId: z.string(),
 
+  translatorId: z.uuidv4().nullable(),
+
   advisorId: z.int().optional(),
   memoryIds: z.array(z.uuidv4()).default([]),
   glossaryIds: z.array(z.uuidv4()).default([]),
@@ -129,6 +131,7 @@ export const autoTranslateWorkflow = await defineWorkflow({
         memoryIds: [],
         vectorizerId: data.vectorizerId,
         vectorStorageId: data.translationVectorStorageId,
+        translatorId: data.translatorId,
       },
       { traceId },
     );

@@ -58,27 +58,31 @@ export class OpenAITermExtractor extends TermExtractor {
       .replace("{{text}}", ctx.text)
       .replace("{{languageId}}", ctx.languageId);
 
-    const completion = await this.base.openai.chat.completions.create({
-      model: this.base.model,
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-    });
+    const completion = await this.base.openai.chat.completions.create(
+      {
+        model: this.base.model,
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+      },
+      { signal: ctx.signal },
+    );
 
     const content = completion.choices[0].message.content;
     if (!content) return [];
 
     try {
-      const parsed = JSON.parse(content);
-      const candidates = (parsed.terms || parsed.candidates || parsed) as any[];
-      if (!Array.isArray(candidates)) return [];
+      const parsed = JSON.parse(content) as Record<string, unknown>;
+      const raw: unknown = parsed.terms ?? parsed.candidates ?? parsed;
+      if (!Array.isArray(raw)) return [];
 
-      // Naive range finding (LLM doesn't give ranges reliably unless asked specifically, which is hard)
-      // So we search for the text in the original string.
       const result: TermCandidate[] = [];
-      for (const item of candidates) {
-        if (!item.text) continue;
-        const text = item.text;
-        const normalized = item.normalizedText || text;
+      for (const item of raw) {
+        if (typeof item !== "object" || item === null) continue;
+        const rec = item as Record<string, unknown>;
+        if (typeof rec.text !== "string" || !rec.text) continue;
+        const text = rec.text;
+        const normalized =
+          typeof rec.normalizedText === "string" ? rec.normalizedText : text;
 
         // Find ranges
         const ranges: { start: number; end: number }[] = [];

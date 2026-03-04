@@ -26,6 +26,9 @@
     },
     {
       "path": "../app-server-shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../app-agent"
     }
   ],
   "exclude": [

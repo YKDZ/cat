@@ -38,14 +38,18 @@ export class Vectorizer extends TextVectorizer {
 
   async vectorize({
     elements,
+    signal,
   }: VectorizeContext): Promise<VectorizedTextData[]> {
     const values: string[] = elements.map((element) => element.text);
 
-    const response = await this.openai.embeddings.create({
-      model: this.config["model-id"],
-      input: values,
-      dimensions: 1024,
-    });
+    const response = await this.openai.embeddings.create(
+      {
+        model: this.config["model-id"],
+        input: values,
+        dimensions: 1024,
+      },
+      { signal },
+    );
 
     return elements.map((element, index) => [
       {

@@ -16,8 +16,8 @@ export const UpsertDocumentInputSchema = z.object({
 
 export const UpsertDocumentOutputSchema = z.object({
   success: z.boolean(),
-  addedCount: z.number(),
-  removedCount: z.number(),
+  addedCount: z.int(),
+  removedCount: z.int(),
 });
 
 export const upsertDocumentFromFileWorkflow = await defineWorkflow({

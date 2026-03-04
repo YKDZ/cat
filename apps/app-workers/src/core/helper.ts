@@ -65,7 +65,7 @@ const executeRollbacks = async (
 ) => {
   if (rollbacks.length === 0) return;
 
-  logger.warn("PROCESSOR", {
+  logger.warn("WORKER", {
     msg: `[${taskName}] Execution failed, starting rollback...`,
     traceId,
     count: rollbacks.length,
@@ -80,7 +80,7 @@ const executeRollbacks = async (
       await rollback();
     } catch (err) {
       logger.error(
-        "PROCESSOR",
+        "WORKER",
         {
           msg: `[${taskName}] Rollback step failed`,
           traceId,
@@ -91,7 +91,7 @@ const executeRollbacks = async (
     }
   }
 
-  logger.info("PROCESSOR", {
+  logger.info("WORKER", {
     msg: `[${taskName}] Rollback finished`,
     traceId,
   });
@@ -121,7 +121,7 @@ export const defineTask = async <
       const rollbacks: (() => Promise<void>)[] = [];
       const onRollback = (fn: () => Promise<void>) => rollbacks.push(fn);
 
-      logger.debug("PROCESSOR", {
+      logger.debug("WORKER", {
         msg: `[Task:${name}] Start`,
         jobId: job.id,
         traceId,
@@ -144,7 +144,7 @@ export const defineTask = async <
             );
 
             if (cachedResult !== null) {
-              logger.info("PROCESSOR", {
+              logger.info("WORKER", {
                 msg: `[Task:${name}] Cache hit`,
                 jobId: job.id,
                 traceId,
@@ -157,7 +157,7 @@ export const defineTask = async <
               return cachedResult;
             }
 
-            logger.debug("PROCESSOR", {
+            logger.debug("WORKER", {
               msg: `[Task:${name}] Cache miss`,
               jobId: job.id,
               traceId,
@@ -173,7 +173,7 @@ export const defineTask = async <
         if (cache?.enabled && cacheContext?.cacheKey) {
           await cacheContext.setCache(cacheContext.cacheKey, result);
 
-          logger.info("PROCESSOR", {
+          logger.info("WORKER", {
             msg: `[Task:${name}] Result cached`,
             jobId: job.id,
             traceId,
@@ -181,7 +181,7 @@ export const defineTask = async <
           });
         }
 
-        logger.debug("PROCESSOR", {
+        logger.debug("WORKER", {
           msg: `[Task:${name}] Success`,
           jobId: job.id,
           traceId,
@@ -196,7 +196,7 @@ export const defineTask = async <
         await executeRollbacks(rollbacks, `Task:${name}`, traceId);
 
         logger.error(
-          "PROCESSOR",
+          "WORKER",
           { msg: `[Task:${name}] Failed`, traceId, jobId: job.id },
           error,
         );
@@ -206,7 +206,7 @@ export const defineTask = async <
     concurrency,
   );
 
-  logger.debug("PROCESSOR", {
+  logger.debug("WORKER", {
     msg: `Defined task ${name}`,
   });
 
@@ -223,7 +223,7 @@ export const defineTask = async <
       const data = inputSchema.parse(payload);
       const job = await queue.add(name, { ...data, traceId });
 
-      logger.debug("PROCESSOR", {
+      logger.debug("WORKER", {
         msg: `[Task:${name}] Dispatched`,
         jobId: job.id,
         traceId,
@@ -286,7 +286,7 @@ export const defineWorkflow = async <
     const rollbacks: (() => Promise<void>)[] = [];
     const onRollback = (fn: () => Promise<void>) => rollbacks.push(fn);
 
-    logger.debug("PROCESSOR", {
+    logger.debug("WORKER", {
       msg: `[Workflow:${name}] Barrier Reached`,
       jobId: job.id,
       traceId,
@@ -295,7 +295,7 @@ export const defineWorkflow = async <
     const payload = inputSchema.parse(job.data);
     const childrenValues = await job.getChildrenValues();
 
-    logger.debug("PROCESSOR", {
+    logger.debug("WORKER", {
       msg: `[Workflow:${name}] Children Values Keys`,
       traceId,
       keys: Object.keys(childrenValues),
@@ -346,7 +346,7 @@ export const defineWorkflow = async <
         onRollback,
       });
 
-      logger.debug("PROCESSOR", {
+      logger.debug("WORKER", {
         msg: `[Workflow:${name}] Barrier Success`,
         jobId: job.id,
         traceId,
@@ -358,7 +358,7 @@ export const defineWorkflow = async <
       await executeRollbacks(rollbacks, `Workflow:${name}`, traceId);
 
       logger.error(
-        "PROCESSOR",
+        "WORKER",
         { msg: `[Workflow:${name}] Barrier Failed`, traceId, jobId: job.id },
         error,
       );
@@ -371,7 +371,7 @@ export const defineWorkflow = async <
     const traceId = meta?.traceId ?? crypto.randomUUID();
     const data = inputSchema.parse(payload);
 
-    logger.debug("PROCESSOR", {
+    logger.debug("WORKER", {
       msg: `[Workflow:${name}] Building Flow Tree`,
       traceId,
       input: summarize(data),
@@ -381,7 +381,7 @@ export const defineWorkflow = async <
 
     const children = await dependencies(data, { traceId });
 
-    logger.debug("PROCESSOR", {
+    logger.debug("WORKER", {
       msg: `[Workflow:${name}] Dependencies calculated`,
       traceId,
       childCount: children.length,
@@ -419,7 +419,7 @@ export const defineWorkflow = async <
         );
 
         if (cachedResult !== null) {
-          logger.info("PROCESSOR", {
+          logger.info("WORKER", {
             msg: `[Workflow:${name}] Cache hit`,
             traceId: meta?.traceId,
             cacheKey: cacheContext.cacheKey,
@@ -444,7 +444,7 @@ export const defineWorkflow = async <
           };
         }
 
-        logger.debug("PROCESSOR", {
+        logger.debug("WORKER", {
           msg: `[Workflow:${name}] Cache miss`,
           traceId: meta?.traceId,
           cacheKey: cacheContext.cacheKey,
@@ -456,7 +456,7 @@ export const defineWorkflow = async <
     // oxlint-disable-next-line no-unsafe-type-assertion
     const job = jobNode.job as Job<z.infer<I>, z.infer<O>>;
 
-    logger.debug("PROCESSOR", {
+    logger.debug("WORKER", {
       msg: `[Workflow:${name}] Flow Dispatched`,
       jobId: job.id,
       traceId: meta?.traceId,
@@ -480,7 +480,7 @@ export const defineWorkflow = async <
           if (cacheContext.cacheKey) {
             await cacheContext.setCache(cacheContext.cacheKey, rawResult);
 
-            logger.info("PROCESSOR", {
+            logger.info("WORKER", {
               msg: `[Workflow:${name}] Result cached`,
               jobId: job.id,
               traceId: meta?.traceId,
@@ -499,7 +499,7 @@ export const defineWorkflow = async <
     return resultWrapper;
   };
 
-  logger.debug("PROCESSOR", {
+  logger.debug("WORKER", {
     msg: `Defined workflow ${name}`,
   });
 

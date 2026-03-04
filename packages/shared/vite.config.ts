@@ -21,6 +21,7 @@ export default defineConfig({
         index: resolve(import.meta.dirname, "src/index.ts"),
         utils: resolve(import.meta.dirname, "src/utils/index.ts"),
         "schema/json": resolve(import.meta.dirname, "src/schema/json.ts"),
+        "schema/agent": resolve(import.meta.dirname, "src/schema/agent.ts"),
         "schema/misc": resolve(import.meta.dirname, "src/schema/misc.ts"),
         "schema/plugin": resolve(import.meta.dirname, "src/schema/plugin.ts"),
         "schema/redis": resolve(import.meta.dirname, "src/schema/redis.ts"),

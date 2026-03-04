@@ -185,6 +185,7 @@ test("worker should create translation and return ids in order", async () => {
     memoryIds: [],
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
+    translatorId: null,
   });
 
   const { translationIds, memoryItemIds } = await result();
@@ -230,6 +231,7 @@ test("worker should create memory when memoryIds are provided", async () => {
     memoryIds: [memoryId],
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
+    translatorId: null,
   });
 
   const { translationIds, memoryItemIds } = await result();

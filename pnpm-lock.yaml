@@ -86,12 +86,18 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@hono/mcp':
+        specifier: ^0.2.4
+        version: 0.2.4(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.11.10))(hono@4.11.10)(zod@4.3.6)
       '@hono/node-ws':
         specifier: ^1.3.0
         version: 1.3.0(@hono/node-server@1.19.9(hono@4.11.10))(hono@4.11.10)
       '@intlify/unplugin-vue-i18n':
         specifier: ^11.0.7
         version: 11.0.7(@vue/compiler-dom@3.5.28)(eslint@9.37.0(jiti@2.6.1))(rollup@4.57.1)(typescript@5.9.3)(vue-i18n@11.2.8(vue@3.5.28(typescript@5.9.3)))(vue@3.5.28(typescript@5.9.3))
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.27.1
+        version: 1.27.1(zod@4.3.6)
       '@orpc/client':
         specifier: ^1.13.5
         version: 1.13.5(@opentelemetry/api@1.9.0)
@@ -277,8 +283,42 @@ importers:
         specifier: ^8.0.6
         version: 8.0.6(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.28(typescript@5.9.3))
 
+  apps/app-agent:
+    dependencies:
+      '@cat/app-server-shared':
+        specifier: workspace:*
+        version: link:../app-server-shared
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.10.13
+      unplugin-dts:
+        specifier: 1.0.0-beta.6
+        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.10.13))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.3)(rollup@4.57.1)(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2))
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
+
   apps/app-api:
     dependencies:
+      '@cat/app-agent':
+        specifier: workspace:*
+        version: link:../app-agent
       '@cat/app-server-shared':
         specifier: workspace:*
         version: link:../app-server-shared
@@ -294,9 +334,15 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@hono/mcp':
+        specifier: ^0.2.4
+        version: 0.2.4(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.11.10))(hono@4.11.10)(zod@4.3.6)
       '@hono/node-ws':
         specifier: ^1.3.0
         version: 1.3.0(@hono/node-server@1.19.9(hono@4.11.10))(hono@4.11.10)
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.27.1
+        version: 1.27.1(zod@4.3.6)
       '@orpc/client':
         specifier: ^1.13.2
         version: 1.13.5(@opentelemetry/api@1.9.0)
@@ -319,7 +365,7 @@ importers:
         specifier: ^0.4.240
         version: 0.4.253(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2))
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -361,13 +407,19 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.17.23
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
+      '@types/lodash-es':
+        specifier: ^4.17.12
+        version: 4.17.12
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.2.3))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.3)(rollup@4.57.1)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2))
@@ -447,6 +499,9 @@ importers:
 
   apps/app-workers:
     dependencies:
+      '@cat/app-agent':
+        specifier: workspace:*
+        version: link:../app-agent
       '@cat/app-server-shared':
         specifier: workspace:*
         version: link:../app-server-shared
@@ -478,7 +533,7 @@ importers:
         specifier: ^7.3.1
         version: 7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -566,7 +621,7 @@ importers:
         specifier: workspace:*
         version: link:../../shared
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -591,7 +646,7 @@ importers:
         specifier: 7.18.2
         version: 7.18.2
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -610,7 +665,7 @@ importers:
         specifier: workspace:*
         version: link:../../shared
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -647,7 +702,7 @@ importers:
         specifier: ^11.0.5
         version: 11.0.5
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -684,7 +739,29 @@ importers:
         specifier: 7.18.2
         version: 7.18.2
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@cat/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/@cat-plugin/openai-llm-provider:
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      openai:
+        specifier: ^6.25.0
+        version: 6.25.0(ws@8.19.0)(zod@4.3.6)
+      zod:
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -706,7 +783,7 @@ importers:
         specifier: ^6.22.0
         version: 6.22.0(ws@8.19.0)(zod@4.3.6)
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -731,7 +808,7 @@ importers:
         specifier: ^6.22.0
         version: 6.22.0(ws@8.19.0)(zod@4.3.6)
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -753,7 +830,7 @@ importers:
         specifier: workspace:*
         version: link:../../shared
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -806,24 +883,8 @@ importers:
         specifier: workspace:*
         version: link:../../shared
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
-    devDependencies:
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../../eslint-config
-      vite:
-        specifier: ^7.3.1
-        version: 7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
-
-  packages/@cat-plugin/term-tokenizer:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
     devDependencies:
       '@cat/eslint-config':
         specifier: workspace:*
@@ -871,7 +932,7 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -914,7 +975,7 @@ importers:
         specifier: ^2.8.2
         version: 2.8.2
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -945,7 +1006,7 @@ importers:
         specifier: ^5.11.0
         version: 5.11.0
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -1006,7 +1067,7 @@ importers:
         specifier: ^3.5.26
         version: 3.5.28(typescript@5.9.3)
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -1031,7 +1092,7 @@ importers:
         specifier: ^10.1.0
         version: 10.3.1
       zod:
-        specifier: ^4.3.5
+        specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
       '@cat/eslint-config':
@@ -2724,6 +2785,14 @@ packages:
     engines: {node: '>=10'}
     peerDependencies:
       tailwindcss: ^3.0 || ^4.0
+
+  '@hono/mcp@0.2.4':
+    resolution: {integrity: sha512-BKH1qNTbrdqVeGHB32zIDNgTKdWUvlNoojM86oiKwwWtD+FQoNJbx2f3NnPvwua0+ujJed8IuEfgRKCNZ+2RNw==}
+    peerDependencies:
+      '@modelcontextprotocol/sdk': ^1.25.1
+      hono: '*'
+      hono-rate-limiter: ^0.4.2
+      zod: ^3.25.0 || ^4.0.0
 
   '@hono/node-server@1.19.9':
     resolution: {integrity: sha512-vHL6w3ecZsky+8P5MD+eFfaGTyCeOHUIFYMGpQGbrBTSmNNoxv0if69rEZ5giu36weC5saFuznL411gRX7bJDw==}
@@ -6904,6 +6973,11 @@ packages:
   highlight.js@10.7.3:
     resolution: {integrity: sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==}
 
+  hono-rate-limiter@0.4.2:
+    resolution: {integrity: sha512-AAtFqgADyrmbDijcRTT/HJfwqfvhalya2Zo+MgfdrMPas3zSMD8SU03cv+ZsYwRU1swv7zgVt0shwN059yzhjw==}
+    peerDependencies:
+      hono: ^4.1.1
+
   hono@4.11.10:
     resolution: {integrity: sha512-kyWP5PAiMooEvGrA9jcD3IXF7ATu8+o7B3KCbPXid5se52NPqnOpM/r9qeW2heMnOekF4kqR1fXJqCYeCLKrZg==}
     engines: {node: '>=16.9.0'}
@@ -7898,6 +7972,18 @@ packages:
 
   openai@6.22.0:
     resolution: {integrity: sha512-7Yvy17F33Bi9RutWbsaYt5hJEEJ/krRPOrwan+f9aCPuMat1WVsb2VNSII5W1EksKT6fF69TG/xj4XzodK3JZw==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
+  openai@6.25.0:
+    resolution: {integrity: sha512-mEh6VZ2ds2AGGokWARo18aPISI1OhlgdEIC1ewhkZr8pSIT31dec0ecr9Nhxx0JlybyOgoAT1sWeKtwPZzJyww==}
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
@@ -11767,6 +11853,14 @@ snapshots:
     dependencies:
       tailwindcss: 3.4.19(tsx@4.21.0)(yaml@2.8.2)
 
+  '@hono/mcp@0.2.4(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.11.10))(hono@4.11.10)(zod@4.3.6)':
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.27.1(zod@4.3.6)
+      hono: 4.11.10
+      hono-rate-limiter: 0.4.2(hono@4.11.10)
+      pkce-challenge: 5.0.1
+      zod: 4.3.6
+
   '@hono/node-server@1.19.9(hono@4.11.10)':
     dependencies:
       hono: 4.11.10
@@ -12066,6 +12160,28 @@ snapshots:
       raw-body: 3.0.2
       zod: 3.25.76
       zod-to-json-schema: 3.25.1(zod@3.25.76)
+    transitivePeerDependencies:
+      - supports-color
+
+  '@modelcontextprotocol/sdk@1.27.1(zod@4.3.6)':
+    dependencies:
+      '@hono/node-server': 1.19.9(hono@4.11.10)
+      ajv: 8.18.0
+      ajv-formats: 3.0.1(ajv@8.18.0)
+      content-type: 1.0.5
+      cors: 2.8.6
+      cross-spawn: 7.0.6
+      eventsource: 3.0.7
+      eventsource-parser: 3.0.6
+      express: 5.2.1
+      express-rate-limit: 8.2.1(express@5.2.1)
+      hono: 4.11.10
+      jose: 6.1.3
+      json-schema-typed: 8.0.2
+      pkce-challenge: 5.0.1
+      raw-body: 3.0.2
+      zod: 4.3.6
+      zod-to-json-schema: 3.25.1(zod@4.3.6)
     transitivePeerDependencies:
       - supports-color
 
@@ -16182,6 +16298,10 @@ snapshots:
 
   highlight.js@10.7.3: {}
 
+  hono-rate-limiter@0.4.2(hono@4.11.10):
+    dependencies:
+      hono: 4.11.10
+
   hono@4.11.10: {}
 
   hookable@5.5.3: {}
@@ -17314,6 +17434,11 @@ snapshots:
       is-wsl: 2.2.0
 
   openai@6.22.0(ws@8.19.0)(zod@4.3.6):
+    optionalDependencies:
+      ws: 8.19.0
+      zod: 4.3.6
+
+  openai@6.25.0(ws@8.19.0)(zod@4.3.6):
     optionalDependencies:
       ws: 8.19.0
       zod: 4.3.6
@@ -19522,6 +19647,10 @@ snapshots:
   zod-to-json-schema@3.25.1(zod@3.25.76):
     dependencies:
       zod: 3.25.76
+
+  zod-to-json-schema@3.25.1(zod@4.3.6):
+    dependencies:
+      zod: 4.3.6
 
   zod@3.25.76: {}
 

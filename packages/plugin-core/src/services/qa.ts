@@ -19,7 +19,7 @@ export interface QAIssue {
 export const QAIssueSchema = z.object({
   severity: z.enum(QASeverityValues),
   message: z.string(),
-  targetTokenIndex: z.number().optional(),
+  targetTokenIndex: z.int().optional(),
 });
 
 /**

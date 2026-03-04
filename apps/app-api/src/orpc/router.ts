@@ -1,3 +1,4 @@
+import * as agent from "./routers/agent.ts";
 import * as auth from "./routers/auth.ts";
 import * as comment from "./routers/comment.ts";
 import * as document from "./routers/document.ts";
@@ -15,6 +16,7 @@ import * as translation from "./routers/translation.ts";
 import * as user from "./routers/user.ts";
 
 const router: AppRouter = {
+  agent,
   auth,
   user,
   setting,
@@ -33,6 +35,7 @@ const router: AppRouter = {
 };
 
 export type AppRouter = {
+  agent: typeof agent;
   auth: typeof auth;
   user: typeof user;
   setting: typeof setting;

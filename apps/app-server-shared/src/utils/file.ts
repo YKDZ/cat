@@ -93,7 +93,7 @@ export const putBufferToStorage = async (
         await tx.delete(fileTable).where(eq(fileTable.id, file.id));
       });
 
-      logger.error("PROCESSOR", { msg: "Error putting file" }, error);
+      logger.error("WORKER", { msg: "Error putting file" }, error);
       throw error;
     }
 

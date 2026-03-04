@@ -12,6 +12,7 @@ import type { Project } from "@cat/shared/schema/drizzle/project";
 import {
   Archive,
   Book,
+  Bot,
   Box,
   Home,
   NotebookText,
@@ -52,6 +53,11 @@ const items: { title: string; href: string; icon: Component }[] = [
     title: t("任务"),
     icon: NotebookText,
     href: `/project/${props.project.id}/tasks`,
+  },
+  {
+    title: t("Agent"),
+    icon: Bot,
+    href: `/project/${props.project.id}/agents`,
   },
   {
     title: t("设置"),

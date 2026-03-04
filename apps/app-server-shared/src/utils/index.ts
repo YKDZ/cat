@@ -12,3 +12,4 @@ export * from "./mobile.ts";
 export * from "./permission.ts";
 export * from "./snapshot.ts";
 export * from "./term.ts";
+export * from "./agent.ts";
