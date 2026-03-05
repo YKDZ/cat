@@ -8,7 +8,8 @@ export const TermSchema = z.object({
   id: z.int(),
   type: TermTypeSchema,
   status: TermStatusSchema,
-  stringId: z.int(),
+  text: z.string(),
+  languageId: z.string(),
   creatorId: z.uuidv4(),
   termConceptId: z.int(),
   createdAt: DrizzleDateTimeSchema,
@@ -18,11 +19,17 @@ export const TermSchema = z.object({
 export const TermConceptSchema = z.object({
   id: z.int(),
   definition: z.string().nullable(),
-  subjectId: z.int().nullable(),
+  stringId: z.int().nullable(),
   creatorId: z.uuidv4().nullable(),
   glossaryId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
+});
+
+export const TermConceptToSubjectSchema = z.object({
+  termConceptId: z.int(),
+  subjectId: z.int(),
+  isPrimary: z.boolean(),
 });
 
 export const TermConceptSubjectSchema = z.object({
@@ -46,5 +53,6 @@ export const GlossarySchema = z.object({
 
 export type Term = z.infer<typeof TermSchema>;
 export type TermConcept = z.infer<typeof TermConceptSchema>;
+export type TermConceptToSubject = z.infer<typeof TermConceptToSubjectSchema>;
 export type TermConceptSubject = z.infer<typeof TermConceptSubjectSchema>;
 export type Glossary = z.infer<typeof GlossarySchema>;

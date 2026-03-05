@@ -35,7 +35,7 @@ export type SpotTermOutput = z.infer<typeof SpotTermOutputSchema>;
  * 使用 TERM_EXTRACTOR 插件从文本中识别潜在的术语候选项。
  * 这是纯粹的"发现"阶段，不涉及术语表匹配或向量搜索。
  *
- * @see recognizeTermOp — 基于向量相似度的术语匹配
+
  * @see lookupTerms — 快速词汇术语查找
  */
 export const spotTermOp = async (

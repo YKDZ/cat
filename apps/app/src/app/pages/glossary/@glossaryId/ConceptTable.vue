@@ -141,12 +141,14 @@ watch([pageIndex], () => {
             >
               <TableCell>
                 <span class="font-medium">{{
-                  concept.subject || t("（未命名）")
+                  concept.subjects?.[0]?.subject || t("（未命名）")
                 }}</span>
               </TableCell>
               <TableCell>
                 <span class="text-gray-600">{{
-                  concept.definition || concept.defaultDefinition || t("—")
+                  concept.definition ||
+                  concept.subjects?.[0]?.defaultDefinition ||
+                  t("—")
                 }}</span>
               </TableCell>
               <TableCell>

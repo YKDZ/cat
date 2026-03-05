@@ -1,26 +1,32 @@
 /**
  * @module term
  *
- * Fast lexical term lookup utilities.
+ * Fast lexical term lookup utilities and concept vectorization text builder.
  *
  * Provides {@link lookupTerms} — a deterministic, SQL-based lookup of glossary
  * terms that lexically match input text using bidirectional `ILIKE` matching,
- * accelerated by a `pg_trgm` GIN index on `TranslatableString.value`.
+ * accelerated by a `pg_trgm` GIN index on `term.text`.
  *
  * The matching strategy is bidirectional:
- * - **Search bar mode** (forward `ILIKE`): finds glossary terms whose value
+ * - **Search bar mode** (forward `ILIKE`): finds glossary terms whose text
  *   contains the input text — effective when the input is a short keyword.
- * - **Text scanning mode** (reverse `ILIKE`): finds glossary terms whose value
+ * - **Text scanning mode** (reverse `ILIKE`): finds glossary terms whose text
  *   appears as a substring within the input text — effective when the input is
  *   a full sentence. Works for any language without segmentation or N-gram
  *   generation.
  *
  * Both directions benefit from the `pg_trgm` GIN index, which avoids full table
  * scans commonly associated with `%pattern%` queries.
+ *
+ * Provides {@link buildConceptVectorizationText} — constructs a structured text
+ * representation of a term concept for embedding vectorization, following the
+ * genus–differentia definition method.
  */
 import {
   aliasedTable,
   and,
+  asc,
+  desc,
   or,
   eq,
   type DrizzleDB,
@@ -30,7 +36,7 @@ import {
   term,
   termConcept,
   termConceptSubject,
-  translatableString,
+  termConceptToSubject,
 } from "@cat/db";
 
 export interface LookupTermsInput {
@@ -60,26 +66,24 @@ export const lookupTerms = async (
 ): Promise<LookedUpTerm[]> => {
   const trimmedText = input.text.trim();
 
-  // Bidirectional ILIKE matching (both accelerated by pg_trgm GIN index):
-  // 1. Forward: term value CONTAINS input — for search bar (short keyword)
-  // 2. Reverse: input CONTAINS term value — for text scanning (full sentence)
+  // Bidirectional ILIKE matching (both accelerated by pg_trgm GIN index on term.text):
+  // 1. Forward: term text CONTAINS input — for search bar (short keyword)
+  // 2. Reverse: input CONTAINS term text — for text scanning (full sentence)
   const matches = await drizzle
     .selectDistinct({
       termConceptId: term.termConceptId,
-      glossaryId: termConcept.glossaryId,
     })
     .from(term)
     .innerJoin(termConcept, eq(termConcept.id, term.termConceptId))
-    .innerJoin(translatableString, eq(translatableString.id, term.stringId))
     .where(
       and(
         inArray(termConcept.glossaryId, input.glossaryIds),
-        eq(translatableString.languageId, input.sourceLanguageId),
+        eq(term.languageId, input.sourceLanguageId),
         or(
           // Forward: glossary term contains the input text
-          ilike(translatableString.value, `%${trimmedText}%`),
+          ilike(term.text, `%${trimmedText}%`),
           // Reverse: input text contains the glossary term
-          sql`${trimmedText} ILIKE '%' || ${translatableString.value} || '%'`,
+          sql`${trimmedText} ILIKE '%' || ${term.text} || '%'`,
         ),
       ),
     )
@@ -90,78 +94,209 @@ export const lookupTerms = async (
   }
 
   const termConceptIds = matches.map((m) => m.termConceptId);
-  const glossaryIdMap = new Map(
-    matches.map((m) => [m.termConceptId, m.glossaryId]),
-  );
   return await fetchTerms(
     drizzle,
     termConceptIds,
-    glossaryIdMap,
     input.sourceLanguageId,
     input.translationLanguageId,
+  );
+};
+
+/**
+ * Fetch full term pair details for a list of concept IDs.
+ *
+ * Unlike {@link lookupTerms}, this does not perform any matching — it simply
+ * resolves the source + translation term texts and definition for the given
+ * concept IDs. Pairs with no matching term in either language are omitted.
+ */
+export const fetchTermsByConceptIds = async (
+  drizzle: DrizzleDB["client"],
+  conceptIds: number[],
+  sourceLanguageId: string,
+  translationLanguageId: string,
+): Promise<LookedUpTerm[]> => {
+  if (conceptIds.length === 0) return [];
+  return fetchTerms(
+    drizzle,
+    conceptIds,
+    sourceLanguageId,
+    translationLanguageId,
   );
 };
 
 const fetchTerms = async (
   drizzle: DrizzleDB["client"],
   termConceptIds: number[],
-  glossaryIdMap: Map<number, string>,
   sourceLanguageId: string,
   translationLanguageId: string,
 ): Promise<LookedUpTerm[]> => {
   const sourceTerm = aliasedTable(term, "sourceTerm");
   const translationTerm = aliasedTable(term, "translationTerm");
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
 
   const results = await drizzle
     .select({
-      term: sourceString.value,
-      translation: translationString.value,
+      term: sourceTerm.text,
+      translation: translationTerm.text,
       definition: termConcept.definition,
-      defaultDefinition: termConceptSubject.defaultDefinition,
       conceptId: termConcept.id,
       glossaryId: termConcept.glossaryId,
     })
     .from(termConcept)
-    .innerJoin(sourceTerm, eq(sourceTerm.termConceptId, termConcept.id))
+    .innerJoin(
+      sourceTerm,
+      and(
+        eq(sourceTerm.termConceptId, termConcept.id),
+        eq(sourceTerm.languageId, sourceLanguageId),
+      ),
+    )
     .innerJoin(
       translationTerm,
-      eq(translationTerm.termConceptId, termConcept.id),
-    )
-    .innerJoin(
-      sourceString,
       and(
-        eq(sourceString.id, sourceTerm.stringId),
-        eq(sourceString.languageId, sourceLanguageId),
+        eq(translationTerm.termConceptId, termConcept.id),
+        eq(translationTerm.languageId, translationLanguageId),
       ),
     )
-    .innerJoin(
-      translationString,
-      and(
-        eq(translationString.id, translationTerm.stringId),
-        eq(translationString.languageId, translationLanguageId),
-      ),
-    )
-    .leftJoin(
-      termConceptSubject,
-      eq(termConcept.subjectId, termConceptSubject.id),
-    )
-    .where(
-      and(
-        inArray(termConcept.id, termConceptIds),
-        inArray(termConcept.glossaryId, Array.from(glossaryIdMap.values())),
-      ),
-    );
+    .where(inArray(termConcept.id, termConceptIds));
+
+  // Fetch primary subject definition for each concept if available
+  const conceptIds = [...new Set(results.map((r) => r.conceptId))];
+  const subjectMap = new Map<number, string | null>();
+
+  if (conceptIds.length > 0) {
+    const subjectRows = await drizzle
+      .select({
+        termConceptId: termConceptToSubject.termConceptId,
+        defaultDefinition: termConceptSubject.defaultDefinition,
+      })
+      .from(termConceptToSubject)
+      .innerJoin(
+        termConceptSubject,
+        eq(termConceptToSubject.subjectId, termConceptSubject.id),
+      )
+      .where(
+        and(
+          inArray(termConceptToSubject.termConceptId, conceptIds),
+          eq(termConceptToSubject.isPrimary, true),
+        ),
+      );
+
+    for (const row of subjectRows) {
+      subjectMap.set(row.termConceptId, row.defaultDefinition);
+    }
+  }
 
   return results.map((r) => ({
     term: r.term,
     translation: r.translation,
-    definition: r.definition || r.defaultDefinition,
+    definition: r.definition || subjectMap.get(r.conceptId) || null,
     conceptId: r.conceptId,
     glossaryId: r.glossaryId,
   }));
+};
+
+/**
+ * Maximum number of term entries to include in the vectorization text.
+ * Per-language pruning: 1 entry per language, sorted by status/type/createdAt.
+ */
+const MAX_TERMS_FOR_VECTORIZATION = 6;
+
+/** Maximum number of subjects to include in the vectorization text. */
+const MAX_SUBJECTS_FOR_VECTORIZATION = 3;
+
+/**
+ * Build a structured text representation of a term concept for embedding
+ * vectorization, following the genus–differentia definition method.
+ *
+ * Output format:
+ * ```
+ * Terms: creeper、苦力怕、爬行者
+ * Subjects:
+ *  - 敌对生物: 危险且具侵略性的生物…
+ * Definition: 绿色的，会悄悄接近玩家并自爆的怪物。
+ * ```
+ *
+ * Returns `null` if no meaningful content exists (no terms, no subjects, no definition),
+ * indicating that this concept should not be vectorized.
+ */
+export const buildConceptVectorizationText = async (
+  drizzle: DrizzleDB["client"],
+  conceptId: number,
+): Promise<string | null> => {
+  // 1. Fetch concept definition
+  const conceptRows = await drizzle
+    .select({ definition: termConcept.definition })
+    .from(termConcept)
+    .where(eq(termConcept.id, conceptId))
+    .limit(1);
+
+  if (conceptRows.length === 0) return null;
+  const definition = conceptRows[0].definition;
+
+  // 2. Fetch subjects via M:N junction table (limit 3, alphabetical order)
+  const subjectRows = await drizzle
+    .select({
+      subject: termConceptSubject.subject,
+      defaultDefinition: termConceptSubject.defaultDefinition,
+    })
+    .from(termConceptToSubject)
+    .innerJoin(
+      termConceptSubject,
+      eq(termConceptToSubject.subjectId, termConceptSubject.id),
+    )
+    .where(eq(termConceptToSubject.termConceptId, conceptId))
+    .orderBy(asc(termConceptSubject.subject))
+    .limit(MAX_SUBJECTS_FOR_VECTORIZATION);
+
+  // 3. Fetch terms (pruned: per-language 1 entry, prefer PREFERRED status, newer first)
+  // Use window function approach: rank by language, pick top 1 per language
+  const allTerms = await drizzle
+    .select({
+      text: term.text,
+      languageId: term.languageId,
+      status: term.status,
+      type: term.type,
+      createdAt: term.createdAt,
+    })
+    .from(term)
+    .where(eq(term.termConceptId, conceptId))
+    .orderBy(
+      // PREFERRED status first
+      sql`CASE WHEN ${term.status} = 'PREFERRED' THEN 0 WHEN ${term.status} = 'NOT_SPECIFIED' THEN 1 ELSE 2 END`,
+      // FULL_FORM type first
+      sql`CASE WHEN ${term.type} = 'FULL_FORM' THEN 0 WHEN ${term.type} = 'NOT_SPECIFIED' THEN 1 ELSE 2 END`,
+      desc(term.createdAt),
+    );
+
+  // Per-language pruning: take first (best-ranked) entry per language
+  const seenLanguages = new Set<string>();
+  const prunedTerms: string[] = [];
+  for (const t of allTerms) {
+    if (seenLanguages.has(t.languageId)) continue;
+    seenLanguages.add(t.languageId);
+    prunedTerms.push(t.text);
+    if (prunedTerms.length >= MAX_TERMS_FOR_VECTORIZATION) break;
+  }
+
+  // 4. Build structured text — empty sections are omitted
+  const sections: string[] = [];
+
+  if (prunedTerms.length > 0) {
+    sections.push(`Terms: ${prunedTerms.join("、")}`);
+  }
+
+  if (subjectRows.length > 0) {
+    const subjectLines = subjectRows.map((s) =>
+      s.defaultDefinition
+        ? ` - ${s.subject}: ${s.defaultDefinition}`
+        : ` - ${s.subject}`,
+    );
+    sections.push(`Subjects:\n${subjectLines.join("\n")}`);
+  }
+
+  if (definition) sections.push(`Definition: ${definition}`);
+
+  // If all sections are empty, return null (no vectorization needed)
+  if (sections.length === 0) return null;
+
+  return sections.join("\n");
 };

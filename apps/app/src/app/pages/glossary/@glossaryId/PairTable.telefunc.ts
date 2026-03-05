@@ -3,11 +3,12 @@ import {
   and,
   eq,
   getDrizzleDB,
+  inArray,
   term,
   termConcept,
-  translatableString,
   count,
   termConceptSubject,
+  termConceptToSubject,
 } from "@cat/db";
 
 export type PairData = {
@@ -44,76 +45,100 @@ export const onRequestTermPair = async (
 
   const sourceTerm = alias(term, "sourceTerm");
   const targetTerm = alias(term, "targetTerm");
-  const sourceString = alias(translatableString, "sourceString");
-  const targetString = alias(translatableString, "targetString");
 
   // 查询总数
   const totalResult = await drizzle
     .select({ count: count() })
     .from(termConcept)
     .where(eq(termConcept.glossaryId, glossaryId))
-    .innerJoin(sourceTerm, eq(termConcept.id, sourceTerm.termConceptId))
     .innerJoin(
-      sourceString,
+      sourceTerm,
       and(
-        eq(sourceTerm.stringId, sourceString.id),
-        eq(sourceString.languageId, sourceLanguageId),
+        eq(termConcept.id, sourceTerm.termConceptId),
+        eq(sourceTerm.languageId, sourceLanguageId),
       ),
     )
-    .innerJoin(targetTerm, eq(termConcept.id, targetTerm.termConceptId))
     .innerJoin(
-      targetString,
+      targetTerm,
       and(
-        eq(targetTerm.stringId, targetString.id),
-        eq(targetString.languageId, targetLanguageId),
+        eq(termConcept.id, targetTerm.termConceptId),
+        eq(targetTerm.languageId, targetLanguageId),
       ),
     );
 
   const total = Number(totalResult[0]?.count ?? 0);
 
   // 查询数据
-  const data = await drizzle
+  const rows = await drizzle
     .select({
       conceptId: termConcept.id,
       definition: termConcept.definition,
-      subject: termConceptSubject.subject,
       source: {
         termId: sourceTerm.id,
         termType: sourceTerm.type,
         termStatus: sourceTerm.status,
-        text: sourceString.value,
+        text: sourceTerm.text,
       },
       target: {
         termId: targetTerm.id,
         termType: targetTerm.type,
         termStatus: targetTerm.status,
-        text: targetString.value,
+        text: targetTerm.text,
       },
     })
     .from(termConcept)
     .where(eq(termConcept.glossaryId, glossaryId))
-    .innerJoin(sourceTerm, eq(termConcept.id, sourceTerm.termConceptId))
     .innerJoin(
-      sourceString,
+      sourceTerm,
       and(
-        eq(sourceTerm.stringId, sourceString.id),
-        eq(sourceString.languageId, sourceLanguageId),
+        eq(termConcept.id, sourceTerm.termConceptId),
+        eq(sourceTerm.languageId, sourceLanguageId),
       ),
     )
-    .innerJoin(targetTerm, eq(termConcept.id, targetTerm.termConceptId))
     .innerJoin(
-      targetString,
+      targetTerm,
       and(
-        eq(targetTerm.stringId, targetString.id),
-        eq(targetString.languageId, targetLanguageId),
+        eq(termConcept.id, targetTerm.termConceptId),
+        eq(targetTerm.languageId, targetLanguageId),
       ),
-    )
-    .leftJoin(
-      termConceptSubject,
-      eq(termConcept.subjectId, termConceptSubject.id),
     )
     .limit(pageSize)
     .offset(pageIndex * pageSize);
+
+  // Fetch primary subject for each concept
+  const conceptIds = [...new Set(rows.map((r) => r.conceptId))];
+  const subjectMap = new Map<number, string | null>();
+
+  if (conceptIds.length > 0) {
+    const subjectRows = await drizzle
+      .select({
+        termConceptId: termConceptToSubject.termConceptId,
+        subject: termConceptSubject.subject,
+      })
+      .from(termConceptToSubject)
+      .innerJoin(
+        termConceptSubject,
+        eq(termConceptToSubject.subjectId, termConceptSubject.id),
+      )
+      .where(
+        and(
+          eq(termConceptToSubject.isPrimary, true),
+          // Only for concepts in our result set
+          ...(conceptIds.length > 0
+            ? [inArray(termConceptToSubject.termConceptId, conceptIds)]
+            : []),
+        ),
+      );
+
+    for (const row of subjectRows) {
+      subjectMap.set(row.termConceptId, row.subject);
+    }
+  }
+
+  const data: PairData[] = rows.map((r) => ({
+    ...r,
+    subject: subjectMap.get(r.conceptId) ?? null,
+  }));
 
   return {
     data,

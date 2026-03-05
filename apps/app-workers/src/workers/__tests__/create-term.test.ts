@@ -9,7 +9,6 @@ import {
   language,
   term,
   termConcept,
-  translatableString,
   user,
 } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
@@ -67,7 +66,9 @@ beforeAll(async () => {
 
   // Seed
   await drizzle.transaction(async (tx) => {
-    await tx.insert(language).values([{ id: "en" }, { id: "zh-Hans" }]);
+    await tx
+      .insert(language)
+      .values([{ id: "en" }, { id: "zh-Hans" }, { id: "mul" }]);
 
     const { id: userId } = assertSingleNonNullish(
       await tx
@@ -120,15 +121,15 @@ test("create-term should insert and return term", async () => {
 
   expect(terms.length).toBe(termIds.length);
 
+  // Verify terms are stored with text + languageId directly
   const flatRows = await drizzle
     .select({
       entryId: termConcept.id,
       subject: termConcept.definition,
-      termValue: translatableString.value,
+      termValue: term.text,
     })
     .from(termConcept)
     .leftJoin(term, eq(termConcept.id, term.termConceptId))
-    .leftJoin(translatableString, eq(term.stringId, translatableString.id))
     .where(isNotNull(termConcept.definition));
 
   const expectedFlatList = data.flatMap((item) => [

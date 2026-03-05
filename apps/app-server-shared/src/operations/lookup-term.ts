@@ -12,8 +12,6 @@ import { lookupTerms } from "@/utils";
  *
  * 直接通过双向 `ILIKE` 对比从数据库中检索术语表条目，无需 LLM 或向量服务。
  * 适用于输入为明确术语名称或短关键词的场景。
- *
- * @see recognizeTermOp — 基于 LLM 提取 + 向量相似度的语义术语识别（适合完整句子输入）
  */
 
 export const LookupTermInputSchema = z.object({

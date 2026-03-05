@@ -10,6 +10,7 @@ export type Situation =
   | "WEB"
   | "WORKER"
   | "DB"
+  | "OP"
   | "SERVER";
 
 export interface LoggerOptions {

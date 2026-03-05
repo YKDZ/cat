@@ -1,15 +1,16 @@
 import {
-  AsyncMessageQueue,
-  firstOrGivenService,
-  lookupTerms,
-} from "@cat/app-server-shared/utils";
-import { createTermTask, recognizeTermTask } from "@cat/app-workers";
+  addTermToConceptOp,
+  deleteTermOp,
+  streamSearchTermsOp,
+  updateConceptOp,
+} from "@cat/app-server-shared/operations";
+import { firstOrGivenService } from "@cat/app-server-shared/utils";
+import { createTermTask } from "@cat/app-workers";
 import {
   count,
   eq,
   glossary as glossaryTable,
   glossaryToProject,
-  term as termTable,
   document as documentTable,
   translatableElement,
   translatableString,
@@ -23,11 +24,7 @@ import {
 } from "@cat/shared/schema/drizzle/enum";
 import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import {
-  assertSingleNonNullish,
-  assertSingleOrNull,
-  logger,
-} from "@cat/shared/utils";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
@@ -40,13 +37,8 @@ export const deleteTerm = authed
     }),
   )
   .output(z.void())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const { termId } = input;
-
-    await drizzle.delete(termTable).where(eq(termTable.id, termId));
+  .handler(async ({ input }) => {
+    await deleteTermOp(input);
   });
 
 export const get = authed
@@ -212,17 +204,9 @@ export const searchTerm = authed
       translationLanguageId: z.string(),
     }),
   )
-  .output(
-    z.array(
-      z.object({
-        term: z.string(),
-        translation: z.string(),
-        termLanguageId: z.string(),
-        translationLanguageId: z.string(),
-      }),
-    ),
-  )
-  .handler(async ({ context, input }) => {
+  // Streams results: ILIKE matches arrive first, semantic matches follow.
+  .handler(async function* ({ context, input }) {
+    // jsgen: generator required — no arrow-function equivalent for async generators
     const {
       drizzleDB: { client: drizzle },
     } = context;
@@ -230,26 +214,28 @@ export const searchTerm = authed
 
     const glossaryIds = (
       await drizzle
-        .select({
-          id: glossaryToProject.glossaryId,
-        })
+        .select({ id: glossaryToProject.glossaryId })
         .from(glossaryToProject)
         .where(eq(glossaryToProject.projectId, projectId))
     ).map((row) => row.id);
 
-    const terms = await lookupTerms(drizzle, {
+    const stream = streamSearchTermsOp({
       glossaryIds,
+      text,
       sourceLanguageId: termLanguageId,
       translationLanguageId,
-      text,
+      minSimilarity: 0.4,
     });
 
-    return terms.map((t) => ({
-      term: t.term,
-      translation: t.translation,
-      termLanguageId,
-      translationLanguageId,
-    }));
+    for await (const t of stream) {
+      yield {
+        term: t.term,
+        translation: t.translation,
+        definition: t.definition,
+        termLanguageId,
+        translationLanguageId,
+      };
+    }
   });
 
 export const findTerm = authed
@@ -261,6 +247,7 @@ export const findTerm = authed
   )
   // This endpoint streams term suggestions to avoid blocking response while waiting for worker
   .handler(async function* ({ context, input }) {
+    // jsgen: generator required — no arrow-function equivalent for async generators
     const {
       drizzleDB: { client: drizzle },
     } = context;
@@ -286,9 +273,7 @@ export const findTerm = authed
 
     const { projectId } = assertSingleNonNullish(
       await drizzle
-        .select({
-          projectId: documentTable.projectId,
-        })
+        .select({ projectId: documentTable.projectId })
         .from(documentTable)
         .where(eq(documentTable.id, element.documentId))
         .limit(1),
@@ -296,87 +281,27 @@ export const findTerm = authed
 
     const glossaryIds = (
       await drizzle
-        .select({
-          id: glossaryToProject.glossaryId,
-        })
+        .select({ id: glossaryToProject.glossaryId })
         .from(glossaryToProject)
         .where(eq(glossaryToProject.projectId, projectId))
     ).map((row) => row.id);
 
-    const termsQueue = new AsyncMessageQueue<{
-      term: string;
-      translation: string;
-      definition: string | null;
-      termLanguageId: string;
-      translationLanguageId: string;
-    }>();
-
-    const seenTerms = new Set<string>();
-
-    const pushTerms = (
-      terms: {
-        term: string;
-        translation: string;
-        definition: string | null;
-        conceptId?: number;
-        glossaryId?: string;
-      }[],
-    ) => {
-      const newTerms = terms.filter((t) => {
-        const key = `${t.term}:${t.translation}`;
-        if (seenTerms.has(key)) return false;
-        seenTerms.add(key);
-        return true;
-      });
-
-      termsQueue.push(
-        ...newTerms.map((term) => ({
-          term: term.term,
-          translation: term.translation,
-          definition: term.definition,
-          conceptId: term.conceptId,
-          glossaryId: term.glossaryId,
-          termLanguageId: element.languageId,
-          translationLanguageId,
-        })),
-      );
-    };
-
-    const taskInput = {
+    const stream = streamSearchTermsOp({
       glossaryIds,
+      text: element.value,
       sourceLanguageId: element.languageId,
       translationLanguageId,
-      text: element.value,
-    };
+      minSimilarity: 0.4,
+    });
 
-    const runTasks = async () => {
-      await Promise.allSettled([
-        lookupTerms(drizzle, taskInput).then((terms) => {
-          pushTerms(terms);
-        }),
-        recognizeTermTask
-          .run(taskInput)
-          .then(async ({ result }) => await result())
-          .then((output) => {
-            pushTerms(output.terms);
-          }),
-      ]);
-    };
-
-    void runTasks()
-      .catch((err: unknown) => {
-        logger.error("WORKER", { msg: "Find term failed" }, err);
-      })
-      .finally(() => {
-        termsQueue.close();
-      });
-
-    try {
-      for await (const term of termsQueue.consume()) {
-        yield term;
-      }
-    } finally {
-      termsQueue.close();
+    for await (const t of stream) {
+      yield {
+        term: t.term,
+        translation: t.translation,
+        definition: t.definition,
+        termLanguageId: element.languageId,
+        translationLanguageId,
+      };
     }
   });
 
@@ -384,34 +309,13 @@ export const updateConcept = authed
   .input(
     z.object({
       conceptId: z.int(),
-      subjectId: z.int().nullable().optional(),
+      subjectIds: z.array(z.int()).optional(),
       definition: z.string().optional(),
     }),
   )
   .output(z.void())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const { conceptId, subjectId, definition } = input;
-
-    await drizzle.transaction(async (tx) => {
-      // 如果提供了 subjectId，则更新主题关联
-      if (subjectId !== undefined) {
-        await tx
-          .update(termConcept)
-          .set({ subjectId })
-          .where(eq(termConcept.id, conceptId));
-      }
-
-      // 更新概念定义
-      if (definition !== undefined) {
-        await tx
-          .update(termConcept)
-          .set({ definition: definition || "" })
-          .where(eq(termConcept.id, conceptId));
-      }
-    });
+  .handler(async ({ input }) => {
+    await updateConceptOp(input);
   });
 
 export const addTermToConcept = authed
@@ -426,35 +330,10 @@ export const addTermToConcept = authed
   )
   .output(z.object({ termId: z.int() }))
   .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-      user,
-    } = context;
-    const { conceptId, text, languageId, type, status } = input;
-
-    // 创建可翻译字符串
-    const [translatableStringResult] = await drizzle
-      .insert(translatableString)
-      .values({
-        value: text,
-        languageId,
-        chunkSetId: 1, // 使用默认的chunkSetId，实际应用中可能需要从上下文获取
-      })
-      .returning({ id: translatableString.id });
-
-    // 创建术语
-    const [termResult] = await drizzle
-      .insert(termTable)
-      .values({
-        termConceptId: conceptId,
-        stringId: translatableStringResult.id,
-        type: type,
-        status: status,
-        creatorId: user.id,
-      })
-      .returning({ id: termTable.id });
-
-    return { termId: termResult.id };
+    return await addTermToConceptOp({
+      ...input,
+      creatorId: context.user.id,
+    });
   });
 
 export const getConceptSubjects = authed

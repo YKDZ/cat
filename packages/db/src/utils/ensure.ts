@@ -47,7 +47,10 @@ export const ensureDB = async (): Promise<void> => {
     await tx
       .insert(languageTable)
       .values(
-        AvailableLocales.availableLocales.full.map((locale) => ({
+        [
+          ...AvailableLocales.availableLocales.full,
+          "mul", // ISO 639-2 "multiple languages" — used for concept vectorization text
+        ].map((locale) => ({
           id: locale,
         })),
       )
