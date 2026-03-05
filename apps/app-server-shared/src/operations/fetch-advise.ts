@@ -1,4 +1,3 @@
-import { getDrizzleDB } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
 import { TranslationSuggestionSchema } from "@cat/shared/schema/misc";
 import { logger } from "@cat/shared/utils";
@@ -6,7 +5,9 @@ import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
 
-import { firstOrGivenService, lookupTerms } from "@/utils";
+import { firstOrGivenService } from "@/utils";
+
+import { lookupTermsOp } from "./lookup-terms";
 
 export const FetchAdviseInputSchema = z.object({
   advisorId: z.int().optional().meta({
@@ -48,10 +49,9 @@ export const fetchAdviseOp = async (
   data: FetchAdviseInput,
   _ctx?: OperationContext,
 ): Promise<FetchAdviseOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
-  const terms = await lookupTerms(drizzle, {
+  const terms = await lookupTermsOp({
     text: data.text,
     sourceLanguageId: data.sourceLanguageId,
     translationLanguageId: data.translationLanguageId,

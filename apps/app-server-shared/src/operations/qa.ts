@@ -1,4 +1,4 @@
-import { getDrizzleDB, getRedisDB } from "@cat/db";
+import { getRedisDB } from "@cat/db";
 import {
   PluginManager,
   type QAChecker,
@@ -14,7 +14,7 @@ import z from "zod";
 
 import type { OperationContext } from "@/operations/types";
 
-import { lookupTerms } from "@/utils";
+import { lookupTermsOp } from "./lookup-terms";
 
 export const getQAPubKey = (id: string): string => {
   return `qa:issue:${id}`;
@@ -87,13 +87,12 @@ export const qaOp = async (
   payload: QAInput,
   ctx?: OperationContext,
 ): Promise<QAOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
   const { redisPub } = await getRedisDB();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
-  const terms = await lookupTerms(drizzle, {
+  const terms = await lookupTermsOp({
     text: payload.source.text,
     sourceLanguageId: payload.source.languageId,
     translationLanguageId: payload.translation.languageId,

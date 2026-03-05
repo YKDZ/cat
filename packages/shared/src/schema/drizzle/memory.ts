@@ -2,12 +2,31 @@ import * as z from "zod/v4";
 
 import { DrizzleDateTimeSchema } from "@/schema/misc.ts";
 
+import { TokenTypeSchema } from "./enum";
+
+/**
+ * JSON-serializable slot-mapping entry stored in `memoryItem.slotMapping`.
+ */
+export const SlotMappingEntrySchema = z.object({
+  placeholder: z.string(),
+  value: z.string(),
+  tokenType: TokenTypeSchema,
+});
+
+export type SlotMappingEntry = z.infer<typeof SlotMappingEntrySchema>;
+
 export const MemoryItemSchema = z.object({
   id: z.int(),
   sourceStringId: z.int(),
   translationStringId: z.int(),
   memoryId: z.uuidv4(),
   creatorId: z.uuidv4(),
+  /** Placeholderized source template, e.g. "Error Code: {NUM_0}" */
+  sourceTemplate: z.string().nullable().optional(),
+  /** Placeholderized translation template */
+  translationTemplate: z.string().nullable().optional(),
+  /** Slot mapping from placeholder to original value + token type */
+  slotMapping: z.array(SlotMappingEntrySchema).nullable().optional(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

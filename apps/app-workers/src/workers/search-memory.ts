@@ -1,4 +1,4 @@
-import { searchMemory } from "@cat/app-server-shared/utils";
+import { searchMemoryOp } from "@cat/app-server-shared/operations";
 import {
   aliasedTable,
   and,
@@ -103,9 +103,7 @@ export const searchMemoryWorkflow = await defineWorkflow({
     ];
   },
 
-  handler: async (data, { getTaskResult }) => {
-    const { client: drizzle } = await getDrizzleDB();
-
+  handler: async (data, { getTaskResult, traceId }) => {
     const [searchChunkResult] = getTaskResult(searchChunkWorkflow);
     if (!searchChunkResult) {
       return { memories: [] };
@@ -113,15 +111,18 @@ export const searchMemoryWorkflow = await defineWorkflow({
 
     const { chunks } = searchChunkResult;
 
-    const memories = await drizzle.transaction(async (tx) => {
-      return await searchMemory(
-        tx,
-        chunks,
-        data.sourceLanguageId,
-        data.translationLanguageId,
-        data.memoryIds,
-      );
-    });
+    const { memories } = await searchMemoryOp(
+      {
+        chunkIds: chunks.map((c) => c.chunkId),
+        sourceLanguageId: data.sourceLanguageId,
+        translationLanguageId: data.translationLanguageId,
+        memoryIds: data.memoryIds,
+        maxAmount: data.maxAmount,
+        minSimilarity: data.minSimilarity,
+        vectorStorageId: data.vectorStorageId,
+      },
+      { traceId },
+    );
 
     return { memories };
   },

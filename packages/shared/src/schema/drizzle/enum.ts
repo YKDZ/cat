@@ -1,5 +1,21 @@
 import * as z from "zod";
 
+export const TokenTypeValues = [
+  "text",
+  "number",
+  "variable",
+  "whitespace",
+  "term",
+  "link",
+  "mask",
+  "space",
+  "newline",
+  "unknown",
+] as const;
+
+export const TokenTypeSchema = z.enum(TokenTypeValues);
+export type TokenType = (typeof TokenTypeValues)[number];
+
 export const TaskStatusValues = ["COMPLETED", "PENDING", "FAILED"] as const;
 export const TaskStatusSchema = z.enum(TaskStatusValues);
 

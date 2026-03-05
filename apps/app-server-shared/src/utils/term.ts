@@ -27,10 +27,8 @@ import {
   and,
   asc,
   desc,
-  or,
   eq,
   type DrizzleDB,
-  ilike,
   inArray,
   sql,
   term,
@@ -52,55 +50,8 @@ export interface LookedUpTerm {
   definition: string | null;
   conceptId: number;
   glossaryId: string;
+  confidence: number;
 }
-
-/**
- * Fast lexical term lookup via bidirectional `ILIKE`.
- *
- * This is a pure DB query — no LLM, no vector services, no queue overhead.
- * Intended to be called directly from API handlers or workflow handlers.
- */
-export const lookupTerms = async (
-  drizzle: DrizzleDB["client"],
-  input: LookupTermsInput,
-): Promise<LookedUpTerm[]> => {
-  const trimmedText = input.text.trim();
-
-  // Bidirectional ILIKE matching (both accelerated by pg_trgm GIN index on term.text):
-  // 1. Forward: term text CONTAINS input — for search bar (short keyword)
-  // 2. Reverse: input CONTAINS term text — for text scanning (full sentence)
-  const matches = await drizzle
-    .selectDistinct({
-      termConceptId: term.termConceptId,
-    })
-    .from(term)
-    .innerJoin(termConcept, eq(termConcept.id, term.termConceptId))
-    .where(
-      and(
-        inArray(termConcept.glossaryId, input.glossaryIds),
-        eq(term.languageId, input.sourceLanguageId),
-        or(
-          // Forward: glossary term contains the input text
-          ilike(term.text, `%${trimmedText}%`),
-          // Reverse: input text contains the glossary term
-          sql`${trimmedText} ILIKE '%' || ${term.text} || '%'`,
-        ),
-      ),
-    )
-    .limit(50);
-
-  if (matches.length === 0) {
-    return [];
-  }
-
-  const termConceptIds = matches.map((m) => m.termConceptId);
-  return await fetchTerms(
-    drizzle,
-    termConceptIds,
-    input.sourceLanguageId,
-    input.translationLanguageId,
-  );
-};
 
 /**
  * Fetch full term pair details for a list of concept IDs.
@@ -114,6 +65,7 @@ export const fetchTermsByConceptIds = async (
   conceptIds: number[],
   sourceLanguageId: string,
   translationLanguageId: string,
+  confidenceMap?: Map<number, number>,
 ): Promise<LookedUpTerm[]> => {
   if (conceptIds.length === 0) return [];
   return fetchTerms(
@@ -121,6 +73,7 @@ export const fetchTermsByConceptIds = async (
     conceptIds,
     sourceLanguageId,
     translationLanguageId,
+    confidenceMap,
   );
 };
 
@@ -129,6 +82,7 @@ const fetchTerms = async (
   termConceptIds: number[],
   sourceLanguageId: string,
   translationLanguageId: string,
+  confidenceMap?: Map<number, number>,
 ): Promise<LookedUpTerm[]> => {
   const sourceTerm = aliasedTable(term, "sourceTerm");
   const translationTerm = aliasedTable(term, "translationTerm");
@@ -191,6 +145,7 @@ const fetchTerms = async (
     definition: r.definition || subjectMap.get(r.conceptId) || null,
     conceptId: r.conceptId,
     glossaryId: r.glossaryId,
+    confidence: confidenceMap?.get(r.conceptId) ?? 1.0,
   }));
 };
 

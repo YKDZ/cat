@@ -90,7 +90,7 @@ export const autoTranslateWorkflow = await defineWorkflow({
     const [memoryResult] = getTaskResult(searchMemoryWorkflow);
 
     const memory = memoryResult?.memories
-      .sort((a, b) => b.similarity - a.similarity)
+      .sort((a, b) => b.confidence - a.confidence)
       .at(0);
 
     const suggestion = adviseResult?.suggestions
@@ -104,7 +104,7 @@ export const autoTranslateWorkflow = await defineWorkflow({
 
     if (memory) {
       selectedText = memory.translation;
-      meta = { memoryId: memory.id, similarity: memory.similarity };
+      meta = { memoryId: memory.id, confidence: memory.confidence };
       strategy = "MEMORY";
     } else if (suggestion) {
       selectedText = suggestion.value;

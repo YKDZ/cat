@@ -2,6 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { navigate } from "vike/client/router";
+import { toShortFixed } from "@cat/shared/utils";
 import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
@@ -15,6 +16,7 @@ const props = defineProps<{
     term: string;
     translation: string;
     definition?: string | null;
+    confidence?: number;
     subjectId?: number | null;
     conceptId?: number;
     glossaryId?: string;
@@ -60,6 +62,16 @@ useHotKeys(`T+${props.index + 1}`, handleInsert);
             :text="term.translation"
             class="truncate text-foreground"
           />
+          <span
+            v-if="term.confidence !== undefined && term.confidence < 1"
+            class="shrink-0 text-xs text-muted-foreground"
+          >
+            {{
+              t("{confidence}%", {
+                confidence: toShortFixed(term.confidence * 100, 0),
+              })
+            }}
+          </span>
         </div>
         <Button
           v-if="term.glossaryId && term.conceptId"

@@ -1,6 +1,6 @@
 import {
-  LookupTermInputSchema,
-  lookupTermOp,
+  LookupTermsInputSchema,
+  lookupTermsOp,
 } from "@cat/app-server-shared/operations";
 
 import { defineTool } from "@/tools/types";
@@ -13,8 +13,8 @@ export const lookupTermsTool = defineTool({
     "Also accepts short phrases. No LLM or vector search \u2014 returns results in milliseconds. " +
     "For full-sentence term discovery, first use spot_terms to extract candidates, " +
     "then call lookup_terms for each candidate.",
-  parameters: LookupTermInputSchema,
+  parameters: LookupTermsInputSchema,
   execute: async (args, ctx) => {
-    return lookupTermOp(args, { traceId: ctx.traceId, signal: ctx.signal });
+    return lookupTermsOp(args, { traceId: ctx.traceId, signal: ctx.signal });
   },
 });

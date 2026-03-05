@@ -2,7 +2,7 @@
 import { toShortFixed } from "@cat/shared/utils";
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
 import type { MemorySuggestion } from "@cat/shared/schema/misc";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
 import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
@@ -18,8 +18,14 @@ const props = defineProps<{
   index: number;
 }>();
 
+const displayTranslation = computed(
+  () =>
+    props.memorySuggestion.adaptedTranslation ??
+    props.memorySuggestion.translation,
+);
+
 const handleCopy = () => {
-  replace(props.memorySuggestion.translation);
+  replace(displayTranslation.value);
 };
 
 const memory = ref<Memory | null>(null);
@@ -36,14 +42,20 @@ onMounted(async () => {
 <template>
   <div class="flex flex-col gap-1 px-3 py-2 hover:bg-background">
     <button class="cursor-pointer text-start text-wrap" @click="handleCopy">
-      <TokenRenderer :text="memorySuggestion.translation" />
+      <TokenRenderer :text="displayTranslation" />
     </button>
     <div class="flex items-center gap-2 text-sm text-foreground">
       <span>{{
-        t("{similarity}%", {
-          similarity: toShortFixed(memorySuggestion.similarity * 100, 2),
+        t("{confidence}%", {
+          confidence: toShortFixed(memorySuggestion.confidence * 100, 2),
         })
       }}</span>
+      <span
+        v-if="memorySuggestion.adaptationMethod === 'token-replaced'"
+        class="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+      >
+        {{ t("占位符替换") }}
+      </span>
       <UserAvatar :user-id="memorySuggestion.creatorId" with-name :size="16" />
       <span>{{ memory?.name ?? props.memorySuggestion.memoryId }}</span>
     </div>

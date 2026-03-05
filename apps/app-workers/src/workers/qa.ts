@@ -1,5 +1,5 @@
-import { lookupTerms } from "@cat/app-server-shared/utils";
-import { getDrizzleDB, getRedisDB } from "@cat/db";
+import { lookupTermsOp } from "@cat/app-server-shared/operations";
+import { getRedisDB } from "@cat/db";
 import {
   PluginManager,
   QAChecker,
@@ -66,11 +66,10 @@ export const qaWorkflow = await defineWorkflow({
   dependencies: async () => [],
 
   handler: async (payload, { traceId }) => {
-    const { client: drizzle } = await getDrizzleDB();
     const { redisPub } = await getRedisDB();
     const pluginManager = PluginManager.get("GLOBAL", "");
 
-    const terms = await lookupTerms(drizzle, {
+    const terms = await lookupTermsOp({
       text: payload.source.text,
       sourceLanguageId: payload.source.languageId,
       translationLanguageId: payload.translation.languageId,

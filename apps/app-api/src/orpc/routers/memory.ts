@@ -1,8 +1,8 @@
 import {
-  AsyncMessageQueue,
-  firstOrGivenService,
-} from "@cat/app-server-shared/utils";
-import { searchMemoryWorkflow } from "@cat/app-workers";
+  adaptMemoryOp,
+  streamSearchMemoryOp,
+} from "@cat/app-server-shared/operations";
+import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
 import {
   chunk,
   chunkSet,
@@ -21,13 +21,13 @@ import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import {
   MemorySuggestionSchema,
   type MemorySuggestion,
+  type TranslationSuggestion,
 } from "@cat/shared/schema/misc";
 import {
   assertSingleNonNullish,
   assertSingleOrNull,
   logger,
 } from "@cat/shared/utils";
-import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
@@ -83,24 +83,17 @@ export const onNew = authed
   )
   .handler(async function* ({ context, input }) {
     const {
-      redisDB: { redisSub },
+      redisDB: { redisSub, redisPub },
       drizzleDB: { client: drizzle },
-      pluginManager,
     } = context;
     const { elementId, translationLanguageId, minMemorySimilarity, maxAmount } =
       input;
 
-    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-
-    if (!storage)
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: `No VECTOR_STORAGE service available`,
-      });
-
-    // 要匹配记忆的元素
+    // Fetch element details — text, language, project, and chunk IDs
     const element = assertSingleNonNullish(
       await drizzle
         .select({
+          value: translatableString.value,
           languageId: translatableString.languageId,
           projectId: documentTable.projectId,
           chunkIds: sql<
@@ -138,6 +131,7 @@ export const onNew = authed
 
     if (!element || memoryIds.length === 0) return;
 
+    // Subscribe to Redis for any externally-published memory suggestions
     const memoriesQueue = new AsyncMessageQueue<MemorySuggestion>();
     const memoryChannelKey = `memories:channel:${elementId}`;
 
@@ -153,23 +147,66 @@ export const onNew = authed
     };
     await redisSub.subscribe(memoryChannelKey, onNewMemory);
 
-    const { result } = await searchMemoryWorkflow.run({
-      chunkIds: element.chunkIds,
-      memoryIds,
+    // Use three-channel streaming search
+    const stream = streamSearchMemoryOp({
+      text: element.value,
       sourceLanguageId: element.languageId,
       translationLanguageId,
+      memoryIds,
+      chunkIds: element.chunkIds,
       minSimilarity: minMemorySimilarity,
       maxAmount,
-      vectorStorageId: storage.id,
     });
 
-    void result()
-      .then((output) => {
-        memoriesQueue.push(...output.memories);
-      })
-      .catch((err: unknown) => {
-        logger.error("WORKER", { msg: "Search memory failed" }, err);
-      });
+    // Forward stream results to queue, and fire async LLM adaptation for fuzzy matches
+    const pendingAdaptations: Promise<void>[] = [];
+    const suggestionChannelKey = `suggestions:channel:${elementId}`;
+
+    void (async () => {
+      try {
+        for await (const memory of stream) {
+          memoriesQueue.push(memory);
+
+          // Fire LLM adaptation for non-exact, non-template-replaced results
+          if (
+            memory.adaptationMethod !== "exact" &&
+            memory.adaptationMethod !== "token-replaced" &&
+            memory.confidence < 1
+          ) {
+            const adaptationPromise = adaptMemoryOp({
+              sourceText: element.value,
+              memorySource: memory.source,
+              memoryTranslation: memory.translation,
+              sourceLanguageId: element.languageId,
+              translationLanguageId,
+            })
+              .then(async ({ adaptedTranslation }) => {
+                if (!adaptedTranslation) return;
+                const suggestion: TranslationSuggestion = {
+                  from: "记忆适配",
+                  value: adaptedTranslation,
+                  status: "SUCCESS",
+                  tag: "memory-adapted",
+                };
+                await redisPub.publish(
+                  suggestionChannelKey,
+                  JSON.stringify(suggestion),
+                );
+              })
+              .catch((err: unknown) => {
+                logger.error(
+                  "WORKER",
+                  { msg: "LLM memory adaptation failed" },
+                  err,
+                );
+              });
+            pendingAdaptations.push(adaptationPromise);
+          }
+        }
+      } catch (err) {
+        logger.error("WORKER", { msg: "Stream search memory failed" }, err);
+      }
+    })();
 
     try {
       for await (const memory of memoriesQueue.consume()) {

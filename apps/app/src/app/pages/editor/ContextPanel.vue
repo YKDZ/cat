@@ -38,7 +38,7 @@ const id = "editor-context-panel";
           <TabsTrigger value="context">{{ t("上下文") }}</TabsTrigger>
           <TabsTrigger value="source">{{ t("源文件") }}</TabsTrigger>
           <TabsTrigger value="discussion">{{ t("讨论") }}</TabsTrigger>
-          <TabsTrigger value="agent">{{ t("Agent") }}</TabsTrigger>
+          <TabsTrigger value="agent">{{ t("助理") }}</TabsTrigger>
         </TabsList>
       </Tabs>
     </SidebarHeader>
