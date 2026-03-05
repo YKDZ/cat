@@ -62,7 +62,9 @@ const createConcept = async () => {
     await onCreateConcept(
       props.glossaryId,
       definition.value.trim(),
-      selectedSubjectId.value,
+      selectedSubjectId.value !== undefined
+        ? [selectedSubjectId.value]
+        : undefined,
     );
 
     toastStore.info(t("概念已成功创建"));

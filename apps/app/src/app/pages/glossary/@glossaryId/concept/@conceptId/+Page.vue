@@ -17,7 +17,7 @@ import { Textarea } from "@cat/app-ui";
 import { Badge } from "@cat/app-ui";
 import { Label } from "@cat/app-ui";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import Picker from "@/app/components/picker/Picker.vue";
+import MultiPicker from "@/app/components/picker/MultiPicker.vue";
 import type { PickerOption } from "@/app/components/picker";
 import {
   Dialog,
@@ -38,22 +38,18 @@ import {
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
-const { concept, terms, availableSubjects } = useData<Data>();
+const { concept, subjects, terms, availableSubjects } = useData<Data>();
 const toastStore = useToastStore();
 
 // 编辑概念状态
 const isEditingConcept = ref(false);
-const editedSubjectId = ref<number | undefined>(concept.subjectId ?? undefined);
+const editedSubjectIds = ref<number[]>(subjects.map((s) => s.id));
 const editedDefinition = ref(concept.definition || "");
 const isUpdatingConcept = ref(false);
 
 // 主题选择器选项
 const subjectOptions = computed<PickerOption<number>[]>(() => {
   return [
-    {
-      value: -1, // 使用 -1 表示无主题
-      content: t("（无主题）"),
-    },
     ...availableSubjects.map((subject) => ({
       value: subject.id,
       content: subject.subject,
@@ -76,20 +72,13 @@ const saveConceptChanges = async () => {
   try {
     await orpc.glossary.updateConcept({
       conceptId: concept.id,
-      subjectId: editedSubjectId.value ?? undefined,
+      subjectIds: editedSubjectIds.value,
       definition: editedDefinition.value || undefined,
     });
 
-    // 更新本地状态
-    const selectedSubject = availableSubjects.find(
-      (s) => s.id === editedSubjectId.value,
-    );
-    concept.subjectId = editedSubjectId.value ?? null;
-    concept.subject = selectedSubject?.subject ?? null;
-    concept.definition = editedDefinition.value;
-
     isEditingConcept.value = false;
     toastStore.info(t("概念已成功更新"));
+    location.reload();
   } catch (error) {
     logger.error("WEB", { msg: "更新概念失败" }, error);
     toastStore.error(t("更新概念失败，请重试"));
@@ -136,15 +125,15 @@ const addNewTerm = async () => {
         <div class="flex items-start justify-between">
           <div>
             <CardTitle v-if="!isEditingConcept" class="text-2xl">
-              {{ concept.subject || t("（未命名）") }}
+              {{ subjects?.[0]?.subject || t("（未命名）") }}
             </CardTitle>
             <div v-else class="space-y-4">
               <div>
                 <Label>{{ t("概念主题") }}</Label>
-                <Picker
-                  v-model="editedSubjectId"
+                <MultiPicker
+                  v-model="editedSubjectIds"
                   :options="subjectOptions"
-                  :placeholder="t('选择一个主题...')"
+                  :placeholder="t('搜索主题...')"
                   :portal="true"
                 />
               </div>
@@ -188,7 +177,9 @@ const addNewTerm = async () => {
         <div v-if="!isEditingConcept" class="mt-2">
           <p class="text-gray-600">
             {{
-              concept.definition || concept.defaultDefinition || t("暂无定义")
+              concept.definition ||
+              subjects?.[0]?.defaultDefinition ||
+              t("暂无定义")
             }}
           </p>
         </div>

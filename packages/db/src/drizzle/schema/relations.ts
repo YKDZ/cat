@@ -257,7 +257,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.translatableString.id,
         to: r.memoryItem.translationStringId,
       }),
-      terms: r.many.term(),
+      termConcepts: r.many.termConcept(),
       translatableElements: r.many.translatableElement(),
       translations: r.many.translation(),
     },
@@ -394,9 +394,9 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.term.creatorId,
         to: r.user.id,
       }),
-      translatableString: r.one.translatableString({
-        from: r.term.stringId,
-        to: r.translatableString.id,
+      language: r.one.language({
+        from: r.term.languageId,
+        to: r.language.id,
       }),
       termConcept: r.one.termConcept({
         from: r.term.termConceptId,
@@ -412,8 +412,19 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.termConcept.creatorId,
         to: r.user.id,
       }),
-      subject: r.one.termConceptSubject({
-        from: r.termConcept.subjectId,
+      translatableString: r.one.translatableString({
+        from: r.termConcept.stringId,
+        to: r.translatableString.id,
+      }),
+      termConceptToSubjects: r.many.termConceptToSubject(),
+    },
+    termConceptToSubject: {
+      termConcept: r.one.termConcept({
+        from: r.termConceptToSubject.termConceptId,
+        to: r.termConcept.id,
+      }),
+      termConceptSubject: r.one.termConceptSubject({
+        from: r.termConceptToSubject.subjectId,
         to: r.termConceptSubject.id,
       }),
     },
@@ -426,10 +437,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.termConceptSubject.glossaryId,
         to: r.glossary.id,
       }),
-      termConcepts: r.many.termConcept({
-        from: r.termConceptSubject.id,
-        to: r.termConcept.subjectId,
-      }),
+      termConceptToSubjects: r.many.termConceptToSubject(),
     },
     comment: {
       language: r.one.language({

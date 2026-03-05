@@ -1,14 +1,14 @@
 import type { PageContextServer } from "vike/types";
 
 import {
+  and,
   eq,
   getColumns,
   getDrizzleDB,
   term as termTable,
   termConcept,
   termConceptSubject,
-  translatableString,
-  and,
+  termConceptToSubject,
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { redirect } from "vike/abort";
@@ -27,38 +27,39 @@ export const data = async (ctx: PageContextServer) => {
       throw redirect(`/glossary/${glossaryId}`);
     }
 
+    // Fetch concept (without subject — subjects are M:N now)
     const concept = assertSingleNonNullish(
       await tx
-        .select({
-          ...getColumns(termConcept),
-          subject: termConceptSubject.subject,
-          defaultDefinition: termConceptSubject.defaultDefinition,
-        })
+        .select(getColumns(termConcept))
         .from(termConcept)
         .where(
           and(
             eq(termConcept.glossaryId, glossaryId),
             eq(termConcept.id, parsedConceptId),
           ),
-        )
-        .leftJoin(
-          termConceptSubject,
-          eq(termConcept.subjectId, termConceptSubject.id),
         ),
     );
 
-    const terms = await tx
+    // Fetch M:N subjects via junction table
+    const subjects = await tx
       .select({
-        ...getColumns(termTable),
-        languageId: translatableString.languageId,
-        text: translatableString.value,
+        id: termConceptSubject.id,
+        subject: termConceptSubject.subject,
+        defaultDefinition: termConceptSubject.defaultDefinition,
+        isPrimary: termConceptToSubject.isPrimary,
       })
-      .from(termTable)
-      .where(eq(termTable.termConceptId, concept.id))
+      .from(termConceptToSubject)
       .innerJoin(
-        translatableString,
-        eq(termTable.stringId, translatableString.id),
-      );
+        termConceptSubject,
+        eq(termConceptToSubject.subjectId, termConceptSubject.id),
+      )
+      .where(eq(termConceptToSubject.termConceptId, concept.id));
+
+    // Terms now store text + languageId directly
+    const terms = await tx
+      .select(getColumns(termTable))
+      .from(termTable)
+      .where(eq(termTable.termConceptId, concept.id));
 
     const availableSubjects = await tx
       .select({
@@ -71,6 +72,7 @@ export const data = async (ctx: PageContextServer) => {
 
     return {
       concept,
+      subjects,
       terms,
       availableSubjects,
     };

@@ -615,33 +615,42 @@ export const task = pgTable(
   (table) => [index().using("btree", table.meta.asc().nullsLast())],
 );
 
-export const term = pgTable("Term", {
-  id: serial().primaryKey(),
-  type: termType().notNull().default("NOT_SPECIFIED"),
-  status: termStatus().notNull().default("NOT_SPECIFIED"),
-  creatorId: uuid().references(() => user.id, {
-    onDelete: "set null",
-    onUpdate: "cascade",
-  }),
-  stringId: integer()
-    .notNull()
-    .references(() => translatableString.id, {
-      onDelete: "restrict",
+export const term = pgTable(
+  "Term",
+  {
+    id: serial().primaryKey(),
+    type: termType().notNull().default("NOT_SPECIFIED"),
+    status: termStatus().notNull().default("NOT_SPECIFIED"),
+    creatorId: uuid().references(() => user.id, {
+      onDelete: "set null",
       onUpdate: "cascade",
     }),
-  termConceptId: integer()
-    .notNull()
-    .references(() => termConcept.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-  ...timestamps,
-});
+    text: text().notNull(),
+    languageId: text()
+      .notNull()
+      .references(() => language.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    termConceptId: integer()
+      .notNull()
+      .references(() => termConcept.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    ...timestamps,
+  },
+  (table) => [
+    unique().on(table.languageId, table.text, table.termConceptId),
+    // pg_trgm GIN index for fast bidirectional ILIKE matching (term.lookup)
+    index("idx_term_text_trgm").using("gin", sql`${table.text} gin_trgm_ops`),
+  ],
+);
 
 export const termConcept = pgTable("TermConcept", {
   id: serial().primaryKey(),
   definition: text(),
-  subjectId: integer().references(() => termConceptSubject.id, {
+  stringId: integer().references(() => translatableString.id, {
     onDelete: "set null",
     onUpdate: "cascade",
   }),
@@ -657,6 +666,30 @@ export const termConcept = pgTable("TermConcept", {
     }),
   ...timestamps,
 });
+
+export const termConceptToSubject = pgTable(
+  "TermConceptToSubject",
+  {
+    termConceptId: integer()
+      .notNull()
+      .references(() => termConcept.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    subjectId: integer()
+      .notNull()
+      .references(() => termConceptSubject.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    isPrimary: boolean().notNull().default(false),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.termConceptId, table.subjectId],
+    }),
+  ],
+);
 
 export const termConceptSubject = pgTable("TermConceptSubject", {
   id: serial().primaryKey(),

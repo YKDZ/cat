@@ -67,7 +67,7 @@ export const TermDataSchema = z.object({
   translation: z.string(),
   translationLanguageId: z.string(),
   definition: z.string().nullish(),
-  subjectId: z.int().nullish(),
+  subjectIds: z.array(z.int()).nullish(),
   conceptId: z.int().nullish(),
   glossaryId: z.string().nullish(),
 });

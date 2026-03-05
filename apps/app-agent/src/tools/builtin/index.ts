@@ -5,7 +5,6 @@ import { finishTaskTool } from "./finish-task";
 import { getElementInfoTool } from "./get-element-info";
 import { getUserTranslationHistoryTool } from "./get-user-translation-history";
 import { lookupTermsTool } from "./lookup-terms";
-import { recognizeTermsTool } from "./recognize-terms";
 import { runQACheckTool } from "./run-qa-check";
 import { searchTranslationMemoryTool } from "./search-translation-memory";
 import { spotTermsTool } from "./spot-terms";
@@ -17,7 +16,6 @@ export {
   getElementInfoTool,
   getUserTranslationHistoryTool,
   lookupTermsTool,
-  recognizeTermsTool,
   runQACheckTool,
   searchTranslationMemoryTool,
   spotTermsTool,
@@ -32,7 +30,6 @@ export const builtinTools: AgentToolDefinition[] = [
   getElementInfoTool,
   getUserTranslationHistoryTool,
   lookupTermsTool,
-  recognizeTermsTool,
   runQACheckTool,
   searchTranslationMemoryTool,
   spotTermsTool,

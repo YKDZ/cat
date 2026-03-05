@@ -8,6 +8,7 @@ import { orpc } from "@/server/orpc";
 type TermRelationWithDetails = {
   term: string;
   translation: string;
+  definition: string | null;
   termLanguageId: string;
   translationLanguageId: string;
 };
@@ -56,16 +57,23 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
 
     if (searchQuery.value.length === 0) return 0;
 
-    const terms = await orpc.glossary.searchTerm({
+    let count = 0;
+
+    const stream = await orpc.glossary.searchTerm({
       text: searchQuery.value,
       termLanguageId: elementLanguageId.value,
       translationLanguageId: languageToId.value,
       projectId: projectId.value,
     });
 
-    addTerms(...terms);
+    for await (const t of stream) {
+      if (t) {
+        addTerms(t);
+        count += 1;
+      }
+    }
 
-    return terms.length;
+    return count;
   };
 
   const addTerms = (...termsToAdd: TermRelationWithDetails[]) => {

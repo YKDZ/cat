@@ -59,6 +59,16 @@ export {
 } from "./revectorize";
 
 export {
+  revectorizeConceptOp,
+  RevectorizeConceptInputSchema,
+  RevectorizeConceptOutputSchema,
+  type RevectorizeConceptInput,
+  type RevectorizeConceptOutput,
+} from "./revectorize-concept";
+
+export { triggerConceptRevectorize } from "./trigger-revectorize";
+
+export {
   qaOp,
   QAInputSchema,
   QAOutputSchema,
@@ -69,6 +79,44 @@ export {
   type QAPubPayload,
 } from "./qa";
 
+export {
+  updateConceptOp,
+  UpdateConceptInputSchema,
+  UpdateConceptOutputSchema,
+  type UpdateConceptInput,
+  type UpdateConceptOutput,
+} from "./update-concept";
+
+export {
+  addTermToConceptOp,
+  AddTermToConceptInputSchema,
+  AddTermToConceptOutputSchema,
+  type AddTermToConceptInput,
+  type AddTermToConceptOutput,
+} from "./add-term-to-concept";
+
+export {
+  deleteTermOp,
+  DeleteTermInputSchema,
+  DeleteTermOutputSchema,
+  type DeleteTermInput,
+  type DeleteTermOutput,
+} from "./delete-term";
+
+export {
+  semanticSearchTermsOp,
+  SemanticSearchTermsInputSchema,
+  SemanticSearchTermsOutputSchema,
+  type SemanticSearchTermsInput,
+  type SemanticSearchTermsOutput,
+} from "./semantic-search-terms";
+
+export {
+  streamSearchTermsOp,
+  StreamSearchTermsInputSchema,
+  type StreamSearchTermsInput,
+} from "./stream-search-terms";
+
 // === Level 1 Operations ===
 export {
   lookupTermOp,
@@ -77,14 +125,6 @@ export {
   type LookupTermInput,
   type LookupTermOutput,
 } from "./lookup-term";
-
-export {
-  recognizeTermOp,
-  RecognizeTermInputSchema,
-  RecognizeTermOutputSchema,
-  type RecognizeTermInput,
-  type RecognizeTermOutput,
-} from "./recognize-term";
 
 export {
   searchChunkOp,

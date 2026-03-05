@@ -1,4 +1,7 @@
-import { createStringFromData } from "@cat/app-server-shared/utils";
+import {
+  buildConceptVectorizationText,
+  createStringFromData,
+} from "@cat/app-server-shared/utils";
 import {
   and,
   eq,
@@ -7,6 +10,8 @@ import {
   isNotNull,
   term,
   termConcept,
+  termConceptToSubject,
+  translatableString,
 } from "@cat/db";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
@@ -32,57 +37,14 @@ export const createTermTask = await defineWorkflow({
   input: CreateTermInputSchema,
   output: CreateTermOutputSchema,
 
-  dependencies: async (payload, { traceId }) => [
-    await vectorizeToChunkSetTask.asChild(
-      {
-        data: payload.data.flatMap((d) => [
-          {
-            text: d.term,
-            languageId: d.termLanguageId,
-          },
-          {
-            text: d.translation,
-            languageId: d.translationLanguageId,
-          },
-        ]),
-        vectorizerId: payload.vectorizerId,
-        vectorStorageId: payload.vectorStorageId,
-      },
-      { traceId },
-    ),
-  ],
+  // No upfront dependencies — vectorization happens inline after term creation
+  dependencies: async () => [],
 
-  handler: async (data, { getTaskResult }) => {
+  handler: async (data) => {
     const { client: drizzle } = await getDrizzleDB();
 
-    const [{ chunkSetIds }] = getTaskResult(vectorizeToChunkSetTask);
-
-    const termChunkIds = chunkSetIds.filter((_, index) => index % 2 === 0);
-    const translationChunkIds = chunkSetIds.filter(
-      (_, index) => index % 2 !== 0,
-    );
-    const termDatas = data.data.map((term) => ({
-      text: term.term,
-      languageId: term.termLanguageId,
-    }));
-    const translationDatas = data.data.map((term) => ({
-      text: term.translation,
-      languageId: term.translationLanguageId,
-    }));
-
+    // 1. Create concepts and terms in a transaction
     const termIds = await drizzle.transaction(async (tx) => {
-      const termStringIds = await createStringFromData(
-        tx,
-        termChunkIds,
-        termDatas,
-      );
-
-      const translationStringIds = await createStringFromData(
-        tx,
-        translationChunkIds,
-        translationDatas,
-      );
-
       const definitions = [
         ...new Set(
           data.data
@@ -93,7 +55,10 @@ export const createTermTask = await defineWorkflow({
 
       const existingEntries = definitions.length
         ? await tx
-            .select({ id: termConcept.id, definition: termConcept.definition })
+            .select({
+              id: termConcept.id,
+              definition: termConcept.definition,
+            })
             .from(termConcept)
             .where(
               and(
@@ -105,11 +70,11 @@ export const createTermTask = await defineWorkflow({
         : [];
 
       const entryMap = new Map<string, number>();
-      existingEntries.forEach((e) => {
+      for (const e of existingEntries) {
         if (e.definition !== null) {
           entryMap.set(e.definition, e.id);
         }
-      });
+      }
 
       const missingDefinitions = definitions.filter((s) => !entryMap.has(s));
 
@@ -126,23 +91,23 @@ export const createTermTask = await defineWorkflow({
             id: termConcept.id,
             definition: termConcept.definition,
           });
-        inserted.forEach((e) => {
+        for (const e of inserted) {
           if (e.definition !== null) {
             entryMap.set(e.definition, e.id);
           }
-        });
+        }
       }
 
-      const itemsWithoutSubject = data.data
+      const itemsWithoutDefinition = data.data
         .map((d, i) => ({ ...d, originalIndex: i }))
         .filter((d) => !d.definition);
 
-      const noSubjectEntryIds =
-        itemsWithoutSubject.length > 0
+      const noDefEntryIds =
+        itemsWithoutDefinition.length > 0
           ? await tx
               .insert(termConcept)
               .values(
-                itemsWithoutSubject.map(() => ({
+                itemsWithoutDefinition.map(() => ({
                   glossaryId: data.glossaryId,
                 })),
               )
@@ -150,11 +115,17 @@ export const createTermTask = await defineWorkflow({
           : [];
 
       const indexToEntryId = new Map<number, number>();
-      noSubjectEntryIds.forEach((entry, idx) => {
-        indexToEntryId.set(itemsWithoutSubject[idx].originalIndex, entry.id);
+      noDefEntryIds.forEach((entry, idx) => {
+        indexToEntryId.set(itemsWithoutDefinition[idx].originalIndex, entry.id);
       });
 
-      const termRows = [];
+      const termRows: {
+        creatorId: string | undefined;
+        text: string;
+        languageId: string;
+        termConceptId: number;
+      }[] = [];
+
       for (let i = 0; i < data.data.length; i += 1) {
         const item = data.data[i];
         let entryId: number | undefined;
@@ -169,26 +140,122 @@ export const createTermTask = await defineWorkflow({
 
         termRows.push({
           creatorId: data.creatorId,
-          stringId: termStringIds[i],
+          text: item.term,
+          languageId: item.termLanguageId,
           termConceptId: entryId,
         });
         termRows.push({
           creatorId: data.creatorId,
-          stringId: translationStringIds[i],
+          text: item.translation,
+          languageId: item.translationLanguageId,
           termConceptId: entryId,
-          termConceptSubjectId: 1,
         });
       }
 
-      if (termRows.length > 0) {
-        const ids = await tx
-          .insert(term)
-          .values(termRows)
-          .returning({ id: term.id });
-        return ids.map((i) => i.id);
+      if (termRows.length === 0) return [];
+
+      const ids = await tx
+        .insert(term)
+        .values(termRows)
+        .returning({ id: term.id });
+
+      // Insert M:N subject relations
+      const subjectInserts: {
+        termConceptId: number;
+        subjectId: number;
+        isPrimary: boolean;
+      }[] = [];
+
+      for (const item of data.data) {
+        let entryId: number | undefined;
+        if (item.definition) {
+          entryId = entryMap.get(item.definition);
+        }
+        if (!entryId) continue;
+
+        if (item.subjectIds && item.subjectIds.length > 0) {
+          for (let j = 0; j < item.subjectIds.length; j += 1) {
+            subjectInserts.push({
+              termConceptId: entryId,
+              subjectId: item.subjectIds[j],
+              isPrimary: j === 0,
+            });
+          }
+        }
       }
-      return [];
+
+      if (subjectInserts.length > 0) {
+        await tx
+          .insert(termConceptToSubject)
+          .values(subjectInserts)
+          .onConflictDoNothing();
+      }
+
+      return ids.map((i) => i.id);
     });
+
+    // 2. Vectorize concept definitions for affected concepts
+    const createdTermRows = termIds.length
+      ? await drizzle
+          .select({ termConceptId: term.termConceptId })
+          .from(term)
+          .where(inArray(term.id, termIds))
+      : [];
+
+    const conceptIdsToVectorize = [
+      ...new Set(createdTermRows.map((r) => r.termConceptId)),
+    ];
+
+    const vectorizeOneConcept = async (conceptId: number) => {
+      const vectorText = await buildConceptVectorizationText(
+        drizzle,
+        conceptId,
+      );
+
+      if (vectorText === null) return;
+
+      const conceptRow = await drizzle
+        .select({ stringId: termConcept.stringId })
+        .from(termConcept)
+        .where(eq(termConcept.id, conceptId))
+        .limit(1);
+
+      if (conceptRow.length > 0 && conceptRow[0].stringId !== null) {
+        const existingString = await drizzle
+          .select({ value: translatableString.value })
+          .from(translatableString)
+          .where(eq(translatableString.id, conceptRow[0].stringId))
+          .limit(1);
+
+        if (
+          existingString.length > 0 &&
+          existingString[0].value === vectorText
+        ) {
+          return;
+        }
+      }
+
+      const { result } = await vectorizeToChunkSetTask.run({
+        data: [{ text: vectorText, languageId: "mul" }],
+        vectorizerId: data.vectorizerId,
+        vectorStorageId: data.vectorStorageId,
+      });
+
+      const { chunkSetIds } = await result();
+
+      await drizzle.transaction(async (tx) => {
+        const [stringId] = await createStringFromData(tx, chunkSetIds, [
+          { text: vectorText, languageId: "mul" },
+        ]);
+
+        await tx
+          .update(termConcept)
+          .set({ stringId })
+          .where(eq(termConcept.id, conceptId));
+      });
+    };
+
+    await Promise.all(conceptIdsToVectorize.map(vectorizeOneConcept));
 
     return { termIds };
   },
