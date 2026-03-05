@@ -31,11 +31,24 @@ export const TranslatableElementDataSchema = z.object({
   meta: safeZDotJson,
 });
 
+export const TranslationSuggestionTagSchema = z.enum([
+  "machine-translation",
+  "memory-adapted",
+]);
+
 export const TranslationSuggestionSchema = z.object({
   from: z.string(),
   value: z.string(),
   status: TranslationSuggestionStatusSchema,
+  /** Structured source tag for visual differentiation in the UI. */
+  tag: TranslationSuggestionTagSchema.optional(),
 });
+
+export const AdaptationMethodSchema = z.enum([
+  "exact",
+  "token-replaced",
+  "llm-adapted",
+]);
 
 export const MemorySuggestionSchema = z.object({
   id: z.int(),
@@ -44,7 +57,9 @@ export const MemorySuggestionSchema = z.object({
   translation: z.string(),
   memoryId: z.uuidv4(),
   creatorId: z.uuidv4().nullable(),
-  similarity: z.number().min(0).max(1),
+  confidence: z.number().min(0).max(1),
+  adaptedTranslation: z.string().optional(),
+  adaptationMethod: AdaptationMethodSchema.optional(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
@@ -80,6 +95,9 @@ export const FileMetaSchema = z.object({
 
 export type FileMeta = z.infer<typeof FileMetaSchema>;
 export type TranslationSuggestion = z.infer<typeof TranslationSuggestionSchema>;
+export type TranslationSuggestionTag = z.infer<
+  typeof TranslationSuggestionTagSchema
+>;
 export type TranslatableElementData = z.infer<
   typeof TranslatableElementDataSchema
 >;
@@ -87,6 +105,7 @@ export type ElementTranslationStatus = z.infer<
   typeof ElementTranslationStatusSchema
 >;
 export type MemorySuggestion = z.infer<typeof MemorySuggestionSchema>;
+export type AdaptationMethod = z.infer<typeof AdaptationMethodSchema>;
 export type TranslationSuggestionStatus = z.infer<
   typeof TranslationSuggestionStatusSchema
 >;

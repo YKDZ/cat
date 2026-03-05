@@ -9,6 +9,7 @@ type TermRelationWithDetails = {
   term: string;
   translation: string;
   definition: string | null;
+  confidence: number;
   termLanguageId: string;
   translationLanguageId: string;
 };

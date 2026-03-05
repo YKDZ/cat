@@ -5,6 +5,7 @@ import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { computed } from "vue";
 
 const { replace } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());
@@ -13,6 +14,11 @@ const props = defineProps<{
   suggestion: TranslationSuggestion;
   index: number;
 }>();
+
+const tagLabel = computed(() => {
+  if (props.suggestion.tag === "memory-adapted") return "记忆适配";
+  return null;
+});
 
 const handleCopy = () => {
   if (props.suggestion.status !== "SUCCESS") return;
@@ -40,6 +46,14 @@ useHotKeys(`S+${props.index + 1}`, handleCopy);
     >
       <TokenRenderer v-if="document" :text="suggestion.value" />
     </button>
-    <div class="text-sm text-foreground">{{ suggestion.from }}</div>
+    <div class="flex items-center gap-1 text-sm text-foreground">
+      <span>{{ suggestion.from }}</span>
+      <span
+        v-if="tagLabel"
+        class="rounded-sm bg-violet-100 px-1 py-px text-xs text-violet-700"
+      >
+        {{ tagLabel }}
+      </span>
+    </div>
   </div>
 </template>

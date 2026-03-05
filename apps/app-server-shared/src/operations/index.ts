@@ -3,6 +3,14 @@ export type { OperationContext } from "./types";
 
 // === Leaf Operations ===
 export {
+  adaptMemoryOp,
+  AdaptMemoryInputSchema,
+  AdaptMemoryOutputSchema,
+  type AdaptMemoryInput,
+  type AdaptMemoryOutput,
+} from "./adapt-memory";
+
+export {
   fetchAdviseOp,
   FetchAdviseInputSchema,
   FetchAdviseOutputSchema,
@@ -117,14 +125,13 @@ export {
   type StreamSearchTermsInput,
 } from "./stream-search-terms";
 
-// === Level 1 Operations ===
 export {
-  lookupTermOp,
-  LookupTermInputSchema,
-  LookupTermOutputSchema,
-  type LookupTermInput,
-  type LookupTermOutput,
-} from "./lookup-term";
+  lookupTermsOp,
+  LookupTermsInputSchema,
+  LookupTermsOutputSchema,
+  type LookupTermsInput,
+  type LookupTermsOutput,
+} from "./lookup-terms";
 
 export {
   searchChunkOp,
@@ -166,6 +173,12 @@ export {
   type SearchMemoryInput,
   type SearchMemoryOutput,
 } from "./search-memory";
+
+export {
+  streamSearchMemoryOp,
+  StreamSearchMemoryInputSchema,
+  type StreamSearchMemoryInput,
+} from "./stream-search-memory";
 
 export {
   qaTranslationOp,

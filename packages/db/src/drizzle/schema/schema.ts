@@ -343,6 +343,12 @@ export const memoryItem = pgTable("MemoryItem", {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
+  /** Placeholderized source text template, e.g. "Error Code: {NUM_0}" */
+  sourceTemplate: text("source_template"),
+  /** Placeholderized translation text template */
+  translationTemplate: text("translation_template"),
+  /** JSON mapping of placeholder → original value + token type */
+  slotMapping: jsonb("slot_mapping"),
   ...timestamps,
 });
 

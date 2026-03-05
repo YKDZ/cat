@@ -7,14 +7,18 @@ import {
   inArray,
   memoryItem,
   translatableString,
+  union,
+  type DrizzleTransaction,
 } from "@cat/db";
-import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
+import {
+  MemorySuggestionSchema,
+  type MemorySuggestion,
+} from "@cat/shared/schema/misc";
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
 
 import { searchChunkOp } from "@/operations/search-chunk";
-import { searchMemory } from "@/utils";
 
 export const SearchMemoryInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1).meta({
@@ -125,14 +129,109 @@ export const searchMemoryOp = async (
 
   // 3. 处理结果（原 handler 阶段）
   const memories = await drizzle.transaction(async (tx) => {
-    return await searchMemory(
-      tx,
-      chunks,
-      data.sourceLanguageId,
-      data.translationLanguageId,
-      data.memoryIds,
-    );
+    return await searchMemory(tx, chunks, data.memoryIds);
   });
 
   return { memories };
+};
+
+const searchMemory = async (
+  drizzle: DrizzleTransaction,
+  chunks: { chunkId: number; similarity: number }[],
+  memoryIds: string[],
+  maxAmount: number = 3,
+): Promise<MemorySuggestion[]> => {
+  const sourceString = aliasedTable(translatableString, "sourceString");
+  const translationString = aliasedTable(
+    translatableString,
+    "translationString",
+  );
+
+  const searchResult = new Map(chunks.map((it) => [it.chunkId, it.similarity]));
+  const searchedChunkIds = Array.from(searchResult.keys());
+
+  if (searchedChunkIds.length === 0) return [];
+
+  const targetSetsQuery = drizzle
+    .selectDistinct({ chunkSetId: chunk.chunkSetId })
+    .from(chunk)
+    .where(inArray(chunk.id, searchedChunkIds))
+    .as("target_sets");
+
+  const sourceItemsQuery = drizzle
+    .select({
+      id: memoryItem.id,
+      source: sourceString.value,
+      translation: translationString.value,
+      sourceChunkSetId: sourceString.chunkSetId,
+      translationChunkSetId: translationString.chunkSetId,
+      memoryId: memoryItem.memoryId,
+      creatorId: memoryItem.creatorId,
+      createdAt: memoryItem.createdAt,
+      updatedAt: memoryItem.updatedAt,
+      chunkId: chunk.id,
+    })
+    .from(memoryItem)
+    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+    .innerJoin(
+      translationString,
+      eq(translationString.id, memoryItem.translationStringId),
+    )
+    .innerJoin(
+      targetSetsQuery,
+      eq(sourceString.chunkSetId, targetSetsQuery.chunkSetId),
+    )
+    .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
+    .where(
+      and(
+        inArray(chunk.id, searchedChunkIds),
+        inArray(memoryItem.memoryId, memoryIds),
+      ),
+    );
+
+  const translationItemsQuery = drizzle
+    .select({
+      id: memoryItem.id,
+      source: sourceString.value,
+      translation: translationString.value,
+      sourceChunkSetId: sourceString.chunkSetId,
+      translationChunkSetId: translationString.chunkSetId,
+      memoryId: memoryItem.memoryId,
+      creatorId: memoryItem.creatorId,
+      createdAt: memoryItem.createdAt,
+      updatedAt: memoryItem.updatedAt,
+      chunkId: chunk.id,
+    })
+    .from(memoryItem)
+    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+    .innerJoin(
+      translationString,
+      eq(translationString.id, memoryItem.translationStringId),
+    )
+    .innerJoin(
+      targetSetsQuery,
+      eq(translationString.chunkSetId, targetSetsQuery.chunkSetId),
+    )
+    .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
+    .where(
+      and(
+        inArray(chunk.id, searchedChunkIds),
+        inArray(memoryItem.memoryId, memoryIds),
+      ),
+    );
+
+  const rows = await union(sourceItemsQuery, translationItemsQuery).limit(
+    maxAmount,
+  );
+
+  const result = rows
+    .map((row) => ({
+      ...row,
+      confidence: searchResult.get(row.chunkId) ?? 0,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+    }))
+    .sort((a, b) => b.confidence - a.confidence);
+
+  return result;
 };

@@ -77,7 +77,7 @@ export const autoTranslateOp = async (
   ]);
 
   const memory = memoryResult.memories
-    .sort((a, b) => b.similarity - a.similarity)
+    .sort((a, b) => b.confidence - a.confidence)
     .at(0);
 
   const suggestion = adviseResult.suggestions
@@ -90,7 +90,7 @@ export const autoTranslateOp = async (
 
   if (memory) {
     selectedText = memory.translation;
-    meta = { memoryId: memory.id, similarity: memory.similarity };
+    meta = { memoryId: memory.id, confidence: memory.confidence };
   } else if (suggestion) {
     selectedText = suggestion.value;
     if (data.advisorId) meta = { advisorId: data.advisorId };

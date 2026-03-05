@@ -1,109 +1,20 @@
 import {
   aliasedTable,
-  chunk,
   eq,
   inArray,
   memoryItem,
   translatableElement,
   translatableString,
   translation,
-  union,
   type DrizzleTransaction,
 } from "@cat/db";
-import { MemorySuggestion } from "@cat/shared/schema/misc";
 
-export const searchMemory = async (
-  drizzle: DrizzleTransaction,
-  chunks: { chunkId: number; similarity: number }[],
-  sourceLanguageId: string,
-  translationLanguageId: string,
-  memoryIds: string[],
-  maxAmount: number = 3,
-): Promise<MemorySuggestion[]> => {
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
-
-  const searchResult = new Map(chunks.map((it) => [it.chunkId, it.similarity]));
-  const searchedChunkIds = Array.from(searchResult.keys());
-
-  if (searchedChunkIds.length === 0) return [];
-
-  const targetSetsQuery = drizzle
-    .selectDistinct({ chunkSetId: chunk.chunkSetId })
-    .from(chunk)
-    .where(inArray(chunk.id, searchedChunkIds))
-    .as("target_sets");
-
-  const sourceItemsQuery = drizzle
-    .select({
-      id: memoryItem.id,
-      source: sourceString.value,
-      translation: translationString.value,
-      sourceChunkSetId: sourceString.chunkSetId,
-      translationChunkSetId: translationString.chunkSetId,
-      memoryId: memoryItem.memoryId,
-      creatorId: memoryItem.creatorId,
-      createdAt: memoryItem.createdAt,
-      updatedAt: memoryItem.updatedAt,
-      chunkId: chunk.id,
-    })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .innerJoin(
-      targetSetsQuery,
-      eq(sourceString.chunkSetId, targetSetsQuery.chunkSetId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
-    .where(inArray(chunk.id, searchedChunkIds));
-
-  const translationItemsQuery = drizzle
-    .select({
-      id: memoryItem.id,
-      source: sourceString.value,
-      translation: translationString.value,
-      sourceChunkSetId: sourceString.chunkSetId,
-      translationChunkSetId: translationString.chunkSetId,
-      memoryId: memoryItem.memoryId,
-      creatorId: memoryItem.creatorId,
-      createdAt: memoryItem.createdAt,
-      updatedAt: memoryItem.updatedAt,
-      chunkId: chunk.id,
-    })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .innerJoin(
-      targetSetsQuery,
-      eq(translationString.chunkSetId, targetSetsQuery.chunkSetId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
-    .where(inArray(chunk.id, searchedChunkIds));
-
-  const rows = await union(sourceItemsQuery, translationItemsQuery).limit(
-    maxAmount,
-  );
-
-  const result = rows
-    .map((row) => ({
-      ...row,
-      similarity: searchResult.get(row.chunkId) ?? 0,
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
-    }))
-    .sort((a, b) => b.similarity - a.similarity);
-
-  return result;
-};
+import { tokenizeOp } from "@/operations/tokenize";
+import {
+  placeholderize,
+  slotsToMapping,
+  type SlotMappingEntry,
+} from "@/utils/memory-template";
 
 export const insertMemory = async (
   tx: DrizzleTransaction,
@@ -114,19 +25,74 @@ export const insertMemory = async (
     return { memoryItemIds: [] };
   }
 
+  const sourceString = aliasedTable(translatableString, "sourceString");
+  const translationString = aliasedTable(
+    translatableString,
+    "translationString",
+  );
+
   const translations = await tx
     .select({
       translationId: translation.id,
       translationStringId: translation.stringId,
       sourceStringId: translatableElement.translatableStringId,
       creatorId: translation.translatorId,
+      sourceText: sourceString.value,
+      translationText: translationString.value,
     })
     .from(translation)
     .innerJoin(
       translatableElement,
       eq(translation.translatableElementId, translatableElement.id),
     )
+    .innerJoin(
+      sourceString,
+      eq(sourceString.id, translatableElement.translatableStringId),
+    )
+    .innerJoin(
+      translationString,
+      eq(translationString.id, translation.stringId),
+    )
     .where(inArray(translation.id, translationIds));
+
+  // Compute templates for each translation pair
+  const templated = await Promise.all(
+    translations.map(async (t) => {
+      let sourceTemplate: string | null = null;
+      let translationTemplate: string | null = null;
+      let slotMapping: SlotMappingEntry[] | null = null;
+
+      try {
+        const [srcTokens, tgtTokens] = await Promise.all([
+          tokenizeOp({ text: t.sourceText }),
+          tokenizeOp({ text: t.translationText }),
+        ]);
+
+        const srcResult = placeholderize(srcTokens.tokens, t.sourceText);
+        const tgtResult = placeholderize(tgtTokens.tokens, t.translationText);
+
+        // Only store templates when there are actual placeholders
+        if (srcResult.slots.length > 0 || tgtResult.slots.length > 0) {
+          sourceTemplate = srcResult.template;
+          translationTemplate = tgtResult.template;
+          slotMapping = [
+            ...slotsToMapping(srcResult.slots).map((s) => ({
+              ...s,
+              placeholder: `src:${s.placeholder}`,
+            })),
+            ...slotsToMapping(tgtResult.slots).map((s) => ({
+              ...s,
+              placeholder: `tgt:${s.placeholder}`,
+            })),
+          ];
+        }
+      } catch {
+        // Tokenization failure is non-fatal — proceed without templates
+      }
+
+      return { ...t, sourceTemplate, translationTemplate, slotMapping };
+    }),
+  );
 
   const ids: number[] = [];
 
@@ -135,8 +101,14 @@ export const insertMemory = async (
       const inserted = await tx
         .insert(memoryItem)
         .values(
-          translations.map((t) => ({
-            ...t,
+          templated.map((t) => ({
+            translationId: t.translationId,
+            translationStringId: t.translationStringId,
+            sourceStringId: t.sourceStringId,
+            creatorId: t.creatorId,
+            sourceTemplate: t.sourceTemplate,
+            translationTemplate: t.translationTemplate,
+            slotMapping: t.slotMapping,
             memoryId,
           })),
         )

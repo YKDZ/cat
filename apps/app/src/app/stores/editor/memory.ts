@@ -8,8 +8,24 @@ import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { orpc } from "@/server/orpc";
 
+/**
+ * Determine the best text for ghost text from a memory suggestion.
+ * Returns the adapted translation if available, otherwise the raw translation
+ * for exact/token-replaced results. Returns null for other types.
+ */
+const getGhostCandidate = (memory: MemorySuggestion): string | null => {
+  if (
+    memory.adaptationMethod === "exact" ||
+    memory.adaptationMethod === "token-replaced"
+  ) {
+    return memory.adaptedTranslation ?? memory.translation;
+  }
+  return null;
+};
+
 export const useEditorMemoryStore = defineStore("editorMemory", () => {
-  const { elementId } = storeToRefs(useEditorTableStore());
+  const tableStore = useEditorTableStore();
+  const { elementId, translationValue } = storeToRefs(tableStore);
   const { languageToId } = storeToRefs(useEditorContextStore());
   const { editorMemoryMinSimilarity } = storeToRefs(useProfileStore());
   const onNew = shallowRef<AsyncGenerator<MemorySuggestion>>();
@@ -37,8 +53,20 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
         { signal: abortController.signal },
       );
 
+      let ghostTextSet = false;
+
       for await (const memory of onNew.value) {
         memories.value.push(memory);
+
+        // Auto-trigger ghost text for the first exact/token-replaced result
+        // when the translation input is still empty
+        if (!ghostTextSet && translationValue.value === "") {
+          const candidate = getGhostCandidate(memory);
+          if (candidate) {
+            tableStore.setGhostText(candidate);
+            ghostTextSet = true;
+          }
+        }
       }
     } catch (error) {
       if (

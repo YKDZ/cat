@@ -1,14 +1,14 @@
-import { getDrizzleDB } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
+import type { LookedUpTerm } from "@/utils/term";
 
 import { firstOrGivenService } from "@/utils";
 import { AsyncMessageQueue } from "@/utils/queue";
-import { lookupTerms, type LookedUpTerm } from "@/utils/term";
 
+import { lookupTermsOp } from "./lookup-terms";
 import { semanticSearchTermsOp } from "./semantic-search-terms";
 
 export const StreamSearchTermsInputSchema = z.object({
@@ -29,10 +29,10 @@ export type StreamSearchTermsInput = z.input<
  *
  * 同时启动两种搜索策略，结果通过 {@link AsyncMessageQueue} 以流的形式推送：
  *
- * 1. **ILIKE 词法匹配**（快）：基于 pg_trgm GIN 索引，几乎实时返回，先抵达。
+ * 1. **ILIKE + word_similarity 词法匹配**（快）：基于 pg_trgm GIN 索引，几乎实时返回，先抵达。
  * 2. **向量语义搜索**（慢）：需要向量化查询文本，若插件不可用则自动跳过。
  *
- * 两路结果按 conceptId 全局去重，保证调用方拿到的是唯一结果集。
+ * 两路结果按 `(term text, conceptId)` 复合键全局去重（先到先得），保证调用方拿到的是唯一结果集。
  * 返回的 `AsyncIterable` 可直接用 `for await` 消费或在 oRPC `async function*` 中 yield。
  */
 export const streamSearchTermsOp = (
@@ -40,34 +40,35 @@ export const streamSearchTermsOp = (
   ctx?: OperationContext,
 ): AsyncIterable<LookedUpTerm> => {
   const queue = new AsyncMessageQueue<LookedUpTerm>();
-  const seenConceptIds = new Set<number>();
+  // Dedup by (term text, conceptId) composite key to avoid discarding synonyms
+  // within the same concept that have different text in the same language.
+  const seenKeys = new Set<string>();
 
   const pushNew = (terms: LookedUpTerm[]) => {
     for (const t of terms) {
-      if (seenConceptIds.has(t.conceptId)) continue;
-      seenConceptIds.add(t.conceptId);
+      const key = `${t.term}\0${t.conceptId}`;
+      if (seenKeys.has(key)) continue;
+      seenKeys.add(key);
       queue.push(t);
     }
   };
 
   const run = async () => {
-    const { client: drizzle } = await getDrizzleDB();
-
-    const lookupInput = {
-      glossaryIds: data.glossaryIds,
-      text: data.text,
-      sourceLanguageId: data.sourceLanguageId,
-      translationLanguageId: data.translationLanguageId,
-    };
-
     const pluginManager = PluginManager.get("GLOBAL", "");
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
     const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
 
     // Launch both searches concurrently; ILIKE typically resolves first.
     const tasks: Promise<void>[] = [
-      lookupTerms(drizzle, lookupInput).then((n) => {
-        console.log("ILIKE matches found:", n);
+      lookupTermsOp(
+        {
+          glossaryIds: data.glossaryIds,
+          text: data.text,
+          sourceLanguageId: data.sourceLanguageId,
+          translationLanguageId: data.translationLanguageId,
+        },
+        ctx,
+      ).then((n) => {
         pushNew(n);
       }),
     ];
@@ -87,7 +88,6 @@ export const streamSearchTermsOp = (
           },
           ctx,
         ).then((n) => {
-          console.log("Semantic matches found:", n);
           pushNew(n);
         }),
       );

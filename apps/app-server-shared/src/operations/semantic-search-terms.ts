@@ -38,7 +38,7 @@ export const SemanticSearchTermsOutputSchema = z.array(
     definition: z.string().nullable(),
     conceptId: z.int(),
     glossaryId: z.string(),
-    similarity: z.number().min(0).max(1),
+    confidence: z.number().min(0).max(1),
   }),
 );
 
@@ -120,21 +120,32 @@ export const semanticSearchTermsOp = async (
   if (similar.length === 0) return [];
 
   // 4. Map chunk IDs back to concept IDs (deduplicated, preserving similarity rank).
+  //    Track the highest similarity per concept for confidence scoring.
   const seenConceptIds = new Set<number>();
   const conceptIds: number[] = [];
+  const conceptSimilarityMap = new Map<number, number>();
   for (const row of similar) {
     const conceptId = chunkToConceptMap.get(row.chunkId);
-    if (conceptId !== undefined && !seenConceptIds.has(conceptId)) {
+    if (conceptId === undefined) continue;
+
+    const existingSim = conceptSimilarityMap.get(conceptId);
+    if (existingSim === undefined || row.similarity > existingSim) {
+      conceptSimilarityMap.set(conceptId, row.similarity);
+    }
+
+    if (!seenConceptIds.has(conceptId)) {
       seenConceptIds.add(conceptId);
       conceptIds.push(conceptId);
     }
   }
 
   // 5. Fetch full source + translation term pairs for the matched concept IDs.
+  //    Pass similarity map so each result gets its confidence from cosine similarity.
   return fetchTermsByConceptIds(
     drizzle,
     conceptIds,
     data.sourceLanguageId,
     data.translationLanguageId,
+    conceptSimilarityMap,
   );
 };

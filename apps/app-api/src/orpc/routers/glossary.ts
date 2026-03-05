@@ -232,6 +232,7 @@ export const searchTerm = authed
         term: t.term,
         translation: t.translation,
         definition: t.definition,
+        confidence: t.confidence,
         termLanguageId,
         translationLanguageId,
       };
@@ -299,6 +300,7 @@ export const findTerm = authed
         term: t.term,
         translation: t.translation,
         definition: t.definition,
+        confidence: t.confidence,
         termLanguageId: element.languageId,
         translationLanguageId,
       };
