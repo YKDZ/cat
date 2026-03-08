@@ -154,7 +154,6 @@ export const AgentSessionTrustPolicySchema = z.enum(
 );
 
 export const AgentDefinitionTypeValues = ["GENERAL", "GHOST_TEXT"] as const;
-// Future: "QA_REVIEW", "AUTO_TRANSLATE", ...
 export const AgentDefinitionTypeSchema = z.enum(AgentDefinitionTypeValues);
 
 export type AgentToolTarget = (typeof AgentToolTargetValues)[number];
