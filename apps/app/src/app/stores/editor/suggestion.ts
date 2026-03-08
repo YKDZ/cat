@@ -1,4 +1,4 @@
-import type { TranslationSuggestion } from "@cat/plugin-core";
+import type { TranslationSuggestion } from "@cat/shared/schema/plugin";
 
 import { defineStore, storeToRefs } from "pinia";
 import { ref, shallowRef } from "vue";

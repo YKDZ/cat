@@ -8,7 +8,8 @@ import {
   termConceptToSubject,
   translatableElement,
 } from "@cat/db";
-import { PluginManager, TranslationSuggestionSchema } from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
+import { TranslationAdviseSchema } from "@cat/shared/schema/plugin";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod";
 
@@ -52,7 +53,7 @@ export const FetchAdviseInputSchema = z.object({
 });
 
 export const FetchAdviseOutputSchema = z.object({
-  suggestions: z.array(TranslationSuggestionSchema),
+  suggestions: z.array(TranslationAdviseSchema),
 });
 
 export type FetchAdviseInput = z.infer<typeof FetchAdviseInputSchema>;
@@ -192,7 +193,7 @@ export const fetchAdviseOp = async (
     return { suggestions: [] };
   }
 
-  const suggestions = await advisor.service.getSuggestions({
+  const suggestions = await advisor.service.advise({
     source: {
       text: data.text,
       languageId: data.sourceLanguageId,

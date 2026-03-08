@@ -1,9 +1,9 @@
 import type { JSONType } from "@cat/shared/schema/json";
+import type { TranslationAdvise } from "@cat/shared/schema/plugin";
 
 import {
   TranslationAdvisor,
   type GetSuggestionsContext,
-  type TranslationSuggestion,
 } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
 import { Pool } from "undici";
@@ -95,14 +95,14 @@ export class Advisor extends TranslationAdvisor {
     return "libretranslate";
   }
 
-  getName(): string {
+  getDisplayName(): string {
     return this.config.base["advisor-name"];
   }
 
-  async getSuggestions({
+  async advise({
     source: { text, languageId },
     targetLanguageId,
-  }: GetSuggestionsContext): Promise<TranslationSuggestion[]> {
+  }: GetSuggestionsContext): Promise<TranslationAdvise[]> {
     const sourceLang = languageId.replaceAll("_", "-");
     const targetLang = targetLanguageId.replaceAll("_", "-");
 
@@ -115,7 +115,7 @@ export class Advisor extends TranslationAdvisor {
           translation: "LibreTranslate API 请求或解析错误。",
           confidence: 0,
         },
-      ] satisfies TranslationSuggestion[];
+      ] satisfies TranslationAdvise[];
     }
   }
 
@@ -130,7 +130,7 @@ export class Advisor extends TranslationAdvisor {
           translation: "可翻译元素是空白的，LibreTranslate API 不会翻译它。",
           confidence: 0,
         },
-      ] satisfies TranslationSuggestion[];
+      ] satisfies TranslationAdvise[];
     }
 
     const res = await this.pool.request({
@@ -160,35 +160,35 @@ export class Advisor extends TranslationAdvisor {
               translation: `速率限制：${msg}`,
               confidence: 0,
             },
-          ] satisfies TranslationSuggestion[];
+          ] satisfies TranslationAdvise[];
         case 403:
           return [
             {
               translation: `访问被禁止：${msg}`,
               confidence: 0,
             },
-          ] satisfies TranslationSuggestion[];
+          ] satisfies TranslationAdvise[];
         case 500:
           return [
             {
               translation: `LibreTranslate API 服务器内部错误：${msg}`,
               confidence: 0,
             },
-          ] satisfies TranslationSuggestion[];
+          ] satisfies TranslationAdvise[];
         case 400:
           return [
             {
               translation: `请求错误：${msg}`,
               confidence: 0,
             },
-          ] satisfies TranslationSuggestion[];
+          ] satisfies TranslationAdvise[];
         default:
           return [
             {
               translation: `翻译失败（状态码 ${res.statusCode}）：${msg}`,
               confidence: 0,
             },
-          ] satisfies TranslationSuggestion[];
+          ] satisfies TranslationAdvise[];
       }
     }
 
@@ -199,7 +199,7 @@ export class Advisor extends TranslationAdvisor {
       })
       .parse(body);
 
-    const result: TranslationSuggestion[] = [
+    const result: TranslationAdvise[] = [
       {
         translation: successBody.translatedText,
         confidence: 0,
@@ -212,7 +212,7 @@ export class Advisor extends TranslationAdvisor {
             ({
               translation,
               confidence: 1,
-            }) satisfies TranslationSuggestion,
+            }) satisfies TranslationAdvise,
         )
         .forEach((translation) => result.push(translation));
     }

@@ -5,7 +5,10 @@ import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { computed } from "vue";
-import type { TranslationSuggestion } from "@cat/plugin-core";
+import type { TranslationSuggestion } from "@cat/shared/schema/plugin";
+import { useQuery } from "@pinia/colada";
+import { orpc } from "@/server/orpc";
+import { Skeleton } from "@cat/app-ui";
 
 const { replace } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());
@@ -14,6 +17,19 @@ const props = defineProps<{
   suggestion: TranslationSuggestion;
   index: number;
 }>();
+
+const { state } = useQuery({
+  key: ["reactions", props.suggestion.advisorId ?? "noAdvisor"],
+  placeholderData: {
+    id: -1,
+    name: "",
+  },
+  query: () =>
+    orpc.plugin.getTranslationAdvisor({
+      advisorId: props.suggestion.advisorId!,
+    }),
+  enabled: !import.meta.env.SSR && !!props.suggestion.advisorId,
+});
 
 const tagLabel = computed(() => {
   return null;
@@ -31,6 +47,8 @@ useHotKeys(`S+${props.index + 1}`, handleCopy);
     <button class="text-wrapcursor-pointer text-start" @click="handleCopy">
       <TokenViewer v-if="document" :text="suggestion.translation" />
     </button>
+    <span v-if="state.status === 'success'">{{ state.data?.name }}</span>
+    <Skeleton v-else class="h-2 w-5" />
     <div class="flex items-center gap-1 text-sm text-foreground">
       <span
         v-if="tagLabel"

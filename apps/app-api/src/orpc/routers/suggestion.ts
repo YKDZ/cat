@@ -13,7 +13,7 @@ import {
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
-} from "@cat/plugin-core";
+} from "@cat/shared/schema/plugin";
 import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
@@ -123,14 +123,19 @@ export const onNew = authed
       const { suggestions } = await result();
 
       await Promise.all(
-        suggestions.map(async (suggestion) => {
-          const suggestionStr = JSON.stringify(suggestion);
-          await redisPub.publish(suggestionChannelKey, suggestionStr);
+        suggestions
+          .map((suggestion) => ({
+            ...suggestion,
+            advisorId: advisor.dbId,
+          }))
+          .map(async (suggestion) => {
+            const suggestionStr = JSON.stringify(suggestion);
+            await redisPub.publish(suggestionChannelKey, suggestionStr);
 
-          // Cache successful suggestions
-          await redis.sAdd(cacheKey, suggestionStr);
-          await redis.expire(cacheKey, 60 * 60);
-        }),
+            // Cache successful suggestions
+            await redis.sAdd(cacheKey, suggestionStr);
+            await redis.expire(cacheKey, 60 * 60);
+          }),
       );
     });
 
