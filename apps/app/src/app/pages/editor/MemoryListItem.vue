@@ -5,7 +5,7 @@ import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
-import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
+import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
@@ -42,7 +42,7 @@ onMounted(async () => {
 <template>
   <div class="flex flex-col gap-1 px-3 py-2 hover:bg-background">
     <button class="cursor-pointer text-start text-wrap" @click="handleCopy">
-      <TokenRenderer :text="displayTranslation" />
+      <TokenViewer :text="displayTranslation" />
     </button>
     <div class="flex items-center gap-2 text-sm text-foreground">
       <span>{{

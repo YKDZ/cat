@@ -1,6 +1,6 @@
+import { lookupTermsForElementOp } from "@cat/app-server-shared/operations";
 import { tokenizeTask } from "@cat/app-workers";
 import { TokenSchema } from "@cat/plugin-core";
-import { TermDataSchema } from "@cat/shared/schema/misc";
 import z from "zod";
 
 import { authed } from "@/orpc/server.ts";
@@ -9,12 +9,23 @@ export const tokenize = authed
   .input(
     z.object({
       text: z.string(),
-      terms: z.array(TermDataSchema).optional(),
+      elementId: z.int().optional(),
+      translationLanguageId: z.string().optional(),
     }),
   )
-  .output(z.array(TokenSchema))
+  .output(
+    z.object({
+      tokens: z.array(TokenSchema),
+    }),
+  )
   .handler(async ({ input }) => {
-    const { text, terms } = input;
+    const { text, elementId, translationLanguageId } = input;
+
+    // 当同时提供 elementId 和 translationLanguageId 时，后端自动查找术语
+    const terms =
+      elementId !== undefined && translationLanguageId !== undefined
+        ? await lookupTermsForElementOp(elementId, translationLanguageId)
+        : [];
 
     const { result } = await tokenizeTask.run({
       text,
@@ -23,5 +34,5 @@ export const tokenize = authed
 
     const { tokens } = await result();
 
-    return tokens;
+    return { tokens };
   });

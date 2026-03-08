@@ -5,26 +5,29 @@
   "entry": "dist/index.js",
   "services": [
     {
-      "id": "openai-llm-provider",
-      "type": "LLM_PROVIDER"
+      "type": "LLM_PROVIDER",
+      "dynamic": true
     }
   ],
   "config": {
-    "type": "object",
-    "required": ["apiKey"],
-    "properties": {
-      "apiKey": {
-        "type": "string",
-        "description": "OpenAI API key"
-      },
-      "baseURL": {
-        "type": "string",
-        "description": "Custom API base URL (for OpenAI-compatible providers like DeepSeek)"
-      },
-      "model": {
-        "type": "string",
-        "default": "gpt-4o",
-        "description": "Model identifier"
+    "type": "array",
+    "items": {
+      "type": "object",
+      "required": ["apiKey"],
+      "properties": {
+        "apiKey": {
+          "type": "string",
+          "description": "OpenAI API key"
+        },
+        "baseURL": {
+          "type": "string",
+          "description": "Custom API base URL (for OpenAI-compatible providers like DeepSeek)"
+        },
+        "model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "description": "Model identifier"
+        }
       }
     }
   }

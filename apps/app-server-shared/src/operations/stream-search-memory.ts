@@ -204,11 +204,41 @@ export const streamSearchMemoryOp = (
     ];
 
     // Channel 3: Vector semantic search (only if vector storage is available)
-    if (vectorStorage && data.chunkIds.length > 0) {
-      tasks.push(
-        searchMemoryOp(
+    if (vectorStorage) {
+      const vectorTask = (async (): Promise<void> => {
+        // If pre-stored chunkIds are available, use them directly.
+        // Otherwise, vectorize the raw text on the fly.
+        let queryVectors: number[][] | undefined;
+
+        if (data.chunkIds.length === 0) {
+          const vectorizer = firstOrGivenService(
+            pluginManager,
+            "TEXT_VECTORIZER",
+          );
+          if (!vectorizer) {
+            logger.warn("OP", {
+              msg: "streamSearchMemoryOp: no TEXT_VECTORIZER available, skipping vector channel",
+            });
+            return;
+          }
+          const vectorized = await vectorizer.service.vectorize({
+            elements: [
+              {
+                text: data.text,
+                languageId: data.sourceLanguageId,
+              },
+            ],
+          });
+          queryVectors = vectorized.flatMap((chunks) =>
+            chunks.map((c) => c.vector),
+          );
+          if (queryVectors.length === 0) return;
+        }
+
+        const { memories } = await searchMemoryOp(
           {
             chunkIds: data.chunkIds,
+            ...(queryVectors ? { queryVectors } : {}),
             memoryIds: data.memoryIds,
             sourceLanguageId: data.sourceLanguageId,
             translationLanguageId: data.translationLanguageId,
@@ -217,26 +247,26 @@ export const streamSearchMemoryOp = (
             vectorStorageId: vectorStorage.id,
           },
           ctx,
-        )
-          .then(async ({ memories }) => {
-            // Enrich vector results with confidence from their similarity.
-            // Vector channel doesn't carry template data — no adaptation here.
-            const enriched: RawMemorySuggestion[] = memories.map((m) => ({
-              ...m,
-              confidence: m.confidence,
-              sourceTemplate: null,
-              translationTemplate: null,
-              slotMapping: null,
-            }));
-            await pushNew(enriched);
-          })
-          .catch((err: unknown) => {
-            logger.error(
-              "OP",
-              { msg: "streamSearchMemoryOp: vector search failed" },
-              err,
-            );
-          }),
+        );
+
+        const enriched: RawMemorySuggestion[] = memories.map((m) => ({
+          ...m,
+          confidence: m.confidence,
+          sourceTemplate: null,
+          translationTemplate: null,
+          slotMapping: null,
+        }));
+        await pushNew(enriched);
+      })();
+
+      tasks.push(
+        vectorTask.catch((err: unknown) => {
+          logger.error(
+            "OP",
+            { msg: "streamSearchMemoryOp: vector search failed" },
+            err,
+          );
+        }),
       );
     }
 

@@ -1,10 +1,11 @@
 import type { Token } from "@cat/plugin-core";
+import type { EditorView } from "@codemirror/view";
 
 import { useQuery } from "@pinia/colada";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
-import { ref, computed, nextTick, watch } from "vue";
+import { ref, computed, watch } from "vue";
 import * as z from "zod";
 
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
@@ -23,7 +24,11 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const profile = storeToRefs(useProfileStore());
 
   const inputDivEl = ref<HTMLDivElement>();
-  const inputTextareaEl = ref<HTMLTextAreaElement | null>(null);
+  /**
+   * Reference to the CodeMirror EditorView instance.
+   * Replaces the legacy `inputTextareaEl` ref.
+   */
+  const editorView = ref<EditorView | null>(null);
 
   const elementId = ref<number | null>(null);
   const translationValue = ref<string>("");
@@ -187,26 +192,20 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   };
 
   const insert = async (value: string) => {
-    if (!element.value || !inputTextareaEl.value) return;
+    if (!element.value) return;
 
-    const start = inputTextareaEl.value.selectionStart;
-    const end = inputTextareaEl.value.selectionEnd;
-
-    translationValue.value =
-      translationValue.value.slice(0, start) +
-      value +
-      translationValue.value.slice(end);
-
-    await nextTick(() => {
-      if (!inputTextareaEl.value) return;
-
-      const position = start + value.length;
-      inputTextareaEl.value.focus();
-      inputTextareaEl.value.setSelectionRange(position, position);
-
-      const event = new Event("input", { bubbles: true });
-      inputTextareaEl.value.dispatchEvent(event);
-    });
+    if (editorView.value) {
+      const view = editorView.value;
+      const { from, to } = view.state.selection.main;
+      view.dispatch({
+        changes: { from, to, insert: value },
+        selection: { anchor: from + value.length },
+      });
+      view.focus();
+    } else {
+      // Fallback: append to end
+      translationValue.value = translationValue.value + value;
+    }
   };
 
   const setGhostText = (text: string) => {
@@ -248,7 +247,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     elementId,
     translationValue,
     inputDivEl,
-    inputTextareaEl,
+    editorView,
     sourceTokens,
     translationTokens,
     searchQuery,

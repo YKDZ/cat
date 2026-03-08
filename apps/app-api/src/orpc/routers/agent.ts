@@ -1,12 +1,12 @@
 import type { LLMProvider } from "@cat/plugin-core";
 import type {
+  AgentDefinition as AgentDefinitionJson,
   ToolConfirmRequest,
   ToolExecuteRequest,
 } from "@cat/shared/schema/agent";
 import type { JSONType } from "@cat/shared/schema/json";
 
 import {
-  AgentDefinitionSchema,
   AgentSessionMetaSchema,
   buildChatMessages,
   buildSystemPrompt,
@@ -39,8 +39,13 @@ import {
   ToolConfirmResponseSchema,
   ToolExecuteResponseSchema,
 } from "@cat/shared/schema/agent";
-import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
-import { logger } from "@cat/shared/utils";
+import { AgentDefinitionSchema as AgentDefinitionJsonSchema } from "@cat/shared/schema/agent";
+import { AgentDefinitionSchema } from "@cat/shared/schema/drizzle/agent";
+import {
+  AgentDefinitionTypeSchema,
+  ScopeTypeSchema,
+} from "@cat/shared/schema/drizzle/enum";
+import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
@@ -55,25 +60,27 @@ import {
 /** List all agent definitions visible to the current user */
 export const list = authed
   .input(
-    z
-      .object({
-        scopeType: ScopeTypeSchema.optional(),
-        scopeId: z.string().optional(),
-      })
-      .optional(),
+    z.object({
+      scopeType: ScopeTypeSchema.optional(),
+      scopeId: z.string().optional(),
+      type: AgentDefinitionTypeSchema.optional(),
+    }),
+  )
+  .output(
+    z.array(
+      AgentDefinitionSchema.omit({ id: true }).extend({ id: z.uuidv4() }),
+    ),
   )
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
+    const { scopeType, scopeId, type } = input;
 
     const conditions = [];
-    if (input?.scopeType) {
-      conditions.push(eq(agentDefinition.scopeType, input.scopeType));
-    }
-    if (input?.scopeId) {
-      conditions.push(eq(agentDefinition.scopeId, input.scopeId));
-    }
+    if (scopeType) conditions.push(eq(agentDefinition.scopeType, scopeType));
+    if (scopeId) conditions.push(eq(agentDefinition.scopeId, scopeId));
+    if (type) conditions.push(eq(agentDefinition.type, type));
 
     const rows = await drizzle
       .select({
@@ -84,12 +91,49 @@ export const list = authed
       .orderBy(desc(agentDefinition.createdAt));
 
     return rows.map((row) => ({
+      ...row,
+      id: row.externalId,
+    }));
+  });
+
+/** List agent definitions filtered by type */
+export const getByType = authed
+  .input(
+    z.object({
+      type: AgentDefinitionTypeSchema,
+      scopeType: ScopeTypeSchema.optional(),
+      scopeId: z.string().optional(),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const conditions: ReturnType<typeof eq>[] = [
+      eq(agentDefinition.type, input.type),
+    ];
+    if (input.scopeType) {
+      conditions.push(eq(agentDefinition.scopeType, input.scopeType));
+    }
+    if (input.scopeId) {
+      conditions.push(eq(agentDefinition.scopeId, input.scopeId));
+    }
+
+    const rows = await drizzle
+      .select({ ...getColumns(agentDefinition) })
+      .from(agentDefinition)
+      .where(and(...conditions))
+      .orderBy(desc(agentDefinition.createdAt));
+
+    return rows.map((row) => ({
       id: row.externalId,
       name: row.name,
       description: row.description,
       scopeType: row.scopeType,
       scopeId: row.scopeId,
       isBuiltin: row.isBuiltin,
+      type: row.type,
       definition: row.definition,
       createdAt: row.createdAt,
     }));
@@ -134,7 +178,7 @@ export const create = authed
       description: z.string().default(""),
       scopeType: ScopeTypeSchema.default("GLOBAL"),
       scopeId: z.string().default(""),
-      definition: AgentDefinitionSchema,
+      definition: AgentDefinitionJsonSchema,
     }),
   )
   .handler(async ({ context, input }) => {
@@ -149,8 +193,7 @@ export const create = authed
         description: input.description,
         scopeType: input.scopeType,
         scopeId: input.scopeId,
-        // oxlint-disable-next-line no-unsafe-type-assertion -- Zod-validated definition is JSON-compatible
-        definition: input.definition as unknown as JSONType,
+        definition: input.definition,
         isBuiltin: false,
       })
       .returning({ externalId: agentDefinition.externalId });
@@ -169,7 +212,7 @@ export const update = authed
       id: z.uuidv4(),
       name: z.string().min(1).optional(),
       description: z.string().optional(),
-      definition: AgentDefinitionSchema.optional(),
+      definition: AgentDefinitionJsonSchema.optional(),
     }),
   )
   .handler(async ({ context, input }) => {
@@ -406,12 +449,18 @@ export const sendMessage = authed
       await loadConversationHistory(drizzle, session.id);
 
     // 5. Build system prompt
+    const contextProviders = pluginManager
+      .getServices("AGENT_CONTEXT_PROVIDER")
+      // oxlint-disable-next-line no-unsafe-type-assertion -- service type guaranteed by getServices("AGENT_CONTEXT_PROVIDER")
+      .map((s) => s.service as import("@cat/plugin-core").AgentContextProvider);
+
     const systemPrompt = await buildSystemPrompt({
       drizzle,
       definition,
       sessionMetadata: session.metadata,
       userId: session.userId ?? user.id,
       tools,
+      contextProviders,
     });
 
     // 6. Build chat messages
@@ -662,23 +711,22 @@ export const enableBuiltin = authed
     };
 
     // 5. Insert into DB
-    const [row] = await drizzle
-      .insert(agentDefinition)
-      .values({
-        name: template.name,
-        description: template.description,
-        scopeType: input.scopeType,
-        scopeId: input.scopeId,
-        // oxlint-disable-next-line no-unsafe-type-assertion -- Template definition is a known JSON-compatible object
-        definition: fullDefinition as unknown as JSONType,
-        isBuiltin: true,
-      })
-      .returning({ externalId: agentDefinition.externalId });
-
-    if (!row)
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Insert failed",
-      });
+    const row = assertSingleNonNullish(
+      await drizzle
+        .insert(agentDefinition)
+        .values({
+          name: template.name,
+          description: template.description,
+          scopeType: input.scopeType,
+          scopeId: input.scopeId,
+          type: fullDefinition.type,
+          // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+          definition: fullDefinition as AgentDefinitionJson,
+          isBuiltin: true,
+        })
+        .returning({ externalId: agentDefinition.externalId }),
+      "Insert failed",
+    );
 
     return { id: row.externalId };
   });
@@ -695,16 +743,17 @@ export const disableBuiltin = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    const [row] = await drizzle
-      .select({ id: agentDefinition.id, isBuiltin: agentDefinition.isBuiltin })
-      .from(agentDefinition)
-      .where(eq(agentDefinition.externalId, input.id))
-      .limit(1);
-
-    if (!row)
-      throw new ORPCError("NOT_FOUND", {
-        message: "Agent definition not found",
-      });
+    const row = assertSingleNonNullish(
+      await drizzle
+        .select({
+          id: agentDefinition.id,
+          isBuiltin: agentDefinition.isBuiltin,
+        })
+        .from(agentDefinition)
+        .where(eq(agentDefinition.externalId, input.id))
+        .limit(1),
+      "Agent definition not found",
+    );
 
     if (!row.isBuiltin)
       throw new ORPCError("BAD_REQUEST", {

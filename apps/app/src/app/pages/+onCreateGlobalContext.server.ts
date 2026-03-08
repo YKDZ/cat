@@ -1,9 +1,6 @@
 import type { GlobalContextServer } from "vike/types";
 
-import {
-  initAllVectorStorage,
-  installDefaultPlugins,
-} from "@cat/app-server-shared/utils";
+import { initAllVectorStorage } from "@cat/app-server-shared/utils";
 import {
   ensureDB,
   getDrizzleDB,
@@ -14,7 +11,7 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import { assertPromise, logger } from "@cat/shared/utils";
 import { access } from "fs/promises";
-import { join } from "path";
+import { join, resolve } from "path";
 
 export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
   try {
@@ -40,8 +37,24 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     await pluginManager.getDiscovery().syncDefinitions(drizzleDB.client);
 
+    // 注册一次 catch-all 中间件代理，路由解析委托给 PluginRouteRegistry
+    const routeRegistry = pluginManager.getRouteRegistry();
+    globalThis.app.all(
+      "/_plugin/:scopeType/:scopeId/:pluginId/*",
+      async (c) => {
+        const { pluginId } = c.req.param();
+        const pluginApp = routeRegistry.resolve(pluginId);
+        if (!pluginApp) return c.notFound();
+        return pluginApp.fetch(c.req.raw);
+      },
+    );
+
     await drizzleDB.client.transaction(async (tx) => {
-      await installDefaultPlugins(tx, pluginManager);
+      await PluginManager.installDefaults(
+        tx,
+        pluginManager,
+        resolve(process.cwd(), "default-plugins.json"),
+      );
 
       await pluginManager.restore(tx, globalThis.app);
 

@@ -133,6 +133,8 @@ export {
   type LookupTermsOutput,
 } from "./lookup-terms";
 
+export { lookupTermsForElementOp } from "./lookup-terms-for-element";
+
 export {
   searchChunkOp,
   SearchChunkInputSchema,

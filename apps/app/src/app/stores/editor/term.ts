@@ -5,6 +5,8 @@ import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { orpc } from "@/server/orpc";
 
+import { useProfileStore } from "../profile";
+
 type TermRelationWithDetails = {
   term: string;
   translation: string;
@@ -17,6 +19,7 @@ type TermRelationWithDetails = {
 export const useEditorTermStore = defineStore("editorTerm", () => {
   const { elementId, elementLanguageId } = storeToRefs(useEditorTableStore());
   const { languageToId, projectId } = storeToRefs(useEditorContextStore());
+  const { editorTermMinConfidence } = storeToRefs(useProfileStore());
 
   const searchQuery = ref("");
   const terms = ref<TermRelationWithDetails[]>([]);
@@ -35,6 +38,7 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
         {
           elementId: elementId.value,
           translationLanguageId: languageToId.value,
+          minConfidence: editorTermMinConfidence.value[0],
         },
         { signal: abortController.signal },
       );

@@ -27,10 +27,22 @@ export const SearchMemoryInputSchema = z.object({
   maxAmount: z.int().min(0).meta({
     description: "Maximum number of memory matches to return.",
   }),
-  chunkIds: z.array(z.int()).meta({
-    description:
-      "IDs of the source text chunks whose embeddings are used as the search query.",
-  }),
+  chunkIds: z
+    .array(z.int())
+    .default([])
+    .meta({
+      description:
+        "IDs of the source text chunks whose embeddings are used as the search query. " +
+        "Ignored when queryVectors is provided.",
+    }),
+  queryVectors: z
+    .array(z.array(z.number()))
+    .optional()
+    .meta({
+      description:
+        "Raw embedding vectors to use as the search query. " +
+        "When provided, chunkIds is ignored and no DB lookup is performed.",
+    }),
   memoryIds: z.array(z.uuidv4()).meta({
     description: "UUIDs of the translation memory banks to search in.",
   }),
@@ -58,7 +70,8 @@ export const searchMemoryOp = async (
   data: SearchMemoryInput,
   ctx?: OperationContext,
 ): Promise<SearchMemoryOutput> => {
-  if (data.chunkIds.length === 0) {
+  const hasVectors = data.queryVectors && data.queryVectors.length > 0;
+  if (!hasVectors && data.chunkIds.length === 0) {
     return { memories: [] };
   }
 
@@ -120,6 +133,7 @@ export const searchMemoryOp = async (
       maxAmount: data.maxAmount,
       searchRange,
       queryChunkIds: data.chunkIds,
+      ...(hasVectors ? { queryVectors: data.queryVectors } : {}),
       vectorStorageId: data.vectorStorageId,
     },
     ctx,

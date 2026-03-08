@@ -5,13 +5,26 @@ export const useProfileStore = defineStore(
   "profile",
   () => {
     const showBtnMagicKey = ref<boolean>(true);
-    const editorMemoryMinSimilarity = ref([0.72]);
+    const editorMemoryMinConfidence = ref([0.72]);
     const editorMemoryAutoCreateMemory = ref(true);
+
+    /** Ghost text auto-suggest toggle */
+    const ghostTextEnabled = ref(true);
+    /** Debounce delay for auto-triggering ghost text (ms) */
+    const ghostTextDebounceMs = ref(800);
+    /** Keyboard shortcut to manually trigger ghost text (human-readable) */
+    const ghostTextTriggerKey = ref("Alt+\\");
+
+    const editorTermMinConfidence = ref([0.6]);
 
     return {
       showBtnMagicKey,
-      editorMemoryMinSimilarity,
+      editorMemoryMinConfidence,
       editorMemoryAutoCreateMemory,
+      ghostTextEnabled,
+      ghostTextDebounceMs,
+      ghostTextTriggerKey,
+      editorTermMinConfidence,
     };
   },
   {

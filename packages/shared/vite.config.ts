@@ -42,6 +42,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/drizzle/glossary.ts",
         ),
+        "schema/drizzle/agent": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/agent.ts",
+        ),
         "schema/drizzle/memory": resolve(
           import.meta.dirname,
           "src/schema/drizzle/memory.ts",

@@ -12,7 +12,7 @@ const { t } = useI18n();
 const { memories } = storeToRefs(useEditorMemoryStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { subMemories, unsubscribe } = useEditorMemoryStore();
-const { editorMemoryMinSimilarity } = storeToRefs(useProfileStore());
+const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
 
 watchClient(
   elementId,
@@ -25,7 +25,7 @@ watchClient(
   },
 );
 
-watchClientThrottled(editorMemoryMinSimilarity, subMemories);
+watchClientThrottled(editorMemoryMinConfidence, subMemories);
 </script>
 
 <template>

@@ -15,10 +15,16 @@ export const PluginManifestSchema = z.object({
   iconURL: z.url().optional(),
   services: z
     .array(
-      z.object({
-        id: z.string(),
-        type: PluginServiceTypeSchema,
-      }),
+      z
+        .object({
+          id: z.string().optional(),
+          type: PluginServiceTypeSchema,
+          dynamic: z.boolean().optional().default(false),
+        })
+        .refine(
+          (s) => s.dynamic || s.id !== undefined,
+          "Static services must have an id",
+        ),
     )
     .optional(),
   components: z

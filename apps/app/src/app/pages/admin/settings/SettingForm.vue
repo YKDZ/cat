@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import type {
-  _JSONSchema,
-  JSONSchema,
-  NonNullJSONType,
-} from "@cat/shared/schema/json";
+import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import { orpc } from "@/server/orpc";
 import SettingForm from "@/app/components/SettingForm.vue";
 
@@ -11,24 +7,21 @@ const props = defineProps<{
   schema: _JSONSchema;
 }>();
 
-const configSetter = async (
-  value: NonNullJSONType,
-  schema: JSONSchema,
-  key?: string | number,
-) => {
-  if (!key || typeof key === "number") return;
-
+const configSetter = async (value: NonNullJSONType) => {
   if (
-    Object.keys(value as object).length === 0 ||
-    !Object.keys(value as object).includes(key)
+    props.schema.type !== "object" ||
+    typeof props.schema.properties !== "object"
   )
     return;
 
-  const toValue = (value as Record<string, NonNullJSONType>)[key];
+  const obj = value as Record<string, NonNullJSONType>;
 
-  if (!toValue) return;
-
-  await orpc.setting.set({ key, value: toValue });
+  await Promise.all(
+    Object.keys(props.schema.properties).map(async (key) => {
+      if (!(key in obj)) return;
+      await orpc.setting.set({ key, value: obj[key] });
+    }),
+  );
 };
 
 const configGetter = async () => {

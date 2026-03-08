@@ -5,10 +5,12 @@ import type {
 } from "@cat/shared/schema/json";
 import type { DefineComponent } from "vue";
 
+import ArrayRenderer from "./renderers/ArrayRenderer.vue";
 import BooleanRenderer from "./renderers/BooleanRenderer.vue";
 import ConstRenderer from "./renderers/ConstRenderer.vue";
 import EnumRenderer from "./renderers/EnumRenderer.vue";
 import NumberRenderer from "./renderers/NumberRenderer.vue";
+import ObjectRenderer from "./renderers/ObjectRenderer.vue";
 import SecretRenderer from "./renderers/SecretRenderer.vue";
 import StringRenderer from "./renderers/StringRenderer.vue";
 
@@ -167,6 +169,18 @@ const matchers: Matcher[] = [
   new Matcher("number", { type: "number" }, NumberRenderer),
   // oxlint-disable-next-line no-unsafe-argument
   new Matcher("boolean", { type: "boolean" }, BooleanRenderer),
+  new Matcher(
+    "array",
+    { type: "array" },
+    // oxlint-disable-next-line no-unsafe-argument
+    ArrayRenderer,
+  ),
+  new Matcher(
+    "object",
+    { type: "object" },
+    // oxlint-disable-next-line no-unsafe-argument
+    ObjectRenderer,
+  ),
 ];
 
 matchers.forEach((renderer) => {

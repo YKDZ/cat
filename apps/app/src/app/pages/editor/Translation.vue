@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 import TranslationVote from "./TranslationVote.vue";
 import TranslationQaResult from "./TranslationQaResult.vue";
-import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
+import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import TranslationApprovalBtn from "./TranslationApprovalBtn.vue";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
@@ -41,7 +41,7 @@ const isApproved = computed<boolean>(() => {
         >
           <div class="flex items-center gap-2">
             <UserAvatar :user-id="translation.translatorId" :size="36" />
-            <TokenRenderer :text="translation.text" />
+            <TokenViewer :text="translation.text" />
           </div>
           <div class="flex items-center gap-2">
             <TranslationApprovalBtn :translation="translation" />

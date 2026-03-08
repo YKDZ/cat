@@ -43,6 +43,14 @@ const configGetter = async () => {
       return data.value;
     });
 };
+
+const handleSaved = async () => {
+  await orpc.plugin.reloadPlugin({
+    pluginId: props.config.pluginId,
+    scopeType: props.scopeType,
+    scopeId: props.scopeId,
+  });
+};
 </script>
 
 <template>
@@ -50,5 +58,6 @@ const configGetter = async () => {
     :schema="config.schema"
     :config-setter="configSetter"
     :config-getter="configGetter"
+    :on-saved="handleSaved"
   />
 </template>

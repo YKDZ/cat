@@ -5,12 +5,11 @@ import {
   eq,
   type DrizzleClient,
 } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
-
 import {
   AgentDefinitionSchema,
   type AgentDefinition,
-} from "@/schema/agent-definition";
+} from "@cat/shared/schema/agent";
+import { assertSingleNonNullish } from "@cat/shared/utils";
 
 // ─── Types ───
 

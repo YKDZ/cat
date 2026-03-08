@@ -22,7 +22,7 @@ import { Settings } from "lucide-vue-next";
 
 const { t } = useI18n();
 
-const { editorMemoryMinSimilarity, editorMemoryAutoCreateMemory } =
+const { editorMemoryMinConfidence, editorMemoryAutoCreateMemory } =
   storeToRefs(useProfileStore());
 </script>
 
@@ -36,20 +36,20 @@ const { editorMemoryMinSimilarity, editorMemoryAutoCreateMemory } =
         <DialogTitle>{{ t("记忆设置") }}</DialogTitle>
       </DialogHeader>
       <form class="space-y-3">
-        <FormField name="editorMemoryMinSimilarity">
+        <FormField name="editorMemoryMinConfidence">
           <FormItem>
-            <FormLabel>{{ t("最低匹配度") }}</FormLabel>
+            <FormLabel>{{ t("最低置信度") }}</FormLabel>
             <FormControl>
               <Slider
-                v-model="editorMemoryMinSimilarity"
+                v-model="editorMemoryMinConfidence"
                 :max="1"
                 :step="0.01"
                 :min="0"
               />
             </FormControl>
             <FormDescription class="flex justify-between">
-              <span>{{ t("多高的匹配度视为相似？") }}</span>
-              <span>{{ editorMemoryMinSimilarity[0] }}</span>
+              <span>{{ t("多高的置信度视为相似？") }}</span>
+              <span>{{ editorMemoryMinConfidence[0] }}</span>
             </FormDescription>
           </FormItem>
         </FormField>

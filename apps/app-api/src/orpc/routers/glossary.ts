@@ -202,6 +202,7 @@ export const searchTerm = authed
       text: z.string(),
       termLanguageId: z.string(),
       translationLanguageId: z.string(),
+      minConfidence: z.number().min(0).max(1).optional().default(0.6),
     }),
   )
   // Streams results: ILIKE matches arrive first, semantic matches follow.
@@ -210,7 +211,13 @@ export const searchTerm = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { text, termLanguageId, translationLanguageId, projectId } = input;
+    const {
+      text,
+      termLanguageId,
+      translationLanguageId,
+      projectId,
+      minConfidence,
+    } = input;
 
     const glossaryIds = (
       await drizzle
@@ -224,7 +231,7 @@ export const searchTerm = authed
       text,
       sourceLanguageId: termLanguageId,
       translationLanguageId,
-      minSimilarity: 0.4,
+      minConfidence,
     });
 
     for await (const t of stream) {
@@ -244,6 +251,7 @@ export const findTerm = authed
     z.object({
       elementId: z.int(),
       translationLanguageId: z.string(),
+      minConfidence: z.number().optional().default(0.6),
     }),
   )
   // This endpoint streams term suggestions to avoid blocking response while waiting for worker
@@ -252,7 +260,7 @@ export const findTerm = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { elementId, translationLanguageId } = input;
+    const { elementId, translationLanguageId, minConfidence } = input;
 
     const element = assertSingleNonNullish(
       await drizzle
@@ -292,7 +300,7 @@ export const findTerm = authed
       text: element.value,
       sourceLanguageId: element.languageId,
       translationLanguageId,
-      minSimilarity: 0.4,
+      minConfidence,
     });
 
     for await (const t of stream) {

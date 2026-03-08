@@ -31,19 +31,6 @@ export const TranslatableElementDataSchema = z.object({
   meta: safeZDotJson,
 });
 
-export const TranslationSuggestionTagSchema = z.enum([
-  "machine-translation",
-  "memory-adapted",
-]);
-
-export const TranslationSuggestionSchema = z.object({
-  from: z.string(),
-  value: z.string(),
-  status: TranslationSuggestionStatusSchema,
-  /** Structured source tag for visual differentiation in the UI. */
-  tag: TranslationSuggestionTagSchema.optional(),
-});
-
 export const AdaptationMethodSchema = z.enum([
   "exact",
   "token-replaced",
@@ -94,10 +81,6 @@ export const FileMetaSchema = z.object({
 });
 
 export type FileMeta = z.infer<typeof FileMetaSchema>;
-export type TranslationSuggestion = z.infer<typeof TranslationSuggestionSchema>;
-export type TranslationSuggestionTag = z.infer<
-  typeof TranslationSuggestionTagSchema
->;
 export type TranslatableElementData = z.infer<
   typeof TranslatableElementDataSchema
 >;

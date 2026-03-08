@@ -34,6 +34,7 @@ export const PluginServiceTypeValues = [
   "TOKENIZER",
   "LLM_PROVIDER",
   "AGENT_TOOL_PROVIDER",
+  "AGENT_CONTEXT_PROVIDER",
 ] as const;
 export const PluginServiceTypeSchema = z.enum(PluginServiceTypeValues);
 
@@ -152,8 +153,13 @@ export const AgentSessionTrustPolicySchema = z.enum(
   AgentSessionTrustPolicyValues,
 );
 
+export const AgentDefinitionTypeValues = ["GENERAL", "GHOST_TEXT"] as const;
+// Future: "QA_REVIEW", "AUTO_TRANSLATE", ...
+export const AgentDefinitionTypeSchema = z.enum(AgentDefinitionTypeValues);
+
 export type AgentToolTarget = (typeof AgentToolTargetValues)[number];
 export type AgentToolConfirmationStatus =
   (typeof AgentToolConfirmationStatusValues)[number];
 export type AgentSessionTrustPolicy =
   (typeof AgentSessionTrustPolicyValues)[number];
+export type AgentDefinitionType = (typeof AgentDefinitionTypeValues)[number];

@@ -94,7 +94,7 @@ export const autoTranslateWorkflow = await defineWorkflow({
       .at(0);
 
     const suggestion = adviseResult?.suggestions
-      .filter((s) => s.status === "SUCCESS")
+      .sort((a, b) => b.confidence - a.confidence)
       .at(0);
 
     // 决策逻辑
@@ -107,7 +107,7 @@ export const autoTranslateWorkflow = await defineWorkflow({
       meta = { memoryId: memory.id, confidence: memory.confidence };
       strategy = "MEMORY";
     } else if (suggestion) {
-      selectedText = suggestion.value;
+      selectedText = suggestion.translation;
       if (data.advisorId) meta = { advisorId: data.advisorId };
       strategy = "ADVISOR";
     }

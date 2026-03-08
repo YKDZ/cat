@@ -91,6 +91,9 @@ export const adaptMemoryOp = async (
       ],
       temperature: 0.3,
       maxTokens: 1024,
+      // Disable extended thinking: some models (e.g. DeepSeek R1, Kimi)
+      // reject non-streaming calls unless thinking is explicitly turned off.
+      thinking: false,
     });
 
     const text = response.content?.trim() ?? "";

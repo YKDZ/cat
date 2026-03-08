@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 import { storeToRefs } from "pinia";
-import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
+import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { computed } from "vue";
+import type { TranslationSuggestion } from "@cat/plugin-core";
 
 const { replace } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());
@@ -16,38 +16,22 @@ const props = defineProps<{
 }>();
 
 const tagLabel = computed(() => {
-  if (props.suggestion.tag === "memory-adapted") return "记忆适配";
   return null;
 });
 
 const handleCopy = () => {
-  if (props.suggestion.status !== "SUCCESS") return;
-
-  replace(props.suggestion.value);
+  replace(props.suggestion.translation);
 };
 
 useHotKeys(`S+${props.index + 1}`, handleCopy);
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-1 px-3 py-2"
-    :class="{
-      'hover:bg-accent': suggestion.status === 'SUCCESS',
-      'hover:bg-red-100': suggestion.status === 'ERROR',
-    }"
-  >
-    <button
-      class="text-start text-wrap"
-      :class="{
-        'cursor-pointer': suggestion.status === 'SUCCESS',
-      }"
-      @click="handleCopy"
-    >
-      <TokenRenderer v-if="document" :text="suggestion.value" />
+  <div class="flex flex-col gap-1 px-3 py-2">
+    <button class="text-wrapcursor-pointer text-start" @click="handleCopy">
+      <TokenViewer v-if="document" :text="suggestion.translation" />
     </button>
     <div class="flex items-center gap-1 text-sm text-foreground">
-      <span>{{ suggestion.from }}</span>
       <span
         v-if="tagLabel"
         class="rounded-sm bg-violet-100 px-1 py-px text-xs text-violet-700"

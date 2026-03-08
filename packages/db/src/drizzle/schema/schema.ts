@@ -1,3 +1,4 @@
+import type { AgentDefinition } from "@cat/shared/schema/agent";
 import type {
   _JSONSchema,
   JSONType,
@@ -19,6 +20,7 @@ import {
   AgentToolTargetValues,
   AgentToolConfirmationStatusValues,
   AgentSessionTrustPolicyValues,
+  AgentDefinitionTypeValues,
 } from "@cat/shared/schema/drizzle/enum";
 import { sql } from "drizzle-orm";
 import {
@@ -1045,6 +1047,11 @@ export const userRole = pgTable(
 
 // ─── Agent System ───
 
+export const agentDefinitionType = pgEnum(
+  "AgentDefinitionType",
+  AgentDefinitionTypeValues,
+);
+
 export const agentSessionStatus = pgEnum(
   "AgentSessionStatus",
   AgentSessionStatusValues,
@@ -1075,8 +1082,10 @@ export const agentDefinition = pgTable("AgentDefinition", {
   scopeId: text().notNull().default(""),
   name: text().notNull(),
   description: text().notNull().default(""),
+  /** Agent usage type/category */
+  type: agentDefinitionType().notNull().default("GENERAL"),
   /** Full Agent JSON definition (validated against AgentDefinitionSchema) */
-  definition: jsonb().$type<JSONType>().notNull(),
+  definition: jsonb().$type<AgentDefinition>().notNull(),
   isBuiltin: boolean().notNull().default(false),
   ...timestamps,
 });

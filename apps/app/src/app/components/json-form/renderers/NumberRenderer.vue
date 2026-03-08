@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { computed, inject } from "vue";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey } from "../utils.ts";
 import {
@@ -9,7 +9,14 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@cat/app-ui";
-import { Label } from "@cat/app-ui";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@cat/app-ui";
 
 const props = defineProps<{
   propertyKey: string | number;
@@ -22,7 +29,7 @@ const emits = defineEmits<{
 
 const schema = inject(schemaKey)!;
 
-const value = ref(Number(props.data ?? schema.default));
+const value = computed(() => Number(props.data ?? schema.default));
 
 const onUpdate = (newValue: number) => {
   emits("_update", newValue);
@@ -30,12 +37,22 @@ const onUpdate = (newValue: number) => {
 </script>
 
 <template>
-  <NumberField class="w-fit" v-model="value" @update:model-value="onUpdate">
-    <Label>{{ schema.title ?? propertyKey }}</Label>
-    <NumberFieldContent>
-      <NumberFieldDecrement />
-      <NumberFieldInput />
-      <NumberFieldIncrement />
-    </NumberFieldContent>
-  </NumberField>
+  <FormField :name="schema.title ?? String(propertyKey)">
+    <FormItem>
+      <FormLabel>{{ schema.title ?? propertyKey }}</FormLabel>
+      <FormControl>
+        <NumberField :model-value="value" @update:model-value="onUpdate">
+          <NumberFieldContent>
+            <NumberFieldDecrement />
+            <NumberFieldInput />
+            <NumberFieldIncrement />
+          </NumberFieldContent>
+        </NumberField>
+      </FormControl>
+      <FormDescription v-if="schema.description">
+        {{ schema.description }}
+      </FormDescription>
+      <FormMessage />
+    </FormItem>
+  </FormField>
 </template>

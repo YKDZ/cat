@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
+import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import type { Token } from "@cat/plugin-core";
-import { useEditorTermStore } from "@/app/stores/editor/term";
 
 const { element, sourceTokens } = storeToRefs(useEditorTableStore());
-const { termDataList } = storeToRefs(useEditorTermStore());
+const { languageToId } = storeToRefs(useEditorContextStore());
 
 const handleUpdate = (tokens: Token[]) => {
   sourceTokens.value = tokens;
@@ -14,11 +14,11 @@ const handleUpdate = (tokens: Token[]) => {
 </script>
 
 <template>
-  <TokenRenderer
+  <TokenViewer
     v-if="element"
     :text="element.value"
-    :terms="termDataList"
-    interactable
+    :element-id="element.id"
+    :translation-language-id="languageToId ?? undefined"
     @update="handleUpdate"
   />
 </template>

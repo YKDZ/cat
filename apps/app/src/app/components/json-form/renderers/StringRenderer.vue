@@ -57,7 +57,10 @@ const handleUpdate = (value: string | number) => {
           @update:model-value="handleUpdate"
         />
       </FormControl>
-      <FormDescription> {{ schema.description }} </FormDescription>
+      <FormDescription v-if="schema.description">
+        {{ schema.description }}
+      </FormDescription>
+      <FormMessage />
     </FormItem>
   </FormField>
 </template>

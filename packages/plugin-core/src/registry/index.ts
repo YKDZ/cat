@@ -3,3 +3,4 @@ export * from "./service-registry.ts";
 export * from "./loader.ts";
 export * from "./plugin-discovery.ts";
 export * from "./plugin-manager.ts";
+export * from "./plugin-route-registry.ts";

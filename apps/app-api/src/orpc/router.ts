@@ -3,6 +3,7 @@ import * as auth from "./routers/auth.ts";
 import * as comment from "./routers/comment.ts";
 import * as document from "./routers/document.ts";
 import * as element from "./routers/element.ts";
+import * as ghostText from "./routers/ghost-text.ts";
 import * as glossary from "./routers/glossary.ts";
 import * as language from "./routers/language.ts";
 import * as memory from "./routers/memory.ts";
@@ -22,6 +23,7 @@ const router: AppRouter = {
   setting,
   document,
   element,
+  ghostText,
   glossary,
   language,
   memory,
@@ -41,6 +43,7 @@ export type AppRouter = {
   setting: typeof setting;
   document: typeof document;
   element: typeof element;
+  ghostText: typeof ghostText;
   glossary: typeof glossary;
   language: typeof language;
   memory: typeof memory;

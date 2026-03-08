@@ -22,6 +22,7 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {},
@@ -29,7 +30,8 @@
     "@cat/eslint-config": "workspace:*",
     "@types/node": "^24.0.0",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
   },
   "peerDependencies": {
     "@cat/app-server-shared": "workspace:*",

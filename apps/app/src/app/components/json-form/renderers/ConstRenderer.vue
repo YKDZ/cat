@@ -2,6 +2,7 @@
 import { computed, inject } from "vue";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "../utils.ts";
+import { FormDescription, FormField, FormItem, FormLabel } from "@cat/app-ui";
 
 defineProps<{
   propertyKey: string | number;
@@ -20,11 +21,13 @@ const constValue = computed(() => {
 </script>
 
 <template>
-  <label class="flex flex-col gap-0.5">
-    <span class="font-semibold text-foreground">{{
-      schema.title ?? propertyKey
-    }}</span>
-    <span class="text-sm text-foreground">{{ schema.description }}</span>
-    <span>{{ transferDataToString(constValue) }}</span>
-  </label>
+  <FormField :name="schema.title ?? String(propertyKey)">
+    <FormItem>
+      <FormLabel>{{ schema.title ?? propertyKey }}</FormLabel>
+      <FormDescription v-if="schema.description">
+        {{ schema.description }}
+      </FormDescription>
+      <span class="text-sm">{{ transferDataToString(constValue) }}</span>
+    </FormItem>
+  </FormField>
 </template>

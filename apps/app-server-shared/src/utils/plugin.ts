@@ -1,6 +1,5 @@
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
-import { and, eq, DrizzleClient, pluginInstallation } from "@cat/db";
 import {
   PluginManager,
   type IPluginService,
@@ -54,51 +53,6 @@ export const getServiceFromDBId = <T extends IPluginService>(
 
   // oxlint-disable-next-line no-unsafe-type-assertion
   return service?.service as unknown as T;
-};
-
-export const installDefaultPlugins = async (
-  drizzle: DrizzleClient,
-  pluginManager: PluginManager,
-): Promise<void> => {
-  const localPlugins = [
-    "password-auth-provider",
-    "openai-term-service",
-    "json-file-handler",
-    "libretranslate-advisor",
-    "openai-vectorizer",
-    "yaml-file-handler",
-    "local-storage-provider",
-    "pgvector-storage",
-    "markdown-file-handler",
-    "tiny-widget",
-    "basic-tokenizer",
-    "basic-qa-checker",
-    "openai-llm-provider",
-  ];
-
-  const installedPlugins = (
-    await drizzle
-      .select({
-        pluginId: pluginInstallation.pluginId,
-      })
-      .from(pluginInstallation)
-      .where(
-        and(
-          eq(pluginInstallation.scopeType, "GLOBAL"),
-          eq(pluginInstallation.scopeId, ""),
-        ),
-      )
-  ).map((i) => i.pluginId);
-
-  const needToBeInstalled = localPlugins.filter(
-    (p) => !installedPlugins.includes(p),
-  );
-
-  await Promise.all(
-    needToBeInstalled.map(async (pluginId) => {
-      await pluginManager.install(drizzle, pluginId);
-    }),
-  );
 };
 
 const PLUGIN_ROOT = join(cwd(), "plugins");

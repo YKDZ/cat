@@ -1,4 +1,4 @@
-import type { Orchestration } from "@/schema/agent-definition";
+import type { Orchestration } from "@cat/shared/schema/agent";
 
 import type { AgentRunner, PipelineResult, PipelineStageResult } from "./types";
 

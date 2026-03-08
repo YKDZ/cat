@@ -42,6 +42,13 @@ export type ChatCompletionRequest = {
   /** Streaming callback — invoked for each chunk when streaming is used */
   onChunk?: (chunk: ChatStreamChunk) => void;
   signal?: AbortSignal;
+  /**
+   * Controls whether the model's extended thinking / reasoning mode is
+   * enabled. When set to `false`, explicitly disables thinking for models
+   * that support it (e.g. DeepSeek R1, Kimi). When omitted the provider
+   * uses its default behaviour.
+   */
+  thinking?: boolean;
 };
 
 export type ChatStreamChunk =

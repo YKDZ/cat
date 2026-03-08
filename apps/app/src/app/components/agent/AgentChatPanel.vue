@@ -137,7 +137,7 @@ const handleNewSession = () => {
 };
 
 onMounted(() => {
-  void agentStore.fetchDefinitions();
+  void agentStore.fetchDefinitions({ type: "GENERAL" });
 });
 </script>
 

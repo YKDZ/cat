@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+import type { NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey } from "../utils.ts";
 import { Switch } from "@cat/app-ui";
 import {
@@ -41,9 +41,11 @@ const handleUpdate = (value: boolean) => {
     <FormItem>
       <FormLabel>{{ schema.title ?? propertyKey }}</FormLabel>
       <FormControl>
-        <Switch :value="String(value)" @update:model-value="handleUpdate" />
+        <Switch :checked="value" @update:checked="handleUpdate" />
       </FormControl>
-      <FormDescription> {{ schema.description }} </FormDescription>
+      <FormDescription v-if="schema.description">
+        {{ schema.description }}
+      </FormDescription>
       <FormMessage />
     </FormItem>
   </FormField>

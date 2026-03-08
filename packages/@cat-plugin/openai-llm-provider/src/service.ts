@@ -13,21 +13,27 @@ import { LLMProvider } from "@cat/plugin-core";
 import OpenAI from "openai";
 import { z } from "zod";
 
-const ConfigSchema = z.object({
+export const SingleConfigSchema = z.object({
+  id: z.string().optional(),
   apiKey: z.string().optional(),
   baseURL: z.string().optional(),
   model: z.string().optional().default("gpt-4o"),
 });
 
-type Config = z.infer<typeof ConfigSchema>;
+export const ConfigSchema = z.union([
+  z.array(SingleConfigSchema),
+  SingleConfigSchema.transform((c) => [c]),
+]);
+
+type SingleConfig = z.infer<typeof SingleConfigSchema>;
 
 export class OpenAILLMProvider extends LLMProvider {
   private client: OpenAI;
-  private config: Config;
+  private config: SingleConfig;
 
-  constructor(config: unknown) {
+  constructor(config: SingleConfig) {
     super();
-    this.config = ConfigSchema.parse(config);
+    this.config = config;
     this.client = new OpenAI({
       apiKey: this.config.apiKey || "dummy-key",
       baseURL: this.config.baseURL,
@@ -35,7 +41,7 @@ export class OpenAILLMProvider extends LLMProvider {
   }
 
   getId(): string {
-    return "openai-llm-provider";
+    return this.config.id ?? `openai-llm-provider-${this.config.model}`;
   }
 
   getModelName(): string {
@@ -69,6 +75,10 @@ export class OpenAILLMProvider extends LLMProvider {
         tools: tools && tools.length > 0 ? tools : undefined,
         temperature: request.temperature,
         max_tokens: request.maxTokens,
+        ...(request.thinking !== undefined && {
+          // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
+          enable_thinking: request.thinking as unknown,
+        }),
       },
       { signal: request.signal },
     );
@@ -113,6 +123,10 @@ export class OpenAILLMProvider extends LLMProvider {
         max_tokens: request.maxTokens,
         stream: true,
         stream_options: { include_usage: true },
+        ...(request.thinking !== undefined && {
+          // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
+          enable_thinking: request.thinking as unknown,
+        }),
       },
       { signal: request.signal },
     );

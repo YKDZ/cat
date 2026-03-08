@@ -49,6 +49,27 @@ export const reload = authed
     });
   });
 
+export const reloadPlugin = authed
+  .input(
+    z.object({
+      pluginId: z.string(),
+      scopeType: ScopeTypeSchema,
+      scopeId: z.string(),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const { pluginId, scopeType, scopeId } = input;
+
+    const registry = PluginManager.get(scopeType, scopeId);
+
+    await drizzle.transaction(async (tx) => {
+      await registry.reloadPlugin(tx, pluginId, globalThis.app);
+    });
+  });
+
 export const getConfigInstance = authed
   .input(
     z.object({
