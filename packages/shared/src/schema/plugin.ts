@@ -1,7 +1,7 @@
 import * as z from "zod/v4";
 
 import { PluginServiceTypeSchema } from "@/schema/drizzle/enum";
-import { JSONSchemaSchema } from "@/schema/json.ts";
+import { JSONSchemaSchema, nonNullSafeZDotJson } from "@/schema/json.ts";
 
 export const PluginManifestSchema = z.object({
   id: z
@@ -46,5 +46,17 @@ export const PluginDataSchema = PluginManifestSchema.extend({
   overview: z.string().nullable(),
 });
 
+export const TranslationAdviseSchema = z.object({
+  translation: z.string(),
+  confidence: z.number().min(0).max(1),
+  meta: nonNullSafeZDotJson.optional(),
+});
+
+export const TranslationSuggestionSchema = TranslationAdviseSchema.extend({
+  advisorId: z.int().optional(),
+});
+
+export type TranslationAdvise = z.infer<typeof TranslationAdviseSchema>;
 export type PluginManifest = z.infer<typeof PluginManifestSchema>;
 export type PluginData = z.infer<typeof PluginDataSchema>;
+export type TranslationSuggestion = z.infer<typeof TranslationSuggestionSchema>;

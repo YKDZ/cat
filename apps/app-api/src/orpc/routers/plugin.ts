@@ -286,7 +286,7 @@ export const getAllTranslationAdvisors = authed
         async ({ dbId, service }) =>
           ({
             id: dbId,
-            name: service.getName(),
+            name: service.getDisplayName(),
           }) satisfies TranslationAdvisorData,
       ),
     );
@@ -337,7 +337,7 @@ export const getTranslationAdvisor = authed
 
     return {
       id: advisorId,
-      name: service.service.getName(),
+      name: service.service.getDisplayName(),
     };
   });
 
