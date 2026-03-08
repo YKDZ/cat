@@ -15,7 +15,7 @@ export const test = baseTest.extend<
   TestFixtures,
   { workerStorageState: string }
 >({
-  testId: async ({}, use) => {
+  testId: async (_, use) => {
     // 为每个测试生成唯一的 ID
     const id = randomUUID().split("-")[0];
     await use(id);
