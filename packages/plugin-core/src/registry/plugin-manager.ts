@@ -4,35 +4,42 @@ import type {
 } from "@cat/shared/schema/drizzle/enum";
 
 import {
+  account,
+  blob,
+  chunk,
+  count,
+  document,
   eq,
   and,
-  pluginComponent,
+  inArray,
+  mfaProvider,
   pluginConfig,
   pluginConfigInstance,
   pluginInstallation,
   pluginService,
+  qaResultItem,
+  translatableElementContext,
   type DrizzleClient,
   type DrizzleTransaction,
 } from "@cat/db";
-import {
-  _JSONSchemaSchema,
-  JSONSchemaSchema,
-  type JSONObject,
-} from "@cat/shared/schema/json";
+import { JSONSchemaSchema, type JSONObject } from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
   assertSingleNonNullish,
   logger,
 } from "@cat/shared/utils";
 import { Hono } from "hono";
+import { readFile } from "node:fs/promises";
 
 import type { CatPlugin, PluginContext } from "@/entities/plugin";
+import type { IPluginService } from "@/services/service";
 import type { PluginServiceMap } from "@/types/plugin";
 
 import {
   ComponentRegistry,
   type ComponentRecord,
 } from "@/registry/component-registry";
+import { PluginRouteRegistry } from "@/registry/plugin-route-registry";
 import {
   ServiceRegistry,
   type RegisteredService,
@@ -45,10 +52,14 @@ import { PluginDiscoveryService } from "./plugin-discovery";
 /**
  * 作用域插件管理器
  * 必须绑定到一个具体的 Scope
- * 负责管理该作用域下的插件生命周期：安装 -> 激活 -> 停用 -> 卸载
+ * 负责管理该作用域下的插件生命周期：
+ * Discovery → Registration → Installation → Activation → (ConfigReload) → Deactivation → Uninstallation
  */
 export class PluginManager {
+  private static readonly instances = new Map<string, PluginManager>();
+
   private activePlugins = new Map<string, CatPlugin>();
+  private readonly routeRegistry = new PluginRouteRegistry();
 
   public constructor(
     public readonly scopeType: ScopeType,
@@ -65,43 +76,82 @@ export class PluginManager {
 
   /**
    * 获取或创建特定作用域的管理器实例
-   * 使用工厂模式确保 Scope 的唯一性
+   * 使用类型安全的 Map 缓存替代 globalThis
    */
   public static get(
     scopeType: ScopeType,
     scopeId: string,
     loader?: PluginLoader,
   ): PluginManager {
-    const key = `__PLUGIN_MGR_${scopeType}_${scopeId}__`;
-    // @ts-expect-error global usage
-    if (!globalThis[key]) {
-      const manager = new PluginManager(scopeType, scopeId, loader);
-
-      // @ts-expect-error globalThis
-      globalThis[key] = manager;
+    const key = `${scopeType}:${scopeId}`;
+    let instance = PluginManager.instances.get(key);
+    if (!instance) {
+      instance = new PluginManager(scopeType, scopeId, loader);
+      PluginManager.instances.set(key, instance);
     }
+    return instance;
+  }
 
-    // @ts-expect-error global usage
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    return globalThis[key] as PluginManager;
+  public static clear(): void {
+    PluginManager.instances.clear();
   }
 
   /**
-   * 安装插件到当前 manager 所在的 scope
+   * 安装默认插件
+   * 从配置文件读取默认插件列表，安装尚未安装的插件
+   */
+  public static async installDefaults(
+    drizzle: DrizzleClient,
+    manager: PluginManager,
+    defaultPluginsPath: string,
+  ): Promise<void> {
+    const parsed: unknown = JSON.parse(
+      await readFile(defaultPluginsPath, "utf-8"),
+    );
+    const pluginIds: string[] = Array.isArray(parsed)
+      ? parsed.filter((v): v is string => typeof v === "string")
+      : [];
+
+    const installed = new Set(
+      (
+        await drizzle
+          .select({ pluginId: pluginInstallation.pluginId })
+          .from(pluginInstallation)
+          .where(
+            and(
+              eq(pluginInstallation.scopeType, manager.scopeType),
+              eq(pluginInstallation.scopeId, manager.scopeId),
+            ),
+          )
+      ).map((i) => i.pluginId),
+    );
+
+    const toInstall = pluginIds.filter((id) => !installed.has(id));
+
+    await Promise.all(
+      toInstall.map(async (id) => manager.install(drizzle, id)),
+    );
+  }
+
+  // ────────────────────────────────────────────
+  //  公共生命周期 API
+  // ────────────────────────────────────────────
+
+  /**
+   * 安装插件到当前 scope
+   * 只创建 Installation + ConfigInstance，不写入 services/components
+   * services/components 的 DB 同步集中在 activate() 中
    */
   public async install(
     drizzle: DrizzleClient,
     pluginId: string,
   ): Promise<void> {
-    const loader = this.discovery.getLoader();
-    const manifest = await loader.getManifest(pluginId);
-
     logger.info("PLUGIN", {
       msg: `Installing plugin ${pluginId} into ${this.scopeType}:${this.scopeId}`,
     });
 
     await drizzle.transaction(async (tx) => {
-      // 创建安装记录
+      // 1. 创建安装记录
       const installation = assertSingleNonNullish(
         await tx
           .insert(pluginInstallation)
@@ -111,7 +161,7 @@ export class PluginManager {
           .returning({ id: pluginInstallation.id }),
       );
 
-      // 初始化配置
+      // 2. 从 schema 默认值初始化配置实例
       const pluginConfigs = await tx
         .select({ id: pluginConfig.id, schema: pluginConfig.schema })
         .from(pluginConfig)
@@ -127,29 +177,7 @@ export class PluginManager {
           })),
         );
       }
-
-      // 注册声明的组件 (持久化)
-      if (manifest.components?.length) {
-        await tx.insert(pluginComponent).values(
-          manifest.components.map((c) => ({
-            componentId: c.id,
-            slot: c.slot,
-            url: c.url,
-            pluginInstallationId: installation.id,
-          })),
-        );
-      }
-
-      // 注册声明的服务 (持久化)
-      if (manifest.services?.length) {
-        await tx.insert(pluginService).values(
-          manifest.services.map((s) => ({
-            serviceId: s.id,
-            serviceType: s.type,
-            pluginInstallationId: installation.id,
-          })),
-        );
-      }
+      // 不再写入 pluginService / pluginComponent
     });
   }
 
@@ -182,7 +210,7 @@ export class PluginManager {
   }
 
   /**
-   * 重新激活当前 manager 对应 scope 的所有插件
+   * 重新激活当前 scope 的所有已安装插件
    */
   public async restore(drizzle: DrizzleTransaction, app: Hono): Promise<void> {
     const installations = await drizzle
@@ -203,8 +231,11 @@ export class PluginManager {
   }
 
   /**
-   * 激活插件\
-   * 加载入点、注册内存服务、挂载路由、注册组件等
+   * 激活插件
+   * 拆分为多个私有方法，职责清晰：
+   *  ensureDefinitionSynced → mergeConfigDefaults → loadPlugin →
+   *  invokeOnActivate → syncDynamicServices → registerServices →
+   *  registerComponents → mountRoutes
    */
   public async activate(
     drizzle: DrizzleTransaction,
@@ -213,79 +244,254 @@ export class PluginManager {
   ): Promise<void> {
     if (this.activePlugins.has(pluginId)) {
       logger.warn("PLUGIN", {
-        msg: `Plugin ${pluginId} is already active definition.`,
+        msg: `Plugin ${pluginId} is already active, skipping.`,
       });
       return;
     }
 
-    const loader = this.discovery.getLoader();
-    // 确保定义是最新的
-    await this.discovery.registerDefinition(drizzle, pluginId);
+    await this.ensureDefinitionSynced(drizzle, pluginId);
+    await this.mergeConfigDefaults(drizzle, pluginId);
+    const { pluginObj, context } = await this.loadPlugin(drizzle, pluginId);
+    await this.invokeOnActivate(pluginObj, context);
+    await this.syncDynamicServices(drizzle, pluginId, pluginObj, context);
+    await this.registerServices(drizzle, pluginId, pluginObj, context);
+    await this.registerComponents(pluginId, pluginObj, context);
+    await this.mountRoutes(pluginId, pluginObj, context, app);
 
-    // 检查并更新配置实例
+    this.activePlugins.set(pluginId, pluginObj);
+
+    logger.info("PLUGIN", {
+      msg: `Plugin ${pluginId} activated in ${this.scopeType}:${this.scopeId}`,
+    });
+  }
+
+  /**
+   * 停用插件并清理所有内存注册
+   */
+  public async deactivate(
+    drizzle: DrizzleTransaction,
+    pluginId: string,
+  ): Promise<void> {
+    const pluginObj = this.activePlugins.get(pluginId);
+    if (!pluginObj) return;
+
+    // 1. 调用 onDeactivate 钩子
+    await this.invokeOnDeactivate(pluginObj, drizzle, pluginId);
+
+    // 2. 清理 ServiceRegistry
+    this.serviceRegistry.removeByPlugin(pluginId);
+
+    // 3. 清理 ComponentRegistry
+    this.componentRegistry.removeByPlugin(pluginId);
+
+    // 4. 清理路由代理
+    this.routeRegistry.remove(pluginId);
+
+    this.activePlugins.delete(pluginId);
+
+    logger.info("PLUGIN", {
+      msg: `Plugin ${pluginId} deactivated in ${this.scopeType}:${this.scopeId}`,
+    });
+  }
+
+  /**
+   * 单插件热重载：deactivate → activate
+   * 用于配置更新后刷新服务实例
+   */
+  public async reloadPlugin(
+    drizzle: DrizzleTransaction,
+    pluginId: string,
+    app: Hono,
+  ): Promise<void> {
+    await this.deactivate(drizzle, pluginId);
+    await this.activate(drizzle, pluginId, app);
+  }
+
+  // ────────────────────────────────────────────
+  //  路由代理
+  // ────────────────────────────────────────────
+
+  /**
+   * 获取路由注册表，用于在应用启动时注册 catch-all 中间件
+   */
+  public getRouteRegistry(): PluginRouteRegistry {
+    return this.routeRegistry;
+  }
+
+  // ────────────────────────────────────────────
+  //  服务 & 组件查询 API
+  // ────────────────────────────────────────────
+
+  public getService<T extends PluginServiceType>(
+    pluginId: string,
+    type: T,
+    id: string,
+  ):
+    | (RegisteredService & {
+        service: PluginServiceMap[T];
+      })
+    | null {
+    const found = this.serviceRegistry.get(pluginId, type, id);
+
+    if (!found) return null;
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    return found as RegisteredService & {
+      service: PluginServiceMap[T];
+    };
+  }
+
+  public getAllServices(): RegisteredService[] {
+    return this.serviceRegistry.getAll();
+  }
+
+  public getServices<T extends PluginServiceType>(
+    type: T,
+  ): (RegisteredService & {
+    service: PluginServiceMap[T];
+  })[] {
+    const services = this.getAllServices().filter(
+      (service) => service.type === type,
+    );
+
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    return services as unknown as (RegisteredService & {
+      service: PluginServiceMap[T];
+    })[];
+  }
+
+  public getComponents(pluginId: string): ComponentRecord[] {
+    return this.componentRegistry.get(pluginId);
+  }
+
+  public getComponentOfSlot(slot: string): ComponentRecord[] {
+    return this.componentRegistry.getSlot(slot);
+  }
+
+  public getLoader(): PluginLoader {
+    return this.loader;
+  }
+
+  public getDiscovery(): PluginDiscoveryService {
+    return this.discovery;
+  }
+
+  // ────────────────────────────────────────────
+  //  activate() 拆分的私有方法
+  // ────────────────────────────────────────────
+
+  /**
+   * 确保插件定义已同步到 DB
+   */
+  private async ensureDefinitionSynced(
+    drizzle: DrizzleTransaction,
+    pluginId: string,
+  ): Promise<void> {
+    await this.discovery.registerDefinition(drizzle, pluginId);
+  }
+
+  /**
+   * 合并配置默认值到现有配置实例
+   */
+  private async mergeConfigDefaults(
+    drizzle: DrizzleTransaction,
+    pluginId: string,
+  ): Promise<void> {
     const configDef = await drizzle
       .select({ id: pluginConfig.id, schema: pluginConfig.schema })
       .from(pluginConfig)
       .where(eq(pluginConfig.pluginId, pluginId))
       .then((res) => res[0]);
 
-    if (configDef) {
-      const instance = await drizzle
-        .select({
-          id: pluginConfigInstance.id,
-          value: pluginConfigInstance.value,
-        })
-        .from(pluginConfigInstance)
-        .innerJoin(
-          pluginInstallation,
-          eq(pluginInstallation.id, pluginConfigInstance.pluginInstallationId),
-        )
-        .where(
-          and(
-            eq(pluginInstallation.pluginId, pluginId),
-            eq(pluginInstallation.scopeId, this.scopeId),
-            eq(pluginInstallation.scopeType, this.scopeType),
-          ),
-        )
-        .then((res) => res[0]);
+    if (!configDef) return;
 
-      if (instance) {
-        const schema = JSONSchemaSchema.parse(configDef.schema);
-        const defaults = getDefaultFromSchema(schema);
+    const instance = await drizzle
+      .select({
+        id: pluginConfigInstance.id,
+        value: pluginConfigInstance.value,
+      })
+      .from(pluginConfigInstance)
+      .innerJoin(
+        pluginInstallation,
+        eq(pluginInstallation.id, pluginConfigInstance.pluginInstallationId),
+      )
+      .where(
+        and(
+          eq(pluginInstallation.pluginId, pluginId),
+          eq(pluginInstallation.scopeId, this.scopeId),
+          eq(pluginInstallation.scopeType, this.scopeType),
+        ),
+      )
+      .then((res) => res[0]);
 
-        // Ensure values are non-null objects before spreading
-        const defaultsObj =
-          defaults && typeof defaults === "object" && !Array.isArray(defaults)
-            ? defaults
-            : {};
+    if (!instance) return;
 
-        const instanceObj =
-          instance.value &&
-          typeof instance.value === "object" &&
-          !Array.isArray(instance.value)
-            ? instance.value
-            : {};
+    const schema = JSONSchemaSchema.parse(configDef.schema);
+    const defaults = getDefaultFromSchema(schema);
 
-        // Merge defaults and current value
-        const newValue: JSONObject = {
-          ...defaultsObj,
-          ...instanceObj,
-        };
+    // Object-merge defaults only applies to object-typed configs.
+    // For arrays or other non-object types, keep the instance value as-is
+    // (there is no sensible "merge" for arrays).
+    const isObjectSchema =
+      typeof schema !== "boolean" && schema.type === "object";
 
-        // 简单的深度比较可以通过 JSON.stringify (虽然不完美，但对配置对象通常足够)
-        if (JSON.stringify(newValue) !== JSON.stringify(instance.value)) {
-          logger.info("PLUGIN", {
-            msg: `Updating config instance for ${pluginId}`,
-          });
+    if (!isObjectSchema || Array.isArray(instance.value)) {
+      // If there is no stored value yet, seed with schema defaults
+      if (
+        instance.value === null ||
+        instance.value === undefined ||
+        (typeof instance.value === "object" &&
+          !Array.isArray(instance.value) &&
+          Object.keys(instance.value).length === 0)
+      ) {
+        const schemaType =
+          typeof schema !== "boolean" ? schema.type : undefined;
+        const fallback = defaults ?? (schemaType === "array" ? [] : {});
+        if (JSON.stringify(fallback) !== JSON.stringify(instance.value)) {
           await drizzle
             .update(pluginConfigInstance)
-            .set({ value: newValue })
+            .set({ value: fallback })
             .where(eq(pluginConfigInstance.id, instance.id));
         }
       }
+      return;
     }
 
-    const pluginObj = await loader.getInstance(pluginId);
+    const defaultsObj =
+      defaults && typeof defaults === "object" && !Array.isArray(defaults)
+        ? defaults
+        : {};
+
+    const instanceObj =
+      instance.value &&
+      typeof instance.value === "object" &&
+      !Array.isArray(instance.value)
+        ? instance.value
+        : {};
+
+    const newValue: JSONObject = {
+      ...defaultsObj,
+      ...instanceObj,
+    };
+
+    if (JSON.stringify(newValue) !== JSON.stringify(instance.value)) {
+      logger.info("PLUGIN", {
+        msg: `Updating config instance for ${pluginId}`,
+      });
+      await drizzle
+        .update(pluginConfigInstance)
+        .set({ value: newValue })
+        .where(eq(pluginConfigInstance.id, instance.id));
+    }
+  }
+
+  /**
+   * 加载插件模块实例并构建上下文
+   */
+  private async loadPlugin(
+    drizzle: DrizzleTransaction,
+    pluginId: string,
+  ): Promise<{ pluginObj: CatPlugin; context: PluginContext }> {
+    const pluginObj = await this.loader.getInstance(pluginId);
     const config = await getPluginConfig(
       drizzle,
       pluginId,
@@ -293,7 +499,6 @@ export class PluginManager {
       this.scopeId,
     );
 
-    // 当前上下文下已知的服务列表
     const registeredServices = await drizzle
       .select({
         type: pluginService.serviceType,
@@ -320,100 +525,223 @@ export class PluginManager {
       registeredServices,
     };
 
-    // 执行激活钩子
+    return { pluginObj, context };
+  }
+
+  /**
+   * 调用 onActivate 生命周期钩子
+   */
+  private async invokeOnActivate(
+    pluginObj: CatPlugin,
+    context: PluginContext,
+  ): Promise<void> {
     if (pluginObj.onActivate) {
       await pluginObj.onActivate(context);
     }
+  }
 
-    // 同步 manifest 中声明的服务到数据库（处理插件更新后新增服务的情况）
-    const manifest = await loader.getManifest(pluginId);
-    if (manifest.services?.length) {
-      // 获取当前安装记录
-      const installation = await drizzle
-        .select({ id: pluginInstallation.id })
-        .from(pluginInstallation)
-        .where(
-          and(
-            eq(pluginInstallation.pluginId, pluginId),
-            eq(pluginInstallation.scopeType, this.scopeType),
-            eq(pluginInstallation.scopeId, this.scopeId),
-          ),
-        )
-        .then((res) => res[0]);
+  /**
+   * 同步动态服务到 DB
+   * 处理 manifest 声明的静态服务 + 运行时 services() 返回的动态服务
+   */
+  private async syncDynamicServices(
+    drizzle: DrizzleTransaction,
+    pluginId: string,
+    pluginObj: CatPlugin,
+    context: PluginContext,
+  ): Promise<void> {
+    const installation = await this.getInstallation(drizzle, pluginId);
+    if (!installation) return;
 
-      if (installation) {
-        // 同步服务记录
-        const existingServices = await drizzle
-          .select({
-            serviceId: pluginService.serviceId,
-            serviceType: pluginService.serviceType,
-          })
-          .from(pluginService)
-          .where(eq(pluginService.pluginInstallationId, installation.id));
+    const manifest = await this.loader.getManifest(pluginId);
 
-        const existingKeys = new Set(
-          existingServices.map((s) => `${s.serviceType}:${s.serviceId}`),
-        );
+    // 获取 DB 中已有的服务记录
+    const existingDBServices = await drizzle
+      .select({
+        id: pluginService.id,
+        serviceId: pluginService.serviceId,
+        serviceType: pluginService.serviceType,
+      })
+      .from(pluginService)
+      .where(eq(pluginService.pluginInstallationId, installation.id));
 
-        const newServices = manifest.services.filter(
-          (s) => !existingKeys.has(`${s.type}:${s.id}`),
-        );
+    const existingKeys = new Set(
+      existingDBServices.map((s) => `${s.serviceType}:${s.serviceId}`),
+    );
 
-        if (newServices.length > 0) {
-          await drizzle.insert(pluginService).values(
-            newServices.map((s) => ({
-              serviceId: s.id,
-              serviceType: s.type,
-              pluginInstallationId: installation.id,
-            })),
-          );
+    // 静态服务集合（manifest 中非 dynamic 的服务）
+    const staticServices = (manifest.services ?? []).filter((s) => !s.dynamic);
+    const staticKeys = new Set(staticServices.map((s) => `${s.type}:${s.id}`));
+
+    // 收集运行时服务
+    let runtimeServices: IPluginService[] = [];
+    if (pluginObj.services) {
+      runtimeServices = await pluginObj.services(context);
+    }
+
+    const runtimeKeys = new Set(
+      runtimeServices.map((s) => `${s.getType()}:${s.getId()}`),
+    );
+
+    // 需要新增到 DB 的：静态+动态运行时中，DB 里还没有的
+    const allDesiredKeys = new Set([...staticKeys, ...runtimeKeys]);
+    const toInsertKeys = [...allDesiredKeys].filter(
+      (key) => !existingKeys.has(key),
+    );
+
+    if (toInsertKeys.length > 0) {
+      await drizzle.insert(pluginService).values(
+        toInsertKeys.map((key) => {
+          const [serviceType, ...rest] = key.split(":");
+          const serviceId = rest.join(":");
+          return {
+            serviceId,
+            // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+            serviceType: serviceType as PluginServiceType,
+            pluginInstallationId: installation.id,
+          };
+        }),
+      );
+    }
+
+    // 需要删除的：DB 中有但运行时和静态中都没有的（仅动态服务可被删除）
+    const toDelete = existingDBServices.filter(
+      (s) =>
+        !allDesiredKeys.has(`${s.serviceType}:${s.serviceId}`) &&
+        !staticKeys.has(`${s.serviceType}:${s.serviceId}`),
+    );
+
+    if (toDelete.length > 0) {
+      await this.safeDeleteServices(
+        drizzle,
+        toDelete.map((s) => ({
+          id: s.id,
+          serviceId: s.serviceId,
+          serviceType: s.serviceType,
+        })),
+      );
+    }
+  }
+
+  /**
+   * 安全删除动态服务：检查外键引用，被引用的服务保留为 orphaned
+   */
+  private async safeDeleteServices(
+    drizzle: DrizzleTransaction,
+    toDelete: { id: number; serviceId: string; serviceType: string }[],
+  ): Promise<void> {
+    // 需检查引用的表和列
+    const refChecks = [
+      { table: account, column: account.authProviderId },
+      { table: mfaProvider, column: mfaProvider.mfaServiceId },
+      { table: blob, column: blob.storageProviderId },
+      { table: chunk, column: chunk.vectorizerId },
+      { table: document, column: document.fileHandlerId },
+      {
+        table: translatableElementContext,
+        column: translatableElementContext.storageProviderId,
+      },
+      { table: qaResultItem, column: qaResultItem.checkerId },
+    ] as const;
+
+    const safeToDeleteIds: number[] = [];
+
+    for (const svc of toDelete) {
+      let hasRef = false;
+      for (const { table, column } of refChecks) {
+        // oxlint-disable-next-line no-await-in-loop
+        const refs = await drizzle
+          .select({ count: count() })
+          .from(table)
+          .where(eq(column, svc.id));
+        if ((refs[0]?.count ?? 0) > 0) {
+          hasRef = true;
+          break;
         }
+      }
+
+      if (hasRef) {
+        logger.warn("PLUGIN", {
+          msg: `Service ${svc.serviceType}:${svc.serviceId} (dbId=${svc.id}) is referenced, keeping as orphaned`,
+        });
+      } else {
+        safeToDeleteIds.push(svc.id);
       }
     }
 
-    // 注册 services
-    if (pluginObj.services) {
-      const services = await pluginObj.services(context);
-
-      await this.serviceRegistry.combine(
-        drizzle,
-        this.scopeType,
-        this.scopeId,
-        pluginId,
-        services,
-      );
+    if (safeToDeleteIds.length > 0) {
+      await drizzle
+        .delete(pluginService)
+        .where(inArray(pluginService.id, safeToDeleteIds));
     }
-
-    // 注册 components
-    if (pluginObj.components) {
-      const components = await pluginObj.components(context);
-      this.componentRegistry.combine(
-        pluginId,
-        components.map((c) => ({ ...c, pluginId })),
-      );
-    }
-
-    // 挂载 routes
-    if (pluginObj.routes) {
-      const route = new Hono();
-      const baseURL = `/_plugin/${this.scopeType}/${this.scopeId}/${pluginId}`;
-      await pluginObj.routes({ ...context, baseURL, app: route });
-      app.route(baseURL, route);
-    }
-
-    this.activePlugins.set(pluginId, pluginObj);
-
-    logger.info("PLUGIN", {
-      msg: `Plugin ${pluginId} activated in ${this.scopeType}:${this.scopeId}`,
-    });
   }
 
-  public async deactivate(
+  /**
+   * 注册插件服务到内存 ServiceRegistry
+   */
+  private async registerServices(
+    drizzle: DrizzleTransaction,
+    pluginId: string,
+    pluginObj: CatPlugin,
+    context: PluginContext,
+  ): Promise<void> {
+    if (!pluginObj.services) return;
+
+    const services = await pluginObj.services(context);
+
+    await this.serviceRegistry.combine(
+      drizzle,
+      this.scopeType,
+      this.scopeId,
+      pluginId,
+      services,
+    );
+  }
+
+  /**
+   * 注册插件组件到内存 ComponentRegistry
+   */
+  private async registerComponents(
+    pluginId: string,
+    pluginObj: CatPlugin,
+    context: PluginContext,
+  ): Promise<void> {
+    if (!pluginObj.components) return;
+
+    const components = await pluginObj.components(context);
+    this.componentRegistry.combine(
+      pluginId,
+      components.map((c) => ({ ...c, pluginId })),
+    );
+  }
+
+  /**
+   * 挂载插件路由到路由注册表（中间件代理模式）
+   */
+  private async mountRoutes(
+    pluginId: string,
+    pluginObj: CatPlugin,
+    context: PluginContext,
+    _app: Hono,
+  ): Promise<void> {
+    if (!pluginObj.routes) return;
+
+    const route = new Hono();
+    const baseURL = `/_plugin/${this.scopeType}/${this.scopeId}/${pluginId}`;
+    await pluginObj.routes({ ...context, baseURL, app: route });
+    this.routeRegistry.register(pluginId, route);
+  }
+
+  // ────────────────────────────────────────────
+  //  deactivate 辅助方法
+  // ────────────────────────────────────────────
+
+  private async invokeOnDeactivate(
+    pluginObj: CatPlugin,
     drizzle: DrizzleTransaction,
     pluginId: string,
   ): Promise<void> {
-    const pluginObj = this.activePlugins.get(pluginId);
-    if (!pluginObj) return;
+    if (!pluginObj.onDeactivate) return;
 
     const config = await getPluginConfig(
       drizzle,
@@ -422,76 +750,36 @@ export class PluginManager {
       this.scopeId,
     );
 
-    // 执行停用钩子
-    if (pluginObj.onDeactivate) {
-      try {
-        await pluginObj.onDeactivate({
-          config,
-          scopeType: this.scopeType,
-          scopeId: this.scopeId,
-          registeredServices: [],
-        });
-      } catch (e) {
-        logger.error("PLUGIN", { msg: `Error deactivating ${pluginId}` }, e);
-      }
+    try {
+      await pluginObj.onDeactivate({
+        config,
+        scopeType: this.scopeType,
+        scopeId: this.scopeId,
+        registeredServices: [],
+      });
+    } catch (e) {
+      logger.error("PLUGIN", { msg: `Error deactivating ${pluginId}` }, e);
     }
-
-    // TODO 清理内存中注册的各种服务和组件等
-
-    this.activePlugins.delete(pluginId);
   }
 
-  public getService<T extends PluginServiceType>(
+  // ────────────────────────────────────────────
+  //  通用辅助方法
+  // ────────────────────────────────────────────
+
+  private async getInstallation(
+    drizzle: DrizzleTransaction,
     pluginId: string,
-    type: T,
-    id: string,
-  ):
-    | (RegisteredService & {
-        service: PluginServiceMap[T];
-      })
-    | null {
-    const found = this.serviceRegistry.get(pluginId, type, id);
-
-    if (!found) return null;
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    return found as RegisteredService & {
-      service: PluginServiceMap[T];
-    };
-  }
-
-  public getAllServices(): RegisteredService[] {
-    return this.serviceRegistry.services;
-  }
-
-  public getServices<T extends PluginServiceType>(
-    type: T,
-  ): (RegisteredService & {
-    service: PluginServiceMap[T];
-  })[] {
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    const services = this.getAllServices().filter(
-      (service) => service.type === type,
-    );
-
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    return services as unknown as (RegisteredService & {
-      service: PluginServiceMap[T];
-    })[];
-  }
-
-  public getComponents(pluginId: string): ComponentRecord[] {
-    return this.componentRegistry.get(pluginId);
-  }
-
-  public getComponentOfSlot(slot: string): ComponentRecord[] {
-    return this.componentRegistry.getSlot(slot);
-  }
-
-  public getLoader(): PluginLoader {
-    return this.loader;
-  }
-
-  public getDiscovery(): PluginDiscoveryService {
-    return this.discovery;
+  ): Promise<{ id: number } | undefined> {
+    return await drizzle
+      .select({ id: pluginInstallation.id })
+      .from(pluginInstallation)
+      .where(
+        and(
+          eq(pluginInstallation.pluginId, pluginId),
+          eq(pluginInstallation.scopeType, this.scopeType),
+          eq(pluginInstallation.scopeId, this.scopeId),
+        ),
+      )
+      .then((res) => res[0]);
   }
 }

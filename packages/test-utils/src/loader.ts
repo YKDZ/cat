@@ -1,8 +1,5 @@
 import type { JSONType } from "@cat/shared/schema/json";
-import type {
-  VectorizedTextData,
-  TranslationSuggestion,
-} from "@cat/shared/schema/misc";
+import type { VectorizedTextData } from "@cat/shared/schema/misc";
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
 
 import {
@@ -36,7 +33,6 @@ import {
   TermExtractor,
   TermAligner,
   TranslationAdvisor,
-  type CanSuggestContext,
   type GetSuggestionsContext,
   TextVectorizer,
   type CanVectorizeContext,
@@ -61,6 +57,7 @@ import {
   type CanImportContext,
   type UpdateDimensionContext,
   type InitContext,
+  type TranslationSuggestion,
 } from "@cat/plugin-core";
 import {
   pgTable,
@@ -407,16 +404,13 @@ export class TestTranslationAdvisor extends TranslationAdvisor {
   public override getId = (): string => "translation-advisor";
   public override getName = (): string => "Mock Advisor";
 
-  public override canSuggest = (_ctx: CanSuggestContext): boolean => true;
-
   public override getSuggestions = async ({
-    value,
+    source: { text },
   }: GetSuggestionsContext): Promise<TranslationSuggestion[]> => {
     return [
       {
-        from: value,
-        value: `[Mock Translation] ${value}`,
-        status: "SUCCESS",
+        translation: `[Mock Translation] ${text}`,
+        confidence: 0.8,
       },
     ];
   };
@@ -495,46 +489,57 @@ const manifest = {
     {
       id: "auth-provider",
       type: "AUTH_PROVIDER",
+      dynamic: false,
     },
     {
       id: "mfa-provider",
       type: "MFA_PROVIDER",
+      dynamic: false,
     },
     {
       id: "qa-checker",
       type: "QA_CHECKER",
+      dynamic: false,
     },
     {
       id: "storage-provider",
       type: "STORAGE_PROVIDER",
+      dynamic: false,
     },
     {
       id: "term-aligner",
       type: "TERM_ALIGNER",
+      dynamic: false,
     },
     {
       id: "term-extractor",
       type: "TERM_EXTRACTOR",
+      dynamic: false,
     },
     {
       id: "file-importer",
       type: "FILE_IMPORTER",
+      dynamic: false,
     },
     {
       id: "file-exporter",
       type: "FILE_EXPORTER",
+      dynamic: false,
     },
     {
       id: "translation-advisor",
       type: "TRANSLATION_ADVISOR",
+      dynamic: false,
     },
     {
       id: "vector-storage",
       type: "VECTOR_STORAGE",
+      dynamic: false,
     },
     {
       id: "text-vectorizer",
       type: "TEXT_VECTORIZER",
+      dynamic: false,
     },
   ],
 } satisfies PluginManifest;

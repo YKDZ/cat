@@ -13,7 +13,7 @@ import {
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
-} from "@cat/shared/schema/misc";
+} from "@cat/plugin-core";
 import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
@@ -77,11 +77,6 @@ export const onNew = authed
     const advisorAmount = advisors.length;
 
     if (advisorAmount === 0) {
-      yield {
-        from: "CAT Admin",
-        value: "没有任何一个可用的翻译建议器",
-        status: "ERROR",
-      } satisfies TranslationSuggestion;
       return;
     }
 
@@ -133,10 +128,8 @@ export const onNew = authed
           await redisPub.publish(suggestionChannelKey, suggestionStr);
 
           // Cache successful suggestions
-          if (suggestion.status === "SUCCESS") {
-            await redis.sAdd(cacheKey, suggestionStr);
-            await redis.expire(cacheKey, 60 * 60);
-          }
+          await redis.sAdd(cacheKey, suggestionStr);
+          await redis.expire(cacheKey, 60 * 60);
         }),
       );
     });

@@ -18,7 +18,7 @@ export const getPluginConfig = async (
   scopeId: string,
 ): Promise<JSONType> => {
   const config = await getConfigInstance(drizzle, pluginId, scopeType, scopeId);
-  // TODO 继承
+  // FUTURE: scope config inheritance
   return config;
 };
 

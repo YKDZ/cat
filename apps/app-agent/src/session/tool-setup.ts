@@ -1,4 +1,5 @@
-import type { AgentDefinition } from "@/schema/agent-definition";
+import type { AgentDefinition } from "@cat/shared/schema/agent";
+
 import type { AgentToolDefinition } from "@/tools/types";
 
 import { builtinClientTools, builtinTools } from "@/tools/index";

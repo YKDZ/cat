@@ -27,7 +27,9 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware"
+    "lint:fix": "oxlint --fix --type-aware",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",

@@ -11,3 +11,4 @@ export * from "./vector-storage.ts";
 export * from "./mfa-provider.ts";
 export * from "./tokenizer.ts";
 export * from "./llm-provider.ts";
+export * from "./agent-context-provider.ts";

@@ -10,7 +10,7 @@ import {
   type PluginServiceType,
   type ScopeType,
 } from "@cat/shared/schema/drizzle/enum";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import type { IPluginService } from "@/services/service";
@@ -25,7 +25,11 @@ export const ReigsteredServiceSchema = z.object({
 export type RegisteredService = z.infer<typeof ReigsteredServiceSchema>;
 
 export class ServiceRegistry {
-  public constructor(public services: RegisteredService[] = []) {}
+  private services: RegisteredService[] = [];
+
+  public constructor(initialServices: RegisteredService[] = []) {
+    this.services = initialServices;
+  }
 
   public get(
     pluginId: string,
@@ -42,9 +46,13 @@ export class ServiceRegistry {
     );
   }
 
+  public getAll(): RegisteredService[] {
+    return this.services;
+  }
+
   /**
-   * 将一个插件的 ServiceMap 合并到 registry 中。
-   * 若出现插件相同 (pluginId) 且 type/id 冲突，会抛出错误。
+   * 将一个插件的服务列表合并到 registry 中
+   * 先移除该插件旧的注册（支持 reload），再重新注册
    */
   public async combine(
     drizzle: DrizzleClient,
@@ -53,44 +61,59 @@ export class ServiceRegistry {
     pluginId: string,
     services: IPluginService[],
   ): Promise<void> {
+    // 支持 reload：先移除旧的
+    this.removeByPlugin(pluginId);
+
     for (const service of services) {
       const id = service.getId();
       const type = service.getType();
 
-      const { id: dbId } = assertSingleNonNullish(
-        // oxlint-disable-next-line no-await-in-loop
-        await drizzle
-          .select({
-            id: pluginService.id,
-          })
-          .from(pluginService)
-          .innerJoin(
-            pluginInstallation,
-            and(
-              eq(pluginInstallation.scopeType, scopeType),
-              eq(pluginInstallation.scopeId, scopeId),
-              eq(pluginInstallation.pluginId, pluginId),
-            ),
-          )
-          .where(
-            and(
-              eq(pluginService.pluginInstallationId, pluginInstallation.id),
-              eq(pluginService.serviceType, type),
-              eq(pluginService.serviceId, id),
-            ),
+      // DB 记录在 syncDynamicServices 中已确保存在
+      // oxlint-disable-next-line no-await-in-loop
+      const dbRecord = await drizzle
+        .select({
+          id: pluginService.id,
+        })
+        .from(pluginService)
+        .innerJoin(
+          pluginInstallation,
+          and(
+            eq(pluginInstallation.scopeType, scopeType),
+            eq(pluginInstallation.scopeId, scopeId),
+            eq(pluginInstallation.pluginId, pluginId),
           ),
-      );
+        )
+        .where(
+          and(
+            eq(pluginService.pluginInstallationId, pluginInstallation.id),
+            eq(pluginService.serviceType, type),
+            eq(pluginService.serviceId, id),
+          ),
+        );
 
-      const registeredService: RegisteredService = {
+      const dbId = dbRecord[0]?.id;
+      if (dbId === undefined) {
+        logger.warn("PLUGIN", {
+          msg: `Service ${type}:${id} has no DB record, skipping registration`,
+        });
+        continue;
+      }
+
+      this.services.push({
         dbId,
         pluginId,
         type,
         id,
         service,
-      };
-
-      this.services.push(registeredService);
+      });
     }
+  }
+
+  /**
+   * 移除某个插件的所有注册服务
+   */
+  public removeByPlugin(pluginId: string): void {
+    this.services = this.services.filter((s) => s.pluginId !== pluginId);
   }
 
   public clear(): void {

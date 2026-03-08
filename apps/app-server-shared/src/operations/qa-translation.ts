@@ -16,6 +16,7 @@ import z from "zod";
 
 import type { OperationContext } from "@/operations/types";
 
+import { lookupTermsForElementOp } from "@/operations/lookup-terms-for-element";
 import { qaOp } from "@/operations/qa";
 import { tokenizeOp } from "@/operations/tokenize";
 
@@ -32,9 +33,11 @@ export type QaTranslationOutput = z.infer<typeof QaTranslationOutputSchema>;
  * 翻译质量检查
  *
  * 对指定翻译执行完整 QA 流程：
- * 1. 并行对源文本和翻译文本进行分词
- * 2. 创建 QA 结果记录
- * 3. 执行 QA 检查并持久化结果
+ * 1. 获取翻译文本、源文本及语言信息
+ * 2. 查找相关术语（统一走后端）
+ * 3. 并行对源文本和翻译文本进行分词（含术语标注）
+ * 4. 创建 QA 结果记录
+ * 5. 执行 QA 检查并持久化结果
  */
 export const qaTranslationOp = async (
   payload: QaTranslationInput,
@@ -43,7 +46,7 @@ export const qaTranslationOp = async (
   const { client: drizzle } = await getDrizzleDB();
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
-  // 1. 获取翻译和源文本
+  // 1. 获取翻译文本、源文本及语言信息
   const translationStringAlias = alias(translatableString, "translationString");
   const elementStringAlias = alias(translatableString, "elementString");
 
@@ -51,7 +54,10 @@ export const qaTranslationOp = async (
     await drizzle
       .select({
         translationText: translationStringAlias.value,
+        translationLanguageId: translationStringAlias.languageId,
         elementText: elementStringAlias.value,
+        elementLanguageId: elementStringAlias.languageId,
+        elementId: translatableElement.id,
       })
       .from(translation)
       .innerJoin(
@@ -69,13 +75,19 @@ export const qaTranslationOp = async (
       .where(eq(translation.id, payload.translationId)),
   );
 
-  // 2. 并行分词（原 dependencies 阶段）
+  // 2. 查找相关术语（后端自动获取，统一走 lookupTermsForElementOp）
+  const termData = await lookupTermsForElementOp(
+    textData.elementId,
+    textData.translationLanguageId,
+  );
+
+  // 3. 并行分词（含术语标注）
   const [translationResult, elementResult] = await Promise.all([
-    tokenizeOp({ text: textData.translationText }, ctx),
-    tokenizeOp({ text: textData.elementText }, ctx),
+    tokenizeOp({ text: textData.translationText, terms: termData }, ctx),
+    tokenizeOp({ text: textData.elementText, terms: termData }, ctx),
   ]);
 
-  // 3. 获取完整数据和创建 QA 结果记录
+  // 4. 获取完整数据和创建 QA 结果记录
   const { data, resultId, glossaryIds } = await drizzle.transaction(
     async (tx) => {
       const translationStringAlias2 = alias(

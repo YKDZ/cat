@@ -27,7 +27,7 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
   const tableStore = useEditorTableStore();
   const { elementId, translationValue } = storeToRefs(tableStore);
   const { languageToId } = storeToRefs(useEditorContextStore());
-  const { editorMemoryMinSimilarity } = storeToRefs(useProfileStore());
+  const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
   const onNew = shallowRef<AsyncGenerator<MemorySuggestion>>();
   let abortController: AbortController | null = null;
 
@@ -48,7 +48,7 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
         {
           elementId: elementId.value,
           translationLanguageId: languageToId.value,
-          minMemorySimilarity: editorMemoryMinSimilarity.value[0],
+          minConfidence: editorMemoryMinConfidence.value[0],
         },
         { signal: abortController.signal },
       );

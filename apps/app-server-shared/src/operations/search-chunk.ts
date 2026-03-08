@@ -10,7 +10,22 @@ export const SearchChunkInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),
   maxAmount: z.int().min(0),
   searchRange: z.array(z.int()),
-  queryChunkIds: z.array(z.int()),
+  queryChunkIds: z
+    .array(z.int())
+    .default([])
+    .meta({
+      description:
+        "IDs of pre-stored chunks whose embeddings are used as the search query. " +
+        "Ignored when queryVectors is provided.",
+    }),
+  queryVectors: z
+    .array(z.array(z.number()))
+    .optional()
+    .meta({
+      description:
+        "Raw embedding vectors to use as the search query. " +
+        "When provided, queryChunkIds is ignored and no DB lookup is performed.",
+    }),
   vectorStorageId: z.int(),
 });
 
@@ -29,7 +44,11 @@ export type SearchChunkOutput = z.infer<typeof SearchChunkOutputSchema>;
 /**
  * 向量 chunk 搜索
  *
- * 先获取查询 chunk 的嵌入向量，然后在指定范围内进行余弦相似度搜索。
+ * 支持两种查询模式：
+ * 1. 通过 queryChunkIds 从数据库检索已有嵌入向量
+ * 2. 通过 queryVectors 直接传入原始向量（跳过 DB 查询）
+ *
+ * 然后在指定范围内进行余弦相似度搜索。
  */
 export const searchChunkOp = async (
   payload: SearchChunkInput,
@@ -37,11 +56,17 @@ export const searchChunkOp = async (
 ): Promise<SearchChunkOutput> => {
   const pluginManager = PluginManager.get("GLOBAL", "");
 
-  // 直接调用 retrieveEmbeddingsOp 获取嵌入向量
-  const embeddingsResult = await retrieveEmbeddingsOp(
-    { chunkIds: payload.queryChunkIds },
-    ctx,
-  );
+  // 优先使用直接传入的向量，否则从数据库检索
+  let vectors: number[][];
+  if (payload.queryVectors && payload.queryVectors.length > 0) {
+    vectors = payload.queryVectors;
+  } else {
+    const embeddingsResult = await retrieveEmbeddingsOp(
+      { chunkIds: payload.queryChunkIds },
+      ctx,
+    );
+    vectors = embeddingsResult.embeddings;
+  }
 
   const { minSimilarity, maxAmount, vectorStorageId, searchRange } = payload;
 
@@ -51,7 +76,7 @@ export const searchChunkOp = async (
   );
 
   const chunks = await vectorStorage.cosineSimilarity({
-    vectors: embeddingsResult.embeddings,
+    vectors,
     chunkIdRange: searchRange,
     minSimilarity,
     maxAmount,

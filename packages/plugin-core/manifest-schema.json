@@ -45,7 +45,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Service ID"
+            "description": "Service ID (required for static services, optional for dynamic)"
           },
           "type": {
             "type": "string",
@@ -62,12 +62,31 @@
               "TEXT_VECTORIZER",
               "VECTOR_STORAGE",
               "MFA_PROVIDER",
-              "LLM_PROVIDER"
+              "LLM_PROVIDER",
+              "AGENT_TOOL_PROVIDER",
+              "AGENT_CONTEXT_PROVIDER"
             ]
+          },
+          "dynamic": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this service is dynamically registered at runtime based on configuration"
           }
         },
-        "required": ["id", "type"],
-        "additionalProperties": false
+        "required": ["type"],
+        "additionalProperties": false,
+        "if": {
+          "properties": {
+            "dynamic": {
+              "not": {
+                "const": true
+              }
+            }
+          }
+        },
+        "then": {
+          "required": ["id", "type"]
+        }
       }
     },
     "config": {

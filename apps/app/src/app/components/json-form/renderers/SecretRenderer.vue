@@ -74,7 +74,9 @@ const handleUpdate = (value: string | number) => {
           </Button>
         </div>
       </FormControl>
-      <FormDescription> {{ schema.description }} </FormDescription>
+      <FormDescription v-if="schema.description">
+        {{ schema.description }}
+      </FormDescription>
       <FormMessage />
     </FormItem>
   </FormField>

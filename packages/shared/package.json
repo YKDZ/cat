@@ -60,6 +60,10 @@
       "types": "./dist/schema/drizzle/glossary.d.ts",
       "import": "./dist/schema/drizzle/glossary.js"
     },
+    "./schema/drizzle/agent": {
+      "types": "./dist/schema/drizzle/agent.d.ts",
+      "import": "./dist/schema/drizzle/agent.js"
+    },
     "./schema/drizzle/memory": {
       "types": "./dist/schema/drizzle/memory.d.ts",
       "import": "./dist/schema/drizzle/memory.js"

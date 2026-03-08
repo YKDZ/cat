@@ -14,42 +14,48 @@ export type ComponentRecord = z.infer<typeof ComponentRecordSchema>;
 export type ComponentData = z.infer<typeof ComponentDataSchema>;
 
 export class ComponentRegistry {
-  public constructor(
-    private components: Map<string, ComponentRecord[]> = new Map(),
-  ) {}
+  // 一级索引：pluginId → 该插件的所有组件
+  private componentsByPlugin = new Map<string, ComponentRecord[]>();
+  // 二级索引：slot → 属于该 slot 的组件列表（快速查询用）
+  private componentsBySlot = new Map<string, ComponentRecord[]>();
 
   public getSlot(slot: string): ComponentRecord[] {
-    return Array.from(this.components.values())
-      .flat()
-      .filter((component) => component.slot === slot);
+    return this.componentsBySlot.get(slot) ?? [];
   }
 
   public get(pluginId: string): ComponentRecord[] {
-    return this.components.get(pluginId) ?? [];
-  }
-
-  public register(component: ComponentRecord): void {
-    if (!this.components.has(component.name)) {
-      this.components.set(component.name, []);
-    }
-    this.components.get(component.name)!.push(component);
+    return this.componentsByPlugin.get(pluginId) ?? [];
   }
 
   /**
-   * 这个方法应该作为注册组件到注册表为唯一入口\
-   * 以便统一做名称的标准化
-   *
-   * @param pluginId
-   * @param components
+   * 合并一个插件的组件到注册表
+   * 统一入口，做名称标准化并维护双索引
    */
   public combine(pluginId: string, components: ComponentRecord[]): void {
     if (!z.array(ComponentDataSchema).safeParse(components)) {
       throw new Error("Invalid component data from plugin");
     }
 
-    if (!this.components.has(pluginId)) {
-      this.components.set(pluginId, []);
+    this.componentsByPlugin.set(pluginId, components);
+    this.rebuildSlotIndex();
+  }
+
+  /**
+   * 移除某个插件的所有组件并重建索引
+   */
+  public removeByPlugin(pluginId: string): void {
+    this.componentsByPlugin.delete(pluginId);
+    this.rebuildSlotIndex();
+  }
+
+  private rebuildSlotIndex(): void {
+    this.componentsBySlot.clear();
+    for (const components of this.componentsByPlugin.values()) {
+      for (const c of components) {
+        const list = this.componentsBySlot.get(c.slot) ?? [];
+        list.push(c);
+        this.componentsBySlot.set(c.slot, list);
+      }
     }
-    this.components.get(pluginId)!.push(...components);
   }
 }

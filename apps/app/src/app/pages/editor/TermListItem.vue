@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { navigate } from "vike/client/router";
 import { toShortFixed } from "@cat/shared/utils";
-import TokenRenderer from "@/app/components/tokenizer/TokenRenderer.vue";
+import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
@@ -51,13 +51,13 @@ useHotKeys(`T+${props.index + 1}`, handleInsert);
     >
       <div class="flex items-center gap-2">
         <div class="flex min-w-0 flex-1 items-center gap-2">
-          <TokenRenderer
+          <TokenViewer
             v-if="document"
             :text="term.term"
             class="truncate font-medium text-foreground"
           />
           <ArrowRight class="mx-1 size-4 shrink-0 text-muted-foreground" />
-          <TokenRenderer
+          <TokenViewer
             v-if="document"
             :text="term.translation"
             class="truncate text-foreground"

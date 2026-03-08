@@ -7,13 +7,13 @@ import type {
   ToolDefinition,
 } from "@cat/plugin-core";
 import type {
+  AgentDefinition,
   ToolConfirmRequest,
   ToolConfirmResponse,
   ToolExecuteRequest,
   ToolExecuteResponse,
 } from "@cat/shared/schema/agent";
 
-import type { AgentDefinition } from "@/schema/agent-definition";
 import type { AgentToolDefinition } from "@/tools/types";
 
 // ─── Agent Step Record ───

@@ -11,7 +11,6 @@ import {
 import { useI18n } from "vue-i18n";
 import { Button } from "@cat/app-ui";
 import { Plus } from "lucide-vue-next";
-import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
 import PluginComponentSlot from "@/app/components/plugin/PluginComponentSlot.vue";
 
@@ -45,7 +44,6 @@ const { t } = useI18n();
       </CardFooter>
     </Card>
     <UserUploadAvatarBtn />
-    <LanguagePicker />
     <PluginComponentSlot id="test" />
   </div>
 </template>

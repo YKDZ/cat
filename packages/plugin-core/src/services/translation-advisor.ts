@@ -1,19 +1,42 @@
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
-import type { TranslationSuggestion } from "@cat/shared/schema/misc";
+import type { JSONType } from "@cat/shared/schema/json";
+
+import z from "zod";
 
 import type { IPluginService } from "@/services/service";
 
-export type CanSuggestContext = {
-  languageFromId: string;
-  languageToId: string;
+export type GetSuggestionsContext = {
+  source: {
+    text: string;
+    languageId: string;
+    meta: JSONType;
+  };
+  terms: {
+    term: string;
+    translation: string;
+    concept: {
+      subjects: {
+        name: string;
+        defaultDefinition: string | null;
+      }[];
+      definition: string | null;
+    };
+    confidence: number;
+  }[];
+  memories: {
+    source: string;
+    translation: string;
+    confidence: number;
+  }[];
+  targetLanguageId: string;
 };
 
-export type GetSuggestionsContext = {
-  value: string;
-  terms: { term: string; translation: string; definition: string | null }[];
-  languageFromId: string;
-  languageToId: string;
-};
+export const TranslationSuggestionSchema = z.object({
+  translation: z.string(),
+  confidence: z.number().min(0).max(1),
+});
+
+export type TranslationSuggestion = z.infer<typeof TranslationSuggestionSchema>;
 
 export abstract class TranslationAdvisor implements IPluginService {
   abstract getId(): string;
@@ -21,7 +44,6 @@ export abstract class TranslationAdvisor implements IPluginService {
     return "TRANSLATION_ADVISOR";
   }
   abstract getName(): string;
-  abstract canSuggest(ctx: CanSuggestContext): boolean;
   abstract getSuggestions(
     ctx: GetSuggestionsContext,
   ): Promise<TranslationSuggestion[]>;

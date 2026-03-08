@@ -1,5 +1,8 @@
 import type { ToolConfirmResponse } from "@cat/shared/schema/agent";
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import type {
+  AgentDefinitionType,
+  ScopeType,
+} from "@cat/shared/schema/drizzle/enum";
 
 import { logger } from "@cat/shared/utils";
 import { defineStore } from "pinia";
@@ -141,17 +144,16 @@ export const useAgentStore = defineStore("agent", () => {
 
   // ─── Actions ───
 
-  const fetchDefinitions = async (scopeType?: ScopeType, scopeId?: string) => {
+  const fetchDefinitions = async (options: {
+    type?: AgentDefinitionType;
+    scopeType?: ScopeType;
+    scopeId?: string;
+  }) => {
     try {
-      const result = await orpc.agent.list({ scopeType, scopeId });
-      definitions.value = result.map((r) => ({
-        id: r.id,
-        name: r.name,
-        description: r.description,
-        scopeType: r.scopeType,
-        scopeId: r.scopeId,
-        isBuiltin: r.isBuiltin,
-      }));
+      const result = await orpc.agent.list({
+        ...options,
+      });
+      definitions.value = result;
     } catch (err) {
       logger.error("WEB", { msg: "Failed to fetch agent definitions" }, err);
     }

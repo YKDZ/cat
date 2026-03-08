@@ -1,3 +1,5 @@
+import type { TranslationSuggestion } from "@cat/plugin-core";
+
 import {
   adaptMemoryOp,
   streamSearchMemoryOp,
@@ -21,7 +23,6 @@ import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import {
   MemorySuggestionSchema,
   type MemorySuggestion,
-  type TranslationSuggestion,
 } from "@cat/shared/schema/misc";
 import {
   assertSingleNonNullish,
@@ -77,7 +78,7 @@ export const onNew = authed
     z.object({
       elementId: z.int(),
       translationLanguageId: z.string(),
-      minMemorySimilarity: z.number().min(0).max(1).default(0.72),
+      minConfidence: z.number().min(0).max(1).default(0.72),
       maxAmount: z.int().min(0).default(3),
     }),
   )
@@ -86,7 +87,7 @@ export const onNew = authed
       redisDB: { redisSub, redisPub },
       drizzleDB: { client: drizzle },
     } = context;
-    const { elementId, translationLanguageId, minMemorySimilarity, maxAmount } =
+    const { elementId, translationLanguageId, minConfidence, maxAmount } =
       input;
 
     // Fetch element details — text, language, project, and chunk IDs
@@ -154,7 +155,7 @@ export const onNew = authed
       translationLanguageId,
       memoryIds,
       chunkIds: element.chunkIds,
-      minSimilarity: minMemorySimilarity,
+      minSimilarity: minConfidence,
       maxAmount,
     });
 
@@ -183,10 +184,8 @@ export const onNew = authed
               .then(async ({ adaptedTranslation }) => {
                 if (!adaptedTranslation) return;
                 const suggestion: TranslationSuggestion = {
-                  from: "记忆适配",
-                  value: adaptedTranslation,
-                  status: "SUCCESS",
-                  tag: "memory-adapted",
+                  translation: adaptedTranslation,
+                  confidence: memory.confidence,
                 };
                 await redisPub.publish(
                   suggestionChannelKey,

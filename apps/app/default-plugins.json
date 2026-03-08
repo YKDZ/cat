@@ -1,0 +1,15 @@
+[
+  "password-auth-provider",
+  "openai-term-service",
+  "json-file-handler",
+  "libretranslate-advisor",
+  "openai-vectorizer",
+  "yaml-file-handler",
+  "local-storage-provider",
+  "pgvector-storage",
+  "markdown-file-handler",
+  "tiny-widget",
+  "basic-tokenizer",
+  "basic-qa-checker",
+  "openai-llm-provider"
+]

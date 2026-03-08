@@ -22,7 +22,6 @@ export const useRegisterClientTools = (): void => {
 
   registerClientTool("get_editor_context", () => ({
     elementId: editorTable.elementId,
-    sourceText: editorTable.element?.value ?? null,
     translationValue: editorTable.translationValue,
     languageToId: editorContext.languageToId ?? null,
     documentId: editorContext.documentId ?? null,

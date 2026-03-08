@@ -36,6 +36,7 @@ interface BuiltinAgentDefinitionBody {
   description: string;
   version: string;
   icon: string;
+  type?: "GENERAL" | "GHOST_TEXT";
   llm: { providerId: number; temperature?: number; maxTokens?: number };
   systemPrompt: string;
   systemPromptVariables?: Record<
@@ -64,6 +65,7 @@ export const builtinAgentTemplates: readonly BuiltinAgentTemplate[] = [
         "Reviews translations for quality issues including terminology consistency, formatting, and common errors.",
       version: "1.0.0",
       icon: "ShieldCheck",
+      type: "GENERAL",
       llm: {
         temperature: 0.2,
       },
@@ -159,6 +161,7 @@ export const builtinAgentTemplates: readonly BuiltinAgentTemplate[] = [
         "Helps translators by suggesting translations, searching translation memories, and recognizing terminology.",
       version: "1.0.0",
       icon: "Languages",
+      type: "GENERAL",
       llm: {
         temperature: 0.4,
       },
@@ -168,13 +171,29 @@ export const builtinAgentTemplates: readonly BuiltinAgentTemplate[] = [
         "",
         "{{contextVariables}}",
         "",
+        "You are a versatile assistant that adapts to the translator's needs. You can:",
+        "- Answer questions about translation, terminology, or language usage",
+        "- Provide translation suggestions when explicitly requested",
+        "- Search and explain terminology from the glossary",
+        "- Find similar translations from translation memory",
+        "- Help with editor operations (navigation, editing, etc.)",
+        "- Review and explain translation choices",
+        "",
+        "Important: Do NOT automatically provide translations unless the user explicitly asks for them. Wait for clear requests like:",
+        "- 'Translate this' / 'How do I translate...'",
+        "- 'What's the translation for...'",
+        "- 'Help me translate...'",
+        "- 'Suggest a translation'",
+        "",
+        "For other questions (terminology, grammar, style, etc.), provide helpful explanations without translating.",
+        "",
         "Tool usage hints:",
         "- `lookup_terms`: Best for a specific term name or short keyword the user explicitly named. Fast SQL lookup.",
         "- `recognize_terms`: Best for a full sentence/paragraph where you need to discover which glossary terms appear. Uses LLM extraction + vector similarity.",
         "- Editor tools marked [editor] operate on the user's browser editor. Use `get_editor_context` to read the current state and mutation tools like `replace_translation` / `insert_text` to modify the translation.",
         "",
-        "When asked to translate, always:",
-        "- First call `get_element_info` to inspect the current element's content.",
+        "When the user explicitly asks for a translation:",
+        "- First call `get_element_info` to inspect the current element's content (if not already known).",
         "- Check the glossary first for consistent terminology.",
         "- Search translation memory for similar segments.",
         "- Consider machine translation as a reference.",
@@ -211,7 +230,7 @@ export const builtinAgentTemplates: readonly BuiltinAgentTemplate[] = [
         glossaryIds: {
           type: "string",
           source: "context",
-          name: "Glossary IDs",
+          name: "Glossary IDs Of Current Project",
           description:
             "JSON array of glossary UUIDs linked to the project; pass as the glossaryIds array when calling recognize_terms",
         },
@@ -246,6 +265,85 @@ export const builtinAgentTemplates: readonly BuiltinAgentTemplate[] = [
         maxSteps: 15,
         maxConcurrentToolCalls: 3,
         timeoutMs: 120_000,
+      },
+    },
+  },
+  {
+    templateId: "builtin-ghost-text",
+    name: "Ghost Text Advisor",
+    description:
+      "Provides inline translation continuation suggestions as ghost text in the editor.",
+    icon: "Sparkles",
+    definition: {
+      id: "builtin-ghost-text",
+      name: "Ghost Text Advisor",
+      description:
+        "Provides inline translation continuation suggestions as ghost text in the editor.",
+      version: "1.0.0",
+      icon: "Sparkles",
+      type: "GHOST_TEXT",
+      llm: {
+        temperature: 0.3,
+        maxTokens: 256,
+      },
+      systemPrompt: [
+        "You are a translation continuation assistant for a Computer-Assisted Translation (CAT) tool.",
+        "Based on the context provided, predict the most likely text the translator will type next.",
+        "",
+        "Rules:",
+        "- Output ONLY the continuation text starting from exactly where the cursor is.",
+        "- Your output is appended byte-for-byte directly after the last typed character. Include any leading whitespace (e.g. a space) if the continuation begins a new word and the current input does not already end with a space.",
+        "- Do NOT repeat any text that has already been typed.",
+        "- Do NOT add quotes, explanations, or any commentary.",
+        "- Keep the continuation concise and natural.",
+        "- If there is nothing useful to suggest, output an empty string.",
+        "- IMPORTANT: If the current input already forms a complete, grammatically sound translation of the source text, you MUST output an empty string. Do not append extra words, punctuation, or filler to a finished translation.",
+        "",
+        "{{contextVariables}}",
+      ].join("\n"),
+      systemPromptVariables: {
+        sourceText: {
+          type: "string",
+          source: "context",
+          name: "Source text",
+          description: "The original source text to be translated",
+        },
+        targetLanguageId: {
+          type: "string",
+          source: "context",
+          name: "Target language",
+          description: "The BCP-47 ID of the target translation language",
+        },
+        currentInput: {
+          type: "string",
+          source: "input",
+          name: "Current input",
+          description: "Text already typed by the translator up to the cursor",
+        },
+        memoryHints: {
+          type: "string",
+          source: "context",
+          name: "Translation memory hints",
+          description: "Relevant translation memory matches for reference",
+        },
+        termHints: {
+          type: "string",
+          source: "context",
+          name: "Terminology hints",
+          description: "Relevant glossary terms for reference",
+        },
+        neighborElements: {
+          type: "string",
+          source: "context",
+          name: "Neighboring elements",
+          description: "Nearby translated segments for style/tone consistency",
+        },
+      },
+      tools: [],
+      constraints: {
+        maxSteps: 1,
+        maxConcurrentToolCalls: 1,
+        timeoutMs: 10_000,
       },
     },
   },

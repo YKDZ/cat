@@ -1,19 +1,3 @@
-// ─── Agent Definition Schema ───
-export {
-  AgentDefinitionSchema,
-  AgentLLMConfigSchema,
-  AgentConstraintsSchema,
-  OrchestrationSchema,
-  PipelineStageSchema,
-  SystemPromptVariableSchema,
-  type AgentDefinition,
-  type AgentLLMConfig,
-  type AgentConstraints,
-  type Orchestration,
-  type PipelineStage,
-  type SystemPromptVariable,
-} from "./schema/index";
-
 // ─── Tool Registry ───
 export {
   ToolRegistry,
@@ -33,12 +17,15 @@ export {
 // ─── ReAct Engine ───
 export {
   runAgent,
+  runCompletion,
   ContextManager,
   type ContextManagerOptions,
   type AgentRunOptions,
   type AgentRunResult,
   type AgentStep,
   type ToolCallRecord,
+  type CompletionOptions,
+  type CompletionChunk,
 } from "./engine/index";
 
 // ─── Orchestrator ───
@@ -52,7 +39,20 @@ export {
   type PipelineStageResult,
 } from "./orchestrator/index";
 
-// ─── Prompt Utilities ───
+// ─── Context Resolution Engine ───
+export {
+  resolveContextVariables,
+  topoSortProviders,
+  CircularDependencyError,
+  BuiltinGlossaryProvider,
+  BuiltinContextDescriptionProvider,
+  BuiltinToolDescriptionProvider,
+  createBuiltinProviders,
+  type SeedVariables,
+  type ResolveOptions,
+} from "./context/index";
+
+// ─── Prompt Utilities (deprecated — logic migrated to builtin providers) ───
 export {
   generateContextVariableDescriptions,
   generateToolDescriptions,

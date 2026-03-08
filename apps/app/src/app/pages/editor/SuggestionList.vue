@@ -25,7 +25,7 @@ watchClient(
 <template>
   <SuggestionListItem
     v-for="(suggestion, index) in suggestions"
-    :key="suggestion.value"
+    :key="suggestion.translation"
     :suggestion
     :index
   />

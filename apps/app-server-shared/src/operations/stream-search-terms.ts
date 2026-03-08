@@ -16,7 +16,7 @@ export const StreamSearchTermsInputSchema = z.object({
   text: z.string(),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
-  minSimilarity: z.number().min(0).max(1).optional().default(0.6),
+  minConfidence: z.number().min(0).max(1).optional().default(0.6),
   maxAmount: z.int().min(1).optional().default(20),
 });
 
@@ -83,7 +83,7 @@ export const streamSearchTermsOp = (
             translationLanguageId: data.translationLanguageId,
             vectorizerId: vectorizer.id,
             vectorStorageId: storage.id,
-            minSimilarity: data.minSimilarity ?? 0.6,
+            minSimilarity: data.minConfidence ?? 0.6,
             maxAmount: data.maxAmount ?? 20,
           },
           ctx,

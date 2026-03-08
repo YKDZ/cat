@@ -1,10 +1,9 @@
 import type { JSONType } from "@cat/shared/schema/json";
-import type { TranslationSuggestion } from "@cat/shared/schema/misc";
 
 import {
   TranslationAdvisor,
-  type CanSuggestContext,
   type GetSuggestionsContext,
+  type TranslationSuggestion,
 } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
 import { Pool } from "undici";
@@ -100,32 +99,21 @@ export class Advisor extends TranslationAdvisor {
     return this.config.base["advisor-name"];
   }
 
-  canSuggest({ languageFromId, languageToId }: CanSuggestContext): boolean {
-    const sourceLang = languageFromId.replaceAll("_", "-");
-    const targetLang = languageToId.replaceAll("_", "-");
-    return (
-      supportedLanguages.size === 0 ||
-      (supportedLanguages.get(sourceLang) ?? []).includes(targetLang)
-    );
-  }
-
   async getSuggestions({
-    value,
-    languageFromId,
-    languageToId,
+    source: { text, languageId },
+    targetLanguageId,
   }: GetSuggestionsContext): Promise<TranslationSuggestion[]> {
-    const sourceLang = languageFromId.replaceAll("_", "-");
-    const targetLang = languageToId.replaceAll("_", "-");
+    const sourceLang = languageId.replaceAll("_", "-");
+    const targetLang = targetLanguageId.replaceAll("_", "-");
 
     try {
-      return await this.translate(value, sourceLang, targetLang);
+      return await this.translate(text, sourceLang, targetLang);
     } catch (e) {
       logger.error("PLUGIN", { msg: `LibreTranslate API 请求或解析错误` }, e);
       return [
         {
-          from: this.getName(),
-          value: "LibreTranslate API 请求或解析错误。",
-          status: "ERROR",
+          translation: "LibreTranslate API 请求或解析错误。",
+          confidence: 0,
         },
       ] satisfies TranslationSuggestion[];
     }
@@ -139,9 +127,8 @@ export class Advisor extends TranslationAdvisor {
     if (value.trim().length === 0) {
       return [
         {
-          from: this.getName(),
-          value: "可翻译元素是空白的，LibreTranslate API 不会翻译它。",
-          status: "ERROR",
+          translation: "可翻译元素是空白的，LibreTranslate API 不会翻译它。",
+          confidence: 0,
         },
       ] satisfies TranslationSuggestion[];
     }
@@ -170,41 +157,36 @@ export class Advisor extends TranslationAdvisor {
         case 429:
           return [
             {
-              from: this.getName(),
-              value: `速率限制：${msg}`,
-              status: "ERROR",
+              translation: `速率限制：${msg}`,
+              confidence: 0,
             },
           ] satisfies TranslationSuggestion[];
         case 403:
           return [
             {
-              from: this.getName(),
-              value: `访问被禁止：${msg}`,
-              status: "ERROR",
+              translation: `访问被禁止：${msg}`,
+              confidence: 0,
             },
           ] satisfies TranslationSuggestion[];
         case 500:
           return [
             {
-              from: this.getName(),
-              value: `LibreTranslate API 服务器内部错误：${msg}`,
-              status: "ERROR",
+              translation: `LibreTranslate API 服务器内部错误：${msg}`,
+              confidence: 0,
             },
           ] satisfies TranslationSuggestion[];
         case 400:
           return [
             {
-              from: this.getName(),
-              value: `请求错误：${msg}`,
-              status: "ERROR",
+              translation: `请求错误：${msg}`,
+              confidence: 0,
             },
           ] satisfies TranslationSuggestion[];
         default:
           return [
             {
-              from: this.getName(),
-              value: `翻译失败（状态码 ${res.statusCode}）：${msg}`,
-              status: "ERROR",
+              translation: `翻译失败（状态码 ${res.statusCode}）：${msg}`,
+              confidence: 0,
             },
           ] satisfies TranslationSuggestion[];
       }
@@ -219,9 +201,8 @@ export class Advisor extends TranslationAdvisor {
 
     const result: TranslationSuggestion[] = [
       {
-        from: this.getName(),
-        value: successBody.translatedText,
-        status: "SUCCESS",
+        translation: successBody.translatedText,
+        confidence: 0,
       },
     ];
     if (successBody.alternatives && successBody.alternatives.length > 0) {
@@ -229,9 +210,8 @@ export class Advisor extends TranslationAdvisor {
         .map(
           (translation) =>
             ({
-              from: this.getName(),
-              value: translation,
-              status: "SUCCESS",
+              translation,
+              confidence: 1,
             }) satisfies TranslationSuggestion,
         )
         .forEach((translation) => result.push(translation));
