@@ -48,7 +48,7 @@
     "@photonjs/hono": "^0.1.12",
     "@pinia/colada": "^0.21.4",
     "@pinia/testing": "^1.0.3",
-    "@shikijs/langs": "^3.23.0",
+    "@shikijs/langs": "^4.0.1",
     "@shikijs/themes": "^3.23.0",
     "@tailwindcss/vite": "^4.2.0",
     "@tanstack/vue-table": "^8.21.3",
