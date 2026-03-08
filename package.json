@@ -18,7 +18,7 @@
     "@vitest/ui": "4.0.16",
     "jiti": "2.6.1",
     "nx": "22.4.5",
-    "oxfmt": "^0.35.0",
+    "oxfmt": "^0.36.0",
     "oxlint": "^1.50.0",
     "oxlint-tsgolint": "^0.15.0",
     "pino-pretty": "^13.1.3",
