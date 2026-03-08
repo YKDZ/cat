@@ -1,5 +1,6 @@
-import { AgentDefinitionTypeSchema } from "@cat/shared/schema/drizzle/enum";
 import * as z from "zod";
+
+import { AgentDefinitionTypeSchema } from "./drizzle/enum";
 
 // ─── LLM Configuration ───
 
