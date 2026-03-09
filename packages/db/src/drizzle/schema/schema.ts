@@ -378,30 +378,6 @@ export const memoryToProject = pgTable(
   ],
 );
 
-export const permission = pgTable("Permission", {
-  id: serial().primaryKey(),
-  templateId: integer()
-    .notNull()
-    .references(() => permissionTemplate.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-  resourceId: text(),
-  ...timestamps,
-});
-
-export const permissionTemplate = pgTable(
-  "PermissionTemplate",
-  {
-    id: serial().primaryKey(),
-    content: text().notNull(),
-    resourceType: resourceType().notNull(),
-    meta: jsonb().$type<JSONType>(),
-    ...timestamps,
-  },
-  (table) => [unique().on(table.content, table.resourceType)],
-);
-
 export const plugin = pgTable("Plugin", {
   id: text().primaryKey(),
   name: text().notNull(),
@@ -559,44 +535,6 @@ export const projectTargetLanguage = pgTable(
       columns: [table.languageId, table.projectId],
     }),
     index().using("btree", table.projectId.asc().nullsLast()),
-  ],
-);
-
-export const role = pgTable(
-  "Role",
-  {
-    id: serial().primaryKey(),
-    scopeType: scopeType().notNull(),
-    scopeId: text().notNull(),
-    name: text().notNull(),
-    creatorId: uuid().references(() => user.id, {
-      onDelete: "set null",
-      onUpdate: "cascade",
-    }),
-    ...timestamps,
-  },
-  (table) => [unique().on(table.name, table.scopeType, table.scopeId)],
-);
-
-export const rolePermission = pgTable(
-  "RolePermission",
-  {
-    roleId: integer()
-      .notNull()
-      .references(() => role.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    permissionId: integer()
-      .notNull()
-      .references(() => permission.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    isAllowed: boolean().default(true).notNull(),
-    ...timestamps,
-  },
-  (table) => [
-    primaryKey({
-      columns: [table.roleId, table.permissionId],
-    }),
   ],
 );
 
@@ -1024,25 +962,6 @@ export const user = pgTable(
     ...timestamps,
   },
   (table) => [unique().on(table.email, table.name)],
-);
-
-export const userRole = pgTable(
-  "UserRole",
-  {
-    userId: uuid()
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    roleId: integer()
-      .notNull()
-      .references(() => role.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    meta: jsonb().$type<JSONType>(),
-    ...timestamps,
-  },
-  (table) => [
-    primaryKey({
-      columns: [table.userId, table.roleId],
-    }),
-  ],
 );
 
 // ─── Agent System ───
