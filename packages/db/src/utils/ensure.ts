@@ -1,6 +1,4 @@
-import { ResourceTypeValues } from "@cat/shared/schema/drizzle/enum";
 import {
-  assertFirstOrNull,
   assertSingleNonNullish,
   assertSingleOrNull,
   logger,
@@ -9,18 +7,12 @@ import { eq } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 
 import {
-  permission as permissionTable,
-  permissionTemplate as permissionTemplateTable,
-  role as roleTable,
-  rolePermission as rolePermissionTable,
-  userRole as userRoleTable,
   setting as settingTable,
   type DrizzleTransaction,
 } from "@/drizzle/index.ts";
 import {
   language as languageTable,
   pluginService,
-  role,
 } from "@/drizzle/schema/schema.ts";
 import {
   user as userTable,
@@ -55,84 +47,6 @@ export const ensureDB = async (): Promise<void> => {
         })),
       )
       .onConflictDoNothing();
-
-    // 为所有权限类型注入一个根权限模板
-    const templateIds: number[] = [];
-
-    await Promise.all(
-      ResourceTypeValues.map(async (type) => {
-        const template = assertFirstOrNull(
-          await tx
-            .insert(permissionTemplateTable)
-            .values({
-              resourceType: type,
-              content: "*",
-            })
-            .returning({
-              id: permissionTemplateTable.id,
-            })
-            .onConflictDoNothing({
-              target: [
-                permissionTemplateTable.resourceType,
-                permissionTemplateTable.content,
-              ],
-            }),
-        );
-        if (template) templateIds.push(template.id);
-      }),
-    );
-
-    // 保证根角色永远存在
-    // 且永远被分配所有资源类型的根权限
-    const permissionIds: number[] = [];
-
-    if (templateIds.length > 0)
-      await Promise.all(
-        templateIds.map(async (templateId) => {
-          const permission = assertFirstOrNull(
-            await tx
-              .insert(permissionTable)
-              .values({
-                templateId,
-              })
-              .returning({
-                id: permissionTable.id,
-              })
-              .onConflictDoNothing(),
-          );
-          if (permission) permissionIds.push(permission.id);
-        }),
-      );
-
-    const role = assertSingleNonNullish(
-      await tx
-        .insert(roleTable)
-        .values({
-          name: "Server Admin",
-          scopeId: "",
-          scopeType: "GLOBAL",
-        })
-        .returning({
-          id: roleTable.id,
-        })
-        .onConflictDoUpdate({
-          target: [roleTable.name, roleTable.scopeType, roleTable.scopeId],
-          set: {
-            name: "Server Admin",
-          },
-        }),
-    );
-
-    if (permissionIds.length > 0)
-      await tx
-        .insert(rolePermissionTable)
-        .values(
-          permissionIds.map((permissionId) => ({
-            roleId: role.id,
-            permissionId,
-          })),
-        )
-        .onConflictDoNothing();
 
     // 插入设置
     if (DEFAULT_SETTINGS.length > 0)
@@ -193,23 +107,6 @@ export const ensureRootUser = async (tx: DrizzleTransaction): Promise<void> => {
         meta: {
           password: await hashPassword(password),
         },
-      })
-      .onConflictDoNothing();
-
-    const { id: roleId } = assertSingleNonNullish(
-      await tx
-        .select({
-          id: role.id,
-        })
-        .from(role)
-        .where(eq(role.name, "Server Admin")),
-    );
-
-    await tx
-      .insert(userRoleTable)
-      .values({
-        roleId,
-        userId: admin.id,
       })
       .onConflictDoNothing();
 

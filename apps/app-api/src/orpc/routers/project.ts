@@ -19,11 +19,6 @@ import {
   not,
   exists,
   type DrizzleClient,
-  role as roleTable,
-  permissionTemplate as permissionTemplateTable,
-  permission as permissionTable,
-  rolePermission as rolePermissionTable,
-  userRole as userRoleTable,
   language,
   isNull,
   isNotNull,
@@ -231,58 +226,6 @@ export const create = authed
           })
           .returning(),
       );
-
-      // 为用户分配一个新角色
-      // 其中有一个作用于当前 project 的根权限
-      const role = assertSingleNonNullish(
-        await tx
-          .insert(roleTable)
-          .values({
-            name: "Project Owner",
-            scopeType: "PROJECT",
-            scopeId: project.id,
-          })
-          .returning({
-            id: roleTable.id,
-          }),
-      );
-
-      const permissionTemplate = assertSingleNonNullish(
-        await tx
-          .select({
-            id: permissionTemplateTable.id,
-          })
-          .from(permissionTemplateTable)
-          .where(
-            and(
-              eq(permissionTemplateTable.content, "*"),
-              eq(permissionTemplateTable.resourceType, "PROJECT"),
-            ),
-          ),
-      );
-
-      const permission = assertSingleNonNullish(
-        await tx
-          .insert(permissionTable)
-          .values({
-            templateId: permissionTemplate.id,
-            resourceId: project.id,
-          })
-          .returning({
-            id: permissionTable.id,
-          }),
-      );
-
-      await tx.insert(userRoleTable).values({
-        userId: user.id,
-        roleId: role.id,
-      });
-
-      await tx.insert(rolePermissionTable).values({
-        roleId: role.id,
-        permissionId: permission.id,
-      });
-      // 完成角色分配
 
       // 创建一颗根树用于存放文档
       const root = assertSingleNonNullish(

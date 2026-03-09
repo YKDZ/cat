@@ -35,10 +35,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       }),
       pluginConfigInstances: r.many.pluginConfigInstance(),
       projects: r.many.project(),
-      rolesCreatorId: r.many.role({
-        from: r.user.id,
-        to: r.role.creatorId,
-      }),
       terms: r.many.term(),
       translatableElements: r.many.translatableElement(),
       commentsUserId: r.many.comment({
@@ -60,10 +56,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       file: r.one.file({
         from: r.user.avatarFileId,
         to: r.file.id,
-      }),
-      rolesViaUserRole: r.many.role({
-        from: r.user.id.through(r.userRole.userId),
-        to: r.role.id.through(r.userRole.roleId),
       }),
       mfaProvider: r.many.mfaProvider({
         from: r.user.id,
@@ -320,19 +312,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.pluginService.id,
       }),
     },
-    permission: {
-      permissionTemplate: r.one.permissionTemplate({
-        from: r.permission.templateId,
-        to: r.permissionTemplate.id,
-      }),
-      roles: r.many.role({
-        from: r.permission.id.through(r.rolePermission.permissionId),
-        to: r.role.id.through(r.rolePermission.roleId),
-      }),
-    },
-    permissionTemplate: {
-      permissions: r.many.permission(),
-    },
     pluginConfig: {
       plugin: r.one.plugin({
         from: r.pluginConfig.pluginId,
@@ -377,17 +356,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.comment.languageId,
       }),
       chunkSets: r.many.chunkSet(),
-    },
-    role: {
-      user: r.one.user({
-        from: r.role.creatorId,
-        to: r.user.id,
-      }),
-      permissions: r.many.permission(),
-      users: r.many.user({
-        from: r.role.id.through(r.userRole.roleId),
-        to: r.user.id.through(r.userRole.userId),
-      }),
     },
     term: {
       user: r.one.user({

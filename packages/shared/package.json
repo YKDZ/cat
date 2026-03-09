@@ -80,10 +80,6 @@
       "types": "./dist/schema/drizzle/project.d.ts",
       "import": "./dist/schema/drizzle/project.js"
     },
-    "./schema/drizzle/role": {
-      "types": "./dist/schema/drizzle/role.d.ts",
-      "import": "./dist/schema/drizzle/role.js"
-    },
     "./schema/drizzle/translation": {
       "types": "./dist/schema/drizzle/translation.d.ts",
       "import": "./dist/schema/drizzle/translation.js"

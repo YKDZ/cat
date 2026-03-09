@@ -62,10 +62,6 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/drizzle/project.ts",
         ),
-        "schema/drizzle/role": resolve(
-          import.meta.dirname,
-          "src/schema/drizzle/role.ts",
-        ),
         "schema/drizzle/translation": resolve(
           import.meta.dirname,
           "src/schema/drizzle/translation.ts",
