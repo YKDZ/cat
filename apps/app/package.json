@@ -46,7 +46,7 @@
     "@orpc/experimental-pino": "^1.13.5",
     "@orpc/server": "^1.13.5",
     "@photonjs/hono": "^0.1.12",
-    "@pinia/colada": "^0.21.4",
+    "@pinia/colada": "^1.0.0",
     "@pinia/testing": "^1.0.3",
     "@shikijs/langs": "^3.23.0",
     "@shikijs/themes": "^3.23.0",
