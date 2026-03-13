@@ -126,6 +126,17 @@ export class BuiltinContextDescriptionProvider {
       return `- ${label}: ${displayValue}`;
     });
 
+    // 如果没有任何变量有实际值，不输出整个上下文块
+    const hasAnyValue = entries.some(([key]) => {
+      const value = ctx.resolvedVars.get(key);
+      return value !== undefined && String(value).trim() !== "";
+    });
+
+    if (!hasAnyValue) {
+      result.set("contextVariables", "");
+      return result;
+    }
+
     result.set("contextVariables", ["Available context:", ...lines].join("\n"));
     return result;
   };

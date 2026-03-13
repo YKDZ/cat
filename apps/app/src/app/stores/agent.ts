@@ -8,6 +8,8 @@ import { logger } from "@cat/shared/utils";
 import { defineStore } from "pinia";
 import { computed, ref, shallowRef } from "vue";
 
+import type { GraphEvent, NodeExecution } from "@/app/types/agent-graph";
+
 import { executeClientTool } from "@/app/utils/agent/client-tool-registry";
 import { orpc } from "@/server/orpc";
 import { ws } from "@/server/ws";
@@ -44,6 +46,7 @@ export interface AgentMessageItem {
 
 export interface AgentToolCallItem {
   id: string;
+  nodeId?: string;
   toolName: string;
   arguments: Record<string, unknown>;
   result: unknown;
@@ -65,13 +68,20 @@ export interface AgentStepItem {
 /** Represents a pending tool confirmation the user needs to respond to. */
 export interface PendingToolConfirmation {
   callId: string;
+  nodeId?: string;
   toolName: string;
   description: string;
   arguments: Record<string, unknown>;
   riskLevel: "low" | "medium" | "high";
 }
 
-export type StreamingStatus = "idle" | "streaming" | "error" | "done";
+export type StreamingStatus =
+  | "idle"
+  | "streaming"
+  | "paused"
+  | "waiting_input"
+  | "error"
+  | "done";
 
 /**
  * All possible agent termination reasons. Matches `AgentRunResult["finishReason"]`
@@ -99,10 +109,27 @@ const isFinishReason = (value: string): value is FinishReason =>
 const toFinishReason = (value: string): FinishReason =>
   isFinishReason(value) ? value : "completed";
 
+const toPlainRecord = (value: unknown): Record<string, unknown> | null => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+
+  const output: Record<string, unknown> = {};
+  for (const [key, entryValue] of Object.entries(value)) {
+    output[key] = entryValue;
+  }
+  return output;
+};
+
 /** State for the max_steps confirmation card shown in the chat. */
 export interface MaxStepsReachedInfo {
   totalSteps: number;
   finalMessage: string | null;
+}
+
+export interface GraphRunResultInfo {
+  status: "completed" | "cancelled" | "failed";
+  message: string | null;
 }
 
 export const useAgentStore = defineStore("agent", () => {
@@ -115,6 +142,13 @@ export const useAgentStore = defineStore("agent", () => {
   const streamingText = ref("");
   const thinkingText = ref("");
   const streamingStatus = ref<StreamingStatus>("idle");
+  const runId = ref<string | null>(null);
+  const nodeExecutions = shallowRef<Map<string, NodeExecution>>(new Map());
+  const llmStreamingNodes = shallowRef<Map<string, string>>(new Map());
+  const thinkingNodes = shallowRef<Map<string, string>>(new Map());
+  const blackboardPreview = ref<Record<string, unknown>>({});
+  const eventLog = shallowRef<GraphEvent[]>([]);
+  const graphRunResult = ref<GraphRunResultInfo | null>(null);
   const currentSteps = shallowRef<AgentStepItem[]>([]);
   const errorMessage = ref<string | null>(null);
 
@@ -142,6 +176,420 @@ export const useAgentStore = defineStore("agent", () => {
 
   const isStreaming = computed(() => streamingStatus.value === "streaming");
 
+  const nodeExecutionList = computed(() => {
+    return [...nodeExecutions.value.values()].sort((a, b) => {
+      const aTs = a.startedAt ? a.startedAt.getTime() : Number.MAX_SAFE_INTEGER;
+      const bTs = b.startedAt ? b.startedAt.getTime() : Number.MAX_SAFE_INTEGER;
+      if (aTs !== bTs) return aTs - bTs;
+      return a.nodeId.localeCompare(b.nodeId);
+    });
+  });
+
+  const updateNodeExecution = (
+    nodeId: string,
+    updater: (current: NodeExecution | null) => NodeExecution,
+  ) => {
+    const next = new Map(nodeExecutions.value);
+    const current = next.get(nodeId) ?? null;
+    next.set(nodeId, updater(current));
+    nodeExecutions.value = next;
+  };
+
+  const updateTextMap = (
+    source: Map<string, string>,
+    nodeId: string,
+    value: string,
+    target: "llm" | "thinking",
+  ) => {
+    const next = new Map(source);
+    next.set(nodeId, value);
+    if (target === "llm") {
+      llmStreamingNodes.value = next;
+    } else {
+      thinkingNodes.value = next;
+    }
+  };
+
+  const appendEvent = (event: GraphEvent) => {
+    eventLog.value = [...eventLog.value, event];
+  };
+
+  const applyGraphEvent = (event: GraphEvent) => {
+    appendEvent(event);
+
+    const eventDate = new Date(event.timestamp);
+
+    if (event.type === "run:start") {
+      streamingStatus.value = "streaming";
+      errorMessage.value = null;
+      graphRunResult.value = null;
+      return;
+    }
+
+    if (event.type === "run:pause") {
+      streamingStatus.value = "paused";
+      return;
+    }
+
+    if (event.type === "run:cancel") {
+      streamingStatus.value = "idle";
+      graphRunResult.value = {
+        status: "cancelled",
+        message: null,
+      };
+      return;
+    }
+
+    if (event.type === "run:resume") {
+      streamingStatus.value = "streaming";
+      return;
+    }
+
+    if (event.type === "run:end") {
+      const payloadStatus = event.payload["status"];
+      if (payloadStatus === "completed") {
+        streamingStatus.value = "done";
+        graphRunResult.value = {
+          status: "completed",
+          message: null,
+        };
+      } else if (payloadStatus === "cancelled") {
+        streamingStatus.value = "idle";
+        graphRunResult.value = {
+          status: "cancelled",
+          message: null,
+        };
+      } else {
+        streamingStatus.value = "error";
+        graphRunResult.value = {
+          status: "failed",
+          message: typeof payloadStatus === "string" ? payloadStatus : null,
+        };
+      }
+
+      const blackboard = event.payload["blackboard"];
+      if (
+        typeof blackboard === "object" &&
+        blackboard !== null &&
+        !Array.isArray(blackboard)
+      ) {
+        blackboardPreview.value = { ...blackboard };
+      }
+      return;
+    }
+
+    if (event.type === "run:error") {
+      const error = event.payload["error"];
+      errorMessage.value =
+        typeof error === "string" ? error : "Graph run error";
+      streamingStatus.value = "error";
+      graphRunResult.value = {
+        status: "failed",
+        message: typeof error === "string" ? error : null,
+      };
+      return;
+    }
+
+    if (event.type === "node:start" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const nodeTypeRaw = event.payload["nodeType"];
+      const nodeType =
+        nodeTypeRaw === "llm" ||
+        nodeTypeRaw === "tool" ||
+        nodeTypeRaw === "router" ||
+        nodeTypeRaw === "human_input" ||
+        nodeTypeRaw === "parallel" ||
+        nodeTypeRaw === "join" ||
+        nodeTypeRaw === "transform" ||
+        nodeTypeRaw === "loop" ||
+        nodeTypeRaw === "subgraph"
+          ? nodeTypeRaw
+          : "tool";
+
+      updateNodeExecution(nodeId, (current) => ({
+        nodeId,
+        nodeType,
+        status: "running",
+        startedAt: current?.startedAt ?? eventDate,
+        completedAt: null,
+        input: current?.input,
+        output: current?.output,
+      }));
+      return;
+    }
+
+    if (event.type === "node:end" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const outputRaw = event.payload["output"];
+      updateNodeExecution(nodeId, (current) => ({
+        nodeId,
+        nodeType: current?.nodeType ?? "tool",
+        status: "completed",
+        startedAt: current?.startedAt ?? null,
+        completedAt: eventDate,
+        input: current?.input,
+        output:
+          typeof outputRaw === "object" &&
+          outputRaw !== null &&
+          !Array.isArray(outputRaw)
+            ? { ...outputRaw }
+            : current?.output,
+        streamingText: current?.streamingText,
+        thinkingText: current?.thinkingText,
+        toolCalls: current?.toolCalls,
+      }));
+      return;
+    }
+
+    if (event.type === "node:error" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const error = event.payload["error"];
+      updateNodeExecution(nodeId, (current) => ({
+        nodeId,
+        nodeType: current?.nodeType ?? "tool",
+        status: "error",
+        startedAt: current?.startedAt ?? null,
+        completedAt: eventDate,
+        error: typeof error === "string" ? error : "Node execution failed",
+        input: current?.input,
+        output: current?.output,
+        streamingText: current?.streamingText,
+        thinkingText: current?.thinkingText,
+        toolCalls: current?.toolCalls,
+      }));
+      return;
+    }
+
+    if (event.type === "llm:token" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const delta = event.payload["delta"];
+      if (typeof delta === "string") {
+        const prev = llmStreamingNodes.value.get(nodeId) ?? "";
+        const next = `${prev}${delta}`;
+        updateTextMap(llmStreamingNodes.value, nodeId, next, "llm");
+        updateNodeExecution(nodeId, (current) => ({
+          nodeId,
+          nodeType: current?.nodeType ?? "llm",
+          status: current?.status ?? "running",
+          startedAt: current?.startedAt ?? eventDate,
+          completedAt: current?.completedAt ?? null,
+          input: current?.input,
+          output: current?.output,
+          streamingText: next,
+          thinkingText: current?.thinkingText,
+          toolCalls: current?.toolCalls,
+        }));
+
+        // 兼容现有 UI 的全局流式文本展示
+        streamingText.value += delta;
+      }
+      return;
+    }
+
+    if (event.type === "llm:complete" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const content = event.payload["content"];
+      if (typeof content === "string") {
+        updateTextMap(llmStreamingNodes.value, nodeId, content, "llm");
+        updateNodeExecution(nodeId, (current) => ({
+          nodeId,
+          nodeType: current?.nodeType ?? "llm",
+          status: "completed",
+          startedAt: current?.startedAt ?? null,
+          completedAt: eventDate,
+          input: current?.input,
+          output: current?.output,
+          streamingText: content,
+          thinkingText: current?.thinkingText,
+          toolCalls: current?.toolCalls,
+        }));
+      }
+      return;
+    }
+
+    if (event.type === "tool:confirm:required") {
+      const toolName = event.payload["toolName"];
+      const callIdRaw = event.payload["callId"];
+      const callId =
+        typeof callIdRaw === "string" && callIdRaw.length > 0
+          ? callIdRaw
+          : `${event.nodeId ?? "tool"}-${event.eventId}`;
+      pendingConfirmation.value = {
+        callId,
+        nodeId: event.nodeId,
+        toolName: typeof toolName === "string" ? toolName : "tool",
+        description: "Graph tool confirmation required",
+        arguments: toPlainRecord(event.payload["args"]) ?? {},
+        riskLevel: "medium",
+      };
+      streamingStatus.value = "waiting_input";
+      return;
+    }
+
+    if (event.type === "tool:call" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const toolName = event.payload["toolName"];
+      const args = event.payload["args"];
+      updateNodeExecution(nodeId, (current) => {
+        const toolCalls = [...(current?.toolCalls ?? [])];
+        toolCalls.push({
+          id: event.eventId,
+          toolName: typeof toolName === "string" ? toolName : "tool",
+          arguments: toPlainRecord(args) ?? {},
+          result: null,
+          error: null,
+          durationMs: null,
+          target: "server",
+          confirmationStatus: null,
+          nodeId,
+        });
+
+        return {
+          nodeId,
+          nodeType: current?.nodeType ?? "tool",
+          status: current?.status ?? "running",
+          startedAt: current?.startedAt ?? eventDate,
+          completedAt: current?.completedAt ?? null,
+          input: current?.input,
+          output: current?.output,
+          streamingText: current?.streamingText,
+          thinkingText: current?.thinkingText,
+          toolCalls,
+        };
+      });
+      return;
+    }
+
+    if (event.type === "tool:result" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const result = event.payload["result"];
+      const durationMs = event.payload["durationMs"];
+      updateNodeExecution(nodeId, (current) => {
+        const toolCalls = [...(current?.toolCalls ?? [])];
+        const last = toolCalls.at(-1);
+        if (last) {
+          last.result = result;
+          last.error = null;
+          last.durationMs = typeof durationMs === "number" ? durationMs : null;
+        }
+        return {
+          nodeId,
+          nodeType: current?.nodeType ?? "tool",
+          status: current?.status ?? "running",
+          startedAt: current?.startedAt ?? eventDate,
+          completedAt: current?.completedAt ?? null,
+          input: current?.input,
+          output: current?.output,
+          streamingText: current?.streamingText,
+          thinkingText: current?.thinkingText,
+          toolCalls,
+        };
+      });
+      return;
+    }
+
+    if (event.type === "tool:error" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const error = event.payload["error"];
+      updateNodeExecution(nodeId, (current) => {
+        const toolCalls = [...(current?.toolCalls ?? [])];
+        const last = toolCalls.at(-1);
+        if (last) {
+          last.error = typeof error === "string" ? error : "Tool error";
+        }
+        return {
+          nodeId,
+          nodeType: current?.nodeType ?? "tool",
+          status: "error",
+          startedAt: current?.startedAt ?? eventDate,
+          completedAt: eventDate,
+          error: typeof error === "string" ? error : "Tool error",
+          input: current?.input,
+          output: current?.output,
+          streamingText: current?.streamingText,
+          thinkingText: current?.thinkingText,
+          toolCalls,
+        };
+      });
+      return;
+    }
+
+    if (event.type === "human:input:required") {
+      streamingStatus.value = "waiting_input";
+    }
+  };
+
+  const consumeGraphEvents = async (graphRunId: string) => {
+    const stream = await orpc.agent.graphEvents({
+      runId: graphRunId,
+      includeHistory: true,
+    });
+
+    // oxlint-disable-next-line no-await-in-loop -- streaming events must be handled in-order
+    for await (const rawEvent of stream) {
+      const payload = rawEvent.payload;
+      const normalizedPayload =
+        typeof payload === "object" &&
+        payload !== null &&
+        !Array.isArray(payload)
+          ? { ...payload }
+          : {};
+
+      applyGraphEvent({
+        eventId: rawEvent.eventId,
+        runId: rawEvent.runId,
+        nodeId: rawEvent.nodeId ?? undefined,
+        parentEventId: rawEvent.parentEventId ?? undefined,
+        type: rawEvent.type,
+        timestamp: rawEvent.timestamp,
+        payload: normalizedPayload,
+      });
+    }
+  };
+
+  const startGraphRun = async (params?: {
+    graphId?: string;
+    input?: Record<string, unknown>;
+  }) => {
+    const result = await orpc.agent.graphStart({
+      graphId: params?.graphId ?? "react-loop",
+      input: params?.input ?? {},
+    });
+
+    runId.value = result.runId;
+    nodeExecutions.value = new Map();
+    llmStreamingNodes.value = new Map();
+    thinkingNodes.value = new Map();
+    eventLog.value = [];
+    blackboardPreview.value = {};
+    streamingText.value = "";
+    thinkingText.value = "";
+    streamingStatus.value = "streaming";
+    errorMessage.value = null;
+    graphRunResult.value = null;
+
+    await consumeGraphEvents(result.runId);
+    return result.runId;
+  };
+
+  const pauseGraphRun = async () => {
+    if (!runId.value) return;
+    await orpc.agent.graphPause({ runId: runId.value });
+    streamingStatus.value = "paused";
+  };
+
+  const resumeGraphRun = async () => {
+    if (!runId.value) return;
+    await orpc.agent.graphResume({ runId: runId.value });
+    streamingStatus.value = "streaming";
+  };
+
+  const cancelGraphRun = async () => {
+    if (!runId.value) return;
+    await orpc.agent.graphCancel({ runId: runId.value });
+    streamingStatus.value = "idle";
+  };
+
   // ─── Actions ───
 
   const fetchDefinitions = async (options: {
@@ -168,7 +616,14 @@ export const useAgentStore = defineStore("agent", () => {
     streamingText.value = "";
     thinkingText.value = "";
     streamingStatus.value = "idle";
+    runId.value = null;
+    nodeExecutions.value = new Map();
+    llmStreamingNodes.value = new Map();
+    thinkingNodes.value = new Map();
+    blackboardPreview.value = {};
+    eventLog.value = [];
     errorMessage.value = null;
+    graphRunResult.value = null;
     maxStepsReached.value = null;
     lastFinishReason.value = null;
     lastUserMessage.value = null;
@@ -214,7 +669,14 @@ export const useAgentStore = defineStore("agent", () => {
       streamingText.value = "";
       thinkingText.value = "";
       streamingStatus.value = "idle";
+      runId.value = null;
+      nodeExecutions.value = new Map();
+      llmStreamingNodes.value = new Map();
+      thinkingNodes.value = new Map();
+      blackboardPreview.value = {};
+      eventLog.value = [];
       errorMessage.value = null;
+      graphRunResult.value = null;
       maxStepsReached.value = null;
       lastFinishReason.value = null;
       lastUserMessage.value = null;
@@ -243,7 +705,14 @@ export const useAgentStore = defineStore("agent", () => {
       streamingText.value = "";
       thinkingText.value = "";
       streamingStatus.value = "idle";
+      runId.value = null;
+      nodeExecutions.value = new Map();
+      llmStreamingNodes.value = new Map();
+      thinkingNodes.value = new Map();
+      blackboardPreview.value = {};
+      eventLog.value = [];
       errorMessage.value = null;
+      graphRunResult.value = null;
       maxStepsReached.value = null;
       lastFinishReason.value = null;
     } catch (err) {
@@ -276,6 +745,7 @@ export const useAgentStore = defineStore("agent", () => {
     streamingStatus.value = "streaming";
     currentSteps.value = [];
     errorMessage.value = null;
+    graphRunResult.value = null;
     maxStepsReached.value = null;
     lastFinishReason.value = null;
 
@@ -450,16 +920,32 @@ export const useAgentStore = defineStore("agent", () => {
   const respondToConfirmation = async (
     decision: ToolConfirmResponse["decision"],
   ) => {
-    if (!pendingConfirmation.value || !activeSessionId.value) return;
+    if (!pendingConfirmation.value) return;
 
-    const callId = pendingConfirmation.value.callId;
+    const currentPending = pendingConfirmation.value;
+    const callId = currentPending.callId;
     pendingConfirmation.value = null;
 
     try {
-      await ws.agent.submitToolConfirmResponse({
-        sessionId: activeSessionId.value,
-        response: { callId, decision },
-      });
+      if (runId.value) {
+        await orpc.agent.submitToolConfirmResponse({
+          runId: runId.value,
+          nodeId: currentPending.nodeId,
+          response: { callId, decision },
+        });
+        streamingStatus.value = "streaming";
+      } else if (activeSessionId.value) {
+        await ws.agent.submitToolConfirmResponse({
+          sessionId: activeSessionId.value,
+          response: { callId, decision },
+        });
+      } else {
+        logger.warn("WEB", {
+          msg: "No active session or graph run for confirmation response",
+          callId,
+          decision,
+        });
+      }
     } catch (err) {
       logger.error("WEB", { msg: "Failed to submit confirmation" }, err);
     }
@@ -497,6 +983,13 @@ export const useAgentStore = defineStore("agent", () => {
     streamingText.value = "";
     thinkingText.value = "";
     streamingStatus.value = "idle";
+    runId.value = null;
+    nodeExecutions.value = new Map();
+    llmStreamingNodes.value = new Map();
+    thinkingNodes.value = new Map();
+    blackboardPreview.value = {};
+    eventLog.value = [];
+    graphRunResult.value = null;
     errorMessage.value = null;
     pendingConfirmation.value = null;
     awaitingClientTool.value = false;
@@ -516,6 +1009,13 @@ export const useAgentStore = defineStore("agent", () => {
     streamingText,
     thinkingText,
     streamingStatus,
+    runId,
+    nodeExecutions,
+    llmStreamingNodes,
+    thinkingNodes,
+    blackboardPreview,
+    eventLog,
+    graphRunResult,
     currentSteps,
     errorMessage,
     pendingConfirmation,
@@ -526,6 +1026,7 @@ export const useAgentStore = defineStore("agent", () => {
     // Computed
     selectedDefinition,
     isStreaming,
+    nodeExecutionList,
     // Actions
     fetchDefinitions,
     selectDefinition,
@@ -533,6 +1034,11 @@ export const useAgentStore = defineStore("agent", () => {
     createSession,
     loadSessionMessages,
     sendMessage,
+    startGraphRun,
+    pauseGraphRun,
+    resumeGraphRun,
+    cancelGraphRun,
+    applyGraphEvent,
     cancelStreaming,
     respondToConfirmation,
     retryLastMessage,

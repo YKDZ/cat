@@ -100,6 +100,13 @@ const handleDeny = () => {
       <span class="flex-1 truncate text-xs font-medium">
         {{ confirmation.toolName }}
       </span>
+      <Badge
+        v-if="confirmation.nodeId"
+        variant="outline"
+        class="shrink-0 text-[10px]"
+      >
+        {{ t("节点 {id}", { id: confirmation.nodeId }) }}
+      </Badge>
       <Badge :variant="riskVariant" class="shrink-0 text-[10px]">
         {{ riskLabel }}
       </Badge>

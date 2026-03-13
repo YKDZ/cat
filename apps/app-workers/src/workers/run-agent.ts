@@ -1,6 +1,8 @@
 import {
+  AgentSessionMetaSchema,
   buildChatMessages,
   buildSystemPrompt,
+  createDefaultGraphRuntime,
   loadConversationHistory,
   persistAgentResult,
   persistUserMessage,
@@ -77,10 +79,26 @@ export const runAgentTask = await defineTask({
       await loadConversationHistory(drizzle, session.id);
 
     // 5. Build system prompt
+    const parsedMeta = AgentSessionMetaSchema.safeParse(session.metadata);
+    const seedsVars: Record<string, string | number | boolean> = {};
+    if (parsedMeta.success) {
+      const meta = parsedMeta.data;
+      if (meta.projectId) seedsVars["projectId"] = meta.projectId;
+      if (meta.documentId) seedsVars["documentId"] = meta.documentId;
+      if (meta.elementId !== undefined) seedsVars["elementId"] = meta.elementId;
+      if (meta.languageId) {
+        seedsVars["languageId"] = meta.languageId;
+        seedsVars["translationLanguageId"] = meta.languageId;
+      }
+      if (meta.sourceLanguageId) {
+        seedsVars["sourceLanguageId"] = meta.sourceLanguageId;
+      }
+    }
+
     const systemPrompt = await buildSystemPrompt({
       drizzle,
       definition,
-      sessionMetadata: session.metadata,
+      seedsVars,
       userId: session.userId ?? "",
       tools,
     });
@@ -130,6 +148,39 @@ export const runAgentTask = await defineTask({
       finalMessage: result.finalMessage,
       finishReason: result.finishReason,
       totalSteps: result.steps.length,
+    };
+  },
+});
+
+export const RunGraphInputSchema = z.object({
+  graphId: z.string().default("react-loop"),
+  input: z.record(z.string(), z.unknown()).default({}),
+});
+
+export const RunGraphOutputSchema = z.object({
+  runId: z.uuidv4(),
+  status: z.string(),
+  eventCount: z.int(),
+});
+
+export type RunGraphInput = z.infer<typeof RunGraphInputSchema>;
+export type RunGraphOutput = z.infer<typeof RunGraphOutputSchema>;
+
+export const runGraphTask = await defineTask({
+  name: "agent.graph.run",
+  input: RunGraphInputSchema,
+  output: RunGraphOutputSchema,
+  handler: async (data) => {
+    const runtime = createDefaultGraphRuntime();
+    const runId = await runtime.scheduler.start(data.graphId, data.input);
+
+    const meta = await runtime.checkpointer.loadRunMetadata(runId);
+    const events = await runtime.checkpointer.listEvents(runId);
+
+    return {
+      runId,
+      status: meta?.status ?? "unknown",
+      eventCount: events.length,
     };
   },
 });

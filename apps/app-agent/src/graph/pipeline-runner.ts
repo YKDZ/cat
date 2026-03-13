@@ -1,66 +1,65 @@
 import type { Orchestration } from "@cat/shared/schema/agent";
 
-import type { AgentRunner, PipelineResult, PipelineStageResult } from "./types";
+export type OrchestrationMode = "pipeline";
 
-// ─── Pipeline Orchestrator ───
-//
-// Executes agents in sequence: each stage's output feeds into the next.
-// The `inputFrom` field on each stage determines which previous output(s)
-// are injected into the agent's input context.
+export type PipelineStageResult = {
+  agentId: string;
+  outputKey: string;
+  output: string | null;
+  success: boolean;
+  error?: string;
+};
+
+export type PipelineResult = {
+  mode: "pipeline";
+  stages: PipelineStageResult[];
+  finalOutput: string | null;
+  success: boolean;
+};
+
+export type OrchestrationResult = PipelineResult;
+
+export type AgentRunner = (
+  agentId: string,
+  input: string,
+  context: Record<string, string>,
+) => Promise<{ output: string | null; success: boolean; error?: string }>;
 
 export type PipelineOptions = {
   orchestration: Orchestration;
-  /** Initial input text to feed the first stage */
   initialInput: string;
-  /** Runs a single agent with given input and accumulated context */
   runAgent: AgentRunner;
 };
 
-/**
- * Execute a pipeline orchestration.
- *
- * Stages are processed sequentially. Each stage receives:
- * - The output(s) from previous stages (as specified by `inputFrom`)
- * - The accumulated context of all prior stage outputs
- *
- * If any stage fails, the pipeline halts and returns partial results.
- */
 export const runPipeline = async (
   options: PipelineOptions,
 ): Promise<PipelineResult> => {
   const { orchestration, initialInput, runAgent } = options;
-  const stages = orchestration.stages;
   const stageResults: PipelineStageResult[] = [];
   const outputs = new Map<string, string>();
 
-  // Seed the context with the initial input
   outputs.set("_input", initialInput);
 
-  for (const stage of stages) {
-    // Determine the input for this stage
+  for (const stage of orchestration.stages) {
     const input = resolveStageInput(stage.inputFrom, outputs, initialInput);
 
-    // Build a context record from all prior outputs
     const context: Record<string, string> = {};
     for (const [key, value] of outputs) {
       context[key] = value;
     }
 
-    // Run the agent
     // oxlint-disable-next-line no-await-in-loop -- pipeline stages must be sequential
     const result = await runAgent(stage.agentId, input, context);
 
-    const stageResult: PipelineStageResult = {
+    stageResults.push({
       agentId: stage.agentId,
       outputKey: stage.outputKey,
       output: result.output,
       success: result.success,
       error: result.error,
-    };
-    stageResults.push(stageResult);
+    });
 
     if (!result.success) {
-      // Pipeline halts on failure
       return {
         mode: "pipeline",
         stages: stageResults,
@@ -69,23 +68,18 @@ export const runPipeline = async (
       };
     }
 
-    // Store the output for subsequent stages
     if (result.output !== null) {
       outputs.set(stage.outputKey, result.output);
     }
   }
 
-  // The last stage's output is the pipeline's final output
-  const lastResult = stageResults.at(-1);
   return {
     mode: "pipeline",
     stages: stageResults,
-    finalOutput: lastResult?.output ?? null,
+    finalOutput: stageResults.at(-1)?.output ?? null,
     success: true,
   };
 };
-
-// ─── Helpers ───
 
 const resolveStageInput = (
   inputFrom: string | string[] | undefined,
@@ -100,7 +94,6 @@ const resolveStageInput = (
     return outputs.get(inputFrom) ?? initialInput;
   }
 
-  // Multiple inputs: concatenate them
   return inputFrom
     .map((key) => {
       const value = outputs.get(key);

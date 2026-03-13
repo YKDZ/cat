@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { ref, nextTick, watch, onMounted, onUnmounted } from "vue";
+import { ref, nextTick, watch, onMounted, onUnmounted, computed } from "vue";
 import { storeToRefs } from "pinia";
 import {
   SidebarContent,
@@ -17,11 +17,16 @@ import {
   Square,
   RotateCcw,
   AlertTriangle,
+  Pause,
+  Play,
 } from "lucide-vue-next";
 import AgentMessageBubble from "./AgentMessageBubble.vue";
 import AgentThinkingIndicator from "./AgentThinkingIndicator.vue";
 import AgentToolConfirmCard from "./AgentToolConfirmCard.vue";
 import AgentMaxStepsCard from "./AgentMaxStepsCard.vue";
+import AgentNodeTimeline from "./AgentNodeTimeline.vue";
+import AgentRunResultCard from "./AgentRunResultCard.vue";
+import AgentBlackboardDebug from "./AgentBlackboardDebug.vue";
 import AgentSelector from "./AgentSelector.vue";
 import { useAgentStore } from "@/app/stores/agent";
 import { useEditorContextStore } from "@/app/stores/editor/context";
@@ -36,6 +41,10 @@ const {
   thinkingText,
   streamingStatus,
   isStreaming,
+  runId,
+  nodeExecutionList,
+  llmStreamingNodes,
+  blackboardPreview,
   activeSessionId,
   selectedDefinitionId,
   selectedDefinition,
@@ -43,6 +52,7 @@ const {
   errorMessage,
   pendingConfirmation,
   maxStepsReached,
+  graphRunResult,
   lastFinishReason,
 } = storeToRefs(agentStore);
 
@@ -136,6 +146,20 @@ const handleNewSession = () => {
   agentStore.selectDefinition(selectedDefinitionId.value);
 };
 
+const streamingNodeEntries = computed(() => {
+  return [...llmStreamingNodes.value.entries()]
+    .filter(([, text]) => text.length > 0)
+    .map(([nodeId, text]) => ({ nodeId, text }));
+});
+
+const hasBlackboardData = computed(() => {
+  return Object.keys(blackboardPreview.value).length > 0;
+});
+
+const handleRetry = () => {
+  void agentStore.retryLastMessage();
+};
+
 onMounted(() => {
   void agentStore.fetchDefinitions({ type: "GENERAL" });
 });
@@ -203,16 +227,36 @@ onMounted(() => {
               :steps="currentSteps"
             />
 
+            <AgentNodeTimeline
+              v-if="nodeExecutionList.length > 0"
+              :nodes="nodeExecutionList"
+            />
+
+            <AgentBlackboardDebug
+              v-if="hasBlackboardData"
+              :blackboard="blackboardPreview"
+            />
+
             <!-- Streaming response bubble — shows the live text_delta output.
                  Visible whenever the agent is streaming AND there is text being
                  produced.  On finish steps streamingText is preserved, so the
                  bubble smoothly transitions into the permanent MessageBubble
                  created by the 'done' chunk. -->
             <AgentMessageBubble
-              v-if="isStreaming && streamingText"
+              v-if="isStreaming && !runId && streamingText"
               role="ASSISTANT"
               :content="streamingText"
               :isStreaming="true"
+            />
+
+            <AgentMessageBubble
+              v-for="item in streamingNodeEntries"
+              v-if="isStreaming && runId"
+              :key="item.nodeId"
+              role="ASSISTANT"
+              :content="item.text"
+              :isStreaming="true"
+              :nodeId="item.nodeId"
             />
 
             <!-- Inline tool confirmation card (appears in message flow) -->
@@ -223,6 +267,12 @@ onMounted(() => {
 
             <!-- Max steps reached card -->
             <AgentMaxStepsCard v-if="maxStepsReached" :info="maxStepsReached" />
+
+            <AgentRunResultCard
+              v-if="graphRunResult"
+              :result="graphRunResult"
+              @retry="handleRetry"
+            />
 
             <!-- Implicit completion warning -->
             <div
@@ -259,31 +309,68 @@ onMounted(() => {
 
     <!-- Input Area -->
     <SidebarFooter>
-      <div class="flex gap-1">
-        <Input
-          v-model="inputText"
-          :placeholder="t('输入消息...')"
-          :disabled="!selectedDefinitionId && !activeSessionId"
-          @keydown="handleKeydown"
-        />
-        <Button
-          v-if="!isStreaming"
-          size="icon-sm"
-          :disabled="
-            !inputText.trim() || (!selectedDefinitionId && !activeSessionId)
-          "
-          @click="handleSend"
+      <div class="flex flex-col gap-2">
+        <div
+          v-if="runId"
+          class="flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 p-1"
         >
-          <ArrowRight />
-        </Button>
-        <Button
-          v-else
-          size="icon-sm"
-          variant="destructive"
-          @click="agentStore.cancelStreaming"
-        >
-          <Square />
-        </Button>
+          <Button
+            v-if="streamingStatus === 'streaming'"
+            size="sm"
+            variant="outline"
+            class="h-7 px-2 text-xs"
+            @click="agentStore.pauseGraphRun"
+          >
+            <Pause class="mr-1 size-3" />
+            {{ t("暂停") }}
+          </Button>
+          <Button
+            v-if="streamingStatus === 'paused'"
+            size="sm"
+            variant="outline"
+            class="h-7 px-2 text-xs"
+            @click="agentStore.resumeGraphRun"
+          >
+            <Play class="mr-1 size-3" />
+            {{ t("恢复") }}
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            class="h-7 px-2 text-xs"
+            @click="agentStore.cancelGraphRun"
+          >
+            <Square class="mr-1 size-3" />
+            {{ t("取消运行") }}
+          </Button>
+        </div>
+
+        <div class="flex gap-1">
+          <Input
+            v-model="inputText"
+            :placeholder="t('输入消息...')"
+            :disabled="!selectedDefinitionId && !activeSessionId"
+            @keydown="handleKeydown"
+          />
+          <Button
+            v-if="!isStreaming"
+            size="icon-sm"
+            :disabled="
+              !inputText.trim() || (!selectedDefinitionId && !activeSessionId)
+            "
+            @click="handleSend"
+          >
+            <ArrowRight />
+          </Button>
+          <Button
+            v-else
+            size="icon-sm"
+            variant="destructive"
+            @click="agentStore.cancelStreaming"
+          >
+            <Square />
+          </Button>
+        </div>
       </div>
     </SidebarFooter>
   </div>

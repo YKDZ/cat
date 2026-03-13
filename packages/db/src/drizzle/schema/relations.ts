@@ -462,11 +462,16 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.agentSession.agentDefinitionId,
         to: r.agentDefinition.id,
       }),
+      currentRun: r.one.agentRun({
+        from: r.agentSession.currentRunId,
+        to: r.agentRun.id,
+      }),
       user: r.one.user({
         from: r.agentSession.userId,
         to: r.user.id,
       }),
       messages: r.many.agentMessage(),
+      runs: r.many.agentRun(),
     },
     agentMessage: {
       session: r.one.agentSession({
@@ -479,6 +484,26 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       message: r.one.agentMessage({
         from: r.agentToolCall.messageId,
         to: r.agentMessage.id,
+      }),
+    },
+    agentRun: {
+      session: r.one.agentSession({
+        from: r.agentRun.sessionId,
+        to: r.agentSession.id,
+      }),
+      events: r.many.agentEvent(),
+      externalOutputs: r.many.agentExternalOutput(),
+    },
+    agentEvent: {
+      run: r.one.agentRun({
+        from: r.agentEvent.runId,
+        to: r.agentRun.id,
+      }),
+    },
+    agentExternalOutput: {
+      run: r.one.agentRun({
+        from: r.agentExternalOutput.runId,
+        to: r.agentRun.id,
       }),
     },
   }));

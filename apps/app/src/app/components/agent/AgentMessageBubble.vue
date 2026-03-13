@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { Badge } from "@cat/app-ui";
 import { ChevronDown, ChevronRight } from "lucide-vue-next";
 import Markdown from "@/app/components/Markdown.vue";
 import AgentToolCallCard from "./AgentToolCallCard.vue";
@@ -15,6 +16,7 @@ const props = withDefaults(
     stepIndex?: number | null;
     thinkingText?: string | null;
     isStreaming?: boolean;
+    nodeId?: string;
   }>(),
   {
     isStreaming: false,
@@ -72,6 +74,12 @@ const displayContent = computed(() => {
 
     <!-- Agent 回复：思考+工具调用时间线 + 最终回复 -->
     <div v-else-if="isAssistant" class="flex flex-col gap-1">
+      <div v-if="nodeId" class="mb-0.5">
+        <Badge variant="outline" class="h-4 px-1 text-[10px]">
+          {{ t("节点 {id}", { id: nodeId }) }}
+        </Badge>
+      </div>
+
       <!-- 时间线折叠按钮 -->
       <button
         v-if="hasTimeline"

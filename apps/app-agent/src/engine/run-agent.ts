@@ -17,48 +17,23 @@ import type {
 
 import { ContextManager } from "./context-manager";
 
-// ─── Constants ───
-
 const DEFAULT_MAX_STEPS = 10;
 const DEFAULT_MAX_CORRECTION_ATTEMPTS = 2;
 const LLM_RETRY_ATTEMPTS = 3;
 const LLM_RETRY_BASE_MS = 1000;
-/** 单次工具调用最长等待时间（毫秒）；超时后以错误返回，不阻塞整个 ReAct 循环 */
 const TOOL_CALL_TIMEOUT_MS = 15_000;
 
-/**
- * Correction prompt injected when the LLM returns plain text without calling
- * any tool. This nudges the model to use the explicit finish tool.
- */
 const CORRECTION_PROMPT =
   "You MUST call the termination tool (e.g. `finish_task`) to end the conversation. " +
   "Write your final response as normal text first, then call the tool to signal completion.";
 
-/**
- * System-level instruction appended to the system prompt when a finish tool
- * is present in the toolset. This tells the LLM upfront how to properly
- * terminate, drastically reducing the need for correction prompt injection.
- */
 const FINISH_TOOL_SYSTEM_RULE =
   "IMPORTANT: When you have finished the task or answered the user's question, " +
   "first write your full response as normal text, then call the `finish_task` " +
   "tool (with no arguments) to signal that you are done. The user sees your " +
-  "text as it streams \u2014 the tool call is only a termination signal. " +
+  "text as it streams — the tool call is only a termination signal. " +
   "NEVER end your turn with plain text alone; always finish with the tool call.";
 
-// ─── Main Agent Loop ───
-
-/**
- * Execute a ReAct (Reasoning + Acting) agent loop.
- *
- * Termination paths (in order of priority):
- * 1. **Finish tool** — Agent explicitly calls a tool with `isFinishTool: true`.
- * 2. **Max steps** — Step counter reaches `maxSteps`.
- * 3. **Error** — Unrecoverable error during execution.
- * 4. **Cancelled** — User aborts via signal.
- * 5. **Implicit completion** — After `maxCorrectionAttempts` correction prompts
- *    the LLM still outputs plain text; treat the last text as the final message.
- */
 export const runAgent = async (
   options: AgentRunOptions,
 ): Promise<AgentRunResult> => {
@@ -89,26 +64,17 @@ export const runAgent = async (
     options.definition.constraints?.maxCorrectionAttempts ??
     DEFAULT_MAX_CORRECTION_ATTEMPTS;
 
-  // Build tool map for fast lookup
   const toolMap = new Map(tools.map((t) => [t.name, t]));
-
-  // Check if any finish tool is available — correction prompts are only
-  // useful when the agent CAN call such a tool.
   const hasFinishTool = tools.some((t) => t.isFinishTool);
 
-  // Convert Zod schemas to JSON Schema for LLM
   const toolDefinitions: ToolDefinition[] = tools.map((t) => ({
     name: t.name,
     description: t.description,
     parameters: z.toJSONSchema(t.parameters) as JSONSchema,
   }));
 
-  // Initialize context manager
   const contextManager = new ContextManager(options.messages);
 
-  // If a finish tool is available, tell the LLM upfront that it must use it.
-  // This dramatically reduces the chance of plain-text-only responses and
-  // avoids the latency / UX penalty of correction prompt injection.
   if (hasFinishTool) {
     const finishToolNames = tools
       .filter((t) => t.isFinishTool)
@@ -129,21 +95,16 @@ export const runAgent = async (
   let totalPromptTokens = 0;
   let totalCompletionTokens = 0;
   let finishReason: AgentRunResult["finishReason"] = "max_steps";
-
-  /** Consecutive plain-text (no tool call) responses — independent counter, not consuming steps */
   let correctionCount = 0;
 
   for (let stepIndex = 0; stepIndex < maxSteps; stepIndex += 1) {
-    // Check cancellation
     if (signal?.aborted) {
       finishReason = "cancelled";
       break;
     }
 
-    // Reset per-step thinking buffer
     currentStepThinking = "";
 
-    // 1. Think: Call LLM with retry
     // oxlint-disable-next-line no-await-in-loop -- ReAct loop is inherently sequential
     const response = await callLLMWithRetry(
       async () =>
@@ -166,7 +127,6 @@ export const runAgent = async (
     totalPromptTokens += response.usage.promptTokens;
     totalCompletionTokens += response.usage.completionTokens;
 
-    // Append assistant message to context
     const assistantMessage: ChatMessage = {
       role: "assistant",
       content: response.content,
@@ -174,28 +134,19 @@ export const runAgent = async (
     };
     contextManager.push(assistantMessage);
 
-    // 2. No tool calls → inject correction prompt or fall back to implicit completion.
-    // The LLM should use the explicit finish tool; plain text is non-compliance.
-    // If no finish tool is available in the toolset, skip correction entirely
-    // and accept the text as implicit completion immediately.
     if (response.toolCalls.length === 0) {
       correctionCount += 1;
 
       if (hasFinishTool && correctionCount <= maxCorrectionAttempts) {
-        // Notify the frontend to reset streaming accumulators so the
-        // correction retry streams cleanly without appending to stale text.
         onCorrectionRetry?.();
-
-        // Inject correction prompt and retry WITHOUT consuming a step
         contextManager.push({
           role: "user",
           content: CORRECTION_PROMPT,
         });
-        stepIndex -= 1; // compensate the for-loop increment
+        stepIndex -= 1;
         continue;
       }
 
-      // Exhausted correction attempts → implicit completion fallback
       finalMessage = response.content;
       const fallbackStep: AgentStep = {
         index: stepIndex,
@@ -210,10 +161,8 @@ export const runAgent = async (
       break;
     }
 
-    // Reset correction counter on any successful tool-call step
     correctionCount = 0;
 
-    // 3. Act: Execute tool calls (with concurrency limit)
     // oxlint-disable-next-line no-await-in-loop -- ReAct loop steps must be sequential
     const toolCallRecords: ToolCallRecord[] = await executeToolCalls(
       response.toolCalls,
@@ -228,7 +177,6 @@ export const runAgent = async (
       },
     );
 
-    // 4. Observe: Append tool results to context
     const toolMessages: ChatMessage[] = toolCallRecords.map((tc) => ({
       role: "tool" as const,
       content: tc.error ? `Error: ${tc.error}` : JSON.stringify(tc.result),
@@ -236,15 +184,10 @@ export const runAgent = async (
     }));
     contextManager.pushMany(toolMessages);
 
-    // 4b. Check if the agent explicitly finished via a finish tool.
-    // Any tool with `isFinishTool: true` qualifies — this is extensible,
-    // not hardcoded to a single tool name.
     const finishToolCall = toolCallRecords.find(
       (tc) => !tc.error && toolMap.get(tc.toolName)?.isFinishTool,
     );
 
-    // Record step (with isFinish flag so the frontend can keep streamingText
-    // visible in the message bubble instead of clearing it prematurely).
     const step: AgentStep = {
       index: stepIndex,
       thought: response.content,
@@ -254,10 +197,8 @@ export const runAgent = async (
     };
     steps.push(step);
     onStep?.(step);
+
     if (finishToolCall) {
-      // Prefer the streamed response.content (already delivered to the user
-      // token-by-token via text_delta) over the tool argument, so the final
-      // message matches what the user has been reading in real-time.
       const args = finishToolCall.arguments;
       finalMessage =
         response.content && response.content.trim().length > 0
@@ -269,12 +210,11 @@ export const runAgent = async (
       break;
     }
 
-    // 5. Summarize if context is getting long
     try {
       // oxlint-disable-next-line no-await-in-loop -- summarization must happen between steps
       await contextManager.maybeSummarize(llmProvider, signal);
     } catch {
-      // Summarization failure is non-fatal; continue with full context
+      // ignore summarize errors
     }
   }
 
@@ -289,16 +229,12 @@ export const runAgent = async (
   };
 };
 
-// ─── Types for confirmation context ───
-
 type ToolConfirmCtx = {
   onToolConfirmRequest: AgentRunOptions["onToolConfirmRequest"];
   onToolExecuteRequest: AgentRunOptions["onToolExecuteRequest"];
   sessionTrustPolicy: "confirm_all" | "trust_session";
   trustedToolNames: Set<string>;
 };
-
-// ─── Helper: Execute tool calls with concurrency limit ───
 
 const executeToolCalls = async (
   toolCalls: { id: string; name: string; arguments: string }[],
@@ -309,7 +245,6 @@ const executeToolCalls = async (
 ): Promise<ToolCallRecord[]> => {
   const results: ToolCallRecord[] = [];
 
-  // Process in batches of maxConcurrent
   for (let i = 0; i < toolCalls.length; i += maxConcurrent) {
     const batch = toolCalls.slice(i, i + maxConcurrent);
     // oxlint-disable-next-line no-await-in-loop -- batches must be sequential, within-batch is parallel
@@ -324,8 +259,6 @@ const executeToolCalls = async (
   return results;
 };
 
-// ─── Helper: Determine if confirmation is needed ───
-
 const needsConfirmation = (
   policy: ToolConfirmationPolicy | undefined,
   sessionPolicy: "confirm_all" | "trust_session",
@@ -335,12 +268,9 @@ const needsConfirmation = (
   const effectivePolicy = policy ?? "auto_allow";
   if (effectivePolicy === "auto_allow") return false;
   if (effectivePolicy === "always_confirm") return true;
-  // session_trust: check session policy and per-tool trust
   if (trustedToolNames.has(toolName)) return false;
   return sessionPolicy === "confirm_all";
 };
-
-// ─── Helper: Map confirmation policy to risk level ───
 
 const policyToRiskLevel = (
   policy: ToolConfirmationPolicy | undefined,
@@ -391,7 +321,6 @@ const executeSingleToolCall = async (
     };
   }
 
-  // --- Confirmation check ---
   let confirmationStatus: ToolCallRecord["confirmationStatus"] = "auto_allowed";
 
   if (
@@ -403,7 +332,6 @@ const executeSingleToolCall = async (
     )
   ) {
     if (!confirmCtx.onToolConfirmRequest) {
-      // No confirmation handler → auto-allow (backwards compat)
       confirmationStatus = "auto_allowed";
     } else {
       const response = await confirmCtx.onToolConfirmRequest({
@@ -429,7 +357,6 @@ const executeSingleToolCall = async (
 
       confirmationStatus = "user_approved";
 
-      // Update trust state based on user decision
       if (response.decision === "trust_tool_for_session") {
         confirmCtx.trustedToolNames.add(tool.name);
       } else if (response.decision === "trust_all_for_session") {
@@ -438,7 +365,6 @@ const executeSingleToolCall = async (
     }
   }
 
-  // --- Client tool delegation ---
   if (toolTarget === "client") {
     if (!confirmCtx.onToolExecuteRequest) {
       return {
@@ -499,7 +425,6 @@ const executeSingleToolCall = async (
     }
   }
 
-  // --- Server tool execution ---
   try {
     const validatedArgs = tool.parameters.parse(parsedArgs);
     const effectiveTimeout = tool.timeoutMs ?? TOOL_CALL_TIMEOUT_MS;
@@ -536,8 +461,6 @@ const executeSingleToolCall = async (
     };
   }
 };
-
-// ─── Helper: LLM call with exponential backoff retry ───
 
 const callLLMWithRetry = async <T>(
   fn: () => Promise<T>,

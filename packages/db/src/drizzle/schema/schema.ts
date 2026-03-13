@@ -1025,6 +1025,8 @@ export const agentSession = pgTable(
       onUpdate: "cascade",
     }),
     status: agentSessionStatus().notNull().default("ACTIVE"),
+    /** Current active run (Graph runtime) */
+    currentRunId: integer(),
     /** Session-level trust policy for tool confirmation */
     trustPolicy: agentSessionTrustPolicy().notNull().default("CONFIRM_ALL"),
     /** Business context metadata (e.g. projectId, documentId) */
@@ -1083,4 +1085,82 @@ export const agentToolCall = pgTable(
       .notNull(),
   },
   (table) => [index().on(table.messageId)],
+);
+
+export const agentRun = pgTable(
+  "AgentRun",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    sessionId: integer()
+      .notNull()
+      .references(() => agentSession.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    /** running | paused | completed | failed | cancelled */
+    status: text().notNull().default("running"),
+    graphDefinition: jsonb().$type<NonNullJSONType>().notNull(),
+    blackboardSnapshot: jsonb().$type<JSONType>(),
+    currentNodeId: text(),
+    startedAt: timestamp({ withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+    completedAt: timestamp({ withTimezone: true }),
+    metadata: jsonb().$type<JSONType>(),
+  },
+  (table) => [index().on(table.sessionId), index().on(table.status)],
+);
+
+export const agentEvent = pgTable(
+  "AgentEvent",
+  {
+    id: serial().primaryKey(),
+    runId: integer()
+      .notNull()
+      .references(() => agentRun.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    eventId: uuid().defaultRandom().notNull(),
+    parentEventId: uuid(),
+    nodeId: text(),
+    type: text().notNull(),
+    payload: jsonb().$type<NonNullJSONType>().notNull(),
+    timestamp: timestamp({ withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+  },
+  (table) => [
+    index().on(table.runId),
+    index().on(table.type),
+    unique().on(table.runId, table.eventId),
+  ],
+);
+
+export const agentExternalOutput = pgTable(
+  "AgentExternalOutput",
+  {
+    id: serial().primaryKey(),
+    runId: integer()
+      .notNull()
+      .references(() => agentRun.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    nodeId: text().notNull(),
+    /** llm_response | tool_result */
+    outputType: text().notNull(),
+    outputKey: text().notNull(),
+    payload: jsonb().$type<NonNullJSONType>().notNull(),
+    idempotencyKey: text(),
+    createdAt: timestamp({ withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+  },
+  (table) => [
+    index().on(table.runId),
+    index().on(table.nodeId),
+    unique().on(table.runId, table.outputKey, table.idempotencyKey),
+  ],
 );

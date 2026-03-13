@@ -18,6 +18,7 @@ export {
 export {
   runAgent,
   runCompletion,
+  runFim,
   ContextManager,
   type ContextManagerOptions,
   type AgentRunOptions,
@@ -26,9 +27,11 @@ export {
   type ToolCallRecord,
   type CompletionOptions,
   type CompletionChunk,
+  type FimOptions,
+  type FimChunk,
 } from "./engine/index";
 
-// ─── Orchestrator ───
+// ─── Pipeline Compatibility ───
 export {
   runPipeline,
   type PipelineOptions,
@@ -37,7 +40,7 @@ export {
   type OrchestrationResult,
   type PipelineResult,
   type PipelineStageResult,
-} from "./orchestrator/index";
+} from "./graph/pipeline-runner";
 
 // ─── Context Resolution Engine ───
 export {
@@ -78,3 +81,6 @@ export {
   type PersistedToolCallInfo,
   type ResolvedSession,
 } from "./session/index";
+
+// ─── Graph Engine ───
+export * from "./graph/index";

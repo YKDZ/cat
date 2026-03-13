@@ -10,8 +10,6 @@ import {
   resolveContextVariables,
 } from "@/context/index";
 
-import { AgentSessionMetaSchema } from "./schema";
-
 // ─── Build System Prompt ───
 
 /**
@@ -31,7 +29,7 @@ import { AgentSessionMetaSchema } from "./schema";
 export const buildSystemPrompt = async (params: {
   drizzle: DrizzleClient;
   definition: AgentDefinition;
-  sessionMetadata: unknown;
+  seedsVars: Record<string, string | number | boolean>;
   userId: string;
   tools: ReadonlyArray<AgentToolDefinition>;
   /** Context providers from PluginManager.getServices("AGENT_CONTEXT_PROVIDER") */
@@ -42,7 +40,7 @@ export const buildSystemPrompt = async (params: {
   const {
     drizzle,
     definition,
-    sessionMetadata,
+    seedsVars,
     userId,
     tools,
     contextProviders = [],
@@ -52,21 +50,7 @@ export const buildSystemPrompt = async (params: {
   // 1. Build seed variables — these are the roots of the dependency graph
   const seeds: SeedVariables = new Map();
   seeds.set("userId", userId);
-
-  const metaResult = AgentSessionMetaSchema.safeParse(sessionMetadata);
-  if (metaResult.success) {
-    const meta = metaResult.data;
-    if (meta.projectId !== undefined) seeds.set("projectId", meta.projectId);
-    if (meta.documentId !== undefined) seeds.set("documentId", meta.documentId);
-    if (meta.elementId !== undefined) seeds.set("elementId", meta.elementId);
-    if (meta.languageId !== undefined) {
-      seeds.set("languageId", meta.languageId);
-      // Backward-compatibility alias used by existing agent prompts
-      seeds.set("translationLanguageId", meta.languageId);
-    }
-    if (meta.sourceLanguageId !== undefined)
-      seeds.set("sourceLanguageId", meta.sourceLanguageId);
-  }
+  Object.entries(seedsVars).forEach(([key, value]) => seeds.set(key, value));
 
   // 2. Assemble provider list: builtins first, then plugin-supplied providers
   const builtins = createBuiltinProviders({ definition, tools, drizzle });
@@ -95,6 +79,10 @@ export const buildSystemPrompt = async (params: {
   for (const [key, value] of resolved) {
     systemPrompt = systemPrompt.replaceAll(`{{${key}}}`, String(value));
   }
+
+  // 5. Remove any remaining unresolved {{key}} placeholders
+  //    (variables that had no value)
+  systemPrompt = systemPrompt.replace(/\{\{[^}]+\}\}/g, "");
 
   return systemPrompt;
 };

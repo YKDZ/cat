@@ -75,6 +75,13 @@ const formattedResult = computed(() => {
       <span class="flex-1 truncate text-left font-medium">
         {{ toolCall.toolName }}
       </span>
+      <Badge
+        v-if="toolCall.nodeId"
+        variant="outline"
+        class="h-4 px-1 text-[10px]"
+      >
+        {{ t("节点 {id}", { id: toolCall.nodeId }) }}
+      </Badge>
       <Badge v-if="isClientTool" variant="outline" class="h-4 px-1 text-[10px]">
         <Monitor class="mr-0.5 size-2.5" />
         {{ t("客户端") }}
