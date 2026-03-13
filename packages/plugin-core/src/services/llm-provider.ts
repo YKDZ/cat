@@ -39,6 +39,8 @@ export type ChatCompletionRequest = {
   tools?: ToolDefinition[];
   temperature?: number;
   maxTokens?: number;
+  /** Whether to enable streaming (default true). When set to false, onChunk callback is ignored. */
+  stream?: boolean;
   /** Streaming callback — invoked for each chunk when streaming is used */
   onChunk?: (chunk: ChatStreamChunk) => void;
   signal?: AbortSignal;
@@ -82,6 +84,34 @@ export type ChatCompletionResponse = {
   finishReason: ChatCompletionFinishReason;
 };
 
+// ─── FIM (Fill-in-the-Middle) Types ───
+
+export type FimCompletionRequest = {
+  /** System prompt providing task context (e.g., translation context) */
+  system: string;
+  /** Text before the cursor (includes entered translation) */
+  prefix: string;
+  /** Text after the cursor (if any) */
+  suffix: string;
+  /** Whether to enable streaming (default true) */
+  stream?: boolean;
+  temperature?: number;
+  maxTokens?: number;
+  /** Callback for receiving streaming text chunks */
+  onChunk?: (chunk: FimStreamChunk) => void;
+  signal?: AbortSignal;
+};
+
+export type FimStreamChunk =
+  | { type: "text_delta"; textDelta: string }
+  | { type: "done" };
+
+export type FimCompletionResponse = {
+  /** The completed text from the model */
+  content: string;
+  usage: ChatCompletionUsage;
+};
+
 // ─── Abstract LLMProvider Service ───
 
 export abstract class LLMProvider implements IPluginService {
@@ -101,4 +131,20 @@ export abstract class LLMProvider implements IPluginService {
 
   /** Whether this provider supports streaming via onChunk callback */
   abstract supportsStreaming(): boolean;
+
+  /** Whether this provider supports FIM (Fill-in-the-Middle) completions (default false). Subclasses should override to declare support. */
+  supportsFim(): boolean {
+    return false;
+  }
+
+  /**
+   * Execute a FIM completion request.
+   * Only callable when supportsFim() returns true.
+   * Default implementation throws Error; subclasses must override.
+   */
+  async fim(_request: FimCompletionRequest): Promise<FimCompletionResponse> {
+    throw new Error(
+      `LLMProvider ${this.getId()} does not support FIM completions`,
+    );
+  }
 }

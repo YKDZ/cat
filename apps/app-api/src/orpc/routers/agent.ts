@@ -10,6 +10,7 @@ import {
   AgentSessionMetaSchema,
   buildChatMessages,
   buildSystemPrompt,
+  createDefaultGraphRuntime,
   loadConversationHistory,
   persistAgentResult,
   persistUserMessage,
@@ -18,6 +19,7 @@ import {
   runAgent,
   setupToolRegistry,
   updateSessionStatus,
+  type AgentEvent,
   type AgentStep,
 } from "@cat/app-agent";
 import {
@@ -54,6 +56,29 @@ import {
   clearSessionManagers,
   getSessionManagers,
 } from "@/utils/agent-session-managers";
+
+const graphRuntime = createDefaultGraphRuntime();
+
+const mapSessionMetaToSeeds = (
+  metadata: unknown,
+): Record<string, string | number | boolean> => {
+  const parsed = AgentSessionMetaSchema.safeParse(metadata);
+  if (!parsed.success) return {};
+
+  const seeds: Record<string, string | number | boolean> = {};
+  const data = parsed.data;
+
+  if (data.projectId) seeds["projectId"] = data.projectId;
+  if (data.documentId) seeds["documentId"] = data.documentId;
+  if (data.elementId !== undefined) seeds["elementId"] = data.elementId;
+  if (data.languageId) {
+    seeds["languageId"] = data.languageId;
+    seeds["translationLanguageId"] = data.languageId;
+  }
+  if (data.sourceLanguageId) seeds["sourceLanguageId"] = data.sourceLanguageId;
+
+  return seeds;
+};
 
 // ─── Routes ───
 
@@ -457,7 +482,7 @@ export const sendMessage = authed
     const systemPrompt = await buildSystemPrompt({
       drizzle,
       definition,
-      sessionMetadata: session.metadata,
+      seedsVars: mapSessionMetaToSeeds(session.metadata),
       userId: session.userId ?? user.id,
       tools,
       contextProviders,
@@ -569,6 +594,125 @@ export const sendMessage = authed
     }
   });
 
+// ─── Graph Runtime Control ───
+
+export const graphStart = authed
+  .input(
+    z.object({
+      graphId: z.string().default("react-loop"),
+      input: z.record(z.string(), z.unknown()).default({}),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const runId = await graphRuntime.scheduler.start(
+      graphIdOrDefault(input.graphId),
+      input.input,
+    );
+    return { runId };
+  });
+
+export const graphPause = authed
+  .input(z.object({ runId: z.uuidv4() }))
+  .handler(async ({ input }) => {
+    await graphRuntime.scheduler.pause(input.runId);
+    return { ok: true };
+  });
+
+export const graphResume = authed
+  .input(z.object({ runId: z.uuidv4() }))
+  .handler(async ({ input }) => {
+    await graphRuntime.scheduler.resume(input.runId);
+    return { ok: true };
+  });
+
+export const graphCancel = authed
+  .input(z.object({ runId: z.uuidv4() }))
+  .handler(async ({ input }) => {
+    await graphRuntime.eventBus.publish({
+      runId: input.runId,
+      type: "run:cancel",
+      timestamp: new Date().toISOString(),
+      payload: {},
+    });
+    return { ok: true };
+  });
+
+export const graphStatus = authed
+  .input(z.object({ runId: z.uuidv4() }))
+  .handler(async ({ input }) => {
+    const metadata = await graphRuntime.checkpointer.loadRunMetadata(
+      input.runId,
+    );
+    const snapshot = await graphRuntime.checkpointer.loadSnapshot(input.runId);
+    return {
+      metadata,
+      snapshot,
+    };
+  });
+
+export const graphEvents = authed
+  .input(
+    z.object({
+      runId: z.uuidv4(),
+      includeHistory: z.boolean().default(true),
+    }),
+  )
+  .handler(async function* ({ input }) {
+    const queue = new AsyncMessageQueue<AgentEvent>();
+
+    if (input.includeHistory) {
+      const history = await graphRuntime.checkpointer.listEvents(input.runId);
+      for (const event of history) {
+        queue.push(event);
+      }
+    }
+
+    const unsubscribe = graphRuntime.eventBus.subscribeAll(async (event) => {
+      if (event.runId !== input.runId) return;
+      queue.push(event);
+      if (event.type === "run:end" || event.type === "run:error") {
+        queue.close();
+      }
+    });
+
+    try {
+      for await (const event of queue.consume()) {
+        yield event;
+      }
+    } finally {
+      unsubscribe();
+      queue.clear();
+    }
+  });
+
+export const graphSubmitToolConfirmResponse = authed
+  .input(
+    z.object({
+      runId: z.uuidv4(),
+      nodeId: z.string().optional(),
+      response: ToolConfirmResponseSchema,
+    }),
+  )
+  .handler(async ({ input }) => {
+    await graphRuntime.eventBus.publish({
+      runId: input.runId,
+      nodeId: input.nodeId,
+      type: "tool:confirm:response",
+      timestamp: new Date().toISOString(),
+      payload: {
+        nodeId: input.nodeId,
+        callId: input.response.callId,
+        decision: input.response.decision,
+      },
+    });
+
+    return { ok: true };
+  });
+
+const graphIdOrDefault = (graphId: string): string => {
+  return graphId.trim().length > 0 ? graphId : "react-loop";
+};
+
 // ─── Tool Confirm / Execute Callbacks ───
 
 /**
@@ -577,12 +721,35 @@ export const sendMessage = authed
  */
 export const submitToolConfirmResponse = authed
   .input(
-    z.object({
-      sessionId: z.uuidv4(),
-      response: ToolConfirmResponseSchema,
-    }),
+    z.union([
+      z.object({
+        sessionId: z.uuidv4(),
+        response: ToolConfirmResponseSchema,
+      }),
+      z.object({
+        runId: z.uuidv4(),
+        nodeId: z.string().optional(),
+        response: ToolConfirmResponseSchema,
+      }),
+    ]),
   )
   .handler(async ({ input }) => {
+    if ("runId" in input) {
+      await graphRuntime.eventBus.publish({
+        runId: input.runId,
+        nodeId: input.nodeId,
+        type: "tool:confirm:response",
+        timestamp: new Date().toISOString(),
+        payload: {
+          nodeId: input.nodeId,
+          callId: input.response.callId,
+          decision: input.response.decision,
+        },
+      });
+
+      return { ok: true };
+    }
+
     const managers = getSessionManagers(input.sessionId);
     const resolved = managers.confirmations.resolve(
       input.response.callId,

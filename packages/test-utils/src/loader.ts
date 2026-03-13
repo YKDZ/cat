@@ -1,6 +1,7 @@
 import type { JSONType } from "@cat/shared/schema/json";
 import type { VectorizedTextData } from "@cat/shared/schema/misc";
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
+import type { TranslationAdvise } from "@cat/shared/schema/plugin";
 
 import {
   and,
@@ -57,7 +58,6 @@ import {
   type CanImportContext,
   type UpdateDimensionContext,
   type InitContext,
-  type TranslationSuggestion,
 } from "@cat/plugin-core";
 import {
   pgTable,
@@ -402,11 +402,11 @@ export class TestFileExporter extends FileExporter {
 
 export class TestTranslationAdvisor extends TranslationAdvisor {
   public override getId = (): string => "translation-advisor";
-  public override getName = (): string => "Mock Advisor";
+  public override getDisplayName = (): string => "Mock Advisor";
 
-  public override getSuggestions = async ({
+  public override advise = async ({
     source: { text },
-  }: GetSuggestionsContext): Promise<TranslationSuggestion[]> => {
+  }: GetSuggestionsContext): Promise<TranslationAdvise[]> => {
     return [
       {
         translation: `[Mock Translation] ${text}`,

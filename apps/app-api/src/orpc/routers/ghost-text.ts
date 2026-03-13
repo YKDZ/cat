@@ -1,6 +1,6 @@
 import type { AgentContextProvider, LLMProvider } from "@cat/plugin-core";
 
-import { buildSystemPrompt, runCompletion } from "@cat/app-agent";
+import { buildSystemPrompt, runFim } from "@cat/app-agent";
 import { getServiceFromDBId } from "@cat/app-server-shared/utils";
 import {
   agentDefinition,
@@ -86,29 +86,6 @@ export const suggest = authed
 
     const sourceText = elementRow.sourceText;
 
-    // ── Build user message ────────────────────────────────────────────────
-    const contextLines: string[] = [
-      `Source text: ${sourceText}`,
-      `Target language: ${input.languageId}`,
-      `Current input (up to cursor): ${input.currentInput.slice(0, input.cursorPosition)}`,
-    ];
-
-    if (input.memoryHints) {
-      contextLines.push(`Translation memory hints:\n${input.memoryHints}`);
-    }
-    if (input.termHints) {
-      contextLines.push(`Terminology hints:\n${input.termHints}`);
-    }
-    if (input.neighborElements) {
-      contextLines.push(`Neighboring segments:\n${input.neighborElements}`);
-    }
-
-    contextLines.push(
-      "\nOutput ONLY the continuation text with no explanation:",
-    );
-
-    const userMessage = contextLines.join("\n");
-
     // Build system prompt using the context resolution engine so that
     // AGENT_CONTEXT_PROVIDER plugins can inject variables into the ghost-text
     // agent's system prompt (e.g. glossary IDs, project context).
@@ -117,12 +94,23 @@ export const suggest = authed
       // oxlint-disable-next-line no-unsafe-type-assertion -- service type guaranteed by getServices("AGENT_CONTEXT_PROVIDER")
       .map((s) => s.service as AgentContextProvider);
 
+    // Derive prefix/suffix from cursor position
+    const prefix = input.currentInput.slice(0, input.cursorPosition);
+    const suffix = input.currentInput.slice(input.cursorPosition);
+
     const systemPrompt = await buildSystemPrompt({
       drizzle,
       definition: ghostAgentRow.definition,
-      sessionMetadata: {
+      seedsVars: {
         elementId: input.elementId,
-        languageId: input.languageId,
+        sourceText,
+        targetLanguageId: input.languageId,
+        memoryHints: input.memoryHints ?? "",
+        termHints: input.termHints ?? "",
+        neighborElements: input.neighborElements ?? "",
+        currentInput: input.currentInput,
+        prefix,
+        suffix,
       },
       userId: user.id,
       tools: [],
@@ -139,12 +127,22 @@ export const suggest = authed
       pluginManager,
       providerId,
     );
-    for await (const chunk of runCompletion({
+
+    // FIM requires the provider to support FIM
+    if (!llmProvider.supportsFim()) {
+      throw new Error(
+        `LLM provider ${llmProvider.getId()} does not support FIM completions. Please configure a provider that supports FIM.`,
+      );
+    }
+
+    for await (const chunk of runFim({
       llmProvider,
       systemPrompt,
-      userMessage,
+      prefix,
+      suffix,
       temperature,
       maxTokens,
+      stream: true,
     })) {
       yield { text: chunk.text };
     }

@@ -15,7 +15,8 @@ export const test = baseTest.extend<
   TestFixtures,
   { workerStorageState: string }
 >({
-  testId: async (_, use) => {
+  // oxlint-disable-next-line no-empty-pattern
+  testId: async ({}, use) => {
     // 为每个测试生成唯一的 ID
     const id = randomUUID().split("-")[0];
     await use(id);
