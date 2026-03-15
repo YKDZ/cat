@@ -1,11 +1,10 @@
+import { getDrizzleDB } from "@cat/db";
 import {
-  chunk,
-  chunkSet,
-  eq,
-  getDrizzleDB,
-  inArray,
-  translatableString,
-} from "@cat/db";
+  bulkUpdateChunkVectorMetadata,
+  executeCommand,
+  executeQuery,
+  listChunkVectorizationInputs,
+} from "@cat/domain";
 import {
   PluginManager,
   type TextVectorizer,
@@ -44,19 +43,9 @@ export const revectorizeOp = async (
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   // 1. 获取 chunk 关联的源文本
-  const chunksData = await db
-    .select({
-      chunkId: chunk.id,
-      text: translatableString.value,
-      languageId: translatableString.languageId,
-    })
-    .from(chunk)
-    .innerJoin(chunkSet, eq(chunk.chunkSetId, chunkSet.id))
-    .innerJoin(
-      translatableString,
-      eq(translatableString.chunkSetId, chunkSet.id),
-    )
-    .where(inArray(chunk.id, chunkIds));
+  const chunksData = await executeQuery({ db }, listChunkVectorizationInputs, {
+    chunkIds,
+  });
 
   if (chunksData.length === 0) return {};
 
@@ -123,16 +112,11 @@ export const revectorizeOp = async (
   }
 
   // 6. 更新 chunk 元数据
-  for (const update of chunkUpdates) {
-    // oxlint-disable-next-line no-await-in-loop
-    await db
-      .update(chunk)
-      .set({
-        vectorizerId: update.vectorizerId,
-        vectorStorageId: update.vectorStorageId,
-      })
-      .where(eq(chunk.id, update.id));
-  }
+  await executeCommand({ db }, bulkUpdateChunkVectorMetadata, {
+    chunkIds: chunkUpdates.map((item) => item.id),
+    vectorizerId,
+    vectorStorageId,
+  });
 
   return {};
 };

@@ -13,6 +13,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./workflow": {
+      "types": "./dist/workflow/index.d.ts",
+      "import": "./dist/workflow/index.js"
     }
   },
   "scripts": {
@@ -27,16 +31,21 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@cat/domain": "workspace:*",
     "@cat/eslint-config": "workspace:*",
+    "@cat/test-utils": "workspace:*",
     "@types/node": "^24.0.0",
+    "dotenv": "^17.3.1",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@cat/app-server-shared": "workspace:*",
     "@cat/db": "workspace:*",
+    "@cat/domain": "workspace:*",
+    "@cat/operations": "workspace:*",
     "@cat/plugin-core": "workspace:*",
+    "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
     "zod": "^4.3.6"
   },

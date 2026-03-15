@@ -1,10 +1,11 @@
 import type { JSONType } from "@cat/shared/schema/json";
 
-import { getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
+import { getRedisDB } from "@cat/db";
 import {
   AuthProvider,
   type AuthResult,
   type HandleLogoutContext,
+  type PluginCapabilities,
   type PreAuthResult,
 } from "@cat/plugin-core";
 import { safeJoinURL } from "@cat/shared/utils";
@@ -29,11 +30,13 @@ type PreAuthMeta = z.infer<typeof PreAuthMetaSchema>;
 
 export class Provider extends AuthProvider {
   private config: ProviderConfig;
+  private capabilities: PluginCapabilities;
 
-  constructor(config: JSONType) {
+  constructor(config: JSONType, capabilities: PluginCapabilities) {
     // oxlint-disable-next-line no-unsafe-call
     super();
     this.config = ProviderConfigSchema.parse(config);
+    this.capabilities = capabilities;
   }
 
   getId(): string {
@@ -54,7 +57,13 @@ export class Provider extends AuthProvider {
     const state = randomChars();
     const nonce = randomChars();
 
-    const redirectURL = await createOIDCAuthURL(this.config, state, nonce);
+    const serverUrl = await this.capabilities.setting.getServerUrl();
+    const redirectURL = await createOIDCAuthURL(
+      this.config,
+      state,
+      nonce,
+      serverUrl,
+    );
 
     return {
       passToClient: {
@@ -72,8 +81,6 @@ export class Provider extends AuthProvider {
     },
     meta: JSONType,
   ): Promise<AuthResult> {
-    const { client: drizzle } = await getDrizzleDB();
-
     const { state, code } = SearchParasSchema.parse(
       gotFromClient.urlSearchParams,
     );
@@ -83,15 +90,14 @@ export class Provider extends AuthProvider {
     if (!preAuthMeta.state || preAuthMeta.state !== state || !preAuthMeta.nonce)
       throw new Error("State do not match");
 
+    const serverUrl = await this.capabilities.setting.getServerUrl();
+
     // 请求 Token
     const params = new URLSearchParams({
       client_id: this.config.clientId,
       client_secret: this.config.clientSecret,
       code,
-      redirect_uri: safeJoinURL(
-        await getSetting(drizzle, "server.url", "http://localhost:3000"),
-        "/auth/callback",
-      ),
+      redirect_uri: safeJoinURL(serverUrl, "/auth/callback"),
       grant_type: "authorization_code",
     });
 
@@ -156,7 +162,6 @@ export class Provider extends AuthProvider {
     sessionId,
   }: HandleLogoutContext): Promise<void> {
     const { redis } = await getRedisDB();
-    const { client: drizzle } = await getDrizzleDB();
     const idToken = await redis.hGet(`user:session:${sessionId}`, "idToken");
 
     if (!idToken) throw new Error("ID Token do not exists");
@@ -164,11 +169,7 @@ export class Provider extends AuthProvider {
     const state = randomChars(32);
     const params = new URLSearchParams({
       id_token_hint: idToken,
-      post_logout_redirect_uri: await getSetting(
-        drizzle,
-        "server.url",
-        "http://localhost:3000",
-      ),
+      post_logout_redirect_uri: await this.capabilities.setting.getServerUrl(),
       state,
     });
 

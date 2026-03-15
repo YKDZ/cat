@@ -1,12 +1,14 @@
 import {
-  and,
-  desc,
-  eq,
-  isNotNull,
-  isNull,
-  comment as commentTable,
-  commentReaction,
-} from "@cat/db";
+  createComment,
+  deleteComment as deleteCommentCommand,
+  deleteCommentReaction,
+  executeCommand,
+  executeQuery,
+  listChildComments,
+  listCommentReactions,
+  listRootComments,
+  upsertCommentReaction,
+} from "@cat/domain";
 import {
   CommentSchema,
   CommentReactionSchema,
@@ -15,7 +17,6 @@ import {
   CommentReactionTypeSchema,
   CommentTargetTypeSchema,
 } from "@cat/shared/schema/drizzle/enum";
-import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod";
 
 import { authed } from "@/orpc/server";
@@ -36,24 +37,11 @@ export const comment = authed
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    const { targetType, targetId, content, parentCommentId, languageId } =
-      input;
 
-    const comment = assertSingleNonNullish(
-      await drizzle
-        .insert(commentTable)
-        .values({
-          targetType,
-          targetId,
-          userId: user.id,
-          content,
-          parentCommentId,
-          languageId,
-        })
-        .returning(),
-    );
-
-    return comment;
+    return await executeCommand({ db: drizzle }, createComment, {
+      ...input,
+      userId: user.id,
+    });
   });
 
 export const getRootComments = authed
@@ -70,23 +58,8 @@ export const getRootComments = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { targetType, targetId, pageIndex, pageSize } = input;
 
-    const comments = await drizzle
-      .select()
-      .from(commentTable)
-      .where(
-        and(
-          eq(commentTable.targetType, targetType),
-          eq(commentTable.targetId, targetId),
-          isNull(commentTable.parentCommentId),
-        ),
-      )
-      .orderBy(desc(commentTable.createdAt))
-      .offset(pageIndex * pageSize)
-      .limit(pageSize);
-
-    return comments;
+    return await executeQuery({ db: drizzle }, listRootComments, input);
   });
 
 export const getChildComments = authed
@@ -100,20 +73,8 @@ export const getChildComments = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { rootCommentId } = input;
 
-    const childComments = await drizzle
-      .select()
-      .from(commentTable)
-      .where(
-        and(
-          eq(commentTable.rootCommentId, rootCommentId),
-          isNotNull(commentTable.parentCommentId),
-        ),
-      )
-      .orderBy(desc(commentTable.createdAt));
-
-    return childComments;
+    return await executeQuery({ db: drizzle }, listChildComments, input);
   });
 
 export const getCommentReactions = authed
@@ -127,14 +88,8 @@ export const getCommentReactions = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { commentId } = input;
 
-    const reactions = await drizzle
-      .select()
-      .from(commentReaction)
-      .where(eq(commentReaction.commentId, commentId));
-
-    return reactions;
+    return await executeQuery({ db: drizzle }, listCommentReactions, input);
   });
 
 export const react = authed
@@ -150,26 +105,11 @@ export const react = authed
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    const { commentId, type } = input;
 
-    const reaction = assertSingleNonNullish(
-      await drizzle
-        .insert(commentReaction)
-        .values({
-          commentId: commentId,
-          userId: user.id,
-          type,
-        })
-        .onConflictDoUpdate({
-          target: [commentReaction.commentId, commentReaction.userId],
-          set: {
-            type,
-          },
-        })
-        .returning(),
-    );
-
-    return reaction;
+    return await executeCommand({ db: drizzle }, upsertCommentReaction, {
+      ...input,
+      userId: user.id,
+    });
   });
 
 export const unReact = authed
@@ -184,16 +124,11 @@ export const unReact = authed
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    const { commentId } = input;
 
-    await drizzle
-      .delete(commentReaction)
-      .where(
-        and(
-          eq(commentReaction.commentId, commentId),
-          eq(commentReaction.userId, user.id),
-        ),
-      );
+    await executeCommand({ db: drizzle }, deleteCommentReaction, {
+      commentId: input.commentId,
+      userId: user.id,
+    });
   });
 
 export const deleteComment = authed
@@ -208,11 +143,9 @@ export const deleteComment = authed
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    const { commentId } = input;
 
-    await drizzle
-      .delete(commentTable)
-      .where(
-        and(eq(commentTable.id, commentId), eq(commentTable.userId, user.id)),
-      );
+    await executeCommand({ db: drizzle }, deleteCommentCommand, {
+      commentId: input.commentId,
+      userId: user.id,
+    });
   });

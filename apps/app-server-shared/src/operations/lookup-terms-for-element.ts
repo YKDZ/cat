@@ -1,24 +1,20 @@
 import type { TermData } from "@cat/shared/schema/misc";
 
+import { getDrizzleDB } from "@cat/db";
 import {
-  eq,
-  getDrizzleDB,
-  glossaryToProject,
-  document as documentTable,
-  translatableElement,
-  translatableString,
-} from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+  executeQuery,
+  getElementWithChunkIds,
+  listLexicalTermSuggestions,
+  listProjectGlossaryIds,
+} from "@cat/domain";
 
 import type { OperationContext } from "@/operations/types";
-
-import { lookupTermsOp } from "./lookup-terms";
 
 /**
  * 根据 elementId 从后端自动查找相关术语
  *
  * 复用 glossary.findTerm 路由中的查询链：
- * element → document → project → glossaryIds → lookupTermsOp
+ * element → document → project → glossaryIds → lexical term query
  *
  * 使用 ILIKE + word_similarity 进行术语匹配（不含语义搜索）
  */
@@ -30,48 +26,35 @@ export const lookupTermsForElementOp = async (
   const { client: drizzle } = await getDrizzleDB();
 
   // 1. 查询 element 获取原文文本和源语言 ID
-  const element = assertSingleNonNullish(
-    await drizzle
-      .select({
-        value: translatableString.value,
-        languageId: translatableString.languageId,
-        documentId: translatableElement.documentId,
-      })
-      .from(translatableElement)
-      .innerJoin(
-        translatableString,
-        eq(translatableElement.translatableStringId, translatableString.id),
-      )
-      .where(eq(translatableElement.id, elementId))
-      .limit(1),
-  );
+  const element = await executeQuery({ db: drizzle }, getElementWithChunkIds, {
+    elementId,
+  });
 
-  // 2. 查询 project ID
-  const { projectId } = assertSingleNonNullish(
-    await drizzle
-      .select({ projectId: documentTable.projectId })
-      .from(documentTable)
-      .where(eq(documentTable.id, element.documentId))
-      .limit(1),
-  );
+  if (element === null) {
+    return [];
+  }
 
-  // 3. 查询 glossaryIds
-  const glossaryIds = (
-    await drizzle
-      .select({ id: glossaryToProject.glossaryId })
-      .from(glossaryToProject)
-      .where(eq(glossaryToProject.projectId, projectId))
-  ).map((row) => row.id);
+  // 2. 查询 glossaryIds
+  const glossaryIds = await executeQuery(
+    { db: drizzle },
+    listProjectGlossaryIds,
+    { projectId: element.projectId },
+  );
 
   if (glossaryIds.length === 0) return [];
 
-  // 4. 调用 lookupTermsOp（ILIKE + word_similarity）
-  const results = await lookupTermsOp({
-    glossaryIds,
-    text: element.value,
-    sourceLanguageId: element.languageId,
-    translationLanguageId,
-  });
+  // 4. 直接执行 lexical term query（ILIKE + word_similarity）
+  const results = await executeQuery(
+    { db: drizzle },
+    listLexicalTermSuggestions,
+    {
+      glossaryIds,
+      text: element.value,
+      sourceLanguageId: element.languageId,
+      translationLanguageId,
+      wordSimilarityThreshold: 0.3,
+    },
+  );
 
   // 5. 转换为 TermData[]
   return results.map((r) => ({

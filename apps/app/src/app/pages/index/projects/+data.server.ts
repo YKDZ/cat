@@ -1,6 +1,6 @@
 import type { PageContextServer } from "vike/types";
 
-import { eq, project } from "@cat/db";
+import { executeQuery, listOwnedProjects } from "@cat/domain";
 import { render } from "vike/abort";
 
 export const data = async (ctx: PageContextServer) => {
@@ -9,13 +9,9 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!user) throw render("/auth");
 
-  const projects = await drizzle
-    .select({
-      id: project.id,
-      name: project.name,
-    })
-    .from(project)
-    .where(eq(project.creatorId, user.id));
+  const projects = await executeQuery({ db: drizzle }, listOwnedProjects, {
+    creatorId: user.id,
+  });
 
   return { projects };
 };

@@ -1,17 +1,22 @@
 import type { GlobalContextServer } from "vike/types";
 
-import { initAllVectorStorage } from "@cat/app-server-shared/utils";
-import {
-  ensureDB,
-  getDrizzleDB,
-  getRedisDB,
-  getSetting,
-  ensureRootUser,
-} from "@cat/db";
+import { registerDomainEventHandlers } from "@cat/operations";
+import { initAllVectorStorage } from "@cat/server-shared";
+import { ensureDB, getDrizzleDB, getRedisDB, ensureRootUser } from "@cat/db";
+import { executeQuery, getSetting } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertPromise, logger } from "@cat/shared/utils";
 import { access } from "fs/promises";
 import { join, resolve } from "path";
+
+const getStringSetting = async (
+  drizzle: Awaited<ReturnType<typeof getDrizzleDB>>["client"],
+  key: string,
+  fallback: string,
+): Promise<string> => {
+  const value = await executeQuery({ db: drizzle }, getSetting, { key });
+  return typeof value === "string" ? value : fallback;
+};
 
 export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
   try {
@@ -62,13 +67,14 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     });
 
     await initAllVectorStorage(pluginManager);
+    registerDomainEventHandlers();
 
     ctx.drizzleDB = drizzleDB;
     ctx.redisDB = redisDB;
     ctx.pluginManager = pluginManager;
 
-    ctx.name = await getSetting(drizzleDB.client, "server.name", "CAT");
-    ctx.baseURL = await getSetting(
+    ctx.name = await getStringSetting(drizzleDB.client, "server.name", "CAT");
+    ctx.baseURL = await getStringSetting(
       drizzleDB.client,
       "server.url",
       "http://localhost:3000/",

@@ -3,32 +3,25 @@ import type { TranslationSuggestion } from "@cat/shared/schema/plugin";
 import {
   adaptMemoryOp,
   streamSearchMemoryOp,
-} from "@cat/app-server-shared/operations";
-import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
+} from "@cat/operations";
+import { AsyncMessageQueue } from "@cat/server-shared";
 import {
-  chunk,
-  chunkSet,
-  count,
-  document as documentTable,
-  eq,
-  getColumns,
-  memoryItem as memoryItemTable,
-  memory as memoryTable,
-  memoryToProject,
-  sql,
-  translatableElement,
-  translatableString,
-} from "@cat/db";
+  countMemoryItems,
+  createMemory as createMemoryCommand,
+  executeCommand,
+  executeQuery,
+  getElementWithChunkIds,
+  getMemory,
+  listMemoryIdsByProject,
+  listOwnedMemories,
+  listProjectMemories,
+} from "@cat/domain";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import {
   MemorySuggestionSchema,
   type MemorySuggestion,
 } from "@cat/shared/schema/misc";
-import {
-  assertSingleNonNullish,
-  assertSingleOrNull,
-  logger,
-} from "@cat/shared/utils";
+import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
@@ -47,29 +40,12 @@ export const create = authed
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    const { name, description, projectIds } = input;
 
     return await drizzle.transaction(async (tx) => {
-      const memory = assertSingleNonNullish(
-        await tx
-          .insert(memoryTable)
-          .values({
-            name,
-            description,
-            creatorId: user.id,
-          })
-          .returning(),
-      );
-
-      if (projectIds && projectIds.length > 0)
-        await tx.insert(memoryToProject).values(
-          projectIds.map((projectId) => ({
-            memoryId: memory.id,
-            projectId,
-          })),
-        );
-
-      return memory;
+      return executeCommand({ db: tx }, createMemoryCommand, {
+        ...input,
+        creatorId: user.id,
+      });
     });
   });
 
@@ -91,44 +67,21 @@ export const onNew = authed
       input;
 
     // Fetch element details — text, language, project, and chunk IDs
-    const element = assertSingleNonNullish(
-      await drizzle
-        .select({
-          value: translatableString.value,
-          languageId: translatableString.languageId,
-          projectId: documentTable.projectId,
-          chunkIds: sql<
-            number[]
-          >`coalesce(array_agg("Chunk"."id") filter (where "Chunk"."id" is not null), ARRAY[]::int[])`,
-        })
-        .from(translatableElement)
-        .innerJoin(
-          translatableString,
-          eq(translatableElement.translatableStringId, translatableString.id),
-        )
-        .innerJoin(
-          documentTable,
-          eq(translatableElement.documentId, documentTable.id),
-        )
-        .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
-        .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
-        .where(eq(translatableElement.id, elementId))
-        .groupBy(
-          translatableElement.id,
-          translatableString.value,
-          translatableString.languageId,
-          documentTable.projectId,
-        ),
+    const element = await executeQuery(
+      { db: drizzle },
+      getElementWithChunkIds,
+      { elementId },
     );
 
-    const memoryIds = (
-      await drizzle
-        .select({
-          memoryId: memoryToProject.memoryId,
-        })
-        .from(memoryToProject)
-        .where(eq(memoryToProject.projectId, element.projectId))
-    ).map((row) => row.memoryId);
+    if (!element) {
+      throw new Error(`Element ${elementId} not found`);
+    }
+
+    const memoryIds = await executeQuery(
+      { db: drizzle },
+      listMemoryIdsByProject,
+      { projectId: element.projectId },
+    );
 
     if (!element || memoryIds.length === 0) return;
 
@@ -228,12 +181,10 @@ export const getUserOwned = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { userId } = input;
 
-    return await drizzle
-      .select(getColumns(memoryTable))
-      .from(memoryTable)
-      .where(eq(memoryTable.creatorId, userId));
+    return await executeQuery({ db: drizzle }, listOwnedMemories, {
+      creatorId: input.userId,
+    });
   });
 
 export const get = authed
@@ -247,14 +198,8 @@ export const get = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { memoryId } = input;
 
-    return assertSingleOrNull(
-      await drizzle
-        .select()
-        .from(memoryTable)
-        .where(eq(memoryTable.id, memoryId)),
-    );
+    return await executeQuery({ db: drizzle }, getMemory, input);
   });
 
 export const getProjectOwned = authed
@@ -268,13 +213,8 @@ export const getProjectOwned = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId } = input;
 
-    return await drizzle
-      .select(getColumns(memoryTable))
-      .from(memoryToProject)
-      .innerJoin(memoryTable, eq(memoryToProject.memoryId, memoryTable.id))
-      .where(eq(memoryToProject.projectId, projectId));
+    return await executeQuery({ db: drizzle }, listProjectMemories, input);
   });
 export const countItem = authed
   .input(
@@ -287,13 +227,6 @@ export const countItem = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { memoryId } = input;
 
-    return assertSingleNonNullish(
-      await drizzle
-        .select({ count: count() })
-        .from(memoryItemTable)
-        .where(eq(memoryItemTable.memoryId, memoryId))
-        .limit(1),
-    ).count;
+    return await executeQuery({ db: drizzle }, countMemoryItems, input);
   });

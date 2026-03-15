@@ -1,22 +1,15 @@
+import { getDrizzleDB } from "@cat/db";
 import {
-  alias,
-  document,
-  eq,
-  getDrizzleDB,
-  glossaryToProject,
-  project,
-  qaResult,
-  qaResultItem,
-  translatableElement,
-  translatableString,
-  translation,
-} from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+  createQaResultWithItems,
+  executeCommand,
+  executeQuery,
+  getTranslationQaContext,
+  listProjectGlossaryIds,
+} from "@cat/domain";
 import z from "zod";
 
 import type { OperationContext } from "@/operations/types";
 
-import { lookupTermsForElementOp } from "@/operations/lookup-terms-for-element";
 import { qaOp } from "@/operations/qa";
 import { tokenizeOp } from "@/operations/tokenize";
 
@@ -46,107 +39,25 @@ export const qaTranslationOp = async (
   const { client: drizzle } = await getDrizzleDB();
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
-  // 1. 获取翻译文本、源文本及语言信息
-  const translationStringAlias = alias(translatableString, "translationString");
-  const elementStringAlias = alias(translatableString, "elementString");
+  const data = await executeQuery({ db: drizzle }, getTranslationQaContext, {
+    translationId: payload.translationId,
+  });
 
-  const textData = assertSingleNonNullish(
-    await drizzle
-      .select({
-        translationText: translationStringAlias.value,
-        translationLanguageId: translationStringAlias.languageId,
-        elementText: elementStringAlias.value,
-        elementLanguageId: elementStringAlias.languageId,
-        elementId: translatableElement.id,
-      })
-      .from(translation)
-      .innerJoin(
-        translationStringAlias,
-        eq(translationStringAlias.id, translation.stringId),
-      )
-      .innerJoin(
-        translatableElement,
-        eq(translatableElement.id, translation.translatableElementId),
-      )
-      .innerJoin(
-        elementStringAlias,
-        eq(elementStringAlias.id, translatableElement.translatableStringId),
-      )
-      .where(eq(translation.id, payload.translationId)),
-  );
+  if (!data) {
+    throw new Error(`Translation ${payload.translationId} not found for QA`);
+  }
 
-  // 2. 查找相关术语（后端自动获取，统一走 lookupTermsForElementOp）
-  const termData = await lookupTermsForElementOp(
-    textData.elementId,
-    textData.translationLanguageId,
+  const glossaryIds = await executeQuery(
+    { db: drizzle },
+    listProjectGlossaryIds,
+    { projectId: data.projectId },
   );
 
   // 3. 并行分词（含术语标注）
   const [translationResult, elementResult] = await Promise.all([
-    tokenizeOp({ text: textData.translationText, terms: termData }, ctx),
-    tokenizeOp({ text: textData.elementText, terms: termData }, ctx),
+    tokenizeOp({ text: data.translationText }, ctx),
+    tokenizeOp({ text: data.elementText }, ctx),
   ]);
-
-  // 4. 获取完整数据和创建 QA 结果记录
-  const { data, resultId, glossaryIds } = await drizzle.transaction(
-    async (tx) => {
-      const translationStringAlias2 = alias(
-        translatableString,
-        "translationString",
-      );
-      const elementStringAlias2 = alias(translatableString, "elementString");
-
-      const data = assertSingleNonNullish(
-        await tx
-          .select({
-            elementText: elementStringAlias2.value,
-            elementLanguageId: elementStringAlias2.languageId,
-            translationText: translationStringAlias2.value,
-            translationLanguageId: translationStringAlias2.languageId,
-            projectId: project.id,
-          })
-          .from(translation)
-          .innerJoin(
-            translationStringAlias2,
-            eq(translationStringAlias2.id, translation.stringId),
-          )
-          .innerJoin(
-            translatableElement,
-            eq(translatableElement.id, translation.translatableElementId),
-          )
-          .innerJoin(
-            elementStringAlias2,
-            eq(
-              elementStringAlias2.id,
-              translatableElement.translatableStringId,
-            ),
-          )
-          .innerJoin(document, eq(document.id, translatableElement.documentId))
-          .innerJoin(project, eq(document.projectId, project.id))
-          .where(eq(translation.id, payload.translationId)),
-      );
-
-      const { id: resultId } = assertSingleNonNullish(
-        await tx
-          .insert(qaResult)
-          .values({
-            translationId: payload.translationId,
-          })
-          .returning({
-            id: qaResult.id,
-          }),
-      );
-
-      const glossaryIds = (
-        await tx
-          .select({ id: glossaryToProject.glossaryId })
-          .from(glossaryToProject)
-          .where(eq(glossaryToProject.projectId, data.projectId))
-      ).map((r) => r.id);
-
-      return { data, resultId, glossaryIds };
-    },
-  );
 
   // 4. 执行 QA 检查（直接调用 qaOp，不需要 pub/sub 中转）
   const qaResult2 = await qaOp(
@@ -169,16 +80,14 @@ export const qaTranslationOp = async (
   );
 
   // 5. 持久化 QA 结果
-  if (qaResult2.result.length > 0) {
-    await drizzle.insert(qaResultItem).values(
-      qaResult2.result.map((item) => ({
-        isPassed: item.isPassed,
-        checkerId: item.checkerId,
-        resultId,
-        meta: item.meta,
-      })),
-    );
-  }
+  await executeCommand({ db: drizzle }, createQaResultWithItems, {
+    translationId: payload.translationId,
+    items: qaResult2.result.map((item) => ({
+      isPassed: item.isPassed,
+      checkerId: item.checkerId,
+      meta: item.meta,
+    })),
+  });
 
   return {};
 };

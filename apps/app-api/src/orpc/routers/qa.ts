@@ -1,8 +1,12 @@
 import type { QaResultItem } from "@cat/shared/schema/drizzle/qa";
 
-import { AsyncMessageQueue } from "@cat/app-server-shared/utils";
-import { getQAPubKey, QAPubPayloadSchema, qaWorkflow } from "@cat/app-workers";
-import { document, eq, glossaryToProject, project } from "@cat/db";
+import {
+  getWorkflowRuntime,
+  QAPubPayloadSchema,
+  qaWorkflow,
+} from "@cat/app-agent/workflow";
+import { AsyncMessageQueue } from "@cat/server-shared";
+import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
 import { TokenSchema } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
 import { randomUUID } from "node:crypto";
@@ -29,50 +33,62 @@ export const check = authed
   .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redisSub },
     } = context;
     const { documentId, source, translation } = input;
 
-    const glossaryIds = (
-      await drizzle
-        .select({
-          id: glossaryToProject.glossaryId,
-        })
-        .from(glossaryToProject)
-        .innerJoin(document, eq(document.id, documentId))
-        .innerJoin(project, eq(document.projectId, project.id))
-        .where(eq(glossaryToProject.projectId, project.id))
-    ).map((r) => r.id);
+    const glossaryIds = await executeQuery(
+      { db: drizzle },
+      listDocumentGlossaryIds,
+      { documentId },
+    );
 
     const traceId = randomUUID();
 
     const issuesQueue = new AsyncMessageQueue<
       Omit<QaResultItem, "id" | "createdAt" | "updatedAt" | "resultId">
     >();
-    const issueChannelKey = getQAPubKey(traceId);
-    const onNewIssue = async (issueData: string) => {
-      try {
-        const { result } = QAPubPayloadSchema.parse(JSON.parse(issueData));
-        issuesQueue.push(...result.filter((r) => !r.isPassed));
-      } catch (err) {
-        logger.error("RPC", { msg: "Invalid issue format: " }, err);
-      }
-    };
-    await redisSub.subscribe(issueChannelKey, onNewIssue);
+    const unsubscribe = getWorkflowRuntime().eventBus.subscribe(
+      "workflow:qa:issue",
+      async (event) => {
+        const parsed = QAPubPayloadSchema.safeParse(event.payload);
+        if (!parsed.success) {
+          logger.error("RPC", { msg: "Invalid issue format" }, parsed.error);
+          return;
+        }
 
-    await qaWorkflow.run(
+        if (parsed.data.traceId !== traceId) {
+          return;
+        }
+
+        issuesQueue.push(
+          ...parsed.data.result.filter((item) => !item.isPassed),
+        );
+      },
+    );
+
+    const runPromise = qaWorkflow.run(
       { source, translation, glossaryIds, pub: true },
       {
         traceId,
       },
     );
 
+    void runPromise
+      .then(async ({ result }) => {
+        await result();
+        issuesQueue.close();
+      })
+      .catch((err: unknown) => {
+        logger.error("RPC", { msg: "QA workflow failed" }, err);
+        issuesQueue.close();
+      });
+
     try {
       for await (const issue of issuesQueue.consume()) {
         yield issue;
       }
     } finally {
-      await redisSub.unsubscribe(issueChannelKey);
+      unsubscribe();
       issuesQueue.clear();
     }
   });

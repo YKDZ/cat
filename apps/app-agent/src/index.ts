@@ -1,46 +1,32 @@
+// ─── Builtin Agent Templates ───
+export {
+  builtinAgentTemplates,
+  getBuiltinAgentTemplate,
+  type BuiltinAgentTemplate,
+} from "./agent";
+
 // ─── Tool Registry ───
 export {
   ToolRegistry,
   createToolRegistry,
   builtinTools,
-  builtinClientTools,
   defineTool,
-  defineClientTool,
   finishTaskTool,
   FINISH_TOOL_NAME,
   type AgentToolDefinition,
   type ToolExecutionContext,
   type ToolConfirmationPolicy,
-  type ToolTarget,
 } from "./tools/index";
 
-// ─── ReAct Engine ───
+// ─── LLM Utilities ───
 export {
-  runAgent,
   runCompletion,
   runFim,
-  ContextManager,
-  type ContextManagerOptions,
-  type AgentRunOptions,
-  type AgentRunResult,
-  type AgentStep,
-  type ToolCallRecord,
   type CompletionOptions,
   type CompletionChunk,
   type FimOptions,
   type FimChunk,
-} from "./engine/index";
-
-// ─── Pipeline Compatibility ───
-export {
-  runPipeline,
-  type PipelineOptions,
-  type AgentRunner,
-  type OrchestrationMode,
-  type OrchestrationResult,
-  type PipelineResult,
-  type PipelineStageResult,
-} from "./graph/pipeline-runner";
+} from "./llm/index";
 
 // ─── Context Resolution Engine ───
 export {
@@ -55,32 +41,24 @@ export {
   type ResolveOptions,
 } from "./context/index";
 
-// ─── Prompt Utilities (deprecated — logic migrated to builtin providers) ───
-export {
-  generateContextVariableDescriptions,
-  generateToolDescriptions,
-  injectContextVariables,
-  injectToolDescriptions,
-} from "./utils/prompt";
-
 // ─── Session Management (shared between API + Worker) ───
 export {
   AgentSessionMetaSchema,
-  buildChatMessages,
+  mapSessionMetaToSeeds,
   buildSystemPrompt,
-  loadConversationHistory,
-  persistAgentResult,
-  persistUserMessage,
+  rebuildConversationFromRuns,
   resolveDefinition,
   resolveSession,
   setupToolRegistry,
-  updateSessionStatus,
   type AgentSessionMeta,
-  type ConversationHistory,
-  type PersistedMessage,
-  type PersistedToolCallInfo,
   type ResolvedSession,
 } from "./session/index";
 
+// ─── Runtime Resolution ───
+export * from "./runtime/index";
+
 // ─── Graph Engine ───
 export * from "./graph/index";
+
+// ─── Workflow DSL ───
+export * from "./workflow/index";

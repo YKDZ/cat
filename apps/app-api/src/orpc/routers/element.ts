@@ -1,23 +1,18 @@
 import {
   getDownloadUrl,
   getServiceFromDBId,
-} from "@cat/app-server-shared/utils";
+} from "@cat/server-shared";
 import {
-  eq,
-  translatableElement,
-  translatableElementContext,
-  document as documentTable,
-  file as fileTable,
-  blob as blobTable,
-  and,
-} from "@cat/db";
+  executeQuery,
+  getElementContexts,
+  getElementSourceLocation,
+} from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
 import {
   TranslatableElementContextSchema,
   type TranslatableElementContext,
 } from "@cat/shared/schema/drizzle/document";
 import { safeZDotJson } from "@cat/shared/schema/json";
-import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod";
 
 import { authed } from "@/orpc/server";
@@ -35,26 +30,11 @@ export const getContexts = authed
     } = context;
     const { elementId } = input;
 
-    const { element, contexts } = await drizzle.transaction(async (tx) => {
-      const element = assertSingleNonNullish(
-        await tx
-          .select({
-            meta: translatableElement.meta,
-            createdAt: translatableElement.createdAt,
-            updatedAt: translatableElement.updatedAt,
-          })
-          .from(translatableElement)
-          .where(eq(translatableElement.id, elementId)),
-        `Element with ID ${elementId} not found`,
-      );
-
-      const contexts = await tx
-        .select()
-        .from(translatableElementContext)
-        .where(eq(translatableElementContext.translatableElementId, elementId));
-
-      return { element, contexts };
-    });
+    const { element, contexts } = await executeQuery(
+      { db: drizzle },
+      getElementContexts,
+      { elementId },
+    );
 
     const metaContext = {
       id: -1,
@@ -96,34 +76,9 @@ export const getSourceLocation = authed
     } = context;
     const { elementId } = input;
 
-    const row = assertSingleNonNullish(
-      await drizzle
-        .select({
-          sourceStartLine: translatableElement.sourceStartLine,
-          sourceEndLine: translatableElement.sourceEndLine,
-          sourceLocationMeta: translatableElement.sourceLocationMeta,
-          fileHandlerId: documentTable.fileHandlerId,
-          fileName: fileTable.name,
-          blobId: blobTable.id,
-          blobKey: blobTable.key,
-          storageProviderId: blobTable.storageProviderId,
-        })
-        .from(translatableElement)
-        .innerJoin(
-          documentTable,
-          eq(documentTable.id, translatableElement.documentId),
-        )
-        .leftJoin(
-          fileTable,
-          and(
-            eq(fileTable.id, documentTable.fileId),
-            eq(fileTable.isActive, true),
-          ),
-        )
-        .leftJoin(blobTable, eq(blobTable.id, fileTable.blobId))
-        .where(eq(translatableElement.id, elementId)),
-      `Element with ID ${elementId} not found`,
-    );
+    const row = await executeQuery({ db: drizzle }, getElementSourceLocation, {
+      elementId,
+    });
 
     let fileUrl: string | null = null;
     if (row.blobKey && row.storageProviderId) {

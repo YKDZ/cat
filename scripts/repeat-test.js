@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 const execAsync = promisify(exec);
 
 const CONFIG = {
-  command: "nx test app-workers --skip-nx-cache",
+  command: "nx test @cat/app-agent --skip-nx-cache",
   totalRuns: 3,
   maxBuffer: 1024 * 1024 * 10,
 };

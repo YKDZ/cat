@@ -1,6 +1,7 @@
 import type { Checkpointer } from "@/graph/checkpointer";
-import type { EventBus } from "@/graph/event-bus";
+import type { EventEnvelopeInput } from "@/graph/events";
 import type {
+  GraphRuntimeContext,
   NodeDefinition,
   NodeExecutionContext,
   NodeExecutionResult,
@@ -9,8 +10,10 @@ import type {
 } from "@/graph/types";
 
 export type NodeExecutorContext = NodeExecutionContext & {
-  eventBus: EventBus;
   checkpointer: Checkpointer;
+  runtime: GraphRuntimeContext;
+  emit: (event: EventEnvelopeInput) => Promise<void>;
+  addEvent: (event: EventEnvelopeInput) => void;
 };
 
 export type NodeExecutor = (
@@ -23,7 +26,6 @@ export type ExecutorTaskInput = {
   nodeId: string;
   nodeDef: NodeDefinition;
   snapshot: NodeExecutionContext["snapshot"];
-  eventBus: EventBus;
   checkpointer: Checkpointer;
   signal?: AbortSignal;
   idempotencyKey?: string;

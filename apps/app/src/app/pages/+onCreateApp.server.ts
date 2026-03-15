@@ -1,7 +1,7 @@
 import type { GlobalContextServer, PageContextServer } from "vike/types";
 import type { ComputedRef } from "vue";
 
-import { getSetting } from "@cat/db";
+import { executeQuery, getSetting } from "@cat/domain";
 import { parsePreferredLanguage } from "@cat/shared/utils";
 import { readFile } from "node:fs/promises";
 import { stat } from "node:fs/promises";
@@ -10,6 +10,15 @@ import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 
 import { i18n } from "@/app/utils/i18n";
+
+const getStringSetting = async (
+  drizzle: PageContextServer["globalContext"]["drizzleDB"]["client"],
+  key: string,
+  fallback: string,
+): Promise<string> => {
+  const value = await executeQuery({ db: drizzle }, getSetting, { key });
+  return typeof value === "string" ? value : fallback;
+};
 
 export const onCreateApp = async (ctx: PageContextServer) => {
   const { app } = ctx;
@@ -63,7 +72,7 @@ const decorateI18nServer = async (ctx: PageContextServer): Promise<void> => {
     parsePreferredLanguage(ctx.helpers.getReqHeader("Accept-Language") ?? "")
       ?.toLocaleLowerCase()
       .replace("-", "_") ??
-    (await getSetting(
+    (await getStringSetting(
       ctx.globalContext.drizzleDB.client,
       "server.default-language",
       "zh_cn",

@@ -3,6 +3,8 @@ import type { EventBus } from "@/graph/event-bus";
 import type { AgentEvent } from "@/graph/events";
 import type { Scheduler } from "@/graph/scheduler";
 
+import { createAgentEvent } from "@/graph/events";
+
 const asRecord = (value: unknown): Record<string, unknown> => {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     const out: Record<string, unknown> = {};
@@ -73,13 +75,15 @@ export class ResumeHandler {
     const payload = asRecord(event.payload);
     const nodeId = payload["nodeId"];
     if (typeof nodeId === "string" && nodeId.length > 0) {
-      await this.eventBus.publish({
-        runId: event.runId,
-        nodeId,
-        type: "run:resume",
-        timestamp: new Date().toISOString(),
-        payload: { source: "resume-handler" },
-      });
+      await this.eventBus.publish(
+        createAgentEvent({
+          runId: event.runId,
+          nodeId,
+          type: "run:resume",
+          timestamp: new Date().toISOString(),
+          payload: { source: "resume-handler" },
+        }),
+      );
     }
   };
 }

@@ -1,0 +1,73 @@
+import {
+  and,
+  asc,
+  eq,
+  getColumns,
+  gt,
+  ilike,
+  translatableElement,
+  translatableString,
+} from "@cat/db";
+import * as z from "zod/v4";
+
+import type { Query } from "@/types";
+
+import { buildTranslationStatusConditions } from "@/queries/document/build-translation-status-conditions";
+
+export const GetDocumentFirstElementQuerySchema = z.object({
+  documentId: z.uuidv4(),
+  searchQuery: z.string().default(""),
+  greaterThan: z.int().optional(),
+  isApproved: z.boolean().optional(),
+  isTranslated: z.boolean().optional(),
+  languageId: z.string().optional(),
+});
+
+export type GetDocumentFirstElementQuery = z.infer<
+  typeof GetDocumentFirstElementQuerySchema
+>;
+
+export const getDocumentFirstElement: Query<
+  GetDocumentFirstElementQuery,
+  typeof translatableElement.$inferSelect | null
+> = async (ctx, query) => {
+  const whereConditions = [
+    eq(translatableElement.documentId, query.documentId),
+  ];
+
+  if (query.searchQuery.trim().length > 0) {
+    whereConditions.push(
+      ilike(translatableString.value, `%${query.searchQuery}%`),
+    );
+  }
+
+  if (query.greaterThan !== undefined) {
+    whereConditions.push(gt(translatableElement.sortIndex, query.greaterThan));
+  }
+
+  whereConditions.push(
+    ...buildTranslationStatusConditions(
+      ctx.db,
+      query.isTranslated,
+      query.isApproved,
+      query.languageId,
+    ),
+  );
+
+  const rows = await ctx.db
+    .select(getColumns(translatableElement))
+    .from(translatableElement)
+    .innerJoin(
+      translatableString,
+      eq(translatableElement.translatableStringId, translatableString.id),
+    )
+    .where(
+      whereConditions.length === 1
+        ? whereConditions[0]
+        : and(...whereConditions),
+    )
+    .orderBy(asc(translatableElement.sortIndex))
+    .limit(1);
+
+  return rows[0] ?? null;
+};

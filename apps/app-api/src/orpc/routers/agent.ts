@@ -1,83 +1,53 @@
-import type { LLMProvider } from "@cat/plugin-core";
-import type {
-  AgentDefinition as AgentDefinitionJson,
-  ToolConfirmRequest,
-  ToolExecuteRequest,
-} from "@cat/shared/schema/agent";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { DrizzleDB } from "@cat/db";
 
 import {
   AgentSessionMetaSchema,
-  buildChatMessages,
-  buildSystemPrompt,
   createDefaultGraphRuntime,
-  loadConversationHistory,
-  persistAgentResult,
-  persistUserMessage,
+  rebuildConversationFromRuns,
   resolveDefinition,
   resolveSession,
-  runAgent,
-  setupToolRegistry,
-  updateSessionStatus,
   type AgentEvent,
-  type AgentStep,
+  type DefaultGraphRuntime,
 } from "@cat/app-agent";
+import { builtinAgentTemplates, getBuiltinAgentTemplate } from "@cat/app-agent";
 import {
-  AsyncMessageQueue,
-  builtinAgentTemplates,
-  getBuiltinAgentTemplate,
-  getServiceFromDBId,
-} from "@cat/app-server-shared/utils";
-import {
-  agentDefinition,
-  agentMessage,
-  agentSession,
-  and,
-  desc,
-  eq,
-  getColumns,
-} from "@cat/db";
-import {
-  ToolConfirmResponseSchema,
-  ToolExecuteResponseSchema,
-} from "@cat/shared/schema/agent";
+  createAgentDefinition,
+  createAgentSession,
+  deleteAgentDefinition,
+  executeCommand,
+  executeQuery,
+  findAgentDefinitionByNameAndScope,
+  getAgentDefinition,
+  listAgentDefinitions,
+  listAgentSessions,
+  updateAgentDefinition,
+} from "@cat/domain";
+import { AsyncMessageQueue } from "@cat/server-shared";
+import { ToolConfirmResponseSchema } from "@cat/shared/schema/agent";
 import { AgentDefinitionSchema as AgentDefinitionJsonSchema } from "@cat/shared/schema/agent";
 import { AgentDefinitionSchema } from "@cat/shared/schema/drizzle/agent";
 import {
   AgentDefinitionTypeSchema,
   ScopeTypeSchema,
 } from "@cat/shared/schema/drizzle/enum";
-import { assertSingleNonNullish, logger } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
-import {
-  clearSessionManagers,
-  getSessionManagers,
-} from "@/utils/agent-session-managers";
 
-const graphRuntime = createDefaultGraphRuntime();
-
-const mapSessionMetaToSeeds = (
-  metadata: unknown,
-): Record<string, string | number | boolean> => {
-  const parsed = AgentSessionMetaSchema.safeParse(metadata);
-  if (!parsed.success) return {};
-
-  const seeds: Record<string, string | number | boolean> = {};
-  const data = parsed.data;
-
-  if (data.projectId) seeds["projectId"] = data.projectId;
-  if (data.documentId) seeds["documentId"] = data.documentId;
-  if (data.elementId !== undefined) seeds["elementId"] = data.elementId;
-  if (data.languageId) {
-    seeds["languageId"] = data.languageId;
-    seeds["translationLanguageId"] = data.languageId;
+let _graphRuntime: DefaultGraphRuntime | null = null;
+const getGraphRuntime = async (
+  drizzle: DrizzleDB["client"],
+  pluginManager: import("@cat/plugin-core").PluginManager,
+): Promise<DefaultGraphRuntime> => {
+  if (!_graphRuntime) {
+    _graphRuntime = createDefaultGraphRuntime(drizzle, pluginManager);
   }
-  if (data.sourceLanguageId) seeds["sourceLanguageId"] = data.sourceLanguageId;
+  return _graphRuntime;
+};
 
-  return seeds;
+const isTerminalRunEvent = (event: AgentEvent): boolean => {
+  return event.type === "run:end" || event.type === "run:error";
 };
 
 // ─── Routes ───
@@ -100,20 +70,11 @@ export const list = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { scopeType, scopeId, type } = input;
-
-    const conditions = [];
-    if (scopeType) conditions.push(eq(agentDefinition.scopeType, scopeType));
-    if (scopeId) conditions.push(eq(agentDefinition.scopeId, scopeId));
-    if (type) conditions.push(eq(agentDefinition.type, type));
-
-    const rows = await drizzle
-      .select({
-        ...getColumns(agentDefinition),
-      })
-      .from(agentDefinition)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(agentDefinition.createdAt));
+    const rows = await executeQuery(
+      { db: drizzle },
+      listAgentDefinitions,
+      input,
+    );
 
     return rows.map((row) => ({
       ...row,
@@ -134,22 +95,11 @@ export const getByType = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-
-    const conditions: ReturnType<typeof eq>[] = [
-      eq(agentDefinition.type, input.type),
-    ];
-    if (input.scopeType) {
-      conditions.push(eq(agentDefinition.scopeType, input.scopeType));
-    }
-    if (input.scopeId) {
-      conditions.push(eq(agentDefinition.scopeId, input.scopeId));
-    }
-
-    const rows = await drizzle
-      .select({ ...getColumns(agentDefinition) })
-      .from(agentDefinition)
-      .where(and(...conditions))
-      .orderBy(desc(agentDefinition.createdAt));
+    const rows = await executeQuery(
+      { db: drizzle },
+      listAgentDefinitions,
+      input,
+    );
 
     return rows.map((row) => ({
       id: row.externalId,
@@ -172,11 +122,7 @@ export const get = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    const [row] = await drizzle
-      .select({ ...getColumns(agentDefinition) })
-      .from(agentDefinition)
-      .where(eq(agentDefinition.externalId, input.id))
-      .limit(1);
+    const row = await executeQuery({ db: drizzle }, getAgentDefinition, input);
 
     if (!row)
       throw new ORPCError("NOT_FOUND", {
@@ -211,23 +157,11 @@ export const create = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    const [row] = await drizzle
-      .insert(agentDefinition)
-      .values({
-        name: input.name,
-        description: input.description,
-        scopeType: input.scopeType,
-        scopeId: input.scopeId,
-        definition: input.definition,
-        isBuiltin: false,
-      })
-      .returning({ externalId: agentDefinition.externalId });
-
-    if (!row)
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Insert failed",
-      });
-    return { id: row.externalId };
+    return await executeCommand({ db: drizzle }, createAgentDefinition, {
+      ...input,
+      isBuiltin: false,
+      type: input.definition.type,
+    });
   });
 
 /** Update an existing agent definition */
@@ -245,18 +179,7 @@ export const update = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    const values: Record<string, unknown> = {};
-    if (input.name !== undefined) values["name"] = input.name;
-    if (input.description !== undefined)
-      values["description"] = input.description;
-    if (input.definition !== undefined) values["definition"] = input.definition;
-
-    if (Object.keys(values).length === 0) return;
-
-    await drizzle
-      .update(agentDefinition)
-      .set(values)
-      .where(eq(agentDefinition.externalId, input.id));
+    await executeCommand({ db: drizzle }, updateAgentDefinition, input);
   });
 
 /** Delete an agent definition (cascades sessions) */
@@ -268,11 +191,7 @@ export const remove = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    const [row] = await drizzle
-      .select({ id: agentDefinition.id, isBuiltin: agentDefinition.isBuiltin })
-      .from(agentDefinition)
-      .where(eq(agentDefinition.externalId, input.id))
-      .limit(1);
+    const row = await executeQuery({ db: drizzle }, getAgentDefinition, input);
 
     if (!row)
       throw new ORPCError("NOT_FOUND", {
@@ -283,7 +202,9 @@ export const remove = authed
         message: "Cannot delete built-in agent",
       });
 
-    await drizzle.delete(agentDefinition).where(eq(agentDefinition.id, row.id));
+    await executeCommand({ db: drizzle }, deleteAgentDefinition, {
+      agentDefinitionId: row.id,
+    });
   });
 
 // ─── Session Management ───
@@ -302,34 +223,23 @@ export const createSession = authed
       user,
     } = context;
 
-    const [def] = await drizzle
-      .select({ id: agentDefinition.id })
-      .from(agentDefinition)
-      .where(eq(agentDefinition.externalId, input.agentDefinitionId))
-      .limit(1);
-
-    if (!def)
-      throw new ORPCError("NOT_FOUND", {
-        message: "Agent definition not found",
-      });
-
-    const [session] = await drizzle
-      .insert(agentSession)
-      .values({
-        agentDefinitionId: def.id,
+    try {
+      return await executeCommand({ db: drizzle }, createAgentSession, {
+        ...input,
         userId: user.id,
-        // oxlint-disable-next-line no-unsafe-type-assertion -- metadata shape is validated by Zod
-        metadata: (input.metadata ?? {}) as JSONType,
-      })
-      .returning({
-        externalId: agentSession.externalId,
       });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "Expected a single item"
+      ) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Agent definition not found",
+        });
+      }
 
-    if (!session)
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Insert failed",
-      });
-    return { sessionId: session.externalId };
+      throw error;
+    }
   });
 
 /** List sessions for the current user */
@@ -349,25 +259,12 @@ export const listSessions = authed
       user,
     } = context;
 
-    const conditions = [eq(agentSession.userId, user.id)];
-    if (input?.agentDefinitionId) {
-      const [def] = await drizzle
-        .select({ id: agentDefinition.id })
-        .from(agentDefinition)
-        .where(eq(agentDefinition.externalId, input.agentDefinitionId))
-        .limit(1);
-      if (def) {
-        conditions.push(eq(agentSession.agentDefinitionId, def.id));
-      }
-    }
-
-    const rows = await drizzle
-      .select({ ...getColumns(agentSession) })
-      .from(agentSession)
-      .where(and(...conditions))
-      .orderBy(desc(agentSession.createdAt))
-      .limit(input?.limit ?? 20)
-      .offset(input?.offset ?? 0);
+    const rows = await executeQuery({ db: drizzle }, listAgentSessions, {
+      userId: user.id,
+      agentDefinitionId: input?.agentDefinitionId,
+      limit: input?.limit ?? 20,
+      offset: input?.offset ?? 0,
+    });
 
     return rows.map((row) => ({
       id: row.externalId,
@@ -377,63 +274,7 @@ export const listSessions = authed
     }));
   });
 
-/** Get session messages history */
-export const getSessionMessages = authed
-  .input(z.object({ sessionId: z.uuidv4() }))
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-
-    const [session] = await drizzle
-      .select({ id: agentSession.id })
-      .from(agentSession)
-      .where(eq(agentSession.externalId, input.sessionId))
-      .limit(1);
-
-    if (!session)
-      throw new ORPCError("NOT_FOUND", { message: "Session not found" });
-
-    const messages = await drizzle
-      .select({ ...getColumns(agentMessage) })
-      .from(agentMessage)
-      .where(eq(agentMessage.sessionId, session.id))
-      .orderBy(agentMessage.createdAt);
-
-    return messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-      toolCallId: m.toolCallId,
-      stepIndex: m.stepIndex,
-      createdAt: m.createdAt,
-    }));
-  });
-
 // ─── Agent Execution (Streaming) ───
-
-type StreamChunk =
-  | { type: "step"; step: AgentStep }
-  | { type: "text_delta"; text: string }
-  | { type: "thinking_delta"; text: string }
-  | { type: "tool_confirm_request"; request: ToolConfirmRequest }
-  | { type: "tool_execute_request"; request: ToolExecuteRequest }
-  | {
-      type: "done";
-      result: {
-        finalMessage: string | null;
-        finishReason: string;
-        totalSteps: number;
-      };
-    }
-  | {
-      /**
-       * Emitted when the engine injects a correction prompt because the LLM
-       * produced plain text instead of calling the finish tool. The frontend
-       * should reset streaming accumulators so the retry streams cleanly.
-       */
-      type: "correction_retry";
-    }
-  | { type: "error"; message: string };
 
 /** Send a message to an agent session and stream the response */
 export const sendMessage = authed
@@ -457,140 +298,77 @@ export const sendMessage = authed
       session.agentDefinitionId,
     );
 
-    // 2. Resolve LLM provider
-    const llmProvider = getServiceFromDBId<LLMProvider>(
-      pluginManager,
-      definition.llm.providerId,
-    );
-
-    // 3. Resolve tools (server + client)
-    const tools = setupToolRegistry({
-      definition,
-      includeClientTools: true,
-    });
-
-    // 4. Load conversation history
-    const { messages: existingMessages, toolCallsByMsgId } =
-      await loadConversationHistory(drizzle, session.id);
-
-    // 5. Build system prompt
-    const contextProviders = pluginManager
-      .getServices("AGENT_CONTEXT_PROVIDER")
-      // oxlint-disable-next-line no-unsafe-type-assertion -- service type guaranteed by getServices("AGENT_CONTEXT_PROVIDER")
-      .map((s) => s.service as import("@cat/plugin-core").AgentContextProvider);
-
-    const systemPrompt = await buildSystemPrompt({
-      drizzle,
-      definition,
-      seedsVars: mapSessionMetaToSeeds(session.metadata),
-      userId: session.userId ?? user.id,
-      tools,
-      contextProviders,
-    });
-
-    // 6. Build chat messages
-    const chatMessages = buildChatMessages({
-      systemPrompt,
-      existingMessages,
-      toolCallsByMsgId,
-      newUserMessage: input.message,
-    });
-
-    // 7. Persist user message
-    await persistUserMessage({
-      drizzle,
-      sessionId: session.id,
-      systemPrompt,
-      userMessage: input.message,
-      isFirstMessage: existingMessages.length === 0,
-    });
-
-    // 8. Run agent with streaming
-    const traceId = crypto.randomUUID();
-    const queue = new AsyncMessageQueue<StreamChunk>();
-    const managers = getSessionManagers(session.externalId);
-
-    const runPromise = runAgent({
-      definition,
-      messages: chatMessages,
-      tools,
-      llmProvider,
-      sessionId: session.externalId,
-      traceId,
-      onStep: (step) => {
-        queue.push({ type: "step", step });
-      },
-      onChunk: (chunk) => {
-        if (chunk.type === "text_delta") {
-          queue.push({ type: "text_delta", text: chunk.textDelta });
-        } else if (chunk.type === "thinking_delta") {
-          queue.push({ type: "thinking_delta", text: chunk.thinkingDelta });
-        }
-      },
-      onToolConfirmRequest: async (request) => {
-        queue.push({ type: "tool_confirm_request", request });
-        return managers.confirmations.wait(request.callId);
-      },
-      onToolExecuteRequest: async (request) => {
-        queue.push({ type: "tool_execute_request", request });
-        return managers.executions.wait(request.callId);
-      },
-      onCorrectionRetry: () => {
-        queue.push({ type: "correction_retry" });
-      },
-    });
-
-    // Process results in background
-    void runPromise
-      .then(async (result) => {
-        await persistAgentResult({
-          drizzle,
-          sessionId: session.id,
-          steps: result.steps,
-        });
-
-        await updateSessionStatus({
-          drizzle,
-          sessionId: session.id,
-          finishReason: result.finishReason,
-        });
-
-        queue.push({
-          type: "done",
-          result: {
-            finalMessage: result.finalMessage,
-            finishReason: result.finishReason,
-            totalSteps: result.steps.length,
-          },
-        });
-        queue.close();
-        clearSessionManagers(session.externalId);
-      })
-      .catch((err: unknown) => {
-        logger.error("AGENT", { msg: "Agent execution failed", traceId }, err);
-        queue.push({
-          type: "error",
-          message: err instanceof Error ? err.message : "Unknown error",
-        });
-        queue.close();
-        clearSessionManagers(session.externalId);
-
-        // Mark session as failed
-        void updateSessionStatus({
-          drizzle,
-          sessionId: session.id,
-          finishReason: "error",
-        });
+    const graphRuntime = await getGraphRuntime(drizzle, pluginManager);
+    const resolvedRuntime =
+      await graphRuntime.runtimeResolver.resolveForSession({
+        sessionId: session.id,
+        agentDefinitionId: session.agentDefinitionId,
+        userId: session.userId ?? user.id,
+        sessionMetadata: session.metadata,
+        definition,
       });
 
-    // 9. Stream results
+    // 5. Rebuild conversation history from previous AgentRun snapshots
+    const messages = await rebuildConversationFromRuns(
+      drizzle,
+      session.id,
+      resolvedRuntime.systemPrompt,
+    );
+
+    // 6. Append new user message
+    messages.push({ role: "user", content: input.message });
+
+    const queue = new AsyncMessageQueue<AgentEvent>();
+    const bufferedEvents: AgentEvent[] = [];
+    const seenEventIds = new Set<string>();
+    let activeRunId: string | null = null;
+
+    const pushEvent = (event: AgentEvent) => {
+      if (seenEventIds.has(event.eventId)) return;
+      seenEventIds.add(event.eventId);
+      queue.push(event);
+      if (isTerminalRunEvent(event)) {
+        queue.close();
+      }
+    };
+
+    const unsubscribe = graphRuntime.eventBus.subscribeAll((event) => {
+      if (activeRunId === null) {
+        bufferedEvents.push(event);
+        return;
+      }
+
+      if (event.runId !== activeRunId) return;
+      pushEvent(event);
+    });
+
+    // 7. Start Graph Run
+    const runId = await graphRuntime.scheduler.start(
+      "react-loop",
+      { messages, userMessage: input.message },
+      {
+        sessionId: session.id,
+        messages,
+        resolvedRuntime,
+      },
+    );
+
+    activeRunId = runId;
+    for (const event of bufferedEvents) {
+      if (event.runId !== runId) continue;
+      pushEvent(event);
+      if (isTerminalRunEvent(event)) {
+        break;
+      }
+    }
+
     try {
-      for await (const chunk of queue.consume()) {
-        yield chunk;
+      for await (const event of queue.consume()) {
+        yield event;
       }
     } finally {
+      unsubscribe();
       queue.clear();
-      clearSessionManagers(session.externalId);
     }
   });
 
@@ -603,7 +381,11 @@ export const graphStart = authed
       input: z.record(z.string(), z.unknown()).default({}),
     }),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
     const runId = await graphRuntime.scheduler.start(
       graphIdOrDefault(input.graphId),
       input.input,
@@ -613,21 +395,33 @@ export const graphStart = authed
 
 export const graphPause = authed
   .input(z.object({ runId: z.uuidv4() }))
-  .handler(async ({ input }) => {
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
     await graphRuntime.scheduler.pause(input.runId);
     return { ok: true };
   });
 
 export const graphResume = authed
   .input(z.object({ runId: z.uuidv4() }))
-  .handler(async ({ input }) => {
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
     await graphRuntime.scheduler.resume(input.runId);
     return { ok: true };
   });
 
 export const graphCancel = authed
   .input(z.object({ runId: z.uuidv4() }))
-  .handler(async ({ input }) => {
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
     await graphRuntime.eventBus.publish({
       runId: input.runId,
       type: "run:cancel",
@@ -639,7 +433,11 @@ export const graphCancel = authed
 
 export const graphStatus = authed
   .input(z.object({ runId: z.uuidv4() }))
-  .handler(async ({ input }) => {
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
     const metadata = await graphRuntime.checkpointer.loadRunMetadata(
       input.runId,
     );
@@ -657,23 +455,61 @@ export const graphEvents = authed
       includeHistory: z.boolean().default(true),
     }),
   )
-  .handler(async function* ({ input }) {
+  .handler(async function* ({ context, input }) {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
     const queue = new AsyncMessageQueue<AgentEvent>();
+    const bufferedEvents: AgentEvent[] = [];
+    const seenEventIds = new Set<string>();
+    let replayingHistory = input.includeHistory;
+
+    const pushEvent = (event: AgentEvent) => {
+      if (seenEventIds.has(event.eventId)) return;
+      seenEventIds.add(event.eventId);
+      queue.push(event);
+      if (isTerminalRunEvent(event)) {
+        queue.close();
+      }
+    };
+
+    const unsubscribe = graphRuntime.eventBus.subscribeAll((event) => {
+      if (event.runId !== input.runId) return;
+      if (replayingHistory) {
+        bufferedEvents.push(event);
+        return;
+      }
+
+      pushEvent(event);
+    });
 
     if (input.includeHistory) {
       const history = await graphRuntime.checkpointer.listEvents(input.runId);
       for (const event of history) {
-        queue.push(event);
+        pushEvent(event);
       }
     }
 
-    const unsubscribe = graphRuntime.eventBus.subscribeAll(async (event) => {
-      if (event.runId !== input.runId) return;
-      queue.push(event);
-      if (event.type === "run:end" || event.type === "run:error") {
-        queue.close();
+    replayingHistory = false;
+    for (const event of bufferedEvents) {
+      pushEvent(event);
+      if (isTerminalRunEvent(event)) {
+        break;
       }
-    });
+    }
+
+    const metadata = await graphRuntime.checkpointer.loadRunMetadata(
+      input.runId,
+    );
+    if (
+      metadata &&
+      (metadata.status === "completed" ||
+        metadata.status === "failed" ||
+        metadata.status === "cancelled")
+    ) {
+      queue.close();
+    }
 
     try {
       for await (const event of queue.consume()) {
@@ -685,7 +521,17 @@ export const graphEvents = authed
     }
   });
 
-export const graphSubmitToolConfirmResponse = authed
+const graphIdOrDefault = (graphId: string): string => {
+  return graphId.trim().length > 0 ? graphId : "react-loop";
+};
+
+// ─── Tool Confirm Callback ───
+
+/**
+ * Submit the user's confirmation decision for a pending tool call.
+ * Called by the frontend after receiving a `tool:confirm:required` graph event.
+ */
+export const submitToolConfirmResponse = authed
   .input(
     z.object({
       runId: z.uuidv4(),
@@ -693,7 +539,12 @@ export const graphSubmitToolConfirmResponse = authed
       response: ToolConfirmResponseSchema,
     }),
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
     await graphRuntime.eventBus.publish({
       runId: input.runId,
       nodeId: input.nodeId,
@@ -705,86 +556,6 @@ export const graphSubmitToolConfirmResponse = authed
         decision: input.response.decision,
       },
     });
-
-    return { ok: true };
-  });
-
-const graphIdOrDefault = (graphId: string): string => {
-  return graphId.trim().length > 0 ? graphId : "react-loop";
-};
-
-// ─── Tool Confirm / Execute Callbacks ───
-
-/**
- * Submit the user's confirmation decision for a pending tool call.
- * Called by the frontend via WebSocket after receiving a `tool_confirm_request` chunk.
- */
-export const submitToolConfirmResponse = authed
-  .input(
-    z.union([
-      z.object({
-        sessionId: z.uuidv4(),
-        response: ToolConfirmResponseSchema,
-      }),
-      z.object({
-        runId: z.uuidv4(),
-        nodeId: z.string().optional(),
-        response: ToolConfirmResponseSchema,
-      }),
-    ]),
-  )
-  .handler(async ({ input }) => {
-    if ("runId" in input) {
-      await graphRuntime.eventBus.publish({
-        runId: input.runId,
-        nodeId: input.nodeId,
-        type: "tool:confirm:response",
-        timestamp: new Date().toISOString(),
-        payload: {
-          nodeId: input.nodeId,
-          callId: input.response.callId,
-          decision: input.response.decision,
-        },
-      });
-
-      return { ok: true };
-    }
-
-    const managers = getSessionManagers(input.sessionId);
-    const resolved = managers.confirmations.resolve(
-      input.response.callId,
-      input.response,
-    );
-    if (!resolved) {
-      throw new ORPCError("NOT_FOUND", {
-        message: `No pending confirmation for call "${input.response.callId}"`,
-      });
-    }
-    return { ok: true };
-  });
-
-/**
- * Submit the result of a client-side tool execution.
- * Called by the frontend via WebSocket after executing a client tool locally.
- */
-export const submitToolExecuteResult = authed
-  .input(
-    z.object({
-      sessionId: z.uuidv4(),
-      response: ToolExecuteResponseSchema,
-    }),
-  )
-  .handler(async ({ input }) => {
-    const managers = getSessionManagers(input.sessionId);
-    const resolved = managers.executions.resolve(
-      input.response.callId,
-      input.response,
-    );
-    if (!resolved) {
-      throw new ORPCError("NOT_FOUND", {
-        message: `No pending execution for call "${input.response.callId}"`,
-      });
-    }
     return { ok: true };
   });
 
@@ -850,20 +621,18 @@ export const enableBuiltin = authed
       });
 
     // 3. Check not already enabled for this scope
-    const existing = await drizzle
-      .select({ id: agentDefinition.id })
-      .from(agentDefinition)
-      .where(
-        and(
-          eq(agentDefinition.isBuiltin, true),
-          eq(agentDefinition.name, template.name),
-          eq(agentDefinition.scopeType, input.scopeType),
-          eq(agentDefinition.scopeId, input.scopeId),
-        ),
-      )
-      .limit(1);
+    const existing = await executeQuery(
+      { db: drizzle },
+      findAgentDefinitionByNameAndScope,
+      {
+        name: template.name,
+        scopeType: input.scopeType,
+        scopeId: input.scopeId,
+        isBuiltin: true,
+      },
+    );
 
-    if (existing.length > 0)
+    if (existing)
       throw new ORPCError("CONFLICT", {
         message: `"${template.name}" is already enabled for this scope`,
       });
@@ -878,24 +647,19 @@ export const enableBuiltin = authed
     };
 
     // 5. Insert into DB
-    const row = assertSingleNonNullish(
-      await drizzle
-        .insert(agentDefinition)
-        .values({
-          name: template.name,
-          description: template.description,
-          scopeType: input.scopeType,
-          scopeId: input.scopeId,
-          type: fullDefinition.type,
-          // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-          definition: fullDefinition as AgentDefinitionJson,
-          isBuiltin: true,
-        })
-        .returning({ externalId: agentDefinition.externalId }),
-      "Insert failed",
-    );
+    const definition = AgentDefinitionJsonSchema.parse(fullDefinition);
 
-    return { id: row.externalId };
+    const row = await executeCommand({ db: drizzle }, createAgentDefinition, {
+      name: template.name,
+      description: template.description,
+      scopeType: input.scopeType,
+      scopeId: input.scopeId,
+      type: definition.type,
+      definition,
+      isBuiltin: true,
+    });
+
+    return row;
   });
 
 /**
@@ -910,22 +674,19 @@ export const disableBuiltin = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    const row = assertSingleNonNullish(
-      await drizzle
-        .select({
-          id: agentDefinition.id,
-          isBuiltin: agentDefinition.isBuiltin,
-        })
-        .from(agentDefinition)
-        .where(eq(agentDefinition.externalId, input.id))
-        .limit(1),
-      "Agent definition not found",
-    );
+    const row = await executeQuery({ db: drizzle }, getAgentDefinition, input);
+
+    if (!row)
+      throw new ORPCError("NOT_FOUND", {
+        message: "Agent definition not found",
+      });
 
     if (!row.isBuiltin)
       throw new ORPCError("BAD_REQUEST", {
         message: "Only builtin agents can be disabled via this endpoint",
       });
 
-    await drizzle.delete(agentDefinition).where(eq(agentDefinition.id, row.id));
+    await executeCommand({ db: drizzle }, deleteAgentDefinition, {
+      agentDefinitionId: row.id,
+    });
   });

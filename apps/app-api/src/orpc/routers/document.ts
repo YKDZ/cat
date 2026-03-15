@@ -1,36 +1,30 @@
+import { upsertDocumentFromFileWorkflow } from "@cat/app-agent/workflow";
+import { createDocumentUnderParent } from "@cat/domain";
 import {
-  createDocumentUnderParent,
   finishPresignedPutFile,
   getServiceFromDBId,
   preparePresignedPutFile,
   getDownloadUrl,
   firstOrGivenService,
-} from "@cat/app-server-shared/utils";
-import { upsertDocumentFromFileWorkflow } from "@cat/app-workers";
+} from "@cat/server-shared";
+import { sanitizeFileName } from "@cat/db";
 import {
-  sanitizeFileName,
-  translatableElement as translatableElementTable,
-  document as documentTable,
-  file as fileTable,
-  translation as translationTable,
-  project as projectTable,
-  eq,
-  exists,
-  and,
-  count,
-  asc,
-  gt,
-  lt,
-  ilike,
-  not,
-  DrizzleClient,
-  translatableString,
-  getColumns,
-  blob as blobTable,
-  isNotNull,
-  isNull,
-  sql,
-} from "@cat/db";
+  countDocumentElements,
+  countDocumentTranslations,
+  deleteDocument,
+  executeCommand,
+  executeQuery,
+  findProjectDocumentByName,
+  getActiveFileName,
+  getDocumentBlobInfo,
+  getDocument,
+  getDocumentElementPageIndex,
+  getDocumentElementTranslationStatus,
+  getDocumentElements,
+  getDocumentFileExportContext,
+  getDocumentFirstElement,
+  getProject,
+} from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
 import {
   DocumentSchema,
@@ -38,139 +32,14 @@ import {
 } from "@cat/shared/schema/drizzle/document";
 import {
   ElementTranslationStatusSchema,
-  type ElementTranslationStatus,
   FileMetaSchema,
 } from "@cat/shared/schema/misc";
-import {
-  assertFirstNonNullish,
-  assertSingleNonNullish,
-  assertSingleOrNull,
-} from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
-
-/**
- * 构建翻译状态查询条件
- * @param drizzle - Drizzle 数据库实例
- * @param isTranslated - 是否已翻译
- * @param isApproved - 是否已审批
- * @returns 翻译状态查询条件数组
- */
-const buildTranslationStatusConditions = (
-  drizzle: DrizzleClient,
-  isTranslated?: boolean,
-  isApproved?: boolean,
-  languageId?: string,
-) => {
-  const conditions = [];
-
-  if (isTranslated === undefined && isApproved === undefined) return [];
-  if (!languageId)
-    throw new Error(
-      "languageId must be provided when isApproved or isTranslated is set",
-    );
-  if (isTranslated === false && isApproved === true)
-    throw new Error("isTranslated must be true when isApproved is set");
-
-  if (isTranslated === false && isApproved === undefined) {
-    // 没有翻译
-    conditions.push(
-      not(
-        exists(
-          drizzle
-            .select()
-            .from(translationTable)
-            .innerJoin(
-              translatableString,
-              eq(translationTable.stringId, translatableString.id),
-            )
-            .where(
-              and(
-                eq(
-                  translationTable.translatableElementId,
-                  translatableElementTable.id,
-                ),
-                eq(translatableString.languageId, languageId),
-              ),
-            ),
-        ),
-      ),
-    );
-  } else if (isTranslated === true && isApproved === undefined) {
-    // 有翻译
-    conditions.push(
-      exists(
-        drizzle
-          .select()
-          .from(translationTable)
-          .innerJoin(
-            translatableString,
-            eq(translationTable.stringId, translatableString.id),
-          )
-          .where(
-            and(
-              eq(
-                translationTable.translatableElementId,
-                translatableElementTable.id,
-              ),
-              eq(translatableString.languageId, languageId),
-            ),
-          ),
-      ),
-    );
-  } else if (isTranslated === true && isApproved === false) {
-    // 有翻译但未审批
-    conditions.push(
-      exists(
-        drizzle
-          .select()
-          .from(translationTable)
-          .innerJoin(
-            translatableString,
-            eq(translationTable.stringId, translatableString.id),
-          )
-          .where(
-            and(
-              eq(
-                translationTable.translatableElementId,
-                translatableElementTable.id,
-              ),
-              eq(translatableString.languageId, languageId),
-              isNull(translatableElementTable.approvedTranslationId),
-            ),
-          ),
-      ),
-    );
-  } else if (isTranslated === true && isApproved === true) {
-    // 有翻译且已审批
-    conditions.push(
-      exists(
-        drizzle
-          .select()
-          .from(translationTable)
-          .innerJoin(
-            translatableString,
-            eq(translationTable.stringId, translatableString.id),
-          )
-          .where(
-            and(
-              eq(
-                translationTable.translatableElementId,
-                translatableElementTable.id,
-              ),
-              isNotNull(translatableElementTable.approvedTranslationId),
-            ),
-          ),
-      ),
-    );
-  }
-
-  return conditions;
-};
 
 export const prepareCreateFromFile = authed
   .input(
@@ -246,15 +115,15 @@ export const finishCreateFromFile = authed
       });
     }
 
-    assertSingleNonNullish(
-      await drizzle
-        .select({
-          id: projectTable.id,
-        })
-        .from(projectTable)
-        .where(eq(projectTable.id, projectId)),
-      `Project ${projectId} not found`,
-    );
+    const project = await executeQuery({ db: drizzle }, getProject, {
+      projectId,
+    });
+
+    if (!project) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `Project ${projectId} not found`,
+      });
+    }
 
     const fileId = await finishPresignedPutFile(
       drizzle,
@@ -263,29 +132,28 @@ export const finishCreateFromFile = authed
       putSessionId,
     );
 
-    const { fileName } = assertSingleNonNullish(
-      await drizzle
-        .select({ fileName: fileTable.name })
-        .from(fileTable)
-        .where(and(eq(fileTable.id, fileId), eq(fileTable.isActive, true))),
-    );
+    const fileName = await executeQuery({ db: drizzle }, getActiveFileName, {
+      fileId,
+    });
+
+    if (!fileName) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `File ${fileId} not found`,
+      });
+    }
 
     // 名称相同则视为重复文档
-    const existDocumentRows = await drizzle
-      .select({
-        id: documentTable.id,
-      })
-      .from(documentTable)
-      .where(
-        and(
-          eq(documentTable.projectId, projectId),
-          eq(documentTable.name, fileName),
-          eq(documentTable.isDirectory, false),
-        ),
-      )
-      .limit(1);
+    const existingDocument = await executeQuery(
+      { db: drizzle },
+      findProjectDocumentByName,
+      {
+        projectId,
+        name: fileName,
+        isDirectory: false,
+      },
+    );
 
-    if (existDocumentRows.length === 0) {
+    if (!existingDocument) {
       const service = pluginManager
         .getServices("FILE_IMPORTER")
         .find(({ service }) => service.canImport({ name: fileName }));
@@ -301,35 +169,38 @@ export const finishCreateFromFile = authed
           creatorId: user.id,
           projectId,
           fileHandlerId: service.dbId,
+          fileId,
           name: fileName,
         });
-
-        // 更新文档关联到文件
-        await tx
-          .update(documentTable)
-          .set({ fileId: fileId })
-          .where(eq(documentTable.id, document.id));
 
         return { document };
       });
 
-      await upsertDocumentFromFileWorkflow.run({
-        documentId: document.id,
-        fileId,
-        languageId,
-        vectorizerId: vectorizer.id,
-        vectorStorageId: storage.id,
-      });
+      await upsertDocumentFromFileWorkflow.run(
+        {
+          documentId: document.id,
+          fileId,
+          languageId,
+          vectorizerId: vectorizer.id,
+          vectorStorageId: storage.id,
+        },
+        {
+          pluginManager,
+        },
+      );
     } else {
-      const existDocument = assertSingleNonNullish(existDocumentRows);
-
-      await upsertDocumentFromFileWorkflow.run({
-        fileId,
-        languageId,
-        documentId: existDocument.id,
-        vectorizerId: vectorizer.id,
-        vectorStorageId: storage.id,
-      });
+      await upsertDocumentFromFileWorkflow.run(
+        {
+          fileId,
+          languageId,
+          documentId: existingDocument.id,
+          vectorizerId: vectorizer.id,
+          vectorStorageId: storage.id,
+        },
+        {
+          pluginManager,
+        },
+      );
     }
   });
 
@@ -342,12 +213,7 @@ export const get = authed
     } = context;
     const { documentId } = input;
 
-    return assertSingleOrNull(
-      await drizzle
-        .select()
-        .from(documentTable)
-        .where(eq(documentTable.id, documentId)),
-    );
+    return await executeQuery({ db: drizzle }, getDocument, { documentId });
   });
 
 export const countElement = authed
@@ -365,44 +231,7 @@ export const countElement = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { documentId, searchQuery, isApproved, isTranslated, languageId } =
-      input;
-
-    const whereConditions = [
-      eq(translatableElementTable.documentId, documentId),
-    ];
-
-    if (searchQuery.trim().length !== 0) {
-      whereConditions.push(ilike(translatableString.value, `%${searchQuery}%`));
-    }
-
-    if (isTranslated || isApproved)
-      whereConditions.push(
-        ...buildTranslationStatusConditions(
-          drizzle,
-          isTranslated,
-          isApproved,
-          languageId,
-        ),
-      );
-
-    return assertSingleNonNullish(
-      await drizzle
-        .select({ count: count() })
-        .from(translatableElementTable)
-        .innerJoin(
-          translatableString,
-          eq(
-            translatableElementTable.translatableStringId,
-            translatableString.id,
-          ),
-        )
-        .where(
-          whereConditions.length === 1
-            ? whereConditions[0]
-            : and(...whereConditions),
-        ),
-    ).count;
+    return await executeQuery({ db: drizzle }, countDocumentElements, input);
   });
 
 export const getFirstElement = authed
@@ -421,56 +250,7 @@ export const getFirstElement = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const {
-      documentId,
-      searchQuery,
-      greaterThan,
-      isApproved,
-      isTranslated,
-      languageId,
-    } = input;
-
-    const whereConditions = [
-      eq(translatableElementTable.documentId, documentId),
-    ];
-
-    if (searchQuery.trim().length !== 0) {
-      whereConditions.push(ilike(translatableString.value, `%${searchQuery}%`));
-    }
-
-    if (greaterThan !== undefined) {
-      whereConditions.push(gt(translatableElementTable.sortIndex, greaterThan));
-    }
-
-    // 添加翻译状态条件
-    whereConditions.push(
-      ...buildTranslationStatusConditions(
-        drizzle,
-        isTranslated,
-        isApproved,
-        languageId,
-      ),
-    );
-
-    const element = await drizzle
-      .select(getColumns(translatableElementTable))
-      .from(translatableElementTable)
-      .where(
-        whereConditions.length === 1
-          ? whereConditions[0]
-          : and(...whereConditions),
-      )
-      .innerJoin(
-        translatableString,
-        eq(
-          translatableElementTable.translatableStringId,
-          translatableString.id,
-        ),
-      )
-      .orderBy(asc(translatableElementTable.sortIndex))
-      .limit(1);
-
-    return element[0] ?? null;
+    return await executeQuery({ db: drizzle }, getDocumentFirstElement, input);
   });
 
 export const exportTranslatedFile = authed
@@ -487,17 +267,17 @@ export const exportTranslatedFile = authed
     } = context;
     const { documentId } = input;
 
-    const document = assertSingleNonNullish(
-      await drizzle
-        .select({
-          fileHandlerId: documentTable.fileHandlerId,
-          fileId: documentTable.fileId,
-          projectId: documentTable.projectId,
-        })
-        .from(documentTable)
-        .where(eq(documentTable.id, documentId)),
-      `Document ${documentId} not found`,
+    const document = await executeQuery(
+      { db: drizzle },
+      getDocumentFileExportContext,
+      { documentId },
     );
+
+    if (!document) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `Document ${documentId} not found`,
+      });
+    }
 
     if (!document.fileId || !document.fileHandlerId)
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -519,44 +299,11 @@ export const getElementTranslationStatus = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { elementId, languageId } = input;
-
-    const { approvedTranslationId } = assertSingleNonNullish(
-      await drizzle
-        .select({
-          approvedTranslationId: translatableElementTable.approvedTranslationId,
-        })
-        .from(translatableElementTable)
-        .where(eq(translatableElementTable.id, elementId)),
-      `Element ${elementId} not found`,
+    return await executeQuery(
+      { db: drizzle },
+      getDocumentElementTranslationStatus,
+      input,
     );
-
-    // 查询该元素在指定语言下的翻译
-    const translations = await drizzle
-      .select({
-        id: translationTable.id,
-      })
-      .from(translationTable)
-      .innerJoin(
-        translatableString,
-        eq(translationTable.stringId, translatableString.id),
-      )
-      .where(
-        and(
-          eq(translationTable.translatableElementId, elementId),
-          eq(translatableString.languageId, languageId),
-        ),
-      );
-
-    if (translations.length === 0) {
-      return "NO";
-    }
-
-    if (approvedTranslationId) {
-      return "APPROVED";
-    }
-
-    return "TRANSLATED";
   });
 
 export const getElements = authed
@@ -584,15 +331,7 @@ export const getElements = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const {
-      documentId,
-      page,
-      pageSize,
-      searchQuery,
-      isApproved,
-      isTranslated,
-      languageId,
-    } = input;
+    const { isApproved, isTranslated } = input;
 
     if (isApproved !== undefined && isTranslated !== true) {
       throw new ORPCError("BAD_REQUEST", {
@@ -600,94 +339,7 @@ export const getElements = authed
       });
     }
 
-    const whereConditions = [
-      eq(translatableElementTable.documentId, documentId),
-    ];
-
-    if (searchQuery?.trim().length !== 0) {
-      whereConditions.push(ilike(translatableString.value, `%${searchQuery}%`));
-    }
-
-    // 添加翻译状态条件
-    whereConditions.push(
-      ...buildTranslationStatusConditions(
-        drizzle,
-        isTranslated,
-        isApproved,
-        languageId,
-      ),
-    );
-
-    const statusSql = languageId
-      ? sql<ElementTranslationStatus>`CASE
-        WHEN ${and(
-          isNotNull(translatableElementTable.approvedTranslationId),
-          exists(
-            drizzle
-              .select()
-              .from(translationTable)
-              .innerJoin(
-                translatableString,
-                eq(translationTable.stringId, translatableString.id),
-              )
-              .where(
-                and(
-                  eq(
-                    translationTable.id,
-                    translatableElementTable.approvedTranslationId,
-                  ),
-                  eq(translatableString.languageId, languageId),
-                ),
-              ),
-          ),
-        )} THEN 'APPROVED'
-        WHEN ${exists(
-          drizzle
-            .select()
-            .from(translationTable)
-            .innerJoin(
-              translatableString,
-              eq(translationTable.stringId, translatableString.id),
-            )
-            .where(
-              and(
-                eq(
-                  translationTable.translatableElementId,
-                  translatableElementTable.id,
-                ),
-                eq(translatableString.languageId, languageId),
-              ),
-            ),
-        )} THEN 'TRANSLATED'
-        ELSE 'NO'
-      END`.as("status")
-      : sql<ElementTranslationStatus>`'NO'`.as("status");
-
-    const result = await drizzle
-      .select({
-        ...getColumns(translatableElementTable),
-        value: translatableString.value,
-        languageId: translatableString.languageId,
-        status: statusSql,
-      })
-      .from(translatableElementTable)
-      .where(
-        whereConditions.length === 1
-          ? whereConditions[0]
-          : and(...whereConditions),
-      )
-      .innerJoin(
-        translatableString,
-        eq(
-          translatableElementTable.translatableStringId,
-          translatableString.id,
-        ),
-      )
-      .orderBy(asc(translatableElementTable.sortIndex))
-      .limit(pageSize)
-      .offset(page * pageSize);
-
-    return result;
+    return await executeQuery({ db: drizzle }, getDocumentElements, input);
   });
 
 export const getPageIndexOfElement = authed
@@ -707,14 +359,7 @@ export const getPageIndexOfElement = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    const {
-      elementId,
-      pageSize,
-      searchQuery,
-      isApproved,
-      isTranslated,
-      languageId,
-    } = input;
+    const { isApproved, isTranslated } = input;
 
     if (isApproved !== undefined && isTranslated !== true) {
       throw new ORPCError("BAD_REQUEST", {
@@ -722,45 +367,11 @@ export const getPageIndexOfElement = authed
       });
     }
 
-    const target = assertSingleNonNullish(
-      await drizzle
-        .select(getColumns(translatableElementTable))
-        .from(translatableElementTable)
-        .where(eq(translatableElementTable.id, elementId)),
-      `Element ${elementId} with given id does not exists`,
+    return await executeQuery(
+      { db: drizzle },
+      getDocumentElementPageIndex,
+      input,
     );
-
-    const whereConditions = [
-      lt(translatableElementTable.sortIndex, target.sortIndex ?? 0),
-    ];
-
-    if (searchQuery.trim().length !== 0) {
-      whereConditions.push(ilike(translatableString.value, `%${searchQuery}%`));
-    }
-
-    // 添加翻译状态条件
-    whereConditions.push(
-      ...buildTranslationStatusConditions(
-        drizzle,
-        isTranslated,
-        isApproved,
-        languageId,
-      ),
-    );
-
-    const result = await drizzle
-      .select({ count: count() })
-      .from(translatableElementTable)
-      .innerJoin(
-        translatableString,
-        eq(
-          translatableElementTable.translatableStringId,
-          translatableString.id,
-        ),
-      )
-      .where(and(...whereConditions));
-
-    return Math.floor(result[0].count / pageSize);
   });
 
 export const del = authed
@@ -774,9 +385,9 @@ export const del = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { id } = input;
-
-    await drizzle.delete(documentTable).where(eq(documentTable.id, id));
+    await executeCommand({ db: drizzle }, deleteDocument, {
+      documentId: input.id,
+    });
   });
 
 export const getDocumentFileUrl = authed
@@ -794,29 +405,15 @@ export const getDocumentFileUrl = authed
     } = context;
     const { documentId } = input;
 
-    const whereConditions = [eq(documentTable.id, documentId)];
+    const result = await executeQuery({ db: drizzle }, getDocumentBlobInfo, {
+      documentId,
+    });
 
-    const { key, storageProviderId } = assertFirstNonNullish(
-      await drizzle
-        .select({
-          key: blobTable.key,
-          storageProviderId: blobTable.storageProviderId,
-        })
-        .from(documentTable)
-        .leftJoin(
-          fileTable,
-          and(
-            eq(fileTable.id, documentTable.fileId),
-            eq(fileTable.isActive, true),
-          ),
-        )
-        .leftJoin(blobTable, eq(blobTable.id, fileTable.blobId))
-        .where(
-          whereConditions.length === 1
-            ? whereConditions[0]
-            : and(...whereConditions),
-        ),
-    );
+    if (!result) {
+      return null;
+    }
+
+    const { key, storageProviderId } = result;
 
     if (!key || !storageProviderId) return null;
 
@@ -849,30 +446,9 @@ export const getDocumentFileInfo = authed
     } = context;
     const { documentId } = input;
 
-    const whereConditions = [eq(documentTable.id, documentId)];
-
-    const result = assertFirstNonNullish(
-      await drizzle
-        .select({
-          key: blobTable.key,
-          storageProviderId: blobTable.storageProviderId,
-          fileName: fileTable.name,
-        })
-        .from(documentTable)
-        .leftJoin(
-          fileTable,
-          and(
-            eq(fileTable.id, documentTable.fileId),
-            eq(fileTable.isActive, true),
-          ),
-        )
-        .leftJoin(blobTable, eq(blobTable.id, fileTable.blobId))
-        .where(
-          whereConditions.length === 1
-            ? whereConditions[0]
-            : and(...whereConditions),
-        ),
-    );
+    const result = await executeQuery({ db: drizzle }, getDocumentBlobInfo, {
+      documentId,
+    });
 
     if (!result || !result.key || !result.storageProviderId) {
       return null;
@@ -898,28 +474,9 @@ export const countTranslation = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { documentId, languageId, isApproved } = input;
-
-    const baseQuery = drizzle
-      .select({ count: count() })
-      .from(translationTable)
-      .innerJoin(
-        translatableElementTable,
-        eq(translationTable.translatableElementId, translatableElementTable.id),
-      )
-      .innerJoin(
-        translatableString,
-        eq(translatableString.id, translationTable.stringId),
-      )
-      .where(
-        and(
-          eq(translatableElementTable.documentId, documentId),
-          eq(translatableString.languageId, languageId),
-          isApproved
-            ? isNotNull(translatableElementTable.approvedTranslationId)
-            : undefined,
-        ),
-      );
-
-    return assertSingleNonNullish(await baseQuery).count;
+    return await executeQuery(
+      { db: drizzle },
+      countDocumentTranslations,
+      input,
+    );
   });

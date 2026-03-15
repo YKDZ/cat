@@ -33,8 +33,9 @@
   },
   "peerDependencies": {
     "@cat/db": "workspace:*",
+    "@cat/domain": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "drizzle-orm": "1.0.0-beta.10-4a43a22"
+    "drizzle-orm": "1.0.0-beta.17-67b1795"
   }
 }

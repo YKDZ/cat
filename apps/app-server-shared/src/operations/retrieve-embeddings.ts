@@ -1,6 +1,6 @@
-import { chunk, eq, getDrizzleDB } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import { executeQuery, getChunkVectorStorageId } from "@cat/domain";
 import { PluginManager, type VectorStorage } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
@@ -34,16 +34,19 @@ export const retrieveEmbeddingsOp = async (
 ): Promise<RetrieveEmbeddingsOutput> => {
   const { client: drizzle } = await getDrizzleDB();
   const pluginManager = PluginManager.get("GLOBAL", "");
+  const firstChunkId = data.chunkIds.at(0) ?? 0;
 
   // TODO 暂时假设所有 chunk 的 storageId 都相同
-  const { vectorStorageId } = assertSingleNonNullish(
-    await drizzle
-      .select({
-        vectorStorageId: chunk.vectorStorageId,
-      })
-      .from(chunk)
-      .where(eq(chunk.id, data.chunkIds.at(0) ?? 0)),
+  const vectorStorageId = await executeQuery(
+    { db: drizzle },
+    getChunkVectorStorageId,
+    {
+      chunkId: firstChunkId,
+    },
   );
+  if (vectorStorageId === null) {
+    throw new Error(`Chunk ${String(firstChunkId)} not found`);
+  }
 
   const vectorStorage = getServiceFromDBId<VectorStorage>(
     pluginManager,

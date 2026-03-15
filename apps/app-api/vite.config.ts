@@ -5,10 +5,12 @@ import { defineConfig } from "vite";
 export default defineConfig({
   ssr: {
     external: [
+      "@cat/app-agent",
+      "@cat/app-agent/workflow",
+      "@cat/domain",
       "@cat/db",
       "@cat/shared",
       "@cat/plugin-core",
-      "@cat/app-workers",
       "@cat/app-server-shared",
       "@orpc/client",
       "@orpc/server",
@@ -33,6 +35,27 @@ export default defineConfig({
     ssr: true,
     emptyOutDir: true,
     sourcemap: true,
+    rollupOptions: {
+      external: [
+        "@cat/app-agent",
+        "@cat/app-agent/workflow",
+        "@cat/domain",
+        "@cat/db",
+        "@cat/shared",
+        "@cat/plugin-core",
+        "@cat/app-server-shared",
+        "@orpc/client",
+        "@orpc/server",
+        "@orpc/experimental-pino",
+        "vike",
+        "zod",
+        "telefunc",
+        "hono",
+        "pino",
+        "lodash-es",
+        "devalue",
+      ],
+    },
 
     lib: {
       entry: {

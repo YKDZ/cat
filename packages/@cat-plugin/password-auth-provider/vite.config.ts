@@ -15,6 +15,9 @@ export default defineConfig({
   build: {
     ssr: true,
     emptyOutDir: true,
+    rollupOptions: {
+      external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "zod"],
+    },
 
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),

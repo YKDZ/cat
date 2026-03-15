@@ -138,8 +138,6 @@ export class OpenAILLMProvider extends LLMProvider {
     for await (const chunk of stream) {
       const delta = chunk.choices[0];
 
-      console.log(delta);
-
       if (delta?.text) {
         contentAcc += delta.text;
         onChunk({ type: "text_delta", textDelta: delta.text });

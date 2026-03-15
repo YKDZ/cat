@@ -1,0 +1,188 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+
+import {
+  generatedSharedSchemaFiles,
+  type GeneratedDeclaration,
+  type GeneratedFileSpec,
+} from "./generators.ts";
+
+const repoRoot = resolve(import.meta.dirname, "../../../..");
+const sharedDrizzleDir = resolve(
+  repoRoot,
+  "packages/shared/src/schema/drizzle",
+);
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
+
+const getRecord = (value: unknown, label: string): Record<string, unknown> => {
+  if (!isRecord(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+
+  return value;
+};
+
+const getSchemaDef = (schema: unknown): Record<string, unknown> => {
+  const schemaRecord = getRecord(schema, "schema");
+  return getRecord(Reflect.get(schemaRecord, "def"), "schema.def");
+};
+
+const getString = (record: Record<string, unknown>, key: string): string => {
+  const value = Reflect.get(record, key);
+  if (typeof value !== "string") {
+    throw new Error(`${key} must be a string`);
+  }
+
+  return value;
+};
+
+const getOptionalString = (
+  record: Record<string, unknown>,
+  key: string,
+): string | undefined => {
+  const value = Reflect.get(record, key);
+  return typeof value === "string" ? value : undefined;
+};
+
+const serializeSchema = (schema: unknown): string => {
+  const def = getSchemaDef(schema);
+  const schemaType = getString(def, "type");
+
+  switch (schemaType) {
+    case "string": {
+      const format = getOptionalString(def, "format");
+      if (format === "uuid") return "z.uuidv4()";
+      if (format === "email") return "z.email()";
+      if (format === "url") return "z.url()";
+      return "z.string()";
+    }
+    case "number": {
+      const format = getOptionalString(def, "format");
+      return format === "safeint" ? "z.int()" : "z.number()";
+    }
+    case "boolean": {
+      return "z.boolean()";
+    }
+    case "date": {
+      return "DrizzleDateTimeSchema";
+    }
+    case "enum": {
+      const entries = getRecord(Reflect.get(def, "entries"), "enum.entries");
+      const enumValues = Object.values(entries).filter(
+        (value): value is string => typeof value === "string",
+      );
+      return `z.enum([${enumValues.map((value) => JSON.stringify(value)).join(", ")}])`;
+    }
+    case "nullable": {
+      return `${serializeSchema(Reflect.get(def, "innerType"))}.nullable()`;
+    }
+    case "optional": {
+      return `${serializeSchema(Reflect.get(def, "innerType"))}.optional()`;
+    }
+    case "array": {
+      return `z.array(${serializeSchema(Reflect.get(def, "element"))})`;
+    }
+    case "custom": {
+      return "z.instanceof(Buffer)";
+    }
+    case "null": {
+      return "z.null()";
+    }
+    default: {
+      throw new Error(
+        `Unsupported Zod schema type "${schemaType}". Add an override for this field.`,
+      );
+    }
+  }
+};
+
+const renderTableDeclaration = (
+  declaration: Extract<GeneratedDeclaration, { kind: "table" }>,
+): string => {
+  const shape = declaration.buildShape();
+  const fieldLines = Object.entries(shape).map(([fieldName, fieldSchema]) => {
+    const override = declaration.overrides?.[fieldName];
+    const expression = override ?? serializeSchema(fieldSchema);
+    return `  ${fieldName}: ${expression},`;
+  });
+
+  return [
+    `export const ${declaration.schemaExportName} = z.object({`,
+    ...fieldLines,
+    `});`,
+    "",
+    `export type ${declaration.typeExportName} = z.infer<typeof ${declaration.schemaExportName}>;`,
+  ].join("\n");
+};
+
+const renderDeclaration = (declaration: GeneratedDeclaration): string => {
+  if (declaration.kind === "manual") {
+    return declaration.source;
+  }
+
+  return renderTableDeclaration(declaration);
+};
+
+const collectImports = (
+  fileSpec: GeneratedFileSpec,
+  body: string,
+): string[] => {
+  const imports = new Set<string>(fileSpec.imports ?? []);
+
+  if (body.includes("DrizzleDateTimeSchema")) {
+    imports.add('import { DrizzleDateTimeSchema } from "../misc.ts";');
+  }
+
+  const jsonImports: string[] = [];
+
+  if (body.includes("_JSONSchemaSchema")) {
+    jsonImports.push("_JSONSchemaSchema");
+  }
+
+  if (body.includes("nonNullSafeZDotJson")) {
+    jsonImports.push("nonNullSafeZDotJson");
+  }
+
+  if (body.includes("safeZDotJson")) {
+    jsonImports.push("safeZDotJson");
+  }
+
+  if (jsonImports.length > 0) {
+    imports.add(`import { ${jsonImports.join(", ")} } from "../json.ts";`);
+  }
+
+  return ['import * as z from "zod/v4";', ...Array.from(imports).sort()];
+};
+
+const renderFile = (fileSpec: GeneratedFileSpec): string => {
+  const declarationBlocks = fileSpec.declarations.map((declaration) => {
+    return renderDeclaration(declaration).trim();
+  });
+  const body = declarationBlocks.join("\n\n");
+  const imports = collectImports(fileSpec, body);
+
+  return [
+    "// Generated by packages/db/src/zod/codegen.ts. Do not edit by hand.",
+    ...imports,
+    "",
+    body,
+    "",
+  ].join("\n");
+};
+
+const main = async (): Promise<void> => {
+  const writeTasks = generatedSharedSchemaFiles.map(async (fileSpec) => {
+    const outputPath = resolve(sharedDrizzleDir, fileSpec.outputFile);
+    const content = renderFile(fileSpec);
+
+    await mkdir(dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, content, "utf8");
+  });
+
+  await Promise.all(writeTasks);
+};
+
+await main();

@@ -1,15 +1,14 @@
+import type { DrizzleClient } from "@cat/db";
+
 import {
-  agentDefinition,
-  agentSession,
-  and,
-  eq,
-  type DrizzleClient,
-} from "@cat/db";
+  executeQuery,
+  getAgentDefinitionByInternalId,
+  getAgentSessionByExternalId,
+} from "@cat/domain";
 import {
   AgentDefinitionSchema,
   type AgentDefinition,
 } from "@cat/shared/schema/agent";
-import { assertSingleNonNullish } from "@cat/shared/utils";
 
 // ─── Types ───
 
@@ -40,26 +39,18 @@ export const resolveSession = async (
   sessionExternalId: string,
   userId?: string,
 ): Promise<ResolvedSession> => {
-  const conditions = [eq(agentSession.externalId, sessionExternalId)];
-  if (userId) {
-    conditions.push(eq(agentSession.userId, userId));
-  }
-
-  const session = assertSingleNonNullish(
-    await drizzle
-      .select({
-        id: agentSession.id,
-        externalId: agentSession.externalId,
-        agentDefinitionId: agentSession.agentDefinitionId,
-        status: agentSession.status,
-        userId: agentSession.userId,
-        metadata: agentSession.metadata,
-      })
-      .from(agentSession)
-      .where(and(...conditions))
-      .limit(1),
-    `Session not found: ${sessionExternalId}`,
+  const session = await executeQuery(
+    { db: drizzle },
+    getAgentSessionByExternalId,
+    {
+      externalId: sessionExternalId,
+      userId,
+    },
   );
+
+  if (session === null) {
+    throw new Error(`Session not found: ${sessionExternalId}`);
+  }
 
   if (session.status !== "ACTIVE") {
     throw new Error(
@@ -79,14 +70,17 @@ export const resolveDefinition = async (
   drizzle: DrizzleClient,
   agentDefinitionId: number,
 ): Promise<AgentDefinition> => {
-  const defRow = assertSingleNonNullish(
-    await drizzle
-      .select({ definition: agentDefinition.definition })
-      .from(agentDefinition)
-      .where(eq(agentDefinition.id, agentDefinitionId))
-      .limit(1),
-    `Agent definition not found for id ${String(agentDefinitionId)}`,
+  const definition = await executeQuery(
+    { db: drizzle },
+    getAgentDefinitionByInternalId,
+    { id: agentDefinitionId },
   );
 
-  return AgentDefinitionSchema.parse(defRow.definition);
+  if (definition === null) {
+    throw new Error(
+      `Agent definition not found for id ${String(agentDefinitionId)}`,
+    );
+  }
+
+  return AgentDefinitionSchema.parse(definition.definition);
 };

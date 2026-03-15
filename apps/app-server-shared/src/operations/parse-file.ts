@@ -1,14 +1,12 @@
-import { and, blob, eq, file, getDrizzleDB } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import { executeQuery, getActiveFileBlobInfo } from "@cat/domain";
 import {
   PluginManager,
   type FileImporter,
   type StorageProvider,
 } from "@cat/plugin-core";
 import { safeZDotJson } from "@cat/shared/schema/json";
-import {
-  assertFirstNonNullish,
-  assertSingleNonNullish,
-} from "@cat/shared/utils";
+import { assertFirstNonNullish } from "@cat/shared/utils";
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
@@ -49,18 +47,19 @@ export const parseFileOp = async (
   const { client: drizzle } = await getDrizzleDB();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
-  const { name, key, storageProviderId } = assertSingleNonNullish(
-    await drizzle
-      .select({
-        name: file.name,
-        key: blob.key,
-        storageProviderId: blob.storageProviderId,
-      })
-      .from(file)
-      .innerJoin(blob, eq(blob.id, file.blobId))
-      .where(and(eq(file.id, data.fileId), eq(file.isActive, true))),
-    `File ${data.fileId} not found`,
+  const fileBlobInfo = await executeQuery(
+    { db: drizzle },
+    getActiveFileBlobInfo,
+    {
+      fileId: data.fileId,
+    },
   );
+
+  if (fileBlobInfo === null) {
+    throw new Error(`File ${data.fileId} not found`);
+  }
+
+  const { name, key, storageProviderId } = fileBlobInfo;
 
   const provider = getServiceFromDBId<StorageProvider>(
     pluginManager,

@@ -37,6 +37,7 @@
     "lint:fix": "oxlint --fix --type-aware"
   },
   "devDependencies": {
+    "@cat/domain": "workspace:*",
     "@cat/eslint-config": "workspace:*",
     "@types/lodash-es": "^4.17.12",
     "hono": "^4.11.10",
@@ -45,6 +46,7 @@
   },
   "peerDependencies": {
     "@cat/db": "workspace:*",
+    "@cat/domain": "workspace:*",
     "@cat/shared": "workspace:*",
     "@types/lodash-es": "^4.17.12",
     "dompurify": "^3.3.1",

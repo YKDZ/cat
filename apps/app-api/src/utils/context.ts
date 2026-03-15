@@ -1,4 +1,4 @@
-import { userFromSessionId } from "@cat/app-server-shared/utils";
+import { userFromSessionId } from "@cat/server-shared";
 import { DrizzleDB, getDrizzleDB, getRedisDB, RedisDB } from "@cat/db";
 import { PluginManager } from "@cat/plugin-core";
 import { User } from "@cat/shared/schema/drizzle/user";

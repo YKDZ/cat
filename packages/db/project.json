@@ -1,5 +1,12 @@
 {
   "targets": {
+    "codegen-schemas": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm codegen:schemas",
+        "cwd": "packages/db"
+      }
+    },
     "drizzle:generate": {
       "dependsOn": [
         {

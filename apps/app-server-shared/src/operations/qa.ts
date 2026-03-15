@@ -1,4 +1,5 @@
-import { getRedisDB } from "@cat/db";
+import { getDrizzleDB, getRedisDB } from "@cat/db";
+import { executeQuery, listLexicalTermSuggestions } from "@cat/domain";
 import {
   PluginManager,
   type QAChecker,
@@ -13,8 +14,6 @@ import {
 import z from "zod";
 
 import type { OperationContext } from "@/operations/types";
-
-import { lookupTermsOp } from "./lookup-terms";
 
 export const getQAPubKey = (id: string): string => {
   return `qa:issue:${id}`;
@@ -87,17 +86,23 @@ export const qaOp = async (
   payload: QAInput,
   ctx?: OperationContext,
 ): Promise<QAOutput> => {
+  const { client: drizzle } = await getDrizzleDB();
   const { redisPub } = await getRedisDB();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
-  const terms = await lookupTermsOp({
-    text: payload.source.text,
-    sourceLanguageId: payload.source.languageId,
-    translationLanguageId: payload.translation.languageId,
-    glossaryIds: payload.glossaryIds,
-  });
+  const terms = await executeQuery(
+    { db: drizzle },
+    listLexicalTermSuggestions,
+    {
+      text: payload.source.text,
+      sourceLanguageId: payload.source.languageId,
+      translationLanguageId: payload.translation.languageId,
+      glossaryIds: payload.glossaryIds,
+      wordSimilarityThreshold: 0.3,
+    },
+  );
 
   const { source, translation, pub } = payload;
 

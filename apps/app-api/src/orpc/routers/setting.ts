@@ -1,6 +1,10 @@
-import { eq, setting as settingTable } from "@cat/db";
+import {
+  executeCommand,
+  executeQuery,
+  getSetting,
+  setSetting,
+} from "@cat/domain";
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
-import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
@@ -17,12 +21,8 @@ export const set = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { key, value } = input;
 
-    await drizzle
-      .update(settingTable)
-      .set({ value })
-      .where(eq(settingTable.key, key));
+    await executeCommand({ db: drizzle }, setSetting, input);
   });
 
 export const get = authed
@@ -36,18 +36,6 @@ export const get = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { key } = input;
 
-    const setting = assertSingleOrNull(
-      await drizzle
-        .select({
-          value: settingTable.value,
-        })
-        .from(settingTable)
-        .where(eq(settingTable.key, key)),
-    );
-
-    if (!setting) return null;
-
-    return setting.value;
+    return await executeQuery({ db: drizzle }, getSetting, input);
   });

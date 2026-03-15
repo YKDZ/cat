@@ -1,9 +1,13 @@
-import { eq, getDrizzleDB, term as termTable } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import {
+  createInProcessCollector,
+  deleteGlossaryTerm,
+  domainEventBus,
+  executeCommand,
+} from "@cat/domain";
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
-
-import { triggerConceptRevectorize } from "./trigger-revectorize";
 
 export const DeleteTermInputSchema = z.object({
   termId: z.int(),
@@ -20,30 +24,21 @@ export type DeleteTermOutput = z.infer<typeof DeleteTermOutputSchema>;
 /**
  * 删除一条术语条目。
  *
- * 先查询所属 conceptId，删除术语后自动触发 fire-and-forget 的概念重向量化。
+ * 删除术语后由领域事件处理器自动触发概念重向量化。
  */
 export const deleteTermOp = async (
   data: DeleteTermInput,
   ctx?: OperationContext,
 ): Promise<DeleteTermOutput> => {
+  void ctx;
   const { client: drizzle } = await getDrizzleDB();
+  const collector = createInProcessCollector(domainEventBus);
 
-  // 先查询 conceptId（删除后就查不到了）
-  const termRow = await drizzle
-    .select({ termConceptId: termTable.termConceptId })
-    .from(termTable)
-    .where(eq(termTable.id, data.termId))
-    .limit(1);
+  const result = await drizzle.transaction(async (tx) => {
+    return executeCommand({ db: tx, collector }, deleteGlossaryTerm, data);
+  });
 
-  if (termRow.length === 0) {
-    return { deleted: false, conceptId: null };
-  }
+  await collector.flush();
 
-  const conceptId = termRow[0].termConceptId;
-
-  await drizzle.delete(termTable).where(eq(termTable.id, data.termId));
-
-  triggerConceptRevectorize(conceptId, ctx);
-
-  return { deleted: true, conceptId };
+  return { deleted: result.deleted, conceptId: result.conceptId };
 };

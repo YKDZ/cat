@@ -6,6 +6,7 @@ export default defineConfig({
   ssr: {
     external: [
       "@cat/db",
+      "@cat/domain",
       "@cat/shared",
       "zod",
       "vue",
@@ -24,6 +25,17 @@ export default defineConfig({
     ssr: true,
     emptyOutDir: true,
     sourcemap: true,
+    rollupOptions: {
+      external: [
+        "@cat/db",
+        "@cat/domain",
+        "@cat/shared",
+        "zod",
+        "vue",
+        "lodash-es",
+        "dompurify",
+      ],
+    },
 
     lib: {
       entry: {

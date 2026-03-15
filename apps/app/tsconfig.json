@@ -32,5 +32,9 @@
     "src/**/*.spec.jsx"
   ],
   "include": ["src/**/*.ts", "src/**/*.vue"],
-  "references": []
+  "references": [
+    {
+      "path": "../app-agent"
+    }
+  ]
 }

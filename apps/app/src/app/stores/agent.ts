@@ -10,9 +10,7 @@ import { computed, ref, shallowRef } from "vue";
 
 import type { GraphEvent, NodeExecution } from "@/app/types/agent-graph";
 
-import { executeClientTool } from "@/app/utils/agent/client-tool-registry";
 import { orpc } from "@/server/orpc";
-import { ws } from "@/server/ws";
 
 // ─── Constants ───
 
@@ -95,20 +93,6 @@ export type FinishReason =
   | "cancelled"
   | "implicit_completion";
 
-const FINISH_REASONS: ReadonlySet<string> = new Set([
-  "completed",
-  "max_steps",
-  "error",
-  "cancelled",
-  "implicit_completion",
-]);
-
-const isFinishReason = (value: string): value is FinishReason =>
-  FINISH_REASONS.has(value);
-
-const toFinishReason = (value: string): FinishReason =>
-  isFinishReason(value) ? value : "completed";
-
 const toPlainRecord = (value: unknown): Record<string, unknown> | null => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return null;
@@ -131,6 +115,20 @@ export interface GraphRunResultInfo {
   status: "completed" | "cancelled" | "failed";
   message: string | null;
 }
+
+const cloneToolCall = (toolCall: AgentToolCallItem): AgentToolCallItem => {
+  return {
+    ...toolCall,
+    arguments: { ...toolCall.arguments },
+  };
+};
+
+const cloneStep = (step: AgentStepItem): AgentStepItem => {
+  return {
+    ...step,
+    toolCalls: step.toolCalls.map((toolCall) => cloneToolCall(toolCall)),
+  };
+};
 
 export const useAgentStore = defineStore("agent", () => {
   // ─── State ───
@@ -156,7 +154,7 @@ export const useAgentStore = defineStore("agent", () => {
   const pendingConfirmation = ref<PendingToolConfirmation | null>(null);
 
   /** Whether the agent is waiting for a client tool execution result. */
-  const awaitingClientTool = ref(false);
+  // awaitingClientTool removed — client tools are no longer supported (Graph-only mode)
 
   /** Set when the agent hits the max_steps limit; drives the MaxSteps card. */
   const maxStepsReached = ref<MaxStepsReachedInfo | null>(null);
@@ -214,7 +212,88 @@ export const useAgentStore = defineStore("agent", () => {
     eventLog.value = [...eventLog.value, event];
   };
 
+  const updateCurrentSteps = (
+    updater: (steps: AgentStepItem[]) => AgentStepItem[],
+  ) => {
+    currentSteps.value = updater(
+      currentSteps.value.map((step) => cloneStep(step)),
+    );
+  };
+
+  const appendCurrentStep = (step: Omit<AgentStepItem, "index">) => {
+    updateCurrentSteps((steps) => {
+      return [
+        ...steps,
+        {
+          ...step,
+          index: steps.length,
+        },
+      ];
+    });
+  };
+
+  const findToolCallLocation = (
+    steps: AgentStepItem[],
+    callId: string | null,
+  ): { stepIndex: number; toolIndex: number } | null => {
+    for (let stepIndex = steps.length - 1; stepIndex >= 0; stepIndex -= 1) {
+      const step = steps[stepIndex];
+      if (!step) continue;
+
+      if (callId) {
+        const toolIndex = step.toolCalls.findIndex(
+          (toolCall) => toolCall.id === callId,
+        );
+        if (toolIndex >= 0) {
+          return { stepIndex, toolIndex };
+        }
+      }
+
+      if (step.toolCalls.length > 0) {
+        return {
+          stepIndex,
+          toolIndex: step.toolCalls.length - 1,
+        };
+      }
+    }
+
+    return null;
+  };
+
+  const updateExistingToolCall = (
+    callId: string | null,
+    updater: (toolCall: AgentToolCallItem) => AgentToolCallItem,
+  ): boolean => {
+    let updated = false;
+
+    updateCurrentSteps((steps) => {
+      const location = findToolCallLocation(steps, callId);
+      if (!location) return steps;
+
+      const step = steps[location.stepIndex];
+      if (!step) return steps;
+      const toolCall = step.toolCalls[location.toolIndex];
+      if (!toolCall) return steps;
+
+      step.toolCalls.splice(location.toolIndex, 1, updater(toolCall));
+      updated = true;
+      return steps;
+    });
+
+    return updated;
+  };
+
+  const buildStepsSnapshot = (): AgentStepItem[] => {
+    return currentSteps.value.map((step) => cloneStep(step));
+  };
+
+  const getCallId = (payload: Record<string, unknown>): string | null => {
+    const callId = payload["callId"];
+    return typeof callId === "string" && callId.length > 0 ? callId : null;
+  };
+
   const applyGraphEvent = (event: GraphEvent) => {
+    runId.value = event.runId;
     appendEvent(event);
 
     const eventDate = new Date(event.timestamp);
@@ -237,6 +316,7 @@ export const useAgentStore = defineStore("agent", () => {
         status: "cancelled",
         message: null,
       };
+      runId.value = null;
       return;
     }
 
@@ -247,6 +327,16 @@ export const useAgentStore = defineStore("agent", () => {
 
     if (event.type === "run:end") {
       const payloadStatus = event.payload["status"];
+      const finishReason = event.payload["finishReason"];
+      lastFinishReason.value =
+        finishReason === "completed" ||
+        finishReason === "max_steps" ||
+        finishReason === "error" ||
+        finishReason === "cancelled" ||
+        finishReason === "implicit_completion"
+          ? finishReason
+          : null;
+
       if (payloadStatus === "completed") {
         streamingStatus.value = "done";
         graphRunResult.value = {
@@ -275,6 +365,8 @@ export const useAgentStore = defineStore("agent", () => {
       ) {
         blackboardPreview.value = { ...blackboard };
       }
+
+      runId.value = null;
       return;
     }
 
@@ -287,6 +379,7 @@ export const useAgentStore = defineStore("agent", () => {
         status: "failed",
         message: typeof error === "string" ? error : null,
       };
+      runId.value = null;
       return;
     }
 
@@ -360,6 +453,30 @@ export const useAgentStore = defineStore("agent", () => {
       return;
     }
 
+    if (event.type === "llm:thinking" && event.nodeId) {
+      const nodeId = event.nodeId;
+      const delta = event.payload["delta"];
+      if (typeof delta !== "string" || delta.length === 0) return;
+
+      thinkingText.value += delta;
+      const previousThinking = thinkingNodes.value.get(nodeId) ?? "";
+      const nextThinking = `${previousThinking}${delta}`;
+      updateTextMap(thinkingNodes.value, nodeId, nextThinking, "thinking");
+      updateNodeExecution(nodeId, (current) => ({
+        nodeId,
+        nodeType: current?.nodeType ?? "llm",
+        status: current?.status ?? "running",
+        startedAt: current?.startedAt ?? eventDate,
+        completedAt: current?.completedAt ?? null,
+        input: current?.input,
+        output: current?.output,
+        streamingText: current?.streamingText,
+        thinkingText: nextThinking,
+        toolCalls: current?.toolCalls,
+      }));
+      return;
+    }
+
     if (event.type === "llm:token" && event.nodeId) {
       const nodeId = event.nodeId;
       const delta = event.payload["delta"];
@@ -389,31 +506,65 @@ export const useAgentStore = defineStore("agent", () => {
     if (event.type === "llm:complete" && event.nodeId) {
       const nodeId = event.nodeId;
       const content = event.payload["content"];
-      if (typeof content === "string") {
-        updateTextMap(llmStreamingNodes.value, nodeId, content, "llm");
-        updateNodeExecution(nodeId, (current) => ({
-          nodeId,
-          nodeType: current?.nodeType ?? "llm",
-          status: "completed",
-          startedAt: current?.startedAt ?? null,
-          completedAt: eventDate,
-          input: current?.input,
-          output: current?.output,
-          streamingText: content,
-          thinkingText: current?.thinkingText,
-          toolCalls: current?.toolCalls,
-        }));
+      const finalContent = typeof content === "string" ? content : "";
+      const thinking = event.payload["thinking"];
+      const toolCalls = event.payload["toolCalls"];
+      const thinkingSnapshot =
+        typeof thinking === "string" ? thinking : thinkingText.value;
+      const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
+
+      updateTextMap(llmStreamingNodes.value, nodeId, finalContent, "llm");
+      updateNodeExecution(nodeId, (current) => ({
+        nodeId,
+        nodeType: current?.nodeType ?? "llm",
+        status: "completed",
+        startedAt: current?.startedAt ?? null,
+        completedAt: eventDate,
+        input: current?.input,
+        output: current?.output,
+        streamingText: finalContent,
+        thinkingText:
+          typeof thinkingSnapshot === "string"
+            ? thinkingSnapshot
+            : current?.thinkingText,
+        toolCalls: current?.toolCalls,
+      }));
+
+      if (thinkingSnapshot || hasToolCalls) {
+        appendCurrentStep({
+          thought:
+            hasToolCalls && finalContent.trim().length > 0
+              ? finalContent
+              : null,
+          thinkingText: thinkingSnapshot || null,
+          toolCalls: [],
+          isFinish: !hasToolCalls,
+        });
       }
+
+      if (!hasToolCalls && finalContent.trim().length > 0) {
+        messages.value.push({
+          role: "ASSISTANT",
+          content: finalContent,
+          toolCallId: null,
+          stepIndex: null,
+          thinkingText: null,
+          steps: buildStepsSnapshot(),
+          createdAt: eventDate,
+        });
+        currentSteps.value = [];
+      }
+
+      streamingText.value = "";
+      thinkingText.value = "";
       return;
     }
 
     if (event.type === "tool:confirm:required") {
       const toolName = event.payload["toolName"];
-      const callIdRaw = event.payload["callId"];
       const callId =
-        typeof callIdRaw === "string" && callIdRaw.length > 0
-          ? callIdRaw
-          : `${event.nodeId ?? "tool"}-${event.eventId}`;
+        getCallId(event.payload) ??
+        `${event.nodeId ?? "tool"}-${event.eventId}`;
       pendingConfirmation.value = {
         callId,
         nodeId: event.nodeId,
@@ -430,10 +581,11 @@ export const useAgentStore = defineStore("agent", () => {
       const nodeId = event.nodeId;
       const toolName = event.payload["toolName"];
       const args = event.payload["args"];
+      const callId = getCallId(event.payload) ?? event.eventId;
       updateNodeExecution(nodeId, (current) => {
         const toolCalls = [...(current?.toolCalls ?? [])];
         toolCalls.push({
-          id: event.eventId,
+          id: callId,
           toolName: typeof toolName === "string" ? toolName : "tool",
           arguments: toPlainRecord(args) ?? {},
           result: null,
@@ -457,6 +609,35 @@ export const useAgentStore = defineStore("agent", () => {
           toolCalls,
         };
       });
+
+      updateCurrentSteps((steps) => {
+        const next = steps.map((step) => cloneStep(step));
+        const lastStep = next.at(-1);
+        const targetStep = lastStep ?? {
+          index: next.length,
+          thought: null,
+          thinkingText: null,
+          toolCalls: [],
+        };
+
+        targetStep.toolCalls.push({
+          id: callId,
+          nodeId,
+          toolName: typeof toolName === "string" ? toolName : "tool",
+          arguments: toPlainRecord(args) ?? {},
+          result: null,
+          error: null,
+          durationMs: null,
+          target: "server",
+          confirmationStatus: null,
+        });
+
+        if (!lastStep) {
+          next.push(targetStep);
+        }
+
+        return next;
+      });
       return;
     }
 
@@ -464,9 +645,12 @@ export const useAgentStore = defineStore("agent", () => {
       const nodeId = event.nodeId;
       const result = event.payload["result"];
       const durationMs = event.payload["durationMs"];
+      const callId = getCallId(event.payload);
       updateNodeExecution(nodeId, (current) => {
         const toolCalls = [...(current?.toolCalls ?? [])];
-        const last = toolCalls.at(-1);
+        const last = callId
+          ? toolCalls.find((toolCall) => toolCall.id === callId)
+          : toolCalls.at(-1);
         if (last) {
           last.result = result;
           last.error = null;
@@ -485,15 +669,25 @@ export const useAgentStore = defineStore("agent", () => {
           toolCalls,
         };
       });
+
+      updateExistingToolCall(callId, (toolCall) => ({
+        ...toolCall,
+        result,
+        error: null,
+        durationMs: typeof durationMs === "number" ? durationMs : null,
+      }));
       return;
     }
 
     if (event.type === "tool:error" && event.nodeId) {
       const nodeId = event.nodeId;
       const error = event.payload["error"];
+      const callId = getCallId(event.payload);
       updateNodeExecution(nodeId, (current) => {
         const toolCalls = [...(current?.toolCalls ?? [])];
-        const last = toolCalls.at(-1);
+        const last = callId
+          ? toolCalls.find((toolCall) => toolCall.id === callId)
+          : toolCalls.at(-1);
         if (last) {
           last.error = typeof error === "string" ? error : "Tool error";
         }
@@ -511,6 +705,11 @@ export const useAgentStore = defineStore("agent", () => {
           toolCalls,
         };
       });
+
+      updateExistingToolCall(callId, (toolCall) => ({
+        ...toolCall,
+        error: typeof error === "string" ? error : "Tool error",
+      }));
       return;
     }
 
@@ -687,39 +886,6 @@ export const useAgentStore = defineStore("agent", () => {
     }
   };
 
-  const loadSessionMessages = async (sessionId: string) => {
-    try {
-      activeSessionId.value = sessionId;
-      const result = await orpc.agent.getSessionMessages({ sessionId });
-      messages.value = result.map((m) => ({
-        role: m.role,
-        content: m.content,
-        toolCallId: m.toolCallId,
-        stepIndex: m.stepIndex,
-        thinkingText: null,
-        steps: [],
-        createdAt:
-          m.createdAt instanceof Date ? m.createdAt : new Date(m.createdAt),
-      }));
-      currentSteps.value = [];
-      streamingText.value = "";
-      thinkingText.value = "";
-      streamingStatus.value = "idle";
-      runId.value = null;
-      nodeExecutions.value = new Map();
-      llmStreamingNodes.value = new Map();
-      thinkingNodes.value = new Map();
-      blackboardPreview.value = {};
-      eventLog.value = [];
-      errorMessage.value = null;
-      graphRunResult.value = null;
-      maxStepsReached.value = null;
-      lastFinishReason.value = null;
-    } catch (err) {
-      logger.error("WEB", { msg: "Failed to load session messages" }, err);
-    }
-  };
-
   let abortController: AbortController | null = null;
 
   const sendMessage = async (messageText: string) => {
@@ -753,139 +919,24 @@ export const useAgentStore = defineStore("agent", () => {
 
     try {
       const stream = await orpc.agent.sendMessage(
-        {
-          sessionId: activeSessionId.value,
-          message: messageText,
-        },
+        { sessionId: activeSessionId.value, message: messageText },
         { signal: abortController.signal },
       );
 
-      // oxlint-disable-next-line no-await-in-loop -- streaming requires sequential chunk processing
-      for await (const chunk of stream) {
-        if (chunk.type === "text_delta") {
-          streamingText.value += chunk.text;
-        } else if (chunk.type === "thinking_delta") {
-          thinkingText.value += chunk.text;
-        } else if (chunk.type === "correction_retry") {
-          // The engine is retrying because the LLM didn't call finish_task.
-          // Reset streaming accumulators so the retry streams cleanly
-          // without appending to stale text from the failed attempt.
-          streamingText.value = "";
-          thinkingText.value = "";
-        } else if (chunk.type === "step") {
-          const step = chunk.step;
-          // Capture current live thinkingText as this step's thinking (step's own thinkingText from engine)
-          const stepThinkingText: string | null =
-            (step.thinkingText as string | null | undefined) ??
-            (thinkingText.value || null);
-
-          // On a **finish step** (isFinish === true) we keep streamingText
-          // alive so the user continues to see the final response streaming
-          // in the MessageBubble.  On intermediate steps we reset as before.
-          if (!step.isFinish) {
-            streamingText.value = "";
-          }
-          thinkingText.value = "";
-
-          currentSteps.value = [
-            ...currentSteps.value,
-            {
-              index: step.index,
-              thought: step.thought,
-              thinkingText: stepThinkingText,
-              isFinish: step.isFinish,
-              // Filter out the finish_task control tool — it's a termination
-              // signal, not a real action, and must not appear in the UI timeline.
-              toolCalls: step.toolCalls
-                .filter((tc) => tc.toolName !== "finish_task")
-                .map((tc) => ({
-                  id: tc.id,
-                  toolName: tc.toolName,
-                  arguments: tc.arguments,
-                  result: tc.result,
-                  error: tc.error,
-                  durationMs: tc.durationMs,
-                })),
-            },
-          ];
-        } else if (chunk.type === "tool_confirm_request") {
-          // Show confirmation dialog to user
-          const request = chunk.request;
-          pendingConfirmation.value = {
-            callId: request.callId,
-            toolName: request.toolName,
-            description: request.description,
-            arguments: request.arguments,
-            riskLevel: request.riskLevel,
-          };
-        } else if (chunk.type === "tool_execute_request") {
-          // Execute client tool locally and send result back
-          const request = chunk.request;
-          awaitingClientTool.value = true;
-          const execResult = await executeClientTool(
-            request.toolName,
-            request.arguments,
-          );
-          awaitingClientTool.value = false;
-
-          // Send result back to server via WebSocket
-          await ws.agent.submitToolExecuteResult({
-            sessionId: activeSessionId.value,
-            response: {
-              callId: request.callId,
-              result: execResult.result,
-              error: execResult.error,
-            },
-          });
-        } else if (chunk.type === "done") {
-          const {
-            finishReason: rawFinishReason,
-            totalSteps,
-            finalMessage,
-          } = chunk.result;
-          const finishReason = toFinishReason(rawFinishReason);
-          lastFinishReason.value = finishReason;
-
-          // Prefer the live streamingText (what the user was reading in the
-          // streaming bubble) over the server's finalMessage so there is zero
-          // visual discontinuity when the bubble finalises.
-          const finalContent = streamingText.value || finalMessage || null;
-
-          const pushAssistantMessage = (content: string) => {
-            messages.value.push({
-              role: "ASSISTANT",
-              content,
-              toolCallId: null,
-              stepIndex: null,
-              thinkingText: thinkingText.value || null,
-              steps: [...currentSteps.value],
-              createdAt: new Date(),
-            });
-          };
-
-          if (finishReason === "max_steps") {
-            // Push partial content so user can see what the agent managed so far.
-            if (finalContent) pushAssistantMessage(finalContent);
-            maxStepsReached.value = { totalSteps, finalMessage };
-            streamingStatus.value = "done";
-          } else if (finishReason === "implicit_completion") {
-            // The agent never called a finish tool; content is a best-effort fallback.
-            if (finalContent) pushAssistantMessage(finalContent);
-            streamingStatus.value = "done";
-          } else if (finishReason === "error") {
-            if (finalContent) pushAssistantMessage(finalContent);
-            errorMessage.value = finalMessage || "Agent encountered an error";
-            streamingStatus.value = "error";
-          } else {
-            // "completed" (or any future reason) — normal happy path.
-            if (finalContent) pushAssistantMessage(finalContent);
-            streamingStatus.value = "done";
-          }
-        } else if (chunk.type === "error") {
-          // Transport-level / stream-level error (distinct from agent finishReason "error")
-          errorMessage.value = chunk.message;
-          streamingStatus.value = "error";
-        }
+      // oxlint-disable-next-line no-await-in-loop -- streaming events must be handled in-order
+      for await (const event of stream) {
+        applyGraphEvent({
+          eventId: event.eventId,
+          runId: event.runId,
+          nodeId: event.nodeId ?? undefined,
+          parentEventId: event.parentEventId ?? undefined,
+          type: event.type,
+          timestamp: event.timestamp,
+          payload:
+            typeof event.payload === "object" && event.payload !== null
+              ? { ...event.payload }
+              : {},
+        });
       }
     } catch (err) {
       if (abortController.signal.aborted) {
@@ -902,15 +953,22 @@ export const useAgentStore = defineStore("agent", () => {
   };
 
   const cancelStreaming = () => {
-    if (abortController) {
-      abortController.abort();
-      abortController = null;
-    }
-    streamingStatus.value = "idle";
-    pendingConfirmation.value = null;
-    awaitingClientTool.value = false;
-    maxStepsReached.value = null;
-    lastFinishReason.value = null;
+    void (async () => {
+      if (runId.value) {
+        await cancelGraphRun();
+      }
+
+      if (abortController) {
+        abortController.abort();
+        abortController = null;
+      }
+
+      streamingStatus.value = "idle";
+      runId.value = null;
+      pendingConfirmation.value = null;
+      maxStepsReached.value = null;
+      lastFinishReason.value = null;
+    })();
   };
 
   /**
@@ -920,32 +978,19 @@ export const useAgentStore = defineStore("agent", () => {
   const respondToConfirmation = async (
     decision: ToolConfirmResponse["decision"],
   ) => {
-    if (!pendingConfirmation.value) return;
+    if (!pendingConfirmation.value || !runId.value) return;
 
-    const currentPending = pendingConfirmation.value;
-    const callId = currentPending.callId;
+    const callId = pendingConfirmation.value.callId;
+    const nodeId = pendingConfirmation.value.nodeId;
     pendingConfirmation.value = null;
 
     try {
-      if (runId.value) {
-        await orpc.agent.submitToolConfirmResponse({
-          runId: runId.value,
-          nodeId: currentPending.nodeId,
-          response: { callId, decision },
-        });
-        streamingStatus.value = "streaming";
-      } else if (activeSessionId.value) {
-        await ws.agent.submitToolConfirmResponse({
-          sessionId: activeSessionId.value,
-          response: { callId, decision },
-        });
-      } else {
-        logger.warn("WEB", {
-          msg: "No active session or graph run for confirmation response",
-          callId,
-          decision,
-        });
-      }
+      await orpc.agent.submitToolConfirmResponse({
+        runId: runId.value,
+        nodeId,
+        response: { callId, decision },
+      });
+      streamingStatus.value = "streaming";
     } catch (err) {
       logger.error("WEB", { msg: "Failed to submit confirmation" }, err);
     }
@@ -966,13 +1011,12 @@ export const useAgentStore = defineStore("agent", () => {
    * The session is still ACTIVE on the server; this sends a continuation
    * prompt so the agent picks up where it left off.
    */
-  const extendAndContinue = async (additionalSteps: number) => {
-    if (!activeSessionId.value || !maxStepsReached.value) return;
+  const extendAndContinue = async () => {
+    if (!runId.value) return;
     maxStepsReached.value = null;
     lastFinishReason.value = null;
-    await sendMessage(
-      `Continue the task. You have ${String(additionalSteps)} more steps available.`,
-    );
+    await orpc.agent.graphResume({ runId: runId.value });
+    streamingStatus.value = "streaming";
   };
 
   const reset = () => {
@@ -992,7 +1036,6 @@ export const useAgentStore = defineStore("agent", () => {
     graphRunResult.value = null;
     errorMessage.value = null;
     pendingConfirmation.value = null;
-    awaitingClientTool.value = false;
     sessions.value = [];
     maxStepsReached.value = null;
     lastFinishReason.value = null;
@@ -1019,7 +1062,6 @@ export const useAgentStore = defineStore("agent", () => {
     currentSteps,
     errorMessage,
     pendingConfirmation,
-    awaitingClientTool,
     maxStepsReached,
     lastFinishReason,
     lastUserMessage,
@@ -1032,7 +1074,6 @@ export const useAgentStore = defineStore("agent", () => {
     selectDefinition,
     fetchSessions,
     createSession,
-    loadSessionMessages,
     sendMessage,
     startGraphRun,
     pauseGraphRun,

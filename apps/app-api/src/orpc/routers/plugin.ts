@@ -1,14 +1,15 @@
 import {
-  plugin as pluginTable,
-  pluginConfigInstance as pluginConfigInstanceTable,
-  desc,
-  pluginConfig,
-  eq,
-  and,
-  pluginInstallation,
-  getColumns,
-  pluginService,
-} from "@cat/db";
+  executeCommand,
+  executeQuery,
+  getPlugin,
+  getPluginConfig,
+  getPluginConfigInstance,
+  getPluginServiceById,
+  isPluginInstalled,
+  listPluginServiceIdsByType,
+  listPlugins,
+  upsertPluginConfigInstance,
+} from "@cat/domain";
 import { ComponentRecordSchema, PluginManager } from "@cat/plugin-core";
 import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
 import {
@@ -23,7 +24,6 @@ import {
   type AuthMethod,
   type TranslationAdvisorData,
 } from "@cat/shared/schema/misc";
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
@@ -83,37 +83,7 @@ export const getConfigInstance = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { pluginId, scopeId, scopeType } = input;
-
-    const installation = assertSingleOrNull(
-      await drizzle
-        .select({
-          id: pluginInstallation.id,
-        })
-        .from(pluginInstallation)
-        .where(
-          and(
-            eq(pluginInstallation.pluginId, pluginId),
-            eq(pluginInstallation.scopeType, scopeType),
-            eq(pluginInstallation.scopeId, scopeId),
-          ),
-        ),
-    );
-
-    if (!installation) return null;
-
-    return assertSingleOrNull(
-      await drizzle
-        .select(getColumns(pluginConfigInstanceTable))
-        .from(pluginConfigInstanceTable)
-        .innerJoin(pluginConfig, eq(pluginConfig.pluginId, pluginId))
-        .where(
-          and(
-            eq(pluginConfigInstanceTable.configId, pluginConfig.id),
-            eq(pluginConfigInstanceTable.pluginInstallationId, installation.id),
-          ),
-        ),
-    );
+    return executeQuery({ db: drizzle }, getPluginConfigInstance, input);
   });
 
 export const getConfig = authed
@@ -127,14 +97,7 @@ export const getConfig = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { pluginId } = input;
-
-    return assertSingleOrNull(
-      await drizzle
-        .select()
-        .from(pluginConfig)
-        .where(eq(pluginConfig.pluginId, pluginId)),
-    );
+    return executeQuery({ db: drizzle }, getPluginConfig, input);
   });
 
 export const upsertConfigInstance = authed
@@ -152,54 +115,9 @@ export const upsertConfigInstance = authed
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    const { pluginId, scopeType, scopeId, value } = input;
-
-    const installation = assertSingleNonNullish(
-      await drizzle
-        .select({
-          id: pluginInstallation.id,
-        })
-        .from(pluginInstallation)
-        .where(
-          and(
-            eq(pluginInstallation.pluginId, pluginId),
-            eq(pluginInstallation.scopeType, scopeType),
-            eq(pluginInstallation.scopeId, scopeId),
-          ),
-        ),
-      `Plugin not installed`,
-    );
-
-    return await drizzle.transaction(async (tx) => {
-      const config = assertSingleNonNullish(
-        await drizzle
-          .select({
-            id: pluginConfig.id,
-          })
-          .from(pluginConfig)
-          .where(eq(pluginConfig.pluginId, pluginId)),
-      );
-
-      return assertSingleNonNullish(
-        await tx
-          .insert(pluginConfigInstanceTable)
-          .values({
-            value,
-            creatorId: user.id,
-            configId: config.id,
-            pluginInstallationId: installation.id,
-          })
-          .onConflictDoUpdate({
-            target: [
-              pluginConfigInstanceTable.pluginInstallationId,
-              pluginConfigInstanceTable.configId,
-            ],
-            set: {
-              value,
-            },
-          })
-          .returning(),
-      );
+    return executeCommand({ db: drizzle }, upsertPluginConfigInstance, {
+      ...input,
+      creatorId: user.id,
     });
   });
 
@@ -214,14 +132,7 @@ export const get = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { pluginId } = input;
-
-    return assertSingleOrNull(
-      await drizzle
-        .select()
-        .from(pluginTable)
-        .where(eq(pluginTable.id, pluginId)),
-    );
+    return executeQuery({ db: drizzle }, getPlugin, input);
   });
 
 export const getAll = authed
@@ -231,10 +142,7 @@ export const getAll = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    return await drizzle
-      .select(getColumns(pluginTable))
-      .from(pluginTable)
-      .orderBy(desc(pluginTable.id));
+    return executeQuery({ db: drizzle }, listPlugins, {});
   });
 
 export const getAllAuthMethod = base
@@ -245,17 +153,16 @@ export const getAllAuthMethod = base
       pluginManager,
     } = context;
 
-    const providersData = await drizzle
-      .select({
-        serviceId: pluginService.serviceId,
-      })
-      .from(pluginService)
-      .where(eq(pluginService.serviceType, "AUTH_PROVIDER"));
+    const providersData = await executeQuery(
+      { db: drizzle },
+      listPluginServiceIdsByType,
+      { serviceType: "AUTH_PROVIDER" },
+    );
 
     const methods: AuthMethod[] = [];
 
     await Promise.all(
-      providersData.map(async ({ serviceId }) => {
+      providersData.map(async (serviceId) => {
         const providers = pluginManager.getServices("AUTH_PROVIDER");
 
         await Promise.all(
@@ -306,26 +213,20 @@ export const getTranslationAdvisor = authed
     } = context;
     const { advisorId } = input;
 
-    const dbAdvisor = assertSingleNonNullish(
-      await drizzle
-        .select({
-          pluginId: pluginInstallation.pluginId,
-          serviceId: pluginService.serviceId,
-          serviceType: pluginService.serviceType,
-        })
-        .from(pluginService)
-        .innerJoin(
-          pluginInstallation,
-          eq(pluginService.pluginInstallationId, pluginInstallation.id),
-        )
-        .where(
-          and(
-            eq(pluginService.id, advisorId),
-            eq(pluginService.serviceType, "TRANSLATION_ADVISOR"),
-          ),
-        ),
-      "Translation Advisor not found",
+    const dbAdvisor = await executeQuery(
+      { db: drizzle },
+      getPluginServiceById,
+      {
+        serviceDbId: advisorId,
+        serviceType: "TRANSLATION_ADVISOR",
+      },
     );
+
+    if (!dbAdvisor) {
+      throw new ORPCError("NOT_FOUND", {
+        message: "Translation Advisor not found",
+      });
+    }
 
     const service = pluginManager.getService(
       dbAdvisor.pluginId,
@@ -354,24 +255,7 @@ export const isInstalled = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { pluginId, scopeId, scopeType } = input;
-
-    const installation = assertSingleOrNull(
-      await drizzle
-        .select({
-          id: pluginInstallation.id,
-        })
-        .from(pluginInstallation)
-        .where(
-          and(
-            eq(pluginInstallation.pluginId, pluginId),
-            eq(pluginInstallation.scopeType, scopeType),
-            eq(pluginInstallation.scopeId, scopeId),
-          ),
-        ),
-    );
-
-    return !!installation;
+    return executeQuery({ db: drizzle }, isPluginInstalled, input);
   });
 
 export const getComponentsOfSlot = authed

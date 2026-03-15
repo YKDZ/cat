@@ -1,3 +1,5 @@
+import { getDrizzleDB } from "@cat/db";
+import { executeQuery, listLexicalTermSuggestions } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod";
@@ -8,7 +10,6 @@ import type { LookedUpTerm } from "@/utils/term";
 import { firstOrGivenService } from "@/utils";
 import { AsyncMessageQueue } from "@/utils/queue";
 
-import { lookupTermsOp } from "./lookup-terms";
 import { semanticSearchTermsOp } from "./semantic-search-terms";
 
 export const StreamSearchTermsInputSchema = z.object({
@@ -54,21 +55,20 @@ export const streamSearchTermsOp = (
   };
 
   const run = async () => {
+    const { client: drizzle } = await getDrizzleDB();
     const pluginManager = PluginManager.get("GLOBAL", "");
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
     const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
 
     // Launch both searches concurrently; ILIKE typically resolves first.
     const tasks: Promise<void>[] = [
-      lookupTermsOp(
-        {
-          glossaryIds: data.glossaryIds,
-          text: data.text,
-          sourceLanguageId: data.sourceLanguageId,
-          translationLanguageId: data.translationLanguageId,
-        },
-        ctx,
-      ).then((n) => {
+      executeQuery({ db: drizzle }, listLexicalTermSuggestions, {
+        glossaryIds: data.glossaryIds,
+        text: data.text,
+        sourceLanguageId: data.sourceLanguageId,
+        translationLanguageId: data.translationLanguageId,
+        wordSimilarityThreshold: 0.3,
+      }).then((n) => {
         pushNew(n);
       }),
     ];

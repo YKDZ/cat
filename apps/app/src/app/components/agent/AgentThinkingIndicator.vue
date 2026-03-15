@@ -2,7 +2,7 @@
 import { ref, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { Spinner } from "@cat/app-ui";
-import { ChevronDown, ChevronRight } from "lucide-vue-next";
+import { ChevronDown, ChevronRight, Pause } from "lucide-vue-next";
 import Markdown from "@/app/components/Markdown.vue";
 import AgentToolCallCard from "./AgentToolCallCard.vue";
 import type { AgentStepItem } from "@/app/stores/agent";
@@ -12,6 +12,8 @@ const props = defineProps<{
   thinkingText?: string;
   /** Steps accumulated during streaming (shows tool calls in progress) */
   steps?: AgentStepItem[];
+  /** Whether the run is currently paused */
+  paused?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -45,8 +47,11 @@ watch(() => [props.thinkingText, props.steps?.length], scrollToBottom);
   <div class="flex flex-col gap-1 py-1">
     <!-- Header with spinner and toggle -->
     <button class="flex items-center gap-2" @click="isExpanded = !isExpanded">
-      <Spinner class="size-3.5 text-muted-foreground" />
-      <span class="text-xs text-muted-foreground">{{ t("正在思考...") }}</span>
+      <Pause v-if="paused" class="size-3.5 text-muted-foreground" />
+      <Spinner v-else class="size-3.5 text-muted-foreground" />
+      <span class="text-xs text-muted-foreground">{{
+        paused ? t("已暂停") : t("正在思考...")
+      }}</span>
       <component
         :is="isExpanded ? ChevronDown : ChevronRight"
         v-if="thinkingText || (steps && steps.length > 0)"

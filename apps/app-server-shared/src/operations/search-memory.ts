@@ -1,15 +1,9 @@
+import { getDrizzleDB } from "@cat/db";
 import {
-  aliasedTable,
-  and,
-  chunk,
-  eq,
-  getDrizzleDB,
-  inArray,
-  memoryItem,
-  translatableString,
-  union,
-  type DrizzleTransaction,
-} from "@cat/db";
+  executeQuery,
+  getSearchMemoryChunkRange,
+  listMemorySuggestionsByChunkIds,
+} from "@cat/domain";
 import {
   MemorySuggestionSchema,
   type MemorySuggestion,
@@ -77,49 +71,15 @@ export const searchMemoryOp = async (
 
   const { client: drizzle } = await getDrizzleDB();
 
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
-
   // 1. 计算搜索范围（原 dependencies 阶段）
-  const sourceChunkIds = await drizzle
-    .selectDistinct({ id: chunk.id })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
-    .where(
-      and(
-        inArray(memoryItem.memoryId, data.memoryIds),
-        eq(sourceString.languageId, data.sourceLanguageId),
-        eq(translationString.languageId, data.translationLanguageId),
-      ),
-    );
-
-  const reversedChunkIds = await drizzle
-    .selectDistinct({ id: chunk.id })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
-    .where(
-      and(
-        inArray(memoryItem.memoryId, data.memoryIds),
-        eq(translationString.languageId, data.sourceLanguageId),
-        eq(sourceString.languageId, data.translationLanguageId),
-      ),
-    );
-
-  const searchRange = Array.from(
-    new Set([...sourceChunkIds, ...reversedChunkIds].map((row) => row.id)),
+  const searchRange = await executeQuery(
+    { db: drizzle },
+    getSearchMemoryChunkRange,
+    {
+      memoryIds: data.memoryIds,
+      sourceLanguageId: data.sourceLanguageId,
+      translationLanguageId: data.translationLanguageId,
+    },
   );
 
   if (searchRange.length === 0) {
@@ -142,100 +102,35 @@ export const searchMemoryOp = async (
   const { chunks } = searchChunkResult;
 
   // 3. 处理结果（原 handler 阶段）
-  const memories = await drizzle.transaction(async (tx) => {
-    return await searchMemory(tx, chunks, data.memoryIds);
-  });
+  const memories = await searchMemory(
+    drizzle,
+    chunks,
+    data.memoryIds,
+    data.maxAmount,
+  );
 
   return { memories };
 };
 
 const searchMemory = async (
-  drizzle: DrizzleTransaction,
+  drizzle: Awaited<ReturnType<typeof getDrizzleDB>>["client"],
   chunks: { chunkId: number; similarity: number }[],
   memoryIds: string[],
   maxAmount: number = 3,
 ): Promise<MemorySuggestion[]> => {
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
-
   const searchResult = new Map(chunks.map((it) => [it.chunkId, it.similarity]));
   const searchedChunkIds = Array.from(searchResult.keys());
 
   if (searchedChunkIds.length === 0) return [];
 
-  const targetSetsQuery = drizzle
-    .selectDistinct({ chunkSetId: chunk.chunkSetId })
-    .from(chunk)
-    .where(inArray(chunk.id, searchedChunkIds))
-    .as("target_sets");
-
-  const sourceItemsQuery = drizzle
-    .select({
-      id: memoryItem.id,
-      source: sourceString.value,
-      translation: translationString.value,
-      sourceChunkSetId: sourceString.chunkSetId,
-      translationChunkSetId: translationString.chunkSetId,
-      memoryId: memoryItem.memoryId,
-      creatorId: memoryItem.creatorId,
-      createdAt: memoryItem.createdAt,
-      updatedAt: memoryItem.updatedAt,
-      chunkId: chunk.id,
-    })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .innerJoin(
-      targetSetsQuery,
-      eq(sourceString.chunkSetId, targetSetsQuery.chunkSetId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
-    .where(
-      and(
-        inArray(chunk.id, searchedChunkIds),
-        inArray(memoryItem.memoryId, memoryIds),
-      ),
-    );
-
-  const translationItemsQuery = drizzle
-    .select({
-      id: memoryItem.id,
-      source: sourceString.value,
-      translation: translationString.value,
-      sourceChunkSetId: sourceString.chunkSetId,
-      translationChunkSetId: translationString.chunkSetId,
-      memoryId: memoryItem.memoryId,
-      creatorId: memoryItem.creatorId,
-      createdAt: memoryItem.createdAt,
-      updatedAt: memoryItem.updatedAt,
-      chunkId: chunk.id,
-    })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .innerJoin(
-      targetSetsQuery,
-      eq(translationString.chunkSetId, targetSetsQuery.chunkSetId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
-    .where(
-      and(
-        inArray(chunk.id, searchedChunkIds),
-        inArray(memoryItem.memoryId, memoryIds),
-      ),
-    );
-
-  const rows = await union(sourceItemsQuery, translationItemsQuery).limit(
-    maxAmount,
+  const rows = await executeQuery(
+    { db: drizzle },
+    listMemorySuggestionsByChunkIds,
+    {
+      searchedChunkIds,
+      memoryIds,
+      maxAmount,
+    },
   );
 
   const result = rows

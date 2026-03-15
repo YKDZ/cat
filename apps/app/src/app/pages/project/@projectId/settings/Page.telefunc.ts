@@ -1,4 +1,4 @@
-import { eq, project } from "@cat/db";
+import { deleteProject, executeCommand } from "@cat/domain";
 import { getContext } from "telefunc";
 
 export const onProjectDelete = async (projectId: string): Promise<void> => {
@@ -6,5 +6,5 @@ export const onProjectDelete = async (projectId: string): Promise<void> => {
     drizzleDB: { client: drizzle },
   } = getContext();
 
-  await drizzle.delete(project).where(eq(project.id, projectId));
+  await executeCommand({ db: drizzle }, deleteProject, { projectId });
 };

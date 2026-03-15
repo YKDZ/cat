@@ -1,5 +1,5 @@
-import { lookupTermsForElementOp } from "@cat/app-server-shared/operations";
-import { tokenizeTask } from "@cat/app-workers";
+import { tokenizeTask } from "@cat/app-agent/workflow";
+import { lookupTermsForElementOp } from "@cat/operations";
 import { TokenSchema } from "@cat/plugin-core";
 import z from "zod";
 

@@ -33,6 +33,12 @@ jobs:
       - name: Check Nx Sync
         run: pnpm nx sync:check
 
+      - name: Check Generated Drizzle Schemas
+        run: pnpm check:generated-schemas
+
+      - name: Check Database Boundaries
+        run: pnpm check:db-boundaries
+
       - name: Derive SHAs for affected
         uses: nrwl/nx-set-shas@v4
 

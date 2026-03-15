@@ -1,10 +1,10 @@
-import type { CatPlugin } from "@cat/plugin-core";
+import type { CatPlugin, PluginContext } from "@cat/plugin-core";
 
 import { Storage } from "./storage.ts";
 
 class Plugin implements CatPlugin {
-  services() {
-    return [new Storage()];
+  services(ctx: PluginContext) {
+    return [new Storage(ctx.capabilities)];
   }
 }
 

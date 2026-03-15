@@ -22,6 +22,7 @@ import {
   type DrizzleClient,
   type DrizzleTransaction,
 } from "@cat/db";
+import { createPluginCapabilities, type PluginCapabilities } from "@cat/domain";
 import { JSONSchemaSchema, type JSONObject } from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
@@ -73,6 +74,14 @@ export class PluginManager {
   ) {
     this.discovery = PluginDiscoveryService.getInstance(loader);
   }
+
+  private createCapabilities = (
+    drizzle: DrizzleTransaction,
+  ): PluginCapabilities => {
+    return createPluginCapabilities({
+      db: drizzle,
+    });
+  };
 
   /**
    * 获取或创建特定作用域的管理器实例
@@ -523,6 +532,7 @@ export class PluginManager {
       scopeType: this.scopeType,
       scopeId: this.scopeId,
       registeredServices,
+      capabilities: this.createCapabilities(drizzle),
     };
 
     return { pluginObj, context };
@@ -756,6 +766,7 @@ export class PluginManager {
         scopeType: this.scopeType,
         scopeId: this.scopeId,
         registeredServices: [],
+        capabilities: this.createCapabilities(drizzle),
       });
     } catch (e) {
       logger.error("PLUGIN", { msg: `Error deactivating ${pluginId}` }, e);

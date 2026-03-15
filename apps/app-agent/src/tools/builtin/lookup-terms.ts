@@ -1,8 +1,7 @@
-import {
-  LookupTermsInputSchema,
-  lookupTermsOp,
-} from "@cat/app-server-shared/operations";
+import { LookupTermsInputSchema } from "@cat/operations";
+import { listLexicalTermSuggestions } from "@cat/domain";
 
+import { runAgentQuery } from "@/db/domain";
 import { defineTool } from "@/tools/types";
 
 export const lookupTermsTool = defineTool({
@@ -14,7 +13,13 @@ export const lookupTermsTool = defineTool({
     "For full-sentence term discovery, first use spot_terms to extract candidates, " +
     "then call lookup_terms for each candidate.",
   parameters: LookupTermsInputSchema,
-  execute: async (args, ctx) => {
-    return lookupTermsOp(args, { traceId: ctx.traceId, signal: ctx.signal });
+  execute: async (args) => {
+    return runAgentQuery(listLexicalTermSuggestions, {
+      glossaryIds: args.glossaryIds,
+      text: args.text,
+      sourceLanguageId: args.sourceLanguageId,
+      translationLanguageId: args.translationLanguageId,
+      wordSimilarityThreshold: args.wordSimilarityThreshold ?? 0.3,
+    });
   },
 });

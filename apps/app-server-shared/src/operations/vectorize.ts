@@ -1,11 +1,12 @@
 import type { JSONType } from "@cat/shared/schema/json";
 
-import { chunk, chunkSet, getDrizzleDB } from "@cat/db";
-import { PluginManager } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { getDrizzleDB } from "@cat/db";
+import { createVectorizedChunks, executeCommand } from "@cat/domain";
 import z from "zod";
 
 import type { OperationContext } from "@/operations/types";
+
+import { resolvePluginManager } from "@/utils";
 
 const InputSchema = z.object({
   vectorizerId: z.int(),
@@ -36,23 +37,38 @@ export type VectorizeOutput = z.infer<typeof OutputSchema>;
  */
 export const vectorizeToChunkSetOp = async (
   { data, vectorStorageId, vectorizerId }: VectorizeInput,
-  _ctx?: OperationContext,
+  ctx?: OperationContext,
 ): Promise<VectorizeOutput> => {
   const { client: drizzle } = await getDrizzleDB();
-  const pluginManager = PluginManager.get("GLOBAL", "");
+  const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
   if (data.length === 0) return { chunkSetIds: [] };
 
-  const vectorizer = assertSingleNonNullish(
-    pluginManager
-      .getServices("TEXT_VECTORIZER")
-      .filter((s) => s.dbId === vectorizerId),
-  ).service;
-  const storage = assertSingleNonNullish(
-    pluginManager
-      .getServices("VECTOR_STORAGE")
-      .filter((s) => s.dbId === vectorStorageId),
-  ).service;
+  const vectorizer = pluginManager
+    .getServices("TEXT_VECTORIZER")
+    .find((service) => service.dbId === vectorizerId)?.service;
+  const storage = pluginManager
+    .getServices("VECTOR_STORAGE")
+    .find((service) => service.dbId === vectorStorageId)?.service;
+
+  if (!vectorizer || !storage) {
+    throw new Error(
+      [
+        "Vectorize services not available in current plugin scope",
+        `scope=${pluginManager.scopeType}:${pluginManager.scopeId}`,
+        `vectorizerId=${vectorizerId}`,
+        `availableVectorizers=${pluginManager
+          .getServices("TEXT_VECTORIZER")
+          .map((service) => service.dbId)
+          .join(",")}`,
+        `vectorStorageId=${vectorStorageId}`,
+        `availableStorages=${pluginManager
+          .getServices("VECTOR_STORAGE")
+          .map((service) => service.dbId)
+          .join(",")}`,
+      ].join(" | "),
+    );
+  }
 
   const chunkDataList = await vectorizer.vectorize({ elements: data });
   if (chunkDataList.length !== data.length) {
@@ -60,13 +76,11 @@ export const vectorizeToChunkSetOp = async (
   }
 
   const numSets = chunkDataList.length;
-  const chunkSetRows = Array.from({ length: numSets }, () => ({}));
 
   type Flattened = {
     vector: number[];
     meta: JSONType;
     textIndex: number;
-    chunkIndex: number;
   };
   const flattened: Flattened[] = [];
 
@@ -77,38 +91,23 @@ export const vectorizeToChunkSetOp = async (
         vector: chunkData[j].vector,
         meta: chunkData[j].meta,
         textIndex: i,
-        chunkIndex: j,
       });
     }
   }
 
-  const { insertedChunks, chunkSetIds } = await drizzle.transaction(
-    async (tx) => {
-      const insertedChunkSets = await tx
-        .insert(chunkSet)
-        .values(chunkSetRows)
-        .returning({ id: chunkSet.id });
-
-      const chunkSetIds: number[] = insertedChunkSets.map((r) => r.id);
-
-      const finalChunkRows = flattened.map((f) => ({
-        chunkSetId: chunkSetIds[f.textIndex],
-        vectorizerId,
-        vectorStorageId,
-        meta: f.meta,
-      }));
-
-      return {
-        insertedChunks: await tx
-          .insert(chunk)
-          .values(finalChunkRows)
-          .returning({ id: chunk.id }),
-        chunkSetIds,
-      };
+  const { chunkSetIds, chunkIds } = await executeCommand(
+    { db: drizzle },
+    createVectorizedChunks,
+    {
+      vectorizerId,
+      vectorStorageId,
+      chunkSetCount: numSets,
+      chunks: flattened.map((item) => ({
+        textIndex: item.textIndex,
+        meta: item.meta,
+      })),
     },
   );
-
-  const chunkIds: number[] = insertedChunks.map((r) => r.id);
 
   const storePayload = chunkIds.map((cid, idx) => ({
     chunkId: cid,

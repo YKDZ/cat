@@ -1,13 +1,5 @@
-import {
-  and,
-  chunk,
-  eq,
-  getDrizzleDB,
-  inArray,
-  isNotNull,
-  termConcept,
-  translatableString,
-} from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import { executeQuery, listSemanticTermSearchRange } from "@cat/domain";
 import {
   PluginManager,
   type TextVectorizer,
@@ -66,23 +58,11 @@ export const semanticSearchTermsOp = async (
   // 1. Build search range: find all chunk IDs linked to term concepts in the
   //    given glossaries that have been vectorized (stringId IS NOT NULL).
   //    Chain: termConcept.stringId → translatableString.id → chunk.chunkSetId
-  const rangeRows = await drizzle
-    .selectDistinct({
-      chunkId: chunk.id,
-      conceptId: termConcept.id,
-    })
-    .from(termConcept)
-    .innerJoin(
-      translatableString,
-      eq(translatableString.id, termConcept.stringId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, translatableString.chunkSetId))
-    .where(
-      and(
-        inArray(termConcept.glossaryId, data.glossaryIds),
-        isNotNull(termConcept.stringId),
-      ),
-    );
+  const rangeRows = await executeQuery(
+    { db: drizzle },
+    listSemanticTermSearchRange,
+    { glossaryIds: data.glossaryIds },
+  );
 
   if (rangeRows.length === 0) return [];
 

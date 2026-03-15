@@ -1,6 +1,8 @@
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
 
-import { eq, getDrizzleDB, memory, count } from "@cat/db";
+import { listMemoriesByCreator } from "@cat/domain";
+
+import { runAppQuery } from "@/server/domain";
 
 export type PagedResult<T> = {
   data: T[];
@@ -17,30 +19,11 @@ export const onRequestMemories = async (
   pageIndex: number,
   pageSize: number,
 ): Promise<PagedResult<MemoryListItem>> => {
-  const { client: drizzle } = await getDrizzleDB();
-
-  // 查询总数
-  const totalResult = await drizzle
-    .select({ count: count() })
-    .from(memory)
-    .where(eq(memory.creatorId, userId));
-
-  const total = Number(totalResult[0]?.count ?? 0);
-
-  // 查询数据
-  const data = await drizzle
-    .select({
-      id: memory.id,
-      name: memory.name,
-      description: memory.description,
-      createdAt: memory.createdAt,
-      updatedAt: memory.updatedAt,
-    })
-    .from(memory)
-    .where(eq(memory.creatorId, userId))
-    .orderBy(memory.createdAt)
-    .limit(pageSize)
-    .offset(pageIndex * pageSize);
+  const { data, total } = await runAppQuery(listMemoriesByCreator, {
+    creatorId: userId,
+    pageIndex,
+    pageSize,
+  });
 
   return {
     data,

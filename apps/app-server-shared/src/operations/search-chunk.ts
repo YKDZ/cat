@@ -1,10 +1,11 @@
-import { PluginManager, type VectorStorage } from "@cat/plugin-core";
+import type { VectorStorage } from "@cat/plugin-core";
+
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
 
 import { retrieveEmbeddingsOp } from "@/operations/retrieve-embeddings";
-import { getServiceFromDBId } from "@/utils";
+import { getServiceFromDBId, resolvePluginManager } from "@/utils";
 
 export const SearchChunkInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),
@@ -54,7 +55,7 @@ export const searchChunkOp = async (
   payload: SearchChunkInput,
   ctx?: OperationContext,
 ): Promise<SearchChunkOutput> => {
-  const pluginManager = PluginManager.get("GLOBAL", "");
+  const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
   // 优先使用直接传入的向量，否则从数据库检索
   let vectors: number[][];

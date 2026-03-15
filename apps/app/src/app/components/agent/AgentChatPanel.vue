@@ -8,7 +8,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   ScrollArea,
-  Input,
+  Textarea,
   Button,
 } from "@cat/app-ui";
 import {
@@ -24,9 +24,6 @@ import AgentMessageBubble from "./AgentMessageBubble.vue";
 import AgentThinkingIndicator from "./AgentThinkingIndicator.vue";
 import AgentToolConfirmCard from "./AgentToolConfirmCard.vue";
 import AgentMaxStepsCard from "./AgentMaxStepsCard.vue";
-import AgentNodeTimeline from "./AgentNodeTimeline.vue";
-import AgentRunResultCard from "./AgentRunResultCard.vue";
-import AgentBlackboardDebug from "./AgentBlackboardDebug.vue";
 import AgentSelector from "./AgentSelector.vue";
 import { useAgentStore } from "@/app/stores/agent";
 import { useEditorContextStore } from "@/app/stores/editor/context";
@@ -42,9 +39,6 @@ const {
   streamingStatus,
   isStreaming,
   runId,
-  nodeExecutionList,
-  llmStreamingNodes,
-  blackboardPreview,
   activeSessionId,
   selectedDefinitionId,
   selectedDefinition,
@@ -52,7 +46,6 @@ const {
   errorMessage,
   pendingConfirmation,
   maxStepsReached,
-  graphRunResult,
   lastFinishReason,
 } = storeToRefs(agentStore);
 
@@ -65,10 +58,12 @@ useRegisterClientTools();
 
 const inputText = ref("");
 const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
+const composerTextareaRef = ref<InstanceType<typeof Textarea> | null>(null);
 
 /** 跟踪用户是否处于底部(阈値 80px)，手动向上滚动后不再自动跟随 */
 const isAtBottom = ref(true);
 const SCROLL_THRESHOLD = 80;
+const COMPOSER_MAX_HEIGHT = 160;
 
 const getViewport = (): Element | null =>
   scrollAreaRef.value?.$el?.querySelector("[data-reka-scroll-area-viewport]") ??
@@ -91,9 +86,28 @@ const scrollToBottom = () => {
   });
 };
 
+const getComposerTextarea = (): HTMLTextAreaElement | null => {
+  const element = composerTextareaRef.value?.$el;
+  return element instanceof HTMLTextAreaElement ? element : null;
+};
+
+const resizeComposer = () => {
+  nextTick(() => {
+    const textarea = getComposerTextarea();
+    if (!textarea) return;
+
+    textarea.style.height = "auto";
+    const nextHeight = Math.min(textarea.scrollHeight, COMPOSER_MAX_HEIGHT);
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY =
+      textarea.scrollHeight > COMPOSER_MAX_HEIGHT ? "auto" : "hidden";
+  });
+};
+
 onMounted(() => {
   nextTick(() => {
     getViewport()?.addEventListener("scroll", handleScroll, { passive: true });
+    resizeComposer();
   });
 });
 
@@ -107,6 +121,10 @@ watch(
     scrollToBottom();
   },
 );
+
+watch(inputText, () => {
+  resizeComposer();
+});
 
 const handleSend = async () => {
   const text = inputText.value.trim();
@@ -132,6 +150,7 @@ const handleSend = async () => {
   }
 
   inputText.value = "";
+  resizeComposer();
   await agentStore.sendMessage(text);
 };
 
@@ -146,18 +165,32 @@ const handleNewSession = () => {
   agentStore.selectDefinition(selectedDefinitionId.value);
 };
 
-const streamingNodeEntries = computed(() => {
-  return [...llmStreamingNodes.value.entries()]
-    .filter(([, text]) => text.length > 0)
-    .map(([nodeId, text]) => ({ nodeId, text }));
+const isRunActive = computed(() => {
+  return (
+    streamingStatus.value === "streaming" ||
+    streamingStatus.value === "paused" ||
+    streamingStatus.value === "waiting_input"
+  );
 });
 
-const hasBlackboardData = computed(() => {
-  return Object.keys(blackboardPreview.value).length > 0;
+const showThinkingIndicator = computed(() => {
+  return (
+    ((streamingStatus.value === "streaming" ||
+      streamingStatus.value === "waiting_input") &&
+      (thinkingText.value.length > 0 ||
+        currentSteps.value.length > 0 ||
+        streamingText.value.length === 0)) ||
+    (streamingStatus.value === "paused" &&
+      (thinkingText.value.length > 0 || currentSteps.value.length > 0))
+  );
 });
 
 const handleRetry = () => {
   void agentStore.retryLastMessage();
+};
+
+const handleCancel = () => {
+  void agentStore.cancelStreaming();
 };
 
 onMounted(() => {
@@ -184,7 +217,7 @@ onMounted(() => {
         size="icon-sm"
         variant="ghost"
         :title="t('新建会话')"
-        :disabled="isStreaming"
+        :disabled="isRunActive"
         @click="handleNewSession"
       >
         <Plus class="size-3.5" />
@@ -222,19 +255,10 @@ onMounted(() => {
                  MessageBubble below so the final response streams directly in
                  the message area, matching the UX of ChatGPT / Copilot. -->
             <AgentThinkingIndicator
-              v-if="isStreaming"
+              v-if="showThinkingIndicator"
               :thinkingText="thinkingText"
               :steps="currentSteps"
-            />
-
-            <AgentNodeTimeline
-              v-if="nodeExecutionList.length > 0"
-              :nodes="nodeExecutionList"
-            />
-
-            <AgentBlackboardDebug
-              v-if="hasBlackboardData"
-              :blackboard="blackboardPreview"
+              :paused="streamingStatus === 'paused'"
             />
 
             <!-- Streaming response bubble — shows the live text_delta output.
@@ -243,20 +267,10 @@ onMounted(() => {
                  bubble smoothly transitions into the permanent MessageBubble
                  created by the 'done' chunk. -->
             <AgentMessageBubble
-              v-if="isStreaming && !runId && streamingText"
+              v-if="isRunActive && streamingText"
               role="ASSISTANT"
               :content="streamingText"
               :isStreaming="true"
-            />
-
-            <AgentMessageBubble
-              v-for="item in streamingNodeEntries"
-              v-if="isStreaming && runId"
-              :key="item.nodeId"
-              role="ASSISTANT"
-              :content="item.text"
-              :isStreaming="true"
-              :nodeId="item.nodeId"
             />
 
             <!-- Inline tool confirmation card (appears in message flow) -->
@@ -267,12 +281,6 @@ onMounted(() => {
 
             <!-- Max steps reached card -->
             <AgentMaxStepsCard v-if="maxStepsReached" :info="maxStepsReached" />
-
-            <AgentRunResultCard
-              v-if="graphRunResult"
-              :result="graphRunResult"
-              @retry="handleRetry"
-            />
 
             <!-- Implicit completion warning -->
             <div
@@ -285,23 +293,6 @@ onMounted(() => {
               <AlertTriangle class="size-3.5 shrink-0" />
               {{ t("Agent 未通过标准方式结束任务，以上回复可能不完整。") }}
             </div>
-
-            <!-- Error message with retry -->
-            <div
-              v-if="streamingStatus === 'error' && errorMessage"
-              class="rounded-md border border-destructive/50 bg-destructive/10 p-2 text-xs text-destructive"
-            >
-              <p>{{ errorMessage }}</p>
-              <Button
-                size="sm"
-                variant="ghost"
-                class="mt-1.5 text-xs text-destructive hover:text-destructive"
-                @click="agentStore.retryLastMessage"
-              >
-                <RotateCcw class="mr-1 size-3" />
-                {{ t("重试") }}
-              </Button>
-            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </ScrollArea>
@@ -309,66 +300,80 @@ onMounted(() => {
 
     <!-- Input Area -->
     <SidebarFooter>
-      <div class="flex flex-col gap-2">
-        <div
-          v-if="runId"
-          class="flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 p-1"
-        >
-          <Button
-            v-if="streamingStatus === 'streaming'"
-            size="sm"
-            variant="outline"
-            class="h-7 px-2 text-xs"
-            @click="agentStore.pauseGraphRun"
-          >
-            <Pause class="mr-1 size-3" />
-            {{ t("暂停") }}
-          </Button>
-          <Button
-            v-if="streamingStatus === 'paused'"
-            size="sm"
-            variant="outline"
-            class="h-7 px-2 text-xs"
-            @click="agentStore.resumeGraphRun"
-          >
-            <Play class="mr-1 size-3" />
-            {{ t("恢复") }}
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            class="h-7 px-2 text-xs"
-            @click="agentStore.cancelGraphRun"
-          >
-            <Square class="mr-1 size-3" />
-            {{ t("取消运行") }}
-          </Button>
+      <div
+        class="rounded-2xl border border-border/70 bg-background p-2 shadow-sm"
+      >
+        <Textarea
+          ref="composerTextareaRef"
+          v-model="inputText"
+          rows="1"
+          :placeholder="t('输入消息...')"
+          :disabled="!selectedDefinitionId && !activeSessionId"
+          class="min-h-0! resize-none border-0 bg-transparent px-2 py-1 text-sm leading-6 shadow-none focus-visible:ring-0"
+          @keydown="handleKeydown"
+        />
+
+        <div class="mt-2 flex items-center justify-between gap-2 px-1">
+          <div class="min-h-5" />
+
+          <div class="flex items-center gap-1">
+            <Button
+              v-if="runId && streamingStatus === 'streaming'"
+              size="icon-sm"
+              variant="outline"
+              :title="t('暂停')"
+              @click="agentStore.pauseGraphRun"
+            >
+              <Pause class="size-4" />
+            </Button>
+
+            <Button
+              v-if="runId && streamingStatus === 'paused'"
+              size="icon-sm"
+              variant="outline"
+              :title="t('恢复')"
+              @click="agentStore.resumeGraphRun"
+            >
+              <Play class="size-4" />
+            </Button>
+
+            <Button
+              v-if="isRunActive"
+              size="icon-sm"
+              variant="destructive"
+              :title="t('取消运行')"
+              @click="handleCancel"
+            >
+              <Square class="size-4" />
+            </Button>
+
+            <Button
+              v-else
+              size="icon-sm"
+              :disabled="
+                !inputText.trim() || (!selectedDefinitionId && !activeSessionId)
+              "
+              :title="t('发送')"
+              @click="handleSend"
+            >
+              <ArrowRight class="size-4" />
+            </Button>
+          </div>
         </div>
 
-        <div class="flex gap-1">
-          <Input
-            v-model="inputText"
-            :placeholder="t('输入消息...')"
-            :disabled="!selectedDefinitionId && !activeSessionId"
-            @keydown="handleKeydown"
-          />
+        <div
+          v-if="streamingStatus === 'error' && errorMessage"
+          class="mt-2 rounded-md border border-destructive/50 bg-destructive/10 p-2 text-xs text-destructive"
+        >
+          <p>{{ errorMessage }}</p>
           <Button
-            v-if="!isStreaming"
-            size="icon-sm"
-            :disabled="
-              !inputText.trim() || (!selectedDefinitionId && !activeSessionId)
-            "
-            @click="handleSend"
+            size="sm"
+            variant="ghost"
+            class="mt-1.5 text-xs text-destructive hover:text-destructive"
+            @click="handleRetry"
           >
-            <ArrowRight />
-          </Button>
-          <Button
-            v-else
-            size="icon-sm"
-            variant="destructive"
-            @click="agentStore.cancelStreaming"
-          >
-            <Square />
+            <RotateCcw class="mr-1 size-3" />
+            {{ t("重试") }}
           </Button>
         </div>
       </div>

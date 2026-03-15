@@ -1,7 +1,7 @@
 import {
   SearchMemoryInputSchema,
   searchMemoryOp,
-} from "@cat/app-server-shared/operations";
+} from "@cat/operations";
 
 import { defineTool } from "@/tools/types";
 

@@ -1,15 +1,10 @@
+import { verifyPassword } from "@cat/db";
 import {
-  eq,
-  getDrizzleDB,
-  verifyPassword,
-  user as userTable,
-  getColumns,
-  and,
-  account as accountTable,
-} from "@cat/db";
-import { AuthProvider, type AuthResult } from "@cat/plugin-core";
+  AuthProvider,
+  type AuthResult,
+  type PluginCapabilities,
+} from "@cat/plugin-core";
 import { JSONSchema } from "@cat/shared/schema/json";
-import { assertFirstNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 const FormSchema = z.object({
@@ -20,6 +15,10 @@ const FormSchema = z.object({
 });
 
 export class Provider extends AuthProvider {
+  public constructor(private readonly capabilities: PluginCapabilities) {
+    super();
+  }
+
   getId(): string {
     return "PASSWORD";
   }
@@ -41,31 +40,15 @@ export class Provider extends AuthProvider {
     identifier: string,
     gotFromClient: { formData?: unknown },
   ): Promise<AuthResult> {
-    const { client: drizzle } = await getDrizzleDB();
     const { password } = FormSchema.parse(gotFromClient.formData);
 
-    const account = await drizzle.transaction(async (tx) => {
-      const user = assertFirstNonNullish(
-        await tx
-          .select({
-            id: userTable.id,
-          })
-          .from(userTable)
-          .where(eq(userTable.id, userId)),
-      );
-
-      return assertFirstNonNullish(
-        await tx
-          .select(getColumns(accountTable))
-          .from(accountTable)
-          .where(
-            and(
-              eq(accountTable.userId, user.id),
-              eq(accountTable.providedAccountId, identifier),
-            ),
-          ),
-      );
+    const meta = await this.capabilities.auth.getAccountMetaByIdentity({
+      userId,
+      providedAccountId: identifier,
+      providerIssuer: this.getId(),
     });
+
+    if (!meta) throw new Error("Account not found");
 
     if (
       !(await verifyPassword(
@@ -74,7 +57,7 @@ export class Provider extends AuthProvider {
           .object({
             password: z.string(),
           })
-          .parse(account.meta).password,
+          .parse(meta).password,
       ))
     )
       throw Error("Wrong password");

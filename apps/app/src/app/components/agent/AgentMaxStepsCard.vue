@@ -17,7 +17,7 @@ const agentStore = useAgentStore();
 const additionalSteps = ref(10);
 
 const handleContinue = () => {
-  void agentStore.extendAndContinue(additionalSteps.value);
+  void agentStore.extendAndContinue();
 };
 
 const handleTerminate = () => {

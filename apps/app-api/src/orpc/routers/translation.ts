@@ -1,38 +1,34 @@
 import {
+  CreateTranslationPubPayloadSchema,
+  autoTranslateWorkflow,
+  createTranslationWorkflow,
+  getWorkflowRuntime,
+} from "@cat/app-agent/workflow";
+import {
   AsyncMessageQueue,
   firstOrGivenService,
-} from "@cat/app-server-shared/utils";
+} from "@cat/server-shared";
 import {
-  autoTranslateWorkflow,
-  CreateTranslationPubPayloadSchema,
-  createTranslationWorkflow,
-  getCreateTranslationPubKey,
-} from "@cat/app-workers";
-import {
-  and,
-  eq,
-  isNull,
-  project as projectTable,
-  projectTargetLanguage,
-  sql,
-  sum,
-  sumDistinct,
-  translation as translationTable,
-  translationVote as translationVoteTable,
-  translatableElement as translatableElementTable,
-  translatableString,
-  document as documentTable,
-  desc,
-  memoryToProject,
-  translationVote,
-  chunkSet,
-  glossaryToProject,
-  chunk,
-  inArray,
-  qaResult,
-  getColumns,
-  qaResultItem,
-} from "@cat/db";
+  approveTranslation,
+  autoApproveDocumentTranslations,
+  deleteTranslation,
+  executeCommand,
+  executeQuery,
+  getDocument,
+  getElementWithChunkIds,
+  getProjectTargetLanguages,
+  getSelfTranslationVote,
+  getTranslationVoteTotal,
+  listDocumentElementsWithChunkIds,
+  listMemoryIdsByProject,
+  listProjectGlossaryIds,
+  listQaResultItems,
+  listQaResultsByTranslation,
+  listTranslationsByIds,
+  listTranslationsByElement,
+  unapproveTranslation,
+  upsertTranslationVote,
+} from "@cat/domain";
 import {
   QaResultItemSchema,
   QaResultSchema,
@@ -41,11 +37,7 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
-import {
-  assertSingleNonNullish,
-  assertSingleOrNull,
-  logger,
-} from "@cat/shared/utils";
+import { logger } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
@@ -72,11 +64,8 @@ export const translationRouter = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { translationId } = input;
 
-    await drizzle
-      .delete(translationTable)
-      .where(eq(translationTable.id, translationId));
+    await executeCommand({ db: drizzle }, deleteTranslation, input);
   });
 
 export const create = authed
@@ -106,52 +95,47 @@ export const create = authed
       });
     }
 
-    const { documentId } = assertSingleNonNullish(
-      await drizzle
-        .select({
-          documentId: documentTable.id,
-        })
-        .from(translatableElementTable)
-        .innerJoin(
-          documentTable,
-          eq(documentTable.id, translatableElementTable.documentId),
-        )
-        .where(eq(translatableElementTable.id, elementId)),
+    const element = await executeQuery(
+      { db: drizzle },
+      getElementWithChunkIds,
+      {
+        elementId,
+      },
     );
 
-    const memoryIds = (
-      await drizzle
-        .select({
-          memoryId: memoryToProject.memoryId,
-        })
-        .from(translatableElementTable)
-        .innerJoin(
-          documentTable,
-          eq(documentTable.id, translatableElementTable.documentId),
-        )
-        .innerJoin(
-          memoryToProject,
-          eq(memoryToProject.projectId, documentTable.projectId),
-        )
-        .where(eq(translatableElementTable.id, elementId))
-    ).map((item) => item.memoryId);
+    if (!element) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `Element ${elementId} not found`,
+      });
+    }
 
-    await createTranslationWorkflow.run({
-      data: [
-        {
-          translatableElementId: elementId,
-          text,
-          languageId,
-          translatorId: user.id,
-        },
-      ],
-      memoryIds: createMemory ? memoryIds : [],
-      pub: true,
-      documentId,
-      vectorStorageId: storage.id,
-      vectorizerId: vectorizer.id,
-      translatorId: user.id,
-    });
+    const memoryIds = await executeQuery(
+      { db: drizzle },
+      listMemoryIdsByProject,
+      { projectId: element.projectId },
+    );
+
+    await createTranslationWorkflow.run(
+      {
+        data: [
+          {
+            translatableElementId: elementId,
+            text,
+            languageId,
+            translatorId: user.id,
+          },
+        ],
+        memoryIds: createMemory ? memoryIds : [],
+        pub: true,
+        documentId: element.documentId,
+        vectorStorageId: storage.id,
+        vectorizerId: vectorizer.id,
+        translatorId: user.id,
+      },
+      {
+        pluginManager,
+      },
+    );
   });
 
 export const onCreate = authed
@@ -163,55 +147,45 @@ export const onCreate = authed
   .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redisSub },
     } = context;
     const { documentId } = input;
 
-    const key = getCreateTranslationPubKey(documentId);
     const queue = new AsyncMessageQueue<TranslationData>();
 
-    const onCreate = async (message: string) => {
-      try {
-        const { translationIds } =
-          await CreateTranslationPubPayloadSchema.parseAsync(
-            JSON.parse(message),
+    const unsubscribe = getWorkflowRuntime().eventBus.subscribe(
+      "workflow:translation:created",
+      async (event) => {
+        const parsed = await CreateTranslationPubPayloadSchema.safeParseAsync(
+          event.payload,
+        );
+        if (!parsed.success) {
+          logger.error(
+            "RPC",
+            { msg: "Invalid create translation payload" },
+            parsed.error,
           );
-        const translations = await drizzle
-          .select({
-            id: translationTable.id,
-            translatableElementId: translationTable.translatableElementId,
-            text: translatableString.value,
-            vote: sql<number>`COALESCE(${sumDistinct(translationVoteTable.value)}, 0)`.mapWith(
-              Number,
-            ),
-            translatorId: translationTable.translatorId,
-            meta: translationTable.meta,
-            createdAt: translationTable.createdAt,
-          })
-          .from(translationTable)
-          .innerJoin(
-            translatableString,
-            eq(translatableString.id, translationTable.stringId),
-          )
-          .leftJoin(
-            translationVoteTable,
-            eq(translationVoteTable.translationId, translationTable.id),
-          )
-          .where(inArray(translationTable.id, translationIds))
-          .groupBy(translationTable.id, translatableString.value);
+          return;
+        }
+
+        if (parsed.data.documentId !== documentId) {
+          return;
+        }
+
+        const translations = await executeQuery(
+          { db: drizzle },
+          listTranslationsByIds,
+          { translationIds: parsed.data.translationIds },
+        );
         queue.push(...translations);
-      } catch (err) {
-        logger.error("RPC", { msg: "Invalid create translation payload" }, err);
-      }
-    };
-    await redisSub.subscribe(key, onCreate);
+      },
+    );
 
     try {
       for await (const translations of queue.consume()) {
         yield translations;
       }
     } finally {
-      await redisSub.unsubscribe(key);
+      unsubscribe();
       queue.clear();
     }
   });
@@ -230,36 +204,10 @@ export const getAll = authed
     } = context;
     const { elementId, languageId } = input;
 
-    const translations = await drizzle
-      .select({
-        id: translationTable.id,
-        translatableElementId: translationTable.translatableElementId,
-        text: translatableString.value,
-        vote: sql<number>`COALESCE(${sumDistinct(translationVoteTable.value)}, 0)`.mapWith(
-          Number,
-        ),
-        translatorId: translationTable.translatorId,
-        meta: translationTable.meta,
-        createdAt: translationTable.createdAt,
-      })
-      .from(translationTable)
-      .innerJoin(
-        translatableString,
-        eq(translatableString.id, translationTable.stringId),
-      )
-      .leftJoin(
-        translationVoteTable,
-        eq(translationVoteTable.translationId, translationTable.id),
-      )
-      .where(
-        and(
-          eq(translatableString.languageId, languageId),
-          eq(translationTable.translatableElementId, elementId),
-        ),
-      )
-      .groupBy(translationTable.id, translatableString.value);
-
-    return translations;
+    return await executeQuery({ db: drizzle }, listTranslationsByElement, {
+      elementId,
+      languageId,
+    });
   });
 
 export const vote = authed
@@ -277,25 +225,11 @@ export const vote = authed
     } = context;
     const { translationId, value } = input;
 
-    return assertSingleNonNullish(
-      await drizzle
-        .insert(translationVoteTable)
-        .values({
-          value,
-          translationId,
-          voterId: user.id,
-        })
-        .onConflictDoUpdate({
-          target: [
-            translationVoteTable.translationId,
-            translationVoteTable.voterId,
-          ],
-          set: {
-            value,
-          },
-        })
-        .returning(),
-    );
+    return await executeCommand({ db: drizzle }, upsertTranslationVote, {
+      translationId,
+      voterId: user.id,
+      value,
+    });
   });
 
 export const countVote = authed
@@ -309,20 +243,8 @@ export const countVote = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { translationId } = input;
 
-    const { total } = assertSingleNonNullish(
-      await drizzle
-        .select({
-          total: sum(translationVoteTable.value),
-        })
-        .from(translationVoteTable)
-        .where(eq(translationVoteTable.translationId, translationId)),
-    );
-
-    if (!total) return 0;
-
-    return Number(total);
+    return await executeQuery({ db: drizzle }, getTranslationVoteTotal, input);
   });
 
 export const getSelfVote = authed
@@ -339,17 +261,10 @@ export const getSelfVote = authed
     } = context;
     const { translationId } = input;
 
-    return assertSingleOrNull(
-      await drizzle
-        .select()
-        .from(translationVote)
-        .where(
-          and(
-            eq(translationVote.translationId, translationId),
-            eq(translationVote.voterId, user.id),
-          ),
-        ),
-    );
+    return await executeQuery({ db: drizzle }, getSelfTranslationVote, {
+      translationId,
+      voterId: user.id,
+    });
   });
 
 export const autoApprove = authed
@@ -364,74 +279,12 @@ export const autoApprove = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { documentId, languageId } = input;
 
-    const voteSum =
-      sql<number>`COALESCE(SUM(${translationVoteTable.value}), 0)`.mapWith(
-        Number,
-      );
-
-    return await drizzle.transaction(async (tx) => {
-      const bestTranslations = await tx
-        .selectDistinctOn([translationTable.translatableElementId], {
-          elementId: translationTable.translatableElementId,
-          translationId: translationTable.id,
-          // voteCount: voteSum,
-        })
-        .from(translationTable)
-        .innerJoin(
-          translatableElementTable,
-          eq(
-            translationTable.translatableElementId,
-            translatableElementTable.id,
-          ),
-        )
-        .innerJoin(
-          translatableString,
-          eq(translationTable.stringId, translatableString.id),
-        )
-        .leftJoin(
-          translationVoteTable,
-          eq(translationVoteTable.translationId, translationTable.id),
-        )
-        .where(
-          and(
-            eq(translatableElementTable.documentId, documentId),
-            eq(translatableString.languageId, languageId),
-            // 不自动批准已有被批准过的翻译的元素
-            isNull(translatableElementTable.approvedTranslationId),
-          ),
-        )
-        .groupBy(
-          translationTable.id,
-          translationTable.translatableElementId,
-          translationTable.createdAt, // 排序
-        )
-        .orderBy(
-          translationTable.translatableElementId,
-          // 票数最高
-          desc(voteSum),
-          // 时间最新
-          desc(translationTable.createdAt),
-        );
-
-      if (bestTranslations.length === 0) {
-        return 0;
-      }
-
-      const updatePromises = bestTranslations.map((item) =>
-        tx
-          .update(translatableElementTable)
-          .set({
-            approvedTranslationId: item.translationId,
-          })
-          .where(eq(translatableElementTable.id, item.elementId)),
-      );
-
-      await Promise.all(updatePromises);
-
-      return bestTranslations.length;
-    });
+    return await executeCommand(
+      { db: drizzle },
+      autoApproveDocumentTranslations,
+      input,
+    );
   });
 
 export const approve = authed
@@ -445,26 +298,7 @@ export const approve = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { translationId } = input;
-
-    await drizzle.transaction(async (tx) => {
-      const { translatableElementId } = assertSingleNonNullish(
-        await tx
-          .select({
-            id: translationTable.id,
-            translatableElementId: translationTable.translatableElementId,
-          })
-          .from(translationTable)
-          .where(eq(translationTable.id, translationId)),
-      );
-
-      await tx
-        .update(translatableElementTable)
-        .set({
-          approvedTranslationId: translationId,
-        })
-        .where(eq(translatableElementTable.id, translatableElementId));
-    });
+    await executeCommand({ db: drizzle }, approveTranslation, input);
   });
 
 export const unapprove = authed
@@ -478,30 +312,7 @@ export const unapprove = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { translationId } = input;
-
-    await drizzle.transaction(async (tx) => {
-      const { translatableElementId } = assertSingleNonNullish(
-        await tx
-          .select({
-            translatableElementId: translationTable.translatableElementId,
-          })
-          .from(translationTable)
-          .where(eq(translationTable.id, translationId)),
-      );
-
-      await tx
-        .update(translatableElementTable)
-        .set({
-          approvedTranslationId: null,
-        })
-        .where(
-          and(
-            eq(translatableElementTable.id, translatableElementId),
-            eq(translatableElementTable.approvedTranslationId, translationId),
-          ),
-        );
-    });
+    await executeCommand({ db: drizzle }, unapproveTranslation, input);
   });
 
 export const autoTranslate = authed
@@ -536,89 +347,64 @@ export const autoTranslate = authed
         message: `No VECTOR_STORAGE service available`,
       });
 
-    const document = assertSingleNonNullish(
-      await drizzle
-        .select({
-          projectId: projectTable.id,
-        })
-        .from(documentTable)
-        .innerJoin(
-          projectTargetLanguage,
-          eq(projectTargetLanguage.projectId, documentTable.projectId),
-        )
-        .innerJoin(projectTable, eq(projectTable.id, documentTable.projectId))
-        .where(
-          and(
-            eq(documentTable.id, documentId),
-            eq(projectTargetLanguage.languageId, languageId),
-          ),
-        )
-        .limit(1),
-      `Document does not exists or language does not claimed in project`,
+    const document = await executeQuery({ db: drizzle }, getDocument, {
+      documentId,
+    });
+
+    if (!document) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `Document ${documentId} not found`,
+      });
+    }
+
+    const targetLanguages = await executeQuery(
+      { db: drizzle },
+      getProjectTargetLanguages,
+      { projectId: document.projectId },
     );
 
-    const memoryIds = (
-      await drizzle
-        .select({
-          id: memoryToProject.memoryId,
-        })
-        .from(memoryToProject)
-        .where(eq(memoryToProject.projectId, document.projectId))
-    ).map((row) => row.id);
+    if (!targetLanguages.some((item) => item.id === languageId)) {
+      throw new ORPCError("BAD_REQUEST", {
+        message:
+          "Document does not exists or language does not claimed in project",
+      });
+    }
 
-    const glossaryIds = (
-      await drizzle
-        .select({
-          id: glossaryToProject.glossaryId,
-        })
-        .from(glossaryToProject)
-        .where(eq(glossaryToProject.projectId, document.projectId))
-    ).map((row) => row.id);
-
-    const elements = await drizzle
-      .select({
-        id: translatableElementTable.id,
-        value: translatableString.value,
-        languageId: translatableString.languageId,
-        chunkIds: sql<
-          number[]
-        >`coalesce(array_agg("Chunk"."id"), ARRAY[]::int[])`,
-      })
-      .from(translatableElementTable)
-      .innerJoin(
-        translatableString,
-        eq(
-          translatableElementTable.translatableStringId,
-          translatableString.id,
-        ),
-      )
-      .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
-      .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
-      .where(eq(translatableElementTable.documentId, documentId))
-      .groupBy(
-        translatableElementTable.id,
-        translatableString.value,
-        translatableString.languageId,
-      );
+    const [memoryIds, glossaryIds, elements] = await Promise.all([
+      executeQuery({ db: drizzle }, listMemoryIdsByProject, {
+        projectId: document.projectId,
+      }),
+      executeQuery({ db: drizzle }, listProjectGlossaryIds, {
+        projectId: document.projectId,
+      }),
+      executeQuery({ db: drizzle }, listDocumentElementsWithChunkIds, {
+        documentId,
+      }),
+    ]);
 
     await Promise.all(
       elements.map(async (element) => {
-        await autoTranslateWorkflow.run({
-          translationLanguageId: languageId,
-          translatableElementId: element.id,
-          advisorId,
-          text: element.value,
-          sourceLanguageId: element.languageId,
-          memoryIds,
-          glossaryIds,
-          chunkIds: element.chunkIds,
-          minMemorySimilarity,
-          maxMemoryAmount,
-          memoryVectorStorageId: storage.id,
-          translationVectorStorageId: storage.id,
-          vectorizerId: storage.id,
-          translatorId: user.id,
-        });
+        await autoTranslateWorkflow.run(
+          {
+            translationLanguageId: languageId,
+            translatableElementId: element.id,
+            advisorId,
+            text: element.value,
+            sourceLanguageId: element.languageId,
+            memoryIds,
+            glossaryIds,
+            chunkIds: element.chunkIds,
+            minMemorySimilarity,
+            maxMemoryAmount,
+            memoryVectorStorageId: storage.id,
+            translationVectorStorageId: storage.id,
+            vectorizerId: storage.id,
+            translatorId: user.id,
+          },
+          {
+            pluginManager,
+          },
+        );
       }),
     );
   });
@@ -636,10 +422,9 @@ export const getQAResults = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    return await drizzle
-      .select(getColumns(qaResult))
-      .from(qaResult)
-      .where(eq(qaResult.translationId, translationId));
+    return await executeQuery({ db: drizzle }, listQaResultsByTranslation, {
+      translationId,
+    });
   });
 
 export const getQAResultItems = authed
@@ -655,8 +440,7 @@ export const getQAResultItems = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    return await drizzle
-      .select(getColumns(qaResultItem))
-      .from(qaResultItem)
-      .where(eq(qaResultItem.resultId, qaResultId));
+    return await executeQuery({ db: drizzle }, listQaResultItems, {
+      qaResultId,
+    });
   });

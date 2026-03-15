@@ -25,6 +25,17 @@ export class MemoryCheckpointer implements Checkpointer {
     return this.runMeta.get(runId) ?? null;
   };
 
+  findRunByDeduplicationKey = async (
+    key: string,
+  ): Promise<RunMetadata | null> => {
+    for (const metadata of this.runMeta.values()) {
+      if (metadata.deduplicationKey === key) {
+        return structuredClone(metadata);
+      }
+    }
+    return null;
+  };
+
   saveSnapshot = async (
     runId: RunId,
     snapshot: BlackboardSnapshot,
@@ -50,7 +61,16 @@ export class MemoryCheckpointer implements Checkpointer {
 
   saveExternalOutput = async (record: ExternalOutputRecord): Promise<void> => {
     const list = this.externalOutputs.get(record.runId) ?? [];
-    list.push(structuredClone(record));
+    const existingIndex = list.findIndex(
+      (item) =>
+        item.outputKey === record.outputKey &&
+        item.idempotencyKey === record.idempotencyKey,
+    );
+    if (existingIndex >= 0) {
+      list[existingIndex] = structuredClone(record);
+    } else {
+      list.push(structuredClone(record));
+    }
     this.externalOutputs.set(record.runId, list);
   };
 

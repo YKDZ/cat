@@ -1,10 +1,11 @@
 import { getDrizzleDB } from "@cat/db";
+import { createTranslatableStrings, executeCommand } from "@cat/domain";
+import { UnvectorizedTextData } from "@cat/shared/schema/misc";
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
 
 import { vectorizeToChunkSetOp } from "@/operations/vectorize";
-import { createStringFromData } from "@/utils";
 
 export const CreateTranslatableStringInputSchema = z.object({
   data: z.array(
@@ -28,6 +29,32 @@ export type CreateTranslatableStringOutput = z.infer<
   typeof CreateTranslatableStringOutputSchema
 >;
 
+const createStringIdsFromData = async (
+  data: UnvectorizedTextData[],
+  vectorizerId: number,
+  vectorStorageId: number,
+  ctx?: OperationContext,
+): Promise<number[]> => {
+  if (data.length === 0) return [];
+
+  const { client: drizzle } = await getDrizzleDB();
+  const { chunkSetIds } = await vectorizeToChunkSetOp(
+    {
+      data,
+      vectorizerId,
+      vectorStorageId,
+    },
+    ctx,
+  );
+
+  return drizzle.transaction(async (tx) => {
+    return executeCommand({ db: tx }, createTranslatableStrings, {
+      chunkSetIds,
+      data,
+    });
+  });
+};
+
 /**
  * 创建可翻译字符串
  *
@@ -37,23 +64,14 @@ export const createTranslatableStringOp = async (
   data: CreateTranslatableStringInput,
   ctx?: OperationContext,
 ): Promise<CreateTranslatableStringOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
-
   if (data.data.length === 0) return { stringIds: [] };
 
-  // 直接调用 vectorizeToChunkSetOp
-  const { chunkSetIds } = await vectorizeToChunkSetOp(
-    {
-      data: data.data,
-      vectorizerId: data.vectorizerId,
-      vectorStorageId: data.vectorStorageId,
-    },
+  const stringIds = await createStringIdsFromData(
+    data.data,
+    data.vectorizerId,
+    data.vectorStorageId,
     ctx,
   );
-
-  const stringIds = await drizzle.transaction(async (tx) => {
-    return await createStringFromData(tx, chunkSetIds, data.data);
-  });
 
   return { stringIds };
 };

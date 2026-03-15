@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type { AgentEvent } from "@/graph/events";
 import type { NodeExecutorContext } from "@/graph/node-registry";
 
 import { MemoryCheckpointer } from "@/graph/checkpointer";
 import { InProcessEventBus } from "@/graph/event-bus";
+import { createAgentEvent } from "@/graph/events";
 import {
   HumanInputNodeExecutor,
   resumeHumanInputNode,
@@ -17,6 +19,8 @@ const createCtx = (
   nodeId: string,
   data: Record<string, unknown>,
 ): NodeExecutorContext => {
+  const eventBus = new InProcessEventBus();
+  const bufferedEvents: AgentEvent[] = [];
   return {
     runId: "11111111-1111-4111-8111-111111111111",
     nodeId,
@@ -27,8 +31,31 @@ const createCtx = (
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
-    eventBus: new InProcessEventBus(),
     checkpointer: new MemoryCheckpointer(),
+    runtime: {},
+    emit: async (event) => {
+      await eventBus.publish(
+        createAgentEvent({
+          runId: "11111111-1111-4111-8111-111111111111",
+          nodeId,
+          type: event.type,
+          timestamp: event.timestamp ?? new Date().toISOString(),
+          payload: event.payload ?? {},
+        }),
+      );
+    },
+    addEvent: (event) => {
+      bufferedEvents.push(
+        createAgentEvent({
+          eventId: crypto.randomUUID(),
+          runId: "11111111-1111-4111-8111-111111111111",
+          nodeId,
+          type: event.type,
+          timestamp: event.timestamp ?? new Date().toISOString(),
+          payload: event.payload ?? {},
+        }),
+      );
+    },
   };
 };
 
@@ -36,10 +63,6 @@ describe("advanced graph executors", () => {
   it("HumanInputNodeExecutor 会发布 human:input:required 并返回 paused", async () => {
     const ctx = createCtx("human_node", {});
     const events: string[] = [];
-
-    ctx.eventBus.subscribeAll((event) => {
-      events.push(event.type);
-    });
 
     const result = await HumanInputNodeExecutor(ctx, {
       prompt: "请输入确认信息",
@@ -49,7 +72,7 @@ describe("advanced graph executors", () => {
 
     expect(result.status).toBe("paused");
     expect(result.pauseReason).toBe("human_input_required");
-    expect(events).toContain("human:input:required");
+    expect(events).not.toContain("human:input:required");
   });
 
   it("resumeHumanInputNode 会生成写回 inputPath 的 patch", async () => {

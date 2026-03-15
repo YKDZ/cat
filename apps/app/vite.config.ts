@@ -7,6 +7,10 @@ import vike from "vike/plugin";
 import { defineConfig } from "vite";
 import vueDevTools from "vite-plugin-vue-devtools";
 export default defineConfig({
+  ssr: {
+    external: ["@cat/app-agent", "@cat/app-agent/workflow", "@cat/domain"],
+  },
+
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),
@@ -36,5 +40,8 @@ export default defineConfig({
   build: {
     target: "esnext",
     emptyOutDir: true,
+    rollupOptions: {
+      external: ["@cat/app-agent", "@cat/app-agent/workflow", "@cat/domain"],
+    },
   },
 });
