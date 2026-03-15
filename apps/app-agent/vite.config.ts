@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   ssr: {
     external: [
+      "@cat/domain",
       "@cat/plugin-core",
       "@cat/shared",
       "@cat/app-server-shared",
@@ -36,6 +37,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(import.meta.dirname, "src/index.ts"),
+        "workflow/index": resolve(import.meta.dirname, "src/workflow/index.ts"),
       },
       formats: ["es"],
     },

@@ -1,148 +1,30 @@
-import { takeSnapshot } from "@cat/app-server-shared/utils";
 import {
-  eq,
-  glossaryToProject,
-  memoryToProject,
-  project as projectTable,
-  projectTargetLanguage,
-  memory as memoryTable,
-  glossary as glossaryTable,
-  and,
-  inArray,
-  document as documentTable,
-  translatableElement as translatableElementTable,
-  translation as translationTable,
-  count,
-  translatableString,
-  documentClosure,
-  getColumns,
-  not,
-  exists,
-  type DrizzleClient,
-  language,
-  isNull,
-  isNotNull,
-} from "@cat/db";
+  addProjectTargetLanguages,
+  countProjectElements,
+  createGlossary as createGlossaryCommand,
+  createMemory as createMemoryCommand,
+  createProject,
+  createProjectTranslationSnapshot,
+  createRootDocument,
+  deleteProject,
+  executeCommand,
+  executeQuery,
+  getProject,
+  getProjectTargetLanguages,
+  listProjectDocuments,
+  listOwnedProjects,
+  linkProjectGlossaries,
+  linkProjectMemories,
+  unlinkProjectGlossaries,
+  unlinkProjectMemories,
+  updateProject,
+} from "@cat/domain";
 import { DocumentSchema } from "@cat/shared/schema/drizzle/document";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
-import { assertFirstOrNull, assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
-
-const buildTranslationStatusConditions = (
-  drizzle: DrizzleClient,
-  isTranslated?: boolean,
-  isApproved?: boolean,
-  languageId?: string,
-) => {
-  const conditions = [];
-
-  if (isTranslated === undefined && isApproved === undefined) return [];
-  if (!languageId)
-    throw new Error(
-      "languageId must be provided when isApproved or isTranslated is set",
-    );
-  if (isTranslated === false && isApproved === true)
-    throw new Error("isTranslated must be true when isApproved is set");
-
-  if (isTranslated === false && isApproved === undefined) {
-    // 没有翻译
-    conditions.push(
-      not(
-        exists(
-          drizzle
-            .select()
-            .from(translationTable)
-            .innerJoin(
-              translatableString,
-              eq(translationTable.stringId, translatableString.id),
-            )
-            .where(
-              and(
-                eq(
-                  translationTable.translatableElementId,
-                  translatableElementTable.id,
-                ),
-                eq(translatableString.languageId, languageId),
-              ),
-            ),
-        ),
-      ),
-    );
-  } else if (isTranslated === true && isApproved === undefined) {
-    // 有翻译
-    conditions.push(
-      exists(
-        drizzle
-          .select()
-          .from(translationTable)
-          .innerJoin(
-            translatableString,
-            eq(translationTable.stringId, translatableString.id),
-          )
-          .where(
-            and(
-              eq(
-                translationTable.translatableElementId,
-                translatableElementTable.id,
-              ),
-              eq(translatableString.languageId, languageId),
-            ),
-          ),
-      ),
-    );
-  } else if (isTranslated === true && isApproved === false) {
-    // 有翻译但未审批
-    conditions.push(
-      exists(
-        drizzle
-          .select()
-          .from(translationTable)
-          .innerJoin(
-            translatableString,
-            eq(translationTable.stringId, translatableString.id),
-          )
-          .where(
-            and(
-              eq(
-                translationTable.translatableElementId,
-                translatableElementTable.id,
-              ),
-              eq(translatableString.languageId, languageId),
-              isNull(translatableElementTable.approvedTranslationId),
-            ),
-          ),
-      ),
-    );
-  } else if (isTranslated === true && isApproved === true) {
-    // 有翻译且已审批
-    conditions.push(
-      exists(
-        drizzle
-          .select()
-          .from(translationTable)
-          .innerJoin(
-            translatableString,
-            eq(translationTable.stringId, translatableString.id),
-          )
-          .where(
-            and(
-              eq(
-                translationTable.translatableElementId,
-                translatableElementTable.id,
-              ),
-              eq(translatableString.languageId, languageId),
-              isNotNull(translatableElementTable.approvedTranslationId),
-            ),
-          ),
-      ),
-    );
-  }
-
-  return conditions;
-};
 
 export const del = authed
   .input(
@@ -155,9 +37,8 @@ export const del = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId } = input;
 
-    await drizzle.delete(projectTable).where(eq(projectTable.id, projectId));
+    await executeCommand({ db: drizzle }, deleteProject, input);
   });
 
 export const update = authed
@@ -173,18 +54,8 @@ export const update = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId, name, description } = input;
 
-    return assertSingleNonNullish(
-      await drizzle
-        .update(projectTable)
-        .set({
-          name,
-          description,
-        })
-        .where(eq(projectTable.id, projectId))
-        .returning(),
-    );
+    return await executeCommand({ db: drizzle }, updateProject, input);
   });
 
 export const create = authed
@@ -216,87 +87,57 @@ export const create = authed
     } = input;
 
     return await drizzle.transaction(async (tx) => {
-      const project = assertSingleNonNullish(
-        await tx
-          .insert(projectTable)
-          .values({
-            name,
-            description,
-            creatorId: user.id,
-          })
-          .returning(),
-      );
-
-      // 创建一颗根树用于存放文档
-      const root = assertSingleNonNullish(
-        await tx
-          .insert(documentTable)
-          .values({
-            name: "<root>",
-            projectId: project.id,
-            creatorId: user.id,
-            isDirectory: true,
-          })
-          .returning({ id: documentTable.id }),
-      );
-
-      await tx.insert(documentClosure).values({
-        ancestor: root.id,
-        descendant: root.id,
-        depth: 0,
-        projectId: project.id,
+      const project = await executeCommand({ db: tx }, createProject, {
+        name,
+        description,
+        creatorId: user.id,
       });
-      // 完成创建根树
 
-      if (targetLanguageIds.length > 0)
-        await tx.insert(projectTargetLanguage).values(
-          targetLanguageIds.map((languageId) => ({
-            projectId: project.id,
-            languageId,
-          })),
-        );
+      await executeCommand({ db: tx }, createRootDocument, {
+        projectId: project.id,
+        creatorId: user.id,
+        name: "<root>",
+      });
+
+      if (targetLanguageIds.length > 0) {
+        await executeCommand({ db: tx }, addProjectTargetLanguages, {
+          projectId: project.id,
+          languageIds: targetLanguageIds,
+        });
+      }
+
+      const linkedMemoryIds = [...memoryIds];
+      const linkedGlossaryIds = [...glossaryIds];
 
       if (createMemory) {
-        const memory = assertSingleNonNullish(
-          await tx
-            .insert(memoryTable)
-            .values({
-              name,
-              creatorId: user.id,
-            })
-            .returning({ id: memoryTable.id }),
-        );
-        memoryIds.push(memory.id);
+        await executeCommand({ db: tx }, createMemoryCommand, {
+          name,
+          creatorId: user.id,
+          projectIds: [project.id],
+        });
       }
 
       if (createGlossary) {
-        const glossary = assertSingleNonNullish(
-          await tx
-            .insert(glossaryTable)
-            .values({
-              name,
-              creatorId: user.id,
-            })
-            .returning({ id: glossaryTable.id }),
-        );
-        glossaryIds.push(glossary.id);
+        await executeCommand({ db: tx }, createGlossaryCommand, {
+          name,
+          creatorId: user.id,
+          projectIds: [project.id],
+        });
       }
 
-      if (glossaryIds.length > 0)
-        await tx.insert(glossaryToProject).values(
-          glossaryIds.map((glossaryId) => ({
-            projectId: project.id,
-            glossaryId,
-          })),
-        );
+      if (linkedGlossaryIds.length > 0) {
+        await executeCommand({ db: tx }, linkProjectGlossaries, {
+          projectId: project.id,
+          glossaryIds: linkedGlossaryIds,
+        });
+      }
 
-      if (memoryIds.length > 0)
-        await tx.insert(memoryToProject).values(
-          memoryIds.map((memoryId) => ({
-            projectId: project.id,
-            memoryId,
-          })),
-        );
+      if (linkedMemoryIds.length > 0) {
+        await executeCommand({ db: tx }, linkProjectMemories, {
+          projectId: project.id,
+          memoryIds: linkedMemoryIds,
+        });
+      }
 
       return project;
     });
@@ -314,16 +155,7 @@ export const linkGlossary = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId, glossaryIds } = input;
-
-    if (glossaryIds.length === 0) return;
-
-    await drizzle.insert(glossaryToProject).values(
-      glossaryIds.map((glossaryId) => ({
-        projectId,
-        glossaryId,
-      })),
-    );
+    await executeCommand({ db: drizzle }, linkProjectGlossaries, input);
   });
 
 export const linkMemory = authed
@@ -338,16 +170,7 @@ export const linkMemory = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId, memoryIds } = input;
-
-    if (memoryIds.length === 0) return;
-
-    await drizzle.insert(memoryToProject).values(
-      memoryIds.map((memoryId) => ({
-        projectId,
-        memoryId,
-      })),
-    );
+    await executeCommand({ db: drizzle }, linkProjectMemories, input);
   });
 
 export const unlinkGlossary = authed
@@ -362,16 +185,7 @@ export const unlinkGlossary = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId, glossaryIds } = input;
-
-    await drizzle
-      .delete(glossaryToProject)
-      .where(
-        and(
-          eq(glossaryToProject.projectId, projectId),
-          inArray(glossaryToProject.glossaryId, glossaryIds),
-        ),
-      );
+    await executeCommand({ db: drizzle }, unlinkProjectGlossaries, input);
   });
 
 export const unlinkMemory = authed
@@ -386,16 +200,7 @@ export const unlinkMemory = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId, memoryIds } = input;
-
-    await drizzle
-      .delete(memoryToProject)
-      .where(
-        and(
-          eq(memoryToProject.projectId, projectId),
-          inArray(memoryToProject.memoryId, memoryIds),
-        ),
-      );
+    await executeCommand({ db: drizzle }, unlinkProjectMemories, input);
   });
 
 export const getUserOwned = authed
@@ -406,10 +211,9 @@ export const getUserOwned = authed
       user,
     } = context;
 
-    return await drizzle
-      .select()
-      .from(projectTable)
-      .where(eq(projectTable.creatorId, user.id));
+    return await executeQuery({ db: drizzle }, listOwnedProjects, {
+      creatorId: user.id,
+    });
   });
 
 export const get = authed
@@ -423,14 +227,8 @@ export const get = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId } = input;
 
-    return assertFirstOrNull(
-      await drizzle
-        .select()
-        .from(projectTable)
-        .where(eq(projectTable.id, projectId)),
-    );
+    return await executeQuery({ db: drizzle }, getProject, input);
   });
 
 export const addTargetLanguages = authed
@@ -444,11 +242,10 @@ export const addTargetLanguages = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId, languageId } = input;
 
-    await drizzle.insert(projectTargetLanguage).values({
-      projectId,
-      languageId,
+    await executeCommand({ db: drizzle }, addProjectTargetLanguages, {
+      projectId: input.projectId,
+      languageIds: [input.languageId],
     });
   });
 
@@ -466,34 +263,8 @@ export const countElement = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId, isApproved, isTranslated, languageId } = input;
 
-    const whereConditions = [eq(documentTable.projectId, projectId)];
-
-    // 添加翻译状态条件
-    whereConditions.push(
-      ...buildTranslationStatusConditions(
-        drizzle,
-        isTranslated,
-        isApproved,
-        languageId,
-      ),
-    );
-
-    return assertSingleNonNullish(
-      await drizzle
-        .select({ count: count() })
-        .from(translatableElementTable)
-        .innerJoin(
-          documentTable,
-          eq(translatableElementTable.documentId, documentTable.id),
-        )
-        .where(
-          whereConditions.length === 1
-            ? whereConditions[0]
-            : and(...whereConditions),
-        ),
-    ).count;
+    return await executeQuery({ db: drizzle }, countProjectElements, input);
   });
 
 export const getDocuments = authed
@@ -509,26 +280,8 @@ export const getDocuments = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId } = input;
 
-    // 查询所有文档及其父文档关系
-    const documents = await drizzle
-      .select({
-        ...getColumns(documentTable),
-        parentId: documentClosure.ancestor,
-      })
-      .from(documentTable)
-      .leftJoin(
-        documentClosure,
-        and(
-          eq(documentClosure.descendant, documentTable.id),
-          eq(documentClosure.depth, 1),
-          eq(documentClosure.projectId, projectId),
-        ),
-      )
-      .where(and(eq(documentTable.projectId, projectId)));
-
-    return documents;
+    return await executeQuery({ db: drizzle }, listProjectDocuments, input);
   });
 
 export const getTargetLanguages = authed
@@ -542,23 +295,12 @@ export const getTargetLanguages = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId } = input;
 
-    return await drizzle.transaction(async (tx) => {
-      const ids = (
-        await tx
-          .select({
-            languageId: projectTargetLanguage.languageId,
-          })
-          .from(projectTargetLanguage)
-          .where(eq(projectTargetLanguage.projectId, projectId))
-      ).map((i) => i.languageId);
-
-      return await tx
-        .select(getColumns(language))
-        .from(language)
-        .where(inArray(language.id, ids));
-    });
+    return await executeQuery(
+      { db: drizzle },
+      getProjectTargetLanguages,
+      input,
+    );
   });
 
 export const snapshot = authed
@@ -576,6 +318,13 @@ export const snapshot = authed
     const { projectId } = input;
 
     return await drizzle.transaction(async (tx) => {
-      return await takeSnapshot(tx, projectId, user.id);
+      return await executeCommand(
+        { db: tx },
+        createProjectTranslationSnapshot,
+        {
+          projectId,
+          creatorId: user.id,
+        },
+      );
     });
   });

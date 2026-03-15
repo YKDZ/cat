@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   ssr: {
     external: [
+      "@cat/domain",
       "@cat/db",
       "@cat/shared",
       "@cat/plugin-core",

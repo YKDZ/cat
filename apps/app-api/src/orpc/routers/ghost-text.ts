@@ -1,14 +1,13 @@
 import type { AgentContextProvider, LLMProvider } from "@cat/plugin-core";
 
 import { buildSystemPrompt, runFim } from "@cat/app-agent";
-import { getServiceFromDBId } from "@cat/app-server-shared/utils";
+import { getServiceFromDBId } from "@cat/server-shared";
 import {
-  agentDefinition,
-  eq,
-  translatableElement,
-  translatableString,
-} from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+  executeQuery,
+  getElementWithChunkIds,
+  listAgentDefinitions,
+} from "@cat/domain";
+import { assertFirstNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
@@ -55,15 +54,10 @@ export const suggest = authed
     // We look for an agent of type GHOST_TEXT; fall back to any available LLM
     // provider if no dedicated agent definition exists in the database.
     // TODO: 此处应该查找被项目或用户（反正就是触发 AGENT 的上下文内）被安装的那个 agent，而不是随便找一个
-    const ghostAgentRow = assertSingleNonNullish(
-      await drizzle
-        .select({
-          id: agentDefinition.id,
-          definition: agentDefinition.definition,
-        })
-        .from(agentDefinition)
-        .where(eq(agentDefinition.type, "GHOST_TEXT"))
-        .limit(1),
+    const ghostAgentRow = assertFirstNonNullish(
+      await executeQuery({ db: drizzle }, listAgentDefinitions, {
+        type: "GHOST_TEXT",
+      }),
       "No ghost text agent definition found. Please create an agent definition of type GHOST_TEXT in the database.",
     );
 
@@ -71,20 +65,19 @@ export const suggest = authed
     const providerId = ghostAgentRow.definition.llm.providerId;
 
     // ── 3. Fetch source text from DB ─────────────────────────────────────────
-    const elementRow = assertSingleNonNullish(
-      await drizzle
-        .select({ sourceText: translatableString.value })
-        .from(translatableElement)
-        .innerJoin(
-          translatableString,
-          eq(translatableElement.translatableStringId, translatableString.id),
-        )
-        .where(eq(translatableElement.id, input.elementId))
-        .limit(1),
-      `Element with ID ${input.elementId} not found`,
+    const elementRow = await executeQuery(
+      { db: drizzle },
+      getElementWithChunkIds,
+      {
+        elementId: input.elementId,
+      },
     );
 
-    const sourceText = elementRow.sourceText;
+    if (elementRow === null) {
+      throw new Error(`Element with ID ${input.elementId} not found`);
+    }
+
+    const sourceText = elementRow.value;
 
     // Build system prompt using the context resolution engine so that
     // AGENT_CONTEXT_PROVIDER plugins can inject variables into the ghost-text

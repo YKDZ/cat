@@ -31,10 +31,16 @@ export type GraphEventType =
   | "run:cancel"
   | "run:end"
   | "run:error"
+  | "run:compensation:start"
+  | "run:compensation:end"
   | "node:start"
   | "node:end"
   | "node:error"
   | "node:retry"
+  | "node:lease:acquired"
+  | "node:lease:expired"
+  | "node:lease:reclaimed"
+  | "llm:thinking"
   | "llm:token"
   | "llm:complete"
   | "llm:error"
@@ -45,7 +51,10 @@ export type GraphEventType =
   | "tool:confirm:response"
   | "human:input:required"
   | "human:input:received"
-  | "checkpoint:saved";
+  | "checkpoint:saved"
+  | "workflow:translation:created"
+  | "workflow:qa:issue"
+  | "workflow:suggestion:ready";
 
 export interface GraphEvent {
   eventId: string;

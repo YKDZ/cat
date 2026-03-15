@@ -1,3 +1,4 @@
+import type { PluginCapabilities } from "@cat/domain";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { Hono } from "hono";
 
@@ -18,6 +19,8 @@ export type PluginContext = {
   scopeId: string;
   /** 当前作用域下已注册的其他服务 */
   registeredServices: Omit<RegisteredService, "service" | "pluginId">[];
+  /** 插件能力边界：通过 capability 访问基础能力，不直接触达底层 command/query */
+  capabilities: PluginCapabilities;
 };
 
 export type RouteContext = PluginContext & {

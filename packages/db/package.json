@@ -19,6 +19,7 @@
   },
   "scripts": {
     "build": "vite build",
+    "codegen:schemas": "tsx src/zod/codegen.ts",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:studio": "drizzle-kit studio --host 0.0.0.0 --port 4983",
@@ -36,7 +37,7 @@
     "@cat/eslint-config": "workspace:*",
     "@types/node": "^24.10.13",
     "@types/pg": "^8.16.0",
-    "drizzle-kit": "1.0.0-beta.10-4a43a22",
+    "drizzle-kit": "1.0.0-beta.17-67b1795",
     "drizzle-seed": "^0.3.1",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "^7.3.1",
@@ -46,7 +47,7 @@
     "@cat/shared": "workspace:*",
     "cldr-core": "^48.0.0",
     "dotenv": "^17.2.3",
-    "drizzle-orm": "1.0.0-beta.10-4a43a22",
+    "drizzle-orm": "1.0.0-beta.17-67b1795",
     "zod": "^4.3.6"
   }
 }

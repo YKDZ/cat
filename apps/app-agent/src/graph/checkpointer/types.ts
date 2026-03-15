@@ -12,6 +12,7 @@ export type RunMetadata = {
   status: RunStatus;
   graphDefinition?: GraphDefinition;
   currentNodeId?: string;
+  deduplicationKey?: string;
   startedAt: string;
   completedAt?: string;
   metadata?: Record<string, unknown> | null;
@@ -20,7 +21,12 @@ export type RunMetadata = {
 export type ExternalOutputRecord = {
   runId: RunId;
   nodeId: string;
-  outputType: "llm_response" | "tool_result";
+  outputType:
+    | "llm_response"
+    | "tool_result"
+    | "db_write"
+    | "api_call"
+    | "event_publish";
   outputKey: string;
   payload: unknown;
   idempotencyKey?: string;
@@ -33,6 +39,7 @@ export type Checkpointer = {
     metadata: Omit<RunMetadata, "runId">,
   ) => Promise<void>;
   loadRunMetadata: (runId: RunId) => Promise<RunMetadata | null>;
+  findRunByDeduplicationKey: (key: string) => Promise<RunMetadata | null>;
   saveSnapshot: (runId: RunId, snapshot: BlackboardSnapshot) => Promise<void>;
   loadSnapshot: (runId: RunId) => Promise<BlackboardSnapshot | null>;
   saveEvent: (event: AgentEvent) => Promise<void>;

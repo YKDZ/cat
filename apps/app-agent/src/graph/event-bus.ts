@@ -1,108 +1,74 @@
-import * as crypto from "node:crypto";
+import {
+  InProcessEventBus as BaseInProcessEventBus,
+  type TypedEventBus,
+} from "@cat/domain/events";
 
-import type { AgentEvent, EventHandler, EventType } from "@/graph/events";
-import type { RunId } from "@/graph/types";
+import type { AgentEvent, AgentEventOf, EventType } from "@/graph/events";
 
-import { AgentEventSchema } from "@/graph/events";
+import { createAgentEvent } from "@/graph/events";
 
-export type EventBus = {
-  publish: (
-    event: Omit<AgentEvent, "eventId"> & { eventId?: string },
-  ) => Promise<AgentEvent>;
-  subscribe: (eventType: EventType, handler: EventHandler) => () => void;
-  subscribeAll: (handler: EventHandler) => () => void;
-  waitFor: (args: {
-    runId: RunId;
-    eventType: EventType;
-    timeoutMs?: number;
-    predicate?: (event: AgentEvent) => boolean;
-  }) => Promise<AgentEvent>;
+export type WaitForEventArgs<T extends EventType = EventType> = {
+  type: T;
+  timeoutMs?: number;
+  predicate?: (event: AgentEventOf<T>) => boolean;
+};
+
+export type EventBus = TypedEventBus<EventType, AgentEvent> & {
+  waitFor: <T extends EventType>(
+    options: WaitForEventArgs<T>,
+  ) => Promise<AgentEventOf<T>>;
 };
 
 export class InProcessEventBus implements EventBus {
-  private handlersByType = new Map<EventType, Set<EventHandler>>();
+  private readonly bus = new BaseInProcessEventBus<EventType, AgentEvent>();
 
-  private allHandlers = new Set<EventHandler>();
+  publish: EventBus["publish"] = async (event): Promise<void> => {
+    const normalized = createAgentEvent(event);
 
-  publish = async (
-    eventLike: Omit<AgentEvent, "eventId"> & { eventId?: string },
-  ): Promise<AgentEvent> => {
-    const event = AgentEventSchema.parse({
-      ...eventLike,
-      eventId: eventLike.eventId ?? crypto.randomUUID(),
-    });
-
-    const handlers = this.handlersByType.get(event.type);
-    const tasks: Array<Promise<void>> = [];
-
-    if (handlers && handlers.size > 0) {
-      for (const handler of handlers) {
-        tasks.push(Promise.resolve(handler(event)));
-      }
-    }
-
-    if (this.allHandlers.size > 0) {
-      for (const handler of this.allHandlers) {
-        tasks.push(Promise.resolve(handler(event)));
-      }
-    }
-
-    await Promise.all(tasks);
-    return event;
+    await this.bus.publish(normalized);
   };
 
-  subscribe = (eventType: EventType, handler: EventHandler): (() => void) => {
-    const current =
-      this.handlersByType.get(eventType) ?? new Set<EventHandler>();
-    current.add(handler);
-    this.handlersByType.set(eventType, current);
+  publishMany: EventBus["publishMany"] = async (events): Promise<void> => {
+    const normalized = events.map((event) => createAgentEvent(event));
 
-    return () => {
-      const handlers = this.handlersByType.get(eventType);
-      if (!handlers) return;
-      handlers.delete(handler);
-      if (handlers.size === 0) {
-        this.handlersByType.delete(eventType);
-      }
-    };
+    await this.bus.publishMany(normalized);
   };
 
-  subscribeAll = (handler: EventHandler): (() => void) => {
-    this.allHandlers.add(handler);
-    return () => {
-      this.allHandlers.delete(handler);
-    };
+  subscribe = <T extends EventType>(
+    eventType: T,
+    handler: (event: AgentEventOf<T>) => Promise<void> | void,
+  ): (() => void) => {
+    return this.bus.subscribe(eventType, handler);
   };
 
-  waitFor = async (args: {
-    runId: RunId;
-    eventType: EventType;
-    timeoutMs?: number;
-    predicate?: (event: AgentEvent) => boolean;
-  }): Promise<AgentEvent> => {
-    const { runId, eventType, timeoutMs = 300_000, predicate } = args;
+  subscribeAll = (
+    handler: (event: AgentEvent) => Promise<void> | void,
+  ): (() => void) => {
+    return this.bus.subscribeAll(handler);
+  };
 
-    const result = await new Promise<AgentEvent>((resolve, reject) => {
+  waitFor = async <T extends EventType>(
+    options: WaitForEventArgs<T>,
+  ): Promise<AgentEventOf<T>> => {
+    const { type, timeoutMs = 300_000, predicate } = options;
+
+    return new Promise<AgentEventOf<T>>((resolve, reject) => {
       const timer = setTimeout(() => {
         unsubscribe();
         reject(
-          new Error(
-            `Wait event timeout: runId=${runId}, eventType=${eventType}, timeoutMs=${timeoutMs}`,
-          ),
+          new Error(`Wait event timeout: type=${type}, timeoutMs=${timeoutMs}`),
         );
       }, timeoutMs);
 
-      const unsubscribe = this.subscribe(eventType, (event) => {
-        const matchedRun = event.runId === runId;
-        const matchedPredicate = predicate ? predicate(event) : true;
-        if (!matchedRun || !matchedPredicate) return;
+      const unsubscribe = this.subscribe(type, (event) => {
+        if (predicate && !predicate(event)) {
+          return;
+        }
 
         clearTimeout(timer);
         unsubscribe();
         resolve(event);
       });
     });
-
-    return result;
   };
 }

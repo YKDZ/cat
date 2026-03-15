@@ -1,4 +1,10 @@
-import { getDrizzleDB, term as termTable } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import {
+  addGlossaryTermToConcept,
+  createInProcessCollector,
+  domainEventBus,
+  executeCommand,
+} from "@cat/domain";
 import {
   TermStatusValues,
   TermTypeValues,
@@ -6,8 +12,6 @@ import {
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
-
-import { triggerConceptRevectorize } from "./trigger-revectorize";
 
 export const AddTermToConceptInputSchema = z.object({
   conceptId: z.int(),
@@ -30,27 +34,25 @@ export type AddTermToConceptOutput = z.infer<
 /**
  * 向已有 termConcept 添加一条术语条目。
  *
- * 写入完成后自动触发 fire-and-forget 的概念重向量化（术语列表变化会影响向量化文本）。
+ * 写入完成后由领域事件处理器自动触发概念重向量化（术语列表变化会影响向量化文本）。
  */
 export const addTermToConceptOp = async (
   data: AddTermToConceptInput,
   ctx?: OperationContext,
 ): Promise<AddTermToConceptOutput> => {
+  void ctx;
   const { client: drizzle } = await getDrizzleDB();
+  const collector = createInProcessCollector(domainEventBus);
 
-  const [termResult] = await drizzle
-    .insert(termTable)
-    .values({
-      termConceptId: data.conceptId,
-      text: data.text,
-      languageId: data.languageId,
-      type: data.type,
-      status: data.status,
-      creatorId: data.creatorId ?? null,
-    })
-    .returning({ id: termTable.id });
+  const termResult = await drizzle.transaction(async (tx) => {
+    return executeCommand(
+      { db: tx, collector },
+      addGlossaryTermToConcept,
+      data,
+    );
+  });
 
-  triggerConceptRevectorize(data.conceptId, ctx);
+  await collector.flush();
 
-  return { termId: termResult.id };
+  return { termId: termResult.termId };
 };

@@ -17,3 +17,24 @@ export const AgentSessionMetaSchema = z.object({
 });
 
 export type AgentSessionMeta = z.infer<typeof AgentSessionMetaSchema>;
+
+export const mapSessionMetaToSeeds = (
+  metadata: unknown,
+): Record<string, string | number | boolean> => {
+  const parsed = AgentSessionMetaSchema.safeParse(metadata);
+  if (!parsed.success) return {};
+
+  const seeds: Record<string, string | number | boolean> = {};
+  const data = parsed.data;
+
+  if (data.projectId) seeds["projectId"] = data.projectId;
+  if (data.documentId) seeds["documentId"] = data.documentId;
+  if (data.elementId !== undefined) seeds["elementId"] = data.elementId;
+  if (data.languageId) {
+    seeds["languageId"] = data.languageId;
+    seeds["translationLanguageId"] = data.languageId;
+  }
+  if (data.sourceLanguageId) seeds["sourceLanguageId"] = data.sourceLanguageId;
+
+  return seeds;
+};

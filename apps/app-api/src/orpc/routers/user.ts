@@ -4,18 +4,18 @@ import {
   getDownloadUrl,
   getServiceFromDBId,
   preparePresignedPutFile,
-} from "@cat/app-server-shared/utils";
+} from "@cat/server-shared";
 import {
-  eq,
-  file as fileTable,
-  user as userTable,
-  blob as blobTable,
-  and,
-} from "@cat/db";
+  executeCommand,
+  executeQuery,
+  getUser,
+  getUserAvatarFile,
+  updateUser,
+  updateUserAvatar,
+} from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
@@ -34,11 +34,8 @@ export const get = base
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { userId } = input;
 
-    return assertSingleOrNull(
-      await drizzle.select().from(userTable).where(eq(userTable.id, userId)),
-    );
+    return await executeQuery({ db: drizzle }, getUser, input);
   });
 
 export const update = authed
@@ -57,15 +54,10 @@ export const update = authed
 
     if (user.id !== newUser.id) throw new ORPCError("UNAUTHORIZED");
 
-    return assertSingleNonNullish(
-      await drizzle
-        .update(userTable)
-        .set({
-          name: newUser.name,
-        })
-        .where(eq(userTable.id, newUser.id))
-        .returning(),
-    );
+    return await executeCommand({ db: drizzle }, updateUser, {
+      userId: newUser.id,
+      name: newUser.name,
+    });
   });
 
 export const prepareUploadAvatar = authed
@@ -141,12 +133,10 @@ export const finishUploadAvatar = authed
       ctxHash,
     );
 
-    await drizzle
-      .update(userTable)
-      .set({
-        avatarFileId: fileId,
-      })
-      .where(eq(userTable.id, user.id));
+    await executeCommand({ db: drizzle }, updateUserAvatar, {
+      userId: user.id,
+      fileId,
+    });
   });
 
 export const getAvatarPresignedUrl = authed
@@ -165,25 +155,13 @@ export const getAvatarPresignedUrl = authed
     } = context;
     const { userId, expiresIn } = input;
 
-    const rows = await drizzle
-      .select({
-        key: blobTable.key,
-        storageProviderId: blobTable.storageProviderId,
-      })
-      .from(userTable)
-      .innerJoin(
-        fileTable,
-        and(
-          eq(userTable.avatarFileId, fileTable.id),
-          eq(fileTable.isActive, true),
-        ),
-      )
-      .innerJoin(blobTable, eq(fileTable.blobId, blobTable.id))
-      .where(eq(userTable.id, userId));
+    const avatarFile = await executeQuery({ db: drizzle }, getUserAvatarFile, {
+      userId,
+    });
 
-    if (rows.length === 0) return null;
+    if (!avatarFile) return null;
 
-    const { key, storageProviderId } = assertSingleNonNullish(rows);
+    const { key, storageProviderId } = avatarFile;
 
     const provider = getServiceFromDBId<StorageProvider>(
       pluginManager,

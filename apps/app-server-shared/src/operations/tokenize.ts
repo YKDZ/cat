@@ -1,13 +1,10 @@
-import {
-  PluginManager,
-  tokenize,
-  type Tokenizer,
-  TokenSchema,
-} from "@cat/plugin-core";
+import { tokenize, type Tokenizer, TokenSchema } from "@cat/plugin-core";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import z from "zod";
 
 import type { OperationContext } from "@/operations/types";
+
+import { resolvePluginManager } from "@/utils";
 
 export const TokenizeInputSchema = z.object({
   text: z.string(),
@@ -31,9 +28,9 @@ export type TokenizeOutput = z.infer<typeof TokenizeOutputSchema>;
  */
 export const tokenizeOp = async (
   payload: TokenizeInput,
-  _ctx?: OperationContext,
+  ctx?: OperationContext,
 ): Promise<TokenizeOutput> => {
-  const pluginManager = PluginManager.get("GLOBAL", "");
+  const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
   const { text, terms } = payload;
 

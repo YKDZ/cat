@@ -29,6 +29,12 @@ jobs:
       - name: Check Nx Sync
         run: pnpm nx sync:check
 
+      - name: Check Generated Drizzle Schemas
+        run: pnpm check:generated-schemas
+
+      - name: Check Database Boundaries
+        run: pnpm check:db-boundaries
+
       - name: Run ALL Tasks
         env:
           REDIS_URL: "redis://localhost:6379"

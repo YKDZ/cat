@@ -1,3 +1,5 @@
+import type { ChatMessage } from "@cat/plugin-core";
+
 import type { NodeExecutor } from "@/graph/node-registry";
 import type { AgentToolDefinition } from "@/tools/types";
 
@@ -29,6 +31,51 @@ const isTool = (value: unknown): value is AgentToolDefinition => {
   );
 };
 
+const isChatMessage = (value: unknown): value is ChatMessage => {
+  if (typeof value !== "object" || value === null) return false;
+
+  const role = Reflect.get(value, "role");
+  const content = Reflect.get(value, "content");
+  return (
+    (role === "system" ||
+      role === "user" ||
+      role === "assistant" ||
+      role === "tool") &&
+    (typeof content === "string" || content === null)
+  );
+};
+
+const toMessages = (value: unknown): ChatMessage[] => {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item) => isChatMessage(item));
+};
+
+const parseToolArgs = (value: unknown): Record<string, unknown> => {
+  if (isRecord(value)) return value;
+  if (typeof value !== "string") return {};
+
+  try {
+    const parsed = JSON.parse(value);
+    return isRecord(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const stringifyToolResult = (result: unknown): string => {
+  if (typeof result === "string") return result;
+  if (result === null || result === undefined) return "";
+  if (typeof result === "number" || typeof result === "boolean") {
+    return `${result}`;
+  }
+
+  try {
+    return JSON.stringify(result);
+  } catch {
+    return "[unserializable tool result]";
+  }
+};
+
 const toGraphConfirmState = (value: unknown): GraphConfirmState | null => {
   if (!isRecord(value)) return null;
 
@@ -50,9 +97,27 @@ const toGraphConfirmState = (value: unknown): GraphConfirmState | null => {
 };
 
 export const ToolNodeExecutor: NodeExecutor = async (ctx, config) => {
-  const toolLike = config.tool;
+  const tools = Array.isArray(ctx.runtime.tools)
+    ? ctx.runtime.tools.filter((tool) => isTool(tool))
+    : [];
+
+  const toolNamePath =
+    typeof config.toolNamePath === "string"
+      ? config.toolNamePath
+      : `${ctx.nodeId}.toolName`;
+  const toolCallIdPath =
+    typeof config.toolCallIdPath === "string"
+      ? config.toolCallIdPath
+      : `${ctx.nodeId}.toolCallId`;
+
+  const toolName = resolvePath(ctx.snapshot.data, toolNamePath);
+  const toolLike =
+    typeof toolName === "string"
+      ? tools.find((tool) => tool.name === toolName)
+      : undefined;
+
   if (!isTool(toolLike)) {
-    throw new Error("Tool node config.tool is missing or invalid");
+    throw new Error("Tool runtime definition is missing or invalid");
   }
 
   const argsPath =
@@ -68,18 +133,20 @@ export const ToolNodeExecutor: NodeExecutor = async (ctx, config) => {
 
   const resolvedArgs = (() => {
     if (argsTemplate) {
-      const parsed = JSON.parse(
+      return parseToolArgs(
         interpolateTemplate(argsTemplate, ctx.snapshot.data),
       );
-      return isRecord(parsed) ? parsed : {};
     }
 
-    const fromPath = resolvePath(ctx.snapshot.data, argsPath);
-    return isRecord(fromPath) ? fromPath : {};
+    return parseToolArgs(resolvePath(ctx.snapshot.data, argsPath));
   })();
 
   const args = resolvedArgs;
-  const callId = `${ctx.nodeId}:${hashArgs(args)}`;
+  const toolCallId = resolvePath(ctx.snapshot.data, toolCallIdPath);
+  const callId =
+    typeof toolCallId === "string" && toolCallId.length > 0
+      ? toolCallId
+      : `${ctx.nodeId}:${hashArgs(args)}`;
 
   const confirmationState = toGraphConfirmState(
     resolvePath(ctx.snapshot.data, `__toolConfirm.${ctx.nodeId}`),
@@ -107,11 +174,8 @@ export const ToolNodeExecutor: NodeExecutor = async (ctx, config) => {
     !isAllowOnceForCurrentCall &&
     !isDeniedForCurrentCall
   ) {
-    await ctx.eventBus.publish({
-      runId: ctx.runId,
-      nodeId: ctx.nodeId,
+    ctx.addEvent({
       type: "tool:confirm:required",
-      timestamp: new Date().toISOString(),
       payload: {
         callId,
         toolName: toolLike.name,
@@ -130,12 +194,10 @@ export const ToolNodeExecutor: NodeExecutor = async (ctx, config) => {
 
   if (isDeniedForCurrentCall) {
     const deniedMessage = "User denied tool execution";
-    await ctx.eventBus.publish({
-      runId: ctx.runId,
-      nodeId: ctx.nodeId,
+    ctx.addEvent({
       type: "tool:error",
-      timestamp: new Date().toISOString(),
       payload: {
+        callId,
         toolName: toolLike.name,
         error: deniedMessage,
       },
@@ -160,12 +222,10 @@ export const ToolNodeExecutor: NodeExecutor = async (ctx, config) => {
     };
   }
 
-  await ctx.eventBus.publish({
-    runId: ctx.runId,
-    nodeId: ctx.nodeId,
+  await ctx.emit({
     type: "tool:call",
-    timestamp: new Date().toISOString(),
     payload: {
+      callId,
       toolName: toolLike.name,
       args,
     },
@@ -190,17 +250,25 @@ export const ToolNodeExecutor: NodeExecutor = async (ctx, config) => {
     createdAt: new Date().toISOString(),
   });
 
-  await ctx.eventBus.publish({
-    runId: ctx.runId,
-    nodeId: ctx.nodeId,
+  await ctx.emit({
     type: "tool:result",
-    timestamp: new Date().toISOString(),
     payload: {
+      callId,
       toolName: toolLike.name,
       result,
       durationMs,
     },
   });
+
+  const messages = toMessages(resolvePath(ctx.snapshot.data, "messages"));
+  const nextMessages: ChatMessage[] = [
+    ...messages,
+    {
+      role: "tool",
+      content: stringifyToolResult(result),
+      toolCallId: callId,
+    },
+  ];
 
   return {
     patch: buildPatch({
@@ -208,6 +276,7 @@ export const ToolNodeExecutor: NodeExecutor = async (ctx, config) => {
       parentSnapshotVersion: ctx.snapshot.version,
       updates: {
         [resultPath]: result,
+        messages: nextMessages,
         ...(isAllowOnceForCurrentCall
           ? { [`__toolConfirm.${ctx.nodeId}`]: null }
           : {}),

@@ -75,6 +75,7 @@ export {
 } from "./revectorize-concept";
 
 export { triggerConceptRevectorize } from "./trigger-revectorize";
+export { registerDomainEventHandlers } from "./register-domain-event-handlers";
 
 export {
   qaOp,
@@ -126,7 +127,6 @@ export {
 } from "./stream-search-terms";
 
 export {
-  lookupTermsOp,
   LookupTermsInputSchema,
   LookupTermsOutputSchema,
   type LookupTermsInput,

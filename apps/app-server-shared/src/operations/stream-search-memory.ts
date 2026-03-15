@@ -15,6 +15,12 @@ import type { MemorySuggestion } from "@cat/shared/schema/misc";
  * Results are globally deduplicated by `memoryItem.id`, keeping the highest confidence.
  */
 import { getDrizzleDB } from "@cat/db";
+import {
+  executeQuery,
+  listExactMemorySuggestions,
+  listTrgmMemorySuggestions,
+  type RawMemorySuggestion,
+} from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod";
@@ -24,11 +30,6 @@ import type { OperationContext } from "@/operations/types";
 import { searchMemoryOp } from "@/operations/search-memory";
 import { tokenizeOp } from "@/operations/tokenize";
 import { firstOrGivenService } from "@/utils";
-import {
-  exactMatchMemory,
-  trgmMatchMemory,
-  type RawMemorySuggestion,
-} from "@/utils/memory-lookup";
 import {
   fillTemplate,
   mappingToSlots,
@@ -174,7 +175,7 @@ export const streamSearchMemoryOp = (
     // Channel 3 (vector) requires vectorization — slower.
     const tasks: Promise<void>[] = [
       // Channel 1: Exact match
-      exactMatchMemory(drizzle, commonInput)
+      executeQuery({ db: drizzle }, listExactMemorySuggestions, commonInput)
         .then(async (results) => {
           await pushNew(results);
         })
@@ -187,7 +188,7 @@ export const streamSearchMemoryOp = (
         }),
 
       // Channel 2: trgm similarity
-      trgmMatchMemory(drizzle, {
+      executeQuery({ db: drizzle }, listTrgmMemorySuggestions, {
         ...commonInput,
         minSimilarity: data.minSimilarity ?? 0.72,
       })

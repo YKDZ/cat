@@ -73,10 +73,9 @@ applyTo: "**/*"
 
 - **`@cat/app`**: Main application (Vue 3 SSR with Vike)
 - **`@cat/app-api`**: API layer (Hono + oRPC routes)
-- **`@cat/app-agent`**: AI agent system
+- **`@cat/app-agent`**: Agent and Workflow graph
 - **`@cat/app-ui`**: Shared UI component library (shadcn-vue based)
 - **`@cat/app-server-shared`**: Shared server utilities
-- **`@cat/app-workers`**: Background job workers (BullMQ)
 - **`@cat/app-e2e`**: Playwright E2E tests
 - **`@cat/docs`**: Documentation (VitePress)
 

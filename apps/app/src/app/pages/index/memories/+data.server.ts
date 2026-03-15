@@ -1,6 +1,6 @@
 import type { PageContextServer } from "vike/types";
 
-import { eq, memory } from "@cat/db";
+import { executeQuery, listOwnedMemories } from "@cat/domain";
 import { render } from "vike/abort";
 
 export const data = async (ctx: PageContextServer) => {
@@ -9,14 +9,9 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!user) throw render("/", `You must login to access`);
 
-  const memories = await drizzle
-    .select({
-      id: memory.id,
-      name: memory.name,
-      description: memory.description,
-    })
-    .from(memory)
-    .where(eq(memory.creatorId, user.id));
+  const memories = await executeQuery({ db: drizzle }, listOwnedMemories, {
+    creatorId: user.id,
+  });
 
   return { memories };
 };

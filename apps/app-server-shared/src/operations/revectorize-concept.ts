@@ -1,10 +1,17 @@
-import { eq, getDrizzleDB, termConcept, translatableString } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import {
+  executeCommand,
+  executeQuery,
+  getConceptVectorizationSnapshot,
+  noopCollector,
+  setConceptStringId,
+} from "@cat/domain";
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
 
-import { vectorizeToChunkSetOp } from "@/operations/vectorize";
-import { buildConceptVectorizationText, createStringFromData } from "@/utils";
+import { createTranslatableStringOp } from "@/operations/create-translatable-string";
+import { buildConceptVectorizationText } from "@/utils";
 
 export const RevectorizeConceptInputSchema = z.object({
   conceptId: z.int(),
@@ -38,42 +45,36 @@ export const revectorizeConceptOp = async (
   const newText = await buildConceptVectorizationText(drizzle, data.conceptId);
 
   // Fetch current stringId and its text
-  const conceptRow = await drizzle
-    .select({ stringId: termConcept.stringId })
-    .from(termConcept)
-    .where(eq(termConcept.id, data.conceptId))
-    .limit(1);
+  const conceptSnapshot = await executeQuery(
+    { db: drizzle },
+    getConceptVectorizationSnapshot,
+    {
+      conceptId: data.conceptId,
+    },
+  );
+  if (!conceptSnapshot) return { skipped: true };
 
-  if (conceptRow.length === 0) return { skipped: true };
-
-  const currentStringId = conceptRow[0].stringId;
-  let oldText: string | null = null;
-
-  if (currentStringId !== null) {
-    const existingString = await drizzle
-      .select({ value: translatableString.value })
-      .from(translatableString)
-      .where(eq(translatableString.id, currentStringId))
-      .limit(1);
-
-    oldText = existingString.length > 0 ? existingString[0].value : null;
-  }
+  const oldText = conceptSnapshot.text;
 
   // Dedup: skip if text hasn't changed
   if (newText === oldText) return { skipped: true };
 
   // Case: newText is null but oldText was set → clear concept.stringId
   if (newText === null && oldText !== null) {
-    await drizzle
-      .update(termConcept)
-      .set({ stringId: null })
-      .where(eq(termConcept.id, data.conceptId));
+    await executeCommand(
+      { db: drizzle, collector: noopCollector },
+      setConceptStringId,
+      {
+        conceptId: data.conceptId,
+        stringId: null,
+      },
+    );
     return { skipped: false };
   }
 
   // Case: newText is non-null (either new or changed) → vectorize and update
   if (newText !== null) {
-    const { chunkSetIds } = await vectorizeToChunkSetOp(
+    const { stringIds } = await createTranslatableStringOp(
       {
         data: [{ text: newText, languageId: "mul" }],
         vectorizerId: data.vectorizerId,
@@ -81,17 +82,16 @@ export const revectorizeConceptOp = async (
       },
       ctx,
     );
+    const [stringId] = stringIds;
 
-    await drizzle.transaction(async (tx) => {
-      const [stringId] = await createStringFromData(tx, chunkSetIds, [
-        { text: newText, languageId: "mul" },
-      ]);
-
-      await tx
-        .update(termConcept)
-        .set({ stringId })
-        .where(eq(termConcept.id, data.conceptId));
-    });
+    await executeCommand(
+      { db: drizzle, collector: noopCollector },
+      setConceptStringId,
+      {
+        conceptId: data.conceptId,
+        stringId,
+      },
+    );
   }
 
   return { skipped: false };

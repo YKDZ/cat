@@ -1,0 +1,14 @@
+import type { BinaryToTextEncoding } from "node:crypto";
+
+import { createHash } from "node:crypto";
+
+export const hash = (
+  obj: object,
+  algorithm = "sha256",
+  encoding: BinaryToTextEncoding = "hex",
+): string => {
+  const str = JSON.stringify(obj, Object.keys(obj).sort());
+  const hash = createHash(algorithm);
+  hash.update(str);
+  return hash.digest(encoding);
+};

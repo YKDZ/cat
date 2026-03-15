@@ -1,5 +1,10 @@
+import type { LLMProvider } from "@cat/plugin-core";
+
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
+
+import type { EventEnvelopeInput } from "@/graph/events";
+import type { AgentToolDefinition } from "@/tools/types";
 
 export const RunIdSchema = z.uuidv4();
 export const NodeIdSchema = z.string().min(1);
@@ -130,6 +135,7 @@ export type NodeExecutionResult = {
   status: "completed" | "paused" | "error";
   pauseReason?: string;
   error?: string;
+  events?: EventEnvelopeInput[];
 };
 
 export type NodeExecutionContext = {
@@ -141,3 +147,9 @@ export type NodeExecutionContext = {
 };
 
 export type RetryConfig = z.infer<typeof RetryConfigSchema>;
+
+export type GraphRuntimeContext = {
+  llmProvider?: LLMProvider;
+  tools?: AgentToolDefinition[];
+  systemPrompt?: string;
+};

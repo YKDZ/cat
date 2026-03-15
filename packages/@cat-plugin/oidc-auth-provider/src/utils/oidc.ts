@@ -1,4 +1,4 @@
-import { getDrizzleDB, getRedisDB, getSetting } from "@cat/db";
+import { getRedisDB } from "@cat/db";
 
 import type { ProviderConfig } from "..";
 
@@ -26,12 +26,9 @@ export const createOIDCAuthURL = async (
   config: ProviderConfig,
   state: string,
   nonce: string,
+  serverUrl: string,
 ): Promise<string> => {
-  const { client: drizzle } = await getDrizzleDB();
-  const redirecturi = new URL(
-    "/auth/callback",
-    await getSetting(drizzle, "server.url", "http://localhost:3000"),
-  ).toString();
+  const redirecturi = new URL("/auth/callback", serverUrl).toString();
 
   const url = new URL("", config.authURI);
   url.searchParams.append("client_id", config.clientId ?? "");

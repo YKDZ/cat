@@ -1,20 +1,18 @@
-import { AsyncMessageQueue, hash } from "@cat/app-server-shared/utils";
-import { fetchAdviseWorkflow } from "@cat/app-workers";
 import {
-  document,
-  eq,
-  glossaryToProject,
-  pluginInstallation,
-  pluginService,
-  project,
-  translatableElement,
-  translatableString,
-} from "@cat/db";
+  fetchAdviseWorkflow,
+  getWorkflowRuntime,
+} from "@cat/app-agent/workflow";
+import { AsyncMessageQueue, hash } from "@cat/server-shared";
+import {
+  executeQuery,
+  getElementWithChunkIds,
+  listProjectGlossaryIds,
+} from "@cat/domain";
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
 } from "@cat/shared/schema/plugin";
-import { assertSingleNonNullish, logger } from "@cat/shared/utils";
+import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
@@ -22,55 +20,58 @@ import { authed } from "@/orpc/server";
 export const onNew = authed
   .input(z.object({ elementId: z.int(), languageId: z.string() }))
   .handler(async function* ({ context, input }) {
+    const SuggestionEventPayloadSchema = z.object({
+      elementId: z.int(),
+      suggestion: TranslationSuggestionSchema.extend({
+        advisorId: z.int().optional(),
+      }),
+    });
     const {
-      redisDB: { redis, redisPub, redisSub },
+      redisDB: { redis },
       drizzleDB: { client: drizzle },
       pluginManager,
     } = context;
     const { elementId, languageId } = input;
 
-    const element = assertSingleNonNullish(
-      await drizzle
-        .select({
-          value: translatableString.value,
-          languageId: translatableString.languageId,
-          projectId: project.id,
-        })
-        .from(translatableElement)
-        .innerJoin(
-          translatableString,
-          eq(translatableElement.translatableStringId, translatableString.id),
-        )
-        .innerJoin(document, eq(document.id, translatableElement.documentId))
-        .innerJoin(project, eq(project.id, document.projectId))
-        .where(eq(translatableElement.id, elementId))
-        .limit(1),
-      `Element with ID ${elementId} not found`,
+    const element = await executeQuery(
+      { db: drizzle },
+      getElementWithChunkIds,
+      { elementId },
     );
 
-    const glossaryIds = (
-      await drizzle
-        .select({
-          id: glossaryToProject.glossaryId,
-        })
-        .from(glossaryToProject)
-        .where(eq(glossaryToProject.projectId, element.projectId))
-    ).map((item) => item.id);
+    if (element === null) {
+      throw new Error(`Element with ID ${elementId} not found`);
+    }
+
+    const glossaryIds = await executeQuery(
+      { db: drizzle },
+      listProjectGlossaryIds,
+      { projectId: element.projectId },
+    );
 
     const suggestionsQueue = new AsyncMessageQueue<TranslationSuggestion>();
-    const suggestionChannelKey = `suggestions:channel:${elementId}`;
-
-    const onNewSuggestion = async (suggestionData: string) => {
-      try {
-        const suggestion = await TranslationSuggestionSchema.parseAsync(
-          JSON.parse(suggestionData),
+    const unsubscribe = getWorkflowRuntime().eventBus.subscribe(
+      "workflow:suggestion:ready",
+      async (event) => {
+        const parsed = await SuggestionEventPayloadSchema.safeParseAsync(
+          event.payload,
         );
-        suggestionsQueue.push(suggestion);
-      } catch (err) {
-        logger.error("RPC", { msg: "Invalid suggestion format: " }, err);
-      }
-    };
-    await redisSub.subscribe(suggestionChannelKey, onNewSuggestion);
+        if (!parsed.success) {
+          logger.error(
+            "RPC",
+            { msg: "Invalid suggestion format" },
+            parsed.error,
+          );
+          return;
+        }
+
+        if (parsed.data.elementId !== elementId) {
+          return;
+        }
+
+        suggestionsQueue.push(parsed.data.suggestion);
+      },
+    );
 
     const advisors = pluginManager.getServices("TRANSLATION_ADVISOR");
 
@@ -82,23 +83,10 @@ export const onNew = authed
 
     // TODO 复用建议工作流
     const processSuggestions = advisors.map(async (advisor) => {
-      const service = assertSingleNonNullish(
-        await drizzle
-          .select({
-            id: pluginService.id,
-          })
-          .from(pluginService)
-          .innerJoin(
-            pluginInstallation,
-            eq(pluginInstallation.id, pluginService.pluginInstallationId),
-          )
-          .where(eq(pluginService.id, advisor.dbId)),
-      );
-
       const elementHash = hash({
         ...element,
         targetLanguageId: languageId,
-        advisorId: service.id,
+        advisorId: advisor.dbId,
       });
       const cacheKey = `cache:suggestions:${elementHash}`;
 
@@ -112,13 +100,20 @@ export const onNew = authed
         return;
       }
 
-      const { result } = await fetchAdviseWorkflow.run({
-        text: element.value,
-        glossaryIds,
-        advisorId: service.id,
-        sourceLanguageId: element.languageId,
-        translationLanguageId: languageId,
-      });
+      const { result } = await fetchAdviseWorkflow.run(
+        {
+          text: element.value,
+          glossaryIds,
+          advisorId: advisor.dbId,
+          sourceLanguageId: element.languageId,
+          translationLanguageId: languageId,
+          eventElementId: elementId,
+          eventAdvisorId: advisor.dbId,
+        },
+        {
+          pluginManager,
+        },
+      );
 
       const { suggestions } = await result();
 
@@ -130,9 +125,6 @@ export const onNew = authed
           }))
           .map(async (suggestion) => {
             const suggestionStr = JSON.stringify(suggestion);
-            await redisPub.publish(suggestionChannelKey, suggestionStr);
-
-            // Cache successful suggestions
             await redis.sAdd(cacheKey, suggestionStr);
             await redis.expire(cacheKey, 60 * 60);
           }),
@@ -153,7 +145,7 @@ export const onNew = authed
         yield suggestion;
       }
     } finally {
-      await redisSub.unsubscribe(suggestionChannelKey);
+      unsubscribe();
       suggestionsQueue.clear();
     }
   });

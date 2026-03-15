@@ -1,4 +1,5 @@
-import { eq, getDrizzleDB, translatableElement } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import { executeQuery, listElementIdsByDocument } from "@cat/domain";
 import * as z from "zod";
 
 import type { OperationContext } from "@/operations/types";
@@ -46,12 +47,11 @@ export const upsertDocumentFromFileOp = async (
   );
 
   // 2. 获取当前文档的旧元素 ID
-  const oldElementIds = (
-    await drizzle
-      .select({ id: translatableElement.id })
-      .from(translatableElement)
-      .where(eq(translatableElement.documentId, data.documentId))
-  ).map((el) => el.id);
+  const oldElementIds = await executeQuery(
+    { db: drizzle },
+    listElementIdsByDocument,
+    { documentId: data.documentId },
+  );
 
   // 3. 比较新旧元素（直接调用 diffElementsOp）
   const diffStats = await diffElementsOp(

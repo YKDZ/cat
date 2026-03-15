@@ -1,4 +1,10 @@
-import { getDrizzleDB, getRedisDB, translation } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import {
+  createInProcessCollector,
+  createTranslations,
+  domainEventBus,
+  executeCommand,
+} from "@cat/domain";
 import { zip } from "@cat/shared/utils";
 import * as z from "zod";
 
@@ -54,7 +60,7 @@ export type CreateTranslationPubPayload = z.infer<
  *
  * 1. 创建可翻译字符串（含向量化）
  * 2. 插入翻译记录
- * 3. 可选发布 Redis 通知
+ * 3. 通过领域事件触发可选发布通知
  * 4. 可选写入翻译记忆
  * 5. 对每条翻译执行 QA 检查
  */
@@ -63,7 +69,6 @@ export const createTranslationOp = async (
   ctx?: OperationContext,
 ): Promise<CreateTranslationOutput> => {
   const { client: drizzle } = await getDrizzleDB();
-  const { redisPub } = await getRedisDB();
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
   if (data.pub && !data.documentId) {
@@ -84,30 +89,26 @@ export const createTranslationOp = async (
   );
 
   // 2. 插入翻译记录
-  const translations = await drizzle
-    .insert(translation)
-    .values(
-      Array.from(zip(data.data, stringResult.stringIds)).map(
+  const collector = createInProcessCollector(domainEventBus);
+
+  const translationIds = await executeCommand(
+    { db: drizzle, collector },
+    createTranslations,
+    {
+      data: Array.from(zip(data.data, stringResult.stringIds)).map(
         ([item, stringId]) => ({
-          ...item,
+          translatableElementId: item.translatableElementId,
+          translatorId: item.translatorId,
+          meta: item.meta,
           stringId,
         }),
       ),
-    )
-    .returning({
-      id: translation.id,
-    });
+      documentId: data.documentId,
+    },
+  );
 
-  const translationIds = translations.map((t) => t.id);
-
-  // 3. 可选发布 Redis 通知
-  if (data.pub && data.documentId) {
-    await redisPub.publish(
-      getCreateTranslationPubKey(data.documentId),
-      JSON.stringify({
-        translationIds,
-      } satisfies CreateTranslationPubPayload),
-    );
+  if (data.pub) {
+    await collector.flush();
   }
 
   // 4. 可选写入翻译记忆

@@ -1,4 +1,5 @@
-import { getDrizzleDB, translatableElement } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
+import { createElements, executeCommand } from "@cat/domain";
 import { zip } from "@cat/shared/utils";
 import * as z from "zod";
 
@@ -55,27 +56,22 @@ export const createElementOp = async (
     ctx,
   );
 
-  const elements = await drizzle
-    .insert(translatableElement)
-    .values(
-      Array.from(zip(data.data, stringResult.stringIds)).map(
-        ([element, stringId]) => ({
-          meta: element.meta ?? {},
-          sortIndex: element.sortIndex ?? 0,
-          creatorId: element.creatorId,
-          documentId: element.documentId,
-          translatableStringId: stringId,
-          sourceStartLine: element.sourceStartLine ?? null,
-          sourceEndLine: element.sourceEndLine ?? null,
-          sourceLocationMeta: element.sourceLocationMeta ?? null,
-        }),
-      ),
-    )
-    .returning({
-      id: translatableElement.id,
-    });
+  const elementIds = await executeCommand({ db: drizzle }, createElements, {
+    data: Array.from(zip(data.data, stringResult.stringIds)).map(
+      ([element, stringId]) => ({
+        meta: element.meta,
+        creatorId: element.creatorId,
+        documentId: element.documentId,
+        stringId,
+        sortIndex: element.sortIndex,
+        sourceStartLine: element.sourceStartLine,
+        sourceEndLine: element.sourceEndLine,
+        sourceLocationMeta: element.sourceLocationMeta,
+      }),
+    ),
+  });
 
   return {
-    elementIds: elements.map((e) => e.id),
+    elementIds,
   };
 };

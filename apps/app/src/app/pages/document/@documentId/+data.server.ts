@@ -4,14 +4,8 @@ import type { PageContextServer } from "vike/types";
 import {
   getDownloadUrl,
   getServiceFromDBId,
-} from "@cat/app-server-shared/utils";
-import {
-  blob as blobTable,
-  document as documentTable,
-  eq,
-  file as fileTable,
-} from "@cat/db";
-import { assertSingleOrNull } from "@cat/shared/utils";
+} from "@cat/server-shared";
+import { executeQuery, getDocument, getDocumentBlobInfo } from "@cat/domain";
 import { render } from "vike/abort";
 
 export const data = async (ctx: PageContextServer) => {
@@ -22,47 +16,52 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!documentId) throw render("/", `Document id not provided`);
 
-  const document = assertSingleOrNull(
-    await drizzle
-      .select({ id: documentTable.id, name: documentTable.name })
-      .from(documentTable)
-      .where(eq(documentTable.id, documentId)),
-  );
+  const document = await executeQuery({ db: drizzle }, getDocument, {
+    documentId,
+  });
 
   if (!document) throw render("/", `Document ${documentId} not found`);
 
   // 获取文件信息
-  const fileInfo = assertSingleOrNull(
-    await drizzle
-      .select({
-        key: blobTable.key,
-        storageProviderId: blobTable.storageProviderId,
-        fileName: fileTable.name,
-      })
-      .from(documentTable)
-      .innerJoin(fileTable, eq(fileTable.id, documentTable.fileId))
-      .innerJoin(blobTable, eq(blobTable.id, fileTable.blobId))
-      .where(eq(documentTable.id, documentId)),
-  );
+  const fileInfo = await executeQuery({ db: drizzle }, getDocumentBlobInfo, {
+    documentId,
+  });
 
   let fileUrl: string | null = null;
-  if (fileInfo) {
+  let activeFileInfo: {
+    storageProviderId: number;
+    key: string;
+    fileName: string;
+  } | null = null;
+
+  if (
+    fileInfo &&
+    fileInfo.storageProviderId !== null &&
+    fileInfo.key !== null &&
+    fileInfo.fileName !== null
+  ) {
+    activeFileInfo = {
+      storageProviderId: fileInfo.storageProviderId,
+      key: fileInfo.key,
+      fileName: fileInfo.fileName,
+    };
+
     const provider = getServiceFromDBId<StorageProvider>(
       pluginManager,
-      fileInfo.storageProviderId,
+      activeFileInfo.storageProviderId,
     );
 
     fileUrl = await getDownloadUrl(
       redis,
       provider,
-      fileInfo.storageProviderId,
-      fileInfo.key,
+      activeFileInfo.storageProviderId,
+      activeFileInfo.key,
       120,
-      fileInfo.fileName,
+      activeFileInfo.fileName,
     );
   }
 
-  return { document, fileInfo, fileUrl };
+  return { document, fileInfo: activeFileInfo, fileUrl };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

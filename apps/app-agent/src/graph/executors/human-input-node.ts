@@ -12,11 +12,8 @@ export const HumanInputNodeExecutor: NodeExecutor = async (ctx, config) => {
       ? config.inputPath
       : `${ctx.nodeId}:input`;
 
-  await ctx.eventBus.publish({
-    runId: ctx.runId,
-    nodeId: ctx.nodeId,
+  ctx.addEvent({
     type: "human:input:required",
-    timestamp: new Date().toISOString(),
     payload: {
       prompt,
       timeoutMs,

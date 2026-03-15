@@ -1,6 +1,5 @@
-import { asc, eq, ilike, language } from "@cat/db";
+import { executeQuery, getLanguage, listLanguages } from "@cat/domain";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
-import { assertFirstOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { base } from "@/orpc/server";
@@ -24,31 +23,7 @@ export const getAll = base
       drizzleDB: { client: drizzle },
     } = context;
 
-    const { page, pageSize, searchQuery } = input;
-
-    const query = drizzle
-      .select()
-      .from(language)
-      .orderBy(asc(language.id))
-      .limit(pageSize + 1)
-      .offset(page * pageSize);
-
-    if (searchQuery.length !== 0) {
-      query.where(ilike(language.id, `%${searchQuery}%`));
-    }
-
-    const languages = await query;
-
-    const hasMore = languages.length > pageSize;
-
-    if (hasMore) {
-      languages.pop();
-    }
-
-    return {
-      languages,
-      hasMore,
-    };
+    return await executeQuery({ db: drizzle }, listLanguages, input);
   });
 
 export const get = base
@@ -62,9 +37,6 @@ export const get = base
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { languageId } = input;
 
-    return assertFirstOrNull(
-      await drizzle.select().from(language).where(eq(language.id, languageId)),
-    );
+    return await executeQuery({ db: drizzle }, getLanguage, input);
   });

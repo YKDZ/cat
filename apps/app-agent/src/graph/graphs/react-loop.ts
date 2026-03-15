@@ -44,6 +44,8 @@ export const reactLoopGraph: GraphDefinition = {
       id: "act",
       type: "tool",
       config: {
+        toolNamePath: "think.toolCalls.0.name",
+        toolCallIdPath: "think.toolCalls.0.id",
         argsPath: "think.toolCalls.0.arguments",
         resultPath: "act.result",
       },

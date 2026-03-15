@@ -2,9 +2,13 @@ import type {
   ChatMessage,
   ChatStreamChunk,
   LLMProvider,
+  ToolDefinition,
 } from "@cat/plugin-core";
 
+import * as z from "zod/v4";
+
 import type { NodeExecutor } from "@/graph/node-registry";
+import type { AgentToolDefinition } from "@/tools/types";
 
 import { buildPatch } from "@/graph/blackboard";
 
@@ -32,14 +36,55 @@ const isChatMessage = (value: unknown): value is ChatMessage => {
   return validRole && validContent;
 };
 
+const isToolArray = (value: unknown): value is AgentToolDefinition[] => {
+  return (
+    Array.isArray(value) &&
+    value.every((item) => {
+      if (typeof item !== "object" || item === null) return false;
+      const name = Reflect.get(item, "name");
+      const description = Reflect.get(item, "description");
+      const execute = Reflect.get(item, "execute");
+      const parameters = Reflect.get(item, "parameters");
+      return (
+        typeof name === "string" &&
+        typeof description === "string" &&
+        typeof execute === "function" &&
+        typeof parameters === "object" &&
+        parameters !== null
+      );
+    })
+  );
+};
+
+const toToolDefinitions = (tools: AgentToolDefinition[]): ToolDefinition[] => {
+  return tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parameters: z.toJSONSchema(tool.parameters),
+  }));
+};
+
+const toMessages = (value: unknown): ChatMessage[] => {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item) => isChatMessage(item));
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+};
+
 export const LLMNodeExecutor: NodeExecutor = async (ctx, config) => {
-  const provider = config.provider;
+  const provider = ctx.runtime.llmProvider;
   if (!isLLMProvider(provider)) {
-    throw new Error("LLM node config.provider is missing or invalid");
+    throw new Error("LLM runtime provider is missing or invalid");
   }
 
+  const runtimeTools = isToolArray(ctx.runtime.tools) ? ctx.runtime.tools : [];
+
   const systemPrompt =
-    typeof config.systemPrompt === "string" ? config.systemPrompt : "";
+    typeof config.systemPrompt === "string"
+      ? config.systemPrompt
+      : (ctx.runtime.systemPrompt ?? "");
   const messagesPath =
     typeof config.messagesPath === "string" ? config.messagesPath : "messages";
   const responsePath =
@@ -55,12 +100,18 @@ export const LLMNodeExecutor: NodeExecutor = async (ctx, config) => {
   );
 
   if (cached) {
-    await ctx.eventBus.publish({
-      runId: ctx.runId,
-      nodeId: ctx.nodeId,
+    const cachedPayload = isRecord(cached.payload) ? cached.payload : {};
+    const cachedContent = Reflect.get(cachedPayload, "content");
+    const cachedThinking = Reflect.get(cachedPayload, "thinking");
+    const cachedToolCalls = Reflect.get(cachedPayload, "toolCalls");
+
+    ctx.addEvent({
       type: "llm:complete",
-      timestamp: new Date().toISOString(),
-      payload: { content: cached.payload },
+      payload: {
+        content: typeof cachedContent === "string" ? cachedContent : null,
+        thinking: typeof cachedThinking === "string" ? cachedThinking : "",
+        toolCalls: Array.isArray(cachedToolCalls) ? cachedToolCalls : [],
+      },
     });
 
     return {
@@ -77,14 +128,21 @@ export const LLMNodeExecutor: NodeExecutor = async (ctx, config) => {
   }
 
   const messagesRaw = resolvePath(ctx.snapshot.data, messagesPath);
-  const messages = Array.isArray(messagesRaw)
-    ? messagesRaw.filter((item) => isChatMessage(item))
-    : [];
+  const messages = toMessages(messagesRaw);
   const resolvedPrompt = interpolateTemplate(systemPrompt, ctx.snapshot.data);
 
   let fullContent = "";
   let thinkingContent = "";
   let tokenBuffer = "";
+  let publishChain = Promise.resolve();
+
+  const queueEventPublish = (
+    event: import("@/graph/events").EventEnvelopeInput,
+  ): void => {
+    publishChain = publishChain
+      .then(async () => ctx.emit(event))
+      .then(() => undefined);
+  };
 
   const onChunk = async (chunk: ChatStreamChunk): Promise<void> => {
     if (chunk.type === "text_delta") {
@@ -92,24 +150,29 @@ export const LLMNodeExecutor: NodeExecutor = async (ctx, config) => {
       tokenBuffer += chunk.textDelta;
 
       if (tokenBuffer.length >= 32) {
-        await ctx.eventBus.publish({
-          runId: ctx.runId,
-          nodeId: ctx.nodeId,
-          type: "llm:token",
-          timestamp: new Date().toISOString(),
-          payload: { delta: tokenBuffer },
-        });
+        const delta = tokenBuffer;
         tokenBuffer = "";
+
+        queueEventPublish({
+          type: "llm:token",
+          payload: { delta },
+        });
       }
     }
 
     if (chunk.type === "thinking_delta") {
       thinkingContent += chunk.thinkingDelta;
+      queueEventPublish({
+        type: "llm:thinking",
+        payload: { delta: chunk.thinkingDelta },
+      });
     }
   };
 
   const response = await provider.chat({
     messages: [{ role: "system", content: resolvedPrompt }, ...messages],
+    tools:
+      runtimeTools.length > 0 ? toToolDefinitions(runtimeTools) : undefined,
     temperature:
       typeof config.temperature === "number" ? config.temperature : undefined,
     maxTokens:
@@ -120,17 +183,31 @@ export const LLMNodeExecutor: NodeExecutor = async (ctx, config) => {
     signal: ctx.signal,
   });
 
+  await publishChain;
+
   if (tokenBuffer.length > 0) {
-    await ctx.eventBus.publish({
-      runId: ctx.runId,
-      nodeId: ctx.nodeId,
+    await ctx.emit({
       type: "llm:token",
-      timestamp: new Date().toISOString(),
       payload: { delta: tokenBuffer },
     });
   }
 
   const finalContent = response.content ?? fullContent;
+  const finishRequested = response.toolCalls.some((toolCall) =>
+    runtimeTools.some(
+      (tool) => tool.isFinishTool && tool.name === toolCall.name,
+    ),
+  );
+  const nextMessages: ChatMessage[] = [
+    ...messages,
+    {
+      role: "assistant",
+      content: finalContent,
+      ...(response.toolCalls.length > 0
+        ? { toolCalls: response.toolCalls }
+        : {}),
+    },
+  ];
   const output = {
     content: finalContent,
     thinking: thinkingContent,
@@ -147,12 +224,14 @@ export const LLMNodeExecutor: NodeExecutor = async (ctx, config) => {
     createdAt: new Date().toISOString(),
   });
 
-  await ctx.eventBus.publish({
-    runId: ctx.runId,
-    nodeId: ctx.nodeId,
+  ctx.addEvent({
     type: "llm:complete",
-    timestamp: new Date().toISOString(),
-    payload: { content: finalContent },
+    payload: {
+      content: finalContent,
+      thinking: thinkingContent,
+      toolCalls: response.toolCalls,
+      finishReason: response.finishReason,
+    },
   });
 
   return {
@@ -161,8 +240,10 @@ export const LLMNodeExecutor: NodeExecutor = async (ctx, config) => {
       parentSnapshotVersion: ctx.snapshot.version,
       updates: {
         [responsePath]: finalContent,
-        [`${ctx.nodeId}:thinking`]: thinkingContent,
-        [`${ctx.nodeId}:toolCalls`]: response.toolCalls,
+        [`${ctx.nodeId}.thinking`]: thinkingContent,
+        [`${ctx.nodeId}.toolCalls`]: response.toolCalls,
+        [`${ctx.nodeId}.finishRequested`]: finishRequested,
+        messages: nextMessages,
       },
     }),
     output,

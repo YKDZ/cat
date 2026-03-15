@@ -7,7 +7,7 @@ import type {
 import type { AgentDefinition } from "@cat/shared/schema/agent";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
-import { eq, glossaryToProject } from "@cat/db";
+import { executeQuery, listProjectGlossaryIds } from "@cat/domain";
 import * as z from "zod/v4";
 
 import type { AgentToolDefinition } from "@/tools/types";
@@ -59,11 +59,12 @@ export class BuiltinGlossaryProvider {
     const projectId = z.string().optional().parse(rawProjectId);
 
     if (projectId) {
-      const rows = await this.#drizzle
-        .select({ id: glossaryToProject.glossaryId })
-        .from(glossaryToProject)
-        .where(eq(glossaryToProject.projectId, projectId));
-      result.set("glossaryIds", JSON.stringify(rows.map((r) => r.id)));
+      const glossaryIds = await executeQuery(
+        { db: this.#drizzle },
+        listProjectGlossaryIds,
+        { projectId },
+      );
+      result.set("glossaryIds", JSON.stringify(glossaryIds));
     } else {
       result.set("glossaryIds", "[]");
     }

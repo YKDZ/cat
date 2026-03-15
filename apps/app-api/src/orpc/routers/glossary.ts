@@ -1,30 +1,29 @@
+import { createTermTask } from "@cat/app-agent/workflow";
+import { streamSearchTermsOp } from "@cat/operations";
+import { firstOrGivenService } from "@cat/server-shared";
 import {
-  addTermToConceptOp,
-  deleteTermOp,
-  streamSearchTermsOp,
-  updateConceptOp,
-} from "@cat/app-server-shared/operations";
-import { firstOrGivenService } from "@cat/app-server-shared/utils";
-import { createTermTask } from "@cat/app-workers";
-import {
-  count,
-  eq,
-  glossary as glossaryTable,
-  glossaryToProject,
-  document as documentTable,
-  translatableElement,
-  translatableString,
-  getColumns,
-  termConcept,
-  termConceptSubject,
-} from "@cat/db";
+  addGlossaryTermToConcept,
+  countGlossaryConcepts,
+  createInProcessCollector,
+  createGlossary as createGlossaryCommand,
+  deleteGlossaryTerm,
+  domainEventBus,
+  executeCommand,
+  executeQuery,
+  getElementWithChunkIds,
+  getGlossary,
+  listGlossaryConceptSubjects,
+  listOwnedGlossaries,
+  listProjectGlossaryIds,
+  listProjectGlossaries,
+  updateGlossaryConcept,
+} from "@cat/domain";
 import {
   TermStatusValues,
   TermTypeValues,
 } from "@cat/shared/schema/drizzle/enum";
 import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
@@ -37,8 +36,21 @@ export const deleteTerm = authed
     }),
   )
   .output(z.void())
-  .handler(async ({ input }) => {
-    await deleteTermOp(input);
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const collector = createInProcessCollector(domainEventBus);
+
+    const result = await executeCommand(
+      { db: drizzle, collector },
+      deleteGlossaryTerm,
+      input,
+    );
+
+    if (result.deleted) {
+      await collector.flush();
+    }
   });
 
 export const get = authed
@@ -52,14 +64,8 @@ export const get = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { glossaryId } = input;
 
-    return assertSingleOrNull(
-      await drizzle
-        .select()
-        .from(glossaryTable)
-        .where(eq(glossaryTable.id, glossaryId)),
-    );
+    return await executeQuery({ db: drizzle }, getGlossary, input);
   });
 
 export const getUserOwned = authed
@@ -73,12 +79,10 @@ export const getUserOwned = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { userId } = input;
 
-    return await drizzle
-      .select(getColumns(glossaryTable))
-      .from(glossaryTable)
-      .where(eq(glossaryTable.creatorId, userId));
+    return await executeQuery({ db: drizzle }, listOwnedGlossaries, {
+      creatorId: input.userId,
+    });
   });
 
 export const getProjectOwned = authed
@@ -92,16 +96,8 @@ export const getProjectOwned = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { projectId } = input;
 
-    return await drizzle
-      .select(getColumns(glossaryTable))
-      .from(glossaryToProject)
-      .innerJoin(
-        glossaryTable,
-        eq(glossaryToProject.glossaryId, glossaryTable.id),
-      )
-      .where(eq(glossaryToProject.projectId, projectId));
+    return await executeQuery({ db: drizzle }, listProjectGlossaries, input);
   });
 
 export const countTerm = authed
@@ -115,14 +111,8 @@ export const countTerm = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { glossaryId } = input;
 
-    return assertSingleNonNullish(
-      await drizzle
-        .select({ count: count() })
-        .from(termConcept)
-        .where(eq(termConcept.glossaryId, glossaryId)),
-    ).count;
+    return await executeQuery({ db: drizzle }, countGlossaryConcepts, input);
   });
 
 export const create = authed
@@ -139,30 +129,17 @@ export const create = authed
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    const { name, description, projectIds } = input;
+    const collector = createInProcessCollector(domainEventBus);
 
-    return await drizzle.transaction(async (tx) => {
-      const glossary = assertSingleNonNullish(
-        await tx
-          .insert(glossaryTable)
-          .values({
-            name,
-            description,
-            creatorId: user.id,
-          })
-          .returning(),
-      );
-
-      if (projectIds && projectIds.length > 0)
-        await drizzle.insert(glossaryToProject).values(
-          projectIds.map((projectId) => ({
-            glossaryId: glossary.id,
-            projectId,
-          })),
-        );
-
-      return glossary;
+    const created = await drizzle.transaction(async (tx) => {
+      return executeCommand({ db: tx, collector }, createGlossaryCommand, {
+        ...input,
+        creatorId: user.id,
+      });
     });
+
+    await collector.flush();
+    return created;
   });
 
 export const insertTerm = authed
@@ -219,12 +196,11 @@ export const searchTerm = authed
       minConfidence,
     } = input;
 
-    const glossaryIds = (
-      await drizzle
-        .select({ id: glossaryToProject.glossaryId })
-        .from(glossaryToProject)
-        .where(eq(glossaryToProject.projectId, projectId))
-    ).map((row) => row.id);
+    const glossaryIds = await executeQuery(
+      { db: drizzle },
+      listProjectGlossaryIds,
+      { projectId },
+    );
 
     const stream = streamSearchTermsOp({
       glossaryIds,
@@ -262,38 +238,23 @@ export const findTerm = authed
     } = context;
     const { elementId, translationLanguageId, minConfidence } = input;
 
-    const element = assertSingleNonNullish(
-      await drizzle
-        .select({
-          id: translatableElement.id,
-          value: translatableString.value,
-          meta: translatableElement.meta,
-          languageId: translatableString.languageId,
-          documentId: translatableElement.documentId,
-        })
-        .from(translatableElement)
-        .innerJoin(
-          translatableString,
-          eq(translatableElement.translatableStringId, translatableString.id),
-        )
-        .where(eq(translatableElement.id, elementId))
-        .limit(1),
+    const element = await executeQuery(
+      { db: drizzle },
+      getElementWithChunkIds,
+      { elementId },
     );
 
-    const { projectId } = assertSingleNonNullish(
-      await drizzle
-        .select({ projectId: documentTable.projectId })
-        .from(documentTable)
-        .where(eq(documentTable.id, element.documentId))
-        .limit(1),
-    );
+    if (element === null) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `Element with ID ${elementId} not found`,
+      });
+    }
 
-    const glossaryIds = (
-      await drizzle
-        .select({ id: glossaryToProject.glossaryId })
-        .from(glossaryToProject)
-        .where(eq(glossaryToProject.projectId, projectId))
-    ).map((row) => row.id);
+    const glossaryIds = await executeQuery(
+      { db: drizzle },
+      listProjectGlossaryIds,
+      { projectId: element.projectId },
+    );
 
     const stream = streamSearchTermsOp({
       glossaryIds,
@@ -324,8 +285,21 @@ export const updateConcept = authed
     }),
   )
   .output(z.void())
-  .handler(async ({ input }) => {
-    await updateConceptOp(input);
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const collector = createInProcessCollector(domainEventBus);
+
+    const result = await executeCommand(
+      { db: drizzle, collector },
+      updateGlossaryConcept,
+      input,
+    );
+
+    if (result.updated) {
+      await collector.flush();
+    }
   });
 
 export const addTermToConcept = authed
@@ -340,10 +314,25 @@ export const addTermToConcept = authed
   )
   .output(z.object({ termId: z.int() }))
   .handler(async ({ context, input }) => {
-    return await addTermToConceptOp({
-      ...input,
-      creatorId: context.user.id,
-    });
+    const {
+      drizzleDB: { client: drizzle },
+      user,
+    } = context;
+    const collector = createInProcessCollector(domainEventBus);
+
+    const result = await executeCommand(
+      { db: drizzle, collector },
+      addGlossaryTermToConcept,
+      {
+        ...input,
+        creatorId: user.id,
+      },
+    );
+    await collector.flush();
+
+    return {
+      termId: result.termId,
+    };
   });
 
 export const getConceptSubjects = authed
@@ -357,18 +346,10 @@ export const getConceptSubjects = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { glossaryId } = input;
 
-    const subjects = await drizzle
-      .select({
-        id: termConceptSubject.id,
-        subject: termConceptSubject.subject,
-      })
-      .from(termConceptSubject)
-      .where(eq(termConceptSubject.glossaryId, glossaryId))
-      .orderBy(termConceptSubject.subject);
-
-    return subjects;
+    return await executeQuery({ db: drizzle }, listGlossaryConceptSubjects, {
+      glossaryId: input.glossaryId,
+    });
   });
 
 export const glossaryRouter = {

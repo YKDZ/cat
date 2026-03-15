@@ -1,11 +1,13 @@
+import { getDrizzleDB } from "@cat/db";
 import {
-  eq,
-  translatableString,
-  translatableElement,
-  getDrizzleDB,
-  inArray,
-  sql,
-} from "@cat/db";
+  bulkUpdateElementsForDiff,
+  createElements,
+  deleteElementsByIds,
+  executeCommand,
+  executeQuery,
+  listCachedTranslatableStrings,
+  listElementsForDiff,
+} from "@cat/domain";
 import { safeZDotJson } from "@cat/shared/schema/json";
 import { isEqual } from "lodash-es";
 import * as z from "zod";
@@ -59,23 +61,9 @@ export const diffElementsOp = async (
 
   // 1. 获取旧元素
   const oldElements = (
-    await drizzle
-      .select({
-        id: translatableElement.id,
-        text: translatableString.value,
-        meta: translatableElement.meta,
-        sortIndex: translatableElement.sortIndex,
-        sourceStartLine: translatableElement.sourceStartLine,
-        sourceEndLine: translatableElement.sourceEndLine,
-        sourceLocationMeta: translatableElement.sourceLocationMeta,
-      })
-      .from(translatableElement)
-      .innerJoin(
-        translatableString,
-        eq(translatableElement.translatableStringId, translatableString.id),
-      )
-      .where(inArray(translatableElement.id, data.oldElementIds))
-      .orderBy(translatableElement.sortIndex)
+    await executeQuery({ db: drizzle }, listElementsForDiff, {
+      elementIds: data.oldElementIds,
+    })
   ).map((element) => ({
     id: element.id,
     text: element.text,
@@ -167,73 +155,20 @@ export const diffElementsOp = async (
       ctx,
     );
 
-    const sqlChunks = [sql`(CASE`];
-    const ids: number[] = [];
-    textUpdates.forEach((u, idx) => {
-      const newStringId = stringIds[idx];
-      sqlChunks.push(
-        sql`WHEN ${translatableElement.id} = ${u.id} THEN ${newStringId}`,
-      );
-      ids.push(u.id);
+    await executeCommand({ db: drizzle }, bulkUpdateElementsForDiff, {
+      stringIdUpdates: textUpdates.map((update, index) => ({
+        id: update.id,
+        stringId: stringIds[index],
+      })),
     });
-    sqlChunks.push(sql`ELSE ${translatableElement.translatableStringId} END)`);
-    const finalSql = sql.join(sqlChunks, sql` `);
-
-    await drizzle
-      .update(translatableElement)
-      .set({ translatableStringId: finalSql })
-      .where(inArray(translatableElement.id, ids));
   }
 
   // 5. 处理 sortIndex 更新
-  if (sortIndexUpdates.length > 0) {
-    const sqlChunks = [sql`(CASE`];
-    const ids: number[] = [];
-    for (const u of sortIndexUpdates) {
-      sqlChunks.push(
-        sql`WHEN ${translatableElement.id} = ${u.id} THEN ${u.sortIndex}`,
-      );
-      ids.push(u.id);
-    }
-    sqlChunks.push(sql`ELSE ${translatableElement.sortIndex} END)`);
-    const finalSql = sql.join(sqlChunks, sql` `);
-
-    await drizzle
-      .update(translatableElement)
-      .set({ sortIndex: finalSql })
-      .where(inArray(translatableElement.id, ids));
-  }
-
-  // 5.5. 处理 location 更新
-  if (locationUpdates.length > 0) {
-    const startLineChunks = [sql`(CASE`];
-    const endLineChunks = [sql`(CASE`];
-    const metaChunks = [sql`(CASE`];
-    const ids: number[] = [];
-    for (const u of locationUpdates) {
-      startLineChunks.push(
-        sql`WHEN ${translatableElement.id} = ${u.id} THEN ${u.sourceStartLine}`,
-      );
-      endLineChunks.push(
-        sql`WHEN ${translatableElement.id} = ${u.id} THEN ${u.sourceEndLine}`,
-      );
-      metaChunks.push(
-        sql`WHEN ${translatableElement.id} = ${u.id} THEN ${u.sourceLocationMeta ? sql`${JSON.stringify(u.sourceLocationMeta)}::jsonb` : sql`NULL`}`,
-      );
-      ids.push(u.id);
-    }
-    startLineChunks.push(sql`ELSE ${translatableElement.sourceStartLine} END)`);
-    endLineChunks.push(sql`ELSE ${translatableElement.sourceEndLine} END)`);
-    metaChunks.push(sql`ELSE ${translatableElement.sourceLocationMeta} END)`);
-
-    await drizzle
-      .update(translatableElement)
-      .set({
-        sourceStartLine: sql.join(startLineChunks, sql` `),
-        sourceEndLine: sql.join(endLineChunks, sql` `),
-        sourceLocationMeta: sql.join(metaChunks, sql` `),
-      })
-      .where(inArray(translatableElement.id, ids));
+  if (sortIndexUpdates.length > 0 || locationUpdates.length > 0) {
+    await executeCommand({ db: drizzle }, bulkUpdateElementsForDiff, {
+      sortIndexUpdates,
+      locationUpdates,
+    });
   }
 
   // 6. 处理新增元素
@@ -242,17 +177,16 @@ export const diffElementsOp = async (
 
   if (added.length > 0) {
     // 检查字符串缓存
-    const tuples = added.map((el) => sql`(${el.text}, ${el.languageId})`);
-    const existingStrings = await drizzle
-      .select({
-        id: translatableString.id,
-        value: translatableString.value,
-        languageId: translatableString.languageId,
-      })
-      .from(translatableString)
-      .where(
-        sql`(${translatableString.value}, ${translatableString.languageId}) in (${sql.join(tuples, sql`, `)})`,
-      );
+    const existingStrings = await executeQuery(
+      { db: drizzle },
+      listCachedTranslatableStrings,
+      {
+        items: added.map((el) => ({
+          text: el.text,
+          languageId: el.languageId,
+        })),
+      },
+    );
 
     const stringMap = new Map<string, number>();
     for (const str of existingStrings) {
@@ -273,21 +207,22 @@ export const diffElementsOp = async (
 
     // 直接插入有缓存的
     if (addedWithCache.length > 0) {
-      const inserted = await drizzle
-        .insert(translatableElement)
-        .values(
-          addedWithCache.map((el) => ({
+      const insertedIds = await executeCommand(
+        { db: drizzle },
+        createElements,
+        {
+          data: addedWithCache.map((el) => ({
             sortIndex: el.sortIndex,
             meta: el.meta,
             documentId: data.documentId,
-            translatableStringId: el.stringId,
+            stringId: el.stringId,
             sourceStartLine: el.sourceStartLine ?? null,
             sourceEndLine: el.sourceEndLine ?? null,
             sourceLocationMeta: el.sourceLocationMeta ?? null,
           })),
-        )
-        .returning({ id: translatableElement.id });
-      addedIds.push(...inserted.map((i) => i.id));
+        },
+      );
+      addedIds.push(...insertedIds);
     }
   }
 
@@ -316,9 +251,9 @@ export const diffElementsOp = async (
 
   // 8. 删除移除的元素
   if (removedElementIds.length > 0) {
-    await drizzle
-      .delete(translatableElement)
-      .where(inArray(translatableElement.id, removedElementIds));
+    await executeCommand({ db: drizzle }, deleteElementsByIds, {
+      elementIds: removedElementIds,
+    });
   }
 
   return {

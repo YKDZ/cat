@@ -1,23 +1,19 @@
+import type { RedisClientType } from "@cat/db";
 import type { AuthProvider, MFAProvider } from "@cat/plugin-core";
+import type { HTTPHelpers } from "@cat/shared/utils";
 
-import { getServiceFromDBId } from "@cat/app-server-shared/utils";
+import { getServiceFromDBId } from "@cat/server-shared";
 import {
-  account as accountTable,
-  and,
-  eq,
-  getColumns,
-  hashPassword,
-  mfaProvider,
-  or,
-  user as userTable,
-  type RedisClientType,
-} from "@cat/db";
+  createAccount,
+  createMfaProvider,
+  executeCommand,
+  executeQuery,
+  findAccountByProviderIdentity,
+  findUserByIdentifier,
+  getMfaProviderByServiceAndUser,
+  registerUserWithPasswordAccount,
+} from "@cat/domain";
 import { JSONSchemaSchema, safeZDotJson } from "@cat/shared/schema/json";
-import {
-  assertSingleNonNullish,
-  assertSingleOrNull,
-  type HTTPHelpers,
-} from "@cat/shared/utils";
 import { randomBytes } from "node:crypto";
 import * as z from "zod/v4";
 
@@ -131,44 +127,21 @@ export const register = base
       });
     }
 
-    const { account, user } = await drizzle.transaction(async (tx) => {
-      const user = assertSingleNonNullish(
-        await tx
-          .insert(userTable)
-          .values({
-            email,
-            name,
-            emailVerified: false,
-          })
-          .returning({ id: userTable.id }),
-      );
-
-      const account = assertSingleNonNullish(
-        await tx
-          .insert(accountTable)
-          .values({
-            userId: user.id,
-            providerIssuer: "PASSWORD",
-            providedAccountId: email,
-            meta: {
-              password: await hashPassword(password),
-            },
-            authProviderId: authProvider.dbId,
-          })
-          .returning({
-            providerIssuer: accountTable.providerIssuer,
-            providedAccountId: accountTable.providedAccountId,
-          }),
-      );
-
-      return { account, user };
+    const result = await drizzle.transaction(async (tx) => {
+      return executeCommand({ db: tx }, registerUserWithPasswordAccount, {
+        email,
+        name,
+        password,
+        authProviderId: authProvider.dbId,
+      });
     });
 
     await finishLogin(
       redis,
-      user.id,
+      result.userId,
       {
-        ...account,
+        providerIssuer: result.providerIssuer,
+        providedAccountId: result.providedAccountId,
         authProviderId: authProvider.dbId,
       },
       helpers,
@@ -203,16 +176,9 @@ export const preAuth = base
     if (context.user)
       throw new ORPCError("CONFLICT", { message: "Already login" });
 
-    const user = assertSingleOrNull(
-      await drizzle
-        .select({
-          id: userTable.id,
-        })
-        .from(userTable)
-        .where(
-          or(eq(userTable.email, identifier), eq(userTable.name, identifier)),
-        ),
-    );
+    const user = await executeQuery({ db: drizzle }, findUserByIdentifier, {
+      identifier,
+    });
 
     if (!user) return {};
 
@@ -352,40 +318,26 @@ export const auth = base
         z.json().parse(JSON.parse(meta)),
       );
 
-    let account = assertSingleOrNull(
-      await drizzle
-        .select({
-          providerIssuer: accountTable.providerIssuer,
-          providedAccountId: accountTable.providedAccountId,
-        })
-        .from(accountTable)
-        .where(
-          and(
-            eq(accountTable.providerIssuer, providerIssuer),
-            eq(accountTable.providedAccountId, providedAccountId),
-            eq(accountTable.authProviderId, authProviderId),
-          ),
-        ),
+    let account = await executeQuery(
+      { db: drizzle },
+      findAccountByProviderIdentity,
+      {
+        providerIssuer,
+        providedAccountId,
+        authProviderId,
+      },
     );
 
     // 代表这是此用户的新身份
     // 为其创建 Account 并绑定到用户
     if (!account) {
-      account = assertSingleNonNullish(
-        await drizzle
-          .insert(accountTable)
-          .values({
-            providedAccountId,
-            providerIssuer,
-            userId,
-            authProviderId,
-            meta: accountMeta,
-          })
-          .returning({
-            providerIssuer: accountTable.providerIssuer,
-            providedAccountId: accountTable.providedAccountId,
-          }),
-      );
+      account = await executeCommand({ db: drizzle }, createAccount, {
+        userId,
+        authProviderId,
+        providerIssuer,
+        providedAccountId,
+        accountMeta,
+      });
     }
 
     const mfaProviderIds: number[] = [];
@@ -592,7 +544,7 @@ export const initMfaForUser = authed
         message: "Failed to initialize MFA for user",
       });
 
-    await drizzle.insert(mfaProvider).values({
+    await executeCommand({ db: drizzle }, createMfaProvider, {
       mfaServiceId: mfaProviderId,
       userId: user.id,
       payload: result.payload ?? {},
@@ -641,12 +593,20 @@ export const mfa = base
         message: `MFA Provider ${mfaProviderId} does not exists`,
       });
 
-    const dbProvider = assertSingleNonNullish(
-      await drizzle
-        .select(getColumns(mfaProvider))
-        .from(mfaProvider)
-        .where(eq(mfaProvider.id, mfaProviderId)),
+    const dbProvider = await executeQuery(
+      { db: drizzle },
+      getMfaProviderByServiceAndUser,
+      {
+        userId,
+        mfaServiceId: mfaProviderId,
+      },
     );
+
+    if (dbProvider === null) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `MFA Provider ${mfaProviderId} is not initialized for user`,
+      });
+    }
 
     const { isSuccess } = await provider.verifyChallenge({
       gotFromClient: passToServer,

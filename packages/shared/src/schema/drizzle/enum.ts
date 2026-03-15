@@ -122,16 +122,7 @@ export const AgentSessionStatusValues = [
 ] as const;
 export const AgentSessionStatusSchema = z.enum(AgentSessionStatusValues);
 
-export const AgentMessageRoleValues = [
-  "SYSTEM",
-  "USER",
-  "ASSISTANT",
-  "TOOL",
-] as const;
-export const AgentMessageRoleSchema = z.enum(AgentMessageRoleValues);
-
 export type AgentSessionStatus = (typeof AgentSessionStatusValues)[number];
-export type AgentMessageRole = (typeof AgentMessageRoleValues)[number];
 
 export const AgentToolTargetValues = ["SERVER", "CLIENT"] as const;
 export const AgentToolTargetSchema = z.enum(AgentToolTargetValues);

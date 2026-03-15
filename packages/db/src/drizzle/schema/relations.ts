@@ -470,21 +470,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.agentSession.userId,
         to: r.user.id,
       }),
-      messages: r.many.agentMessage(),
       runs: r.many.agentRun(),
-    },
-    agentMessage: {
-      session: r.one.agentSession({
-        from: r.agentMessage.sessionId,
-        to: r.agentSession.id,
-      }),
-      toolCalls: r.many.agentToolCall(),
-    },
-    agentToolCall: {
-      message: r.one.agentMessage({
-        from: r.agentToolCall.messageId,
-        to: r.agentMessage.id,
-      }),
     },
     agentRun: {
       session: r.one.agentSession({

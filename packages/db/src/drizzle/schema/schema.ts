@@ -16,7 +16,6 @@ import {
   TermTypeValues,
   TermStatusValues,
   AgentSessionStatusValues,
-  AgentMessageRoleValues,
   AgentToolTargetValues,
   AgentToolConfirmationStatusValues,
   AgentSessionTrustPolicyValues,
@@ -976,11 +975,6 @@ export const agentSessionStatus = pgEnum(
   AgentSessionStatusValues,
 );
 
-export const agentMessageRole = pgEnum(
-  "AgentMessageRole",
-  AgentMessageRoleValues,
-);
-
 export const agentToolTarget = pgEnum("AgentToolTarget", AgentToolTargetValues);
 
 export const agentToolConfirmationStatus = pgEnum(
@@ -1036,57 +1030,6 @@ export const agentSession = pgTable(
   (table) => [index().on(table.agentDefinitionId), index().on(table.userId)],
 );
 
-export const agentMessage = pgTable(
-  "AgentMessage",
-  {
-    id: serial().primaryKey(),
-    sessionId: integer()
-      .notNull()
-      .references(() => agentSession.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    role: agentMessageRole().notNull(),
-    content: text(),
-    /** When role=TOOL, identifies which tool_call this responds to */
-    toolCallId: text(),
-    /** ReAct loop step index */
-    stepIndex: integer(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-  },
-  (table) => [index().on(table.sessionId), index().on(table.stepIndex)],
-);
-
-export const agentToolCall = pgTable(
-  "AgentToolCall",
-  {
-    id: serial().primaryKey(),
-    messageId: integer()
-      .notNull()
-      .references(() => agentMessage.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    /** LLM-generated tool call ID */
-    toolCallId: text().notNull(),
-    toolName: text().notNull(),
-    arguments: jsonb().$type<JSONType>().notNull(),
-    result: jsonb().$type<JSONType>(),
-    error: text(),
-    durationMs: integer(),
-    /** Whether this tool ran on server or client */
-    target: agentToolTarget().notNull().default("SERVER"),
-    /** How this tool call was authorized */
-    confirmationStatus: agentToolConfirmationStatus(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
-  },
-  (table) => [index().on(table.messageId)],
-);
-
 export const agentRun = pgTable(
   "AgentRun",
   {
@@ -1103,13 +1046,18 @@ export const agentRun = pgTable(
     graphDefinition: jsonb().$type<NonNullJSONType>().notNull(),
     blackboardSnapshot: jsonb().$type<JSONType>(),
     currentNodeId: text(),
+    deduplicationKey: text(),
     startedAt: timestamp({ withTimezone: true })
       .default(sql`now()`)
       .notNull(),
     completedAt: timestamp({ withTimezone: true }),
     metadata: jsonb().$type<JSONType>(),
   },
-  (table) => [index().on(table.sessionId), index().on(table.status)],
+  (table) => [
+    index().on(table.sessionId),
+    index().on(table.status),
+    index().on(table.deduplicationKey),
+  ],
 );
 
 export const agentEvent = pgTable(
