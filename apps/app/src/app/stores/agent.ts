@@ -933,7 +933,9 @@ export const useAgentStore = defineStore("agent", () => {
           type: event.type,
           timestamp: event.timestamp,
           payload:
-            typeof event.payload === "object" && event.payload !== null
+            typeof event.payload === "object" &&
+            event.payload !== null &&
+            !Array.isArray(event.payload)
               ? { ...event.payload }
               : {},
         });

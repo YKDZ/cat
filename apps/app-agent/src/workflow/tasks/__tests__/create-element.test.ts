@@ -2,13 +2,13 @@ import {
   document,
   eq,
   getColumns,
-  getDrizzleDB,
   language,
   project,
   translatableElement,
   translatableString,
   user,
 } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -73,7 +73,7 @@ beforeAll(async () => {
 });
 
 test("worker should create element, store it and return ids in order", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(

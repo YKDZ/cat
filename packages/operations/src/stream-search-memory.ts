@@ -15,7 +15,7 @@ import type { MemorySuggestion } from "@cat/shared/schema/misc";
  *
  * Results are globally deduplicated by `memoryItem.id`, keeping the highest confidence.
  */
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
   listExactMemorySuggestions,
@@ -157,7 +157,7 @@ export const streamSearchMemoryOp = (
   };
 
   const run = async () => {
-    const { client: drizzle } = await getDrizzleDB();
+    const { client: drizzle } = await getDbHandle();
     const pluginManager = PluginManager.get("GLOBAL", "");
     const vectorStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
 

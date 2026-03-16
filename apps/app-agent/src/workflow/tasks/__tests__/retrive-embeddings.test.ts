@@ -1,10 +1,5 @@
-import {
-  chunk,
-  getColumns,
-  getDrizzleDB,
-  language,
-  translatableString,
-} from "@cat/db";
+import { chunk, getColumns, language, translatableString } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -48,7 +43,7 @@ beforeAll(async () => {
 });
 
 test("create-translatable-string should insert chunks to db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(
@@ -74,7 +69,7 @@ test("create-translatable-string should insert chunks to db", async () => {
 });
 
 test("worker should retrive stored embeddings", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const chunkIds = (await drizzle.select({ id: chunk.id }).from(chunk)).map(
     ({ id }) => id,
   );

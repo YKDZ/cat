@@ -2,7 +2,6 @@ import {
   chunk,
   document,
   eq,
-  getDrizzleDB,
   language,
   memory,
   project,
@@ -10,6 +9,7 @@ import {
   translatableString,
   user,
 } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -121,7 +121,7 @@ beforeAll(async () => {
 });
 
 test("prepare elements", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(
@@ -149,7 +149,7 @@ test("prepare elements", async () => {
 });
 
 test("create-translation should create memory when memoryIds are provided", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(
@@ -186,7 +186,7 @@ test("create-translation should create memory when memoryIds are provided", asyn
 });
 
 test("worker should search memory", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(

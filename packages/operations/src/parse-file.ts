@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { executeQuery, getActiveFileBlobInfo } from "@cat/domain";
 import {
   PluginManager,
@@ -43,7 +43,7 @@ export const parseFileOp = async (
   data: ParseFileInput,
   _ctx?: OperationContext,
 ): Promise<ParseFileOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const fileBlobInfo = await executeQuery(

@@ -16,19 +16,16 @@
       "path": "../../packages/shared/tsconfig.lib.json"
     },
     {
+      "path": "../../packages/server-shared/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/plugin-core/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/db/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/domain/tsconfig.lib.json"
     },
     {
       "path": "../../packages/operations/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/server-shared/tsconfig.lib.json"
+      "path": "../../packages/domain/tsconfig.lib.json"
     },
     {
       "path": "../app-agent"

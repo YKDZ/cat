@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { executeQuery, getChunkVectorStorageId } from "@cat/domain";
 import { PluginManager, type VectorStorage } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/server-shared";
@@ -31,7 +31,7 @@ export const retrieveEmbeddingsOp = async (
   data: RetrieveEmbeddingsInput,
   _ctx?: OperationContext,
 ): Promise<RetrieveEmbeddingsOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
   const firstChunkId = data.chunkIds.at(0) ?? 0;
 

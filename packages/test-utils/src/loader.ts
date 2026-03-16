@@ -3,16 +3,9 @@ import type { VectorizedTextData } from "@cat/shared/schema/misc";
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
 import type { TranslationAdvise } from "@cat/shared/schema/plugin";
 
-import {
-  and,
-  cosineDistance,
-  desc,
-  getDrizzleDB,
-  gt,
-  inArray,
-  sql,
-} from "@cat/db";
+import { and, cosineDistance, desc, gt, inArray, sql } from "@cat/db";
 import { chunk } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   CatPlugin,
   MFAChallengeResult,
@@ -298,7 +291,7 @@ export class TestVectorStorage extends VectorStorage {
   public override getId = (): string => "vector-storage";
 
   async store({ chunks }: StoreContext): Promise<void> {
-    const { client: drizzle } = await getDrizzleDB();
+    const { client: drizzle } = await getDbHandle();
     if (chunks.length === 0) return;
 
     await drizzle.insert(vector).values(
@@ -312,7 +305,7 @@ export class TestVectorStorage extends VectorStorage {
   async retrieve({
     chunkIds,
   }: RetrieveContext): Promise<{ vector: number[]; chunkId: number }[]> {
-    const { client: drizzle } = await getDrizzleDB();
+    const { client: drizzle } = await getDbHandle();
     const results = await drizzle
       .select({ vector: vector.vector, chunkId: vector.chunkId })
       .from(vector)
@@ -332,7 +325,7 @@ export class TestVectorStorage extends VectorStorage {
       return [];
     }
 
-    const { client: drizzle } = await getDrizzleDB();
+    const { client: drizzle } = await getDbHandle();
     const results: { chunkId: number; similarity: number }[] = [];
 
     for (const queryVec of vectors) {

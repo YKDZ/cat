@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { createGlossaryTerms, executeCommand } from "@cat/domain";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
@@ -32,7 +32,7 @@ export const createTermOp = async (
   data: CreateTermInput,
   ctx?: OperationContext,
 ): Promise<CreateTermOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   const { termIds, conceptIds } = await drizzle.transaction(async (tx) => {
     return executeCommand({ db: tx }, createGlossaryTerms, {

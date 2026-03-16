@@ -1,11 +1,6 @@
-import {
-  account,
-  eq,
-  getDrizzleDB,
-  hashPassword,
-  pluginService,
-  user as userTable,
-} from "@cat/db";
+import { account, eq, pluginService, user as userTable } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
+import { hashPassword } from "@cat/server-shared";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { randomBytes } from "node:crypto";
 
@@ -18,7 +13,7 @@ export const acquireAccount = async (
   const email = `user${id}@encmys.cn`;
   const password = randomBytes(16).toString("hex");
 
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   await drizzle.transaction(async (tx) => {
     const provider = assertSingleNonNullish(

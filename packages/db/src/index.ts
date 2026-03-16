@@ -1,6 +1,5 @@
 export * from "./redis.ts";
 export * from "./utils/index.ts";
-export * from "./getter.ts";
 export * from "./drizzle/index.ts";
 export * from "drizzle-orm";
 

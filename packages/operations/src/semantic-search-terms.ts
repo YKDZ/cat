@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { executeQuery, listSemanticTermSearchRange } from "@cat/domain";
 import { fetchTermsByConceptIds, type LookedUpTerm } from "@cat/domain";
 import {
@@ -51,7 +51,7 @@ export const semanticSearchTermsOp = async (
   data: SemanticSearchTermsInput,
   _ctx?: OperationContext,
 ): Promise<SemanticSearchTermsOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   // 1. Build search range: find all chunk IDs linked to term concepts in the

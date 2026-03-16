@@ -1,4 +1,5 @@
-import { blob, eq, file, getDrizzleDB, language, pluginService } from "@cat/db";
+import { blob, eq, file, language, pluginService } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, readableToString } from "@cat/server-shared";
 import { assertSingleNonNullish } from "@cat/shared/utils";
@@ -77,7 +78,7 @@ test("storage provider should store and retrieve data correctly", async () => {
 });
 
 test("worker should parse elements from file", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const { id: fileId } = assertSingleNonNullish(
     await drizzle.select({ id: file.id }).from(file),
   );

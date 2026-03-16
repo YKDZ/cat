@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   executeCommand,
   executeQuery,
@@ -40,7 +40,7 @@ export const revectorizeConceptOp = async (
   data: RevectorizeConceptInput,
   ctx?: OperationContext,
 ): Promise<RevectorizeConceptOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   const newText = await buildConceptVectorizationText(drizzle, data.conceptId);
 

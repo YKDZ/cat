@@ -1,8 +1,8 @@
 import {
-  getDrizzleDB,
+  getDbHandle,
   type DrizzleClient,
   type DrizzleTransaction,
-} from "@cat/db";
+} from "@cat/domain";
 import {
   executeCommand,
   executeQuery,
@@ -22,7 +22,7 @@ import {
 export const withAgentDrizzle = async <TResult>(
   handler: (db: DrizzleClient) => Promise<TResult>,
 ): Promise<TResult> => {
-  const { client } = await getDrizzleDB();
+  const { client } = await getDbHandle();
   return handler(client);
 };
 

@@ -1,5 +1,4 @@
 import { upsertDocumentFromFileWorkflow } from "@cat/app-agent/workflow";
-import { sanitizeFileName } from "@cat/db";
 import { createDocumentUnderParent } from "@cat/domain";
 import {
   countDocumentElements,
@@ -34,6 +33,7 @@ import {
   ElementTranslationStatusSchema,
   FileMetaSchema,
 } from "@cat/shared/schema/misc";
+import { sanitizeFileName } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";

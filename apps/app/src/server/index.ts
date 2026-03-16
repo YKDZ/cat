@@ -2,7 +2,7 @@ import "dotenv/config";
 import type { Server } from "node:http";
 
 import app, { wsHelper } from "@cat/app-api/app";
-import { getDrizzleDB, getRedis } from "@cat/db";
+import { getDbHandle, getRedisHandle } from "@cat/domain";
 import { logger } from "@cat/shared/utils";
 import { apply, serve } from "@photonjs/hono";
 
@@ -17,8 +17,8 @@ const shutdownServer = () => {
         if (err) reject(err);
 
         void (async () => {
-          (await getRedis()).disconnect();
-          await (await getDrizzleDB()).disconnect();
+          (await getRedisHandle()).disconnect();
+          await (await getDbHandle()).disconnect();
         })();
 
         resolve();

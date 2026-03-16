@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   createInProcessCollector,
   deleteGlossaryTerm,
@@ -31,7 +31,7 @@ export const deleteTermOp = async (
   ctx?: OperationContext,
 ): Promise<DeleteTermOutput> => {
   void ctx;
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const collector = createInProcessCollector(domainEventBus);
 
   const result = await drizzle.transaction(async (tx) => {

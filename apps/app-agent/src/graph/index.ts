@@ -1,4 +1,4 @@
-import type { DrizzleClient } from "@cat/db";
+import type { DrizzleClient } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
 
 import { PostgresCheckpointer } from "@/graph/checkpointer";

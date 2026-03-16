@@ -40,7 +40,6 @@
     "vite": "^7.3.1"
   },
   "peerDependencies": {
-    "@cat/db": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "zod": "^4.3.6"

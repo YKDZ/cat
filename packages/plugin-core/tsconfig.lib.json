@@ -18,9 +18,6 @@
       "path": "../shared/tsconfig.lib.json"
     },
     {
-      "path": "../db/tsconfig.lib.json"
-    },
-    {
       "path": "../domain/tsconfig.lib.json"
     }
   ],

@@ -1,5 +1,6 @@
 export * from "./url.ts";
 export * from "./string.ts";
+export * from "./file.ts";
 export * from "./http-helpers.ts";
 export * from "./logger.ts";
 export * from "./string-template.ts";

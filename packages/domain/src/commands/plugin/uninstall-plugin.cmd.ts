@@ -1,0 +1,23 @@
+import { eq, pluginInstallation } from "@cat/db";
+import * as z from "zod/v4";
+
+import type { Command } from "@/types";
+
+export const UninstallPluginCommandSchema = z.object({
+  installationId: z.int(),
+});
+
+export type UninstallPluginCommand = z.infer<
+  typeof UninstallPluginCommandSchema
+>;
+
+export const uninstallPlugin: Command<UninstallPluginCommand, void> = async (
+  ctx,
+  command,
+) => {
+  await ctx.db
+    .delete(pluginInstallation)
+    .where(eq(pluginInstallation.id, command.installationId));
+
+  return { result: void 0, events: [] };
+};

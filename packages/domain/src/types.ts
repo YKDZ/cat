@@ -8,6 +8,10 @@ export type DbContext = {
   db: DbHandle;
 };
 
+export type { DrizzleClient, DrizzleTransaction } from "@cat/db";
+export type { DrizzleDB } from "@cat/db";
+export type { RedisConnection } from "@cat/db";
+
 export type CommandResult<R> = {
   result: R;
   events: DomainEvent[];

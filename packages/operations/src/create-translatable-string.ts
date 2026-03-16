@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { createTranslatableStrings, executeCommand } from "@cat/domain";
 import { UnvectorizedTextData } from "@cat/shared/schema/misc";
 import * as z from "zod";
@@ -37,7 +37,7 @@ const createStringIdsFromData = async (
 ): Promise<number[]> => {
   if (data.length === 0) return [];
 
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const { chunkSetIds } = await vectorizeToChunkSetOp(
     {
       data,
