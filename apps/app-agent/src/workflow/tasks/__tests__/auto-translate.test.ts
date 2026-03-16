@@ -3,7 +3,6 @@ import {
   chunkSet,
   document,
   eq,
-  getDrizzleDB,
   glossary,
   language,
   memory,
@@ -13,6 +12,7 @@ import {
   translatableString,
   user,
 } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -122,7 +122,7 @@ beforeAll(async () => {
 });
 
 test("prepare elements & translation & memory", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(
@@ -170,7 +170,7 @@ test("prepare elements & translation & memory", async () => {
 });
 
 test("worker should auto translate text", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(

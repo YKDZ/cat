@@ -1,9 +1,9 @@
-import { verifyPassword } from "@cat/db";
 import {
   AuthProvider,
   type AuthResult,
   type PluginCapabilities,
 } from "@cat/plugin-core";
+import { verifyPassword } from "@cat/server-shared";
 import { JSONSchema } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 

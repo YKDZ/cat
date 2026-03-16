@@ -10,6 +10,9 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
+      "path": "../../server-shared/tsconfig.lib.json"
+    },
+    {
       "path": "../../shared/tsconfig.lib.json"
     },
     {
@@ -17,9 +20,6 @@
     },
     {
       "path": "../../domain/tsconfig.lib.json"
-    },
-    {
-      "path": "../../db/tsconfig.lib.json"
     }
   ],
   "exclude": [

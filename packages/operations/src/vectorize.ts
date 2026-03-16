@@ -1,7 +1,7 @@
 import type { OperationContext } from "@cat/domain";
 import type { JSONType } from "@cat/shared/schema/json";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { createVectorizedChunks, executeCommand } from "@cat/domain";
 import { resolvePluginManager } from "@cat/server-shared";
 import z from "zod";
@@ -37,7 +37,7 @@ export const vectorizeToChunkSetOp = async (
   { data, vectorStorageId, vectorizerId }: VectorizeInput,
   ctx?: OperationContext,
 ): Promise<VectorizeOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
   if (data.length === 0) return { chunkSetIds: [] };

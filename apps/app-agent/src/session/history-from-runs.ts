@@ -1,4 +1,4 @@
-import type { DrizzleClient } from "@cat/db";
+import type { DrizzleClient } from "@cat/domain";
 import type { ChatMessage } from "@cat/plugin-core";
 
 import { executeQuery, getLatestCompletedRunBlackboard } from "@cat/domain";

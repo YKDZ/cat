@@ -1,12 +1,12 @@
 import {
   document,
-  getDrizzleDB,
   language,
   memory,
   project,
   translatableElement,
   user,
 } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -122,7 +122,7 @@ beforeAll(async () => {
 });
 
 test("prepare elements", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   const vectorStorage = assertSingleNonNullish(
     pluginManager.getServices("VECTOR_STORAGE"),
@@ -154,7 +154,7 @@ test("prepare elements", async () => {
 });
 
 test("worker should create translation and return ids in order", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   const vectorStorage = assertSingleNonNullish(
     pluginManager.getServices("VECTOR_STORAGE"),
@@ -191,7 +191,7 @@ test("worker should create translation and return ids in order", async () => {
 });
 
 test("worker should create memory when memoryIds are provided", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   const vectorStorage = assertSingleNonNullish(
     pluginManager.getServices("VECTOR_STORAGE"),

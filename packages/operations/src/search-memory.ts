@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
   getSearchMemoryChunkRange,
@@ -69,7 +69,7 @@ export const searchMemoryOp = async (
     return { memories: [] };
   }
 
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   // 1. 计算搜索范围（原 dependencies 阶段）
   const searchRange = await executeQuery(
@@ -113,7 +113,7 @@ export const searchMemoryOp = async (
 };
 
 const searchMemory = async (
-  drizzle: Awaited<ReturnType<typeof getDrizzleDB>>["client"],
+  drizzle: Awaited<ReturnType<typeof getDbHandle>>["client"],
   chunks: { chunkId: number; similarity: number }[],
   memoryIds: string[],
   maxAmount: number = 3,

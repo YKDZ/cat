@@ -1,4 +1,4 @@
-import type { DrizzleClient } from "@cat/db";
+import type { DrizzleClient } from "@cat/domain";
 import type { AgentContextProvider } from "@cat/plugin-core";
 import type { AgentDefinition } from "@cat/shared/schema/agent";
 

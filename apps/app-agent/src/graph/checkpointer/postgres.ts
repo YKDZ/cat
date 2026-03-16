@@ -1,7 +1,19 @@
-import type { DrizzleClient } from "@cat/db";
-import type { NonNullJSONType } from "@cat/shared/schema/json";
+import type { DbHandle } from "@cat/domain";
 
-import { agentEvent, agentExternalOutput, agentRun, and, eq } from "@cat/db";
+import {
+  executeCommand,
+  executeQuery,
+  findAgentRunByDeduplicationKey,
+  getAgentRunInternalId,
+  listAgentEvents,
+  loadAgentExternalOutputByIdempotency,
+  loadAgentRunMetadata,
+  loadAgentRunSnapshot,
+  saveAgentEvent,
+  saveAgentExternalOutput,
+  saveAgentRunMetadata,
+  saveAgentRunSnapshot,
+} from "@cat/domain";
 
 import type { AgentEvent } from "@/graph/events";
 import type { BlackboardSnapshot, RunId, RunStatus } from "@/graph/types";
@@ -10,18 +22,6 @@ import { createAgentEvent } from "@/graph/events";
 import { GraphDefinitionSchema, RunStatusSchema } from "@/graph/types";
 
 import type { Checkpointer, ExternalOutputRecord, RunMetadata } from "./types";
-
-const getRunInternalId = async (
-  drizzle: DrizzleClient,
-  runId: RunId,
-): Promise<number | null> => {
-  const [row] = await drizzle
-    .select({ id: agentRun.id })
-    .from(agentRun)
-    .where(eq(agentRun.externalId, runId))
-    .limit(1);
-  return row?.id ?? null;
-};
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -70,10 +70,10 @@ const toRunMetadata = (row: {
 };
 
 export class PostgresCheckpointer implements Checkpointer {
-  readonly #drizzle: DrizzleClient;
+  readonly #db: DbHandle;
 
-  constructor(drizzle: DrizzleClient) {
-    this.#drizzle = drizzle;
+  constructor(db: DbHandle) {
+    this.#db = db;
   }
 
   saveRunMetadata = async (
@@ -97,10 +97,17 @@ export class PostgresCheckpointer implements Checkpointer {
 
     if (sessionId === null) return;
 
-    // externalId has defaultRandom() so Drizzle's insert type omits it.
-    // We need to supply our own UUID; cast the whole object to bypass the type.
-    // oxlint-disable-next-line no-unsafe-type-assertion, no-explicit-any
-    const runValues = {
+    const mergedMetadata =
+      extraMeta || deduplicationKey
+        ? {
+            ...(extraMeta ?? {}),
+            ...(deduplicationKey
+              ? { __schedulerDeduplicationKey: deduplicationKey }
+              : {}),
+          }
+        : null;
+
+    await executeCommand({ db: this.#db }, saveAgentRunMetadata, {
       externalId: runId,
       sessionId,
       status,
@@ -109,58 +116,14 @@ export class PostgresCheckpointer implements Checkpointer {
       deduplicationKey: deduplicationKey ?? null,
       startedAt: startedAt ? new Date(startedAt) : new Date(),
       completedAt: completedAt ? new Date(completedAt) : null,
-      metadata:
-        extraMeta || deduplicationKey
-          ? {
-              ...(extraMeta ?? {}),
-              ...(deduplicationKey
-                ? { __schedulerDeduplicationKey: deduplicationKey }
-                : {}),
-            }
-          : null,
-    } as any; // oxlint-disable-line no-unsafe-type-assertion, no-explicit-any
-
-    await this.#drizzle
-      .insert(agentRun)
-      // oxlint-disable-next-line no-unsafe-argument
-      .values(runValues)
-      .onConflictDoUpdate({
-        target: agentRun.externalId,
-        set: {
-          status,
-          graphDefinition: graphDefinition ?? {},
-          currentNodeId: currentNodeId ?? null,
-          deduplicationKey: deduplicationKey ?? null,
-          metadata:
-            // oxlint-disable-next-line no-unsafe-type-assertion
-            (extraMeta || deduplicationKey
-              ? {
-                  ...(extraMeta ?? {}),
-                  ...(deduplicationKey
-                    ? { __schedulerDeduplicationKey: deduplicationKey }
-                    : {}),
-                }
-              : null) as unknown as NonNullJSONType,
-          completedAt: completedAt ? new Date(completedAt) : null,
-        },
-      });
+      metadata: mergedMetadata,
+    });
   };
 
   loadRunMetadata = async (runId: RunId): Promise<RunMetadata | null> => {
-    const [row] = await this.#drizzle
-      .select({
-        externalId: agentRun.externalId,
-        status: agentRun.status,
-        graphDefinition: agentRun.graphDefinition,
-        currentNodeId: agentRun.currentNodeId,
-        deduplicationKey: agentRun.deduplicationKey,
-        startedAt: agentRun.startedAt,
-        completedAt: agentRun.completedAt,
-        metadata: agentRun.metadata,
-      })
-      .from(agentRun)
-      .where(eq(agentRun.externalId, runId))
-      .limit(1);
+    const row = await executeQuery({ db: this.#db }, loadAgentRunMetadata, {
+      externalId: runId,
+    });
 
     if (!row) return null;
 
@@ -170,20 +133,11 @@ export class PostgresCheckpointer implements Checkpointer {
   findRunByDeduplicationKey = async (
     key: string,
   ): Promise<RunMetadata | null> => {
-    const [row] = await this.#drizzle
-      .select({
-        externalId: agentRun.externalId,
-        status: agentRun.status,
-        graphDefinition: agentRun.graphDefinition,
-        currentNodeId: agentRun.currentNodeId,
-        deduplicationKey: agentRun.deduplicationKey,
-        startedAt: agentRun.startedAt,
-        completedAt: agentRun.completedAt,
-        metadata: agentRun.metadata,
-      })
-      .from(agentRun)
-      .where(eq(agentRun.deduplicationKey, key))
-      .limit(1);
+    const row = await executeQuery(
+      { db: this.#db },
+      findAgentRunByDeduplicationKey,
+      { deduplicationKey: key },
+    );
 
     return row ? toRunMetadata(row) : null;
   };
@@ -192,62 +146,54 @@ export class PostgresCheckpointer implements Checkpointer {
     runId: RunId,
     snapshot: BlackboardSnapshot,
   ): Promise<void> => {
-    await this.#drizzle
-      .update(agentRun)
-      .set({
-        // oxlint-disable-next-line no-unsafe-type-assertion
-        blackboardSnapshot: snapshot as unknown as NonNullJSONType,
-      })
-      .where(eq(agentRun.externalId, runId));
+    await executeCommand({ db: this.#db }, saveAgentRunSnapshot, {
+      externalId: runId,
+      snapshot,
+    });
   };
 
   loadSnapshot = async (runId: RunId): Promise<BlackboardSnapshot | null> => {
-    const [row] = await this.#drizzle
-      .select({ blackboardSnapshot: agentRun.blackboardSnapshot })
-      .from(agentRun)
-      .where(eq(agentRun.externalId, runId))
-      .limit(1);
+    const snapshot = await executeQuery(
+      { db: this.#db },
+      loadAgentRunSnapshot,
+      { externalId: runId },
+    );
 
-    if (!row?.blackboardSnapshot) return null;
+    if (snapshot === null) return null;
     // oxlint-disable-next-line no-unsafe-type-assertion
-    return row.blackboardSnapshot as unknown as BlackboardSnapshot;
+    return snapshot as unknown as BlackboardSnapshot;
   };
 
   saveEvent = async (event: AgentEvent): Promise<void> => {
-    const internalId = await getRunInternalId(this.#drizzle, event.runId);
+    const internalId = await executeQuery(
+      { db: this.#db },
+      getAgentRunInternalId,
+      { externalId: event.runId },
+    );
     if (internalId === null) return;
 
-    await this.#drizzle
-      .insert(agentEvent)
-      .values({
-        runId: internalId,
-        eventId: event.eventId,
-        parentEventId: event.parentEventId ?? null,
-        nodeId: event.nodeId ?? null,
-        type: event.type,
-        // oxlint-disable-next-line no-unsafe-type-assertion
-        payload: event.payload as unknown as NonNullJSONType,
-        timestamp: new Date(event.timestamp),
-      })
-      .onConflictDoNothing();
+    await executeCommand({ db: this.#db }, saveAgentEvent, {
+      runInternalId: internalId,
+      eventId: event.eventId,
+      parentEventId: event.parentEventId ?? null,
+      nodeId: event.nodeId ?? null,
+      type: event.type,
+      payload: event.payload,
+      timestamp: new Date(event.timestamp),
+    });
   };
 
   listEvents = async (runId: RunId): Promise<AgentEvent[]> => {
-    const internalId = await getRunInternalId(this.#drizzle, runId);
+    const internalId = await executeQuery(
+      { db: this.#db },
+      getAgentRunInternalId,
+      { externalId: runId },
+    );
     if (internalId === null) return [];
 
-    const rows = await this.#drizzle
-      .select({
-        eventId: agentEvent.eventId,
-        parentEventId: agentEvent.parentEventId,
-        nodeId: agentEvent.nodeId,
-        type: agentEvent.type,
-        payload: agentEvent.payload,
-        timestamp: agentEvent.timestamp,
-      })
-      .from(agentEvent)
-      .where(eq(agentEvent.runId, internalId))
-      .orderBy(agentEvent.timestamp);
+    const rows = await executeQuery({ db: this.#db }, listAgentEvents, {
+      runInternalId: internalId,
+    });
 
     return rows.map((row) =>
       createAgentEvent({
@@ -264,48 +210,40 @@ export class PostgresCheckpointer implements Checkpointer {
   };
 
   saveExternalOutput = async (record: ExternalOutputRecord): Promise<void> => {
-    const internalId = await getRunInternalId(this.#drizzle, record.runId);
+    const internalId = await executeQuery(
+      { db: this.#db },
+      getAgentRunInternalId,
+      { externalId: record.runId },
+    );
     if (internalId === null) return;
 
-    await this.#drizzle
-      .insert(agentExternalOutput)
-      .values({
-        runId: internalId,
-        nodeId: record.nodeId,
-        outputType: record.outputType,
-        outputKey: record.outputKey,
-        // oxlint-disable-next-line no-unsafe-type-assertion
-        payload: record.payload as NonNullJSONType,
-        idempotencyKey: record.idempotencyKey ?? null,
-        createdAt: new Date(record.createdAt),
-      })
-      .onConflictDoNothing();
+    await executeCommand({ db: this.#db }, saveAgentExternalOutput, {
+      runInternalId: internalId,
+      nodeId: record.nodeId,
+      outputType: record.outputType,
+      outputKey: record.outputKey,
+      payload: record.payload,
+      idempotencyKey: record.idempotencyKey ?? null,
+      createdAt: new Date(record.createdAt),
+    });
   };
 
   loadExternalOutputByIdempotency = async (
     runId: RunId,
     idempotencyKey: string,
   ): Promise<ExternalOutputRecord | null> => {
-    const internalId = await getRunInternalId(this.#drizzle, runId);
+    const internalId = await executeQuery(
+      { db: this.#db },
+      getAgentRunInternalId,
+      { externalId: runId },
+    );
     if (internalId === null) return null;
 
-    const [row] = await this.#drizzle
-      .select({
-        nodeId: agentExternalOutput.nodeId,
-        outputType: agentExternalOutput.outputType,
-        outputKey: agentExternalOutput.outputKey,
-        payload: agentExternalOutput.payload,
-        idempotencyKey: agentExternalOutput.idempotencyKey,
-        createdAt: agentExternalOutput.createdAt,
-      })
-      .from(agentExternalOutput)
-      .where(
-        and(
-          eq(agentExternalOutput.runId, internalId),
-          eq(agentExternalOutput.idempotencyKey, idempotencyKey),
-        ),
-      )
-      .limit(1);
+    const row = await executeQuery(
+      { db: this.#db },
+      loadAgentExternalOutputByIdempotency,
+      { runInternalId: internalId, idempotencyKey },
+    );
 
     if (!row) return null;
 
@@ -315,7 +253,7 @@ export class PostgresCheckpointer implements Checkpointer {
       // oxlint-disable-next-line no-unsafe-type-assertion
       outputType: row.outputType as ExternalOutputRecord["outputType"],
       outputKey: row.outputKey,
-      payload: row.payload as ExternalOutputRecord["payload"],
+      payload: row.payload,
       idempotencyKey: row.idempotencyKey ?? undefined,
       createdAt: row.createdAt.toISOString(),
     };

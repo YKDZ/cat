@@ -36,7 +36,6 @@
     "vitest": "^4.0.0"
   },
   "peerDependencies": {
-    "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/server-shared": "workspace:*",

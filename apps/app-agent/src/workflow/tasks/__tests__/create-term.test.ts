@@ -3,7 +3,6 @@ import type { TermData } from "@cat/shared/schema/misc";
 import {
   eq,
   getColumns,
-  getDrizzleDB,
   glossary,
   isNotNull,
   language,
@@ -11,6 +10,7 @@ import {
   termConcept,
   user,
 } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -88,7 +88,7 @@ beforeAll(async () => {
 });
 
 test("create-term should insert and return term", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(

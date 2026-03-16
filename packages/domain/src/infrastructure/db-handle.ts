@@ -1,7 +1,4 @@
-import "dotenv/config";
-import { DrizzleDB } from "@/drizzle/db.ts";
-
-import { RedisConnection } from "./redis.ts";
+import { DrizzleDB, RedisConnection } from "@cat/db";
 
 declare global {
   // oxlint-disable-next-line no-var
@@ -10,7 +7,7 @@ declare global {
   var __REDIS__: RedisConnection | undefined;
 }
 
-export const getDrizzleDB = async (): Promise<DrizzleDB> => {
+export const getDbHandle = async (): Promise<DrizzleDB> => {
   if (process.env.NODE_ENV === "test" && !globalThis["__DRIZZLE_DB__"]) {
     // 在测试环境中，如果 DB 尚未初始化，等待一段时间
     // 这防止了 Worker 在 setupTestDB 完成之前抢跑导致的连接错误
@@ -30,7 +27,7 @@ export const getDrizzleDB = async (): Promise<DrizzleDB> => {
   return globalThis["__DRIZZLE_DB__"];
 };
 
-export const getRedis = async (): Promise<RedisConnection> => {
+export const getRedisHandle = async (): Promise<RedisConnection> => {
   if (!globalThis["__REDIS__"]) {
     const db = new RedisConnection();
     await db.connect();

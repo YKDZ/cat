@@ -1,7 +1,7 @@
 import type { OperationContext } from "@cat/domain";
 import type { LookedUpTerm } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { executeQuery, listLexicalTermSuggestions } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService } from "@cat/server-shared";
@@ -54,7 +54,7 @@ export const streamSearchTermsOp = (
   };
 
   const run = async () => {
-    const { client: drizzle } = await getDrizzleDB();
+    const { client: drizzle } = await getDbHandle();
     const pluginManager = PluginManager.get("GLOBAL", "");
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
     const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");

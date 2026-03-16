@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   addGlossaryTermToConcept,
   createInProcessCollector,
@@ -41,7 +41,7 @@ export const addTermToConceptOp = async (
   ctx?: OperationContext,
 ): Promise<AddTermToConceptOutput> => {
   void ctx;
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const collector = createInProcessCollector(domainEventBus);
 
   const termResult = await drizzle.transaction(async (tx) => {

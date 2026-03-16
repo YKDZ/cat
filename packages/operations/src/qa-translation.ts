@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   createQaResultWithItems,
   executeCommand,
@@ -36,7 +36,7 @@ export const qaTranslationOp = async (
   payload: QaTranslationInput,
   ctx?: OperationContext,
 ): Promise<QaTranslationOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
   const data = await executeQuery({ db: drizzle }, getTranslationQaContext, {

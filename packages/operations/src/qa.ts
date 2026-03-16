@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { executeQuery, listLexicalTermSuggestions } from "@cat/domain";
 import {
   PluginManager,
@@ -68,7 +68,7 @@ export const qaOp = async (
   payload: QAInput,
   _ctx?: OperationContext,
 ): Promise<QAOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const terms = await executeQuery(

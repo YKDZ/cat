@@ -1,4 +1,5 @@
-import { getDrizzleDB, glossary, language, user } from "@cat/db";
+import { glossary, language, user } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -56,7 +57,7 @@ beforeAll(async () => {
 });
 
 test("worker should fetch advise", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   const { id: glossaryId } = assertSingleNonNullish(
     await drizzle.select({ id: glossary.id }).from(glossary),

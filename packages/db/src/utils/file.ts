@@ -13,10 +13,6 @@ const isStringRecord = (value: unknown): value is Record<string, string> => {
   return Object.values(value).every((item) => typeof item === "string");
 };
 
-export const sanitizeFileName = (name: string): string => {
-  return name.replace(/[^\w.-]/g, "_");
-};
-
 export const mimeFromFileName = async (
   drizzle: DrizzleClient,
   fileName: string,

@@ -1,10 +1,6 @@
-import {
-  plugin,
-  pluginConfig,
-  type DrizzleClient,
-  type DrizzleTransaction,
-} from "@cat/db";
-import { _JSONSchemaSchema } from "@cat/shared/schema/json";
+import type { DbHandle, DrizzleClient } from "@cat/domain";
+
+import { executeCommand, registerPluginDefinition } from "@cat/domain";
 
 import { FileSystemPluginLoader, type PluginLoader } from "./loader";
 
@@ -48,45 +44,19 @@ export class PluginDiscoveryService {
    * 注册单个插件定义到数据库
    */
   public async registerDefinition(
-    drizzle: DrizzleClient | DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
   ): Promise<void> {
     const data = await this.loader.getData(pluginId);
 
-    await drizzle.transaction(async (tx) => {
-      await tx
-        .insert(plugin)
-        .values([
-          {
-            id: pluginId,
-            version: data.version,
-            name: data.name,
-            entry: data.entry ?? null,
-            overview: data.overview,
-            iconUrl: data.iconURL,
-          },
-        ])
-        .onConflictDoUpdate({
-          target: plugin.id,
-          set: {
-            name: data.name,
-            version: data.version,
-            entry: data.entry ?? null,
-            overview: data.overview,
-            iconUrl: data.iconURL,
-          },
-        });
-
-      if (data.config) {
-        const schema = _JSONSchemaSchema.parse(data.config);
-        await tx
-          .insert(pluginConfig)
-          .values([{ pluginId, schema }])
-          .onConflictDoUpdate({
-            target: [pluginConfig.pluginId],
-            set: { schema },
-          });
-      }
+    await executeCommand({ db: drizzle }, registerPluginDefinition, {
+      pluginId,
+      version: data.version,
+      name: data.name,
+      entry: data.entry ?? null,
+      overview: data.overview ?? "",
+      iconUrl: data.iconURL ?? null,
+      configSchema: data.config,
     });
   }
 }

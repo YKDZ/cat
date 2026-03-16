@@ -1,4 +1,4 @@
-import type { DrizzleDB } from "@cat/db";
+import type { DrizzleDB } from "@cat/domain";
 
 import {
   AgentSessionMetaSchema,

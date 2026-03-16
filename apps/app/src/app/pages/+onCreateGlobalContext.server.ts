@@ -1,7 +1,13 @@
 import type { GlobalContextServer } from "vike/types";
 
-import { ensureDB, getDrizzleDB, getRedis, ensureRootUser } from "@cat/db";
-import { executeQuery, getSetting } from "@cat/domain";
+import { ensureDB, ensureRootUser } from "@cat/db";
+import {
+  executeQuery,
+  getSetting,
+  getDbHandle,
+  getRedisHandle,
+  type DrizzleClient,
+} from "@cat/domain";
 import { registerDomainEventHandlers } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
 import { initAllVectorStorage } from "@cat/server-shared";
@@ -10,7 +16,7 @@ import { access } from "fs/promises";
 import { join, resolve } from "path";
 
 const getStringSetting = async (
-  drizzle: Awaited<ReturnType<typeof getDrizzleDB>>["client"],
+  drizzle: DrizzleClient,
   key: string,
   fallback: string,
 ): Promise<string> => {
@@ -20,7 +26,7 @@ const getStringSetting = async (
 
 export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
   try {
-    const drizzleDB = await getDrizzleDB();
+    const drizzleDB = await getDbHandle();
     await drizzleDB.ping();
 
     if (import.meta.env.PROD) {
@@ -33,9 +39,9 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
       await drizzleDB.migrate(migrations);
     }
 
-    await ensureDB();
+    await ensureDB(drizzleDB);
 
-    const redis = await getRedis();
+    const redis = await getRedisHandle();
     await redis.ping();
 
     const pluginManager = PluginManager.get("GLOBAL", "");

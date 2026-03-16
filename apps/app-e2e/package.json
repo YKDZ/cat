@@ -13,6 +13,8 @@
   },
   "devDependencies": {
     "@cat/db": "workspace:*",
+    "@cat/domain": "workspace:*",
+    "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
     "@cat/test-utils": "workspace:*",
     "@playwright/test": "^1.58.2",

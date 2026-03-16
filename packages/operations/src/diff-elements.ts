@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   bulkUpdateElementsForDiff,
   createElements,
@@ -57,7 +57,7 @@ export const diffElementsOp = async (
   data: DiffElementsInput,
   ctx?: OperationContext,
 ): Promise<DiffElementsOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   // 1. 获取旧元素
   const oldElements = (

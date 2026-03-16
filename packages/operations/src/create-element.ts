@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { createElements, executeCommand } from "@cat/domain";
 import { zip } from "@cat/shared/utils";
 import * as z from "zod";
@@ -41,7 +41,7 @@ export const createElementOp = async (
   data: CreateElementInput,
   ctx?: OperationContext,
 ): Promise<CreateElementOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   // 直接调用 createTranslatableStringOp
   const stringResult = await createTranslatableStringOp(

@@ -1,10 +1,5 @@
-import {
-  eq,
-  getColumns,
-  getDrizzleDB,
-  language,
-  translatableString,
-} from "@cat/db";
+import { eq, getColumns, language, translatableString } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -39,7 +34,7 @@ beforeAll(async () => {
 });
 
 test("worker should insert strings to db", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(
@@ -102,7 +97,7 @@ test("empty input should return empty array", async () => {
 });
 
 test("worker should reuse existing strings", async () => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const vectorStorage = assertSingleNonNullish(

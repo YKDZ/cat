@@ -1,27 +1,24 @@
+import type { DbHandle, DrizzleClient, DrizzleTransaction } from "@cat/domain";
 import type {
   PluginServiceType,
   ScopeType,
 } from "@cat/shared/schema/drizzle/enum";
 
 import {
-  account,
-  blob,
-  chunk,
-  count,
-  document,
-  eq,
-  and,
-  inArray,
-  mfaProvider,
-  pluginConfig,
-  pluginConfigInstance,
-  pluginInstallation,
-  pluginService,
-  qaResultItem,
-  translatableElementContext,
-  type DrizzleClient,
-  type DrizzleTransaction,
-} from "@cat/db";
+  checkServiceReferences,
+  deletePluginServices,
+  executeCommand,
+  executeQuery,
+  getPluginConfigInstanceByInstallation,
+  getPluginInstallation,
+  installPlugin,
+  listInstalledPlugins,
+  listPluginServices,
+  listPluginServicesForInstallation,
+  syncPluginServices,
+  uninstallPlugin,
+  updatePluginConfigInstanceValue,
+} from "@cat/domain";
 import {
   createPluginCapabilities,
   getCacheStore,
@@ -80,9 +77,7 @@ export class PluginManager {
     this.discovery = PluginDiscoveryService.getInstance(loader);
   }
 
-  private createCapabilities = (
-    drizzle: DrizzleTransaction,
-  ): PluginCapabilities => {
+  private createCapabilities = (drizzle: DbHandle): PluginCapabilities => {
     return createPluginCapabilities({
       db: drizzle,
     });
@@ -128,15 +123,10 @@ export class PluginManager {
 
     const installed = new Set(
       (
-        await drizzle
-          .select({ pluginId: pluginInstallation.pluginId })
-          .from(pluginInstallation)
-          .where(
-            and(
-              eq(pluginInstallation.scopeType, manager.scopeType),
-              eq(pluginInstallation.scopeId, manager.scopeId),
-            ),
-          )
+        await executeQuery({ db: drizzle }, listInstalledPlugins, {
+          scopeType: manager.scopeType,
+          scopeId: manager.scopeId,
+        })
       ).map((i) => i.pluginId),
     );
 
@@ -164,34 +154,10 @@ export class PluginManager {
       msg: `Installing plugin ${pluginId} into ${this.scopeType}:${this.scopeId}`,
     });
 
-    await drizzle.transaction(async (tx) => {
-      // 1. 创建安装记录
-      const installation = assertSingleNonNullish(
-        await tx
-          .insert(pluginInstallation)
-          .values([
-            { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
-          ])
-          .returning({ id: pluginInstallation.id }),
-      );
-
-      // 2. 从 schema 默认值初始化配置实例
-      const pluginConfigs = await tx
-        .select({ id: pluginConfig.id, schema: pluginConfig.schema })
-        .from(pluginConfig)
-        .where(eq(pluginConfig.pluginId, pluginId));
-
-      if (pluginConfigs.length > 0) {
-        await tx.insert(pluginConfigInstance).values(
-          pluginConfigs.map((config) => ({
-            configId: config.id,
-            pluginInstallationId: installation.id,
-            value:
-              getDefaultFromSchema(JSONSchemaSchema.parse(config.schema)) ?? {},
-          })),
-        );
-      }
-      // 不再写入 pluginService / pluginComponent
+    await executeCommand({ db: drizzle }, installPlugin, {
+      pluginId,
+      scopeType: this.scopeType,
+      scopeId: this.scopeId,
     });
   }
 
@@ -205,37 +171,30 @@ export class PluginManager {
     }
 
     const installation = assertSingleNonNullish(
-      await drizzle
-        .select({ id: pluginInstallation.id })
-        .from(pluginInstallation)
-        .where(
-          and(
-            eq(pluginInstallation.pluginId, pluginId),
-            eq(pluginInstallation.scopeId, this.scopeId),
-            eq(pluginInstallation.scopeType, this.scopeType),
-          ),
-        ),
+      [
+        await executeQuery({ db: drizzle }, getPluginInstallation, {
+          pluginId,
+          scopeType: this.scopeType,
+          scopeId: this.scopeId,
+        }),
+      ].filter((r): r is { id: number } => r !== null),
       `Plugin ${pluginId} not installed in ${this.scopeType}:${this.scopeId}`,
     );
 
-    await drizzle
-      .delete(pluginInstallation)
-      .where(eq(pluginInstallation.id, installation.id));
+    await executeCommand({ db: drizzle }, uninstallPlugin, {
+      installationId: installation.id,
+    });
   }
 
   /**
    * 重新激活当前 scope 的所有已安装插件
    */
   public async restore(drizzle: DrizzleTransaction, app: Hono): Promise<void> {
-    const installations = await drizzle
-      .select({ pluginId: pluginInstallation.pluginId })
-      .from(pluginInstallation)
-      .where(
-        and(
-          eq(pluginInstallation.scopeType, this.scopeType),
-          eq(pluginInstallation.scopeId, this.scopeId),
-        ),
-      );
+    const installations = await executeQuery(
+      { db: drizzle },
+      listInstalledPlugins,
+      { scopeType: this.scopeType, scopeId: this.scopeId },
+    );
 
     await Promise.all(
       installations.map(async ({ pluginId }) =>
@@ -252,7 +211,7 @@ export class PluginManager {
    *  registerComponents → mountRoutes
    */
   public async activate(
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
     app: Hono,
   ): Promise<void> {
@@ -282,10 +241,7 @@ export class PluginManager {
   /**
    * 停用插件并清理所有内存注册
    */
-  public async deactivate(
-    drizzle: DrizzleTransaction,
-    pluginId: string,
-  ): Promise<void> {
+  public async deactivate(drizzle: DbHandle, pluginId: string): Promise<void> {
     const pluginObj = this.activePlugins.get(pluginId);
     if (!pluginObj) return;
 
@@ -313,7 +269,7 @@ export class PluginManager {
    * 用于配置更新后刷新服务实例
    */
   public async reloadPlugin(
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
     app: Hono,
   ): Promise<void> {
@@ -397,7 +353,7 @@ export class PluginManager {
    * 确保插件定义已同步到 DB
    */
   private async ensureDefinitionSynced(
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
   ): Promise<void> {
     await this.discovery.registerDefinition(drizzle, pluginId);
@@ -407,39 +363,18 @@ export class PluginManager {
    * 合并配置默认值到现有配置实例
    */
   private async mergeConfigDefaults(
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
   ): Promise<void> {
-    const configDef = await drizzle
-      .select({ id: pluginConfig.id, schema: pluginConfig.schema })
-      .from(pluginConfig)
-      .where(eq(pluginConfig.pluginId, pluginId))
-      .then((res) => res[0]);
+    const data = await executeQuery(
+      { db: drizzle },
+      getPluginConfigInstanceByInstallation,
+      { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
+    );
 
-    if (!configDef) return;
+    if (!data) return;
 
-    const instance = await drizzle
-      .select({
-        id: pluginConfigInstance.id,
-        value: pluginConfigInstance.value,
-      })
-      .from(pluginConfigInstance)
-      .innerJoin(
-        pluginInstallation,
-        eq(pluginInstallation.id, pluginConfigInstance.pluginInstallationId),
-      )
-      .where(
-        and(
-          eq(pluginInstallation.pluginId, pluginId),
-          eq(pluginInstallation.scopeId, this.scopeId),
-          eq(pluginInstallation.scopeType, this.scopeType),
-        ),
-      )
-      .then((res) => res[0]);
-
-    if (!instance) return;
-
-    const schema = JSONSchemaSchema.parse(configDef.schema);
+    const schema = JSONSchemaSchema.parse(data.schema);
     const defaults = getDefaultFromSchema(schema);
 
     // Object-merge defaults only applies to object-typed configs.
@@ -448,23 +383,26 @@ export class PluginManager {
     const isObjectSchema =
       typeof schema !== "boolean" && schema.type === "object";
 
-    if (!isObjectSchema || Array.isArray(instance.value)) {
+    const instanceValue = data.value;
+
+    if (!isObjectSchema || Array.isArray(instanceValue)) {
       // If there is no stored value yet, seed with schema defaults
       if (
-        instance.value === null ||
-        instance.value === undefined ||
-        (typeof instance.value === "object" &&
-          !Array.isArray(instance.value) &&
-          Object.keys(instance.value).length === 0)
+        instanceValue === null ||
+        instanceValue === undefined ||
+        (typeof instanceValue === "object" &&
+          !Array.isArray(instanceValue) &&
+          Object.keys(instanceValue).length === 0)
       ) {
         const schemaType =
           typeof schema !== "boolean" ? schema.type : undefined;
         const fallback = defaults ?? (schemaType === "array" ? [] : {});
-        if (JSON.stringify(fallback) !== JSON.stringify(instance.value)) {
-          await drizzle
-            .update(pluginConfigInstance)
-            .set({ value: fallback })
-            .where(eq(pluginConfigInstance.id, instance.id));
+        if (JSON.stringify(fallback) !== JSON.stringify(instanceValue)) {
+          await executeCommand(
+            { db: drizzle },
+            updatePluginConfigInstanceValue,
+            { instanceId: data.instanceId, value: fallback },
+          );
         }
       }
       return;
@@ -476,10 +414,10 @@ export class PluginManager {
         : {};
 
     const instanceObj =
-      instance.value &&
-      typeof instance.value === "object" &&
-      !Array.isArray(instance.value)
-        ? instance.value
+      instanceValue &&
+      typeof instanceValue === "object" &&
+      !Array.isArray(instanceValue)
+        ? instanceValue
         : {};
 
     const newValue: JSONObject = {
@@ -487,14 +425,14 @@ export class PluginManager {
       ...instanceObj,
     };
 
-    if (JSON.stringify(newValue) !== JSON.stringify(instance.value)) {
+    if (JSON.stringify(newValue) !== JSON.stringify(instanceValue)) {
       logger.info("PLUGIN", {
         msg: `Updating config instance for ${pluginId}`,
       });
-      await drizzle
-        .update(pluginConfigInstance)
-        .set({ value: newValue })
-        .where(eq(pluginConfigInstance.id, instance.id));
+      await executeCommand({ db: drizzle }, updatePluginConfigInstanceValue, {
+        instanceId: data.instanceId,
+        value: newValue,
+      });
     }
   }
 
@@ -502,7 +440,7 @@ export class PluginManager {
    * 加载插件模块实例并构建上下文
    */
   private async loadPlugin(
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
   ): Promise<{ pluginObj: CatPlugin; context: PluginContext }> {
     const pluginObj = await this.loader.getInstance(pluginId);
@@ -513,24 +451,11 @@ export class PluginManager {
       this.scopeId,
     );
 
-    const registeredServices = await drizzle
-      .select({
-        type: pluginService.serviceType,
-        id: pluginService.serviceId,
-        dbId: pluginService.id,
-      })
-      .from(pluginInstallation)
-      .innerJoin(
-        pluginService,
-        eq(pluginService.pluginInstallationId, pluginInstallation.id),
-      )
-      .where(
-        and(
-          eq(pluginInstallation.scopeType, this.scopeType),
-          eq(pluginInstallation.scopeId, this.scopeId),
-          eq(pluginInstallation.pluginId, pluginId),
-        ),
-      );
+    const registeredServices = await executeQuery(
+      { db: drizzle },
+      listPluginServicesForInstallation,
+      { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
+    );
 
     const context: PluginContext = {
       config,
@@ -562,25 +487,26 @@ export class PluginManager {
    * 处理 manifest 声明的静态服务 + 运行时 services() 返回的动态服务
    */
   private async syncDynamicServices(
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
     pluginObj: CatPlugin,
     context: PluginContext,
   ): Promise<void> {
-    const installation = await this.getInstallation(drizzle, pluginId);
+    const installation = await executeQuery(
+      { db: drizzle },
+      getPluginInstallation,
+      { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
+    );
     if (!installation) return;
 
     const manifest = await this.loader.getManifest(pluginId);
 
     // 获取 DB 中已有的服务记录
-    const existingDBServices = await drizzle
-      .select({
-        id: pluginService.id,
-        serviceId: pluginService.serviceId,
-        serviceType: pluginService.serviceType,
-      })
-      .from(pluginService)
-      .where(eq(pluginService.pluginInstallationId, installation.id));
+    const existingDBServices = await executeQuery(
+      { db: drizzle },
+      listPluginServices,
+      { pluginInstallationId: installation.id },
+    );
 
     const existingKeys = new Set(
       existingDBServices.map((s) => `${s.serviceType}:${s.serviceId}`),
@@ -607,18 +533,18 @@ export class PluginManager {
     );
 
     if (toInsertKeys.length > 0) {
-      await drizzle.insert(pluginService).values(
-        toInsertKeys.map((key) => {
+      await executeCommand({ db: drizzle }, syncPluginServices, {
+        pluginInstallationId: installation.id,
+        services: toInsertKeys.map((key) => {
           const [serviceType, ...rest] = key.split(":");
           const serviceId = rest.join(":");
           return {
             serviceId,
             // oxlint-disable-next-line typescript/no-unsafe-type-assertion
             serviceType: serviceType as PluginServiceType,
-            pluginInstallationId: installation.id,
           };
         }),
-      );
+      });
     }
 
     // 需要删除的：DB 中有但运行时和静态中都没有的（仅动态服务可被删除）
@@ -629,14 +555,7 @@ export class PluginManager {
     );
 
     if (toDelete.length > 0) {
-      await this.safeDeleteServices(
-        drizzle,
-        toDelete.map((s) => ({
-          id: s.id,
-          serviceId: s.serviceId,
-          serviceType: s.serviceType,
-        })),
-      );
+      await this.safeDeleteServices(drizzle, toDelete);
     }
   }
 
@@ -644,38 +563,18 @@ export class PluginManager {
    * 安全删除动态服务：检查外键引用，被引用的服务保留为 orphaned
    */
   private async safeDeleteServices(
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     toDelete: { id: number; serviceId: string; serviceType: string }[],
   ): Promise<void> {
-    // 需检查引用的表和列
-    const refChecks = [
-      { table: account, column: account.authProviderId },
-      { table: mfaProvider, column: mfaProvider.mfaServiceId },
-      { table: blob, column: blob.storageProviderId },
-      { table: chunk, column: chunk.vectorizerId },
-      { table: document, column: document.fileHandlerId },
-      {
-        table: translatableElementContext,
-        column: translatableElementContext.storageProviderId,
-      },
-      { table: qaResultItem, column: qaResultItem.checkerId },
-    ] as const;
-
     const safeToDeleteIds: number[] = [];
 
     for (const svc of toDelete) {
-      let hasRef = false;
-      for (const { table, column } of refChecks) {
-        // oxlint-disable-next-line no-await-in-loop
-        const refs = await drizzle
-          .select({ count: count() })
-          .from(table)
-          .where(eq(column, svc.id));
-        if ((refs[0]?.count ?? 0) > 0) {
-          hasRef = true;
-          break;
-        }
-      }
+      // oxlint-disable-next-line no-await-in-loop
+      const hasRef = await executeQuery(
+        { db: drizzle },
+        checkServiceReferences,
+        { serviceDbId: svc.id },
+      );
 
       if (hasRef) {
         logger.warn("PLUGIN", {
@@ -687,9 +586,9 @@ export class PluginManager {
     }
 
     if (safeToDeleteIds.length > 0) {
-      await drizzle
-        .delete(pluginService)
-        .where(inArray(pluginService.id, safeToDeleteIds));
+      await executeCommand({ db: drizzle }, deletePluginServices, {
+        serviceDbIds: safeToDeleteIds,
+      });
     }
   }
 
@@ -697,7 +596,7 @@ export class PluginManager {
    * 注册插件服务到内存 ServiceRegistry
    */
   private async registerServices(
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
     pluginObj: CatPlugin,
     context: PluginContext,
@@ -755,7 +654,7 @@ export class PluginManager {
 
   private async invokeOnDeactivate(
     pluginObj: CatPlugin,
-    drizzle: DrizzleTransaction,
+    drizzle: DbHandle,
     pluginId: string,
   ): Promise<void> {
     if (!pluginObj.onDeactivate) return;
@@ -780,26 +679,5 @@ export class PluginManager {
     } catch (e) {
       logger.error("PLUGIN", { msg: `Error deactivating ${pluginId}` }, e);
     }
-  }
-
-  // ────────────────────────────────────────────
-  //  通用辅助方法
-  // ────────────────────────────────────────────
-
-  private async getInstallation(
-    drizzle: DrizzleTransaction,
-    pluginId: string,
-  ): Promise<{ id: number } | undefined> {
-    return await drizzle
-      .select({ id: pluginInstallation.id })
-      .from(pluginInstallation)
-      .where(
-        and(
-          eq(pluginInstallation.pluginId, pluginId),
-          eq(pluginInstallation.scopeType, this.scopeType),
-          eq(pluginInstallation.scopeId, this.scopeId),
-        ),
-      )
-      .then((res) => res[0]);
   }
 }

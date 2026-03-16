@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   bulkUpdateChunkVectorMetadata,
   executeCommand,
@@ -39,7 +39,7 @@ export const revectorizeOp = async (
 
   if (chunkIds.length === 0) return {};
 
-  const { client: db } = await getDrizzleDB();
+  const { client: db } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   // 1. 获取 chunk 关联的源文本

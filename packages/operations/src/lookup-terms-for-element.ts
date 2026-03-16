@@ -1,7 +1,7 @@
 import type { OperationContext } from "@cat/domain";
 import type { TermData } from "@cat/shared/schema/misc";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
   getElementWithChunkIds,
@@ -22,7 +22,7 @@ export const lookupTermsForElementOp = async (
   translationLanguageId: string,
   _ctx?: OperationContext,
 ): Promise<TermData[]> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   // 1. 查询 element 获取原文文本和源语言 ID
   const element = await executeQuery({ db: drizzle }, getElementWithChunkIds, {

@@ -8,7 +8,7 @@ export default defineConfig({
       "@cat/domain",
       "@cat/plugin-core",
       "@cat/shared",
-      "@cat/app-server-shared",
+      "@cat/server-shared",
       "zod",
       "zod/v4",
       "zod/v4/core",

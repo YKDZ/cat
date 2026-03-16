@@ -303,9 +303,6 @@ importers:
 
   apps/app-agent:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@cat/operations':
         specifier: workspace:*
         version: link:../../packages/operations
@@ -322,6 +319,9 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@cat/domain':
         specifier: workspace:*
         version: link:../../packages/domain
@@ -352,9 +352,6 @@ importers:
       '@cat/app-agent':
         specifier: workspace:*
         version: link:../app-agent
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@cat/domain':
         specifier: workspace:*
         version: link:../../packages/domain
@@ -419,6 +416,12 @@ importers:
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@cat/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@cat/server-shared':
+        specifier: workspace:*
+        version: link:../../packages/server-shared
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -564,9 +567,6 @@ importers:
 
   packages/@cat-plugin/json-file-handler:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -586,9 +586,6 @@ importers:
 
   packages/@cat-plugin/libretranslate-advisor:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -630,9 +627,6 @@ importers:
 
   packages/@cat-plugin/markdown-file-handler:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -670,9 +664,6 @@ importers:
 
   packages/@cat-plugin/oidc-auth-provider:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/domain':
         specifier: workspace:*
         version: link:../../domain
@@ -745,9 +736,6 @@ importers:
 
   packages/@cat-plugin/openai-vectorizer:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -770,15 +758,15 @@ importers:
 
   packages/@cat-plugin/password-auth-provider:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/domain':
         specifier: workspace:*
         version: link:../../domain
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
+      '@cat/server-shared':
+        specifier: workspace:*
+        version: link:../../server-shared
       '@cat/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -795,9 +783,6 @@ importers:
 
   packages/@cat-plugin/pgvector-storage:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/domain':
         specifier: workspace:*
         version: link:../../domain
@@ -829,9 +814,6 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.993.0
         version: 3.993.0
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -872,9 +854,6 @@ importers:
 
   packages/@cat-plugin/totp-mfa-provider:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -918,9 +897,6 @@ importers:
 
   packages/@cat-plugin/yaml-file-handler:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../db
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../plugin-core
@@ -998,6 +974,9 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.3.1
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -1035,9 +1014,6 @@ importers:
 
   packages/operations:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../db
       '@cat/domain':
         specifier: workspace:*
         version: link:../domain
@@ -1069,9 +1045,6 @@ importers:
 
   packages/plugin-core:
     dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../db
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared

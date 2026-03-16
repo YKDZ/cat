@@ -1,11 +1,6 @@
 import type { DbHandle } from "@cat/domain";
 
-import {
-  and,
-  eq,
-  pluginInstallation,
-  pluginService,
-} from "@cat/db";
+import { executeQuery, listInstalledServicesByType } from "@cat/domain";
 import {
   PluginServiceTypeSchema,
   type PluginServiceType,
@@ -71,28 +66,17 @@ export class ServiceRegistry {
 
       // DB 记录在 syncDynamicServices 中已确保存在
       // oxlint-disable-next-line no-await-in-loop
-      const dbRecord = await drizzle
-        .select({
-          id: pluginService.id,
-        })
-        .from(pluginService)
-        .innerJoin(
-          pluginInstallation,
-          and(
-            eq(pluginInstallation.scopeType, scopeType),
-            eq(pluginInstallation.scopeId, scopeId),
-            eq(pluginInstallation.pluginId, pluginId),
-          ),
-        )
-        .where(
-          and(
-            eq(pluginService.pluginInstallationId, pluginInstallation.id),
-            eq(pluginService.serviceType, type),
-            eq(pluginService.serviceId, id),
-          ),
-        );
+      const dbRecords = await executeQuery(
+        { db: drizzle },
+        listInstalledServicesByType,
+        { serviceType: type, scopeType, scopeId },
+      );
 
-      const dbId = dbRecord[0]?.id;
+      const dbRecord = dbRecords.find(
+        (r) => r.pluginId === pluginId && r.serviceId === id,
+      );
+
+      const dbId = dbRecord?.dbId;
       if (dbId === undefined) {
         logger.warn("PLUGIN", {
           msg: `Service ${type}:${id} has no DB record, skipping registration`,

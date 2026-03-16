@@ -1,7 +1,7 @@
 import type { OperationContext } from "@cat/domain";
 import type { JSONType } from "@cat/shared/schema/json";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
   getElementMeta,
@@ -64,7 +64,7 @@ export const fetchAdviseOp = async (
   data: FetchAdviseInput,
   ctx?: OperationContext,
 ): Promise<FetchAdviseOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
   // Run term lookup, memory search, and element meta fetch in parallel

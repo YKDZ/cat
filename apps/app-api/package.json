@@ -48,7 +48,6 @@
   },
   "peerDependencies": {
     "@cat/app-agent": "workspace:*",
-    "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/operations": "workspace:*",
     "@cat/plugin-core": "workspace:*",

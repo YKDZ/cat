@@ -6,6 +6,7 @@ import {
 import { eq } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 
+import { DrizzleDB } from "@/drizzle/db.ts";
 import {
   setting as settingTable,
   type DrizzleTransaction,
@@ -18,7 +19,6 @@ import {
   user as userTable,
   account as accountTable,
 } from "@/drizzle/schema/schema.ts";
-import { getDrizzleDB } from "@/getter.ts";
 import { AvailableLocales } from "@/utils/languages/cldr.ts";
 import { DEFAULT_SETTINGS } from "@/utils/settings/default.ts";
 
@@ -31,8 +31,8 @@ import { hashPassword } from "./password.ts";
  * 所有修改都是试探性的
  * @returns
  */
-export const ensureDB = async (): Promise<void> => {
-  const { client: drizzle } = await getDrizzleDB();
+export const ensureDB = async (db: DrizzleDB): Promise<void> => {
+  const drizzle = db.client;
 
   await drizzle.transaction(async (tx) => {
     // 维护语言列表

@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import { executeQuery, listElementIdsByDocument } from "@cat/domain";
 import * as z from "zod";
 
@@ -35,7 +35,7 @@ export const upsertDocumentFromFileOp = async (
   data: UpsertDocumentInput,
   ctx?: OperationContext,
 ): Promise<UpsertDocumentOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
 
   // 1. 解析文件（原 dependencies 阶段）
   const parseResult = await parseFileOp(
@@ -53,7 +53,7 @@ export const upsertDocumentFromFileOp = async (
     { documentId: data.documentId },
   );
 
-  // 3. 比较新旧元素（直接调用 diffElementsOp）
+  // 3. 比较新旧元素
   const diffStats = await diffElementsOp(
     {
       documentId: data.documentId,

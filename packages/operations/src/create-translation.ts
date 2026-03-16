@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB } from "@cat/db";
+import { getDbHandle } from "@cat/domain";
 import {
   createInProcessCollector,
   createTranslations,
@@ -64,7 +64,7 @@ export const createTranslationOp = async (
   data: CreateTranslationInput,
   ctx?: OperationContext,
 ): Promise<CreateTranslationOutput> => {
-  const { client: drizzle } = await getDrizzleDB();
+  const { client: drizzle } = await getDbHandle();
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
   if (data.pub && !data.documentId) {

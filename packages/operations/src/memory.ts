@@ -1,13 +1,11 @@
+import type { DbHandle } from "@cat/domain";
+
 import {
-  aliasedTable,
-  eq,
-  inArray,
-  memoryItem,
-  translatableElement,
-  translatableString,
-  translation,
-  type DrizzleTransaction,
-} from "@cat/db";
+  createMemoryItems,
+  executeCommand,
+  executeQuery,
+  fetchTranslationsForMemory,
+} from "@cat/domain";
 
 import {
   placeholderize,
@@ -17,7 +15,7 @@ import {
 import { tokenizeOp } from "./tokenize";
 
 export const insertMemory = async (
-  tx: DrizzleTransaction,
+  tx: DbHandle,
   memoryIds: string[],
   translationIds: number[],
 ): Promise<{ memoryItemIds: number[] }> => {
@@ -25,35 +23,11 @@ export const insertMemory = async (
     return { memoryItemIds: [] };
   }
 
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
+  const translations = await executeQuery(
+    { db: tx },
+    fetchTranslationsForMemory,
+    { translationIds },
   );
-
-  const translations = await tx
-    .select({
-      translationId: translation.id,
-      translationStringId: translation.stringId,
-      sourceStringId: translatableElement.translatableStringId,
-      creatorId: translation.translatorId,
-      sourceText: sourceString.value,
-      translationText: translationString.value,
-    })
-    .from(translation)
-    .innerJoin(
-      translatableElement,
-      eq(translation.translatableElementId, translatableElement.id),
-    )
-    .innerJoin(
-      sourceString,
-      eq(sourceString.id, translatableElement.translatableStringId),
-    )
-    .innerJoin(
-      translationString,
-      eq(translationString.id, translation.stringId),
-    )
-    .where(inArray(translation.id, translationIds));
 
   // Compute templates for each translation pair
   const templated = await Promise.all(
@@ -98,22 +72,19 @@ export const insertMemory = async (
 
   await Promise.all(
     memoryIds.map(async (memoryId) => {
-      const inserted = await tx
-        .insert(memoryItem)
-        .values(
-          templated.map((t) => ({
-            translationId: t.translationId,
-            translationStringId: t.translationStringId,
-            sourceStringId: t.sourceStringId,
-            creatorId: t.creatorId,
-            sourceTemplate: t.sourceTemplate,
-            translationTemplate: t.translationTemplate,
-            slotMapping: t.slotMapping,
-            memoryId,
-          })),
-        )
-        .returning({ id: memoryItem.id });
-      ids.push(...inserted.map((i) => i.id));
+      const result = await executeCommand({ db: tx }, createMemoryItems, {
+        memoryId,
+        items: templated.map((t) => ({
+          translationId: t.translationId,
+          translationStringId: t.translationStringId,
+          sourceStringId: t.sourceStringId,
+          creatorId: t.creatorId,
+          sourceTemplate: t.sourceTemplate,
+          translationTemplate: t.translationTemplate,
+          slotMapping: t.slotMapping,
+        })),
+      });
+      ids.push(...result);
     }),
   );
 
