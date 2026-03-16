@@ -100,7 +100,7 @@
     "@pinia/colada-devtools": "^0.4.2",
     "@tailwindcss/typography": "^0.5.19",
     "@vue/test-utils": "^2.4.6",
-    "@vue/tsconfig": "^0.8.1",
+    "@vue/tsconfig": "^0.9.0",
     "cross-env": "^10.1.0",
     "happy-dom": "^20.6.2",
     "unplugin-dts": "1.0.0-beta.6",

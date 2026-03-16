@@ -40,7 +40,7 @@
     "@tailwindcss/vite": "^4.2.0",
     "@tanstack/vue-table": "^8.21.3",
     "@types/node": "^24.0.0",
-    "@vue/tsconfig": "^0.8.1",
+    "@vue/tsconfig": "^0.9.0",
     "shadcn-vue": "^2.4.3",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "^7.3.1",
