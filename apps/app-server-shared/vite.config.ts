@@ -31,8 +31,6 @@ export default defineConfig({
       entry: {
         index: resolve(import.meta.dirname, "src/index.ts"),
         utils: resolve(import.meta.dirname, "src/utils/index.ts"),
-        cache: resolve(import.meta.dirname, "src/cache/index.ts"),
-        operations: resolve(import.meta.dirname, "src/operations/index.ts"),
       },
       formats: ["es"],
     },

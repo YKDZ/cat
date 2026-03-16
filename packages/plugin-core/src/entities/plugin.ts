@@ -1,4 +1,5 @@
 import type { PluginCapabilities } from "@cat/domain";
+import type { CacheStore, SessionStore } from "@cat/domain";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { Hono } from "hono";
 
@@ -21,6 +22,10 @@ export type PluginContext = {
   registeredServices: Omit<RegisteredService, "service" | "pluginId">[];
   /** 插件能力边界：通过 capability 访问基础能力，不直接触达底层 command/query */
   capabilities: PluginCapabilities;
+  /** 缓存存储（K-V 语义） */
+  cacheStore: CacheStore;
+  /** 会话存储（Hash 语义，支持 TTL） */
+  sessionStore: SessionStore;
 };
 
 export type RouteContext = PluginContext & {

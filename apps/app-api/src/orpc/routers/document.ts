@@ -1,13 +1,6 @@
 import { upsertDocumentFromFileWorkflow } from "@cat/app-agent/workflow";
-import { createDocumentUnderParent } from "@cat/domain";
-import {
-  finishPresignedPutFile,
-  getServiceFromDBId,
-  preparePresignedPutFile,
-  getDownloadUrl,
-  firstOrGivenService,
-} from "@cat/server-shared";
 import { sanitizeFileName } from "@cat/db";
+import { createDocumentUnderParent } from "@cat/domain";
 import {
   countDocumentElements,
   countDocumentTranslations,
@@ -26,6 +19,13 @@ import {
   getProject,
 } from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
+import {
+  finishPresignedPutFile,
+  getServiceFromDBId,
+  preparePresignedPutFile,
+  getDownloadUrl,
+  firstOrGivenService,
+} from "@cat/server-shared";
 import {
   DocumentSchema,
   TranslatableElementSchema,
@@ -57,7 +57,7 @@ export const prepareCreateFromFile = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redis },
+      sessionStore,
       pluginManager,
     } = context;
     const { meta } = input;
@@ -75,7 +75,7 @@ export const prepareCreateFromFile = authed
 
     const { url, putSessionId, fileId } = await preparePresignedPutFile(
       drizzle,
-      redis,
+      sessionStore,
       storage.service,
       storage.id,
       key,
@@ -101,7 +101,7 @@ export const finishCreateFromFile = authed
     const { projectId, putSessionId, languageId } = input;
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redis },
+      sessionStore,
       user,
       pluginManager,
     } = context;
@@ -127,7 +127,7 @@ export const finishCreateFromFile = authed
 
     const fileId = await finishPresignedPutFile(
       drizzle,
-      redis,
+      sessionStore,
       pluginManager,
       putSessionId,
     );
@@ -400,7 +400,7 @@ export const getDocumentFileUrl = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redis },
+      sessionStore,
       pluginManager,
     } = context;
     const { documentId } = input;
@@ -422,7 +422,13 @@ export const getDocumentFileUrl = authed
       storageProviderId,
     );
 
-    return await getDownloadUrl(redis, provider, storageProviderId, key, 120);
+    return await getDownloadUrl(
+      sessionStore,
+      provider,
+      storageProviderId,
+      key,
+      120,
+    );
   });
 
 export const getDocumentFileInfo = authed

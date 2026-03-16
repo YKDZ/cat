@@ -1,6 +1,6 @@
 import type { PluginManager, StorageProvider } from "@cat/plugin-core";
 
-import { DrizzleClient, RedisClientType } from "@cat/db";
+import { DrizzleClient } from "@cat/db";
 import {
   activateFile,
   createBlobAndFile,
@@ -9,6 +9,7 @@ import {
   executeCommand,
   finalizePresignedFile,
   rollbackBlobAndFile,
+  type SessionStore,
 } from "@cat/domain";
 import { logger } from "@cat/shared/utils";
 import { createHash, randomUUID } from "node:crypto";
@@ -71,7 +72,7 @@ export const putBufferToStorage = async (
 
 export const preparePresignedPutFile = async (
   drizzle: DrizzleClient,
-  redis: RedisClientType,
+  sessionStore: SessionStore,
   storage: StorageProvider,
   storageId: number,
   key: string,
@@ -90,14 +91,17 @@ export const preparePresignedPutFile = async (
   const putSessionId = randomUUID();
   const redisKey = `file:client:put:${putSessionId}`;
 
-  await redis.hSet(redisKey, {
-    blobId,
-    fileId,
-    key,
-    storageProviderId: storageId,
-    ctxHash,
-  } satisfies PresignedPutFileSessionPayload);
-  await redis.expire(redisKey, expiresInSeconds);
+  await sessionStore.create(
+    redisKey,
+    {
+      blobId,
+      fileId,
+      key,
+      storageProviderId: storageId,
+      ctxHash,
+    } satisfies PresignedPutFileSessionPayload,
+    expiresInSeconds,
+  );
 
   let url: string;
   if (storage.shouldProxy()) {
@@ -124,7 +128,7 @@ export const FileDownloadPayloadSchema = z.object({
 export type FileDownloadPayload = z.infer<typeof FileDownloadPayloadSchema>;
 
 export const getDownloadUrl = async (
-  redis: RedisClientType,
+  sessionStore: SessionStore,
   storageProvider: StorageProvider,
   storageProviderId: number,
   key: string,
@@ -135,12 +139,15 @@ export const getDownloadUrl = async (
     const token = randomUUID();
     const redisKey = `file:download:${token}`;
 
-    await redis.hSet(redisKey, {
-      key,
-      storageProviderId,
-      filename: filename ?? "",
-    } satisfies FileDownloadPayload);
-    await redis.expire(redisKey, expiresInSeconds);
+    await sessionStore.create(
+      redisKey,
+      {
+        key,
+        storageProviderId,
+        filename: filename ?? "",
+      } satisfies FileDownloadPayload,
+      expiresInSeconds,
+    );
 
     return `/api/storage/download/${token}`;
   }
@@ -154,7 +161,7 @@ export const getDownloadUrl = async (
 
 export const finishPresignedPutFile = async (
   drizzle: DrizzleClient,
-  redis: RedisClientType,
+  sessionStore: SessionStore,
   pluginManager: PluginManager,
   putSessionId: string,
   ctxHash: string = "",
@@ -166,9 +173,11 @@ export const finishPresignedPutFile = async (
     key,
     storageProviderId,
     ctxHash: storedCtxHash,
-  } = PresignedPutFileSessionPayloadSchema.parse(await redis.hGetAll(redisKey));
+  } = PresignedPutFileSessionPayloadSchema.parse(
+    await sessionStore.getAll(redisKey),
+  );
 
-  await redis.del(redisKey);
+  await sessionStore.destroy(redisKey);
 
   const storageProvider = getServiceFromDBId<StorageProvider>(
     pluginManager,

@@ -13,4 +13,3 @@ export {
   alias,
 } from "drizzle-orm/pg-core";
 
-export type { RedisClientType } from "redis";

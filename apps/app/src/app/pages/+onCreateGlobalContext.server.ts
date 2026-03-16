@@ -1,10 +1,10 @@
 import type { GlobalContextServer } from "vike/types";
 
-import { registerDomainEventHandlers } from "@cat/operations";
-import { initAllVectorStorage } from "@cat/server-shared";
 import { ensureDB, getDrizzleDB, getRedisDB, ensureRootUser } from "@cat/db";
 import { executeQuery, getSetting } from "@cat/domain";
+import { registerDomainEventHandlers } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
+import { initAllVectorStorage } from "@cat/server-shared";
 import { assertPromise, logger } from "@cat/shared/utils";
 import { access } from "fs/promises";
 import { join, resolve } from "path";

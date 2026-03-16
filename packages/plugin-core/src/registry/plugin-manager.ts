@@ -22,7 +22,12 @@ import {
   type DrizzleClient,
   type DrizzleTransaction,
 } from "@cat/db";
-import { createPluginCapabilities, type PluginCapabilities } from "@cat/domain";
+import {
+  createPluginCapabilities,
+  getCacheStore,
+  getSessionStore,
+  type PluginCapabilities,
+} from "@cat/domain";
 import { JSONSchemaSchema, type JSONObject } from "@cat/shared/schema/json";
 import {
   getDefaultFromSchema,
@@ -533,6 +538,8 @@ export class PluginManager {
       scopeId: this.scopeId,
       registeredServices,
       capabilities: this.createCapabilities(drizzle),
+      cacheStore: getCacheStore(),
+      sessionStore: getSessionStore(),
     };
 
     return { pluginObj, context };
@@ -767,6 +774,8 @@ export class PluginManager {
         scopeId: this.scopeId,
         registeredServices: [],
         capabilities: this.createCapabilities(drizzle),
+        cacheStore: getCacheStore(),
+        sessionStore: getSessionStore(),
       });
     } catch (e) {
       logger.error("PLUGIN", { msg: `Error deactivating ${pluginId}` }, e);

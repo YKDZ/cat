@@ -1,6 +1,4 @@
 import { createTermTask } from "@cat/app-agent/workflow";
-import { streamSearchTermsOp } from "@cat/operations";
-import { firstOrGivenService } from "@cat/server-shared";
 import {
   addGlossaryTermToConcept,
   countGlossaryConcepts,
@@ -18,6 +16,8 @@ import {
   listProjectGlossaries,
   updateGlossaryConcept,
 } from "@cat/domain";
+import { streamSearchTermsOp } from "@cat/operations";
+import { firstOrGivenService } from "@cat/server-shared";
 import {
   TermStatusValues,
   TermTypeValues,

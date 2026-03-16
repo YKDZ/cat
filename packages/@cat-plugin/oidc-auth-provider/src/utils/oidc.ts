@@ -1,23 +1,20 @@
-import { getRedisDB } from "@cat/db";
+import type { SessionStore } from "@cat/domain";
 
 import type { ProviderConfig } from "..";
 
 import { randomChars } from "./crypto.ts";
 
 export const createOIDCSession = async (
+  sessionStore: SessionStore,
   state: string,
   nonce: string,
 ): Promise<string> => {
-  const { redis } = await getRedisDB();
   const sessionId = randomChars();
-  const sessionKey = `auth:oidc:session:${sessionId}`;
-
-  await redis.hSet(sessionKey, {
-    state,
-    nonce,
-  });
-
-  await redis.expire(sessionKey, 5 * 60);
+  await sessionStore.create(
+    `auth:oidc:session:${sessionId}`,
+    { state, nonce },
+    5 * 60,
+  );
 
   return sessionId;
 };

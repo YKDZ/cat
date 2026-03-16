@@ -23,7 +23,7 @@ export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 
 class Plugin implements CatPlugin {
   services(ctx: PluginContext) {
-    return [new Provider(ctx.config ?? {}, ctx.capabilities)];
+    return [new Provider(ctx.config ?? {}, ctx.capabilities, ctx.sessionStore)];
   }
 }
 

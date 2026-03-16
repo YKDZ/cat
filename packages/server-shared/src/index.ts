@@ -1,3 +1,4 @@
+export * from "./cache";
 export * from "./crypto";
 export * from "./file";
 export * from "./http-helpers";

@@ -2,12 +2,12 @@ import {
   fetchAdviseWorkflow,
   getWorkflowRuntime,
 } from "@cat/app-agent/workflow";
-import { AsyncMessageQueue, hash } from "@cat/server-shared";
 import {
   executeQuery,
   getElementWithChunkIds,
   listProjectGlossaryIds,
 } from "@cat/domain";
+import { AsyncMessageQueue, hash } from "@cat/server-shared";
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
@@ -27,7 +27,7 @@ export const onNew = authed
       }),
     });
     const {
-      redisDB: { redis },
+      cacheStore,
       drizzleDB: { client: drizzle },
       pluginManager,
     } = context;
@@ -90,12 +90,10 @@ export const onNew = authed
       });
       const cacheKey = `cache:suggestions:${elementHash}`;
 
-      const cachedSuggestions = await redis.sMembers(cacheKey);
-      if (cachedSuggestions.length > 0) {
-        for (const s of cachedSuggestions) {
-          suggestionsQueue.push(
-            TranslationSuggestionSchema.parse(JSON.parse(s)),
-          );
+      const cached = await cacheStore.get<TranslationSuggestion[]>(cacheKey);
+      if (cached && cached.length > 0) {
+        for (const s of cached) {
+          suggestionsQueue.push(s);
         }
         return;
       }
@@ -117,18 +115,12 @@ export const onNew = authed
 
       const { suggestions } = await result();
 
-      await Promise.all(
-        suggestions
-          .map((suggestion) => ({
-            ...suggestion,
-            advisorId: advisor.dbId,
-          }))
-          .map(async (suggestion) => {
-            const suggestionStr = JSON.stringify(suggestion);
-            await redis.sAdd(cacheKey, suggestionStr);
-            await redis.expire(cacheKey, 60 * 60);
-          }),
-      );
+      const advisorSuggestions = suggestions.map((suggestion) => ({
+        ...suggestion,
+        advisorId: advisor.dbId,
+      }));
+
+      await cacheStore.set(cacheKey, advisorSuggestions, 60 * 60);
     });
 
     void Promise.all(processSuggestions)

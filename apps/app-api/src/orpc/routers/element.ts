@@ -1,13 +1,10 @@
 import {
-  getDownloadUrl,
-  getServiceFromDBId,
-} from "@cat/server-shared";
-import {
   executeQuery,
   getElementContexts,
   getElementSourceLocation,
 } from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
+import { getDownloadUrl, getServiceFromDBId } from "@cat/server-shared";
 import {
   TranslatableElementContextSchema,
   type TranslatableElementContext,
@@ -71,7 +68,7 @@ export const getSourceLocation = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redis },
+      sessionStore,
       pluginManager,
     } = context;
     const { elementId } = input;
@@ -87,7 +84,7 @@ export const getSourceLocation = authed
         row.storageProviderId,
       );
       fileUrl = await getDownloadUrl(
-        redis,
+        sessionStore,
         provider,
         row.storageProviderId,
         row.blobKey,

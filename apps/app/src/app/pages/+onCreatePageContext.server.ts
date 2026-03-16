@@ -1,11 +1,11 @@
 import type { PageContextServer } from "vike/types";
 
+import { executeQuery, getSetting } from "@cat/domain";
 import {
   createHTTPHelpers,
   detectMobile,
   userFromSessionId,
 } from "@cat/server-shared";
-import { executeQuery, getSetting } from "@cat/domain";
 import { parsePreferredLanguage } from "@cat/shared/utils";
 import { createPinia } from "pinia";
 
