@@ -73,8 +73,6 @@ export const qaTranslationOp = async (
         languageId: data.translationLanguageId,
       },
       glossaryIds,
-      // 不需要 pub，因为我们直接获取结果
-      pub: false,
     },
     { traceId },
   );

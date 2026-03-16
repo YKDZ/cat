@@ -6,12 +6,12 @@ import type {
 } from "@cat/plugin-core";
 import type { AgentDefinition } from "@cat/shared/schema/agent";
 
-import { getServiceFromDBId } from "@cat/server-shared";
 import {
   executeQuery,
   getAgentRunRuntimeState,
   getAgentSessionRuntimeState,
 } from "@cat/domain";
+import { getServiceFromDBId } from "@cat/server-shared";
 import * as z from "zod/v4";
 
 import type { RunId } from "@/graph/types";

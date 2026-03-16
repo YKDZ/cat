@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDrizzleDB, getRedisDB } from "@cat/db";
+import { getDrizzleDB } from "@cat/db";
 import { executeQuery, listLexicalTermSuggestions } from "@cat/domain";
 import {
   PluginManager,
@@ -15,10 +15,6 @@ import {
 } from "@cat/shared/schema/drizzle/qa";
 import z from "zod";
 
-export const getQAPubKey = (id: string): string => {
-  return `qa:issue:${id}`;
-};
-
 export const QAInputSchema = z.object({
   source: z.object({
     languageId: z.string(),
@@ -31,7 +27,6 @@ export const QAInputSchema = z.object({
     tokens: z.array(TokenSchema),
   }),
   glossaryIds: z.array(z.uuidv4()),
-  pub: z.boolean().default(false).optional(),
 });
 
 export const QAOutputSchema = z.object({
@@ -45,20 +40,8 @@ export const QAOutputSchema = z.object({
   ),
 });
 
-export const QAPubPayloadSchema = z.object({
-  result: z.array(
-    QaResultItemSchema.omit({
-      id: true,
-      resultId: true,
-      createdAt: true,
-      updatedAt: true,
-    }),
-  ),
-});
-
 export type QAInput = z.infer<typeof QAInputSchema>;
 export type QAOutput = z.infer<typeof QAOutputSchema>;
-export type QAPubPayload = z.infer<typeof QAPubPayloadSchema>;
 
 const flattenTokens = (tokens: Token[]): Token[] => {
   const result: Token[] = [];
@@ -80,17 +63,13 @@ const flattenTokens = (tokens: Token[]): Token[] => {
  * 质量检查
  *
  * 使用所有已注册的 QA_CHECKER 插件对源文本/翻译文本进行质量检查。
- * 可选通过 Redis pub/sub 发布结果。
  */
 export const qaOp = async (
   payload: QAInput,
-  ctx?: OperationContext,
+  _ctx?: OperationContext,
 ): Promise<QAOutput> => {
   const { client: drizzle } = await getDrizzleDB();
-  const { redisPub } = await getRedisDB();
   const pluginManager = PluginManager.get("GLOBAL", "");
-
-  const traceId = ctx?.traceId ?? crypto.randomUUID();
 
   const terms = await executeQuery(
     { db: drizzle },
@@ -104,7 +83,7 @@ export const qaOp = async (
     },
   );
 
-  const { source, translation, pub } = payload;
+  const { source, translation } = payload;
 
   const checkCtx = {
     source: {
@@ -150,12 +129,6 @@ export const qaOp = async (
       }),
     )
   ).flat();
-
-  if (pub)
-    await redisPub.publish(
-      getQAPubKey(traceId),
-      JSON.stringify({ result } satisfies QAPubPayload),
-    );
 
   return { result };
 };

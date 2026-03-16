@@ -3,13 +3,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: [
-      "@cat/plugin-core",
-      "@cat/shared",
-      "@cat/db",
-      "zod",
-      "lodash-es",
-    ],
+    external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "zod"],
     noExternal: ["remark-parse", "remark-stringify", "remark-gfm", "unified"],
   },
 

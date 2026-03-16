@@ -1,7 +1,4 @@
-import {
-  TokenizeInputSchema,
-  tokenizeOp,
-} from "@cat/operations";
+import { TokenizeInputSchema, tokenizeOp } from "@cat/operations";
 
 import { defineTool } from "@/tools/types";
 

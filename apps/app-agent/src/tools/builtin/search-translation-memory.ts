@@ -1,7 +1,4 @@
-import {
-  SearchMemoryInputSchema,
-  searchMemoryOp,
-} from "@cat/operations";
+import { SearchMemoryInputSchema, searchMemoryOp } from "@cat/operations";
 
 import { defineTool } from "@/tools/types";
 

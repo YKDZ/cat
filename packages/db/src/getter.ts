@@ -1,13 +1,13 @@
 import "dotenv/config";
 import { DrizzleDB } from "@/drizzle/db.ts";
 
-import { RedisDB } from "./redis.ts";
+import { RedisConnection } from "./redis.ts";
 
 declare global {
   // oxlint-disable-next-line no-var
   var __DRIZZLE_DB__: DrizzleDB | undefined;
   // oxlint-disable-next-line no-var
-  var __REDIS_DB__: RedisDB | undefined;
+  var __REDIS__: RedisConnection | undefined;
 }
 
 export const getDrizzleDB = async (): Promise<DrizzleDB> => {
@@ -30,11 +30,11 @@ export const getDrizzleDB = async (): Promise<DrizzleDB> => {
   return globalThis["__DRIZZLE_DB__"];
 };
 
-export const getRedisDB = async (): Promise<RedisDB> => {
-  if (!globalThis["__REDIS_DB__"]) {
-    const db = new RedisDB();
+export const getRedis = async (): Promise<RedisConnection> => {
+  if (!globalThis["__REDIS__"]) {
+    const db = new RedisConnection();
     await db.connect();
-    globalThis["__REDIS_DB__"] = db;
+    globalThis["__REDIS__"] = db;
   }
-  return globalThis["__REDIS_DB__"];
+  return globalThis["__REDIS__"];
 };

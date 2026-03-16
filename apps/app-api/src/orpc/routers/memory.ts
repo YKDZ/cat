@@ -1,4 +1,4 @@
-import type { TranslationSuggestion } from "@cat/shared/schema/plugin";
+import type { MemorySuggestion } from "@cat/shared/schema/misc";
 
 import {
   countMemoryItems,
@@ -14,10 +14,6 @@ import {
 import { adaptMemoryOp, streamSearchMemoryOp } from "@cat/operations";
 import { AsyncMessageQueue } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
-import {
-  MemorySuggestionSchema,
-  type MemorySuggestion,
-} from "@cat/shared/schema/misc";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
@@ -57,7 +53,6 @@ export const onNew = authed
   )
   .handler(async function* ({ context, input }) {
     const {
-      redisDB: { redisSub, redisPub },
       drizzleDB: { client: drizzle },
     } = context;
     const { elementId, translationLanguageId, minConfidence, maxAmount } =
@@ -82,22 +77,6 @@ export const onNew = authed
 
     if (!element || memoryIds.length === 0) return;
 
-    // Subscribe to Redis for any externally-published memory suggestions
-    const memoriesQueue = new AsyncMessageQueue<MemorySuggestion>();
-    const memoryChannelKey = `memories:channel:${elementId}`;
-
-    const onNewMemory = async (suggestionData: string): Promise<void> => {
-      try {
-        const suggestion = await MemorySuggestionSchema.parseAsync(
-          JSON.parse(suggestionData),
-        );
-        memoriesQueue.push(suggestion);
-      } catch (err) {
-        logger.error("WORKER", { msg: "Invalid suggestion format: " }, err);
-      }
-    };
-    await redisSub.subscribe(memoryChannelKey, onNewMemory);
-
     // Use three-channel streaming search
     const stream = streamSearchMemoryOp({
       text: element.value,
@@ -109,9 +88,10 @@ export const onNew = authed
       maxAmount,
     });
 
+    const memoriesQueue = new AsyncMessageQueue<MemorySuggestion>();
+
     // Forward stream results to queue, and fire async LLM adaptation for fuzzy matches
     const pendingAdaptations: Promise<void>[] = [];
-    const suggestionChannelKey = `suggestions:channel:${elementId}`;
 
     void (async () => {
       try {
@@ -131,16 +111,12 @@ export const onNew = authed
               sourceLanguageId: element.languageId,
               translationLanguageId,
             })
-              .then(async ({ adaptedTranslation }) => {
+              .then(({ adaptedTranslation }) => {
                 if (!adaptedTranslation) return;
-                const suggestion: TranslationSuggestion = {
+                memoriesQueue.push({
+                  ...memory,
                   translation: adaptedTranslation,
-                  confidence: memory.confidence,
-                };
-                await redisPub.publish(
-                  suggestionChannelKey,
-                  JSON.stringify(suggestion),
-                );
+                });
               })
               .catch((err: unknown) => {
                 logger.error(
@@ -162,7 +138,6 @@ export const onNew = authed
         yield memory;
       }
     } finally {
-      await redisSub.unsubscribe(memoryChannelKey);
       memoriesQueue.clear();
     }
   });

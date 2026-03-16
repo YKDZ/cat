@@ -1,5 +1,5 @@
-import { LookupTermsInputSchema } from "@cat/operations";
 import { listLexicalTermSuggestions } from "@cat/domain";
+import { LookupTermsInputSchema } from "@cat/operations";
 
 import { runAgentQuery } from "@/db/domain";
 import { defineTool } from "@/tools/types";

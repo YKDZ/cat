@@ -1,7 +1,4 @@
-import {
-  QaTranslationInputSchema,
-  qaTranslationOp,
-} from "@cat/operations";
+import { QaTranslationInputSchema, qaTranslationOp } from "@cat/operations";
 
 import { defineTool } from "@/tools/types";
 
