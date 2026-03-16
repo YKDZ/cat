@@ -1,4 +1,4 @@
-import { DrizzleDB, getDrizzleDB, getRedisDB, RedisDB } from "@cat/db";
+import { DrizzleDB, getDrizzleDB, getRedis, RedisConnection } from "@cat/db";
 import {
   type CacheStore,
   getCacheStore,
@@ -20,11 +20,11 @@ export const getContext = async (
   const helpers = createHTTPHelpers(req, resHeaders);
 
   const drizzleDB = await getDrizzleDB();
-  const redisDB = await getRedisDB();
+  const redis = await getRedis();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
-  initCacheStore(new RedisCacheStore(redisDB.redis));
-  initSessionStore(new RedisSessionStore(redisDB.redis));
+  initCacheStore(new RedisCacheStore(redis.redis));
+  initSessionStore(new RedisSessionStore(redis.redis));
 
   const cacheStore = getCacheStore();
   const sessionStore = getSessionStore();
@@ -37,7 +37,7 @@ export const getContext = async (
     sessionId,
     pluginManager,
     drizzleDB,
-    redisDB,
+    redis,
     cacheStore,
     sessionStore,
     helpers,
@@ -49,7 +49,7 @@ export type Context = {
   sessionId: string | null;
   pluginManager: PluginManager;
   drizzleDB: DrizzleDB;
-  redisDB: RedisDB;
+  redis: RedisConnection;
   cacheStore: CacheStore;
   sessionStore: SessionStore;
   helpers: HTTPHelpers;

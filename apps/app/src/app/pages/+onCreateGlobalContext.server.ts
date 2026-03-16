@@ -1,6 +1,6 @@
 import type { GlobalContextServer } from "vike/types";
 
-import { ensureDB, getDrizzleDB, getRedisDB, ensureRootUser } from "@cat/db";
+import { ensureDB, getDrizzleDB, getRedis, ensureRootUser } from "@cat/db";
 import { executeQuery, getSetting } from "@cat/domain";
 import { registerDomainEventHandlers } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
@@ -35,8 +35,8 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     await ensureDB();
 
-    const redisDB = await getRedisDB();
-    await redisDB.ping();
+    const redis = await getRedis();
+    await redis.ping();
 
     const pluginManager = PluginManager.get("GLOBAL", "");
 
@@ -70,7 +70,7 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     registerDomainEventHandlers();
 
     ctx.drizzleDB = drizzleDB;
-    ctx.redisDB = redisDB;
+    ctx.redis = redis;
     ctx.pluginManager = pluginManager;
 
     ctx.name = await getStringSetting(drizzleDB.client, "server.name", "CAT");

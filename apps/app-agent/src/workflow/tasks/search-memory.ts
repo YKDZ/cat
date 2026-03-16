@@ -1,5 +1,5 @@
-import { searchMemoryOp } from "@cat/operations";
 import { getSearchMemoryChunkRange } from "@cat/domain";
+import { searchMemoryOp } from "@cat/operations";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
 import * as z from "zod/v4";
 

@@ -1,5 +1,5 @@
-import { getServiceFromDBId } from "@cat/server-shared";
 import { PluginManager, type VectorStorage } from "@cat/plugin-core";
+import { getServiceFromDBId } from "@cat/server-shared";
 import * as z from "zod/v4";
 
 import { defineGraphWorkflow } from "@/workflow/define-task";

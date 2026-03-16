@@ -20,7 +20,7 @@ const allowlistedDbImportFiles = new Set([
 ]);
 
 const safeDbImports = new Set([
-  "getRedisDB",
+  "getRedis",
   "sanitizeFileName",
   "verifyPassword",
 ]);

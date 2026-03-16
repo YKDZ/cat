@@ -1,7 +1,4 @@
-import {
-  FetchAdviseInputSchema,
-  fetchAdviseOp,
-} from "@cat/operations";
+import { FetchAdviseInputSchema, fetchAdviseOp } from "@cat/operations";
 
 import { defineTool } from "@/tools/types";
 

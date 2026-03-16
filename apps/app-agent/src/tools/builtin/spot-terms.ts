@@ -1,7 +1,4 @@
-import {
-  SpotTermInputSchema,
-  spotTermOp,
-} from "@cat/operations";
+import { SpotTermInputSchema, spotTermOp } from "@cat/operations";
 
 import { defineTool } from "@/tools/types";
 

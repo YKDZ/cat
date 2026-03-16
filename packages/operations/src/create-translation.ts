@@ -14,10 +14,6 @@ import { createTranslatableStringOp } from "./create-translatable-string";
 import { insertMemory } from "./memory";
 import { qaTranslationOp } from "./qa-translation";
 
-export const getCreateTranslationPubKey = (documentId: string): string => {
-  return `translation:create:${documentId}`;
-};
-
 export const CreateTranslationInputSchema = z.object({
   data: z.array(
     z.object({

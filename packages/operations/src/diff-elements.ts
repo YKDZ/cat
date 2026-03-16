@@ -11,7 +11,7 @@ import {
   listElementsForDiff,
 } from "@cat/domain";
 import { safeZDotJson } from "@cat/shared/schema/json";
-import { isEqual } from "lodash-es";
+import { isDeepStrictEqual } from "node:util";
 import * as z from "zod";
 
 import { createElementOp } from "./create-element";
@@ -84,7 +84,7 @@ export const diffElementsOp = async (
 
   for (const newEl of data.elementData) {
     const matchIndex = oldElementsPool.findIndex((old) =>
-      isEqual(old.meta, newEl.meta),
+      isDeepStrictEqual(old.meta, newEl.meta),
     );
     if (matchIndex !== -1) {
       matched.push({
@@ -130,7 +130,7 @@ export const diffElementsOp = async (
     if (
       pair.old.sourceStartLine !== newStartLine ||
       pair.old.sourceEndLine !== newEndLine ||
-      !isEqual(pair.old.sourceLocationMeta, newLocMeta)
+      !isDeepStrictEqual(pair.old.sourceLocationMeta, newLocMeta)
     ) {
       locationUpdates.push({
         id: pair.old.id,

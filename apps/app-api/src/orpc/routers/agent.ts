@@ -2,6 +2,7 @@ import type { DrizzleDB } from "@cat/db";
 
 import {
   AgentSessionMetaSchema,
+  createAgentEvent,
   createDefaultGraphRuntime,
   rebuildConversationFromRuns,
   resolveDefinition,
@@ -422,12 +423,14 @@ export const graphCancel = authed
       drizzleDB: { client: drizzle },
     } = context;
     const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
-    await graphRuntime.eventBus.publish({
-      runId: input.runId,
-      type: "run:cancel",
-      timestamp: new Date().toISOString(),
-      payload: {},
-    });
+    await graphRuntime.eventBus.publish(
+      createAgentEvent({
+        runId: input.runId,
+        type: "run:cancel",
+        timestamp: new Date().toISOString(),
+        payload: {},
+      }),
+    );
     return { ok: true };
   });
 
@@ -545,17 +548,19 @@ export const submitToolConfirmResponse = authed
     } = context;
 
     const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
-    await graphRuntime.eventBus.publish({
-      runId: input.runId,
-      nodeId: input.nodeId,
-      type: "tool:confirm:response",
-      timestamp: new Date().toISOString(),
-      payload: {
+    await graphRuntime.eventBus.publish(
+      createAgentEvent({
+        runId: input.runId,
         nodeId: input.nodeId,
-        callId: input.response.callId,
-        decision: input.response.decision,
-      },
-    });
+        type: "tool:confirm:response",
+        timestamp: new Date().toISOString(),
+        payload: {
+          nodeId: input.nodeId,
+          callId: input.response.callId,
+          decision: input.response.decision,
+        },
+      }),
+    );
     return { ok: true };
   });
 
