@@ -17,7 +17,7 @@ import {
   Label,
   Slider,
   Switch,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { Settings } from "lucide-vue-next";
 
 const { t } = useI18n();

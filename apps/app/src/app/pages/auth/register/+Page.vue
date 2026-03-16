@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Button } from "@cat/app-ui";
-import { Input } from "@cat/app-ui";
+import { Button } from "@cat/ui";
+import { Input } from "@cat/ui";
 import { useAuthStore } from "@/app/stores/auth";
 import { useToastStore } from "@/app/stores/toast";
 import { orpc } from "@/server/orpc";
@@ -16,7 +16,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import * as z from "zod";
 
 const { t } = useI18n();

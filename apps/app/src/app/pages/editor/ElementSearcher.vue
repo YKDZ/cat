@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { ref } from "vue";
-import { Input } from "@cat/app-ui";
+import { Input } from "@cat/ui";
 import { Search } from "lucide-vue-next";
 import { useEditorContextStore } from "@/app/stores/editor/context";
 

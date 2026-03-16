@@ -32,19 +32,31 @@
       "continuous": true
     },
     "lint": {
-      "dependsOn": ["^build", "build"],
+      "dependsOn": [
+        "^build",
+        "build",
+        { "projects": ["test-utils"], "target": "build" }
+      ],
       "cache": true
     },
     "lint:fix": {
-      "dependsOn": ["^build", "build"],
+      "dependsOn": [
+        "^build",
+        "build",
+        { "projects": ["test-utils"], "target": "build" }
+      ],
       "cache": true
     },
     "typecheck": {
-      "dependsOn": ["^build", "build"],
+      "dependsOn": [
+        "^build",
+        "build",
+        { "projects": ["test-utils"], "target": "build" }
+      ],
       "cache": true
     },
     "test": {
-      "dependsOn": ["build"],
+      "dependsOn": ["build", { "projects": ["test-utils"], "target": "build" }],
       "cache": true
     },
     "fmt": {

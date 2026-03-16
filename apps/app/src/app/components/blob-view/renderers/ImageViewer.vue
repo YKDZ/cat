@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { toast } from "vue-sonner";
 import { Download } from "lucide-vue-next";
 

@@ -1,5 +1,11 @@
-import { chunk, getColumns, language, translatableString } from "@cat/db";
-import { getDbHandle } from "@cat/domain";
+import {
+  ensureLanguages,
+  executeCommand,
+  executeQuery,
+  getDbHandle,
+  listAllChunks,
+  listAllTranslatableStrings,
+} from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -37,8 +43,8 @@ beforeAll(async () => {
     );
   });
 
-  await drizzle.transaction(async (tx) => {
-    await tx.insert(language).values([{ id: "en" }, { id: "zh-Hans" }]);
+  await executeCommand({ db: drizzle }, ensureLanguages, {
+    languageIds: ["en", "zh-Hans"],
   });
 });
 
@@ -61,17 +67,20 @@ test("create-translatable-string should insert chunks to db", async () => {
 
   await result();
 
-  const strings = await drizzle
-    .select(getColumns(translatableString))
-    .from(translatableString);
+  const strings = await executeQuery(
+    { db: drizzle },
+    listAllTranslatableStrings,
+    {},
+  );
 
   expect(strings.length).toEqual(data.length);
 });
 
 test("worker should retrive stored embeddings", async () => {
   const { client: drizzle } = await getDbHandle();
-  const chunkIds = (await drizzle.select({ id: chunk.id }).from(chunk)).map(
-    ({ id }) => id,
+
+  const chunkIds = await executeQuery({ db: drizzle }, listAllChunks, {}).then(
+    (chunks) => chunks.map((chunk) => chunk.id),
   );
 
   const { result } = await retriveEmbeddingsTask.run({ chunkIds });

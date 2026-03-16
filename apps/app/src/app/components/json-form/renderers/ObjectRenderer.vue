@@ -10,7 +10,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { ChevronDown } from "lucide-vue-next";
 
 const props = defineProps<{

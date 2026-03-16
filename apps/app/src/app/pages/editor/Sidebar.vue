@@ -11,13 +11,13 @@ import {
   SidebarFooter,
   SidebarMenuSkeleton,
   SidebarRail,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import SidebarLogo from "@/app/components/SidebarLogo.vue";
 import SidebarElement from "./SidebarElement.vue";
 import ElementSearcher from "./ElementSearcher.vue";
 import SidebarPagination from "./SidebarPagination.vue";
 import { useEditorElementStore } from "@/app/stores/editor/element";
-import { ScrollArea } from "@cat/app-ui";
+import { ScrollArea } from "@cat/ui";
 
 const { displayedElements } = storeToRefs(useEditorElementStore());
 

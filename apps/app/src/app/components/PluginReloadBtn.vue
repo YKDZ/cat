@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 import { useToastStore } from "../stores/toast";
 import { orpc } from "@/server/orpc";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
 const { t } = useI18n();

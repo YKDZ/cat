@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
-import { Spinner } from "@cat/app-ui";
+import { Spinner } from "@cat/ui";
 import { ChevronDown, ChevronRight, Pause } from "lucide-vue-next";
 import Markdown from "@/app/components/Markdown.vue";
 import AgentToolCallCard from "./AgentToolCallCard.vue";

@@ -4,7 +4,7 @@ import type { Project } from "@cat/shared/schema/drizzle/project";
 import DocumentTree from "@/app/components/DocumentTree.vue";
 import { navigate } from "vike/client/router";
 import type { Document } from "@cat/shared/schema/drizzle/document";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { useToastStore } from "@/app/stores/toast";
 import { useI18n } from "vue-i18n";
 

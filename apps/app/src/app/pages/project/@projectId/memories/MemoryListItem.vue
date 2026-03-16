@@ -4,10 +4,10 @@ import { onMounted, ref } from "vue";
 import { navigate } from "vike/client/router";
 import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import { TableRow, TableCell } from "@cat/app-ui";
+import { TableRow, TableCell } from "@cat/ui";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { watchClient } from "@/app/utils/vue.ts";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 
 const { info, rpcWarn } = useToastStore();
 

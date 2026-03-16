@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Badge } from "@cat/app-ui";
+import { Badge } from "@cat/ui";
 import { orpc } from "@/server/orpc";
 import type {
   CommentReaction,

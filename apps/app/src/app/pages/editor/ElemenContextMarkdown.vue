@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TranslatableElementContext } from "@cat/shared/schema/drizzle/document";
-import { Card, CardContent } from "@cat/app-ui";
+import { Card, CardContent } from "@cat/ui";
 import Markdown from "@/app/components/Markdown.vue";
 
 defineProps<{

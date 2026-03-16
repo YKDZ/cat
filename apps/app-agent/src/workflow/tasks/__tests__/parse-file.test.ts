@@ -1,8 +1,15 @@
-import { blob, eq, file, language, pluginService } from "@cat/db";
-import { getDbHandle } from "@cat/domain";
+import {
+  createBlob,
+  createFile,
+  ensureLanguages,
+  getPluginServiceByType,
+  listAllFiles,
+  executeCommand,
+  executeQuery,
+  getDbHandle,
+} from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, readableToString } from "@cat/server-shared";
-import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { Readable } from "stream";
 import { afterAll, beforeAll, expect, test } from "vitest";
@@ -34,31 +41,31 @@ beforeAll(async () => {
     );
   });
 
-  await drizzle.transaction(async (tx) => {
-    await tx.insert(language).values([{ id: "en" }]);
+  await executeCommand({ db: drizzle }, ensureLanguages, {
+    languageIds: ["en"],
+  });
 
-    const { id } = assertSingleNonNullish(
-      await tx
-        .select({ id: pluginService.id })
-        .from(pluginService)
-        .where(eq(pluginService.serviceType, "STORAGE_PROVIDER")),
-    );
+  const storageService = await executeQuery(
+    { db: drizzle },
+    getPluginServiceByType,
+    {
+      serviceType: "STORAGE_PROVIDER",
+    },
+  );
 
-    const { id: blobId } = assertSingleNonNullish(
-      await tx
-        .insert(blob)
-        .values({
-          key,
-          storageProviderId: id,
-        })
-        .returning({ id: blob.id }),
-    );
+  if (!storageService) {
+    throw new Error("Storage provider not found");
+  }
 
-    await tx.insert(file).values({
-      name: "Test File",
-      blobId,
-      isActive: true,
-    });
+  const blobResult = await executeCommand({ db: drizzle }, createBlob, {
+    key,
+    storageProviderId: storageService.id,
+  });
+
+  await executeCommand({ db: drizzle }, createFile, {
+    name: "Test File",
+    blobId: blobResult.id,
+    isActive: true,
   });
 });
 
@@ -79,9 +86,9 @@ test("storage provider should store and retrieve data correctly", async () => {
 
 test("worker should parse elements from file", async () => {
   const { client: drizzle } = await getDbHandle();
-  const { id: fileId } = assertSingleNonNullish(
-    await drizzle.select({ id: file.id }).from(file),
-  );
+
+  const files = await executeQuery({ db: drizzle }, listAllFiles, {});
+  const fileId = files[0].id;
 
   const { result } = await parseFileTask.run({
     fileId,

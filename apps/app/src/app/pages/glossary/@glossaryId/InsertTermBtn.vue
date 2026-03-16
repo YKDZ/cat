@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import InsertTermText from "./InsertTermText.vue";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@cat/app-ui";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@cat/ui";
 
 const { t } = useI18n();
 

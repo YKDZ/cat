@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { User } from "@cat/shared/schema/drizzle/user";
 import { orpc } from "@/server/orpc";
-import { Avatar, AvatarFallback, AvatarImage } from "@cat/app-ui";
-import { Skeleton } from "@cat/app-ui";
+import { Avatar, AvatarFallback, AvatarImage } from "@cat/ui";
+import { Skeleton } from "@cat/ui";
 import { computed } from "vue";
 import { useQuery } from "@pinia/colada";
 

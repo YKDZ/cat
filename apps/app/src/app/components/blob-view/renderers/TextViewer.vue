@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { codeToHtml } from "shiki";
-import { Button, ScrollArea, ScrollBar } from "@cat/app-ui";
+import { Button, ScrollArea, ScrollBar } from "@cat/ui";
 import { toast } from "vue-sonner";
 import { detectLanguage } from "../types";
 import type { FileInfo } from "../types";

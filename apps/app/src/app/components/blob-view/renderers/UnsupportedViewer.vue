@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { FileQuestion, Download } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 

@@ -3,7 +3,7 @@ import type { Language } from "@cat/shared/schema/drizzle/misc";
 import { navigate } from "vike/client/router";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import TranslationProgress from "./TranslationProgress.vue";
-import { TableRow, TableCell } from "@cat/app-ui";
+import { TableRow, TableCell } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{

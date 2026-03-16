@@ -1,0 +1,71 @@
+import { eq, inArray, translatableElement, translatableString } from "@cat/db";
+import * as z from "zod/v4";
+
+import type { Query } from "@/types";
+
+export const ListElementsQuerySchema = z.object({
+  elementIds: z.array(z.int()),
+});
+
+export type ListElementsQuery = z.infer<typeof ListElementsQuerySchema>;
+
+export type ElementWithString = {
+  element: typeof translatableElement.$inferSelect;
+  string: typeof translatableString.$inferSelect;
+};
+
+export const listElements: Query<
+  ListElementsQuery,
+  ElementWithString[]
+> = async (ctx, query) => {
+  if (query.elementIds.length === 0) {
+    return [];
+  }
+
+  const rows = await ctx.db
+    .select({
+      element: translatableElement,
+      string: translatableString,
+    })
+    .from(translatableElement)
+    .innerJoin(
+      translatableString,
+      eq(translatableElement.translatableStringId, translatableString.id),
+    )
+    .where(inArray(translatableElement.id, query.elementIds));
+
+  return rows.map((row) => ({
+    element: row.element,
+    string: row.string,
+  }));
+};
+
+export const ListElementsByDocumentQuerySchema = z.object({
+  documentId: z.uuidv4(),
+});
+
+export type ListElementsByDocumentQuery = z.infer<
+  typeof ListElementsByDocumentQuerySchema
+>;
+
+export const listElementsByDocument: Query<
+  ListElementsByDocumentQuery,
+  ElementWithString[]
+> = async (ctx, query) => {
+  const rows = await ctx.db
+    .select({
+      element: translatableElement,
+      string: translatableString,
+    })
+    .from(translatableElement)
+    .innerJoin(
+      translatableString,
+      eq(translatableElement.translatableStringId, translatableString.id),
+    )
+    .where(eq(translatableElement.documentId, query.documentId));
+
+  return rows.map((row) => ({
+    element: row.element,
+    string: row.string,
+  }));
+};

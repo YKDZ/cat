@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Badge } from "@cat/app-ui";
+import { Badge } from "@cat/ui";
 import { ChevronDown, ChevronRight } from "lucide-vue-next";
 import Markdown from "@/app/components/Markdown.vue";
 import AgentToolCallCard from "./AgentToolCallCard.vue";

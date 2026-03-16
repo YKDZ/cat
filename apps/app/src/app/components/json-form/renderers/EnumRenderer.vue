@@ -12,7 +12,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@cat/app-ui";
+} from "@cat/ui";
 
 const { t } = useI18n();
 

@@ -5,8 +5,8 @@ import { useEditorTableStore } from "@/app/stores/editor/table";
 import { orpc } from "@/server/orpc";
 import type { TranslatableElementContextType } from "@cat/shared/schema/drizzle/enum";
 import { storeToRefs } from "pinia";
-import { SidebarGroup, SidebarGroupContent, SidebarContent } from "@cat/app-ui";
-import { ScrollArea } from "@cat/app-ui";
+import { SidebarGroup, SidebarGroupContent, SidebarContent } from "@cat/ui";
+import { ScrollArea } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 
 const { elementId } = storeToRefs(useEditorTableStore());

@@ -1,4 +1,4 @@
-# @cat/app-ui
+# @cat/ui
 
 Shadcn-Vue based UI component library for Cat project.
 
@@ -17,13 +17,13 @@ This package contains all shadcn-vue components and utilities used across the Ca
 ## Installation
 
 ```bash
-pnpm add @cat/app-ui
+pnpm add @cat/ui
 ```
 
 ## Usage
 
 ```typescript
-import { Button, Card } from "@cat/app-ui";
+import { Button, Card } from "@cat/ui";
 ```
 
 ## Component Sync

@@ -7,7 +7,7 @@ import UploadFiles from "./UploadFiles.vue";
 import Finish from "./Finish.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { Settings } from "lucide-vue-next";
-import { Separator } from "@cat/app-ui";
+import { Separator } from "@cat/ui";
 import { watchClient } from "@/app/utils/vue";
 
 const { t } = useI18n();

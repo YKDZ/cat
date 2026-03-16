@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { RefreshCw, FileText } from "lucide-vue-next";
 import { navigate } from "vike/client/router";
 import { usePageContext } from "vike-vue/usePageContext";

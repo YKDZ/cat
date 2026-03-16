@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Textarea } from "@cat/app-ui";
+import { Textarea } from "@cat/ui";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { orpc } from "@/server/orpc";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 
 const { t } = useI18n();
 

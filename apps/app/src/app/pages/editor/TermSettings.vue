@@ -15,7 +15,7 @@ import {
   FormItem,
   FormLabel,
   Slider,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { Settings } from "lucide-vue-next";
 
 const { t } = useI18n();

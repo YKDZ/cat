@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@cat/app-ui";
+} from "@cat/ui";
 
 const { t } = useI18n();
 

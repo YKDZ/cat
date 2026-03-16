@@ -6,7 +6,7 @@ import IndexSidebar from "@/app/components/IndexSidebar.vue";
 import Header from "./Header.vue";
 import Navbar from "./Navbar.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
-import { Separator } from "@cat/app-ui";
+import { Separator } from "@cat/ui";
 
 const { project, targetLanguages, documents } = useData<Data>();
 

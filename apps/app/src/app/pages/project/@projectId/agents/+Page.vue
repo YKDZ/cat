@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   Separator,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import {
   Bot,
   Check,

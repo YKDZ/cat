@@ -4,7 +4,7 @@ import { BlobView } from "@/app/components/blob-view";
 import { detectFileType } from "@/app/components/blob-view/types";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { orpc } from "@/server/orpc";
-import { SidebarContent } from "@cat/app-ui";
+import { SidebarContent } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";

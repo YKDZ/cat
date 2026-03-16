@@ -8,7 +8,7 @@ import {
   NumberFieldDecrement,
   NumberFieldIncrement,
   NumberFieldInput,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import {
   FormControl,
   FormDescription,
@@ -16,7 +16,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@cat/app-ui";
+} from "@cat/ui";
 
 const props = defineProps<{
   propertyKey: string | number;

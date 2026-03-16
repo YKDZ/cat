@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import CurrentTranslationQaResult from "./CurrentTranslationQaResult.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Check, Copy, MoveRight, Redo, Trash, Undo } from "lucide-vue-next";
 import { useEditorContextStore } from "@/app/stores/editor/context";

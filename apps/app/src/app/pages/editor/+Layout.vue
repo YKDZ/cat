@@ -10,7 +10,7 @@ import { syncRefWith, watchClient } from "@/app/utils/vue.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element";
 import { watch } from "vue";
 import ContextPanel from "./ContextPanel.vue";
-import { ScrollArea } from "@cat/app-ui";
+import { ScrollArea } from "@cat/ui";
 
 const ctx = usePageContext();
 

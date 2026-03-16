@@ -6,14 +6,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 import { ref } from "vue";
 import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast";
-import { useSidebar } from "@cat/app-ui";
-import { Spinner } from "@cat/app-ui";
+import { useSidebar } from "@cat/ui";
+import { Spinner } from "@cat/ui";
 
 const props = defineProps<{
   user: Pick<User, "id" | "name"> | null;

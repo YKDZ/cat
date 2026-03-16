@@ -2,8 +2,8 @@
 import { useData } from "vike-vue/useData";
 import type { Data } from "./+data.server";
 import { computed, ref } from "vue";
-import { Button } from "@cat/app-ui";
-import { Card, CardContent, CardHeader, CardTitle } from "@cat/app-ui";
+import { Button } from "@cat/ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
 import {
   Table,
   TableBody,
@@ -11,11 +11,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@cat/app-ui";
-import { Input } from "@cat/app-ui";
-import { Textarea } from "@cat/app-ui";
-import { Badge } from "@cat/app-ui";
-import { Label } from "@cat/app-ui";
+} from "@cat/ui";
+import { Input } from "@cat/ui";
+import { Textarea } from "@cat/ui";
+import { Badge } from "@cat/ui";
+import { Label } from "@cat/ui";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import MultiPicker from "@/app/components/picker/MultiPicker.vue";
 import type { PickerOption } from "@/app/components/picker";
@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { useToastStore } from "@/app/stores/toast";
 import { orpc } from "@/server/orpc";
 import { logger } from "@cat/shared/utils";

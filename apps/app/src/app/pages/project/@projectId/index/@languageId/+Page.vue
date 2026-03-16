@@ -5,7 +5,7 @@ import { computed, inject } from "vue";
 import type { Data } from "../../+data.server.ts";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 import LanguageDocumentTree from "./LanguageDocumentTree.vue";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 import TranslationProgress from "../TranslationProgress.vue";
 

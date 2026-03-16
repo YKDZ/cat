@@ -13,7 +13,7 @@ import {
   ComboboxTrigger,
   ComboboxViewport,
   Button,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { Check, ChevronDown, Search, X } from "lucide-vue-next";
 import {
   ComboboxCancel,

@@ -82,7 +82,14 @@ export default defineConfig({
           "src/schema/drizzle/comment.ts",
         ),
       },
-      formats: ["es", "cjs"],
+      formats: ["es"],
+    },
+
+    rollupOptions: {
+      output: {
+        preserveModules: true,
+        preserveModulesRoot: resolve(import.meta.dirname, "src"),
+      },
     },
   },
   plugins: [

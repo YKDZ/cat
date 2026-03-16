@@ -12,7 +12,7 @@ import {
   PaginationLast,
   PaginationNext,
   PaginationPrevious,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { inject, onMounted, ref, watch, computed } from "vue";
 import { onRequestTermPair, type PairData } from "./PairTable.telefunc";
 import { useInjectionKey } from "@/app/utils/provide";
@@ -20,13 +20,7 @@ import type { Data } from "./+data.server";
 import { logger } from "@cat/shared/utils";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { navigate } from "vike/client/router";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Skeleton,
-} from "@cat/app-ui";
+import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 import {
   ChevronLeftIcon,

@@ -6,7 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
   Badge,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import {
   ChevronRight,
   Wrench,

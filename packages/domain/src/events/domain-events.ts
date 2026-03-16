@@ -6,6 +6,7 @@ import {
 
 export type DomainEventMap = {
   "setting:updated": { key: string };
+  "user:created": { userId: string };
   "user:updated": { userId: string };
   "translation:created": { documentId: string; translationIds: number[] };
   "translation:updated": { translationIds: number[] };

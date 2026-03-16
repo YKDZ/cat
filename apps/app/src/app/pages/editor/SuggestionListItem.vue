@@ -8,7 +8,7 @@ import { computed } from "vue";
 import type { TranslationSuggestion } from "@cat/shared/schema/plugin";
 import { useQuery } from "@pinia/colada";
 import { orpc } from "@/server/orpc";
-import { Skeleton } from "@cat/app-ui";
+import { Skeleton } from "@cat/ui";
 
 const { replace } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());

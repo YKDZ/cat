@@ -7,9 +7,9 @@ import {
   CardTitle,
   CardDescription,
   CardFooter,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { Plus } from "lucide-vue-next";
 import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
 import PluginComponentSlot from "@/app/components/plugin/PluginComponentSlot.vue";

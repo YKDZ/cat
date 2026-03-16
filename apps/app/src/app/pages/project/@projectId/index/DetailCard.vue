@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import { Card, CardContent, CardHeader, CardTitle } from "@cat/app-ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
 import { orpc } from "@/server/orpc";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { Settings } from "lucide-vue-next";
 import {
   Dialog,
@@ -11,11 +11,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@cat/app-ui";
-import { FormField, FormItem, FormControl, FormLabel } from "@cat/app-ui";
+} from "@cat/ui";
+import { FormField, FormItem, FormControl, FormLabel } from "@cat/ui";
 import * as z from "zod";
 import { useForm } from "vee-validate";
-import { Textarea } from "@cat/app-ui";
+import { Textarea } from "@cat/ui";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useToastStore } from "@/app/stores/toast";
 

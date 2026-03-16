@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { codeToHtml } from "shiki";
-import { ScrollArea, ScrollBar } from "@cat/app-ui";
+import { ScrollArea, ScrollBar } from "@cat/ui";
 import { Hash } from "lucide-vue-next";
 import {
   detectFileType,

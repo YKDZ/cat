@@ -2,7 +2,7 @@
 import { computed, inject } from "vue";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 import { schemaKey, transferDataToString } from "../utils.ts";
-import { FormDescription, FormField, FormItem, FormLabel } from "@cat/app-ui";
+import { FormDescription, FormField, FormItem, FormLabel } from "@cat/ui";
 
 defineProps<{
   propertyKey: string | number;

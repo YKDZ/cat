@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
 import MemoryListItem from "./MemoryListItem.vue";
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@cat/app-ui";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@cat/ui";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { useI18n } from "vue-i18n";
 

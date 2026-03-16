@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { orpc } from "@/server/orpc";
 import type {
   Comment,

@@ -4,7 +4,7 @@ import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 import JsonForm from "@/app/components/json-form/JsonForm.vue";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { Save } from "lucide-vue-next";
 
 const { t } = useI18n();

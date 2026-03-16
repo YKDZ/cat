@@ -19,7 +19,7 @@ import {
   FormItem,
   FormLabel,
   Slider,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 import { useForm } from "vee-validate";

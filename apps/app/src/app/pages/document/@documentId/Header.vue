@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import DocumentBreadcrumb from "@/app/components/DocumentBreadcrumb.vue";
-import { SidebarTrigger } from "@cat/app-ui";
+import { SidebarTrigger } from "@cat/ui";
 import type { Document } from "@cat/shared/schema/drizzle/document";
 
 const props = defineProps<{

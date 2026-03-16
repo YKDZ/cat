@@ -1,7 +1,13 @@
-import { glossary, language, user } from "@cat/db";
-import { getDbHandle } from "@cat/domain";
+import {
+  createGlossary,
+  createUser,
+  ensureLanguages,
+  executeCommand,
+  executeQuery,
+  getDbHandle,
+  listAllGlossaries,
+} from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
@@ -17,7 +23,6 @@ afterAll(async () => {
 beforeAll(async () => {
   const db = await setupTestDB();
   cleanup = db.cleanup;
-  const drizzle = db.client;
 
   PluginManager.clear();
   pluginManager = PluginManager.get(
@@ -26,9 +31,9 @@ beforeAll(async () => {
     new TestPluginLoader(),
   );
 
-  await pluginManager.getDiscovery().syncDefinitions(drizzle);
-  await pluginManager.install(drizzle, "mock");
-  await drizzle.transaction(async (tx) => {
+  await pluginManager.getDiscovery().syncDefinitions(db.client);
+  await pluginManager.install(db.client, "mock");
+  await db.client.transaction(async (tx) => {
     await pluginManager.restore(
       tx,
       // @ts-expect-error no need for hono
@@ -36,32 +41,25 @@ beforeAll(async () => {
     );
   });
 
-  await drizzle.transaction(async (tx) => {
-    await tx.insert(language).values([{ id: "en" }, { id: "zh-Hans" }]);
+  await executeCommand({ db: db.client }, ensureLanguages, {
+    languageIds: ["en", "zh-Hans"],
+  });
+  const user = await executeCommand({ db: db.client }, createUser, {
+    email: "admin@encmys.cn",
+    name: "YKDZ",
+  });
 
-    const { id: userId } = assertSingleNonNullish(
-      await tx
-        .insert(user)
-        .values({
-          email: "admin@encmys.cn",
-          name: "YKDZ",
-        })
-        .returning({ id: user.id }),
-    );
-
-    await tx.insert(glossary).values({
-      name: "Test",
-      creatorId: userId,
-    });
+  await executeCommand({ db: db.client }, createGlossary, {
+    name: "Test",
+    creatorId: user.id,
   });
 });
 
 test("worker should fetch advise", async () => {
   const { client: drizzle } = await getDbHandle();
 
-  const { id: glossaryId } = assertSingleNonNullish(
-    await drizzle.select({ id: glossary.id }).from(glossary),
-  );
+  const glossaries = await executeQuery({ db: drizzle }, listAllGlossaries, {});
+  const glossaryId = glossaries[0].id;
 
   const { result } = await fetchAdviseWorkflow.run(
     {

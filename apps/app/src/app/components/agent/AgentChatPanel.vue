@@ -10,7 +10,7 @@ import {
   ScrollArea,
   Textarea,
   Button,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import {
   ArrowRight,
   Plus,

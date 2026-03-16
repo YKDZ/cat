@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 
 const { t } = useI18n();
 

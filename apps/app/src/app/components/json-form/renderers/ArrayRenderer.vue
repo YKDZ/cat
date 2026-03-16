@@ -15,7 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-vue-next";
 import { getDefaultFromSchema } from "@cat/shared/utils";
 

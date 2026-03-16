@@ -19,5 +19,10 @@
     "@cat/test-utils": "workspace:*",
     "@playwright/test": "^1.58.2",
     "@types/node": "^24.10.13"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "!test-utils"
+    ]
   }
 }

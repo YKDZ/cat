@@ -17,7 +17,7 @@ import {
   PaginationLast,
   PaginationNext,
   PaginationPrevious,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { useI18n } from "vue-i18n";
 import {
   ChevronLeftIcon,
