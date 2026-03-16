@@ -1,11 +1,4 @@
 import {
-  finishPresignedPutFile,
-  firstOrGivenService,
-  getDownloadUrl,
-  getServiceFromDBId,
-  preparePresignedPutFile,
-} from "@cat/server-shared";
-import {
   executeCommand,
   executeQuery,
   getUser,
@@ -14,6 +7,13 @@ import {
   updateUserAvatar,
 } from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
+import {
+  finishPresignedPutFile,
+  firstOrGivenService,
+  getDownloadUrl,
+  getServiceFromDBId,
+  preparePresignedPutFile,
+} from "@cat/server-shared";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { FileMetaSchema } from "@cat/shared/schema/misc";
 import { ORPCError } from "@orpc/client";
@@ -75,7 +75,7 @@ export const prepareUploadAvatar = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redis },
+      sessionStore,
       user,
       pluginManager,
     } = context;
@@ -97,7 +97,7 @@ export const prepareUploadAvatar = authed
 
     const { url, putSessionId } = await preparePresignedPutFile(
       drizzle,
-      redis,
+      sessionStore,
       storage.service,
       storage.id,
       key,
@@ -117,7 +117,7 @@ export const finishUploadAvatar = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redis },
+      sessionStore,
       pluginManager,
       user,
     } = context;
@@ -127,7 +127,7 @@ export const finishUploadAvatar = authed
 
     const fileId = await finishPresignedPutFile(
       drizzle,
-      redis,
+      sessionStore,
       pluginManager,
       putSessionId,
       ctxHash,
@@ -150,7 +150,7 @@ export const getAvatarPresignedUrl = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redis },
+      sessionStore,
       pluginManager,
     } = context;
     const { userId, expiresIn } = input;
@@ -169,7 +169,7 @@ export const getAvatarPresignedUrl = authed
     );
 
     return await getDownloadUrl(
-      redis,
+      sessionStore,
       provider,
       storageProviderId,
       key,

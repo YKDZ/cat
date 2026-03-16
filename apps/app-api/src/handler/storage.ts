@@ -1,10 +1,10 @@
+import { getSessionStore } from "@cat/domain";
+import { PluginManager, type StorageProvider } from "@cat/plugin-core";
 import {
   FileDownloadPayloadSchema,
   getServiceFromDBId,
   PresignedPutFileSessionPayloadSchema,
 } from "@cat/server-shared";
-import { getRedisDB } from "@cat/db";
-import { PluginManager, type StorageProvider } from "@cat/plugin-core";
 import { logger } from "@cat/shared/utils";
 import { Hono } from "hono";
 import { stream } from "hono/streaming";
@@ -14,12 +14,12 @@ const app = new Hono();
 
 app.put("/upload/:sessionId", async (c) => {
   const sessionId = c.req.param("sessionId");
-  const { redis } = await getRedisDB();
+  const sessionStore = getSessionStore();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const redisKey = `file:client:put:${sessionId}`;
   const { key, storageProviderId } = PresignedPutFileSessionPayloadSchema.parse(
-    await redis.hGetAll(redisKey),
+    await sessionStore.getAll(redisKey),
   );
 
   const provider = getServiceFromDBId<StorageProvider>(
@@ -53,13 +53,13 @@ app.put("/upload/:sessionId", async (c) => {
 
 app.get("/download/:token", async (c) => {
   const token = c.req.param("token");
-  const { redis } = await getRedisDB();
+  const sessionStore = getSessionStore();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
   const redisKey = `file:download:${token}`;
 
   const { key, storageProviderId, filename } = FileDownloadPayloadSchema.parse(
-    await redis.hGetAll(redisKey),
+    await sessionStore.getAll(redisKey),
   );
 
   const provider = getServiceFromDBId<StorageProvider>(

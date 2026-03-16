@@ -5,9 +5,9 @@ import {
   QAPubPayloadSchema,
   qaWorkflow,
 } from "@cat/app-agent/workflow";
-import { AsyncMessageQueue } from "@cat/server-shared";
 import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
 import { TokenSchema } from "@cat/plugin-core";
+import { AsyncMessageQueue } from "@cat/server-shared";
 import { logger } from "@cat/shared/utils";
 import { randomUUID } from "node:crypto";
 import z from "zod";

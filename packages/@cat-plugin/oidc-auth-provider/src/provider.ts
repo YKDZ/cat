@@ -1,6 +1,6 @@
 import type { JSONType } from "@cat/shared/schema/json";
 
-import { getRedisDB } from "@cat/db";
+import type { SessionStore } from "@cat/domain";
 import {
   AuthProvider,
   type AuthResult,
@@ -31,12 +31,18 @@ type PreAuthMeta = z.infer<typeof PreAuthMetaSchema>;
 export class Provider extends AuthProvider {
   private config: ProviderConfig;
   private capabilities: PluginCapabilities;
+  private sessionStore: SessionStore;
 
-  constructor(config: JSONType, capabilities: PluginCapabilities) {
+  constructor(
+    config: JSONType,
+    capabilities: PluginCapabilities,
+    sessionStore: SessionStore,
+  ) {
     // oxlint-disable-next-line no-unsafe-call
     super();
     this.config = ProviderConfigSchema.parse(config);
     this.capabilities = capabilities;
+    this.sessionStore = sessionStore;
   }
 
   getId(): string {
@@ -161,8 +167,10 @@ export class Provider extends AuthProvider {
   override async handleLogout({
     sessionId,
   }: HandleLogoutContext): Promise<void> {
-    const { redis } = await getRedisDB();
-    const idToken = await redis.hGet(`user:session:${sessionId}`, "idToken");
+    const idToken = await this.sessionStore.getField(
+      `user:session:${sessionId}`,
+      "idToken",
+    );
 
     if (!idToken) throw new Error("ID Token do not exists");
 

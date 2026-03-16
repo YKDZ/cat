@@ -1,9 +1,17 @@
 import { logger } from "@cat/shared/utils";
 import { createHash } from "node:crypto";
 
-import type { CacheOptions, CacheStore } from "@/cache/types";
+import type { CacheOptions, CacheStore, SessionStore } from "@/cache/types";
 
 import { MemoryCacheStore } from "./memory-cache-store";
+import { MemorySessionStore } from "./memory-session-store";
+
+declare global {
+  // oxlint-disable-next-line no-var
+  var __CACHE_STORE__: CacheStore | undefined;
+  // oxlint-disable-next-line no-var
+  var __SESSION_STORE__: SessionStore | undefined;
+}
 
 /**
  * 递归排序对象的 keys，确保嵌套对象也能正确生成缓存键
@@ -40,25 +48,37 @@ export const generateCacheKey = (payload: unknown): string => {
 };
 
 /**
- * 全局缓存实例
- */
-let globalCacheStore: CacheStore | null = null;
-
-/**
  * 初始化缓存存储
  */
 export const initCacheStore = (store: CacheStore): void => {
-  globalCacheStore = store;
+  globalThis["__CACHE_STORE__"] = store;
 };
 
 /**
  * 获取缓存存储实例
  */
 export const getCacheStore = (): CacheStore => {
-  if (!globalCacheStore) {
-    globalCacheStore = new MemoryCacheStore();
+  if (!globalThis["__CACHE_STORE__"]) {
+    globalThis["__CACHE_STORE__"] = new MemoryCacheStore();
   }
-  return globalCacheStore;
+  return globalThis["__CACHE_STORE__"];
+};
+
+/**
+ * 初始化会话存储
+ */
+export const initSessionStore = (store: SessionStore): void => {
+  globalThis["__SESSION_STORE__"] = store;
+};
+
+/**
+ * 获取会话存储实例
+ */
+export const getSessionStore = (): SessionStore => {
+  if (!globalThis["__SESSION_STORE__"]) {
+    globalThis["__SESSION_STORE__"] = new MemorySessionStore();
+  }
+  return globalThis["__SESSION_STORE__"];
 };
 
 /**

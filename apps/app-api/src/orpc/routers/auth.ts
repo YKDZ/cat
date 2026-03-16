@@ -1,8 +1,7 @@
-import type { RedisClientType } from "@cat/db";
+import type { SessionStore } from "@cat/domain";
 import type { AuthProvider, MFAProvider } from "@cat/plugin-core";
 import type { HTTPHelpers } from "@cat/shared/utils";
 
-import { getServiceFromDBId } from "@cat/server-shared";
 import {
   createAccount,
   createMfaProvider,
@@ -13,14 +12,15 @@ import {
   getMfaProviderByServiceAndUser,
   registerUserWithPasswordAccount,
 } from "@cat/domain";
+import { getServiceFromDBId } from "@cat/server-shared";
 import { JSONSchemaSchema, safeZDotJson } from "@cat/shared/schema/json";
 import { randomBytes } from "node:crypto";
 import * as z from "zod/v4";
 
 const finishLogin = async (
-  redis: RedisClientType,
+  sessionStore: SessionStore,
   userId: string,
-  meta: RedisPayload & {
+  meta: Record<string, string | number> & {
     authProviderId: number;
   },
   helpers: HTTPHelpers,
@@ -28,16 +28,11 @@ const finishLogin = async (
   const sessionId = randomBytes(32).toString("hex");
   const sessionKey = `user:session:${sessionId}`;
 
-  await redis.hSet(sessionKey, {
-    userId,
-    ...meta,
-  });
-  await redis.expire(sessionKey, 24 * 60 * 60);
+  await sessionStore.create(sessionKey, { userId, ...meta }, 24 * 60 * 60);
 
   helpers.setCookie("sessionId", sessionId);
 };
 
-import { HashTypeSchema, type RedisPayload } from "@cat/shared/schema/redis";
 import { ORPCError } from "@orpc/client";
 
 import { authed, base } from "@/orpc/server";
@@ -51,8 +46,7 @@ const PreAuthSessionPayloadSchema = z
     identifier: z.string(),
     meta: z.string(),
   })
-  .catchall(HashTypeSchema);
-type PreAuthSessionPayload = z.infer<typeof PreAuthSessionPayloadSchema>;
+  .catchall(z.string());
 
 const getPreMFASessionKey = (sessionId: string) =>
   `auth:preMFA:session:${sessionId}`;
@@ -62,8 +56,7 @@ const PreMFAPayloadSchema = z
     mfaProviderId: z.coerce.number().int(),
     meta: z.string(),
   })
-  .catchall(HashTypeSchema);
-type PreMFAPayload = z.infer<typeof PreMFAPayloadSchema>;
+  .catchall(z.string());
 
 const getSuccessMFASessionKey = (sessionId: string) =>
   `mfa:success:${sessionId}`;
@@ -73,8 +66,7 @@ const SuccessMFAPayloadSchema = z
     mfaProviderId: z.coerce.number().int(),
     userId: z.uuidv4(),
   })
-  .catchall(HashTypeSchema);
-type SuccessMFAPayload = z.infer<typeof SuccessMFAPayloadSchema>;
+  .catchall(z.string());
 
 const getWaitingMFASessionKey = (sessionId: string) =>
   `auth:waitingMFA:${sessionId}`;
@@ -84,8 +76,7 @@ const WatingMFAPayloadSchema = z
     authProviderId: z.coerce.number().int(),
     mfaProviderIds: z.string(),
   })
-  .catchall(HashTypeSchema);
-type WaitingMFAPayload = z.infer<typeof WatingMFAPayloadSchema>;
+  .catchall(z.string());
 
 const getPreInitMFASessionKey = (sessionId: string) =>
   `auth:preInitMFA:${sessionId}`;
@@ -94,7 +85,6 @@ const PreInitMFAPayloadSchema = z.object({
   mfaProviderId: z.coerce.number().int(),
   payload: z.string(),
 });
-type PreInitMFAPayload = z.infer<typeof PreInitMFAPayloadSchema>;
 
 export const register = base
   .input(
@@ -107,7 +97,7 @@ export const register = base
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
-      redisDB: { redis },
+      sessionStore,
       drizzleDB: { client: drizzle },
       pluginManager,
       helpers,
@@ -137,7 +127,7 @@ export const register = base
     });
 
     await finishLogin(
-      redis,
+      sessionStore,
       result.userId,
       {
         providerIssuer: result.providerIssuer,
@@ -166,7 +156,7 @@ export const preAuth = base
   )
   .handler(async ({ context, input }) => {
     const {
-      redisDB: { redis },
+      sessionStore,
       drizzleDB: { client: drizzle },
       pluginManager,
       helpers: { setCookie },
@@ -202,13 +192,16 @@ export const preAuth = base
       });
 
       const sessionKey = getPreAuthSessionKey(sessionId);
-      await redis.hSet(sessionKey, {
-        userId,
-        identifier,
-        authProviderId,
-        meta: JSON.stringify(meta),
-      } satisfies PreAuthSessionPayload);
-      await redis.expire(sessionKey, 5 * 60);
+      await sessionStore.create(
+        sessionKey,
+        {
+          userId,
+          identifier,
+          authProviderId: String(authProviderId),
+          meta: JSON.stringify(meta),
+        },
+        5 * 60,
+      );
 
       setCookie("preAuthSessionId", sessionId);
 
@@ -218,13 +211,16 @@ export const preAuth = base
       };
     } else {
       const sessionKey = getPreAuthSessionKey(sessionId);
-      await redis.hSet(sessionKey, {
-        userId,
-        identifier,
-        authProviderId,
-        meta: JSON.stringify({}),
-      } satisfies PreAuthSessionPayload);
-      await redis.expire(sessionKey, 5 * 60);
+      await sessionStore.create(
+        sessionKey,
+        {
+          userId,
+          identifier,
+          authProviderId: String(authProviderId),
+          meta: JSON.stringify({}),
+        },
+        5 * 60,
+      );
 
       setCookie("preAuthSessionId", sessionId);
 
@@ -276,7 +272,7 @@ export const auth = base
   )
   .handler(async ({ context, input }) => {
     const {
-      redisDB: { redis },
+      sessionStore,
       drizzleDB: { client: drizzle },
       helpers,
       pluginManager,
@@ -297,8 +293,10 @@ export const auth = base
     helpers.delCookie("preAuthSessionId");
 
     const { userId, identifier, authProviderId, meta } =
-      PreAuthSessionPayloadSchema.parse(await redis.hGetAll(preAuthSessionKey));
-    await redis.del(preAuthSessionKey);
+      PreAuthSessionPayloadSchema.parse(
+        await sessionStore.getAll(preAuthSessionKey),
+      );
+    await sessionStore.destroy(preAuthSessionKey);
 
     const provider = getServiceFromDBId<AuthProvider>(
       pluginManager,
@@ -352,19 +350,22 @@ export const auth = base
       const waitingMFASessionId = randomBytes(32).toString("hex");
       const waitingMFASessionKey = getWaitingMFASessionKey(waitingMFASessionId);
 
-      await redis.hSet(waitingMFASessionKey, {
-        userId,
-        authProviderId,
-        mfaProviderIds: JSON.stringify(mfaProviderIds),
-      } satisfies WaitingMFAPayload);
-      await redis.expire(waitingMFASessionKey, 5 * 60);
+      await sessionStore.create(
+        waitingMFASessionKey,
+        {
+          userId,
+          authProviderId: String(authProviderId),
+          mfaProviderIds: JSON.stringify(mfaProviderIds),
+        },
+        5 * 60,
+      );
 
       return {
         status: "MFA_REQUIRED",
       };
     } else {
       await finishLogin(
-        redis,
+        sessionStore,
         userId,
         {
           ...account,
@@ -393,11 +394,7 @@ export const preMfa = base
       .optional(),
   )
   .handler(async ({ context, input }) => {
-    const {
-      redisDB: { redis },
-      pluginManager,
-      helpers,
-    } = context;
+    const { sessionStore, pluginManager, helpers } = context;
     const { userId, mfaProviderId } = input;
 
     const provider = getServiceFromDBId<MFAProvider>(
@@ -412,15 +409,15 @@ export const preMfa = base
 
     const { passToClient, meta } = await provider.generateChallenge();
 
-    await redis.hSet(
+    await sessionStore.create(
       sessionKey,
-      PreMFAPayloadSchema.parse({
+      {
         userId,
-        mfaProviderId,
+        mfaProviderId: String(mfaProviderId),
         meta: JSON.stringify(meta),
-      } satisfies PreMFAPayload),
+      },
+      5 * 60,
     );
-    await redis.expire(sessionKey, 5 * 60);
 
     helpers.setCookie("preMFASessionId", sessionId);
 
@@ -458,12 +455,7 @@ export const preInitMfaForUser = authed
   )
   .output(z.void())
   .handler(async ({ context, input }) => {
-    const {
-      redisDB: { redis },
-      pluginManager,
-      user,
-      helpers,
-    } = context;
+    const { sessionStore, pluginManager, user, helpers } = context;
     const { mfaProviderId } = input;
 
     const provider = getServiceFromDBId<MFAProvider>(
@@ -480,12 +472,15 @@ export const preInitMfaForUser = authed
     const sessionId = randomBytes(32).toString("hex");
     const sessionKey = getPreInitMFASessionKey(sessionId);
 
-    await redis.hSet(sessionKey, {
-      userId: user.id,
-      mfaProviderId,
-      payload: JSON.stringify(result.payload),
-    } satisfies PreInitMFAPayload);
-    await redis.expire(sessionKey, 5 * 60);
+    await sessionStore.create(
+      sessionKey,
+      {
+        userId: user.id,
+        mfaProviderId: String(mfaProviderId),
+        payload: JSON.stringify(result.payload),
+      },
+      5 * 60,
+    );
 
     helpers.setCookie("preInitMFASessionId", sessionId);
   });
@@ -499,7 +494,7 @@ export const initMfaForUser = authed
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
-      redisDB: { redis },
+      sessionStore,
       drizzleDB: { client: drizzle },
       pluginManager,
       user,
@@ -517,9 +512,9 @@ export const initMfaForUser = authed
 
     const sessionKey = getPreInitMFASessionKey(sessionId);
     const { payload, mfaProviderId, userId } = PreInitMFAPayloadSchema.parse(
-      await redis.hGetAll(sessionKey),
+      await sessionStore.getAll(sessionKey),
     );
-    await redis.del(sessionKey);
+    await sessionStore.destroy(sessionKey);
 
     if (userId !== user.id)
       throw new ORPCError("UNAUTHORIZED", {
@@ -563,7 +558,7 @@ export const mfa = base
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      redisDB: { redis },
+      sessionStore,
       pluginManager,
       helpers,
     } = context;
@@ -578,9 +573,9 @@ export const mfa = base
 
     const sessionKey = getPreMFASessionKey(sessionId);
     const { userId, mfaProviderId, meta } = PreMFAPayloadSchema.parse(
-      await redis.hGetAll(sessionKey),
+      await sessionStore.getAll(sessionKey),
     );
-    await redis.del(sessionKey);
+    await sessionStore.destroy(sessionKey);
     helpers.delCookie("preMFASessionId");
 
     const provider = getServiceFromDBId<MFAProvider>(
@@ -622,12 +617,15 @@ export const mfa = base
     // 创建一个 MFA 成功的临时记录以便各种 completeXXXWithMFA 取用
     const successMFASessionId = randomBytes(32).toString("hex");
     const successMFASessionKey = getSuccessMFASessionKey(successMFASessionId);
-    await redis.hSet(successMFASessionKey, {
-      succeedAt: Date.now(),
-      mfaProviderId,
-      userId,
-    } satisfies SuccessMFAPayload);
-    await redis.expire(successMFASessionKey, 5 * 60);
+    await sessionStore.create(
+      successMFASessionKey,
+      {
+        succeedAt: String(Date.now()),
+        mfaProviderId: String(mfaProviderId),
+        userId,
+      },
+      5 * 60,
+    );
 
     helpers.setCookie("successMFASessionId", successMFASessionId);
   });
@@ -635,10 +633,7 @@ export const mfa = base
 export const completeAuthWithMFA = base
   .output(z.void())
   .handler(async ({ context }) => {
-    const {
-      redisDB: { redis },
-      helpers,
-    } = context;
+    const { sessionStore, helpers } = context;
 
     const waitingMFASessionId = helpers.getCookie("waitingMFASessionId");
     helpers.delCookie("waitingMFASessionId");
@@ -653,7 +648,9 @@ export const completeAuthWithMFA = base
       userId: waitingMFAUserId,
       authProviderId,
       mfaProviderIds,
-    } = WatingMFAPayloadSchema.parse(await redis.hGetAll(waitingMFASessionKey));
+    } = WatingMFAPayloadSchema.parse(
+      await sessionStore.getAll(waitingMFASessionKey),
+    );
 
     const successMFASessionId = helpers.getCookie("successMFASessionId");
     helpers.delCookie("successMFASessionId");
@@ -664,9 +661,9 @@ export const completeAuthWithMFA = base
 
     const successMFASessionKey = getSuccessMFASessionKey(successMFASessionId);
     const { userId: mfaUserId, mfaProviderId } = SuccessMFAPayloadSchema.parse(
-      await redis.hGetAll(successMFASessionKey),
+      await sessionStore.getAll(successMFASessionKey),
     );
-    await redis.del(successMFASessionKey);
+    await sessionStore.destroy(successMFASessionKey);
 
     if (waitingMFAUserId !== mfaUserId)
       throw new ORPCError("BAD_REQUEST", {
@@ -682,7 +679,7 @@ export const completeAuthWithMFA = base
       });
 
     await finishLogin(
-      redis,
+      sessionStore,
       waitingMFAUserId,
       { mfaProviderId, authProviderId },
       helpers,
@@ -690,17 +687,15 @@ export const completeAuthWithMFA = base
   });
 
 export const logout = authed.output(z.void()).handler(async ({ context }) => {
-  const {
-    redisDB: { redis },
-    sessionId,
-    pluginManager,
-    helpers,
-  } = context;
+  const { sessionStore, sessionId, pluginManager, helpers } = context;
 
   const sessionKey = `user:session:${sessionId}`;
 
   // 也有不存在 authProviderId 的时候，比如通过注册自动登录
-  const authProviderIdData = await redis.hGet(sessionKey, "authProviderId");
+  const authProviderIdData = await sessionStore.getField(
+    sessionKey,
+    "authProviderId",
+  );
   if (authProviderIdData) {
     const authProviderId = Number(authProviderIdData);
 
@@ -714,6 +709,6 @@ export const logout = authed.output(z.void()).handler(async ({ context }) => {
     }
   }
 
-  await redis.del(`user:session:${sessionId}`);
+  await sessionStore.destroy(`user:session:${sessionId}`);
   helpers.delCookie("sessionId");
 });

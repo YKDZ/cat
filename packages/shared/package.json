@@ -36,10 +36,6 @@
       "types": "./dist/schema/ce.d.ts",
       "import": "./dist/schema/ce.js"
     },
-    "./schema/redis": {
-      "types": "./dist/schema/redis.d.ts",
-      "import": "./dist/schema/redis.js"
-    },
     "./schema/plugin": {
       "types": "./dist/schema/plugin.d.ts",
       "import": "./dist/schema/plugin.js"

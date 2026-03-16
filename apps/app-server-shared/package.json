@@ -23,14 +23,6 @@
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils.js"
-    },
-    "./cache": {
-      "types": "./dist/cache/index.d.ts",
-      "import": "./dist/cache.js"
-    },
-    "./operations": {
-      "types": "./dist/operations/index.d.ts",
-      "import": "./dist/operations.js"
     }
   },
   "scripts": {

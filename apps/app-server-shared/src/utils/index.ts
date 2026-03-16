@@ -1,7 +1,5 @@
 export * from "./crypto.ts";
 export * from "./file.ts";
-export * from "./memory.ts";
-export * from "./memory-template.ts";
 export * from "./plugin.ts";
 export * from "./queue.ts";
 export * from "./user.ts";

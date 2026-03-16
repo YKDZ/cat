@@ -45,3 +45,21 @@ export interface CacheStore {
    */
   has(key: string): Promise<boolean>;
 }
+
+/**
+ * 会话存储接口（基于 Hash 结构）
+ */
+export interface SessionStore {
+  /** 创建会话并设置 TTL */
+  create(
+    key: string,
+    fields: Record<string, string | number>,
+    ttlSeconds: number,
+  ): Promise<void>;
+  /** 读取单个字段 */
+  getField(key: string, field: string): Promise<string | null>;
+  /** 读取全部字段 */
+  getAll(key: string): Promise<Record<string, string> | null>;
+  /** 销毁会话 */
+  destroy(key: string): Promise<void>;
+}

@@ -2,15 +2,16 @@ import type { StorageProvider } from "@cat/plugin-core";
 import type { PageContextServer } from "vike/types";
 
 import {
-  getDownloadUrl,
-  getServiceFromDBId,
-} from "@cat/server-shared";
-import { executeQuery, getDocument, getDocumentBlobInfo } from "@cat/domain";
+  executeQuery,
+  getDocument,
+  getDocumentBlobInfo,
+  getSessionStore,
+} from "@cat/domain";
+import { getDownloadUrl, getServiceFromDBId } from "@cat/server-shared";
 import { render } from "vike/abort";
 
 export const data = async (ctx: PageContextServer) => {
   const { client: drizzle } = ctx.globalContext.drizzleDB;
-  const { redis } = ctx.globalContext.redisDB;
   const { pluginManager } = ctx.globalContext;
   const { documentId } = ctx.routeParams;
 
@@ -51,8 +52,9 @@ export const data = async (ctx: PageContextServer) => {
       activeFileInfo.storageProviderId,
     );
 
+    const sessionStore = getSessionStore();
     fileUrl = await getDownloadUrl(
-      redis,
+      sessionStore,
       provider,
       activeFileInfo.storageProviderId,
       activeFileInfo.key,

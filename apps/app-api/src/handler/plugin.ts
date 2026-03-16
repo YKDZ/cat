@@ -1,5 +1,5 @@
-import { resolvePluginComponentPath } from "@cat/server-shared";
 import { PluginManager } from "@cat/plugin-core";
+import { resolvePluginComponentPath } from "@cat/server-shared";
 import { logger } from "@cat/shared/utils";
 import { Hono } from "hono";
 import { stream } from "hono/streaming";

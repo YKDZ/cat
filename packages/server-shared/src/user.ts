@@ -1,12 +1,7 @@
 import type { User } from "@cat/shared/schema/drizzle/user";
 
-import {
-  eq,
-  getColumns,
-  getRedisDB,
-  DrizzleClient,
-  user as userTable,
-} from "@cat/db";
+import { eq, getColumns, DrizzleClient, user as userTable } from "@cat/db";
+import { getSessionStore } from "@cat/domain";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
 import { assertSingleOrNull } from "@cat/shared/utils";
 
@@ -16,9 +11,12 @@ export const userFromSessionId = async (
 ): Promise<User | null> => {
   if (!sessionId) return null;
 
-  const { redis } = await getRedisDB();
+  const sessionStore = getSessionStore();
 
-  const userId = await redis.hGet(`user:session:${sessionId}`, "userId");
+  const userId = await sessionStore.getField(
+    `user:session:${sessionId}`,
+    "userId",
+  );
   if (!userId) return null;
 
   const user = assertSingleOrNull(

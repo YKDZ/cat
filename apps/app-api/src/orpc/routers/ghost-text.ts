@@ -1,12 +1,12 @@
 import type { AgentContextProvider, LLMProvider } from "@cat/plugin-core";
 
 import { buildSystemPrompt, runFim } from "@cat/app-agent";
-import { getServiceFromDBId } from "@cat/server-shared";
 import {
   executeQuery,
   getElementWithChunkIds,
   listAgentDefinitions,
 } from "@cat/domain";
+import { getServiceFromDBId } from "@cat/server-shared";
 import { assertFirstNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 

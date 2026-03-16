@@ -1,11 +1,6 @@
 import type { TranslationSuggestion } from "@cat/shared/schema/plugin";
 
 import {
-  adaptMemoryOp,
-  streamSearchMemoryOp,
-} from "@cat/operations";
-import { AsyncMessageQueue } from "@cat/server-shared";
-import {
   countMemoryItems,
   createMemory as createMemoryCommand,
   executeCommand,
@@ -16,6 +11,8 @@ import {
   listOwnedMemories,
   listProjectMemories,
 } from "@cat/domain";
+import { adaptMemoryOp, streamSearchMemoryOp } from "@cat/operations";
+import { AsyncMessageQueue } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import {
   MemorySuggestionSchema,
