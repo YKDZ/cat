@@ -438,40 +438,6 @@ importers:
         specifier: ^24.10.13
         version: 24.10.13
 
-  apps/app-server-shared:
-    dependencies:
-      '@cat/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@cat/domain':
-        specifier: workspace:*
-        version: link:../../packages/domain
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../packages/plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      lodash-es:
-        specifier: ^4.17.21
-        version: 4.17.23
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      '@cat/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@types/lodash-es':
-        specifier: ^4.17.12
-        version: 4.17.12
-      unplugin-dts:
-        specifier: 1.0.0-beta.6
-        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.2.3))(@vue/language-core@3.0.6(typescript@5.9.3))(esbuild@0.27.3)(rollup@4.57.1)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2))
-      vite:
-        specifier: ^7.3.1
-        version: 7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
-
   apps/app-ui:
     dependencies:
       '@vee-validate/zod':

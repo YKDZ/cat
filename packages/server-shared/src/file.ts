@@ -1,6 +1,5 @@
 import type { PluginManager, StorageProvider } from "@cat/plugin-core";
 
-import { DrizzleClient } from "@cat/db";
 import {
   activateFile,
   createBlobAndFile,
@@ -9,6 +8,7 @@ import {
   executeCommand,
   finalizePresignedFile,
   rollbackBlobAndFile,
+  type DbHandle,
   type SessionStore,
 } from "@cat/domain";
 import { logger } from "@cat/shared/utils";
@@ -31,7 +31,7 @@ export type PresignedPutFileSessionPayload = z.infer<
 >;
 
 export const putBufferToStorage = async (
-  drizzle: DrizzleClient,
+  drizzle: DbHandle,
   storageProvider: StorageProvider,
   storageProviderId: number,
   buffer: Buffer,
@@ -71,7 +71,7 @@ export const putBufferToStorage = async (
 };
 
 export const preparePresignedPutFile = async (
-  drizzle: DrizzleClient,
+  drizzle: DbHandle,
   sessionStore: SessionStore,
   storage: StorageProvider,
   storageId: number,
@@ -160,7 +160,7 @@ export const getDownloadUrl = async (
 };
 
 export const finishPresignedPutFile = async (
-  drizzle: DrizzleClient,
+  drizzle: DbHandle,
   sessionStore: SessionStore,
   pluginManager: PluginManager,
   putSessionId: string,

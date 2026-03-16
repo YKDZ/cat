@@ -1,6 +1,6 @@
+import type { SessionStore } from "@cat/domain";
 import type { JSONType } from "@cat/shared/schema/json";
 
-import type { SessionStore } from "@cat/domain";
 import {
   AuthProvider,
   type AuthResult,

@@ -1,4 +1,4 @@
-import type { DrizzleClient } from "@cat/db";
+import type { DbHandle } from "@cat/domain";
 import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 
 import * as z from "zod/v4";
@@ -52,7 +52,7 @@ export type ContextResolveContext = {
   /** 当前已解析的所有变量（包括种子变量和前序 provider 产出的变量） */
   resolvedVars: ReadonlyMap<string, string | number | boolean>;
   /** Drizzle 数据库客户端，供 provider 执行查询 */
-  drizzle: DrizzleClient;
+  drizzle: DbHandle;
   /**
    * 权限检查钩子（预留接口）。
    *

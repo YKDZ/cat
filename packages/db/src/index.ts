@@ -12,4 +12,3 @@ export {
   intersectAll,
   alias,
 } from "drizzle-orm/pg-core";
-

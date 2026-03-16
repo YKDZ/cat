@@ -1,12 +1,15 @@
 import type { User } from "@cat/shared/schema/drizzle/user";
 
-import { eq, getColumns, DrizzleClient, user as userTable } from "@cat/db";
-import { getSessionStore } from "@cat/domain";
+import {
+  executeQuery,
+  getSessionStore,
+  getUser,
+  type DbHandle,
+} from "@cat/domain";
 import { UserSchema } from "@cat/shared/schema/drizzle/user";
-import { assertSingleOrNull } from "@cat/shared/utils";
 
 export const userFromSessionId = async (
-  drizzle: DrizzleClient,
+  drizzle: DbHandle,
   sessionId: string | null,
 ): Promise<User | null> => {
   if (!sessionId) return null;
@@ -19,13 +22,7 @@ export const userFromSessionId = async (
   );
   if (!userId) return null;
 
-  const user = assertSingleOrNull(
-    await drizzle
-      .select(getColumns(userTable))
-      .from(userTable)
-      .where(eq(userTable.id, userId))
-      .limit(1),
-  );
+  const user = await executeQuery({ db: drizzle }, getUser, { userId });
 
   return UserSchema.nullable().parse(user);
 };
