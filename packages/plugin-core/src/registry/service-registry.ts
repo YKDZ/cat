@@ -1,9 +1,10 @@
+import type { DbHandle } from "@cat/domain";
+
 import {
   and,
   eq,
   pluginInstallation,
   pluginService,
-  type DrizzleClient,
 } from "@cat/db";
 import {
   PluginServiceTypeSchema,
@@ -55,7 +56,7 @@ export class ServiceRegistry {
    * 先移除该插件旧的注册（支持 reload），再重新注册
    */
   public async combine(
-    drizzle: DrizzleClient,
+    drizzle: DbHandle,
     scopeType: ScopeType,
     scopeId: string,
     pluginId: string,
