@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import * as z from "zod/v4";
 import type { TranslatableElementContext } from "@cat/shared/schema/drizzle/document";
-import { Card, CardContent } from "@cat/app-ui";
+import { Card, CardContent } from "@cat/ui";
 
 type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 

@@ -27,7 +27,7 @@ RUN pnpm install --offline --frozen-lockfile --filter=@cat/app... --filter=@cat-
 
 FROM builder AS deployer
 
-RUN pnpm --filter=@cat/app deploy --prod --no-optional /deployer \
+RUN pnpm --filter=@cat/app deploy --prod --no-optional --legacy /deployer \
     && pnpm prune --prod --no-optional
 
 FROM node:24-alpine AS runner
@@ -35,15 +35,10 @@ ENV NODE_ENV=production
 
 WORKDIR /app 
 
-COPY --from=deployer /deployer/plugins ./plugins/
-COPY --from=deployer /deployer/package.json ./
-COPY --from=deployer /deployer/node_modules ./node_modules/
-COPY --from=deployer /deployer/dist ./dist/
-COPY --from=deployer /deployer/drizzle ./drizzle/
-COPY --from=deployer /deployer/scripts/docker-health-check.js ./scripts/docker-health-check.js
+COPY --from=deployer /deployer/ ./
 
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-    CMD node scripts/docker-check-health.js
+    CMD node scripts/docker-health-check.js
 
 EXPOSE 3000
 

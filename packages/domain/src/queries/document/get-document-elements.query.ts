@@ -32,7 +32,7 @@ export const GetDocumentElementsQuerySchema = z.object({
   documentId: z.uuidv4(),
   page: z.int().min(0).default(0),
   pageSize: z.int().min(1).default(16),
-  searchQuery: z.string().default(""),
+  searchQuery: z.string().default("").optional(),
   isApproved: z.boolean().optional(),
   isTranslated: z.boolean().optional(),
   languageId: z.string().optional(),
@@ -102,7 +102,7 @@ export const getDocumentElements: Query<
     eq(translatableElement.documentId, query.documentId),
   ];
 
-  if (query.searchQuery.trim().length > 0) {
+  if (query.searchQuery && query.searchQuery.trim().length > 0) {
     whereConditions.push(
       ilike(translatableString.value, `%${query.searchQuery}%`),
     );

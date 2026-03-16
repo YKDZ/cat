@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@cat/app-ui";
-import { Label } from "@cat/app-ui";
-import { Textarea } from "@cat/app-ui";
+} from "@cat/ui";
+import { Label } from "@cat/ui";
+import { Textarea } from "@cat/ui";
 import { ref, computed } from "vue";
 import { useToastStore } from "@/app/stores/toast";
 import { logger } from "@cat/shared/utils";

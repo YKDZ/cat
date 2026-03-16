@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { orpc } from "@/server/orpc";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { useI18n } from "vue-i18n";
 import { useEditorTableStore } from "@/app/stores/editor/table";

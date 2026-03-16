@@ -3,7 +3,13 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "@cat/server-shared", "zod"],
+    external: [
+      "@cat/plugin-core",
+      "@cat/shared",
+      "@cat/db",
+      "@cat/server-shared",
+      "zod",
+    ],
   },
 
   resolve: {
@@ -16,7 +22,13 @@ export default defineConfig({
     ssr: true,
     emptyOutDir: true,
     rollupOptions: {
-      external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "@cat/server-shared", "zod"],
+      external: [
+        "@cat/plugin-core",
+        "@cat/shared",
+        "@cat/db",
+        "@cat/server-shared",
+        "zod",
+      ],
     },
 
     lib: {

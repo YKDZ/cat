@@ -7,7 +7,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   navigationMenuTriggerStyle,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { Server } from "lucide-vue-next";
 

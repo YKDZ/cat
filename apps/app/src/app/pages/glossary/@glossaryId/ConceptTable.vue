@@ -12,20 +12,14 @@ import {
   PaginationLast,
   PaginationNext,
   PaginationPrevious,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { inject, onMounted, ref, computed, watch } from "vue";
 import { onRequestConcept, type ConceptData } from "./ConceptTable.telefunc";
 import { useInjectionKey } from "@/app/utils/provide";
 import type { Data } from "./+data.server";
 import { logger } from "@cat/shared/utils";
 import { navigate } from "vike/client/router";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Skeleton,
-} from "@cat/app-ui";
+import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 import {
   ChevronLeftIcon,

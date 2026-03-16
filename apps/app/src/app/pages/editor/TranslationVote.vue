@@ -3,11 +3,11 @@ import { ref } from "vue";
 import { orpc } from "@/server/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { Minus, Plus } from "lucide-vue-next";
-import { Skeleton } from "@cat/app-ui";
+import { Skeleton } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 
 const props = defineProps<{

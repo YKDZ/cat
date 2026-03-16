@@ -1,5 +1,4 @@
 # app
-apps/app/ollama
 apps/app/plugins
 
 # Dependencies
@@ -9,7 +8,6 @@ apps/app/plugins
 # Build outputs
 **/dist
 **/build
-**/.next
 **/out
 
 # NX cache

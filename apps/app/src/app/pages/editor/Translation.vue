@@ -6,11 +6,7 @@ import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import TranslationApprovalBtn from "./TranslationApprovalBtn.vue";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@cat/app-ui";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@cat/ui";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { storeToRefs } from "pinia";

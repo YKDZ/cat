@@ -5,10 +5,10 @@ import type { Data } from "./+data.server.ts";
 import AuthError from "./AuthError.vue";
 import logoUrl from "@/app/assets/logo.png";
 import AuthPreHandler from "./AuthPreHandler.vue";
-import { Input } from "@cat/app-ui";
+import { Input } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { FormField, FormLabel, FormControl } from "@cat/app-ui";
+import { FormField, FormLabel, FormControl } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 
 const ctx = usePageContext();

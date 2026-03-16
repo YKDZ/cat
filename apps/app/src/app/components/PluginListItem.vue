@@ -4,7 +4,7 @@ import { computed, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
-import { Card, CardHeader, CardTitle } from "@cat/app-ui";
+import { Card, CardHeader, CardTitle } from "@cat/ui";
 import { orpc } from "@/server/orpc";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import { useQuery } from "@pinia/colada";

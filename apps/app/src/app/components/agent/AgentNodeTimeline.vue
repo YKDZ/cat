@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Badge } from "@cat/app-ui";
+import { Badge } from "@cat/ui";
 import { Wrench } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 

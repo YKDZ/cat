@@ -9,11 +9,11 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarContent,
-} from "@cat/app-ui";
-import { ScrollArea } from "@cat/app-ui";
-import { Input } from "@cat/app-ui";
+} from "@cat/ui";
+import { ScrollArea } from "@cat/ui";
+import { Input } from "@cat/ui";
 import { ref } from "vue";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 import { ArrowRight, ChevronDown, ChevronUp } from "lucide-vue-next";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";

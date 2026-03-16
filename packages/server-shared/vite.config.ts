@@ -32,6 +32,13 @@ export default defineConfig({
       },
       formats: ["es"],
     },
+
+    rollupOptions: {
+      output: {
+        preserveModules: true,
+        preserveModulesRoot: resolve(import.meta.dirname, "src"),
+      },
+    },
   },
 
   plugins: [

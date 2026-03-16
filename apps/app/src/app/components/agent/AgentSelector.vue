@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import { useAgentStore } from "@/app/stores/agent";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import { Bot } from "lucide-vue-next";
 
 const { t } = useI18n();

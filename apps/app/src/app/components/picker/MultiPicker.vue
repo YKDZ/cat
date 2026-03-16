@@ -16,7 +16,7 @@ import {
   TagsInputItem,
   TagsInputItemDelete,
   Button,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 

@@ -10,7 +10,7 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { useCookieStringRef } from "@/app/utils/cookie";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";

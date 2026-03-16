@@ -2,7 +2,7 @@
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import LanguageTableRow from "./LanguageTableRow.vue";
-import { Table, TableBody } from "@cat/app-ui";
+import { Table, TableBody } from "@cat/ui";
 
 defineProps<{
   project: Pick<Project, "id">;

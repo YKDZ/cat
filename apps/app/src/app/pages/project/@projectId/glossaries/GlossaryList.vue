@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@cat/app-ui";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@cat/ui";
 import GlossaryListItem from "./GlossaryListItem.vue";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { useI18n } from "vue-i18n";

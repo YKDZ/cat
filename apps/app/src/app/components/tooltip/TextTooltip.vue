@@ -4,7 +4,7 @@ import {
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import type { TooltipContentProps } from "reka-ui";
 
 const props = withDefaults(

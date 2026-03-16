@@ -1,6 +1,5 @@
-import { language, user } from "@cat/db";
+import { createUser, ensureLanguages, executeCommand } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
@@ -29,18 +28,12 @@ beforeAll(async () => {
     );
   });
 
-  await drizzle.transaction(async (tx) => {
-    await tx.insert(language).values([{ id: "en" }, { id: "zh-Hans" }]);
-
-    assertSingleNonNullish(
-      await tx
-        .insert(user)
-        .values({
-          email: "admin@encmys.cn",
-          name: "YKDZ",
-        })
-        .returning({ id: user.id }),
-    );
+  await executeCommand({ db: drizzle }, ensureLanguages, {
+    languageIds: ["en", "zh-Hans"],
+  });
+  await executeCommand({ db: drizzle }, createUser, {
+    email: "admin@encmys.cn",
+    name: "YKDZ",
   });
 });
 

@@ -9,6 +9,7 @@ export default defineConfig({
       "@cat/plugin-core",
       "@cat/shared",
       "@cat/server-shared",
+      "@cat/operations",
       "zod",
       "zod/v4",
       "zod/v4/core",
@@ -40,6 +41,12 @@ export default defineConfig({
         "workflow/index": resolve(import.meta.dirname, "src/workflow/index.ts"),
       },
       formats: ["es"],
+    },
+    rollupOptions: {
+      output: {
+        preserveModules: true,
+        preserveModulesRoot: resolve(import.meta.dirname, "src"),
+      },
     },
     sourcemap: true,
   },

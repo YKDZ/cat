@@ -1,5 +1,11 @@
-import { eq, getColumns, language, translatableString } from "@cat/db";
-import { getDbHandle } from "@cat/domain";
+import {
+  ensureLanguages,
+  getStringByValue,
+  listTranslatableStringsById,
+  executeCommand,
+  getDbHandle,
+  executeQuery,
+} from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
@@ -30,12 +36,14 @@ beforeAll(async () => {
     );
   });
 
-  await drizzle.insert(language).values([{ id: "en" }, { id: "zh-Hans" }]);
+  await executeCommand({ db: drizzle }, ensureLanguages, {
+    languageIds: ["en", "zh-Hans"],
+  });
 });
 
 test("worker should insert strings to db", async () => {
-  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
+  const { client } = await getDbHandle();
 
   const vectorStorage = assertSingleNonNullish(
     pluginManager.getServices("VECTOR_STORAGE"),
@@ -57,21 +65,25 @@ test("worker should insert strings to db", async () => {
   });
 
   const { stringIds } = await result();
-  const strings = await drizzle
-    .select(getColumns(translatableString))
-    .from(translatableString);
+  const strings = await executeQuery(
+    { db: client },
+    listTranslatableStringsById,
+    {
+      stringIds,
+    },
+  );
 
   expect(strings.length).toEqual(data.length);
 
-  for (const [stringId, stringData] of zip(stringIds, data)) {
+  for (const [, stringData] of zip(stringIds, data)) {
     // oxlint-disable-next-line no-await-in-loop
-    const rows = await drizzle
-      .select({ value: translatableString.value })
-      .from(translatableString)
-      .where(eq(translatableString.id, stringId));
+    const string = await executeQuery({ db: client }, getStringByValue, {
+      value: stringData.text,
+      languageId: stringData.languageId,
+    });
 
-    expect(rows.length).toEqual(1);
-    expect(rows[0]?.value).toEqual(stringData.text);
+    expect(string).not.toBeNull();
+    expect(string?.value).toEqual(stringData.text);
   }
 });
 
@@ -97,8 +109,8 @@ test("empty input should return empty array", async () => {
 });
 
 test("worker should reuse existing strings", async () => {
-  const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
+  const { client } = await getDbHandle();
 
   const vectorStorage = assertSingleNonNullish(
     pluginManager.getServices("VECTOR_STORAGE"),
@@ -125,10 +137,10 @@ test("worker should reuse existing strings", async () => {
 
   expect(ids1[0]).toEqual(ids2[0]);
 
-  const strings = await drizzle
-    .select()
-    .from(translatableString)
-    .where(eq(translatableString.value, "Duplicate Text"));
+  const string = await executeQuery({ db: client }, getStringByValue, {
+    value: "Duplicate Text",
+    languageId: "en",
+  });
 
-  expect(strings).toHaveLength(1);
+  expect(string).not.toBeNull();
 });

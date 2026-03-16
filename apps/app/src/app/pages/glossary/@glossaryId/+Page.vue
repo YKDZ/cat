@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import InsertTermBtn from "./InsertTermBtn.vue";
 import InsertConceptBtn from "./InsertConceptBtn.vue";
 import InsertConceptSubjectBtn from "./InsertConceptSubjectBtn.vue";

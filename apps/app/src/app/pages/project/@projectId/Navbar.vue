@@ -7,7 +7,7 @@ import {
   NavigationMenuIndicator,
   NavigationMenuList,
   navigationMenuTriggerStyle,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import {
   Archive,

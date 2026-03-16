@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { SidebarProvider } from "@cat/app-ui";
-import { Toaster } from "@cat/app-ui";
+import { SidebarProvider } from "@cat/ui";
+import { Toaster } from "@cat/ui";
 import { useCookieBooleanRef } from "@/app/utils/cookie";
 import { usePageContext } from "vike-vue/usePageContext";
 import { PiniaColadaDevtools } from "@pinia/colada-devtools";

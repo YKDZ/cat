@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/app-ui";
-import { Spinner } from "@cat/app-ui";
-import { Slider } from "@cat/app-ui";
+import { Button } from "@cat/ui";
+import { Spinner } from "@cat/ui";
+import { Slider } from "@cat/ui";
 
 const { t } = useI18n();
 

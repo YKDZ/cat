@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { orpc } from "@/server/orpc";
-import { TableCell, TableRow } from "@cat/app-ui";
+import { TableCell, TableRow } from "@cat/ui";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 
 const { info } = useToastStore();
 

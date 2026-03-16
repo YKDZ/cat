@@ -6,7 +6,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { ChevronRight } from "lucide-vue-next";
 
 const props = defineProps<{

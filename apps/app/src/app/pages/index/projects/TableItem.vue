@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import { navigate } from "vike/client/router";
-import { TableCell, TableRow } from "@cat/app-ui";
+import { TableCell, TableRow } from "@cat/ui";
 import { formatDate } from "@/app/utils/format";
 
 const props = defineProps<{

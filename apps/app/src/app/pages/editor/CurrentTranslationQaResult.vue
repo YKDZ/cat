@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { CircleAlert, TriangleAlert, Info, Check } from "lucide-vue-next";
-import { Button } from "@cat/app-ui";
-import { Popover, PopoverContent, PopoverTrigger } from "@cat/app-ui";
+import { Button } from "@cat/ui";
+import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";
 import type { Token } from "@cat/plugin-core";
 import type { QASeverity } from "@cat/plugin-core";
 import { useI18n } from "vue-i18n";

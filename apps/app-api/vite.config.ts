@@ -12,6 +12,7 @@ export default defineConfig({
       "@cat/shared",
       "@cat/plugin-core",
       "@cat/server-shared",
+      "@cat/operations",
       "@orpc/client",
       "@orpc/server",
       "@orpc/experimental-pino",
@@ -40,6 +41,7 @@ export default defineConfig({
         "@cat/app-agent/workflow",
         "@cat/domain",
         "@cat/db",
+        "@cat/operations",
         "@cat/shared",
         "@cat/plugin-core",
         "@cat/server-shared",
@@ -53,6 +55,10 @@ export default defineConfig({
         "pino",
         "devalue",
       ],
+      output: {
+        preserveModules: true,
+        preserveModulesRoot: resolve(import.meta.dirname, "src"),
+      },
     },
 
     lib: {

@@ -41,7 +41,6 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/operations": "workspace:*",
     "@cat/plugin-core": "workspace:*",
@@ -51,5 +50,10 @@
   },
   "engines": {
     "node": ">=24.0.0"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "!test-utils"
+    ]
   }
 }

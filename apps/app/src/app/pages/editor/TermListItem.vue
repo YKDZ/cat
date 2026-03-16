@@ -7,7 +7,7 @@ import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { ArrowRight } from "lucide-vue-next";
 

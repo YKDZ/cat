@@ -18,7 +18,7 @@ import {
   Label,
   Slider,
   Switch,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { Sparkles } from "lucide-vue-next";
 
 const { t } = useI18n();

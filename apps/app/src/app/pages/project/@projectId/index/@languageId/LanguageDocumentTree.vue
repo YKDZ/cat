@@ -8,7 +8,7 @@ import { navigate } from "vike/client/router";
 import { orpc } from "@/server/orpc";
 import LanguageDocumentAutoApproveBtn from "./LanguageDocumentAutoApproveBtn.vue";
 import LanguageDocumentAutoTranslateBtn from "./LanguageDocumentAutoTranslateBtn.vue";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import type { Project } from "@cat/shared/schema/drizzle/project";
 import DocumentTranslationProgress from "@/app/components/DocumentTranslationProgress.vue";
 import { inject } from "vue";

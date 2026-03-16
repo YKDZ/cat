@@ -11,7 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import {
   ChevronDown,
   ChevronRight,

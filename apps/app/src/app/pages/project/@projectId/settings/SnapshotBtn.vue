@@ -5,7 +5,7 @@ import { orpc } from "@/server/orpc";
 import { inject } from "vue";
 import type { Data } from "../+data.server";
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/app-ui";
+import { Button } from "@cat/ui";
 import {
   Dialog,
   DialogFooter,
@@ -13,7 +13,7 @@ import {
   DialogContent,
   DialogTrigger,
   DialogTitle,
-} from "@cat/app-ui";
+} from "@cat/ui";
 
 const { info } = useToastStore();
 const { t } = useI18n();

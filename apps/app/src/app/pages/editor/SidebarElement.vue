@@ -4,7 +4,7 @@ import { storeToRefs } from "pinia";
 import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";
-import { SidebarMenuButton } from "@cat/app-ui";
+import { SidebarMenuButton } from "@cat/ui";
 import type { ElementTranslationStatus } from "@cat/shared/schema/misc";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 

@@ -84,10 +84,14 @@ export type CreateBlobAndFileCommand = z.infer<
   typeof CreateBlobAndFileCommandSchema
 >;
 
-export type CreateBlobAndFileResult = {
-  blobId: number;
-  fileId: number;
-};
+export const CreateBlobAndFileResultSchema = z.object({
+  blobId: z.number(),
+  fileId: z.number(),
+});
+
+export type CreateBlobAndFileResult = z.infer<
+  typeof CreateBlobAndFileResultSchema
+>;
 
 export const createBlobAndFile: Command<
   CreateBlobAndFileCommand,

@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@cat/app-ui";
+} from "@cat/ui";
 import { Check } from "lucide-vue-next";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 

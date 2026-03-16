@@ -7,7 +7,7 @@ applyTo: "**/*.{vue,ts}"
 
 ## 1. Mandatory Component Discovery
 
-- **Search First:** Before implementing any custom UI element from scratch, you **must** thoroughly search the `apps/app-ui/src` and `apps/app/src/app/components` directories to check if a suitable component already exists.
+- **Search First:** Before implementing any custom UI element from scratch, you **must** thoroughly search the `packages/ui/src` and `apps/app/src/app/components` directories to check if a suitable component already exists.
 - **Avoid Duplication:** Do not reinvent standard UI patterns (e.g., buttons, modals, dialogs, pagination, data tables). Always prioritize reusing the established design system components.
 
 ## 2. Import Conventions
@@ -20,15 +20,15 @@ applyTo: "**/*.{vue,ts}"
 
 ## 4. Avoiding Direct Modifications to Shared Components
 
-- **Wrapper Pattern First:** When you need to customize a shared component (especially shadcn-vue components in `apps/app-ui/src`), **always prefer creating a wrapper component** rather than modifying the source file directly.
+- **Wrapper Pattern First:** When you need to customize a shared component (especially shadcn-vue components in `packages/ui/src`), **always prefer creating a wrapper component** rather than modifying the source file directly.
 
 **Example - Preferred (Wrapper):**
 
 ```vue
 <!-- apps/app/src/app/components/CustomButton.vue -->
 <script setup lang="ts">
-import { Button } from "@cat/app-ui";
-import type { ButtonVariants } from "@cat/app-ui";
+import { Button } from "@cat/ui";
+import type { ButtonVariants } from "@cat/ui";
 
 const props = defineProps<{
   variant?: ButtonVariants["variant"];
@@ -47,7 +47,7 @@ const props = defineProps<{
 **Example - Avoid (Direct Modification):**
 
 ```vue
-<!-- ❌ Don't modify apps/app-ui/src/components/button/Button.vue directly -->
+<!-- ❌ Don't modify packages/ui/src/components/button/Button.vue directly -->
 ```
 
 - **When Source Modification is Absolutely Necessary:** Only modify source files when:
@@ -76,7 +76,7 @@ const props = defineProps<{
 -->
 ```
 
-- **Sync Awareness:** Remember that components in `apps/app-ui/src/` are managed by the shadcn-vue sync system. Direct modifications will be overwritten during sync unless properly annotated.
+- **Sync Awareness:** Remember that components in `packages/ui/src/` are managed by the shadcn-vue sync system. Direct modifications will be overwritten during sync unless properly annotated.
 
 ## 5. Scripting & Type Rigor (When Writing Wrapper/Glue Code)
 
@@ -85,4 +85,4 @@ const props = defineProps<{
 
 ## 6. Fallback for Missing Components
 
-- **Justification Required:** If you determine that a new component must be created because nothing suitable exists in `apps/app/src/app/components` and `apps/app-ui/src`, ensure the new component is modular and placed in the `apps/app/src/app/components` if it has the potential for future reuse.
+- **Justification Required:** If you determine that a new component must be created because nothing suitable exists in `apps/app/src/app/components` and `packages/ui/src`, ensure the new component is modular and placed in the `apps/app/src/app/components` if it has the potential for future reuse.

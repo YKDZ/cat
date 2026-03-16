@@ -33,6 +33,13 @@ export default defineConfig({
       fileName: "index.js",
       formats: ["es"],
     },
+
+    rollupOptions: {
+      output: {
+        preserveModules: true,
+        preserveModulesRoot: resolve(import.meta.dirname, "src"),
+      },
+    },
   },
 
   plugins: [
