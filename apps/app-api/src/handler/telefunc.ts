@@ -10,7 +10,7 @@ app.all("*", async (c) => {
 
   const httpResponse = await telefunc({
     context: { ...ctx },
-    url: c.req.url,
+    url: new URL(c.req.url).pathname,
     method: c.req.method,
     body: await c.req.text(),
   });

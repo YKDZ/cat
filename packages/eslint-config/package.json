@@ -11,9 +11,9 @@
     "fmt:check": "oxfmt --check"
   },
   "devDependencies": {
-    "@cspell/eslint-plugin": "^9.6.4",
-    "@typescript-eslint/utils": "^8.56.0",
-    "oxlint": "^1.48.0",
-    "oxlint-tsgolint": "^0.14.0"
+    "@cspell/eslint-plugin": "^9.7.0",
+    "@typescript-eslint/utils": "^8.57.1",
+    "oxlint": "^1.56.0",
+    "oxlint-tsgolint": "^0.14.2"
   }
 }

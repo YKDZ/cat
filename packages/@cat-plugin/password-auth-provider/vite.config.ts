@@ -21,7 +21,7 @@ export default defineConfig({
   build: {
     ssr: true,
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       external: [
         "@cat/plugin-core",
         "@cat/shared",

@@ -45,7 +45,7 @@ export default defineConfig({
   build: {
     target: "esnext",
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       external: [
         "@cat/app-agent",
         "@cat/app-agent/workflow",

@@ -39,9 +39,9 @@
   "devDependencies": {
     "@cat/domain": "workspace:*",
     "@cat/eslint-config": "workspace:*",
-    "hono": "^4.11.10",
+    "hono": "^4.12.8",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^7.3.1"
+    "vite": "8.0.0"
   },
   "peerDependencies": {
     "@cat/domain": "workspace:*",

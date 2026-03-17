@@ -106,6 +106,8 @@ export const searchMemoryOp = async (
     drizzle,
     chunks,
     data.memoryIds,
+    data.sourceLanguageId,
+    data.translationLanguageId,
     data.maxAmount,
   );
 
@@ -116,6 +118,8 @@ const searchMemory = async (
   drizzle: Awaited<ReturnType<typeof getDbHandle>>["client"],
   chunks: { chunkId: number; similarity: number }[],
   memoryIds: string[],
+  sourceLanguageId: string,
+  translationLanguageId: string,
   maxAmount: number = 3,
 ): Promise<MemorySuggestion[]> => {
   const searchResult = new Map(chunks.map((it) => [it.chunkId, it.similarity]));
@@ -130,6 +134,8 @@ const searchMemory = async (
       searchedChunkIds,
       memoryIds,
       maxAmount,
+      sourceLanguageId,
+      translationLanguageId,
     },
   );
 

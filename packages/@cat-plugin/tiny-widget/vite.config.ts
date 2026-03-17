@@ -27,7 +27,7 @@ const componentEnvironments = Object.fromEntries(
           formats: ["iife"],
           fileName: () => `${pascalToKebab(name)}.js`,
         },
-        rollupOptions: {
+        rolldownOptions: {
           external: ["vue"],
           output: {
             globals: {
@@ -55,7 +55,7 @@ export default defineConfig({
           entry: "src/index.ts",
           formats: ["es"],
         },
-        rollupOptions: {
+        rolldownOptions: {
           external: ["@cat/plugin-core"],
         },
       },
