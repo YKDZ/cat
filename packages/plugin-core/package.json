@@ -37,7 +37,8 @@
     "lint:fix": "oxlint --fix --type-aware",
     "test": "vitest run --config ../../vitest.config.ts --project=unit-plugin-core",
     "test:integration": "vitest run --config ../../vitest.config.ts --project=unit-plugin-core --include='**/*.test.ts'",
-    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-plugin-core --include='**/*.spec.ts'"
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-plugin-core --include='**/*.spec.ts'",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
   },
   "devDependencies": {
     "@cat/domain": "workspace:*",
