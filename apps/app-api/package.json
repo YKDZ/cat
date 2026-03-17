@@ -39,12 +39,17 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
+    "test": "vitest run --config ../../vitest.config.ts --project=app-api",
+    "test:integration": "vitest run --config ../../vitest.config.ts --project=app-api --include='**/*.test.ts'",
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=app-api --include='**/*.spec.ts'",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
+    "@cat/test-utils": "workspace:*",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "8.0.0"
+    "vite": "8.0.0",
+    "vitest": "4.0.16"
   },
   "peerDependencies": {
     "@cat/app-agent": "workspace:*",
