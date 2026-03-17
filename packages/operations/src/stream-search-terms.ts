@@ -59,6 +59,8 @@ export const streamSearchTermsOp = (
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
     const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
 
+    const minConf = data.minConfidence ?? 0.6;
+
     // Launch both searches concurrently; ILIKE typically resolves first.
     const tasks: Promise<void>[] = [
       executeQuery({ db: drizzle }, listLexicalTermSuggestions, {
@@ -68,7 +70,7 @@ export const streamSearchTermsOp = (
         translationLanguageId: data.translationLanguageId,
         wordSimilarityThreshold: 0.3,
       }).then((n) => {
-        pushNew(n);
+        pushNew(n.filter((t) => t.confidence >= minConf));
       }),
     ];
 

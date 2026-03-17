@@ -20,7 +20,7 @@ const componentEnvironments = Object.fromEntries(
           formats: ["es"],
           fileName: () => `${name}.js`,
         },
-        rollupOptions: {
+        rolldownOptions: {
           external: ["vue"],
         },
       },
@@ -44,7 +44,7 @@ export default defineConfig({
           entry: "src/index.ts",
           formats: ["es"],
         },
-        rollupOptions: {
+        rolldownOptions: {
           external: [
             "hono",
             "zod",

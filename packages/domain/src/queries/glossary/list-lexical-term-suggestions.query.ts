@@ -173,5 +173,7 @@ export const listLexicalTermSuggestions: Query<
     }
   }
 
-  return [...seen.values()].sort((a, b) => b.confidence - a.confidence);
+  return [...seen.values()].sort(
+    (a, b) => b.confidence - a.confidence || b.term.length - a.term.length,
+  );
 };

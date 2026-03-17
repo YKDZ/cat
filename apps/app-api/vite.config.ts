@@ -35,7 +35,7 @@ export default defineConfig({
     ssr: true,
     emptyOutDir: true,
     sourcemap: true,
-    rollupOptions: {
+    rolldownOptions: {
       external: [
         "@cat/app-agent",
         "@cat/app-agent/workflow",

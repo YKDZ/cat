@@ -16,6 +16,8 @@ export const ListMemorySuggestionsByChunkIdsQuerySchema = z.object({
   searchedChunkIds: z.array(z.int()),
   memoryIds: z.array(z.uuidv4()),
   maxAmount: z.int().min(1),
+  sourceLanguageId: z.string(),
+  translationLanguageId: z.string(),
 });
 
 export type ListMemorySuggestionsByChunkIdsQuery = z.infer<
@@ -55,6 +57,7 @@ export const listMemorySuggestionsByChunkIds: Query<
     .where(inArray(chunk.id, query.searchedChunkIds))
     .as("target_sets");
 
+  // Normal direction: source.lang = sourceLanguageId, translation.lang = translationLanguageId
   const sourceItemsQuery = ctx.db
     .select({
       id: memoryItem.id,
@@ -83,6 +86,8 @@ export const listMemorySuggestionsByChunkIds: Query<
       and(
         inArray(chunk.id, query.searchedChunkIds),
         inArray(memoryItem.memoryId, query.memoryIds),
+        eq(sourceString.languageId, query.sourceLanguageId),
+        eq(translationString.languageId, query.translationLanguageId),
       ),
     );
 
@@ -114,8 +119,84 @@ export const listMemorySuggestionsByChunkIds: Query<
       and(
         inArray(chunk.id, query.searchedChunkIds),
         inArray(memoryItem.memoryId, query.memoryIds),
+        eq(sourceString.languageId, query.sourceLanguageId),
+        eq(translationString.languageId, query.translationLanguageId),
       ),
     );
 
-  return union(sourceItemsQuery, translationItemsQuery).limit(query.maxAmount);
+  // Reversed direction: memory stored as (translationLang → sourceLang),
+  // swap source/translation in output so the caller always gets
+  // source = sourceLanguageId text, translation = translationLanguageId text
+  const reversedSourceItemsQuery = ctx.db
+    .select({
+      id: memoryItem.id,
+      source: translationString.value,
+      translation: sourceString.value,
+      sourceChunkSetId: translationString.chunkSetId,
+      translationChunkSetId: sourceString.chunkSetId,
+      memoryId: memoryItem.memoryId,
+      creatorId: memoryItem.creatorId,
+      createdAt: memoryItem.createdAt,
+      updatedAt: memoryItem.updatedAt,
+      chunkId: chunk.id,
+    })
+    .from(memoryItem)
+    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+    .innerJoin(
+      translationString,
+      eq(translationString.id, memoryItem.translationStringId),
+    )
+    .innerJoin(
+      targetSetsQuery,
+      eq(sourceString.chunkSetId, targetSetsQuery.chunkSetId),
+    )
+    .innerJoin(chunk, eq(chunk.chunkSetId, sourceString.chunkSetId))
+    .where(
+      and(
+        inArray(chunk.id, query.searchedChunkIds),
+        inArray(memoryItem.memoryId, query.memoryIds),
+        eq(sourceString.languageId, query.translationLanguageId),
+        eq(translationString.languageId, query.sourceLanguageId),
+      ),
+    );
+
+  const reversedTranslationItemsQuery = ctx.db
+    .select({
+      id: memoryItem.id,
+      source: translationString.value,
+      translation: sourceString.value,
+      sourceChunkSetId: translationString.chunkSetId,
+      translationChunkSetId: sourceString.chunkSetId,
+      memoryId: memoryItem.memoryId,
+      creatorId: memoryItem.creatorId,
+      createdAt: memoryItem.createdAt,
+      updatedAt: memoryItem.updatedAt,
+      chunkId: chunk.id,
+    })
+    .from(memoryItem)
+    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+    .innerJoin(
+      translationString,
+      eq(translationString.id, memoryItem.translationStringId),
+    )
+    .innerJoin(
+      targetSetsQuery,
+      eq(translationString.chunkSetId, targetSetsQuery.chunkSetId),
+    )
+    .innerJoin(chunk, eq(chunk.chunkSetId, translationString.chunkSetId))
+    .where(
+      and(
+        inArray(chunk.id, query.searchedChunkIds),
+        inArray(memoryItem.memoryId, query.memoryIds),
+        eq(sourceString.languageId, query.translationLanguageId),
+        eq(translationString.languageId, query.sourceLanguageId),
+      ),
+    );
+
+  return union(
+    sourceItemsQuery,
+    translationItemsQuery,
+    reversedSourceItemsQuery,
+    reversedTranslationItemsQuery,
+  ).limit(query.maxAmount);
 };

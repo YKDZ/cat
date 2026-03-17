@@ -42,7 +42,7 @@ export default defineConfig({
       },
       formats: ["es"],
     },
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         preserveModules: true,
         preserveModulesRoot: resolve(import.meta.dirname, "src"),
