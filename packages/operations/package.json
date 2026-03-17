@@ -26,7 +26,9 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "test": "vitest run",
+    "test": "vitest run --config ../../vitest.config.ts --project=operations",
+    "test:integration": "vitest run --config ../../vitest.config.ts --project=operations --include='**/*.test.ts'",
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=operations --include='**/*.spec.ts'",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {

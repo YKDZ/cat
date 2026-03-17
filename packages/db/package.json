@@ -27,7 +27,9 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "test": "vitest run"
+    "test": "vitest run --config ../../vitest.config.ts --project=unit-db",
+    "test:integration": "vitest run --config ../../vitest.config.ts --project=unit-db --include='**/*.test.ts'",
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-db --include='**/*.spec.ts'"
   },
   "dependencies": {
     "pg": "^8.20.0",
