@@ -42,7 +42,7 @@
     "test": "vitest run --config ../../vitest.config.ts --project=app-api",
     "test:integration": "vitest run --config ../../vitest.config.ts --project=app-api --include='**/*.test.ts'",
     "test:unit": "vitest run --config ../../vitest.config.ts --project=app-api --include='**/*.spec.ts'",
-    "typecheck": "tsc --noEmit -p tsconfig.lib.json"
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",

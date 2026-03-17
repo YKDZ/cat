@@ -111,7 +111,8 @@
     "lint:fix": "oxlint --fix --type-aware",
     "test": "vitest run --config ../../vitest.config.ts --project=unit-shared",
     "test:integration": "vitest run --config ../../vitest.config.ts --project=unit-shared --include='**/*.test.ts'",
-    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-shared --include='**/*.spec.ts'"
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-shared --include='**/*.spec.ts'",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
   },
   "devDependencies": {
     "@cat/eslint-config": "workspace:*",
