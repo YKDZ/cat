@@ -60,7 +60,7 @@ export abstract class Tokenizer implements IPluginService {
 
   abstract getPriority(): TokenizerPriority;
 
-  abstract parse: (
+  abstract parse(
     ctx: ParserContext,
-  ) => Promise<ParseResult | undefined> | ParseResult | undefined;
+  ): Promise<ParseResult | undefined> | ParseResult | undefined;
 }
