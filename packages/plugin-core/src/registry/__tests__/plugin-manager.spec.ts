@@ -117,7 +117,7 @@ beforeEach(() => {
   // oxlint-disable-next-line unbound-method
   vi.mocked(PluginDiscoveryService.getInstance).mockReturnValue(
     // oxlint-disable-next-line typescript/no-unsafe-argument, typescript/no-unsafe-type-assertion
-    mockDiscovery as unknown as InstanceType<typeof PluginDiscoveryService>,
+    mockDiscovery as unknown as PluginDiscoveryService,
   );
 });
 
