@@ -124,7 +124,7 @@ export class Logger {
       entry.message = msg ?? "Unknown error";
     }
 
-    this.transports.forEach((t) => t.log(entry));
+    this.transports.forEach((t) =>{  t.log(entry); });
   }
 
   private emit(level: LogLevel, args: any[]) {
@@ -148,7 +148,7 @@ export class Logger {
       }
     }
 
-    this.transports.forEach((t) => t.log(entry));
+    this.transports.forEach((t) =>{  t.log(entry); });
   }
 }
 
@@ -203,7 +203,7 @@ export class TypedLogger<T extends Record<string, unknown>> {
       payload,
       error: err,
     };
-    this.baseLogger.transports.forEach((t) => t.log(entry));
+    this.baseLogger.transports.forEach((t) =>{  t.log(entry); });
   }
 
   public error(
@@ -228,6 +228,6 @@ export class TypedLogger<T extends Record<string, unknown>> {
       payload,
       error: err,
     };
-    this.baseLogger.transports.forEach((t) => t.log(entry));
+    this.baseLogger.transports.forEach((t) =>{  t.log(entry); });
   }
 }

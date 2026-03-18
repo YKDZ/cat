@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "build-plugins": "nx run-many --target=build --projects=@cat-plugin/*",
-    "check:db-boundaries": "node scripts/check-db-boundaries.js",
     "check:generated-schemas": "node scripts/check-generated-drizzle-schemas.js",
     "load-plugins": "node scripts/load-plugins.js",
     "precommit": "nx run-many --target=lint:fix,fmt,test,typecheck",

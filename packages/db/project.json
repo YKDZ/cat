@@ -2,6 +2,12 @@
   "targets": {
     "codegen-schemas": {
       "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": ["shared"],
+          "target": "build"
+        }
+      ],
       "options": {
         "command": "pnpm codegen:schemas",
         "cwd": "packages/db"
