@@ -12,7 +12,7 @@ import type { OperationContext } from "@cat/domain";
  * for this single-turn task.
  */
 import { PluginManager } from "@cat/plugin-core";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
 export const AdaptMemoryInputSchema = z.object({
@@ -104,7 +104,9 @@ export const adaptMemoryOp = async (
 
     return { adaptedTranslation: text };
   } catch (err: unknown) {
-    logger.error("OP", { msg: "adaptMemoryOp: LLM call failed" }, err);
+    logger
+      .withSituation("OP")
+      .error({ msg: "adaptMemoryOp: LLM call failed" }, err);
     return { adaptedTranslation: null };
   }
 };

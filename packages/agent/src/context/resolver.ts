@@ -4,7 +4,7 @@ import type {
   ContextResolveContext,
 } from "@cat/plugin-core";
 
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 
 import { topoSortProviders } from "@/context/topo-sort";
 
@@ -93,7 +93,7 @@ export const resolveContextVariables = async (
           "resolve",
         );
         if (!allowed) {
-          logger.warn("AGENT", {
+          logger.withSituation("AGENT").warn({
             msg: `Permission denied for context provider ${providerId}`,
           });
           return;
@@ -103,7 +103,7 @@ export const resolveContextVariables = async (
         const deps = provider.getDependencies();
         for (const dep of deps) {
           if (!dep.optional && !resolved.has(dep.key)) {
-            logger.warn("AGENT", {
+            logger.withSituation("AGENT").warn({
               msg: `Skipping context provider ${providerId}: required dependency "${dep.key}" not resolved`,
             });
             return;
@@ -128,7 +128,7 @@ export const resolveContextVariables = async (
             resolved.set(key, value);
           }
         } catch (err) {
-          logger.warn("AGENT", {
+          logger.withSituation("AGENT").warn({
             msg: `Context provider ${providerId} threw an error during resolve`,
             error: err,
           });

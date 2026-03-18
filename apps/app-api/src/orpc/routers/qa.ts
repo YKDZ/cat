@@ -8,7 +8,7 @@ import {
 import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
 import { TokenSchema } from "@cat/plugin-core";
 import { AsyncMessageQueue } from "@cat/server-shared";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import { randomUUID } from "node:crypto";
 import z from "zod";
 
@@ -52,7 +52,9 @@ export const check = authed
       async (event) => {
         const parsed = QAPubPayloadSchema.safeParse(event.payload);
         if (!parsed.success) {
-          logger.error("RPC", { msg: "Invalid issue format" }, parsed.error);
+          logger
+            .withSituation("RPC")
+            .error({ msg: "Invalid issue format" }, parsed.error);
           return;
         }
 
@@ -79,7 +81,7 @@ export const check = authed
         issuesQueue.close();
       })
       .catch((err: unknown) => {
-        logger.error("RPC", { msg: "QA workflow failed" }, err);
+        logger.withSituation("RPC").error({ msg: "QA workflow failed" }, err);
         issuesQueue.close();
       });
 

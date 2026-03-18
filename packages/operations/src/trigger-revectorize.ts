@@ -2,7 +2,7 @@ import type { OperationContext } from "@cat/domain";
 
 import { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService } from "@cat/server-shared";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 
 import { revectorizeConceptOp } from "./revectorize-concept";
 
@@ -26,10 +26,8 @@ export const triggerConceptRevectorize = (
     { conceptId, vectorizerId: vectorizer.id, vectorStorageId: storage.id },
     ctx,
   ).catch((err: unknown) => {
-    logger.error(
-      "OP",
-      { msg: `Failed to revectorize concept ${conceptId}` },
-      err,
-    );
+    logger
+      .withSituation("OP")
+      .error({ msg: `Failed to revectorize concept ${conceptId}` }, err);
   });
 };

@@ -6,7 +6,7 @@ import { executeQuery, listLexicalTermSuggestions } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService } from "@cat/server-shared";
 import { AsyncMessageQueue } from "@cat/server-shared";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
 import { semanticSearchTermsOp } from "./semantic-search-terms";
@@ -99,7 +99,9 @@ export const streamSearchTermsOp = (
 
   void run()
     .catch((err: unknown) => {
-      logger.error("OP", { msg: "streamSearchTermsOp failed" }, err);
+      logger
+        .withSituation("OP")
+        .error({ msg: "streamSearchTermsOp failed" }, err);
     })
     .finally(() => {
       queue.close();

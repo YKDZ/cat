@@ -1,4 +1,4 @@
-import { logger } from "@cat/shared/utils";
+import { pinoInstance } from "@cat/server-shared";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
 import { RPCHandler } from "@orpc/server/websocket";
@@ -14,7 +14,7 @@ export const wsHelper = createNodeWebSocket({ app });
 const handler = new RPCHandler(router, {
   plugins: [
     new LoggingHandlerPlugin({
-      logger: logger.baseLogger,
+      logger: pinoInstance,
       generateId: () => crypto.randomUUID(),
     }),
   ],

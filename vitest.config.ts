@@ -38,6 +38,7 @@ const alias = (pkgRoot: string) => [
 export default defineConfig({
   root: ROOT,
   test: {
+    passWithNoTests: true,
     reporters: CI
       ? ["verbose", ["json", { outputFile: "test-results.json" }]]
       : ["verbose"],
@@ -76,7 +77,6 @@ export default defineConfig({
           include: ["packages/domain/src/**/*.{spec,test}.ts"],
           environment: "node",
           retry: CI ? 3 : 0,
-          passWithNoTests: true,
         },
         resolve: { alias: alias(resolve(ROOT, "packages/domain")) },
       },
@@ -85,27 +85,25 @@ export default defineConfig({
           name: "operations",
           include: ["packages/operations/src/**/*.{spec,test}.ts"],
           environment: "node",
-          passWithNoTests: true,
         },
         resolve: { alias: alias(resolve(ROOT, "packages/operations")) },
       },
-
-      // ── 应用层 ──────────────────────────────────────────────────────
       {
         test: {
-          name: "app-agent",
+          name: "agent",
           include: ["packages/agent/src/**/*.{spec,test}.ts"],
           environment: "node",
           retry: CI ? 3 : 0,
         },
         resolve: { alias: alias(resolve(ROOT, "packages/agent")) },
       },
+
+      // ── 应用层 ──────────────────────────────────────────────────────
       {
         test: {
           name: "app-api",
           include: ["apps/app-api/src/**/*.{spec,test}.ts"],
           environment: "node",
-          passWithNoTests: true,
         },
         resolve: { alias: alias(resolve(ROOT, "apps/app-api")) },
       },

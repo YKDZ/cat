@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { logger } from "@cat/shared/utils";
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -18,6 +17,7 @@ import type { PickerOption } from "@/app/components/picker";
 
 import Picker from "@/app/components/picker/Picker.vue";
 import { useToastStore } from "@/app/stores/toast";
+import { clientLogger as logger } from "@/utils/logger";
 
 import {
   onCreateConcept,
@@ -85,7 +85,7 @@ const createConcept = async () => {
     // 触发刷新事件
     window.dispatchEvent(new CustomEvent("refresh-concepts"));
   } catch (error) {
-    logger.error("WEB", { msg: "创建概念失败" }, error);
+    logger.withSituation("WEB").error({ msg: "创建概念失败" }, error);
     toastStore.error(t("创建概念失败，请重试"));
   } finally {
     isCreating.value = false;

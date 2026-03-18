@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/drizzle/document";
 
-import { logger } from "@cat/shared/utils";
 import { ref } from "vue";
 
 import Markdown from "@/app/components/Markdown.vue";
 import { watchClient } from "@/app/utils/vue.ts";
 import { orpc } from "@/server/orpc";
+import { clientLogger as logger } from "@/utils/logger";
 
 const props = defineProps<{
   readme: Pick<Document, "id">;
@@ -60,7 +60,9 @@ const updateContent = async () => {
 
     markdownContent.value = text;
   } catch (error) {
-    logger.error("WEB", { msg: "Failed to load README markdown" }, error);
+    logger
+      .withSituation("WEB")
+      .error({ msg: "Failed to load README markdown" }, error);
   }
 };
 

@@ -1,4 +1,3 @@
-import { logger } from "@cat/shared/utils";
 import DOMPurify from "dompurify";
 
 import { Distortion } from "./types.ts";
@@ -11,7 +10,7 @@ export const createDocumentDistortion = (
     if (key === "cookie") return () => "";
     if (key === "getElementById") {
       return () => (_id: string) => {
-        logger.warn("WEB", {
+        console.warn({
           msg: `Plugin ${pluginId} blocked getElementById`,
         });
         return null;
@@ -76,7 +75,7 @@ export const createPrototypeDistortion = (win: Window): Distortion => ({
       target === win.Array.prototype ||
       target === win.Function.prototype
     ) {
-      logger.warn("WEB", { msg: "Prototype pollution attempt blocked!" });
+      console.warn({ msg: "Prototype pollution attempt blocked!" });
       return false;
     }
     return true;
@@ -114,11 +113,11 @@ export const createFetchDistortion = (
     );
 
     if (!isAllowed) {
-      logger.warn("WEB", { msg: `Plugin fetch blocked: ${urlStr}` });
+      console.warn({ msg: `Plugin fetch blocked: ${urlStr}` });
       throw new Error(`Permission denied: Fetch to ${urlStr} blocked.`);
     }
 
-    logger.info("WEB", { msg: `Plugin ${pluginId} fetching ${urlStr}` });
+    console.info({ msg: `Plugin ${pluginId} fetching ${urlStr}` });
 
     // oxlint-disable-next-line no-unsafe-type-assertion no-unsafe-function-type no-unsafe-function-type no-unsafe-return
     return Reflect.apply(target as Function, win, argArray);

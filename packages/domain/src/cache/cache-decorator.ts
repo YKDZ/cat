@@ -1,4 +1,3 @@
-import { logger } from "@cat/shared/utils";
 import { createHash } from "node:crypto";
 
 import type { CacheOptions, CacheStore, SessionStore } from "@/cache/types";
@@ -105,14 +104,14 @@ export const withCache = <I, O>(
 
     const cached = await store.get<O>(key);
     if (cached !== null) {
-      logger.debug("CACHE", {
+      console.debug({
         msg: "Cache hit",
         key,
       });
       return cached;
     }
 
-    logger.debug("CACHE", {
+    console.debug({
       msg: "Cache miss",
       key,
     });

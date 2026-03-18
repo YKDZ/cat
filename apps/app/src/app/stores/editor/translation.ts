@@ -1,6 +1,5 @@
 import { safeZDotJson } from "@cat/shared/schema/json";
 import { DrizzleDateTimeSchema } from "@cat/shared/schema/misc";
-import { logger } from "@cat/shared/utils";
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { defineStore, storeToRefs } from "pinia";
 import { watch } from "vue";
@@ -10,6 +9,7 @@ import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { orpc } from "@/server/orpc";
+import { clientLogger as logger } from "@/utils/logger";
 
 const TranslationWithStatusSchema = z.object({
   id: z.int(),
@@ -90,7 +90,9 @@ export const useEditorTranslationStore = defineStore(
             }
           }
         } catch (err) {
-          logger.error("WEB", { msg: "Translation subscription error" }, err);
+          logger
+            .withSituation("WEB")
+            .error({ msg: "Translation subscription error" }, err);
         }
       },
       { immediate: true },

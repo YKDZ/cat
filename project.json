@@ -1,0 +1,24 @@
+{
+  "name": "root",
+  "root": ".",
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p tsconfig.node.json"
+      }
+    },
+    "fmt": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "oxfmt *.ts *.json scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/*"
+      }
+    },
+    "fmt:check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "oxfmt --check *.ts *.json scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/*"
+      }
+    }
+  }
+}

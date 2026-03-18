@@ -13,8 +13,8 @@ import {
 } from "@cat/domain";
 import { adaptMemoryOp, streamSearchMemoryOp } from "@cat/operations";
 import { AsyncMessageQueue } from "@cat/server-shared";
+import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
-import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
@@ -119,17 +119,17 @@ export const onNew = authed
                 });
               })
               .catch((err: unknown) => {
-                logger.error(
-                  "WORKER",
-                  { msg: "LLM memory adaptation failed" },
-                  err,
-                );
+                logger
+                  .withSituation("WORKER")
+                  .error({ msg: "LLM memory adaptation failed" }, err);
               });
             pendingAdaptations.push(adaptationPromise);
           }
         }
       } catch (err) {
-        logger.error("WORKER", { msg: "Stream search memory failed" }, err);
+        logger
+          .withSituation("WORKER")
+          .error({ msg: "Stream search memory failed" }, err);
       }
     })();
 

@@ -2,7 +2,6 @@
 import type { Token } from "@cat/plugin-core";
 import type { QASeverity } from "@cat/plugin-core";
 
-import { logger } from "@cat/shared/utils";
 import { Button } from "@cat/ui";
 import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";
 import { consumeEventIterator } from "@orpc/client";
@@ -12,6 +11,7 @@ import { useI18n } from "vue-i18n";
 import z from "zod";
 
 import { ws } from "@/server/ws";
+import { clientLogger as logger } from "@/utils/logger";
 
 const props = defineProps<{
   source: {
@@ -80,7 +80,9 @@ const update = async () => {
         ) {
           return;
         }
-        logger.error("WEB", { msg: "Error when consume qa issues" }, error);
+        logger
+          .withSituation("WEB")
+          .error({ msg: "Error when consume qa issues" }, error);
       },
     },
   );

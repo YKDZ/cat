@@ -1,6 +1,6 @@
 import { PluginManager } from "@cat/plugin-core";
 import { resolvePluginComponentPath } from "@cat/server-shared";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import { Hono } from "hono";
 import { stream } from "hono/streaming";
 import { createReadStream } from "node:fs";
@@ -47,19 +47,20 @@ app.get("/:pluginId/component/:componentName", async (c) => {
         await s.pipe(fileStream as unknown as ReadableStream);
       },
       async (err) => {
-        logger.error(
-          "SERVER",
-          { msg: "Error streaming plugin component", pluginId, componentName },
+        logger.withSituation("SERVER").error(
+          {
+            msg: "Error streaming plugin component",
+            pluginId,
+            componentName,
+          },
           err,
         );
       },
     );
   } catch (error) {
-    logger.error(
-      "SERVER",
-      { msg: "Plugin component not found", path: pluginId },
-      error,
-    );
+    logger
+      .withSituation("SERVER")
+      .error({ msg: "Plugin component not found", path: pluginId }, error);
     return c.text("module not found", 404);
   }
 });

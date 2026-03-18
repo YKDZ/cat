@@ -1,7 +1,7 @@
 import type { AppRouter } from "@cat/app-api/orpc/router";
 import type { RouterClient } from "@orpc/server";
 
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
 import { WebSocket } from "partysocket";
@@ -10,7 +10,7 @@ const link = new RPCLink({
   websocket: new WebSocket("ws://localhost:3000/api/ws"),
   interceptors: [
     onError((error) => {
-      logger.error("WEB", { msg: "Error when orpc" }, error);
+      logger.withSituation("WEB").error({ msg: "Error when orpc" }, error);
     }),
   ],
 });

@@ -1,4 +1,4 @@
-import { logger } from "@cat/shared/utils";
+import { pinoInstance } from "@cat/server-shared";
 import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
 import { RPCHandler } from "@orpc/server/fetch";
 import { CompressionPlugin } from "@orpc/server/fetch";
@@ -15,7 +15,7 @@ const handler = new RPCHandler(router, {
     new CORSPlugin(),
     new CompressionPlugin(),
     new LoggingHandlerPlugin({
-      logger: logger.baseLogger,
+      logger: pinoInstance,
       generateId: () => crypto.randomUUID(),
     }),
   ],

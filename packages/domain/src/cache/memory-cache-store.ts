@@ -1,5 +1,3 @@
-import { logger } from "@cat/shared/utils";
-
 import type { CacheStore } from "@/cache/types";
 
 /**
@@ -37,7 +35,7 @@ export class MemoryCacheStore implements CacheStore {
 
     this.storage.set(fullKey, { value, expires });
 
-    logger.debug("CACHE", {
+    console.debug({
       msg: "Cache set",
       key: fullKey,
       ttl,
@@ -49,7 +47,7 @@ export class MemoryCacheStore implements CacheStore {
     const fullKey = `${this.keyPrefix}:${key}`;
     this.storage.delete(fullKey);
 
-    logger.debug("CACHE", {
+    console.debug({
       msg: "Cache deleted",
       key: fullKey,
     });

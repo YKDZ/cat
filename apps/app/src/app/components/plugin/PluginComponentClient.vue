@@ -2,10 +2,11 @@
 import type { ComponentRecord } from "@cat/plugin-core";
 
 import { createSandbox, safeCustomElements } from "@cat/plugin-core/client";
-import { logger } from "@cat/shared/utils";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed, onBeforeMount } from "vue";
 import * as Vue from "vue";
+
+import { clientLogger as logger } from "@/utils/logger";
 
 const props = defineProps<{
   component: ComponentRecord;
@@ -61,13 +62,15 @@ const load = async () => {
 
     sandbox.evaluate(code);
   } catch (e) {
-    logger.error("WEB", { msg: "Failed to evaluate sandbox code" }, e);
+    logger
+      .withSituation("WEB")
+      .error({ msg: "Failed to evaluate sandbox code" }, e);
   }
 
 
   // TODO 逻辑上暂时不允许一次注册多个组件
   if (registry.size > 1 || registry.size === 0) {
-    logger.warn("WEB", {
+    logger.withSituation("WEB").warn({
       msg: `Plugin registered component enrty script should define only one component. Bot got ${registry.size}`,
     });
   }
@@ -77,7 +80,7 @@ const load = async () => {
 
 
   if (name !== props.component.name) {
-    logger.warn("WEB", {
+    logger.withSituation("WEB").warn({
       msg: `Component name mismatch. Claimed ${props.component.name}, but got ${name}`,
     });
   }

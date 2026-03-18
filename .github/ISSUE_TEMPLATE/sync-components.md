@@ -26,9 +26,11 @@ pnpm exec nx run-many --target=lint,typecheck --projects=@cat/ui
 ## Components to Sync
 
 The sync script will automatically:
+
 - ✅ Sync components that are up to date with upstream
 - ⚠️ Skip components marked with `@shadcn-do-not-sync`
 - ⚠️ Skip components that have been abandoned by upstream
+
 ---
 
 **Detected by**: [sync-shadcn-components.js](/packages/ui/scripts/sync-shadcn-components.js)  

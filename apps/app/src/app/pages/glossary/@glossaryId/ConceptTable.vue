@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { logger } from "@cat/shared/utils";
 import {
   Table,
   TableBody,
@@ -26,6 +25,7 @@ import { inject, onMounted, ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useInjectionKey } from "@/app/utils/provide";
+import { clientLogger as logger } from "@/utils/logger";
 
 import type { Data } from "./+data.server";
 
@@ -75,7 +75,9 @@ const fetchConcepts = async () => {
     concepts.value = result.data;
     total.value = result.total;
   } catch (err) {
-    logger.error("WEB", { msg: "Failed to fetch concepts:" }, err);
+    logger
+      .withSituation("WEB")
+      .error({ msg: "Failed to fetch concepts:" }, err);
   } finally {
     isLoading.value = false;
   }

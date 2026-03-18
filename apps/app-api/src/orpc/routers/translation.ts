@@ -26,6 +26,7 @@ import {
   upsertTranslationVote,
 } from "@cat/domain";
 import { AsyncMessageQueue, firstOrGivenService } from "@cat/server-shared";
+import { serverLogger as logger } from "@cat/server-shared";
 import {
   QaResultItemSchema,
   QaResultSchema,
@@ -34,7 +35,6 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
-import { logger } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
@@ -156,11 +156,9 @@ export const onCreate = authed
           event.payload,
         );
         if (!parsed.success) {
-          logger.error(
-            "RPC",
-            { msg: "Invalid create translation payload" },
-            parsed.error,
-          );
+          logger
+            .withSituation("RPC")
+            .error({ msg: "Invalid create translation payload" }, parsed.error);
           return;
         }
 

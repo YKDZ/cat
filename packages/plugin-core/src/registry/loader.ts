@@ -4,7 +4,6 @@ import {
   type PluginData,
   type PluginManifest,
 } from "@cat/shared/schema/plugin";
-import { logger } from "@cat/shared/utils";
 import { existsSync } from "node:fs";
 import { access, mkdir, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -43,7 +42,7 @@ export class FileSystemPluginLoader implements PluginLoader {
     try {
       await access(manifestPath);
     } catch {
-      logger.debug("PLUGIN", {
+      logger.withSituation("PLUGIN").debug({
         msg: `Plugin ${pluginId} missing manifest.json`,
       });
       throw new Error(`Plugin ${pluginId} missing manifest.json`);
@@ -110,11 +109,9 @@ export class FileSystemPluginLoader implements PluginLoader {
           const manifest = await this.getManifest(dir.name);
           results.push(manifest);
         } catch (err) {
-          logger.error(
-            "PLUGIN",
-            { msg: `Error reading manifest.json in ${dir.name}:` },
-            err,
-          );
+          logger
+            .withSituation("PLUGIN")
+            .error({ msg: `Error reading manifest.json in ${dir.name}:` }, err);
         }
       }),
     );
