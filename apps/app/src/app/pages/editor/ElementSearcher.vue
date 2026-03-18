@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
-import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { ref } from "vue";
 import { Input } from "@cat/ui";
 import { Search } from "lucide-vue-next";
+import { storeToRefs } from "pinia";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { useEditorContextStore } from "@/app/stores/editor/context";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 
 const { t } = useI18n();
+
 
 const { searchQuery } = storeToRefs(useEditorTableStore());
 const { currentPage } = storeToRefs(useEditorContextStore());
 const { toPage } = useEditorTableStore();
 const isSearching = ref(false);
+
 
 const handleSearch = async () => {
   isSearching.value = true;

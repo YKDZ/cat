@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import type { PickerOption } from "./picker/index.ts";
-import MultiPicker from "./picker/MultiPicker.vue";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
 import { useInfiniteQuery } from "@pinia/colada";
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { orpc } from "@/server/orpc";
+
+import type { PickerOption } from "./picker/index.ts";
+
+import MultiPicker from "./picker/MultiPicker.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -17,10 +20,13 @@ const props = withDefaults(
   },
 );
 
+
 const { t } = useI18n();
+
 
 const languageIds = defineModel<string[]>({ default: [] });
 const search = ref("");
+
 
 const { state, loadNextPage } = useInfiniteQuery({
   key: () => ["languages", search.value],
@@ -37,6 +43,7 @@ const { state, loadNextPage } = useInfiniteQuery({
     return undefined;
   },
 });
+
 
 const options = computed(() => {
   const pages = state.value?.data?.pages;

@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { navigate } from "vike/client/router";
-import { storeToRefs } from "pinia";
 import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
+import type { ElementTranslationStatus } from "@cat/shared/schema/misc";
+
+import { SidebarMenuButton } from "@cat/ui";
+import { storeToRefs } from "pinia";
+import { navigate } from "vike/client/router";
+
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";
-import { SidebarMenuButton } from "@cat/ui";
-import type { ElementTranslationStatus } from "@cat/shared/schema/misc";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 
 const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { pendingElements } = useEditorElementStore();
+
 
 const props = defineProps<{
   element: Pick<TranslatableElement, "id"> & {
@@ -19,8 +22,10 @@ const props = defineProps<{
   };
 }>();
 
+
 const handleClick = async () => {
   if (!props.element) return;
+
 
   await navigate(
     `/editor/${documentId.value}/${languageToId.value}/${props.element.id}`,

@@ -1,23 +1,28 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef } from "vue";
-import { navigate } from "vike/client/router";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
-import JSONForm from "@/app/components/json-form/JsonForm.vue";
-import { useAuthStore } from "@/app/stores/auth.ts";
+
 import { Button } from "@cat/ui";
 import { storeToRefs } from "pinia";
+import { navigate } from "vike/client/router";
+import { computed, onMounted, ref, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
+
+import JSONForm from "@/app/components/json-form/JsonForm.vue";
+import { useAuthStore } from "@/app/stores/auth.ts";
+import { orpc } from "@/server/orpc";
 
 const emits = defineEmits<{
   mfa: [];
 }>();
 
+
 const { t } = useI18n();
+
 
 const { authMethod } = storeToRefs(useAuthStore());
 const schema = ref<JSONSchema>({});
 const data = shallowRef<NonNullJSONType>({});
+
 
 const handleVerify = async (): Promise<void> => {
   const formData =
@@ -33,13 +38,16 @@ const handleVerify = async (): Promise<void> => {
   });
 };
 
+
 const isEmpty = computed(() => {
   return Object.keys(schema.value).length === 0;
 });
 
+
 const handleUpdate = (to: NonNullJSONType): void => {
   data.value = to;
 };
+
 
 onMounted(async () => {
   if (!authMethod.value?.providerId) {

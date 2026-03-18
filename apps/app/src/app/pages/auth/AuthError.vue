@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
+
 import { useAuthStore } from "@/app/stores/auth.ts";
 
 const { t } = useI18n();
+
 
 const { isError, authMethod } = storeToRefs(useAuthStore());
 </script>

@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
-import { useI18n } from "vue-i18n";
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+
 import { _JSONSchemaSchema } from "@cat/shared/schema/json";
-import { schemaKey } from "../utils.ts";
-import IJsonForm from "../IJsonForm.vue";
+import { getDefaultFromSchema } from "@cat/shared/utils";
 import {
   Button,
   Card,
@@ -17,20 +15,28 @@ import {
   FormMessage,
 } from "@cat/ui";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-vue-next";
-import { getDefaultFromSchema } from "@cat/shared/utils";
+import { computed, inject, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import IJsonForm from "../IJsonForm.vue";
+import { schemaKey } from "../utils.ts";
 
 const { t } = useI18n();
+
 
 const props = defineProps<{
   propertyKey: string | number;
   data: NonNullJSONType;
 }>();
 
+
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
+
 const schema = inject(schemaKey)!;
+
 
 const itemsSchema = computed<_JSONSchema>(() => {
   if (schema.items && typeof schema.items === "object") {
@@ -39,12 +45,15 @@ const itemsSchema = computed<_JSONSchema>(() => {
   return { type: "string" };
 });
 
+
 const items = computed<NonNullJSONType[]>(() => {
   if (Array.isArray(props.data)) return props.data as NonNullJSONType[];
   return [];
 });
 
+
 const collapsedItems = ref<Set<number>>(new Set());
+
 
 const toggleCollapse = (index: number) => {
   if (collapsedItems.value.has(index)) {
@@ -54,9 +63,11 @@ const toggleCollapse = (index: number) => {
   }
 };
 
+
 const emitUpdate = (newItems: NonNullJSONType[]) => {
   emits("_update", [...newItems]);
 };
+
 
 const addItem = () => {
   const defaultValue = getDefaultFromSchema(itemsSchema.value) ?? {};
@@ -64,11 +75,13 @@ const addItem = () => {
   emitUpdate(newItems);
 };
 
+
 const removeItem = (index: number) => {
   const newItems = items.value.filter((_, i) => i !== index);
   collapsedItems.value.delete(index);
   emitUpdate(newItems);
 };
+
 
 const moveUp = (index: number) => {
   if (index <= 0) return;
@@ -79,6 +92,7 @@ const moveUp = (index: number) => {
   emitUpdate(newItems);
 };
 
+
 const moveDown = (index: number) => {
   if (index >= items.value.length - 1) return;
   const newItems = [...items.value];
@@ -87,6 +101,7 @@ const moveDown = (index: number) => {
   newItems[index] = temp;
   emitUpdate(newItems);
 };
+
 
 const updateItem = (index: number, value: NonNullJSONType) => {
   const newItems = [...items.value];

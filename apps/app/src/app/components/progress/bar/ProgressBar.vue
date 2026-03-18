@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import ProgressBarContent from "./ProgressBarContent.vue";
 import type { ProgressBarLine } from "./index";
+
+import ProgressBarContent from "./ProgressBarContent.vue";
 
 withDefaults(
   defineProps<{

@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from "vue";
-import { usePageContext } from "vike-vue/usePageContext";
-import { onRequestProjects, type ProjectListItem } from "./Table.telefunc";
-import TableItem from "./TableItem.vue";
 import {
   Skeleton,
   Table,
@@ -18,22 +14,29 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@cat/ui";
-import { useI18n } from "vue-i18n";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
 } from "lucide-vue-next";
+import { usePageContext } from "vike-vue/usePageContext";
+import { ref, onMounted, watch, computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { onRequestProjects, type ProjectListItem } from "./Table.telefunc";
+import TableItem from "./TableItem.vue";
 
 const { t } = useI18n();
 const ctx = usePageContext();
+
 
 const projects = ref<ProjectListItem[]>([]);
 const pageIndex = ref(0);
 const pageSize = ref(10);
 const total = ref(0);
 const isLoading = ref(false);
+
 
 const currentPage = computed({
   get: () => pageIndex.value + 1,
@@ -42,9 +45,11 @@ const currentPage = computed({
   },
 });
 
+
 const pageTotalAmount = computed(() =>
   total.value > 0 ? Math.ceil(total.value / pageSize.value) : 1,
 );
+
 
 const displayRange = computed(() => {
   const from = pageIndex.value * pageSize.value + 1;
@@ -52,8 +57,10 @@ const displayRange = computed(() => {
   return { from, to };
 });
 
+
 const fetchProjects = async () => {
   if (!ctx.user) return;
+
 
   isLoading.value = true;
   try {
@@ -72,9 +79,11 @@ const fetchProjects = async () => {
   }
 };
 
+
 onMounted(() => {
   fetchProjects();
 });
+
 
 watch([pageIndex], () => {
   fetchProjects();

@@ -1,26 +1,32 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
-import { onMounted, ref } from "vue";
-import { navigate } from "vike/client/router";
-import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
+
 import { TableRow, TableCell } from "@cat/ui";
+import { Button } from "@cat/ui";
+import { navigate } from "vike/client/router";
+import { onMounted, ref } from "vue";
+
 import { useToastStore } from "@/app/stores/toast.ts";
 import { watchClient } from "@/app/utils/vue.ts";
-import { Button } from "@cat/ui";
+import { orpc } from "@/server/orpc";
 
 const { info, rpcWarn } = useToastStore();
 
+
 const termAmount = ref(-1);
+
 
 const props = defineProps<{
   glossary: Glossary;
   project: Project;
 }>();
 
+
 const emits = defineEmits<{
   (e: "unlink"): void;
 }>();
+
 
 const updateTermAmount = async () => {
   await orpc.glossary
@@ -30,9 +36,11 @@ const updateTermAmount = async () => {
     .then((amount) => (termAmount.value = amount));
 };
 
+
 const handleCheck = async () => {
   await navigate(`/glossary/${props.glossary.id}`);
 };
+
 
 const handleUnlink = async () => {
   await orpc.project
@@ -47,7 +55,9 @@ const handleUnlink = async () => {
     .catch(rpcWarn);
 };
 
+
 watchClient(() => props.glossary, updateTermAmount);
+
 
 onMounted(updateTermAmount);
 </script>

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import { navigate } from "vike/client/router";
+
 import { Button } from "@cat/ui";
+import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
+
 const project = defineModel<Project>("project");
+
 
 const handleClick = async () => {
   if (!project.value) return;

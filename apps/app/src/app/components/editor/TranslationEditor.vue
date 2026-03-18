@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { history, historyKeymap } from "@codemirror/commands";
 import { EditorState } from "@codemirror/state";
 import {
   Decoration,
@@ -7,7 +8,6 @@ import {
   type ViewUpdate,
   WidgetType,
 } from "@codemirror/view";
-import { history, historyKeymap } from "@codemirror/commands";
 import { keymap, drawSelection } from "@codemirror/view";
 import { useDebounceFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
@@ -15,10 +15,11 @@ import { onMounted, onUnmounted, watch } from "vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { ws } from "@/server/ws";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
-import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorGhostTextStore } from "@/app/stores/editor/ghost-text.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { ws } from "@/server/ws";
+
 import {
   ghostTextExtension,
   ghostTextStateField,
@@ -38,28 +39,36 @@ import {
 
 const { t } = useI18n();
 
+
 // ─── Store References ───
+
 
 const tableStore = useEditorTableStore();
 const { translationValue, ghostText, elementId, translationTokens } =
   storeToRefs(tableStore);
 
+
 const contextStore = useEditorContextStore();
 const { languageToId } = storeToRefs(contextStore);
+
 
 const ghostTextStore = useEditorGhostTextStore();
 const { suggestion, anchorPosition } = storeToRefs(ghostTextStore);
 const { advanceSuggestion } = ghostTextStore;
 
+
 // ─── Editor Setup ───
+
 
 const containerEl = ref<HTMLDivElement | null>(null);
 let editorView: EditorView | null = null;
+
 
 /** Prevent circular update loops: true when a change originates from the store */
 let suppressCMUpdate = false;
 /** Prevent circular update loops: true when a change originates from CodeMirror */
 let suppressStoreUpdate = false;
+
 
 // Ghost-text-aware placeholder: hides when a suggestion is active so the
 // suggestion widget is not rendered on top of / after the placeholder text.
@@ -80,6 +89,7 @@ class PlaceholderWidget extends WidgetType {
     return false;
   }
 }
+
 
 const makePlaceholder = (text: string) =>
   ViewPlugin.fromClass(
@@ -116,10 +126,13 @@ const makePlaceholder = (text: string) =>
     { decorations: (v) => v.decorations },
   );
 
+
 const createEditor = () => {
   if (!containerEl.value) return;
 
+
   const startDoc = translationValue.value;
+
 
   const state = EditorState.create({
     doc: startDoc,
@@ -160,17 +173,21 @@ const createEditor = () => {
     ],
   });
 
+
   editorView = new EditorView({
     state,
     parent: containerEl.value,
   });
+
 
   // Expose the EditorView to the table store so other stores can call
   // view.dispatch() for cursor-aware insert, undo, etc.
   tableStore.editorView = editorView;
 };
 
+
 // ─── Debounced tokenize：译文变化时更新 token 装饰 ───────────────────────────
+
 
 const debouncedTokenize = useDebounceFn(async (text: string) => {
   const result = await ws.tokenizer.tokenize({
@@ -186,7 +203,9 @@ const debouncedTokenize = useDebounceFn(async (text: string) => {
   translationTokens.value = tokens;
 }, 300);
 
+
 // ─── Sync: store → CodeMirror ───
+
 
 watch(translationValue, (newVal) => {
   if (suppressStoreUpdate) return;
@@ -209,7 +228,9 @@ watch(translationValue, (newVal) => {
   debouncedTokenize(newVal);
 });
 
+
 // ─── Sync: ghost text store → CodeMirror extension ───
+
 
 watch([suggestion, anchorPosition], ([newSuggestion, newAnchor]) => {
   if (!editorView) return;
@@ -237,6 +258,7 @@ watch([suggestion, anchorPosition], ([newSuggestion, newAnchor]) => {
   }
 });
 
+
 // ─── Sync: legacy memory ghost text → CodeMirror extension ───
 // tableStore.ghostText is set by the memory store for exact/token-replaced
 // matches. It replaces the entire translation value, so anchorPosition = 0.
@@ -256,7 +278,9 @@ watch(ghostText, (newGhostText) => {
   }
 });
 
+
 // ─── Lifecycle ───
+
 
 onMounted(() => {
   createEditor();
@@ -266,21 +290,26 @@ onMounted(() => {
   }
 });
 
+
 onUnmounted(() => {
   editorView?.destroy();
   editorView = null;
   tableStore.editorView = null;
 });
 
+
 // ─── Public API (exposed for parent components) ───
+
 
 const focus = () => {
   editorView?.focus();
 };
 
+
 const getCursorPosition = () => {
   return editorView?.state.selection.main.head ?? 0;
 };
+
 
 defineExpose({ focus, getCursorPosition });
 </script>

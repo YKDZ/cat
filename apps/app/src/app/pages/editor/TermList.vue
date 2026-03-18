@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import TermListItem from "./TermListItem.vue";
+
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorTermStore } from "@/app/stores/editor/term.ts";
 import { watchClient } from "@/app/utils/vue.ts";
-import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+
+import TermListItem from "./TermListItem.vue";
 
 const { t } = useI18n();
+
 
 const { elementId } = storeToRefs(useEditorTableStore());
 const { terms } = storeToRefs(useEditorTermStore());
 const { updateTerms } = useEditorTermStore();
+
 
 watchClient(elementId, updateTerms, { immediate: true });
 </script>

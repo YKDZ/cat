@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { orpc } from "@/server/orpc";
-import type { Project } from "@cat/shared/schema/drizzle/project";
-import DocumentTree from "@/app/components/DocumentTree.vue";
-import { navigate } from "vike/client/router";
 import type { Document } from "@cat/shared/schema/drizzle/document";
+import type { Project } from "@cat/shared/schema/drizzle/project";
+
 import { Button } from "@cat/ui";
-import { useToastStore } from "@/app/stores/toast";
+import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
+
+import DocumentTree from "@/app/components/DocumentTree.vue";
+import { useToastStore } from "@/app/stores/toast";
+import { orpc } from "@/server/orpc";
 
 defineProps<{
   project: Pick<Project, "id">;
@@ -15,12 +17,15 @@ defineProps<{
   })[];
 }>();
 
+
 const { info } = useToastStore();
 const { t } = useI18n();
+
 
 const handleClick = async (document: Pick<Document, "id" | "isDirectory">) => {
   if (!document.isDirectory) await navigate(`/document/${document.id}`);
 };
+
 
 const handleDelete = async (document: Pick<Document, "id" | "name">) => {
   await orpc.document.del({ id: document.id });

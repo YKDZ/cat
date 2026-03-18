@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { usePageContext } from "vike-vue/usePageContext";
-import { orpc } from "@/server/orpc";
-import type { PickerOption } from "./picker/index.ts";
-import MultiPicker from "./picker/MultiPicker.vue";
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
+
 import { useQuery } from "@pinia/colada";
+import { usePageContext } from "vike-vue/usePageContext";
+import { computed } from "vue";
+
+import { orpc } from "@/server/orpc";
+
+import type { PickerOption } from "./picker/index.ts";
+
+import MultiPicker from "./picker/MultiPicker.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -24,12 +28,15 @@ const props = withDefaults(
   },
 );
 
+
 const memoryIds = defineModel<string[]>();
+
 
 const { state } = useQuery({
   key: ["memories"],
   query: () => props.getter(),
 });
+
 
 const options = computed(() => {
   if (!state.value || !state.value.data) return [];

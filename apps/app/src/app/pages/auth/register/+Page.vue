@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import { Button } from "@cat/ui";
 import { Input } from "@cat/ui";
-import { useAuthStore } from "@/app/stores/auth";
-import { useToastStore } from "@/app/stores/toast";
-import { orpc } from "@/server/orpc";
-import { toTypedSchema } from "@vee-validate/zod";
-import { storeToRefs } from "pinia";
-import { useForm } from "vee-validate";
-import { navigate } from "vike/client/router";
-import { onMounted } from "vue";
-import { useI18n } from "vue-i18n";
 import {
   FormControl,
   FormField,
@@ -17,12 +8,24 @@ import {
   FormLabel,
   FormMessage,
 } from "@cat/ui";
+import { toTypedSchema } from "@vee-validate/zod";
+import { storeToRefs } from "pinia";
+import { useForm } from "vee-validate";
+import { navigate } from "vike/client/router";
+import { onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import * as z from "zod";
+
+import { useAuthStore } from "@/app/stores/auth";
+import { useToastStore } from "@/app/stores/toast";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 const { info } = useToastStore();
 
+
 const { identifier } = storeToRefs(useAuthStore());
+
 
 const schema = toTypedSchema(
   z.object({
@@ -34,12 +37,14 @@ const schema = toTypedSchema(
   }),
 );
 
+
 const { handleSubmit } = useForm({
   validationSchema: schema,
   initialValues: {
     email: identifier.value,
   },
 });
+
 
 const onSubmit = handleSubmit(async (values) => {
   await orpc.auth.register({
@@ -50,6 +55,7 @@ const onSubmit = handleSubmit(async (values) => {
 
   await navigate("/");
 });
+
 
 onMounted(() => {
   info(

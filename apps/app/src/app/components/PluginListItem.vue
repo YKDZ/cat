@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
-import { computed, ref } from "vue";
+
+import { Card, CardHeader, CardTitle } from "@cat/ui";
+import { useQuery } from "@pinia/colada";
 import { useEventListener } from "@vueuse/core";
 import { navigate } from "vike/client/router";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Card, CardHeader, CardTitle } from "@cat/ui";
+
 import { orpc } from "@/server/orpc";
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
-import { useQuery } from "@pinia/colada";
 
 const { t } = useI18n();
+
 
 const props = defineProps<{
   plugin: Plugin;
@@ -18,12 +21,15 @@ const props = defineProps<{
   pathPrefix: string;
 }>();
 
+
 const iconImgEl = ref<HTMLImageElement>();
 const isIconLoaded = ref(false);
+
 
 const simpleName = computed(() => {
   return props.plugin.name.replace("@cat-plugin/", "");
 });
+
 
 const { state } = useQuery({
   key: ["isInstalled", props.plugin.id],
@@ -35,6 +41,7 @@ const { state } = useQuery({
       scopeId: props.scopeId,
     }),
 });
+
 
 useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
 </script>

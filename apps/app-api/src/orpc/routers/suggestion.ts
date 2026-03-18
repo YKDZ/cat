@@ -1,7 +1,4 @@
-import {
-  fetchAdviseWorkflow,
-  getWorkflowRuntime,
-} from "@cat/app-agent/workflow";
+import { fetchAdviseWorkflow, getWorkflowRuntime } from "@cat/agent/workflow";
 import {
   executeQuery,
   getElementWithChunkIds,

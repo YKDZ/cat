@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { useSidebar } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
+
 import logoURL from "@/app/assets/logo.png";
-import { useSidebar } from "@cat/ui";
 
 const props = defineProps<{
   sidebarId: string;
 }>();
+
 
 const ctx = usePageContext();
 const { state } = useSidebar(props.sidebarId);

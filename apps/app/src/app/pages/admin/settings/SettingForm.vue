@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
-import { orpc } from "@/server/orpc";
+
 import SettingForm from "@/app/components/SettingForm.vue";
+import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   schema: _JSONSchema;
 }>();
+
 
 const configSetter = async (value: NonNullJSONType) => {
   if (
@@ -14,7 +16,9 @@ const configSetter = async (value: NonNullJSONType) => {
   )
     return;
 
+
   const obj = value as Record<string, NonNullJSONType>;
+
 
   await Promise.all(
     Object.keys(props.schema.properties).map(async (key) => {
@@ -24,6 +28,7 @@ const configSetter = async (value: NonNullJSONType) => {
   );
 };
 
+
 const configGetter = async () => {
   if (
     props.schema.type !== "object" ||
@@ -31,7 +36,9 @@ const configGetter = async () => {
   )
     throw new Error("schema type must be object");
 
+
   const data: Record<string, NonNullJSONType> = {};
+
 
   await Promise.all(
     Object.keys(props.schema.properties).map(async (key) => {
@@ -39,6 +46,7 @@ const configGetter = async () => {
       data[key] = value;
     }),
   );
+
 
   return data as NonNullJSONType;
 };

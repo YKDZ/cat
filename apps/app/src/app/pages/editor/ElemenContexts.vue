@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import ElemenContextJson from "./ElemenContextJson.vue";
-import ElemenContextMarkdown from "./ElemenContextMarkdown.vue";
-import { useEditorTableStore } from "@/app/stores/editor/table";
-import { orpc } from "@/server/orpc";
 import type { TranslatableElementContextType } from "@cat/shared/schema/drizzle/enum";
-import { storeToRefs } from "pinia";
+
 import { SidebarGroup, SidebarGroupContent, SidebarContent } from "@cat/ui";
 import { ScrollArea } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
+import { storeToRefs } from "pinia";
+
+import { useEditorTableStore } from "@/app/stores/editor/table";
+import { orpc } from "@/server/orpc";
+
+import ElemenContextJson from "./ElemenContextJson.vue";
+import ElemenContextMarkdown from "./ElemenContextMarkdown.vue";
 
 const { elementId } = storeToRefs(useEditorTableStore());
+
 
 const { state } = useQuery({
   key: ["context", elementId.value],
@@ -22,6 +26,7 @@ const { state } = useQuery({
   },
   enabled: !import.meta.env.SSR,
 });
+
 
 const componentFromType = (type: TranslatableElementContextType) => {
   switch (type) {

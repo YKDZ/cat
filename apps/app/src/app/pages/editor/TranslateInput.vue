@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from "vue";
+
 import TranslationEditor from "@/app/components/editor/TranslationEditor.vue";
 
 const editorRef =
   useTemplateRef<InstanceType<typeof TranslationEditor>>("editorRef");
+
 
 onMounted(() => {
   editorRef.value?.focus();

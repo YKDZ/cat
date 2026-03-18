@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import TokenViewer from "@/app/components/editor/TokenViewer.vue";
-import { useHotKeys } from "@/app/utils/magic-keys.ts";
-import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { useEditorContextStore } from "@/app/stores/editor/context.ts";
-import { computed } from "vue";
 import type { TranslationSuggestion } from "@cat/shared/schema/plugin";
-import { useQuery } from "@pinia/colada";
-import { orpc } from "@/server/orpc";
+
 import { Skeleton } from "@cat/ui";
+import { useQuery } from "@pinia/colada";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+
+import TokenViewer from "@/app/components/editor/TokenViewer.vue";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useHotKeys } from "@/app/utils/magic-keys.ts";
+import { orpc } from "@/server/orpc";
 
 const { replace } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());
+
 
 const props = defineProps<{
   suggestion: TranslationSuggestion;
   index: number;
 }>();
+
 
 const { state } = useQuery({
   key: ["reactions", props.suggestion.advisorId ?? "noAdvisor"],
@@ -31,13 +35,16 @@ const { state } = useQuery({
   enabled: !import.meta.env.SSR && !!props.suggestion.advisorId,
 });
 
+
 const tagLabel = computed(() => {
   return null;
 });
 
+
 const handleCopy = () => {
   replace(props.suggestion.translation);
 };
+
 
 useHotKeys(`S+${props.index + 1}`, handleCopy);
 </script>

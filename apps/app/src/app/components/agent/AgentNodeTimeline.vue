@@ -12,7 +12,9 @@ defineProps<{
   nodes: NodeExecution[];
 }>();
 
+
 const { t } = useI18n();
+
 
 const formatTime = (value: Date | null): string => {
   if (!value) return "-";

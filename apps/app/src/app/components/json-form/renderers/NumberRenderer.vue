@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, inject } from "vue";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
-import { schemaKey } from "../utils.ts";
+
 import {
   NumberField,
   NumberFieldContent,
@@ -17,19 +16,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@cat/ui";
+import { computed, inject } from "vue";
+
+import { schemaKey } from "../utils.ts";
 
 const props = defineProps<{
   propertyKey: string | number;
   data: NonNullJSONType;
 }>();
 
+
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
+
 const schema = inject(schemaKey)!;
 
+
 const value = computed(() => Number(props.data ?? schema.default));
+
 
 const onUpdate = (newValue: number) => {
   emits("_update", newValue);

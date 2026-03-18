@@ -1,24 +1,29 @@
 <script setup lang="ts">
+import { Textarea } from "@cat/ui";
+import { Button } from "@cat/ui";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Textarea } from "@cat/ui";
+
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { orpc } from "@/server/orpc";
-import { Button } from "@cat/ui";
 
 const { t } = useI18n();
+
 
 const props = defineProps<{
   glossaryId: string;
 }>();
 
+
 const { info, warn, rpcWarn } = useToastStore();
+
 
 const termLanguageId = ref("");
 const termsText = ref("");
 const translationLanguageId = ref("");
 const translationsText = ref("");
+
 
 const terms = computed(() => {
   const arr = termsText.value
@@ -28,6 +33,7 @@ const terms = computed(() => {
   return arr;
 });
 
+
 const translations = computed(() => {
   const arr = translationsText.value
     .trim()
@@ -35,6 +41,7 @@ const translations = computed(() => {
     .filter((line: string) => line.length > 0);
   return arr;
 });
+
 
 const handleInsert = async () => {
   if (
@@ -52,10 +59,12 @@ const handleInsert = async () => {
     return;
   }
 
+
   if (terms.value.length !== translations.value.length) {
     warn(t("术语和翻译表行数必须相同"));
     return;
   }
+
 
   const termsData = terms.value.map((term, index) => {
     const translation = translations.value[index];
@@ -67,6 +76,7 @@ const handleInsert = async () => {
       translationLanguageId: translationLanguageId.value,
     };
   });
+
 
   await orpc.glossary
     .insertTerm({

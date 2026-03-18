@@ -1,13 +1,5 @@
 <script setup lang="ts">
 import { FileMetaSchema } from "@cat/shared/schema/misc";
-import { usePageContext } from "vike-vue/usePageContext";
-import { computed, ref, shallowRef } from "vue";
-import { useObjectUrl } from "@vueuse/core";
-import { useI18n } from "vue-i18n";
-import { useToastStore } from "@/app/stores/toast.ts";
-import { orpc } from "@/server/orpc";
-import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
-import ImageCopper from "@/app/components/ImageCopper.vue";
 import {
   Button,
   Dialog,
@@ -17,30 +9,47 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@cat/ui";
+import { useObjectUrl } from "@vueuse/core";
+import { usePageContext } from "vike-vue/usePageContext";
+import { computed, ref, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
+
+import ImageCopper from "@/app/components/ImageCopper.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 
+
 const ctx = usePageContext();
 
+
 const { info, rpcWarn } = useToastStore();
+
 
 const fileInputEl = ref<HTMLInputElement>();
 const file = shallowRef();
 const isOpen = ref(false);
 const isProcessing = ref(false);
 
+
 const src = useObjectUrl(file);
+
 
 const onSubmit = async (blob: Blob | null) => {
   if (blob === null || !ctx.user) return;
 
+
   const file = new File([blob], `${ctx.user.id}.png`);
+
 
   const meta = FileMetaSchema.parse({
     name: file.name,
     mimeType: rawFileMime.value,
     size: file.size,
   });
+
 
   await orpc.user
     .prepareUploadAvatar({
@@ -61,6 +70,7 @@ const onSubmit = async (blob: Blob | null) => {
     .finally(() => (isProcessing.value = false));
 };
 
+
 const handleFileChange = () => {
   if (
     !fileInputEl.value ||
@@ -69,10 +79,12 @@ const handleFileChange = () => {
   )
     return;
 
+
   file.value = fileInputEl.value.files[0];
   if (!file.value) return;
   isOpen.value = true;
 };
+
 
 const rawFileMime = computed(() => {
   if (!fileInputEl.value || !fileInputEl.value.files) return;

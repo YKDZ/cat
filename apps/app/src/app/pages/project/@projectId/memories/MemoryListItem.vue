@@ -1,26 +1,32 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import { onMounted, ref } from "vue";
-import { navigate } from "vike/client/router";
-import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
+
 import { TableRow, TableCell } from "@cat/ui";
+import { Button } from "@cat/ui";
+import { navigate } from "vike/client/router";
+import { onMounted, ref } from "vue";
+
 import { useToastStore } from "@/app/stores/toast.ts";
 import { watchClient } from "@/app/utils/vue.ts";
-import { Button } from "@cat/ui";
+import { orpc } from "@/server/orpc";
 
 const { info, rpcWarn } = useToastStore();
 
+
 const itemAmount = ref(-1);
+
 
 const props = defineProps<{
   memory: Memory;
   project: Project;
 }>();
 
+
 const emits = defineEmits<{
   (e: "unlink"): void;
 }>();
+
 
 const updateTermAmount = async () => {
   await orpc.memory
@@ -30,9 +36,11 @@ const updateTermAmount = async () => {
     .then((amount) => (itemAmount.value = amount));
 };
 
+
 const handleCheck = async () => {
   await navigate(`/memory/${props.memory.id}`);
 };
+
 
 const handleUnlink = async () => {
   await orpc.project
@@ -47,7 +55,9 @@ const handleUnlink = async () => {
     .catch(rpcWarn);
 };
 
+
 watchClient(() => props.memory, updateTermAmount);
+
 
 onMounted(updateTermAmount);
 </script>

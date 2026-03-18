@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, inject } from "vue";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
-import { schemaKey } from "../utils.ts";
+
 import { Switch } from "@cat/ui";
 import {
   FormControl,
@@ -11,17 +10,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@cat/ui";
+import { computed, inject } from "vue";
+
+import { schemaKey } from "../utils.ts";
 
 const props = defineProps<{
   propertyKey: string | number;
   data: NonNullJSONType;
 }>();
 
+
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
+
 const schema = inject(schemaKey)!;
+
 
 const value = computed(() => {
   try {
@@ -30,6 +35,7 @@ const value = computed(() => {
     return false;
   }
 });
+
 
 const handleUpdate = (value: boolean) => {
   emits("_update", value);

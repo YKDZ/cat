@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.server";
-import { computed, ref } from "vue";
+import {
+  TermStatusValues,
+  TermTypeValues,
+  type TermStatus,
+  type TermType,
+} from "@cat/shared/schema/drizzle/enum";
+import { logger } from "@cat/shared/utils";
 import { Button } from "@cat/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
 import {
@@ -16,9 +20,6 @@ import { Input } from "@cat/ui";
 import { Textarea } from "@cat/ui";
 import { Badge } from "@cat/ui";
 import { Label } from "@cat/ui";
-import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import MultiPicker from "@/app/components/picker/MultiPicker.vue";
-import type { PickerOption } from "@/app/components/picker";
 import {
   Dialog,
   DialogContent,
@@ -26,26 +27,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@cat/ui";
+import { useData } from "vike-vue/useData";
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import type { PickerOption } from "@/app/components/picker";
+
+import LanguagePicker from "@/app/components/LanguagePicker.vue";
+import MultiPicker from "@/app/components/picker/MultiPicker.vue";
 import { useToastStore } from "@/app/stores/toast";
 import { orpc } from "@/server/orpc";
-import { logger } from "@cat/shared/utils";
-import {
-  TermStatusValues,
-  TermTypeValues,
-  type TermStatus,
-  type TermType,
-} from "@cat/shared/schema/drizzle/enum";
-import { useI18n } from "vue-i18n";
+
+import type { Data } from "./+data.server";
 
 const { t } = useI18n();
 const { concept, subjects, terms, availableSubjects } = useData<Data>();
 const toastStore = useToastStore();
+
 
 // 编辑概念状态
 const isEditingConcept = ref(false);
 const editedSubjectIds = ref<number[]>(subjects.map((s) => s.id));
 const editedDefinition = ref(concept.definition || "");
 const isUpdatingConcept = ref(false);
+
 
 // 主题选择器选项
 const subjectOptions = computed<PickerOption<number>[]>(() => {
@@ -57,6 +62,7 @@ const subjectOptions = computed<PickerOption<number>[]>(() => {
   ];
 });
 
+
 // 新术语状态
 const isNewTermDialogOpen = ref(false);
 const newTermText = ref("");
@@ -65,9 +71,11 @@ const newTermType = ref<TermType>("NOT_SPECIFIED");
 const newTermStatus = ref<TermStatus>("PREFERRED");
 const isAddingTerm = ref(false);
 
+
 // 保存概念更改
 const saveConceptChanges = async () => {
   isUpdatingConcept.value = true;
+
 
   try {
     await orpc.glossary.updateConcept({
@@ -75,6 +83,7 @@ const saveConceptChanges = async () => {
       subjectIds: editedSubjectIds.value,
       definition: editedDefinition.value || undefined,
     });
+
 
     isEditingConcept.value = false;
     toastStore.info(t("概念已成功更新"));
@@ -87,6 +96,7 @@ const saveConceptChanges = async () => {
   }
 };
 
+
 // 添加新术语
 const addNewTerm = async () => {
   if (!newTermText.value.trim()) {
@@ -94,7 +104,9 @@ const addNewTerm = async () => {
     return;
   }
 
+
   isAddingTerm.value = true;
+
 
   try {
     await orpc.glossary.addTermToConcept({
@@ -105,8 +117,10 @@ const addNewTerm = async () => {
       status: newTermStatus.value,
     });
 
+
     // 重新加载页面或刷新术语列表
     location.reload();
+
 
     toastStore.info(t("术语已成功添加"));
   } catch (error) {

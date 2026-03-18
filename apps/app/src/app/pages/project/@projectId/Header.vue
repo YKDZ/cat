@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { usePageContext } from "vike-vue/usePageContext";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import HeaderBreadcrumb from "./HeaderBreadcrumb.vue";
+
 import { SidebarTrigger } from "@cat/ui";
+import { usePageContext } from "vike-vue/usePageContext";
+
+import HeaderBreadcrumb from "./HeaderBreadcrumb.vue";
 
 defineProps<{
   project: Project;
 }>();
+
 
 const ctx = usePageContext();
 </script>

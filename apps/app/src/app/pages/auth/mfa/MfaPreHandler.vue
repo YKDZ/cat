@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { Button } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
+
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { Button } from "@cat/ui";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
+
 
 const props = defineProps<{
   method: {
@@ -14,14 +16,18 @@ const props = defineProps<{
   };
 }>();
 
+
 const emits = defineEmits<{
   preMFA: [];
 }>();
 
+
 const { userId } = storeToRefs(useAuthStore());
+
 
 const handlePreMfa = async () => {
   if (!userId.value) return;
+
 
   await orpc.auth.preMfa({
     userId: userId.value,

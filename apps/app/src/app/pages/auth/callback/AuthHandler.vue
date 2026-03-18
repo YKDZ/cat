@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { usePageContext } from "vike-vue/usePageContext";
-import { computed, onMounted, ref, shallowRef } from "vue";
-import { navigate } from "vike/client/router";
-import { storeToRefs } from "pinia";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+
+import { Button } from "@cat/ui";
+import { storeToRefs } from "pinia";
+import { usePageContext } from "vike-vue/usePageContext";
+import { navigate } from "vike/client/router";
+import { computed, onMounted, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
+
 import JSONForm from "@/app/components/json-form/JsonForm.vue";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { Button } from "@cat/ui";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
+
 
 const ctx = usePageContext();
 const { authMethod } = storeToRefs(useAuthStore());
 const schema = ref<JSONSchema>({});
 const data = shallowRef<NonNullJSONType>({});
+
 
 const handleAuth = async (): Promise<void> => {
   const formData =
@@ -42,13 +46,16 @@ const handleAuth = async (): Promise<void> => {
     });
 };
 
+
 const isEmpty = computed(() => {
   return Object.keys(schema.value).length === 0;
 });
 
+
 const handleUpdate = (to: NonNullJSONType): void => {
   data.value = to;
 };
+
 
 onMounted(async () => {
   if (!authMethod.value?.providerId) {

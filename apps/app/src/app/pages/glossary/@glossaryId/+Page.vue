@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { Button } from "@cat/ui";
-import InsertTermBtn from "./InsertTermBtn.vue";
+import { ref } from "vue";
+import { inject } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { useInjectionKey } from "@/app/utils/provide";
+
+import type { Data } from "./+data.server.ts";
+
+import ConceptTable from "./ConceptTable.vue";
 import InsertConceptBtn from "./InsertConceptBtn.vue";
 import InsertConceptSubjectBtn from "./InsertConceptSubjectBtn.vue";
-import { useInjectionKey } from "@/app/utils/provide";
-import { inject } from "vue";
-import type { Data } from "./+data.server.ts";
+import InsertTermBtn from "./InsertTermBtn.vue";
 import PairTable from "./PairTable.vue";
-import ConceptTable from "./ConceptTable.vue";
-import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 const glossary = inject(useInjectionKey<Data>()("glossary"))!;

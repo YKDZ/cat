@@ -1,10 +1,4 @@
 <script setup lang="ts">
-import { useToastStore } from "@/app/stores/toast";
-import { useInjectionKey } from "@/app/utils/provide";
-import { orpc } from "@/server/orpc";
-import { inject } from "vue";
-import type { Data } from "../+data.server";
-import { useI18n } from "vue-i18n";
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -14,16 +8,27 @@ import {
   DialogTrigger,
   DialogTitle,
 } from "@cat/ui";
+import { inject } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { useToastStore } from "@/app/stores/toast";
+import { useInjectionKey } from "@/app/utils/provide";
+import { orpc } from "@/server/orpc";
+
+import type { Data } from "../+data.server";
 
 const { info } = useToastStore();
 const { t } = useI18n();
 
+
 const project = inject(useInjectionKey<Data>()("project"))!;
+
 
 const snapshot = async () => {
   const count = await orpc.project.snapshot({
     projectId: project.id,
   });
+
 
   info(`为 ${count} 个元素的翻译拍摄了快照`);
 };

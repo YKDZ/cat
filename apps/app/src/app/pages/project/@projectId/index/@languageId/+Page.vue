@@ -1,19 +1,24 @@
 <script setup lang="ts">
+import { Button } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { computed, inject } from "vue";
-import type { Data } from "../../+data.server.ts";
-import { useInjectionKey } from "@/app/utils/provide.ts";
-import LanguageDocumentTree from "./LanguageDocumentTree.vue";
-import { Button } from "@cat/ui";
 import { useI18n } from "vue-i18n";
+
+import { useInjectionKey } from "@/app/utils/provide.ts";
+
+import type { Data } from "../../+data.server.ts";
+
 import TranslationProgress from "../TranslationProgress.vue";
+import LanguageDocumentTree from "./LanguageDocumentTree.vue";
 
 const ctx = usePageContext();
 const { t } = useI18n();
 
+
 const project = inject(useInjectionKey<Data>()("project"))!;
 const targetLanguages = inject(useInjectionKey<Data>()("targetLanguages"))!;
+
 
 const language = computed(() => {
   const language = targetLanguages.find(
@@ -22,6 +27,7 @@ const language = computed(() => {
   if (!language) throw new Error("Language not found");
   return language;
 });
+
 
 const handleBack = async () => {
   if (!project) return;

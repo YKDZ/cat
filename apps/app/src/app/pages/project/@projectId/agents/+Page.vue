@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
-import { inject, ref, computed, onMounted } from "vue";
-import type { Data as LayoutData } from "../+data.server.ts";
-import { useInjectionKey } from "@/app/utils/provide.ts";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import type { Component } from "vue";
+
 import {
   Badge,
   Button,
@@ -27,14 +26,20 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-vue-next";
+import { inject, ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { useInjectionKey } from "@/app/utils/provide.ts";
 import { orpc } from "@/server/orpc";
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
-import type { Component } from "vue";
+
+import type { Data as LayoutData } from "../+data.server.ts";
 
 const { t } = useI18n();
 const project = inject(useInjectionKey<LayoutData>()("project"))!;
 
+
 // ─── Types ───
+
 
 interface AgentItem {
   id: string;
@@ -47,6 +52,7 @@ interface AgentItem {
   createdAt: Date;
 }
 
+
 interface BuiltinTemplate {
   templateId: string;
   name: string;
@@ -55,18 +61,22 @@ interface BuiltinTemplate {
   tools: string[];
 }
 
+
 interface LLMProviderOption {
   id: number;
   serviceId: string;
   name: string;
 }
 
+
 // ─── State ───
+
 
 const enabledAgents = ref<AgentItem[]>([]);
 const templates = ref<BuiltinTemplate[]>([]);
 const llmProviders = ref<LLMProviderOption[]>([]);
 const loading = ref(true);
+
 
 /** Dialog state */
 const enableDialogOpen = ref(false);
@@ -74,15 +84,19 @@ const selectedTemplate = ref<BuiltinTemplate | null>(null);
 const selectedProviderId = ref<number | null>(null);
 const enabling = ref(false);
 
+
 // ─── Computed ───
+
 
 const enabledBuiltins = computed(() =>
   enabledAgents.value.filter((a) => a.isBuiltin),
 );
 
+
 const customAgents = computed(() =>
   enabledAgents.value.filter((a) => !a.isBuiltin),
 );
+
 
 /**
  * Templates that have NOT been enabled for this project yet.
@@ -92,13 +106,16 @@ const availableTemplates = computed(() => {
   return templates.value.filter((t) => !enabledNames.has(t.name));
 });
 
+
 const iconMap: Record<string, Component> = {
   ShieldCheck,
   Languages,
 };
 
+
 const getIcon = (iconName: string | undefined): Component =>
   (iconName ? iconMap[iconName] : undefined) ?? Bot;
+
 
 const getIconFromDef = (def: unknown): Component => {
   if (
@@ -114,7 +131,9 @@ const getIconFromDef = (def: unknown): Component => {
   return Bot;
 };
 
+
 // ─── Data Fetching ───
+
 
 const fetchAll = async () => {
   loading.value = true;
@@ -132,7 +151,9 @@ const fetchAll = async () => {
   }
 };
 
+
 // ─── Enable / Disable ───
+
 
 const openEnableDialog = (tmpl: BuiltinTemplate) => {
   selectedTemplate.value = tmpl;
@@ -140,6 +161,7 @@ const openEnableDialog = (tmpl: BuiltinTemplate) => {
   selectedProviderId.value = first?.id ?? null;
   enableDialogOpen.value = true;
 };
+
 
 const confirmEnable = async () => {
   if (!selectedTemplate.value || selectedProviderId.value === null) return;
@@ -158,15 +180,18 @@ const confirmEnable = async () => {
   }
 };
 
+
 const handleDisable = async (agentId: string) => {
   await orpc.agent.disableBuiltin({ id: agentId });
   enabledAgents.value = enabledAgents.value.filter((a) => a.id !== agentId);
 };
 
+
 const handleDelete = async (agentId: string) => {
   await orpc.agent.remove({ id: agentId });
   enabledAgents.value = enabledAgents.value.filter((a) => a.id !== agentId);
 };
+
 
 onMounted(() => {
   void fetchAll();

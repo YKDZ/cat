@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
 import { inject } from "vue";
-import type { Data as LayoutData } from "../+data.server.ts";
-import type { Data } from "./+data.server.ts";
-import GlossaryLinkerBtn from "./GlossaryLinkerBtn.vue";
-import GlossaryList from "./GlossaryList.vue";
+
 import { useInjectionKey } from "@/app/utils/provide.ts";
 
+import type { Data as LayoutData } from "../+data.server.ts";
+import type { Data } from "./+data.server.ts";
+
+import GlossaryLinkerBtn from "./GlossaryLinkerBtn.vue";
+import GlossaryList from "./GlossaryList.vue";
+
 const { glossaries } = useData<Data>();
+
 
 const project = inject(useInjectionKey<LayoutData>()("project"))!;
 </script>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { codeToHtml } from "shiki";
 import { ScrollArea, ScrollBar } from "@cat/ui";
 import { Hash } from "lucide-vue-next";
+import { codeToHtml } from "shiki";
+import { computed, nextTick, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+
 import {
   detectFileType,
   detectLanguage,
@@ -16,13 +17,17 @@ const props = defineProps<{
   highlightEndLine?: number | null;
 }>();
 
+
 const { t } = useI18n();
+
 
 /** Number of context lines to show around the highlighted range */
 const CONTEXT_LINES = 15;
 
+
 const allLines = computed(() => props.content.split("\n"));
 const totalLineCount = computed(() => allLines.value.length);
+
 
 const windowStart = computed(() => {
   if (
@@ -33,23 +38,28 @@ const windowStart = computed(() => {
   return Math.max(1, props.highlightStartLine - CONTEXT_LINES);
 });
 
+
 const windowEnd = computed(() => {
   if (props.highlightEndLine === undefined || props.highlightEndLine === null)
     return Math.min(totalLineCount.value, CONTEXT_LINES * 2);
   return Math.min(totalLineCount.value, props.highlightEndLine + CONTEXT_LINES);
 });
 
+
 const windowContent = computed(() =>
   allLines.value.slice(windowStart.value - 1, windowEnd.value).join("\n"),
 );
 
+
 const hasLinesBefore = computed(() => windowStart.value > 1);
 const hasLinesAfter = computed(() => windowEnd.value < totalLineCount.value);
+
 
 const fileInfo = computed(() => detectFileType(props.fileName));
 const detectedLanguage = computed(() =>
   detectLanguage(props.fileName, fileInfo.value.extension),
 );
+
 
 const highlightedHtml = ref("");
 const containerRef = ref<HTMLElement | null>(null);
@@ -57,6 +67,7 @@ const showLineNumbers = ref(true);
 const scrollAreaClass = computed(() =>
   hasLinesBefore.value || hasLinesAfter.value ? "h-[16.5rem]" : "h-[17rem]",
 );
+
 
 const highlightCode = async () => {
   try {
@@ -80,13 +91,16 @@ const highlightCode = async () => {
   }
 };
 
+
 const addLineNumbers = (html: string, startOffset: number): string => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   const codeElement = doc.querySelector("code");
   if (!codeElement) return html;
 
+
   const lines = Array.from(codeElement.querySelectorAll(".line"));
+
 
   lines.forEach((line, index) => {
     const lineNumber = startOffset + index;
@@ -116,8 +130,10 @@ const addLineNumbers = (html: string, startOffset: number): string => {
     line.parentNode?.replaceChild(lineWithNumber, line);
   });
 
+
   return codeElement.innerHTML;
 };
+
 
 watch(
   () => [windowContent.value, props.highlightStartLine, props.highlightEndLine],
@@ -126,6 +142,7 @@ watch(
   },
   { immediate: true },
 );
+
 
 // Auto-scroll to highlighted line within the container
 watch(highlightedHtml, async () => {

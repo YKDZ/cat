@@ -31,7 +31,7 @@
     "@vueuse/core": "^14.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-vue-next": "^0.574.0",
+    "lucide-vue-next": "^0.577.0",
     "tailwind-merge": "^3.5.0",
     "vee-validate": "^4.15.1"
   },
@@ -39,12 +39,12 @@
     "@cat/eslint-config": "workspace:*",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/vue-table": "^8.21.3",
-    "@types/node": "^24.12.0",
-    "@vue/tsconfig": "^0.8.1",
+    "@types/node": "^25.5.0",
+    "@vue/tsconfig": "^0.9.0",
     "shadcn-vue": "^2.4.3",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "8.0.0",
-    "vue-tsc": "^3.2.5"
+    "vue-tsc": "^3.2.6"
   },
   "peerDependencies": {
     "reka-ui": "^2.8.2",

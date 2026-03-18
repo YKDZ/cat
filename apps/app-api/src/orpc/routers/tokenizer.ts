@@ -1,4 +1,4 @@
-import { tokenizeTask } from "@cat/app-agent/workflow";
+import { tokenizeTask } from "@cat/agent/workflow";
 import { lookupTermsForElementOp } from "@cat/operations";
 import { TokenSchema } from "@cat/plugin-core";
 import z from "zod";

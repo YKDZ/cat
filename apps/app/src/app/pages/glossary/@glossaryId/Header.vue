@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
-import Breadcrumb from "./Breadcrumb.vue";
+
 import { SidebarTrigger } from "@cat/ui";
+
+import Breadcrumb from "./Breadcrumb.vue";
 
 defineProps<{
   glossary: Pick<Glossary, "name" | "creatorId">;

@@ -1,24 +1,29 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useI18n } from "vue-i18n";
 import { Button, Input } from "@cat/ui";
 import { AlertTriangle, Play, X } from "lucide-vue-next";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import type { MaxStepsReachedInfo } from "@/app/stores/agent";
+
 import { useAgentStore } from "@/app/stores/agent";
 
 defineProps<{
   info: MaxStepsReachedInfo;
 }>();
 
+
 const { t } = useI18n();
 const agentStore = useAgentStore();
 
+
 const additionalSteps = ref(10);
+
 
 const handleContinue = () => {
   void agentStore.extendAndContinue();
 };
+
 
 const handleTerminate = () => {
   agentStore.cancelStreaming();

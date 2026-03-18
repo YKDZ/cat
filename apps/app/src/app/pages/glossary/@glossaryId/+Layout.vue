@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { provide } from "vue";
 import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.server.ts";
+import { provide } from "vue";
+
 import IndexSidebar from "@/app/components/IndexSidebar.vue";
-import Header from "./Header.vue";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 
+import type { Data } from "./+data.server.ts";
+
+import Header from "./Header.vue";
+
 const { glossary } = useData<Data>();
+
 
 provide(useInjectionKey<Data>()("glossary"), glossary);
 </script>

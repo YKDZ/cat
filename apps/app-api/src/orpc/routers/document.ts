@@ -1,4 +1,4 @@
-import { upsertDocumentFromFileWorkflow } from "@cat/app-agent/workflow";
+import { upsertDocumentFromFileWorkflow } from "@cat/agent/workflow";
 import { createDocumentUnderParent } from "@cat/domain";
 import {
   countDocumentElements,

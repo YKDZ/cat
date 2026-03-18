@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
-import { useEditorTermStore } from "@/app/stores/editor/term.ts";
 import { Input } from "@cat/ui";
 import { Search } from "lucide-vue-next";
+import { storeToRefs } from "pinia";
+import { useI18n } from "vue-i18n";
+
+import { useEditorTermStore } from "@/app/stores/editor/term.ts";
 
 const { t } = useI18n();
 
+
 const { searchQuery } = storeToRefs(useEditorTermStore());
 const { searchTerm } = useEditorTermStore();
+
 
 const handleSearch = () => {
   searchTerm();

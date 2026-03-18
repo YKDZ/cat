@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
+import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Component } from "vue";
+
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -8,7 +10,6 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@cat/ui";
-import type { Project } from "@cat/shared/schema/drizzle/project";
 import {
   Archive,
   Book,
@@ -18,15 +19,17 @@ import {
   NotebookText,
   Settings,
 } from "lucide-vue-next";
-import type { Component } from "vue";
 import { usePageContext } from "vike-vue/usePageContext";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   project: Pick<Project, "id">;
 }>();
 
+
 const { t } = useI18n();
 const ctx = usePageContext();
+
 
 const items: { title: string; href: string; icon: Component }[] = [
   {

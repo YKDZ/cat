@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import MemoryListItem from "./MemoryListItem.vue";
+
 import { useEditorMemoryStore } from "@/app/stores/editor/memory.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { watchClient, watchClientThrottled } from "@/app/utils/vue.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
+import { watchClient, watchClientThrottled } from "@/app/utils/vue.ts";
+
+import MemoryListItem from "./MemoryListItem.vue";
 
 const { t } = useI18n();
+
 
 const { memories } = storeToRefs(useEditorMemoryStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { subMemories, unsubscribe } = useEditorMemoryStore();
 const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
+
 
 watchClient(
   elementId,
@@ -24,6 +28,7 @@ watchClient(
     immediate: true,
   },
 );
+
 
 watchClientThrottled(editorMemoryMinConfidence, subMemories);
 </script>

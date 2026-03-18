@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+
 import IJsonForm from "./IJsonForm.vue";
 
 defineProps<{
   schema: _JSONSchema;
   data: NonNullJSONType;
 }>();
+
 
 const emits = defineEmits<{
   (

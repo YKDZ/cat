@@ -1,6 +1,6 @@
 import type { AgentContextProvider, LLMProvider } from "@cat/plugin-core";
 
-import { buildSystemPrompt, runFim } from "@cat/app-agent";
+import { buildSystemPrompt, runFim } from "@cat/agent";
 import {
   executeQuery,
   getElementWithChunkIds,

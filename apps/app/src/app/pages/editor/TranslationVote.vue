@@ -1,24 +1,29 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { orpc } from "@/server/orpc";
-import { useToastStore } from "@/app/stores/toast.ts";
-import type { TranslationWithStatus } from "@/app/stores/editor/translation";
 import { Button } from "@cat/ui";
-import { useI18n } from "vue-i18n";
-import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
-import { Minus, Plus } from "lucide-vue-next";
 import { Skeleton } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
+import { Minus, Plus } from "lucide-vue-next";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import type { TranslationWithStatus } from "@/app/stores/editor/translation";
+
+import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id" | "vote">;
 }>();
 
+
 const { t } = useI18n();
 const { info, rpcWarn } = useToastStore();
 
+
 const preVoteAmount = ref(1);
 const isProcessing = ref<boolean>(false);
+
 
 const { state: selfVoteState, refetch: refetchSelfVote } = useQuery({
   key: ["selfVote", props.translation.id],
@@ -29,6 +34,7 @@ const { state: selfVoteState, refetch: refetchSelfVote } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
+
 const { state: voteState, refetch: refetchVote } = useQuery({
   key: ["vote", props.translation.id],
   query: () =>
@@ -38,9 +44,11 @@ const { state: voteState, refetch: refetchVote } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
+
 const handleUnvote = async () => {
   if (!selfVoteState.value || selfVoteState.value.data?.value === 0) return;
   if (isProcessing.value) return;
+
 
   isProcessing.value = true;
   await orpc.translation
@@ -58,6 +66,7 @@ const handleUnvote = async () => {
     })
     .catch(rpcWarn);
 };
+
 
 const handleVote = async (value: number) => {
   isProcessing.value = true;

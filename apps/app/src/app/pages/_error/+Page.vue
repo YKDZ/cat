@@ -1,13 +1,16 @@
 <script lang="ts" setup>
+import { Button } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/ui";
 
 const ctx = usePageContext();
 
+
 const { t } = useI18n();
 
+
 const { is404, abortReason } = ctx;
+
 
 const handleBack = () => {
   window.history.back();

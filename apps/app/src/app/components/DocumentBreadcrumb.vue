@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/drizzle/document";
+
 import { computed } from "vue";
 
 defineProps<{
   document: Pick<Document, "name">;
 }>();
+
 
 // TODO 文件名 -> 图标
 const icon = computed(() => "icon-[mdi--file]");

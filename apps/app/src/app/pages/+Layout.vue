@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { SidebarProvider } from "@cat/ui";
 import { Toaster } from "@cat/ui";
-import { useCookieBooleanRef } from "@/app/utils/cookie";
-import { usePageContext } from "vike-vue/usePageContext";
 import { PiniaColadaDevtools } from "@pinia/colada-devtools";
+import { usePageContext } from "vike-vue/usePageContext";
+
+import { useCookieBooleanRef } from "@/app/utils/cookie";
 
 const ctx = usePageContext();
+
 
 const indexSidebarOpen = useCookieBooleanRef(
   usePageContext(),

@@ -7,8 +7,7 @@ import {
   PaginationFirst,
   PaginationLast,
 } from "@cat/ui";
-import { useEditorContextStore } from "@/app/stores/editor/context";
-import { useEditorTableStore } from "@/app/stores/editor/table";
+import { useSidebar } from "@cat/ui";
 import {
   ChevronRightIcon,
   ChevronLeftIcon,
@@ -18,25 +17,32 @@ import {
 import { storeToRefs } from "pinia";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useSidebar } from "@cat/ui";
+
+import { useEditorContextStore } from "@/app/stores/editor/context";
+import { useEditorTableStore } from "@/app/stores/editor/table";
 
 const { t } = useI18n();
+
 
 const { currentPage } = storeToRefs(useEditorContextStore());
 const { elementTotalAmount, pageTotalAmount } = storeToRefs(
   useEditorTableStore(),
 );
 
+
 const { toPage } = useEditorTableStore();
+
 
 // 获取侧边栏宽度
 const sidebarId = "editor";
 const { width: sidebarWidth } = useSidebar(sidebarId);
 
+
 // 根据宽度判断是否应该显示大尺寸
 const isWideSidebar = computed(() => {
   return (sidebarWidth.value || 240) >= 320;
 });
+
 
 watch(
   currentPage,
@@ -51,6 +57,7 @@ watch(
   },
   { immediate: false },
 );
+
 
 const displayRange = computed(() => {
   const from = (currentPage.value - 1) * 16 + 1;

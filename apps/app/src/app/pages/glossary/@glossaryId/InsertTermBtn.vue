@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -8,10 +7,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@cat/ui";
-import InsertTermText from "./InsertTermText.vue";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@cat/ui";
+import { useI18n } from "vue-i18n";
+
+import InsertTermText from "./InsertTermText.vue";
 
 const { t } = useI18n();
+
 
 defineProps<{
   glossaryId: string;

@@ -6,7 +6,9 @@ const props = defineProps<{
   keyString: string;
 }>();
 
+
 const keys = useMagicKeys();
+
 
 const icons = ref([
   {
@@ -31,12 +33,14 @@ const icons = ref([
   },
 ]);
 
+
 const icon = computed(
   () =>
     icons.value.find(
       (icon) => icon.key === props.keyString.trim().toLowerCase(),
     )?.icon,
 );
+
 
 const key = computed(() => {
   const key = keys[props.keyString];

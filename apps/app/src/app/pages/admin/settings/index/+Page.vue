@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import * as z from "zod/v4";
 import { useI18n } from "vue-i18n";
+import * as z from "zod/v4";
+
 import SettingForm from "../SettingForm.vue";
 
 const { t } = useI18n();
+
 
 const site = z.toJSONSchema(
   z

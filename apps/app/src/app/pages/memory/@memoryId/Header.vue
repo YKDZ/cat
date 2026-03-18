@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import Breadcrumb from "./Breadcrumb.vue";
+
 import { SidebarTrigger } from "@cat/ui";
+
+import Breadcrumb from "./Breadcrumb.vue";
 
 defineProps<{
   memory: Pick<Memory, "name" | "creatorId">;

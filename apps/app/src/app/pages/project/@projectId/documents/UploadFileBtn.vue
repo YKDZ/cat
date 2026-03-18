@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
+
 import { Button } from "@cat/ui";
-import { Plus } from "lucide-vue-next";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +10,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@cat/ui";
+import { Plus } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
+
+import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
 
 defineProps<{
   project: Project;
 }>();
+
 
 const { t } = useI18n();
 </script>

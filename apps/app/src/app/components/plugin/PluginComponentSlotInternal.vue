@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { orpc } from "@/server/orpc";
 import { useQuery } from "@pinia/colada";
 import { defineAsyncComponent } from "vue";
+
+import { orpc } from "@/server/orpc";
 
 const PluginComponentClient = defineAsyncComponent(
   () => import("./PluginComponentClient.vue"),
 );
 
+
 const props = defineProps<{
   id: string;
 }>();
+
 
 const { state } = useQuery({
   key: ["slot", props.id],

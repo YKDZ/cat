@@ -6,7 +6,7 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const protectedRoots = [
   "apps/app/src",
   "apps/app-api/src",
-  "apps/app-agent/src",
+  "packages/agent/src",
   "packages/@cat-plugin",
 ].map((path) => resolve(repoRoot, path));
 
@@ -15,8 +15,8 @@ const allowlistedDbImportFiles = new Set([
   "apps/app/src/server/domain.ts",
   "apps/app/src/server/index.ts",
   "apps/app-api/src/utils/context.ts",
-  "apps/app-agent/src/db/domain.ts",
-  "apps/app-agent/src/graph/checkpointer/postgres.ts",
+  "packages/agent/src/db/domain.ts",
+  "packages/agent/src/graph/checkpointer/postgres.ts",
 ]);
 
 const safeDbImports = new Set([

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import LanguageTableRow from "./LanguageTableRow.vue";
+
 import { Table, TableBody } from "@cat/ui";
+
+import LanguageTableRow from "./LanguageTableRow.vue";
 
 defineProps<{
   project: Pick<Project, "id">;

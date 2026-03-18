@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import SuggestionListItem from "./SuggestionListItem.vue";
+
 import { useEditorSuggestionStore } from "@/app/stores/editor/suggestion.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { watchClient } from "@/app/utils/vue.ts";
 
+import SuggestionListItem from "./SuggestionListItem.vue";
+
 const { t } = useI18n();
+
 
 const { suggestions } = storeToRefs(useEditorSuggestionStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { subSuggestions, unsubscribe } = useEditorSuggestionStore();
+
 
 watchClient(
   elementId,

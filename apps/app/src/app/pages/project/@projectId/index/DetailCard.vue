@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import type { Project } from "@cat/shared/schema/drizzle/project";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
-import { orpc } from "@/server/orpc";
 import { Button } from "@cat/ui";
-import { Settings } from "lucide-vue-next";
 import {
   Dialog,
   DialogTrigger,
@@ -13,16 +11,22 @@ import {
   DialogTitle,
 } from "@cat/ui";
 import { FormField, FormItem, FormControl, FormLabel } from "@cat/ui";
-import * as z from "zod";
-import { useForm } from "vee-validate";
 import { Textarea } from "@cat/ui";
 import { toTypedSchema } from "@vee-validate/zod";
+import { Settings } from "lucide-vue-next";
+import { useForm } from "vee-validate";
+import { useI18n } from "vue-i18n";
+import * as z from "zod";
+
 import { useToastStore } from "@/app/stores/toast";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 const { info } = useToastStore();
 
+
 const props = defineProps<{ project: Pick<Project, "id" | "description"> }>();
+
 
 const schema = toTypedSchema(
   z.object({
@@ -30,12 +34,14 @@ const schema = toTypedSchema(
   }),
 );
 
+
 const { handleSubmit } = useForm({
   validationSchema: schema,
   initialValues: {
     description: props.project.description,
   },
 });
+
 
 const onSubmit = handleSubmit(async (values) => {
   await orpc.project.update({

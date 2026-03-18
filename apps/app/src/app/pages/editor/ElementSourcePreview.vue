@@ -1,17 +1,20 @@
 <script setup lang="ts">
+import { SidebarContent } from "@cat/ui";
+import { useQuery } from "@pinia/colada";
+import { storeToRefs } from "pinia";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { BlobView } from "@/app/components/blob-view";
 import { detectFileType } from "@/app/components/blob-view/types";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { orpc } from "@/server/orpc";
-import { SidebarContent } from "@cat/ui";
-import { useQuery } from "@pinia/colada";
-import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
+
 import SourcePreviewViewer from "./SourcePreviewViewer.vue";
 
 const { t } = useI18n();
 const { elementId } = storeToRefs(useEditorTableStore());
+
 
 // Query 1: source location metadata (per element, lightweight DB query)
 const { state: locationState } = useQuery({
@@ -25,20 +28,24 @@ const { state: locationState } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
+
 const locationData = computed(() => locationState.value.data);
 const blobId = computed(() => locationData.value?.blobId ?? null);
 const fileUrl = computed(() => locationData.value?.fileUrl ?? null);
 const fileName = computed(() => locationData.value?.fileName ?? null);
+
 
 const isTextFile = computed(() => {
   if (!fileName.value) return false;
   return detectFileType(fileName.value).type === "text";
 });
 
+
 const resolveUrl = (rawUrl: string): string =>
   rawUrl.startsWith("/api/storage/download/")
     ? rawUrl
     : `/api/storage/download/${rawUrl}`;
+
 
 // Query 2: text content (only for text files, cached by blobId across elements)
 const { state: contentState } = useQuery({

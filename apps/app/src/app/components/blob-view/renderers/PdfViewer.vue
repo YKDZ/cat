@@ -1,36 +1,42 @@
 <script setup lang="ts">
+import { Button } from "@cat/ui";
+import { Download } from "lucide-vue-next";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Button } from "@cat/ui";
 import { toast } from "vue-sonner";
-import { Download } from "lucide-vue-next";
 
 const props = defineProps<{
   fileUrl: string;
   fileName: string;
 }>();
 
+
 const { t } = useI18n();
 const isLoading = ref(true);
 const error = ref<string | null>(null);
 const pdfObjectUrl = ref<string | null>(null);
+
 
 const resolveDownloadUrl = (rawUrl: string): string => {
   if (rawUrl.startsWith("/api/storage/download/")) return rawUrl;
   return `/api/storage/download/${rawUrl}`;
 };
 
+
 const loadPdf = async () => {
   isLoading.value = true;
   error.value = null;
+
 
   try {
     const url = resolveDownloadUrl(props.fileUrl);
     const response = await fetch(url);
 
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
+
 
     const blob = await response.blob();
     pdfObjectUrl.value = URL.createObjectURL(blob);
@@ -40,6 +46,7 @@ const loadPdf = async () => {
     isLoading.value = false;
   }
 };
+
 
 const downloadFile = async () => {
   try {
@@ -55,6 +62,7 @@ const downloadFile = async () => {
     toast.error(t("下载失败"));
   }
 };
+
 
 watch(
   () => [props.fileUrl, props.fileName],

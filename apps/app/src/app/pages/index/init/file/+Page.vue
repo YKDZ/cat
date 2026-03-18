@@ -1,22 +1,29 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
+
+import { Separator } from "@cat/ui";
+import { Settings } from "lucide-vue-next";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import CreateProject from "./CreateProject.vue";
-import UploadFiles from "./UploadFiles.vue";
-import Finish from "./Finish.vue";
+
 import { useToastStore } from "@/app/stores/toast.ts";
-import { Settings } from "lucide-vue-next";
-import { Separator } from "@cat/ui";
 import { watchClient } from "@/app/utils/vue";
+
+import CreateProject from "./CreateProject.vue";
+import Finish from "./Finish.vue";
+import UploadFiles from "./UploadFiles.vue";
 
 const { t } = useI18n();
 
+
 const { warn } = useToastStore();
+
 
 const progress = ref<number>(0);
 
+
 const project = ref<Project>();
+
 
 watchClient(progress, (to, from) => {
   if (from === 0 && !project.value) {

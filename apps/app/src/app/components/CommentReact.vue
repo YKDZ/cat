@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { Button } from "@cat/ui";
-import { orpc } from "@/server/orpc";
 import type {
   Comment,
   CommentReaction,
 } from "@cat/shared/schema/drizzle/comment";
 import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
+
+import { Button } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
+
+import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   comment: Pick<Comment, "id">;
@@ -16,12 +18,15 @@ const props = defineProps<{
   type: CommentReactionType;
 }>();
 
+
 const ctx = usePageContext();
+
 
 const emits = defineEmits<{
   react: [reaction: CommentReaction];
   unReact: [userId: string];
 }>();
+
 
 const react = async () => {
   const reaction = await orpc.comment.react({
@@ -31,12 +36,14 @@ const react = async () => {
   emits("react", reaction);
 };
 
+
 const unReact = async () => {
   await orpc.comment.unReact({
     commentId: props.comment.id,
   });
   emits("unReact", ctx.user!.id);
 };
+
 
 const reacted = computed(() => {
   return props.reactions.some(

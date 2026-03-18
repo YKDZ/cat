@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useI18n } from "vue-i18n";
 import {
   Badge,
   Button,
@@ -19,17 +17,22 @@ import {
   ShieldCheck,
   ShieldQuestion,
 } from "lucide-vue-next";
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import type { PendingToolConfirmation } from "@/app/stores/agent";
+
 import { useAgentStore } from "@/app/stores/agent";
 
 const props = defineProps<{
   confirmation: PendingToolConfirmation;
 }>();
 
+
 const { t } = useI18n();
 const agentStore = useAgentStore();
 const detailsOpen = ref(false);
+
 
 const riskIcon = computed(() => {
   const level = props.confirmation.riskLevel;
@@ -38,6 +41,7 @@ const riskIcon = computed(() => {
   return ShieldCheck;
 });
 
+
 const riskVariant = computed<"default" | "secondary" | "destructive">(() => {
   const level = props.confirmation.riskLevel;
   if (level === "high") return "destructive";
@@ -45,12 +49,14 @@ const riskVariant = computed<"default" | "secondary" | "destructive">(() => {
   return "secondary";
 });
 
+
 const riskLabel = computed(() => {
   const level = props.confirmation.riskLevel;
   if (level === "high") return t("高风险");
   if (level === "medium") return t("中风险");
   return t("低风险");
 });
+
 
 const formattedArgs = computed(() => {
   try {
@@ -60,21 +66,26 @@ const formattedArgs = computed(() => {
   }
 });
 
+
 const hasNonEmptyArgs = computed(() => {
   return formattedArgs.value && formattedArgs.value !== "{}";
 });
+
 
 const handleAllow = () => {
   void agentStore.respondToConfirmation("allow_once");
 };
 
+
 const handleTrustTool = () => {
   void agentStore.respondToConfirmation("trust_tool_for_session");
 };
 
+
 const handleTrustAll = () => {
   void agentStore.respondToConfirmation("trust_all_for_session");
 };
+
 
 const handleDeny = () => {
   void agentStore.respondToConfirmation("deny");

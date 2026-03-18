@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { markdown } from "@codemirror/lang-markdown";
+import { Separator, Tabs, TabsContent, TabsList, TabsTrigger } from "@cat/ui";
 import { history, historyKeymap } from "@codemirror/commands";
+import { markdown } from "@codemirror/lang-markdown";
 import { EditorState } from "@codemirror/state";
 import {
   EditorView,
@@ -13,26 +14,31 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import Markdown from "@/app/components/Markdown.vue";
-import { Separator, Tabs, TabsContent, TabsList, TabsTrigger } from "@cat/ui";
 
 const { t } = useI18n();
 
+
 const content = defineModel<string>({ default: "" });
 const activeTab = ref<"edit" | "preview">("edit");
+
 
 const contentToPreview = computed(() =>
   content.value.length === 0 ? t("没有可预览的内容") : content.value,
 );
 
+
 // ─── CodeMirror Setup ───
+
 
 const containerEl = ref<HTMLDivElement | null>(null);
 let editorView: EditorView | null = null;
+
 
 /** 变更来自 store 时置为 true，避免循环更新 */
 let suppressCMUpdate = false;
 /** 变更来自 CodeMirror 时置为 true，避免循环更新 */
 let suppressModelUpdate = false;
+
 
 const editorTheme = EditorView.theme({
   "&": {
@@ -63,8 +69,10 @@ const editorTheme = EditorView.theme({
   ".cm-placeholder": { color: "var(--muted-foreground)" },
 });
 
+
 const createEditor = () => {
   if (!containerEl.value) return;
+
 
   const state = EditorState.create({
     doc: content.value,
@@ -85,13 +93,16 @@ const createEditor = () => {
     ],
   });
 
+
   editorView = new EditorView({
     state,
     parent: containerEl.value,
   });
 };
 
+
 // ─── Sync: model → CodeMirror ───
+
 
 watch(content, (newVal) => {
   if (suppressModelUpdate || !editorView) return;
@@ -105,11 +116,14 @@ watch(content, (newVal) => {
   suppressCMUpdate = false;
 });
 
+
 // ─── Lifecycle ───
+
 
 onMounted(() => {
   createEditor();
 });
+
 
 onUnmounted(() => {
   editorView?.destroy();
