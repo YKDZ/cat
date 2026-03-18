@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
+// oxlint-disable-next-line no-unsafe-member-access
 if (!process.env.DATABASE_URL) {
   throw new Error("Drizzle need DATABASE_URL environment variable");
 }
@@ -11,6 +12,7 @@ export default defineConfig({
   casing: "snake_case",
 
   dbCredentials: {
+    // oxlint-disable-next-line no-unsafe-member-access
     url: process.env.DATABASE_URL,
     ssl: false,
   },

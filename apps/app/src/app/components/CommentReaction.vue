@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { Badge } from "@cat/ui";
-import { orpc } from "@/server/orpc";
 import type {
   CommentReaction,
   Comment,
 } from "@cat/shared/schema/drizzle/comment";
 import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
+
+import { Badge } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
+
+import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   emoji: string;
@@ -16,17 +18,21 @@ const props = defineProps<{
   reactions: Pick<CommentReaction, "type" | "userId">[];
 }>();
 
+
 const amount = computed(() => {
   return props.reactions.filter((reaction) => reaction.type === props.type)
     .length;
 });
 
+
 const ctx = usePageContext();
+
 
 const emits = defineEmits<{
   react: [reaction: CommentReaction];
   unReact: [userId: string];
 }>();
+
 
 const react = async () => {
   const reaction = await orpc.comment.react({
@@ -36,12 +42,14 @@ const react = async () => {
   emits("react", reaction);
 };
 
+
 const unReact = async () => {
   await orpc.comment.unReact({
     commentId: props.comment.id,
   });
   emits("unReact", ctx.user!.id);
 };
+
 
 const reacted = computed(() => {
   return props.reactions.some(

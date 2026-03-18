@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import type { Data } from "../+data.server.ts";
-import DetailCard from "./DetailCard.vue";
+
 import { useInjectionKey } from "@/app/utils/provide.ts";
-import Readme from "./Readme.vue";
+
+import type { Data } from "../+data.server.ts";
+
+import DetailCard from "./DetailCard.vue";
 import LanguageTable from "./LanguageTable.vue";
+import Readme from "./Readme.vue";
 
 const project = inject(useInjectionKey<Data>()("project"))!;
 const targetLanguages = inject(useInjectionKey<Data>()("targetLanguages"))!;
 const documents = inject(useInjectionKey<Data>()("documents"))!;
+
 
 const readme = computed(() => {
   return documents.find((doc) => doc.name === "README.md") ?? null;

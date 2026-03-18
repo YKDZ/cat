@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { User } from "@cat/shared/schema/drizzle/user";
-import { orpc } from "@/server/orpc";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@cat/ui";
 import { Skeleton } from "@cat/ui";
-import { computed } from "vue";
 import { useQuery } from "@pinia/colada";
+import { computed } from "vue";
+
+import { orpc } from "@/server/orpc";
 
 const props = withDefaults(
   defineProps<{
@@ -19,10 +21,12 @@ const props = withDefaults(
   },
 );
 
+
 const userId = computed(() => {
   if (props.userId) return props.userId;
   else return props.user!.id;
 });
+
 
 const { state: userState } = useQuery({
   key: ["user", userId.value],
@@ -36,6 +40,7 @@ const { state: userState } = useQuery({
   },
   enabled: !import.meta.env.SSR,
 });
+
 
 const { state: avatarUrlState } = useQuery({
   key: ["avatarUrl", userId.value],

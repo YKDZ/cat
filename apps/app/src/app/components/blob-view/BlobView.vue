@@ -1,13 +1,15 @@
 <script setup lang="ts">
+import { FileText } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { FileText } from "lucide-vue-next";
-import { detectFileType } from "./types";
+
 import type { FileInfo } from "./types";
-import TextViewer from "./renderers/TextViewer.vue";
-import PdfViewer from "./renderers/PdfViewer.vue";
+
 import ImageViewer from "./renderers/ImageViewer.vue";
+import PdfViewer from "./renderers/PdfViewer.vue";
+import TextViewer from "./renderers/TextViewer.vue";
 import UnsupportedViewer from "./renderers/UnsupportedViewer.vue";
+import { detectFileType } from "./types";
 
 const props = defineProps<{
   documentId?: string;
@@ -23,11 +25,15 @@ const props = defineProps<{
   compact?: boolean;
 }>();
 
+
 const { t } = useI18n();
+
 
 const fileInfo = computed<FileInfo>(() => detectFileType(props.fileName));
 
+
 const totalBytes = ref(0);
+
 
 // 计算文件大小
 const fileSize = computed(() => {
@@ -44,6 +50,7 @@ const fileSize = computed(() => {
 
   return `${size.toFixed(2)} ${units[unitIndex]}`;
 });
+
 
 watch(
   () => [props.documentId, props.fileUrl],

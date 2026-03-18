@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
-import { navigate } from "vike/client/router";
 import { toShortFixed } from "@cat/shared/utils";
-import TokenViewer from "@/app/components/editor/TokenViewer.vue";
-import { useHotKeys } from "@/app/utils/magic-keys.ts";
-import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { Button } from "@cat/ui";
-import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { ArrowRight } from "lucide-vue-next";
+import { storeToRefs } from "pinia";
+import { navigate } from "vike/client/router";
+import { useI18n } from "vue-i18n";
+
+import TokenViewer from "@/app/components/editor/TokenViewer.vue";
+import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useHotKeys } from "@/app/utils/magic-keys.ts";
 
 const props = defineProps<{
   term: {
@@ -24,13 +25,16 @@ const props = defineProps<{
   index: number;
 }>();
 
+
 const { t } = useI18n();
 const { insert } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());
 
+
 const handleInsert = () => {
   insert(props.term.translation);
 };
+
 
 const handleViewConcept = () => {
   if (props.term.glossaryId && props.term.conceptId) {
@@ -39,6 +43,7 @@ const handleViewConcept = () => {
     );
   }
 };
+
 
 useHotKeys(`T+${props.index + 1}`, handleInsert);
 </script>

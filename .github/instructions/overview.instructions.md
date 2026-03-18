@@ -73,7 +73,7 @@ applyTo: "**/*"
 
 - **`@cat/app`**: Main application (Vue 3 SSR with Vike)
 - **`@cat/app-api`**: API layer (Hono + oRPC routes)
-- **`@cat/app-agent`**: Agent and Workflow graph
+- **`@cat/agent`**: Agent and Workflow graph
 - **`@cat/ui`**: Shared UI component library (shadcn-vue based)
 - **`@cat/server-shared`**: Shared server utilities
 - **`@cat/app-e2e`**: Playwright E2E tests

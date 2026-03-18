@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import { Button } from "@cat/ui";
 import { FileQuestion, Download } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 const props = defineProps<{
@@ -13,12 +13,15 @@ const props = defineProps<{
   };
 }>();
 
+
 const { t } = useI18n();
+
 
 const resolveDownloadUrl = (rawUrl: string): string => {
   if (rawUrl.startsWith("/api/storage/download/")) return rawUrl;
   return `/api/storage/download/${rawUrl}`;
 };
+
 
 const downloadFile = async () => {
   try {

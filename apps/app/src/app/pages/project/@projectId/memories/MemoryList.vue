@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import MemoryListItem from "./MemoryListItem.vue";
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@cat/ui";
 import type { Project } from "@cat/shared/schema/drizzle/project";
+
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 
+import MemoryListItem from "./MemoryListItem.vue";
+
 const { t } = useI18n();
+
 
 defineProps<{
   memories: Memory[];

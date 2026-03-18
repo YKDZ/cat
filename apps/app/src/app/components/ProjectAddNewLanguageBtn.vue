@@ -1,18 +1,23 @@
 <script setup lang="ts">
+import type { Language } from "@cat/shared/schema/drizzle/misc";
+import type { Project } from "@cat/shared/schema/drizzle/project";
+
+import { Button } from "@cat/ui";
 import { warn } from "node:console";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
-import type { Project } from "@cat/shared/schema/drizzle/project";
-import type { Language } from "@cat/shared/schema/drizzle/misc";
-import type { PickerOption } from "./picker/index.ts";
-import { useToastStore } from "@/app/stores/toast.ts";
+
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { Button } from "@cat/ui";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { orpc } from "@/server/orpc";
+
+import type { PickerOption } from "./picker/index.ts";
 
 const { t } = useI18n();
 
+
 const { rpcWarn } = useToastStore();
+
 
 const props = defineProps<{
   project: Project & {
@@ -21,7 +26,9 @@ const props = defineProps<{
   };
 }>();
 
+
 const languageId = ref<string>("");
+
 
 const addTargetLanguages = () => {
   if (languageId.value === "") {
@@ -37,6 +44,7 @@ const addTargetLanguages = () => {
     return;
   }
 
+
   orpc.project
     .addTargetLanguages({
       projectId: props.project.id,
@@ -44,6 +52,7 @@ const addTargetLanguages = () => {
     })
     .catch(rpcWarn);
 };
+
 
 const langFilter = (option: PickerOption) => {
   return (

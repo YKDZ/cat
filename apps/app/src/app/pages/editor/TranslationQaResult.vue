@@ -1,21 +1,25 @@
 <script setup lang="ts">
 import { useQuery } from "@pinia/colada";
-import { orpc } from "@/server/orpc";
+import { Check, TriangleAlert, Info, CircleX, Loader2 } from "lucide-vue-next";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { Check, TriangleAlert, Info, CircleX, Loader2 } from "lucide-vue-next";
+
+import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   translationId: number;
 }>();
 
+
 const { t } = useI18n();
+
 
 const { state: qaResultsState } = useQuery({
   key: () => ["qaResults", props.translationId],
   query: () =>
     orpc.translation.getQAResults({ translationId: props.translationId }),
 });
+
 
 const latestResult = computed(() => {
   const results = qaResultsState.value?.data;
@@ -24,6 +28,7 @@ const latestResult = computed(() => {
   return [...results].sort((a, b) => b.id - a.id)[0];
 });
 
+
 const { state: qaItemsState } = useQuery({
   key: () => ["qaItems", latestResult.value?.id ?? 0],
   enabled: () => !!latestResult.value,
@@ -31,15 +36,18 @@ const { state: qaItemsState } = useQuery({
     orpc.translation.getQAResultItems({ qaResultId: latestResult.value!.id }),
 });
 
+
 const items = computed(
   () => qaItemsState.value?.data?.filter((item) => !item.isPassed) ?? [],
 );
+
 
 interface QaIssueMeta {
   severity: "error" | "warning" | "info";
   message: string;
   targetTokenIndex?: number | null;
 }
+
 
 const getSeverityIcon = (severity: string) => {
   switch (severity) {

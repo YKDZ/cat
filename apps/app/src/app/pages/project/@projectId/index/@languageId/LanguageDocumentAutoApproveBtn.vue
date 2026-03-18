@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/drizzle/document";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
-import { useToastStore } from "@/app/stores/toast.ts";
+import type { Language } from "@cat/shared/schema/drizzle/misc";
+
 import {
   Button,
   Dialog,
@@ -13,19 +12,26 @@ import {
   DialogTrigger,
 } from "@cat/ui";
 import { Check } from "lucide-vue-next";
-import type { Language } from "@cat/shared/schema/drizzle/misc";
+import { useI18n } from "vue-i18n";
+
+import { useToastStore } from "@/app/stores/toast.ts";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
+
 
 const props = defineProps<{
   document: Pick<Document, "id">;
   language: Pick<Language, "id">;
 }>();
 
+
 const { info, rpcWarn } = useToastStore();
+
 
 const handleAutoApprove = async () => {
   if (!props.language) return;
+
 
   await orpc.translation
     .autoApprove({

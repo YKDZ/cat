@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import { Button } from "@cat/ui";
 import { RefreshCw, FileText } from "lucide-vue-next";
-import { navigate } from "vike/client/router";
 import { usePageContext } from "vike-vue/usePageContext";
-import { orpc } from "@/server/orpc";
+import { navigate } from "vike/client/router";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { useToastStore } from "@/app/stores/toast";
+import { orpc } from "@/server/orpc";
 
 const { info } = useToastStore();
 const { t } = useI18n();
 const pageContext = usePageContext();
 
+
 const isLoading = ref(false);
+
 
 const handleRefresh = async () => {
   isLoading.value = true;
+
 
   try {
     const { documentId, languageToId } = pageContext.routeParams as {
@@ -23,10 +27,12 @@ const handleRefresh = async () => {
       languageToId: string;
     };
 
+
     if (!documentId || !languageToId) {
       navigate("/");
       return;
     }
+
 
     // 尝试查找第一个未翻译的元素
     const firstUntranslatedElement = await orpc.document.getFirstElement({
@@ -34,6 +40,7 @@ const handleRefresh = async () => {
       isTranslated: false,
       languageId: languageToId,
     });
+
 
     if (firstUntranslatedElement) {
       // 找到未翻译的元素，跳转到该元素
@@ -43,6 +50,7 @@ const handleRefresh = async () => {
       return;
     }
 
+
     // 如果没有未翻译的元素，尝试查找第一个元素（无论翻译状态）
     const elements = await orpc.document.getElements({
       documentId,
@@ -50,12 +58,14 @@ const handleRefresh = async () => {
       pageSize: 1,
     });
 
+
     const firstAnyElement = elements.at(0);
     if (firstAnyElement) {
       // 找到元素，跳转到该元素
       navigate(`/editor/${documentId}/${languageToId}/${firstAnyElement.id}`);
       return;
     }
+
 
     // 仍然没有元素，刷新当前页面
     info(t("没有找到可用元素"));

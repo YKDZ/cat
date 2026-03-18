@@ -1,5 +1,5 @@
 {
-  "name": "@cat/app-agent",
+  "name": "@cat/agent",
   "version": "0.1.0",
   "license": "GPL-3.0-only",
   "files": [
@@ -35,7 +35,7 @@
     "@cat/domain": "workspace:*",
     "@cat/eslint-config": "workspace:*",
     "@cat/test-utils": "workspace:*",
-    "@types/node": "^24.12.0",
+    "@types/node": "^25.5.0",
     "dotenv": "^17.3.1",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "8.0.0",

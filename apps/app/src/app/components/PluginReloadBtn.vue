@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
-import { useToastStore } from "../stores/toast";
-import { orpc } from "@/server/orpc";
-import { Button } from "@cat/ui";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
+import { Button } from "@cat/ui";
+import { useI18n } from "vue-i18n";
+
+import { orpc } from "@/server/orpc";
+
+import { useToastStore } from "../stores/toast";
+
 const { t } = useI18n();
+
 
 const props = defineProps<{
   scopeType: ScopeType;
   scopeId: string;
 }>();
 
+
 const { info, rpcWarn } = useToastStore();
+
 
 const handleReload = async () => {
   await orpc.plugin

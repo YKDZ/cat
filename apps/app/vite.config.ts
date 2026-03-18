@@ -9,8 +9,8 @@ import vueDevTools from "vite-plugin-vue-devtools";
 export default defineConfig({
   ssr: {
     external: [
-      "@cat/app-agent",
-      "@cat/app-agent/workflow",
+      "@cat/agent",
+      "@cat/agent/workflow",
       "@cat/domain",
       "@cat/plugin-core",
     ],
@@ -47,8 +47,8 @@ export default defineConfig({
     emptyOutDir: true,
     rolldownOptions: {
       external: [
-        "@cat/app-agent",
-        "@cat/app-agent/workflow",
+        "@cat/agent",
+        "@cat/agent/workflow",
         "@cat/domain",
         "@cat/plugin-core",
       ],

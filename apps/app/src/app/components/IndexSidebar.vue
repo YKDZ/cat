@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { usePageContext } from "vike-vue/usePageContext";
-import { useI18n } from "vue-i18n";
-import UserSidebarDropdownMenu from "@/app/components/UserSidebarDropdownMenu.vue";
 import {
   Sidebar,
   SidebarContent,
@@ -14,14 +10,22 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@cat/ui";
-import SidebarLogo from "@/app/components/SidebarLogo.vue";
 import { Home, BrickWall, Box, Folder, Archive } from "lucide-vue-next";
+import { usePageContext } from "vike-vue/usePageContext";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import SidebarLogo from "@/app/components/SidebarLogo.vue";
+import UserSidebarDropdownMenu from "@/app/components/UserSidebarDropdownMenu.vue";
 
 const { t } = useI18n();
 
+
 const { user } = usePageContext();
 
+
 const sidebarId = "index";
+
 
 const items = ref([
   {

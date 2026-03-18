@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import type { Document } from "@cat/shared/schema/drizzle/document";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
-import type { PickerOption } from "@/app/components/picker";
-import Picker from "@/app/components/picker/Picker.vue";
+import type { Language } from "@cat/shared/schema/drizzle/misc";
+
 import {
   Button,
   Dialog,
@@ -20,18 +17,26 @@ import {
   FormLabel,
   Slider,
 } from "@cat/ui";
-import { toTypedSchema } from "@vee-validate/zod";
-import * as z from "zod";
-import { useForm } from "vee-validate";
-import type { Language } from "@cat/shared/schema/drizzle/misc";
 import { useQuery } from "@pinia/colada";
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import * as z from "zod";
+
+import type { PickerOption } from "@/app/components/picker";
+
+import Picker from "@/app/components/picker/Picker.vue";
+import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   document: Pick<Document, "id">;
   language: Pick<Language, "id">;
 }>();
 
+
 const { t } = useI18n();
+
 
 const schema = toTypedSchema(
   z.object({
@@ -42,12 +47,14 @@ const schema = toTypedSchema(
   }),
 );
 
+
 const { handleSubmit } = useForm({
   validationSchema: schema,
   initialValues: {
     minMemorySimilarity: [0.72],
   },
 });
+
 
 const advisorOptions = computed<PickerOption<number>[]>(() => {
   if (!state.value || !state.value.data) return [];
@@ -60,6 +67,7 @@ const advisorOptions = computed<PickerOption<number>[]>(() => {
   );
 });
 
+
 const onSubmit = handleSubmit(async (values) => {
   await orpc.translation.autoTranslate({
     languageId: props.language.id,
@@ -68,6 +76,7 @@ const onSubmit = handleSubmit(async (values) => {
     minMemorySimilarity: values.minMemorySimilarity[0],
   });
 });
+
 
 const { state } = useQuery({
   key: ["availableAdvisors"],

@@ -1,25 +1,31 @@
 <script setup lang="ts">
 import type { AuthMethod } from "@cat/shared/schema/misc";
+
+import { Button } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
-import { useToastStore } from "@/app/stores/toast.ts";
+
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { Button } from "@cat/ui";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
+
 
 const props = defineProps<{
   identifier: string;
   method: AuthMethod;
 }>();
 
+
 const { rpcWarn } = useToastStore();
 const { authMethod, userId } = storeToRefs(useAuthStore());
 
+
 const handlePreAuth = async () => {
   authMethod.value = props.method;
+
 
   await orpc.auth
     .preAuth({

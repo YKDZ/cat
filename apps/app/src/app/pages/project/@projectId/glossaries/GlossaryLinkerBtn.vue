@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
-import { useToastStore } from "@/app/stores/toast.ts";
+
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -15,18 +11,29 @@ import {
   DialogTitle,
 } from "@cat/ui";
 import { Link2 } from "lucide-vue-next";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 
+
 const { info, rpcWarn } = useToastStore();
 
+
 const emits = defineEmits(["link"]);
+
 
 const props = defineProps<{
   project: Project;
 }>();
 
+
 const glossaryIds = ref<string[]>([]);
+
 
 const handleLink = async () => {
   const createNewIndex = glossaryIds.value.findIndex(
@@ -34,12 +41,14 @@ const handleLink = async () => {
   );
   const realIds = glossaryIds.value.splice(createNewIndex, 1);
 
+
   if (createNewIndex !== -1) {
     await orpc.glossary.create({
       name: props.project.name,
       projectIds: [props.project.id],
     });
   }
+
 
   await orpc.project
     .linkGlossary({

@@ -1,21 +1,27 @@
 <script setup lang="ts">
+import { Input } from "@cat/ui";
+import { FormField, FormLabel, FormControl } from "@cat/ui";
+import { storeToRefs } from "pinia";
 import { useData } from "vike-vue/useData";
 import { usePageContext } from "vike-vue/usePageContext";
-import type { Data } from "./+data.server.ts";
-import AuthError from "./AuthError.vue";
-import logoUrl from "@/app/assets/logo.png";
-import AuthPreHandler from "./AuthPreHandler.vue";
-import { Input } from "@cat/ui";
-import { storeToRefs } from "pinia";
-import { useAuthStore } from "@/app/stores/auth.ts";
-import { FormField, FormLabel, FormControl } from "@cat/ui";
 import { useI18n } from "vue-i18n";
+
+import logoUrl from "@/app/assets/logo.png";
+import { useAuthStore } from "@/app/stores/auth.ts";
+
+import type { Data } from "./+data.server.ts";
+
+import AuthError from "./AuthError.vue";
+import AuthPreHandler from "./AuthPreHandler.vue";
 
 const ctx = usePageContext();
 
+
 const { t } = useI18n();
 
+
 const { methods } = useData<Data>();
+
 
 const { identifier } = storeToRefs(useAuthStore());
 </script>

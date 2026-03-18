@@ -94,11 +94,11 @@ export default defineConfig({
       {
         test: {
           name: "app-agent",
-          include: ["apps/app-agent/src/**/*.{spec,test}.ts"],
+          include: ["packages/agent/src/**/*.{spec,test}.ts"],
           environment: "node",
           retry: CI ? 3 : 0,
         },
-        resolve: { alias: alias(resolve(ROOT, "apps/app-agent")) },
+        resolve: { alias: alias(resolve(ROOT, "packages/agent")) },
       },
       {
         test: {

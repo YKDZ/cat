@@ -34,7 +34,7 @@
   "include": ["src/**/*.ts", "src/**/*.vue"],
   "references": [
     {
-      "path": "../app-agent"
+      "path": "../../packages/agent"
     }
   ]
 }

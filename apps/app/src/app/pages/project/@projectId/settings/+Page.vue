@@ -1,34 +1,42 @@
 <script setup lang="ts">
-import { navigate } from "vike/client/router";
-import { inject, ref } from "vue";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
-import type { Data } from "../+data.server.ts";
-import { useInjectionKey } from "@/app/utils/provide.ts";
+import type { Project } from "@cat/shared/schema/drizzle/project";
+
 import { Button } from "@cat/ui";
 import { Input } from "@cat/ui";
 import { Label } from "@cat/ui";
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import { navigate } from "vike/client/router";
+import { inject, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { useToastStore } from "@/app/stores/toast.ts";
+import { useInjectionKey } from "@/app/utils/provide.ts";
+import { orpc } from "@/server/orpc";
+
+import type { Data } from "../+data.server.ts";
+
 import { onProjectDelete } from "./Page.telefunc.ts";
 import SnapshotBtn from "./SnapshotBtn.vue";
 
 const { t } = useI18n();
 const { rpcWarn } = useToastStore();
 
+
 const project = inject(useInjectionKey<Data>()("project"))!;
 const name = ref(project.name);
+
 
 const updateName = async (): Promise<void> => {
   if (!project) return;
   update(project.id, { name: name.value });
 };
 
+
 const update = async (
   projectId: string,
   data: Partial<Pick<Project, "name">> = {},
 ): Promise<void> => {
   if (!project) return;
+
 
   await orpc.project
     .update({
@@ -38,8 +46,10 @@ const update = async (
     .catch(rpcWarn);
 };
 
+
 const remove = async (): Promise<void> => {
   if (!project) return;
+
 
   await onProjectDelete(project.id).then(
     async () => await navigate("/projects"),

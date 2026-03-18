@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { navigate } from "vike/client/router";
 import {
   Card,
   CardContent,
@@ -8,11 +7,13 @@ import {
   CardDescription,
   CardFooter,
 } from "@cat/ui";
-import { useI18n } from "vue-i18n";
 import { Button } from "@cat/ui";
 import { Plus } from "lucide-vue-next";
-import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
+import { navigate } from "vike/client/router";
+import { useI18n } from "vue-i18n";
+
 import PluginComponentSlot from "@/app/components/plugin/PluginComponentSlot.vue";
+import UserUploadAvatarBtn from "@/app/components/UserUploadAvatarBtn.vue";
 
 const { t } = useI18n();
 </script>

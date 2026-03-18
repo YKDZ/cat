@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import Translation from "./Translation.vue";
-import { useEditorTranslationStore } from "@/app/stores/editor/translation.ts";
+
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useEditorTranslationStore } from "@/app/stores/editor/translation.ts";
 import { watchClient } from "@/app/utils/vue.ts";
 
+import Translation from "./Translation.vue";
+
 const { t } = useI18n();
+
 
 const { state } = storeToRefs(useEditorTranslationStore());
 const { refetch } = useEditorTranslationStore();
 const { elementId } = storeToRefs(useEditorTableStore());
+
 
 watchClient(elementId, () => refetch(), { immediate: true });
 </script>

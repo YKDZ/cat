@@ -1,33 +1,41 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/drizzle/document";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
+import type { Project } from "@cat/shared/schema/drizzle/project";
+
+import { Button } from "@cat/ui";
+import { navigate } from "vike/client/router";
+import { inject } from "vue";
+import { useI18n } from "vue-i18n";
+
+import DocumentTranslationProgress from "@/app/components/DocumentTranslationProgress.vue";
 import DocumentTree from "@/app/components/DocumentTree.vue";
 import { useToastStore } from "@/app/stores/toast";
-import { useI18n } from "vue-i18n";
-import { navigate } from "vike/client/router";
+import { useInjectionKey } from "@/app/utils/provide";
 import { orpc } from "@/server/orpc";
+
+import type { Data } from "../../+data.server";
+
 import LanguageDocumentAutoApproveBtn from "./LanguageDocumentAutoApproveBtn.vue";
 import LanguageDocumentAutoTranslateBtn from "./LanguageDocumentAutoTranslateBtn.vue";
-import { Button } from "@cat/ui";
-import type { Project } from "@cat/shared/schema/drizzle/project";
-import DocumentTranslationProgress from "@/app/components/DocumentTranslationProgress.vue";
-import { inject } from "vue";
-import { useInjectionKey } from "@/app/utils/provide";
-import type { Data } from "../../+data.server";
 
 const props = defineProps<{
   project: Pick<Project, "id">;
   language: Pick<Language, "id">;
 }>();
 
+
 const { info, rpcWarn } = useToastStore();
 const { t } = useI18n();
 
+
 const documents = inject(useInjectionKey<Data>()("documents"))!;
+
 
 const handleEdit = async (document: Pick<Document, "id">) => {
   await navigate(`/editor/${document.id}/${props.language.id}/auto`);
 };
+
 
 const handleExportTranslated = async (document: Pick<Document, "id">) => {
   await orpc.document

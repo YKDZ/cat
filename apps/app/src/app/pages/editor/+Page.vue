@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import Translations from "./Translations.vue";
-import Memories from "./Memories.vue";
 import CurrentElement from "./CurrentElement.vue";
+import Memories from "./Memories.vue";
 import Suggestions from "./Suggestions.vue";
 import Terms from "./Terms.vue";
 import Toolbar from "./Toolbar.vue";
 import TranslateInput from "./TranslateInput.vue";
+import Translations from "./Translations.vue";
 </script>
 
 <template>

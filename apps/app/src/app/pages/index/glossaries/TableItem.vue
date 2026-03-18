@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
-import { navigate } from "vike/client/router";
+
 import { TableCell, TableRow } from "@cat/ui";
+import { navigate } from "vike/client/router";
+
 import { formatDate } from "@/app/utils/format";
 
 const props = defineProps<{
@@ -10,6 +12,7 @@ const props = defineProps<{
     "id" | "name" | "description" | "createdAt" | "updatedAt"
   >;
 }>();
+
 
 const handleCheck = async () => {
   await navigate(`/glossary/${props.glossary.id}`);

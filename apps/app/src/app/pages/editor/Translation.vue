@@ -1,24 +1,30 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
-import TranslationVote from "./TranslationVote.vue";
-import TranslationQaResult from "./TranslationQaResult.vue";
-import TokenViewer from "@/app/components/editor/TokenViewer.vue";
-import UserAvatar from "@/app/components/UserAvatar.vue";
-import TranslationApprovalBtn from "./TranslationApprovalBtn.vue";
-import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@cat/ui";
-import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
-import { useEditorTableStore } from "@/app/stores/editor/table";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import type { TranslationWithStatus } from "@/app/stores/editor/translation.ts";
+
+import TokenViewer from "@/app/components/editor/TokenViewer.vue";
+import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import UserAvatar from "@/app/components/UserAvatar.vue";
+import { useEditorTableStore } from "@/app/stores/editor/table";
+
+import TranslationApprovalBtn from "./TranslationApprovalBtn.vue";
+import TranslationQaResult from "./TranslationQaResult.vue";
+import TranslationVote from "./TranslationVote.vue";
 
 const { t } = useI18n();
+
 
 const props = defineProps<{
   translation: TranslationWithStatus;
 }>();
 
+
 const { element } = storeToRefs(useEditorTableStore());
+
 
 const isApproved = computed<boolean>(() => {
   return element.value?.approvedTranslationId === props.translation.id;

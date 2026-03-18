@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
-import { useProfileStore } from "@/app/stores/profile.ts";
 import {
   Button,
   Dialog,
@@ -19,8 +16,13 @@ import {
   Switch,
 } from "@cat/ui";
 import { Settings } from "lucide-vue-next";
+import { storeToRefs } from "pinia";
+import { useI18n } from "vue-i18n";
+
+import { useProfileStore } from "@/app/stores/profile.ts";
 
 const { t } = useI18n();
+
 
 const { editorMemoryMinConfidence, editorMemoryAutoCreateMemory } =
   storeToRefs(useProfileStore());

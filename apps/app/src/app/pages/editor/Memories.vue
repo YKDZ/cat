@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
+
 import GhostTextSettings from "./GhostTextSettings.vue";
 import MemoryList from "./MemoryList.vue";
 import MemorySettings from "./MemorySettings.vue";

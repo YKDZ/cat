@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { BlobView } from "@/app/components/blob-view";
-import type { Data } from "./+data.server";
 import { useData } from "vike-vue/useData";
 import { usePageContext } from "vike-vue/usePageContext";
+
+import { BlobView } from "@/app/components/blob-view";
+
+import type { Data } from "./+data.server";
 
 const { fileInfo, fileUrl } = useData<Data>();
 const pageContext = usePageContext();

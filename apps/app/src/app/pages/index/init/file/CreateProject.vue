@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import * as z from "zod/v4";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
-import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
+
 import { Textarea } from "@cat/ui";
-import { useToastStore } from "@/app/stores/toast.ts";
 import { Button } from "@cat/ui";
 import {
   FormControl,
@@ -15,18 +11,26 @@ import {
   FormMessage,
 } from "@cat/ui";
 import { Input } from "@cat/ui";
-import { useForm } from "vee-validate";
-import { toTypedSchema } from "@vee-validate/zod";
-import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
-import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
 import { Switch } from "@cat/ui";
 import { Label } from "@cat/ui";
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import { useI18n } from "vue-i18n";
+import * as z from "zod/v4";
+
+import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
+import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
+import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 const { info } = useToastStore();
 
+
 const progress = defineModel("progress", { type: Number, required: true });
 const project = defineModel<Project>("project");
+
 
 const schema = toTypedSchema(
   z.object({
@@ -42,6 +46,7 @@ const schema = toTypedSchema(
   }),
 );
 
+
 const { handleSubmit } = useForm({
   validationSchema: schema,
   initialValues: {
@@ -54,6 +59,7 @@ const { handleSubmit } = useForm({
     createGlossary: true,
   },
 });
+
 
 const onSubmit = handleSubmit(async (values) => {
   project.value = await orpc.project.create({

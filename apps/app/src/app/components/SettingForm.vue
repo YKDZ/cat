@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef } from "vue";
-import * as z from "zod/v4";
-import { useI18n } from "vue-i18n";
 import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
-import JsonForm from "@/app/components/json-form/JsonForm.vue";
+
 import { Button } from "@cat/ui";
 import { Save } from "lucide-vue-next";
+import { computed, onMounted, ref, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
+import * as z from "zod/v4";
+
+import JsonForm from "@/app/components/json-form/JsonForm.vue";
 
 const { t } = useI18n();
+
 
 const props = defineProps<{
   configGetter: () => Promise<NonNullJSONType>;
@@ -16,14 +19,17 @@ const props = defineProps<{
   onSaved?: () => Promise<void>;
 }>();
 
+
 const savedData = shallowRef<NonNullJSONType>({});
 const localData = shallowRef<NonNullJSONType>({});
 const isPending = ref(false);
 const errors = ref<string[]>([]);
 
+
 const isDirty = computed(() => {
   return JSON.stringify(localData.value) !== JSON.stringify(savedData.value);
 });
+
 
 const zodSchema = computed(() => {
   try {
@@ -32,6 +38,7 @@ const zodSchema = computed(() => {
     return null;
   }
 });
+
 
 const validate = (): boolean => {
   if (!zodSchema.value) return true;
@@ -44,12 +51,15 @@ const validate = (): boolean => {
   return false;
 };
 
+
 const handleUpdate = (value: NonNullJSONType) => {
   localData.value = value;
 };
 
+
 const handleSave = async () => {
   if (!validate()) return;
+
 
   isPending.value = true;
   try {
@@ -63,6 +73,7 @@ const handleSave = async () => {
     isPending.value = false;
   }
 };
+
 
 onMounted(async () => {
   const data = await props.configGetter();

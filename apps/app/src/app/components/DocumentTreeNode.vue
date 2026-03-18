@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import type { TreeNode } from "./DocumentTree.vue";
 import type { Document } from "@cat/shared/schema/drizzle/document";
+
+import { computed } from "vue";
+
+import type { TreeNode } from "./DocumentTree.vue";
 
 const props = defineProps<{
   node: TreeNode;
@@ -9,23 +11,28 @@ const props = defineProps<{
   expandedNodes: Set<string>;
 }>();
 
+
 const emits = defineEmits<{
   (e: "toggle", nodeId: string): void;
   (e: "click", document: Document): void;
 }>();
 
+
 defineSlots<{
   actions(props: { document: Document }): unknown;
 }>();
 
+
 const hasChildren = computed(() => props.node.children.length > 0);
 const isExpanded = computed(() => props.expandedNodes.has(props.node.id));
+
 
 const toggleNode = () => {
   if (hasChildren.value) {
     emits("toggle", props.node.id);
   }
 };
+
 
 const handleClick = () => {
   emits("click", props.node);

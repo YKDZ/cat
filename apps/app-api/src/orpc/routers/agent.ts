@@ -9,8 +9,8 @@ import {
   resolveSession,
   type AgentEvent,
   type DefaultGraphRuntime,
-} from "@cat/app-agent";
-import { builtinAgentTemplates, getBuiltinAgentTemplate } from "@cat/app-agent";
+} from "@cat/agent";
+import { builtinAgentTemplates, getBuiltinAgentTemplate } from "@cat/agent";
 import {
   createAgentDefinition,
   createAgentSession,

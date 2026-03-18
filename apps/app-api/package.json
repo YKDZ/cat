@@ -49,10 +49,10 @@
     "@cat/test-utils": "workspace:*",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "8.0.0",
-    "vitest": "4.0.16"
+    "vitest": "4.1.0"
   },
   "peerDependencies": {
-    "@cat/app-agent": "workspace:*",
+    "@cat/agent": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/operations": "workspace:*",
     "@cat/plugin-core": "workspace:*",

@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from "vue";
-import { useI18n } from "vue-i18n";
 import { Spinner } from "@cat/ui";
 import { ChevronDown, ChevronRight, Pause } from "lucide-vue-next";
-import Markdown from "@/app/components/Markdown.vue";
-import AgentToolCallCard from "./AgentToolCallCard.vue";
+import { ref, watch, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
+
 import type { AgentStepItem } from "@/app/stores/agent";
+
+import Markdown from "@/app/components/Markdown.vue";
+
+import AgentToolCallCard from "./AgentToolCallCard.vue";
 
 const props = defineProps<{
   /** Progressive thinking/reasoning text from the model */
@@ -16,13 +19,16 @@ const props = defineProps<{
   paused?: boolean;
 }>();
 
+
 const { t } = useI18n();
 const isExpanded = ref(true);
 const scrollEl = ref<HTMLDivElement | null>(null);
 
+
 /** 跟踪用户是否处于底部（阈値 60px），不在底部时不强制滚动 */
 const isAtBottom = ref(true);
 const SCROLL_THRESHOLD = 60;
+
 
 const handleScroll = () => {
   const el = scrollEl.value;
@@ -30,6 +36,7 @@ const handleScroll = () => {
   isAtBottom.value =
     el.scrollHeight - el.scrollTop - el.clientHeight <= SCROLL_THRESHOLD;
 };
+
 
 const scrollToBottom = () => {
   if (!isAtBottom.value) return;
@@ -39,6 +46,7 @@ const scrollToBottom = () => {
     }
   });
 };
+
 
 watch(() => [props.thinkingText, props.steps?.length], scrollToBottom);
 </script>

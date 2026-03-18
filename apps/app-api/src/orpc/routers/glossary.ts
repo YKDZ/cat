@@ -1,4 +1,4 @@
-import { createTermTask } from "@cat/app-agent/workflow";
+import { createTermTask } from "@cat/agent/workflow";
 import {
   addGlossaryTermToConcept,
   countGlossaryConcepts,

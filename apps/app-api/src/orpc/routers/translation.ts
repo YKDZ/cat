@@ -3,7 +3,7 @@ import {
   autoTranslateWorkflow,
   createTranslationWorkflow,
   getWorkflowRuntime,
-} from "@cat/app-agent/workflow";
+} from "@cat/agent/workflow";
 import {
   approveTranslation,
   autoApproveDocumentTranslations,

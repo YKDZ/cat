@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { storeToRefs } from "pinia";
-import { useI18n } from "vue-i18n";
-import { useProfileStore } from "@/app/stores/profile.ts";
 import {
   Button,
   Dialog,
@@ -20,11 +16,18 @@ import {
   Switch,
 } from "@cat/ui";
 import { Sparkles } from "lucide-vue-next";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { useProfileStore } from "@/app/stores/profile.ts";
 
 const { t } = useI18n();
 
+
 const { ghostTextEnabled, ghostTextDebounceMs } =
   storeToRefs(useProfileStore());
+
 
 const debounceSliderModel = computed({
   get: () => [ghostTextDebounceMs.value],

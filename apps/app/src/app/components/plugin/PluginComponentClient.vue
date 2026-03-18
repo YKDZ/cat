@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import type { ComponentRecord } from "@cat/plugin-core";
-import { usePageContext } from "vike-vue/usePageContext";
-import { computed, onBeforeMount } from "vue";
+
 import { createSandbox, safeCustomElements } from "@cat/plugin-core/client";
 import { logger } from "@cat/shared/utils";
+import { usePageContext } from "vike-vue/usePageContext";
+import { computed, onBeforeMount } from "vue";
 import * as Vue from "vue";
 
 const props = defineProps<{
   component: ComponentRecord;
 }>();
 
+
 const ctx = usePageContext();
+
 
 const scopedName = computed(() => {
   return props.component.pluginId + "-" + props.component.name;
 });
+
 
 const url = computed(() => {
   if (props.component.url.startsWith("http")) return props.component.url;
@@ -29,6 +33,7 @@ const url = computed(() => {
   return result.href;
 });
 
+
 const load = async () => {
   const registry = new Map<
     string,
@@ -38,9 +43,11 @@ const load = async () => {
     }
   >();
 
+
   try {
     const response = await fetch(url.value);
     const code = await response.text();
+
 
     const sandbox = createSandbox(props.component.pluginId, window, {
       globalContextBuilder: (pluginId, win) => ({
@@ -51,10 +58,12 @@ const load = async () => {
       }),
     });
 
+
     sandbox.evaluate(code);
   } catch (e) {
     logger.error("WEB", { msg: "Failed to evaluate sandbox code" }, e);
   }
+
 
   // TODO 逻辑上暂时不允许一次注册多个组件
   if (registry.size > 1 || registry.size === 0) {
@@ -63,7 +72,9 @@ const load = async () => {
     });
   }
 
+
   const [name, { constructor, options }] = registry.entries().next().value!;
+
 
   if (name !== props.component.name) {
     logger.warn("WEB", {
@@ -71,9 +82,11 @@ const load = async () => {
     });
   }
 
+
   if (!customElements.get(name))
     customElements.define(scopedName.value, constructor, options);
 };
+
 
 onBeforeMount(load);
 </script>

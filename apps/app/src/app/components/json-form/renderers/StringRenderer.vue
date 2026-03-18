@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { computed, inject } from "vue";
-import * as z from "zod/v4";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
-import { schemaKey, transferDataToString } from "../utils.ts";
+
 import { Input } from "@cat/ui";
 import {
   FormControl,
@@ -11,26 +9,35 @@ import {
   FormItem,
   FormLabel,
 } from "@cat/ui";
+import { computed, inject } from "vue";
+import * as z from "zod/v4";
+
+import { schemaKey, transferDataToString } from "../utils.ts";
 
 const props = defineProps<{
   propertyKey: string | number;
   data: NonNullJSONType;
 }>();
 
+
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
+
 const schema = inject(schemaKey)!;
+
 
 const value = computed(() => {
   return transferDataToString(props.data ?? schema.default);
 });
 
+
 const type = computed(() => {
   if (schema.format === "email") return "email";
   else return "text";
 });
+
 
 const autocomplete = computed(() => {
   try {
@@ -39,6 +46,7 @@ const autocomplete = computed(() => {
     return "off";
   }
 });
+
 
 const handleUpdate = (value: string | number) => {
   emits("_update", value);

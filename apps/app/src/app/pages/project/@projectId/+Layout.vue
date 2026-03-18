@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import { Separator } from "@cat/ui";
 import { useData } from "vike-vue/useData";
 import { provide } from "vue";
-import type { Data } from "./+data.server.ts";
+
 import IndexSidebar from "@/app/components/IndexSidebar.vue";
+import { useInjectionKey } from "@/app/utils/provide.ts";
+
+import type { Data } from "./+data.server.ts";
+
 import Header from "./Header.vue";
 import Navbar from "./Navbar.vue";
-import { useInjectionKey } from "@/app/utils/provide.ts";
-import { Separator } from "@cat/ui";
 
 const { project, targetLanguages, documents } = useData<Data>();
+
 
 provide(useInjectionKey<Data>()("project"), project);
 provide(useInjectionKey<Data>()("targetLanguages"), targetLanguages);

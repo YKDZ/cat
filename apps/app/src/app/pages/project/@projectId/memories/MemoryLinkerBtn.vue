@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
-import { useToastStore } from "@/app/stores/toast.ts";
+
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -15,27 +11,40 @@ import {
   DialogTitle,
 } from "@cat/ui";
 import { Link2 } from "lucide-vue-next";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
+import { useToastStore } from "@/app/stores/toast.ts";
+import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 const { info, rpcWarn } = useToastStore();
+
 
 const props = defineProps<{
   project: Project;
 }>();
 
+
 const emits = defineEmits(["link"]);
+
 
 const memoryIds = ref<string[]>([]);
 
+
 const isOpen = ref(false);
+
 
 const handleOpen = () => {
   isOpen.value = true;
 };
 
+
 const handleLink = async () => {
   const createNewIndex = memoryIds.value.findIndex((id) => id === "createNew");
   const realIds = memoryIds.value.splice(createNewIndex, 1);
+
 
   if (createNewIndex !== -1) {
     await orpc.memory.create({
@@ -43,6 +52,7 @@ const handleLink = async () => {
       projectIds: [props.project.id],
     });
   }
+
 
   await orpc.project
     .linkMemory({

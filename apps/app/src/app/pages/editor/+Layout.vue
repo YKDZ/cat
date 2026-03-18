@@ -1,18 +1,21 @@
 <script setup lang="ts">
+import { ScrollArea } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
+import { watch } from "vue";
 import * as z from "zod";
+
+import { useEditorContextStore } from "@/app/stores/editor/context.ts";
+import { useEditorElementStore } from "@/app/stores/editor/element";
+import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { syncRefWith, watchClient } from "@/app/utils/vue.ts";
+
+import ContextPanel from "./ContextPanel.vue";
 import Header from "./Header.vue";
 import Sidebar from "./Sidebar.vue";
-import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { useEditorContextStore } from "@/app/stores/editor/context.ts";
-import { syncRefWith, watchClient } from "@/app/utils/vue.ts";
-import { useEditorElementStore } from "@/app/stores/editor/element";
-import { watch } from "vue";
-import ContextPanel from "./ContextPanel.vue";
-import { ScrollArea } from "@cat/ui";
 
 const ctx = usePageContext();
+
 
 const { refresh: refreshContext } = useEditorContextStore();
 const { refresh: refreshElement } = useEditorElementStore();
@@ -20,9 +23,11 @@ const { toElement } = useEditorTableStore();
 const { elementId } = storeToRefs(useEditorTableStore());
 const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 
+
 syncRefWith(documentId, () => z.uuidv4().parse(ctx.routeParams["documentId"]));
 syncRefWith(languageToId, () => ctx.routeParams["languageToId"] ?? "");
 syncRefWith(elementId, () => parseInt(ctx.routeParams["elementId"] ?? ""));
+
 
 watchClient(
   elementId,
@@ -31,6 +36,7 @@ watchClient(
   },
   { immediate: true },
 );
+
 
 watch(
   documentId,

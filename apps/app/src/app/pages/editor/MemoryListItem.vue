@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import { toShortFixed } from "@cat/shared/utils";
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
 import type { MemorySuggestion } from "@cat/shared/schema/misc";
+
+import { toShortFixed } from "@cat/shared/utils";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
+
 import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
-import { useHotKeys } from "@/app/utils/magic-keys.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
+import { useHotKeys } from "@/app/utils/magic-keys.ts";
+import { orpc } from "@/server/orpc";
 
 const { replace } = useEditorTableStore();
 const { t } = useI18n();
+
 
 const props = defineProps<{
   memorySuggestion: MemorySuggestion;
   index: number;
 }>();
+
 
 const displayTranslation = computed(
   () =>
@@ -24,13 +28,17 @@ const displayTranslation = computed(
     props.memorySuggestion.translation,
 );
 
+
 const handleCopy = () => {
   replace(displayTranslation.value);
 };
 
+
 const memory = ref<Memory | null>(null);
 
+
 useHotKeys(`M+${props.index + 1}`, handleCopy);
+
 
 onMounted(async () => {
   memory.value = await orpc.memory.get({

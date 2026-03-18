@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
+
 import TermList from "./TermList.vue";
 import TermSearcher from "./TermSearcher.vue";
 import TermSettings from "./TermSettings.vue";

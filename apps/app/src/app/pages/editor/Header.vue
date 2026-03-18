@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { SidebarTrigger } from "@cat/ui";
 import { storeToRefs } from "pinia";
+
 import DocumentBreadcrumb from "@/app/components/DocumentBreadcrumb.vue";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
-import { SidebarTrigger } from "@cat/ui";
 
 const { document } = storeToRefs(useEditorContextStore());
 </script>

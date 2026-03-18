@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, provide } from "vue";
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+
+import { computed, provide } from "vue";
+
 import { MatcherRegistry, type RendererComponent } from "./index.ts";
 import { schemaKey } from "./utils.ts";
 
@@ -9,6 +11,7 @@ const props = defineProps<{
   schema: _JSONSchema;
   data: NonNullJSONType;
 }>();
+
 
 const emits = defineEmits<{
   (
@@ -20,15 +23,18 @@ const emits = defineEmits<{
   ): void;
 }>();
 
+
 const matchedRenderer = computed<RendererComponent | null>(() => {
   const matcher = MatcherRegistry.match(props.schema);
   if (!matcher) return null;
   return matcher.renderer;
 });
 
+
 const providedData = computed(() => {
   return props.data ?? props.schema.default;
 });
+
 
 provide(schemaKey, props.schema);
 </script>

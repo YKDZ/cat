@@ -1,36 +1,47 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import { computed, ref, shallowRef } from "vue";
-import { useI18n } from "vue-i18n";
+
 import { Table, TableBody, TableCell, TableRow } from "@cat/ui";
-import ProjectUploadFilesFile from "./ProjectUploadFilesFile.vue";
 import { Button } from "@cat/ui";
 import { Spinner } from "@cat/ui";
+import { computed, ref, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
+
+import ProjectUploadFilesFile from "./ProjectUploadFilesFile.vue";
 
 const { t } = useI18n();
 
+
 const fileInputEl = ref<HTMLInputElement>();
+
 
 defineProps<{
   project: Project;
 }>();
 
+
 const isProcessing = ref<boolean>(false);
 
+
 const acceptedExt = ref<string[]>(["yml", "yaml", "md", "json"]);
+
 
 const acceptAttr = computed(() =>
   acceptedExt.value.map((ext) => "." + ext).join(", "),
 );
 
+
 const files = shallowRef<File[]>([]);
+
 
 const selectFile = () => {
   if (!fileInputEl.value || !fileInputEl.value.files) return;
 
+
   const newFiles: File[] = Array.from(fileInputEl.value.files).filter((file) =>
     acceptedExt.value.includes(file.name.split(".").pop() ?? ""),
   );
+
 
   files.value = [...files.value, ...newFiles];
   fileInputEl.value.value = "";

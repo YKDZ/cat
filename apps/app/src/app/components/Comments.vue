@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import MarkdownEditor from "@/app/components/editor/MarkdownEditor.vue";
-import Comment from "./Comment.vue";
-import { useEditorTableStore } from "@/app/stores/editor/table";
-import { orpc } from "@/server/orpc";
-import { storeToRefs } from "pinia";
+import type { CommentTargetType } from "@cat/shared/schema/drizzle/enum";
+
 import {
   SidebarFooter,
   SidebarGroup,
@@ -12,22 +9,31 @@ import {
 } from "@cat/ui";
 import { ScrollArea } from "@cat/ui";
 import { Input } from "@cat/ui";
-import { ref } from "vue";
 import { Button } from "@cat/ui";
-import { useI18n } from "vue-i18n";
-import { ArrowRight, ChevronDown, ChevronUp } from "lucide-vue-next";
-import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import { useQuery } from "@pinia/colada";
-import type { CommentTargetType } from "@cat/shared/schema/drizzle/enum";
+import { ArrowRight, ChevronDown, ChevronUp } from "lucide-vue-next";
+import { storeToRefs } from "pinia";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import MarkdownEditor from "@/app/components/editor/MarkdownEditor.vue";
+import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { useEditorTableStore } from "@/app/stores/editor/table";
+import { orpc } from "@/server/orpc";
+
+import Comment from "./Comment.vue";
 
 const props = defineProps<{
   targetType: CommentTargetType;
   targetId: number;
 }>();
 
+
 const { t } = useI18n();
 
+
 const { elementId } = storeToRefs(useEditorTableStore());
+
 
 const { state, refetch } = useQuery({
   key: ["rootComments", elementId.value, 10, 0],
@@ -42,12 +48,16 @@ const { state, refetch } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
+
 const openEditor = defineModel<boolean>("openEditor", { default: false });
+
 
 const content = ref("");
 
+
 const comment = async () => {
   if (!elementId.value) return;
+
 
   await orpc.comment.comment({
     targetType: props.targetType,
@@ -56,8 +66,10 @@ const comment = async () => {
     languageId: "en",
   });
 
+
   refetch();
 };
+
 
 const handleDelete = (commentId: number) => {
   refetch();

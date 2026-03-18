@@ -4,7 +4,7 @@ import {
   getWorkflowRuntime,
   QAPubPayloadSchema,
   qaWorkflow,
-} from "@cat/app-agent/workflow";
+} from "@cat/agent/workflow";
 import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
 import { TokenSchema } from "@cat/plugin-core";
 import { AsyncMessageQueue } from "@cat/server-shared";

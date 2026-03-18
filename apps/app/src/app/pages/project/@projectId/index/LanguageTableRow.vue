@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import type { Language } from "@cat/shared/schema/drizzle/misc";
-import { navigate } from "vike/client/router";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import TranslationProgress from "./TranslationProgress.vue";
+
 import { TableRow, TableCell } from "@cat/ui";
+import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
+
+import TranslationProgress from "./TranslationProgress.vue";
 
 const props = defineProps<{
   language: Language;
   project: Pick<Project, "id">;
 }>();
+
 
 const { t } = useI18n();
 </script>

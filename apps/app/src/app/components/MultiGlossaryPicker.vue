@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { usePageContext } from "vike-vue/usePageContext";
-import { useI18n } from "vue-i18n";
-import { orpc } from "@/server/orpc";
-import type { PickerOption } from "./picker";
-import MultiPicker from "./picker/MultiPicker.vue";
 import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
+
 import { useQuery } from "@pinia/colada";
+import { usePageContext } from "vike-vue/usePageContext";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { orpc } from "@/server/orpc";
+
+import type { PickerOption } from "./picker";
+
+import MultiPicker from "./picker/MultiPicker.vue";
 
 const { t } = useI18n();
+
 
 const props = withDefaults(
   defineProps<{
@@ -27,12 +32,15 @@ const props = withDefaults(
   },
 );
 
+
 const memoryIds = defineModel<string[]>();
+
 
 const { state } = useQuery({
   key: ["glossaries"],
   query: () => props.getter(),
 });
+
 
 const options = computed(() => {
   if (!state.value || !state.value.data) return [];

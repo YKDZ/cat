@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { TranslatableElementContext } from "@cat/shared/schema/drizzle/document";
+
+import { Card, CardContent } from "@cat/ui";
 import { computed } from "vue";
 import * as z from "zod/v4";
-import type { TranslatableElementContext } from "@cat/shared/schema/drizzle/document";
-import { Card, CardContent } from "@cat/ui";
 
 type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
 
 const props = defineProps<{
   context: MakeOptional<
@@ -13,9 +15,11 @@ const props = defineProps<{
   >;
 }>();
 
+
 const meta = computed(() => {
   return z.record(z.string(), z.unknown()).parse(props.context.jsonData);
 });
+
 
 const keys = computed(() => {
   const editorDisplay = meta.value["editor-display"];

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Document } from "@cat/shared/schema/drizzle/document";
+
 import { computed, shallowRef } from "vue";
+
 import DocumentTreeNode from "./DocumentTreeNode.vue";
 
 const props = defineProps<{
@@ -9,14 +11,17 @@ const props = defineProps<{
   })[];
 }>();
 
+
 const emits = defineEmits<{
   (e: "click", document: Document): void;
 }>();
+
 
 export type TreeNode = Document & {
   parentId: string | null;
   children: TreeNode[];
 };
+
 
 const tree = computed(() => {
   const map = new Map<string, TreeNode>();
@@ -44,7 +49,9 @@ const tree = computed(() => {
   return roots;
 });
 
+
 const expandedNodes = shallowRef<Set<string>>(new Set());
+
 
 const toggleNode = (nodeId: string) => {
   if (expandedNodes.value.has(nodeId)) {
@@ -53,6 +60,7 @@ const toggleNode = (nodeId: string) => {
     expandedNodes.value.add(nodeId);
   }
 };
+
 
 const handleClick = (document: Document) => {
   emits("click", document);

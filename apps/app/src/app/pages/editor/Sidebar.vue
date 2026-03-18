@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
 import {
   Sidebar,
   SidebarContent,
@@ -12,14 +11,18 @@ import {
   SidebarMenuSkeleton,
   SidebarRail,
 } from "@cat/ui";
-import SidebarLogo from "@/app/components/SidebarLogo.vue";
-import SidebarElement from "./SidebarElement.vue";
-import ElementSearcher from "./ElementSearcher.vue";
-import SidebarPagination from "./SidebarPagination.vue";
-import { useEditorElementStore } from "@/app/stores/editor/element";
 import { ScrollArea } from "@cat/ui";
+import { storeToRefs } from "pinia";
+
+import SidebarLogo from "@/app/components/SidebarLogo.vue";
+import { useEditorElementStore } from "@/app/stores/editor/element";
+
+import ElementSearcher from "./ElementSearcher.vue";
+import SidebarElement from "./SidebarElement.vue";
+import SidebarPagination from "./SidebarPagination.vue";
 
 const { displayedElements } = storeToRefs(useEditorElementStore());
+
 
 const sidebarId = "editor";
 </script>

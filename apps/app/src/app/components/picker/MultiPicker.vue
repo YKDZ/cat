@@ -1,6 +1,4 @@
 <script setup lang="ts" generic="T extends AcceptableInputValue">
-import type { PickerOption } from "./index.ts";
-import { ComboboxVirtualizer, type AcceptableInputValue } from "reka-ui";
 import {
   Combobox,
   ComboboxAnchor,
@@ -17,10 +15,14 @@ import {
   TagsInputItemDelete,
   Button,
 } from "@cat/ui";
+import { ComboboxVirtualizer, type AcceptableInputValue } from "reka-ui";
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { PickerOption } from "./index.ts";
+
 const { t } = useI18n();
+
 
 const props = withDefaults(
   defineProps<{
@@ -34,12 +36,15 @@ const props = withDefaults(
   },
 );
 
+
 const modalValue = defineModel<T[]>({
   default: [],
 });
 
+
 const selectedOptions = shallowRef<PickerOption<T>[]>([]);
 const search = defineModel<string>("search", { default: "" });
+
 
 const onSelect = (option: PickerOption<T> | undefined) => {
   if (option) {
@@ -54,6 +59,7 @@ const onSelect = (option: PickerOption<T> | undefined) => {
   }
   modalValue.value = selectedOptions.value.map((option) => option.value);
 };
+
 
 const onScroll = (e: Event) => {
   const target = e.target as HTMLElement;

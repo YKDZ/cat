@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared/schema/drizzle/memory";
+
 import Slash from "@/app/components/Slash.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 

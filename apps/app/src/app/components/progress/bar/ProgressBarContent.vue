@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+
 import type { ProgressBarLine } from "./index.ts";
 
 const props = defineProps<{
@@ -7,6 +8,7 @@ const props = defineProps<{
   width: number;
   height: number;
 }>();
+
 
 const width = computed(() => {
   return props.width * props.line.progress;

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
-import PluginListItem from "./PluginListItem.vue";
 import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
+
+import PluginListItem from "./PluginListItem.vue";
 
 defineProps<{
   plugins: Plugin[];

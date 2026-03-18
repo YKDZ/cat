@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import type { TooltipContentProps } from "reka-ui";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
 } from "@cat/ui";
-import type { TooltipContentProps } from "reka-ui";
 
 const props = withDefaults(
   defineProps<TooltipContentProps & { tooltip: string }>(),

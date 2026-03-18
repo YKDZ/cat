@@ -1,23 +1,26 @@
 <script setup lang="ts">
-import CommentReaction from "./CommentReaction.vue";
+import type { Comment } from "@cat/shared/schema/drizzle/comment";
+import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
+import type { User } from "@cat/shared/schema/drizzle/user";
+
+import { Badge } from "@cat/ui";
+import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";
+import { Button } from "@cat/ui";
+import { useQuery } from "@pinia/colada";
+import { useDateFormat, useTimeAgo } from "@vueuse/core";
+import { EllipsisVertical, Trash, Smile, Reply } from "lucide-vue-next";
+import { usePageContext } from "vike-vue/usePageContext";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
 import Markdown from "@/app/components/Markdown.vue";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
-import { Badge } from "@cat/ui";
 import UserAvatar from "@/app/components/UserAvatar.vue";
 import { i18nUseTimeAgoMessages } from "@/app/utils/i18n";
 import { orpc } from "@/server/orpc";
-import type { Comment } from "@cat/shared/schema/drizzle/comment";
-import type { User } from "@cat/shared/schema/drizzle/user";
-import { useDateFormat, useTimeAgo } from "@vueuse/core";
-import { EllipsisVertical, Trash, Smile, Reply } from "lucide-vue-next";
-import { ref } from "vue";
-import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";
+
 import CommentReact from "./CommentReact.vue";
-import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
-import { Button } from "@cat/ui";
-import { usePageContext } from "vike-vue/usePageContext";
-import { useI18n } from "vue-i18n";
-import { useQuery } from "@pinia/colada";
+import CommentReaction from "./CommentReaction.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -29,12 +32,15 @@ const props = withDefaults(
   },
 );
 
+
 const emits = defineEmits<{
   delete: [commentId: number];
 }>();
 
+
 const { t } = useI18n();
 const ctx = usePageContext();
+
 
 const emojis: {
   emoji: string;
@@ -74,12 +80,15 @@ const emojis: {
   },
 ];
 
+
 const user = ref<User | null>(null);
+
 
 const timeAgo = useTimeAgo(props.comment.createdAt, {
   messages: i18nUseTimeAgoMessages,
 });
 const createdAt = useDateFormat(props.comment.createdAt, "YYYY-MM-DD HH:mm:ss");
+
 
 const { state: reactionsState, refetch: refetchReactions } = useQuery({
   key: ["reactions", props.comment.id],
@@ -91,6 +100,7 @@ const { state: reactionsState, refetch: refetchReactions } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
+
 const { state: childCommentsState } = useQuery({
   key: ["childComments", props.comment.id],
   placeholderData: [],
@@ -101,13 +111,16 @@ const { state: childCommentsState } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
+
 const handleReact = () => {
   refetchReactions();
 };
 
+
 const handleUnReact = () => {
   refetchReactions();
 };
+
 
 const handleDelete = async () => {
   await orpc.comment.deleteComment({

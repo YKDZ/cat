@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import type { JSONType } from "@cat/shared/schema/json";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import type {
   PluginConfig,
   PluginConfigInstance,
 } from "@cat/shared/schema/drizzle/plugin";
-import { ref } from "vue";
+import type { JSONType } from "@cat/shared/schema/json";
+
 import { navigate } from "vike/client/router";
+import { ref } from "vue";
+
 import { orpc } from "@/server/orpc";
+
 import SettingForm from "./SettingForm.vue";
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 
 const props = defineProps<{
   config: PluginConfig;
@@ -16,7 +19,9 @@ const props = defineProps<{
   scopeId: string;
 }>();
 
+
 const instance = ref<PluginConfigInstance | null>(null);
+
 
 const configSetter = async (value: JSONType) => {
   await orpc.plugin.upsertConfigInstance({
@@ -26,6 +31,7 @@ const configSetter = async (value: JSONType) => {
     value,
   });
 };
+
 
 const configGetter = async () => {
   return await orpc.plugin
@@ -43,6 +49,7 @@ const configGetter = async () => {
       return data.value;
     });
 };
+
 
 const handleSaved = async () => {
   await orpc.plugin.reloadPlugin({

@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import AuthMFAHandler from "./MfaHandler.vue";
-import AuthMFAPreHandler from "./MfaPreHandler.vue";
-import { useAuthStore } from "@/app/stores/auth";
-import { orpc } from "@/server/orpc";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { ref } from "vue";
 
+import { useAuthStore } from "@/app/stores/auth";
+import { orpc } from "@/server/orpc";
+
+import AuthMFAHandler from "./MfaHandler.vue";
+import AuthMFAPreHandler from "./MfaPreHandler.vue";
+
 const { userId } = storeToRefs(useAuthStore());
 const isPre = ref(true);
+
 
 const mfaProviders = ref([
   {
     id: 0,
   },
 ]);
+
 
 const handleComplete = async () => {
   await orpc.auth.completeAuthWithMFA();

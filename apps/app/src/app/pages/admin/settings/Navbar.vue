@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useI18n } from "vue-i18n";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -8,11 +6,14 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@cat/ui";
-import { usePageContext } from "vike-vue/usePageContext";
 import { Server } from "lucide-vue-next";
+import { usePageContext } from "vike-vue/usePageContext";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 const ctx = usePageContext();
 const { t } = useI18n();
+
 
 const items = ref([
   {

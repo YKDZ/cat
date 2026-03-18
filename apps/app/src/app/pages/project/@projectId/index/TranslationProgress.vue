@@ -1,22 +1,27 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { toShortFixed } from "@cat/shared/utils";
-import type { ProgressBarLine } from "@/app/components/progress/bar/index.ts";
-import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
 import type { Language } from "@cat/shared/schema/drizzle/misc";
 import type { Project } from "@cat/shared/schema/drizzle/project";
-import { orpc } from "@/server/orpc";
-import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
-import { useI18n } from "vue-i18n";
-import Dot from "@/app/components/Dot.vue";
+
+import { toShortFixed } from "@cat/shared/utils";
 import { useQuery } from "@pinia/colada";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import type { ProgressBarLine } from "@/app/components/progress/bar/index.ts";
+
+import Dot from "@/app/components/Dot.vue";
+import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
+import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   project: Pick<Project, "id">;
   language: Pick<Language, "id">;
 }>();
 
+
 const { t } = useI18n();
+
 
 const { state: elementAmountState } = useQuery({
   key: ["elementAmount", props.project.id],
@@ -27,6 +32,7 @@ const { state: elementAmountState } = useQuery({
     }),
   enabled: !import.meta.env.SSR,
 });
+
 
 const { state: translatedElementAmountState } = useQuery({
   key: ["translatedElementAmount", props.project.id, props.language.id],
@@ -40,6 +46,7 @@ const { state: translatedElementAmountState } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
+
 const { state: approvedElementAmountState } = useQuery({
   key: ["approvedElementAmount", props.project.id, props.language.id],
   placeholderData: 0,
@@ -52,6 +59,7 @@ const { state: approvedElementAmountState } = useQuery({
     }),
   enabled: !import.meta.env.SSR,
 });
+
 
 const progressBarLines = computed<ProgressBarLine[]>(() => {
   const total = elementAmountState.value.data ?? 0;

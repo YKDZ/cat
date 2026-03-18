@@ -1,6 +1,4 @@
 <script setup lang="ts" generic="T extends AcceptableInputValue">
-import { useI18n } from "vue-i18n";
-import type { PickerOption } from "./index.ts";
 import {
   Combobox,
   ComboboxAnchor,
@@ -21,9 +19,14 @@ import {
   type AcceptableInputValue,
 } from "reka-ui";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 
+import type { PickerOption } from "./index.ts";
+
 const { t } = useI18n();
+
 
 const props = withDefaults(
   defineProps<{
@@ -37,16 +40,20 @@ const props = withDefaults(
   },
 );
 
+
 const modelValue = defineModel<T>();
 const search = defineModel<string>("search", { default: "" });
 
+
 const selectedOption = ref<PickerOption<T>>();
+
 
 const onSelect = (value: PickerOption<T> | undefined) => {
   selectedOption.value =
     selectedOption.value?.value === value?.value ? undefined : value;
   modelValue.value = selectedOption.value?.value ?? undefined;
 };
+
 
 const onScroll = (e: Event) => {
   const target = e.target as HTMLElement;

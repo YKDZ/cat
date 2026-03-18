@@ -1,36 +1,43 @@
 <script setup lang="ts">
-import UserAvatar from "@/app/components/UserAvatar.vue";
 import type { User } from "@cat/shared/schema/drizzle/user";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@cat/ui";
-import { navigate } from "vike/client/router";
-import { useI18n } from "vue-i18n";
-import { ref } from "vue";
-import { orpc } from "@/server/orpc";
-import { useToastStore } from "@/app/stores/toast";
 import { useSidebar } from "@cat/ui";
 import { Spinner } from "@cat/ui";
+import { navigate } from "vike/client/router";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import UserAvatar from "@/app/components/UserAvatar.vue";
+import { useToastStore } from "@/app/stores/toast";
+import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   user: Pick<User, "id" | "name"> | null;
   sidebarId: string;
 }>();
 
+
 const { t } = useI18n();
 const { info, rpcWarn } = useToastStore();
 const { state } = useSidebar(props.sidebarId);
 
+
 const isLoggingOut = ref(false);
+
 
 const handleLogout = async () => {
   if (isLoggingOut.value) return;
 
+
   isLoggingOut.value = true;
   info(t("登出中..."));
+
 
   await orpc.auth
     .logout()

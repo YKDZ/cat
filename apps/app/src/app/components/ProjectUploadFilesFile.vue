@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { orpc } from "@/server/orpc";
 import { TableCell, TableRow } from "@cat/ui";
+import { Button } from "@cat/ui";
+import { ref } from "vue";
+
+import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
-import LanguagePicker from "@/app/components/LanguagePicker.vue";
-import { Button } from "@cat/ui";
+import { orpc } from "@/server/orpc";
 
 const { info } = useToastStore();
+
 
 const props = defineProps<{
   projectId: string;
   file: File;
 }>();
 
+
 const isProcessing = ref<boolean>(false);
 const languageId = ref<string>("en");
+
 
 const upload = async () => {
   if (isProcessing.value) return;
@@ -24,7 +28,9 @@ const upload = async () => {
     return;
   }
 
+
   isProcessing.value = true;
+
 
   const { url, putSessionId } = await orpc.document.prepareCreateFromFile({
     meta: {
@@ -34,7 +40,9 @@ const upload = async () => {
     },
   });
 
+
   await uploadFileToS3PresignedURL(props.file, url);
+
 
   await orpc.document
     .finishCreateFromFile({

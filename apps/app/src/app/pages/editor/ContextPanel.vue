@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import ElemenContexts from "./ElemenContexts.vue";
-import ElementSourcePreview from "./ElementSourcePreview.vue";
-import Comments from "@/app/components/Comments.vue";
-import AgentChatPanel from "@/app/components/agent/AgentChatPanel.vue";
 import {
   Sidebar,
   SidebarHeader,
@@ -11,13 +7,20 @@ import {
   TabsList,
   TabsTrigger,
 } from "@cat/ui";
-import { useCookieStringRef } from "@/app/utils/cookie";
+import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
+
+import AgentChatPanel from "@/app/components/agent/AgentChatPanel.vue";
+import Comments from "@/app/components/Comments.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
-import { storeToRefs } from "pinia";
+import { useCookieStringRef } from "@/app/utils/cookie";
+
+import ElemenContexts from "./ElemenContexts.vue";
+import ElementSourcePreview from "./ElementSourcePreview.vue";
 
 const { t } = useI18n();
+
 
 const panelOpen = useCookieStringRef(
   usePageContext(),
@@ -25,7 +28,9 @@ const panelOpen = useCookieStringRef(
   "context",
 );
 
+
 const { elementId } = storeToRefs(useEditorTableStore());
+
 
 const id = "editor-context-panel";
 </script>

@@ -6,17 +6,21 @@ type Quote = {
   author: string;
 };
 
+
 const loading = ref(true);
 const error = ref<string | null>(null);
 const quote = ref<Quote | null>(null);
+
 
 const fetchQuote = async () => {
   try {
     const res = await fetch("https://dummyjson.com/quotes/random");
 
+
     if (!res.ok) {
       throw new Error("network error");
     }
+
 
     const json = (await res.json()) as Quote;
     quote.value = json;
@@ -27,6 +31,7 @@ const fetchQuote = async () => {
     loading.value = false;
   }
 };
+
 
 onMounted(() => {
   fetchQuote();
