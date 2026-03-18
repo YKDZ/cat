@@ -22,21 +22,22 @@ export type SaveAgentRunMetadataCommand = z.infer<
 >;
 
 export const saveAgentRunMetadata: Command<
-  SaveAgentRunMetadataCommand,
-  void
+  SaveAgentRunMetadataCommand
 > = async (ctx, command) => {
   // externalId has defaultRandom() so Drizzle's insert type omits it.
   // We need to supply our own UUID.
-  // oxlint-disable-next-line no-unsafe-type-assertion, no-explicit-any
+  // oxlint-disable-next-line no-unsafe-type-assertion
   const runValues = {
     externalId: command.externalId,
     sessionId: command.sessionId,
     status: command.status,
+    // oxlint-disable-next-line no-unsafe-type-assertion
     graphDefinition: (command.graphDefinition ?? {}) as NonNullJSONType,
     currentNodeId: command.currentNodeId,
     deduplicationKey: command.deduplicationKey,
     startedAt: command.startedAt,
     completedAt: command.completedAt,
+    // oxlint-disable-next-line no-unsafe-type-assertion
     metadata: command.metadata as NonNullJSONType | null,
   } as never;
 
@@ -48,9 +49,11 @@ export const saveAgentRunMetadata: Command<
       target: agentRun.externalId,
       set: {
         status: command.status,
+        // oxlint-disable-next-line no-unsafe-type-assertion
         graphDefinition: (command.graphDefinition ?? {}) as NonNullJSONType,
         currentNodeId: command.currentNodeId,
         deduplicationKey: command.deduplicationKey,
+        // oxlint-disable-next-line no-unsafe-type-assertion
         metadata: command.metadata as NonNullJSONType | null,
         completedAt: command.completedAt,
       },

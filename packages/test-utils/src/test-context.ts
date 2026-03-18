@@ -24,26 +24,40 @@ export type TestContext = {
 };
 
 const createMockHTTPHelpers = (): HTTPHelpers => ({
-  setCookie: () => {},
-  delCookie: () => {},
+  setCookie: () => {
+    /* noop */
+  },
+  delCookie: () => {
+    /* noop */
+  },
   getCookie: () => null,
   getQueryParam: () => undefined,
   getReqHeader: () => undefined,
-  setResHeader: () => {},
+  setResHeader: () => {
+    /* noop */
+  },
 });
 
 const createMockCacheStore = (): CacheStore => ({
   get: async () => null,
-  set: async () => {},
-  delete: async () => {},
+  set: async () => {
+    /* noop */
+  },
+  delete: async () => {
+    /* noop */
+  },
   has: async () => false,
 });
 
 const createMockSessionStore = (): SessionStore => ({
-  create: async () => {},
+  create: async () => {
+    /* noop */
+  },
   getField: async () => null,
   getAll: async () => null,
-  destroy: async () => {},
+  destroy: async () => {
+    /* noop */
+  },
 });
 
 /**
@@ -61,8 +75,11 @@ export const createTestContext = (
   user: null,
   sessionId: null,
   // 集成测试须通过 overrides 注入真实句柄；单测通常不调用这些字段
+  // oxlint-disable-next-line no-unsafe-type-assertion
   pluginManager: null as unknown as PluginManager,
+  // oxlint-disable-next-line no-unsafe-type-assertion
   drizzleDB: null as unknown as DrizzleDB,
+  // oxlint-disable-next-line no-unsafe-type-assertion
   redis: null as unknown as RedisConnection,
   cacheStore: createMockCacheStore(),
   sessionStore: createMockSessionStore(),

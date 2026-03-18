@@ -26,7 +26,6 @@
     "openai": "^6.32.0"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*",
     "vite": "8.0.0"
   },
   "peerDependencies": {

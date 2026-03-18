@@ -37,7 +37,6 @@
     "redis": "^5.11.0"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*",
     "@types/node": "^25.5.0",
     "@types/pg": "^8.18.0",
     "drizzle-kit": "1.0.0-beta.17-67b1795",

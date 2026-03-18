@@ -33,7 +33,6 @@
     "@aws-sdk/s3-request-presigner": "^3.1011.0"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*",
     "vite": "8.0.0"
   },
   "peerDependencies": {

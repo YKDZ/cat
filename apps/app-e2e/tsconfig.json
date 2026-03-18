@@ -12,6 +12,6 @@
     "declarationMap": false,
     "emitDeclarationOnly": false
   },
-  "include": ["tests/**/*.ts"],
+  "include": ["tests/**/*.ts", "*.ts"],
   "references": []
 }

@@ -11,7 +11,7 @@ export type EnsureLanguagesCommand = z.infer<
   typeof EnsureLanguagesCommandSchema
 >;
 
-export const ensureLanguages: Command<EnsureLanguagesCommand, void> = async (
+export const ensureLanguages: Command<EnsureLanguagesCommand> = async (
   ctx,
   command,
 ) => {

@@ -29,6 +29,7 @@ export const setupTestDB = async (): Promise<TestDB> => {
   try {
     await client.query("CREATE EXTENSION IF NOT EXISTS vector SCHEMA public");
   } catch (err: unknown) {
+    // oxlint-disable-next-line no-unsafe-type-assertion
     const pgError = err as { code?: string };
     // 23505: duplicate key (并发创建), 42710: duplicate_object
     if (pgError.code !== "23505" && pgError.code !== "42710") {
@@ -45,6 +46,7 @@ export const setupTestDB = async (): Promise<TestDB> => {
   try {
     await client.query("CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public");
   } catch (err: unknown) {
+    // oxlint-disable-next-line no-unsafe-type-assertion
     const pgError = err as { code?: string };
     if (pgError.code !== "23505" && pgError.code !== "42710") {
       throw err;
@@ -72,6 +74,7 @@ export const setupTestDB = async (): Promise<TestDB> => {
   try {
     await migrate(db, { migrationsFolder, migrationsSchema: schemaName });
   } catch (e) {
+    // oxlint-disable-next-line no-console
     console.error("Migration failed:", e);
     throw e;
   }
@@ -87,9 +90,12 @@ export const setupTestDB = async (): Promise<TestDB> => {
     CREATE INDEX "embeddingIndex" ON "${schemaName}"."Vector" USING hnsw ("vector" vector_cosine_ops);
   `);
 
+  // oxlint-disable-next-line no-unsafe-type-assertion
   const drizzleDB = {
     client: db,
-    connect: async () => {},
+    connect: async () => {
+      /* noop: connection is managed by pg Client */
+    },
     disconnect: async () => {
       // 这里的 disconnect 会被应用逻辑调用，如果是真实环境应该断开连接
       // 但在测试环境中，我们需要保持连接直到 cleanup 被调用
@@ -109,12 +115,13 @@ export const setupTestDB = async (): Promise<TestDB> => {
     try {
       await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
     } catch (e) {
+      // oxlint-disable-next-line no-console
       console.error(`Failed to cleanup schema ${schemaName}`, e);
     } finally {
       await client.end();
     }
   };
 
-  // oxlint-disable-next-line typescript/no-misused-spread
+  // oxlint-disable-next-line typescript/no-misused-spread, no-unsafe-type-assertion
   return { ...drizzleDB, cleanup } as unknown as TestDB;
 };

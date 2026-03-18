@@ -90,7 +90,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*",
     "@iconify-json/codicon": "^1.2.49",
     "@iconify-json/file-icons": "^1.2.2",
     "@iconify-json/flag": "^1.2.11",

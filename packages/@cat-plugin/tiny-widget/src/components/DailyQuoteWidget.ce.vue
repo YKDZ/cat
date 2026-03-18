@@ -26,7 +26,6 @@ const fetchQuote = async () => {
     quote.value = json;
   } catch (e) {
     error.value = "Can not fetch quote";
-    console.log(e);
   } finally {
     loading.value = false;
   }

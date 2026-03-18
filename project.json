@@ -11,13 +11,13 @@
     "fmt": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "oxfmt *.ts *.json scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/*"
+        "command": "oxfmt *.ts *.json scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/* .vscode/**/*"
       }
     },
     "fmt:check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "oxfmt --check *.ts *.json scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/*"
+        "command": "oxfmt --check *.ts *.json scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/* .vscode/**/*"
       }
     }
   }

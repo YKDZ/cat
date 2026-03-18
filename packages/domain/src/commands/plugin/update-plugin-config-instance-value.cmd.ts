@@ -14,8 +14,7 @@ export type UpdatePluginConfigInstanceValueCommand = z.infer<
 >;
 
 export const updatePluginConfigInstanceValue: Command<
-  UpdatePluginConfigInstanceValueCommand,
-  void
+  UpdatePluginConfigInstanceValueCommand
 > = async (ctx, command) => {
   await ctx.db
     .update(pluginConfigInstance)

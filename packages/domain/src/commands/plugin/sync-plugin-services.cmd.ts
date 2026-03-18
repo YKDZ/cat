@@ -18,10 +18,10 @@ export type SyncPluginServicesCommand = z.infer<
   typeof SyncPluginServicesCommandSchema
 >;
 
-export const syncPluginServices: Command<
-  SyncPluginServicesCommand,
-  void
-> = async (ctx, command) => {
+export const syncPluginServices: Command<SyncPluginServicesCommand> = async (
+  ctx,
+  command,
+) => {
   if (command.services.length === 0) return { result: void 0, events: [] };
 
   await ctx.db.insert(pluginService).values(

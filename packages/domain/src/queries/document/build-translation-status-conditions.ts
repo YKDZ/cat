@@ -18,8 +18,8 @@ export const buildTranslationStatusConditions = (
   isTranslated?: boolean,
   isApproved?: boolean,
   languageId?: string,
-): SQL<unknown>[] => {
-  const conditions: SQL<unknown>[] = [];
+): SQL[] => {
+  const conditions: SQL[] = [];
 
   if (isTranslated === undefined && isApproved === undefined) {
     return conditions;

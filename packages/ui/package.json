@@ -36,7 +36,6 @@
     "vee-validate": "^4.15.1"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/vue-table": "^8.21.3",
     "@types/node": "^25.5.0",

@@ -59,7 +59,7 @@ test("project lifecycle: create, update, delete", async ({ page, testId }) => {
 
   // 4. Delete Project
   // Handle any potential dialogs (though implementation suggests direct delete)
-  page.on("dialog", (dialog) => dialog.accept());
+  page.on("dialog", async (dialog) => dialog.accept());
 
   await page.getByRole("button", { name: "删除项目" }).click();
 

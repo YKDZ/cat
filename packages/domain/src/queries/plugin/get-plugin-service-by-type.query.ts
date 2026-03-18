@@ -23,6 +23,7 @@ export const getPluginServiceByType: Query<
       .select()
       .from(pluginService)
       .where(
+        // oxlint-disable-next-line no-unsafe-type-assertion
         eq(pluginService.serviceType, query.serviceType as PluginServiceType),
       )
       .limit(1),

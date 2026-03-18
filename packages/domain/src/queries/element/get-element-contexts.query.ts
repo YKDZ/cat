@@ -1,5 +1,6 @@
+import type { TranslatableElementContext } from "@cat/shared/schema/drizzle/document";
+
 import { eq, translatableElement, translatableElementContext } from "@cat/db";
-import { type TranslatableElementContext } from "@cat/shared/schema/drizzle/document";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 

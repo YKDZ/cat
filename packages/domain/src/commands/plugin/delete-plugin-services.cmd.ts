@@ -12,8 +12,7 @@ export type DeletePluginServicesCommand = z.infer<
 >;
 
 export const deletePluginServices: Command<
-  DeletePluginServicesCommand,
-  void
+  DeletePluginServicesCommand
 > = async (ctx, command) => {
   if (command.serviceDbIds.length === 0) return { result: void 0, events: [] };
 

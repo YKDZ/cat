@@ -33,7 +33,6 @@
     "yaml": "^2.8.2"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*",
     "vite": "8.0.0"
   },
   "peerDependencies": {

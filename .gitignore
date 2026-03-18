@@ -2,6 +2,7 @@
 
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 dist
 ollama
 uploads

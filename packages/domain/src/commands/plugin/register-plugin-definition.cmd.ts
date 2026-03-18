@@ -19,8 +19,7 @@ export type RegisterPluginDefinitionCommand = z.infer<
 >;
 
 export const registerPluginDefinition: Command<
-  RegisterPluginDefinitionCommand,
-  void
+  RegisterPluginDefinitionCommand
 > = async (ctx, command) => {
   await ctx.db.transaction(async (tx) => {
     await tx

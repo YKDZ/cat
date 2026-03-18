@@ -17,7 +17,7 @@ export const SaveAgentEventCommandSchema = z.object({
 
 export type SaveAgentEventCommand = z.infer<typeof SaveAgentEventCommandSchema>;
 
-export const saveAgentEvent: Command<SaveAgentEventCommand, void> = async (
+export const saveAgentEvent: Command<SaveAgentEventCommand> = async (
   ctx,
   command,
 ) => {

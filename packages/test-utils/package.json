@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "@cat/domain": "workspace:*",
-    "@cat/eslint-config": "workspace:*",
     "@types/pg": "^8.18.0",
     "drizzle-kit": "1.0.0-beta.17-67b1795",
     "unplugin-dts": "1.0.0-beta.6",

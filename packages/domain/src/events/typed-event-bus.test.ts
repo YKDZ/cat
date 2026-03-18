@@ -11,10 +11,10 @@ type TestMap = {
 };
 
 type TestEvent = AnyEventOf<TestMap>;
-type TestBus = InProcessEventBus<keyof TestMap & string, TestEvent>;
+type TestBus = InProcessEventBus<keyof TestMap, TestEvent>;
 
 const makeBus = (): TestBus =>
-  new InProcessEventBus<keyof TestMap & string, TestEvent>();
+  new InProcessEventBus<keyof TestMap, TestEvent>();
 
 const fooEvent = (id: string) =>
   createEvent<TestMap, "foo:created">("foo:created", { id });

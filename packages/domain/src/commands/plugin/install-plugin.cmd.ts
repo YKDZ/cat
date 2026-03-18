@@ -22,7 +22,7 @@ export const InstallPluginCommandSchema = z.object({
 
 export type InstallPluginCommand = z.infer<typeof InstallPluginCommandSchema>;
 
-export const installPlugin: Command<InstallPluginCommand, void> = async (
+export const installPlugin: Command<InstallPluginCommand> = async (
   ctx,
   command,
 ) => {

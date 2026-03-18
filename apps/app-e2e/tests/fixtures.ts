@@ -22,7 +22,7 @@ export const test = baseTest.extend<
     await use(id);
   },
   // Use the same storage state for all tests in this worker.
-  storageState: ({ workerStorageState }, use) => use(workerStorageState),
+  storageState: async ({ workerStorageState }, use) => use(workerStorageState),
 
   // Authenticate once per worker with a worker-scoped fixture.
   workerStorageState: [

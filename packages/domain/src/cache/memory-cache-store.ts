@@ -1,3 +1,5 @@
+import { logger } from "@cat/shared/utils";
+
 import type { CacheStore } from "@/cache/types";
 
 /**
@@ -35,22 +37,26 @@ export class MemoryCacheStore implements CacheStore {
 
     this.storage.set(fullKey, { value, expires });
 
-    console.debug({
-      msg: "Cache set",
-      key: fullKey,
-      ttl,
-      expires,
-    });
+    logger.debug(
+      {
+        key: fullKey,
+        ttl,
+        expires,
+      },
+      "Cache set",
+    );
   }
 
   async delete(key: string): Promise<void> {
     const fullKey = `${this.keyPrefix}:${key}`;
     this.storage.delete(fullKey);
 
-    console.debug({
-      msg: "Cache deleted",
-      key: fullKey,
-    });
+    logger.debug(
+      {
+        key: fullKey,
+      },
+      "Cache deleted",
+    );
   }
 
   async has(key: string): Promise<boolean> {
