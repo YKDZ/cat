@@ -6,6 +6,7 @@ import {
   type PluginServiceType,
   type ScopeType,
 } from "@cat/shared/schema/drizzle/enum";
+import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import type { IPluginService } from "@/services/service";
@@ -77,7 +78,7 @@ export class ServiceRegistry {
 
       const dbId = dbRecord?.dbId;
       if (dbId === undefined) {
-        console.warn({
+        logger.withSituation("PLUGIN").warn({
           msg: `Service ${type}:${id} has no DB record, skipping registration`,
         });
         continue;

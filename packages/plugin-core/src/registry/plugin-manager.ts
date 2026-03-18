@@ -150,7 +150,7 @@ export class PluginManager {
     drizzle: DrizzleClient,
     pluginId: string,
   ): Promise<void> {
-    console.info({
+    logger.withSituation("PLUGIN").info({
       msg: `Installing plugin ${pluginId} into ${this.scopeType}:${this.scopeId}`,
     });
 
@@ -216,7 +216,7 @@ export class PluginManager {
     app: Hono,
   ): Promise<void> {
     if (this.activePlugins.has(pluginId)) {
-      console.warn({
+      logger.withSituation("PLUGIN").warn({
         msg: `Plugin ${pluginId} is already active, skipping.`,
       });
       return;
@@ -233,7 +233,7 @@ export class PluginManager {
 
     this.activePlugins.set(pluginId, pluginObj);
 
-    console.info({
+    logger.withSituation("PLUGIN").info({
       msg: `Plugin ${pluginId} activated in ${this.scopeType}:${this.scopeId}`,
     });
   }
@@ -259,7 +259,7 @@ export class PluginManager {
 
     this.activePlugins.delete(pluginId);
 
-    console.info({
+    logger.withSituation("PLUGIN").info({
       msg: `Plugin ${pluginId} deactivated in ${this.scopeType}:${this.scopeId}`,
     });
   }
@@ -426,7 +426,7 @@ export class PluginManager {
     };
 
     if (JSON.stringify(newValue) !== JSON.stringify(instanceValue)) {
-      console.info({
+      logger.withSituation("PLUGIN").info({
         msg: `Updating config instance for ${pluginId}`,
       });
       await executeCommand({ db: drizzle }, updatePluginConfigInstanceValue, {
@@ -577,7 +577,7 @@ export class PluginManager {
       );
 
       if (hasRef) {
-        console.warn({
+        logger.withSituation("PLUGIN").warn({
           msg: `Service ${svc.serviceType}:${svc.serviceId} (dbId=${svc.id}) is referenced, keeping as orphaned`,
         });
       } else {
@@ -677,7 +677,9 @@ export class PluginManager {
         sessionStore: getSessionStore(),
       });
     } catch (e) {
-      console.error({ msg: `Error deactivating ${pluginId}` }, e);
+      logger
+        .withSituation("PLUGIN")
+        .error({ msg: `Error deactivating ${pluginId}` }, e);
     }
   }
 }

@@ -7,7 +7,11 @@ import { RPCLink } from "@orpc/client/websocket";
 import { WebSocket } from "partysocket";
 
 const link = new RPCLink({
-  websocket: new WebSocket("ws://localhost:3000/api/ws"),
+  // oxlint-disable-next-line no-unsafe-type-assertion -- partysocket types readyState as number instead of 0|1|2|3
+  websocket: new WebSocket("ws://localhost:3000/api/ws") as unknown as Pick<
+    globalThis.WebSocket,
+    "addEventListener" | "send" | "readyState"
+  >,
   interceptors: [
     onError((error) => {
       logger.withSituation("WEB").error({ msg: "Error when orpc" }, error);

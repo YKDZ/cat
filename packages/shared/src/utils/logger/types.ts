@@ -1,24 +1,12 @@
 export type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
-export type OutputSituation =
-  | "ROUTER"
-  | "PLUGIN"
-  | "CACHE"
-  | "DB"
-  | "AGENT"
-  | "APP"
-  | "RPC"
-  | "WEB"
-  | "WORKER"
-  | "OP"
-  | "SERVER"
-  | string;
+export type OutputSituation = string;
 
 export interface LogEntry<T = Record<string, unknown>> {
   level: LogLevel;
   situation: OutputSituation;
   message: string;
   payload?: T;
-  error?: Error | unknown;
+  error?: unknown;
   timestamp: Date;
 }
 

@@ -26,9 +26,9 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "test": "vitest run --config ../../vitest.config.ts --project=app-agent",
-    "test:integration": "vitest run --config ../../vitest.config.ts --project=app-agent --include='**/*.test.ts'",
-    "test:unit": "vitest run --config ../../vitest.config.ts --project=app-agent --include='**/*.spec.ts'",
+    "test": "vitest run --config ../../vitest.config.ts --project=agent",
+    "test:integration": "vitest run --config ../../vitest.config.ts --project=agent --include='**/*.test.ts'",
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=agent --include='**/*.spec.ts'",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

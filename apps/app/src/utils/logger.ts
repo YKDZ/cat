@@ -5,7 +5,7 @@ class ConsoleTransport implements LoggerTransport {
     const { level, situation, message, payload, error } = entry;
     const prefix = `[${situation}]`;
 
-    const args: any[] = [prefix, message];
+    const args: unknown[] = [prefix, message];
     if (payload && Object.keys(payload).length > 0) {
       args.push(payload);
     }
@@ -15,16 +15,20 @@ class ConsoleTransport implements LoggerTransport {
 
     switch (level) {
       case "debug":
+        // oxlint-disable-next-line no-console -- logger transport
         console.debug(...args);
         break;
       case "info":
+        // oxlint-disable-next-line no-console -- logger transport
         console.info(...args);
         break;
       case "warn":
+        // oxlint-disable-next-line no-console -- logger transport
         console.warn(...args);
         break;
       case "error":
       case "fatal":
+        // oxlint-disable-next-line no-console -- logger transport
         console.error(...args);
         break;
     }
