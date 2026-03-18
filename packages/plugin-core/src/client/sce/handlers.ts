@@ -37,6 +37,7 @@ export class BlueToRedHandler implements ProxyHandler<object> {
     if (distortion && distortion.get) {
       const distortedGetter = distortion.get(target, key);
       if (distortedGetter) {
+        // oxlint-disable-next-line no-console -- client-side browser logging
         console.debug(`[WEB] Distortion hit for key: ${String(key)}`);
 
         const result = distortedGetter(target, receiver);
@@ -61,6 +62,7 @@ export class BlueToRedHandler implements ProxyHandler<object> {
     if (distortion && distortion.set) {
       const allowed = distortion.set(target, key, value);
       if (!allowed) {
+        // oxlint-disable-next-line no-console -- client-side browser logging
         console.warn(`[WEB] Distortion blocked set for key: ${String(key)}`);
         return false;
       }
@@ -85,6 +87,7 @@ export class BlueToRedHandler implements ProxyHandler<object> {
         // 别忘了把结果转回 Red (Blue -> Red)
         return this.membrane.convertBlueToRed(result);
       } catch (err) {
+        // oxlint-disable-next-line no-console -- client-side browser logging
         console.error(`[WEB] Distortion apply error`, err);
         throw err;
       }

@@ -1,6 +1,7 @@
 **/out-tsc
 
-.vscode
+.vscode/*
+!.vscode/extensions.json
 dist
 ollama
 uploads

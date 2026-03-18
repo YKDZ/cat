@@ -1,8 +1,4 @@
 {
-  "extends": [
-    "../eslint-config/.oxlintrc.json"
-  ],
-  "ignorePatterns": [
-    "src/schema/drizzle/**"
-  ]
+  "extends": ["../eslint-config/.oxlintrc.json"],
+  "ignorePatterns": ["src/schema/drizzle/**"]
 }

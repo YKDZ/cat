@@ -5,7 +5,7 @@ import {
   TranslationAdvisor,
   type GetSuggestionsContext,
 } from "@cat/plugin-core";
-import { serverLogger as logger } from "@cat/server-shared";
+import { logger } from "@cat/shared/utils";
 import { Pool } from "undici";
 import * as z from "zod";
 

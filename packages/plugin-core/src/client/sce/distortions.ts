@@ -10,6 +10,7 @@ export const createDocumentDistortion = (
     if (key === "cookie") return () => "";
     if (key === "getElementById") {
       return () => (_id: string) => {
+        // oxlint-disable-next-line no-console -- client-side browser logging
         console.warn({
           msg: `Plugin ${pluginId} blocked getElementById`,
         });
@@ -75,6 +76,7 @@ export const createPrototypeDistortion = (win: Window): Distortion => ({
       target === win.Array.prototype ||
       target === win.Function.prototype
     ) {
+      // oxlint-disable-next-line no-console -- client-side browser logging
       console.warn({ msg: "Prototype pollution attempt blocked!" });
       return false;
     }
@@ -113,10 +115,12 @@ export const createFetchDistortion = (
     );
 
     if (!isAllowed) {
+      // oxlint-disable-next-line no-console -- client-side browser logging
       console.warn({ msg: `Plugin fetch blocked: ${urlStr}` });
       throw new Error(`Permission denied: Fetch to ${urlStr} blocked.`);
     }
 
+    // oxlint-disable-next-line no-console -- client-side browser logging
     console.info({ msg: `Plugin ${pluginId} fetching ${urlStr}` });
 
     // oxlint-disable-next-line no-unsafe-type-assertion no-unsafe-function-type no-unsafe-function-type no-unsafe-return

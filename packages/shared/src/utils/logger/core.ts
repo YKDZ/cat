@@ -30,7 +30,7 @@ export class Logger {
     payload: T,
     message?: string,
   ): void;
-  public debug(...args: any[]): void {
+  public debug(...args: unknown[]): void {
     this.emit("debug", args);
   }
 
@@ -39,7 +39,7 @@ export class Logger {
     payload: T,
     message?: string,
   ): void;
-  public info(...args: any[]): void {
+  public info(...args: unknown[]): void {
     this.emit("info", args);
   }
 
@@ -48,7 +48,7 @@ export class Logger {
     payload: T,
     message?: string,
   ): void;
-  public warn(...args: any[]): void {
+  public warn(...args: unknown[]): void {
     this.emit("warn", args);
   }
 
@@ -57,13 +57,13 @@ export class Logger {
     payload: T,
     message?: string,
   ): void;
-  public fatal(error: Error | unknown | string, message?: string): void;
+  public fatal(error: unknown, message?: string): void;
   public fatal<T extends Record<string, unknown>>(
     payload: T,
-    error: Error | unknown | string,
+    error: unknown,
     message?: string,
   ): void;
-  public fatal(...args: any[]): void {
+  public fatal(...args: unknown[]): void {
     this.handleErrorLike("fatal", ...args);
   }
 
@@ -72,17 +72,17 @@ export class Logger {
     payload: T,
     message?: string,
   ): void;
-  public error(error: Error | unknown | string, message?: string): void;
+  public error(error: unknown, message?: string): void;
   public error<T extends Record<string, unknown>>(
     payload: T,
-    error: Error | unknown | string,
+    error: unknown,
     message?: string,
   ): void;
-  public error(...args: any[]): void {
+  public error(...args: unknown[]): void {
     this.handleErrorLike("error", ...args);
   }
 
-  private handleErrorLike(level: LogLevel, ...args: any[]): void {
+  private handleErrorLike(level: LogLevel, ...args: unknown[]): void {
     const timestamp = new Date();
     const entry: LogEntry = {
       level,
@@ -91,8 +91,8 @@ export class Logger {
       message: "",
     };
 
-    let payload: any;
-    let errOrMsg: any;
+    let payload: Record<string, unknown> | undefined;
+    let errOrMsg: unknown;
     let msg: string | undefined;
 
     if (args.length === 1) {
@@ -100,15 +100,17 @@ export class Logger {
     } else if (args.length === 2) {
       if (typeof args[0] === "string" || args[0] instanceof Error) {
         errOrMsg = args[0];
-        msg = args[1];
+        msg = typeof args[1] === "string" ? args[1] : undefined;
       } else {
-        payload = args[0];
+        // oxlint-disable-next-line no-unsafe-type-assertion -- overload signatures guarantee Record<string, unknown>
+        payload = args[0] as Record<string, unknown>;
         errOrMsg = args[1];
       }
     } else {
-      payload = args[0];
+      // oxlint-disable-next-line no-unsafe-type-assertion -- overload signatures guarantee Record<string, unknown>
+      payload = args[0] as Record<string, unknown>;
       errOrMsg = args[1];
-      msg = args[2];
+      msg = typeof args[2] === "string" ? args[2] : undefined;
     }
 
     entry.payload = payload;
@@ -124,10 +126,12 @@ export class Logger {
       entry.message = msg ?? "Unknown error";
     }
 
-    this.transports.forEach((t) =>{  t.log(entry); });
+    this.transports.forEach((t) => {
+      t.log(entry);
+    });
   }
 
-  private emit(level: LogLevel, args: any[]) {
+  private emit(level: LogLevel, args: unknown[]) {
     const timestamp = new Date();
     const entry: LogEntry = {
       level,
@@ -137,18 +141,21 @@ export class Logger {
     };
 
     if (level === "error" || level === "fatal") {
-      entry.message = (args[0] as string) || "Unknown error";
+      entry.message = typeof args[0] === "string" ? args[0] : "Unknown error";
       entry.error = args[1];
     } else {
       if (typeof args[0] === "string") {
         entry.message = args[0];
       } else {
-        entry.payload = args[0];
-        entry.message = args[1] || "";
+        // oxlint-disable-next-line no-unsafe-type-assertion -- overload signatures guarantee Record<string, unknown>
+        entry.payload = args[0] as Record<string, unknown>;
+        entry.message = typeof args[1] === "string" ? args[1] : "";
       }
     }
 
-    this.transports.forEach((t) =>{  t.log(entry); });
+    this.transports.forEach((t) => {
+      t.log(entry);
+    });
   }
 }
 
@@ -179,11 +186,7 @@ export class TypedLogger<T extends Record<string, unknown>> {
     }
   }
 
-  public fatal(
-    payload: T,
-    error: Error | string | unknown,
-    message?: string,
-  ): void {
+  public fatal(payload: T, error: unknown, message?: string): void {
     // Treat payload as part of the error context. We map it by passing through baseLogger.
     // For a cleaner TypedLogger support, we can reconstruct the entry by using a custom emit.
     let err = error;
@@ -203,14 +206,12 @@ export class TypedLogger<T extends Record<string, unknown>> {
       payload,
       error: err,
     };
-    this.baseLogger.transports.forEach((t) =>{  t.log(entry); });
+    this.baseLogger.transports.forEach((t) => {
+      t.log(entry);
+    });
   }
 
-  public error(
-    payload: T,
-    error: Error | string | unknown,
-    message?: string,
-  ): void {
+  public error(payload: T, error: unknown, message?: string): void {
     let err = error;
     let msg = message;
     if (typeof error === "string") {
@@ -228,6 +229,10 @@ export class TypedLogger<T extends Record<string, unknown>> {
       payload,
       error: err,
     };
-    this.baseLogger.transports.forEach((t) =>{  t.log(entry); });
+    this.baseLogger.transports.forEach((t) => {
+      t.log(entry);
+    });
   }
 }
+
+export const logger = new Logger("APP");

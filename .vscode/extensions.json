@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "oxc.oxc-vscode",
+        "vue.volar",
+        "vitest.explorer",
+        "selemondev.shadcn-vue",
+        "ms-playwright.playwright",
+        "nrwl.angular-console",
+        "bradlc.vscode-tailwindcss"
+    ]
+}
