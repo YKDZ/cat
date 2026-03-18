@@ -5,11 +5,11 @@ import {
   listProjectGlossaryIds,
 } from "@cat/domain";
 import { AsyncMessageQueue, hash } from "@cat/server-shared";
+import { serverLogger as logger } from "@cat/server-shared";
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
 } from "@cat/shared/schema/plugin";
-import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
@@ -54,11 +54,9 @@ export const onNew = authed
           event.payload,
         );
         if (!parsed.success) {
-          logger.error(
-            "RPC",
-            { msg: "Invalid suggestion format" },
-            parsed.error,
-          );
+          logger
+            .withSituation("RPC")
+            .error({ msg: "Invalid suggestion format" }, parsed.error);
           return;
         }
 
@@ -125,7 +123,9 @@ export const onNew = authed
         suggestionsQueue.close();
       })
       .catch((err: unknown) => {
-        logger.error("RPC", { msg: "Error processing suggestions" }, err);
+        logger
+          .withSituation("RPC")
+          .error({ msg: "Error processing suggestions" }, err);
         suggestionsQueue.close();
       });
 

@@ -5,7 +5,7 @@ import {
   getServiceFromDBId,
   PresignedPutFileSessionPayloadSchema,
 } from "@cat/server-shared";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import { Hono } from "hono";
 import { stream } from "hono/streaming";
 import { Readable } from "node:stream";
@@ -38,8 +38,7 @@ app.put("/upload/:sessionId", async (c) => {
 
     return c.text("OK");
   } catch (e) {
-    logger.error(
-      "SERVER",
+    logger.withSituation("SERVER").error(
       {
         msg: "Upload file error",
         operation: "upload",
@@ -111,8 +110,7 @@ app.get("/download/:token", async (c) => {
       await stream.pipe(Readable.toWeb(fileStream));
     });
   } catch (e) {
-    logger.error(
-      "SERVER",
+    logger.withSituation("SERVER").error(
       {
         msg: "Download file error",
         operation: "download",

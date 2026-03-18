@@ -1,5 +1,5 @@
 import { domainEventBus, type DomainEventMap } from "@cat/domain";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 
 import { triggerConceptRevectorize } from "./trigger-revectorize";
 
@@ -20,11 +20,9 @@ export const registerDomainEventHandlers = (): void => {
     try {
       await onConceptUpdated(event.payload);
     } catch (error) {
-      logger.error(
-        "SERVER",
-        { msg: "Failed to handle concept:updated event" },
-        error,
-      );
+      logger
+        .withSituation("SERVER")
+        .error({ msg: "Failed to handle concept:updated event" }, error);
     }
   });
 

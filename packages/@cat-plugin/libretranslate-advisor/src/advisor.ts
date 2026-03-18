@@ -5,7 +5,7 @@ import {
   TranslationAdvisor,
   type GetSuggestionsContext,
 } from "@cat/plugin-core";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import { Pool } from "undici";
 import * as z from "zod";
 
@@ -39,11 +39,9 @@ export class Advisor extends TranslationAdvisor {
     this.config = ConfigSchema.parse(config);
     this.pool = new Pool(this.config.api.url);
     this.fetchSupportedLanguages().catch((err: unknown) => {
-      logger.error(
-        "PLUGIN",
-        { msg: "Failed to fetch supported languages" },
-        err,
-      );
+      logger
+        .withSituation("PLUGIN")
+        .error({ msg: "Failed to fetch supported languages" }, err);
     });
   }
 
@@ -71,8 +69,7 @@ export class Advisor extends TranslationAdvisor {
             });
           })
           .catch((e: unknown) => {
-            logger.error(
-              "PLUGIN",
+            logger.withSituation("PLUGIN").error(
               {
                 msg: "Can not parse all supported languages response body.",
               },
@@ -81,8 +78,7 @@ export class Advisor extends TranslationAdvisor {
           });
       })
       .catch((e: unknown) => {
-        logger.error(
-          "PLUGIN",
+        logger.withSituation("PLUGIN").error(
           {
             msg: `Can not query all supported language from LibreTranslate service`,
           },
@@ -109,7 +105,9 @@ export class Advisor extends TranslationAdvisor {
     try {
       return await this.translate(text, sourceLang, targetLang);
     } catch (e) {
-      logger.error("PLUGIN", { msg: `LibreTranslate API 请求或解析错误` }, e);
+      logger
+        .withSituation("PLUGIN")
+        .error({ msg: `LibreTranslate API 请求或解析错误` }, e);
       return [
         {
           translation: "LibreTranslate API 请求或解析错误。",

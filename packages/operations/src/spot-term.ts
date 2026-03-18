@@ -2,7 +2,7 @@ import type { OperationContext } from "@cat/domain";
 
 import { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService } from "@cat/server-shared";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
 const TermCandidateSchema = z.object({
@@ -50,7 +50,7 @@ export const spotTermOp = async (
   );
 
   if (!termExtractor) {
-    logger.warn("WORKER", {
+    logger.withSituation("WORKER").warn({
       msg: "Term extractor service not found.",
     });
     return { candidates: [] };

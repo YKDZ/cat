@@ -35,7 +35,9 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
         async () => access(migrations),
         "Does not found drizzle migration folder.",
       );
-      logger.info("SERVER", { msg: "Start to migrate database..." });
+      logger
+        .withSituation("SERVER")
+        .info({ msg: "Start to migrate database..." });
       await drizzleDB.migrate(migrations);
     }
 
@@ -88,8 +90,7 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     globalThis.inited = true;
   } catch (err) {
-    logger.error(
-      "SERVER",
+    logger.withSituation("SERVER").error(
       {
         msg: "Failed to initialize server. Process will exit with code 1",
       },

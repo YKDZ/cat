@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { logger } from "@cat/shared/utils";
 import {
   Table,
   TableBody,
@@ -27,6 +26,7 @@ import { useI18n } from "vue-i18n";
 
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { useInjectionKey } from "@/app/utils/provide";
+import { clientLogger as logger } from "@/utils/logger";
 
 import type { Data } from "./+data.server";
 
@@ -80,7 +80,9 @@ const fetchTerms = async () => {
     terms.value = result.data;
     total.value = result.total;
   } catch (err) {
-    logger.error("WEB", { msg: "Failed to fetch term pairs:" }, err);
+    logger
+      .withSituation("WEB")
+      .error({ msg: "Failed to fetch term pairs:" }, err);
   } finally {
     isLoading.value = false;
   }

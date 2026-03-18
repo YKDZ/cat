@@ -9,8 +9,8 @@ import {
   listLexicalTermSuggestions,
 } from "@cat/domain";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import { serverLogger as logger } from "@cat/server-shared";
 import { TranslationAdviseSchema } from "@cat/shared/schema/plugin";
-import { logger } from "@cat/shared/utils";
 import * as z from "zod";
 
 import { streamSearchMemoryOp } from "./stream-search-memory";
@@ -149,7 +149,7 @@ export const fetchAdviseOp = async (
   );
 
   if (!advisor) {
-    logger.warn("WORKER", {
+    logger.withSituation("WORKER").warn({
       msg: `Translation advisor service not found. No suggestion will be given.`,
     });
     return { suggestions: [] };

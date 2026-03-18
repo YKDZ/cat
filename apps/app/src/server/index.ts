@@ -3,14 +3,16 @@ import type { Server } from "node:http";
 
 import app, { wsHelper } from "@cat/app-api/app";
 import { getDbHandle, getRedisHandle } from "@cat/domain";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import { apply, serve } from "@photonjs/hono";
 
 let server: Server | null = null;
 
 const shutdownServer = () => {
   const handler = async () => {
-    logger.info("SERVER", { msg: "About to shutdown server gracefully..." });
+    logger
+      .withSituation("SERVER")
+      .info({ msg: "About to shutdown server gracefully..." });
 
     await new Promise<void>((resolve, reject) => {
       server!.close((err) => {
@@ -25,12 +27,13 @@ const shutdownServer = () => {
       });
     });
 
-    logger.info("SERVER", { msg: "Successfully shutdown gracefully. Goodbye" });
+    logger
+      .withSituation("SERVER")
+      .info({ msg: "Successfully shutdown gracefully. Goodbye" });
   };
 
   handler().catch((err: unknown) => {
-    logger.error(
-      "SERVER",
+    logger.withSituation("SERVER").error(
       {
         msg: "Error occurred during server shutdown",
       },
@@ -47,7 +50,7 @@ const startServer = () => {
 
     onCreate: (nodeServer) => {
       if (!nodeServer) {
-        logger.debug("SERVER", {
+        logger.withSituation("SERVER").debug({
           msg: "Failed to create HTTP server. Server will exit with code 1.",
         });
         process.exit(1);
@@ -74,7 +77,7 @@ const startServer = () => {
         wsHelper.injectWebSocket(rawServer);
         server = rawServer;
       } else {
-        logger.warn("SERVER", {
+        logger.withSituation("SERVER").warn({
           msg: "Failed to inject WebSocket: server instance does not support .on() method",
         });
       }

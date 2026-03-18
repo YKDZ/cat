@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { logger } from "@cat/shared/utils";
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -15,6 +14,7 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useToastStore } from "@/app/stores/toast";
+import { clientLogger as logger } from "@/utils/logger";
 
 import { onCreateConceptSubject } from "./ConceptTable.telefunc";
 
@@ -58,7 +58,7 @@ const createSubject = async () => {
     // 触发刷新事件
     window.dispatchEvent(new CustomEvent("refresh-concepts"));
   } catch (error) {
-    logger.error("WEB", { msg: "创建主题失败" }, error);
+    logger.withSituation("WEB").error({ msg: "创建主题失败" }, error);
     toastStore.error(t("创建主题失败，请重试"));
   } finally {
     isCreating.value = false;

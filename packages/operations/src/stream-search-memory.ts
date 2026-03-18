@@ -25,7 +25,7 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService } from "@cat/server-shared";
 import { AsyncMessageQueue } from "@cat/server-shared";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
 import {
@@ -179,11 +179,9 @@ export const streamSearchMemoryOp = (
           await pushNew(results);
         })
         .catch((err: unknown) => {
-          logger.error(
-            "OP",
-            { msg: "streamSearchMemoryOp: exact match failed" },
-            err,
-          );
+          logger
+            .withSituation("OP")
+            .error({ msg: "streamSearchMemoryOp: exact match failed" }, err);
         }),
 
       // Channel 2: trgm similarity
@@ -195,11 +193,9 @@ export const streamSearchMemoryOp = (
           await pushNew(results);
         })
         .catch((err: unknown) => {
-          logger.error(
-            "OP",
-            { msg: "streamSearchMemoryOp: trgm match failed" },
-            err,
-          );
+          logger
+            .withSituation("OP")
+            .error({ msg: "streamSearchMemoryOp: trgm match failed" }, err);
         }),
     ];
 
@@ -216,7 +212,7 @@ export const streamSearchMemoryOp = (
             "TEXT_VECTORIZER",
           );
           if (!vectorizer) {
-            logger.warn("OP", {
+            logger.withSituation("OP").warn({
               msg: "streamSearchMemoryOp: no TEXT_VECTORIZER available, skipping vector channel",
             });
             return;
@@ -261,11 +257,9 @@ export const streamSearchMemoryOp = (
 
       tasks.push(
         vectorTask.catch((err: unknown) => {
-          logger.error(
-            "OP",
-            { msg: "streamSearchMemoryOp: vector search failed" },
-            err,
-          );
+          logger
+            .withSituation("OP")
+            .error({ msg: "streamSearchMemoryOp: vector search failed" }, err);
         }),
       );
     }
@@ -275,7 +269,9 @@ export const streamSearchMemoryOp = (
 
   void run()
     .catch((err: unknown) => {
-      logger.error("OP", { msg: "streamSearchMemoryOp failed" }, err);
+      logger
+        .withSituation("OP")
+        .error({ msg: "streamSearchMemoryOp failed" }, err);
     })
     .finally(() => {
       queue.close();

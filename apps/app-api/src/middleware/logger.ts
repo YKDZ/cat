@@ -1,4 +1,4 @@
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import { createMiddleware } from "hono/factory";
 
 export default createMiddleware(async (c, next) => {
@@ -7,7 +7,7 @@ export default createMiddleware(async (c, next) => {
     await next();
     const ms = Date.now() - start;
 
-    logger.info("SERVER", {
+    logger.withSituation("SERVER").info({
       method: c.req.method,
       path: c.req.path,
       status: c.res.status,

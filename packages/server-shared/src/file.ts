@@ -11,7 +11,7 @@ import {
   type DbHandle,
   type SessionStore,
 } from "@cat/domain";
-import { logger } from "@cat/shared/utils";
+import { serverLogger as logger } from "@cat/server-shared";
 import { createHash, randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import * as z from "zod";
@@ -63,7 +63,9 @@ export const putBufferToStorage = async (
         });
       });
 
-      logger.error("WORKER", { msg: "Error putting file" }, error);
+      logger
+        .withSituation("WORKER")
+        .error({ msg: "Error putting file" }, error);
       throw error;
     }
 

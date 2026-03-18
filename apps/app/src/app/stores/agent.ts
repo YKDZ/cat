@@ -4,13 +4,13 @@ import type {
   ScopeType,
 } from "@cat/shared/schema/drizzle/enum";
 
-import { logger } from "@cat/shared/utils";
 import { defineStore } from "pinia";
 import { computed, ref, shallowRef } from "vue";
 
 import type { GraphEvent, NodeExecution } from "@/app/types/agent-graph";
 
 import { orpc } from "@/server/orpc";
+import { clientLogger as logger } from "@/utils/logger";
 
 // ─── Constants ───
 
@@ -802,7 +802,9 @@ export const useAgentStore = defineStore("agent", () => {
       });
       definitions.value = result;
     } catch (err) {
-      logger.error("WEB", { msg: "Failed to fetch agent definitions" }, err);
+      logger
+        .withSituation("WEB")
+        .error({ msg: "Failed to fetch agent definitions" }, err);
     }
   };
 
@@ -842,7 +844,9 @@ export const useAgentStore = defineStore("agent", () => {
         createdAt: r.createdAt,
       }));
     } catch (err) {
-      logger.error("WEB", { msg: "Failed to fetch sessions" }, err);
+      logger
+        .withSituation("WEB")
+        .error({ msg: "Failed to fetch sessions" }, err);
     }
   };
 
@@ -881,7 +885,9 @@ export const useAgentStore = defineStore("agent", () => {
       lastUserMessage.value = null;
       return result.sessionId;
     } catch (err) {
-      logger.error("WEB", { msg: "Failed to create agent session" }, err);
+      logger
+        .withSituation("WEB")
+        .error({ msg: "Failed to create agent session" }, err);
       return null;
     }
   };
@@ -944,7 +950,7 @@ export const useAgentStore = defineStore("agent", () => {
       if (abortController.signal.aborted) {
         streamingStatus.value = "idle";
       } else {
-        logger.error("WEB", { msg: "Agent stream error" }, err);
+        logger.withSituation("WEB").error({ msg: "Agent stream error" }, err);
         errorMessage.value =
           err instanceof Error ? err.message : "Unknown error";
         streamingStatus.value = "error";
@@ -994,7 +1000,9 @@ export const useAgentStore = defineStore("agent", () => {
       });
       streamingStatus.value = "streaming";
     } catch (err) {
-      logger.error("WEB", { msg: "Failed to submit confirmation" }, err);
+      logger
+        .withSituation("WEB")
+        .error({ msg: "Failed to submit confirmation" }, err);
     }
   };
 

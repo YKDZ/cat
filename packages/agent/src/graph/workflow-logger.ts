@@ -1,24 +1,35 @@
-import { logger } from "@cat/shared/utils";
+import { serverLogger } from "@cat/server-shared";
 
 import type { RunId } from "@/graph/types";
 
-type LoggerMeta = Record<string, unknown>;
+export interface WorkflowEventMeta extends Record<string, unknown> {
+  domain: string;
+  event: string;
+  runId?: RunId;
+}
+
+const agentBaseLogger = serverLogger.withSituation("AGENT");
+const workflowEventLogger = agentBaseLogger.withType<WorkflowEventMeta>();
 
 export class WorkflowLogger {
-  scheduler = (event: string, meta: LoggerMeta): void => {
-    logger.debug("AGENT", { domain: "scheduler", event, ...meta });
+  scheduler = (event: string, meta: Record<string, unknown>): void => {
+    workflowEventLogger.debug({ domain: "scheduler", event, ...meta });
   };
 
-  executorPool = (event: string, meta: LoggerMeta): void => {
-    logger.debug("AGENT", { domain: "executor-pool", event, ...meta });
+  executorPool = (event: string, meta: Record<string, unknown>): void => {
+    workflowEventLogger.debug({ domain: "executor-pool", event, ...meta });
   };
 
-  compensation = (event: string, meta: LoggerMeta): void => {
-    logger.debug("AGENT", { domain: "compensation", event, ...meta });
+  compensation = (event: string, meta: Record<string, unknown>): void => {
+    workflowEventLogger.debug({ domain: "compensation", event, ...meta });
   };
 
-  runSummary = (runId: RunId, event: string, meta: LoggerMeta): void => {
-    logger.info("AGENT", { runId, domain: "workflow", event, ...meta });
+  runSummary = (
+    runId: RunId,
+    event: string,
+    meta: Record<string, unknown>,
+  ): void => {
+    workflowEventLogger.info({ runId, domain: "workflow", event, ...meta });
   };
 }
 

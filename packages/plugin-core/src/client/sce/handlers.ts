@@ -1,5 +1,3 @@
-import { logger } from "@cat/shared/utils";
-
 import { Membrane } from "./membrane.ts";
 
 export const UNWRAP = Symbol.for("sce.unwrap");
@@ -39,7 +37,7 @@ export class BlueToRedHandler implements ProxyHandler<object> {
     if (distortion && distortion.get) {
       const distortedGetter = distortion.get(target, key);
       if (distortedGetter) {
-        logger.debug("WEB", { msg: `Distortion hit for key: ${String(key)}` });
+        console.debug(`[WEB] Distortion hit for key: ${String(key)}`);
 
         const result = distortedGetter(target, receiver);
         return this.membrane.convertBlueToRed(result);
@@ -63,9 +61,7 @@ export class BlueToRedHandler implements ProxyHandler<object> {
     if (distortion && distortion.set) {
       const allowed = distortion.set(target, key, value);
       if (!allowed) {
-        logger.warn("WEB", {
-          msg: `Distortion blocked set for key: ${String(key)}`,
-        });
+        console.warn(`[WEB] Distortion blocked set for key: ${String(key)}`);
         return false;
       }
     }
@@ -89,7 +85,7 @@ export class BlueToRedHandler implements ProxyHandler<object> {
         // 别忘了把结果转回 Red (Blue -> Red)
         return this.membrane.convertBlueToRed(result);
       } catch (err) {
-        logger.error("WEB", { msg: `Distortion apply error` }, err);
+        console.error(`[WEB] Distortion apply error`, err);
         throw err;
       }
     }

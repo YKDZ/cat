@@ -1,8 +1,4 @@
-import {
-  assertSingleNonNullish,
-  assertSingleOrNull,
-  logger,
-} from "@cat/shared/utils";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
 import { eq } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 
@@ -110,7 +106,7 @@ export const ensureRootUser = async (tx: DrizzleTransaction): Promise<void> => {
       })
       .onConflictDoNothing();
 
-    logger.info("SERVER", {
+    logger.withSituation("SERVER").info({
       msg: `Default admin account password is: ${password}`,
     });
   }

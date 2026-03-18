@@ -5,7 +5,6 @@ import {
   type TermStatus,
   type TermType,
 } from "@cat/shared/schema/drizzle/enum";
-import { logger } from "@cat/shared/utils";
 import { Button } from "@cat/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
 import {
@@ -37,6 +36,7 @@ import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import MultiPicker from "@/app/components/picker/MultiPicker.vue";
 import { useToastStore } from "@/app/stores/toast";
 import { orpc } from "@/server/orpc";
+import { clientLogger as logger } from "@/utils/logger";
 
 import type { Data } from "./+data.server";
 
@@ -89,7 +89,7 @@ const saveConceptChanges = async () => {
     toastStore.info(t("概念已成功更新"));
     location.reload();
   } catch (error) {
-    logger.error("WEB", { msg: "更新概念失败" }, error);
+    logger.withSituation("WEB").error({ msg: "更新概念失败" }, error);
     toastStore.error(t("更新概念失败，请重试"));
   } finally {
     isUpdatingConcept.value = false;
@@ -124,7 +124,7 @@ const addNewTerm = async () => {
 
     toastStore.info(t("术语已成功添加"));
   } catch (error) {
-    logger.error("WEB", { msg: "添加术语失败" }, error);
+    logger.withSituation("WEB").error({ msg: "添加术语失败" }, error);
     toastStore.error(t("添加术语失败，请重试"));
   } finally {
     isAddingTerm.value = false;
