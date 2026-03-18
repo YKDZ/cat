@@ -91,7 +91,16 @@ export default defineConfig({
       {
         test: {
           name: "agent",
-          include: ["packages/agent/src/**/*.{spec,test}.ts"],
+          include: ["packages/agent/src/**/*.spec.ts"],
+          environment: "node",
+          retry: CI ? 3 : 0,
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/agent")) },
+      },
+      {
+        test: {
+          name: "agent-integration",
+          include: ["packages/agent/src/**/*.test.ts"],
           environment: "node",
           retry: CI ? 3 : 0,
         },

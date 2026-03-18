@@ -13,7 +13,7 @@ export type LoadAgentRunSnapshotQuery = z.infer<
 
 export const loadAgentRunSnapshot: Query<
   LoadAgentRunSnapshotQuery,
-  unknown | null
+  unknown
 > = async (ctx, query) => {
   const [row] = await ctx.db
     .select({ blackboardSnapshot: agentRun.blackboardSnapshot })

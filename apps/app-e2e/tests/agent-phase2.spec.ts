@@ -27,6 +27,7 @@ const callRpc = async <T>(
 
   return {
     status: response.status(),
+    // oxlint-disable-next-line no-unsafe-type-assertion -- body is narrowed to Record<string, unknown> via isRecord guard above
     body: body as T,
   };
 };
@@ -77,7 +78,7 @@ test("phase2 agent page: enable and disable builtin agent", async ({
 
   // 5) Cleanup project
   await page.getByRole("link", { name: "设置" }).click();
-  page.on("dialog", (dialog) => dialog.accept());
+  page.on("dialog", async (dialog) => dialog.accept());
   await page.getByRole("button", { name: "删除项目" }).click();
   await expect(page).toHaveURL(/\/projects$/);
 });

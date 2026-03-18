@@ -27,13 +27,12 @@
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
     "test": "vitest run --config ../../vitest.config.ts --project=agent",
-    "test:integration": "vitest run --config ../../vitest.config.ts --project=agent --include='**/*.test.ts'",
-    "test:unit": "vitest run --config ../../vitest.config.ts --project=agent --include='**/*.spec.ts'",
+    "test:integration": "vitest run --config ../../vitest.config.ts --project=agent-integration",
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=agent",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@cat/domain": "workspace:*",
-    "@cat/eslint-config": "workspace:*",
     "@cat/test-utils": "workspace:*",
     "@types/node": "^25.5.0",
     "dotenv": "^17.3.1",

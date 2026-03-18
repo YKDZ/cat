@@ -71,13 +71,22 @@ export class OpenAITermExtractor extends TermExtractor {
     if (!content) return [];
 
     try {
-      const parsed = JSON.parse(content) as Record<string, unknown>;
-      const raw: unknown = parsed.terms ?? parsed.candidates ?? parsed;
+      const rawParsed: unknown = JSON.parse(content);
+      if (
+        typeof rawParsed !== "object" ||
+        rawParsed === null ||
+        Array.isArray(rawParsed)
+      )
+        return [];
+      // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed to non-null, non-array object before assertion
+      const parsed = rawParsed as Record<string, unknown>;
+      const raw: unknown = parsed.terms ?? parsed.candidates ?? rawParsed;
       if (!Array.isArray(raw)) return [];
 
       const result: TermCandidate[] = [];
       for (const item of raw) {
         if (typeof item !== "object" || item === null) continue;
+        // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed to object before assertion
         const rec = item as Record<string, unknown>;
         if (typeof rec.text !== "string" || !rec.text) continue;
         const text = rec.text;
@@ -102,6 +111,7 @@ export class OpenAITermExtractor extends TermExtractor {
       }
       return result;
     } catch (e) {
+      // oxlint-disable-next-line no-console
       console.error("Failed to parse extraction result", e);
       return [];
     }
@@ -144,8 +154,16 @@ export class OpenAITermAligner extends TermAligner {
     if (!content) return [];
 
     try {
-      const parsed = JSON.parse(content);
-      const pairs = (parsed.pairs || parsed) as {
+      const rawParsed: unknown = JSON.parse(content);
+      // oxlint-disable-next-line no-unsafe-type-assertion -- accessing .pairs on runtime-validated JSON
+      const pairsData: unknown =
+        typeof rawParsed === "object" &&
+        rawParsed !== null &&
+        "pairs" in rawParsed
+          ? (rawParsed as Record<string, unknown>).pairs
+          : rawParsed;
+      // oxlint-disable-next-line no-unsafe-type-assertion -- JSON structure validated at runtime
+      const pairs = (Array.isArray(pairsData) ? pairsData : []) as {
         sourceIndex: number;
         targetIndex: number;
         score: number;
@@ -157,6 +175,7 @@ export class OpenAITermAligner extends TermAligner {
         alignmentScore: p.score,
       }));
     } catch (e) {
+      // oxlint-disable-next-line no-console
       console.error("Failed to parse alignment result", e);
       return [];
     }

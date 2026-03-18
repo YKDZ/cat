@@ -64,8 +64,10 @@ export class InProcessEventBus<
   publish = async (event: TEvent): Promise<void> => {
     const typeHandlers = this.handlersByType.get(event.type) ?? new Set();
     const tasks = [
-      ...Array.from(typeHandlers, (handler) => Promise.resolve(handler(event))),
-      ...Array.from(this.allHandlers, (handler) =>
+      ...Array.from(typeHandlers, async (handler) =>
+        Promise.resolve(handler(event)),
+      ),
+      ...Array.from(this.allHandlers, async (handler) =>
         Promise.resolve(handler(event)),
       ),
     ];
@@ -92,9 +94,9 @@ export class InProcessEventBus<
     handler: TypedEventHandler<Extract<TEvent, { type: T }>>,
   ): (() => void) => {
     const currentHandlers = this.handlersByType.get(type) ?? new Set();
-    const wrappedHandler: TypedEventHandler<TEvent> = (event) => {
+    const wrappedHandler: TypedEventHandler<TEvent> = async (event) => {
       if (!this.isEventOfType(event, type)) return;
-      return handler(event);
+      await handler(event);
     };
 
     currentHandlers.add(wrappedHandler);
@@ -118,7 +120,7 @@ export class InProcessEventBus<
     };
   };
 
-  waitFor = <T extends TType>(
+  waitFor = async <T extends TType>(
     options: WaitForEventOptions<TType, TEvent, T>,
   ): Promise<Extract<TEvent, { type: T }>> => {
     const { type, timeoutMs = 300_000, predicate } = options;

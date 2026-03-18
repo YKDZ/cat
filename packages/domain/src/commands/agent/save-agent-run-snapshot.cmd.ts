@@ -15,8 +15,7 @@ export type SaveAgentRunSnapshotCommand = z.infer<
 >;
 
 export const saveAgentRunSnapshot: Command<
-  SaveAgentRunSnapshotCommand,
-  void
+  SaveAgentRunSnapshotCommand
 > = async (ctx, command) => {
   await ctx.db
     .update(agentRun)

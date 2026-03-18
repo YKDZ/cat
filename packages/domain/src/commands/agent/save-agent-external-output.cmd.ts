@@ -20,8 +20,7 @@ export type SaveAgentExternalOutputCommand = z.infer<
 >;
 
 export const saveAgentExternalOutput: Command<
-  SaveAgentExternalOutputCommand,
-  void
+  SaveAgentExternalOutputCommand
 > = async (ctx, command) => {
   await ctx.db
     .insert(agentExternalOutput)

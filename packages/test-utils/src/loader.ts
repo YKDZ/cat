@@ -266,7 +266,7 @@ export class TestTextVectorizer extends TextVectorizer {
    */
   private simpleHash = (str: string): number => {
     let hash = 5381;
-    for (let i = 0; i < str.length; i++) {
+    for (let i = 0; i < str.length; i += 1) {
       hash = (hash * 33) ^ str.charCodeAt(i);
     }
     return hash >>> 0; // 保证非负
@@ -280,7 +280,7 @@ export class TestTextVectorizer extends TextVectorizer {
       vector.reduce((sum, val) => sum + val * val, 0),
     );
     if (magnitude > 0) {
-      for (let i = 0; i < vector.length; i++) {
+      for (let i = 0; i < vector.length; i += 1) {
         vector[i] /= magnitude;
       }
     }
@@ -326,29 +326,27 @@ export class TestVectorStorage extends VectorStorage {
     }
 
     const { client: drizzle } = await getDbHandle();
-    const results: { chunkId: number; similarity: number }[] = [];
-
-    for (const queryVec of vectors) {
-      const distance = cosineDistance(vector.vector, queryVec);
-      const similarity = sql<number>`1 - (${distance})`;
-
-      const queryResults = await drizzle
-        .select({
-          chunkId: vector.chunkId,
-          similarity: similarity,
-        })
-        .from(vector)
-        .where(
-          and(
-            inArray(vector.chunkId, chunkIdRange),
-            gt(similarity, minSimilarity),
-          ),
-        )
-        .orderBy(desc(similarity))
-        .limit(maxAmount);
-
-      results.push(...queryResults);
-    }
+    const allResults = await Promise.all(
+      vectors.map(async (queryVec) => {
+        const distance = cosineDistance(vector.vector, queryVec);
+        const similarity = sql<number>`1 - (${distance})`;
+        return drizzle
+          .select({
+            chunkId: vector.chunkId,
+            similarity: similarity,
+          })
+          .from(vector)
+          .where(
+            and(
+              inArray(vector.chunkId, chunkIdRange),
+              gt(similarity, minSimilarity),
+            ),
+          )
+          .orderBy(desc(similarity))
+          .limit(maxAmount);
+      }),
+    );
+    const results = allResults.flat();
 
     return results
       .sort((a, b) => b.similarity - a.similarity)

@@ -1,5 +1,5 @@
 {
-  "extends": ["../../packages/eslint-config/.oxlintrc.json"],
+  "extends": ["../../.oxlintrc.json"],
   "ignorePatterns": ["scripts/**", "src/components/**"],
   "plugins": ["vue", "unicorn"],
   "categories": {

@@ -93,18 +93,18 @@ export const createPluginCapabilities = (
   execCtx: ExecutorContext,
 ): PluginCapabilities => ({
   project: {
-    get: (input) => executeQuery(execCtx, getProject, input),
-    listByCreator: (input) =>
+    get: async (input) => executeQuery(execCtx, getProject, input),
+    listByCreator: async (input) =>
       executeQuery(execCtx, listProjectsByCreator, input),
-    listOwned: (input) => executeQuery(execCtx, listOwnedProjects, input),
-    getTargetLanguages: (input) =>
+    listOwned: async (input) => executeQuery(execCtx, listOwnedProjects, input),
+    getTargetLanguages: async (input) =>
       executeQuery(execCtx, getProjectTargetLanguages, input),
-    listDocuments: (input) =>
+    listDocuments: async (input) =>
       executeQuery(execCtx, listProjectDocuments, input),
-    countElements: (input) =>
+    countElements: async (input) =>
       executeQuery(execCtx, countProjectElements, input),
-    create: (input) => executeCommand(execCtx, createProject, input),
-    update: (input) => executeCommand(execCtx, updateProject, input),
+    create: async (input) => executeCommand(execCtx, createProject, input),
+    update: async (input) => executeCommand(execCtx, updateProject, input),
     delete: async (input) => {
       await executeCommand(execCtx, deleteProject, input);
     },
@@ -125,43 +125,48 @@ export const createPluginCapabilities = (
     },
   },
   document: {
-    get: (input) => executeQuery(execCtx, getDocument, input),
-    getElements: (input) => executeQuery(execCtx, getDocumentElements, input),
-    getFirstElement: (input) =>
+    get: async (input) => executeQuery(execCtx, getDocument, input),
+    getElements: async (input) =>
+      executeQuery(execCtx, getDocumentElements, input),
+    getFirstElement: async (input) =>
       executeQuery(execCtx, getDocumentFirstElement, input),
-    getElementTranslationStatus: (input) =>
+    getElementTranslationStatus: async (input) =>
       executeQuery(execCtx, getDocumentElementTranslationStatus, input),
-    getElementPageIndex: (input) =>
+    getElementPageIndex: async (input) =>
       executeQuery(execCtx, getDocumentElementPageIndex, input),
-    countElements: (input) =>
+    countElements: async (input) =>
       executeQuery(execCtx, countDocumentElements, input),
-    countTranslations: (input) =>
+    countTranslations: async (input) =>
       executeQuery(execCtx, countDocumentTranslations, input),
-    createRoot: (input) => executeCommand(execCtx, createRootDocument, input),
+    createRoot: async (input) =>
+      executeCommand(execCtx, createRootDocument, input),
     delete: async (input) => {
       await executeCommand(execCtx, deleteDocument, input);
     },
   },
   translation: {
-    listByElement: (input) =>
+    listByElement: async (input) =>
       executeQuery(execCtx, listTranslationsByElement, input),
-    createMany: (input) => executeCommand(execCtx, createTranslations, input),
-    upsertVote: (input) =>
+    createMany: async (input) =>
+      executeCommand(execCtx, createTranslations, input),
+    upsertVote: async (input) =>
       executeCommand(execCtx, upsertTranslationVote, input),
-    getVoteTotal: (input) =>
+    getVoteTotal: async (input) =>
       executeQuery(execCtx, getTranslationVoteTotal, input),
-    getSelfVote: (input) =>
+    getSelfVote: async (input) =>
       executeQuery(execCtx, getSelfTranslationVote, input),
-    autoApproveDocument: (input) =>
+    autoApproveDocument: async (input) =>
       executeCommand(execCtx, autoApproveDocumentTranslations, input),
     delete: async (input) => {
       await executeCommand(execCtx, deleteTranslation, input);
     },
-    approve: (input) => executeCommand(execCtx, approveTranslation, input),
-    unapprove: (input) => executeCommand(execCtx, unapproveTranslation, input),
+    approve: async (input) =>
+      executeCommand(execCtx, approveTranslation, input),
+    unapprove: async (input) =>
+      executeCommand(execCtx, unapproveTranslation, input),
   },
   setting: {
-    get: (input) => executeQuery(execCtx, getSettingQuery, input),
+    get: async (input) => executeQuery(execCtx, getSettingQuery, input),
     set: async (input) => {
       await executeCommand(execCtx, setSetting, input);
     },
@@ -173,7 +178,11 @@ export const createPluginCapabilities = (
     },
   },
   auth: {
-    getAccountMetaByIdentity: ({ userId, providedAccountId, providerIssuer }) =>
+    getAccountMetaByIdentity: async ({
+      userId,
+      providedAccountId,
+      providerIssuer,
+    }) =>
       executeQuery(execCtx, getAccountMetaByIdentity, {
         userId,
         providedAccountId,
@@ -184,9 +193,9 @@ export const createPluginCapabilities = (
     upsertChunkVectors: async (chunks) => {
       await executeCommand(execCtx, upsertChunkVectors, { chunks });
     },
-    getChunkVectors: (chunkIds) =>
+    getChunkVectors: async (chunkIds) =>
       executeQuery(execCtx, getChunkVectors, { chunkIds }),
-    searchChunkCosineSimilarity: ({
+    searchChunkCosineSimilarity: async ({
       vectors,
       chunkIdRange,
       minSimilarity,
@@ -206,24 +215,27 @@ export const createPluginCapabilities = (
     },
   },
   language: {
-    get: (input) => executeQuery(execCtx, getLanguage, input),
-    list: (input) => executeQuery(execCtx, listLanguages, input),
+    get: async (input) => executeQuery(execCtx, getLanguage, input),
+    list: async (input) => executeQuery(execCtx, listLanguages, input),
   },
   user: {
-    get: (input) => executeQuery(execCtx, getUser, input),
-    getAvatarFile: (input) => executeQuery(execCtx, getUserAvatarFile, input),
-    update: (input) => executeCommand(execCtx, updateUser, input),
+    get: async (input) => executeQuery(execCtx, getUser, input),
+    getAvatarFile: async (input) =>
+      executeQuery(execCtx, getUserAvatarFile, input),
+    update: async (input) => executeCommand(execCtx, updateUser, input),
     updateAvatar: async (input) => {
       await executeCommand(execCtx, updateUserAvatar, input);
     },
   },
   comment: {
-    listRoot: (input) => executeQuery(execCtx, listRootComments, input),
-    listChildren: (input) => executeQuery(execCtx, listChildComments, input),
-    listReactions: (input) =>
+    listRoot: async (input) => executeQuery(execCtx, listRootComments, input),
+    listChildren: async (input) =>
+      executeQuery(execCtx, listChildComments, input),
+    listReactions: async (input) =>
       executeQuery(execCtx, listCommentReactions, input),
-    create: (input) => executeCommand(execCtx, createComment, input),
-    react: (input) => executeCommand(execCtx, upsertCommentReaction, input),
+    create: async (input) => executeCommand(execCtx, createComment, input),
+    react: async (input) =>
+      executeCommand(execCtx, upsertCommentReaction, input),
     unreact: async (input) => {
       await executeCommand(execCtx, deleteCommentReaction, input);
     },
@@ -232,57 +244,65 @@ export const createPluginCapabilities = (
     },
   },
   agent: {
-    list: (input) => executeQuery(execCtx, listAgentDefinitions, input),
-    get: (input) => executeQuery(execCtx, getAgentDefinition, input),
-    listSessions: (input) => executeQuery(execCtx, listAgentSessions, input),
-    create: (input) => executeCommand(execCtx, createAgentDefinition, input),
-    update: (input) => executeCommand(execCtx, updateAgentDefinition, input),
-    delete: (input) => executeCommand(execCtx, deleteAgentDefinition, input),
-    createSession: (input) =>
+    list: async (input) => executeQuery(execCtx, listAgentDefinitions, input),
+    get: async (input) => executeQuery(execCtx, getAgentDefinition, input),
+    listSessions: async (input) =>
+      executeQuery(execCtx, listAgentSessions, input),
+    create: async (input) =>
+      executeCommand(execCtx, createAgentDefinition, input),
+    update: async (input) =>
+      executeCommand(execCtx, updateAgentDefinition, input),
+    delete: async (input) =>
+      executeCommand(execCtx, deleteAgentDefinition, input),
+    createSession: async (input) =>
       executeCommand(execCtx, createAgentSession, input),
   },
   element: {
-    getContexts: (input) => executeQuery(execCtx, getElementContexts, input),
-    getSourceLocation: (input) =>
+    getContexts: async (input) =>
+      executeQuery(execCtx, getElementContexts, input),
+    getSourceLocation: async (input) =>
       executeQuery(execCtx, getElementSourceLocation, input),
   },
   qa: {
-    listDocumentGlossaryIds: (input) =>
+    listDocumentGlossaryIds: async (input) =>
       executeQuery(execCtx, listDocumentGlossaryIds, input),
   },
   glossary: {
-    get: (input) => executeQuery(execCtx, getGlossary, input),
-    listConcepts: (input) => executeQuery(execCtx, listGlossaryConcepts, input),
-    listTermPairs: (input) =>
+    get: async (input) => executeQuery(execCtx, getGlossary, input),
+    listConcepts: async (input) =>
+      executeQuery(execCtx, listGlossaryConcepts, input),
+    listTermPairs: async (input) =>
       executeQuery(execCtx, listGlossaryTermPairs, input),
-    listByCreator: (input) =>
+    listByCreator: async (input) =>
       executeQuery(execCtx, listGlossariesByCreator, input),
-    listOwned: (input) => executeQuery(execCtx, listOwnedGlossaries, input),
-    listProjectOwned: (input) =>
+    listOwned: async (input) =>
+      executeQuery(execCtx, listOwnedGlossaries, input),
+    listProjectOwned: async (input) =>
       executeQuery(execCtx, listProjectGlossaries, input),
-    countConcepts: (input) =>
+    countConcepts: async (input) =>
       executeQuery(execCtx, countGlossaryConcepts, input),
-    listConceptSubjects: (input) =>
+    listConceptSubjects: async (input) =>
       executeQuery(execCtx, listGlossaryConceptSubjects, input),
-    create: (input) => executeCommand(execCtx, createGlossary, input),
-    createConcept: (input) =>
+    create: async (input) => executeCommand(execCtx, createGlossary, input),
+    createConcept: async (input) =>
       executeCommand(execCtx, createGlossaryConcept, input),
-    createConceptSubject: (input) =>
+    createConceptSubject: async (input) =>
       executeCommand(execCtx, createGlossaryConceptSubject, input),
-    updateConcept: (input) =>
+    updateConcept: async (input) =>
       executeCommand(execCtx, updateGlossaryConcept, input),
-    addTermToConcept: (input) =>
+    addTermToConcept: async (input) =>
       executeCommand(execCtx, addGlossaryTermToConcept, input),
-    deleteTerm: (input) => executeCommand(execCtx, deleteGlossaryTerm, input),
+    deleteTerm: async (input) =>
+      executeCommand(execCtx, deleteGlossaryTerm, input),
   },
   memory: {
-    get: (input) => executeQuery(execCtx, getMemory, input),
-    listByCreator: (input) =>
+    get: async (input) => executeQuery(execCtx, getMemory, input),
+    listByCreator: async (input) =>
       executeQuery(execCtx, listMemoriesByCreator, input),
-    listOwned: (input) => executeQuery(execCtx, listOwnedMemories, input),
-    listProjectOwned: (input) =>
+    listOwned: async (input) => executeQuery(execCtx, listOwnedMemories, input),
+    listProjectOwned: async (input) =>
       executeQuery(execCtx, listProjectMemories, input),
-    countItems: (input) => executeQuery(execCtx, countMemoryItems, input),
-    create: (input) => executeCommand(execCtx, createMemory, input),
+    countItems: async (input) => executeQuery(execCtx, countMemoryItems, input),
+    create: async (input) => executeCommand(execCtx, createMemory, input),
   },
 });

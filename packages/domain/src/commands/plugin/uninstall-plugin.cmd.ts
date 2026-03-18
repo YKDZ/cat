@@ -11,7 +11,7 @@ export type UninstallPluginCommand = z.infer<
   typeof UninstallPluginCommandSchema
 >;
 
-export const uninstallPlugin: Command<UninstallPluginCommand, void> = async (
+export const uninstallPlugin: Command<UninstallPluginCommand> = async (
   ctx,
   command,
 ) => {

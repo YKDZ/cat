@@ -33,7 +33,6 @@
     "speakeasy": "^2.0.0"
   },
   "devDependencies": {
-    "@cat/eslint-config": "workspace:*",
     "@types/qrcode": "^1.5.6",
     "@types/speakeasy": "^2.0.10",
     "@vitejs/plugin-vue": "^6.0.5",

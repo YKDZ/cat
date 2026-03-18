@@ -347,6 +347,7 @@ const toOpenAITool = (
   function: {
     name: tool.name,
     description: tool.description,
+    // oxlint-disable-next-line no-unsafe-type-assertion -- tool.parameters schema is validated at runtime by the plugin system
     parameters: tool.parameters as Record<string, unknown>,
   },
 });
@@ -361,6 +362,8 @@ const mapFinishReason = (
       return "tool_calls";
     case "length":
       return "length";
+    case null:
+      return "stop";
     default:
       return "stop";
   }
