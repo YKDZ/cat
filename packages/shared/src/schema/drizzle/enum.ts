@@ -35,6 +35,7 @@ export const PluginServiceTypeValues = [
   "LLM_PROVIDER",
   "AGENT_TOOL_PROVIDER",
   "AGENT_CONTEXT_PROVIDER",
+  "NLP_WORD_SEGMENTER",
 ] as const;
 export const PluginServiceTypeSchema = z.enum(PluginServiceTypeValues);
 

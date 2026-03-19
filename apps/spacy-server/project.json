@@ -1,0 +1,18 @@
+{
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "spacy-server",
+    "targets": {
+        "docker-build": {
+            "command": "docker build -t cat-spacy-server .",
+            "options": {
+                "cwd": "apps/spacy-server"
+            }
+        },
+        "serve": {
+            "command": "uvicorn src.main:app --reload --host 0.0.0.0 --port 8000",
+            "options": {
+                "cwd": "apps/spacy-server"
+            }
+        }
+    }
+}
