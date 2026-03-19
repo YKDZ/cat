@@ -56,15 +56,24 @@
       "cache": true
     },
     "test": {
-      "dependsOn": [{ "projects": ["test-utils"], "target": "build" }],
+      "dependsOn": [
+        "^build",
+        { "projects": ["test-utils"], "target": "build" }
+      ],
       "cache": true
     },
     "test:unit": {
-      "dependsOn": [{ "projects": ["test-utils"], "target": "build" }],
+      "dependsOn": [
+        "^build",
+        { "projects": ["test-utils"], "target": "build" }
+      ],
       "cache": true
     },
     "test:integration": {
-      "dependsOn": [{ "projects": ["test-utils"], "target": "build" }],
+      "dependsOn": [
+        "^build",
+        { "projects": ["test-utils"], "target": "build" }
+      ],
       "cache": true
     },
     "fmt": {
