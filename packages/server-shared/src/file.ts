@@ -11,13 +11,13 @@ import {
   type DbHandle,
   type SessionStore,
 } from "@cat/domain";
-import { serverLogger as logger } from "@cat/server-shared";
 import { createHash, randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import * as z from "zod";
 
 import { getServiceFromDBId } from "./plugin";
 import { hashFromReadable } from "./stream";
+import { serverLogger } from "./utils/logger";
 
 export const PresignedPutFileSessionPayloadSchema = z.object({
   blobId: z.coerce.number().int(),
@@ -63,7 +63,7 @@ export const putBufferToStorage = async (
         });
       });
 
-      logger
+      serverLogger
         .withSituation("WORKER")
         .error({ msg: "Error putting file" }, error);
       throw error;
