@@ -12,3 +12,4 @@ export * from "./mfa-provider.ts";
 export * from "./tokenizer.ts";
 export * from "./llm-provider.ts";
 export * from "./agent-context-provider.ts";
+export * from "./nlp-word-segmenter.ts";

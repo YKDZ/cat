@@ -7,6 +7,7 @@ import type { AuthProvider } from "@/services/auth-provider";
 import type { FileExporter, FileImporter } from "@/services/file-handler";
 import type { LLMProvider } from "@/services/llm-provider";
 import type { MFAProvider } from "@/services/mfa-provider";
+import type { NlpWordSegmenter } from "@/services/nlp-word-segmenter";
 import type { StorageProvider } from "@/services/storage-provider";
 import type { TermAligner, TermExtractor } from "@/services/term-services";
 import type { TextVectorizer } from "@/services/text-vectorizer";
@@ -29,6 +30,7 @@ export type PluginServiceTypeMap = {
   LLM_PROVIDER: LLMProvider;
   AGENT_TOOL_PROVIDER: AgentToolProvider;
   AGENT_CONTEXT_PROVIDER: AgentContextProvider;
+  NLP_WORD_SEGMENTER: NlpWordSegmenter;
 };
 
 export type PluginServiceMap = {

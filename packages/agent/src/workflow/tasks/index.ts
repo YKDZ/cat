@@ -18,3 +18,4 @@ export * from "./qa-translation";
 export * from "./create-translation";
 export * from "./auto-translate";
 export * from "./upsert-document-from-file";
+export * from "./nlp-segment";

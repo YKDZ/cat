@@ -673,6 +673,25 @@ importers:
         specifier: 8.0.0
         version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
 
+  packages/@cat-plugin/spacy-segmenter:
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      undici:
+        specifier: 7.18.2
+        version: 7.18.2
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
+
   packages/@cat-plugin/tiny-widget:
     devDependencies:
       '@cat/plugin-core':

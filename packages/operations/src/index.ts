@@ -232,3 +232,20 @@ export {
   type UpsertDocumentInput,
   type UpsertDocumentOutput,
 } from "./upsert-document-from-file";
+
+// === NLP Operations ===
+export {
+  nlpSegmentOp,
+  NlpSegmentInputSchema,
+  NlpSegmentOutputSchema,
+  type NlpSegmentInput,
+  type NlpSegmentOutput,
+} from "./nlp-segment";
+
+export {
+  nlpBatchSegmentOp,
+  NlpBatchSegmentInputSchema,
+  NlpBatchSegmentOutputSchema,
+  type NlpBatchSegmentInput,
+  type NlpBatchSegmentOutput,
+} from "./nlp-batch-segment";

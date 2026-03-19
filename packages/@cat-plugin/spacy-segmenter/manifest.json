@@ -1,0 +1,34 @@
+{
+  "$schema": "../../plugin-core/manifest-schema.json",
+  "id": "spacy-segmenter",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "services": [
+    {
+      "id": "spacy-word-segmenter",
+      "type": "NLP_WORD_SEGMENTER"
+    }
+  ],
+  "config": {
+    "type": "object",
+    "required": ["serverUrl"],
+    "properties": {
+      "serverUrl": {
+        "type": "string",
+        "description": "spaCy REST server URL (e.g., http://spacy:8000)"
+      },
+      "timeout": {
+        "type": "number",
+        "default": 30000,
+        "description": "Request timeout in milliseconds"
+      },
+      "languageModelMap": {
+        "type": "object",
+        "description": "Custom mapping from BCP-47 language ID to spaCy language code. Takes precedence over the default mapping.",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

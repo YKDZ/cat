@@ -101,6 +101,10 @@
     "./schema/agent": {
       "types": "./dist/schema/agent.d.ts",
       "import": "./dist/schema/agent.js"
+    },
+    "./schema/nlp": {
+      "types": "./dist/schema/nlp.d.ts",
+      "import": "./dist/schema/nlp.js"
     }
   },
   "scripts": {
