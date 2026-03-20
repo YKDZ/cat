@@ -45,6 +45,9 @@ export default defineConfig({
         "tailwind-merge",
         /^vike/,
         /^@vueuse\//,
+        /^@vue-flow\//,
+        "elkjs",
+        "elkjs/lib/elk.bundled.js",
       ],
       output: {
         preserveModules: true,

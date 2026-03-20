@@ -1,3 +1,4 @@
+import vue from "@vitejs/plugin-vue";
 import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
@@ -115,6 +116,28 @@ export default defineConfig({
           environment: "node",
         },
         resolve: { alias: alias(resolve(ROOT, "apps/app-api")) },
+      },
+
+      // ── UI 包：组件单元测试 ──────────────────────────────────────────
+      {
+        plugins: [vue()],
+        test: {
+          name: "unit-ui",
+          include: ["packages/ui/src/**/*.{spec,test}.ts"],
+          environment: "happy-dom",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/ui")) },
+      },
+
+      // ── App 前端：工具函数单元测试 ──────────────────────────────────
+      {
+        plugins: [vue()],
+        test: {
+          name: "unit-app",
+          include: ["apps/app/src/**/*.{spec,test}.ts"],
+          environment: "happy-dom",
+        },
+        resolve: { alias: alias(resolve(ROOT, "apps/app")) },
       },
     ],
   },

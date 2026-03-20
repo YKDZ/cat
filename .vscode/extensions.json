@@ -6,6 +6,9 @@
     "selemondev.shadcn-vue",
     "ms-playwright.playwright",
     "nrwl.angular-console",
-    "bradlc.vscode-tailwindcss"
+    "bradlc.vscode-tailwindcss",
+    "github.copilot-chat",
+    "ms-python.python",
+    "ms-python.vscode-python-envs"
   ]
 }

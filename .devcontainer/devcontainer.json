@@ -43,7 +43,8 @@
         "GitHub.copilot-chat",
         "ms-azuretools.vscode-docker",
         "ms-azuretools.vscode-containers",
-        "vitest.explorer"
+        "vitest.explorer",
+        "ms-python.python"
       ],
       "settings": {
         "editor.formatOnSave": true,

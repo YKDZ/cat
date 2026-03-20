@@ -1010,6 +1010,11 @@ export const agentSession = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    /** Optional project association for workflow runs */
+    projectId: uuid().references(() => project.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
     status: agentSessionStatus().notNull().default("ACTIVE"),
     /** Current active run (Graph runtime) */
     currentRunId: integer(),
@@ -1019,7 +1024,11 @@ export const agentSession = pgTable(
     metadata: jsonb().$type<JSONType>().notNull().default({}),
     ...timestamps,
   },
-  (table) => [index().on(table.agentDefinitionId), index().on(table.userId)],
+  (table) => [
+    index().on(table.agentDefinitionId),
+    index().on(table.userId),
+    index().on(table.projectId),
+  ],
 );
 
 export const agentRun = pgTable(

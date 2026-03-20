@@ -6,6 +6,7 @@ export * from "./components/button";
 export * from "./components/card";
 export * from "./components/collapsible";
 export * from "./components/combobox";
+export * from "./components/dag-graph";
 export * from "./components/dialog";
 export * from "./components/dropdown-menu";
 export * from "./components/form";

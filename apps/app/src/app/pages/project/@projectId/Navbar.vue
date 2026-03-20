@@ -18,6 +18,7 @@ import {
   Home,
   NotebookText,
   Settings,
+  Workflow,
 } from "lucide-vue-next";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
@@ -56,6 +57,11 @@ const items: { title: string; href: string; icon: Component }[] = [
     title: t("任务"),
     icon: NotebookText,
     href: `/project/${props.project.id}/tasks`,
+  },
+  {
+    title: t("工作流"),
+    icon: Workflow,
+    href: `/project/${props.project.id}/workflows`,
   },
   {
     title: t("Agent"),
