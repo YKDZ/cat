@@ -1,4 +1,4 @@
-import type { DrizzleDB } from "@cat/domain";
+import type { AgentRunMetadataRow, DrizzleDB } from "@cat/domain";
 
 import {
   AgentSessionMetaSchema,
@@ -748,6 +748,12 @@ export const listProjectRuns = authed
 /** Get graph definition + current node statuses derived from events */
 export const getRunGraph = authed
   .input(z.object({ runId: z.uuidv4() }))
+  .output(
+    z.object({
+      metadata: z.custom<AgentRunMetadataRow>().nullable(),
+      nodeStatuses: z.record(z.string(), z.string()),
+    }),
+  )
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },

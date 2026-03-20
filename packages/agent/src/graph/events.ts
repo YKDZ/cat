@@ -1,9 +1,9 @@
-import type { NonNullJSONType } from "@cat/shared/schema/json";
+import type { JSONObject, NonNullJSONType } from "@cat/shared/schema/json";
 
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 
-import { EventIdSchema, NodeIdSchema, RunIdSchema } from "@/graph/types";
+import { EventIdSchema } from "@/graph/types";
 
 export const EventTypeValues = [
   "run:start",
@@ -47,12 +47,12 @@ export type AgentEventMap = {
 };
 
 type AgentEventBase = {
-  eventId: z.infer<typeof EventIdSchema>;
-  runId: z.infer<typeof RunIdSchema>;
-  nodeId?: z.infer<typeof NodeIdSchema>;
-  parentEventId?: z.infer<typeof EventIdSchema>;
+  eventId: string;
+  runId: string;
+  nodeId?: string;
+  parentEventId?: string;
   timestamp: string;
-  metadata?: z.infer<typeof safeZDotJson>;
+  metadata?: JSONObject;
 };
 
 export type AgentEvent = {
@@ -68,10 +68,10 @@ export type AgentEventOf<T extends EventType> = Extract<
 >;
 
 export type AgentEventLike = {
-  eventId?: z.infer<typeof EventIdSchema>;
-  runId: z.infer<typeof RunIdSchema>;
-  nodeId?: z.infer<typeof NodeIdSchema>;
-  parentEventId?: z.infer<typeof EventIdSchema>;
+  eventId?: string;
+  runId: string;
+  nodeId?: string;
+  parentEventId?: string;
   type: EventType;
   timestamp: string;
   payload: unknown;
@@ -79,10 +79,10 @@ export type AgentEventLike = {
 };
 
 const agentEventBaseShape = {
-  eventId: EventIdSchema,
-  runId: RunIdSchema,
-  nodeId: NodeIdSchema.optional(),
-  parentEventId: EventIdSchema.optional(),
+  eventId: z.string(),
+  runId: z.string(),
+  nodeId: z.string().optional(),
+  parentEventId: z.string().optional(),
   timestamp: z.iso.datetime(),
   metadata: safeZDotJson.optional(),
 } as const;
