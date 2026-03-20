@@ -14,8 +14,8 @@ import {
 import { Check } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 

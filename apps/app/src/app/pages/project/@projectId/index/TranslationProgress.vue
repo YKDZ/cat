@@ -12,7 +12,7 @@ import type { ProgressBarLine } from "@/app/components/progress/bar/index.ts";
 import Dot from "@/app/components/Dot.vue";
 import ProgressBar from "@/app/components/progress/bar/ProgressBar.vue";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 const props = defineProps<{
   project: Pick<Project, "id">;

@@ -26,6 +26,7 @@ export const searchMemoryWorkflow = defineGraphWorkflow({
   name: "memory.search",
   input: SearchMemoryInputSchema,
   output: SearchMemoryOutputSchema,
+
   steps: async (payload, { traceId, signal }) => {
     if (payload.chunkIds.length === 0) {
       return [];
@@ -50,6 +51,7 @@ export const searchMemoryWorkflow = defineGraphWorkflow({
       ),
     ];
   },
+
   handler: async (payload, ctx) => {
     const [searchChunkResult] = ctx.getStepResult(searchChunkWorkflow);
     if (!searchChunkResult) {

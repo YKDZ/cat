@@ -2,7 +2,7 @@ import { createGlossaryTerms, executeCommand } from "@cat/domain";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import * as z from "zod/v4";
 
-import { withAgentDrizzleTransaction } from "@/db/domain";
+import { withAgentDbTransaction } from "@/db/domain";
 import { generateCacheKey } from "@/graph/cache";
 import { defineGraphWorkflow } from "@/workflow/define-task";
 
@@ -32,15 +32,13 @@ export const createTermTask = defineGraphWorkflow({
       return { termIds: existing };
     }
 
-    const { termIds, conceptIds } = await withAgentDrizzleTransaction(
-      async (tx) => {
-        return executeCommand({ db: tx }, createGlossaryTerms, {
-          glossaryId: payload.glossaryId,
-          creatorId: payload.creatorId,
-          data: payload.data,
-        });
-      },
-    );
+    const { termIds, conceptIds } = await withAgentDbTransaction(async (tx) => {
+      return executeCommand({ db: tx }, createGlossaryTerms, {
+        glossaryId: payload.glossaryId,
+        creatorId: payload.creatorId,
+        data: payload.data,
+      });
+    });
 
     await Promise.all(
       conceptIds.map(async (conceptId) => {

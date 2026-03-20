@@ -15,10 +15,10 @@ import { onMounted, onUnmounted, watch } from "vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { ws } from "@/app/rpc/ws";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorGhostTextStore } from "@/app/stores/editor/ghost-text.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { ws } from "@/server/ws";
 
 import {
   ghostTextExtension,

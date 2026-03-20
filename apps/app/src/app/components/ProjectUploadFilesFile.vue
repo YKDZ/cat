@@ -4,9 +4,9 @@ import { Button } from "@cat/ui";
 import { ref } from "vue";
 
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
-import { orpc } from "@/server/orpc";
 
 const { info } = useToastStore();
 

@@ -8,9 +8,9 @@ import { useI18n } from "vue-i18n";
 
 import TokenViewer from "@/app/components/editor/TokenViewer.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
-import { orpc } from "@/server/orpc";
 
 const { replace } = useEditorTableStore();
 const { t } = useI18n();

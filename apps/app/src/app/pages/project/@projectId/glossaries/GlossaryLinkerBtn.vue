@@ -15,8 +15,8 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 

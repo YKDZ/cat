@@ -16,8 +16,8 @@ import { useI18n } from "vue-i18n";
 import Markdown from "@/app/components/Markdown.vue";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { i18nUseTimeAgoMessages } from "@/app/utils/i18n";
-import { orpc } from "@/server/orpc";
 
 import CommentReact from "./CommentReact.vue";
 import CommentReaction from "./CommentReaction.vue";

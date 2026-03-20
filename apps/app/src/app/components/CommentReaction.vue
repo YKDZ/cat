@@ -9,7 +9,7 @@ import { Badge } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 const props = defineProps<{
   emoji: string;

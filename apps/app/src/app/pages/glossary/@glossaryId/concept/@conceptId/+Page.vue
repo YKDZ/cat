@@ -34,9 +34,9 @@ import type { PickerOption } from "@/app/components/picker";
 
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import MultiPicker from "@/app/components/picker/MultiPicker.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast";
-import { orpc } from "@/server/orpc";
-import { clientLogger as logger } from "@/utils/logger";
+import { clientLogger as logger } from "@/app/utils/logger";
 
 import type { Data } from "./+data.server";
 

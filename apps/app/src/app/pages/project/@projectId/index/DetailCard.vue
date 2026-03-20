@@ -18,8 +18,8 @@ import { useForm } from "vee-validate";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 const { info } = useToastStore();

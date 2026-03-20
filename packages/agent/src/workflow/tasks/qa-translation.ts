@@ -7,7 +7,7 @@ import {
 } from "@cat/domain";
 import * as z from "zod/v4";
 
-import { runAgentQuery, withAgentDrizzleTransaction } from "@/db/domain";
+import { runAgentQuery, withAgentDbTransaction } from "@/db/domain";
 import { defineGraphWorkflow } from "@/workflow/define-task";
 
 import { qaWorkflow } from "./qa";
@@ -84,7 +84,7 @@ export const qaTranslationWorkflow = defineGraphWorkflow({
 
     const qa = await result();
 
-    await withAgentDrizzleTransaction(async (tx) => {
+    await withAgentDbTransaction(async (tx) => {
       const resultRow = await executeCommand({ db: tx }, createQaResult, {
         translationId: payload.translationId,
       });

@@ -24,8 +24,8 @@ import { navigate } from "vike/client/router";
 import { inject, onMounted, ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { clientLogger as logger } from "@/app/utils/logger";
 import { useInjectionKey } from "@/app/utils/provide";
-import { clientLogger as logger } from "@/utils/logger";
 
 import type { Data } from "./+data.server";
 

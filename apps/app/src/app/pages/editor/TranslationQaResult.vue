@@ -4,7 +4,7 @@ import { Check, TriangleAlert, Info, CircleX, Loader2 } from "lucide-vue-next";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 const props = defineProps<{
   translationId: number;

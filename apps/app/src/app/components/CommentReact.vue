@@ -9,7 +9,7 @@ import { Button } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 const props = defineProps<{
   comment: Pick<Comment, "id">;

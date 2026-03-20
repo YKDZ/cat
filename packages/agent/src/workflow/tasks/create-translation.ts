@@ -4,7 +4,7 @@ import { safeZDotJson } from "@cat/shared/schema/json";
 import { zip } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
-import { withAgentDrizzle } from "@/db/domain";
+import { withAgentDb, withAgentDbTransaction } from "@/db/domain";
 import { generateCacheKey } from "@/graph/cache";
 import { defineGraphWorkflow } from "@/workflow/define-task";
 
@@ -47,6 +47,7 @@ export const createTranslationWorkflow = defineGraphWorkflow({
   name: "translation.create",
   input: CreateTranslationInputSchema,
   output: CreateTranslationOutputSchema,
+
   steps: async (payload, { traceId, signal }) => {
     return [
       createTranslatableStringTask.asStep(
@@ -62,6 +63,7 @@ export const createTranslationWorkflow = defineGraphWorkflow({
       ),
     ];
   },
+
   handler: async (payload, ctx) => {
     const [stringResult] = ctx.getStepResult(createTranslatableStringTask);
 
@@ -85,7 +87,7 @@ export const createTranslationWorkflow = defineGraphWorkflow({
       return existing;
     }
 
-    const translationIds = await withAgentDrizzle(async (db) => {
+    const translationIds = await withAgentDb(async (db) => {
       return executeCommand({ db }, createTranslations, {
         data: Array.from(zip(payload.data, stringResult.stringIds)).map(
           ([item, stringId]) => ({
@@ -110,12 +112,10 @@ export const createTranslationWorkflow = defineGraphWorkflow({
 
     let memoryItemIds: number[] = [];
     if (payload.memoryIds.length > 0) {
-      await withAgentDrizzle(async (db) => {
-        return db.transaction(async (tx) => {
-          memoryItemIds = (
-            await insertMemory(tx, payload.memoryIds, translationIds)
-          ).memoryItemIds;
-        });
+      await withAgentDbTransaction(async (tx) => {
+        memoryItemIds = (
+          await insertMemory(tx, payload.memoryIds, translationIds)
+        ).memoryItemIds;
       });
     }
 

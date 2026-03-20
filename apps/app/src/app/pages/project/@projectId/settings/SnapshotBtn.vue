@@ -11,9 +11,9 @@ import {
 import { inject } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast";
 import { useInjectionKey } from "@/app/utils/provide";
-import { orpc } from "@/server/orpc";
 
 import type { Data } from "../+data.server";
 

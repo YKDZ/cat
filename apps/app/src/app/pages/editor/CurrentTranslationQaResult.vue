@@ -10,8 +10,8 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import z from "zod";
 
-import { ws } from "@/server/ws";
-import { clientLogger as logger } from "@/utils/logger";
+import { ws } from "@/app/rpc/ws";
+import { clientLogger as logger } from "@/app/utils/logger";
 
 const props = defineProps<{
   source: {

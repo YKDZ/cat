@@ -7,8 +7,8 @@ import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
 import DocumentTree from "@/app/components/DocumentTree.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast";
-import { orpc } from "@/server/orpc";
 
 defineProps<{
   project: Pick<Project, "id">;

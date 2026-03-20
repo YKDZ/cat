@@ -27,7 +27,7 @@ import * as z from "zod";
 import type { PickerOption } from "@/app/components/picker";
 
 import Picker from "@/app/components/picker/Picker.vue";
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 const props = defineProps<{
   document: Pick<Document, "id">;

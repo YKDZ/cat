@@ -14,8 +14,8 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UserAvatar from "@/app/components/UserAvatar.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast";
-import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   user: Pick<User, "id" | "name"> | null;

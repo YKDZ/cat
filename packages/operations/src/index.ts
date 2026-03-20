@@ -249,3 +249,69 @@ export {
   type NlpBatchSegmentInput,
   type NlpBatchSegmentOutput,
 } from "./nlp-batch-segment";
+
+// === Term Discovery Operations ===
+export {
+  loadElementTextsOp,
+  LoadElementTextsInputSchema,
+  LoadElementTextsOutputSchema,
+  type LoadElementTextsInput,
+  type LoadElementTextsOutput,
+} from "./load-element-texts";
+
+export {
+  statisticalTermExtractOp,
+  StatisticalTermExtractInputSchema,
+  StatisticalTermExtractOutputSchema,
+  type StatisticalTermExtractInput,
+  type StatisticalTermExtractOutput,
+} from "./statistical-term-extract";
+
+export {
+  deduplicateAndMatchOp,
+  DeduplicateAndMatchInputSchema,
+  DeduplicateAndMatchOutputSchema,
+  type DeduplicateAndMatchInput,
+  type DeduplicateAndMatchOutput,
+} from "./deduplicate-match-terms";
+
+export {
+  llmTermEnhanceOp,
+  LlmTermEnhanceInputSchema,
+  LlmTermEnhanceOutputSchema,
+  type LlmTermEnhanceInput,
+  type LlmTermEnhanceOutput,
+} from "./llm-term-enhance";
+
+// === Term Alignment Operations ===
+export {
+  vectorTermAlignOp,
+  VectorTermAlignInputSchema,
+  VectorTermAlignOutputSchema,
+  type VectorTermAlignInput,
+  type VectorTermAlignOutput,
+} from "./vector-term-align";
+
+export {
+  statisticalTermAlignOp,
+  StatisticalTermAlignInputSchema,
+  StatisticalTermAlignOutputSchema,
+  type StatisticalTermAlignInput,
+  type StatisticalTermAlignOutput,
+} from "./statistical-term-align";
+
+export {
+  llmTermAlignOp,
+  LlmTermAlignInputSchema,
+  LlmTermAlignOutputSchema,
+  type LlmTermAlignInput,
+  type LlmTermAlignOutput,
+} from "./llm-term-align";
+
+export {
+  mergeAlignmentOp,
+  MergeAlignmentInputSchema,
+  MergeAlignmentOutputSchema,
+  type MergeAlignmentInput,
+  type MergeAlignmentOutput,
+} from "./merge-alignment";

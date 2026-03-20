@@ -83,15 +83,15 @@ export type GraphTaskDefinition<
     output: O;
   };
   cache?: CacheOptions;
-  handler: (payload: z.infer<I>, ctx: Ctx) => Promise<z.infer<O>>;
-  run: (
+  handler(payload: z.infer<I>, ctx: Ctx): Promise<z.infer<O>>;
+  run(
     input: z.input<I>,
     meta?: GraphRunMeta,
-  ) => Promise<GraphRunResult<z.infer<O>>>;
-  asStep: (
+  ): Promise<GraphRunResult<z.infer<O>>>;
+  asStep(
     input: z.input<I>,
     meta?: Omit<GraphRunMeta, "runId">,
-  ) => GraphStepInvocation<I, O, Ctx>;
+  ): GraphStepInvocation<I, O, Ctx>;
 };
 
 export type DefineGraphTaskOptions<I extends ZodSchema, O extends ZodSchema> = {
@@ -105,6 +105,29 @@ export type DefineGraphTaskOptions<I extends ZodSchema, O extends ZodSchema> = {
   ) => Promise<z.infer<O>>;
 };
 
+/** 一个执行阶段，内部所有 step 并行执行 */
+export type GraphStepStage = {
+  label?: string;
+  steps: Array<
+    GraphStepInvocation<
+      ZodSchema,
+      ZodSchema,
+      TaskHandlerContext | WorkflowHandlerContext
+    >
+  >;
+};
+
+/** steps 函数的联合返回类型 */
+export type StepsReturn =
+  | Array<
+      GraphStepInvocation<
+        ZodSchema,
+        ZodSchema,
+        TaskHandlerContext | WorkflowHandlerContext
+      >
+    >
+  | GraphStepStage[];
+
 export type DefineGraphWorkflowOptions<
   I extends ZodSchema,
   O extends ZodSchema,
@@ -116,23 +139,7 @@ export type DefineGraphWorkflowOptions<
   steps: (
     payload: z.infer<I>,
     ctx: Pick<TaskHandlerContext, "runId" | "traceId" | "signal">,
-  ) =>
-    | Promise<
-        Array<
-          GraphStepInvocation<
-            ZodSchema,
-            ZodSchema,
-            TaskHandlerContext | WorkflowHandlerContext
-          >
-        >
-      >
-    | Array<
-        GraphStepInvocation<
-          ZodSchema,
-          ZodSchema,
-          TaskHandlerContext | WorkflowHandlerContext
-        >
-      >;
+  ) => Promise<StepsReturn> | StepsReturn;
   handler: (
     payload: z.infer<I>,
     ctx: WorkflowHandlerContext,

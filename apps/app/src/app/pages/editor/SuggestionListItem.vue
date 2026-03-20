@@ -7,10 +7,10 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
 import TokenViewer from "@/app/components/editor/TokenViewer.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useHotKeys } from "@/app/utils/magic-keys.ts";
-import { orpc } from "@/server/orpc";
 
 const { replace } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());

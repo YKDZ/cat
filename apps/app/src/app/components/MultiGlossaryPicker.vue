@@ -6,7 +6,7 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 import type { PickerOption } from "./picker";
 

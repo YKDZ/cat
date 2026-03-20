@@ -16,9 +16,9 @@ import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useAuthStore } from "@/app/stores/auth";
 import { useToastStore } from "@/app/stores/toast";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 const { info } = useToastStore();

@@ -17,7 +17,7 @@ import type { PickerOption } from "@/app/components/picker";
 
 import Picker from "@/app/components/picker/Picker.vue";
 import { useToastStore } from "@/app/stores/toast";
-import { clientLogger as logger } from "@/utils/logger";
+import { clientLogger as logger } from "@/app/utils/logger";
 
 import {
   onCreateConcept,

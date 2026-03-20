@@ -29,8 +29,8 @@ import {
 import { inject, ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useInjectionKey } from "@/app/utils/provide.ts";
-import { orpc } from "@/server/orpc";
 
 import type { Data as LayoutData } from "../+data.server.ts";
 

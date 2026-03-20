@@ -9,8 +9,8 @@ import { defineStore, storeToRefs } from "pinia";
 import { reactive, computed } from "vue";
 import * as z from "zod/v4";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
-import { orpc } from "@/server/orpc";
 
 export const TranslatableElementWithDetailsSchema =
   TranslatableElementSchema.extend({

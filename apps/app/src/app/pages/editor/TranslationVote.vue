@@ -9,8 +9,8 @@ import { useI18n } from "vue-i18n";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation";
 
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { orpc } from "@/server/orpc";
 
 const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id" | "vote">;

@@ -28,6 +28,11 @@ export type AlignContext = {
   target: { text: string; candidates: TermCandidate[]; targetLang: string };
 };
 
+/**
+ * @deprecated Use `termDiscoveryWorkflow` from `@cat/agent` instead.
+ * The graph workflow-based term discovery pipeline replaces the per-sentence plugin
+ * extraction model with a document-level TF-IDF + C-value + LLM approach.
+ */
 export abstract class TermExtractor implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType {
@@ -39,6 +44,11 @@ export abstract class TermExtractor implements IPluginService {
   abstract extract(ctx: ExtractContext): Promise<TermCandidate[]>;
 }
 
+/**
+ * @deprecated Use `termAlignmentWorkflow` from `@cat/agent` instead.
+ * The graph workflow-based alignment pipeline supports multi-language groups
+ * via vector, statistical, and LLM strategies with weighted fusion.
+ */
 export abstract class TermAligner implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType {

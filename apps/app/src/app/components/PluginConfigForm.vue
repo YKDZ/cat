@@ -9,7 +9,7 @@ import type { JSONType } from "@cat/shared/schema/json";
 import { navigate } from "vike/client/router";
 import { ref } from "vue";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 import SettingForm from "./SettingForm.vue";
 

@@ -6,7 +6,7 @@ import { EditorView } from "@codemirror/view";
 import { useQuery } from "@pinia/colada";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
-import { ws } from "@/server/ws";
+import { ws } from "@/app/rpc/ws";
 
 import {
   linkClickHandler,

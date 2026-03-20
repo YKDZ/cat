@@ -1,6 +1,5 @@
 [
   "password-auth-provider",
-  "openai-term-service",
   "json-file-handler",
   "libretranslate-advisor",
   "openai-vectorizer",
@@ -11,5 +10,6 @@
   "tiny-widget",
   "basic-tokenizer",
   "basic-qa-checker",
-  "openai-llm-provider"
+  "openai-llm-provider",
+  "spacy-segmenter"
 ]

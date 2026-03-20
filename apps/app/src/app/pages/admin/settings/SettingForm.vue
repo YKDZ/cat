@@ -2,7 +2,7 @@
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
 
 import SettingForm from "@/app/components/SettingForm.vue";
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 const props = defineProps<{
   schema: _JSONSchema;

@@ -132,9 +132,12 @@ export class PluginManager {
 
     const toInstall = pluginIds.filter((id) => !installed.has(id));
 
-    await Promise.all(
-      toInstall.map(async (id) => manager.install(drizzle, id)),
-    );
+    for (const id of toInstall) {
+      // 安装默认插件时可能运行在单个事务连接上，必须串行执行。
+      // 否则 pg 会在同一 client 上并发 query，导致启动期事务不稳定。
+      // oxlint-disable-next-line no-await-in-loop
+      await manager.install(drizzle, id);
+    }
   }
 
   // ────────────────────────────────────────────
@@ -196,11 +199,11 @@ export class PluginManager {
       { scopeType: this.scopeType, scopeId: this.scopeId },
     );
 
-    await Promise.all(
-      installations.map(async ({ pluginId }) =>
-        this.activate(drizzle, pluginId, app),
-      ),
-    );
+    for (const { pluginId } of installations) {
+      // restore() 在事务里运行时需要复用同一个连接，插件激活必须串行。
+      // oxlint-disable-next-line no-await-in-loop
+      await this.activate(drizzle, pluginId, app);
+    }
   }
 
   /**

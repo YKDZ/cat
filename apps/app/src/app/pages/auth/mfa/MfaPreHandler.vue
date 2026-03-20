@@ -3,8 +3,8 @@ import { Button } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 

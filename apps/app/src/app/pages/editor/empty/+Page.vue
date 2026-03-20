@@ -6,8 +6,8 @@ import { navigate } from "vike/client/router";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast";
-import { orpc } from "@/server/orpc";
 
 const { info } = useToastStore();
 const { t } = useI18n();

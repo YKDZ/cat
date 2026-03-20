@@ -8,9 +8,9 @@ import { navigate } from "vike/client/router";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { useInjectionKey } from "@/app/utils/provide.ts";
-import { orpc } from "@/server/orpc";
 
 import type { Data } from "../+data.server.ts";
 

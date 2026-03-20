@@ -6,9 +6,9 @@ import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useAuthStore } from "@/app/stores/auth.ts";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 

@@ -15,9 +15,9 @@ import { computed, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ImageCopper from "@/app/components/ImageCopper.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 

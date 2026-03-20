@@ -4,7 +4,9 @@
     "outDir": "./out-tsc/vitest",
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
   "include": [
@@ -25,6 +27,9 @@
   "references": [
     {
       "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/test-utils/tsconfig.lib.json"
     }
   ]
 }

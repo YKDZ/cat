@@ -10,7 +10,7 @@ import { useI18n } from "vue-i18n";
 import type { ProgressBarLine } from "@/app/components/progress/bar/index.ts";
 
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 import Dot from "./Dot.vue";
 import ProgressBar from "./progress/bar/ProgressBar.vue";

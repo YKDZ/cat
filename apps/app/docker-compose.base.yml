@@ -63,3 +63,23 @@ services:
         - ./venv/bin/python scripts/healthcheck.py
     environment:
       - LT_LOAD_ONLY=zh,en
+
+  spacy:
+    build:
+      context: ../spacy-server
+      args:
+        SPACY_MODELS: "en_core_web_sm zh_core_web_sm ja_core_news_sm de_core_news_sm"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -f http://localhost:8000/health || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 2G

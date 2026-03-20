@@ -25,8 +25,8 @@ import { inject, onMounted, ref, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
+import { clientLogger as logger } from "@/app/utils/logger";
 import { useInjectionKey } from "@/app/utils/provide";
-import { clientLogger as logger } from "@/utils/logger";
 
 import type { Data } from "./+data.server";
 

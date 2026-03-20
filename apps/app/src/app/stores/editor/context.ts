@@ -2,7 +2,7 @@ import { useQuery } from "@pinia/colada";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 export const useEditorContextStore = defineStore("editorContext", () => {
   const documentId = ref<string | undefined>();

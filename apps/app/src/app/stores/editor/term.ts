@@ -1,9 +1,9 @@
 import { defineStore, storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { orpc } from "@/server/orpc";
 
 import { useProfileStore } from "../profile";
 
