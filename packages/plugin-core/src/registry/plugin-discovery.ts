@@ -33,10 +33,11 @@ export class PluginDiscoveryService {
     await drizzle.transaction(async (tx) => {
       const availableIds = await this.loader.listAvailablePlugins();
 
-      // Update all available plugins definitions
-      await Promise.all(
-        availableIds.map(async ({ id }) => this.registerDefinition(tx, id)),
-      );
+      // 单个事务连接上不能并发注册多个插件定义，否则 pg 会出现并发 query。
+      for (const { id } of availableIds) {
+        // oxlint-disable-next-line no-await-in-loop
+        await this.registerDefinition(tx, id);
+      }
     });
   }
 

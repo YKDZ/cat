@@ -8,6 +8,7 @@ import { navigate } from "vike/client/router";
 import { ref, computed, watch } from "vue";
 import * as z from "zod";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import {
   TranslatableElementWithDetailsSchema,
@@ -15,7 +16,6 @@ import {
 } from "@/app/stores/editor/element.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { hashJSON } from "@/app/utils/hash.ts";
-import { orpc } from "@/server/orpc";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
   const context = storeToRefs(useEditorContextStore());

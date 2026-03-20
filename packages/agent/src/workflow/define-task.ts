@@ -7,7 +7,9 @@ import type {
   GraphRunMeta,
   GraphRunResult,
   GraphStepInvocation,
+  GraphStepStage,
   GraphTaskDefinition,
+  StepsReturn,
   TaskHandlerContext,
   WorkflowHandlerContext,
   WorkflowRuntime,
@@ -237,6 +239,30 @@ const executeStepInvocation = async <
     .then(async ({ result }) => result());
 };
 
+const isStagedSteps = (steps: StepsReturn): steps is GraphStepStage[] => {
+  if (steps.length === 0) return false;
+  return "steps" in steps[0];
+};
+
+const normalizeToStages = (steps: StepsReturn): GraphStepStage[] => {
+  if (isStagedSteps(steps)) return steps;
+  return [{ steps }];
+};
+
+export const stage = (
+  label: string,
+  ...steps: Array<
+    GraphStepInvocation<
+      ZodSchema,
+      ZodSchema,
+      TaskHandlerContext | WorkflowHandlerContext
+    >
+  >
+): GraphStepStage => ({
+  label,
+  steps,
+});
+
 export const defineGraphTask = <I extends ZodSchema, O extends ZodSchema>(
   options: DefineGraphTaskOptions<I, O>,
 ): GraphTaskDefinition<I, O> => {
@@ -325,30 +351,36 @@ export const defineGraphWorkflow = <I extends ZodSchema, O extends ZodSchema>(
           }
         }
 
-        const steps = await options.steps(parsedPayload, {
-          runId,
-          traceId,
-          signal: meta?.signal,
-        });
+        const stages = normalizeToStages(
+          await options.steps(parsedPayload, {
+            runId,
+            traceId,
+            signal: meta?.signal,
+          }),
+        );
 
         const stepResults: Record<string, unknown> = {};
         const resultsByTask = new Map<string, unknown[]>();
-        await Promise.all(
-          steps.map(async (step) => {
-            const output = await executeStepInvocation(
-              step,
-              runId,
-              traceId,
-              runtime,
-              meta?.signal,
-              meta?.pluginManager,
-            );
-            stepResults[`${step.task.name}:${step.stepId}`] = output;
-            const current = resultsByTask.get(step.task.name) ?? [];
-            current.push(output);
-            resultsByTask.set(step.task.name, current);
-          }),
-        );
+
+        for (const currentStage of stages) {
+          // oxlint-disable-next-line no-await-in-loop
+          await Promise.all(
+            currentStage.steps.map(async (step) => {
+              const output = await executeStepInvocation(
+                step,
+                runId,
+                traceId,
+                runtime,
+                meta?.signal,
+                meta?.pluginManager,
+              );
+              stepResults[`${step.task.name}:${step.stepId}`] = output;
+              const current = resultsByTask.get(step.task.name) ?? [];
+              current.push(output);
+              resultsByTask.set(step.task.name, current);
+            }),
+          );
+        }
 
         const bufferedEvents: EventEnvelopeInput[] = [];
         const rollbacks: Array<() => Promise<void>> = [];

@@ -7,9 +7,9 @@ import { Button } from "@cat/ui";
 import { navigate } from "vike/client/router";
 import { onMounted, ref } from "vue";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { watchClient } from "@/app/utils/vue.ts";
-import { orpc } from "@/server/orpc";
 
 const { info, rpcWarn } = useToastStore();
 

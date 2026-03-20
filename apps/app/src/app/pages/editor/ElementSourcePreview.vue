@@ -7,8 +7,8 @@ import { useI18n } from "vue-i18n";
 
 import { BlobView } from "@/app/components/blob-view";
 import { detectFileType } from "@/app/components/blob-view/types";
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorTableStore } from "@/app/stores/editor/table";
-import { orpc } from "@/server/orpc";
 
 import SourcePreviewViewer from "./SourcePreviewViewer.vue";
 

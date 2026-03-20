@@ -9,8 +9,8 @@ import { computed, ref, shallowRef } from "vue";
 
 import type { GraphEvent, NodeExecution } from "@/app/types/agent-graph";
 
-import { orpc } from "@/server/orpc";
-import { clientLogger as logger } from "@/utils/logger";
+import { orpc } from "@/app/rpc/orpc";
+import { clientLogger as logger } from "@/app/utils/logger";
 
 // ─── Constants ───
 

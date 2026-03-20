@@ -6,16 +6,8 @@ import { telefunc } from "telefunc/vite";
 import vike from "vike/plugin";
 import { defineConfig } from "vite";
 import vueDevTools from "vite-plugin-vue-devtools";
-export default defineConfig({
-  ssr: {
-    external: [
-      "@cat/agent",
-      "@cat/agent/workflow",
-      "@cat/domain",
-      "@cat/plugin-core",
-    ],
-  },
 
+export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),
@@ -45,13 +37,5 @@ export default defineConfig({
   build: {
     target: "esnext",
     emptyOutDir: true,
-    rolldownOptions: {
-      external: [
-        "@cat/agent",
-        "@cat/agent/workflow",
-        "@cat/domain",
-        "@cat/plugin-core",
-      ],
-    },
   },
 });

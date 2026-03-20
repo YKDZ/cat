@@ -7,8 +7,8 @@ import { useI18n } from "vue-i18n";
 import type { TranslationWithStatus } from "@/app/stores/editor/translation";
 
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorTableStore } from "@/app/stores/editor/table";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 

@@ -18,8 +18,8 @@ import { useI18n } from "vue-i18n";
 
 import MarkdownEditor from "@/app/components/editor/MarkdownEditor.vue";
 import TextTooltip from "@/app/components/tooltip/TextTooltip.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorTableStore } from "@/app/stores/editor/table";
-import { orpc } from "@/server/orpc";
 
 import Comment from "./Comment.vue";
 

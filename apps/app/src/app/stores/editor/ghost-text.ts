@@ -2,12 +2,12 @@ import { useDebounceFn } from "@vueuse/core";
 import { defineStore, storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorMemoryStore } from "@/app/stores/editor/memory.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useEditorTermStore } from "@/app/stores/editor/term.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
-import { orpc } from "@/server/orpc";
 
 // ─── Ghost Text Source Types ───
 

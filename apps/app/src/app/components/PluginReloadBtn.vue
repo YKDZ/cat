@@ -4,7 +4,7 @@ import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import { Button } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 import { useToastStore } from "../stores/toast";
 

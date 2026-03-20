@@ -5,7 +5,7 @@ import { useQuery } from "@pinia/colada";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 import type { PickerOption } from "./picker/index.ts";
 

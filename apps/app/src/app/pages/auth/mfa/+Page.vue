@@ -3,8 +3,8 @@ import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { ref } from "vue";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useAuthStore } from "@/app/stores/auth";
-import { orpc } from "@/server/orpc";
 
 import AuthMFAHandler from "./MfaHandler.vue";
 import AuthMFAPreHandler from "./MfaPreHandler.vue";

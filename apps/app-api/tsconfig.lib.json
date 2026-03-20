@@ -6,15 +6,17 @@
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
     "composite": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts"
+  ],
   "references": [
-    {
-      "path": "../../packages/test-utils/tsconfig.lib.json"
-    },
     {
       "path": "../../packages/shared/tsconfig.lib.json"
     },

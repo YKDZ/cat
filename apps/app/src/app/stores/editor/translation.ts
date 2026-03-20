@@ -5,11 +5,11 @@ import { defineStore, storeToRefs } from "pinia";
 import { watch } from "vue";
 import * as z from "zod";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorElementStore } from "@/app/stores/editor/element.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
-import { orpc } from "@/server/orpc";
-import { clientLogger as logger } from "@/utils/logger";
+import { clientLogger as logger } from "@/app/utils/logger";
 
 const TranslationWithStatusSchema = z.object({
   id: z.int(),

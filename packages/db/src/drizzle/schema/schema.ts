@@ -73,12 +73,8 @@ export const termType = pgEnum("TermType", TermTypeValues);
 export const termStatus = pgEnum("TermStatus", TermStatusValues);
 
 const timestamps = {
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-  updatedAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
+  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
 };
 
 export const account = pgTable(
@@ -133,9 +129,7 @@ export const blob = pgTable(
       }),
     referenceCount: integer().default(1).notNull(),
     hash: bytea(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.hash),
@@ -258,9 +252,7 @@ export const documentToTask = pgTable(
 export const file = pgTable("File", {
   id: serial().primaryKey(),
   name: text().notNull(),
-  createdAt: timestamp({ withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
+  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   blobId: integer()
     .notNull()
     .references(() => blob.id, { onDelete: "restrict", onUpdate: "cascade" }),
@@ -1047,9 +1039,7 @@ export const agentRun = pgTable(
     blackboardSnapshot: jsonb().$type<JSONType>(),
     currentNodeId: text(),
     deduplicationKey: text(),
-    startedAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    startedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp({ withTimezone: true }),
     metadata: jsonb().$type<JSONType>(),
   },
@@ -1075,9 +1065,7 @@ export const agentEvent = pgTable(
     nodeId: text(),
     type: text().notNull(),
     payload: jsonb().$type<NonNullJSONType>().notNull(),
-    timestamp: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    timestamp: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index().on(table.runId),
@@ -1102,9 +1090,7 @@ export const agentExternalOutput = pgTable(
     outputKey: text().notNull(),
     payload: jsonb().$type<NonNullJSONType>().notNull(),
     idempotencyKey: text(),
-    createdAt: timestamp({ withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index().on(table.runId),

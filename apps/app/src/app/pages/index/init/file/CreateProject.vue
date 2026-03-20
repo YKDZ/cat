@@ -21,8 +21,8 @@ import * as z from "zod/v4";
 import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
 import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";
 import MultiMemoryPicker from "@/app/components/MultiMemoryPicker.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 const { info } = useToastStore();

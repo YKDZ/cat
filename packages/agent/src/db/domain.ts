@@ -19,31 +19,31 @@ import {
  * 它不是新的业务层，只是 agent 运行时的 DB / domain 边界适配器。
  */
 
-export const withAgentDrizzle = async <TResult>(
+export const withAgentDb = async <TResult>(
   handler: (db: DrizzleClient) => Promise<TResult>,
 ): Promise<TResult> => {
   const { client } = await getDbHandle();
   return handler(client);
 };
 
-export const withAgentDrizzleTransaction = async <TResult>(
+export const withAgentDbTransaction = async <TResult>(
   handler: (tx: DrizzleTransaction) => Promise<TResult>,
 ): Promise<TResult> => {
-  return withAgentDrizzle(async (db) => db.transaction(handler));
+  return withAgentDb(async (db) => db.transaction(handler));
 };
 
 export const runAgentQuery = async <Q, R>(
   query: Query<Q, R>,
   input: Q,
 ): Promise<R> => {
-  return withAgentDrizzle(async (db) => executeQuery({ db }, query, input));
+  return withAgentDb(async (db) => executeQuery({ db }, query, input));
 };
 
 export const runAgentCommand = async <C, R>(
   command: Command<C, R>,
   input: C,
 ): Promise<R> => {
-  return withAgentDrizzle(async (db) => {
+  return withAgentDb(async (db) => {
     return executeCommand({ db }, command, input);
   });
 };

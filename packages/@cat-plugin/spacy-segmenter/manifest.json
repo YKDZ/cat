@@ -11,11 +11,14 @@
   ],
   "config": {
     "type": "object",
-    "required": ["serverUrl"],
+    "required": [
+      "serverUrl"
+    ],
     "properties": {
       "serverUrl": {
         "type": "string",
-        "description": "spaCy REST server URL (e.g., http://spacy:8000)"
+        "default": "http://localhost:8000",
+        "description": "spaCy REST server URL"
       },
       "timeout": {
         "type": "number",

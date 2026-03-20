@@ -1,4 +1,4 @@
-import availableLocales from "cldr-core/availableLocales.json";
+import { createRequire } from "node:module";
 import * as z from "zod";
 
 export const AvailableLocalesSchema = z.object({
@@ -8,4 +8,9 @@ export const AvailableLocalesSchema = z.object({
   }),
 });
 
-export const AvailableLocales = AvailableLocalesSchema.parse(availableLocales);
+const require = createRequire(import.meta.url);
+const availableLocalesSource: unknown = require("cldr-core/availableLocales.json");
+
+export const AvailableLocales = AvailableLocalesSchema.parse(
+  availableLocalesSource,
+);

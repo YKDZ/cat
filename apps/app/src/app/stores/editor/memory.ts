@@ -3,10 +3,10 @@ import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import { defineStore, storeToRefs } from "pinia";
 import { ref, shallowRef } from "vue";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
-import { orpc } from "@/server/orpc";
 
 /**
  * Determine the best text for ghost text from a memory suggestion.

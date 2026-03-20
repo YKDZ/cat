@@ -6,8 +6,8 @@ import { ScrollArea } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { storeToRefs } from "pinia";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useEditorTableStore } from "@/app/stores/editor/table";
-import { orpc } from "@/server/orpc";
 
 import ElemenContextJson from "./ElemenContextJson.vue";
 import ElemenContextMarkdown from "./ElemenContextMarkdown.vue";

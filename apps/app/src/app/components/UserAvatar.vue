@@ -6,7 +6,7 @@ import { Skeleton } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { computed } from "vue";
 
-import { orpc } from "@/server/orpc";
+import { orpc } from "@/app/rpc/orpc";
 
 const props = withDefaults(
   defineProps<{

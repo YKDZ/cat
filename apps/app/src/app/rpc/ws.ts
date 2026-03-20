@@ -1,10 +1,11 @@
 import type { AppRouter } from "@cat/app-api/orpc/router";
 import type { RouterClient } from "@orpc/server";
 
-import { serverLogger as logger } from "@cat/server-shared";
 import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
 import { WebSocket } from "partysocket";
+
+import { clientLogger as logger } from "@/app/utils/logger";
 
 const link = new RPCLink({
   // oxlint-disable-next-line no-unsafe-type-assertion -- partysocket types readyState as number instead of 0|1|2|3

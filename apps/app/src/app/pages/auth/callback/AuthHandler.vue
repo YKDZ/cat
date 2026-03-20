@@ -9,8 +9,8 @@ import { computed, onMounted, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import JSONForm from "@/app/components/json-form/JsonForm.vue";
+import { orpc } from "@/app/rpc/orpc";
 import { useAuthStore } from "@/app/stores/auth.ts";
-import { orpc } from "@/server/orpc";
 
 const { t } = useI18n();
 
