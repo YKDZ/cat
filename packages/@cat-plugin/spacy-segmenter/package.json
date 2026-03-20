@@ -33,7 +33,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json"
   },
   "dependencies": {
-    "undici": "7.18.2"
+    "undici": "7.24.0"
   },
   "devDependencies": {
     "vite": "8.0.0"
