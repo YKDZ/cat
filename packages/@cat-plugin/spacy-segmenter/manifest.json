@@ -11,9 +11,7 @@
   ],
   "config": {
     "type": "object",
-    "required": [
-      "serverUrl"
-    ],
+    "required": ["serverUrl"],
     "properties": {
       "serverUrl": {
         "type": "string",

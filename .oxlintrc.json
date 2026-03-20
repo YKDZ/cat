@@ -1,12 +1,21 @@
 {
-  "plugins": ["eslint", "promise", "typescript", "import", "unicorn"],
+  "plugins": [
+    "eslint",
+    "promise",
+    "typescript",
+    "import",
+    "unicorn"
+  ],
   "categories": {
     "correctness": "off"
   },
   "env": {
     "builtin": true
   },
-  "ignorePatterns": ["dist/"],
+  "ignorePatterns": [
+    "dist/",
+    "**/*/*.js"
+  ],
   "rules": {
     "eslint/no-new": "error",
     "typescript/no-import-type-side-effects": "error",
@@ -164,7 +173,12 @@
   },
   "overrides": [
     {
-      "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+      "files": [
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mts",
+        "**/*.cts"
+      ],
       "rules": {
         "no-class-assign": "off",
         "no-const-assign": "off",

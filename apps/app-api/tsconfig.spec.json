@@ -4,9 +4,7 @@
     "outDir": "./out-tsc/vitest",
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
