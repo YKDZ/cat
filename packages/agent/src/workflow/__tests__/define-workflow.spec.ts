@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 import * as z from "zod/v4";
 
-import { defineGraphTask, defineGraphWorkflow } from "@/workflow/define-task";
+import {
+  defineGraphTask,
+  defineGraphWorkflow,
+  stage,
+} from "@/workflow/define-task";
 import { TaskRegistry } from "@/workflow/task-registry";
 
 afterEach(() => {
@@ -100,7 +104,6 @@ describe("defineGraphWorkflow", () => {
 
   it("stage 辅助函数构造等价于对象字面量", async () => {
     TaskRegistry.init();
-    const { stage } = await import("@/workflow/define-task");
 
     const noopTask = defineGraphTask({
       name: "test.noop-stage-helper",

@@ -13,6 +13,8 @@ export * from "@/queries/agent/get-agent-run-runtime-state.query";
 export * from "@/queries/agent/get-latest-completed-run-blackboard.query";
 export * from "@/queries/agent/find-agent-definition-by-name-and-scope.query";
 export * from "@/queries/agent/list-agent-sessions.query";
+export * from "@/queries/agent/list-project-runs.query";
+export * from "@/queries/agent/get-run-node-events.query";
 export * from "@/queries/document/build-translation-status-conditions";
 export * from "@/queries/document/get-active-file-name.query";
 export * from "@/queries/document/get-active-file-blob-info.query";

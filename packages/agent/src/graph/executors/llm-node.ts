@@ -12,6 +12,8 @@ import type { AgentToolDefinition } from "@/tools/types";
 
 import { buildPatch } from "@/graph/blackboard";
 
+import type { EventEnvelopeInput } from "../events";
+
 import { interpolateTemplate, resolvePath } from "./utils";
 
 const isLLMProvider = (value: unknown): value is LLMProvider => {
@@ -136,9 +138,7 @@ export const LLMNodeExecutor: NodeExecutor = async (ctx, config) => {
   let tokenBuffer = "";
   let publishChain = Promise.resolve();
 
-  const queueEventPublish = (
-    event: import("@/graph/events").EventEnvelopeInput,
-  ): void => {
+  const queueEventPublish = (event: EventEnvelopeInput): void => {
     publishChain = publishChain
       .then(async () => ctx.emit(event))
       .then(() => undefined);

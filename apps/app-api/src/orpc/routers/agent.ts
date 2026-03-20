@@ -19,8 +19,13 @@ import {
   executeQuery,
   findAgentDefinitionByNameAndScope,
   getAgentDefinition,
+  getAgentRunInternalId,
+  getRunNodeEvents,
   listAgentDefinitions,
+  listAgentEvents,
   listAgentSessions,
+  listProjectRuns as queryListProjectRuns,
+  loadAgentRunMetadata,
   updateAgentDefinition,
 } from "@cat/domain";
 import { AsyncMessageQueue } from "@cat/server-shared";
@@ -694,4 +699,170 @@ export const disableBuiltin = authed
     await executeCommand({ db: drizzle }, deleteAgentDefinition, {
       agentDefinitionId: row.id,
     });
+  });
+
+// ─── Workflow / Graph Run Queries ───
+
+/** List agent runs associated with a project */
+export const listProjectRuns = authed
+  .input(
+    z.object({
+      projectId: z.uuidv4(),
+      status: z
+        .enum([
+          "pending",
+          "running",
+          "paused",
+          "completed",
+          "failed",
+          "cancelled",
+        ])
+        .optional(),
+      limit: z.int().min(1).max(100).default(20),
+      offset: z.int().nonnegative().default(0),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const rows = await executeQuery(
+      { db: drizzle },
+      queryListProjectRuns,
+      input,
+    );
+
+    return rows.map((row) => ({
+      id: row.externalId,
+      sessionId: row.sessionExternalId,
+      status: row.status,
+      graphDefinition: row.graphDefinition,
+      currentNodeId: row.currentNodeId,
+      startedAt: row.startedAt,
+      completedAt: row.completedAt,
+      metadata: row.metadata,
+    }));
+  });
+
+/** Get graph definition + current node statuses derived from events */
+export const getRunGraph = authed
+  .input(z.object({ runId: z.uuidv4() }))
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const metadata = await executeQuery({ db: drizzle }, loadAgentRunMetadata, {
+      externalId: input.runId,
+    });
+
+    if (!metadata)
+      throw new ORPCError("NOT_FOUND", { message: "Run not found" });
+
+    const internalId = await executeQuery(
+      { db: drizzle },
+      getAgentRunInternalId,
+      { externalId: input.runId },
+    );
+
+    const nodeStatuses: Record<string, string> = {};
+
+    if (internalId) {
+      const events = await executeQuery({ db: drizzle }, listAgentEvents, {
+        runInternalId: internalId,
+      });
+
+      for (const event of events) {
+        if (!event.nodeId) continue;
+        if (event.type === "node:start") {
+          nodeStatuses[event.nodeId] = "running";
+        } else if (event.type === "node:end") {
+          nodeStatuses[event.nodeId] = "completed";
+        } else if (event.type === "node:error") {
+          nodeStatuses[event.nodeId] = "error";
+        }
+      }
+    }
+
+    return {
+      metadata,
+      nodeStatuses,
+    };
+  });
+
+/** Get all events for a specific node in a run */
+export const getNodeDetail = authed
+  .input(
+    z.object({
+      runId: z.uuidv4(),
+      nodeId: z.string().min(1),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const events = await executeQuery({ db: drizzle }, getRunNodeEvents, {
+      runExternalId: input.runId,
+      nodeId: input.nodeId,
+    });
+
+    let status = "pending";
+    let nodeInput: unknown = undefined;
+    let nodeOutput: unknown = undefined;
+    let nodeError: unknown = undefined;
+
+    const getPayloadProp = (payload: unknown, key: string): unknown => {
+      if (
+        typeof payload === "object" &&
+        payload !== null &&
+        !Array.isArray(payload)
+      ) {
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        return (payload as Record<string, unknown>)[key];
+      }
+      return undefined;
+    };
+
+    for (const event of events) {
+      if (event.type === "node:start") {
+        status = "running";
+        nodeInput = getPayloadProp(event.payload, "input");
+      } else if (event.type === "node:end") {
+        status = "completed";
+        nodeOutput = getPayloadProp(event.payload, "output");
+      } else if (event.type === "node:error") {
+        status = "error";
+        nodeError = getPayloadProp(event.payload, "error");
+      }
+    }
+
+    return {
+      nodeId: input.nodeId,
+      status,
+      input: nodeInput,
+      output: nodeOutput,
+      error: nodeError,
+      events,
+    };
+  });
+
+/** Retry a failed node by resuming the run from that node */
+export const retryNode = authed
+  .input(
+    z.object({
+      runId: z.uuidv4(),
+      nodeId: z.string().min(1),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
+    await graphRuntime.scheduler.resume(input.runId);
+    return { ok: true };
   });
