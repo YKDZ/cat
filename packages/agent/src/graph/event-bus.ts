@@ -4,7 +4,7 @@ import {
   type WaitForEventOptions,
 } from "@cat/domain/events";
 
-import type { AgentEvent, AgentEventOf, EventType } from "@/graph/events";
+import type { AgentEvent, EventType } from "@/graph/events";
 
 import { createAgentEvent } from "@/graph/events";
 

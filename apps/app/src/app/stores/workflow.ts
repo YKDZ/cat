@@ -167,7 +167,8 @@ export const useWorkflowStore = defineStore("workflow", () => {
     converted.nodes = converted.nodes.map((n) => ({
       ...n,
       status: isDagNodeStatus(result.nodeStatuses[n.id] ?? "")
-        ? (result.nodeStatuses[n.id] as DagNodeStatus)
+        ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+          (result.nodeStatuses[n.id] as DagNodeStatus)
         : n.status,
     }));
 
