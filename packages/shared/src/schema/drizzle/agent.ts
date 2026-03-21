@@ -3,7 +3,6 @@ import * as z from "zod/v4";
 import { AgentDefinitionSchema as AgentDefJsonSchema } from "../agent.ts";
 import { DrizzleDateTimeSchema } from "../misc.ts";
 import { nonNullSafeZDotJson, safeZDotJson } from "../json.ts";
-import { AgentDefinitionTypeSchema } from "./enum.ts";
 
 export const AgentDefinitionSchema = z.object({
   id: z.int(),
@@ -12,7 +11,7 @@ export const AgentDefinitionSchema = z.object({
   scopeId: z.string(),
   name: z.string(),
   description: z.string(),
-  type: AgentDefinitionTypeSchema,
+  type: z.enum(["GENERAL", "GHOST_TEXT", "WORKFLOW"]),
   definition: AgentDefJsonSchema,
   isBuiltin: z.boolean(),
   createdAt: DrizzleDateTimeSchema,
@@ -26,6 +25,7 @@ export const AgentSessionSchema = z.object({
   externalId: z.uuidv4(),
   agentDefinitionId: z.int(),
   userId: z.uuidv4().nullable(),
+  projectId: z.uuidv4().nullable(),
   status: z.enum(["ACTIVE", "COMPLETED", "FAILED", "CANCELLED"]),
   currentRunId: z.int().nullable(),
   trustPolicy: z.enum(["CONFIRM_ALL", "TRUST_SESSION"]),
