@@ -89,8 +89,8 @@ const agentEventBaseShape = {
   metadata: safeZDotJson.optional(),
 } as const;
 
-export const EventPayloadSchema = z.custom<AgentEventPayload>((payload) =>
-  nonNullSafeZDotJson.safeParse(payload).success,
+export const EventPayloadSchema = z.custom<AgentEventPayload>(
+  (payload) => nonNullSafeZDotJson.safeParse(payload).success,
 );
 
 const createAgentEventVariantSchema = <T extends EventType>(type: T) => {
