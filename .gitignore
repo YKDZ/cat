@@ -98,3 +98,5 @@ vitest.config.*.timestamp*
 
 TODO*
 TEMP*
+
+.github/prompts

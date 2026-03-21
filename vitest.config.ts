@@ -139,6 +139,15 @@ export default defineConfig({
         },
         resolve: { alias: alias(resolve(ROOT, "apps/app")) },
       },
+      // ── oxlint 自定义插件 ────────────────────────────────────────
+      {
+        test: {
+          name: "unit-oxlint-plugin",
+          include: ["packages/oxlint-plugin/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/oxlint-plugin")) },
+      },
     ],
   },
 });
