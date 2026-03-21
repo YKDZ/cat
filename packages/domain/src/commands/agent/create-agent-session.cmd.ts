@@ -17,6 +17,7 @@ const AgentSessionMetadataSchema = z.object({
 export const CreateAgentSessionCommandSchema = z.object({
   agentDefinitionId: z.uuidv4(),
   userId: z.uuidv4(),
+  projectId: z.uuidv4().optional(),
   metadata: AgentSessionMetadataSchema.optional(),
 });
 
@@ -42,6 +43,7 @@ export const createAgentSession: Command<
       .values({
         agentDefinitionId: definition.id,
         userId: command.userId,
+        projectId: command.projectId,
         // oxlint-disable-next-line no-unsafe-type-assertion -- metadata shape is validated by Zod
         metadata: (command.metadata ?? {}) as JSONType,
       })

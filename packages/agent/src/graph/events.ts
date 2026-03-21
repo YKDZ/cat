@@ -1,4 +1,4 @@
-import type { JSONObject, NonNullJSONType } from "@cat/shared/schema/json";
+import type { JSONObject } from "@cat/shared/schema/json";
 
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
@@ -42,9 +42,12 @@ export const EventTypeSchema = z.enum(EventTypeValues);
 
 export type EventType = z.infer<typeof EventTypeSchema>;
 
-export type AgentEventMap = {
-  [Key in EventType]: NonNullJSONType;
-};
+export type AgentEventPayload =
+  | string
+  | number
+  | boolean
+  | unknown[]
+  | Record<string, unknown>;
 
 type AgentEventBase = {
   eventId: string;
@@ -55,17 +58,16 @@ type AgentEventBase = {
   metadata?: JSONObject;
 };
 
+type AgentEventVariant<T extends EventType> = AgentEventBase & {
+  type: T;
+  payload: AgentEventPayload;
+};
+
 export type AgentEvent = {
-  [Key in EventType]: AgentEventBase & {
-    type: Key;
-    payload: AgentEventMap[Key];
-  };
+  [Key in EventType]: AgentEventVariant<Key>;
 }[EventType];
 
-export type AgentEventOf<T extends EventType> = Extract<
-  AgentEvent,
-  { type: T }
->;
+export type AgentEventOf<T extends EventType> = AgentEventVariant<T>;
 
 export type AgentEventLike = {
   eventId?: string;
@@ -75,7 +77,7 @@ export type AgentEventLike = {
   type: EventType;
   timestamp: string;
   payload: unknown;
-  metadata?: unknown;
+  metadata?: JSONObject;
 };
 
 const agentEventBaseShape = {
@@ -87,11 +89,15 @@ const agentEventBaseShape = {
   metadata: safeZDotJson.optional(),
 } as const;
 
+export const EventPayloadSchema = z.custom<AgentEventPayload>((payload) =>
+  nonNullSafeZDotJson.safeParse(payload).success,
+);
+
 const createAgentEventVariantSchema = <T extends EventType>(type: T) => {
   return z.object({
     ...agentEventBaseShape,
     type: z.literal(type),
-    payload: nonNullSafeZDotJson,
+    payload: EventPayloadSchema,
   });
 };
 
@@ -115,8 +121,6 @@ export const createAgentEvent = (eventLike: AgentEventLike): AgentEvent => {
 export type EventHandler<T extends EventType = EventType> = (
   event: AgentEventOf<T>,
 ) => Promise<void> | void;
-
-export const EventPayloadSchema = nonNullSafeZDotJson;
 
 export const EventEnvelopeInputSchema = z.object({
   type: EventTypeSchema,

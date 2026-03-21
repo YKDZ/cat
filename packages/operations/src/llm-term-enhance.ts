@@ -119,6 +119,9 @@ const parseJsonSafe = (text: string): LlmTermResult[] => {
   }
 };
 
+const formatErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
 // ─── Prompt builders ───
 
 const buildValidatePrompt = (
@@ -256,15 +259,29 @@ export const llmTermEnhanceOp = async (
         return {
           batch,
           results: parseJsonSafe(response.content?.trim() ?? ""),
+          error: null,
         };
       } catch (err: unknown) {
         logger
           .withSituation("OP")
           .error({ msg: "llmTermEnhanceOp: LLM batch failed" }, err);
-        return { batch, results: [] };
+        return {
+          batch,
+          results: [],
+          error: formatErrorMessage(err),
+        };
       }
     }),
   );
+
+  const validationErrors = validationResults
+    .map((result) => result.error)
+    .filter((error): error is string => error !== null);
+  if (validationErrors.length > 0) {
+    throw new Error(
+      `llmTermEnhanceOp validation failed: ${validationErrors[0]}`,
+    );
+  }
 
   for (const { batch, results } of validationResults) {
     for (let i = 0; i < batch.length; i += 1) {
@@ -352,15 +369,29 @@ Return ONLY a valid JSON array:
           return {
             batch,
             results: parseJsonSafe(response.content?.trim() ?? ""),
+            error: null,
           };
         } catch (err: unknown) {
           logger
             .withSituation("OP")
             .error({ msg: "llmTermEnhanceOp: definition batch failed" }, err);
-          return { batch, results: [] };
+          return {
+            batch,
+            results: [],
+            error: formatErrorMessage(err),
+          };
         }
       }),
     );
+
+    const enrichmentErrors = enrichmentResults
+      .map((result) => result.error)
+      .filter((error): error is string => error !== null);
+    if (enrichmentErrors.length > 0) {
+      throw new Error(
+        `llmTermEnhanceOp enrichment failed: ${enrichmentErrors[0]}`,
+      );
+    }
 
     for (const { batch, results } of enrichmentResults) {
       for (const candidate of batch) {

@@ -6,7 +6,7 @@ import {
 } from "@cat/operations";
 import * as z from "zod/v4";
 
-import { defineGraphWorkflow } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 // ─── Input Schema ────────────────────────────────────────────────────────────
 
@@ -133,205 +133,365 @@ export type AlignedGroup = z.infer<typeof AlignedGroupSchema>;
 export type AlignedTerm = z.infer<typeof AlignedTermSchema>;
 export type TermAlignmentResult = z.infer<typeof TermAlignmentResultSchema>;
 
+// ─── 中间节点 Schemas ────────────────────────────────────────────────────────
+
+/** start 节点：规范化 termGroups 并写入 BB */
+const StartOutputSchema = z.object({
+  termGroups: z.array(
+    z.object({
+      languageId: z.string().min(1),
+      candidates: z.array(
+        z.object({
+          text: z.string(),
+          normalizedText: z.string().optional(),
+          confidence: z.number().optional(),
+          posPattern: z.array(z.string()).nullable().optional(),
+          definition: z.string().nullable().optional(),
+          subjects: z.array(z.string()).nullable().optional(),
+          occurrences: z
+            .array(
+              z.object({
+                elementId: z.int(),
+                translationId: z.int().optional(),
+                ranges: z.array(z.object({ start: z.int(), end: z.int() })),
+              }),
+            )
+            .optional(),
+        }),
+      ),
+    }),
+  ),
+});
+
+const AlignedPairSchema = z.object({
+  groupAIndex: z.int(),
+  candidateAIndex: z.int(),
+  groupBIndex: z.int(),
+  candidateBIndex: z.int(),
+});
+
+const VectorAlignOutputSchema = z.object({
+  alignedPairs: z.array(
+    AlignedPairSchema.extend({ similarity: z.number().min(0).max(1) }),
+  ),
+  stringIds: z.array(
+    z.object({
+      groupIndex: z.int(),
+      candidateIndex: z.int(),
+      stringId: z.int(),
+    }),
+  ),
+});
+
+const StatAlignOutputSchema = z.object({
+  alignedPairs: z.array(
+    AlignedPairSchema.extend({ coOccurrenceScore: z.number().min(0).max(1) }),
+  ),
+});
+
+const LlmAlignInputSchema = z.object({
+  termGroups: StartOutputSchema.shape.termGroups,
+  vectorPairs: VectorAlignOutputSchema.shape.alignedPairs,
+  statPairs: StatAlignOutputSchema.shape.alignedPairs,
+  config: TermAlignmentInputSchema.shape.config,
+});
+
+const LlmAlignOutputSchema = z.object({
+  alignedPairs: z.array(
+    AlignedPairSchema.extend({ llmScore: z.number().min(0).max(1) }),
+  ),
+});
+
+const MergeInputSchema = z.object({
+  termGroups: StartOutputSchema.shape.termGroups,
+  vectorPairs: VectorAlignOutputSchema.shape.alignedPairs,
+  statPairs: StatAlignOutputSchema.shape.alignedPairs,
+  llmPairs: LlmAlignOutputSchema.shape.alignedPairs,
+  stringIds: VectorAlignOutputSchema.shape.stringIds,
+  config: TermAlignmentInputSchema.shape.config,
+});
+
+// ─── 类型安全 DAG 声明 ──────────────────────────────────────────────────────
+
 /**
  * 术语对齐工作流
  *
- * 将多个语言组中的候选术语按概念进行跨语言对齐，步骤：
- * 1. 向量余弦相似度对齐（TEXT_VECTORIZER + VECTOR_STORAGE，Decision #4-C）
- * 2. 统计共现对齐（基于翻译对的 translationId 级共现，Decision #5-B）
- * 3. LLM 兜底对齐（对向量和统计未覆盖的候选对，Decision #6-A）
- * 4. 加权融合 + Union-Find 传递闭包，生成最终多语言术语组
+ * DAG 结构（含并行分支）：
+ *         ┌─ vector-align ─┐
+ * start ──┤                 ├── llm-align ── merge
+ *         └─ stat-align  ──┘
  */
-export const termAlignmentWorkflow = defineGraphWorkflow({
-  name: "term.alignment",
+export const termAlignmentGraph = defineTypedGraph({
+  id: "term-alignment",
+  version: "1.0.0",
+  description: "术语对齐工作流 — 跨语言术语配对",
+
   input: TermAlignmentInputSchema,
   output: TermAlignmentResultSchema,
-  steps: async () => [],
-  handler: async (payload, ctx): Promise<TermAlignmentResult> => {
-    const config = payload.config;
-    const vectorCfg = config?.vector;
-    const statCfg = config?.statistical;
-    const llmCfg = config?.llm;
 
-    // Normalize termGroups to a minimal shared shape
-    const termGroups = payload.termGroups.map((g) => ({
-      languageId: g.languageId,
-      candidates: g.candidates.map((c) => ({
-        text: c.text,
-        normalizedText: c.normalizedText,
-        confidence: c.confidence,
-        posPattern: c.posPattern,
-        definition: c.definition,
-        subjects: c.subjects,
-        occurrences: c.occurrences?.map((o) => ({
-          elementId: o.elementId,
-          translationId: o.translationId,
-          ranges: o.ranges,
-        })),
-      })),
-    }));
+  nodes: {
+    start: defineNode({
+      input: TermAlignmentInputSchema,
+      output: StartOutputSchema,
+      handler: async (input, _ctx) => {
+        // 规范化 termGroups
+        const termGroups = input.termGroups.map((g) => ({
+          languageId: g.languageId,
+          candidates: g.candidates.map((c) => ({
+            text: c.text,
+            normalizedText: c.normalizedText,
+            confidence: c.confidence,
+            posPattern: c.posPattern,
+            definition: c.definition,
+            subjects: c.subjects,
+            occurrences: c.occurrences?.map((o) => ({
+              elementId: o.elementId,
+              translationId: o.translationId,
+              ranges: o.ranges,
+            })),
+          })),
+        }));
+        return { termGroups };
+      },
+    }),
 
-    // ── Step 1: Vector alignment ──────────────────────────────────────────────
+    "vector-align": defineNode({
+      input: z.object({
+        termGroups: StartOutputSchema.shape.termGroups,
+        config: TermAlignmentInputSchema.shape.config,
+      }),
+      output: VectorAlignOutputSchema,
+      inputMapping: {
+        termGroups: "start.termGroups",
+        config: "config",
+      },
+      handler: async (input, ctx) => {
+        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const vectorCfg = input.config?.vector;
 
-    const vectorResult =
-      vectorCfg?.enabled !== false &&
-      vectorCfg?.vectorizerId !== undefined &&
-      vectorCfg?.vectorStorageId !== undefined
-        ? await vectorTermAlignOp(
-            {
-              termGroups: termGroups.map((g) => ({
-                languageId: g.languageId,
-                candidates: g.candidates.map((c) => ({
-                  text: c.text,
-                  normalizedText: c.normalizedText,
-                  definition: c.definition,
-                })),
+        if (
+          vectorCfg?.enabled === false ||
+          vectorCfg?.vectorizerId === undefined ||
+          vectorCfg?.vectorStorageId === undefined
+        ) {
+          return { alignedPairs: [], stringIds: [] };
+        }
+
+        return vectorTermAlignOp(
+          {
+            termGroups: input.termGroups.map((g) => ({
+              languageId: g.languageId,
+              candidates: g.candidates.map((c) => ({
+                text: c.text,
+                normalizedText: c.normalizedText,
+                definition: c.definition,
               })),
-              config: {
-                vectorizerId: vectorCfg.vectorizerId,
-                vectorStorageId: vectorCfg.vectorStorageId,
-                minSimilarity: vectorCfg.minSimilarity ?? 0.75,
-              },
+            })),
+            config: {
+              vectorizerId: vectorCfg.vectorizerId,
+              vectorStorageId: vectorCfg.vectorStorageId,
+              minSimilarity: vectorCfg.minSimilarity ?? 0.75,
             },
-            ctx,
-          )
-        : { alignedPairs: [], stringIds: [] };
+          },
+          opCtx,
+        );
+      },
+    }),
 
-    // ── Step 2: Statistical alignment ─────────────────────────────────────────
+    "stat-align": defineNode({
+      input: z.object({
+        termGroups: StartOutputSchema.shape.termGroups,
+        config: TermAlignmentInputSchema.shape.config,
+        nlpSegmenterId: TermAlignmentInputSchema.shape.nlpSegmenterId,
+      }),
+      output: StatAlignOutputSchema,
+      inputMapping: {
+        termGroups: "start.termGroups",
+        config: "config",
+        nlpSegmenterId: "nlpSegmenterId",
+      },
+      handler: async (input, ctx) => {
+        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const statCfg = input.config?.statistical;
 
-    const statResult =
-      statCfg?.enabled !== false
-        ? await statisticalTermAlignOp(
-            {
-              termGroups: termGroups.map((g) => ({
-                languageId: g.languageId,
-                candidates: g.candidates.map((c) => ({
-                  text: c.text,
-                  normalizedText: c.normalizedText,
-                  occurrences: c.occurrences,
-                })),
+        if (statCfg?.enabled === false) {
+          return { alignedPairs: [] };
+        }
+
+        return statisticalTermAlignOp(
+          {
+            termGroups: input.termGroups.map((g) => ({
+              languageId: g.languageId,
+              candidates: g.candidates.map((c) => ({
+                text: c.text,
+                normalizedText: c.normalizedText,
+                occurrences: c.occurrences,
               })),
-              config: {
-                minCoOccurrence: statCfg?.minCoOccurrence ?? 0.3,
-              },
-              nlpSegmenterId: payload.nlpSegmenterId,
+            })),
+            config: {
+              minCoOccurrence: statCfg?.minCoOccurrence ?? 0.3,
             },
-            ctx,
-          )
-        : { alignedPairs: [] };
+            nlpSegmenterId: input.nlpSegmenterId,
+          },
+          opCtx,
+        );
+      },
+    }),
 
-    // ── Step 3: LLM alignment (fallback for unresolved pairs) ─────────────────
+    "llm-align": defineNode({
+      input: LlmAlignInputSchema,
+      output: LlmAlignOutputSchema,
+      inputMapping: {
+        termGroups: "start.termGroups",
+        vectorPairs: "vector-align.alignedPairs",
+        statPairs: "stat-align.alignedPairs",
+        config: "config",
+      },
+      handler: async (input, ctx) => {
+        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const llmCfg = input.config?.llm;
 
-    const llmResult =
-      llmCfg?.enabled !== false
-        ? await (async () => {
-            // Build set of already-aligned canonical pair keys
-            const alignedSet = new Set<string>();
-            const canonKey = (
-              gA: number,
-              cA: number,
-              gB: number,
-              cB: number,
-            ) => {
-              if (gA < gB || (gA === gB && cA <= cB))
-                return `${gA}:${cA}|${gB}:${cB}`;
-              return `${gB}:${cB}|${gA}:${cA}`;
-            };
+        if (llmCfg?.enabled === false) {
+          return { alignedPairs: [] };
+        }
 
-            for (const p of vectorResult.alignedPairs) {
-              alignedSet.add(
-                canonKey(
-                  p.groupAIndex,
-                  p.candidateAIndex,
-                  p.groupBIndex,
-                  p.candidateBIndex,
-                ),
-              );
-            }
-            for (const p of statResult.alignedPairs) {
-              alignedSet.add(
-                canonKey(
-                  p.groupAIndex,
-                  p.candidateAIndex,
-                  p.groupBIndex,
-                  p.candidateBIndex,
-                ),
-              );
-            }
+        // Build set of already-aligned canonical pair keys
+        const alignedSet = new Set<string>();
+        const canonKey = (gA: number, cA: number, gB: number, cB: number) => {
+          if (gA < gB || (gA === gB && cA <= cB))
+            return `${gA}:${cA}|${gB}:${cB}`;
+          return `${gB}:${cB}|${gA}:${cA}`;
+        };
 
-            // Generate unaligned cross-group pairs (limited to avoid LLM cost explosion)
-            const maxLlmPairs = (llmCfg?.batchSize ?? 30) * 5;
-            const unalignedPairs: Array<{
-              groupAIndex: number;
-              candidateAIndex: number;
-              groupBIndex: number;
-              candidateBIndex: number;
-            }> = [];
+        for (const p of input.vectorPairs) {
+          alignedSet.add(
+            canonKey(
+              p.groupAIndex,
+              p.candidateAIndex,
+              p.groupBIndex,
+              p.candidateBIndex,
+            ),
+          );
+        }
+        for (const p of input.statPairs) {
+          alignedSet.add(
+            canonKey(
+              p.groupAIndex,
+              p.candidateAIndex,
+              p.groupBIndex,
+              p.candidateBIndex,
+            ),
+          );
+        }
 
-            outer: for (let gA = 0; gA < termGroups.length; gA += 1) {
-              for (let gB = gA + 1; gB < termGroups.length; gB += 1) {
-                const candA = termGroups[gA].candidates;
-                const candB = termGroups[gB].candidates;
-                for (let cA = 0; cA < candA.length; cA += 1) {
-                  for (let cB = 0; cB < candB.length; cB += 1) {
-                    const key = canonKey(gA, cA, gB, cB);
-                    if (!alignedSet.has(key)) {
-                      unalignedPairs.push({
-                        groupAIndex: gA,
-                        candidateAIndex: cA,
-                        groupBIndex: gB,
-                        candidateBIndex: cB,
-                      });
-                      if (unalignedPairs.length >= maxLlmPairs) break outer;
-                    }
-                  }
+        const maxLlmPairs = (llmCfg?.batchSize ?? 30) * 5;
+        const unalignedPairs: Array<{
+          groupAIndex: number;
+          candidateAIndex: number;
+          groupBIndex: number;
+          candidateBIndex: number;
+        }> = [];
+
+        outer: for (let gA = 0; gA < input.termGroups.length; gA += 1) {
+          for (let gB = gA + 1; gB < input.termGroups.length; gB += 1) {
+            const candA = input.termGroups[gA]?.candidates ?? [];
+            const candB = input.termGroups[gB]?.candidates ?? [];
+            for (let cA = 0; cA < candA.length; cA += 1) {
+              for (let cB = 0; cB < candB.length; cB += 1) {
+                const key = canonKey(gA, cA, gB, cB);
+                if (!alignedSet.has(key)) {
+                  unalignedPairs.push({
+                    groupAIndex: gA,
+                    candidateAIndex: cA,
+                    groupBIndex: gB,
+                    candidateBIndex: cB,
+                  });
+                  if (unalignedPairs.length >= maxLlmPairs) break outer;
                 }
               }
             }
+          }
+        }
 
-            if (unalignedPairs.length === 0) return { alignedPairs: [] };
+        if (unalignedPairs.length === 0) return { alignedPairs: [] };
 
-            return await llmTermAlignOp(
-              {
-                termGroups: termGroups.map((g) => ({
-                  languageId: g.languageId,
-                  candidates: g.candidates.map((c) => ({
-                    text: c.text,
-                    posPattern: c.posPattern,
-                    definition: c.definition,
-                  })),
-                })),
-                unalignedGroupPairs: unalignedPairs,
-                config: {
-                  llmProviderId: llmCfg?.llmProviderId,
-                  batchSize: llmCfg?.batchSize ?? 30,
-                },
-              },
-              ctx,
-            );
-          })()
-        : { alignedPairs: [] };
-
-    // ── Step 4: Weighted fusion + transitive closure ─────────────────────────
-
-    const mergeResult = mergeAlignmentOp({
-      termGroups,
-      vectorPairs: vectorResult.alignedPairs,
-      statisticalPairs: statResult.alignedPairs,
-      llmPairs: llmResult.alignedPairs,
-      stringIds: vectorResult.stringIds,
-      config: {
-        weights: config?.weights
-          ? {
-              vector: config.weights.vector ?? 0.5,
-              statistical: config.weights.statistical ?? 0.3,
-              llm: config.weights.llm ?? 0.2,
-            }
-          : undefined,
-        minFusedScore: 0.4,
+        return llmTermAlignOp(
+          {
+            termGroups: input.termGroups.map((g) => ({
+              languageId: g.languageId,
+              candidates: g.candidates.map((c) => ({
+                text: c.text,
+                posPattern: c.posPattern,
+                definition: c.definition,
+              })),
+            })),
+            unalignedGroupPairs: unalignedPairs,
+            config: {
+              llmProviderId: llmCfg?.llmProviderId,
+              batchSize: llmCfg?.batchSize ?? 30,
+            },
+          },
+          opCtx,
+        );
       },
-    });
+    }),
 
-    return mergeResult;
+    merge: defineNode({
+      input: MergeInputSchema,
+      output: TermAlignmentResultSchema,
+      inputMapping: {
+        termGroups: "start.termGroups",
+        vectorPairs: "vector-align.alignedPairs",
+        statPairs: "stat-align.alignedPairs",
+        llmPairs: "llm-align.alignedPairs",
+        stringIds: "vector-align.stringIds",
+        config: "config",
+      },
+      outputMapping: {
+        alignedGroups: "alignedGroups",
+        unaligned: "unaligned",
+        stats: "stats",
+      },
+      handler: async (input, _ctx) => {
+        return mergeAlignmentOp({
+          termGroups: input.termGroups,
+          vectorPairs: input.vectorPairs,
+          statisticalPairs: input.statPairs,
+          llmPairs: input.llmPairs,
+          stringIds: input.stringIds,
+          config: {
+            weights: input.config?.weights
+              ? {
+                  vector: input.config.weights.vector ?? 0.5,
+                  statistical: input.config.weights.statistical ?? 0.3,
+                  llm: input.config.weights.llm ?? 0.2,
+                }
+              : undefined,
+            minFusedScore: 0.4,
+          },
+        });
+      },
+    }),
+  },
+
+  edges: [
+    { from: "start", to: "vector-align" },
+    { from: "start", to: "stat-align" },
+    { from: "vector-align", to: "llm-align" },
+    { from: "stat-align", to: "llm-align" },
+    { from: "llm-align", to: "merge" },
+  ],
+
+  entry: "start",
+  exit: ["merge"],
+
+  config: {
+    maxConcurrentNodes: 2,
+    defaultTimeoutMs: 120_000,
+    enableCheckpoints: true,
+    checkpointIntervalMs: 1000,
   },
 });
+
+/** 向后兼容：保留 termAlignmentWorkflow 名称 */
+export const termAlignmentWorkflow = termAlignmentGraph;

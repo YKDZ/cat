@@ -23,6 +23,7 @@ import { NodeRegistry } from "@/graph/node-registry";
 import { RuntimeAwareScheduler } from "@/graph/runtime-aware-scheduler";
 import { Scheduler } from "@/graph/scheduler";
 import { createRuntimeResolver, type RuntimeResolver } from "@/runtime";
+import { termAlignmentGraph, termDiscoveryGraph } from "@/workflow/tasks";
 
 export type { EventBus } from "@/graph/event-bus";
 export type { ExecutorPool, ExecutorTask } from "@/graph/executor-pool";
@@ -46,6 +47,7 @@ export * from "@/graph/event-store";
 export * from "@/graph/graphs";
 export * from "@/graph/builtin";
 export * from "@/graph/dsl";
+export * from "@/graph/typed-dsl";
 export * from "@/graph/distributed-extensions";
 
 export type DefaultGraphRuntime = {
@@ -83,6 +85,8 @@ export const createDefaultGraphRuntime = (
 
   graphRegistry.register(reactLoopGraph);
   graphRegistry.register(pipelineGraph);
+  graphRegistry.register(termDiscoveryGraph.graphDefinition);
+  graphRegistry.register(termAlignmentGraph.graphDefinition);
 
   const baseScheduler = new Scheduler({
     eventBus,

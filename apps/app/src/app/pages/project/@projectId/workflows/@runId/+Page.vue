@@ -12,6 +12,9 @@ const { runGraph, runId } = useData<Data>();
 const workflowStore = useWorkflowStore();
 
 
+workflowStore.applyRunGraph(runId, runGraph);
+
+
 onMounted(async () => {
   await workflowStore.loadRun(runId);
   void workflowStore.subscribe(runId);

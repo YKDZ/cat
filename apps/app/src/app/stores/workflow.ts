@@ -9,6 +9,13 @@ import { ws } from "@/app/rpc/ws";
 import { convertGraphDefinition } from "@/app/utils/graph-convert";
 
 type GraphDef = Parameters<typeof convertGraphDefinition>[0];
+type RunGraphResult = {
+  metadata: {
+    status?: string;
+    graphDefinition?: unknown;
+  } | null;
+  nodeStatuses: Record<string, string>;
+};
 
 const validNodeStatuses: readonly DagNodeStatus[] = [
   "pending",
@@ -36,7 +43,7 @@ export const useWorkflowStore = defineStore("workflow", () => {
   const nodeStatuses = ref(new Map<string, DagNodeStatus>());
   const blackboard = ref<Record<string, unknown>>({});
   const blackboardVersion = ref(0);
-  const eventLog = ref<AgentEvent[]>([]);
+  const eventLog = shallowRef<AgentEvent[]>([]);
   const runStatus = ref<string>("pending");
   const selectedNodeId = ref<string | undefined>(undefined);
   const activeRunId = ref<string | null>(null);
@@ -71,9 +78,23 @@ export const useWorkflowStore = defineStore("workflow", () => {
       case "run:resume":
         runStatus.value = "running";
         break;
-      case "run:end":
-        runStatus.value = "completed";
+      case "run:end": {
+        const statusRaw = isRecord(event.payload)
+          ? event.payload["status"]
+          : null;
+        runStatus.value =
+          typeof statusRaw === "string" && statusRaw.length > 0
+            ? statusRaw
+            : "completed";
+        const blackboardRaw = isRecord(event.payload)
+          ? event.payload["blackboard"]
+          : undefined;
+        if (isRecord(blackboardRaw)) {
+          blackboard.value = blackboardRaw;
+          blackboardVersion.value += 1;
+        }
         break;
+      }
       case "run:error":
         runStatus.value = "failed";
         break;
@@ -124,29 +145,40 @@ export const useWorkflowStore = defineStore("workflow", () => {
     }
   };
 
+  const applyRunGraph = (runId: string, result: RunGraphResult): void => {
+    activeRunId.value = runId;
+    runStatus.value = result.metadata?.status ?? "pending";
+
+    nodeStatuses.value = new Map();
+    for (const [nodeId, status] of Object.entries(result.nodeStatuses)) {
+      if (isDagNodeStatus(status)) {
+        nodeStatuses.value.set(nodeId, status);
+      }
+    }
+    nodeStatuses.value = new Map(nodeStatuses.value);
+
+    const graphDef = result.metadata?.graphDefinition;
+    if (!isGraphDef(graphDef)) {
+      graph.value = null;
+      return;
+    }
+
+    const converted = convertGraphDefinition(graphDef);
+    converted.nodes = converted.nodes.map((n) => ({
+      ...n,
+      status: isDagNodeStatus(result.nodeStatuses[n.id] ?? "")
+        ? (result.nodeStatuses[n.id] as DagNodeStatus)
+        : n.status,
+    }));
+
+    graph.value = converted;
+  };
+
   const loadRun = async (runId: string): Promise<void> => {
     isLoading.value = true;
     try {
       const result = await orpc.agent.getRunGraph({ runId });
-      activeRunId.value = runId;
-      runStatus.value = result.metadata?.status ?? "pending";
-
-      const graphDef = result.metadata?.graphDefinition;
-      if (isGraphDef(graphDef)) {
-        const converted = convertGraphDefinition(graphDef);
-
-        // Apply known node statuses from initial load
-        const statusMap = result.nodeStatuses;
-        converted.nodes = converted.nodes.map((n) => ({
-          ...n,
-          status: isDagNodeStatus(statusMap[n.id] ?? "")
-            ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-              (statusMap[n.id] as DagNodeStatus)
-            : n.status,
-        }));
-
-        graph.value = converted;
-      }
+      applyRunGraph(runId, result);
     } finally {
       isLoading.value = false;
     }
@@ -156,7 +188,7 @@ export const useWorkflowStore = defineStore("workflow", () => {
     try {
       for await (const event of await ws.agent.graphEvents({
         runId,
-        includeHistory: false,
+        includeHistory: eventLog.value.length === 0,
       })) {
         handleEvent(event);
       }
@@ -212,6 +244,7 @@ export const useWorkflowStore = defineStore("workflow", () => {
     resumeRun,
     cancelRun,
     retryNode,
+    applyRunGraph,
     reset,
   };
 });

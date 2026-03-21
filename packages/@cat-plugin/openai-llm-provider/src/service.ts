@@ -54,6 +54,20 @@ export class OpenAILLMProvider extends LLMProvider {
     return true;
   }
 
+  private shouldRetryWithoutThinking(
+    request: ChatCompletionRequest,
+    error: unknown,
+  ): boolean {
+    if (request.thinking === undefined || !(error instanceof Error)) {
+      return false;
+    }
+
+    return (
+      error.message.includes("enable_thinking") &&
+      error.message.includes("unexpected keyword argument")
+    );
+  }
+
   async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     const messages = request.messages.map(toOpenAIMessage);
     const tools = request.tools?.map(toOpenAITool);
@@ -162,20 +176,33 @@ export class OpenAILLMProvider extends LLMProvider {
     messages: ChatCompletionMessageParam[],
     tools: ChatCompletionTool[] | undefined,
   ): Promise<ChatCompletionResponse> {
-    const completion = await this.client.chat.completions.create(
-      {
-        model: this.config.model,
-        messages,
-        tools: tools && tools.length > 0 ? tools : undefined,
-        temperature: request.temperature,
-        max_tokens: request.maxTokens,
-        ...(request.thinking !== undefined && {
-          // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
-          enable_thinking: request.thinking as unknown,
-        }),
-      },
-      { signal: request.signal },
-    );
+    const params = {
+      model: this.config.model,
+      messages,
+      tools: tools && tools.length > 0 ? tools : undefined,
+      temperature: request.temperature,
+      max_tokens: request.maxTokens,
+      ...(request.thinking !== undefined && {
+        // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
+        enable_thinking: request.thinking as unknown,
+      }),
+    };
+
+    let completion;
+    try {
+      completion = await this.client.chat.completions.create(params, {
+        signal: request.signal,
+      });
+    } catch (error) {
+      if (!this.shouldRetryWithoutThinking(request, error)) {
+        throw error;
+      }
+
+      const { enable_thinking: _ignored, ...fallbackParams } = params;
+      completion = await this.client.chat.completions.create(fallbackParams, {
+        signal: request.signal,
+      });
+    }
 
     const choice = completion.choices[0];
     const toolCalls: ToolCall[] =
@@ -208,22 +235,35 @@ export class OpenAILLMProvider extends LLMProvider {
   ): Promise<ChatCompletionResponse> {
     const onChunk = request.onChunk!;
 
-    const stream = await this.client.chat.completions.create(
-      {
-        model: this.config.model,
-        messages,
-        tools: tools && tools.length > 0 ? tools : undefined,
-        temperature: request.temperature,
-        max_tokens: request.maxTokens,
-        stream: true,
-        stream_options: { include_usage: true },
-        ...(request.thinking !== undefined && {
-          // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
-          enable_thinking: request.thinking as unknown,
-        }),
-      },
-      { signal: request.signal },
-    );
+    const params = {
+      model: this.config.model,
+      messages,
+      tools: tools && tools.length > 0 ? tools : undefined,
+      temperature: request.temperature,
+      max_tokens: request.maxTokens,
+      stream: true,
+      stream_options: { include_usage: true },
+      ...(request.thinking !== undefined && {
+        // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
+        enable_thinking: request.thinking as unknown,
+      }),
+    };
+
+    let stream;
+    try {
+      stream = await this.client.chat.completions.create(params, {
+        signal: request.signal,
+      });
+    } catch (error) {
+      if (!this.shouldRetryWithoutThinking(request, error)) {
+        throw error;
+      }
+
+      const { enable_thinking: _ignored, ...fallbackParams } = params;
+      stream = await this.client.chat.completions.create(fallbackParams, {
+        signal: request.signal,
+      });
+    }
 
     let contentAcc = "";
     const toolCallAccMap = new Map<

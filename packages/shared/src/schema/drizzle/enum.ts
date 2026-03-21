@@ -145,7 +145,7 @@ export const AgentSessionTrustPolicySchema = z.enum(
   AgentSessionTrustPolicyValues,
 );
 
-export const AgentDefinitionTypeValues = ["GENERAL", "GHOST_TEXT"] as const;
+export const AgentDefinitionTypeValues = ["GENERAL", "GHOST_TEXT", "WORKFLOW"] as const;
 export const AgentDefinitionTypeSchema = z.enum(AgentDefinitionTypeValues);
 
 export type AgentToolTarget = (typeof AgentToolTargetValues)[number];
