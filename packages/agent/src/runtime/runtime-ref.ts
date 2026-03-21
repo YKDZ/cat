@@ -13,7 +13,8 @@ export const AgentRunRuntimeRefSchema = z.object({
   sessionId: z.int().positive(),
   agentDefinitionId: z.int().positive(),
   userId: z.string(),
-  llmProviderDbId: z.int().positive(),
+  /** Null for WORKFLOW type agents that don't use LLM */
+  llmProviderDbId: z.int().positive().nullable().optional(),
   toolNames: z.array(z.string().min(1)).default([]),
   toolSnapshot: z.array(PersistedToolSchemaSnapshotSchema).default([]),
   promptStrategy: RuntimePromptStrategySchema,

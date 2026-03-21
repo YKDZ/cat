@@ -1,0 +1,97 @@
+import type * as z from "zod/v4";
+
+import type { EventEnvelopeInput } from "@/graph/events";
+import type {
+  BlackboardSnapshot,
+  EdgeDefinition,
+  GraphDefinition,
+  NodeType,
+  RetryConfig,
+} from "@/graph/types";
+
+// ─── 类型安全节点上下文 ──────────────────────────────────────────────
+
+/** Step handler 执行时注入的上下文 */
+export type TypedNodeContext = {
+  runId: string;
+  nodeId: string;
+  signal?: AbortSignal;
+  emit: (event: EventEnvelopeInput) => Promise<void>;
+};
+
+// ─── 类型安全节点定义 ──────────────────────────────────────────────
+
+/** 一个类型安全的节点声明 */
+export type TypedNodeDef<
+  TInput extends z.ZodType = z.ZodType,
+  TOutput extends z.ZodType = z.ZodType,
+> = {
+  /** 节点类型，默认 transform */
+  type?: NodeType;
+  /** 节点输入 schema — 从 Blackboard 中按 key 读取 */
+  input: TInput;
+  /** 节点输出 schema — 写回 Blackboard 的数据 */
+  output: TOutput;
+  /** 执行函数 */
+  handler: (
+    input: z.infer<TInput>,
+    ctx: TypedNodeContext,
+  ) => Promise<z.infer<TOutput>>;
+  /** 输入数据来源映射：{ handlerParamKey: "blackboard.path" } */
+  inputMapping?: Record<string, string>;
+  /** 输出写回映射：{ "blackboard.path": "handlerOutputKey" } */
+  outputMapping?: Record<string, string>;
+  /** 超时 ms */
+  timeoutMs?: number;
+  /** 重试配置 */
+  retry?: RetryConfig;
+};
+
+// ─── 类型安全图定义 ──────────────────────────────────────────────
+
+/** defineTypedGraph 的选项 */
+export type TypedGraphOptions<
+  TInput extends z.ZodType,
+  TOutput extends z.ZodType,
+  TNodes extends Record<string, TypedNodeDef>,
+> = {
+  id: string;
+  version?: string;
+  description?: string;
+  /** 整个图的输入 schema（对应 Blackboard 初始数据） */
+  input: TInput;
+  /** 整个图的输出 schema（从 Blackboard 最终状态提取） */
+  output: TOutput;
+  /** 类型安全节点声明 */
+  nodes: TNodes;
+  /** 边定义 — from/to 受 TNodes 的 key 约束 */
+  edges: Array<{
+    from: Extract<keyof TNodes, string>;
+    to: Extract<keyof TNodes, string>;
+    condition?: EdgeDefinition["condition"];
+    label?: string;
+  }>;
+  /** 入口节点 */
+  entry: Extract<keyof TNodes, string>;
+  /** 出口节点 */
+  exit?: Array<Extract<keyof TNodes, string>>;
+  /** 图级别配置项 */
+  config?: GraphDefinition["config"];
+};
+
+/** defineTypedGraph 的返回值 */
+export type TypedGraphDefinition<
+  TInput extends z.ZodType,
+  TOutput extends z.ZodType,
+> = {
+  /** 标准 GraphDefinition，可直接注册到 GraphRegistry */
+  graphDefinition: GraphDefinition;
+  /** 输入 schema，用于 oRPC 端点的 input 校验 */
+  inputSchema: TInput;
+  /** 输出 schema，用于从 Blackboard 提取结果 */
+  outputSchema: TOutput;
+  /** Graph ID */
+  id: string;
+  /** 从 Blackboard 最终快照中提取类型安全结果 */
+  extractResult: (snapshot: BlackboardSnapshot) => z.infer<TOutput>;
+};

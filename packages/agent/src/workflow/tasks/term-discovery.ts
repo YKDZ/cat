@@ -6,7 +6,7 @@ import {
 } from "@cat/operations";
 import * as z from "zod/v4";
 
-import { defineGraphWorkflow } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 // ─── Config Schema ───────────────────────────────────────────────────────────
 
@@ -116,148 +116,321 @@ export type TermDiscoveryCandidate = z.infer<
 >;
 export type TermDiscoveryResult = z.infer<typeof TermDiscoveryResultSchema>;
 
+// ─── 中间节点 Schemas ────────────────────────────────────────────────────────
+
+const LoadTextsOutputSchema = z.object({
+  elements: z.array(
+    z.object({
+      elementId: z.int(),
+      text: z.string(),
+      languageId: z.string(),
+    }),
+  ),
+});
+
+const StatExtractInputSchema = z.object({
+  elements: z.array(
+    z.object({
+      elementId: z.int(),
+      text: z.string(),
+      languageId: z.string(),
+    }),
+  ),
+  languageId: z.string().min(1),
+  nlpSegmenterId: z.int().optional(),
+  config: TermDiscoveryConfigSchema.optional(),
+});
+
+const StatExtractOutputSchema = z.object({
+  candidates: z.array(
+    z.object({
+      text: z.string(),
+      normalizedText: z.string(),
+      posPattern: z.array(z.string()),
+      confidence: z.number().min(0).max(1),
+      frequency: z.int(),
+      documentFrequency: z.int(),
+      occurrences: z.array(
+        z.object({
+          elementId: z.int(),
+          ranges: z.array(z.object({ start: z.int(), end: z.int() })),
+        }),
+      ),
+    }),
+  ),
+  nlpSegmenterUsed: z.enum(["plugin", "intl-fallback"]),
+});
+
+const DedupMatchInputSchema = z.object({
+  candidates: z.array(
+    z.object({
+      text: z.string(),
+      normalizedText: z.string(),
+      posPattern: z.array(z.string()),
+      confidence: z.number().min(0).max(1),
+      frequency: z.int(),
+      documentFrequency: z.int(),
+      occurrences: z.array(
+        z.object({
+          elementId: z.int(),
+          ranges: z.array(z.object({ start: z.int(), end: z.int() })),
+        }),
+      ),
+    }),
+  ),
+  glossaryId: z.string().uuid(),
+  sourceLanguageId: z.string().min(1),
+});
+
+const DedupMatchOutputSchema = z.object({
+  candidates: z.array(
+    z.object({
+      text: z.string(),
+      normalizedText: z.string(),
+      posPattern: z.array(z.string()),
+      confidence: z.number().min(0).max(1),
+      frequency: z.int(),
+      documentFrequency: z.int(),
+      source: z.enum(["statistical", "llm", "both"]),
+      existsInGlossary: z.boolean(),
+      existingConceptId: z.int().nullable(),
+      occurrences: z.array(
+        z.object({
+          elementId: z.int(),
+          ranges: z.array(z.object({ start: z.int(), end: z.int() })),
+        }),
+      ),
+    }),
+  ),
+});
+
+const LlmEnhanceInputSchema = z.object({
+  dedupCandidates: z.array(
+    z.object({
+      text: z.string(),
+      normalizedText: z.string(),
+      posPattern: z.array(z.string()),
+      confidence: z.number().min(0).max(1),
+      frequency: z.int(),
+      documentFrequency: z.int(),
+      source: z.enum(["statistical", "llm", "both"]),
+      existsInGlossary: z.boolean(),
+      existingConceptId: z.int().nullable(),
+      occurrences: z.array(
+        z.object({
+          elementId: z.int(),
+          ranges: z.array(z.object({ start: z.int(), end: z.int() })),
+        }),
+      ),
+    }),
+  ),
+  sourceLanguageId: z.string().min(1),
+  config: TermDiscoveryConfigSchema.optional(),
+  statNlpUsed: z.enum(["plugin", "intl-fallback"]),
+  elements: z.array(
+    z.object({ elementId: z.int(), text: z.string(), languageId: z.string() }),
+  ),
+  statCandidates: z.array(z.unknown()),
+});
+
+// ─── 类型安全 DAG 声明 ──────────────────────────────────────────────────────
+
 /**
  * 术语冷启动（术语发现）工作流
  *
- * 步骤:
- * 1. 加载元素文本
- * 2a. NLP 批量分词（内嵌于 statisticalTermExtractOp）
- * 2b. POS 过滤 + N-gram + TF-IDF + C-value 打分
- * 3. 去重 & 与现有术语库比对
- * 4. LLM 增强（低置信度候选校验 + 定义/学科生成）
- * 5. 合并输出
+ * DAG 结构：load-texts → stat-extract → dedup-match → llm-enhance
  */
-export const termDiscoveryWorkflow = defineGraphWorkflow({
-  name: "term.discovery",
+export const termDiscoveryGraph = defineTypedGraph({
+  id: "term-discovery",
+  version: "1.0.0",
+  description: "术语发现工作流 — 从文档元素中提取候选术语",
+
   input: TermDiscoveryInputSchema,
   output: TermDiscoveryResultSchema,
-  steps: async () => [],
-  handler: async (payload, ctx): Promise<TermDiscoveryResult> => {
-    const config = payload.config;
-    const statConfig = config?.statistical;
-    const llmConfig = config?.llm;
 
-    // Step 1: Load element texts
-    const { elements } = await loadElementTextsOp(
-      {
-        documentIds: payload.documentIds,
-        elementIds: payload.elementIds,
-        sourceLanguageId: payload.sourceLanguageId,
+  nodes: {
+    "load-texts": defineNode({
+      input: TermDiscoveryInputSchema,
+      output: LoadTextsOutputSchema,
+      handler: async (input, ctx) => {
+        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const { elements } = await loadElementTextsOp(
+          {
+            documentIds: input.documentIds,
+            elementIds: input.elementIds,
+            sourceLanguageId: input.sourceLanguageId,
+          },
+          opCtx,
+        );
+        return { elements };
       },
-      ctx,
-    );
+    }),
 
-    if (elements.length === 0) {
-      return {
-        candidates: [],
-        stats: {
-          totalElementsProcessed: 0,
-          totalCandidatesFound: 0,
-          statisticalCandidates: 0,
-          llmCandidates: 0,
-          existingTermsMatched: 0,
-          nlpSegmenterUsed: "intl-fallback",
-        },
-      };
-    }
-
-    // Step 2: Statistical extraction (NLP segmentation + POS filter + TF-IDF + C-value)
-    const statResult =
-      statConfig?.enabled !== false
-        ? await statisticalTermExtractOp(
-            {
-              texts: elements.map((e) => ({
-                id: String(e.elementId),
-                elementId: e.elementId,
-                text: e.text,
-              })),
-              languageId: payload.sourceLanguageId,
-              nlpSegmenterId: payload.nlpSegmenterId,
-              config: {
-                maxTermTokens: statConfig?.maxTermTokens ?? 5,
-                minDocFreq: statConfig?.minDocFreq ?? 2,
-                minTermLength: statConfig?.minTermLength ?? 2,
-                tfIdfThreshold: statConfig?.tfIdfThreshold ?? 0.05,
-                tfidfWeight: statConfig?.tfidfWeight ?? 0.6,
-                cvalueWeight: statConfig?.cvalueWeight ?? 0.4,
-              },
-            },
-            ctx,
-          )
-        : { candidates: [], nlpSegmenterUsed: "intl-fallback" as const };
-
-    // Step 3: Deduplicate & match against existing glossary
-    const { candidates: dedupedCandidates } = await deduplicateAndMatchOp(
-      {
-        candidates: statResult.candidates.map((c) => ({
-          ...c,
-          source: "statistical" as const,
-        })),
-        glossaryId: payload.glossaryId,
-        sourceLanguageId: payload.sourceLanguageId,
+    "stat-extract": defineNode({
+      input: StatExtractInputSchema,
+      output: StatExtractOutputSchema,
+      inputMapping: {
+        elements: "load-texts.elements",
+        languageId: "sourceLanguageId",
+        nlpSegmenterId: "nlpSegmenterId",
+        config: "config",
       },
-      ctx,
-    );
+      handler: async (input, ctx) => {
+        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const statConfig = input.config?.statistical;
 
-    // Step 4: LLM enhancement (optional)
-    const useRelaxedThreshold = statResult.nlpSegmenterUsed === "intl-fallback";
+        if (input.elements.length === 0 || statConfig?.enabled === false) {
+          return { candidates: [], nlpSegmenterUsed: "intl-fallback" as const };
+        }
 
-    const { candidates: enhancedCandidates, llmCandidatesAdded } =
-      llmConfig?.enabled !== false
-        ? await llmTermEnhanceOp(
-            {
-              candidates: dedupedCandidates,
-              sourceLanguageId: payload.sourceLanguageId,
-              config: {
-                llmProviderId: llmConfig?.llmProviderId,
-                confidenceThreshold: llmConfig?.confidenceThreshold ?? 0.3,
-                batchSize: llmConfig?.batchSize ?? 20,
-                inferDefinition: llmConfig?.inferDefinition ?? true,
-                inferSubject: llmConfig?.inferSubject ?? true,
-                useRelaxedThreshold,
-              },
-            },
-            ctx,
-          )
-        : {
-            candidates: dedupedCandidates.map((c) => ({
-              ...c,
-              definition: null,
-              subjects: null,
+        return statisticalTermExtractOp(
+          {
+            texts: input.elements.map((e) => ({
+              id: String(e.elementId),
+              elementId: e.elementId,
+              text: e.text,
             })),
-            llmCandidatesAdded: 0,
-          };
-
-    // Step 5: Build final output
-    const existingTermsMatched = enhancedCandidates.filter(
-      (c) => c.existsInGlossary,
-    ).length;
-
-    const finalCandidates = enhancedCandidates.map((c) => ({
-      text: c.text,
-      normalizedText: c.normalizedText,
-      confidence: c.confidence,
-      frequency: c.frequency,
-      documentFrequency: c.documentFrequency,
-      source: c.source,
-      posPattern: c.posPattern.length > 0 ? c.posPattern : null,
-      definition: c.definition ?? null,
-      subjects: c.subjects ?? null,
-      existsInGlossary: c.existsInGlossary,
-      existingConceptId: c.existingConceptId,
-      occurrences: c.occurrences.slice(0, 10),
-    }));
-
-    return {
-      candidates: finalCandidates,
-      stats: {
-        totalElementsProcessed: elements.length,
-        totalCandidatesFound: finalCandidates.length,
-        statisticalCandidates: statResult.candidates.length,
-        llmCandidates: llmCandidatesAdded,
-        existingTermsMatched,
-        nlpSegmenterUsed: statResult.nlpSegmenterUsed,
+            languageId: input.languageId,
+            nlpSegmenterId: input.nlpSegmenterId,
+            config: {
+              maxTermTokens: statConfig?.maxTermTokens ?? 5,
+              minDocFreq: statConfig?.minDocFreq ?? 2,
+              minTermLength: statConfig?.minTermLength ?? 2,
+              tfIdfThreshold: statConfig?.tfIdfThreshold ?? 0.05,
+              tfidfWeight: statConfig?.tfidfWeight ?? 0.6,
+              cvalueWeight: statConfig?.cvalueWeight ?? 0.4,
+            },
+          },
+          opCtx,
+        );
       },
-    };
+    }),
+
+    "dedup-match": defineNode({
+      input: DedupMatchInputSchema,
+      output: DedupMatchOutputSchema,
+      inputMapping: {
+        candidates: "stat-extract.candidates",
+        glossaryId: "glossaryId",
+        sourceLanguageId: "sourceLanguageId",
+      },
+      handler: async (input, ctx) => {
+        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+
+        if (input.candidates.length === 0) {
+          return { candidates: [] };
+        }
+
+        return deduplicateAndMatchOp(
+          {
+            candidates: input.candidates.map((c) => ({
+              ...c,
+              source: "statistical" as const,
+            })),
+            glossaryId: input.glossaryId,
+            sourceLanguageId: input.sourceLanguageId,
+          },
+          opCtx,
+        );
+      },
+    }),
+
+    "llm-enhance": defineNode({
+      input: LlmEnhanceInputSchema,
+      output: TermDiscoveryResultSchema,
+      inputMapping: {
+        dedupCandidates: "dedup-match.candidates",
+        sourceLanguageId: "sourceLanguageId",
+        config: "config",
+        statNlpUsed: "stat-extract.nlpSegmenterUsed",
+        elements: "load-texts.elements",
+        statCandidates: "stat-extract.candidates",
+      },
+      outputMapping: {
+        candidates: "candidates",
+        stats: "stats",
+      },
+      handler: async (input, ctx) => {
+        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const llmConfig = input.config?.llm;
+        const useRelaxedThreshold = input.statNlpUsed === "intl-fallback";
+
+        const { candidates: enhancedCandidates, llmCandidatesAdded } =
+          llmConfig?.enabled !== false
+            ? await llmTermEnhanceOp(
+                {
+                  candidates: input.dedupCandidates,
+                  sourceLanguageId: input.sourceLanguageId,
+                  config: {
+                    llmProviderId: llmConfig?.llmProviderId,
+                    confidenceThreshold: llmConfig?.confidenceThreshold ?? 0.3,
+                    batchSize: llmConfig?.batchSize ?? 20,
+                    inferDefinition: llmConfig?.inferDefinition ?? true,
+                    inferSubject: llmConfig?.inferSubject ?? true,
+                    useRelaxedThreshold,
+                  },
+                },
+                opCtx,
+              )
+            : {
+                candidates: input.dedupCandidates.map((c) => ({
+                  ...c,
+                  definition: null,
+                  subjects: null,
+                })),
+                llmCandidatesAdded: 0,
+              };
+
+        const existingTermsMatched = enhancedCandidates.filter(
+          (c) => c.existsInGlossary,
+        ).length;
+
+        const finalCandidates = enhancedCandidates.map((c) => ({
+          text: c.text,
+          normalizedText: c.normalizedText,
+          confidence: c.confidence,
+          frequency: c.frequency,
+          documentFrequency: c.documentFrequency,
+          source: c.source,
+          posPattern: c.posPattern.length > 0 ? c.posPattern : null,
+          definition: c.definition ?? null,
+          subjects: c.subjects ?? null,
+          existsInGlossary: c.existsInGlossary,
+          existingConceptId: c.existingConceptId,
+          occurrences: c.occurrences.slice(0, 10),
+        }));
+
+        return {
+          candidates: finalCandidates,
+          stats: {
+            totalElementsProcessed: input.elements.length,
+            totalCandidatesFound: finalCandidates.length,
+            statisticalCandidates: input.statCandidates.length,
+            llmCandidates: llmCandidatesAdded,
+            existingTermsMatched,
+            nlpSegmenterUsed: input.statNlpUsed,
+          },
+        };
+      },
+    }),
+  },
+
+  edges: [
+    { from: "load-texts", to: "stat-extract" },
+    { from: "stat-extract", to: "dedup-match" },
+    { from: "dedup-match", to: "llm-enhance" },
+  ],
+
+  entry: "load-texts",
+  exit: ["llm-enhance"],
+
+  config: {
+    maxConcurrentNodes: 1,
+    defaultTimeoutMs: 120_000,
+    enableCheckpoints: true,
+    checkpointIntervalMs: 1000,
   },
 });
+
+/** 向后兼容：保留 termDiscoveryWorkflow 名称 */
+export const termDiscoveryWorkflow = termDiscoveryGraph;

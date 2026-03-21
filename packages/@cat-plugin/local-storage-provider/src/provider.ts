@@ -12,7 +12,7 @@ import {
   type PutStreamContext,
 } from "@cat/plugin-core";
 import { createReadStream, createWriteStream } from "node:fs";
-import { mkdir, stat, unlink, access } from "node:fs/promises";
+import { mkdir, stat, unlink, access, open } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
 import * as z from "zod/v4";
@@ -97,9 +97,7 @@ export class Provider extends StorageProvider {
     const totalBytes = stats.size;
 
     // 读取整个文件为 UTF-8 字符串，确保正确处理多字节字符
-    const fd = await import("node:fs/promises").then(async (m) =>
-      m.open(filePath, "r"),
-    );
+    const fd = await open(filePath, "r");
     let fullContent: string;
 
     try {

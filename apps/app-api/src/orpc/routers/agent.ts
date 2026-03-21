@@ -1,14 +1,12 @@
-import type { AgentRunMetadataRow, DrizzleDB } from "@cat/domain";
+import type { AgentRunMetadataRow } from "@cat/domain";
 
 import {
   AgentSessionMetaSchema,
   createAgentEvent,
-  createDefaultGraphRuntime,
   rebuildConversationFromRuns,
   resolveDefinition,
   resolveSession,
   type AgentEvent,
-  type DefaultGraphRuntime,
 } from "@cat/agent";
 import { builtinAgentTemplates, getBuiltinAgentTemplate } from "@cat/agent";
 import {
@@ -40,17 +38,7 @@ import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
-
-let _graphRuntime: DefaultGraphRuntime | null = null;
-const getGraphRuntime = async (
-  drizzle: DrizzleDB["client"],
-  pluginManager: import("@cat/plugin-core").PluginManager,
-): Promise<DefaultGraphRuntime> => {
-  if (!_graphRuntime) {
-    _graphRuntime = createDefaultGraphRuntime(drizzle, pluginManager);
-  }
-  return _graphRuntime;
-};
+import { getGraphRuntime } from "@/utils/graph-runtime";
 
 const isTerminalRunEvent = (event: AgentEvent): boolean => {
   return event.type === "run:end" || event.type === "run:error";
@@ -74,13 +62,9 @@ export const list = authed
   )
   .handler(async ({ context, input }) => {
     const {
-      drizzleDB: { client: drizzle },
+      drizzleDB: { client: db },
     } = context;
-    const rows = await executeQuery(
-      { db: drizzle },
-      listAgentDefinitions,
-      input,
-    );
+    const rows = await executeQuery({ db }, listAgentDefinitions, input);
 
     return rows.map((row) => ({
       ...row,
@@ -99,13 +83,9 @@ export const getByType = authed
   )
   .handler(async ({ context, input }) => {
     const {
-      drizzleDB: { client: drizzle },
+      drizzleDB: { client: db },
     } = context;
-    const rows = await executeQuery(
-      { db: drizzle },
-      listAgentDefinitions,
-      input,
-    );
+    const rows = await executeQuery({ db }, listAgentDefinitions, input);
 
     return rows.map((row) => ({
       id: row.externalId,

@@ -3,6 +3,7 @@ import * as z from "zod/v4";
 import { AgentDefinitionSchema as AgentDefJsonSchema } from "../agent.ts";
 import { DrizzleDateTimeSchema } from "../misc.ts";
 import { nonNullSafeZDotJson, safeZDotJson } from "../json.ts";
+import { AgentDefinitionTypeSchema } from "./enum.ts";
 
 export const AgentDefinitionSchema = z.object({
   id: z.int(),
@@ -11,7 +12,7 @@ export const AgentDefinitionSchema = z.object({
   scopeId: z.string(),
   name: z.string(),
   description: z.string(),
-  type: z.enum(["GENERAL", "GHOST_TEXT"]),
+  type: AgentDefinitionTypeSchema,
   definition: AgentDefJsonSchema,
   isBuiltin: z.boolean(),
   createdAt: DrizzleDateTimeSchema,

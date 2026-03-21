@@ -9,9 +9,19 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!projectId || !runId) throw render(`/`, `Missing params`);
 
+  const project = await ssc(ctx).project.get({ projectId });
+  const targetLanguages = await ssc(ctx).project.getTargetLanguages({
+    projectId,
+  });
+  const documents = await ssc(ctx).project.getDocuments({
+    projectId,
+  });
   const runGraph = await ssc(ctx).agent.getRunGraph({ runId });
 
-  return { runGraph, projectId, runId };
+  if (!project)
+    throw render("/project", `Project ${projectId} does not exists`);
+
+  return { project, targetLanguages, documents, runGraph, projectId, runId };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

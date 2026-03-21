@@ -8,6 +8,7 @@ import {
 } from "@cat/domain";
 import { getServiceFromDBId } from "@cat/server-shared";
 import { assertFirstNonNullish } from "@cat/shared/utils";
+import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
@@ -62,6 +63,11 @@ export const suggest = authed
     );
 
     // ── 2. Resolve the LLM provider(s) ──────────────────────────────────────
+    if (!ghostAgentRow.definition.llm) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "Ghost text agent definition is missing LLM configuration.",
+      });
+    }
     const providerId = ghostAgentRow.definition.llm.providerId;
 
     // ── 3. Fetch source text from DB ─────────────────────────────────────────

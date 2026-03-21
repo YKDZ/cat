@@ -31,7 +31,7 @@ import {
 } from "./runtime-ref";
 
 export type ResolvedGraphRuntimeContext = {
-  llmProvider: LLMProvider;
+  llmProvider?: LLMProvider;
   tools: AgentToolDefinition[];
   systemPrompt: string;
   runtimeRef: AgentRunRuntimeRef;
@@ -227,15 +227,17 @@ export class RuntimeResolver implements RuntimeResolutionService {
       promptStrategy,
       persistedSystemPrompt: params.persistedSystemPrompt,
     });
-    const llmProvider = getServiceFromDBId<LLMProvider>(
-      this.#pluginManager,
-      definition.llm.providerId,
-    );
+    const llmProvider = definition.llm
+      ? getServiceFromDBId<LLMProvider>(
+          this.#pluginManager,
+          definition.llm.providerId,
+        )
+      : undefined;
     const runtimeRef = AgentRunRuntimeRefSchema.parse({
       sessionId: params.sessionId,
       agentDefinitionId: params.agentDefinitionId,
       userId: params.userId,
-      llmProviderDbId: definition.llm.providerId,
+      llmProviderDbId: definition.llm?.providerId ?? null,
       toolNames: tools.map((tool) => tool.name),
       toolSnapshot: this.serializeToolSnapshot(tools),
       promptStrategy,
@@ -362,10 +364,12 @@ export class RuntimeResolver implements RuntimeResolutionService {
       promptStrategy: runtimeRef.promptStrategy,
       persistedSystemPrompt: runtimeRef.persistedSystemPrompt,
     });
-    const llmProvider = getServiceFromDBId<LLMProvider>(
-      this.#pluginManager,
-      runtimeRef.llmProviderDbId,
-    );
+    const llmProvider = runtimeRef.llmProviderDbId
+      ? getServiceFromDBId<LLMProvider>(
+          this.#pluginManager,
+          runtimeRef.llmProviderDbId,
+        )
+      : undefined;
 
     return {
       llmProvider,

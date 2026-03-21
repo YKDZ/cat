@@ -63,11 +63,11 @@ export const AgentDefinitionSchema = z.object({
   /** Agent usage type/category */
   type: AgentDefinitionTypeSchema.default("GENERAL"),
 
-  /** LLM configuration */
-  llm: AgentLLMConfigSchema,
+  /** LLM configuration — optional for WORKFLOW type agents */
+  llm: AgentLLMConfigSchema.optional(),
 
   /** System prompt template (supports {{variable}} interpolation) */
-  systemPrompt: z.string(),
+  systemPrompt: z.string().default(""),
   /** Variable definitions for system prompt interpolation */
   systemPromptVariables: z
     .record(z.string(), SystemPromptVariableSchema)

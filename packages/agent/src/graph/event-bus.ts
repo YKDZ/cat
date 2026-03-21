@@ -1,23 +1,17 @@
 import {
   InProcessEventBus as BaseInProcessEventBus,
   type TypedEventBus,
+  type WaitForEventOptions,
 } from "@cat/domain/events";
 
 import type { AgentEvent, AgentEventOf, EventType } from "@/graph/events";
 
 import { createAgentEvent } from "@/graph/events";
 
-export type WaitForEventArgs<T extends EventType = EventType> = {
-  type: T;
-  timeoutMs?: number;
-  predicate?: (event: AgentEventOf<T>) => boolean;
-};
+export type WaitForEventArgs<T extends EventType = EventType> =
+  WaitForEventOptions<EventType, AgentEvent, T>;
 
-export type EventBus = TypedEventBus<EventType, AgentEvent> & {
-  waitFor: <T extends EventType>(
-    options: WaitForEventArgs<T>,
-  ) => Promise<AgentEventOf<T>>;
-};
+export type EventBus = TypedEventBus<EventType, AgentEvent>;
 
 export class InProcessEventBus implements EventBus {
   private readonly bus = new BaseInProcessEventBus<EventType, AgentEvent>();
@@ -34,41 +28,15 @@ export class InProcessEventBus implements EventBus {
     await this.bus.publishMany(normalized);
   };
 
-  subscribe = <T extends EventType>(
-    eventType: T,
-    handler: (event: AgentEventOf<T>) => Promise<void> | void,
-  ): (() => void) => {
+  subscribe: EventBus["subscribe"] = (eventType, handler) => {
     return this.bus.subscribe(eventType, handler);
   };
 
-  subscribeAll = (
-    handler: (event: AgentEvent) => Promise<void> | void,
-  ): (() => void) => {
+  subscribeAll: EventBus["subscribeAll"] = (handler) => {
     return this.bus.subscribeAll(handler);
   };
 
-  waitFor = async <T extends EventType>(
-    options: WaitForEventArgs<T>,
-  ): Promise<AgentEventOf<T>> => {
-    const { type, timeoutMs = 300_000, predicate } = options;
-
-    return new Promise<AgentEventOf<T>>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        unsubscribe();
-        reject(
-          new Error(`Wait event timeout: type=${type}, timeoutMs=${timeoutMs}`),
-        );
-      }, timeoutMs);
-
-      const unsubscribe = this.subscribe(type, (event) => {
-        if (predicate && !predicate(event)) {
-          return;
-        }
-
-        clearTimeout(timer);
-        unsubscribe();
-        resolve(event);
-      });
-    });
+  waitFor: EventBus["waitFor"] = async (options) => {
+    return this.bus.waitFor(options);
   };
 }

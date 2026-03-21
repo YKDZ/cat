@@ -1,4 +1,3 @@
-import { IdentityNodeExecutor } from "./identity-node";
 import { JoinNodeExecutor } from "./join-node";
 import { LoopNodeExecutor } from "./loop-node";
 import { ParallelNodeExecutor } from "./parallel-node";
@@ -12,7 +11,7 @@ export {
   resumeHumanInputNode,
 } from "./human-input-node";
 
-export const TransformNodeExecutor = IdentityNodeExecutor;
+export { TransformNodeExecutor } from "./identity-node";
 
 export {
   ParallelNodeExecutor,
