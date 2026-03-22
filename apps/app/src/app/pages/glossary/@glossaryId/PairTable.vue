@@ -80,9 +80,7 @@ const fetchTerms = async () => {
     terms.value = result.data;
     total.value = result.total;
   } catch (err) {
-    logger
-      .withSituation("WEB")
-      .error({ msg: "Failed to fetch term pairs:" }, err);
+    logger.withSituation("WEB").error(err, "Failed to fetch term pairs");
   } finally {
     isLoading.value = false;
   }

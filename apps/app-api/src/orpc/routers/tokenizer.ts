@@ -1,4 +1,4 @@
-import { tokenizeTask } from "@cat/agent/workflow";
+import { runGraph, tokenizeGraph } from "@cat/agent/workflow";
 import { lookupTermsForElementOp } from "@cat/operations";
 import { TokenSchema } from "@cat/plugin-core";
 import z from "zod";
@@ -27,12 +27,7 @@ export const tokenize = authed
         ? await lookupTermsForElementOp(elementId, translationLanguageId)
         : [];
 
-    const { result } = await tokenizeTask.run({
-      text,
-      terms,
-    });
-
-    const { tokens } = await result();
+    const { tokens } = await runGraph(tokenizeGraph, { text, terms });
 
     return { tokens };
   });

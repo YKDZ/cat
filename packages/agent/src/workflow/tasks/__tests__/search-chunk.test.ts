@@ -10,8 +10,11 @@ import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createTranslatableStringTask } from "../create-translatable-string";
-import { searchChunkWorkflow } from "../search-chunk";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { createTranslatableStringGraph } from "../create-translatable-string";
+import { searchChunkGraph } from "../search-chunk";
 
 const data = [
   { text: "Search chunk text 1", languageId: "en" },
@@ -46,7 +49,6 @@ beforeAll(async () => {
     languageIds: ["en", "zh-Hans"],
   });
 
-  // Pre-populate chunks for search
   const pluginManager2 = PluginManager.get("GLOBAL", "");
   const vectorStorage = assertSingleNonNullish(
     pluginManager2.getServices("VECTOR_STORAGE"),
@@ -55,12 +57,13 @@ beforeAll(async () => {
     pluginManager2.getServices("TEXT_VECTORIZER"),
   );
 
-  const { result } = await createTranslatableStringTask.run({
+  createDefaultGraphRuntime(drizzle, pluginManager);
+
+  await runGraph(createTranslatableStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-  await result();
 });
 
 test("search-chunk should return similar chunks", async () => {
@@ -75,15 +78,13 @@ test("search-chunk should return similar chunks", async () => {
   const chunkIds = allChunks.map((chunk) => chunk.id);
   const searchRange = chunkIds;
 
-  const { result } = await searchChunkWorkflow.run({
+  const { chunks } = await runGraph(searchChunkGraph, {
     minSimilarity: 0,
     maxAmount: 10,
     searchRange,
     queryChunkIds: [chunkIds[0]],
     vectorStorageId: vectorStorage.dbId,
   });
-
-  const { chunks } = await result();
 
   expect(Array.isArray(chunks)).toBe(true);
   expect(chunks.length).toBeGreaterThan(0);
@@ -108,15 +109,13 @@ test("search-chunk with empty searchRange should return empty chunks", async () 
   const allChunks = await executeQuery({ db: drizzle }, listAllChunks, {});
   const chunkIds = allChunks.map((chunk) => chunk.id);
 
-  const { result } = await searchChunkWorkflow.run({
+  const { chunks } = await runGraph(searchChunkGraph, {
     minSimilarity: 0,
     maxAmount: 10,
     searchRange: [],
     queryChunkIds: [chunkIds[0]],
     vectorStorageId: vectorStorage.dbId,
   });
-
-  const { chunks } = await result();
   expect(Array.isArray(chunks)).toBe(true);
   expect(chunks.length).toEqual(0);
 });

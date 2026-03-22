@@ -6,10 +6,11 @@ import * as z from "zod/v4";
 
 import { withAgentDb, withAgentDbTransaction } from "@/db/domain";
 import { generateCacheKey } from "@/graph/cache";
-import { defineGraphWorkflow } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { runGraph } from "@/graph/typed-dsl/run-graph";
 
-import { createTranslatableStringTask } from "./create-translatable-string";
-import { qaTranslationWorkflow } from "./qa-translation";
+import { createTranslatableStringGraph } from "./create-translatable-string";
+import { qaTranslationGraph } from "./qa-translation";
 
 export const CreateTranslationInputSchema = z.object({
   data: z.array(
@@ -43,105 +44,97 @@ export type CreateTranslationPubPayload = z.infer<
   typeof CreateTranslationPubPayloadSchema
 >;
 
-export const createTranslationWorkflow = defineGraphWorkflow({
-  name: "translation.create",
+export const createTranslationGraph = defineTypedGraph({
+  id: "translation-create",
   input: CreateTranslationInputSchema,
   output: CreateTranslationOutputSchema,
+  nodes: {
+    main: defineNode({
+      input: CreateTranslationInputSchema,
+      output: CreateTranslationOutputSchema,
+      handler: async (input, ctx) => {
+        if (input.pub && !input.documentId) {
+          throw new Error("documentId must be specified when pub is true");
+        }
 
-  steps: async (payload, { traceId, signal }) => {
-    return [
-      createTranslatableStringTask.asStep(
-        {
-          data: payload.data.map((item) => ({
-            text: item.text,
-            languageId: item.languageId,
-          })),
-          vectorizerId: payload.vectorizerId,
-          vectorStorageId: payload.vectorStorageId,
-        },
-        { traceId, signal },
-      ),
-    ];
-  },
+        const sideEffectKey = `translations:${generateCacheKey({
+          data: input.data,
+          translatorId: input.translatorId,
+          memoryIds: input.memoryIds,
+        })}`;
+        const existing = await ctx.checkSideEffect<{
+          translationIds: number[];
+          memoryItemIds: number[];
+        }>(sideEffectKey);
+        if (existing !== null) {
+          return existing;
+        }
 
-  handler: async (payload, ctx) => {
-    const [stringResult] = ctx.getStepResult(createTranslatableStringTask);
-
-    if (payload.pub && !payload.documentId) {
-      throw new Error("documentId must be specified when pub is true");
-    }
-    if (!stringResult) {
-      throw new Error("Missing string creation result");
-    }
-
-    const sideEffectKey = `translations:${generateCacheKey({
-      data: payload.data,
-      translatorId: payload.translatorId,
-      memoryIds: payload.memoryIds,
-    })}`;
-    const existing = await ctx.checkSideEffect<{
-      translationIds: number[];
-      memoryItemIds: number[];
-    }>(sideEffectKey);
-    if (existing !== null) {
-      return existing;
-    }
-
-    const translationIds = await withAgentDb(async (db) => {
-      return executeCommand({ db }, createTranslations, {
-        data: Array.from(zip(payload.data, stringResult.stringIds)).map(
-          ([item, stringId]) => ({
-            translatableElementId: item.translatableElementId,
-            translatorId: item.translatorId,
-            meta: item.meta,
-            stringId,
-          }),
-        ),
-      });
-    });
-
-    if (payload.pub && payload.documentId) {
-      ctx.addEvent({
-        type: "workflow:translation:created",
-        payload: {
-          documentId: payload.documentId,
-          translationIds,
-        },
-      });
-    }
-
-    let memoryItemIds: number[] = [];
-    if (payload.memoryIds.length > 0) {
-      await withAgentDbTransaction(async (tx) => {
-        memoryItemIds = (
-          await insertMemory(tx, payload.memoryIds, translationIds)
-        ).memoryItemIds;
-      });
-    }
-
-    await Promise.all(
-      translationIds.map(async (translationId) => {
-        const qaRun = await qaTranslationWorkflow.run(
-          { translationId },
+        const { stringIds } = await runGraph(
+          createTranslatableStringGraph,
           {
-            runId: ctx.runId,
-            traceId: ctx.traceId,
-            signal: ctx.signal,
-            pluginManager: ctx.pluginManager,
+            data: input.data.map((item) => ({
+              text: item.text,
+              languageId: item.languageId,
+            })),
+            vectorizerId: input.vectorizerId,
+            vectorStorageId: input.vectorStorageId,
           },
+          { signal: ctx.signal },
         );
 
-        await qaRun.result();
-      }),
-    );
+        const translationIds = await withAgentDb(async (db) => {
+          return executeCommand({ db }, createTranslations, {
+            data: Array.from(zip(input.data, stringIds)).map(
+              ([item, stringId]) => ({
+                translatableElementId: item.translatableElementId,
+                translatorId: item.translatorId,
+                meta: item.meta,
+                stringId,
+              }),
+            ),
+          });
+        });
 
-    const output = {
-      translationIds,
-      memoryItemIds,
-    };
+        if (input.pub && input.documentId) {
+          ctx.addEvent({
+            type: "workflow:translation:created",
+            payload: {
+              documentId: input.documentId,
+              translationIds,
+            },
+          });
+        }
 
-    await ctx.recordSideEffect(sideEffectKey, "db_write", output);
+        let memoryItemIds: number[] = [];
+        if (input.memoryIds.length > 0) {
+          await withAgentDbTransaction(async (tx) => {
+            memoryItemIds = (
+              await insertMemory(tx, input.memoryIds, translationIds)
+            ).memoryItemIds;
+          });
+        }
 
-    return output;
+        await Promise.all(
+          translationIds.map(async (translationId) => {
+            await runGraph(
+              qaTranslationGraph,
+              { translationId },
+              { signal: ctx.signal },
+            );
+          }),
+        );
+
+        const output = { translationIds, memoryItemIds };
+        await ctx.recordSideEffect(sideEffectKey, "db_write", output);
+        return output;
+      },
+    }),
   },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use createTranslationGraph */
+export const createTranslationWorkflow = createTranslationGraph;

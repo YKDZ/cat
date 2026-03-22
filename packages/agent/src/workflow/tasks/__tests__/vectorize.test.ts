@@ -10,7 +10,10 @@ import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { vectorizeToChunkSetTask } from "../vectorize";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { vectorizeGraph } from "../vectorize";
 
 const data = [
   { text: "Vectorize text 1", languageId: "en" },
@@ -43,6 +46,8 @@ beforeAll(async () => {
   await executeCommand({ db: drizzle }, ensureLanguages, {
     languageIds: ["en", "zh-Hans"],
   });
+
+  createDefaultGraphRuntime(drizzle, pluginManager);
 });
 
 test("vectorize should create chunk sets and store embeddings", async () => {
@@ -56,13 +61,11 @@ test("vectorize should create chunk sets and store embeddings", async () => {
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  const { result } = await vectorizeToChunkSetTask.run({
+  const { chunkSetIds } = await runGraph(vectorizeGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-
-  const { chunkSetIds } = await result();
 
   expect(chunkSetIds.length).toEqual(data.length);
 
@@ -80,12 +83,10 @@ test("vectorize with empty input should return empty chunkSetIds", async () => {
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  const { result } = await vectorizeToChunkSetTask.run({
+  const { chunkSetIds } = await runGraph(vectorizeGraph, {
     data: [],
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-
-  const { chunkSetIds } = await result();
   expect(chunkSetIds).toEqual([]);
 });

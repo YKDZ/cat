@@ -2,9 +2,10 @@ import { listTermConceptIdsBySubject } from "@cat/domain";
 import * as z from "zod/v4";
 
 import { runAgentQuery } from "@/db/domain";
-import { defineGraphTask } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { runGraph } from "@/graph/typed-dsl/run-graph";
 
-import { revectorizeConceptTask } from "./revectorize-concept";
+import { revectorizeConceptGraph } from "./revectorize-concept";
 
 export const RevectorizeSubjectConceptsInputSchema = z.object({
   subjectId: z.int(),
@@ -16,25 +17,39 @@ export const RevectorizeSubjectConceptsOutputSchema = z.object({
   processedCount: z.int(),
 });
 
-export const revectorizeSubjectConceptsTask = defineGraphTask({
-  name: "term.revectorize-subject-concepts",
+export const revectorizeSubjectConceptsGraph = defineTypedGraph({
+  id: "term-revectorize-subject-concepts",
   input: RevectorizeSubjectConceptsInputSchema,
   output: RevectorizeSubjectConceptsOutputSchema,
-  handler: async (payload) => {
-    const conceptIds = await runAgentQuery(listTermConceptIdsBySubject, {
-      subjectId: payload.subjectId,
-    });
-
-    await Promise.all(
-      conceptIds.map(async (conceptId) => {
-        await revectorizeConceptTask.run({
-          conceptId,
-          vectorizerId: payload.vectorizerId,
-          vectorStorageId: payload.vectorStorageId,
+  nodes: {
+    main: defineNode({
+      input: RevectorizeSubjectConceptsInputSchema,
+      output: RevectorizeSubjectConceptsOutputSchema,
+      handler: async (input, ctx) => {
+        const conceptIds = await runAgentQuery(listTermConceptIdsBySubject, {
+          subjectId: input.subjectId,
         });
-      }),
-    );
-
-    return { processedCount: conceptIds.length };
+        await Promise.all(
+          conceptIds.map(async (conceptId) => {
+            await runGraph(
+              revectorizeConceptGraph,
+              {
+                conceptId,
+                vectorizerId: input.vectorizerId,
+                vectorStorageId: input.vectorStorageId,
+              },
+              { signal: ctx.signal },
+            );
+          }),
+        );
+        return { processedCount: conceptIds.length };
+      },
+    }),
   },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use revectorizeSubjectConceptsGraph */
+export const revectorizeSubjectConceptsTask = revectorizeSubjectConceptsGraph;

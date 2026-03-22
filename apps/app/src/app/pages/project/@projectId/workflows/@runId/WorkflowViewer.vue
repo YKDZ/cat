@@ -56,7 +56,7 @@ const handleCloseNodeDetail = (): void => {
 </script>
 
 <template>
-  <div class="flex min-h-0 flex-1 flex-col">
+  <div class="flex flex-1 flex-col">
     <!-- Header -->
     <WorkflowHeader
       :run-id="props.runId"

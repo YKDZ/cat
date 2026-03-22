@@ -11,7 +11,10 @@ import { assertSingleNonNullish, zip } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createTranslatableStringTask } from "../create-translatable-string";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { createTranslatableStringGraph } from "../create-translatable-string";
 
 let cleanup: () => Promise<void>;
 
@@ -39,6 +42,8 @@ beforeAll(async () => {
   await executeCommand({ db: drizzle }, ensureLanguages, {
     languageIds: ["en", "zh-Hans"],
   });
+
+  createDefaultGraphRuntime(drizzle, pluginManager);
 });
 
 test("worker should insert strings to db", async () => {
@@ -58,13 +63,11 @@ test("worker should insert strings to db", async () => {
     { text: "Text 3", languageId: "en" },
   ];
 
-  const { result } = await createTranslatableStringTask.run({
+  const { stringIds } = await runGraph(createTranslatableStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-
-  const { stringIds } = await result();
   const strings = await executeQuery(
     { db: client },
     listTranslatableStringsById,
@@ -98,13 +101,11 @@ test("empty input should return empty array", async () => {
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  const { result } = await createTranslatableStringTask.run({
+  const { stringIds } = await runGraph(createTranslatableStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-
-  const { stringIds } = await result();
   expect(stringIds.length).toEqual(0);
 });
 
@@ -121,19 +122,17 @@ test("worker should reuse existing strings", async () => {
 
   const data = [{ text: "Duplicate Text", languageId: "en" }];
 
-  const { result: result1 } = await createTranslatableStringTask.run({
+  const { stringIds: ids1 } = await runGraph(createTranslatableStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-  const { stringIds: ids1 } = await result1();
 
-  const { result: result2 } = await createTranslatableStringTask.run({
+  const { stringIds: ids2 } = await runGraph(createTranslatableStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-  const { stringIds: ids2 } = await result2();
 
   expect(ids1[0]).toEqual(ids2[0]);
 

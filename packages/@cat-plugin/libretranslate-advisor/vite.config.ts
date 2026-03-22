@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "zod"],
+    external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "undici", "zod"],
   },
 
   resolve: {

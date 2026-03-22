@@ -11,8 +11,11 @@ import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createTranslatableStringTask } from "../create-translatable-string";
-import { retriveEmbeddingsTask } from "../retrive-embeddings";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { createTranslatableStringGraph } from "../create-translatable-string";
+import { retriveEmbeddingsGraph } from "../retrive-embeddings";
 
 const data = [
   { text: "Text 1", languageId: "en" },
@@ -46,6 +49,8 @@ beforeAll(async () => {
   await executeCommand({ db: drizzle }, ensureLanguages, {
     languageIds: ["en", "zh-Hans"],
   });
+
+  createDefaultGraphRuntime(drizzle, pluginManager);
 });
 
 test("create-translatable-string should insert chunks to db", async () => {
@@ -59,13 +64,11 @@ test("create-translatable-string should insert chunks to db", async () => {
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  const { result } = await createTranslatableStringTask.run({
+  await runGraph(createTranslatableStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-
-  await result();
 
   const strings = await executeQuery(
     { db: drizzle },
@@ -83,8 +86,7 @@ test("worker should retrive stored embeddings", async () => {
     (chunks) => chunks.map((chunk) => chunk.id),
   );
 
-  const { result } = await retriveEmbeddingsTask.run({ chunkIds });
-  const { embeddings } = await result();
+  const { embeddings } = await runGraph(retriveEmbeddingsGraph, { chunkIds });
 
   expect(embeddings.length).toEqual(data.length);
 });

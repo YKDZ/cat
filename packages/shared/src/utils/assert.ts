@@ -40,6 +40,12 @@ export const assertSingleOrNull = <T>(arr: T[], message?: string): T | null => {
   return arr[0];
 };
 
+/**
+ * Assert that the given async predicate resolves successfully. \
+ * If it rejects, throw an AssertError with the given message and the original error as leadTo.
+ * @param predicate
+ * @param message
+ */
 export const assertPromise = async (
   predicate: () => Promise<unknown>,
   message: string,

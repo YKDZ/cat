@@ -4,17 +4,30 @@ import {
   SpotTermOutputSchema,
 } from "@cat/operations";
 
-import { defineGraphTask } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 export { SpotTermInputSchema, SpotTermOutputSchema };
 
-export const spotTermTask = defineGraphTask({
-  name: "term.spot",
+export const spotTermGraph = defineTypedGraph({
+  id: "term-spot",
   input: SpotTermInputSchema,
   output: SpotTermOutputSchema,
-  cache: {
-    enabled: true,
-    ttl: 3600,
+  nodes: {
+    main: defineNode({
+      input: SpotTermInputSchema,
+      output: SpotTermOutputSchema,
+      handler: async (input, ctx) =>
+        spotTermOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        }),
+    }),
   },
-  handler: async (payload, ctx) => spotTermOp(payload, ctx),
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use spotTermGraph */
+export const spotTermTask = spotTermGraph;

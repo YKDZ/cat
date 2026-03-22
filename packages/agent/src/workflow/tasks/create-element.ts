@@ -4,9 +4,10 @@ import { zip } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import { runAgentCommand } from "@/db/domain";
-import { defineGraphWorkflow } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { runGraph } from "@/graph/typed-dsl/run-graph";
 
-import { createTranslatableStringTask } from "./create-translatable-string";
+import { createTranslatableStringGraph } from "./create-translatable-string";
 
 export const CreateElementInputSchema = z.object({
   data: z.array(
@@ -30,47 +31,51 @@ export const CreateElementOutputSchema = z.object({
   elementIds: z.array(z.int()),
 });
 
-export const createElementWorkflow = defineGraphWorkflow({
-  name: "element.create",
+export const createElementGraph = defineTypedGraph({
+  id: "element-create",
   input: CreateElementInputSchema,
   output: CreateElementOutputSchema,
-  steps: async (payload, { traceId, signal }) => {
-    return [
-      createTranslatableStringTask.asStep(
-        {
-          data: payload.data.map((item) => ({
-            text: item.text,
-            languageId: item.languageId,
-          })),
-          vectorizerId: payload.vectorizerId,
-          vectorStorageId: payload.vectorStorageId,
-        },
-        { traceId, signal },
-      ),
-    ];
+  nodes: {
+    main: defineNode({
+      input: CreateElementInputSchema,
+      output: CreateElementOutputSchema,
+      handler: async (input, ctx) => {
+        const { stringIds } = await runGraph(
+          createTranslatableStringGraph,
+          {
+            data: input.data.map((item) => ({
+              text: item.text,
+              languageId: item.languageId,
+            })),
+            vectorizerId: input.vectorizerId,
+            vectorStorageId: input.vectorStorageId,
+          },
+          { signal: ctx.signal },
+        );
+
+        const elementIds = await runAgentCommand(createElements, {
+          data: Array.from(zip(input.data, stringIds)).map(
+            ([element, stringId]) => ({
+              meta: element.meta ?? {},
+              sortIndex: element.sortIndex ?? 0,
+              creatorId: element.creatorId,
+              documentId: element.documentId,
+              stringId,
+              sourceStartLine: element.sourceStartLine ?? null,
+              sourceEndLine: element.sourceEndLine ?? null,
+              sourceLocationMeta: element.sourceLocationMeta ?? null,
+            }),
+          ),
+        });
+
+        return { elementIds };
+      },
+    }),
   },
-  handler: async (payload, ctx) => {
-    const [stringResult] = ctx.getStepResult(createTranslatableStringTask);
-
-    if (!stringResult) {
-      throw new Error("Failed to create translatable strings");
-    }
-
-    const elementIds = await runAgentCommand(createElements, {
-      data: Array.from(zip(payload.data, stringResult.stringIds)).map(
-        ([element, stringId]) => ({
-          meta: element.meta ?? {},
-          sortIndex: element.sortIndex ?? 0,
-          creatorId: element.creatorId,
-          documentId: element.documentId,
-          stringId,
-          sourceStartLine: element.sourceStartLine ?? null,
-          sourceEndLine: element.sourceEndLine ?? null,
-          sourceLocationMeta: element.sourceLocationMeta ?? null,
-        }),
-      ),
-    });
-
-    return { elementIds };
-  },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use createElementGraph */
+export const createElementWorkflow = createElementGraph;

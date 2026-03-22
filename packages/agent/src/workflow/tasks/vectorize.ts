@@ -4,16 +4,30 @@ import {
   VectorizeOutputSchema,
 } from "@cat/operations";
 
-import { defineGraphTask } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 export { VectorizeInputSchema, VectorizeOutputSchema };
 
-export const vectorizeToChunkSetTask = defineGraphTask({
-  name: "vectorize",
+export const vectorizeGraph = defineTypedGraph({
+  id: "vectorize",
   input: VectorizeInputSchema,
   output: VectorizeOutputSchema,
-  cache: {
-    enabled: true,
+  nodes: {
+    main: defineNode({
+      input: VectorizeInputSchema,
+      output: VectorizeOutputSchema,
+      handler: async (input, ctx) =>
+        vectorizeToChunkSetOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        }),
+    }),
   },
-  handler: async (payload, ctx) => vectorizeToChunkSetOp(payload, ctx),
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use vectorizeGraph */
+export const vectorizeToChunkSetTask = vectorizeGraph;

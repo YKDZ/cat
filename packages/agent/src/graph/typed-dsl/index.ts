@@ -12,3 +12,5 @@ export type {
   TypedNodeContext,
   TypedNodeDef,
 } from "./types";
+export { runGraph, startGraph } from "./run-graph";
+export type { GraphRunHandle, RunGraphOptions } from "./run-graph";

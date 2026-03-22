@@ -11,7 +11,10 @@ import { PluginManager } from "@cat/plugin-core";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { fetchAdviseWorkflow } from "../fetch-advise";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { fetchAdviseGraph } from "../fetch-advise";
 
 let cleanup: () => Promise<void>;
 let pluginManager: PluginManager;
@@ -53,6 +56,8 @@ beforeAll(async () => {
     name: "Test",
     creatorId: user.id,
   });
+
+  createDefaultGraphRuntime(db.client, pluginManager);
 });
 
 test("worker should fetch advise", async () => {
@@ -61,18 +66,15 @@ test("worker should fetch advise", async () => {
   const glossaries = await executeQuery({ db: drizzle }, listAllGlossaries, {});
   const glossaryId = glossaries[0].id;
 
-  const { result } = await fetchAdviseWorkflow.run(
+  const { suggestions } = await runGraph(
+    fetchAdviseGraph,
     {
       text: "Test Text For Advise",
       sourceLanguageId: "en",
       translationLanguageId: "zh-Hans",
       glossaryIds: [glossaryId],
     },
-    {
-      pluginManager,
-    },
+    { pluginManager },
   );
-
-  const { suggestions } = await result();
   expect(suggestions.length).toBeGreaterThan(0);
 });

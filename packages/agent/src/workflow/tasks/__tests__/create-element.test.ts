@@ -13,7 +13,10 @@ import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createElementWorkflow } from "../create-element";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { createElementGraph } from "../create-element";
 
 let cleanup: () => Promise<void>;
 let documentId: string;
@@ -60,6 +63,8 @@ beforeAll(async () => {
     creatorId: user.id,
   });
   documentId = document.id;
+
+  createDefaultGraphRuntime(drizzle, pluginManager);
 });
 
 test("create-element should insert elements to db", async () => {
@@ -79,13 +84,11 @@ test("create-element should insert elements to db", async () => {
     { text: "Element text 3", languageId: "en", documentId, sortIndex: 3 },
   ];
 
-  const { result } = await createElementWorkflow.run({
+  const { elementIds } = await runGraph(createElementGraph, {
     data: elementData,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-
-  const { elementIds } = await result();
 
   expect(elementIds.length).toEqual(elementData.length);
 
@@ -103,12 +106,10 @@ test("create-element with empty data should return empty elementIds", async () =
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  const { result } = await createElementWorkflow.run({
+  const { elementIds } = await runGraph(createElementGraph, {
     data: [],
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
-
-  const { elementIds } = await result();
   expect(elementIds).toEqual([]);
 });

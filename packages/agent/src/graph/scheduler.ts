@@ -1,4 +1,4 @@
-import type { ChatMessage, LLMProvider } from "@cat/plugin-core";
+import type { ChatMessage, LLMProvider, PluginManager } from "@cat/plugin-core";
 
 import * as crypto from "node:crypto";
 
@@ -70,6 +70,8 @@ export type SchedulerStartOptions = {
   /** Additional persisted run metadata */
   metadata?: Record<string, unknown> | null;
   deduplicationKey?: string;
+  /** Plugin manager instance for this run */
+  pluginManager?: PluginManager;
 };
 
 export type SchedulerRecoverOptions = {
@@ -264,6 +266,7 @@ export class Scheduler {
       llmProvider: options?.llmProvider,
       tools: options?.tools,
       systemPrompt: options?.systemPrompt,
+      pluginManager: options?.pluginManager,
     };
     const persistedMetadata = {
       ...(options?.metadata ?? {}),

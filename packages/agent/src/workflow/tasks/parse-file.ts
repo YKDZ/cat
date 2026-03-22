@@ -4,16 +4,26 @@ import {
   ParseFileOutputSchema,
 } from "@cat/operations";
 
-import { defineGraphTask } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 export { ParseFileInputSchema, ParseFileOutputSchema };
 
-export const parseFileTask = defineGraphTask({
-  name: "file.parse",
+export const parseFileGraph = defineTypedGraph({
+  id: "file-parse",
   input: ParseFileInputSchema,
   output: ParseFileOutputSchema,
-  cache: {
-    enabled: true,
+  nodes: {
+    main: defineNode({
+      input: ParseFileInputSchema,
+      output: ParseFileOutputSchema,
+      handler: async (input, ctx) =>
+        parseFileOp(input, { traceId: ctx.traceId, signal: ctx.signal }),
+    }),
   },
-  handler: async (payload, ctx) => parseFileOp(payload, ctx),
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use parseFileGraph */
+export const parseFileTask = parseFileGraph;

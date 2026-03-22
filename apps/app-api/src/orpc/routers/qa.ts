@@ -1,15 +1,15 @@
 import type { QaResultItem } from "@cat/shared/schema/drizzle/qa";
 
 import {
-  getWorkflowRuntime,
+  getGlobalGraphRuntime,
   QAPubPayloadSchema,
-  qaWorkflow,
+  qaGraph,
+  startGraph,
 } from "@cat/agent/workflow";
 import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
 import { TokenSchema } from "@cat/plugin-core";
 import { AsyncMessageQueue } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
-import { randomUUID } from "node:crypto";
 import z from "zod";
 
 import { authed } from "@/orpc/server.ts";
@@ -42,12 +42,17 @@ export const check = authed
       { documentId },
     );
 
-    const traceId = randomUUID();
-
     const issuesQueue = new AsyncMessageQueue<
       Omit<QaResultItem, "id" | "createdAt" | "updatedAt" | "resultId">
     >();
-    const unsubscribe = getWorkflowRuntime().eventBus.subscribe(
+    const { runId, complete } = await startGraph(qaGraph, {
+      source,
+      translation,
+      glossaryIds,
+      pub: true,
+    });
+
+    const unsubscribe = getGlobalGraphRuntime().eventBus.subscribe(
       "workflow:qa:issue",
       async (event) => {
         const parsed = QAPubPayloadSchema.safeParse(event.payload);
@@ -58,7 +63,7 @@ export const check = authed
           return;
         }
 
-        if (parsed.data.traceId !== traceId) {
+        if (parsed.data.traceId !== runId) {
           return;
         }
 
@@ -68,20 +73,12 @@ export const check = authed
       },
     );
 
-    const runPromise = qaWorkflow.run(
-      { source, translation, glossaryIds, pub: true },
-      {
-        traceId,
-      },
-    );
-
-    void runPromise
-      .then(async ({ result }) => {
-        await result();
+    void complete
+      .then(() => {
         issuesQueue.close();
       })
       .catch((err: unknown) => {
-        logger.withSituation("RPC").error({ msg: "QA workflow failed" }, err);
+        logger.withSituation("RPC").error({ msg: "QA graph failed" }, err);
         issuesQueue.close();
       });
 

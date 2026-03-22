@@ -4,13 +4,30 @@ import {
   RevectorizeConceptOutputSchema,
 } from "@cat/operations";
 
-import { defineGraphTask } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 export { RevectorizeConceptInputSchema, RevectorizeConceptOutputSchema };
 
-export const revectorizeConceptTask = defineGraphTask({
-  name: "term.revectorize-concept",
+export const revectorizeConceptGraph = defineTypedGraph({
+  id: "term-revectorize-concept",
   input: RevectorizeConceptInputSchema,
   output: RevectorizeConceptOutputSchema,
-  handler: async (payload, ctx) => revectorizeConceptOp(payload, ctx),
+  nodes: {
+    main: defineNode({
+      input: RevectorizeConceptInputSchema,
+      output: RevectorizeConceptOutputSchema,
+      handler: async (input, ctx) =>
+        revectorizeConceptOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        }),
+    }),
+  },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use revectorizeConceptGraph */
+export const revectorizeConceptTask = revectorizeConceptGraph;

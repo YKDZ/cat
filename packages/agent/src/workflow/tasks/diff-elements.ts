@@ -4,13 +4,27 @@ import {
   DiffElementsOutputSchema,
 } from "@cat/operations";
 
-import { defineGraphTask } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 export { DiffElementsInputSchema, DiffElementsOutputSchema };
 
-export const diffElementsTask = defineGraphTask({
-  name: "element.diff",
+export const diffElementsGraph = defineTypedGraph({
+  id: "element-diff",
   input: DiffElementsInputSchema,
   output: DiffElementsOutputSchema,
-  handler: async (payload, ctx) => diffElementsOp(payload, ctx),
+  nodes: {
+    main: defineNode({
+      input: DiffElementsInputSchema,
+      output: DiffElementsOutputSchema,
+      handler: async (input, ctx) =>
+        diffElementsOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        }),
+    }),
+  },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });

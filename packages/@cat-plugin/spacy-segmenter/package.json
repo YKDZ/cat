@@ -32,15 +32,13 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json"
   },
-  "dependencies": {
-    "undici": "7.18.2"
-  },
   "devDependencies": {
     "vite": "8.0.0"
   },
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
+    "undici": "7.24.5",
     "zod": "^4.3.6"
   }
 }

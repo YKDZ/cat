@@ -1,3 +1,5 @@
+import { PluginManager } from "@cat/plugin-core";
+
 import type { NodeExecutor } from "@/graph/node-registry";
 
 import { buildPatch } from "@/graph/blackboard";
@@ -69,6 +71,43 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
     nodeId: ctx.nodeId,
     signal: ctx.signal,
     emit: ctx.emit,
+    traceId: ctx.runId,
+    pluginManager: ctx.runtime.pluginManager ?? PluginManager.get("GLOBAL", ""),
+    addEvent: ctx.addEvent,
+    checkSideEffect: async <T>(key: string): Promise<T | null> => {
+      const fullKey = `${ctx.nodeId}:${ctx.runId}:${key}`;
+      const existing = await ctx.checkpointer.loadExternalOutputByIdempotency(
+        ctx.runId,
+        fullKey,
+      );
+      // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion -- side-effect payloads are caller-defined generic
+      return (existing?.payload as T | undefined) ?? null;
+    },
+    recordSideEffect: async <T>(
+      key: string,
+      outputType: "db_write" | "api_call" | "event_publish",
+      payload: T,
+    ): Promise<T | null> => {
+      const fullKey = `${ctx.nodeId}:${ctx.runId}:${key}`;
+      const existing = await ctx.checkpointer.loadExternalOutputByIdempotency(
+        ctx.runId,
+        fullKey,
+      );
+      if (existing !== null) {
+        // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion -- side-effect payloads are caller-defined generic
+        return (existing.payload as T | undefined) ?? null;
+      }
+      await ctx.checkpointer.saveExternalOutput({
+        runId: ctx.runId,
+        nodeId: ctx.nodeId,
+        outputType,
+        outputKey: key,
+        payload,
+        idempotencyKey: fullKey,
+        createdAt: new Date().toISOString(),
+      });
+      return null;
+    },
   });
 
   // 将输出写回 Blackboard

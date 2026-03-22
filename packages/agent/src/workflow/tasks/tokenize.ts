@@ -4,16 +4,30 @@ import {
   TokenizeOutputSchema,
 } from "@cat/operations";
 
-import { defineGraphTask } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 export { TokenizeInputSchema, TokenizeOutputSchema };
 
-export const tokenizeTask = defineGraphTask({
-  name: "tokenizer",
+export const tokenizeGraph = defineTypedGraph({
+  id: "tokenizer",
   input: TokenizeInputSchema,
   output: TokenizeOutputSchema,
-  cache: {
-    enabled: true,
+  nodes: {
+    main: defineNode({
+      input: TokenizeInputSchema,
+      output: TokenizeOutputSchema,
+      handler: async (input, ctx) =>
+        tokenizeOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        }),
+    }),
   },
-  handler: async (payload, ctx) => tokenizeOp(payload, ctx),
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use tokenizeGraph */
+export const tokenizeTask = tokenizeGraph;

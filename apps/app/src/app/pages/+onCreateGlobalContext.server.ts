@@ -10,8 +10,11 @@ import {
 } from "@cat/domain";
 import { registerDomainEventHandlers } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
-import { initAllVectorStorage } from "@cat/server-shared";
-import { assertPromise, logger } from "@cat/shared/utils";
+import {
+  initAllVectorStorage,
+  serverLogger as logger,
+} from "@cat/server-shared";
+import { assertPromise } from "@cat/shared/utils";
 import { access } from "fs/promises";
 import { join, resolve } from "path";
 
@@ -35,10 +38,17 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
         async () => access(migrations),
         "Does not found drizzle migration folder.",
       );
-      logger
-        .withSituation("SERVER")
-        .info({ msg: "Start to migrate database..." });
-      await drizzleDB.migrate(migrations);
+
+      logger.withSituation("SERVER").info("Start to migrate database...");
+
+      const failure = await drizzleDB.migrate(migrations);
+      if (failure) {
+        throw new Error(
+          `Database migration failed with exit code: ${failure.exitCode}`,
+        );
+      }
+
+      logger.withSituation("SERVER").info("Successfully migrated database!");
     }
 
     await ensureDB(drizzleDB);
@@ -90,12 +100,9 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     globalThis.inited = true;
   } catch (err) {
-    logger.withSituation("SERVER").error(
-      {
-        msg: "Failed to initialize server. Process will exit with code 1",
-      },
-      err,
-    );
+    logger
+      .withSituation("SERVER")
+      .error(err, "Failed to initialize server. Process will exit with code 1");
     process.exit(1);
   }
 };
