@@ -78,9 +78,11 @@ export class ServiceRegistry {
 
       const dbId = dbRecord?.dbId;
       if (dbId === undefined) {
-        logger.withSituation("PLUGIN").warn({
-          msg: `Service ${type}:${id} has no DB record, skipping registration`,
-        });
+        logger
+          .withSituation("PLUGIN")
+          .warn(
+            `Service ${type}:${id} has no DB record, skipping registration`,
+          );
         continue;
       }
 

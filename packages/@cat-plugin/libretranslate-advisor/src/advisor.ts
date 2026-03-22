@@ -41,7 +41,7 @@ export class Advisor extends TranslationAdvisor {
     this.fetchSupportedLanguages().catch((err: unknown) => {
       logger
         .withSituation("PLUGIN")
-        .error({ msg: "Failed to fetch supported languages" }, err);
+        .error(err, "Failed to fetch supported languages");
     });
   }
 
@@ -69,21 +69,18 @@ export class Advisor extends TranslationAdvisor {
             });
           })
           .catch((e: unknown) => {
-            logger.withSituation("PLUGIN").error(
-              {
-                msg: "Can not parse all supported languages response body.",
-              },
-              e,
-            );
+            logger
+              .withSituation("PLUGIN")
+              .error(e, "Can not parse all supported languages response body.");
           });
       })
       .catch((e: unknown) => {
-        logger.withSituation("PLUGIN").error(
-          {
-            msg: `Can not query all supported language from LibreTranslate service`,
-          },
-          e,
-        );
+        logger
+          .withSituation("PLUGIN")
+          .error(
+            e,
+            `Can not query all supported language from LibreTranslate service`,
+          );
       });
   }
 
@@ -107,7 +104,7 @@ export class Advisor extends TranslationAdvisor {
     } catch (e) {
       logger
         .withSituation("PLUGIN")
-        .error({ msg: `LibreTranslate API 请求或解析错误` }, e);
+        .error(e, `LibreTranslate API 请求或解析错误`);
       return [
         {
           translation: "LibreTranslate API 请求或解析错误。",

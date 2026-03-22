@@ -121,7 +121,7 @@ export const onNew = authed
               .catch((err: unknown) => {
                 logger
                   .withSituation("WORKER")
-                  .error({ msg: "LLM memory adaptation failed" }, err);
+                  .error(err, "LLM memory adaptation failed");
               });
             pendingAdaptations.push(adaptationPromise);
           }
@@ -129,7 +129,7 @@ export const onNew = authed
       } catch (err) {
         logger
           .withSituation("WORKER")
-          .error({ msg: "Stream search memory failed" }, err);
+          .error(err, "Stream search memory failed");
       }
     })();
 

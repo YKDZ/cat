@@ -22,7 +22,7 @@ export const registerDomainEventHandlers = (): void => {
     } catch (error) {
       logger
         .withSituation("SERVER")
-        .error({ msg: "Failed to handle concept:updated event" }, error);
+        .error(error, "Failed to handle concept:updated event");
     }
   });
 

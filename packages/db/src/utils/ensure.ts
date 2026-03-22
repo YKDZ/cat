@@ -110,8 +110,8 @@ export const ensureRootUser = async (tx: DrizzleTransaction): Promise<void> => {
       })
       .onConflictDoNothing();
 
-    logger.withSituation("SERVER").info({
-      msg: `Default admin account password is: ${password}`,
-    });
+    logger
+      .withSituation("SERVER")
+      .info(`Default admin account password is: ${password}`);
   }
 };

@@ -264,7 +264,7 @@ export const llmTermEnhanceOp = async (
       } catch (err: unknown) {
         logger
           .withSituation("OP")
-          .error({ msg: "llmTermEnhanceOp: LLM batch failed" }, err);
+          .error(err, "llmTermEnhanceOp: LLM batch failed");
         return {
           batch,
           results: [],
@@ -374,7 +374,7 @@ Return ONLY a valid JSON array:
         } catch (err: unknown) {
           logger
             .withSituation("OP")
-            .error({ msg: "llmTermEnhanceOp: definition batch failed" }, err);
+            .error(err, "llmTermEnhanceOp: definition batch failed");
           return {
             batch,
             results: [],

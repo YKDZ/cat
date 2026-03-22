@@ -27,7 +27,8 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware"
+    "lint:fix": "oxlint --fix --type-aware",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "devDependencies": {
     "vite": "8.0.0"

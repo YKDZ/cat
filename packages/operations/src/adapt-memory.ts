@@ -104,9 +104,7 @@ export const adaptMemoryOp = async (
 
     return { adaptedTranslation: text };
   } catch (err: unknown) {
-    logger
-      .withSituation("OP")
-      .error({ msg: "adaptMemoryOp: LLM call failed" }, err);
+    logger.withSituation("OP").error(err, "adaptMemoryOp: LLM call failed");
     return { adaptedTranslation: null };
   }
 };

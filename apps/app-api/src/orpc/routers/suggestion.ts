@@ -60,7 +60,7 @@ export const onNew = authed
         if (!parsed.success) {
           logger
             .withSituation("RPC")
-            .error({ msg: "Invalid suggestion format" }, parsed.error);
+            .error(parsed.error, "Invalid suggestion format");
           return;
         }
 
@@ -126,9 +126,7 @@ export const onNew = authed
         suggestionsQueue.close();
       })
       .catch((err: unknown) => {
-        logger
-          .withSituation("RPC")
-          .error({ msg: "Error processing suggestions" }, err);
+        logger.withSituation("RPC").error(err, "Error processing suggestions");
         suggestionsQueue.close();
       });
 

@@ -12,7 +12,7 @@ const shutdownServer = () => {
   const handler = async () => {
     logger
       .withSituation("SERVER")
-      .info({ msg: "About to shutdown server gracefully..." });
+      .info("About to shutdown server gracefully...");
 
     await new Promise<void>((resolve, reject) => {
       server!.close((err) => {
@@ -29,16 +29,13 @@ const shutdownServer = () => {
 
     logger
       .withSituation("SERVER")
-      .info({ msg: "Successfully shutdown gracefully. Goodbye" });
+      .info("Successfully shutdown gracefully. Goodbye");
   };
 
   handler().catch((err: unknown) => {
-    logger.withSituation("SERVER").error(
-      {
-        msg: "Error occurred during server shutdown",
-      },
-      err,
-    );
+    logger
+      .withSituation("SERVER")
+      .error(err, "Error occurred during server shutdown");
   });
 };
 
@@ -50,9 +47,9 @@ const startServer = () => {
 
     onCreate: (nodeServer) => {
       if (!nodeServer) {
-        logger.withSituation("SERVER").debug({
-          msg: "Failed to create HTTP server. Server will exit with code 1.",
-        });
+        logger
+          .withSituation("SERVER")
+          .error("Failed to create HTTP server. Server will exit with code 1.");
         process.exit(1);
       }
 
@@ -77,9 +74,11 @@ const startServer = () => {
         wsHelper.injectWebSocket(rawServer);
         server = rawServer;
       } else {
-        logger.withSituation("SERVER").warn({
-          msg: "Failed to inject WebSocket: server instance does not support .on() method",
-        });
+        logger
+          .withSituation("SERVER")
+          .warn(
+            "Failed to inject WebSocket: server instance does not support .on() method",
+          );
       }
 
       if (process.env.NODE_ENV === "production") {

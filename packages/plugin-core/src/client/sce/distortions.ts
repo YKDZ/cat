@@ -11,9 +11,7 @@ export const createDocumentDistortion = (
     if (key === "getElementById") {
       return () => (_id: string) => {
         // oxlint-disable-next-line no-console -- client-side browser logging
-        console.warn({
-          msg: `Plugin ${pluginId} blocked getElementById`,
-        });
+        console.warn(`Plugin ${pluginId} blocked getElementById`);
         return null;
       };
     }

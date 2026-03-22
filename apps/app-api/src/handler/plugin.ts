@@ -49,18 +49,18 @@ app.get("/:pluginId/component/:componentName", async (c) => {
       async (err) => {
         logger.withSituation("SERVER").error(
           {
-            msg: "Error streaming plugin component",
             pluginId,
             componentName,
           },
           err,
+          "Error streaming plugin component",
         );
       },
     );
   } catch (error) {
     logger
       .withSituation("SERVER")
-      .error({ msg: "Plugin component not found", path: pluginId }, error);
+      .error({ pluginId, componentName }, error, "Plugin component not found");
     return c.text("module not found", 404);
   }
 });

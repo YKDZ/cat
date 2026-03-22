@@ -58,10 +58,7 @@ export class SpacyWordSegmenter extends NlpWordSegmenter {
     } catch (err) {
       logger
         .withSituation("PLUGIN")
-        .error(
-          { msg: "Failed to fetch supported languages from spaCy server" },
-          err,
-        );
+        .error(err, "Failed to fetch supported languages from spaCy server");
       return [];
     }
   };

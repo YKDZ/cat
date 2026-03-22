@@ -181,7 +181,7 @@ export const streamSearchMemoryOp = (
         .catch((err: unknown) => {
           logger
             .withSituation("OP")
-            .error({ msg: "streamSearchMemoryOp: exact match failed" }, err);
+            .error(err, "streamSearchMemoryOp: exact match failed");
         }),
 
       // Channel 2: trgm similarity
@@ -195,7 +195,7 @@ export const streamSearchMemoryOp = (
         .catch((err: unknown) => {
           logger
             .withSituation("OP")
-            .error({ msg: "streamSearchMemoryOp: trgm match failed" }, err);
+            .error(err, "streamSearchMemoryOp: trgm match failed");
         }),
     ];
 
@@ -212,9 +212,11 @@ export const streamSearchMemoryOp = (
             "TEXT_VECTORIZER",
           );
           if (!vectorizer) {
-            logger.withSituation("OP").warn({
-              msg: "streamSearchMemoryOp: no TEXT_VECTORIZER available, skipping vector channel",
-            });
+            logger
+              .withSituation("OP")
+              .warn(
+                "streamSearchMemoryOp: no TEXT_VECTORIZER available, skipping vector channel",
+              );
             return;
           }
           const vectorized = await vectorizer.service.vectorize({
@@ -259,7 +261,7 @@ export const streamSearchMemoryOp = (
         vectorTask.catch((err: unknown) => {
           logger
             .withSituation("OP")
-            .error({ msg: "streamSearchMemoryOp: vector search failed" }, err);
+            .error(err, "streamSearchMemoryOp: vector search failed");
         }),
       );
     }
@@ -269,9 +271,7 @@ export const streamSearchMemoryOp = (
 
   void run()
     .catch((err: unknown) => {
-      logger
-        .withSituation("OP")
-        .error({ msg: "streamSearchMemoryOp failed" }, err);
+      logger.withSituation("OP").error(err, "streamSearchMemoryOp failed");
     })
     .finally(() => {
       queue.close();
