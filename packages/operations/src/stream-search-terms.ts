@@ -99,9 +99,7 @@ export const streamSearchTermsOp = (
 
   void run()
     .catch((err: unknown) => {
-      logger
-        .withSituation("OP")
-        .error(err, "streamSearchTermsOp failed");
+      logger.withSituation("OP").error(err, "streamSearchTermsOp failed");
     })
     .finally(() => {
       queue.close();

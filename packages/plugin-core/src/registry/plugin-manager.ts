@@ -688,9 +688,7 @@ export class PluginManager {
         sessionStore: getSessionStore(),
       });
     } catch (e) {
-      logger
-        .withSituation("PLUGIN")
-        .error(e, `Error deactivating ${pluginId}`);
+      logger.withSituation("PLUGIN").error(e, `Error deactivating ${pluginId}`);
     }
   }
 }

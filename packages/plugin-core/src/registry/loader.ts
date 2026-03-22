@@ -43,7 +43,9 @@ export class FileSystemPluginLoader implements PluginLoader {
     try {
       await access(manifestPath);
     } catch {
-      logger.withSituation("PLUGIN").debug(`Plugin ${pluginId} missing manifest.json`);
+      logger
+        .withSituation("PLUGIN")
+        .debug(`Plugin ${pluginId} missing manifest.json`);
       throw new Error(`Plugin ${pluginId} missing manifest.json`);
     }
 
