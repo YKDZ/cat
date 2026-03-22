@@ -13,6 +13,7 @@ import type {
 
 import { LLMProvider } from "@cat/plugin-core";
 import OpenAI from "openai";
+import { Stream } from "openai/streaming";
 import { z } from "zod";
 
 export const SingleConfigSchema = z.object({
@@ -249,20 +250,22 @@ export class OpenAILLMProvider extends LLMProvider {
       }),
     };
 
-    let stream;
+    let stream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
     try {
-      stream = await this.client.chat.completions.create(params, {
+      // oxlint-disable-next-line no-unsafe-type-assertion -- stream: true guarantees Stream type
+      stream = (await this.client.chat.completions.create(params, {
         signal: request.signal,
-      });
+      })) as Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
     } catch (error) {
       if (!this.shouldRetryWithoutThinking(request, error)) {
         throw error;
       }
 
       const { enable_thinking: _ignored, ...fallbackParams } = params;
-      stream = await this.client.chat.completions.create(fallbackParams, {
+      // oxlint-disable-next-line no-unsafe-type-assertion -- stream: true guarantees Stream type
+      stream = (await this.client.chat.completions.create(fallbackParams, {
         signal: request.signal,
-      });
+      })) as Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
     }
 
     let contentAcc = "";

@@ -93,9 +93,9 @@ export const resolveContextVariables = async (
           "resolve",
         );
         if (!allowed) {
-          logger.withSituation("AGENT").warn({
-            msg: `Permission denied for context provider ${providerId}`,
-          });
+          logger
+            .withSituation("AGENT")
+            .warn(`Permission denied for context provider ${providerId}`);
           return;
         }
 
@@ -103,9 +103,11 @@ export const resolveContextVariables = async (
         const deps = provider.getDependencies();
         for (const dep of deps) {
           if (!dep.optional && !resolved.has(dep.key)) {
-            logger.withSituation("AGENT").warn({
-              msg: `Skipping context provider ${providerId}: required dependency "${dep.key}" not resolved`,
-            });
+            logger
+              .withSituation("AGENT")
+              .warn(
+                `Skipping context provider ${providerId}: required dependency "${dep.key}" not resolved`,
+              );
             return;
           }
         }
@@ -128,10 +130,12 @@ export const resolveContextVariables = async (
             resolved.set(key, value);
           }
         } catch (err) {
-          logger.withSituation("AGENT").warn({
-            msg: `Context provider ${providerId} threw an error during resolve`,
-            error: err,
-          });
+          logger
+            .withSituation("AGENT")
+            .error(
+              err,
+              `Context provider ${providerId} threw an error during resolve`,
+            );
         }
       }),
     );

@@ -38,14 +38,7 @@ app.put("/upload/:sessionId", async (c) => {
 
     return c.text("OK");
   } catch (e) {
-    logger.withSituation("SERVER").error(
-      {
-        msg: "Upload file error",
-        operation: "upload",
-        errorType: e instanceof Error ? e.constructor.name : "Unknown",
-      },
-      e,
-    );
+    logger.withSituation("SERVER").error(e, "Upload file error");
     return c.text("Upload failed", 500);
   }
 });
@@ -110,14 +103,7 @@ app.get("/download/:token", async (c) => {
       await stream.pipe(Readable.toWeb(fileStream));
     });
   } catch (e) {
-    logger.withSituation("SERVER").error(
-      {
-        msg: "Download file error",
-        operation: "download",
-        errorType: e instanceof Error ? e.constructor.name : "Unknown",
-      },
-      e,
-    );
+    logger.withSituation("SERVER").error(e, "Download file error");
     return c.text("File not found", 404);
   }
 });

@@ -73,9 +73,11 @@ export const vectorTermAlignOp = async (
     .find((s) => s.dbId === data.config.vectorStorageId)?.service;
 
   if (!vectorizerService || !vectorStorageService) {
-    logger.withSituation("OP").warn({
-      msg: "vectorTermAlignOp: TEXT_VECTORIZER or VECTOR_STORAGE not available, skipping vector alignment",
-    });
+    logger
+      .withSituation("OP")
+      .warn(
+        "vectorTermAlignOp: TEXT_VECTORIZER or VECTOR_STORAGE not available, skipping vector alignment",
+      );
     return { alignedPairs: [], stringIds: [] };
   }
 

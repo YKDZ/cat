@@ -160,7 +160,7 @@ export const onCreate = authed
         if (!parsed.success) {
           logger
             .withSituation("RPC")
-            .error({ msg: "Invalid create translation payload" }, parsed.error);
+            .error(parsed.error, "Invalid create translation payload");
           return;
         }
 

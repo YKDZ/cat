@@ -149,9 +149,11 @@ export const fetchAdviseOp = async (
   );
 
   if (!advisor) {
-    logger.withSituation("WORKER").warn({
-      msg: `Translation advisor service not found. No suggestion will be given.`,
-    });
+    logger
+      .withSituation("WORKER")
+      .warn(
+        `Translation advisor service ${data.advisorId} not found while no default service is available. No suggestion will be given.`,
+      );
     return { suggestions: [] };
   }
 

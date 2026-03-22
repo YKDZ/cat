@@ -130,10 +130,7 @@ const enrichFromTranslation = async (
 
     return matchingTranslationIds;
   } catch (err: unknown) {
-    logger.withSituation("OP").warn({
-      msg: "statisticalTermAlignOp: failed to enrich from translation",
-      err,
-    });
+    logger.withSituation("OP").error(err, "enrichFromTranslation failed");
     return [];
   }
 };

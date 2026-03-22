@@ -50,9 +50,7 @@ export const spotTermOp = async (
   );
 
   if (!termExtractor) {
-    logger.withSituation("WORKER").warn({
-      msg: "Term extractor service not found.",
-    });
+    logger.withSituation("WORKER").warn("Term extractor service not found.");
     return { candidates: [] };
   }
 

@@ -59,7 +59,7 @@ export const check = authed
         if (!parsed.success) {
           logger
             .withSituation("RPC")
-            .error({ msg: "Invalid issue format" }, parsed.error);
+            .error(parsed.error, "Invalid issue format");
           return;
         }
 
@@ -78,7 +78,7 @@ export const check = authed
         issuesQueue.close();
       })
       .catch((err: unknown) => {
-        logger.withSituation("RPC").error({ msg: "QA graph failed" }, err);
+        logger.withSituation("RPC").error(err, "QA graph failed");
         issuesQueue.close();
       });
 
