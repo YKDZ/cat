@@ -194,7 +194,7 @@ export class PluginManager {
   /**
    * 重新激活当前 scope 的所有已安装插件
    */
-  public async restore(drizzle: DrizzleTransaction, app: Hono): Promise<void> {
+  public async restore(drizzle: DrizzleTransaction): Promise<void> {
     const installations = await executeQuery(
       { db: drizzle },
       listInstalledPlugins,
@@ -204,7 +204,7 @@ export class PluginManager {
     for (const { pluginId } of installations) {
       // restore() 在事务里运行时需要复用同一个连接，插件激活必须串行。
       // oxlint-disable-next-line no-await-in-loop
-      await this.activate(drizzle, pluginId, app);
+      await this.activate(drizzle, pluginId);
     }
   }
 
@@ -215,11 +215,7 @@ export class PluginManager {
    *  invokeOnActivate → syncDynamicServices → registerServices →
    *  registerComponents → mountRoutes
    */
-  public async activate(
-    drizzle: DbHandle,
-    pluginId: string,
-    app: Hono,
-  ): Promise<void> {
+  public async activate(drizzle: DbHandle, pluginId: string): Promise<void> {
     if (this.activePlugins.has(pluginId)) {
       logger
         .withSituation("PLUGIN")
@@ -234,7 +230,7 @@ export class PluginManager {
     await this.syncDynamicServices(drizzle, pluginId, pluginObj, context);
     await this.registerServices(drizzle, pluginId, pluginObj, context);
     await this.registerComponents(pluginId, pluginObj, context);
-    await this.mountRoutes(pluginId, pluginObj, context, app);
+    await this.mountRoutes(pluginId, pluginObj, context);
 
     this.activePlugins.set(pluginId, pluginObj);
 
@@ -280,10 +276,9 @@ export class PluginManager {
   public async reloadPlugin(
     drizzle: DbHandle,
     pluginId: string,
-    app: Hono,
   ): Promise<void> {
     await this.deactivate(drizzle, pluginId);
-    await this.activate(drizzle, pluginId, app);
+    await this.activate(drizzle, pluginId);
   }
 
   // ────────────────────────────────────────────
@@ -649,7 +644,6 @@ export class PluginManager {
     pluginId: string,
     pluginObj: CatPlugin,
     context: PluginContext,
-    _app: Hono,
   ): Promise<void> {
     if (!pluginObj.routes) return;
 

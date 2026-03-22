@@ -84,8 +84,8 @@ const containerClass = computed(() => {
 </script>
 
 <template>
-  <Handle type="target" :position="Position.Top" />
-  <Handle type="target" :position="Position.Left" />
+  <Handle id="top" type="target" :position="Position.Top" />
+  <Handle id="left" type="target" :position="Position.Left" />
 
   <div :class="containerClass">
     <!-- Entry marker -->
@@ -111,6 +111,6 @@ const containerClass = computed(() => {
     </div>
   </div>
 
-  <Handle type="source" :position="Position.Bottom" />
-  <Handle type="source" :position="Position.Right" />
+  <Handle id="bottom" type="source" :position="Position.Bottom" />
+  <Handle id="right" type="source" :position="Position.Right" />
 </template>

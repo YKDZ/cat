@@ -34,7 +34,9 @@ const pathData = computed(() =>
 );
 
 
-const [edgePath, labelX, labelY] = computed(() => pathData.value).value;
+const edgePath = computed(() => pathData.value[0]);
+const labelX = computed(() => pathData.value[1]);
+const labelY = computed(() => pathData.value[2]);
 
 
 const isAnimated = computed(

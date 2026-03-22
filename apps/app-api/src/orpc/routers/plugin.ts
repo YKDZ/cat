@@ -45,7 +45,7 @@ export const reload = authed
     const registry = PluginManager.get(scopeType, scopeId);
 
     await drizzle.transaction(async (tx) => {
-      await registry.restore(tx, globalThis.app);
+      await registry.restore(tx);
     });
   });
 
@@ -66,7 +66,7 @@ export const reloadPlugin = authed
     const registry = PluginManager.get(scopeType, scopeId);
 
     await drizzle.transaction(async (tx) => {
-      await registry.reloadPlugin(tx, pluginId, globalThis.app);
+      await registry.reloadPlugin(tx, pluginId);
     });
   });
 

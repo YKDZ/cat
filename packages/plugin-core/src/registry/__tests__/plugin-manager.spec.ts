@@ -8,7 +8,6 @@
 import type { DrizzleClient } from "@cat/domain";
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
 
-import { Hono } from "hono";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { CatPlugin } from "@/entities/plugin";
@@ -177,9 +176,8 @@ describe("PluginManager — activate() → deactivate()", () => {
     setupActivateMocks({ withService: true });
 
     const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
-    const app = new Hono();
 
-    await manager.activate(FAKE_DB, PLUGIN_ID, app);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
 
     // Plugin should now have a registered service
     const found = manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1");
@@ -200,7 +198,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     setupActivateMocks();
 
     const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
-    await manager.activate(FAKE_DB, PLUGIN_ID, new Hono());
+    await manager.activate(FAKE_DB, PLUGIN_ID);
 
     const slotComponents = manager.getComponentOfSlot("sidebar");
     expect(slotComponents).toHaveLength(1);
@@ -212,7 +210,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     setupActivateMocks();
 
     const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
-    await manager.activate(FAKE_DB, PLUGIN_ID, new Hono());
+    await manager.activate(FAKE_DB, PLUGIN_ID);
 
     expect(mockDiscovery.registerDefinition).toHaveBeenCalledWith(
       FAKE_DB,
@@ -225,10 +223,10 @@ describe("PluginManager — activate() → deactivate()", () => {
     setupActivateMocks();
 
     const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
-    await manager.activate(FAKE_DB, PLUGIN_ID, new Hono());
+    await manager.activate(FAKE_DB, PLUGIN_ID);
 
     const callsBefore = vi.mocked(executeQuery).mock.calls.length;
-    await manager.activate(FAKE_DB, PLUGIN_ID, new Hono()); // second call
+    await manager.activate(FAKE_DB, PLUGIN_ID); // second call
     const callsAfter = vi.mocked(executeQuery).mock.calls.length;
 
     // No extra domain calls should be made
@@ -246,7 +244,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     setupActivateMocks({ withService: true });
 
     const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
-    await manager.activate(FAKE_DB, PLUGIN_ID, new Hono());
+    await manager.activate(FAKE_DB, PLUGIN_ID);
 
     // Service should be present
     expect(manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1")).not.toBeNull();
@@ -279,7 +277,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     setupActivateMocks();
 
     const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
-    await manager.activate(FAKE_DB, PLUGIN_ID, new Hono());
+    await manager.activate(FAKE_DB, PLUGIN_ID);
     expect(manager.getComponentOfSlot("toolbar")).toHaveLength(1);
 
     await manager.deactivate(FAKE_DB, PLUGIN_ID);
@@ -300,13 +298,13 @@ describe("PluginManager — reloadPlugin()", () => {
     setupActivateMocks({ withService: true });
 
     const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
-    await manager.activate(FAKE_DB, PLUGIN_ID, new Hono());
+    await manager.activate(FAKE_DB, PLUGIN_ID);
     expect(manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1")).not.toBeNull();
 
     // Set up mocks again for the second activate() inside reloadPlugin()
     setupActivateMocks({ withService: true });
 
-    await manager.reloadPlugin(FAKE_DB, PLUGIN_ID, new Hono());
+    await manager.reloadPlugin(FAKE_DB, PLUGIN_ID);
 
     // Service should still be present after reload
     expect(manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1")).not.toBeNull();

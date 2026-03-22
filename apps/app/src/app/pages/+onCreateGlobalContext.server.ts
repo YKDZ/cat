@@ -1,5 +1,6 @@
 import type { GlobalContextServer } from "vike/types";
 
+import app from "@cat/app-api/app";
 import { ensureDB, ensureRootUser } from "@cat/db";
 import {
   executeQuery,
@@ -29,6 +30,8 @@ const getStringSetting = async (
 
 export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
   try {
+    globalThis.app ??= app;
+
     const drizzleDB = await getDbHandle();
     await drizzleDB.ping();
 
@@ -79,7 +82,7 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
         resolve(process.cwd(), "default-plugins.json"),
       );
 
-      await pluginManager.restore(tx, globalThis.app);
+      await pluginManager.restore(tx);
 
       await ensureRootUser(tx);
     });

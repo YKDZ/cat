@@ -50,16 +50,15 @@ const toggleDirection = (): void => {
 </script>
 
 <template>
-  <div class="flex items-center justify-between border-b px-4 py-3">
+  <div class="flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <span class="text-sm font-semibold">{{ t("工作流执行") }}</span>
       <WorkflowRunStatusBadge :status="status" />
       <span class="font-mono text-xs text-muted-foreground">{{
         props.runId
       }}</span>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 pb-2">
       <!-- Layout direction toggle -->
       <Button
         variant="outline"
@@ -72,7 +71,7 @@ const toggleDirection = (): void => {
           class="size-4"
         />
         <span class="ml-1 text-xs">
-          {{ direction === "DOWN" ? t("自上而下") : t("自左而右") }}
+          {{ direction === "DOWN" ? t("从上到下") : t("从左到右") }}
         </span>
       </Button>
 
