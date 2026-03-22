@@ -13,7 +13,6 @@ export default defineConfig({
       "zod",
       "zod/v4",
       "zod/v4/core",
-      "bullmq",
       "diff",
     ],
   },
