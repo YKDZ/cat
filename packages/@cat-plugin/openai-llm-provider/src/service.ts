@@ -16,7 +16,7 @@ import OpenAI from "openai";
 import { Stream } from "openai/streaming";
 import { z } from "zod";
 
-export const SingleConfigSchema = z.object({
+const SingleConfigSchema = z.object({
   id: z.string().optional(),
   apiKey: z.string().optional(),
   baseURL: z.string().optional(),
