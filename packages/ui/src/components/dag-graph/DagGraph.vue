@@ -19,7 +19,6 @@ import type {
   DagEdgeData,
   DagGraphData,
   DagNodeData,
-  DagNodeStatus,
 } from "./types";
 
 import DagControls from "./DagControls.vue";
@@ -60,7 +59,7 @@ const edges = shallowRef<FlowEdge[]>([]);
 const isLayouting = ref(false);
 
 
-const { fitView, onNodeClick, onNodeDoubleClick } = useVueFlow();
+const { fitView, onNodeClick, onNodeDoubleClick, getNodes } = useVueFlow();
 
 
 // Track previous node set to detect topology changes
@@ -71,26 +70,39 @@ let prevEdgeIds = new Set<string>();
 const buildFlowNodes = (
   dagNodes: DagNodeData[],
   positionMap: Map<string, { x: number; y: number }>,
-): FlowNode[] =>
-  dagNodes.map((n) => ({
+  currentNodes?: FlowNode[],
+): FlowNode[] => {
+  const currentPositionMap = currentNodes
+    ? new Map(currentNodes.map((n) => [n.id, n.position]))
+    : undefined;
+
+  return dagNodes.map((n) => ({
     id: n.id,
     type: "dag-node",
-    position: positionMap.get(n.id) ?? { x: 0, y: 0 },
+    position: currentPositionMap?.get(n.id) ?? positionMap.get(n.id) ?? { x: 0, y: 0 },
     data: { ...n },
     selected: n.id === props.selectedNodeId,
   }));
+};
 
 
-const buildFlowEdges = (dagEdges: DagEdgeData[]): FlowEdge[] =>
-  dagEdges.map((e) => ({
+const buildFlowEdges = (dagEdges: DagEdgeData[]): FlowEdge[] => {
+  const sourceHandle = props.direction === "RIGHT" ? "right" : "bottom";
+  const targetHandle = props.direction === "RIGHT" ? "left" : "top";
+
+
+  return dagEdges.map((e) => ({
     id: e.id,
     source: e.source,
     target: e.target,
+    sourceHandle,
+    targetHandle,
     type: "dag-edge",
     animated: e.animated ?? false,
     data: e,
     label: e.label,
   }));
+};
 
 
 const topologyChanged = (graph: DagGraphData): boolean => {
@@ -108,11 +120,17 @@ const topologyChanged = (graph: DagGraphData): boolean => {
 
 
 const updateStatusOnly = (graph: DagGraphData): void => {
+  // Preserve current node positions from Vue Flow
+  const currentNodes = getNodes.value;
+  const currentPositionMap = new Map(currentNodes.map((n) => [n.id, n.position]));
+
   nodes.value = nodes.value.map((node) => {
     const updated = graph.nodes.find((n) => n.id === node.id);
     if (!updated) return node;
     return {
       ...node,
+      // Preserve user-dragged position
+      position: currentPositionMap.get(node.id) ?? node.position,
       data: { ...updated },
       selected: node.id === props.selectedNodeId,
     };
@@ -121,13 +139,18 @@ const updateStatusOnly = (graph: DagGraphData): void => {
 };
 
 
-const relayout = async (graph: DagGraphData): Promise<void> => {
+const relayout = async (graph: DagGraphData, preservePositions = false): Promise<void> => {
   if (isLayouting.value) return;
   isLayouting.value = true;
   try {
     const result = await computeElkLayout(graph, props.direction);
     const positionMap = new Map(result.nodes.map((n) => [n.id, n.position]));
-    nodes.value = buildFlowNodes(graph.nodes, positionMap);
+    // Pass current nodes to preserve positions if requested
+    nodes.value = buildFlowNodes(
+      graph.nodes,
+      positionMap,
+      preservePositions ? nodes.value : undefined,
+    );
     edges.value = buildFlowEdges(graph.edges);
     prevNodeIds = new Set(graph.nodes.map((n) => n.id));
     prevEdgeIds = new Set(graph.edges.map((e) => e.id));
@@ -176,8 +199,14 @@ onNodeDoubleClick(({ node }) => {
 watch(
   () => props.selectedNodeId,
   (newId) => {
+    // Get current positions from Vue Flow to preserve user-dragged positions
+    const currentNodes = getNodes.value;
+    const currentPositionMap = new Map(currentNodes.map((n) => [n.id, n.position]));
+
     nodes.value = nodes.value.map((node) => ({
       ...node,
+      // Preserve user-dragged position
+      position: currentPositionMap.get(node.id) ?? node.position,
       selected: node.id === newId,
     }));
   },

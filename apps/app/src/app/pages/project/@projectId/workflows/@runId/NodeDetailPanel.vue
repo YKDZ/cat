@@ -2,6 +2,9 @@
 import {
   Badge,
   Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
   ScrollArea,
   Tabs,
   TabsContent,
@@ -11,6 +14,7 @@ import {
 import {
   ArrowRightLeft,
   Brain,
+  ChevronDown,
   GitBranch,
   GitFork,
   GitMerge,
@@ -62,6 +66,9 @@ const nodeDetail = ref<{
 const isLoading = ref(false);
 
 
+const expandedEventSet = ref(new Set<string>());
+
+
 const nodeData = computed(() =>
   workflowStore.graph?.nodes.find((n) => n.id === props.nodeId),
 );
@@ -93,6 +100,15 @@ const badgeVariant = computed((): "secondary" | "outline" | "destructive" => {
 });
 
 
+const eventBadgeVariant = (
+  type: string,
+): "secondary" | "outline" | "destructive" => {
+  if (type.includes("error")) return "destructive";
+  if (type.includes("end") || type.includes("complete")) return "secondary";
+  return "outline";
+};
+
+
 const loadDetail = async (): Promise<void> => {
   isLoading.value = true;
   try {
@@ -104,6 +120,16 @@ const loadDetail = async (): Promise<void> => {
   } finally {
     isLoading.value = false;
   }
+};
+
+
+const toggleEventExpand = (eventId: string): void => {
+  if (expandedEventSet.value.has(eventId)) {
+    expandedEventSet.value.delete(eventId);
+  } else {
+    expandedEventSet.value.add(eventId);
+  }
+  expandedEventSet.value = new Set(expandedEventSet.value);
 };
 
 
@@ -168,20 +194,47 @@ const handleRetry = async (): Promise<void> => {
         <TabsContent value="events" class="min-h-0 flex-1 p-2">
           <ScrollArea class="h-full">
             <div class="space-y-1 p-2">
-              <div
+              <Collapsible
                 v-for="event in nodeDetail?.events ?? []"
                 :key="event.eventId"
-                class="rounded border p-2 text-xs"
+                :open="expandedEventSet.has(event.eventId)"
+                @update:open="() => toggleEventExpand(event.eventId)"
               >
-                <div class="mb-1 flex items-center gap-2">
-                  <Badge variant="outline" class="h-4 px-1 text-[10px]">{{
-                    event.type
-                  }}</Badge>
-                  <span class="text-muted-foreground">
-                    {{ new Date(event.timestamp).toLocaleTimeString() }}
-                  </span>
-                </div>
-              </div>
+                <CollapsibleTrigger as-child>
+                  <button
+                    class="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-muted/50"
+                  >
+                    <Badge
+                      :variant="eventBadgeVariant(event.type)"
+                      class="h-4 shrink-0 px-1 font-mono text-[9px]"
+                    >
+                      {{ event.type }}
+                    </Badge>
+                    <span class="ml-auto shrink-0 text-muted-foreground">
+                      {{ new Date(event.timestamp).toLocaleTimeString() }}
+                    </span>
+                    <ChevronDown
+                      class="size-3 shrink-0 transition-transform"
+                      :class="{
+                        'rotate-180': expandedEventSet.has(event.eventId),
+                      }"
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <pre
+                    class="mx-2 mb-1 overflow-auto rounded bg-muted/50 p-2 font-mono text-[10px]"
+                    >{{ JSON.stringify(event.payload, null, 2) }}</pre
+                  >
+                </CollapsibleContent>
+              </Collapsible>
+
+              <p
+                v-if="(nodeDetail?.events?.length ?? 0) === 0"
+                class="p-4 text-center text-xs text-muted-foreground"
+              >
+                {{ t("暂无事件") }}
+              </p>
             </div>
           </ScrollArea>
         </TabsContent>

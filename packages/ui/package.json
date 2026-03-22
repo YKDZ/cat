@@ -25,7 +25,7 @@
     "sync": "node scripts/sync-shadcn-components.js",
     "sync:check": "node scripts/sync-shadcn-components.js --check",
     "test": "vitest run --config ../../vitest.config.ts --project=unit-ui",
-    "typecheck": "tsc --noEmit && vue-tsc --noEmit"
+    "typecheck": "tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@vue-flow/controls": "^1.1.3",
