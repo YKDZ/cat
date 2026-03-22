@@ -74,7 +74,19 @@ export const defineTypedGraph = <
     outputSchema: options.output,
     id: options.id,
     extractResult: (snapshot) => {
-      return options.output.parse(snapshot.data);
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      const data = snapshot.data as Record<string, unknown>;
+
+      // First try: parse from exit node data (no outputMapping, standard write)
+      const exitNodeId = options.exit?.[0] ?? options.entry;
+      const exitData = data[exitNodeId as string];
+      if (exitData !== undefined) {
+        const safeParsed = options.output.safeParse(exitData);
+        if (safeParsed.success) return safeParsed.data;
+      }
+
+      // Fallback: parse from root (outputMapping to root fields)
+      return options.output.parse(data);
     },
   };
 };

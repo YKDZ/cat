@@ -1,10 +1,13 @@
-import { PluginManager, type VectorStorage } from "@cat/plugin-core";
+import type { VectorStorage } from "@cat/plugin-core";
+
+import {
+  retrieveEmbeddingsOp,
+  RetrieveEmbeddingsInputSchema,
+} from "@cat/operations";
 import { getServiceFromDBId } from "@cat/server-shared";
 import * as z from "zod/v4";
 
-import { defineGraphWorkflow } from "@/workflow/define-task";
-
-import { retriveEmbeddingsTask } from "./retrive-embeddings";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 const SearchChunkInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),
@@ -23,39 +26,73 @@ const SearchChunkOutputSchema = z.object({
   ),
 });
 
-export const searchChunkWorkflow = defineGraphWorkflow({
-  name: "chunk.search",
+const RetrieveEmbeddingsOutputSchema = z.object({
+  embeddings: z.array(z.array(z.number())),
+  vectorStorageId: z.int(),
+});
+
+const CosineSearchInputSchema = z.object({
+  embeddings: z.array(z.array(z.number())),
+  minSimilarity: z.number().min(0).max(1),
+  maxAmount: z.int().min(0),
+  searchRange: z.array(z.int()),
+  vectorStorageId: z.int(),
+});
+
+export { SearchChunkInputSchema, SearchChunkOutputSchema };
+
+export const searchChunkGraph = defineTypedGraph({
+  id: "chunk-search",
   input: SearchChunkInputSchema,
   output: SearchChunkOutputSchema,
-  cache: {
-    enabled: true,
-    ttl: 60,
+  nodes: {
+    "retrieve-embeddings": defineNode({
+      input: RetrieveEmbeddingsInputSchema,
+      output: RetrieveEmbeddingsOutputSchema,
+      inputMapping: {
+        chunkIds: "queryChunkIds",
+      },
+      handler: async (input, ctx) =>
+        retrieveEmbeddingsOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+        }),
+    }),
+    "cosine-search": defineNode({
+      input: CosineSearchInputSchema,
+      output: SearchChunkOutputSchema,
+      inputMapping: {
+        embeddings: "retrieve-embeddings.embeddings",
+        minSimilarity: "minSimilarity",
+        maxAmount: "maxAmount",
+        searchRange: "searchRange",
+        vectorStorageId: "vectorStorageId",
+      },
+      handler: async (input, ctx) => {
+        const vectorStorage = getServiceFromDBId<VectorStorage>(
+          ctx.pluginManager,
+          input.vectorStorageId,
+        );
+        const chunks = await vectorStorage.cosineSimilarity({
+          vectors: input.embeddings,
+          chunkIdRange: input.searchRange,
+          minSimilarity: input.minSimilarity,
+          maxAmount: input.maxAmount,
+        });
+        return { chunks };
+      },
+    }),
   },
-  steps: async (payload, { traceId, signal }) => {
-    return [
-      retriveEmbeddingsTask.asStep(
-        {
-          chunkIds: payload.queryChunkIds,
-        },
-        { traceId, signal },
-      ),
-    ];
-  },
-  handler: async (payload, ctx) => {
-    const pluginManager = ctx.pluginManager ?? PluginManager.get("GLOBAL", "");
-    const [embeddingsResult] = ctx.getStepResult(retriveEmbeddingsTask);
-    const vectorStorage = getServiceFromDBId<VectorStorage>(
-      pluginManager,
-      payload.vectorStorageId,
-    );
-
-    const chunks = await vectorStorage.cosineSimilarity({
-      vectors: embeddingsResult.embeddings,
-      chunkIdRange: payload.searchRange,
-      minSimilarity: payload.minSimilarity,
-      maxAmount: payload.maxAmount,
-    });
-
-    return { chunks };
+  edges: [{ from: "retrieve-embeddings", to: "cosine-search" }],
+  entry: "retrieve-embeddings",
+  exit: ["cosine-search"],
+  config: {
+    maxConcurrentNodes: 1,
+    defaultTimeoutMs: 120_000,
+    enableCheckpoints: true,
+    checkpointIntervalMs: 1000,
   },
 });
+
+/** @deprecated use searchChunkGraph */
+export const searchChunkWorkflow = searchChunkGraph;

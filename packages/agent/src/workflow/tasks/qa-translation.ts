@@ -8,97 +8,92 @@ import {
 import * as z from "zod/v4";
 
 import { runAgentQuery, withAgentDbTransaction } from "@/db/domain";
-import { defineGraphWorkflow } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { runGraph } from "@/graph/typed-dsl/run-graph";
 
-import { qaWorkflow } from "./qa";
-import { tokenizeTask } from "./tokenize";
+import { qaGraph } from "./qa";
+import { tokenizeGraph } from "./tokenize";
 
-export const qaTranslationWorkflow = defineGraphWorkflow({
-  name: "qa.translation",
+export const qaTranslationGraph = defineTypedGraph({
+  id: "qa-translation",
   input: z.object({
     translationId: z.int(),
   }),
   output: z.object({}),
-  steps: async (payload, { traceId, signal }) => {
-    const data = await runAgentQuery(getTranslationQaContext, {
-      translationId: payload.translationId,
-    });
+  nodes: {
+    main: defineNode({
+      input: z.object({ translationId: z.int() }),
+      output: z.object({}),
+      handler: async (payload, ctx) => {
+        const data = await runAgentQuery(getTranslationQaContext, {
+          translationId: payload.translationId,
+        });
 
-    if (!data) {
-      throw new Error(
-        `Translation ${payload.translationId} not found for QA workflow`,
-      );
-    }
+        if (!data) {
+          throw new Error(
+            `Translation ${payload.translationId} not found for QA workflow`,
+          );
+        }
 
-    return [
-      tokenizeTask.asStep(
-        { text: data.translationText },
-        { traceId, signal, stepId: "translation" },
-      ),
-      tokenizeTask.asStep(
-        { text: data.elementText },
-        { traceId, signal, stepId: "element" },
-      ),
-    ];
-  },
-  handler: async (payload, ctx) => {
-    const [translationResult] = ctx.getStepResult(tokenizeTask, "translation");
-    const [elementResult] = ctx.getStepResult(tokenizeTask, "element");
+        const [translationResult, elementResult] = await Promise.all([
+          runGraph(
+            tokenizeGraph,
+            { text: data.translationText },
+            { signal: ctx.signal },
+          ),
+          runGraph(
+            tokenizeGraph,
+            { text: data.elementText },
+            { signal: ctx.signal },
+          ),
+        ]);
 
-    const data = await runAgentQuery(getTranslationQaContext, {
-      translationId: payload.translationId,
-    });
+        const glossaryIds = await runAgentQuery(listProjectGlossaryIds, {
+          projectId: data.projectId,
+        });
 
-    if (!data) {
-      throw new Error(
-        `Translation ${payload.translationId} not found for QA workflow`,
-      );
-    }
+        const qa = await runGraph(
+          qaGraph,
+          {
+            source: {
+              text: data.elementText,
+              tokens: elementResult.tokens,
+              languageId: data.elementLanguageId,
+            },
+            translation: {
+              text: data.translationText,
+              tokens: translationResult.tokens,
+              languageId: data.translationLanguageId,
+            },
+            glossaryIds,
+            pub: false,
+          },
+          { signal: ctx.signal },
+        );
 
-    const glossaryIds = await runAgentQuery(listProjectGlossaryIds, {
-      projectId: data.projectId,
-    });
+        await withAgentDbTransaction(async (tx) => {
+          const resultRow = await executeCommand({ db: tx }, createQaResult, {
+            translationId: payload.translationId,
+          });
 
-    const { result } = await qaWorkflow.run(
-      {
-        source: {
-          text: data.elementText,
-          tokens: elementResult.tokens,
-          languageId: data.elementLanguageId,
-        },
-        translation: {
-          text: data.translationText,
-          tokens: translationResult.tokens,
-          languageId: data.translationLanguageId,
-        },
-        glossaryIds,
-        pub: false,
+          await executeCommand({ db: tx }, createQaResultItems, {
+            resultId: resultRow.id,
+            items: qa.result.map((item) => ({
+              isPassed: item.isPassed,
+              checkerId: item.checkerId,
+              meta: item.meta,
+            })),
+          });
+        });
+
+        return {};
       },
-      {
-        runId: ctx.runId,
-        traceId: ctx.traceId,
-        signal: ctx.signal,
-        pluginManager: ctx.pluginManager,
-      },
-    );
-
-    const qa = await result();
-
-    await withAgentDbTransaction(async (tx) => {
-      const resultRow = await executeCommand({ db: tx }, createQaResult, {
-        translationId: payload.translationId,
-      });
-
-      await executeCommand({ db: tx }, createQaResultItems, {
-        resultId: resultRow.id,
-        items: qa.result.map((item) => ({
-          isPassed: item.isPassed,
-          checkerId: item.checkerId,
-          meta: item.meta,
-        })),
-      });
-    });
-
-    return {};
+    }),
   },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use qaTranslationGraph */
+export const qaTranslationWorkflow = qaTranslationGraph;

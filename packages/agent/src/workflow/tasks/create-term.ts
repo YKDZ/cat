@@ -4,9 +4,10 @@ import * as z from "zod/v4";
 
 import { withAgentDbTransaction } from "@/db/domain";
 import { generateCacheKey } from "@/graph/cache";
-import { defineGraphWorkflow } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { runGraph } from "@/graph/typed-dsl/run-graph";
 
-import { revectorizeConceptTask } from "./revectorize-concept";
+import { revectorizeConceptGraph } from "./revectorize-concept";
 
 export const CreateTermInputSchema = z.object({
   glossaryId: z.uuidv4(),
@@ -20,48 +21,55 @@ export const CreateTermOutputSchema = z.object({
   termIds: z.array(z.int()),
 });
 
-export const createTermTask = defineGraphWorkflow({
-  name: "term.create",
+export const createTermGraph = defineTypedGraph({
+  id: "term-create",
   input: CreateTermInputSchema,
   output: CreateTermOutputSchema,
-  steps: async () => [],
-  handler: async (payload, ctx) => {
-    const sideEffectKey = `terms:${payload.glossaryId}:${generateCacheKey(payload.data)}`;
-    const existing = await ctx.checkSideEffect<number[]>(sideEffectKey);
-    if (existing !== null) {
-      return { termIds: existing };
-    }
+  nodes: {
+    main: defineNode({
+      input: CreateTermInputSchema,
+      output: CreateTermOutputSchema,
+      handler: async (input, ctx) => {
+        const sideEffectKey = `terms:${input.glossaryId}:${generateCacheKey(input.data)}`;
+        const existing = await ctx.checkSideEffect<number[]>(sideEffectKey);
+        if (existing !== null) {
+          return { termIds: existing };
+        }
 
-    const { termIds, conceptIds } = await withAgentDbTransaction(async (tx) => {
-      return executeCommand({ db: tx }, createGlossaryTerms, {
-        glossaryId: payload.glossaryId,
-        creatorId: payload.creatorId,
-        data: payload.data,
-      });
-    });
-
-    await Promise.all(
-      conceptIds.map(async (conceptId) => {
-        const { result } = await revectorizeConceptTask.run(
-          {
-            conceptId,
-            vectorizerId: payload.vectorizerId,
-            vectorStorageId: payload.vectorStorageId,
-          },
-          {
-            runId: ctx.runId,
-            traceId: ctx.traceId,
-            signal: ctx.signal,
-            pluginManager: ctx.pluginManager,
+        const { termIds, conceptIds } = await withAgentDbTransaction(
+          async (tx) => {
+            return executeCommand({ db: tx }, createGlossaryTerms, {
+              glossaryId: input.glossaryId,
+              creatorId: input.creatorId,
+              data: input.data,
+            });
           },
         );
 
-        await result();
-      }),
-    );
+        await Promise.all(
+          conceptIds.map(async (conceptId) => {
+            await runGraph(
+              revectorizeConceptGraph,
+              {
+                conceptId,
+                vectorizerId: input.vectorizerId,
+                vectorStorageId: input.vectorStorageId,
+              },
+              { signal: ctx.signal },
+            );
+          }),
+        );
 
-    await ctx.recordSideEffect(sideEffectKey, "db_write", termIds);
+        await ctx.recordSideEffect(sideEffectKey, "db_write", termIds);
 
-    return { termIds };
+        return { termIds };
+      },
+    }),
   },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use createTermGraph */
+export const createTermTask = createTermGraph;

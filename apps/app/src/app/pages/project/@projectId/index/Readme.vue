@@ -62,7 +62,7 @@ const updateContent = async () => {
   } catch (error) {
     logger
       .withSituation("WEB")
-      .error({ msg: "Failed to load README markdown" }, error);
+      .error(error, "Failed to load README markdown");
   }
 };
 

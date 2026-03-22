@@ -1,8 +1,9 @@
 import {
   CreateTranslationPubPayloadSchema,
-  autoTranslateWorkflow,
-  createTranslationWorkflow,
-  getWorkflowRuntime,
+  autoTranslateGraph,
+  createTranslationGraph,
+  getGlobalGraphRuntime,
+  runGraph,
 } from "@cat/agent/workflow";
 import {
   approveTranslation,
@@ -112,7 +113,8 @@ export const create = authed
       { projectId: element.projectId },
     );
 
-    await createTranslationWorkflow.run(
+    await runGraph(
+      createTranslationGraph,
       {
         data: [
           {
@@ -149,7 +151,7 @@ export const onCreate = authed
 
     const queue = new AsyncMessageQueue<TranslationData>();
 
-    const unsubscribe = getWorkflowRuntime().eventBus.subscribe(
+    const unsubscribe = getGlobalGraphRuntime().eventBus.subscribe(
       "workflow:translation:created",
       async (event) => {
         const parsed = await CreateTranslationPubPayloadSchema.safeParseAsync(
@@ -379,7 +381,8 @@ export const autoTranslate = authed
 
     await Promise.all(
       elements.map(async (element) => {
-        await autoTranslateWorkflow.run(
+        await runGraph(
+          autoTranslateGraph,
           {
             translationLanguageId: languageId,
             translatableElementId: element.id,

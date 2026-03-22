@@ -1,3 +1,5 @@
+import type { MigratorInitFailResponse } from "drizzle-orm/migrator";
+
 import { sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
@@ -31,8 +33,10 @@ export class DrizzleDB {
     await this.client.execute(sql`SELECT 1`);
   }
 
-  async migrate(migrationsFolder: string): Promise<void> {
-    await migrate(this.client, {
+  async migrate(
+    migrationsFolder: string,
+  ): Promise<void | MigratorInitFailResponse> {
+    return await migrate(this.client, {
       migrationsFolder,
     });
   }

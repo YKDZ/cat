@@ -7,7 +7,7 @@ import {
   NlpSegmentOutputSchema,
 } from "@cat/operations";
 
-import { defineGraphTask } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 export {
   NlpSegmentInputSchema,
@@ -16,18 +16,49 @@ export {
   NlpBatchSegmentOutputSchema,
 };
 
-export const nlpSegmentTask = defineGraphTask({
-  name: "nlp.segment",
+export const nlpSegmentGraph = defineTypedGraph({
+  id: "nlp-segment",
   input: NlpSegmentInputSchema,
   output: NlpSegmentOutputSchema,
-  cache: { enabled: true, ttl: 3600 },
-  handler: async (payload, ctx) => nlpSegmentOp(payload, ctx),
+  nodes: {
+    main: defineNode({
+      input: NlpSegmentInputSchema,
+      output: NlpSegmentOutputSchema,
+      handler: async (input, ctx) =>
+        nlpSegmentOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        }),
+    }),
+  },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
 
-export const nlpBatchSegmentTask = defineGraphTask({
-  name: "nlp.batchSegment",
+export const nlpBatchSegmentGraph = defineTypedGraph({
+  id: "nlp-batch-segment",
   input: NlpBatchSegmentInputSchema,
   output: NlpBatchSegmentOutputSchema,
-  cache: { enabled: true, ttl: 3600 },
-  handler: async (payload, ctx) => nlpBatchSegmentOp(payload, ctx),
+  nodes: {
+    main: defineNode({
+      input: NlpBatchSegmentInputSchema,
+      output: NlpBatchSegmentOutputSchema,
+      handler: async (input, ctx) =>
+        nlpBatchSegmentOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        }),
+    }),
+  },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use nlpSegmentGraph */
+export const nlpSegmentTask = nlpSegmentGraph;
+/** @deprecated use nlpBatchSegmentGraph */
+export const nlpBatchSegmentTask = nlpBatchSegmentGraph;

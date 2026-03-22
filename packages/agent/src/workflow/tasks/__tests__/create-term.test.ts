@@ -12,7 +12,10 @@ import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createTermTask } from "../create-term";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { createTermGraph } from "../create-term";
 
 let cleanup: () => Promise<void>;
 let pluginManager: PluginManager;
@@ -58,6 +61,8 @@ beforeAll(async () => {
     creatorId: user.id,
   });
   glossaryId = glossary.id;
+
+  createDefaultGraphRuntime(db.client, pluginManager);
 });
 
 test("create-term should insert terms to db", async () => {
@@ -86,7 +91,8 @@ test("create-term should insert terms to db", async () => {
     },
   ];
 
-  const { result } = await createTermTask.run(
+  const { termIds } = await runGraph(
+    createTermGraph,
     {
       glossaryId,
       data: termData,
@@ -95,8 +101,6 @@ test("create-term should insert terms to db", async () => {
     },
     { pluginManager },
   );
-
-  const { termIds } = await result();
 
   // Each TermData creates 2 term records (source term + translation term)
   expect(termIds.length).toEqual(termData.length * 2);
@@ -113,7 +117,8 @@ test("create-term with empty data should return empty termIds", async () => {
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  const { result } = await createTermTask.run(
+  const { termIds } = await runGraph(
+    createTermGraph,
     {
       glossaryId,
       data: [],
@@ -122,7 +127,5 @@ test("create-term with empty data should return empty termIds", async () => {
     },
     { pluginManager },
   );
-
-  const { termIds } = await result();
   expect(termIds).toEqual([]);
 });

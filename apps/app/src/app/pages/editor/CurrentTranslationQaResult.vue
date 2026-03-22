@@ -82,7 +82,7 @@ const update = async () => {
         }
         logger
           .withSituation("WEB")
-          .error({ msg: "Error when consume qa issues" }, error);
+          .error(error, "Error when consume qa issues");
       },
     },
   );

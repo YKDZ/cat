@@ -62,17 +62,17 @@ const load = async () => {
 
     sandbox.evaluate(code);
   } catch (e) {
-    logger
-      .withSituation("WEB")
-      .error({ msg: "Failed to evaluate sandbox code" }, e);
+    logger.withSituation("WEB").error(e, "Failed to evaluate sandbox code");
   }
 
 
   // TODO 逻辑上暂时不允许一次注册多个组件
   if (registry.size > 1 || registry.size === 0) {
-    logger.withSituation("WEB").warn({
-      msg: `Plugin registered component enrty script should define only one component. Bot got ${registry.size}`,
-    });
+    logger
+      .withSituation("WEB")
+      .warn(
+        `Plugin registered component enrty script should define only one component. Bot got ${registry.size}`,
+      );
   }
 
 
@@ -80,9 +80,11 @@ const load = async () => {
 
 
   if (name !== props.component.name) {
-    logger.withSituation("WEB").warn({
-      msg: `Component name mismatch. Claimed ${props.component.name}, but got ${name}`,
-    });
+    logger
+      .withSituation("WEB")
+      .warn(
+        `Component name mismatch. Claimed ${props.component.name}, but got ${name}`,
+      );
   }
 
 

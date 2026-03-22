@@ -17,7 +17,10 @@ import { assertSingleNonNullish } from "@cat/shared/utils";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { diffElementsTask } from "../diff-elements";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { diffElementsGraph } from "../diff-elements";
 
 const oldElements = [
   { text: "Test 1", languageId: "en", meta: { key: 1 }, sortIndex: 1 },
@@ -108,6 +111,8 @@ beforeAll(async () => {
       ],
     });
   }
+
+  createDefaultGraphRuntime(drizzle, pluginManager);
 });
 
 test("worker should diff elements", async () => {
@@ -129,15 +134,16 @@ test("worker should diff elements", async () => {
     },
   );
 
-  const { result } = await diffElementsTask.run({
-    documentId,
-    oldElementIds,
-    elementData: newElements,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
-  });
-
-  const { addedElementIds, removedElementIds } = await result();
+  const { addedElementIds, removedElementIds } = await runGraph(
+    diffElementsGraph,
+    {
+      documentId,
+      oldElementIds,
+      elementData: newElements,
+      vectorizerId: vectorizer.dbId,
+      vectorStorageId: vectorStorage.dbId,
+    },
+  );
   expect(addedElementIds.length).toEqual(1);
   expect(removedElementIds.length).toEqual(0);
 

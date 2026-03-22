@@ -75,9 +75,7 @@ const fetchConcepts = async () => {
     concepts.value = result.data;
     total.value = result.total;
   } catch (err) {
-    logger
-      .withSituation("WEB")
-      .error({ msg: "Failed to fetch concepts:" }, err);
+    logger.withSituation("WEB").error(err, "Failed to fetch concepts");
   } finally {
     isLoading.value = false;
   }

@@ -1,4 +1,4 @@
-import type { LLMProvider } from "@cat/plugin-core";
+import type { LLMProvider, PluginManager } from "@cat/plugin-core";
 
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
@@ -152,4 +152,5 @@ export type GraphRuntimeContext = {
   llmProvider?: LLMProvider;
   tools?: AgentToolDefinition[];
   systemPrompt?: string;
+  pluginManager?: PluginManager;
 };

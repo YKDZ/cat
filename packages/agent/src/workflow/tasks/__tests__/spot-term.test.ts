@@ -3,7 +3,10 @@ import { PluginManager } from "@cat/plugin-core";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { spotTermTask } from "../spot-term";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { spotTermGraph } from "../spot-term";
 
 let cleanup: () => Promise<void>;
 
@@ -35,36 +38,34 @@ beforeAll(async () => {
     email: "admin@encmys.cn",
     name: "YKDZ",
   });
+
+  createDefaultGraphRuntime(drizzle, pluginManager);
 });
 
 test("spot-term should return candidates from text", async () => {
-  const { result } = await spotTermTask.run({
+  const { candidates } = await runGraph(spotTermGraph, {
     text: "The dirt block and diamond block are common in Minecraft.",
     languageId: "en",
   });
-
-  const { candidates } = await result();
   expect(candidates).toBeDefined();
   expect(Array.isArray(candidates)).toBe(true);
 });
 
 test("spot-term should fail when given non-existent extractor ID", async () => {
-  const { result } = await spotTermTask.run({
-    text: "Some text with terms",
-    languageId: "en",
-    termExtractorId: 99999,
-  });
-
-  await expect(result()).rejects.toThrow();
+  await expect(
+    runGraph(spotTermGraph, {
+      text: "Some text with terms",
+      languageId: "en",
+      termExtractorId: 99999,
+    }),
+  ).rejects.toThrow();
 });
 
 test("spot-term candidate should have correct shape", async () => {
-  const { result } = await spotTermTask.run({
+  const { candidates } = await runGraph(spotTermGraph, {
     text: "dirt",
     languageId: "en",
   });
-
-  const { candidates } = await result();
 
   for (const candidate of candidates) {
     expect(candidate).toHaveProperty("text");

@@ -2,10 +2,11 @@ import { listElementIdsByDocument } from "@cat/domain";
 import * as z from "zod/v4";
 
 import { runAgentQuery } from "@/db/domain";
-import { defineGraphWorkflow } from "@/workflow/define-task";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { runGraph } from "@/graph/typed-dsl/run-graph";
 
-import { diffElementsTask } from "./diff-elements";
-import { parseFileTask } from "./parse-file";
+import { diffElementsGraph } from "./diff-elements";
+import { parseFileGraph } from "./parse-file";
 
 export const UpsertDocumentInputSchema = z.object({
   documentId: z.uuidv4(),
@@ -21,53 +22,49 @@ export const UpsertDocumentOutputSchema = z.object({
   removedCount: z.int(),
 });
 
-export const upsertDocumentFromFileWorkflow = defineGraphWorkflow({
-  name: "document.upsert-from-file",
+export const upsertDocumentGraph = defineTypedGraph({
+  id: "document-upsert-from-file",
   input: UpsertDocumentInputSchema,
   output: UpsertDocumentOutputSchema,
-  steps: async (payload, { traceId, signal }) => {
-    return [
-      parseFileTask.asStep(
-        {
-          fileId: payload.fileId,
-          languageId: payload.languageId,
-        },
-        { traceId, signal },
-      ),
-    ];
-  },
-  handler: async (payload, ctx) => {
-    const [parseResult] = ctx.getStepResult(parseFileTask);
+  nodes: {
+    main: defineNode({
+      input: UpsertDocumentInputSchema,
+      output: UpsertDocumentOutputSchema,
+      handler: async (input, ctx) => {
+        const { elements } = await runGraph(
+          parseFileGraph,
+          { fileId: input.fileId, languageId: input.languageId },
+          { signal: ctx.signal },
+        );
 
-    if (!parseResult) {
-      throw new Error("File parsing failed");
-    }
+        const oldElementIds = await runAgentQuery(listElementIdsByDocument, {
+          documentId: input.documentId,
+        });
 
-    const oldElementIds = await runAgentQuery(listElementIdsByDocument, {
-      documentId: payload.documentId,
-    });
+        const diffStats = await runGraph(
+          diffElementsGraph,
+          {
+            documentId: input.documentId,
+            elementData: elements,
+            oldElementIds,
+            vectorizerId: input.vectorizerId,
+            vectorStorageId: input.vectorStorageId,
+          },
+          { signal: ctx.signal },
+        );
 
-    const { result } = await diffElementsTask.run(
-      {
-        documentId: payload.documentId,
-        elementData: parseResult.elements,
-        oldElementIds,
-        vectorizerId: payload.vectorizerId,
-        vectorStorageId: payload.vectorStorageId,
+        return {
+          success: true,
+          addedCount: diffStats.addedElementIds.length,
+          removedCount: diffStats.removedElementIds.length,
+        };
       },
-      {
-        runId: ctx.runId,
-        traceId: ctx.traceId,
-        signal: ctx.signal,
-        pluginManager: ctx.pluginManager,
-      },
-    );
-
-    const diffStats = await result();
-    return {
-      success: true,
-      addedCount: diffStats.addedElementIds.length,
-      removedCount: diffStats.removedElementIds.length,
-    };
+    }),
   },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use upsertDocumentGraph */
+export const upsertDocumentFromFileWorkflow = upsertDocumentGraph;

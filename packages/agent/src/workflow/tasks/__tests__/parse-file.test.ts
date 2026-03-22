@@ -14,7 +14,10 @@ import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { Readable } from "stream";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { parseFileTask } from "../parse-file";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { parseFileGraph } from "../parse-file";
 
 const key = "/file/key";
 
@@ -67,6 +70,8 @@ beforeAll(async () => {
     blobId: blobResult.id,
     isActive: true,
   });
+
+  createDefaultGraphRuntime(drizzle, pluginManager);
 });
 
 test("storage provider should store and retrieve data correctly", async () => {
@@ -90,12 +95,10 @@ test("worker should parse elements from file", async () => {
   const files = await executeQuery({ db: drizzle }, listAllFiles, {});
   const fileId = files[0].id;
 
-  const { result } = await parseFileTask.run({
+  const { elements } = await runGraph(parseFileGraph, {
     fileId,
     languageId: "en",
   });
-
-  const { elements } = await result();
   expect(elements.length).toEqual(2);
   expect(elements[0]?.text).toEqual("Hello World!");
   expect(elements[1]?.text).toEqual("YKDZ");

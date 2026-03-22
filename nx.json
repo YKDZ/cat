@@ -1,10 +1,7 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
-    "default": [
-      "{projectRoot}/**/*",
-      "sharedGlobals"
-    ],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
       "!{projectRoot}/**/*.+(spec|test).[jt]s?(x)?(.snap)",
@@ -15,9 +12,7 @@
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "inputs": [
         "production",
         "^production",
@@ -25,21 +20,15 @@
           "env": "CI"
         }
       ],
-      "outputs": [
-        "{projectRoot}/dist/**/*"
-      ],
+      "outputs": ["{projectRoot}/dist/**/*"],
       "cache": true
     },
     "dev": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "continuous": true
     },
     "preview": {
-      "dependsOn": [
-        "build"
-      ],
+      "dependsOn": ["build"],
       "continuous": true
     },
     "lint": {
@@ -47,15 +36,11 @@
         "^build",
         "build",
         {
-          "projects": [
-            "test-utils"
-          ],
+          "projects": ["test-utils"],
           "target": "build"
         },
         {
-          "projects": [
-            "oxlint-plugin"
-          ],
+          "projects": ["oxlint-plugin"],
           "target": "build"
         }
       ],
@@ -66,15 +51,11 @@
         "^build",
         "build",
         {
-          "projects": [
-            "test-utils"
-          ],
+          "projects": ["test-utils"],
           "target": "build"
         },
         {
-          "projects": [
-            "oxlint-plugin"
-          ],
+          "projects": ["oxlint-plugin"],
           "target": "build"
         }
       ],
@@ -85,9 +66,7 @@
         "^build",
         "build",
         {
-          "projects": [
-            "test-utils"
-          ],
+          "projects": ["test-utils"],
           "target": "build"
         }
       ],
@@ -97,9 +76,7 @@
       "dependsOn": [
         "^build",
         {
-          "projects": [
-            "test-utils"
-          ],
+          "projects": ["test-utils"],
           "target": "build"
         }
       ],
@@ -109,9 +86,7 @@
       "dependsOn": [
         "^build",
         {
-          "projects": [
-            "test-utils"
-          ],
+          "projects": ["test-utils"],
           "target": "build"
         }
       ],
@@ -121,9 +96,7 @@
       "dependsOn": [
         "^build",
         {
-          "projects": [
-            "test-utils"
-          ],
+          "projects": ["test-utils"],
           "target": "build"
         }
       ],

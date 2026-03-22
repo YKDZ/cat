@@ -1,3 +1,4 @@
+import type { PluginManager } from "@cat/plugin-core";
 import type * as z from "zod/v4";
 
 import type { EventEnvelopeInput } from "@/graph/events";
@@ -16,7 +17,21 @@ export type TypedNodeContext = {
   runId: string;
   nodeId: string;
   signal?: AbortSignal;
+  /** Alias for runId – supplied for compatibility with OperationContext */
+  traceId: string;
+  /** Plugin manager instance from the graph runtime */
+  pluginManager: PluginManager;
   emit: (event: EventEnvelopeInput) => Promise<void>;
+  /** Buffer an event to be published after node execution */
+  addEvent: (event: EventEnvelopeInput) => void;
+  /** Check whether a side-effect has already been recorded for this run+key */
+  checkSideEffect: <T>(key: string) => Promise<T | null>;
+  /** Record a side-effect for idempotency; returns null on first call */
+  recordSideEffect: <T>(
+    key: string,
+    outputType: "db_write" | "api_call" | "event_publish",
+    payload: T,
+  ) => Promise<T | null>;
 };
 
 // ─── 类型安全节点定义 ──────────────────────────────────────────────
@@ -84,14 +99,14 @@ export type TypedGraphDefinition<
   TInput extends z.ZodType,
   TOutput extends z.ZodType,
 > = {
+  /** Graph ID */
+  id: string;
   /** 标准 GraphDefinition，可直接注册到 GraphRegistry */
   graphDefinition: GraphDefinition;
   /** 输入 schema，用于 oRPC 端点的 input 校验 */
   inputSchema: TInput;
   /** 输出 schema，用于从 Blackboard 提取结果 */
   outputSchema: TOutput;
-  /** Graph ID */
-  id: string;
   /** 从 Blackboard 最终快照中提取类型安全结果 */
   extractResult: (snapshot: BlackboardSnapshot) => z.infer<TOutput>;
 };

@@ -10,7 +10,7 @@ const link = new RPCLink({
   url: new URL("/api/rpc", "http://localhost:3000"),
   interceptors: [
     onError((error) => {
-      logger.withSituation("WEB").error({ msg: "Error when orpc" }, error);
+      logger.withSituation("WEB").error(error, "Error when orpc");
     }),
   ],
 });

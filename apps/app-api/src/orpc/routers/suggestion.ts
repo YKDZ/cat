@@ -1,4 +1,8 @@
-import { fetchAdviseWorkflow, getWorkflowRuntime } from "@cat/agent/workflow";
+import {
+  fetchAdviseGraph,
+  getGlobalGraphRuntime,
+  runGraph,
+} from "@cat/agent/workflow";
 import {
   executeQuery,
   getElementWithChunkIds,
@@ -47,7 +51,7 @@ export const onNew = authed
     );
 
     const suggestionsQueue = new AsyncMessageQueue<TranslationSuggestion>();
-    const unsubscribe = getWorkflowRuntime().eventBus.subscribe(
+    const unsubscribe = getGlobalGraphRuntime().eventBus.subscribe(
       "workflow:suggestion:ready",
       async (event) => {
         const parsed = await SuggestionEventPayloadSchema.safeParseAsync(
@@ -93,7 +97,8 @@ export const onNew = authed
         return;
       }
 
-      const { result } = await fetchAdviseWorkflow.run(
+      const { suggestions } = await runGraph(
+        fetchAdviseGraph,
         {
           text: element.value,
           glossaryIds,
@@ -107,8 +112,6 @@ export const onNew = authed
           pluginManager,
         },
       );
-
-      const { suggestions } = await result();
 
       const advisorSuggestions = suggestions.map((suggestion) => ({
         ...suggestion,

@@ -3,7 +3,10 @@ import { PluginManager } from "@cat/plugin-core";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { tokenizeTask } from "../tokenize";
+import { createDefaultGraphRuntime } from "@/graph";
+import { runGraph } from "@/graph/typed-dsl";
+
+import { tokenizeGraph } from "../tokenize";
 
 let cleanup: () => Promise<void>;
 
@@ -31,33 +34,29 @@ beforeAll(async () => {
   await executeCommand({ db: drizzle }, ensureLanguages, {
     languageIds: ["en", "zh-Hans"],
   });
+
+  createDefaultGraphRuntime(drizzle, pluginManager);
 });
 
 test("tokenize should return tokens for given text", async () => {
-  const { result } = await tokenizeTask.run({
+  const { tokens } = await runGraph(tokenizeGraph, {
     text: "Hello world",
   });
-
-  const { tokens } = await result();
   expect(Array.isArray(tokens)).toBe(true);
   expect(tokens.length).toBeGreaterThan(0);
 });
 
 test("tokenize should return empty tokens for empty text", async () => {
-  const { result } = await tokenizeTask.run({
+  const { tokens } = await runGraph(tokenizeGraph, {
     text: "",
   });
-
-  const { tokens } = await result();
   expect(Array.isArray(tokens)).toBe(true);
 });
 
 test("tokenize tokens should have correct shape", async () => {
-  const { result } = await tokenizeTask.run({
+  const { tokens } = await runGraph(tokenizeGraph, {
     text: "The quick brown fox",
   });
-
-  const { tokens } = await result();
 
   for (const token of tokens) {
     expect(token).toHaveProperty("value");

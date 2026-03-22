@@ -1,4 +1,4 @@
-import { upsertDocumentFromFileWorkflow } from "@cat/agent/workflow";
+import { runGraph, upsertDocumentGraph } from "@cat/agent/workflow";
 import { createDocumentUnderParent } from "@cat/domain";
 import {
   countDocumentElements,
@@ -176,7 +176,8 @@ export const finishCreateFromFile = authed
         return { document };
       });
 
-      await upsertDocumentFromFileWorkflow.run(
+      await runGraph(
+        upsertDocumentGraph,
         {
           documentId: document.id,
           fileId,
@@ -189,7 +190,8 @@ export const finishCreateFromFile = authed
         },
       );
     } else {
-      await upsertDocumentFromFileWorkflow.run(
+      await runGraph(
+        upsertDocumentGraph,
         {
           fileId,
           languageId,

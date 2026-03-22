@@ -804,7 +804,7 @@ export const useAgentStore = defineStore("agent", () => {
     } catch (err) {
       logger
         .withSituation("WEB")
-        .error({ msg: "Failed to fetch agent definitions" }, err);
+        .error(err, "Failed to fetch agent definitions");
     }
   };
 
@@ -844,9 +844,7 @@ export const useAgentStore = defineStore("agent", () => {
         createdAt: r.createdAt,
       }));
     } catch (err) {
-      logger
-        .withSituation("WEB")
-        .error({ msg: "Failed to fetch sessions" }, err);
+      logger.withSituation("WEB").error(err, "Failed to fetch sessions");
     }
   };
 
@@ -885,9 +883,7 @@ export const useAgentStore = defineStore("agent", () => {
       lastUserMessage.value = null;
       return result.sessionId;
     } catch (err) {
-      logger
-        .withSituation("WEB")
-        .error({ msg: "Failed to create agent session" }, err);
+      logger.withSituation("WEB").error(err, "Failed to create agent session");
       return null;
     }
   };
@@ -950,7 +946,7 @@ export const useAgentStore = defineStore("agent", () => {
       if (abortController.signal.aborted) {
         streamingStatus.value = "idle";
       } else {
-        logger.withSituation("WEB").error({ msg: "Agent stream error" }, err);
+        logger.withSituation("WEB").error(err, "Agent stream error");
         errorMessage.value =
           err instanceof Error ? err.message : "Unknown error";
         streamingStatus.value = "error";
@@ -1000,9 +996,7 @@ export const useAgentStore = defineStore("agent", () => {
       });
       streamingStatus.value = "streaming";
     } catch (err) {
-      logger
-        .withSituation("WEB")
-        .error({ msg: "Failed to submit confirmation" }, err);
+      logger.withSituation("WEB").error(err, "Failed to submit confirmation");
     }
   };
 

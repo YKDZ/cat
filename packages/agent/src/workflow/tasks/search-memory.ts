@@ -1,12 +1,8 @@
-import { getSearchMemoryChunkRange } from "@cat/domain";
 import { searchMemoryOp } from "@cat/operations";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
 import * as z from "zod/v4";
 
-import { runAgentQuery } from "@/db/domain";
-import { defineGraphWorkflow } from "@/workflow/define-task";
-
-import { searchChunkWorkflow } from "./search-chunk";
+import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 
 export const SearchMemoryInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),
@@ -22,55 +18,26 @@ export const SearchMemoryOutputSchema = z.object({
   memories: z.array(MemorySuggestionSchema),
 });
 
-export const searchMemoryWorkflow = defineGraphWorkflow({
-  name: "memory.search",
+export const searchMemoryGraph = defineTypedGraph({
+  id: "memory-search",
   input: SearchMemoryInputSchema,
   output: SearchMemoryOutputSchema,
-
-  steps: async (payload, { traceId, signal }) => {
-    if (payload.chunkIds.length === 0) {
-      return [];
-    }
-
-    const searchRange = await runAgentQuery(getSearchMemoryChunkRange, {
-      memoryIds: payload.memoryIds,
-      sourceLanguageId: payload.sourceLanguageId,
-      translationLanguageId: payload.translationLanguageId,
-    });
-
-    return [
-      searchChunkWorkflow.asStep(
-        {
-          minSimilarity: payload.minSimilarity,
-          maxAmount: payload.maxAmount,
-          searchRange,
-          queryChunkIds: payload.chunkIds,
-          vectorStorageId: payload.vectorStorageId,
-        },
-        { traceId, signal },
-      ),
-    ];
+  nodes: {
+    main: defineNode({
+      input: SearchMemoryInputSchema,
+      output: SearchMemoryOutputSchema,
+      handler: async (input, ctx) =>
+        searchMemoryOp(input, {
+          traceId: ctx.traceId,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        }),
+    }),
   },
-
-  handler: async (payload, ctx) => {
-    const [searchChunkResult] = ctx.getStepResult(searchChunkWorkflow);
-    if (!searchChunkResult) {
-      return { memories: [] };
-    }
-
-    const { memories } = await searchMemoryOp(
-      {
-        chunkIds: searchChunkResult.chunks.map((item) => item.chunkId),
-        sourceLanguageId: payload.sourceLanguageId,
-        translationLanguageId: payload.translationLanguageId,
-        memoryIds: payload.memoryIds,
-        maxAmount: payload.maxAmount,
-        minSimilarity: payload.minSimilarity,
-        vectorStorageId: payload.vectorStorageId,
-      },
-      { traceId: ctx.traceId, pluginManager: ctx.pluginManager },
-    );
-
-    return { memories };
-  },
+  edges: [],
+  entry: "main",
+  exit: ["main"],
 });
+
+/** @deprecated use searchMemoryGraph */
+export const searchMemoryWorkflow = searchMemoryGraph;

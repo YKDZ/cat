@@ -85,7 +85,7 @@ const createConcept = async () => {
     // 触发刷新事件
     window.dispatchEvent(new CustomEvent("refresh-concepts"));
   } catch (error) {
-    logger.withSituation("WEB").error({ msg: "创建概念失败" }, error);
+    logger.withSituation("WEB").error(error, "创建概念失败");
     toastStore.error(t("创建概念失败，请重试"));
   } finally {
     isCreating.value = false;

@@ -1,5 +1,9 @@
-import { createTermTask } from "@cat/agent/workflow";
-import { termAlignmentGraph, termDiscoveryGraph } from "@cat/agent/workflow";
+import {
+  createTermGraph,
+  runGraph,
+  termAlignmentGraph,
+  termDiscoveryGraph,
+} from "@cat/agent/workflow";
 import {
   addGlossaryTermToConcept,
   countGlossaryConcepts,
@@ -171,13 +175,17 @@ export const insertTerm = authed
       });
     }
 
-    await createTermTask.run({
-      glossaryId,
-      data: termsData,
-      creatorId: user.id,
-      vectorizerId: vectorizer.id,
-      vectorStorageId: storage.id,
-    });
+    await runGraph(
+      createTermGraph,
+      {
+        glossaryId,
+        data: termsData,
+        creatorId: user.id,
+        vectorizerId: vectorizer.id,
+        vectorStorageId: storage.id,
+      },
+      { pluginManager },
+    );
   });
 
 export const searchTerm = authed

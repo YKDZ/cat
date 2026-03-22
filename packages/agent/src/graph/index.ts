@@ -21,9 +21,34 @@ import { pipelineGraph, reactLoopGraph } from "@/graph/graphs";
 import { InProcessLeaseManager } from "@/graph/lease";
 import { NodeRegistry } from "@/graph/node-registry";
 import { RuntimeAwareScheduler } from "@/graph/runtime-aware-scheduler";
+import { storeGraphRuntime } from "@/graph/runtime-store";
 import { Scheduler } from "@/graph/scheduler";
 import { createRuntimeResolver, type RuntimeResolver } from "@/runtime";
 import { termAlignmentGraph, termDiscoveryGraph } from "@/workflow/tasks";
+import {
+  autoTranslateGraph,
+  createElementGraph,
+  createTermGraph,
+  createTranslatableStringGraph,
+  createTranslationGraph,
+  diffElementsGraph,
+  fetchAdviseGraph,
+  nlpBatchSegmentGraph,
+  nlpSegmentGraph,
+  parseFileGraph,
+  qaGraph,
+  qaTranslationGraph,
+  retriveEmbeddingsGraph,
+  revectorizeConceptGraph,
+  revectorizeGraph,
+  revectorizeSubjectConceptsGraph,
+  searchChunkGraph,
+  searchMemoryGraph,
+  spotTermGraph,
+  tokenizeGraph,
+  upsertDocumentGraph,
+  vectorizeGraph,
+} from "@/workflow/tasks";
 
 export type { EventBus } from "@/graph/event-bus";
 export type { ExecutorPool, ExecutorTask } from "@/graph/executor-pool";
@@ -49,6 +74,7 @@ export * from "@/graph/builtin";
 export * from "@/graph/dsl";
 export * from "@/graph/typed-dsl";
 export * from "@/graph/distributed-extensions";
+export { getStoredGraphRuntime as getGlobalGraphRuntime } from "@/graph/runtime-store";
 
 export type DefaultGraphRuntime = {
   eventBus: InProcessEventBus;
@@ -87,6 +113,28 @@ export const createDefaultGraphRuntime = (
   graphRegistry.register(pipelineGraph);
   graphRegistry.register(termDiscoveryGraph.graphDefinition);
   graphRegistry.register(termAlignmentGraph.graphDefinition);
+  graphRegistry.register(autoTranslateGraph.graphDefinition);
+  graphRegistry.register(createElementGraph.graphDefinition);
+  graphRegistry.register(createTermGraph.graphDefinition);
+  graphRegistry.register(createTranslatableStringGraph.graphDefinition);
+  graphRegistry.register(createTranslationGraph.graphDefinition);
+  graphRegistry.register(diffElementsGraph.graphDefinition);
+  graphRegistry.register(fetchAdviseGraph.graphDefinition);
+  graphRegistry.register(nlpBatchSegmentGraph.graphDefinition);
+  graphRegistry.register(nlpSegmentGraph.graphDefinition);
+  graphRegistry.register(parseFileGraph.graphDefinition);
+  graphRegistry.register(qaGraph.graphDefinition);
+  graphRegistry.register(qaTranslationGraph.graphDefinition);
+  graphRegistry.register(retriveEmbeddingsGraph.graphDefinition);
+  graphRegistry.register(revectorizeConceptGraph.graphDefinition);
+  graphRegistry.register(revectorizeGraph.graphDefinition);
+  graphRegistry.register(revectorizeSubjectConceptsGraph.graphDefinition);
+  graphRegistry.register(searchChunkGraph.graphDefinition);
+  graphRegistry.register(searchMemoryGraph.graphDefinition);
+  graphRegistry.register(spotTermGraph.graphDefinition);
+  graphRegistry.register(tokenizeGraph.graphDefinition);
+  graphRegistry.register(upsertDocumentGraph.graphDefinition);
+  graphRegistry.register(vectorizeGraph.graphDefinition);
 
   const baseScheduler = new Scheduler({
     eventBus,
@@ -103,7 +151,7 @@ export const createDefaultGraphRuntime = (
   });
   const scheduler = new RuntimeAwareScheduler(baseScheduler, runtimeResolver);
 
-  return {
+  const runtime: DefaultGraphRuntime = {
     eventBus,
     checkpointer,
     executorPool,
@@ -113,4 +161,8 @@ export const createDefaultGraphRuntime = (
     scheduler,
     baseScheduler,
   };
+
+  storeGraphRuntime(runtime);
+
+  return runtime;
 };

@@ -92,7 +92,7 @@ export const useEditorTranslationStore = defineStore(
         } catch (err) {
           logger
             .withSituation("WEB")
-            .error({ msg: "Translation subscription error" }, err);
+            .error(err, "Translation subscription error");
         }
       },
       { immediate: true },
