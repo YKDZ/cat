@@ -24,14 +24,18 @@ describe("workflow event stream ordering", () => {
       });
       ctx.addEvent({
         type: "workflow:qa:issue",
-        payload: { issueId: "qa-1" },
+        payload: { traceId: "qa-1", result: [] },
       });
       return {
         status: "completed",
         events: [
           {
             type: "llm:complete",
-            payload: { content: "done" },
+            payload: {
+              content: "done",
+              thinking: "",
+              toolCalls: [],
+            },
           },
         ],
       };
