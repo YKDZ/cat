@@ -3,6 +3,7 @@ import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
 import { listGlossariesByCreator } from "@cat/domain";
 
 import { runAppQuery } from "@/server/domain";
+import { requireTelefuncAuth } from "@/server/telefunc-auth";
 
 export type PagedResult<T> = {
   data: T[];
@@ -15,12 +16,12 @@ export type GlossaryListItem = Pick<
 >;
 
 export const onRequestGlossaries = async (
-  userId: string,
   pageIndex: number,
   pageSize: number,
 ): Promise<PagedResult<GlossaryListItem>> => {
+  const { auth } = requireTelefuncAuth();
   const { data, total } = await runAppQuery(listGlossariesByCreator, {
-    creatorId: userId,
+    creatorId: auth.subjectId,
     pageIndex,
     pageSize,
   });

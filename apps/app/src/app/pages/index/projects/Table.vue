@@ -64,11 +64,7 @@ const fetchProjects = async () => {
 
   isLoading.value = true;
   try {
-    const result = await onRequestProjects(
-      ctx.user.id,
-      pageIndex.value,
-      pageSize.value,
-    );
+    const result = await onRequestProjects(pageIndex.value, pageSize.value);
     projects.value = result.data;
     total.value = result.total;
   } catch (err) {
@@ -149,25 +145,25 @@ watch([pageIndex], () => {
         v-model:page="currentPage"
       >
         <PaginationContent class="gap-0.5">
-          <PaginationFirst size="icon-sm" class="!px-1.5 !pr-1.5">
+          <PaginationFirst size="icon-sm" class="px-1.5! pr-1.5!">
             <ChevronsLeftIcon class="h-3 w-3" />
           </PaginationFirst>
-          <PaginationPrevious size="icon-sm" class="!px-1.5 !pr-1.5">
+          <PaginationPrevious size="icon-sm" class="px-1.5! pr-1.5!">
             <ChevronLeftIcon class="h-3 w-3" />
           </PaginationPrevious>
 
           <div
-            class="pointer-events-none flex min-w-[3rem] items-center justify-center px-1"
+            class="pointer-events-none flex min-w-12 items-center justify-center px-1"
           >
             <span class="text-xs font-medium tabular-nums">
               {{ currentPage }}/{{ Math.max(1, pageTotalAmount) }}
             </span>
           </div>
 
-          <PaginationNext size="icon-sm" class="!px-1.5 !pr-1.5">
+          <PaginationNext size="icon-sm" class="px-1.5! pr-1.5!">
             <ChevronRightIcon class="h-3 w-3" />
           </PaginationNext>
-          <PaginationLast size="icon-sm" class="!px-1.5 !pr-1.5">
+          <PaginationLast size="icon-sm" class="px-1.5! pr-1.5!">
             <ChevronsRightIcon class="h-3 w-3" />
           </PaginationLast>
         </PaginationContent>

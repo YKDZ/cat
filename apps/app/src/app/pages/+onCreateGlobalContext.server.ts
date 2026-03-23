@@ -1,5 +1,6 @@
 import type { GlobalContextServer } from "vike/types";
 
+import { createDefaultGraphRuntime } from "@cat/agent";
 import app from "@cat/app-api/app";
 import { ensureDB, ensureRootUser } from "@cat/db";
 import {
@@ -8,8 +9,14 @@ import {
   getDbHandle,
   getRedisHandle,
   type DrizzleClient,
+  getCacheStore,
 } from "@cat/domain";
 import { registerDomainEventHandlers } from "@cat/operations";
+import {
+  initPermissionEngine,
+  registerAuditHandler,
+  seedSystemRoles,
+} from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
 import {
   initAllVectorStorage,
@@ -90,6 +97,23 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     await initAllVectorStorage(pluginManager);
     registerDomainEventHandlers();
 
+    // 初始化 Agent Graph Runtime（全局单例，供 runGraph 等 API 使用）
+    createDefaultGraphRuntime(drizzleDB.client, pluginManager);
+
+    // 初始化权限引擎
+    const cacheStore = getCacheStore();
+    initPermissionEngine({
+      db: drizzleDB.client,
+      cache: cacheStore,
+      auditEnabled: true,
+    });
+
+    // 播种系统角色（幂等）
+    await seedSystemRoles(drizzleDB.client);
+
+    // 注册审计日志处理器
+    registerAuditHandler(drizzleDB.client);
+
     ctx.drizzleDB = drizzleDB;
     ctx.redis = redis;
     ctx.pluginManager = pluginManager;
@@ -106,6 +130,6 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     logger
       .withSituation("SERVER")
       .error(err, "Failed to initialize server. Process will exit with code 1");
-    process.exit(1);
+    process.exitCode = 1;
   }
 };

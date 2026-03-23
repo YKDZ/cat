@@ -20,6 +20,10 @@ import {
   AgentToolConfirmationStatusValues,
   AgentSessionTrustPolicyValues,
   AgentDefinitionTypeValues,
+  ObjectTypeValues,
+  SubjectTypeValues,
+  RelationValues,
+  PermissionActionValues,
 } from "@cat/shared/schema/drizzle/enum";
 import { sql } from "drizzle-orm";
 import {
@@ -72,6 +76,14 @@ export const termType = pgEnum("TermType", TermTypeValues);
 
 export const termStatus = pgEnum("TermStatus", TermStatusValues);
 
+export const objectType = pgEnum("ObjectType", ObjectTypeValues);
+export const subjectType = pgEnum("SubjectType", SubjectTypeValues);
+export const relation = pgEnum("Relation", RelationValues);
+export const permissionAction = pgEnum(
+  "PermissionAction",
+  PermissionActionValues,
+);
+
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
@@ -94,6 +106,7 @@ export const account = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
+
     ...timestamps,
   },
   (table) => [unique().on(table.providerIssuer, table.providedAccountId)],
@@ -113,6 +126,7 @@ export const mfaProvider = pgTable("MFAProvider", {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
+
   ...timestamps,
 });
 
@@ -1107,3 +1121,68 @@ export const agentExternalOutput = pgTable(
     unique().on(table.runId, table.outputKey, table.idempotencyKey),
   ],
 );
+
+// ============ Permission System Tables ============
+
+export const role = pgTable("Role", {
+  id: serial().primaryKey(),
+  name: text().notNull().unique(),
+  description: text(),
+  isSystem: boolean().default(false).notNull(),
+  ...timestamps,
+});
+
+export const userRole = pgTable(
+  "UserRole",
+  {
+    id: serial().primaryKey(),
+    userId: uuid()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    roleId: integer()
+      .notNull()
+      .references(() => role.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (table) => [unique().on(table.userId, table.roleId)],
+);
+
+export const permissionTuple = pgTable(
+  "PermissionTuple",
+  {
+    id: serial().primaryKey(),
+    subjectType: subjectType().notNull(),
+    subjectId: text().notNull(),
+    relation: relation().notNull(),
+    objectType: objectType().notNull(),
+    /** Resource ID; use "*" for system-level objects */
+    objectId: text().notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    unique().on(
+      table.subjectType,
+      table.subjectId,
+      table.relation,
+      table.objectType,
+      table.objectId,
+    ),
+    index("idx_pt_subject").on(table.subjectType, table.subjectId),
+    index("idx_pt_object").on(table.objectType, table.objectId),
+  ],
+);
+
+export const authAuditLog = pgTable("AuthAuditLog", {
+  id: serial().primaryKey(),
+  timestamp: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  subjectType: subjectType().notNull(),
+  subjectId: text().notNull(),
+  action: permissionAction().notNull(),
+  objectType: objectType().notNull(),
+  objectId: text().notNull(),
+  relation: relation().notNull(),
+  result: boolean().notNull(),
+  traceId: text(),
+  ip: text(),
+  userAgent: text(),
+});

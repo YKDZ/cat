@@ -125,7 +125,6 @@ export const create = authed
           },
         ],
         memoryIds: createMemory ? memoryIds : [],
-        pub: true,
         documentId: element.documentId,
         vectorStorageId: storage.id,
         vectorizerId: vectorizer.id,
@@ -398,6 +397,7 @@ export const autoTranslate = authed
             translationVectorStorageId: storage.id,
             vectorizerId: storage.id,
             translatorId: user.id,
+            documentId,
           },
           {
             pluginManager,

@@ -49,7 +49,6 @@ export const check = authed
       source,
       translation,
       glossaryIds,
-      pub: true,
     });
 
     const unsubscribe = getGlobalGraphRuntime().eventBus.subscribe(

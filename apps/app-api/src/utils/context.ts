@@ -10,6 +10,7 @@ import {
   type DrizzleDB,
   type RedisConnection,
 } from "@cat/domain";
+import { type AuthContext, loadUserSystemRoles } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
 import { userFromSessionId } from "@cat/server-shared";
 import { RedisCacheStore, RedisSessionStore } from "@cat/server-shared";
@@ -35,9 +36,26 @@ export const getContext = async (
   const sessionId = helpers.getCookie("sessionId") ?? null;
   const user = await userFromSessionId(drizzleDB.client, sessionId);
 
+  let auth: AuthContext | null = null;
+  if (user) {
+    const systemRoles = await loadUserSystemRoles(drizzleDB.client, user.id);
+    auth = {
+      subjectType: "user",
+      subjectId: user.id,
+      systemRoles,
+      traceId: req.headers.get("x-trace-id") ?? undefined,
+      ip:
+        req.headers.get("x-forwarded-for") ??
+        req.headers.get("x-real-ip") ??
+        undefined,
+      userAgent: req.headers.get("user-agent") ?? undefined,
+    };
+  }
+
   return {
     user,
     sessionId,
+    auth,
     pluginManager,
     drizzleDB,
     redis,
@@ -50,6 +68,7 @@ export const getContext = async (
 export type Context = {
   user: User | null;
   sessionId: string | null;
+  auth: AuthContext | null;
   pluginManager: PluginManager;
   drizzleDB: DrizzleDB;
   redis: RedisConnection;

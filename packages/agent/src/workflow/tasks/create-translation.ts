@@ -27,7 +27,6 @@ export const CreateTranslationInputSchema = z.object({
   vectorizerId: z.int(),
   vectorStorageId: z.int(),
   documentId: z.uuidv4().optional(),
-  pub: z.boolean().default(false).optional(),
 });
 
 export const CreateTranslationOutputSchema = z.object({
@@ -53,10 +52,6 @@ export const createTranslationGraph = defineTypedGraph({
       input: CreateTranslationInputSchema,
       output: CreateTranslationOutputSchema,
       handler: async (input, ctx) => {
-        if (input.pub && !input.documentId) {
-          throw new Error("documentId must be specified when pub is true");
-        }
-
         const sideEffectKey = `translations:${generateCacheKey({
           data: input.data,
           translatorId: input.translatorId,
@@ -96,15 +91,13 @@ export const createTranslationGraph = defineTypedGraph({
           });
         });
 
-        if (input.pub && input.documentId) {
-          ctx.addEvent({
-            type: "workflow:translation:created",
-            payload: {
-              documentId: input.documentId,
-              translationIds,
-            },
-          });
-        }
+        ctx.addEvent({
+          type: "workflow:translation:created",
+          payload: {
+            documentId: input.documentId,
+            translationIds,
+          },
+        });
 
         let memoryItemIds: number[] = [];
         if (input.memoryIds.length > 0) {

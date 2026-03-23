@@ -66,7 +66,6 @@ export const qaTranslationGraph = defineTypedGraph({
               languageId: data.translationLanguageId,
             },
             glossaryIds,
-            pub: false,
           },
           { signal: ctx.signal },
         );

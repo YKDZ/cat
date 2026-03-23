@@ -1,17 +1,8 @@
 {
-  "extends": [
-    "../../.oxlintrc.json"
-  ],
-  "jsPlugins": [
-    "../../packages/oxlint-plugin/dist/index.js"
-  ],
-  "ignorePatterns": [
-    "scripts/**"
-  ],
-  "plugins": [
-    "vue",
-    "unicorn"
-  ],
+  "extends": ["../../.oxlintrc.json"],
+  "jsPlugins": ["../../packages/oxlint-plugin/dist/index.js"],
+  "ignorePatterns": ["scripts/**"],
+  "plugins": ["vue", "unicorn"],
   "categories": {
     "correctness": "off"
   },
@@ -36,9 +27,7 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/*.{test,spec}.{ts,tsx}"
-      ],
+      "files": ["**/*.{test,spec}.{ts,tsx}"],
       "rules": {
         "typescript/no-unsafe-call": "off",
         "typescript/no-unsafe-member-access": "off",
@@ -51,7 +40,21 @@
       "files": [
         "**/*.vue",
         "**/*.client.ts",
-        "src/app/stores/**/*.ts"
+        "src/app/stores/**/*.ts",
+        "**/+onHydrationEnd.ts",
+        "**/+onPageTransitionStart.ts",
+        "**/+onPageTransitionEnd.ts",
+        "**/+onCreatePageContext.ts",
+        "**/+onCreateGlobalContext.ts",
+        "**/+onData.ts",
+        "**/+onHookCall.ts",
+        "**/+onCreateApp.ts",
+        "**/+onRenderClient.ts",
+        "**/+onBeforeRoute.ts",
+        "**/+onBeforeRenderClient.ts",
+        "**/+onBeforeRender.ts",
+        "**/+guard.ts",
+        "**/+data.ts"
       ],
       "rules": {
         "cat/no-server-import": [
@@ -80,9 +83,7 @@
               "node:http2",
               "node:https"
             ],
-            "allowed": [
-              "@cat/plugin-core/client"
-            ],
+            "allowed": ["@cat/plugin-core/client"],
             "allowTypeImports": true
           }
         ]

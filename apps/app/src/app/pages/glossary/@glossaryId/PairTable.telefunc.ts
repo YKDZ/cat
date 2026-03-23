@@ -1,6 +1,7 @@
 import { listGlossaryTermPairs, type GlossaryTermPairData } from "@cat/domain";
 
 import { runAppQuery } from "@/server/domain";
+import { requireTelefuncPermission } from "@/server/telefunc-auth";
 
 export type PairData = GlossaryTermPairData;
 
@@ -16,6 +17,7 @@ export const onRequestTermPair = async (
   pageIndex: number,
   pageSize: number,
 ): Promise<PagedResult<PairData>> => {
+  await requireTelefuncPermission("glossary", "viewer", glossaryId);
   return runAppQuery(listGlossaryTermPairs, {
     glossaryId,
     sourceLanguageId,

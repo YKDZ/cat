@@ -7,6 +7,7 @@ import * as ghostText from "./routers/ghost-text.ts";
 import * as glossary from "./routers/glossary.ts";
 import * as language from "./routers/language.ts";
 import * as memory from "./routers/memory.ts";
+import * as permission from "./routers/permission.ts";
 import * as plugin from "./routers/plugin.ts";
 import * as project from "./routers/project.ts";
 import * as qa from "./routers/qa.ts";
@@ -27,6 +28,7 @@ const router: AppRouter = {
   glossary,
   language,
   memory,
+  permission,
   plugin,
   project,
   suggestion,
@@ -54,6 +56,7 @@ export type AppRouter = {
   tokenizer: typeof tokenizer;
   qa: typeof qa;
   comment: typeof comment;
+  permission: typeof permission;
 };
 
 export default router;

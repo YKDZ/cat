@@ -3,6 +3,7 @@ import type { Project } from "@cat/shared/schema/drizzle/project";
 import { listProjectsByCreator } from "@cat/domain";
 
 import { runAppQuery } from "@/server/domain";
+import { requireTelefuncAuth } from "@/server/telefunc-auth";
 
 export type PagedResult<T> = {
   data: T[];
@@ -15,12 +16,12 @@ export type ProjectListItem = Pick<
 >;
 
 export const onRequestProjects = async (
-  userId: string,
   pageIndex: number,
   pageSize: number,
 ): Promise<PagedResult<ProjectListItem>> => {
+  const { auth } = requireTelefuncAuth();
   return runAppQuery(listProjectsByCreator, {
-    creatorId: userId,
+    creatorId: auth.subjectId,
     pageIndex,
     pageSize,
   });

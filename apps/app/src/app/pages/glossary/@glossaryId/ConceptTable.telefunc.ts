@@ -14,6 +14,7 @@ import {
   runAppQuery,
   withAppDrizzleTransaction,
 } from "@/server/domain";
+import { requireTelefuncPermission } from "@/server/telefunc-auth";
 
 export type ConceptData = GlossaryConceptData;
 
@@ -39,6 +40,7 @@ export const onCreateConceptSubject = async (
   subject: string,
   defaultDefinition?: string,
 ): Promise<{ id: number }> => {
+  await requireTelefuncPermission("glossary", "editor", glossaryId);
   return runAppCommand(createGlossaryConceptSubject, {
     glossaryId,
     subject,
@@ -51,6 +53,7 @@ export const onCreateConcept = async (
   definition: string,
   subjectIds?: number[],
 ): Promise<{ id: number }> => {
+  await requireTelefuncPermission("glossary", "editor", glossaryId);
   return withAppDrizzleTransaction(async (tx) => {
     const collector = createInProcessCollector(domainEventBus);
     const result = await executeCommand(
@@ -72,6 +75,7 @@ export const onCreateConcept = async (
 export const onRequestConceptSubjects = async (
   glossaryId: string,
 ): Promise<Array<{ id: number; subject: string }>> => {
+  await requireTelefuncPermission("glossary", "viewer", glossaryId);
   return runAppQuery(listGlossaryConceptSubjects, {
     glossaryId,
   });

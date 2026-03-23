@@ -69,3 +69,8 @@ export * from "@/commands/agent/save-agent-run-metadata.cmd";
 export * from "@/commands/agent/save-agent-run-snapshot.cmd";
 export * from "@/commands/agent/save-agent-event.cmd";
 export * from "@/commands/agent/save-agent-external-output.cmd";
+export * from "@/commands/permission/grant-permission-tuple.cmd";
+export * from "@/commands/permission/revoke-permission-tuple.cmd";
+export * from "@/commands/permission/seed-system-roles.cmd";
+export * from "@/commands/permission/grant-first-user-superadmin.cmd";
+export * from "@/commands/permission/insert-audit-logs.cmd";

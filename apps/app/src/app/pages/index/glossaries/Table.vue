@@ -64,11 +64,7 @@ const fetchGlossaries = async () => {
 
   isLoading.value = true;
   try {
-    const result = await onRequestGlossaries(
-      ctx.user.id,
-      pageIndex.value,
-      pageSize.value,
-    );
+    const result = await onRequestGlossaries(pageIndex.value, pageSize.value);
     glossaries.value = result.data;
     total.value = result.total;
   } catch (err) {
