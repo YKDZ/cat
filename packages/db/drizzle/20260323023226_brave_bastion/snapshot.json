@@ -2,55 +2,34 @@
   "version": "8",
   "dialect": "postgres",
   "id": "93f1e941-b8c5-414c-ae2f-d0f9389716a2",
-  "prevIds": [
-    "b2e61a8c-aaa7-494f-80a5-2fc427ce7637"
-  ],
+  "prevIds": ["b2e61a8c-aaa7-494f-80a5-2fc427ce7637"],
   "ddl": [
     {
-      "values": [
-        "GENERAL",
-        "GHOST_TEXT",
-        "WORKFLOW"
-      ],
+      "values": ["GENERAL", "GHOST_TEXT", "WORKFLOW"],
       "name": "AgentDefinitionType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "ACTIVE",
-        "COMPLETED",
-        "FAILED",
-        "CANCELLED"
-      ],
+      "values": ["ACTIVE", "COMPLETED", "FAILED", "CANCELLED"],
       "name": "AgentSessionStatus",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "CONFIRM_ALL",
-        "TRUST_SESSION"
-      ],
+      "values": ["CONFIRM_ALL", "TRUST_SESSION"],
       "name": "AgentSessionTrustPolicy",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "AUTO_ALLOWED",
-        "USER_APPROVED",
-        "USER_DENIED"
-      ],
+      "values": ["AUTO_ALLOWED", "USER_APPROVED", "USER_DENIED"],
       "name": "AgentToolConfirmationStatus",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "SERVER",
-        "CLIENT"
-      ],
+      "values": ["SERVER", "CLIENT"],
       "name": "AgentToolTarget",
       "entityType": "enums",
       "schema": "public"
@@ -71,10 +50,7 @@
       "schema": "public"
     },
     {
-      "values": [
-        "TRANSLATION",
-        "ELEMENT"
-      ],
+      "values": ["TRANSLATION", "ELEMENT"],
       "name": "CommentTargetType",
       "entityType": "enums",
       "schema": "public"
@@ -101,11 +77,7 @@
       "schema": "public"
     },
     {
-      "values": [
-        "check",
-        "grant",
-        "revoke"
-      ],
+      "values": ["check", "grant", "revoke"],
       "name": "PermissionAction",
       "entityType": "enums",
       "schema": "public"
@@ -134,14 +106,7 @@
       "schema": "public"
     },
     {
-      "values": [
-        "superadmin",
-        "admin",
-        "owner",
-        "editor",
-        "viewer",
-        "member"
-      ],
+      "values": ["superadmin", "admin", "owner", "editor", "viewer", "member"],
       "name": "Relation",
       "entityType": "enums",
       "schema": "public"
@@ -166,31 +131,19 @@
       "schema": "public"
     },
     {
-      "values": [
-        "GLOBAL",
-        "PROJECT",
-        "USER"
-      ],
+      "values": ["GLOBAL", "PROJECT", "USER"],
       "name": "ScopeType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "user",
-        "role",
-        "agent"
-      ],
+      "values": ["user", "role", "agent"],
       "name": "SubjectType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "COMPLETED",
-        "PENDING",
-        "FAILED"
-      ],
+      "values": ["COMPLETED", "PENDING", "FAILED"],
       "name": "TaskStatus",
       "entityType": "enums",
       "schema": "public"
@@ -222,13 +175,7 @@
       "schema": "public"
     },
     {
-      "values": [
-        "TEXT",
-        "JSON",
-        "FILE",
-        "MARKDOWN",
-        "URL"
-      ],
+      "values": ["TEXT", "JSON", "FILE", "MARKDOWN", "URL"],
       "name": "TranslatableElementContextType",
       "entityType": "enums",
       "schema": "public"
@@ -5812,14 +5759,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Account_user_id_User_id_fkey",
@@ -5829,14 +5772,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "auth_provider_id"
-      ],
+      "columns": ["auth_provider_id"],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Account_auth_provider_id_PluginService_id_fkey",
@@ -5846,14 +5785,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "run_id"
-      ],
+      "columns": ["run_id"],
       "schemaTo": "public",
       "tableTo": "AgentRun",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "AgentEvent_run_id_AgentRun_id_fkey",
@@ -5863,14 +5798,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "run_id"
-      ],
+      "columns": ["run_id"],
       "schemaTo": "public",
       "tableTo": "AgentRun",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "AgentExternalOutput_run_id_AgentRun_id_fkey",
@@ -5880,14 +5811,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "session_id"
-      ],
+      "columns": ["session_id"],
       "schemaTo": "public",
       "tableTo": "AgentSession",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "AgentRun_session_id_AgentSession_id_fkey",
@@ -5897,14 +5824,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "agent_definition_id"
-      ],
+      "columns": ["agent_definition_id"],
       "schemaTo": "public",
       "tableTo": "AgentDefinition",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "AgentSession_agent_definition_id_AgentDefinition_id_fkey",
@@ -5914,14 +5837,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "AgentSession_user_id_User_id_fkey",
@@ -5931,14 +5850,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "project_id"
-      ],
+      "columns": ["project_id"],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "AgentSession_project_id_Project_id_fkey",
@@ -5948,14 +5863,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "storage_provider_id"
-      ],
+      "columns": ["storage_provider_id"],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Blob_storage_provider_id_PluginService_id_fkey",
@@ -5965,14 +5876,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "chunk_set_id"
-      ],
+      "columns": ["chunk_set_id"],
       "schemaTo": "public",
       "tableTo": "ChunkSet",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Chunk_chunk_set_id_ChunkSet_id_fkey",
@@ -5982,14 +5889,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "vectorizer_id"
-      ],
+      "columns": ["vectorizer_id"],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Chunk_vectorizer_id_PluginService_id_fkey",
@@ -5999,14 +5902,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElementComment_user_id_User_id_fkey",
@@ -6016,14 +5915,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "language_id"
-      ],
+      "columns": ["language_id"],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TranslatableElementComment_language_id_Language_id_fkey",
@@ -6033,14 +5928,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parent_comment_id"
-      ],
+      "columns": ["parent_comment_id"],
       "schemaTo": "public",
       "tableTo": "Comment",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TranslatableElementComment_rVcH2vk2wZwM_fkey",
@@ -6050,14 +5941,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "root_comment_id"
-      ],
+      "columns": ["root_comment_id"],
       "schemaTo": "public",
       "tableTo": "Comment",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TranslatableElementComment_csrAMZXJDU4O_fkey",
@@ -6067,14 +5954,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "comment_id"
-      ],
+      "columns": ["comment_id"],
       "schemaTo": "public",
       "tableTo": "Comment",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElementCommentReaction_KPjwkNbfQ9zz_fkey",
@@ -6084,14 +5967,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElementCommentReaction_user_id_User_id_fkey",
@@ -6101,14 +5980,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "project_id"
-      ],
+      "columns": ["project_id"],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Document_project_id_Project_id_fkey",
@@ -6118,14 +5993,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Document_creator_id_User_id_fkey",
@@ -6135,14 +6006,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "file_handler_id"
-      ],
+      "columns": ["file_handler_id"],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Document_file_handler_id_PluginService_id_fkey",
@@ -6152,14 +6019,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "file_id"
-      ],
+      "columns": ["file_id"],
       "schemaTo": "public",
       "tableTo": "File",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Document_file_id_File_id_fkey",
@@ -6169,14 +6032,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "ancestor"
-      ],
+      "columns": ["ancestor"],
       "schemaTo": "public",
       "tableTo": "Document",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "DocumentClosure_ancestor_Document_id_fkey",
@@ -6186,14 +6045,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "descendant"
-      ],
+      "columns": ["descendant"],
       "schemaTo": "public",
       "tableTo": "Document",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "DocumentClosure_descendant_Document_id_fkey",
@@ -6203,14 +6058,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "project_id"
-      ],
+      "columns": ["project_id"],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "DocumentClosure_project_id_Project_id_fkey",
@@ -6220,14 +6071,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "document_id"
-      ],
+      "columns": ["document_id"],
       "schemaTo": "public",
       "tableTo": "Document",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "DocumentToTask_document_id_Document_id_fkey",
@@ -6237,14 +6084,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "task_id"
-      ],
+      "columns": ["task_id"],
       "schemaTo": "public",
       "tableTo": "Task",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "DocumentToTask_task_id_Task_id_fkey",
@@ -6254,14 +6097,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "blob_id"
-      ],
+      "columns": ["blob_id"],
       "schemaTo": "public",
       "tableTo": "Blob",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "File_blob_id_Blob_id_fkey",
@@ -6271,14 +6110,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Glossary_creator_id_User_id_fkey",
@@ -6288,14 +6123,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "glossary_id"
-      ],
+      "columns": ["glossary_id"],
       "schemaTo": "public",
       "tableTo": "Glossary",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "GlossaryToProject_glossary_id_Glossary_id_fkey",
@@ -6305,14 +6136,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "project_id"
-      ],
+      "columns": ["project_id"],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "GlossaryToProject_project_id_Project_id_fkey",
@@ -6322,14 +6149,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Memory_creator_id_User_id_fkey",
@@ -6339,14 +6162,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "MemoryItem_creator_id_User_id_fkey",
@@ -6356,14 +6175,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "memory_id"
-      ],
+      "columns": ["memory_id"],
       "schemaTo": "public",
       "tableTo": "Memory",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MemoryItem_memory_id_Memory_id_fkey",
@@ -6373,14 +6188,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "source_element_id"
-      ],
+      "columns": ["source_element_id"],
       "schemaTo": "public",
       "tableTo": "TranslatableElement",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "MemoryItem_source_element_id_TranslatableElement_id_fkey",
@@ -6390,14 +6201,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translation_id"
-      ],
+      "columns": ["translation_id"],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "MemoryItem_translation_id_Translation_id_fkey",
@@ -6407,14 +6214,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "source_string_id"
-      ],
+      "columns": ["source_string_id"],
       "schemaTo": "public",
       "tableTo": "TranslatableString",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "MemoryItem_source_string_id_TranslatableString_id_fkey",
@@ -6424,14 +6227,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translation_string_id"
-      ],
+      "columns": ["translation_string_id"],
       "schemaTo": "public",
       "tableTo": "TranslatableString",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "MemoryItem_translation_string_id_TranslatableString_id_fkey",
@@ -6441,14 +6240,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "memory_id"
-      ],
+      "columns": ["memory_id"],
       "schemaTo": "public",
       "tableTo": "Memory",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MemoryToProject_memory_id_Memory_id_fkey",
@@ -6458,14 +6253,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "project_id"
-      ],
+      "columns": ["project_id"],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MemoryToProject_project_id_Project_id_fkey",
@@ -6475,14 +6266,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MFAProvider_user_id_User_id_fkey",
@@ -6492,14 +6279,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "mfa_service_id"
-      ],
+      "columns": ["mfa_service_id"],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "MFAProvider_mfa_service_id_PluginService_id_fkey",
@@ -6509,14 +6292,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "plugin_installation_id"
-      ],
+      "columns": ["plugin_installation_id"],
       "schemaTo": "public",
       "tableTo": "PluginInstallation",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginComponent_eAfVTu1efahR_fkey",
@@ -6526,14 +6305,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "plugin_id"
-      ],
+      "columns": ["plugin_id"],
       "schemaTo": "public",
       "tableTo": "Plugin",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginConfig_plugin_id_Plugin_id_fkey",
@@ -6543,14 +6318,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginConfigInstance_creator_id_User_id_fkey",
@@ -6560,14 +6331,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "config_id"
-      ],
+      "columns": ["config_id"],
       "schemaTo": "public",
       "tableTo": "PluginConfig",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginConfigInstance_config_id_PluginConfig_id_fkey",
@@ -6577,14 +6344,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "plugin_installation_id"
-      ],
+      "columns": ["plugin_installation_id"],
       "schemaTo": "public",
       "tableTo": "PluginInstallation",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginConfigInstance_tUFft8obCY8T_fkey",
@@ -6594,14 +6357,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "plugin_id"
-      ],
+      "columns": ["plugin_id"],
       "schemaTo": "public",
       "tableTo": "Plugin",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginInstallation_plugin_id_Plugin_id_fkey",
@@ -6611,14 +6370,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "plugin_installation_id"
-      ],
+      "columns": ["plugin_installation_id"],
       "schemaTo": "public",
       "tableTo": "PluginInstallation",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginService_plugin_installation_id_PluginInstallation_id_fkey",
@@ -6628,14 +6383,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Project_creator_id_User_id_fkey",
@@ -6645,14 +6396,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "language_id"
-      ],
+      "columns": ["language_id"],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "ProjectTargetLanguage_language_id_Language_id_fkey",
@@ -6662,14 +6409,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "project_id"
-      ],
+      "columns": ["project_id"],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "ProjectTargetLanguage_project_id_Project_id_fkey",
@@ -6679,14 +6422,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translation_id"
-      ],
+      "columns": ["translation_id"],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "QaResult_translation_id_Translation_id_fkey",
@@ -6696,14 +6435,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "result_id"
-      ],
+      "columns": ["result_id"],
       "schemaTo": "public",
       "tableTo": "QaResult",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "QaResultItem_result_id_QaResult_id_fkey",
@@ -6713,14 +6448,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "checker_id"
-      ],
+      "columns": ["checker_id"],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "QaResultItem_checker_id_PluginService_id_fkey",
@@ -6730,14 +6461,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Term_creator_id_User_id_fkey",
@@ -6747,14 +6474,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "language_id"
-      ],
+      "columns": ["language_id"],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Term_language_id_Language_id_fkey",
@@ -6764,14 +6487,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "term_concept_id"
-      ],
+      "columns": ["term_concept_id"],
       "schemaTo": "public",
       "tableTo": "TermConcept",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Term_term_entry_id_TermEntry_id_fkey",
@@ -6781,14 +6500,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "string_id"
-      ],
+      "columns": ["string_id"],
       "schemaTo": "public",
       "tableTo": "TranslatableString",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TermConcept_string_id_TranslatableString_id_fkey",
@@ -6798,14 +6513,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TermConcept_creator_id_User_id_fkey",
@@ -6815,14 +6526,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "glossary_id"
-      ],
+      "columns": ["glossary_id"],
       "schemaTo": "public",
       "tableTo": "Glossary",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermEntry_glossary_id_Glossary_id_fkey",
@@ -6832,14 +6539,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TermConceptSubject_creator_id_User_id_fkey",
@@ -6849,14 +6552,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "glossary_id"
-      ],
+      "columns": ["glossary_id"],
       "schemaTo": "public",
       "tableTo": "Glossary",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermConceptSubject_glossary_id_Glossary_id_fkey",
@@ -6866,14 +6565,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "term_concept_id"
-      ],
+      "columns": ["term_concept_id"],
       "schemaTo": "public",
       "tableTo": "TermConcept",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermConceptToSubject_term_concept_id_TermConcept_id_fkey",
@@ -6883,14 +6578,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "subject_id"
-      ],
+      "columns": ["subject_id"],
       "schemaTo": "public",
       "tableTo": "TermConceptSubject",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermConceptToSubject_subject_id_TermConceptSubject_id_fkey",
@@ -6900,14 +6591,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "document_id"
-      ],
+      "columns": ["document_id"],
       "schemaTo": "public",
       "tableTo": "Document",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElement_document_id_Document_id_fkey",
@@ -6917,14 +6604,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElement_creator_id_User_id_fkey",
@@ -6934,14 +6617,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translatable_string_id"
-      ],
+      "columns": ["translatable_string_id"],
       "schemaTo": "public",
       "tableTo": "TranslatableString",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TranslatableElement_mKNyfTsRaxW6_fkey",
@@ -6951,14 +6630,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "approved_translation_id"
-      ],
+      "columns": ["approved_translation_id"],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TranslatableElement_approved_translation_id_Translation_id_fkey",
@@ -6968,14 +6643,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "file_id"
-      ],
+      "columns": ["file_id"],
       "schemaTo": "public",
       "tableTo": "File",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElementContext_file_id_File_id_fkey",
@@ -6985,14 +6656,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "storage_provider_id"
-      ],
+      "columns": ["storage_provider_id"],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElementContext_ocSqg69uUW3x_fkey",
@@ -7002,14 +6669,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translatable_element_id"
-      ],
+      "columns": ["translatable_element_id"],
       "schemaTo": "public",
       "tableTo": "TranslatableElement",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElementContext_1bh40XM18KpL_fkey",
@@ -7019,14 +6682,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "language_id"
-      ],
+      "columns": ["language_id"],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TranslatableString_language_id_Language_id_fkey",
@@ -7036,14 +6695,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "chunk_set_id"
-      ],
+      "columns": ["chunk_set_id"],
       "schemaTo": "public",
       "tableTo": "ChunkSet",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TranslatableString_chunk_set_id_ChunkSet_id_fkey",
@@ -7053,14 +6708,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translator_id"
-      ],
+      "columns": ["translator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Translation_translator_id_User_id_fkey",
@@ -7070,14 +6721,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translatable_element_id"
-      ],
+      "columns": ["translatable_element_id"],
       "schemaTo": "public",
       "tableTo": "TranslatableElement",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Translation_translatable_element_id_TranslatableElement_id_fkey",
@@ -7087,14 +6734,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "string_id"
-      ],
+      "columns": ["string_id"],
       "schemaTo": "public",
       "tableTo": "TranslatableString",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Translation_string_id_TranslatableString_id_fkey",
@@ -7104,14 +6747,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "project_id"
-      ],
+      "columns": ["project_id"],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslationSnapshot_project_id_Project_id_fkey",
@@ -7121,14 +6760,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "creator_id"
-      ],
+      "columns": ["creator_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TranslationSnapshot_creator_id_User_id_fkey",
@@ -7138,14 +6773,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "snapshot_id"
-      ],
+      "columns": ["snapshot_id"],
       "schemaTo": "public",
       "tableTo": "TranslationSnapshot",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslationSnapshotItem_snapshot_id_TranslationSnapshot_id_fkey",
@@ -7155,14 +6786,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translation_id"
-      ],
+      "columns": ["translation_id"],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TranslationSnapshotItem_translation_id_Translation_id_fkey",
@@ -7172,14 +6799,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "voter_id"
-      ],
+      "columns": ["voter_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslationVote_voter_id_User_id_fkey",
@@ -7189,14 +6812,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "translation_id"
-      ],
+      "columns": ["translation_id"],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslationVote_translation_id_Translation_id_fkey",
@@ -7206,14 +6825,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "avatar_file_id"
-      ],
+      "columns": ["avatar_file_id"],
       "schemaTo": "public",
       "tableTo": "File",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "User_avatar_file_id_File_id_fkey",
@@ -7223,14 +6838,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "UserRole_user_id_User_id_fkey",
@@ -7240,14 +6851,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "role_id"
-      ],
+      "columns": ["role_id"],
       "schemaTo": "public",
       "tableTo": "Role",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "UserRole_role_id_Role_id_fkey",
@@ -7256,10 +6863,7 @@
       "table": "UserRole"
     },
     {
-      "columns": [
-        "ancestor",
-        "descendant"
-      ],
+      "columns": ["ancestor", "descendant"],
       "nameExplicit": false,
       "name": "DocumentClosure_pkey",
       "entityType": "pks",
@@ -7267,10 +6871,7 @@
       "table": "DocumentClosure"
     },
     {
-      "columns": [
-        "document_id",
-        "task_id"
-      ],
+      "columns": ["document_id", "task_id"],
       "nameExplicit": false,
       "name": "DocumentToTask_pkey",
       "entityType": "pks",
@@ -7278,10 +6879,7 @@
       "table": "DocumentToTask"
     },
     {
-      "columns": [
-        "glossary_id",
-        "project_id"
-      ],
+      "columns": ["glossary_id", "project_id"],
       "nameExplicit": false,
       "name": "GlossaryToProject_pkey",
       "entityType": "pks",
@@ -7289,10 +6887,7 @@
       "table": "GlossaryToProject"
     },
     {
-      "columns": [
-        "memory_id",
-        "project_id"
-      ],
+      "columns": ["memory_id", "project_id"],
       "nameExplicit": false,
       "name": "MemoryToProject_pkey",
       "entityType": "pks",
@@ -7300,10 +6895,7 @@
       "table": "MemoryToProject"
     },
     {
-      "columns": [
-        "language_id",
-        "project_id"
-      ],
+      "columns": ["language_id", "project_id"],
       "nameExplicit": false,
       "name": "ProjectTargetLanguage_pkey",
       "entityType": "pks",
@@ -7311,10 +6903,7 @@
       "table": "ProjectTargetLanguage"
     },
     {
-      "columns": [
-        "term_concept_id",
-        "subject_id"
-      ],
+      "columns": ["term_concept_id", "subject_id"],
       "nameExplicit": false,
       "name": "TermConceptToSubject_pkey",
       "entityType": "pks",
@@ -7322,9 +6911,7 @@
       "table": "TermConceptToSubject"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Account_pkey",
       "schema": "public",
@@ -7332,9 +6919,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "AgentDefinition_pkey",
       "schema": "public",
@@ -7342,9 +6927,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "AgentEvent_pkey",
       "schema": "public",
@@ -7352,9 +6935,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "AgentExternalOutput_pkey",
       "schema": "public",
@@ -7362,9 +6943,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "AgentRun_pkey",
       "schema": "public",
@@ -7372,9 +6951,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "AgentSession_pkey",
       "schema": "public",
@@ -7382,9 +6959,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "AuthAuditLog_pkey",
       "schema": "public",
@@ -7392,9 +6967,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Blob_pkey",
       "schema": "public",
@@ -7402,9 +6975,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Chunk_pkey",
       "schema": "public",
@@ -7412,9 +6983,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "ChunkSet_pkey",
       "schema": "public",
@@ -7422,9 +6991,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TranslatableElementComment_pkey",
       "schema": "public",
@@ -7432,9 +6999,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TranslatableElementCommentReaction_pkey",
       "schema": "public",
@@ -7442,9 +7007,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Document_pkey",
       "schema": "public",
@@ -7452,9 +7015,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "File_pkey",
       "schema": "public",
@@ -7462,9 +7023,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Glossary_pkey",
       "schema": "public",
@@ -7472,9 +7031,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Language_pkey",
       "schema": "public",
@@ -7482,9 +7039,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Memory_pkey",
       "schema": "public",
@@ -7492,9 +7047,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "MemoryItem_pkey",
       "schema": "public",
@@ -7502,9 +7055,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "MFAProvider_pkey",
       "schema": "public",
@@ -7512,9 +7063,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "PermissionTuple_pkey",
       "schema": "public",
@@ -7522,9 +7071,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Plugin_pkey",
       "schema": "public",
@@ -7532,9 +7079,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "PluginComponent_pkey",
       "schema": "public",
@@ -7542,9 +7087,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "PluginConfig_pkey",
       "schema": "public",
@@ -7552,9 +7095,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "PluginConfigInstance_pkey",
       "schema": "public",
@@ -7562,9 +7103,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "PluginInstallation_pkey",
       "schema": "public",
@@ -7572,9 +7111,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "PluginService_pkey",
       "schema": "public",
@@ -7582,9 +7119,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Project_pkey",
       "schema": "public",
@@ -7592,9 +7127,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "QaResult_pkey",
       "schema": "public",
@@ -7602,9 +7135,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "QaResultItem_pkey",
       "schema": "public",
@@ -7612,9 +7143,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Role_pkey",
       "schema": "public",
@@ -7622,9 +7151,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Setting_pkey",
       "schema": "public",
@@ -7632,9 +7159,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Task_pkey",
       "schema": "public",
@@ -7642,9 +7167,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Term_pkey",
       "schema": "public",
@@ -7652,9 +7175,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TermEntry_pkey",
       "schema": "public",
@@ -7662,9 +7183,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TermConceptSubject_pkey",
       "schema": "public",
@@ -7672,9 +7191,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TranslatableElement_pkey",
       "schema": "public",
@@ -7682,9 +7199,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TranslatableElementContext_pkey",
       "schema": "public",
@@ -7692,9 +7207,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TranslatableString_pkey",
       "schema": "public",
@@ -7702,9 +7215,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "Translation_pkey",
       "schema": "public",
@@ -7712,9 +7223,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TranslationSnapshot_pkey",
       "schema": "public",
@@ -7722,9 +7231,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TranslationSnapshotItem_pkey",
       "schema": "public",
@@ -7732,9 +7239,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "TranslationVote_pkey",
       "schema": "public",
@@ -7742,9 +7247,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "User_pkey",
       "schema": "public",
@@ -7752,9 +7255,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "UserRole_pkey",
       "schema": "public",
@@ -7763,10 +7264,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "provider_issuer",
-        "provided_account_id"
-      ],
+      "columns": ["provider_issuer", "provided_account_id"],
       "nullsNotDistinct": false,
       "name": "Account_provider_issuer_provided_account_id_unique",
       "entityType": "uniques",
@@ -7775,10 +7273,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "run_id",
-        "event_id"
-      ],
+      "columns": ["run_id", "event_id"],
       "nullsNotDistinct": false,
       "name": "AgentEvent_run_id_event_id_unique",
       "entityType": "uniques",
@@ -7787,11 +7282,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "run_id",
-        "output_key",
-        "idempotency_key"
-      ],
+      "columns": ["run_id", "output_key", "idempotency_key"],
       "nullsNotDistinct": false,
       "name": "AgentExternalOutput_run_id_output_key_idempotency_key_unique",
       "entityType": "uniques",
@@ -7800,9 +7291,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "hash"
-      ],
+      "columns": ["hash"],
       "nullsNotDistinct": false,
       "name": "Blob_hash_unique",
       "entityType": "uniques",
@@ -7811,10 +7300,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "storage_provider_id",
-        "key"
-      ],
+      "columns": ["storage_provider_id", "key"],
       "nullsNotDistinct": false,
       "name": "Blob_storage_provider_id_key_unique",
       "entityType": "uniques",
@@ -7823,10 +7309,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "comment_id",
-        "user_id"
-      ],
+      "columns": ["comment_id", "user_id"],
       "nullsNotDistinct": false,
       "name": "TranslatableElementCommentReaction_translatable_element_comment_id_user_id_unique",
       "entityType": "uniques",
@@ -7850,11 +7333,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "language_id",
-        "text",
-        "term_concept_id"
-      ],
+      "columns": ["language_id", "text", "term_concept_id"],
       "nullsNotDistinct": false,
       "name": "Term_language_id_text_term_concept_id_unique",
       "entityType": "uniques",
@@ -7863,10 +7342,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "language_id",
-        "value"
-      ],
+      "columns": ["language_id", "value"],
       "nullsNotDistinct": false,
       "name": "TranslatableString_language_id_value_unique",
       "entityType": "uniques",
@@ -7875,10 +7351,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "email",
-        "name"
-      ],
+      "columns": ["email", "name"],
       "nullsNotDistinct": false,
       "name": "User_email_name_unique",
       "entityType": "uniques",
@@ -7887,10 +7360,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id",
-        "role_id"
-      ],
+      "columns": ["user_id", "role_id"],
       "nullsNotDistinct": false,
       "name": "UserRole_user_id_role_id_unique",
       "entityType": "uniques",
@@ -7899,9 +7369,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "external_id"
-      ],
+      "columns": ["external_id"],
       "nullsNotDistinct": false,
       "name": "AgentDefinition_external_id_key",
       "schema": "public",
@@ -7910,9 +7378,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "external_id"
-      ],
+      "columns": ["external_id"],
       "nullsNotDistinct": false,
       "name": "AgentRun_external_id_key",
       "schema": "public",
@@ -7921,9 +7387,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "external_id"
-      ],
+      "columns": ["external_id"],
       "nullsNotDistinct": false,
       "name": "AgentSession_external_id_key",
       "schema": "public",
@@ -7932,9 +7396,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "name"
-      ],
+      "columns": ["name"],
       "nullsNotDistinct": false,
       "name": "Role_name_key",
       "schema": "public",
