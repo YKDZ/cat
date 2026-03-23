@@ -93,6 +93,3 @@ export const qaTranslationGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use qaTranslationGraph */
-export const qaTranslationWorkflow = qaTranslationGraph;

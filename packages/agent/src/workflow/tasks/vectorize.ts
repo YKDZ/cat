@@ -28,6 +28,3 @@ export const vectorizeGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use vectorizeGraph */
-export const vectorizeToChunkSetTask = vectorizeGraph;

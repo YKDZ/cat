@@ -24,6 +24,3 @@ export const parseFileGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use parseFileGraph */
-export const parseFileTask = parseFileGraph;

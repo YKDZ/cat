@@ -70,6 +70,3 @@ export const createTermGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use createTermGraph */
-export const createTermTask = createTermGraph;

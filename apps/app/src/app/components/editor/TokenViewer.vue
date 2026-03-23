@@ -170,6 +170,7 @@ onUnmounted(() => {
   word-break: break-word;
   font-family: inherit;
   font-size: inherit;
+  text-align: left;
 }
 
 .token-viewer :deep(.cm-line) {

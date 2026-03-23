@@ -57,8 +57,3 @@ export const nlpBatchSegmentGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use nlpSegmentGraph */
-export const nlpSegmentTask = nlpSegmentGraph;
-/** @deprecated use nlpBatchSegmentGraph */
-export const nlpBatchSegmentTask = nlpBatchSegmentGraph;

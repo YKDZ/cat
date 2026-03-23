@@ -115,5 +115,16 @@
   "目标术语库": "Target Glossary",
   "启动中…": "Starting…",
   "术语发现已启动": "Term discovery started",
-  "术语对齐": "Term Alignment"
+  "术语对齐": "Term Alignment",
+  "自动翻译": "Auto Translate",
+  "系统将使用你选择的翻译建议器，以及项目绑定的术语库和记忆库，自动为文档中尚未翻译的内容填充翻译。": "The system will use your selected translation advisor, the project's glossaries, and translation memories to automatically fill in untranslated content.",
+  "记忆最低匹配度": "Min Memory Similarity",
+  "多高匹配度的记忆会被采用？": "What is the minimum similarity for a memory to be used?",
+  "翻译建议器": "Translation Advisor",
+  "选择一个建议器...": "Select an advisor...",
+  "启用 LLM 精修": "Enable LLM Refinement",
+  "使用 LLM 对翻译结果进行术语一致性和风格精修": "Use LLM to refine translations for terminology consistency and style",
+  "选择 LLM Provider...": "Select LLM Provider...",
+  "收集文档上下文": "Gather Document Context",
+  "收集相邻已有翻译作为 LLM 精修上下文，提升译文连贯性": "Collect adjacent translations as LLM refinement context to improve consistency"
 }

@@ -1,6 +1,6 @@
 import {
   CreateTranslationPubPayloadSchema,
-  autoTranslateGraph,
+  batchAutoTranslateGraph,
   createTranslationGraph,
   getGlobalGraphRuntime,
   runGraph,
@@ -8,15 +8,18 @@ import {
 import {
   approveTranslation,
   autoApproveDocumentTranslations,
+  createAgentDefinition,
+  createAgentSession,
   deleteTranslation,
   executeCommand,
   executeQuery,
+  findAgentDefinitionByNameAndScope,
+  getAgentSessionByExternalId,
   getDocument,
   getElementWithChunkIds,
   getProjectTargetLanguages,
   getSelfTranslationVote,
   getTranslationVoteTotal,
-  listDocumentElementsWithChunkIds,
   listMemoryIdsByProject,
   listProjectGlossaryIds,
   listQaResultItems,
@@ -40,6 +43,7 @@ import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
 import { authed } from "@/orpc/server";
+import { getGraphRuntime } from "@/utils/graph-runtime";
 
 const TranslationDataSchema = TranslationSchema.omit({
   updatedAt: true,
@@ -315,13 +319,14 @@ export const autoTranslate = authed
   .input(
     z.object({
       documentId: z.string(),
-      advisorId: z.int(),
+      advisorId: z.int().optional(),
       languageId: z.string(),
       minMemorySimilarity: z.number().min(0).max(1).default(0.72),
       maxMemoryAmount: z.int().min(0).default(3),
+      config: batchAutoTranslateGraph.inputSchema.shape.config.optional(),
     }),
   )
-  .output(z.void())
+  .output(z.object({ runId: z.uuidv4() }))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -334,13 +339,20 @@ export const autoTranslate = authed
       languageId,
       minMemorySimilarity,
       maxMemoryAmount,
+      config,
     } = input;
 
     const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
 
     if (!storage)
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
         message: `No VECTOR_STORAGE service available`,
+      });
+
+    if (!vectorizer)
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: `No TEXT_VECTORIZER service available`,
       });
 
     const document = await executeQuery({ db: drizzle }, getDocument, {
@@ -362,49 +374,111 @@ export const autoTranslate = authed
     if (!targetLanguages.some((item) => item.id === languageId)) {
       throw new ORPCError("BAD_REQUEST", {
         message:
-          "Document does not exists or language does not claimed in project",
+          "Document does not exist or language is not claimed in project",
       });
     }
 
-    const [memoryIds, glossaryIds, elements] = await Promise.all([
+    const [memoryIds, glossaryIds] = await Promise.all([
       executeQuery({ db: drizzle }, listMemoryIdsByProject, {
         projectId: document.projectId,
       }),
       executeQuery({ db: drizzle }, listProjectGlossaryIds, {
         projectId: document.projectId,
       }),
-      executeQuery({ db: drizzle }, listDocumentElementsWithChunkIds, {
-        documentId,
-      }),
     ]);
 
-    await Promise.all(
-      elements.map(async (element) => {
-        await runGraph(
-          autoTranslateGraph,
-          {
-            translationLanguageId: languageId,
-            translatableElementId: element.id,
-            advisorId,
-            text: element.value,
-            sourceLanguageId: element.languageId,
-            memoryIds,
-            glossaryIds,
-            chunkIds: element.chunkIds,
-            minMemorySimilarity,
-            maxMemoryAmount,
-            memoryVectorStorageId: storage.id,
-            translationVectorStorageId: storage.id,
-            vectorizerId: storage.id,
-            translatorId: user.id,
-            documentId,
-          },
-          {
-            pluginManager,
-          },
-        );
-      }),
+    // 查找或创建 auto-translate AgentDefinition
+    let existingDef = await executeQuery(
+      { db: drizzle },
+      findAgentDefinitionByNameAndScope,
+      {
+        name: "auto-translate",
+        scopeType: "GLOBAL",
+        scopeId: "",
+        isBuiltin: true,
+      },
     );
+
+    if (!existingDef) {
+      await executeCommand({ db: drizzle }, createAgentDefinition, {
+        name: "auto-translate",
+        description: "自动翻译工作流",
+        scopeType: "GLOBAL",
+        scopeId: "",
+        definition: {
+          id: "auto-translate",
+          name: "自动翻译",
+          description: "自动翻译工作流",
+          version: "1.0.0",
+          type: "WORKFLOW",
+          systemPrompt: "",
+          tools: [],
+        } as Parameters<typeof createAgentDefinition>[1]["definition"],
+        type: "WORKFLOW",
+        isBuiltin: true,
+      });
+      existingDef = await executeQuery(
+        { db: drizzle },
+        findAgentDefinitionByNameAndScope,
+        {
+          name: "auto-translate",
+          scopeType: "GLOBAL",
+          scopeId: "",
+          isBuiltin: true,
+        },
+      );
+    }
+
+    if (!existingDef) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "Failed to obtain auto-translate agent definition",
+      });
+    }
+
+    const sessionResult = await executeCommand(
+      { db: drizzle },
+      createAgentSession,
+      {
+        agentDefinitionId: existingDef.externalId,
+        userId: user.id,
+        projectId: document.projectId,
+      },
+    );
+
+    const sessionRow = await executeQuery(
+      { db: drizzle },
+      getAgentSessionByExternalId,
+      { externalId: sessionResult.sessionId },
+    );
+
+    if (!sessionRow) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "Failed to resolve agent session",
+      });
+    }
+
+    const runtime = await getGraphRuntime(drizzle, pluginManager);
+
+    const runId = await runtime.scheduler.start(
+      "batch-auto-translate",
+      {
+        documentId,
+        languageId,
+        advisorId,
+        minMemorySimilarity,
+        maxMemoryAmount,
+        memoryVectorStorageId: storage.id,
+        translationVectorStorageId: storage.id,
+        vectorizerId: vectorizer.id,
+        translatorId: user.id,
+        memoryIds,
+        glossaryIds,
+        config,
+      },
+      { sessionId: sessionRow.id, pluginManager },
+    );
+
+    return { runId };
   });
 
 export const getQAResults = authed

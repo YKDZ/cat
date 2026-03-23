@@ -93,6 +93,3 @@ export const searchChunkGraph = defineTypedGraph({
     checkpointIntervalMs: 1000,
   },
 });
-
-/** @deprecated use searchChunkGraph */
-export const searchChunkWorkflow = searchChunkGraph;

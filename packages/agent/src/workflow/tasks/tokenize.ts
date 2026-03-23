@@ -28,6 +28,3 @@ export const tokenizeGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use tokenizeGraph */
-export const tokenizeTask = tokenizeGraph;

@@ -198,6 +198,24 @@ export {
   type QaTranslationOutput,
 } from "./qa-translation";
 
+export {
+  termRecallOp,
+  TermRecallInputSchema,
+  TermRecallOutputSchema,
+  TermContextSchema,
+  type TermRecallInput,
+  type TermContext,
+  type TermRecallOutput,
+} from "./term-recall";
+
+export {
+  llmRefineTranslationOp,
+  LlmRefineTranslationInputSchema,
+  LlmRefineTranslationOutputSchema,
+  type LlmRefineTranslationInput,
+  type LlmRefineTranslationOutput,
+} from "./llm-refine-translation";
+
 // === Level 3+ Operations ===
 export {
   createTranslationOp,

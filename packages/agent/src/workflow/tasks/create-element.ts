@@ -76,6 +76,3 @@ export const createElementGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use createElementGraph */
-export const createElementWorkflow = createElementGraph;

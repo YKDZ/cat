@@ -30,6 +30,3 @@ export const retriveEmbeddingsGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use retriveEmbeddingsGraph */
-export const retriveEmbeddingsTask = retriveEmbeddingsGraph;

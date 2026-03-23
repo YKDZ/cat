@@ -38,6 +38,3 @@ export const searchMemoryGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use searchMemoryGraph */
-export const searchMemoryWorkflow = searchMemoryGraph;
