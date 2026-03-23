@@ -128,6 +128,3 @@ export const createTranslationGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use createTranslationGraph */
-export const createTranslationWorkflow = createTranslationGraph;

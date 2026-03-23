@@ -65,6 +65,3 @@ export const upsertDocumentGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use upsertDocumentGraph */
-export const upsertDocumentFromFileWorkflow = upsertDocumentGraph;

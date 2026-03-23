@@ -53,6 +53,3 @@ export const fetchAdviseGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use fetchAdviseGraph */
-export const fetchAdviseWorkflow = fetchAdviseGraph;

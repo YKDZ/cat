@@ -27,6 +27,7 @@ import { createRuntimeResolver, type RuntimeResolver } from "@/runtime";
 import { termAlignmentGraph, termDiscoveryGraph } from "@/workflow/tasks";
 import {
   autoTranslateGraph,
+  batchAutoTranslateGraph,
   createElementGraph,
   createTermGraph,
   createTranslatableStringGraph,
@@ -114,6 +115,7 @@ export const createDefaultGraphRuntime = (
   graphRegistry.register(termDiscoveryGraph.graphDefinition);
   graphRegistry.register(termAlignmentGraph.graphDefinition);
   graphRegistry.register(autoTranslateGraph.graphDefinition);
+  graphRegistry.register(batchAutoTranslateGraph.graphDefinition);
   graphRegistry.register(createElementGraph.graphDefinition);
   graphRegistry.register(createTermGraph.graphDefinition);
   graphRegistry.register(createTranslatableStringGraph.graphDefinition);

@@ -50,6 +50,3 @@ export const revectorizeSubjectConceptsGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use revectorizeSubjectConceptsGraph */
-export const revectorizeSubjectConceptsTask = revectorizeSubjectConceptsGraph;

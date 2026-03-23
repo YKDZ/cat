@@ -45,6 +45,36 @@ export const FetchAdviseInputSchema = z.object({
     description:
       "Plugin service ID of the TERM_RECOGNIZER to use. Omit to use the default.",
   }),
+  /** Pre-fetched term context from termRecallOp. When provided, skips internal term DB queries. */
+  preloadedTerms: z
+    .array(
+      z.object({
+        term: z.string(),
+        translation: z.string(),
+        confidence: z.number(),
+        definition: z.string().nullable(),
+        concept: z.object({
+          subjects: z.array(
+            z.object({
+              name: z.string(),
+              defaultDefinition: z.string().nullable(),
+            }),
+          ),
+          definition: z.string().nullable(),
+        }),
+      }),
+    )
+    .optional(),
+  /** Pre-fetched memory suggestions. When provided, skips internal memory search. */
+  preloadedMemories: z
+    .array(
+      z.object({
+        source: z.string(),
+        translation: z.string(),
+        confidence: z.number(),
+      }),
+    )
+    .optional(),
 });
 
 export const FetchAdviseOutputSchema = z.object({
@@ -67,80 +97,96 @@ export const fetchAdviseOp = async (
   const { client: drizzle } = await getDbHandle();
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
-  // Run term lookup, memory search, and element meta fetch in parallel
-  const [lookedUpTerms, memorySuggestions, elementMeta] = await Promise.all([
-    executeQuery({ db: drizzle }, listLexicalTermSuggestions, {
-      text: data.text,
-      sourceLanguageId: data.sourceLanguageId,
-      translationLanguageId: data.translationLanguageId,
-      glossaryIds: data.glossaryIds,
-      wordSimilarityThreshold: 0.3,
-    }),
-    (async () => {
-      if (data.memoryIds.length === 0) return [];
-      const results: {
-        source: string;
-        translation: string;
-        confidence: number;
-      }[] = [];
-      for await (const m of streamSearchMemoryOp({
-        text: data.text,
-        sourceLanguageId: data.sourceLanguageId,
-        translationLanguageId: data.translationLanguageId,
-        memoryIds: data.memoryIds,
-        chunkIds: [],
-      })) {
-        results.push({
-          source: m.source,
-          translation: m.translation,
-          confidence: m.confidence,
-        });
-      }
-      return results;
-    })(),
+  // Run term lookup, memory search, and element meta fetch in parallel.
+  // Skip DB queries when preloaded data is provided from upstream nodes.
+  const [terms, memorySuggestions, elementMeta] = await Promise.all([
+    data.preloadedTerms
+      ? Promise.resolve(
+          data.preloadedTerms.map((t) => ({
+            term: t.term,
+            translation: t.translation,
+            concept: t.concept,
+            confidence: t.confidence,
+          })),
+        )
+      : (async () => {
+          const lookedUpTerms = await executeQuery(
+            { db: drizzle },
+            listLexicalTermSuggestions,
+            {
+              text: data.text,
+              sourceLanguageId: data.sourceLanguageId,
+              translationLanguageId: data.translationLanguageId,
+              glossaryIds: data.glossaryIds,
+              wordSimilarityThreshold: 0.3,
+            },
+          );
+
+          const uniqueConceptIds = [
+            ...new Set(lookedUpTerms.map((t) => t.conceptId)),
+          ];
+          const conceptSubjects = await executeQuery(
+            { db: drizzle },
+            listConceptSubjectsByConceptIds,
+            { conceptIds: uniqueConceptIds },
+          );
+          const subjectsMap = new Map<
+            number,
+            { name: string; defaultDefinition: string | null }[]
+          >();
+          for (const row of conceptSubjects) {
+            const existing = subjectsMap.get(row.conceptId);
+            const subject = {
+              name: row.name,
+              defaultDefinition: row.defaultDefinition,
+            };
+            if (existing) {
+              existing.push(subject);
+            } else {
+              subjectsMap.set(row.conceptId, [subject]);
+            }
+          }
+
+          return lookedUpTerms.map((t) => ({
+            term: t.term,
+            translation: t.translation,
+            concept: {
+              subjects: subjectsMap.get(t.conceptId) ?? [],
+              definition: t.definition,
+            },
+            confidence: t.confidence,
+          }));
+        })(),
+    data.preloadedMemories
+      ? Promise.resolve(data.preloadedMemories)
+      : (async () => {
+          if (data.memoryIds.length === 0) return [];
+          const results: {
+            source: string;
+            translation: string;
+            confidence: number;
+          }[] = [];
+          for await (const m of streamSearchMemoryOp({
+            text: data.text,
+            sourceLanguageId: data.sourceLanguageId,
+            translationLanguageId: data.translationLanguageId,
+            memoryIds: data.memoryIds,
+            chunkIds: [],
+          })) {
+            results.push({
+              source: m.source,
+              translation: m.translation,
+              confidence: m.confidence,
+            });
+          }
+          return results;
+        })(),
     data.elementId !== undefined
       ? executeQuery({ db: drizzle }, getElementMeta, {
           elementId: data.elementId,
         }).then((meta) => meta ?? {})
       : ({} as JSONType),
   ]);
-
-  // Batch-fetch concept subjects for all looked-up terms
-  const uniqueConceptIds = [...new Set(lookedUpTerms.map((t) => t.conceptId))];
-  const conceptSubjects = await executeQuery(
-    { db: drizzle },
-    listConceptSubjectsByConceptIds,
-    {
-      conceptIds: uniqueConceptIds,
-    },
-  );
-  const subjectsMap = new Map<
-    number,
-    { name: string; defaultDefinition: string | null }[]
-  >();
-  for (const row of conceptSubjects) {
-    const existing = subjectsMap.get(row.conceptId);
-    const subject = {
-      name: row.name,
-      defaultDefinition: row.defaultDefinition,
-    };
-    if (existing) {
-      existing.push(subject);
-    } else {
-      subjectsMap.set(row.conceptId, [subject]);
-    }
-  }
-
-  // Map LookedUpTerm to the concept structure expected by GetSuggestionsContext
-  const terms = lookedUpTerms.map((t) => ({
-    term: t.term,
-    translation: t.translation,
-    concept: {
-      subjects: subjectsMap.get(t.conceptId) ?? [],
-      definition: t.definition,
-    },
-    confidence: t.confidence,
-  }));
 
   const advisor = firstOrGivenService(
     pluginManager,

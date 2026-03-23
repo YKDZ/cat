@@ -3,7 +3,7 @@ import type { JSONObject } from "@cat/shared/schema/json";
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 
-import { EventIdSchema } from "@/graph/types";
+import { EventIdSchema, NodeTypeSchema } from "@/graph/types";
 
 // ─── Event Types ─────────────────────────────────────────────────
 
@@ -54,11 +54,11 @@ export const eventPayloadSchemas = {
   "run:cancel": z.object({}),
   "run:end": z.object({ status: z.string(), blackboard: z.unknown() }),
   "run:error": z.object({ error: z.string() }),
-  "run:compensation:start": z.object({ count: z.number() }),
+  "run:compensation:start": z.object({ count: z.int() }),
   "run:compensation:end": z.record(z.string(), z.unknown()),
 
   // Node lifecycle
-  "node:start": z.object({ nodeType: z.string(), config: z.unknown() }),
+  "node:start": z.object({ nodeType: NodeTypeSchema, config: z.unknown() }),
   "node:end": z.object({
     status: z.string(),
     output: z.unknown(),
@@ -67,8 +67,8 @@ export const eventPayloadSchemas = {
   }),
   "node:error": z.object({ error: z.string() }),
   "node:retry": z.object({
-    attempt: z.number(),
-    maxAttempts: z.number(),
+    attempt: z.int(),
+    maxAttempts: z.int(),
     error: z.string(),
   }),
   "node:lease:acquired": z.object({
@@ -103,7 +103,7 @@ export const eventPayloadSchemas = {
     callId: z.string(),
     toolName: z.string(),
     result: z.unknown(),
-    durationMs: z.number(),
+    durationMs: z.number().nonnegative(),
   }),
   "tool:error": z.object({
     callId: z.string(),
@@ -124,7 +124,7 @@ export const eventPayloadSchemas = {
   // Human input
   "human:input:required": z.object({
     prompt: z.string(),
-    timeoutMs: z.number(),
+    timeoutMs: z.number().nonnegative(),
     inputPath: z.string(),
   }),
   "human:input:received": z.object({ nodeId: z.string(), input: z.unknown() }),
@@ -134,7 +134,7 @@ export const eventPayloadSchemas = {
 
   // Workflow domain events
   "workflow:translation:created": z.object({
-    documentId: z.string().optional(),
+    documentId: z.uuidv4().optional(),
     translationIds: z.array(z.number()),
   }),
   "workflow:qa:issue": z.object({
@@ -142,7 +142,7 @@ export const eventPayloadSchemas = {
     result: z.array(z.record(z.string(), z.unknown())),
   }),
   "workflow:suggestion:ready": z.object({
-    elementId: z.number(),
+    elementId: z.int(),
     suggestion: z.record(z.string(), z.unknown()),
   }),
 } as const satisfies Record<EventType, z.ZodType>;

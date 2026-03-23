@@ -16,10 +16,13 @@ import {
   FormItem,
   FormLabel,
   Slider,
+  Switch,
 } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
+import { usePageContext } from "vike-vue/usePageContext";
+import { navigate } from "vike/client/router";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
@@ -36,6 +39,7 @@ const props = defineProps<{
 
 
 const { t } = useI18n();
+const ctx = usePageContext();
 
 
 const schema = toTypedSchema(
@@ -43,22 +47,27 @@ const schema = toTypedSchema(
     minMemorySimilarity: z
       .array(z.number().min(0).max(1).default(0.72))
       .length(1),
-    advisorId: z.int(),
+    advisorId: z.int().optional(),
+    enableLlmRefine: z.boolean().default(false),
+    llmProviderId: z.number().int().optional(),
+    gatherDocumentContext: z.boolean().default(false),
   }),
 );
 
 
-const { handleSubmit } = useForm({
+const { handleSubmit, values } = useForm({
   validationSchema: schema,
   initialValues: {
     minMemorySimilarity: [0.72],
+    enableLlmRefine: false,
+    gatherDocumentContext: false,
   },
 });
 
 
 const advisorOptions = computed<PickerOption<number>[]>(() => {
-  if (!state.value || !state.value.data) return [];
-  return state.value.data.map(
+  if (!advisorState.value || !advisorState.value.data) return [];
+  return advisorState.value.data.map(
     (advisor) =>
       ({
         value: advisor.id,
@@ -68,19 +77,47 @@ const advisorOptions = computed<PickerOption<number>[]>(() => {
 });
 
 
-const onSubmit = handleSubmit(async (values) => {
-  await orpc.translation.autoTranslate({
-    languageId: props.language.id,
-    documentId: props.document.id,
-    advisorId: values.advisorId,
-    minMemorySimilarity: values.minMemorySimilarity[0],
-  });
+const llmProviderOptions = computed<PickerOption<number>[]>(() => {
+  if (!llmState.value || !llmState.value.data) return [];
+  return llmState.value.data.map(
+    (provider) =>
+      ({
+        value: provider.id,
+        content: provider.name,
+      }) satisfies PickerOption,
+  );
 });
 
 
-const { state } = useQuery({
+const onSubmit = handleSubmit(async (formValues) => {
+  const { runId } = await orpc.translation.autoTranslate({
+    languageId: props.language.id,
+    documentId: props.document.id,
+    advisorId: formValues.advisorId,
+    minMemorySimilarity: formValues.minMemorySimilarity[0],
+    config: {
+      llm: {
+        enabled: formValues.enableLlmRefine,
+        llmProviderId: formValues.llmProviderId,
+      },
+      gatherDocumentContext: formValues.gatherDocumentContext,
+    },
+  });
+  const projectId = ctx.routeParams?.projectId;
+  await navigate(`/project/${projectId}/workflows/${runId}`);
+});
+
+
+const { state: advisorState } = useQuery({
   key: ["availableAdvisors"],
   query: () => orpc.plugin.getAllTranslationAdvisors(),
+  enabled: !import.meta.env.SSR,
+});
+
+
+const { state: llmState } = useQuery({
+  key: ["availableLLMProviders"],
+  query: () => orpc.agent.listLLMProviders(),
   enabled: !import.meta.env.SSR,
 });
 </script>
@@ -133,6 +170,55 @@ const { state } = useQuery({
                 :options="advisorOptions"
                 @update:model-value="(v) => setValue(v)"
               />
+            </FormControl>
+          </FormItem>
+        </FormField>
+        <FormField v-slot="{ value, handleChange }" name="enableLlmRefine">
+          <FormItem
+            class="flex flex-row items-center justify-between rounded-lg border p-3"
+          >
+            <div class="space-y-0.5">
+              <FormLabel>{{ t("启用 LLM 精修") }}</FormLabel>
+              <FormDescription>{{
+                t("使用 LLM 对翻译结果进行术语一致性和风格精修")
+              }}</FormDescription>
+            </div>
+            <FormControl>
+              <Switch :checked="value" @update:checked="handleChange" />
+            </FormControl>
+          </FormItem>
+        </FormField>
+        <FormField
+          v-if="values.enableLlmRefine"
+          v-slot="{ setValue }"
+          name="llmProviderId"
+        >
+          <FormItem>
+            <FormLabel>{{ t("LLM Provider") }}</FormLabel>
+            <FormControl>
+              <Picker
+                :placeholder="t('选择 LLM Provider...')"
+                :options="llmProviderOptions"
+                @update:model-value="(v) => setValue(v)"
+              />
+            </FormControl>
+          </FormItem>
+        </FormField>
+        <FormField
+          v-slot="{ value, handleChange }"
+          name="gatherDocumentContext"
+        >
+          <FormItem
+            class="flex flex-row items-center justify-between rounded-lg border p-3"
+          >
+            <div class="space-y-0.5">
+              <FormLabel>{{ t("收集文档上下文") }}</FormLabel>
+              <FormDescription>{{
+                t("收集相邻已有翻译作为 LLM 精修上下文，提升译文连贯性")
+              }}</FormDescription>
+            </div>
+            <FormControl>
+              <Switch :checked="value" @update:checked="handleChange" />
             </FormControl>
           </FormItem>
         </FormField>

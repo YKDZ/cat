@@ -145,6 +145,3 @@ export const qaGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use qaGraph */
-export const qaWorkflow = qaGraph;

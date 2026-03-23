@@ -21,3 +21,4 @@ export * from "./upsert-document-from-file";
 export * from "./nlp-segment";
 export * from "./term-discovery";
 export * from "./term-alignment";
+export * from "./batch-auto-translate";

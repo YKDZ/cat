@@ -28,6 +28,3 @@ export const revectorizeConceptGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use revectorizeConceptGraph */
-export const revectorizeConceptTask = revectorizeConceptGraph;

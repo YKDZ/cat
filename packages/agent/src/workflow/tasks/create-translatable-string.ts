@@ -88,6 +88,3 @@ export const createTranslatableStringGraph = defineTypedGraph({
     checkpointIntervalMs: 1000,
   },
 });
-
-/** @deprecated use createTranslatableStringGraph */
-export const createTranslatableStringTask = createTranslatableStringGraph;

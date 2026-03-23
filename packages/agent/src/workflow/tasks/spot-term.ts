@@ -28,6 +28,3 @@ export const spotTermGraph = defineTypedGraph({
   entry: "main",
   exit: ["main"],
 });
-
-/** @deprecated use spotTermGraph */
-export const spotTermTask = spotTermGraph;
