@@ -105,6 +105,10 @@
     "./schema/nlp": {
       "types": "./dist/schema/nlp.d.ts",
       "import": "./dist/schema/nlp.js"
+    },
+    "./schema/permission": {
+      "types": "./dist/schema/permission.d.ts",
+      "import": "./dist/schema/permission.js"
     }
   },
   "scripts": {

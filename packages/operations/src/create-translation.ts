@@ -28,8 +28,7 @@ export const CreateTranslationInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()).default([]),
   vectorizerId: z.int(),
   vectorStorageId: z.int(),
-  documentId: z.uuidv4().optional(),
-  pub: z.boolean().default(false).optional(),
+  documentId: z.uuidv4(),
 });
 
 export const CreateTranslationOutputSchema = z.object({
@@ -67,10 +66,6 @@ export const createTranslationOp = async (
   const { client: drizzle } = await getDbHandle();
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
-  if (data.pub && !data.documentId) {
-    throw new Error("documentId must be specified when pub is true");
-  }
-
   // 1. 创建可翻译字符串
   const stringResult = await createTranslatableStringOp(
     {
@@ -103,9 +98,7 @@ export const createTranslationOp = async (
     },
   );
 
-  if (data.pub) {
-    await collector.flush();
-  }
+  await collector.flush();
 
   // 4. 可选写入翻译记忆
   let memoryItemIds: number[] | undefined;

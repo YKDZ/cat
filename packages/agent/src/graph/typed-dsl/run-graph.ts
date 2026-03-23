@@ -3,6 +3,8 @@ import type * as z from "zod/v4";
 
 import assert from "node:assert";
 
+import type { BlackboardSnapshot } from "@/graph/types";
+
 import { getStoredGraphRuntime } from "@/graph/runtime-store";
 
 import type { TypedGraphDefinition } from "./types";
@@ -30,7 +32,7 @@ export const runGraph = async <
   input: z.input<TInput>,
   options?: RunGraphOptions,
 ): Promise<z.infer<TOutput>> => {
-  const { scheduler, eventBus, checkpointer } = getStoredGraphRuntime();
+  const { scheduler, eventBus } = getStoredGraphRuntime();
 
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   const parsedInput = graph.inputSchema.parse(input) as Record<string, unknown>;
@@ -42,8 +44,20 @@ export const runGraph = async <
   });
 
   return new Promise<z.infer<TOutput>>((resolve, reject) => {
-    const unsubEnd = eventBus.subscribe("run:end", async (event) => {
+    let lastNodeError: Error | null = null;
+
+    const unsubError = eventBus.subscribe("run:error", (event) => {
       if (event.runId !== runId) return;
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      const payload = event.payload as Record<string, unknown>;
+      const msg =
+        typeof payload["error"] === "string" ? payload["error"] : undefined;
+      lastNodeError = new Error(msg ?? "Unknown graph node error");
+    });
+
+    const unsubEnd = eventBus.subscribe("run:end", (event) => {
+      if (event.runId !== runId) return;
+      unsubError();
       unsubEnd();
 
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
@@ -52,18 +66,23 @@ export const runGraph = async <
 
       if (status === "failed" || status === "cancelled") {
         reject(
-          new Error(`Graph run ${runId} ended with status: ${String(status)}`),
+          lastNodeError ??
+            new Error(
+              `Graph run ${runId} ended with status: ${String(status)}`,
+            ),
         );
         return;
       }
 
-      const snapshot = await checkpointer.loadSnapshot(runId);
-      if (!snapshot) {
-        reject(new Error(`No snapshot found for run ${runId}`));
-        return;
-      }
-
+      // Extract result directly from the run:end payload blackboard data,
+      // avoiding a DB round-trip and potential saveSnapshot race conditions.
       try {
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        const blackboardData = payload["blackboard"] as Record<string, unknown>;
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        const snapshot = {
+          data: blackboardData,
+        } as unknown as BlackboardSnapshot;
         resolve(graph.extractResult(snapshot));
       } catch (err) {
         assert(err instanceof Error, "Captured object is not an Error");
@@ -72,6 +91,7 @@ export const runGraph = async <
     });
 
     options?.signal?.addEventListener("abort", () => {
+      unsubError();
       unsubEnd();
       reject(new DOMException("Aborted", "AbortError"));
     });
@@ -98,7 +118,7 @@ export const startGraph = async <
   input: z.input<TInput>,
   options?: RunGraphOptions,
 ): Promise<GraphRunHandle<z.infer<TOutput>>> => {
-  const { scheduler, eventBus, checkpointer } = getStoredGraphRuntime();
+  const { scheduler, eventBus } = getStoredGraphRuntime();
 
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   const parsedInput = graph.inputSchema.parse(input) as Record<string, unknown>;
@@ -110,8 +130,20 @@ export const startGraph = async <
   });
 
   const complete = new Promise<z.infer<TOutput>>((resolve, reject) => {
-    const unsubEnd = eventBus.subscribe("run:end", async (event) => {
+    let lastNodeError: Error | null = null;
+
+    const unsubError = eventBus.subscribe("run:error", (event) => {
       if (event.runId !== runId) return;
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      const payload = event.payload as Record<string, unknown>;
+      const msg =
+        typeof payload["error"] === "string" ? payload["error"] : undefined;
+      lastNodeError = new Error(msg ?? "Unknown graph node error");
+    });
+
+    const unsubEnd = eventBus.subscribe("run:end", (event) => {
+      if (event.runId !== runId) return;
+      unsubError();
       unsubEnd();
 
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
@@ -120,18 +152,23 @@ export const startGraph = async <
 
       if (status === "failed" || status === "cancelled") {
         reject(
-          new Error(`Graph run ${runId} ended with status: ${String(status)}`),
+          lastNodeError ??
+            new Error(
+              `Graph run ${runId} ended with status: ${String(status)}`,
+            ),
         );
         return;
       }
 
-      const snapshot = await checkpointer.loadSnapshot(runId);
-      if (!snapshot) {
-        reject(new Error(`No snapshot found for run ${runId}`));
-        return;
-      }
-
+      // Extract result directly from the run:end payload blackboard data,
+      // avoiding a DB round-trip and potential saveSnapshot race conditions.
       try {
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        const blackboardData = payload["blackboard"] as Record<string, unknown>;
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        const snapshot = {
+          data: blackboardData,
+        } as unknown as BlackboardSnapshot;
         resolve(graph.extractResult(snapshot));
       } catch (err) {
         assert(err instanceof Error, "Captured object is not an Error");
@@ -140,6 +177,7 @@ export const startGraph = async <
     });
 
     options?.signal?.addEventListener("abort", () => {
+      unsubError();
       unsubEnd();
       reject(new DOMException("Aborted", "AbortError"));
     });

@@ -27,7 +27,6 @@ export const QAInputSchema = z.object({
     tokens: z.array(TokenSchema),
   }),
   glossaryIds: z.array(z.uuidv4()),
-  pub: z.boolean().default(false).optional(),
 });
 
 export const QAResultItemPayloadSchema = QaResultItemSchema.omit({
@@ -128,16 +127,14 @@ export const qaGraph = defineTypedGraph({
           )
         ).flat();
 
-        if (payload.pub) {
-          for (const issue of result.filter((item) => !item.isPassed)) {
-            ctx.addEvent({
-              type: "workflow:qa:issue",
-              payload: {
-                traceId: ctx.traceId,
-                result: [issue],
-              } satisfies QAPubPayload,
-            });
-          }
+        for (const issue of result.filter((item) => !item.isPassed)) {
+          ctx.addEvent({
+            type: "workflow:qa:issue",
+            payload: {
+              traceId: ctx.traceId,
+              result: [issue],
+            } satisfies QAPubPayload,
+          });
         }
 
         return { result };

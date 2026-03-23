@@ -1,6 +1,7 @@
 import type { PageContextServer } from "vike/types";
 
 import { executeQuery, getSetting } from "@cat/domain";
+import { loadUserSystemRoles } from "@cat/permissions";
 import {
   createHTTPHelpers,
   detectMobile,
@@ -43,5 +44,23 @@ export const onCreatePageContext = async (ctx: PageContextServer) => {
     ctx.globalContext.drizzleDB.client,
     ctx.sessionId ?? "",
   );
+  if (ctx.user) {
+    const systemRoles = await loadUserSystemRoles(
+      ctx.globalContext.drizzleDB.client,
+      ctx.user.id,
+    );
+    ctx.auth = {
+      subjectType: "user",
+      subjectId: ctx.user.id,
+      systemRoles,
+      ip:
+        helpers.getReqHeader("x-forwarded-for") ??
+        helpers.getReqHeader("x-real-ip") ??
+        undefined,
+      userAgent: helpers.getReqHeader("user-agent") ?? undefined,
+    };
+  } else {
+    ctx.auth = null;
+  }
   ctx.helpers = helpers;
 };

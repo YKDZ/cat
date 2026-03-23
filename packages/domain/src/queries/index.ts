@@ -126,3 +126,7 @@ export * from "@/queries/agent/find-agent-run-by-deduplication-key.query";
 export * from "@/queries/agent/load-agent-run-snapshot.query";
 export * from "@/queries/agent/list-agent-events.query";
 export * from "@/queries/agent/load-agent-external-output-by-idempotency.query";
+export * from "@/queries/permission/get-subject-permission-tuples.query";
+export * from "@/queries/permission/list-permission-subjects.query";
+export * from "@/queries/permission/list-permission-objects.query";
+export * from "@/queries/permission/load-user-system-roles.query";

@@ -3,6 +3,7 @@ import type { Memory } from "@cat/shared/schema/drizzle/memory";
 import { listMemoriesByCreator } from "@cat/domain";
 
 import { runAppQuery } from "@/server/domain";
+import { requireTelefuncAuth } from "@/server/telefunc-auth";
 
 export type PagedResult<T> = {
   data: T[];
@@ -15,12 +16,12 @@ export type MemoryListItem = Pick<
 >;
 
 export const onRequestMemories = async (
-  userId: string,
   pageIndex: number,
   pageSize: number,
 ): Promise<PagedResult<MemoryListItem>> => {
+  const { auth } = requireTelefuncAuth();
   const { data, total } = await runAppQuery(listMemoriesByCreator, {
-    creatorId: userId,
+    creatorId: auth.subjectId,
     pageIndex,
     pageSize,
   });

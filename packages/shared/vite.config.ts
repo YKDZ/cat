@@ -82,6 +82,10 @@ export default defineConfig({
           "src/schema/drizzle/comment.ts",
         ),
         "schema/nlp": resolve(import.meta.dirname, "src/schema/nlp.ts"),
+        "schema/permission": resolve(
+          import.meta.dirname,
+          "src/schema/permission.ts",
+        ),
       },
       formats: ["es"],
     },

@@ -64,11 +64,7 @@ const fetchMemories = async () => {
 
   isLoading.value = true;
   try {
-    const result = await onRequestMemories(
-      ctx.user.id,
-      pageIndex.value,
-      pageSize.value,
-    );
+    const result = await onRequestMemories(pageIndex.value, pageSize.value);
     memories.value = result.data;
     total.value = result.total;
   } catch (err) {

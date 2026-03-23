@@ -148,6 +148,46 @@ export const AgentSessionTrustPolicySchema = z.enum(
 export const AgentDefinitionTypeValues = ["GENERAL", "GHOST_TEXT", "WORKFLOW"] as const;
 export const AgentDefinitionTypeSchema = z.enum(AgentDefinitionTypeValues);
 
+// ============ Permission System Enums ============
+
+export const ObjectTypeValues = [
+  "system",
+  "project",
+  "document",
+  "element",
+  "glossary",
+  "memory",
+  "term",
+  "translation",
+  "comment",
+  "plugin",
+  "setting",
+  "task",
+  "agent_definition",
+  "user",
+] as const;
+export const ObjectTypeSchema = z.enum(ObjectTypeValues);
+export type ObjectType = (typeof ObjectTypeValues)[number];
+
+export const SubjectTypeValues = ["user", "role", "agent"] as const;
+export const SubjectTypeSchema = z.enum(SubjectTypeValues);
+export type SubjectType = (typeof SubjectTypeValues)[number];
+
+export const RelationValues = [
+  "superadmin",
+  "admin",
+  "owner",
+  "editor",
+  "viewer",
+  "member",
+] as const;
+export const RelationSchema = z.enum(RelationValues);
+export type Relation = (typeof RelationValues)[number];
+
+export const PermissionActionValues = ["check", "grant", "revoke"] as const;
+export const PermissionActionSchema = z.enum(PermissionActionValues);
+export type PermissionAction = (typeof PermissionActionValues)[number];
+
 export type AgentToolTarget = (typeof AgentToolTargetValues)[number];
 export type AgentToolConfirmationStatus =
   (typeof AgentToolConfirmationStatusValues)[number];

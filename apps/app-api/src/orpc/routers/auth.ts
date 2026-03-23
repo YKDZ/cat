@@ -12,6 +12,7 @@ import {
   getMfaProviderByServiceAndUser,
   registerUserWithPasswordAccount,
 } from "@cat/domain";
+import { grantFirstUserSuperadmin } from "@cat/permissions";
 import { getServiceFromDBId } from "@cat/server-shared";
 import { JSONSchemaSchema, safeZDotJson } from "@cat/shared/schema/json";
 import { randomBytes } from "node:crypto";
@@ -125,6 +126,9 @@ export const register = base
         authProviderId: authProvider.dbId,
       });
     });
+
+    // 检查是否为首位用户，若是则自动授予 superadmin
+    await grantFirstUserSuperadmin(drizzle, result.userId);
 
     await finishLogin(
       sessionStore,
