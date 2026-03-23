@@ -1,6 +1,6 @@
 import type { ChatMessage, LLMProvider, PluginManager } from "@cat/plugin-core";
 
-import * as crypto from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import type { Checkpointer } from "@/graph/checkpointer";
 import type { CompensationRegistry } from "@/graph/compensation";
@@ -254,7 +254,7 @@ export class Scheduler {
       }
     }
 
-    const runId = crypto.randomUUID();
+    const runId = randomUUID();
     const graph = this.graphRegistry.get(graphId);
 
     const initialData: Record<string, unknown> = { ...input };
