@@ -39,7 +39,12 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import {
+  authed,
+  checkDocumentPermission,
+  checkElementPermission,
+  checkPermission,
+} from "@/orpc/server";
 
 export const prepareCreateFromFile = authed
   .input(
@@ -97,6 +102,7 @@ export const finishCreateFromFile = authed
       putSessionId: z.uuidv4(),
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .handler(async ({ input, context }) => {
     const { projectId, putSessionId, languageId } = input;
     const {
@@ -208,6 +214,7 @@ export const finishCreateFromFile = authed
 
 export const get = authed
   .input(z.object({ documentId: z.uuidv4() }))
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .output(DocumentSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
@@ -228,6 +235,7 @@ export const countElement = authed
       languageId: z.string().optional(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .output(z.int().min(0))
   .handler(async ({ context, input }) => {
     const {
@@ -247,6 +255,7 @@ export const getFirstElement = authed
       languageId: z.string().optional(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .output(TranslatableElementSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
@@ -262,6 +271,7 @@ export const exportTranslatedFile = authed
       languageId: z.string(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -296,6 +306,7 @@ export const getElementTranslationStatus = authed
       languageId: z.string(),
     }),
   )
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
   .output(ElementTranslationStatusSchema)
   .handler(async ({ context, input }) => {
     const {
@@ -320,6 +331,7 @@ export const getElements = authed
       languageId: z.string().optional(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .output(
     z.array(
       TranslatableElementSchema.extend({
@@ -355,6 +367,7 @@ export const getPageIndexOfElement = authed
       languageId: z.string().optional(),
     }),
   )
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
   .output(z.int())
   .handler(async ({ context, input }) => {
     const {
@@ -382,6 +395,7 @@ export const del = authed
       id: z.uuidv4(),
     }),
   )
+  .use(checkDocumentPermission("editor"), (i) => i.id)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -398,6 +412,7 @@ export const getDocumentFileUrl = authed
       documentId: z.uuidv4(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .output(z.string().nullable())
   .handler(async ({ context, input }) => {
     const {
@@ -439,6 +454,7 @@ export const getDocumentFileInfo = authed
       documentId: z.uuidv4(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .output(
     z
       .object({
@@ -477,6 +493,7 @@ export const countTranslation = authed
       isApproved: z.boolean().optional(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .output(z.int().min(0))
   .handler(async ({ context, input }) => {
     const {

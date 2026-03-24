@@ -24,14 +24,17 @@ import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import { authed, checkPermission } from "@/orpc/server";
 
+// 使用新的类型安全权限中间件
+// mapInput 函数 (i) => i.projectId 的参数类型从 .input() schema 自动推断
 export const del = authed
   .input(
     z.object({
       projectId: z.uuidv4(),
     }),
   )
+  .use(checkPermission("project", "owner"), (i) => i.projectId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -49,6 +52,7 @@ export const update = authed
       description: z.string().min(0).optional(),
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .output(ProjectSchema)
   .handler(async ({ context, input }) => {
     const {
@@ -150,6 +154,7 @@ export const linkGlossary = authed
       glossaryIds: z.array(z.uuidv4()),
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -165,6 +170,7 @@ export const linkMemory = authed
       memoryIds: z.array(z.uuidv4()),
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -180,6 +186,7 @@ export const unlinkGlossary = authed
       glossaryIds: z.array(z.uuidv4()),
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -195,6 +202,7 @@ export const unlinkMemory = authed
       memoryIds: z.array(z.uuidv4()),
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -222,6 +230,7 @@ export const get = authed
       projectId: z.uuidv4(),
     }),
   )
+  .use(checkPermission("project", "viewer"), (i) => i.projectId)
   .output(ProjectSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
@@ -238,6 +247,7 @@ export const addTargetLanguages = authed
       languageId: z.string(),
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -258,6 +268,7 @@ export const countElement = authed
       languageId: z.string().optional(),
     }),
   )
+  .use(checkPermission("project", "viewer"), (i) => i.projectId)
   .output(z.int().min(0))
   .handler(async ({ context, input }) => {
     const {
@@ -269,6 +280,7 @@ export const countElement = authed
 
 export const getDocuments = authed
   .input(z.object({ projectId: z.string() }))
+  .use(checkPermission("project", "viewer"), (i) => i.projectId)
   .output(
     z.array(
       DocumentSchema.extend({
@@ -290,6 +302,7 @@ export const getTargetLanguages = authed
       projectId: z.string(),
     }),
   )
+  .use(checkPermission("project", "viewer"), (i) => i.projectId)
   .output(z.array(LanguageSchema))
   .handler(async ({ context, input }) => {
     const {
@@ -309,6 +322,7 @@ export const snapshot = authed
       projectId: z.uuidv4(),
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .output(z.int().min(0))
   .handler(async ({ context, input }) => {
     const {

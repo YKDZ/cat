@@ -27,6 +27,7 @@ export default defineConfig({
   markdown: allMarkdownTransformers,
 
   vite: {
+    // @ts-expect-error vite version error
     plugins: [tailwindcss()],
   },
 

@@ -27,7 +27,7 @@ import {
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
-import { authed, base } from "@/orpc/server";
+import { authed, base, checkPermission } from "@/orpc/server";
 
 export const reload = authed
   .input(
@@ -36,6 +36,7 @@ export const reload = authed
       scopeId: z.string(),
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -57,6 +58,7 @@ export const reloadPlugin = authed
       scopeId: z.string(),
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -109,6 +111,7 @@ export const upsertConfigInstance = authed
       value: nonNullSafeZDotJson,
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .output(PluginConfigInstanceSchema)
   .handler(async ({ context, input }) => {
     const {

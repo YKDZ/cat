@@ -7,7 +7,7 @@ import {
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import { authed, checkPermission } from "@/orpc/server";
 
 export const set = authed
   .input(
@@ -16,6 +16,7 @@ export const set = authed
       value: nonNullSafeZDotJson,
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {

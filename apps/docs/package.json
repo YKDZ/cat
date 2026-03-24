@@ -10,7 +10,8 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "preview": "vitepress preview src"
+    "preview": "vitepress preview src",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",

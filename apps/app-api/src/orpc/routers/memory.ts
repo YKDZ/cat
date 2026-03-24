@@ -17,7 +17,7 @@ import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import { authed, checkElementPermission, checkPermission } from "@/orpc/server";
 
 export const create = authed
   .input(
@@ -51,6 +51,7 @@ export const onNew = authed
       maxAmount: z.int().min(0).default(3),
     }),
   )
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
   .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },
@@ -165,6 +166,7 @@ export const get = authed
       memoryId: z.uuidv4(),
     }),
   )
+  .use(checkPermission("memory", "viewer"), (i) => i.memoryId)
   .output(MemorySchema.nullable())
   .handler(async ({ context, input }) => {
     const {
@@ -180,6 +182,7 @@ export const getProjectOwned = authed
       projectId: z.uuidv4(),
     }),
   )
+  .use(checkPermission("project", "viewer"), (i) => i.projectId)
   .output(z.array(MemorySchema))
   .handler(async ({ context, input }) => {
     const {
@@ -188,12 +191,14 @@ export const getProjectOwned = authed
 
     return await executeQuery({ db: drizzle }, listProjectMemories, input);
   });
+
 export const countItem = authed
   .input(
     z.object({
       memoryId: z.uuidv4(),
     }),
   )
+  .use(checkPermission("memory", "viewer"), (i) => i.memoryId)
   .output(z.int())
   .handler(async ({ context, input }) => {
     const {

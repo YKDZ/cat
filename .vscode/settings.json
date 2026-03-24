@@ -1,5 +1,10 @@
 {
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "oxc.oxc-vscode",
-  "copilot.exclude": {}
+  "[json]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  }
 }

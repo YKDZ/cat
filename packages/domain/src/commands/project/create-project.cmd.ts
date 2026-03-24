@@ -31,6 +31,11 @@ export const createProject: Command<
 
   return {
     result: inserted,
-    events: [domainEvent("project:created", { projectId: inserted.id })],
+    events: [
+      domainEvent("project:created", {
+        projectId: inserted.id,
+        creatorId: command.creatorId,
+      }),
+    ],
   };
 };

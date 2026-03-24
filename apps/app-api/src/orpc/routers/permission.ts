@@ -7,7 +7,7 @@ import {
 } from "@cat/shared/schema/permission";
 import * as z from "zod/v4";
 
-import { authed, requirePermission } from "@/orpc/server";
+import { authed, checkPermission } from "@/orpc/server";
 
 /**
  * 检查当前用户对某资源的权限。
@@ -54,7 +54,7 @@ export const listMyPermissionsOn = authed
 /**
  * 授予权限元组（仅 system#admin 可操作）。
  */
-export const grant = requirePermission("system", "admin", () => "*")
+export const grant = authed
   .input(
     z.object({
       subjectType: SubjectTypeSchema,
@@ -64,6 +64,7 @@ export const grant = requirePermission("system", "admin", () => "*")
       objectId: z.string(),
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .output(z.void())
   .handler(async ({ input }) => {
     const engine = getPermissionEngine();
@@ -77,7 +78,7 @@ export const grant = requirePermission("system", "admin", () => "*")
 /**
  * 撤销权限元组（仅 system#admin 可操作）。
  */
-export const revoke = requirePermission("system", "admin", () => "*")
+export const revoke = authed
   .input(
     z.object({
       subjectType: SubjectTypeSchema,
@@ -87,6 +88,7 @@ export const revoke = requirePermission("system", "admin", () => "*")
       objectId: z.string(),
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .output(z.void())
   .handler(async ({ input }) => {
     const engine = getPermissionEngine();
@@ -100,7 +102,7 @@ export const revoke = requirePermission("system", "admin", () => "*")
 /**
  * 列出某资源的所有授权主体（仅 system#admin 可操作）。
  */
-export const listSubjects = requirePermission("system", "admin", () => "*")
+export const listSubjects = authed
   .input(
     z.object({
       objectType: ObjectTypeSchema,
@@ -108,6 +110,7 @@ export const listSubjects = requirePermission("system", "admin", () => "*")
       relation: RelationSchema.optional(),
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .output(
     z.array(
       z.object({

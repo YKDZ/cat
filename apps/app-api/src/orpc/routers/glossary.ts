@@ -38,7 +38,7 @@ import { TermDataSchema } from "@cat/shared/schema/misc";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import { authed, checkPermission } from "@/orpc/server";
 import { getGraphRuntime } from "@/utils/graph-runtime";
 
 export const deleteTerm = authed
@@ -46,6 +46,9 @@ export const deleteTerm = authed
     z.object({
       termId: z.int(),
     }),
+  )
+  .use(checkPermission("glossary", "editor"), (input) =>
+    input.termId.toString(),
   )
   .output(z.void())
   .handler(async ({ context, input }) => {
@@ -71,6 +74,7 @@ export const get = authed
       glossaryId: z.uuidv4(),
     }),
   )
+  .use(checkPermission("glossary", "viewer"), (i) => i.glossaryId)
   .output(GlossarySchema.nullable())
   .handler(async ({ context, input }) => {
     const {
