@@ -10,6 +10,7 @@ export default defineConfig({
       "@cat/shared",
       "@cat/plugin-core",
       "@cat/server-shared",
+      "@cat/permissions",
       "zod",
       "zod/v4",
       "zod/v4/core",
@@ -36,6 +37,18 @@ export default defineConfig({
     },
 
     rolldownOptions: {
+      external: [
+        "@cat/domain",
+        "@cat/db",
+        "@cat/shared",
+        "@cat/plugin-core",
+        "@cat/server-shared",
+        "@cat/permissions",
+        "zod",
+        "zod/v4",
+        "zod/v4/core",
+        "diff",
+      ],
       output: {
         preserveModules: true,
         preserveModulesRoot: resolve(import.meta.dirname, "src"),

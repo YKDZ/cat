@@ -41,6 +41,11 @@ export const createGlossary: Command<
 
   return {
     result: inserted,
-    events: [domainEvent("glossary:created", { glossaryId: inserted.id })],
+    events: [
+      domainEvent("glossary:created", {
+        glossaryId: inserted.id,
+        creatorId: command.creatorId,
+      }),
+    ],
   };
 };

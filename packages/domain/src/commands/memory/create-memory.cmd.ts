@@ -41,6 +41,11 @@ export const createMemory: Command<
 
   return {
     result: inserted,
-    events: [domainEvent("memory:created", { memoryId: inserted.id })],
+    events: [
+      domainEvent("memory:created", {
+        memoryId: inserted.id,
+        creatorId: command.creatorId,
+      }),
+    ],
   };
 };

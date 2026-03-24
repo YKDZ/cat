@@ -3,31 +3,14 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "composite": true
-  },
-  "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../shared/tsconfig.lib.json"
-    },
-    {
-      "path": "../server-shared/tsconfig.lib.json"
-    },
-    {
-      "path": "../plugin-core/tsconfig.lib.json"
-    },
-    {
-      "path": "../permissions/tsconfig.lib.json"
-    },
-    {
-      "path": "../domain/tsconfig.lib.json"
     }
-  ],
+  },
+  "include": ["src/**/*.ts", "src/.vitepress/**/*.ts"],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",
