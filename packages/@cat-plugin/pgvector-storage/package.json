@@ -35,6 +35,6 @@
     "@cat/domain": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "drizzle-orm": "1.0.0-beta.17-67b1795"
+    "drizzle-orm": ""
   }
 }
