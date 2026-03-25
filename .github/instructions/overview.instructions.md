@@ -18,21 +18,21 @@ applyTo: "**/*"
 ### Core Technologies
 
 - **Runtime**: Node.js 24+
-- **Language**: TypeScript 5.9+ (strict mode)
-- **Package Manager**: pnpm 10.30+
-- **Monorepo Tool**: Nx 22.4+
+- **Language**: TypeScript 5.x (strict mode)
+- **Package Manager**: pnpm 10.32+
+- **Monorepo Tool**: Nx 22.5+
 
 ### Frontend
 
 - **Framework**: Vue 3.5+ (Composition API)
 - **SSR Framework**: Vike 0.4+ with vike-vue
 - **UI Components**:
-  - Reka UI 2.8+ (headless components)
+  - Reka UI 2.9+ (headless components)
   - shadcn-vue (via custom sync)
   - Tailwind CSS 4.2+
   - Lucide icons
 - **State Management**: Pinia 3.0+ with Pinia Colada
-- **i18n**: Vue I18n 11.2+
+- **i18n**: Vue I18n 11.3+
 - **Forms**: VeeValidate 4.15+ with Zod validation
 - **Utilities**: VueUse 14.2+
 
@@ -40,28 +40,28 @@ applyTo: "**/*"
 
 - **HTTP Framework**: Hono 4.11+ (via @photonjs/hono)
 - **RPC**: oRPC 1.13+
-- **Telefunc**: 0.2.18+ (for server functions)
+- **Telefunc**: 0.2.19+ (for server functions)
 - **WebSocket**: @hono/node-ws
-- **Queue**: BullMQ 5.66+
+- **MCP**: @hono/mcp, @modelcontextprotocol/sdk
 
 ### Database & Storage
 
 - **ORM**: Drizzle ORM 1.0.0-beta (PostgreSQL)
 - **Database**: PostgreSQL 18+ with pgvector extension
-- **Cache**: Redis
+- **Cache**: Redis 5.11+
 - **Migrations**: Drizzle Kit
 
 ### Testing & Quality
 
-- **Unit Testing**: Vitest 4.0+
+- **Unit Testing**: Vitest 4.1+
 - **E2E Testing**: Playwright 1.58+
-- **Linting**: oxlint 1.48+ (with tsgolint)
-- **Formatting**: oxfmt
+- **Linting**: oxlint 1.56+ (with tsgolint)
+- **Formatting**: oxfmt 0.41+
 - **Type Checking**: TypeScript + vue-tsc
 
 ### Build Tools
 
-- **Bundler**: Vite 7.3+
+- **Bundler**: Vite 8.0+
 - **Vue Compiler**: @vitejs/plugin-vue
 - **Type Generation**: unplugin-dts
 
@@ -73,19 +73,22 @@ applyTo: "**/*"
 
 - **`@cat/app`**: Main application (Vue 3 SSR with Vike)
 - **`@cat/app-api`**: API layer (Hono + oRPC routes)
-- **`@cat/agent`**: Agent and Workflow graph
-- **`@cat/ui`**: Shared UI component library (shadcn-vue based)
-- **`@cat/server-shared`**: Shared server utilities
+- **`@cat/docs`**: Documentation (VitePress 2.0 alpha)
 - **`@cat/app-e2e`**: Playwright E2E tests
-- **`@cat/docs`**: Documentation (VitePress)
 
 ### Core Packages (`packages/`)
 
 - **`@cat/plugin-core`**: Plugin system core (service registry, component registry, plugin discovery)
 - **`@cat/shared`**: Shared schemas (Zod), types, utilities
+- **`@cat/domain`**: Domain layer with business logic
 - **`@cat/db`**: Database layer (Drizzle ORM, Redis client)
-- **`@cat/eslint-config`**: Shared linting configuration
+- **`@cat/operations`**: Business operations and use cases
+- **`@cat/permissions`**: Permission system (ReBAC)
+- **`@cat/agent`**: Agent and Workflow graph
+- **`@cat/server-shared`**: Shared server utilities
+- **`@cat/ui`**: Shared UI component library (shadcn-vue based)
 - **`@cat/test-utils`**: Testing utilities
+- **`@cat/oxlint-plugin`**: Shared oxlint rules
 
 ### Plugins (`packages/@cat-plugin/`)
 
@@ -95,13 +98,17 @@ Plugin system supports these service types:
 - **MFA_PROVIDER**: Multi-factor auth (TOTP)
 - **STORAGE_PROVIDER**: File storage (local, S3)
 - **FILE_IMPORTER/EXPORTER**: File format handlers (JSON, Markdown, YAML)
-- **TERM_EXTRACTOR**: Terminology extraction (basic, OpenAI)
-- **TERM_ALIGNER**: Terminology alignment (OpenAI)
+- **TERM_EXTRACTOR**: Terminology extraction
+- **TERM_ALIGNER**: Terminology alignment
 - **QA_CHECKER**: Quality assurance checks
 - **TOKENIZER**: Text tokenization
-- **TRANSLATION_ADVISOR**: Translation suggestions (LibreTranslate, OpenAI)
-- **TEXT_VECTORIZER**: Text embedding (OpenAI)
+- **NLP_WORD_SEGMENTER**: Word segmentation (spaCy)
+- **TRANSLATION_ADVISOR**: Translation suggestions (LibreTranslate)
+- **TEXT_VECTORIZER**: Text embedding
 - **VECTOR_STORAGE**: Vector storage (pgvector)
+- **LLM_PROVIDER**: LLM integration (OpenAI-compatible)
+- **AGENT_TOOL_PROVIDER**: Agent tool extensions
+- **AGENT_CONTEXT_PROVIDER**: Agent context extensions
 
 ---
 
@@ -118,7 +125,7 @@ Plugin system supports these service types:
 
 - **SSR**: Vike handles server-side rendering with Vue
 - **API Layer**: Hono routes handle RPC (oRPC), Telefunc, WebSocket, storage
-- **Workers**: BullMQ processes background jobs (translation, vectorization, etc.)
+- **MCP**: Model Context Protocol support for AI integrations
 - **Database**: PostgreSQL (Drizzle ORM) + Redis (caching, queues)
 
 ### Frontend Architecture
@@ -149,7 +156,7 @@ Plugin system supports these service types:
 ## Docker
 
 - Multi-stage build (base → deps → builder → deployer → runner)
-- Health check via `/scripts/docker-check-health.js`
+- Health check via `/scripts/docker-health-check.js`
 - Dependencies: PostgreSQL (pgvector), Redis, (optional: Ollama, LibreTranslate)
 - Base image: Node 24 Alpine
 
