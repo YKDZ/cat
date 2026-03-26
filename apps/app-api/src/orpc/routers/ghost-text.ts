@@ -11,7 +11,7 @@ import { assertFirstNonNullish } from "@cat/shared/utils";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import { authed, checkElementPermission } from "@/orpc/server";
 
 // ─── Ghost Text Suggest ───
 
@@ -44,6 +44,7 @@ export const suggest = authed
       neighborElements: z.string().optional(),
     }),
   )
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
   .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },

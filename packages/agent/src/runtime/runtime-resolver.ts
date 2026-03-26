@@ -5,13 +5,19 @@ import type {
   PluginManager,
 } from "@cat/plugin-core";
 import type { AgentDefinition } from "@cat/shared/schema/agent";
+import type { Relation } from "@cat/shared/schema/permission";
 
 import {
   executeQuery,
   getAgentRunRuntimeState,
   getAgentSessionRuntimeState,
 } from "@cat/domain";
+import { getPermissionEngine, loadUserSystemRoles } from "@cat/permissions";
 import { getServiceFromDBId } from "@cat/server-shared";
+import {
+  ObjectTypeSchema,
+  RelationSchema,
+} from "@cat/shared/schema/permission";
 import * as z from "zod/v4";
 
 import type { RunId } from "@/graph/types";
@@ -302,6 +308,9 @@ export class RuntimeResolver implements RuntimeResolutionService {
       return params.persistedSystemPrompt;
     }
 
+    // 构建用户的 AuthContext，用于 context provider 权限检查
+    const checkPermission = await this.#createCheckPermission(params.userId);
+
     const contextProviders = this.getContextProviders();
     return buildSystemPrompt({
       drizzle: this.#drizzle,
@@ -310,7 +319,53 @@ export class RuntimeResolver implements RuntimeResolutionService {
       userId: params.userId,
       tools: params.tools,
       contextProviders,
+      checkPermission,
     });
+  };
+
+  /**
+   * 为指定用户创建权限检查函数。
+   * resource 格式："<objectType>:<objectId>"（如 "project:abc-123"）
+   * action 格式：Relation 字符串（如 "viewer", "editor"）
+   */
+  #createCheckPermission = async (
+    userId: string,
+  ): Promise<(resource: string, action: string) => Promise<boolean>> => {
+    let systemRoles: Relation[] = [];
+    try {
+      systemRoles = await loadUserSystemRoles(this.#drizzle, userId);
+    } catch {
+      // 无法加载角色时降级为空角色列表（pass-through by default check logic）
+    }
+
+    const authCtx = {
+      subjectType: "user" as const,
+      subjectId: userId,
+      systemRoles,
+    };
+
+    return async (resource: string, action: string): Promise<boolean> => {
+      const colonIdx = resource.indexOf(":");
+      if (colonIdx === -1) return false;
+      const objectTypeParsed = ObjectTypeSchema.safeParse(
+        resource.slice(0, colonIdx),
+      );
+      const actionParsed = RelationSchema.safeParse(action);
+      if (!objectTypeParsed.success || !actionParsed.success) return false;
+      const objectId = resource.slice(colonIdx + 1);
+      if (!objectId) return false;
+
+      try {
+        const engine = getPermissionEngine();
+        return await engine.check(
+          authCtx,
+          { type: objectTypeParsed.data, id: objectId },
+          actionParsed.data,
+        );
+      } catch {
+        return false;
+      }
+    };
   };
 
   resolveTools = async (params: {

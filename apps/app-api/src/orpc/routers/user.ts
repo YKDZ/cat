@@ -21,9 +21,9 @@ import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
 import * as z from "zod/v4";
 
-import { authed, base } from "@/orpc/server";
+import { authed } from "@/orpc/server";
 
-export const get = base
+export const get = authed
   .input(
     z.object({
       userId: z.uuidv4(),

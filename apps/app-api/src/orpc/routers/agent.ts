@@ -37,7 +37,7 @@ import {
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import { authed, checkPermission } from "@/orpc/server";
 import { getGraphRuntime } from "@/utils/graph-runtime";
 
 const isTerminalRunEvent = (event: AgentEvent): boolean => {
@@ -138,6 +138,7 @@ export const create = authed
       definition: AgentDefinitionJsonSchema,
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -160,6 +161,7 @@ export const update = authed
       definition: AgentDefinitionJsonSchema.optional(),
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -172,6 +174,7 @@ export const update = authed
 export const remove = authed
   .input(z.object({ id: z.uuidv4() }))
   .output(z.void())
+  .use(checkPermission("system", "admin"), () => "*")
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -587,6 +590,7 @@ export const enableBuiltin = authed
       scopeId: z.string().default(""),
     }),
   )
+  .use(checkPermission("system", "admin"), () => "*")
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },

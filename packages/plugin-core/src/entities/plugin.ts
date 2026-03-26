@@ -1,11 +1,28 @@
 import type { PluginCapabilities } from "@cat/domain";
 import type { CacheStore, SessionStore } from "@cat/domain";
+import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import type { JSONType } from "@cat/shared/schema/json";
+import type { ObjectType, Relation } from "@cat/shared/schema/permission";
 import type { Hono } from "hono";
 
 import type { ComponentData } from "@/registry/component-registry";
 import type { RegisteredService } from "@/registry/service-registry";
 import type { IPluginService } from "@/services/service";
+
+/**
+ * 插件鉴权上下文
+ * 用于在 capability 层做权限拦截
+ */
+export type PluginAuthContext = {
+  pluginId: string;
+  scopeType: ScopeType;
+  scopeId: string;
+  checkPermission: (
+    objectType: ObjectType,
+    relation: Relation,
+    objectId: string,
+  ) => Promise<boolean>;
+};
 
 /**
  * 插件运行时上下文
@@ -26,6 +43,8 @@ export type PluginContext = {
   cacheStore: CacheStore;
   /** 会话存储（Hash 语义，支持 TTL） */
   sessionStore: SessionStore;
+  /** 插件鉴权上下文 */
+  auth: PluginAuthContext;
 };
 
 export type RouteContext = PluginContext & {

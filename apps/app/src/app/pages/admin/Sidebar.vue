@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@cat/ui";
-import { AppWindow, Settings, BrickWall } from "lucide-vue-next";
+import { AppWindow, Settings, BrickWall, Shield, Users } from "lucide-vue-next";
 import { usePageContext } from "vike-vue/usePageContext";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -40,6 +40,16 @@ const items = ref([
     url: "/admin/plugins",
     icon: BrickWall,
     title: t("插件"),
+  },
+  {
+    url: "/admin/roles",
+    icon: Users,
+    title: t("角色管理"),
+  },
+  {
+    url: "/admin/permissions",
+    icon: Shield,
+    title: t("权限管理"),
   },
 ]);
 </script>

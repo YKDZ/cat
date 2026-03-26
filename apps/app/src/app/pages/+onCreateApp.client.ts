@@ -3,6 +3,7 @@ import type { PageContextClient } from "vike/types";
 import { hydrateQueryCache, PiniaColada } from "@pinia/colada";
 import { useQueryCache } from "@pinia/colada";
 
+import { vPerm } from "@/app/directives/v-perm";
 import { deserializePiniaState } from "@/app/utils/pinia.ts";
 
 export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
@@ -17,6 +18,7 @@ export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
       gcTime: 300_000,
     },
   });
+  app.directive("perm", vPerm);
 
   hydratePinia(ctx);
 };

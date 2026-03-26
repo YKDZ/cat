@@ -77,11 +77,33 @@ export class PluginManager {
     this.discovery = PluginDiscoveryService.getInstance(loader);
   }
 
-  private createCapabilities = (drizzle: DbHandle): PluginCapabilities => {
-    return createPluginCapabilities({
-      db: drizzle,
-    });
+  private createCapabilities = (
+    drizzle: DbHandle,
+    pluginId: string,
+  ): PluginCapabilities => {
+    const checkPermission = this.createCheckPermission(pluginId);
+    return createPluginCapabilities({ db: drizzle }, checkPermission);
   };
+
+  /**
+   * 构建作用域范围限制的权限检查函数
+   * 项目作用域的插件只能访问其所属项目内的资源
+   */
+  private createCheckPermission =
+    (_pluginId: string) =>
+    async (
+      objectType: string,
+      _relation: string,
+      objectId: string,
+    ): Promise<boolean> => {
+      // 全局作用域的插件拥有全局权限
+      if (this.scopeType === "GLOBAL") return true;
+      // 项目作用域的插件只能对其 scopeId 对应的项目执行操作
+      if (this.scopeType === "PROJECT" && objectType === "project") {
+        return objectId === this.scopeId;
+      }
+      return true;
+    };
 
   /**
    * 获取或创建特定作用域的管理器实例
@@ -466,9 +488,15 @@ export class PluginManager {
       scopeType: this.scopeType,
       scopeId: this.scopeId,
       registeredServices,
-      capabilities: this.createCapabilities(drizzle),
+      capabilities: this.createCapabilities(drizzle, pluginId),
       cacheStore: getCacheStore(),
       sessionStore: getSessionStore(),
+      auth: {
+        pluginId,
+        scopeType: this.scopeType,
+        scopeId: this.scopeId,
+        checkPermission: this.createCheckPermission(pluginId),
+      },
     };
 
     return { pluginObj, context };
@@ -677,9 +705,15 @@ export class PluginManager {
         scopeType: this.scopeType,
         scopeId: this.scopeId,
         registeredServices: [],
-        capabilities: this.createCapabilities(drizzle),
+        capabilities: this.createCapabilities(drizzle, pluginId),
         cacheStore: getCacheStore(),
         sessionStore: getSessionStore(),
+        auth: {
+          pluginId,
+          scopeType: this.scopeType,
+          scopeId: this.scopeId,
+          checkPermission: this.createCheckPermission(pluginId),
+        },
       });
     } catch (e) {
       logger.withSituation("PLUGIN").error(e, `Error deactivating ${pluginId}`);
