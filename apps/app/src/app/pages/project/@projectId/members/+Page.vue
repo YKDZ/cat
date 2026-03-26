@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { Relation } from "@cat/shared/schema/permission";
-
-import { RelationSchema } from "@cat/shared/schema/permission";
 import {
   Badge,
   Button,
@@ -93,7 +91,7 @@ const handleRemoveMember = async (subjectId: string, relation: Relation) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-if="membersState.status === 'loading'">
+        <TableRow v-if="membersState.status === 'pending'">
           <TableCell colspan="4" class="text-center text-muted-foreground">{{
             t("加载中...")
           }}</TableCell>
