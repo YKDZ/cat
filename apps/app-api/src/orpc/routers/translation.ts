@@ -42,7 +42,12 @@ import {
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import {
+  authed,
+  checkDocumentPermission,
+  checkElementPermission,
+  checkTranslationPermission,
+} from "@/orpc/server";
 import { getGraphRuntime } from "@/utils/graph-runtime";
 
 const TranslationDataSchema = TranslationSchema.omit({
@@ -61,6 +66,7 @@ export const translationRouter = authed
       translationId: z.int(),
     }),
   )
+  .use(checkTranslationPermission("editor"), (i) => i.translationId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -79,6 +85,7 @@ export const create = authed
       createMemory: z.boolean().default(true),
     }),
   )
+  .use(checkElementPermission("editor"), (i) => i.elementId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -146,6 +153,7 @@ export const onCreate = authed
       documentId: z.string(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },
@@ -197,6 +205,7 @@ export const getAll = authed
       languageId: z.string(),
     }),
   )
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
   .output(z.array(TranslationDataSchema))
   .handler(async ({ context, input }) => {
     const {
@@ -217,6 +226,7 @@ export const vote = authed
       value: z.int(),
     }),
   )
+  .use(checkTranslationPermission("viewer"), (i) => i.translationId)
   .output(TranslationVoteSchema)
   .handler(async ({ context, input }) => {
     const {
@@ -238,6 +248,7 @@ export const countVote = authed
       translationId: z.int(),
     }),
   )
+  .use(checkTranslationPermission("viewer"), (i) => i.translationId)
   .output(z.int())
   .handler(async ({ context, input }) => {
     const {
@@ -253,6 +264,7 @@ export const getSelfVote = authed
       translationId: z.int(),
     }),
   )
+  .use(checkTranslationPermission("viewer"), (i) => i.translationId)
   .output(TranslationVoteSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
@@ -274,6 +286,7 @@ export const autoApprove = authed
       languageId: z.string(),
     }),
   )
+  .use(checkDocumentPermission("editor"), (i) => i.documentId)
   .output(z.int())
   .handler(async ({ context, input }) => {
     const {
@@ -293,6 +306,7 @@ export const approve = authed
       translationId: z.int(),
     }),
   )
+  .use(checkTranslationPermission("editor"), (i) => i.translationId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -307,6 +321,7 @@ export const unapprove = authed
       translationId: z.int(),
     }),
   )
+  .use(checkTranslationPermission("editor"), (i) => i.translationId)
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -326,6 +341,7 @@ export const autoTranslate = authed
       config: batchAutoTranslateGraph.inputSchema.shape.config.optional(),
     }),
   )
+  .use(checkDocumentPermission("editor"), (i) => i.documentId)
   .output(z.object({ runId: z.uuidv4() }))
   .handler(async ({ context, input }) => {
     const {

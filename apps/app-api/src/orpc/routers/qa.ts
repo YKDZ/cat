@@ -12,7 +12,7 @@ import { AsyncMessageQueue } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import z from "zod";
 
-import { authed } from "@/orpc/server.ts";
+import { authed, checkDocumentPermission } from "@/orpc/server.ts";
 
 export const check = authed
   .input(
@@ -30,6 +30,7 @@ export const check = authed
       documentId: z.uuidv4(),
     }),
   )
+  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },

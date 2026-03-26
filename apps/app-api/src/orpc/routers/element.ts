@@ -12,7 +12,7 @@ import {
 import { safeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod";
 
-import { authed } from "@/orpc/server";
+import { authed, checkElementPermission } from "@/orpc/server";
 
 export const getContexts = authed
   .input(
@@ -20,6 +20,7 @@ export const getContexts = authed
       elementId: z.int(),
     }),
   )
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
   .output(z.array(TranslatableElementContextSchema))
   .handler(async ({ context, input }) => {
     const {
@@ -54,6 +55,7 @@ export const getSourceLocation = authed
       elementId: z.int(),
     }),
   )
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
   .output(
     z.object({
       fileUrl: z.string().nullable(),

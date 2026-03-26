@@ -1,6 +1,10 @@
 import type { ObjectType, Relation } from "@cat/shared/schema/permission";
 
-import { getDocument, getElementWithChunkIds } from "@cat/domain";
+import {
+  getDocument,
+  getElementWithChunkIds,
+  listTranslationsByIds,
+} from "@cat/domain";
 import { getPermissionEngine } from "@cat/permissions";
 import { ORPCError, os } from "@orpc/server";
 
@@ -268,3 +272,61 @@ export const requireElementPermission = (
       },
     });
   });
+
+/**
+ * 检查 Translation 权限（通过 translationId → elementId → projectId 传递）。
+ * 输入：translationId (number)
+ *
+ * 用法：
+ * authed
+ *   .input(z.object({ translationId: z.int() }))
+ *   .use(checkTranslationPermission("editor"), (i) => i.translationId)
+ *   .handler(...)
+ */
+// oxlint-disable-next-line typescript/explicit-module-boundary-types
+export const checkTranslationPermission = (relation: Relation) => {
+  type AuthedContext = {
+    user: NonNullable<Context["user"]>;
+    sessionId: NonNullable<Context["sessionId"]>;
+    auth: NonNullable<Context["auth"]>;
+    drizzleDB: Context["drizzleDB"];
+  };
+
+  return os
+    .$context<AuthedContext>()
+    .middleware(async ({ context, next }, translationId: number) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = context;
+
+      const translations = await listTranslationsByIds(
+        { db: drizzle },
+        { translationIds: [translationId] },
+      );
+      const translation = translations[0];
+      if (!translation)
+        throw new ORPCError("NOT_FOUND", { message: "Translation not found" });
+
+      const element = await getElementWithChunkIds(
+        { db: drizzle },
+        { elementId: translation.translatableElementId },
+      );
+      if (!element)
+        throw new ORPCError("NOT_FOUND", { message: "Element not found" });
+
+      const engine = getPermissionEngine();
+      const allowed = await engine.check(
+        context.auth,
+        { type: "project", id: element.projectId },
+        relation,
+      );
+      if (!allowed) throw new ORPCError("FORBIDDEN");
+      return next({
+        context: {
+          user: context.user,
+          sessionId: context.sessionId,
+          auth: context.auth,
+        },
+      });
+    });
+};

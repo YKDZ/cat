@@ -89,8 +89,30 @@ import {
 } from "@/index";
 import { getAccountMetaByIdentity } from "@/queries/auth/get-account-meta-by-identity.query";
 
+type CheckPermissionFn = (
+  objectType: string,
+  relation: string,
+  objectId: string,
+) => Promise<boolean>;
+
+const assertPermission = async (
+  checkPermission: CheckPermissionFn | undefined,
+  objectType: string,
+  relation: string,
+  objectId: string,
+): Promise<void> => {
+  if (!checkPermission) return;
+  const allowed = await checkPermission(objectType, relation, objectId);
+  if (!allowed) {
+    throw new Error(
+      `Plugin permission denied: ${relation} on ${objectType}:${objectId}`,
+    );
+  }
+};
+
 export const createPluginCapabilities = (
   execCtx: ExecutorContext,
+  checkPermission?: CheckPermissionFn,
 ): PluginCapabilities => ({
   project: {
     get: async (input) => executeQuery(execCtx, getProject, input),
@@ -104,23 +126,67 @@ export const createPluginCapabilities = (
     countElements: async (input) =>
       executeQuery(execCtx, countProjectElements, input),
     create: async (input) => executeCommand(execCtx, createProject, input),
-    update: async (input) => executeCommand(execCtx, updateProject, input),
+    update: async (input) => {
+      await assertPermission(
+        checkPermission,
+        "project",
+        "editor",
+        input.projectId,
+      );
+      return executeCommand(execCtx, updateProject, input);
+    },
     delete: async (input) => {
+      await assertPermission(
+        checkPermission,
+        "project",
+        "admin",
+        input.projectId,
+      );
       await executeCommand(execCtx, deleteProject, input);
     },
     linkGlossaries: async (input) => {
+      await assertPermission(
+        checkPermission,
+        "project",
+        "editor",
+        input.projectId,
+      );
       await executeCommand(execCtx, linkProjectGlossaries, input);
     },
     unlinkGlossaries: async (input) => {
+      await assertPermission(
+        checkPermission,
+        "project",
+        "editor",
+        input.projectId,
+      );
       await executeCommand(execCtx, unlinkProjectGlossaries, input);
     },
     linkMemories: async (input) => {
+      await assertPermission(
+        checkPermission,
+        "project",
+        "editor",
+        input.projectId,
+      );
       await executeCommand(execCtx, linkProjectMemories, input);
     },
     unlinkMemories: async (input) => {
+      await assertPermission(
+        checkPermission,
+        "project",
+        "editor",
+        input.projectId,
+      );
       await executeCommand(execCtx, unlinkProjectMemories, input);
     },
     addTargetLanguages: async (input) => {
+      await assertPermission(
+        checkPermission,
+        "project",
+        "editor",
+        input.projectId,
+      );
       await executeCommand(execCtx, addProjectTargetLanguages, input);
     },
   },
@@ -138,8 +204,15 @@ export const createPluginCapabilities = (
       executeQuery(execCtx, countDocumentElements, input),
     countTranslations: async (input) =>
       executeQuery(execCtx, countDocumentTranslations, input),
-    createRoot: async (input) =>
-      executeCommand(execCtx, createRootDocument, input),
+    createRoot: async (input) => {
+      await assertPermission(
+        checkPermission,
+        "project",
+        "editor",
+        input.projectId,
+      );
+      return executeCommand(execCtx, createRootDocument, input);
+    },
     delete: async (input) => {
       await executeCommand(execCtx, deleteDocument, input);
     },

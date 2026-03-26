@@ -169,3 +169,15 @@ Plugin system supports these service types:
 3. **Self-hosted**: Docker-first deployment, no external dependencies
 4. **Extensible**: Service/component registry for easy extension
 5. **Modern stack**: Latest stable versions, ESM-only
+
+---
+
+## Post-Modification QA
+
+After modifying any code, you **must** run the `qa-check` skill to validate changes:
+
+```
+Skill: qa-check
+```
+
+This ensures all tests, linting, type checking, and formatting pass before considering the task complete.

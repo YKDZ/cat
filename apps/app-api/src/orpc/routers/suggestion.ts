@@ -16,10 +16,11 @@ import {
 } from "@cat/shared/schema/plugin";
 import * as z from "zod/v4";
 
-import { authed } from "@/orpc/server";
+import { authed, checkElementPermission } from "@/orpc/server";
 
 export const onNew = authed
   .input(z.object({ elementId: z.int(), languageId: z.string() }))
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
   .handler(async function* ({ context, input }) {
     const SuggestionEventPayloadSchema = z.object({
       elementId: z.int(),

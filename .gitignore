@@ -102,3 +102,4 @@ TEMP*
 .github/prompts
 
 .claude/*.local.*
+.claude/skills/l-*

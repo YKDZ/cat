@@ -115,6 +115,52 @@
         "required": ["id", "url", "slot"],
         "additionalProperties": false
       }
+    },
+    "permissions": {
+      "type": "array",
+      "description": "Required permissions for this plugin. Users confirm during installation.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "objectType": {
+            "type": "string",
+            "enum": [
+              "project",
+              "document",
+              "glossary",
+              "memory",
+              "translation",
+              "element",
+              "user",
+              "setting",
+              "system",
+              "agent_definition",
+              "task"
+            ]
+          },
+          "relations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "superadmin",
+                "admin",
+                "owner",
+                "editor",
+                "viewer",
+                "member"
+              ]
+            },
+            "minItems": 1
+          },
+          "reason": {
+            "type": "string",
+            "description": "Human-readable reason for needing this permission"
+          }
+        },
+        "required": ["objectType", "relations"],
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false

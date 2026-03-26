@@ -1,6 +1,7 @@
 ---
 name: qa-check
 description: Run mandatory QA checks. Use this skill after generating or modifying any code to execute tests, linting, typechecking, and formatting on the modified sub-projects.
+user-invocable: false
 ---
 
 # Post-Modification Progressive Review (Nx Tasks)
@@ -16,29 +17,41 @@ Review the following list of recently modified files and analyze which Nx sub-pr
 
 ## 2. Phase 1: Targeted QA Check (Modified Projects)
 
-First, validate only the projects you just modified (affected). Construct and execute the following command using the Bash tool. This command saves the full output to a log file and only displays the last 30 lines so you can quickly check for the "Successfully ran targets" message:
+First, validate only the projects you just modified (affected):
 
 ```bash
-pnpm nx affected --target=test,lint,typecheck,fmt --output-style=dynamic-legacy 2>&1 | tail -n 6
+script -q -c "pnpm nx affected --target=test,lint,typecheck,fmt" /dev/null 2>&1 | sed 's/\x1b\[[0-9;]*m//g; s/\x1b\[?25[hl]//g; s/\[1G//g; s/\[0K//g; s/\[0J//g; s/\[[0-9]*A//g' | tr -d '\r\033' | grep -E "Successfully ran|Failed to run" | tail -1
 ```
 
-_Note: If Phase 1 fails (the tail output shows failed tasks instead of success), immediately proceed to Step 4 (Validation and Remediation) and fix the issues before moving to Phase 2._
+_Note: If Phase 1 shows "Failed to run", immediately proceed to Step 4 (Validation and Remediation) and fix the issues before moving to Phase 2._
 
 ## 3. Phase 2: Full Workspace QA Check
 
-Once the targeted projects pass Phase 1 successfully, you must ensure your changes did not break other dependent projects. Run the complete QA suite across the entire workspace, using the same log-and-tail strategy:
+Once the targeted projects pass Phase 1 successfully, ensure your changes did not break other dependent projects:
 
 ```bash
-pnpm nx run-many --target=test,lint,typecheck,fmt --all --output-style=dynamic-legacy 2>&1 | tail -n 6
+script -q -c "pnpm nx run-many --target=test,lint,typecheck,fmt --all" /dev/null 2>&1 | sed 's/\x1b\[[0-9;]*m//g; s/\x1b\[?25[hl]//g; s/\[1G//g; s/\[0K//g; s/\[0J//g; s/\[[0-9]*A//g' | tr -d '\r\033' | grep -E "Successfully ran|Failed to run" | tail -1
 ```
 
 ## 4. Validation and Remediation (Error Handling)
 
 - You must ensure code style compliance, strict type safety, and consistent formatting.
-- **CRITICAL Log Reading Strategy:** If the `tail -n 30` output from Phase 1 or Phase 2 indicates that tasks failed, **DO NOT** re-run the command without output redirection. Instead, you must query the log using `grep` to find the specific errors.
-- Execute a command like this to isolate the failures:
+- **CRITICAL:** If Phase 1 or Phase 2 shows failure, re-run without filtering to see the full error output:
   ```bash
-  grep -iE -B 2 -A 10 "error|fail|warn" nx-phase1.log
+  pnpm nx affected --target=test,lint,typecheck,fmt
   ```
-- Proactively analyze these isolated error causes and use tools to fix the code.
-- Once fixed, you must **re-run** the specific Phase 1 or Phase 2 command (including the `> log 2>&1; tail` part) and repeat this process until the tail output confirms all checks pass completely.
+  or for full workspace:
+  ```bash
+  pnpm nx run-many --target=test,lint,typecheck,fmt --all
+  ```
+- Analyze the error messages and identify failed projects.
+- **Retry specific projects** using the `--projects` parameter:
+  ```bash
+  pnpm nx run-many --target=test,lint,typecheck,fmt --projects=<project1>,<project2>
+  ```
+  Example:
+  ```bash
+  pnpm nx run-many --target=test,lint,typecheck,fmt --projects=@cat/shared,@cat/ui
+  ```
+- Proactively analyze the error messages and use tools to fix the code.
+- Once fixed, re-run the appropriate Phase command and repeat this process until it shows "Successfully ran".
