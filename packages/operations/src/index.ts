@@ -62,14 +62,6 @@ export {
 } from "./parse-file";
 
 export {
-  spotTermOp,
-  SpotTermInputSchema,
-  SpotTermOutputSchema,
-  type SpotTermInput,
-  type SpotTermOutput,
-} from "./spot-term";
-
-export {
   revectorizeOp,
   RevectorizeInputSchema,
   RevectorizeOutputSchema,

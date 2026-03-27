@@ -5,6 +5,7 @@ import app from "@cat/app-api/app";
 import { ensureDB, ensureRootUser } from "@cat/db";
 import {
   executeQuery,
+  getFirstRegisteredUser,
   getSetting,
   getDbHandle,
   getRedisHandle,
@@ -13,6 +14,7 @@ import {
 } from "@cat/domain";
 import { registerDomainEventHandlers } from "@cat/operations";
 import {
+  grantFirstUserSuperadmin,
   initPermissionEngine,
   registerAuditHandler,
   seedSystemRoles,
@@ -110,6 +112,17 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     // 播种系统角色（幂等）
     await seedSystemRoles(drizzleDB.client);
+
+    // 回填超级管理员：若 PermissionTuple 中尚无任何超级管理员记录（例如权限系统上线前已注册的用户），
+    // 则将最早注册的用户自动提升为超级管理员。此调用内部幂等（通过 system:first_user_registered setting 去重）。
+    const firstUser = await executeQuery(
+      { db: drizzleDB.client },
+      getFirstRegisteredUser,
+      {},
+    );
+    if (firstUser !== null) {
+      await grantFirstUserSuperadmin(drizzleDB.client, firstUser.id);
+    }
 
     // 注册审计日志处理器
     registerAuditHandler(drizzleDB.client);

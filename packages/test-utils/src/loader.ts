@@ -20,12 +20,6 @@ import {
   type CosineSimilarityContext,
   type RetrieveContext,
   type StoreContext,
-  TermCandidate,
-  TermPairCandidate,
-  ExtractContext,
-  AlignContext,
-  TermExtractor,
-  TermAligner,
   TranslationAdvisor,
   type GetSuggestionsContext,
   TextVectorizer,
@@ -407,48 +401,6 @@ export class TestTranslationAdvisor extends TranslationAdvisor {
   };
 }
 
-export class TestTermExtractor extends TermExtractor {
-  public override getId = (): string => "term-extractor";
-
-  public override extract = async ({
-    text,
-  }: ExtractContext): Promise<TermCandidate[]> => {
-    // 假设所有用方括号括起来的都是术语，例如 [Term]
-    const regex = /\[(.*?)\]/g;
-    const candidates: TermCandidate[] = [];
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      candidates.push({
-        text: match[1],
-        normalizedText: match[1].toLowerCase(),
-        range: [{ start: match.index, end: match.index + match[0].length }],
-      });
-    }
-    return candidates;
-  };
-}
-
-export class TestTermAligner extends TermAligner {
-  public override getId = (): string => "term-aligner";
-
-  public override align = async ({
-    source,
-    target,
-  }: AlignContext): Promise<TermPairCandidate[]> => {
-    // 简单地按顺序通过索引对齐
-    const pairs: TermPairCandidate[] = [];
-    const minLen = Math.min(source.candidates.length, target.candidates.length);
-    for (let i = 0; i < minLen; i += 1) {
-      pairs.push({
-        source: source.candidates[i],
-        target: target.candidates[i],
-        alignmentScore: 1.0,
-      });
-    }
-    return pairs;
-  };
-}
-
 type RegisteredPlugin = {
   manifest: PluginManifest;
   data: PluginData;
@@ -461,8 +413,6 @@ const plugin = {
       new TestAuthProvider(),
       new TestMFAProvider(),
       new TestStorageProvider(),
-      new TestTermAligner(),
-      new TestTermExtractor(),
       new TestTextVectorizer(),
       new TestFileImporter(),
       new TestFileExporter(),
@@ -495,16 +445,6 @@ const manifest = {
     {
       id: "storage-provider",
       type: "STORAGE_PROVIDER",
-      dynamic: false,
-    },
-    {
-      id: "term-aligner",
-      type: "TERM_ALIGNER",
-      dynamic: false,
-    },
-    {
-      id: "term-extractor",
-      type: "TERM_EXTRACTOR",
       dynamic: false,
     },
     {
