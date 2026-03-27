@@ -1,0 +1,4 @@
+ALTER TABLE "PluginService" ALTER COLUMN "service_type" SET DATA TYPE text;--> statement-breakpoint
+DROP TYPE "PluginServiceType";--> statement-breakpoint
+CREATE TYPE "PluginServiceType" AS ENUM('AUTH_PROVIDER', 'MFA_PROVIDER', 'STORAGE_PROVIDER', 'FILE_IMPORTER', 'FILE_EXPORTER', 'TRANSLATION_ADVISOR', 'TEXT_VECTORIZER', 'VECTOR_STORAGE', 'QA_CHECKER', 'TOKENIZER', 'LLM_PROVIDER', 'AGENT_TOOL_PROVIDER', 'AGENT_CONTEXT_PROVIDER', 'NLP_WORD_SEGMENTER');--> statement-breakpoint
+ALTER TABLE "PluginService" ALTER COLUMN "service_type" SET DATA TYPE "PluginServiceType" USING "service_type"::"PluginServiceType";

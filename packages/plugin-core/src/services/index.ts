@@ -3,7 +3,6 @@ export * from "./agent-tool-provider.ts";
 export * from "./auth-provider.ts";
 export * from "./qa.ts";
 export * from "./storage-provider.ts";
-export * from "./term-services.ts";
 export * from "./file-handler.ts";
 export * from "./translation-advisor.ts";
 export * from "./text-vectorizer.ts";

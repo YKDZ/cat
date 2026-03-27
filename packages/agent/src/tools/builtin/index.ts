@@ -7,7 +7,6 @@ import { getUserTranslationHistoryTool } from "./get-user-translation-history";
 import { lookupTermsTool } from "./lookup-terms";
 import { runQACheckTool } from "./run-qa-check";
 import { searchTranslationMemoryTool } from "./search-translation-memory";
-import { spotTermsTool } from "./spot-terms";
 import { tokenizeTextTool } from "./tokenize-text";
 
 export {
@@ -18,7 +17,6 @@ export {
   lookupTermsTool,
   runQACheckTool,
   searchTranslationMemoryTool,
-  spotTermsTool,
   tokenizeTextTool,
 };
 export { FINISH_TOOL_NAME } from "./finish-task";
@@ -32,6 +30,5 @@ export const builtinTools: AgentToolDefinition[] = [
   lookupTermsTool,
   runQACheckTool,
   searchTranslationMemoryTool,
-  spotTermsTool,
   tokenizeTextTool,
 ];

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Relation } from "@cat/shared/schema/permission";
+
 import {
   Badge,
   Button,

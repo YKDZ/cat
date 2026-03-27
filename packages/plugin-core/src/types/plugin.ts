@@ -9,7 +9,6 @@ import type { LLMProvider } from "@/services/llm-provider";
 import type { MFAProvider } from "@/services/mfa-provider";
 import type { NlpWordSegmenter } from "@/services/nlp-word-segmenter";
 import type { StorageProvider } from "@/services/storage-provider";
-import type { TermAligner, TermExtractor } from "@/services/term-services";
 import type { TextVectorizer } from "@/services/text-vectorizer";
 import type { TranslationAdvisor } from "@/services/translation-advisor";
 import type { VectorStorage } from "@/services/vector-storage";
@@ -22,8 +21,6 @@ export type PluginServiceTypeMap = {
   FILE_IMPORTER: FileImporter;
   FILE_EXPORTER: FileExporter;
   TRANSLATION_ADVISOR: TranslationAdvisor;
-  TERM_EXTRACTOR: TermExtractor;
-  TERM_ALIGNER: TermAligner;
   QA_CHECKER: QAChecker;
   TOKENIZER: Tokenizer;
   VECTOR_STORAGE: VectorStorage;

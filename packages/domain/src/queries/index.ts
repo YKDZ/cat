@@ -69,6 +69,7 @@ export * from "@/queries/setting/get-setting.query";
 export * from "@/queries/language/get-language.query";
 export * from "@/queries/language/list-languages.query";
 export * from "@/queries/user/get-user.query";
+export * from "@/queries/user/get-first-registered-user.query";
 export * from "@/queries/user/get-user-avatar-file.query";
 export * from "@/queries/comment/list-root-comments.query";
 export * from "@/queries/comment/list-child-comments.query";

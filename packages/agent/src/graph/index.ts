@@ -45,7 +45,6 @@ import {
   revectorizeSubjectConceptsGraph,
   searchChunkGraph,
   searchMemoryGraph,
-  spotTermGraph,
   tokenizeGraph,
   upsertDocumentGraph,
   vectorizeGraph,
@@ -133,7 +132,6 @@ export const createDefaultGraphRuntime = (
   graphRegistry.register(revectorizeSubjectConceptsGraph.graphDefinition);
   graphRegistry.register(searchChunkGraph.graphDefinition);
   graphRegistry.register(searchMemoryGraph.graphDefinition);
-  graphRegistry.register(spotTermGraph.graphDefinition);
   graphRegistry.register(tokenizeGraph.graphDefinition);
   graphRegistry.register(upsertDocumentGraph.graphDefinition);
   graphRegistry.register(vectorizeGraph.graphDefinition);

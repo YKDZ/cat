@@ -3,7 +3,6 @@ export * from "./fetch-advise";
 export * from "./tokenize";
 export * from "./vectorize";
 export * from "./retrive-embeddings";
-export * from "./spot-term";
 export * from "./revectorize";
 export * from "./revectorize-concept";
 export * from "./revectorize-subject-concepts";
