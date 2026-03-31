@@ -1,43 +1,55 @@
-{
-  "extends": ["../../.oxlintrc.json"],
-  "jsPlugins": ["../../packages/oxlint-plugin/dist/index.js"],
-  "ignorePatterns": ["scripts/**"],
-  "plugins": ["vue", "unicorn"],
-  "categories": {
-    "correctness": "off"
+import { defineConfig } from "oxlint";
+
+import rootConfig from "../../oxlint.config.ts";
+
+export default defineConfig({
+  extends: [rootConfig],
+
+  jsPlugins: ["../../packages/oxlint-plugin/dist/index.js"],
+
+  ignorePatterns: ["scripts/**"],
+
+  plugins: ["vue"],
+
+  categories: {
+    correctness: "off",
   },
-  "env": {
-    "builtin": true,
-    "es2018": true,
-    "browser": true,
-    "shared-node-browser": true
+
+  env: {
+    builtin: true,
+    es2018: true,
+    browser: true,
+    "shared-node-browser": true,
   },
-  "rules": {
+
+  rules: {
     "vue/no-export-in-script-setup": "error",
     "vue/prefer-import-from-vue": "error",
     "vue/valid-define-emits": "error",
     "vue/valid-define-props": "error",
     "vue/no-import-compiler-macros": "error",
     "vue/no-multiple-slot-args": "error",
-    "curly": "off",
+    curly: "off",
     "no-unexpected-multiline": "off",
     "unicorn/empty-brace-spaces": "off",
     "unicorn/no-nested-ternary": "off",
-    "unicorn/number-literal-case": "off"
+    "unicorn/number-literal-case": "off",
   },
-  "overrides": [
+
+  overrides: [
     {
-      "files": ["**/*.{test,spec}.{ts,tsx}"],
-      "rules": {
+      files: ["**/*.{test,spec}.{ts,tsx}"],
+      rules: {
         "typescript/no-unsafe-call": "off",
         "typescript/no-unsafe-member-access": "off",
         "typescript/no-unsafe-argument": "off",
         "typescript/no-unsafe-return": "off",
-        "typescript/no-unsafe-assignment": "off"
-      }
+        "typescript/no-unsafe-assignment": "off",
+      },
     },
+
     {
-      "files": [
+      files: [
         "**/*.vue",
         "**/*.client.ts",
         "src/app/stores/**/*.ts",
@@ -54,13 +66,13 @@
         "**/+onBeforeRenderClient.ts",
         "**/+onBeforeRender.ts",
         "**/+guard.ts",
-        "**/+data.ts"
+        "**/+data.ts",
       ],
-      "rules": {
+      rules: {
         "cat/no-server-import": [
           "error",
           {
-            "forbidden": [
+            forbidden: [
               "@cat/db",
               "@cat/domain",
               "@cat/operations",
@@ -81,13 +93,13 @@
               "node:tls",
               "node:http",
               "node:http2",
-              "node:https"
+              "node:https",
             ],
-            "allowed": ["@cat/plugin-core/client"],
-            "allowTypeImports": true
-          }
-        ]
-      }
-    }
-  ]
-}
+            allowed: ["@cat/plugin-core/client"],
+            allowTypeImports: true,
+          },
+        ],
+      },
+    },
+  ],
+});

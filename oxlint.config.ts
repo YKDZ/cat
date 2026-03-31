@@ -1,29 +1,22 @@
-{
-  "plugins": [
-    "eslint",
-    "promise",
-    "typescript",
-    "import",
-    "unicorn"
-  ],
-  "categories": {
-    "correctness": "off"
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  plugins: ["vitest", "promise", "typescript", "import", "node", "jsdoc"],
+  categories: {
+    correctness: "off",
   },
-  "env": {
-    "builtin": true
+  env: {
+    builtin: true,
   },
-  "ignorePatterns": [
-    "dist/",
-    "**/*/*.js"
-  ],
-  "rules": {
+  ignorePatterns: ["dist/", "**/*/*.js"],
+  rules: {
     "eslint/no-new": "error",
     "typescript/no-import-type-side-effects": "error",
     "typescript/no-empty-object-type": "error",
     "typescript/explicit-module-boundary-types": [
       "error",
       {
-        "allowedNames": [
+        allowedNames: [
           "onCreateApp",
           "onBeforeRender",
           "onHydrationEnd",
@@ -33,9 +26,9 @@
           "guard",
           "route",
           "data",
-          "title"
-        ]
-      }
+          "title",
+        ],
+      },
     ],
     "promise/spec-only": "error",
     "promise/catch-or-return": "error",
@@ -129,7 +122,7 @@
     "@typescript-eslint/prefer-as-const": "error",
     "@typescript-eslint/prefer-namespace-keyword": "error",
     "@typescript-eslint/triple-slash-reference": "error",
-    "curly": "off",
+    curly: "off",
     "unicorn/empty-brace-spaces": "off",
     "unicorn/no-nested-ternary": "off",
     "unicorn/number-literal-case": "off",
@@ -169,17 +162,12 @@
     "typescript/restrict-template-expressions": "error",
     "typescript/switch-exhaustiveness-check": "error",
     "typescript/unbound-method": "error",
-    "typescript/use-unknown-in-catch-callback-variable": "error"
+    "typescript/use-unknown-in-catch-callback-variable": "error",
   },
-  "overrides": [
+  overrides: [
     {
-      "files": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.mts",
-        "**/*.cts"
-      ],
-      "rules": {
+      files: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+      rules: {
         "no-class-assign": "off",
         "no-const-assign": "off",
         "no-dupe-class-members": "off",
@@ -195,8 +183,8 @@
         "no-var": "error",
         "no-with": "off",
         "prefer-rest-params": "error",
-        "prefer-spread": "error"
-      }
-    }
-  ]
-}
+        "prefer-spread": "error",
+      },
+    },
+  ],
+});

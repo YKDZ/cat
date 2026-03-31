@@ -7,5 +7,12 @@
     "checkJs": true,
     "noEmit": true
   },
-  "include": ["vitest.config.ts"]
+  "include": [
+    "vitest.config.ts",
+    "oxlint.config.ts",
+    "oxfmt.config.ts",
+    "apps/*/oxlint.config.ts",
+    "packages/*/oxlint.config.ts",
+    "packages/@cat-plugin/*/oxlint.config.ts"
+  ]
 }
