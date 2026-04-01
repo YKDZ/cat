@@ -53,6 +53,7 @@ export const onCreatePageContext = async (ctx: PageContextServer) => {
       subjectType: "user",
       subjectId: ctx.user.id,
       systemRoles,
+      scopes: null,
       ip:
         helpers.getReqHeader("x-forwarded-for") ??
         helpers.getReqHeader("x-real-ip") ??

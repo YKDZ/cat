@@ -11,6 +11,8 @@ import {
   getRedisHandle,
   type DrizzleClient,
   getCacheStore,
+  initCacheStore,
+  initSessionStore,
 } from "@cat/domain";
 import { registerDomainEventHandlers } from "@cat/operations";
 import {
@@ -22,6 +24,8 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 import {
   initAllVectorStorage,
+  RedisCacheStore,
+  RedisSessionStore,
   serverLogger as logger,
 } from "@cat/server-shared";
 import { assertPromise } from "@cat/shared/utils";
@@ -67,6 +71,10 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     const redis = await getRedisHandle();
     await redis.ping();
+
+    // 全局初始化 Redis-backed 缓存/会话存储（SSR 与 API 共享）
+    initCacheStore(new RedisCacheStore(redis.redis));
+    initSessionStore(new RedisSessionStore(redis.redis));
 
     const pluginManager = PluginManager.get("GLOBAL", "");
 

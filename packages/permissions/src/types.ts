@@ -10,6 +10,12 @@ export type AuthContext = {
   subjectId: string;
   /** 预加载的系统角色列表 */
   systemRoles: Relation[];
+  /**
+   * API Key 范围限制。
+   * - null: 全权限（Cookie Session 认证）
+   * - string[]: 受限范围（API Key 认证），格式如 "project:viewer"
+   */
+  scopes: string[] | null;
   traceId?: string;
   ip?: string;
   userAgent?: string;

@@ -49,7 +49,7 @@ const handlePreAuth = async () => {
       else await navigate(gotFromServer.redirectURL);
     })
     .catch(async (e) => {
-      if (e.code === "CONFLICT") await navigate("/auth/callback");
+      if (e.code === "CONFLICT") await navigate("/");
       else rpcWarn(e);
     });
 };

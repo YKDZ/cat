@@ -177,6 +177,7 @@ export const getAllAuthMethod = base
                 providerId: id,
                 name: service.getName(),
                 icon: service.getIcon(),
+                flowType: service.getAuthFlowType(),
               });
             }),
         );

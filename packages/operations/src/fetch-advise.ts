@@ -37,14 +37,6 @@ export const FetchAdviseInputSchema = z.object({
     description:
       "UUIDs of translation memory banks to search for contextual matches.",
   }),
-  termExtractorId: z.int().optional().meta({
-    description:
-      "Plugin service ID of the TERM_EXTRACTOR to use for term spotting. Omit to use the default.",
-  }),
-  termRecognizerId: z.int().optional().meta({
-    description:
-      "Plugin service ID of the TERM_RECOGNIZER to use. Omit to use the default.",
-  }),
   /** Pre-fetched term context from termRecallOp. When provided, skips internal term DB queries. */
   preloadedTerms: z
     .array(

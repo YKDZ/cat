@@ -86,6 +86,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/permission.ts",
         ),
+        "schema/term-recall": resolve(
+          import.meta.dirname,
+          "src/schema/term-recall.ts",
+        ),
       },
       formats: ["es"],
     },

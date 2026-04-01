@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toShortFixed } from "@cat/shared/utils";
-import { Button } from "@cat/ui";
+import { Badge, Button } from "@cat/ui";
 import { ArrowRight } from "lucide-vue-next";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
@@ -21,6 +21,9 @@ const props = defineProps<{
     subjectId?: number | null;
     conceptId?: number;
     glossaryId?: string;
+    concept?: {
+      subjects: Array<{ name: string; defaultDefinition: string | null }>;
+    };
   };
   index: number;
 }>();
@@ -87,6 +90,20 @@ useHotKeys(`T+${props.index + 1}`, handleInsert);
         >
           <div class="icon-[mdi--information-outline] size-4" />
         </Button>
+      </div>
+      <div
+        v-if="term.concept && term.concept.subjects.length > 0"
+        class="flex flex-wrap gap-1"
+      >
+        <Badge
+          v-for="subject in term.concept.subjects"
+          :key="subject.name"
+          variant="secondary"
+          class="text-xs"
+          :title="subject.defaultDefinition || undefined"
+        >
+          {{ subject.name }}
+        </Badge>
       </div>
     </div>
   </TextTooltip>

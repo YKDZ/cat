@@ -9,9 +9,7 @@ export const lookupTermsTool = defineTool({
   description:
     "Fast lexical glossary lookup using SQL ILIKE matching. " +
     "Use this when you have a specific term or keyword to look up (e.g. '嗅探兽', 'photon'). " +
-    "Also accepts short phrases. No LLM or vector search \u2014 returns results in milliseconds. " +
-    "For full-sentence term discovery, first use spot_terms to extract candidates, " +
-    "then call lookup_terms for each candidate.",
+    "Also accepts short phrases. No LLM or vector search \u2014 returns results in milliseconds. ",
   parameters: LookupTermsInputSchema,
   execute: async (args) => {
     return runAgentQuery(listLexicalTermSuggestions, {

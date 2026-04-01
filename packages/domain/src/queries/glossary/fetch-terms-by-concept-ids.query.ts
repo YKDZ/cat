@@ -1,3 +1,5 @@
+import type { TermMatch } from "@cat/shared/schema/term-recall";
+
 import {
   aliasedTable,
   and,
@@ -15,16 +17,9 @@ import {
 
 /**
  * Represents a resolved term pair (source + translation) for a given concept.
- * Identical to `LexicalTermSuggestion` but named for cross-operation use.
+ * Alias to TermMatch from @cat/shared for backward compatibility.
  */
-export interface LookedUpTerm {
-  term: string;
-  translation: string;
-  definition: string | null;
-  conceptId: number;
-  glossaryId: string;
-  confidence: number;
-}
+export type LookedUpTerm = TermMatch;
 
 /**
  * Fetch full term pair details for a list of concept IDs.

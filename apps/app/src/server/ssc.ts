@@ -15,6 +15,7 @@ export const ssc = (ctx: PageContextServer): RouterClient<AppRouter> => {
         pluginManager: ctx.globalContext.pluginManager,
         cacheStore: getCacheStore(),
         sessionStore: getSessionStore(),
+        isSSR: true,
       } satisfies Context;
     },
   });

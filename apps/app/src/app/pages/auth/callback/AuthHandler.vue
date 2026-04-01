@@ -12,6 +12,9 @@ import JSONForm from "@/app/components/json-form/JsonForm.vue";
 import { orpc } from "@/app/rpc/orpc";
 import { useAuthStore } from "@/app/stores/auth.ts";
 
+import OIDCRedirectWaiting from "../components/OIDCRedirectWaiting.vue";
+import PasswordLoginForm from "../components/PasswordLoginForm.vue";
+
 const { t } = useI18n();
 
 
@@ -21,39 +24,41 @@ const schema = ref<JSONSchema>({});
 const data = shallowRef<NonNullJSONType>({});
 
 
-const handleAuth = async (): Promise<void> => {
-  const formData =
-    typeof data.value === "object"
-      ? {
-          ...data.value,
-        }
-      : data.value;
+const isEmpty = computed(() => Object.keys(schema.value).length === 0);
+
+
+const handleUpdate = (to: NonNullJSONType): void => {
+  data.value = to;
+};
+
+
+const handleAuthResult = async (result: { status: string }): Promise<void> => {
+  if (result.status === "SUCCESS") await navigate("/");
+  else if (result.status === "MFA_REQUIRED") await navigate("/auth/mfa");
+};
+
+
+const submitAuth = async (formData?: NonNullJSONType): Promise<void> => {
   await orpc.auth
     .auth({
       passToServer: {
-        urlSearchParams: {
-          ...ctx.urlParsed.search,
-        },
-        formData,
+        urlSearchParams: { ...ctx.urlParsed.search },
+        formData:
+          formData ??
+          (typeof data.value === "object" ? { ...data.value } : data.value),
       },
     })
-    .then(async (result) => {
-      if (result.status === "SUCCESS") await navigate("/");
-      else if (result.status === "MFA_REQUIRED") await navigate("/auth/mfa");
-    })
-    .catch(async (e) => {
+    .then(handleAuthResult)
+    .catch(async () => {
       await navigate("/auth");
     });
 };
 
 
-const isEmpty = computed(() => {
-  return Object.keys(schema.value).length === 0;
-});
-
-
-const handleUpdate = (to: NonNullJSONType): void => {
-  data.value = to;
+const handlePasswordSubmit = async (formData: {
+  password: string;
+}): Promise<void> => {
+  await submitAuth(formData);
 };
 
 
@@ -63,25 +68,51 @@ onMounted(async () => {
     return;
   }
 
+  const flowType = authMethod.value.flowType ?? "CREDENTIAL";
+
+  if (flowType === "REDIRECT") {
+    // OIDC 回调：直接从 URL 参数中提交，不等待用户操作
+    await submitAuth();
+    authMethod.value = null;
+    return;
+  }
+
+  // CREDENTIAL / 其他类型：加载 form schema
   schema.value = await orpc.auth.getAuthFormSchema({
     providerId: authMethod.value.providerDBId,
   });
 
-  // 无需填表则直接登录
-  // 否则需要手动按钮
-  if (isEmpty.value) await handleAuth();
+  // 无需填表则直接登录（如 passkey 等无额外输入的场景）
+  if (isEmpty.value && flowType !== "CREDENTIAL") {
+    authMethod.value = null;
+    await submitAuth();
+  }
   authMethod.value = null;
 });
 </script>
 
 <template>
+  <!-- CREDENTIAL 类型：密码登录专用表单 -->
+  <PasswordLoginForm
+    v-if="authMethod?.flowType === 'CREDENTIAL'"
+    @submit="handlePasswordSubmit"
+  />
+
+  <!-- REDIRECT 类型（如 OIDC）：等待跳转 -->
+  <OIDCRedirectWaiting v-else-if="authMethod?.flowType === 'REDIRECT'" />
+
+  <!-- Fallback：flowType 未知或表单有额外字段时使用 JSONForm -->
   <div
-    v-if="typeof schema === 'object' && !isEmpty"
+    v-else-if="typeof schema === 'object' && !isEmpty"
     class="flex flex-col gap-1"
   >
     <JSONForm :schema :data @update="handleUpdate" />
-    <Button magic-key="Enter" @click="handleAuth" @magic-click="handleAuth">{{
-      t("登录")
-    }}</Button>
+    <Button
+      magic-key="Enter"
+      @click="() => submitAuth()"
+      @magic-click="() => submitAuth()"
+    >
+      {{ t("登录") }}
+    </Button>
   </div>
 </template>

@@ -61,7 +61,10 @@ export default defineConfig({
     sidebar: [
       {
         text: "Developer",
-        items: [{ text: "Future", link: "/developer/future" }],
+        items: [
+          { text: "Future", link: "/developer/future" },
+          { text: "Recall Architecture", link: "/developer/recall" },
+        ],
       },
       {
         text: "User",

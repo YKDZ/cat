@@ -6,6 +6,7 @@ import {
   listConceptSubjectsByConceptIds,
   listLexicalTermSuggestions,
 } from "@cat/domain";
+import { EnrichedTermMatchSchema } from "@cat/shared/schema/term-recall";
 import * as z from "zod";
 
 export const TermRecallInputSchema = z.object({
@@ -16,21 +17,7 @@ export const TermRecallInputSchema = z.object({
   wordSimilarityThreshold: z.number().min(0).max(1).default(0.3),
 });
 
-export const TermContextSchema = z.object({
-  term: z.string(),
-  translation: z.string(),
-  confidence: z.number(),
-  definition: z.string().nullable(),
-  concept: z.object({
-    subjects: z.array(
-      z.object({
-        name: z.string(),
-        defaultDefinition: z.string().nullable(),
-      }),
-    ),
-    definition: z.string().nullable(),
-  }),
-});
+export const TermContextSchema = EnrichedTermMatchSchema;
 
 export const TermRecallOutputSchema = z.object({
   terms: z.array(TermContextSchema),
@@ -84,6 +71,8 @@ export const termRecallOp = async (
     translation: t.translation,
     confidence: t.confidence,
     definition: t.definition,
+    conceptId: t.conceptId,
+    glossaryId: t.glossaryId,
     concept: {
       subjects: subjectsMap.get(t.conceptId) ?? [],
       definition: t.definition,
