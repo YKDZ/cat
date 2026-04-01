@@ -14,6 +14,7 @@ export const AuthMethodSchema = z.object({
   providerDBId: z.int(),
   name: z.string(),
   icon: z.string(),
+  flowType: z.enum(["CREDENTIAL", "REDIRECT", "PASSKEY"]),
 });
 
 export const ElementTranslationStatusSchema = z.enum([

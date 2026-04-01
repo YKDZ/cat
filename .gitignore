@@ -98,8 +98,10 @@ vitest.config.*.timestamp*
 
 TODO*
 TEMP*
+PLAN*
 
 .github/prompts
 
 .claude/*.local.*
 .claude/skills/l-*
+.claude/.gitignore

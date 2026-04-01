@@ -1186,3 +1186,64 @@ export const authAuditLog = pgTable("AuthAuditLog", {
   ip: text(),
   userAgent: text(),
 });
+
+// ====== API Key ======
+export const apiKey = pgTable(
+  "ApiKey",
+  {
+    id: serial().primaryKey(),
+    name: text().notNull(),
+    keyHash: text().notNull(),
+    keyPrefix: text().notNull(),
+    userId: uuid()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    scopes: jsonb().$type<string[]>().notNull().default([]),
+    expiresAt: timestamp({ withTimezone: true }),
+    lastUsedAt: timestamp({ withTimezone: true }),
+    revokedAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index("idx_api_key_user").on(table.userId),
+    index("idx_api_key_hash").on(table.keyHash),
+    index("idx_api_key_prefix").on(table.keyPrefix),
+  ],
+);
+
+// ====== Persistent Session Record ======
+export const sessionRecord = pgTable(
+  "SessionRecord",
+  {
+    id: text().primaryKey(),
+    userId: uuid()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    ip: text(),
+    userAgent: text(),
+    authProviderId: integer(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    revokedAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [index("idx_session_record_user").on(table.userId)],
+);
+
+// ====== Login Attempt (Rate Limiting & Audit) ======
+export const loginAttempt = pgTable(
+  "LoginAttempt",
+  {
+    id: serial().primaryKey(),
+    identifier: text().notNull(),
+    ip: text(),
+    userAgent: text(),
+    success: boolean().notNull(),
+    failReason: text(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_login_attempt_ip").on(table.ip),
+    index("idx_login_attempt_identifier").on(table.identifier),
+    index("idx_login_attempt_created").on(table.createdAt),
+  ],
+);

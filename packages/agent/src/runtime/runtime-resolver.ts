@@ -342,6 +342,7 @@ export class RuntimeResolver implements RuntimeResolutionService {
       subjectType: "user" as const,
       subjectId: userId,
       systemRoles,
+      scopes: null,
     };
 
     return async (resource: string, action: string): Promise<boolean> => {

@@ -10,7 +10,14 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@cat/ui";
-import { Home, BrickWall, Box, Folder, Archive } from "lucide-vue-next";
+import {
+  Home,
+  BrickWall,
+  Box,
+  Folder,
+  Archive,
+  ShieldCheck,
+} from "lucide-vue-next";
 import { usePageContext } from "vike-vue/usePageContext";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -52,6 +59,11 @@ const items = ref([
     url: "/plugins",
     icon: BrickWall,
     title: t("插件"),
+  },
+  {
+    url: "/settings/security",
+    icon: ShieldCheck,
+    title: t("安全"),
   },
 ]);
 </script>

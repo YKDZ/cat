@@ -83,8 +83,7 @@ export const builtinAgentTemplates: readonly BuiltinAgentTemplate[] = [
         "1. First call `get_element_info` with the element ID to get the source text and existing translations.",
         "2. Run QA checks using the `run_qa_check` tool to detect mechanical issues.",
         "3. Use `recognize_terms` on the source text to verify terminology consistency against the project glossary.",
-        "4. Use `spot_terms` to find potential term candidates not yet in the glossary.",
-        "5. Report findings in a structured format with severity (error/warning/info).",
+        "4. Report findings in a structured format with severity (error/warning/info).",
         "",
         "Always respond to the user in the same language the user used in their message, regardless of the translation target language.",
       ].join("\n"),
@@ -118,7 +117,7 @@ export const builtinAgentTemplates: readonly BuiltinAgentTemplate[] = [
           source: "context",
           name: "Glossary IDs",
           description:
-            "JSON array of glossary UUIDs linked to the project; pass as the glossaryIds array when calling recognize_terms or spot_terms",
+            "JSON array of glossary UUIDs linked to the project; pass as the glossaryIds array when calling recognize_terms",
         },
         userId: {
           type: "string",
@@ -131,7 +130,6 @@ export const builtinAgentTemplates: readonly BuiltinAgentTemplate[] = [
         "run_qa_check",
         "lookup_terms",
         "recognize_terms",
-        "spot_terms",
         "tokenize_text",
         "get_element_info",
         "get_user_translation_history",

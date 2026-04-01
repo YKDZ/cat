@@ -19,6 +19,7 @@ import {
   getAgentSessionByExternalId,
   getElementWithChunkIds,
   getGlossary,
+  listConceptSubjectsByConceptIds,
   listGlossaryConceptSubjects,
   listOwnedGlossaries,
   listProjectDocuments,
@@ -230,15 +231,43 @@ export const searchTerm = authed
       minConfidence,
     });
 
+    // 收集全部结果后批量查询 concept 上下文
+    const collected = [];
     for await (const t of stream) {
-      yield {
-        term: t.term,
-        translation: t.translation,
-        definition: t.definition,
-        confidence: t.confidence,
-        termLanguageId,
-        translationLanguageId,
-      };
+      collected.push(t);
+    }
+
+    if (collected.length > 0) {
+      const conceptIds = [...new Set(collected.map((t) => t.conceptId))];
+      const subjectRows = await executeQuery(
+        { db: drizzle },
+        listConceptSubjectsByConceptIds,
+        { conceptIds },
+      );
+      const subjectMap = new Map<
+        number,
+        Array<{ name: string; defaultDefinition: string | null }>
+      >();
+      for (const s of subjectRows) {
+        const arr = subjectMap.get(s.conceptId) ?? [];
+        arr.push({ name: s.name, defaultDefinition: s.defaultDefinition });
+        subjectMap.set(s.conceptId, arr);
+      }
+
+      for (const t of collected) {
+        yield {
+          term: t.term,
+          translation: t.translation,
+          definition: t.definition,
+          confidence: t.confidence,
+          termLanguageId,
+          translationLanguageId,
+          concept: {
+            subjects: subjectMap.get(t.conceptId) ?? [],
+            definition: t.definition,
+          },
+        };
+      }
     }
   });
 
@@ -284,15 +313,43 @@ export const findTerm = authed
       minConfidence,
     });
 
+    // 收集全部结果后批量查询 concept 上下文
+    const collected = [];
     for await (const t of stream) {
-      yield {
-        term: t.term,
-        translation: t.translation,
-        definition: t.definition,
-        confidence: t.confidence,
-        termLanguageId: element.languageId,
-        translationLanguageId,
-      };
+      collected.push(t);
+    }
+
+    if (collected.length > 0) {
+      const conceptIds = [...new Set(collected.map((t) => t.conceptId))];
+      const subjectRows = await executeQuery(
+        { db: drizzle },
+        listConceptSubjectsByConceptIds,
+        { conceptIds },
+      );
+      const subjectMap = new Map<
+        number,
+        Array<{ name: string; defaultDefinition: string | null }>
+      >();
+      for (const s of subjectRows) {
+        const arr = subjectMap.get(s.conceptId) ?? [];
+        arr.push({ name: s.name, defaultDefinition: s.defaultDefinition });
+        subjectMap.set(s.conceptId, arr);
+      }
+
+      for (const t of collected) {
+        yield {
+          term: t.term,
+          translation: t.translation,
+          definition: t.definition,
+          confidence: t.confidence,
+          termLanguageId: element.languageId,
+          translationLanguageId,
+          concept: {
+            subjects: subjectMap.get(t.conceptId) ?? [],
+            definition: t.definition,
+          },
+        };
+      }
     }
   });
 

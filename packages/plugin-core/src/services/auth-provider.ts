@@ -21,6 +21,10 @@ export type AuthResult = {
    * 若创建新 Account，则在其中储存的额外元数据
    */
   accountMeta?: JSONType;
+  /**
+   * 可选：原始 payload（如 JWT claims），供自动注册流程使用
+   */
+  rawPayload?: JSONType;
 };
 
 export type HandlePreAuthContext = {
@@ -29,6 +33,14 @@ export type HandlePreAuthContext = {
 
 export type HandleLogoutContext = {
   sessionId: string;
+};
+
+export type AuthFlowType = "CREDENTIAL" | "REDIRECT" | "PASSKEY";
+
+export type AutoRegisterResult = {
+  email: string;
+  name: string;
+  accountMeta?: JSONType;
 };
 
 export abstract class AuthProvider implements IPluginService {
@@ -48,6 +60,19 @@ export abstract class AuthProvider implements IPluginService {
     preAuthMeta: JSONType,
   ): Promise<AuthResult>;
   abstract isAvailable(): Promise<boolean>;
+
+  getAuthFlowType(): AuthFlowType {
+    return "CREDENTIAL";
+  }
+
+  /** 是否支持首次登录时自动注册 */
+  supportsAutoRegister?(): boolean;
+
+  /** 从外部身份信息推断用户注册数据 */
+  handleAutoRegister?(
+    authResult: AuthResult,
+    rawPayload: JSONType,
+  ): Promise<AutoRegisterResult>;
 
   getAuthFormSchema?(): JSONSchema;
   handlePreAuth?(ctx: HandlePreAuthContext): Promise<PreAuthResult>;

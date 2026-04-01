@@ -25,13 +25,14 @@ export const createHTTPHelpers = (
       value: string,
       maxAge: number = 7 * 24 * 60 * 60,
     ) => {
-      resHeaders.append(
-        "Set-Cookie",
-        `${key}=${value}; Path=/; HttpOnly; Max-Age=${maxAge}`,
-      );
+      const flags = [`Max-Age=${maxAge}`, "Path=/", "HttpOnly", "SameSite=Lax"];
+      if (process.env["NODE_ENV"] === "production") flags.push("Secure");
+      resHeaders.append("Set-Cookie", `${key}=${value}; ${flags.join("; ")}`);
     },
     delCookie: (key: string) => {
-      resHeaders.append("Set-Cookie", `${key}=; Path=/; HttpOnly; Max-Age=0`);
+      const flags = ["Max-Age=0", "Path=/", "HttpOnly", "SameSite=Lax"];
+      if (process.env["NODE_ENV"] === "production") flags.push("Secure");
+      resHeaders.append("Set-Cookie", `${key}=; ${flags.join("; ")}`);
     },
     getCookie,
     getQueryParam,

@@ -14,6 +14,9 @@ type TermRelationWithDetails = {
   confidence: number;
   termLanguageId: string;
   translationLanguageId: string;
+  concept?: {
+    subjects: Array<{ name: string; defaultDefinition: string | null }>;
+  };
 };
 
 export const useEditorTermStore = defineStore("editorTerm", () => {

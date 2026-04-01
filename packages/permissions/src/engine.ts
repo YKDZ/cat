@@ -83,6 +83,15 @@ export const createPermissionEngine = (deps: {
     object: ObjectRef,
     requiredRelation: Relation,
   ): Promise<boolean> => {
+    // 0. API Key scope 检查：若 scopes 不为 null（API Key 认证），验证 scope 匹配
+    if (authCtx.scopes !== null) {
+      const requiredScope = `${object.type}:${requiredRelation}`;
+      const hasScopeMatch = authCtx.scopes.some(
+        (s) => s === requiredScope || s === `${object.type}:*` || s === "*",
+      );
+      if (!hasScopeMatch) return false;
+    }
+
     // 1. superadmin bypass
     if (authCtx.systemRoles.includes("superadmin")) {
       if (auditEnabled) {

@@ -15,6 +15,7 @@ export type FindAccountByProviderIdentityQuery = z.infer<
 >;
 
 export type AccountIdentity = {
+  userId: string;
   providerIssuer: string;
   providedAccountId: string;
 };
@@ -26,6 +27,7 @@ export const findAccountByProviderIdentity: Query<
   return assertSingleOrNull(
     await ctx.db
       .select({
+        userId: account.userId,
         providerIssuer: account.providerIssuer,
         providedAccountId: account.providedAccountId,
       })

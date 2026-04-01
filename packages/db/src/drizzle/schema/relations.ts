@@ -492,4 +492,16 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.agentRun.id,
       }),
     },
+    apiKey: {
+      user: r.one.user({
+        from: r.apiKey.userId,
+        to: r.user.id,
+      }),
+    },
+    sessionRecord: {
+      user: r.one.user({
+        from: r.sessionRecord.userId,
+        to: r.user.id,
+      }),
+    },
   }));

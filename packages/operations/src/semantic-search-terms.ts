@@ -9,6 +9,7 @@ import {
   type VectorStorage,
 } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/server-shared";
+import { TermMatchSchema } from "@cat/shared/schema/term-recall";
 import * as z from "zod";
 
 export const SemanticSearchTermsInputSchema = z.object({
@@ -22,16 +23,7 @@ export const SemanticSearchTermsInputSchema = z.object({
   maxAmount: z.int().min(1).optional().default(20),
 });
 
-export const SemanticSearchTermsOutputSchema = z.array(
-  z.object({
-    term: z.string(),
-    translation: z.string(),
-    definition: z.string().nullable(),
-    conceptId: z.int(),
-    glossaryId: z.string(),
-    confidence: z.number().min(0).max(1),
-  }),
-);
+export const SemanticSearchTermsOutputSchema = z.array(TermMatchSchema);
 
 export type SemanticSearchTermsInput = z.infer<
   typeof SemanticSearchTermsInputSchema

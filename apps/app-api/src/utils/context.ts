@@ -17,6 +17,10 @@ import { RedisCacheStore, RedisSessionStore } from "@cat/server-shared";
 import { User } from "@cat/shared/schema/drizzle/user";
 import { createHTTPHelpers, HTTPHelpers } from "@cat/shared/utils";
 
+import { generateCsrfToken } from "@/middleware/csrf.ts";
+
+import { resolveApiKey, updateApiKeyLastUsedAsync } from "./api-key.ts";
+
 export const getContext = async (
   req: Request,
   resHeaders: Headers,
@@ -33,8 +37,32 @@ export const getContext = async (
   const cacheStore = getCacheStore();
   const sessionStore = getSessionStore();
 
-  const sessionId = helpers.getCookie("sessionId") ?? null;
-  const user = await userFromSessionId(drizzleDB.client, sessionId);
+  // ====== 双通道认证 ======
+  let user: User | null = null;
+  let sessionId: string | null = null;
+  let apiKeyScopes: string[] | null = null;
+
+  // 通道 1: Cookie Session
+  sessionId = helpers.getCookie("sessionId") ?? null;
+  if (sessionId) {
+    user = await userFromSessionId(drizzleDB.client, sessionId);
+    if (!user) sessionId = null;
+  }
+
+  // 通道 2: Bearer Token (API Key) — 仅在无 Cookie Session 用户时尝试
+  if (!user) {
+    const authHeader = req.headers.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const rawKey = authHeader.slice(7);
+      const resolved = await resolveApiKey(drizzleDB.client, rawKey);
+      if (resolved) {
+        user = resolved.user;
+        apiKeyScopes = resolved.scopes;
+        // 异步更新 lastUsedAt（不阻塞请求）
+        updateApiKeyLastUsedAsync(drizzleDB.client, resolved.apiKeyId);
+      }
+    }
+  }
 
   let auth: AuthContext | null = null;
   if (user) {
@@ -43,6 +71,7 @@ export const getContext = async (
       subjectType: "user",
       subjectId: user.id,
       systemRoles,
+      scopes: apiKeyScopes,
       traceId: req.headers.get("x-trace-id") ?? undefined,
       ip:
         req.headers.get("x-forwarded-for") ??
@@ -50,6 +79,18 @@ export const getContext = async (
         undefined,
       userAgent: req.headers.get("user-agent") ?? undefined,
     };
+  }
+
+  // ====== CSRF Token ======
+  // 如果 csrfToken cookie 不存在，生成一个新的（不带 HttpOnly 以便前端 JS 读取）
+  if (!helpers.getCookie("csrfToken")) {
+    const csrfToken = generateCsrfToken();
+    const flags = ["Path=/", "SameSite=Lax"];
+    if (process.env["NODE_ENV"] === "production") flags.push("Secure");
+    resHeaders.append(
+      "Set-Cookie",
+      `csrfToken=${csrfToken}; ${flags.join("; ")}`,
+    );
   }
 
   return {
@@ -62,6 +103,7 @@ export const getContext = async (
     cacheStore,
     sessionStore,
     helpers,
+    isSSR: false,
   };
 };
 
@@ -75,4 +117,5 @@ export type Context = {
   cacheStore: CacheStore;
   sessionStore: SessionStore;
   helpers: HTTPHelpers;
+  isSSR: boolean;
 };

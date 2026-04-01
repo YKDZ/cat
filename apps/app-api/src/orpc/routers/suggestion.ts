@@ -6,6 +6,7 @@ import {
 import {
   executeQuery,
   getElementWithChunkIds,
+  listMemoryIdsByProject,
   listProjectGlossaryIds,
 } from "@cat/domain";
 import { AsyncMessageQueue, hash } from "@cat/server-shared";
@@ -48,6 +49,12 @@ export const onNew = authed
     const glossaryIds = await executeQuery(
       { db: drizzle },
       listProjectGlossaryIds,
+      { projectId: element.projectId },
+    );
+
+    const memoryIds = await executeQuery(
+      { db: drizzle },
+      listMemoryIdsByProject,
       { projectId: element.projectId },
     );
 
@@ -103,6 +110,7 @@ export const onNew = authed
         {
           text: element.value,
           glossaryIds,
+          memoryIds,
           advisorId: advisor.dbId,
           sourceLanguageId: element.languageId,
           translationLanguageId: languageId,

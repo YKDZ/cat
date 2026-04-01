@@ -4,6 +4,7 @@ import type { JSONType } from "@cat/shared/schema/json";
 import {
   AuthProvider,
   type AuthResult,
+  type AutoRegisterResult,
   type HandleLogoutContext,
   type PluginCapabilities,
   type PreAuthResult,
@@ -55,6 +56,10 @@ export class Provider extends AuthProvider {
 
   getIcon(): string {
     return "icon-[mdi--ssh]";
+  }
+
+  override getAuthFlowType(): "REDIRECT" {
+    return "REDIRECT";
   }
 
   override async handlePreAuth(): Promise<PreAuthResult> {
@@ -142,17 +147,19 @@ export class Provider extends AuthProvider {
     });
 
     // 解析 ID Token 携带的信息
-    const { sub, nonce } = z
+    const claims = z
       .object({
         sub: z.string(),
-        name: z.string(),
-        preferred_username: z.string(),
-        nickname: z.string(),
-        email: z.string(),
-        email_verified: z.boolean(),
+        name: z.string().optional(),
+        preferred_username: z.string().optional(),
+        nickname: z.string().optional(),
+        email: z.string().optional(),
+        email_verified: z.boolean().optional(),
         nonce: z.string(),
       })
       .parse(payload);
+
+    const { sub, nonce } = claims;
 
     // 验证 Nonce
     if (nonce !== preAuthMeta.nonce) throw new Error("NONCE do not match");
@@ -161,7 +168,29 @@ export class Provider extends AuthProvider {
     return {
       providerIssuer: this.config.issuer,
       providedAccountId: sub,
+      rawPayload: claims as JSONType,
     } satisfies AuthResult;
+  }
+
+  override supportsAutoRegister(): boolean {
+    return true;
+  }
+
+  override async handleAutoRegister(
+    authResult: AuthResult,
+  ): Promise<AutoRegisterResult> {
+    const claims = z
+      .object({
+        email: z.email(),
+        name: z.string().optional(),
+        preferred_username: z.string().optional(),
+      })
+      .parse(authResult.rawPayload);
+
+    return {
+      email: claims.email,
+      name: claims.name ?? claims.preferred_username ?? claims.email,
+    };
   }
 
   override async handleLogout({

@@ -109,6 +109,10 @@
     "./schema/permission": {
       "types": "./dist/schema/permission.d.ts",
       "import": "./dist/schema/permission.js"
+    },
+    "./schema/term-recall": {
+      "types": "./dist/schema/term-recall.d.ts",
+      "import": "./dist/schema/term-recall.js"
     }
   },
   "scripts": {

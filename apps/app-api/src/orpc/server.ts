@@ -10,12 +10,26 @@ import { ORPCError, os } from "@orpc/server";
 
 import type { Context } from "@/utils/context";
 
+import { verifyCsrfToken } from "@/middleware/csrf.ts";
+
 export const base = os.$context<Context>();
 
 export const authed = base.use(async ({ context, next }) => {
-  const { user, sessionId, auth } = context;
+  const { user, sessionId, auth, helpers } = context;
 
   if (!user || !sessionId || !auth) throw new ORPCError("UNAUTHORIZED");
+
+  // CSRF 验证：仅对来自浏览器的 Cookie Session 请求生效
+  // SSR 内部调用和 API Key（Bearer header）请求豁免
+  if (!context.isSSR && auth.scopes === null) {
+    const csrfCookie = helpers.getCookie("csrfToken");
+    const csrfHeader = helpers.getReqHeader("x-csrf-token");
+    if (!verifyCsrfToken(csrfCookie, csrfHeader)) {
+      throw new ORPCError("FORBIDDEN", {
+        message: "CSRF token mismatch",
+      });
+    }
+  }
 
   return await next({
     context: {

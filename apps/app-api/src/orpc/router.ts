@@ -1,5 +1,5 @@
 import * as agent from "./routers/agent.ts";
-import * as auth from "./routers/auth.ts";
+import * as auth from "./routers/auth/index.ts";
 import * as comment from "./routers/comment.ts";
 import * as document from "./routers/document.ts";
 import * as element from "./routers/element.ts";
