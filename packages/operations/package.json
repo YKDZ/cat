@@ -1,6 +1,7 @@
 {
   "name": "@cat/operations",
   "version": "0.1.0",
+  "description": "Operations layer: business workflows composing domain operations",
   "keywords": [
     "cat",
     "operations",

@@ -13,6 +13,7 @@
     "@nx/devkit": "22.5.4",
     "@nx/js": "22.5.4",
     "@playwright/test": "^1.58.2",
+    "@tools/autodoc": "workspace:*",
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^25.5.0",
     "@vitejs/plugin-vue": "^6.0.5",

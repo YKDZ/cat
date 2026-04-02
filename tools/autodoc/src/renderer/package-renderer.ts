@@ -1,107 +1,79 @@
-import type {
-  PackageInfo,
-  ModuleInfo,
-  FunctionSignature,
-  TypeDefinition,
-} from "../types.js";
+import type { RootContent } from "mdast";
+
+import remarkGfm from "remark-gfm";
+import remarkStringify from "remark-stringify";
+import { unified } from "unified";
+
+import type { PackageIR, ModuleIR, SymbolIR } from "../ir.js";
+
+import * as md from "./mdast-builder.js";
 
 export const createPackageRenderer = (): {
-  renderPackage: (pkg: PackageInfo, options: { detailed: boolean }) => string;
-  renderFunctionSummaryTable: (functions: FunctionSignature[]) => string;
-  renderFunctionDetail: (func: FunctionSignature) => string;
+  renderPackage: (pkg: PackageIR, options: { detailed: boolean }) => string;
 } => {
-  const renderFunctionSummaryTable = (
-    functions: FunctionSignature[],
-  ): string => {
-    const lines: string[] = [];
-    lines.push("| Function | Parameters | Return Type | Description |");
-    lines.push("|----------|------------|-------------|-------------|");
-    for (const func of functions) {
-      const params = func.parameters
-        .map((p) => `${p.name}${p.optional ? "?" : ""}`)
-        .join(", ");
-      lines.push(
-        `| \`${func.name}\` | ${params || "-"} | \`${func.returnType ?? "void"}\` | ${func.description ?? "-"} |`,
-      );
-    }
-    return lines.join("\n");
-  };
+  const processor = unified().use(remarkStringify).use(remarkGfm);
 
-  const renderFunctionDetail = (func: FunctionSignature): string => {
-    const lines: string[] = [];
-    const params = func.parameters
-      .map((p) => `${p.name}${p.optional ? "?" : ""}: ${p.type}`)
-      .join(", ");
-    const sig = `${func.isAsync ? "async " : ""}${func.name}(${params})${func.returnType ? `: ${func.returnType}` : ""}`;
+  const renderSymbolBlock = (sym: SymbolIR, _detailed: boolean) => {
+    const nodes: RootContent[] = [md.heading(3, md.inlineCode(sym.name))];
 
-    lines.push(`#### \`${func.name}\``);
-    lines.push("");
-    if (func.description) {
-      lines.push(func.description);
-      lines.push("");
-    }
-    lines.push("```typescript");
-    lines.push(sig);
-    lines.push("```");
-    lines.push("");
-
-    if (func.parameters.length > 0) {
-      lines.push("| Parameter | Type | Description |");
-      lines.push("|-----------|------|-------------|");
-      for (const p of func.parameters) {
-        lines.push(
-          `| ${p.name}${p.optional ? "?" : ""} | \`${p.type}\` | ${p.description ?? "-"} |`,
-        );
+    if (sym.kind === "function" && sym.signature) {
+      const codeLines: string[] = [];
+      if (sym.description) {
+        codeLines.push("/**");
+        for (const line of sym.description.split("\n")) {
+          codeLines.push(line ? ` * ${line}` : " *");
+        }
+        codeLines.push(" */");
       }
-      lines.push("");
+      codeLines.push(sym.signature);
+      nodes.push(md.code("ts", codeLines.join("\n")));
     }
 
-    if (func.returnDescription) {
-      lines.push(`**Returns**: ${func.returnDescription}`);
-      lines.push("");
-    }
-
-    return lines.join("\n");
-  };
-
-  const renderTypeTable = (types: TypeDefinition[]): string => {
-    const lines: string[] = [];
-    lines.push("| Type | Kind | Description |");
-    lines.push("|------|------|-------------|");
-    for (const t of types) {
-      lines.push(`| \`${t.name}\` | ${t.kind} | ${t.description ?? "-"} |`);
-    }
-    return lines.join("\n");
+    return nodes;
   };
 
   const renderPackage = (
-    pkg: PackageInfo,
+    pkg: PackageIR,
     options: { detailed: boolean },
   ): string => {
-    const lines: string[] = [];
+    const children: RootContent[] = [md.heading(1, md.text(pkg.name))];
 
-    lines.push(`# ${pkg.name}`);
-    lines.push("");
     if (pkg.description) {
-      lines.push(pkg.description);
-      lines.push("");
+      children.push(md.paragraph(md.text(pkg.description)));
     }
 
     // Summary statistics
-    const allFunctions = pkg.modules.flatMap((m) => m.functions);
-    const allTypes = pkg.modules.flatMap((m) => m.types);
-    lines.push("## Overview");
-    lines.push("");
-    lines.push(`- **Modules**: ${pkg.modules.length}`);
-    lines.push(`- **Exported functions**: ${allFunctions.length}`);
-    lines.push(`- **Exported types**: ${allTypes.length}`);
-    lines.push("");
+    const allSymbols = pkg.modules.flatMap((m) => m.symbols);
+    const funcCount = allSymbols.filter((s) => s.kind === "function").length;
+    const typeCount = allSymbols.filter((s) => s.kind !== "function").length;
+
+    children.push(
+      md.heading(2, md.text("Overview")),
+      md.list(
+        false,
+        md.listItem(
+          md.paragraph(
+            md.strong(md.text("Modules")),
+            md.text(`: ${pkg.modules.length}`),
+          ),
+        ),
+        md.listItem(
+          md.paragraph(
+            md.strong(md.text("Exported functions")),
+            md.text(`: ${funcCount}`),
+          ),
+        ),
+        md.listItem(
+          md.paragraph(
+            md.strong(md.text("Exported types")),
+            md.text(`: ${typeCount}`),
+          ),
+        ),
+      ),
+    );
 
     // Group by directory
-    lines.push("## Function Index");
-    lines.push("");
-
-    const grouped = new Map<string, ModuleInfo[]>();
+    const grouped = new Map<string, ModuleIR[]>();
     for (const mod of pkg.modules) {
       const dir = mod.relativePath.includes("/")
         ? mod.relativePath.split("/").slice(0, -1).join("/")
@@ -111,45 +83,50 @@ export const createPackageRenderer = (): {
       grouped.set(dir, list);
     }
 
-    for (const [dir, modules] of grouped) {
-      lines.push(`### ${dir}`);
-      lines.push("");
-      const funcs = modules.flatMap((m) => m.functions);
-      if (funcs.length > 0) {
-        lines.push(renderFunctionSummaryTable(funcs));
-        lines.push("");
-      } else {
-        lines.push("*No exported functions*");
-        lines.push("");
-      }
-    }
+    // Function index section
+    const funcSymbols = allSymbols.filter((s) => s.kind === "function");
+    if (funcSymbols.length > 0) {
+      children.push(md.heading(2, md.text("Function Index")));
 
-    // Type index
-    if (allTypes.length > 0) {
-      lines.push("## Type Index");
-      lines.push("");
-      lines.push(renderTypeTable(allTypes));
-      lines.push("");
-    }
+      for (const [dir, modules] of [...grouped.entries()].sort(([a], [b]) =>
+        a.localeCompare(b),
+      )) {
+        const funcs = modules.flatMap((m) =>
+          m.symbols.filter((s) => s.kind === "function"),
+        );
+        if (funcs.length === 0) continue;
 
-    // Detailed function docs for high-priority packages
-    if (options.detailed) {
-      lines.push("## Detailed Documentation");
-      lines.push("");
-      for (const [dir, modules] of grouped) {
-        lines.push(`### ${dir}`);
-        lines.push("");
-        for (const mod of modules) {
-          for (const func of mod.functions) {
-            lines.push(renderFunctionDetail(func));
-          }
+        children.push(md.heading(3, md.text(dir)));
+        for (const sym of funcs) {
+          children.push(...renderSymbolBlock(sym, options.detailed));
         }
       }
     }
 
-    lines.push(`\n*Last updated: ${new Date().toISOString().split("T")[0]}*`);
-    return lines.join("\n");
+    // Type index
+    const typeSymbols = allSymbols.filter((s) => s.kind !== "function");
+    if (typeSymbols.length > 0) {
+      children.push(md.heading(2, md.text("Type Index")));
+      children.push(
+        md.list(
+          false,
+          ...typeSymbols.map((t) =>
+            md.listItem(
+              md.paragraph(
+                md.inlineCode(t.name),
+                md.text(
+                  ` (${t.kind})${t.description ? ` — ${t.description}` : ""}`,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    const tree = md.root(...children);
+    return processor.stringify(tree);
   };
 
-  return { renderPackage, renderFunctionSummaryTable, renderFunctionDetail };
+  return { renderPackage };
 };

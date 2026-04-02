@@ -1,6 +1,7 @@
 {
   "name": "@cat/domain",
   "version": "0.1.0",
+  "description": "Domain layer: CQRS Commands and Queries, core business logic",
   "files": [
     "dist",
     "src",

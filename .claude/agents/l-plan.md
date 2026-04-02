@@ -98,13 +98,16 @@ When you encounter issues requiring human input, insert a decision block instead
 - Final decision: _pending_
 ```
 
-## Chunked Writing (for large plans)
+## Chunked Writing
 
-When the plan is long (estimated >800 lines), do NOT attempt to write the entire file in a single tool call — this risks timeouts. Instead, use a **continuation marker** to write incrementally:
+Always write the plan incrementally by section using the continuation marker `<!-- §§PLAN_CONTINUE§§ -->`. Do NOT attempt to write the entire plan in a single tool call.
 
-1. **Create** the file with the first major section, ending with `<!-- §§PLAN_CONTINUE§§ -->`
-2. **Append** by replacing the marker with new content + a fresh marker
-3. **Final** chunk: replace the marker with last content, no new marker
+Write in this order, one chunk per tool call:
+
+1. **Create** the file with **Background & Goals** + **Architecture Diagram**, ending with the marker.
+2. **Append** each phase of **Implementation Steps** (replace the marker with content + a fresh marker). If there are many steps, split across multiple chunks by phase.
+3. **Append** **File Change Overview** + **Final Verification** (replace marker, add fresh marker).
+4. **Final chunk**: append **TODO List** — no new marker.
 
 Rules:
 
@@ -114,4 +117,4 @@ Rules:
 
 ## Final Step
 
-Write the completed implementation plan to the output file described above. Use chunked writing if the plan exceeds ~800 lines.
+Write the completed implementation plan to the output file described above, using chunked writing as described above.

@@ -1,6 +1,7 @@
 {
   "name": "@cat/permissions",
   "version": "0.1.0",
+  "description": "Permission system: ReBAC-based access control",
   "keywords": [
     "cat",
     "permissions",

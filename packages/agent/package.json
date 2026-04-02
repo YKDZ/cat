@@ -1,6 +1,7 @@
 {
   "name": "@cat/agent",
   "version": "0.1.0",
+  "description": "Agent and Workflow graph executor",
   "license": "GPL-3.0-only",
   "files": [
     "dist",

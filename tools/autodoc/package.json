@@ -9,21 +9,30 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "vite build",
+    "dev": "vite build --watch",
     "fmt:check": "oxfmt --check",
+    "generate": "node dist/cli.js generate",
+    "generate:check": "node dist/cli.js check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
+    "lookup": "node dist/cli.js lookup",
+    "test": "vitest run --config ../../vitest.config.ts --project=unit-autodoc",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
   },
   "dependencies": {
     "glob": "^13.0.6",
+    "remark-gfm": "^4.0.1",
+    "remark-stringify": "^11.0.0",
     "ts-morph": "^27.0.2",
-    "yaml": "^2.8.3",
+    "unified": "^11.0.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "tsup": "^8.4.0",
-    "typescript": "beta"
+    "@types/mdast": "^4.0.4",
+    "typescript": "beta",
+    "unplugin-dts": "1.0.0-beta.6",
+    "vite": "8.0.0",
+    "vitest": "^4.1.0"
   }
 }

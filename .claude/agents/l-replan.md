@@ -117,13 +117,16 @@ Follow this structure:
 5. **Final Verification** — expected results and verification commands
 6. **TODO List** — phased, with dependencies
 
-## Chunked Writing (for large plans)
+## Chunked Writing
 
-When the plan is long (estimated >800 lines), write incrementally using `<!-- §§PLAN_CONTINUE§§ -->` as a continuation marker:
+Always write the plan incrementally by section using the continuation marker `<!-- §§PLAN_CONTINUE§§ -->`. Do NOT attempt to write the entire plan in a single tool call.
 
-1. Create the file with the first section, ending with the marker.
-2. Append by replacing the marker with new content + a fresh marker.
-3. Final chunk: replace marker with last content, no new marker.
+Write in this order, one chunk per tool call:
+
+1. **Create** the file with **Background & Goals** + **Architecture Diagram**, ending with the marker.
+2. **Append** each phase of **Implementation Steps** (replace the marker with content + a fresh marker). If there are many steps, split across multiple chunks by phase.
+3. **Append** **File Change Overview** + **Final Verification** (replace marker, add fresh marker).
+4. **Final chunk**: append **TODO List** — no new marker.
 
 Rules:
 
@@ -132,4 +135,4 @@ Rules:
 
 ## Final Step
 
-Write the refined plan to the output file described above. Use chunked writing if the plan exceeds ~800 lines.
+Write the refined plan to the output file described above, using chunked writing as described above.

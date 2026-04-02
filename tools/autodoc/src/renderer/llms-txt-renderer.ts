@@ -1,9 +1,9 @@
-import type { PackageInfo } from "../types.js";
+import type { PackageIR } from "../ir.js";
 
 export const createLlmsTxtRenderer = (): {
-  render: (packages: PackageInfo[]) => string;
+  render: (packages: PackageIR[]) => string;
 } => {
-  const render = (packages: PackageInfo[]): string => {
+  const render = (packages: PackageIR[]): string => {
     const lines: string[] = [];
 
     lines.push("# CAT");
@@ -26,7 +26,7 @@ export const createLlmsTxtRenderer = (): {
       const shortName = pkg.name.replace("@cat/", "");
       const url = `./packages/${shortName}.md`;
       const funcCount = pkg.modules.reduce(
-        (sum, m) => sum + m.functions.length,
+        (sum, m) => sum + m.symbols.filter((s) => s.kind === "function").length,
         0,
       );
       lines.push(
@@ -52,8 +52,12 @@ export const createLlmsTxtRenderer = (): {
       const queries = domainPkg.modules.filter((m) =>
         m.relativePath.includes("queries/"),
       );
-      lines.push(`- Commands: ${commands.flatMap((c) => c.functions).length}`);
-      lines.push(`- Queries: ${queries.flatMap((q) => q.functions).length}`);
+      lines.push(
+        `- Commands: ${commands.flatMap((c) => c.symbols.filter((s) => s.kind === "function")).length}`,
+      );
+      lines.push(
+        `- Queries: ${queries.flatMap((q) => q.symbols.filter((s) => s.kind === "function")).length}`,
+      );
       lines.push("");
     }
 

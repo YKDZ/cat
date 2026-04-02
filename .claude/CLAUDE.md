@@ -69,54 +69,14 @@ applyTo: "**/*"
 
 ## Project Structure
 
-### Apps (`apps/`)
+For a comprehensive overview of all apps, core packages, and plugins, use the `autodoc-explore` skill. This reads auto-generated documentation that stays in sync with the codebase.
 
-- **`@cat/app`**: Main application (Vue 3 SSR with Vike)
-- **`@cat/app-api`**: API layer (Hono + oRPC routes)
-- **`@cat/docs`**: Documentation (VitePress 2.0 alpha)
-- **`@cat/app-e2e`**: Playwright E2E tests
+Quick reference:
 
-### Core Packages (`packages/`)
-
-- **`@cat/plugin-core`**: Plugin system core (service registry, component registry, plugin discovery)
-- **`@cat/shared`**: Shared schemas (Zod), types, utilities
-- **`@cat/domain`**: Domain layer with business logic
-- **`@cat/db`**: Database layer (Drizzle ORM, Redis client)
-- **`@cat/operations`**: Business operations and use cases
-- **`@cat/permissions`**: Permission system (ReBAC)
-- **`@cat/agent`**: Agent and Workflow graph
-- **`@cat/server-shared`**: Shared server utilities
-- **`@cat/ui`**: Shared UI component library (shadcn-vue based)
-- **`@cat/test-utils`**: Testing utilities
-- **`@cat/oxlint-plugin`**: Shared oxlint rules
-
-### Plugins (`packages/@cat-plugin/`)
-
-Plugin system supports these service types:
-
-- **AUTH_PROVIDER**: Authentication (password, OIDC)
-- **MFA_PROVIDER**: Multi-factor auth (TOTP)
-- **STORAGE_PROVIDER**: File storage (local, S3)
-- **FILE_IMPORTER/EXPORTER**: File format handlers (JSON, Markdown, YAML)
-- **TERM_EXTRACTOR**: Terminology extraction
-- **TERM_ALIGNER**: Terminology alignment
-- **QA_CHECKER**: Quality assurance checks
-- **TOKENIZER**: Text tokenization
-- **NLP_WORD_SEGMENTER**: Word segmentation (spaCy)
-- **TRANSLATION_ADVISOR**: Translation suggestions (LibreTranslate)
-- **TEXT_VECTORIZER**: Text embedding
-- **VECTOR_STORAGE**: Vector storage (pgvector)
-- **LLM_PROVIDER**: LLM integration (OpenAI-compatible)
-- **AGENT_TOOL_PROVIDER**: Agent tool extensions
-- **AGENT_CONTEXT_PROVIDER**: Agent context extensions
-
-### Auto-generated Module Overview
-
-For a comprehensive, auto-generated overview of all packages with export counts and descriptions, see `apps/docs/src/autodoc/overview.md`. For detailed function signatures, see individual package docs in `apps/docs/src/autodoc/packages/`.
-
-Descriptions are extracted from `@en` (English) TSDoc block tags when available (see `.claude/rules/tsdoc.md`).
-
-Update with: `pnpm nx run autodoc:generate`
+- **Monorepo overview**: `apps/docs/src/autodoc/overview.md`
+- **Package API docs**: `apps/docs/src/autodoc/packages/<name>.md`
+- **Symbol lookup**: use `autodoc-lookup` skill
+- **Update docs**: `pnpm nx run autodoc:generate`
 
 ---
 

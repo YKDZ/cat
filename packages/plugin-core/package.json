@@ -1,6 +1,7 @@
 {
   "name": "@cat/plugin-core",
   "version": "0.1.0",
+  "description": "Plugin system core: service registry, component registry, discovery",
   "keywords": [
     "cat",
     "plugins",

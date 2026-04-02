@@ -1,22 +1,35 @@
 import type {
-  Project,
   SourceFile,
   FunctionDeclaration,
   VariableDeclaration,
   InterfaceDeclaration,
   TypeAliasDeclaration,
+  EnumDeclaration,
   JSDoc,
 } from "ts-morph";
 
 import { SyntaxKind, Node } from "ts-morph";
 
-import type {
-  FunctionSignature,
-  TypeDefinition,
-  ModuleInfo,
-} from "../types.js";
+import type { SymbolIR, ModuleIR, ParameterIR, SourceLocation } from "../ir.js";
 
 import { extractEnDescription, extractEnInline } from "./tsdoc-parser.js";
+
+/**
+ * Build a raw text string from a JSDoc node that includes both the
+ * description (pre-tag text) AND any custom block tags like @zh/@en.
+ * This is needed because ts-morph's getDescription() only returns text
+ * before the first block tag, excluding bilingual @zh/@en convention tags.
+ */
+const getRawDocComment = (jsdoc: JSDoc | undefined): string | undefined => {
+  if (!jsdoc) return undefined;
+  const desc = jsdoc.getDescription()?.trim() ?? "";
+  const tags = jsdoc
+    .getTags()
+    .map((t) => `@${t.getTagName()} ${t.getCommentText()?.toString() ?? ""}`)
+    .join("\n");
+  const full = [desc, tags].filter(Boolean).join("\n").trim();
+  return full || undefined;
+};
 
 const getParamDescription = (
   jsdoc: JSDoc | undefined,
@@ -35,34 +48,110 @@ const getReturnDescription = (jsdoc: JSDoc | undefined): string | undefined => {
   return tag?.getCommentText()?.toString();
 };
 
+const getSourceLocation = (
+  node: {
+    getSourceFile: () => SourceFile;
+    getStartLineNumber: () => number;
+    getEndLineNumber: () => number;
+  },
+  rootPath: string,
+): SourceLocation => ({
+  filePath: node
+    .getSourceFile()
+    .getFilePath()
+    .replace(rootPath + "/", ""),
+  line: node.getStartLineNumber(),
+  endLine: node.getEndLineNumber(),
+});
+
+const makeSymbolId = (
+  pkgName: string,
+  modulePath: string,
+  symbolName: string,
+): string => {
+  const modPart = modulePath.replace(/\.ts$/, "");
+  return `${pkgName}:${modPart}:${symbolName}`;
+};
+
+const buildSignatureText = (
+  name: string,
+  isAsync: boolean,
+  isExported: boolean,
+  isArrow: boolean,
+  parameters: ParameterIR[],
+  returnType: string | undefined,
+): string => {
+  const parts: string[] = [];
+  if (isExported) parts.push("export ");
+  if (isArrow) {
+    parts.push("const ", name, " = ");
+    if (isAsync) parts.push("async ");
+    parts.push("(");
+  } else {
+    if (isAsync) parts.push("async ");
+    parts.push("function ", name, "(");
+  }
+  parts.push(
+    parameters
+      .map((p) => `${p.name}${p.optional ? "?" : ""}: ${p.type}`)
+      .join(", "),
+  );
+  parts.push(")");
+  if (returnType && returnType !== "void") {
+    parts.push(`: ${returnType}`);
+  }
+  return parts.join("");
+};
+
+/**
+ * @zh 通过三级回退策略获取参数类型文本。
+ * @en Get parameter type text via three-level fallback strategy.
+ *
+ * 1. 如果参数有显式类型注解，使用源码文本（保留别名名称如 CreateProjectCommand）
+ * 2. 如果已解析类型有别名符号，使用别名名称（如 DbContext）
+ * 3. 否则使用 ts-morph 解析的类型文本（剥离 import 路径前缀）
+ */
+const getParamTypeText = (
+  param: import("ts-morph").ParameterDeclaration,
+): string => {
+  const typeNode = param.getTypeNode();
+  if (typeNode) return typeNode.getText();
+  const type = param.getType();
+  const alias = type.getAliasSymbol();
+  if (alias) return alias.getName();
+  return type.getText(param).replace(/import\([^)]+\)\./g, "");
+};
+
 export const createSymbolExtractor = (
-  _project: Project,
+  pkgName: string,
+  rootPath: string,
 ): {
-  extractModuleInfo: (sourceFile: SourceFile) => ModuleInfo;
+  extractModuleInfo: (sourceFile: SourceFile) => ModuleIR;
   extractFunctionSignature: (
     func: FunctionDeclaration,
-  ) => FunctionSignature | null;
+    relativePath: string,
+  ) => SymbolIR | null;
   extractTypeDefinition: (
     node: InterfaceDeclaration | TypeAliasDeclaration,
-  ) => TypeDefinition | null;
+    relativePath: string,
+  ) => SymbolIR | null;
 } => {
   const extractFunctionSignature = (
     func: FunctionDeclaration,
-  ): FunctionSignature | null => {
+    relativePath: string,
+  ): SymbolIR | null => {
     const name = func.getName();
     if (!name) return null;
 
     const docs = func.getJsDocs();
-    const rawDescription = docs[0]?.getDescription()?.trim();
-    // Extract @en content; fall back to raw description for monolingual code
+    const rawDescription = getRawDocComment(docs[0]);
     const description = extractEnDescription(rawDescription);
 
-    const parameters = func.getParameters().map((param) => {
+    const parameters: ParameterIR[] = func.getParameters().map((param) => {
       const rawParamDesc = getParamDescription(docs[0], param.getName());
       return {
         name: param.getName(),
         type: param.getType().getText(param),
-        // Extract {@en ...} inline content from @param description
         description: extractEnInline(rawParamDesc),
         optional:
           param.hasQuestionToken() || param.getInitializer() !== undefined,
@@ -71,21 +160,37 @@ export const createSymbolExtractor = (
 
     const rawReturnDesc = getReturnDescription(docs[0]);
     const returnType = func.getReturnType().getText(func);
+    const isAsync = func.isAsync();
+    const isExported = func.isExported();
+
+    const signature = buildSignatureText(
+      name,
+      isAsync,
+      isExported,
+      false,
+      parameters,
+      returnType === "void" ? undefined : returnType,
+    );
 
     return {
+      id: makeSymbolId(pkgName, relativePath, name),
       name,
+      kind: "function",
       description,
+      signature,
       parameters,
       returnType: returnType === "void" ? undefined : returnType,
       returnDescription: extractEnInline(rawReturnDesc),
-      isExported: func.isExported(),
-      isAsync: func.isAsync(),
+      isAsync,
+      isExported,
+      sourceLocation: getSourceLocation(func, rootPath),
     };
   };
 
   const extractArrowFunction = (
     decl: VariableDeclaration,
-  ): FunctionSignature | null => {
+    relativePath: string,
+  ): SymbolIR | null => {
     const name = decl.getName();
     const initializer = decl.getInitializer();
 
@@ -93,18 +198,32 @@ export const createSymbolExtractor = (
       return null;
 
     const stmt = decl.getVariableStatement();
+    if (!stmt?.isExported()) return null;
+
     const docs = stmt?.getJsDocs();
-    const rawDescription = docs?.[0]?.getDescription()?.trim();
+    const rawDescription = getRawDocComment(docs?.[0]);
     const description = extractEnDescription(rawDescription);
 
     const arrowFunc = initializer.asKind(SyntaxKind.ArrowFunction);
     if (!arrowFunc) return null;
 
-    const parameters = arrowFunc.getParameters().map((param) => {
+    const typeNode = decl.getTypeNode();
+    const hasTypeAnnotation = typeNode !== undefined;
+
+    let rawDeclaration: string | undefined;
+    if (hasTypeAnnotation) {
+      const stmtText = stmt?.getText() ?? "";
+      const eqIndex = stmtText.indexOf("=");
+      if (eqIndex > 0) {
+        rawDeclaration = stmtText.slice(0, eqIndex).trim();
+      }
+    }
+
+    const parameters: ParameterIR[] = arrowFunc.getParameters().map((param) => {
       const rawParamDesc = getParamDescription(docs?.[0], param.getName());
       return {
         name: param.getName(),
-        type: param.getType().getText(param),
+        type: getParamTypeText(param),
         description: extractEnInline(rawParamDesc),
         optional: param.hasQuestionToken(),
       };
@@ -112,37 +231,63 @@ export const createSymbolExtractor = (
 
     const rawReturnDesc = getReturnDescription(docs?.[0]);
     const returnType = arrowFunc.getReturnType().getText(arrowFunc);
+    const isAsync = arrowFunc.isAsync();
+    const isExported = true;
+
+    let signature: string;
+    if (rawDeclaration) {
+      const paramList = parameters
+        .map((p) => `${p.name}${p.optional ? "?" : ""}: ${p.type}`)
+        .join(", ");
+      signature = `${rawDeclaration} = ${isAsync ? "async " : ""}(${paramList}) => {...}`;
+    } else {
+      signature = buildSignatureText(
+        name,
+        isAsync,
+        isExported,
+        true,
+        parameters,
+        returnType === "void" ? undefined : returnType,
+      );
+    }
 
     return {
+      id: makeSymbolId(pkgName, relativePath, name),
       name,
+      kind: "function",
       description,
+      signature,
+      rawDeclaration,
       parameters,
       returnType: returnType === "void" ? undefined : returnType,
       returnDescription: extractEnInline(rawReturnDesc),
-      isExported: stmt?.isExported() ?? false,
-      isAsync: arrowFunc.isAsync(),
+      isAsync,
+      isExported,
+      sourceLocation: getSourceLocation(decl, rootPath),
     };
   };
 
   const extractTypeDefinition = (
     node: InterfaceDeclaration | TypeAliasDeclaration,
-  ): TypeDefinition | null => {
+    relativePath: string,
+  ): SymbolIR | null => {
     const name = node.getName();
-    const kind =
-      node.getKind() === SyntaxKind.InterfaceDeclaration ? "interface" : "type";
 
     const docs = node.getJsDocs();
-    const rawDescription = docs[0]?.getDescription()?.trim();
+    const rawDescription = getRawDocComment(docs[0]);
     const description = extractEnDescription(rawDescription);
 
-    let properties: TypeDefinition["properties"] = [];
+    const isInterface = node.getKind() === SyntaxKind.InterfaceDeclaration;
+    const kind: SymbolIR["kind"] = isInterface ? "interface" : "type";
 
-    if (node.getKind() === SyntaxKind.InterfaceDeclaration) {
+    let properties = undefined;
+
+    if (isInterface) {
       const iface = node.asKind(SyntaxKind.InterfaceDeclaration);
       if (iface) {
         properties = iface.getProperties().map((prop) => {
           const propDocs = prop.getJsDocs();
-          const rawPropDesc = propDocs[0]?.getDescription()?.trim();
+          const rawPropDesc = getRawDocComment(propDocs[0]);
           return {
             name: prop.getName(),
             type: prop.getType().getText(prop),
@@ -154,61 +299,80 @@ export const createSymbolExtractor = (
     }
 
     return {
+      id: makeSymbolId(pkgName, relativePath, name),
       name,
       kind,
       description,
-      properties,
+      isAsync: false,
       isExported: node.isExported(),
+      sourceLocation: getSourceLocation(node, rootPath),
+      properties,
     };
   };
 
-  const extractModuleInfo = (sourceFile: SourceFile): ModuleInfo => {
-    const functions: FunctionSignature[] = [];
-    const types: TypeDefinition[] = [];
+  const extractEnumDefinition = (
+    node: EnumDeclaration,
+    relativePath: string,
+  ): SymbolIR | null => {
+    const name = node.getName();
+    const docs = node.getJsDocs();
+    const rawDescription = getRawDocComment(docs[0]);
+    const description = extractEnDescription(rawDescription);
+
+    return {
+      id: makeSymbolId(pkgName, relativePath, name),
+      name,
+      kind: "enum",
+      description,
+      isAsync: false,
+      isExported: node.isExported(),
+      sourceLocation: getSourceLocation(node, rootPath),
+    };
+  };
+
+  const extractModuleInfo = (sourceFile: SourceFile): ModuleIR => {
+    const filePath = sourceFile.getFilePath();
+    const relativePath = filePath.replace(
+      rootPath.replace(/\/$/, "") + "/",
+      "",
+    );
+    const symbols: SymbolIR[] = [];
 
     // Extract function declarations
     for (const func of sourceFile.getFunctions()) {
-      const sig = extractFunctionSignature(func);
-      if (sig?.isExported) functions.push(sig);
+      const sym = extractFunctionSignature(func, relativePath);
+      if (sym?.isExported) symbols.push(sym);
     }
 
     // Extract arrow function variables (project convention prefers arrow functions)
     for (const decl of sourceFile.getVariableDeclarations()) {
-      const sig = extractArrowFunction(decl);
-      if (sig?.isExported) functions.push(sig);
+      const sym = extractArrowFunction(decl, relativePath);
+      if (sym) symbols.push(sym);
     }
 
     // Extract interfaces
     for (const iface of sourceFile.getInterfaces()) {
-      const type = extractTypeDefinition(iface);
-      if (type?.isExported) types.push(type);
+      const sym = extractTypeDefinition(iface, relativePath);
+      if (sym?.isExported) symbols.push(sym);
     }
 
     // Extract type aliases
     for (const alias of sourceFile.getTypeAliases()) {
-      const type = extractTypeDefinition(alias);
-      if (type?.isExported) types.push(type);
+      const sym = extractTypeDefinition(alias, relativePath);
+      if (sym?.isExported) symbols.push(sym);
     }
 
-    const exports = [...sourceFile.getExportedDeclarations().keys()];
-    const imports = sourceFile.getImportDeclarations().map((imp) => ({
-      module: imp.getModuleSpecifierValue(),
-      names: imp.getNamedImports().map((ni) => ni.getName()),
-    }));
+    // Extract enums
+    for (const enumDecl of sourceFile.getEnums()) {
+      const sym = extractEnumDefinition(enumDecl, relativePath);
+      if (sym?.isExported) symbols.push(sym);
+    }
 
     return {
-      path: sourceFile.getFilePath(),
-      relativePath: sourceFile.getFilePath(),
-      functions,
-      types,
-      exports,
-      imports,
+      relativePath,
+      symbols,
     };
   };
 
-  return {
-    extractModuleInfo,
-    extractFunctionSignature,
-    extractTypeDefinition,
-  };
+  return { extractModuleInfo, extractFunctionSignature, extractTypeDefinition };
 };

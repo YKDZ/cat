@@ -1,6 +1,7 @@
 {
   "name": "@cat/server-shared",
   "version": "0.1.0",
+  "description": "Shared server utilities",
   "keywords": [
     "cat",
     "server",
