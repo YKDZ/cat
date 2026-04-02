@@ -35,9 +35,17 @@ export type ParseFileInput = z.infer<typeof ParseFileInputSchema>;
 export type ParseFileOutput = z.infer<typeof ParseFileOutputSchema>;
 
 /**
- * 解析文件内容为可翻译元素列表
+ * @zh 解析文件内容为可翻译元素列表。
  *
- * 通过 FILE_IMPORTER 插件解析文件，并补全 sortIndex。
+ * 通过 FILE_IMPORTER 插件解析文件，并为每个元素补全 sortIndex。
+ * @en Parse file content into a list of translatable elements.
+ *
+ * Parses the file via the FILE_IMPORTER plugin, then fills in the
+ * sortIndex for each element.
+ *
+ * @param data - {@zh 解析输入参数（文件 ID 和语言 ID）} {@en Parse input parameters (file ID and language ID)}
+ * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @returns - {@zh 解析得到的可翻译元素列表} {@en Parsed list of translatable elements}
  */
 export const parseFileOp = async (
   data: ParseFileInput,

@@ -53,11 +53,21 @@ export type VectorTermAlignInput = z.infer<typeof VectorTermAlignInputSchema>;
 export type VectorTermAlignOutput = z.infer<typeof VectorTermAlignOutputSchema>;
 
 /**
- * 向量相似度术语对齐
+ * @zh 向量相似度术语对齐。
  *
- * 1. 把每个候选术语（text + definition）向量化并创建正式 TranslatableString（Decision #4-C）
+ * 1. 把每个候选术语（text + definition）向量化并创建正式 TranslatableString
  * 2. 跨语言组进行两两余弦相似度对比
- * 3. 相似度 >= minSimilarity 的配对记录进 alignedPairs
+ * 3. 相似度 \>= minSimilarity 的配对记录进 alignedPairs
+ * @en Term alignment via vector cosine similarity.
+ *
+ * 1. Vectorize each candidate term (text + definition) and create a
+ *    formal TranslatableString
+ * 2. Perform pairwise cosine-similarity comparison across language groups
+ * 3. Record pairs with similarity >= minSimilarity into alignedPairs
+ *
+ * @param data - {@zh 向量对齐输入参数} {@en Vector alignment input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 对齐的术语对及每个候选的 stringId 列表} {@en Aligned term pairs and the stringId list for each candidate}
  */
 export const vectorTermAlignOp = async (
   data: VectorTermAlignInput,

@@ -56,9 +56,17 @@ const createStringIdsFromData = async (
 };
 
 /**
- * 创建可翻译字符串
+ * @zh 创建可翻译字符串。
  *
  * 先向量化文本数据，然后在数据库中创建 TranslatableString 行。
+ * @en Create translatable strings.
+ *
+ * First vectorizes the text data, then creates the TranslatableString
+ * rows in the database.
+ *
+ * @param data - {@zh 可翻译字符串创建输入参数} {@en Translatable string creation input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 新创建的字符串 ID 列表} {@en List of IDs of the newly created strings}
  */
 export const createTranslatableStringOp = async (
   data: CreateTranslatableStringInput,

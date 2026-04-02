@@ -29,35 +29,13 @@ For each package, read `apps/docs/src/autodoc/packages/<name>.md` for:
 When you need implementation details for a specific symbol, use the `autodoc-lookup` skill:
 
 ```bash
-pnpm autodoc lookup <symbol-name>
+pnpm autodoc lookup <symbol-name> [...]
 ```
 
 ## Package Naming Convention
 
 - Core packages: `packages/<name>/` → doc at `packages/<name>.md`
 - Short name: strip `@cat/` prefix (e.g., `@cat/domain` → `domain.md`)
-
-## Plugin Service Types
-
-The plugin system (`@cat/plugin-core`) supports these service types:
-
-- **AUTH_PROVIDER**: Authentication (password, OIDC)
-- **MFA_PROVIDER**: Multi-factor auth (TOTP)
-- **STORAGE_PROVIDER**: File storage (local, S3)
-- **FILE_IMPORTER/EXPORTER**: File format handlers (JSON, Markdown, YAML)
-- **TERM_EXTRACTOR**: Terminology extraction
-- **TERM_ALIGNER**: Terminology alignment
-- **QA_CHECKER**: Quality assurance checks
-- **TOKENIZER**: Text tokenization
-- **NLP_WORD_SEGMENTER**: Word segmentation (spaCy)
-- **TRANSLATION_ADVISOR**: Translation suggestions (LibreTranslate)
-- **TEXT_VECTORIZER**: Text embedding
-- **VECTOR_STORAGE**: Vector storage (pgvector)
-- **LLM_PROVIDER**: LLM integration (OpenAI-compatible)
-- **AGENT_TOOL_PROVIDER**: Agent tool extensions
-- **AGENT_CONTEXT_PROVIDER**: Agent context extensions
-
-Plugin implementations live in `packages/@cat-plugin/` with manifest-based discovery.
 
 ## When to Regenerate
 

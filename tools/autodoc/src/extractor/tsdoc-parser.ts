@@ -49,7 +49,7 @@ export const extractEnDescription = (
  *
  * Inline format (per tsdoc.md):
  *   @param code - {@zh 语言代码} {@en BCP 47 language code}
- *   @returns {@zh 语言显示名称} {@en Display name of the language}
+ *   @returns - {@zh 语言显示名称} {@en Display name of the language}
  */
 export const extractEnInline = (
   raw: string | undefined,

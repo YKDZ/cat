@@ -130,9 +130,19 @@ ${items}`.trim();
 };
 
 /**
- * LLM 术语对齐（兜底策略）
+ * @zh LLM 术语对齐（兆底策略）。
  *
- * 对向量对齐和统计对齐未能高置信度处理的候选对进行 LLM 判断。
+ * 对向量对齐和统计对齐未能高置信度处理的廣选对，通过 LLM 进行判断。
+ * 底层分批调用 LLM，默认每批 30 对。
+ * @en LLM term alignment (fallback strategy).
+ *
+ * Uses the LLM to judge candidate pairs that vector-based and
+ * statistical alignment could not resolve with high confidence.
+ * Internally batches LLM calls (default 30 pairs per batch).
+ *
+ * @param data - {@zh LLM 对齐输入参数} {@en LLM alignment input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh LLM 判断为匹配的术语对及置信度分数} {@en Term pairs judged as aligned by the LLM with their confidence scores}
  */
 export const llmTermAlignOp = async (
   data: LlmTermAlignInput,

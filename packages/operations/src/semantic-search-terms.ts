@@ -31,13 +31,26 @@ export type SemanticSearchTermsInput = z.infer<
 export type SemanticSearchTermsOutput = LookedUpTerm[];
 
 /**
- * 语义术语搜索
+ * @zh 语义术语搜索。
  *
  * 将查询文本向量化后，在指定词汇表的已向量化 termConcept 中进行余弦相似度搜索，
  * 返回与查询语义相关的术语对列表。
  *
  * 要求每个目标 termConcept 已通过 {@link revectorizeConceptOp} 建立向量索引。
  * 若词汇表中尚无已向量化的概念，则返回空数组。
+ * @en Semantic term search.
+ *
+ * Vectorizes the query text on the fly and performs cosine-similarity
+ * search against the vectorized termConcepts in the specified glossaries,
+ * returning term pairs semantically related to the query.
+ *
+ * Requires each target termConcept to have a vector index built via
+ * {@link revectorizeConceptOp}. Returns an empty array when no
+ * vectorized concepts exist in the glossaries.
+ *
+ * @param data - {@zh 语义搜索输入参数} {@en Semantic search input parameters}
+ * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @returns - {@zh 语义相关的术语匹配列表} {@en Semantically related term matches}
  */
 export const semanticSearchTermsOp = async (
   data: SemanticSearchTermsInput,

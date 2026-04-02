@@ -27,6 +27,21 @@ export type TermRecallInput = z.infer<typeof TermRecallInputSchema>;
 export type TermContext = z.infer<typeof TermContextSchema>;
 export type TermRecallOutput = z.infer<typeof TermRecallOutputSchema>;
 
+/**
+ * @zh 术语记忆回射。
+ *
+ * 根据源文本和词汇表 ID，通过 ILIKE + word_similarity 查找匹配术语，
+ * 并丰富每个术语的概念主题信息。
+ * @en Term recall.
+ *
+ * Given a source text and glossary IDs, finds matching terms via ILIKE +
+ * word_similarity, then enriches each match with its concept subject
+ * information.
+ *
+ * @param data - {@zh 术语回射输入参数} {@en Term recall input parameters}
+ * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @returns - {@zh 丰富了指向概念主题的术语匹配列表} {@en Term matches enriched with concept subject information}
+ */
 export const termRecallOp = async (
   data: TermRecallInput,
   _ctx?: OperationContext,

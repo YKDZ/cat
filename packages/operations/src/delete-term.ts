@@ -22,9 +22,17 @@ export type DeleteTermInput = z.infer<typeof DeleteTermInputSchema>;
 export type DeleteTermOutput = z.infer<typeof DeleteTermOutputSchema>;
 
 /**
- * 删除一条术语条目。
+ * @zh 删除一条术语条目。
  *
  * 删除术语后由领域事件处理器自动触发概念重向量化。
+ * @en Delete a term entry.
+ *
+ * After deletion, the domain event handler automatically triggers
+ * concept re-vectorization.
+ *
+ * @param data - {@zh 包含要删除术语 ID 的输入参数} {@en Input parameters containing the term ID to delete}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 是否删除成功及所属概念 ID} {@en Whether deletion succeeded and the associated concept ID}
  */
 export const deleteTermOp = async (
   data: DeleteTermInput,

@@ -42,13 +42,24 @@ export type SearchChunkInput = z.infer<typeof SearchChunkInputSchema>;
 export type SearchChunkOutput = z.infer<typeof SearchChunkOutputSchema>;
 
 /**
- * 向量 chunk 搜索
+ * @zh 向量 chunk 搜索。
  *
  * 支持两种查询模式：
  * 1. 通过 queryChunkIds 从数据库检索已有嵌入向量
  * 2. 通过 queryVectors 直接传入原始向量（跳过 DB 查询）
  *
  * 然后在指定范围内进行余弦相似度搜索。
+ * @en Vector chunk search.
+ *
+ * Supports two query modes:
+ * 1. Retrieve existing embeddings from the database by queryChunkIds
+ * 2. Pass raw vectors directly via queryVectors (skips DB lookup)
+ *
+ * Then performs cosine-similarity search within the specified chunk ID range.
+ *
+ * @param payload - {@zh 搜索输入参数} {@en Search input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 匹配 chunk 及其相似度分数列表} {@en List of matching chunks with their similarity scores}
  */
 export const searchChunkOp = async (
   payload: SearchChunkInput,

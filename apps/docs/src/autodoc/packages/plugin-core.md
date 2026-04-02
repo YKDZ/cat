@@ -113,6 +113,9 @@ export const tokenize = async (text: string, rules: { rule: Tokenizer; id: numbe
  * 解析子内容
  * @param 子文本内容
  * @param 子文本在父文本中的起始位置
+ *
+ * @param content - 子文本内容
+ * @param offsetInParent - 子文本在父文本中的起始位置
  */
 export const parseInner = async (content: string, offsetInParent: number, rules: { rule: Tokenizer; id: number }[], options?: TokenizeOptions): Promise<Token[]>
 ```

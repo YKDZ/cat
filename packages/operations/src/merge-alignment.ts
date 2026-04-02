@@ -165,11 +165,20 @@ const makeUnionFind = () => {
 };
 
 /**
- * 多策略对齐结果融合
+ * @zh 多策略对齐结果融合。
  *
  * 1. 将向量、统计、LLM 三路对齐结果按加权平均融合
  * 2. 通过 Union-Find 进行传递闭包，生成多语言术语组
- * 3. 冲突解决：同语言多候选保留连接度最高的候选
+ * 3. 冲突解决：同语言多廣选保留连接度最高的廣选
+ * @en Merge multi-strategy alignment results.
+ *
+ * 1. Fuse vector, statistical, and LLM alignment pairs via weighted-average scores
+ * 2. Apply Union-Find transitive closure to form multilingual term groups
+ * 3. Conflict resolution: when multiple candidates exist for the same language,
+ *    keep the one with the highest connectivity
+ *
+ * @param data - {@zh 融合输入参数} {@en Merge input parameters}
+ * @returns - {@zh 对齐组、未对齐廣选及统计信息} {@en Aligned groups, unaligned candidates, and alignment statistics}
  */
 export const mergeAlignmentOp = (
   data: MergeAlignmentInput,

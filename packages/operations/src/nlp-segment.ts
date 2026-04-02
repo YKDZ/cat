@@ -22,10 +22,19 @@ export type NlpSegmentInput = z.infer<typeof NlpSegmentInputSchema>;
 export type NlpSegmentOutput = NlpSegmentResult;
 
 /**
- * 单文本 NLP 分词
+ * @zh 单文本 NLP 分词。
  *
  * 通过 NLP_WORD_SEGMENTER 插件服务进行语言学分词。
  * 当没有可用的 NLP_WORD_SEGMENTER 插件时，自动回退到内置 Intl.Segmenter。
+ * @en Single-text NLP segmentation.
+ *
+ * Performs linguistic word segmentation via the NLP_WORD_SEGMENTER
+ * plugin service. When no plugin is available, automatically falls
+ * back to the built-in Intl.Segmenter.
+ *
+ * @param data - {@zh 分词输入参数} {@en Segmentation input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 包含句子列表和 token 列表的分词结果} {@en Segmentation result containing sentence and token lists}
  */
 export const nlpSegmentOp = async (
   data: NlpSegmentInput,

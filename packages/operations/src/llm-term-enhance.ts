@@ -173,13 +173,25 @@ ${items}`.trim();
 // ─── Core Operation ───
 
 /**
- * LLM 术语增强
+ * @zh 使用 LLM 增强术语廣选词。
  *
- * 对低置信度候选进行 LLM 校验：判断是否为真正的术语，
- * 并批量生成 definition 和 subject。
+ * 对低置信度廣选用 LLM 校验：判断是否为真正的术语，
+ * 并批量生成 definition 和 subject 。
  *
- * 高置信度候选（>= confidenceThreshold）保留统计学结果，仅生成 definition/subject。
- * 低置信度候选需LLM校验后决定是否保留。
+ * - 高置信度廣选（>= confidenceThreshold）保留统计学结果，仅生成 definition/subject。
+ * - 低置信度廣选需 LLM 校验后决定是否保留。
+ * @en Enhance term candidates using an LLM.
+ *
+ * Validates low-confidence candidates via the LLM to determine whether
+ * they are genuine terms, and batch-generates definitions and subjects.
+ *
+ * - High-confidence candidates (>= confidenceThreshold) retain statistical
+ *   results; only definition/subject is generated.
+ * - Low-confidence candidates require LLM validation before being kept.
+ *
+ * @param data - {@zh LLM 术语增强输入参数} {@en LLM term enhancement input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 增强后的廣选词列表及新增 LLM 廣选词数量} {@en Enhanced candidate list and the count of newly added LLM candidates}
  */
 export const llmTermEnhanceOp = async (
   data: LlmTermEnhanceInput,

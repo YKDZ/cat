@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "autodoc:check": "autodoc check",
     "build-plugins": "nx run-many --target=build --projects=@cat-plugin/*",
     "check:generated-schemas": "node scripts/check-generated-drizzle-schemas.js",
     "load-plugins": "node scripts/load-plugins.js",
-    "precommit": "nx run-many --target=lint:fix,fmt,test,typecheck",
+    "precommit": "nx run-many --target=lint:fix,fmt,test,typecheck,autodoc:check",
     "repeat-test": "node scripts/repeat-test.js"
   },
   "devDependencies": {

@@ -31,10 +31,18 @@ export type LoadElementTextsOutput = z.infer<
 >;
 
 /**
- * 加载元素文本
+ * @zh 批量加载元素文本。
  *
  * 根据 documentIds 或 elementIds 批量加载 TranslatableElement 及其
  * TranslatableString.value，返回统一格式的文本列表。
+ * @en Batch load element texts.
+ *
+ * Loads TranslatableElements and their TranslatableString.value in bulk
+ * by documentIds or elementIds, returning a normalized list.
+ *
+ * @param data - {@zh 加载输入参数，支持 documentIds 或 elementIds} {@en Load input; accepts documentIds or elementIds}
+ * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @returns - {@zh 统一格式的元素文本列表} {@en Normalized list of element texts}
  */
 export const loadElementTextsOp = async (
   data: LoadElementTextsInput,

@@ -138,11 +138,21 @@ const inferBasicPos = (segment: Intl.SegmentData): string => {
 const isPunctuation = (text: string): boolean => /^\p{P}+$/u.test(text);
 
 /**
- * 基于 Intl.Segmenter 的内嵌回退分词实现
+ * @zh 基于 Intl.Segmenter 的内嵌回退分词实现。
  *
  * 在没有可用的 NLP_WORD_SEGMENTER 插件时自动调用。
  * 局限性：无 POS 标注（pos 设为 "X" 或 "PUNCT"/"NUM"）、无 lemma（lemma 等于 text 的小写形式）、
  * 停用词仅覆盖基础英文词汇。
+ * @en Built-in fallback segmentation based on Intl.Segmenter.
+ *
+ * Called automatically when no NLP_WORD_SEGMENTER plugin is available.
+ * Limitations: no POS tagging (pos set to "X" or "PUNCT"/"NUM"), no
+ * lemmatization (lemma equals the lowercased text), and stop-word
+ * coverage is limited to basic English vocabulary.
+ *
+ * @param text - {@zh 要分词的文本} {@en Text to segment}
+ * @param languageId - {@zh BCP 47 语言标识符，用于调整 Intl.Segmenter 行为} {@en BCP 47 language identifier used to configure Intl.Segmenter}
+ * @returns - {@zh 包含句子和 token 列表的分词结果} {@en Segmentation result containing sentence and token lists}
  */
 export const intlSegmenterFallback = (
   text: string,

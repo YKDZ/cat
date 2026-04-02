@@ -101,5 +101,97 @@ describe("createPackageRenderer", () => {
       expect(output).not.toMatch(/^- `a.*: string`/m);
       expect(output).not.toMatch(/^- `b.*: number`/m);
     });
+
+    it("includes @param lines in JSDoc when parameters have descriptions", () => {
+      const output = renderPackage(
+        makePkg([
+          makeSym({
+            name: "searchOp",
+            description: "Search things.",
+            signature:
+              "export const searchOp = async (data: Input, ctx?: Ctx) => {...}",
+            parameters: [
+              {
+                name: "data",
+                type: "Input",
+                description: "Search input",
+                optional: false,
+              },
+              {
+                name: "ctx",
+                type: "Ctx",
+                description: "Operation context",
+                optional: true,
+              },
+            ],
+          }),
+        ]),
+        { detailed: true },
+      );
+      expect(output).toContain(" * @param data - Search input");
+      expect(output).toContain(" * @param ctx - Operation context");
+    });
+
+    it("includes @returns line in JSDoc when returnDescription is present", () => {
+      const output = renderPackage(
+        makePkg([
+          makeSym({
+            name: "fetchOp",
+            description: "Fetch data.",
+            signature: "export const fetchOp = async () => {...}",
+            returnDescription: "The fetched data",
+          }),
+        ]),
+        { detailed: true },
+      );
+      expect(output).toContain(" * @returns The fetched data");
+    });
+
+    it("renders @param and @returns together with separating blank lines", () => {
+      const output = renderPackage(
+        makePkg([
+          makeSym({
+            name: "searchChunkOp",
+            description: "Vector chunk search.",
+            signature:
+              "export const searchChunkOp = async (payload: Input) => {...}",
+            parameters: [
+              {
+                name: "payload",
+                type: "Input",
+                description: "Search parameters",
+                optional: false,
+              },
+            ],
+            returnDescription: "Matching chunks with scores",
+          }),
+        ]),
+        { detailed: true },
+      );
+
+      const expected = [
+        " * Vector chunk search.",
+        " *",
+        " * @param payload - Search parameters",
+        " *",
+        " * @returns Matching chunks with scores",
+      ].join("\n");
+      expect(output).toContain(expected);
+    });
+
+    it("omits @param for parameters without descriptions", () => {
+      const output = renderPackage(
+        makePkg([
+          makeSym({
+            name: "simpleOp",
+            description: "Simple op.",
+            signature: "export const simpleOp = (x: number) => {...}",
+            parameters: [{ name: "x", type: "number", optional: false }],
+          }),
+        ]),
+        { detailed: true },
+      );
+      expect(output).not.toContain("@param");
+    });
   });
 });

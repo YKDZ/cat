@@ -92,6 +92,38 @@ export const fetchData = async (url: string): Promise<string> => {
       expect(sym!.rawDeclaration).toBeUndefined();
       expect(sym!.signature).toContain("name: string");
     });
+
+    it("extracts @returns with bilingual inline tags (dash prefix)", () => {
+      const { sourceFile } = makeProject(`
+/**
+ * @zh 获取语言名称。
+ * @en Get the language name.
+ *
+ * @param code - {@zh 语言代码} {@en BCP 47 language code}
+ * @returns - {@zh 语言显示名称} {@en Display name of the language}
+ */
+export const getLanguageName = (code: string): string => code;
+`);
+      const mod = extractor.extractModuleInfo(sourceFile);
+      expect(mod.symbols).toHaveLength(1);
+      const sym = mod.symbols[0];
+      expect(sym.description).toBe("Get the language name.");
+      expect(sym.parameters![0].description).toBe("BCP 47 language code");
+      expect(sym.returnDescription).toBe("Display name of the language");
+    });
+
+    it("strips dash prefix from monolingual @returns", () => {
+      const { sourceFile } = makeProject(`
+/**
+ * @en Get name.
+ * @returns - the computed name
+ */
+export const getName = (): string => "foo";
+`);
+      const mod = extractor.extractModuleInfo(sourceFile);
+      const sym = mod.symbols[0];
+      expect(sym.returnDescription).toBe("the computed name");
+    });
   });
 
   describe("extractModuleInfo - function declarations", () => {
@@ -112,6 +144,28 @@ function internal(x: string): void {}
 `);
       const mod = extractor.extractModuleInfo(sourceFile);
       expect(mod.symbols).toHaveLength(0);
+    });
+
+    it("extracts @returns with dash prefix for function declarations", () => {
+      const { sourceFile } = makeProject(`
+/**
+ * @zh 计算总和。
+ * @en Compute sum.
+ *
+ * @param a - {@zh 第一个数} {@en First number}
+ * @param b - {@zh 第二个数} {@en Second number}
+ * @returns - {@zh 两数之和} {@en Sum of the two numbers}
+ */
+export function sum(a: number, b: number): number {
+  return a + b;
+}
+`);
+      const mod = extractor.extractModuleInfo(sourceFile);
+      const sym = mod.symbols.find((s) => s.name === "sum");
+      expect(sym).toBeDefined();
+      expect(sym!.returnDescription).toBe("Sum of the two numbers");
+      expect(sym!.parameters![0].description).toBe("First number");
+      expect(sym!.parameters![1].description).toBe("Second number");
     });
   });
 

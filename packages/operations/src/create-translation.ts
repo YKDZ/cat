@@ -51,13 +51,24 @@ export type CreateTranslationPubPayload = z.infer<
 >;
 
 /**
- * 创建翻译
+ * @zh 创建翻译记录。
  *
  * 1. 创建可翻译字符串（含向量化）
  * 2. 插入翻译记录
  * 3. 通过领域事件触发可选发布通知
  * 4. 可选写入翻译记忆
  * 5. 对每条翻译执行 QA 检查
+ * @en Create translation records.
+ *
+ * 1. Create translatable strings (with vectorization)
+ * 2. Insert translation records
+ * 3. Trigger optional publish notification via domain event
+ * 4. Optionally write to translation memory
+ * 5. Run QA checks for every created translation
+ *
+ * @param data - {@zh 翻译创建输入参数} {@en Translation creation input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 新创建的翻译 ID 列表区记忆条目 ID 列表} {@en List of created translation IDs and memory item IDs}
  */
 export const createTranslationOp = async (
   data: CreateTranslationInput,

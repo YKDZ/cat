@@ -75,6 +75,8 @@ export const resolveContextVariables = async (options: ResolveOptions): Promise<
  * 4. 若最终排序结果数量 < provider 数量，说明存在环路
  * @returns 排序后的分层结果 layers，同一层可并行执行
  * @throws CircularDependencyError 当检测到环路时，附带环路路径信息
+ *
+ * @returns 排序后的分层结果 layers，同一层可并行执行
  */
 export const topoSortProviders = (providers: ReadonlyArray<ProviderShape>): number[][]
 ```
@@ -430,6 +432,10 @@ export const buildSystemPrompt = async (params: {
  * applied (used by the HTTP endpoint for ownership checks). Workers that
  * have already been authorised at enqueue time can omit this.
  * @throws if the session is not found or not `ACTIVE`.
+ *
+ * @param userId - - When provided, an additional `userId` WHERE condition is
+applied (used by the HTTP endpoint for ownership checks). Workers that
+have already been authorised at enqueue time can omit this.
  */
 export const resolveSession = async (drizzle: DrizzleClient, sessionExternalId: string, userId?: string): Promise<ResolvedSession>
 ```

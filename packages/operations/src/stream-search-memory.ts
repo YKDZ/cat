@@ -53,14 +53,31 @@ export type StreamSearchMemoryInput = z.input<
 >;
 
 /**
- * Three-channel streaming memory search.
+ * @zh 三通道流式翻译记忆搜索。
  *
- * Returns an AsyncIterable that yields MemorySuggestion items as they arrive
- * from the three channels. Exact matches arrive first, followed by trgm,
- * then vector results.
+ * 返回一个 AsyncIterable，三路结果随到随达即 yield：
+ * 1. **精确匹配**（最快）：SQL `value = input`，置信度 = 1.0
+ * 2. **trgm 相似度**（较快）：`similarity() >= threshold`，置信度 = similarity()
+ * 3. **向量语义**（较慢）：通过向量存储的余弦相似度
  *
- * For non-exact results that have stored templates, attempts deterministic
- * placeholder replacement to produce an `adaptedTranslation`.
+ * 全局按 memoryItem.id 去重（保留最高置信度）。
+ * 对有占位符模板的非精确匹配，尝试確定性占位符替换以生成 `adaptedTranslation`。
+ * @en Three-channel streaming memory search.
+ *
+ * Returns an AsyncIterable that yields MemorySuggestion items as they
+ * arrive from the three channels:
+ * 1. **Exact match** (fastest): SQL `value = input`, confidence = 1.0
+ * 2. **trgm similarity** (fast): `similarity() >= threshold`, confidence = similarity()
+ * 3. **Vector semantic** (slow): cosine similarity via vector storage
+ *
+ * Results are globally deduplicated by `memoryItem.id`, keeping the
+ * highest confidence. For non-exact results with stored templates,
+ * attempts deterministic placeholder replacement to produce an
+ * `adaptedTranslation`.
+ *
+ * @param data - {@zh 流式记忆搜索输入参数} {@en Streaming memory search input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 异步迭代器，将依次 yield 匹配的翻译记忆条目} {@en Async iterable that yields matching memory entries as they arrive}
  */
 export const streamSearchMemoryOp = (
   data: StreamSearchMemoryInput,

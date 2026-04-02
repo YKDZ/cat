@@ -53,14 +53,18 @@ export interface PlaceholderResult {
 }
 
 /**
- * Convert a flat token sequence into a placeholder template.
+ * @zh 将平坦 token 序列转换为占位符模板。
+ *
+ * 所有除 `text`、`unknown` 和空白类 token 以外的类型将被替换为
+ * `{TYPE_N}` 占位符（N 为每种类型的计数器）。
+ * @en Convert a flat token sequence into a placeholder template.
  *
  * All token types except `text`, `unknown`, and whitespace-like types
  * are replaced with `{TYPE_N}` placeholders where N is a per-type counter.
  *
- * @param tokens - Flat token array from `tokenize()` / `tokenizeOp()`
- * @param originalText - The original text (used for offset extraction)
- * @returns Template string and slot mappings
+ * @param tokens - {@zh 来自 `tokenize()` / `tokenizeOp()` 的平序 token 数组} {@en Flat token array from `tokenize()` / `tokenizeOp()`}
+ * @param originalText - {@zh 原始文本（用于提取偏移量）} {@en The original text (used for offset extraction)}
+ * @returns - {@zh 模板字符串与插槽映射} {@en Template string and slot mappings}
  */
 export const placeholderize = (
   tokens: Token[],
@@ -126,18 +130,22 @@ export const placeholderize = (
 };
 
 /**
- * Attempt to fill a translation template with values from a source mapping.
+ * @zh 尝试用源映射中的値填充翻译模板。
  *
- * Given:
- * - A translation template (e.g. "错误码：{NUM_0}")
- * - Translation slots from the stored memory
- * - Source slots from the current input text
+ * 根据翻译模板中的占位符，配对当前源文本的插槽将占位符替换为对应实际値，
+ * 无匹配时回退到存储的翻译原岵値。
+ * @en Attempt to fill a translation template with values from a source mapping.
  *
- * This replaces each placeholder in the translation template with the
- * corresponding value from the current source text's slots (matched by
- * placeholder name), falling back to the stored translation's original value.
+ * Given a translation template, translation slots from the stored memory,
+ * and source slots from the current input text, replaces each placeholder
+ * in the translation template with the corresponding value from the current
+ * source text's slots (matched by placeholder name), falling back to the
+ * stored translation's original value.
  *
- * @returns The filled translation string, or null if slots are incompatible.
+ * @param translationTemplate - {@zh 占位符化的翻译模板} {@en Placeholderized translation template}
+ * @param translationSlots - {@zh 来自存储记忆的翻译插槽} {@en Translation slots from the stored memory item}
+ * @param sourceSlots - {@zh 当前输入源文本的插槽} {@en Slots from the current input source text}
+ * @returns - {@zh 填充完成的翻译字符串，插槽不兼容时返回 `null`} {@en Filled translation string, or `null` when slots are incompatible}
  */
 export const fillTemplate = (
   translationTemplate: string,
@@ -197,7 +205,11 @@ export interface SlotMappingEntry {
 }
 
 /**
- * Convert PlaceholderSlots to a serializable mapping for DB storage.
+ * @zh 将 PlaceholderSlot 数组转换为可序列化的数据库存储格式。
+ * @en Convert PlaceholderSlots to a serializable mapping for DB storage.
+ *
+ * @param slots - {@zh 占位符插槽列表} {@en List of placeholder slots}
+ * @returns - {@zh 可序列化的插槽映射列表} {@en Serializable slot mapping list}
  */
 export const slotsToMapping = (
   slots: PlaceholderSlot[],
@@ -210,9 +222,16 @@ export const slotsToMapping = (
 };
 
 /**
- * Convert a stored slot mapping back to PlaceholderSlots.
- * Note: start/end offsets are not preserved in storage,
- * they are only needed at placeholderize time.
+ * @zh 将存储的插槽映射还原为 PlaceholderSlot 列表。
+ *
+ * 注意：`start`/`end` 偏移量在存储时不保留，还原后均设为 0。
+ * @en Convert a stored slot mapping back to PlaceholderSlots.
+ *
+ * Note: `start`/`end` offsets are not preserved in storage;
+ * they are set to 0 after restoration.
+ *
+ * @param mapping - {@zh 存储的插槽映射列表} {@en Stored slot mapping list}
+ * @returns - {@zh 还原的 PlaceholderSlot 列表} {@en Restored PlaceholderSlot list}
  */
 export const mappingToSlots = (
   mapping: SlotMappingEntry[],

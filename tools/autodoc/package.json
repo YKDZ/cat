@@ -12,11 +12,8 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "fmt:check": "oxfmt --check",
-    "generate": "node dist/cli.js generate",
-    "generate:check": "node dist/cli.js check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix --type-aware",
-    "lookup": "node dist/cli.js lookup",
     "test": "vitest run --config ../../vitest.config.ts --project=unit-autodoc",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
   },

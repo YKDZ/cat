@@ -64,6 +64,16 @@ describe("extractEnInline", () => {
   it("returns undefined for empty string", () => {
     expect(extractEnInline("")).toBeUndefined();
   });
+
+  it("extracts {@en ...} with dash prefix (as in @returns -)", () => {
+    const raw = "- {@zh 语言显示名称} {@en Display name of the language}";
+    expect(extractEnInline(raw)).toBe("Display name of the language");
+  });
+
+  it("returns undefined for dash-prefixed {@zh} only", () => {
+    const raw = "- {@zh 中文描述}";
+    expect(extractEnInline(raw)).toBeUndefined();
+  });
 });
 
 describe("parseTSDoc", () => {

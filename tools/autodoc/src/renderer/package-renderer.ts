@@ -17,11 +17,28 @@ export const createPackageRenderer = (): {
     const nodes: RootContent[] = [md.heading(3, md.inlineCode(sym.name))];
 
     if (sym.kind === "function" && sym.signature) {
+      const hasDescription = !!sym.description;
+      const paramDocs = (sym.parameters ?? []).filter((p) => p.description);
+      const hasReturnDesc = !!sym.returnDescription;
+      const hasJsDoc = hasDescription || paramDocs.length > 0 || hasReturnDesc;
+
       const codeLines: string[] = [];
-      if (sym.description) {
+      if (hasJsDoc) {
         codeLines.push("/**");
-        for (const line of sym.description.split("\n")) {
-          codeLines.push(line ? ` * ${line}` : " *");
+        if (sym.description) {
+          for (const line of sym.description.split("\n")) {
+            codeLines.push(line ? ` * ${line}` : " *");
+          }
+        }
+        if (paramDocs.length > 0) {
+          if (hasDescription) codeLines.push(" *");
+          for (const p of paramDocs) {
+            codeLines.push(` * @param ${p.name} - ${p.description}`);
+          }
+        }
+        if (hasReturnDesc) {
+          if (hasDescription || paramDocs.length > 0) codeLines.push(" *");
+          codeLines.push(` * @returns ${sym.returnDescription}`);
         }
         codeLines.push(" */");
       }

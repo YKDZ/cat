@@ -23,9 +23,17 @@ export type RetrieveEmbeddingsOutput = z.infer<
 >;
 
 /**
- * 获取 chunk 的嵌入向量
+ * @zh 获取 chunk 的嵌入向量。
  *
  * 从 VECTOR_STORAGE 插件中检索指定 chunk 的向量表示。
+ * @en Retrieve embedding vectors for the given chunks.
+ *
+ * Fetches vector representations for the specified chunk IDs from
+ * the VECTOR_STORAGE plugin.
+ *
+ * @param data - {@zh 输入参数，包含要检索的 chunk ID 列表} {@en Input parameters containing the chunk IDs to retrieve}
+ * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @returns - {@zh chunk 的嵌入向量列表及向量存储插件 ID} {@en List of embedding vectors and the vector storage plugin ID}
  */
 export const retrieveEmbeddingsOp = async (
   data: RetrieveEmbeddingsInput,

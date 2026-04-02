@@ -45,7 +45,10 @@ const getParamDescription = (
 const getReturnDescription = (jsdoc: JSDoc | undefined): string | undefined => {
   if (!jsdoc) return undefined;
   const tag = jsdoc.getTags().find((t) => Node.isJSDocReturnTag(t));
-  return tag?.getCommentText()?.toString();
+  const comment = tag?.getCommentText()?.toString();
+  if (!comment) return undefined;
+  // Strip leading dash separator used to prevent TS JSDoc parser conflict
+  return comment.replace(/^-\s*/, "").trim() || undefined;
 };
 
 const getSourceLocation = (

@@ -63,12 +63,22 @@ ${input.memoryTranslation}
 Please adapt the previous translation to fit the new source text.`;
 
 /**
- * Adapt a memory translation to fit the current source text via LLM.
+ * @zh 通过 LLM 将记忆翻译自适应到当前源文本。
+ *
+ * 以下情况返回 `{ adaptedTranslation: null }`：
+ * - 无可用 LLM_PROVIDER 插件
+ * - LLM 返回 `[SKIP]`（文本差异过大）
+ * - LLM 调用过程中发生任何错误
+ * @en Adapt a memory translation to fit the current source text via LLM.
  *
  * Returns `{ adaptedTranslation: null }` when:
  * - No LLM_PROVIDER is available
- * - The LLM signals the texts are too different ([SKIP])
+ * - The LLM signals the texts are too different (`[SKIP]`)
  * - Any error occurs during the LLM call
+ *
+ * @param input - {@zh 自适应输入参数} {@en Adaptation input parameters}
+ * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @returns - {@zh 自适应后的翻译字符串，失败时为 `null`} {@en Adapted translation string, or `null` on failure}
  */
 export const adaptMemoryOp = async (
   input: AdaptMemoryInput,

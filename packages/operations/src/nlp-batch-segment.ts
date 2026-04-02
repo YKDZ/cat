@@ -29,10 +29,20 @@ export type NlpBatchSegmentInput = z.infer<typeof NlpBatchSegmentInputSchema>;
 export type NlpBatchSegmentOutput = z.infer<typeof NlpBatchSegmentOutputSchema>;
 
 /**
- * 批量文本 NLP 分词
+ * @zh 批量文本 NLP 分词。
  *
  * 通过 NLP_WORD_SEGMENTER 插件服务批量进行语言学分词。
  * 当没有可用的 NLP_WORD_SEGMENTER 插件时，自动回退到内置 Intl.Segmenter 逐条处理。
+ * @en Batch NLP segmentation of texts.
+ *
+ * Performs linguistic word segmentation in batch mode via the
+ * NLP_WORD_SEGMENTER plugin service. When no plugin is available,
+ * automatically falls back to the built-in Intl.Segmenter, processing
+ * items one by one.
+ *
+ * @param data - {@zh 批量分词输入参数} {@en Batch segmentation input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 每个 item 的分词结果，包括句子列表和 token 列表} {@en Per-item segmentation results containing sentence and token lists}
  */
 export const nlpBatchSegmentOp = async (
   data: NlpBatchSegmentInput,
