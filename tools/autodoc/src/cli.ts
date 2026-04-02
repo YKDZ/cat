@@ -181,13 +181,22 @@ const runCheck = async (args: string[]): Promise<void> => {
 };
 
 const runLookup = async (args: string[]): Promise<void> => {
-  const query = args[0];
-  if (!query) {
-    console.error("Usage: autodoc lookup <symbol-id-or-name>");
+  const { positionals } = parseArgs({
+    args,
+    options: {
+      config: { type: "string", short: "c" },
+      output: { type: "string", short: "o" },
+    },
+    strict: false,
+    allowPositionals: true,
+  });
+
+  if (positionals.length === 0) {
+    console.error("Usage: autodoc lookup <symbol-id-or-name> [...]");
     process.exit(1);
   }
 
-  const config = await loadConfig(args.slice(1));
+  const config = await loadConfig(args);
   const indexPath = join(config.output.path, ".symbol-index.json");
 
   if (!existsSync(indexPath)) {
@@ -198,20 +207,27 @@ const runLookup = async (args: string[]): Promise<void> => {
   }
 
   const entries = await loadIndex(indexPath);
-  const results = findSymbols(entries, query);
 
-  if (results.length === 0) {
-    console.log(`No symbols found matching "${query}"`);
-    process.exit(1);
+  let hasResults = false;
+  for (const query of positionals) {
+    const results = findSymbols(entries, query);
+    if (results.length === 0) {
+      console.log(`No symbols found matching "${query}"`);
+      continue;
+    }
+    hasResults = true;
+    for (const entry of results) {
+      console.log(entry.id);
+      console.log(`  File: ${entry.filePath}:${entry.line}-${entry.endLine}`);
+      console.log(`  Kind: ${entry.kind}`);
+      console.log(`  Package: ${entry.packageName}`);
+      if (entry.description) console.log(`  Description: ${entry.description}`);
+      console.log();
+    }
   }
 
-  for (const entry of results) {
-    console.log(entry.id);
-    console.log(`  File: ${entry.filePath}:${entry.line}-${entry.endLine}`);
-    console.log(`  Kind: ${entry.kind}`);
-    console.log(`  Package: ${entry.packageName}`);
-    if (entry.description) console.log(`  Description: ${entry.description}`);
-    console.log();
+  if (!hasResults) {
+    process.exit(1);
   }
 };
 
