@@ -1,6 +1,6 @@
 ---
 description: Guides agents to use autodoc skills for efficient codebase exploration.
-applyTo: "**/*"
+paths: ["**/*"]
 ---
 
 # Codebase Exploration via Autodoc
