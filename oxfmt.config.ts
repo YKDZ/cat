@@ -3,7 +3,11 @@ import { defineConfig } from "oxfmt";
 export default defineConfig({
   $schema: "./node_modules/oxfmt/configuration_schema.json",
   printWidth: 80,
-  ignorePatterns: ["**/dist", "**/src/schema/drizzle/**"],
+  ignorePatterns: [
+    "**/dist",
+    "packages/shared/src/schema/drizzle",
+    "apps/docs/src/autodoc",
+  ],
   sortImports: {
     groups: [
       "type-import",
