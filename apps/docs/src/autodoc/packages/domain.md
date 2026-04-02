@@ -4,3678 +4,2878 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-- **Modules**: 240
-- **Exported functions**: 242
-- **Exported types**: 337
+* **Modules**: 230
+
+* **Exported functions**: 242
+
+* **Exported types**: 337
 
 ## Function Index
 
-### src
+### packages/domain/src
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `executeCommand` | execCtx, command, input | `Promise<R>` | - |
-| `executeQuery` | execCtx, query, input | `Promise<R>` | - |
+### `executeCommand`
 
-### src/queries
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listAllProjects` | ctx, _query | `Promise<any>` | - |
-| `listAllUsers` | ctx, _query | `Promise<any>` | - |
-
-### src/infrastructure
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `getDbHandle` | - | `Promise<DrizzleDB>` | - |
-| `getRedisHandle` | - | `Promise<RedisConnection>` | - |
-
-### src/events
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `createEvent` | type, payload, options? | `EventOf<M, T>` | - |
-| `createInProcessCollector` | bus | `EventCollector` | - |
-| `domainEvent` | type, payload | `EventOf<DomainEventMap, T>` | - |
-
-### src/commands
-
-*No exported functions*
-
-### src/capabilities
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `createPluginCapabilities` | execCtx, checkPermission? | `PluginCapabilities` | - |
-
-### src/cache
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `generateCacheKey` | payload | `string` | 生成输入数据的哈希值作为缓存键 |
-| `initCacheStore` | store | `void` | 初始化缓存存储 |
-| `getCacheStore` | - | `CacheStore` | 获取缓存存储实例 |
-| `initSessionStore` | store | `void` | 初始化会话存储 |
-| `getSessionStore` | - | `SessionStore` | 获取会话存储实例 |
-| `withCache` | operation, options | `(input: I) => Promise<O>` | 带缓存的高阶函数包装器
-包装一个异步函数，使其自动使用缓存 |
-
-### src/queries/user
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `getUser` | ctx, query | `Promise<unknown>` | - |
-| `getUserAvatarFile` | ctx, query | `Promise<{} | null>` | - |
-| `getFirstRegisteredUser` | ctx | `Promise<any>` | - |
-
-### src/queries/vector
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `searchChunkCosineSimilarity` | ctx, query | `Promise<any>` | - |
-| `getChunkVectors` | ctx, query | `Promise<any>` | - |
-
-### src/queries/setting
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `getSetting` | ctx, query | `Promise<any>` | - |
-
-### src/queries/translation
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listUserTranslationHistory` | ctx, query | `Promise<{ translations: any; nextCursor: any; hasMore: boolean; }>` | - |
-| `listTranslationsByIds` | ctx, query | `Promise<any>` | - |
-| `listTranslationsByElement` | ctx, query | `Promise<any>` | - |
-| `listQaResultsByTranslation` | ctx, query | `Promise<any>` | - |
-| `getTranslationVoteTotal` | ctx, query | `Promise<number>` | - |
-| `getSelfTranslationVote` | ctx, query | `Promise<unknown>` | - |
-
-### src/queries/session
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listSessionsByUser` | ctx, query | `Promise<any>` | - |
-
-### src/queries/string
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listTranslatableStringsById` | ctx, query | `Promise<any>` | - |
-| `listChunksByStringIds` | ctx, query | `Promise<any>` | - |
-| `listAllTranslatableStrings` | ctx, _ | `Promise<any>` | - |
-| `getTranslatableString` | ctx, query | `Promise<any>` | - |
-| `getStringByValue` | ctx, query | `Promise<any>` | - |
-| `countTranslatableStrings` | ctx, _query | `Promise<any>` | - |
-
-### src/queries/qa
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listQaResultItems` | ctx, query | `Promise<any>` | - |
-| `listDocumentGlossaryIds` | ctx, query | `Promise<any>` | - |
-| `getTranslationQaContext` | ctx, query | `Promise<unknown>` | - |
-
-### src/queries/project
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listProjectsByCreator` | ctx, query | `Promise<{ data: any; total: number; }>` | - |
-| `listProjectDocuments` | ctx, query | `Promise<any>` | - |
-| `listOwnedProjects` | ctx, query | `Promise<any>` | - |
-| `getProject` | ctx, query | `Promise<unknown>` | - |
-| `getProjectTargetLanguages` | ctx, query | `Promise<any>` | - |
-| `countProjectElements` | ctx, query | `Promise<any>` | - |
-
-### src/queries/permission
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `loadUserSystemRoles` | ctx, query | `Promise<any>` | 加载用户的系统级角色（system object 上的权限元组）。
-返回用户对 system:* 持有的所有 relation 列表。 |
-| `listPermissionSubjects` | ctx, query | `Promise<any>` | - |
-| `listPermissionObjects` | ctx, query | `Promise<any>` | - |
-| `getSubjectPermissionTuples` | ctx, query | `Promise<any>` | - |
-
-### src/queries/plugin
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listPlugins` | ctx | `Promise<any>` | - |
-| `listPluginServices` | ctx, query | `Promise<any>` | - |
-| `listPluginServicesForInstallation` | ctx, query | `Promise<any>` | - |
-| `listPluginServiceIdsByType` | ctx, query | `Promise<any>` | - |
-| `listInstalledServicesByType` | ctx, query | `Promise<any>` | - |
-| `listInstalledPlugins` | ctx, query | `Promise<any>` | - |
-| `isPluginInstalled` | ctx, query | `Promise<boolean>` | - |
-| `getPlugin` | ctx, query | `Promise<unknown>` | - |
-| `getPluginServiceByType` | ctx, query | `Promise<unknown>` | - |
-| `getPluginServiceById` | ctx, query | `Promise<unknown>` | - |
-| `getPluginInstallation` | ctx, query | `Promise<unknown>` | - |
-| `getPluginConfig` | ctx, query | `Promise<unknown>` | - |
-| `getPluginConfigInstance` | ctx, query | `Promise<unknown>` | - |
-| `getPluginConfigInstanceByInstallation` | ctx, query | `Promise<any>` | - |
-| `checkServiceReferences` | ctx, query | `Promise<boolean>` | - |
-
-### src/queries/memory
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listProjectMemories` | ctx, query | `Promise<any>` | - |
-| `listOwnedMemories` | ctx, query | `Promise<any>` | - |
-| `listMemorySuggestionsByChunkIds` | ctx, query | `Promise<any>` | - |
-| `listMemoryIdsByProject` | ctx, query | `Promise<any>` | - |
-| `listMemoriesByCreator` | ctx, query | `Promise<{ data: any; total: number; }>` | - |
-| `listExactMemorySuggestions` | ctx, query | `Promise<any>` | - |
-| `listTrgmMemorySuggestions` | ctx, query | `Promise<any>` | - |
-| `listAllMemories` | ctx, _query | `Promise<any>` | - |
-| `getSearchMemoryChunkRange` | ctx, query | `Promise<any[]>` | - |
-| `getMemory` | ctx, query | `Promise<unknown>` | - |
-| `fetchTranslationsForMemory` | ctx, query | `Promise<any>` | - |
-| `countMemoryItems` | ctx, query | `Promise<any>` | - |
-
-### src/queries/login-attempt
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `countRecentAttempts` | ctx, query | `Promise<number>` | - |
-
-### src/queries/language
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listLanguages` | ctx, query | `Promise<{ languages: any; hasMore: boolean; }>` | - |
-| `getLanguage` | ctx, query | `Promise<unknown>` | - |
-
-### src/queries/file
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listAllFiles` | ctx, _query | `Promise<any>` | - |
-| `getFile` | ctx, query | `Promise<unknown>` | - |
-| `getBlobByKey` | ctx, query | `Promise<any>` | - |
-
-### src/queries/glossary
-
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listTermConceptIdsBySubject` | ctx, query | `Promise<any>` | - |
-| `listSemanticTermSearchRange` | ctx, query | `Promise<any>` | - |
-| `listProjectGlossaryIds` | ctx, query | `Promise<any>` | - |
-| `listProjectGlossaries` | ctx, query | `Promise<any>` | - |
-| `listOwnedGlossaries` | ctx, query | `Promise<any>` | - |
-| `listLexicalTermSuggestions` | ctx, query | `Promise<LexicalTermSuggestion[]>` | - |
-| `listGlossaryTermPairs` | ctx, query | `Promise<{ data: any; total: number; }>` | - |
-| `listGlossaryConcepts` | ctx, query | `Promise<{ data: any[]; total: number; }>` | - |
-| `listGlossaryConceptSubjects` | ctx, query | `Promise<any>` | - |
-| `listGlossariesByCreator` | ctx, query | `Promise<{ data: any; total: number; }>` | - |
-| `listConceptSubjectsByConceptIds` | ctx, query | `Promise<any>` | - |
-| `listAllTerms` | ctx, _query | `Promise<any>` | - |
-| `listAllGlossaries` | ctx, _query | `Promise<any>` | - |
-| `getGlossary` | ctx, query | `Promise<unknown>` | - |
-| `getGlossaryConceptDetail` | ctx, query | `Promise<{ concept: {} | undefined; subjects: any; terms: any; availableSubjects: any; } | null>` | - |
-| `getConceptVectorizationSnapshot` | ctx, query | `Promise<{ stringId: any; text: any; } | null>` | - |
-| `fetchTermsByConceptIds` | drizzle, conceptIds, sourceLanguageId, translationLanguageId, confidenceMap? | `Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; }[]>` | Fetch full term pair details for a list of concept IDs.
-
-Unlike `listLexicalTermSuggestions`, this does not perform any matching —
-it simply resolves the source + translation term texts and definition for
-the given concept IDs. Pairs with no matching term in either language are
-omitted. |
-| `buildConceptVectorizationText` | drizzle, conceptId | `Promise<string | null>` | Build a structured text representation of a term concept for embedding
-vectorization, following the genus–differentia definition method.
-
-Output format:
-```
-Terms: creeper、苦力怕、爬行者
-Subjects:
- - 敌对生物: 危险且具侵略性的生物…
-Definition: 绿色的，会悄悄接近玩家并自爆的怪物。
+```ts
+export const executeCommand = async (execCtx: ExecutorContext, command: Command<C, R>, input: C): Promise<R>
 ```
 
-Returns `null` if no meaningful content exists (no terms, no subjects, no
-definition), indicating that this concept should not be vectorized. |
-| `countGlossaryConcepts` | ctx, query | `Promise<any>` | - |
+### `executeQuery`
 
-### src/queries/comment
+```ts
+export const executeQuery = async (execCtx: Pick<ExecutorContext, "db">, query: Query<Q, R>, input: Q): Promise<R>
+```
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listRootComments` | ctx, query | `Promise<any>` | - |
-| `listCommentReactions` | ctx, query | `Promise<any>` | - |
-| `listChildComments` | ctx, query | `Promise<any>` | - |
+### packages/domain/src/cache
 
-### src/queries/element
+### `generateCacheKey`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listElements` | ctx, query | `Promise<any>` | - |
-| `listElementsByDocument` | ctx, query | `Promise<any>` | - |
-| `listElementsForDiff` | ctx, query | `Promise<any>` | - |
-| `listCachedTranslatableStrings` | ctx, query | `Promise<any>` | - |
-| `listAllElements` | ctx, _query | `Promise<any>` | - |
-| `getElementWithChunkIds` | ctx, query | `Promise<unknown>` | - |
-| `getElementSourceLocation` | ctx, query | `Promise<unknown>` | - |
-| `getElementMeta` | ctx, query | `Promise<any>` | - |
-| `getElementInfo` | ctx, query | `Promise<{ elementId: any; documentId: any; sourceText: any; sourceLanguageId: any; sortIndex: any; contexts: any; meta: any; translations: any; }>` | - |
-| `getElementContexts` | ctx, query | `Promise<{ element: unknown; contexts: any; }>` | - |
+```ts
+/**
+ * 生成输入数据的哈希值作为缓存键
+ */
+export const generateCacheKey = (payload: unknown): string
+```
 
-### src/queries/document
+### `initCacheStore`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listElementIdsByDocument` | ctx, query | `Promise<any>` | - |
-| `listDocumentElementsWithChunkIds` | ctx, query | `Promise<any>` | - |
-| `listChunkVectorizationInputs` | ctx, query | `Promise<any>` | - |
-| `getProjectRootDocument` | db, projectId | `Promise<string>` | Query the root document for a project — the document with no parent in the
-closure table. |
-| `getDocument` | ctx, query | `Promise<unknown>` | - |
-| `getDocumentFirstElement` | ctx, query | `Promise<any>` | - |
-| `getDocumentFileExportContext` | ctx, query | `Promise<unknown>` | - |
-| `getDocumentElements` | ctx, query | `Promise<any>` | - |
-| `getDocumentElementTranslationStatus` | ctx, query | `Promise<any>` | - |
-| `getDocumentElementPageIndex` | ctx, query | `Promise<number>` | - |
-| `getDocumentBlobInfo` | ctx, query | `Promise<unknown>` | - |
-| `getChunkVectorStorageId` | ctx, query | `Promise<any>` | - |
-| `getActiveFileName` | ctx, query | `Promise<any>` | - |
-| `getActiveFileBlobInfo` | ctx, query | `Promise<unknown>` | - |
-| `findProjectDocumentByName` | ctx, query | `Promise<unknown>` | - |
-| `countDocumentTranslations` | ctx, query | `Promise<any>` | - |
-| `countDocumentElements` | ctx, query | `Promise<any>` | - |
-| `buildTranslationStatusConditions` | db, isTranslated?, isApproved?, languageId? | `SQL<unknown>[]` | - |
+```ts
+/**
+ * 初始化缓存存储
+ */
+export const initCacheStore = (store: CacheStore)
+```
 
-### src/queries/chunk
+### `getCacheStore`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listAllChunks` | ctx, _ | `Promise<any>` | - |
+```ts
+/**
+ * 获取缓存存储实例
+ */
+export const getCacheStore = (): CacheStore
+```
 
-### src/queries/api-key
+### `initSessionStore`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `listApiKeysByUser` | ctx, query | `Promise<any>` | - |
-| `getApiKeyByHash` | ctx, query | `Promise<any>` | - |
+```ts
+/**
+ * 初始化会话存储
+ */
+export const initSessionStore = (store: SessionStore)
+```
 
-### src/queries/auth
+### `getSessionStore`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `getMfaProviderByServiceAndUser` | ctx, query | `Promise<unknown>` | - |
-| `getAccountMetaByIdentity` | ctx, query | `Promise<any>` | - |
-| `findUserByIdentifier` | ctx, query | `Promise<unknown>` | - |
-| `findAccountByProviderIdentity` | ctx, query | `Promise<unknown>` | - |
+```ts
+/**
+ * 获取会话存储实例
+ */
+export const getSessionStore = (): SessionStore
+```
 
-### src/queries/agent
+### `withCache`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `loadAgentRunSnapshot` | ctx, query | `Promise<any>` | - |
-| `loadAgentRunMetadata` | ctx, query | `Promise<any>` | - |
-| `loadAgentExternalOutputByIdempotency` | ctx, query | `Promise<any>` | - |
-| `listProjectRuns` | ctx, query | `Promise<any>` | - |
-| `listAgentSessions` | ctx, query | `Promise<any>` | - |
-| `listAgentEvents` | ctx, query | `Promise<any>` | - |
-| `listAgentDefinitions` | ctx, query | `Promise<any>` | - |
-| `getRunNodeEvents` | ctx, query | `Promise<any>` | - |
-| `getLatestCompletedRunBlackboard` | ctx, query | `Promise<unknown>` | - |
-| `getAgentSessionRuntimeState` | ctx, query | `Promise<unknown>` | - |
-| `getAgentSessionByExternalId` | ctx, query | `Promise<unknown>` | - |
-| `getAgentRunRuntimeState` | ctx, query | `Promise<unknown>` | - |
-| `getAgentRunInternalId` | ctx, query | `Promise<any>` | - |
-| `getAgentDefinition` | ctx, query | `Promise<unknown>` | - |
-| `getAgentDefinitionByInternalId` | ctx, query | `Promise<unknown>` | - |
-| `findAgentRunByDeduplicationKey` | ctx, query | `Promise<any>` | - |
-| `findAgentDefinitionByNameAndScope` | ctx, query | `Promise<unknown>` | - |
+```ts
+/**
+ * 带缓存的高阶函数包装器
+ * 包装一个异步函数，使其自动使用缓存
+ */
+export const withCache = (operation: (input: I) => Promise<O>, options: CacheOptions): (input: I) => Promise<O>
+```
 
-### src/commands/vector
+### packages/domain/src/capabilities
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `upsertChunkVectors` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `updateVectorDimension` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `ensureVectorStorageSchema` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
+### `createPluginCapabilities`
 
-### src/commands/translation
+```ts
+export const createPluginCapabilities = (execCtx: ExecutorContext, checkPermission?: CheckPermissionFn): PluginCapabilities
+```
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `upsertTranslationVote` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `unapproveTranslation` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
-| `deleteTranslation` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
-| `createTranslations` | ctx, command | `Promise<{ result: any; events: any[]; }>` | - |
-| `autoApproveDocumentTranslations` | ctx, command | `Promise<{ result: any; events: any[]; }>` | - |
-| `approveTranslation` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
+### packages/domain/src/commands/agent
 
-### src/commands/user
+### `createAgentDefinition`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `updateUser` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `updateUserAvatar` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
-| `createUser` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
+```ts
+export const createAgentDefinition: Command<
+  CreateAgentDefinitionCommand,
+  { id: string }
+> = async (ctx: DbContext, command: { name: string; description: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; definition: { id: string; name: string; description: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; systemPrompt: string; tools: string[]; icon?: string | undefined; llm?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; systemPromptVariables?: Record<string, { type: "string" | "number" | "boolean"; source: "input" | "context" | "config"; name?: string | undefined; description?: string | undefined; }> | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; }; isBuiltin: boolean; type?: "GENERAL" | "GHOST_TEXT" | "WORKFLOW" | undefined; }) => {...}
+```
 
-### src/commands/session
+### `createAgentSession`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `revokeSessionRecord` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `createSessionRecord` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
+```ts
+export const createAgentSession: Command<
+  CreateAgentSessionCommand,
+  { sessionId: string }
+> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; documentId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; } | undefined; }) => {...}
+```
 
-### src/commands/string
+### `deleteAgentDefinition`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `createTranslatableStrings` | ctx, command | `Promise<{ result: any; events: never[]; }>` | - |
-| `createChunkSet` | ctx, _command | `Promise<{ result: unknown; events: never[]; }>` | - |
+```ts
+export const deleteAgentDefinition: Command<
+  DeleteAgentDefinitionCommand
+> = async (ctx: DbContext, command: { agentDefinitionId: number; }) => {...}
+```
 
-### src/commands/qa
+### `saveAgentEvent`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `createQaResult` | ctx, command | `Promise<{ result: { id: any; }; events: never[]; }>` | - |
-| `createQaResultWithItems` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `createQaResultItems` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
+```ts
+export const saveAgentEvent: Command<SaveAgentEventCommand> = async (ctx: DbContext, command: { runInternalId: number; eventId: string; parentEventId: string | null; nodeId: string | null; type: string; payload: unknown; timestamp: Date; }) => {...}
+```
 
-### src/commands/setting
+### `saveAgentExternalOutput`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `setSetting` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
+```ts
+export const saveAgentExternalOutput: Command<
+  SaveAgentExternalOutputCommand
+> = async (ctx: DbContext, command: { runInternalId: number; nodeId: string; outputType: string; outputKey: string; payload: unknown; idempotencyKey: string | null; createdAt: Date; }) => {...}
+```
 
-### src/commands/project
+### `saveAgentRunMetadata`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `updateProject` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `unlinkProjectMemories` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `unlinkProjectGlossaries` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `linkProjectMemories` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `linkProjectGlossaries` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `deleteProject` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
-| `createProject` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `createProjectTranslationSnapshot` | ctx, command | `Promise<{ result: any; events: never[]; }>` | - |
-| `addProjectTargetLanguages` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
+```ts
+export const saveAgentRunMetadata: Command<
+  SaveAgentRunMetadataCommand
+> = async (ctx: DbContext, command: { externalId: string; sessionId: number; status: string; graphDefinition: unknown; currentNodeId: string | null; deduplicationKey: string | null; startedAt: Date; completedAt: Date | null; metadata: unknown; }) => {...}
+```
 
-### src/commands/plugin
+### `saveAgentRunSnapshot`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `upsertPluginConfigInstance` | ctx, command | `Promise<{ result: unknown; events: never[]; }>` | - |
-| `updatePluginConfigInstanceValue` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `uninstallPlugin` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `syncPluginServices` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `registerPluginDefinition` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `installPlugin` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `deletePluginServices` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
+```ts
+export const saveAgentRunSnapshot: Command<
+  SaveAgentRunSnapshotCommand
+> = async (ctx: DbContext, command: { externalId: string; snapshot: unknown; }) => {...}
+```
 
-### src/commands/permission
+### `updateAgentDefinition`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `seedSystemRoles` | ctx, _command | `Promise<{ result: undefined; events: never[]; }>` | 幂等地确保 4 个系统角色存在于数据库中。
-使用 INSERT ... ON CONFLICT DO NOTHING。 |
-| `revokePermissionTuple` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | 删除权限关系元组。元组不存在时静默完成（幂等）。 |
-| `insertAuditLogs` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | 批量插入鉴权审计日志。写入失败时静默忽略，不影响业务流程。 |
-| `grantPermissionTuple` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | 插入权限关系元组，已存在则忽略（幂等）。 |
-| `grantFirstUserSuperadmin` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | 检查是否为首位注册用户：若是，自动授予 system#superadmin 权限元组，
-并将 setting "system:first_user_registered" 置为 true。
+```ts
+export const updateAgentDefinition: Command<
+  UpdateAgentDefinitionCommand
+> = async (ctx: DbContext, command: { id: string; name?: string | undefined; description?: string | undefined; definition?: { id: string; name: string; description: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; systemPrompt: string; tools: string[]; icon?: string | undefined; llm?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; systemPromptVariables?: Record<string, { type: "string" | "number" | "boolean"; source: "input" | "context" | "config"; name?: string | undefined; description?: string | undefined; }> | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; } | undefined; }) => {...}
+```
 
-性能优化：只查一次 setting（O(1)），不走 count(*)。
-幂等：若 setting 已存在则直接返回。 |
+### packages/domain/src/commands/api-key
 
-### src/commands/memory
+### `createApiKey`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `createMemory` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `createMemoryItems` | ctx, command | `Promise<{ result: any; events: never[]; }>` | - |
+```ts
+export const createApiKey: Command<
+  CreateApiKeyCommand,
+  { id: number }
+> = async (ctx: DbContext, command: CreateApiKeyCommand) => {...}
+```
 
-### src/commands/login-attempt
+### `revokeApiKey`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `insertLoginAttempt` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
+```ts
+export const revokeApiKey: Command<RevokeApiKeyCommand> = async (ctx: DbContext, command: RevokeApiKeyCommand) => {...}
+```
 
-### src/commands/language
+### `updateApiKeyLastUsed`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `ensureLanguages` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
+```ts
+export const updateApiKeyLastUsed: Command<
+  UpdateApiKeyLastUsedCommand
+> = async (ctx: DbContext, command: UpdateApiKeyLastUsedCommand) => {...}
+```
 
-### src/commands/file
+### packages/domain/src/commands/auth
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `createOrReferenceBlobAndFile` | ctx, command | `Promise<{ result: { blobId: any; fileId: any; referenceCount: any; }; events: never[]; }>` | - |
-| `createBlobAndFile` | ctx, command | `Promise<{ result: { blobId: any; fileId: any; }; events: never[]; }>` | - |
-| `activateFile` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `rollbackBlobAndFile` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `deleteBlobAndFile` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `finalizePresignedFile` | ctx, command | `Promise<{ result: { conflicted: boolean; }; events: never[]; }>` | - |
-| `createFile` | ctx, command | `Promise<{ result: unknown; events: never[]; }>` | - |
-| `createBlob` | ctx, command | `Promise<{ result: unknown; events: never[]; }>` | - |
+### `createAccount`
 
-### src/commands/glossary
+```ts
+export const createAccount: Command<
+  CreateAccountCommand,
+  CreateAccountResult
+> = async (ctx: DbContext, command: { userId: string; authProviderId: number; providerIssuer: string; providedAccountId: string; accountMeta?: any; }) => {...}
+```
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `updateGlossaryConcept` | ctx, command | `Promise<{ result: { updated: boolean; glossaryId: any; }; events: any[]; }>` | - |
-| `setConceptStringId` | ctx, command | `Promise<{ result: { updated: boolean; }; events: any[]; }>` | - |
-| `deleteGlossaryTerm` | ctx, command | `Promise<{ result: { deleted: boolean; conceptId: any; glossaryId: any; }; events: any[]; }>` | - |
-| `createGlossary` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `createGlossaryTerms` | ctx, command | `Promise<{ result: { termIds: any; conceptIds: number[]; }; events: any[]; }>` | - |
-| `createGlossaryConcept` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `createGlossaryConceptSubject` | ctx, command | `Promise<{ result: unknown; events: never[]; }>` | - |
-| `addGlossaryTermToConcept` | ctx, command | `Promise<{ result: { termId: any; conceptId: any; glossaryId: any; }; events: any[]; }>` | - |
+### `createMfaProvider`
 
-### src/commands/element
+```ts
+export const createMfaProvider: Command<
+  CreateMfaProviderCommand,
+  typeof mfaProvider.$inferSelect
+> = async (ctx: DbContext, command: { userId: string; mfaServiceId: number; payload: any; }) => {...}
+```
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `deleteElementsByIds` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `createElements` | ctx, command | `Promise<{ result: any; events: never[]; }>` | - |
-| `bulkUpdateElementsForDiff` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
+### `registerUserWithPasswordAccount`
 
-### src/commands/document
+```ts
+export const registerUserWithPasswordAccount: Command<
+  RegisterUserWithPasswordAccountCommand,
+  RegisterUserWithPasswordAccountResult
+> = async (ctx: DbContext, command: { email: string; name: string; password: string; authProviderId: number; }) => {...}
+```
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `deleteDocument` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
-| `createVectorizedChunks` | ctx, command | `Promise<{ result: { chunkSetIds: any; chunkIds: any; }; events: never[]; }>` | - |
-| `createRootDocument` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `createDocumentUnderParent` | drizzle, input, parentId | `Promise<{ id: string; name: string | null; projectId: string; creatorId: string; fileHandlerId: number | null; fileId: number | null; isDirectory: boolean; createdAt: Date; updatedAt: Date; }>` | Create a new document under the given parent in the closure-table tree.
-If `parentId` is null, the project root document is used as the parent. |
-| `bulkUpdateChunkVectorMetadata` | ctx, command | `Promise<{ result: { updatedCount: any; }; events: never[]; }>` | - |
+### packages/domain/src/commands/comment
 
-### src/commands/auth
+### `createComment`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `registerUserWithPasswordAccount` | ctx, command | `Promise<{ result: { userId: any; providerIssuer: any; providedAccountId: any; }; events: never[]; }>` | - |
-| `createMfaProvider` | ctx, command | `Promise<{ result: unknown; events: never[]; }>` | - |
-| `createAccount` | ctx, command | `Promise<{ result: unknown; events: never[]; }>` | - |
+```ts
+export const createComment: Command<
+  CreateCommentCommand,
+  typeof comment.$inferSelect
+> = async (ctx: DbContext, command: { targetType: "TRANSLATION" | "ELEMENT"; targetId: number; userId: string; content: string; languageId: string; parentCommentId?: number | undefined; }) => {...}
+```
 
-### src/commands/comment
+### `deleteCommentReaction`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `upsertCommentReaction` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
-| `deleteComment` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
-| `deleteCommentReaction` | ctx, command | `Promise<{ result: undefined; events: any[]; }>` | - |
-| `createComment` | ctx, command | `Promise<{ result: unknown; events: any[]; }>` | - |
+```ts
+export const deleteCommentReaction: Command<
+  DeleteCommentReactionCommand
+> = async (ctx: DbContext, command: { commentId: number; userId: string; }) => {...}
+```
 
-### src/commands/api-key
+### `deleteComment`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `updateApiKeyLastUsed` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `revokeApiKey` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `createApiKey` | ctx, command | `Promise<{ result: { id: any; }; events: never[]; }>` | - |
+```ts
+export const deleteComment: Command<DeleteCommentCommand> = async (ctx: DbContext, command: { commentId: number; userId: string; }) => {...}
+```
 
-### src/commands/agent
+### `upsertCommentReaction`
 
-| Function | Parameters | Return Type | Description |
-|----------|------------|-------------|-------------|
-| `updateAgentDefinition` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `saveAgentRunSnapshot` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `saveAgentRunMetadata` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `saveAgentExternalOutput` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `saveAgentEvent` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `deleteAgentDefinition` | ctx, command | `Promise<{ result: undefined; events: never[]; }>` | - |
-| `createAgentSession` | ctx, command | `Promise<{ result: { sessionId: any; }; events: never[]; }>` | - |
-| `createAgentDefinition` | ctx, command | `Promise<{ result: { id: any; }; events: never[]; }>` | - |
+```ts
+export const upsertCommentReaction: Command<
+  UpsertCommentReactionCommand,
+  typeof commentReaction.$inferSelect
+> = async (ctx: DbContext, command: { commentId: number; userId: string; type: "+1" | "-1" | "LAUGH" | "HOORAY" | "CONFUSED" | "HEART" | "ROCKET" | "EYES"; }) => {...}
+```
+
+### packages/domain/src/commands/document
+
+### `bulkUpdateChunkVectorMetadata`
+
+```ts
+export const bulkUpdateChunkVectorMetadata: Command<
+  BulkUpdateChunkVectorMetadataCommand,
+  BulkUpdateChunkVectorMetadataResult
+> = async (ctx: DbContext, command: { chunkIds: number[]; vectorizerId: number; vectorStorageId: number; }) => {...}
+```
+
+### `createDocumentUnderParent`
+
+```ts
+/**
+ * Create a new document under the given parent in the closure-table tree.
+ * If `parentId` is null, the project root document is used as the parent.
+ */
+export const createDocumentUnderParent = async (drizzle: Omit<DrizzleClient, "$client">, input: {
+    name: string;
+    projectId: string;
+    creatorId: string;
+    isDirectory?: boolean;
+    fileId?: number | null;
+    fileHandlerId?: number | null;
+  }, parentId: string | null): Promise<{ id: string; name: string | null; projectId: string; creatorId: string; fileHandlerId: number | null; fileId: number | null; isDirectory: boolean; createdAt: Date; updatedAt: Date; }>
+```
+
+### `createRootDocument`
+
+```ts
+export const createRootDocument: Command<
+  CreateRootDocumentCommand,
+  typeof document.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; creatorId: string; name: string; }) => {...}
+```
+
+### `createVectorizedChunks`
+
+```ts
+export const createVectorizedChunks: Command<
+  CreateVectorizedChunksCommand,
+  CreateVectorizedChunksResult
+> = async (ctx: DbContext, command: { vectorizerId: number; vectorStorageId: number; chunkSetCount: number; chunks: { textIndex: number; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
+```
+
+### `deleteDocument`
+
+```ts
+export const deleteDocument: Command<DeleteDocumentCommand> = async (ctx: DbContext, command: { documentId: string; }) => {...}
+```
+
+### packages/domain/src/commands/element
+
+### `bulkUpdateElementsForDiff`
+
+```ts
+export const bulkUpdateElementsForDiff: Command<
+  BulkUpdateElementsForDiffCommandInput
+> = async (ctx: DbContext, command: { stringIdUpdates?: { id: number; stringId: number; }[] | undefined; sortIndexUpdates?: { id: number; sortIndex: number; }[] | undefined; locationUpdates?: { id: number; sourceStartLine: number | null; sourceEndLine: number | null; sourceLocationMeta: z.core.util.JSONType; }[] | undefined; }) => {...}
+```
+
+### `createElements`
+
+```ts
+export const createElements: Command<CreateElementsCommand, number[]> = async (ctx: DbContext, command: { data: { documentId: string; stringId: number; meta?: z.core.util.JSONType | undefined; creatorId?: string | undefined; sortIndex?: number | undefined; sourceStartLine?: number | null | undefined; sourceEndLine?: number | null | undefined; sourceLocationMeta?: z.core.util.JSONType | undefined; }[]; }) => {...}
+```
+
+### `deleteElementsByIds`
+
+```ts
+export const deleteElementsByIds: Command<DeleteElementsByIdsCommand> = async (ctx: DbContext, command: { elementIds: number[]; }) => {...}
+```
+
+### packages/domain/src/commands/file
+
+### `createBlob`
+
+```ts
+export const createBlob: Command<
+  CreateBlobCommand,
+  typeof blob.$inferSelect
+> = async (ctx: DbContext, command: { key: string; storageProviderId: number; hash?: Buffer<ArrayBufferLike> | undefined; }) => {...}
+```
+
+### `createFile`
+
+```ts
+export const createFile: Command<
+  CreateFileCommand,
+  typeof file.$inferSelect
+> = async (ctx: DbContext, command: { name: string; blobId: number; isActive?: boolean | undefined; }) => {...}
+```
+
+### `createOrReferenceBlobAndFile`
+
+```ts
+export const createOrReferenceBlobAndFile: Command<
+  CreateOrReferenceBlobAndFileCommand,
+  CreateOrReferenceBlobAndFileResult
+> = async (ctx: DbContext, command: { key: string; storageProviderId: number; name: string; hash: Buffer<ArrayBufferLike>; }) => {...}
+```
+
+### `createBlobAndFile`
+
+```ts
+export const createBlobAndFile: Command<
+  CreateBlobAndFileCommand,
+  CreateBlobAndFileResult
+> = async (ctx: DbContext, command: { key: string; storageProviderId: number; name: string; }) => {...}
+```
+
+### `activateFile`
+
+```ts
+export const activateFile: Command<ActivateFileCommand> = async (ctx: DbContext, command: { fileId: number; }) => {...}
+```
+
+### `rollbackBlobAndFile`
+
+```ts
+export const rollbackBlobAndFile: Command<RollbackBlobAndFileCommand> = async (ctx: DbContext, command: { blobId: number; fileId: number; }) => {...}
+```
+
+### `deleteBlobAndFile`
+
+```ts
+export const deleteBlobAndFile: Command<DeleteBlobAndFileCommand> = async (ctx: DbContext, command: { blobId: number; fileId: number; }) => {...}
+```
+
+### `finalizePresignedFile`
+
+```ts
+export const finalizePresignedFile: Command<
+  FinalizePresignedFileCommand,
+  FinalizePresignedFileResult
+> = async (ctx: DbContext, command: { blobId: number; fileId: number; hash: Buffer<ArrayBufferLike>; }) => {...}
+```
+
+### packages/domain/src/commands/glossary
+
+### `addGlossaryTermToConcept`
+
+```ts
+export const addGlossaryTermToConcept: Command<
+  AddGlossaryTermToConceptCommand,
+  AddGlossaryTermToConceptResult
+> = async (ctx: DbContext, command: { conceptId: number; text: string; languageId: string; type: "NOT_SPECIFIED" | "FULL_FORM" | "ACRONYM" | "ABBREVIATION" | "SHORT_FORM" | "VARIANT" | "PHRASE"; status: "NOT_SPECIFIED" | "PREFERRED" | "ADMITTED" | "NOT_RECOMMENDED" | "OBSOLETE"; creatorId?: string | undefined; }) => {...}
+```
+
+### `createGlossaryConceptSubject`
+
+```ts
+export const createGlossaryConceptSubject: Command<
+  CreateGlossaryConceptSubjectCommand,
+  { id: number }
+> = async (ctx: DbContext, command: { glossaryId: string; subject: string; defaultDefinition?: string | undefined; }) => {...}
+```
+
+### `createGlossaryConcept`
+
+```ts
+export const createGlossaryConcept: Command<
+  CreateGlossaryConceptCommand,
+  { id: number }
+> = async (ctx: DbContext, command: { glossaryId: string; definition: string; subjectIds?: number[] | undefined; }) => {...}
+```
+
+### `createGlossaryTerms`
+
+```ts
+export const createGlossaryTerms: Command<
+  CreateGlossaryTermsCommand,
+  CreateGlossaryTermsResult
+> = async (ctx: DbContext, command: { glossaryId: string; data: { term: string; termLanguageId: string; translation: string; translationLanguageId: string; definition?: string | null | undefined; subjectIds?: number[] | null | undefined; conceptId?: number | null | undefined; glossaryId?: string | null | undefined; }[]; creatorId?: string | undefined; }) => {...}
+```
+
+### `createGlossary`
+
+```ts
+export const createGlossary: Command<
+  CreateGlossaryCommand,
+  typeof glossary.$inferSelect
+> = async (ctx: DbContext, command: { name: string; creatorId: string; description?: string | undefined; projectIds?: string[] | undefined; }) => {...}
+```
+
+### `deleteGlossaryTerm`
+
+```ts
+export const deleteGlossaryTerm: Command<
+  DeleteGlossaryTermCommand,
+  DeleteGlossaryTermResult
+> = async (ctx: DbContext, command: { termId: number; }) => {...}
+```
+
+### `setConceptStringId`
+
+```ts
+export const setConceptStringId: Command<
+  SetConceptStringIdCommand,
+  SetConceptStringIdResult
+> = async (ctx: DbContext, command: { conceptId: number; stringId: number | null; }) => {...}
+```
+
+### `updateGlossaryConcept`
+
+```ts
+export const updateGlossaryConcept: Command<
+  UpdateGlossaryConceptCommand,
+  UpdateGlossaryConceptResult
+> = async (ctx: DbContext, command: { conceptId: number; subjectIds?: number[] | undefined; definition?: string | undefined; }) => {...}
+```
+
+### packages/domain/src/commands/language
+
+### `ensureLanguages`
+
+```ts
+export const ensureLanguages: Command<EnsureLanguagesCommand> = async (ctx: DbContext, command: { languageIds: string[]; }) => {...}
+```
+
+### packages/domain/src/commands/login-attempt
+
+### `insertLoginAttempt`
+
+```ts
+export const insertLoginAttempt: Command<InsertLoginAttemptCommand> = async (ctx: DbContext, command: InsertLoginAttemptCommand) => {...}
+```
+
+### packages/domain/src/commands/memory
+
+### `createMemoryItems`
+
+```ts
+export const createMemoryItems: Command<
+  CreateMemoryItemsCommand,
+  number[]
+> = async (ctx: DbContext, command: { memoryId: string; items: { translationId: number | null; translationStringId: number; sourceStringId: number; creatorId: string | null; sourceTemplate: string | null; translationTemplate: string | null; slotMapping: unknown; }[]; }) => {...}
+```
+
+### `createMemory`
+
+```ts
+export const createMemory: Command<
+  CreateMemoryCommand,
+  typeof memory.$inferSelect
+> = async (ctx: DbContext, command: { name: string; creatorId: string; description?: string | undefined; projectIds?: string[] | undefined; }) => {...}
+```
+
+### packages/domain/src/commands/permission
+
+### `grantFirstUserSuperadmin`
+
+```ts
+/**
+ * 检查是否为首位注册用户：若是，自动授予 system#superadmin 权限元组，
+ * 并将 setting "system:first_user_registered" 置为 true。
+ *
+ * 性能优化：只查一次 setting（O(1)），不走 count(*)。
+ * 幂等：若 setting 已存在则直接返回。
+ */
+export const grantFirstUserSuperadmin: Command<
+  GrantFirstUserSuperadminCommand
+> = async (ctx: DbContext, command: { userId: string; }) => {...}
+```
+
+### `grantPermissionTuple`
+
+```ts
+/**
+ * 插入权限关系元组，已存在则忽略（幂等）。
+ */
+export const grantPermissionTuple: Command<
+  GrantPermissionTupleCommand
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+```
+
+### `insertAuditLogs`
+
+```ts
+/**
+ * 批量插入鉴权审计日志。写入失败时静默忽略，不影响业务流程。
+ */
+export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
+```
+
+### `revokePermissionTuple`
+
+```ts
+/**
+ * 删除权限关系元组。元组不存在时静默完成（幂等）。
+ */
+export const revokePermissionTuple: Command<
+  RevokePermissionTupleCommand
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+```
+
+### `seedSystemRoles`
+
+```ts
+/**
+ * 幂等地确保 4 个系统角色存在于数据库中。
+ * 使用 INSERT ... ON CONFLICT DO NOTHING。
+ */
+export const seedSystemRoles: Command<SeedSystemRolesCommand> = async (ctx: DbContext, _command: Record) => {...}
+```
+
+### packages/domain/src/commands/plugin
+
+### `deletePluginServices`
+
+```ts
+export const deletePluginServices: Command<
+  DeletePluginServicesCommand
+> = async (ctx: DbContext, command: { serviceDbIds: number[]; }) => {...}
+```
+
+### `installPlugin`
+
+```ts
+export const installPlugin: Command<InstallPluginCommand> = async (ctx: DbContext, command: { pluginId: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
+### `registerPluginDefinition`
+
+```ts
+export const registerPluginDefinition: Command<
+  RegisterPluginDefinitionCommand
+> = async (ctx: DbContext, command: { pluginId: string; version: string; name: string; entry: string; overview: string; iconUrl: string | null; configSchema?: JSONSchema | undefined; }) => {...}
+```
+
+### `syncPluginServices`
+
+```ts
+export const syncPluginServices: Command<SyncPluginServicesCommand> = async (ctx: DbContext, command: { pluginInstallationId: number; services: { serviceId: string; serviceType: "AUTH_PROVIDER" | "MFA_PROVIDER" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }[]; }) => {...}
+```
+
+### `uninstallPlugin`
+
+```ts
+export const uninstallPlugin: Command<UninstallPluginCommand> = async (ctx: DbContext, command: { installationId: number; }) => {...}
+```
+
+### `updatePluginConfigInstanceValue`
+
+```ts
+export const updatePluginConfigInstanceValue: Command<
+  UpdatePluginConfigInstanceValueCommand
+> = async (ctx: DbContext, command: { instanceId: number; value: any; }) => {...}
+```
+
+### `upsertPluginConfigInstance`
+
+```ts
+export const upsertPluginConfigInstance: Command<
+  UpsertPluginConfigInstanceCommand,
+  typeof pluginConfigInstance.$inferSelect
+> = async (ctx: DbContext, command: { pluginId: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; creatorId: string; value: any; }) => {...}
+```
+
+### packages/domain/src/commands/project
+
+### `addProjectTargetLanguages`
+
+```ts
+export const addProjectTargetLanguages: Command<
+  AddProjectTargetLanguagesCommand
+> = async (ctx: DbContext, command: { projectId: string; languageIds: string[]; }) => {...}
+```
+
+### `createProjectTranslationSnapshot`
+
+```ts
+export const createProjectTranslationSnapshot: Command<
+  CreateProjectTranslationSnapshotCommand,
+  number
+> = async (ctx: DbContext, command: { projectId: string; creatorId?: string | undefined; }) => {...}
+```
+
+### `createProject`
+
+```ts
+export const createProject: Command<
+  CreateProjectCommand,
+  typeof project.$inferSelect
+> = async (ctx: DbContext, command: CreateProjectCommand) => {...}
+```
+
+### `deleteProject`
+
+```ts
+export const deleteProject: Command<DeleteProjectCommand> = async (ctx: DbContext, command: { projectId: string; }) => {...}
+```
+
+### `linkProjectGlossaries`
+
+```ts
+export const linkProjectGlossaries: Command<
+  LinkProjectGlossariesCommand
+> = async (ctx: DbContext, command: { projectId: string; glossaryIds: string[]; }) => {...}
+```
+
+### `linkProjectMemories`
+
+```ts
+export const linkProjectMemories: Command<LinkProjectMemoriesCommand> = async (ctx: DbContext, command: { projectId: string; memoryIds: string[]; }) => {...}
+```
+
+### `unlinkProjectGlossaries`
+
+```ts
+export const unlinkProjectGlossaries: Command<
+  UnlinkProjectGlossariesCommand
+> = async (ctx: DbContext, command: { projectId: string; glossaryIds: string[]; }) => {...}
+```
+
+### `unlinkProjectMemories`
+
+```ts
+export const unlinkProjectMemories: Command<
+  UnlinkProjectMemoriesCommand
+> = async (ctx: DbContext, command: { projectId: string; memoryIds: string[]; }) => {...}
+```
+
+### `updateProject`
+
+```ts
+export const updateProject: Command<
+  UpdateProjectCommand,
+  typeof project.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; name?: string | undefined; description?: string | undefined; }) => {...}
+```
+
+### packages/domain/src/commands/qa
+
+### `createQaResultItems`
+
+```ts
+export const createQaResultItems: Command<CreateQaResultItemsCommand> = async (ctx: DbContext, command: { resultId: number; items: { isPassed: boolean; checkerId: number; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
+```
+
+### `createQaResultWithItems`
+
+```ts
+export const createQaResultWithItems: Command<
+  CreateQaResultWithItemsCommand
+> = async (ctx: DbContext, command: { translationId: number; items: { isPassed: boolean; checkerId: number; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
+```
+
+### `createQaResult`
+
+```ts
+export const createQaResult: Command<
+  CreateQaResultCommand,
+  { id: number }
+> = async (ctx: DbContext, command: { translationId: number; }) => {...}
+```
+
+### packages/domain/src/commands/session
+
+### `createSessionRecord`
+
+```ts
+export const createSessionRecord: Command<CreateSessionRecordCommand> = async (ctx: DbContext, command: CreateSessionRecordCommand) => {...}
+```
+
+### `revokeSessionRecord`
+
+```ts
+export const revokeSessionRecord: Command<RevokeSessionRecordCommand> = async (ctx: DbContext, command: RevokeSessionRecordCommand) => {...}
+```
+
+### packages/domain/src/commands/setting
+
+### `setSetting`
+
+```ts
+export const setSetting: Command<SetSettingCommand> = async (ctx: DbContext, command: { key: string; value: NonNullJSONType; }) => {...}
+```
+
+### packages/domain/src/commands/string
+
+### `createChunkSet`
+
+```ts
+export const createChunkSet: Command<
+  CreateChunkSetCommand,
+  typeof chunkSet.$inferSelect
+> = async (ctx: DbContext, _command: Record) => {...}
+```
+
+### `createTranslatableStrings`
+
+```ts
+export const createTranslatableStrings: Command<
+  CreateTranslatableStringsCommand,
+  number[]
+> = async (ctx: DbContext, command: { chunkSetIds: number[]; data: { text: string; languageId: string; }[]; }) => {...}
+```
+
+### packages/domain/src/commands/translation
+
+### `approveTranslation`
+
+```ts
+export const approveTranslation: Command<ApproveTranslationCommand> = async (ctx: DbContext, command: { translationId: number; }) => {...}
+```
+
+### `autoApproveDocumentTranslations`
+
+```ts
+export const autoApproveDocumentTranslations: Command<
+  AutoApproveDocumentTranslationsCommand,
+  number
+> = async (ctx: DbContext, command: { documentId: string; languageId: string; }) => {...}
+```
+
+### `createTranslations`
+
+```ts
+export const createTranslations: Command<
+  CreateTranslationsCommand,
+  number[]
+> = async (ctx: DbContext, command: { data: { translatableElementId: number; stringId: number; translatorId?: string | null | undefined; meta?: z.core.util.JSONType | undefined; }[]; documentId?: string | undefined; }) => {...}
+```
+
+### `deleteTranslation`
+
+```ts
+export const deleteTranslation: Command<DeleteTranslationCommand> = async (ctx: DbContext, command: { translationId: number; }) => {...}
+```
+
+### `unapproveTranslation`
+
+```ts
+export const unapproveTranslation: Command<
+  UnapproveTranslationCommand
+> = async (ctx: DbContext, command: { translationId: number; }) => {...}
+```
+
+### `upsertTranslationVote`
+
+```ts
+export const upsertTranslationVote: Command<
+  UpsertTranslationVoteCommand,
+  typeof translationVote.$inferSelect
+> = async (ctx: DbContext, command: { translationId: number; voterId: string; value: number; }) => {...}
+```
+
+### packages/domain/src/commands/user
+
+### `createUser`
+
+```ts
+export const createUser: Command<
+  CreateUserCommand,
+  typeof user.$inferSelect
+> = async (ctx: DbContext, command: { email: string; name: string; }) => {...}
+```
+
+### `updateUserAvatar`
+
+```ts
+export const updateUserAvatar: Command<UpdateUserAvatarCommand> = async (ctx: DbContext, command: { userId: string; fileId: number; }) => {...}
+```
+
+### `updateUser`
+
+```ts
+export const updateUser: Command<
+  UpdateUserCommand,
+  typeof user.$inferSelect
+> = async (ctx: DbContext, command: { userId: string; name: string; }) => {...}
+```
+
+### packages/domain/src/commands/vector
+
+### `ensureVectorStorageSchema`
+
+```ts
+export const ensureVectorStorageSchema: Command<
+  EnsureVectorStorageSchemaCommand
+> = async (ctx: DbContext, command: { dimension: number; }) => {...}
+```
+
+### `updateVectorDimension`
+
+```ts
+export const updateVectorDimension: Command<
+  UpdateVectorDimensionCommand
+> = async (ctx: DbContext, command: { dimension: number; }) => {...}
+```
+
+### `upsertChunkVectors`
+
+```ts
+export const upsertChunkVectors: Command<UpsertChunkVectorsCommand> = async (ctx: DbContext, command: { chunks: { chunkId: number; vector: number[]; }[]; }) => {...}
+```
+
+### packages/domain/src/events
+
+### `domainEvent`
+
+```ts
+export const domainEvent = (type: T, payload: DomainEventMap[T]): EventOf<DomainEventMap, T>
+```
+
+### `createInProcessCollector`
+
+```ts
+export const createInProcessCollector = (bus: DomainEventBus): EventCollector
+```
+
+### `createEvent`
+
+```ts
+export const createEvent = (type: T, payload: M[T], options?: CreateEventOptions): EventOf<M, T>
+```
+
+### packages/domain/src/infrastructure
+
+### `getDbHandle`
+
+```ts
+export const getDbHandle = async (): Promise<DrizzleDB>
+```
+
+### `getRedisHandle`
+
+```ts
+export const getRedisHandle = async (): Promise<RedisConnection>
+```
+
+### packages/domain/src/queries
+
+### `listAllProjects`
+
+```ts
+export const listAllProjects: Query<
+  ListAllProjectsQuery,
+  Array<typeof project.$inferSelect>
+> = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### `listAllUsers`
+
+```ts
+export const listAllUsers: Query<
+  ListAllUsersQuery,
+  Array<typeof user.$inferSelect>
+> = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### packages/domain/src/queries/agent
+
+### `findAgentDefinitionByNameAndScope`
+
+```ts
+export const findAgentDefinitionByNameAndScope: Query<
+  FindAgentDefinitionByNameAndScopeQuery,
+  typeof agentDefinition.$inferSelect | null
+> = async (ctx: DbContext, query: { name: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; isBuiltin?: boolean | undefined; }) => {...}
+```
+
+### `findAgentRunByDeduplicationKey`
+
+```ts
+export const findAgentRunByDeduplicationKey: Query<
+  FindAgentRunByDeduplicationKeyQuery,
+  AgentRunMetadataRow | null
+> = async (ctx: DbContext, query: { deduplicationKey: string; }) => {...}
+```
+
+### `getAgentDefinitionByInternalId`
+
+```ts
+export const getAgentDefinitionByInternalId: Query<
+  GetAgentDefinitionByInternalIdQuery,
+  typeof agentDefinition.$inferSelect | null
+> = async (ctx: DbContext, query: { id: number; }) => {...}
+```
+
+### `getAgentDefinition`
+
+```ts
+export const getAgentDefinition: Query<
+  GetAgentDefinitionQuery,
+  typeof agentDefinition.$inferSelect | null
+> = async (ctx: DbContext, query: { id: string; }) => {...}
+```
+
+### `getAgentRunInternalId`
+
+```ts
+export const getAgentRunInternalId: Query<
+  GetAgentRunInternalIdQuery,
+  number | null
+> = async (ctx: DbContext, query: { externalId: string; }) => {...}
+```
+
+### `getAgentRunRuntimeState`
+
+```ts
+export const getAgentRunRuntimeState: Query<
+  GetAgentRunRuntimeStateQuery,
+  AgentRunRuntimeState | null
+> = async (ctx: DbContext, query: { runId: string; }) => {...}
+```
+
+### `getAgentSessionByExternalId`
+
+```ts
+export const getAgentSessionByExternalId: Query<
+  GetAgentSessionByExternalIdQuery,
+  AgentSessionByExternalId | null
+> = async (ctx: DbContext, query: { externalId: string; userId?: string | undefined; }) => {...}
+```
+
+### `getAgentSessionRuntimeState`
+
+```ts
+export const getAgentSessionRuntimeState: Query<
+  GetAgentSessionRuntimeStateQuery,
+  AgentSessionRuntimeState | null
+> = async (ctx: DbContext, query: { sessionId: number; }) => {...}
+```
+
+### `getLatestCompletedRunBlackboard`
+
+```ts
+export const getLatestCompletedRunBlackboard: Query<
+  GetLatestCompletedRunBlackboardQuery,
+  LatestCompletedRunBlackboard
+> = async (ctx: DbContext, query: { sessionId: number; }) => {...}
+```
+
+### `getRunNodeEvents`
+
+```ts
+export const getRunNodeEvents: Query<
+  GetRunNodeEventsQuery,
+  RunNodeEventRow[]
+> = async (ctx: DbContext, query: { runExternalId: string; nodeId: string; }) => {...}
+```
+
+### `listAgentDefinitions`
+
+```ts
+export const listAgentDefinitions: Query<
+  ListAgentDefinitionsQuery,
+  Array<typeof agentDefinition.$inferSelect>
+> = async (ctx: DbContext, query: { scopeType?: "GLOBAL" | "PROJECT" | "USER" | undefined; scopeId?: string | undefined; type?: "GENERAL" | "GHOST_TEXT" | "WORKFLOW" | undefined; }) => {...}
+```
+
+### `listAgentEvents`
+
+```ts
+export const listAgentEvents: Query<
+  ListAgentEventsQuery,
+  AgentEventRow[]
+> = async (ctx: DbContext, query: { runInternalId: number; }) => {...}
+```
+
+### `listAgentSessions`
+
+```ts
+export const listAgentSessions: Query<
+  ListAgentSessionsQuery,
+  Array<typeof agentSession.$inferSelect>
+> = async (ctx: DbContext, query: { userId: string; limit: number; offset: number; agentDefinitionId?: string | undefined; }) => {...}
+```
+
+### `listProjectRuns`
+
+```ts
+export const listProjectRuns: Query<
+  ListProjectRunsQuery,
+  ProjectRunRow[]
+> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "completed" | "pending" | "running" | "paused" | "failed" | "cancelled" | undefined; }) => {...}
+```
+
+### `loadAgentExternalOutputByIdempotency`
+
+```ts
+export const loadAgentExternalOutputByIdempotency: Query<
+  LoadAgentExternalOutputByIdempotencyQuery,
+  AgentExternalOutputRow | null
+> = async (ctx: DbContext, query: { runInternalId: number; idempotencyKey: string; }) => {...}
+```
+
+### `loadAgentRunMetadata`
+
+```ts
+export const loadAgentRunMetadata: Query<
+  LoadAgentRunMetadataQuery,
+  AgentRunMetadataRow | null
+> = async (ctx: DbContext, query: { externalId: string; }) => {...}
+```
+
+### `loadAgentRunSnapshot`
+
+```ts
+export const loadAgentRunSnapshot: Query<
+  LoadAgentRunSnapshotQuery,
+  unknown
+> = async (ctx: DbContext, query: { externalId: string; }) => {...}
+```
+
+### packages/domain/src/queries/api-key
+
+### `getApiKeyByHash`
+
+```ts
+export const getApiKeyByHash: Query<
+  GetApiKeyByHashQuery,
+  ApiKeyRow | null
+> = async (ctx: DbContext, query: GetApiKeyByHashQuery) => {...}
+```
+
+### `listApiKeysByUser`
+
+```ts
+export const listApiKeysByUser: Query<
+  ListApiKeysByUserQuery,
+  ApiKeyRow[]
+> = async (ctx: DbContext, query: ListApiKeysByUserQuery) => {...}
+```
+
+### packages/domain/src/queries/auth
+
+### `findAccountByProviderIdentity`
+
+```ts
+export const findAccountByProviderIdentity: Query<
+  FindAccountByProviderIdentityQuery,
+  AccountIdentity | null
+> = async (ctx: DbContext, query: { providerIssuer: string; providedAccountId: string; authProviderId: number; }) => {...}
+```
+
+### `findUserByIdentifier`
+
+```ts
+export const findUserByIdentifier: Query<
+  FindUserByIdentifierQuery,
+  AuthUserIdentity | null
+> = async (ctx: DbContext, query: { identifier: string; }) => {...}
+```
+
+### `getAccountMetaByIdentity`
+
+```ts
+export const getAccountMetaByIdentity: Query<
+  GetAccountMetaByIdentityQuery,
+  JSONType | null
+> = async (ctx: DbContext, query: { userId: string; providedAccountId: string; providerIssuer: string; }) => {...}
+```
+
+### `getMfaProviderByServiceAndUser`
+
+```ts
+export const getMfaProviderByServiceAndUser: Query<
+  GetMfaProviderByServiceAndUserQuery,
+  typeof mfaProvider.$inferSelect | null
+> = async (ctx: DbContext, query: { userId: string; mfaServiceId: number; }) => {...}
+```
+
+### packages/domain/src/queries/chunk
+
+### `listAllChunks`
+
+```ts
+export const listAllChunks: Query<
+  ListAllChunksQuery,
+  Array<typeof chunk.$inferSelect>
+> = async (ctx: DbContext, _: Record) => {...}
+```
+
+### packages/domain/src/queries/comment
+
+### `listChildComments`
+
+```ts
+export const listChildComments: Query<
+  ListChildCommentsQuery,
+  Array<typeof comment.$inferSelect>
+> = async (ctx: DbContext, query: { rootCommentId: number; }) => {...}
+```
+
+### `listCommentReactions`
+
+```ts
+export const listCommentReactions: Query<
+  ListCommentReactionsQuery,
+  Array<typeof commentReaction.$inferSelect>
+> = async (ctx: DbContext, query: { commentId: number; }) => {...}
+```
+
+### `listRootComments`
+
+```ts
+export const listRootComments: Query<
+  ListRootCommentsQuery,
+  Array<typeof comment.$inferSelect>
+> = async (ctx: DbContext, query: { targetType: "TRANSLATION" | "ELEMENT"; targetId: number; pageIndex: number; pageSize: number; }) => {...}
+```
+
+### packages/domain/src/queries/document
+
+### `buildTranslationStatusConditions`
+
+```ts
+export const buildTranslationStatusConditions = (db: DbHandle, isTranslated?: boolean, isApproved?: boolean, languageId?: string): SQL<unknown>[]
+```
+
+### `countDocumentElements`
+
+```ts
+export const countDocumentElements: Query<
+  CountDocumentElementsQuery,
+  number
+> = async (ctx: DbContext, query: { documentId: string; searchQuery: string; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `countDocumentTranslations`
+
+```ts
+export const countDocumentTranslations: Query<
+  CountDocumentTranslationsQuery,
+  number
+> = async (ctx: DbContext, query: { documentId: string; languageId: string; isApproved?: boolean | undefined; }) => {...}
+```
+
+### `findProjectDocumentByName`
+
+```ts
+export const findProjectDocumentByName: Query<
+  FindProjectDocumentByNameQuery,
+  { id: string } | null
+> = async (ctx: DbContext, query: { projectId: string; name: string; isDirectory: boolean; }) => {...}
+```
+
+### `getActiveFileBlobInfo`
+
+```ts
+export const getActiveFileBlobInfo: Query<
+  GetActiveFileBlobInfoQuery,
+  ActiveFileBlobInfo | null
+> = async (ctx: DbContext, query: { fileId: number; }) => {...}
+```
+
+### `getActiveFileName`
+
+```ts
+export const getActiveFileName: Query<
+  GetActiveFileNameQuery,
+  string | null
+> = async (ctx: DbContext, query: { fileId: number; }) => {...}
+```
+
+### `getChunkVectorStorageId`
+
+```ts
+export const getChunkVectorStorageId: Query<
+  GetChunkVectorStorageIdQuery,
+  number | null
+> = async (ctx: DbContext, query: { chunkId: number; }) => {...}
+```
+
+### `getDocumentBlobInfo`
+
+```ts
+export const getDocumentBlobInfo: Query<
+  GetDocumentBlobInfoQuery,
+  DocumentBlobInfo | null
+> = async (ctx: DbContext, query: { documentId: string; }) => {...}
+```
+
+### `getDocumentElementPageIndex`
+
+```ts
+export const getDocumentElementPageIndex: Query<
+  GetDocumentElementPageIndexQuery,
+  number
+> = async (ctx: DbContext, query: { elementId: number; pageSize: number; searchQuery: string; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `getDocumentElementTranslationStatus`
+
+```ts
+export const getDocumentElementTranslationStatus: Query<
+  GetDocumentElementTranslationStatusQuery,
+  ElementTranslationStatus
+> = async (ctx: DbContext, query: { elementId: number; languageId: string; }) => {...}
+```
+
+### `getDocumentElements`
+
+```ts
+export const getDocumentElements: Query<
+  GetDocumentElementsQuery,
+  DocumentElementRow[]
+> = async (ctx: DbContext, query: { documentId: string; page: number; pageSize: number; searchQuery?: string | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `getDocumentFileExportContext`
+
+```ts
+export const getDocumentFileExportContext: Query<
+  GetDocumentFileExportContextQuery,
+  DocumentFileExportContext | null
+> = async (ctx: DbContext, query: { documentId: string; }) => {...}
+```
+
+### `getDocumentFirstElement`
+
+```ts
+export const getDocumentFirstElement: Query<
+  GetDocumentFirstElementQuery,
+  typeof translatableElement.$inferSelect | null
+> = async (ctx: DbContext, query: { documentId: string; searchQuery: string; greaterThan?: number | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `getDocument`
+
+```ts
+export const getDocument: Query<
+  GetDocumentQuery,
+  typeof document.$inferSelect | null
+> = async (ctx: DbContext, query: { documentId: string; }) => {...}
+```
+
+### `getProjectRootDocument`
+
+```ts
+/**
+ * Query the root document for a project — the document with no parent in the
+ * closure table.
+ */
+export const getProjectRootDocument = async (db: Omit<DrizzleClient, "$client">, projectId: string): Promise<string>
+```
+
+### `listChunkVectorizationInputs`
+
+```ts
+export const listChunkVectorizationInputs: Query<
+  ListChunkVectorizationInputsQuery,
+  ChunkVectorizationInput[]
+> = async (ctx: DbContext, query: { chunkIds: number[]; }) => {...}
+```
+
+### `listDocumentElementsWithChunkIds`
+
+```ts
+export const listDocumentElementsWithChunkIds: Query<
+  ListDocumentElementsWithChunkIdsQuery,
+  DocumentElementWithChunkIds[]
+> = async (ctx: DbContext, query: { documentId: string; }) => {...}
+```
+
+### `listElementIdsByDocument`
+
+```ts
+export const listElementIdsByDocument: Query<
+  ListElementIdsByDocumentQuery,
+  number[]
+> = async (ctx: DbContext, query: { documentId: string; }) => {...}
+```
+
+### packages/domain/src/queries/element
+
+### `getElementContexts`
+
+```ts
+export const getElementContexts: Query<
+  GetElementContextsQuery,
+  GetElementContextsResult
+> = async (ctx: DbContext, query: { elementId: number; }) => {...}
+```
+
+### `getElementInfo`
+
+```ts
+export const getElementInfo: Query<
+  GetElementInfoQuery,
+  ElementInfoQueryResult
+> = async (ctx: DbContext, query: { elementId: number; languageId?: string | undefined; }) => {...}
+```
+
+### `getElementMeta`
+
+```ts
+export const getElementMeta: Query<
+  GetElementMetaQuery,
+  JSONType | null
+> = async (ctx: DbContext, query: { elementId: number; }) => {...}
+```
+
+### `getElementSourceLocation`
+
+```ts
+export const getElementSourceLocation: Query<
+  GetElementSourceLocationQuery,
+  ElementSourceLocationRow
+> = async (ctx: DbContext, query: { elementId: number; }) => {...}
+```
+
+### `getElementWithChunkIds`
+
+```ts
+export const getElementWithChunkIds: Query<
+  GetElementWithChunkIdsQuery,
+  ElementWithChunkIds | null
+> = async (ctx: DbContext, query: { elementId: number; }) => {...}
+```
+
+### `listAllElements`
+
+```ts
+export const listAllElements: Query<
+  ListAllElementsQuery,
+  Array<typeof translatableElement.$inferSelect>
+> = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### `listCachedTranslatableStrings`
+
+```ts
+export const listCachedTranslatableStrings: Query<
+  ListCachedTranslatableStringsQuery,
+  CachedTranslatableString[]
+> = async (ctx: DbContext, query: { items: { text: string; languageId: string; }[]; }) => {...}
+```
+
+### `listElementsForDiff`
+
+```ts
+export const listElementsForDiff: Query<
+  ListElementsForDiffQuery,
+  ElementForDiff[]
+> = async (ctx: DbContext, query: { elementIds: number[]; }) => {...}
+```
+
+### `listElements`
+
+```ts
+export const listElements: Query<
+  ListElementsQuery,
+  ElementWithString[]
+> = async (ctx: DbContext, query: { elementIds: number[]; }) => {...}
+```
+
+### `listElementsByDocument`
+
+```ts
+export const listElementsByDocument: Query<
+  ListElementsByDocumentQuery,
+  ElementWithString[]
+> = async (ctx: DbContext, query: { documentId: string; }) => {...}
+```
+
+### packages/domain/src/queries/file
+
+### `getBlobByKey`
+
+```ts
+export const getBlobByKey: Query<
+  GetBlobByKeyQuery,
+  typeof blob.$inferSelect | null
+> = async (ctx: DbContext, query: { key: string; }) => {...}
+```
+
+### `getFile`
+
+```ts
+export const getFile: Query<
+  GetFileQuery,
+  typeof file.$inferSelect | null
+> = async (ctx: DbContext, query: { fileId: number; }) => {...}
+```
+
+### `listAllFiles`
+
+```ts
+export const listAllFiles: Query<
+  ListAllFilesQuery,
+  Array<typeof file.$inferSelect>
+> = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### packages/domain/src/queries/glossary
+
+### `countGlossaryConcepts`
+
+```ts
+export const countGlossaryConcepts: Query<
+  CountGlossaryConceptsQuery,
+  number
+> = async (ctx: DbContext, query: { glossaryId: string; }) => {...}
+```
+
+### `fetchTermsByConceptIds`
+
+```ts
+/**
+ * Fetch full term pair details for a list of concept IDs.
+ *
+ * Unlike `listLexicalTermSuggestions`, this does not perform any matching —
+ * it simply resolves the source + translation term texts and definition for
+ * the given concept IDs. Pairs with no matching term in either language are
+ * omitted.
+ */
+export const fetchTermsByConceptIds = async (drizzle: DrizzleDB["client"], conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; }[]>
+```
+
+### `buildConceptVectorizationText`
+
+````ts
+/**
+ * Build a structured text representation of a term concept for embedding
+ * vectorization, following the genus–differentia definition method.
+ *
+ * Output format:
+ * ```
+ * Terms: creeper、苦力怕、爬行者
+ * Subjects:
+ *  - 敌对生物: 危险且具侵略性的生物…
+ * Definition: 绿色的，会悄悄接近玩家并自爆的怪物。
+ * ```
+ *
+ * Returns `null` if no meaningful content exists (no terms, no subjects, no
+ * definition), indicating that this concept should not be vectorized.
+ */
+export const buildConceptVectorizationText = async (drizzle: DrizzleDB["client"], conceptId: number): Promise<string | null>
+````
+
+### `getConceptVectorizationSnapshot`
+
+```ts
+export const getConceptVectorizationSnapshot: Query<
+  GetConceptVectorizationSnapshotQuery,
+  ConceptVectorizationSnapshot | null
+> = async (ctx: DbContext, query: { conceptId: number; }) => {...}
+```
+
+### `getGlossaryConceptDetail`
+
+```ts
+export const getGlossaryConceptDetail: Query<
+  GetGlossaryConceptDetailQuery,
+  GlossaryConceptDetail | null
+> = async (ctx: DbContext, query: { glossaryId: string; conceptId: number; }) => {...}
+```
+
+### `getGlossary`
+
+```ts
+export const getGlossary: Query<
+  GetGlossaryQuery,
+  typeof glossary.$inferSelect | null
+> = async (ctx: DbContext, query: { glossaryId: string; }) => {...}
+```
+
+### `listAllGlossaries`
+
+```ts
+export const listAllGlossaries: Query<
+  ListAllGlossariesQuery,
+  Array<typeof glossary.$inferSelect>
+> = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### `listAllTerms`
+
+```ts
+export const listAllTerms: Query<ListAllTermsQuery, TermWithConcept[]> = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### `listConceptSubjectsByConceptIds`
+
+```ts
+export const listConceptSubjectsByConceptIds: Query<
+  ListConceptSubjectsByConceptIdsQuery,
+  ConceptSubjectRow[]
+> = async (ctx: DbContext, query: { conceptIds: number[]; }) => {...}
+```
+
+### `listGlossariesByCreator`
+
+```ts
+export const listGlossariesByCreator: Query<
+  ListGlossariesByCreatorQuery,
+  ListGlossariesByCreatorResult
+> = async (ctx: DbContext, query: { creatorId: string; pageIndex?: number | undefined; pageSize?: number | undefined; }) => {...}
+```
+
+### `listGlossaryConceptSubjects`
+
+```ts
+export const listGlossaryConceptSubjects: Query<
+  ListGlossaryConceptSubjectsQuery,
+  GlossaryConceptSubject[]
+> = async (ctx: DbContext, query: { glossaryId: string; }) => {...}
+```
+
+### `listGlossaryConcepts`
+
+```ts
+export const listGlossaryConcepts: Query<
+  ListGlossaryConceptsQuery,
+  ListGlossaryConceptsResult
+> = async (ctx: DbContext, query: { glossaryId: string; pageIndex: number; pageSize: number; }) => {...}
+```
+
+### `listGlossaryTermPairs`
+
+```ts
+export const listGlossaryTermPairs: Query<
+  ListGlossaryTermPairsQuery,
+  ListGlossaryTermPairsResult
+> = async (ctx: DbContext, query: { glossaryId: string; sourceLanguageId: string; targetLanguageId: string; pageIndex: number; pageSize: number; }) => {...}
+```
+
+### `listLexicalTermSuggestions`
+
+```ts
+export const listLexicalTermSuggestions: Query<
+  ListLexicalTermSuggestionsQuery,
+  LexicalTermSuggestion[]
+> = async (ctx: DbContext, query: { glossaryIds: string[]; text: string; sourceLanguageId: string; translationLanguageId: string; wordSimilarityThreshold: number; }) => {...}
+```
+
+### `listOwnedGlossaries`
+
+```ts
+export const listOwnedGlossaries: Query<
+  ListOwnedGlossariesQuery,
+  Array<typeof glossary.$inferSelect>
+> = async (ctx: DbContext, query: { creatorId: string; }) => {...}
+```
+
+### `listProjectGlossaries`
+
+```ts
+export const listProjectGlossaries: Query<
+  ListProjectGlossariesQuery,
+  Array<typeof glossary.$inferSelect>
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listProjectGlossaryIds`
+
+```ts
+export const listProjectGlossaryIds: Query<
+  ListProjectGlossaryIdsQuery,
+  string[]
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listSemanticTermSearchRange`
+
+```ts
+export const listSemanticTermSearchRange: Query<
+  ListSemanticTermSearchRangeQuery,
+  SemanticTermSearchRangeRow[]
+> = async (ctx: DbContext, query: { glossaryIds: string[]; }) => {...}
+```
+
+### `listTermConceptIdsBySubject`
+
+```ts
+export const listTermConceptIdsBySubject: Query<
+  ListTermConceptIdsBySubjectQuery,
+  number[]
+> = async (ctx: DbContext, query: { subjectId: number; }) => {...}
+```
+
+### packages/domain/src/queries/language
+
+### `getLanguage`
+
+```ts
+export const getLanguage: Query<
+  GetLanguageQuery,
+  typeof language.$inferSelect | null
+> = async (ctx: DbContext, query: { languageId: string; }) => {...}
+```
+
+### `listLanguages`
+
+```ts
+export const listLanguages: Query<
+  ListLanguagesQuery,
+  ListLanguagesResult
+> = async (ctx: DbContext, query: { page: number; pageSize: number; searchQuery: string; }) => {...}
+```
+
+### packages/domain/src/queries/login-attempt
+
+### `countRecentAttempts`
+
+```ts
+export const countRecentAttempts: Query<
+  CountRecentAttemptsQuery,
+  number
+> = async (ctx: DbContext, query: CountRecentAttemptsQuery) => {...}
+```
+
+### packages/domain/src/queries/memory
+
+### `countMemoryItems`
+
+```ts
+export const countMemoryItems: Query<CountMemoryItemsQuery, number> = async (ctx: DbContext, query: { memoryId: string; }) => {...}
+```
+
+### `fetchTranslationsForMemory`
+
+```ts
+export const fetchTranslationsForMemory: Query<
+  FetchTranslationsForMemoryQuery,
+  TranslationForMemoryRow[]
+> = async (ctx: DbContext, query: { translationIds: number[]; }) => {...}
+```
+
+### `getMemory`
+
+```ts
+export const getMemory: Query<
+  GetMemoryQuery,
+  typeof memory.$inferSelect | null
+> = async (ctx: DbContext, query: { memoryId: string; }) => {...}
+```
+
+### `getSearchMemoryChunkRange`
+
+```ts
+export const getSearchMemoryChunkRange: Query<
+  GetSearchMemoryChunkRangeQuery,
+  number[]
+> = async (ctx: DbContext, query: { memoryIds: string[]; sourceLanguageId: string; translationLanguageId: string; }) => {...}
+```
+
+### `listAllMemories`
+
+```ts
+export const listAllMemories: Query<
+  ListAllMemoriesQuery,
+  Array<typeof memory.$inferSelect>
+> = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### `listExactMemorySuggestions`
+
+```ts
+export const listExactMemorySuggestions: Query<
+  ListExactMemorySuggestionsQuery,
+  RawMemorySuggestion[]
+> = async (ctx: DbContext, query: { text: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; maxAmount: number; }) => {...}
+```
+
+### `listTrgmMemorySuggestions`
+
+```ts
+export const listTrgmMemorySuggestions: Query<
+  ListTrgmMemorySuggestionsQuery,
+  RawMemorySuggestion[]
+> = async (ctx: DbContext, query: { text: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; minSimilarity: number; maxAmount: number; }) => {...}
+```
+
+### `listMemoriesByCreator`
+
+```ts
+export const listMemoriesByCreator: Query<
+  ListMemoriesByCreatorQuery,
+  ListMemoriesByCreatorResult
+> = async (ctx: DbContext, query: { creatorId: string; pageIndex?: number | undefined; pageSize?: number | undefined; }) => {...}
+```
+
+### `listMemoryIdsByProject`
+
+```ts
+export const listMemoryIdsByProject: Query<
+  ListMemoryIdsByProjectQuery,
+  string[]
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listMemorySuggestionsByChunkIds`
+
+```ts
+export const listMemorySuggestionsByChunkIds: Query<
+  ListMemorySuggestionsByChunkIdsQuery,
+  MemorySuggestionCandidateRow[]
+> = async (ctx: DbContext, query: { searchedChunkIds: number[]; memoryIds: string[]; maxAmount: number; sourceLanguageId: string; translationLanguageId: string; }) => {...}
+```
+
+### `listOwnedMemories`
+
+```ts
+export const listOwnedMemories: Query<
+  ListOwnedMemoriesQuery,
+  Array<typeof memory.$inferSelect>
+> = async (ctx: DbContext, query: { creatorId: string; }) => {...}
+```
+
+### `listProjectMemories`
+
+```ts
+export const listProjectMemories: Query<
+  ListProjectMemoriesQuery,
+  Array<typeof memory.$inferSelect>
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### packages/domain/src/queries/permission
+
+### `getSubjectPermissionTuples`
+
+```ts
+export const getSubjectPermissionTuples: Query<
+  GetSubjectPermissionTuplesQuery,
+  SubjectPermissionTupleRow[]
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+```
+
+### `listPermissionObjects`
+
+```ts
+export const listPermissionObjects: Query<
+  ListPermissionObjectsQuery,
+  PermissionObjectRow[]
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member")[] | undefined; }) => {...}
+```
+
+### `listPermissionSubjects`
+
+```ts
+export const listPermissionSubjects: Query<
+  ListPermissionSubjectsQuery,
+  PermissionSubjectRow[]
+> = async (ctx: DbContext, query: { objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | undefined; }) => {...}
+```
+
+### `loadUserSystemRoles`
+
+```ts
+/**
+ * 加载用户的系统级角色（system object 上的权限元组）。
+ * 返回用户对 system:* 持有的所有 relation 列表。
+ */
+export const loadUserSystemRoles: Query<
+  LoadUserSystemRolesQuery,
+  UserSystemRole[]
+> = async (ctx: DbContext, query: { userId: string; }) => {...}
+```
+
+### packages/domain/src/queries/plugin
+
+### `checkServiceReferences`
+
+```ts
+export const checkServiceReferences: Query<
+  CheckServiceReferencesQuery,
+  boolean
+> = async (ctx: DbContext, query: { serviceDbId: number; }) => {...}
+```
+
+### `getPluginConfigInstanceByInstallation`
+
+```ts
+export const getPluginConfigInstanceByInstallation: Query<
+  GetPluginConfigInstanceByInstallationQuery,
+  PluginConfigInstanceData | null
+> = async (ctx: DbContext, query: { pluginId: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
+### `getPluginConfigInstance`
+
+```ts
+export const getPluginConfigInstance: Query<
+  GetPluginConfigInstanceQuery,
+  typeof pluginConfigInstance.$inferSelect | null
+> = async (ctx: DbContext, query: { pluginId: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
+### `getPluginConfig`
+
+```ts
+export const getPluginConfig: Query<
+  GetPluginConfigQuery,
+  typeof pluginConfig.$inferSelect | null
+> = async (ctx: DbContext, query: { pluginId: string; }) => {...}
+```
+
+### `getPluginInstallation`
+
+```ts
+export const getPluginInstallation: Query<
+  GetPluginInstallationQuery,
+  { id: number } | null
+> = async (ctx: DbContext, query: { pluginId: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
+### `getPluginServiceById`
+
+```ts
+export const getPluginServiceById: Query<
+  GetPluginServiceByIdQuery,
+  PluginServiceIdentity | null
+> = async (ctx: DbContext, query: { serviceDbId: number; serviceType: "AUTH_PROVIDER" | "MFA_PROVIDER" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }) => {...}
+```
+
+### `getPluginServiceByType`
+
+```ts
+export const getPluginServiceByType: Query<
+  GetPluginServiceByTypeQuery,
+  typeof pluginService.$inferSelect | null
+> = async (ctx: DbContext, query: { serviceType: string; }) => {...}
+```
+
+### `getPlugin`
+
+```ts
+export const getPlugin: Query<
+  GetPluginQuery,
+  typeof plugin.$inferSelect | null
+> = async (ctx: DbContext, query: { pluginId: string; }) => {...}
+```
+
+### `isPluginInstalled`
+
+```ts
+export const isPluginInstalled: Query<IsPluginInstalledQuery, boolean> = async (ctx: DbContext, query: { pluginId: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
+### `listInstalledPlugins`
+
+```ts
+export const listInstalledPlugins: Query<
+  ListInstalledPluginsQuery,
+  { pluginId: string }[]
+> = async (ctx: DbContext, query: { scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
+### `listInstalledServicesByType`
+
+```ts
+export const listInstalledServicesByType: Query<
+  ListInstalledServicesByTypeQuery,
+  InstalledServiceRecord[]
+> = async (ctx: DbContext, query: { serviceType: "AUTH_PROVIDER" | "MFA_PROVIDER" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
+### `listPluginServiceIdsByType`
+
+```ts
+export const listPluginServiceIdsByType: Query<
+  ListPluginServiceIdsByTypeQuery,
+  string[]
+> = async (ctx: DbContext, query: { serviceType: "AUTH_PROVIDER" | "MFA_PROVIDER" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }) => {...}
+```
+
+### `listPluginServicesForInstallation`
+
+```ts
+export const listPluginServicesForInstallation: Query<
+  ListPluginServicesForInstallationQuery,
+  PluginServiceRecord[]
+> = async (ctx: DbContext, query: { pluginId: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
+### `listPluginServices`
+
+```ts
+export const listPluginServices: Query<
+  ListPluginServicesQuery,
+  PluginServiceDbRecord[]
+> = async (ctx: DbContext, query: { pluginInstallationId: number; }) => {...}
+```
+
+### `listPlugins`
+
+```ts
+export const listPlugins: Query<
+  ListPluginsQuery,
+  (typeof plugin.$inferSelect)[]
+> = async (ctx: DbContext) => {...}
+```
+
+### packages/domain/src/queries/project
+
+### `countProjectElements`
+
+```ts
+export const countProjectElements: Query<
+  CountProjectElementsQuery,
+  number
+> = async (ctx: DbContext, query: { projectId: string; isTranslated?: boolean | undefined; isApproved?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `getProjectTargetLanguages`
+
+```ts
+export const getProjectTargetLanguages: Query<
+  GetProjectTargetLanguagesQuery,
+  Array<typeof language.$inferSelect>
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `getProject`
+
+```ts
+export const getProject: Query<
+  GetProjectQuery,
+  typeof project.$inferSelect | null
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listOwnedProjects`
+
+```ts
+export const listOwnedProjects: Query<
+  ListOwnedProjectsQuery,
+  Array<typeof project.$inferSelect>
+> = async (ctx: DbContext, query: { creatorId: string; }) => {...}
+```
+
+### `listProjectDocuments`
+
+```ts
+export const listProjectDocuments: Query<
+  ListProjectDocumentsQuery,
+  ProjectDocumentRow[]
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listProjectsByCreator`
+
+```ts
+export const listProjectsByCreator: Query<
+  ListProjectsByCreatorQuery,
+  ListProjectsByCreatorResult
+> = async (ctx: DbContext, query: { creatorId: string; pageIndex?: number | undefined; pageSize?: number | undefined; }) => {...}
+```
+
+### packages/domain/src/queries/qa
+
+### `getTranslationQaContext`
+
+```ts
+export const getTranslationQaContext: Query<
+  GetTranslationQaContextQuery,
+  TranslationQaContext | null
+> = async (ctx: DbContext, query: { translationId: number; }) => {...}
+```
+
+### `listDocumentGlossaryIds`
+
+```ts
+export const listDocumentGlossaryIds: Query<
+  ListDocumentGlossaryIdsQuery,
+  string[]
+> = async (ctx: DbContext, query: { documentId: string; }) => {...}
+```
+
+### `listQaResultItems`
+
+```ts
+export const listQaResultItems: Query<
+  ListQaResultItemsQuery,
+  Array<typeof qaResultItem.$inferSelect>
+> = async (ctx: DbContext, query: { qaResultId: number; }) => {...}
+```
+
+### packages/domain/src/queries/session
+
+### `listSessionsByUser`
+
+```ts
+export const listSessionsByUser: Query<
+  ListSessionsByUserQuery,
+  SessionRecordRow[]
+> = async (ctx: DbContext, query: ListSessionsByUserQuery) => {...}
+```
+
+### packages/domain/src/queries/setting
+
+### `getSetting`
+
+```ts
+export const getSetting: Query<GetSettingQuery, JSONType | null> = async (ctx: DbContext, query: { key: string; }) => {...}
+```
+
+### packages/domain/src/queries/string
+
+### `countTranslatableStrings`
+
+```ts
+export const countTranslatableStrings: Query<
+  CountTranslatableStringsQuery,
+  number
+> = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### `getStringByValue`
+
+```ts
+export const getStringByValue: Query<
+  GetStringByValueQuery,
+  typeof translatableString.$inferSelect | null
+> = async (ctx: DbContext, query: { value: string; languageId: string; }) => {...}
+```
+
+### `getTranslatableString`
+
+```ts
+export const getTranslatableString: Query<
+  GetTranslatableStringQuery,
+  typeof translatableString.$inferSelect | null
+> = async (ctx: DbContext, query: { stringId: number; }) => {...}
+```
+
+### `listAllTranslatableStrings`
+
+```ts
+export const listAllTranslatableStrings: Query<
+  ListAllTranslatableStringsQuery,
+  Array<typeof translatableString.$inferSelect>
+> = async (ctx: DbContext, _: Record) => {...}
+```
+
+### `listChunksByStringIds`
+
+```ts
+export const listChunksByStringIds: Query<
+  ListChunksByStringIdsQuery,
+  Array<typeof chunk.$inferSelect>
+> = async (ctx: DbContext, query: { stringIds: number[]; }) => {...}
+```
+
+### `listTranslatableStringsById`
+
+```ts
+export const listTranslatableStringsById: Query<
+  ListTranslatableStringsByIdQuery,
+  Array<typeof translatableString.$inferSelect>
+> = async (ctx: DbContext, query: { stringIds: number[]; }) => {...}
+```
+
+### packages/domain/src/queries/translation
+
+### `getSelfTranslationVote`
+
+```ts
+export const getSelfTranslationVote: Query<
+  GetSelfTranslationVoteQuery,
+  typeof translationVote.$inferSelect | null
+> = async (ctx: DbContext, query: { translationId: number; voterId: string; }) => {...}
+```
+
+### `getTranslationVoteTotal`
+
+```ts
+export const getTranslationVoteTotal: Query<
+  GetTranslationVoteTotalQuery,
+  number
+> = async (ctx: DbContext, query: { translationId: number; }) => {...}
+```
+
+### `listQaResultsByTranslation`
+
+```ts
+export const listQaResultsByTranslation: Query<
+  ListQaResultsByTranslationQuery,
+  Array<typeof qaResult.$inferSelect>
+> = async (ctx: DbContext, query: { translationId: number; }) => {...}
+```
+
+### `listTranslationsByElement`
+
+```ts
+export const listTranslationsByElement: Query<
+  ListTranslationsByElementQuery,
+  TranslationListItem[]
+> = async (ctx: DbContext, query: { elementId: number; languageId: string; }) => {...}
+```
+
+### `listTranslationsByIds`
+
+```ts
+export const listTranslationsByIds: Query<
+  ListTranslationsByIdsQuery,
+  TranslationWithVoteAndText[]
+> = async (ctx: DbContext, query: { translationIds: number[]; }) => {...}
+```
+
+### `listUserTranslationHistory`
+
+```ts
+export const listUserTranslationHistory: Query<
+  ListUserTranslationHistoryQuery,
+  ListUserTranslationHistoryResult
+> = async (ctx: DbContext, query: { projectId: string; userId: string; limit: number; sourceLanguageId?: string | undefined; translationLanguageId?: string | undefined; cursor?: number | undefined; }) => {...}
+```
+
+### packages/domain/src/queries/user
+
+### `getFirstRegisteredUser`
+
+```ts
+export const getFirstRegisteredUser: Query<
+  Record<string, never>,
+  { id: string } | null
+> = async (ctx: DbContext) => {...}
+```
+
+### `getUserAvatarFile`
+
+```ts
+export const getUserAvatarFile: Query<
+  GetUserAvatarFileQuery,
+  UserAvatarFileRef | null
+> = async (ctx: DbContext, query: { userId: string; }) => {...}
+```
+
+### `getUser`
+
+```ts
+export const getUser: Query<
+  GetUserQuery,
+  typeof user.$inferSelect | null
+> = async (ctx: DbContext, query: { userId: string; }) => {...}
+```
+
+### packages/domain/src/queries/vector
+
+### `getChunkVectors`
+
+```ts
+export const getChunkVectors: Query<
+  GetChunkVectorsQuery,
+  VectorChunk[]
+> = async (ctx: DbContext, query: { chunkIds: number[]; }) => {...}
+```
+
+### `searchChunkCosineSimilarity`
+
+```ts
+export const searchChunkCosineSimilarity: Query<
+  SearchChunkCosineSimilarityQuery,
+  ChunkCosineSimilarityItem[]
+> = async (ctx: DbContext, query: { vectors: number[][]; chunkIdRange: number[]; minSimilarity: number; maxAmount: number; }) => {...}
+```
 
 ## Type Index
 
-| Type | Kind | Description |
-|------|------|-------------|
-| `DbHandle` | type | - |
-| `DbContext` | type | - |
-| `CommandResult` | type | - |
-| `Query` | type | - |
-| `Command` | type | - |
-| `OperationContext` | type | Cross-cutting context passed through operation chains.
-Contains a trace ID for distributed tracing, an optional abort signal,
-and an optional plugin manager instance override. |
-| `ExecutorContext` | type | - |
-| `ListAllProjectsQuery` | type | - |
-| `ListAllUsersQuery` | type | - |
-| `EventMap` | type | - |
-| `EventOf` | type | - |
-| `AnyEventOf` | type | - |
-| `TypedEventHandler` | type | - |
-| `WaitForEventOptions` | type | - |
-| `TypedEventBus` | type | - |
-| `CreateEventOptions` | type | - |
-| `EventCollector` | type | - |
-| `DomainEventMap` | type | - |
-| `DomainEvent` | type | - |
-| `DomainEventType` | type | - |
-| `DomainEventBus` | type | - |
-| `ProjectCapabilities` | type | - |
-| `DocumentCapabilities` | type | - |
-| `TranslationCapabilities` | type | - |
-| `SettingCapabilities` | type | - |
-| `AuthCapabilities` | type | - |
-| `VectorCapabilities` | type | - |
-| `LanguageCapabilities` | type | - |
-| `UserCapabilities` | type | - |
-| `CommentCapabilities` | type | - |
-| `AgentCapabilities` | type | - |
-| `ElementCapabilities` | type | - |
-| `QaCapabilities` | type | - |
-| `GlossaryCapabilities` | type | - |
-| `MemoryCapabilities` | type | - |
-| `PluginCapabilities` | type | - |
-| `CacheStore` | interface | 缓存存储接口 |
-| `SessionStore` | interface | 会话存储接口（基于 Hash 结构） |
-| `CacheOptions` | type | 缓存配置选项 |
-| `GetUserQuery` | type | - |
-| `GetUserAvatarFileQuery` | type | - |
-| `UserAvatarFileRef` | type | - |
-| `SearchChunkCosineSimilarityQuery` | type | - |
-| `ChunkCosineSimilarityItem` | type | - |
-| `GetChunkVectorsQuery` | type | - |
-| `VectorChunk` | type | - |
-| `GetSettingQuery` | type | - |
-| `ListUserTranslationHistoryQuery` | type | - |
-| `ListUserTranslationHistoryResult` | type | - |
-| `ListTranslationsByIdsQuery` | type | - |
-| `TranslationWithVoteAndText` | type | - |
-| `ListTranslationsByElementQuery` | type | - |
-| `TranslationListItem` | type | - |
-| `ListQaResultsByTranslationQuery` | type | - |
-| `GetTranslationVoteTotalQuery` | type | - |
-| `GetSelfTranslationVoteQuery` | type | - |
-| `ListSessionsByUserQuery` | interface | - |
-| `SessionRecordRow` | interface | - |
-| `ListTranslatableStringsByIdQuery` | type | - |
-| `ListChunksByStringIdsQuery` | type | - |
-| `ListAllTranslatableStringsQuery` | type | - |
-| `GetTranslatableStringQuery` | type | - |
-| `GetStringByValueQuery` | type | - |
-| `CountTranslatableStringsQuery` | type | - |
-| `ListQaResultItemsQuery` | type | - |
-| `ListDocumentGlossaryIdsQuery` | type | - |
-| `GetTranslationQaContextQuery` | type | - |
-| `TranslationQaContext` | type | - |
-| `ListProjectsByCreatorQuery` | type | - |
-| `ListProjectsByCreatorResult` | type | - |
-| `ListProjectDocumentsQuery` | type | - |
-| `ProjectDocumentRow` | type | - |
-| `ListOwnedProjectsQuery` | type | - |
-| `GetProjectQuery` | type | - |
-| `GetProjectTargetLanguagesQuery` | type | - |
-| `CountProjectElementsQuery` | type | - |
-| `LoadUserSystemRolesQuery` | type | - |
-| `UserSystemRole` | type | - |
-| `ListPermissionSubjectsQuery` | type | - |
-| `PermissionSubjectRow` | type | - |
-| `ListPermissionObjectsQuery` | type | - |
-| `PermissionObjectRow` | type | - |
-| `GetSubjectPermissionTuplesQuery` | type | - |
-| `SubjectPermissionTupleRow` | type | - |
-| `ListPluginsQuery` | type | - |
-| `ListPluginServicesQuery` | type | - |
-| `PluginServiceDbRecord` | type | - |
-| `ListPluginServicesForInstallationQuery` | type | - |
-| `PluginServiceRecord` | type | - |
-| `ListPluginServiceIdsByTypeQuery` | type | - |
-| `ListInstalledServicesByTypeQuery` | type | - |
-| `InstalledServiceRecord` | type | - |
-| `ListInstalledPluginsQuery` | type | - |
-| `IsPluginInstalledQuery` | type | - |
-| `GetPluginQuery` | type | - |
-| `GetPluginServiceByTypeQuery` | type | - |
-| `GetPluginServiceByIdQuery` | type | - |
-| `PluginServiceIdentity` | type | - |
-| `GetPluginInstallationQuery` | type | - |
-| `GetPluginConfigQuery` | type | - |
-| `GetPluginConfigInstanceQuery` | type | - |
-| `GetPluginConfigInstanceByInstallationQuery` | type | - |
-| `PluginConfigInstanceData` | type | - |
-| `CheckServiceReferencesQuery` | type | - |
-| `ListProjectMemoriesQuery` | type | - |
-| `ListOwnedMemoriesQuery` | type | - |
-| `ListMemorySuggestionsByChunkIdsQuery` | type | - |
-| `MemorySuggestionCandidateRow` | type | - |
-| `ListMemoryIdsByProjectQuery` | type | - |
-| `ListMemoriesByCreatorQuery` | type | - |
-| `ListMemoriesByCreatorResult` | type | - |
-| `RawMemorySuggestion` | type | - |
-| `ListExactMemorySuggestionsQuery` | type | - |
-| `ListTrgmMemorySuggestionsQuery` | type | - |
-| `ListAllMemoriesQuery` | type | - |
-| `GetSearchMemoryChunkRangeQuery` | type | - |
-| `GetMemoryQuery` | type | - |
-| `FetchTranslationsForMemoryQuery` | type | - |
-| `TranslationForMemoryRow` | type | - |
-| `CountMemoryItemsQuery` | type | - |
-| `CountRecentAttemptsQuery` | interface | - |
-| `ListLanguagesQuery` | type | - |
-| `ListLanguagesResult` | type | - |
-| `GetLanguageQuery` | type | - |
-| `ListAllFilesQuery` | type | - |
-| `GetFileQuery` | type | - |
-| `GetBlobByKeyQuery` | type | - |
-| `ListTermConceptIdsBySubjectQuery` | type | - |
-| `ListSemanticTermSearchRangeQuery` | type | - |
-| `SemanticTermSearchRangeRow` | type | - |
-| `ListProjectGlossaryIdsQuery` | type | - |
-| `ListProjectGlossariesQuery` | type | - |
-| `ListOwnedGlossariesQuery` | type | - |
-| `ListLexicalTermSuggestionsQuery` | type | - |
-| `LexicalTermSuggestion` | type | - |
-| `ListGlossaryTermPairsQuery` | type | - |
-| `GlossaryTermPairData` | type | - |
-| `ListGlossaryTermPairsResult` | type | - |
-| `ListGlossaryConceptsQuery` | type | - |
-| `GlossaryConceptData` | type | - |
-| `ListGlossaryConceptsResult` | type | - |
-| `ListGlossaryConceptSubjectsQuery` | type | - |
-| `GlossaryConceptSubject` | type | - |
-| `ListGlossariesByCreatorQuery` | type | - |
-| `ListGlossariesByCreatorResult` | type | - |
-| `ListConceptSubjectsByConceptIdsQuery` | type | - |
-| `ConceptSubjectRow` | type | - |
-| `ListAllTermsQuery` | type | - |
-| `TermWithConcept` | type | - |
-| `ListAllGlossariesQuery` | type | - |
-| `GetGlossaryQuery` | type | - |
-| `GetGlossaryConceptDetailQuery` | type | - |
-| `GlossaryConceptDetail` | type | - |
-| `GetConceptVectorizationSnapshotQuery` | type | - |
-| `ConceptVectorizationSnapshot` | type | - |
-| `LookedUpTerm` | type | Represents a resolved term pair (source + translation) for a given concept.
-Alias to TermMatch from |
-| `CountGlossaryConceptsQuery` | type | - |
-| `ListRootCommentsQuery` | type | - |
-| `ListCommentReactionsQuery` | type | - |
-| `ListChildCommentsQuery` | type | - |
-| `ListElementsQuery` | type | - |
-| `ElementWithString` | type | - |
-| `ListElementsByDocumentQuery` | type | - |
-| `ListElementsForDiffQuery` | type | - |
-| `ElementForDiff` | type | - |
-| `ListCachedTranslatableStringsQuery` | type | - |
-| `CachedTranslatableString` | type | - |
-| `ListAllElementsQuery` | type | - |
-| `GetElementWithChunkIdsQuery` | type | - |
-| `ElementWithChunkIds` | type | - |
-| `GetElementSourceLocationQuery` | type | - |
-| `ElementSourceLocationRow` | type | - |
-| `GetElementMetaQuery` | type | - |
-| `GetElementInfoQuery` | type | - |
-| `ElementInfoQueryResult` | type | - |
-| `GetElementContextsQuery` | type | - |
-| `GetElementContextsResult` | type | - |
-| `ListElementIdsByDocumentQuery` | type | - |
-| `ListDocumentElementsWithChunkIdsQuery` | type | - |
-| `DocumentElementWithChunkIds` | type | - |
-| `ListChunkVectorizationInputsQuery` | type | - |
-| `ChunkVectorizationInput` | type | - |
-| `GetDocumentQuery` | type | - |
-| `GetDocumentFirstElementQuery` | type | - |
-| `GetDocumentFileExportContextQuery` | type | - |
-| `DocumentFileExportContext` | type | - |
-| `ElementTranslationStatus` | type | - |
-| `GetDocumentElementsQuery` | type | - |
-| `DocumentElementRow` | type | - |
-| `GetDocumentElementTranslationStatusQuery` | type | - |
-| `GetDocumentElementPageIndexQuery` | type | - |
-| `GetDocumentBlobInfoQuery` | type | - |
-| `DocumentBlobInfo` | type | - |
-| `GetChunkVectorStorageIdQuery` | type | - |
-| `GetActiveFileNameQuery` | type | - |
-| `GetActiveFileBlobInfoQuery` | type | - |
-| `ActiveFileBlobInfo` | type | - |
-| `FindProjectDocumentByNameQuery` | type | - |
-| `CountDocumentTranslationsQuery` | type | - |
-| `CountDocumentElementsQuery` | type | - |
-| `ListAllChunksQuery` | type | - |
-| `ListApiKeysByUserQuery` | interface | - |
-| `GetApiKeyByHashQuery` | interface | - |
-| `ApiKeyRow` | interface | - |
-| `GetMfaProviderByServiceAndUserQuery` | type | - |
-| `GetAccountMetaByIdentityQuery` | type | - |
-| `FindUserByIdentifierQuery` | type | - |
-| `AuthUserIdentity` | type | - |
-| `FindAccountByProviderIdentityQuery` | type | - |
-| `AccountIdentity` | type | - |
-| `LoadAgentRunSnapshotQuery` | type | - |
-| `LoadAgentRunMetadataQuery` | type | - |
-| `AgentRunMetadataRow` | type | - |
-| `LoadAgentExternalOutputByIdempotencyQuery` | type | - |
-| `AgentExternalOutputRow` | type | - |
-| `ListProjectRunsQuery` | type | - |
-| `ProjectRunRow` | type | - |
-| `ListAgentSessionsQuery` | type | - |
-| `ListAgentEventsQuery` | type | - |
-| `AgentEventRow` | type | - |
-| `ListAgentDefinitionsQuery` | type | - |
-| `GetRunNodeEventsQuery` | type | - |
-| `RunNodeEventRow` | type | - |
-| `GetLatestCompletedRunBlackboardQuery` | type | - |
-| `LatestCompletedRunBlackboard` | type | - |
-| `GetAgentSessionRuntimeStateQuery` | type | - |
-| `AgentSessionRuntimeState` | type | - |
-| `GetAgentSessionByExternalIdQuery` | type | - |
-| `AgentSessionByExternalId` | type | - |
-| `GetAgentRunRuntimeStateQuery` | type | - |
-| `AgentRunRuntimeState` | type | - |
-| `GetAgentRunInternalIdQuery` | type | - |
-| `GetAgentDefinitionQuery` | type | - |
-| `GetAgentDefinitionByInternalIdQuery` | type | - |
-| `FindAgentRunByDeduplicationKeyQuery` | type | - |
-| `FindAgentDefinitionByNameAndScopeQuery` | type | - |
-| `UpsertChunkVectorsCommand` | type | - |
-| `UpdateVectorDimensionCommand` | type | - |
-| `EnsureVectorStorageSchemaCommand` | type | - |
-| `UpsertTranslationVoteCommand` | type | - |
-| `UnapproveTranslationCommand` | type | - |
-| `DeleteTranslationCommand` | type | - |
-| `CreateTranslationsCommand` | type | - |
-| `AutoApproveDocumentTranslationsCommand` | type | - |
-| `ApproveTranslationCommand` | type | - |
-| `UpdateUserCommand` | type | - |
-| `UpdateUserAvatarCommand` | type | - |
-| `CreateUserCommand` | type | - |
-| `RevokeSessionRecordCommand` | interface | - |
-| `CreateSessionRecordCommand` | interface | - |
-| `CreateTranslatableStringsCommand` | type | - |
-| `CreateChunkSetCommand` | type | - |
-| `CreateQaResultCommand` | type | - |
-| `CreateQaResultWithItemsCommand` | type | - |
-| `CreateQaResultItemsCommand` | type | - |
-| `SetSettingCommand` | type | - |
-| `UpdateProjectCommand` | type | - |
-| `UnlinkProjectMemoriesCommand` | type | - |
-| `UnlinkProjectGlossariesCommand` | type | - |
-| `LinkProjectMemoriesCommand` | type | - |
-| `LinkProjectGlossariesCommand` | type | - |
-| `DeleteProjectCommand` | type | - |
-| `CreateProjectCommand` | type | - |
-| `CreateProjectTranslationSnapshotCommand` | type | - |
-| `AddProjectTargetLanguagesCommand` | type | - |
-| `UpsertPluginConfigInstanceCommand` | type | - |
-| `UpdatePluginConfigInstanceValueCommand` | type | - |
-| `UninstallPluginCommand` | type | - |
-| `SyncPluginServicesCommand` | type | - |
-| `RegisterPluginDefinitionCommand` | type | - |
-| `InstallPluginCommand` | type | - |
-| `DeletePluginServicesCommand` | type | - |
-| `SeedSystemRolesCommand` | type | - |
-| `RevokePermissionTupleCommand` | type | - |
-| `AuditLogEntry` | type | - |
-| `InsertAuditLogsCommand` | type | - |
-| `GrantPermissionTupleCommand` | type | - |
-| `GrantFirstUserSuperadminCommand` | type | - |
-| `CreateMemoryCommand` | type | - |
-| `CreateMemoryItemsCommand` | type | - |
-| `CreatedMemoryItemId` | type | - |
-| `InsertLoginAttemptCommand` | interface | - |
-| `EnsureLanguagesCommand` | type | - |
-| `CreateOrReferenceBlobAndFileCommand` | type | - |
-| `CreateOrReferenceBlobAndFileResult` | type | - |
-| `CreateBlobAndFileCommand` | type | - |
-| `CreateBlobAndFileResult` | type | - |
-| `ActivateFileCommand` | type | - |
-| `RollbackBlobAndFileCommand` | type | - |
-| `DeleteBlobAndFileCommand` | type | - |
-| `FinalizePresignedFileCommand` | type | - |
-| `FinalizePresignedFileResult` | type | - |
-| `CreateFileCommand` | type | - |
-| `CreateBlobCommand` | type | - |
-| `UpdateGlossaryConceptCommand` | type | - |
-| `UpdateGlossaryConceptResult` | type | - |
-| `SetConceptStringIdCommand` | type | - |
-| `SetConceptStringIdResult` | type | - |
-| `DeleteGlossaryTermCommand` | type | - |
-| `DeleteGlossaryTermResult` | type | - |
-| `CreateGlossaryCommand` | type | - |
-| `CreateGlossaryTermsCommand` | type | - |
-| `CreateGlossaryTermsResult` | type | - |
-| `CreateGlossaryConceptCommand` | type | - |
-| `CreateGlossaryConceptSubjectCommand` | type | - |
-| `AddGlossaryTermToConceptCommand` | type | - |
-| `AddGlossaryTermToConceptResult` | type | - |
-| `DeleteElementsByIdsCommand` | type | - |
-| `CreateElementsCommand` | type | - |
-| `BulkUpdateElementsForDiffCommand` | type | - |
-| `BulkUpdateElementsForDiffCommandInput` | type | - |
-| `DeleteDocumentCommand` | type | - |
-| `CreateVectorizedChunksCommand` | type | - |
-| `CreateVectorizedChunksResult` | type | - |
-| `CreateRootDocumentCommand` | type | - |
-| `BulkUpdateChunkVectorMetadataCommand` | type | - |
-| `BulkUpdateChunkVectorMetadataResult` | type | - |
-| `RegisterUserWithPasswordAccountCommand` | type | - |
-| `RegisterUserWithPasswordAccountResult` | type | - |
-| `CreateMfaProviderCommand` | type | - |
-| `CreateAccountCommand` | type | - |
-| `CreateAccountResult` | type | - |
-| `UpsertCommentReactionCommand` | type | - |
-| `DeleteCommentCommand` | type | - |
-| `DeleteCommentReactionCommand` | type | - |
-| `CreateCommentCommand` | type | - |
-| `UpdateApiKeyLastUsedCommand` | interface | - |
-| `RevokeApiKeyCommand` | interface | - |
-| `CreateApiKeyCommand` | interface | - |
-| `UpdateAgentDefinitionCommand` | type | - |
-| `SaveAgentRunSnapshotCommand` | type | - |
-| `SaveAgentRunMetadataCommand` | type | - |
-| `SaveAgentExternalOutputCommand` | type | - |
-| `SaveAgentEventCommand` | type | - |
-| `DeleteAgentDefinitionCommand` | type | - |
-| `CreateAgentSessionCommand` | type | - |
-| `CreateAgentDefinitionCommand` | type | - |
-
-## Detailed Documentation
-
-### src
-
-#### `executeCommand`
-
-```typescript
-async executeCommand(execCtx: ExecutorContext, command: Command<C, R>, input: C): Promise<R>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| execCtx | `ExecutorContext` | - |
-| command | `Command<C, R>` | - |
-| input | `C` | - |
-
-#### `executeQuery`
-
-```typescript
-async executeQuery(execCtx: Pick<ExecutorContext, "db">, query: Query<Q, R>, input: Q): Promise<R>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| execCtx | `Pick<ExecutorContext, "db">` | - |
-| query | `Query<Q, R>` | - |
-| input | `Q` | - |
-
-### src/queries
-
-#### `listAllProjects`
-
-```typescript
-async listAllProjects(ctx: any, _query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _query | `any` | - |
-
-#### `listAllUsers`
-
-```typescript
-async listAllUsers(ctx: any, _query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _query | `any` | - |
-
-### src/infrastructure
-
-#### `getDbHandle`
-
-```typescript
-async getDbHandle(): Promise<DrizzleDB>
-```
-
-#### `getRedisHandle`
-
-```typescript
-async getRedisHandle(): Promise<RedisConnection>
-```
-
-### src/events
-
-#### `createEvent`
-
-```typescript
-createEvent(type: T, payload: M[T], options?: CreateEventOptions | undefined): EventOf<M, T>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| type | `T` | - |
-| payload | `M[T]` | - |
-| options? | `CreateEventOptions | undefined` | - |
-
-#### `createInProcessCollector`
-
-```typescript
-createInProcessCollector(bus: DomainEventBus): EventCollector
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| bus | `DomainEventBus` | - |
-
-#### `domainEvent`
-
-```typescript
-domainEvent(type: T, payload: DomainEventMap[T]): EventOf<DomainEventMap, T>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| type | `T` | - |
-| payload | `DomainEventMap[T]` | - |
-
-### src/commands
-
-### src/capabilities
-
-#### `createPluginCapabilities`
-
-```typescript
-createPluginCapabilities(execCtx: ExecutorContext, checkPermission?: CheckPermissionFn | undefined): PluginCapabilities
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| execCtx | `ExecutorContext` | - |
-| checkPermission? | `CheckPermissionFn | undefined` | - |
-
-### src/cache
-
-#### `generateCacheKey`
-
-生成输入数据的哈希值作为缓存键
-
-```typescript
-generateCacheKey(payload: unknown): string
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| payload | `unknown` | - |
-
-#### `initCacheStore`
-
-初始化缓存存储
-
-```typescript
-initCacheStore(store: CacheStore)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| store | `CacheStore` | - |
-
-#### `getCacheStore`
-
-获取缓存存储实例
-
-```typescript
-getCacheStore(): CacheStore
-```
-
-#### `initSessionStore`
-
-初始化会话存储
-
-```typescript
-initSessionStore(store: SessionStore)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| store | `SessionStore` | - |
-
-#### `getSessionStore`
-
-获取会话存储实例
-
-```typescript
-getSessionStore(): SessionStore
-```
-
-#### `withCache`
-
-带缓存的高阶函数包装器
-包装一个异步函数，使其自动使用缓存
-
-```typescript
-withCache(operation: (input: I) => Promise<O>, options: CacheOptions): (input: I) => Promise<O>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| operation | `(input: I) => Promise<O>` | - |
-| options | `CacheOptions` | - |
-
-### src/queries/user
-
-#### `getUser`
-
-```typescript
-async getUser(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getUserAvatarFile`
-
-```typescript
-async getUserAvatarFile(ctx: any, query: any): Promise<{} | null>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getFirstRegisteredUser`
-
-```typescript
-async getFirstRegisteredUser(ctx: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-
-### src/queries/vector
-
-#### `searchChunkCosineSimilarity`
-
-```typescript
-async searchChunkCosineSimilarity(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getChunkVectors`
-
-```typescript
-async getChunkVectors(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/setting
-
-#### `getSetting`
-
-```typescript
-async getSetting(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/translation
-
-#### `listUserTranslationHistory`
-
-```typescript
-async listUserTranslationHistory(ctx: any, query: any): Promise<{ translations: any; nextCursor: any; hasMore: boolean; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listTranslationsByIds`
-
-```typescript
-async listTranslationsByIds(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listTranslationsByElement`
-
-```typescript
-async listTranslationsByElement(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listQaResultsByTranslation`
-
-```typescript
-async listQaResultsByTranslation(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getTranslationVoteTotal`
-
-```typescript
-async getTranslationVoteTotal(ctx: any, query: any): Promise<number>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getSelfTranslationVote`
-
-```typescript
-async getSelfTranslationVote(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/session
-
-#### `listSessionsByUser`
-
-```typescript
-async listSessionsByUser(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/string
-
-#### `listTranslatableStringsById`
-
-```typescript
-async listTranslatableStringsById(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listChunksByStringIds`
-
-```typescript
-async listChunksByStringIds(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listAllTranslatableStrings`
-
-```typescript
-async listAllTranslatableStrings(ctx: any, _: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _ | `any` | - |
-
-#### `getTranslatableString`
-
-```typescript
-async getTranslatableString(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getStringByValue`
-
-```typescript
-async getStringByValue(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `countTranslatableStrings`
-
-```typescript
-async countTranslatableStrings(ctx: any, _query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _query | `any` | - |
-
-### src/queries/qa
-
-#### `listQaResultItems`
-
-```typescript
-async listQaResultItems(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listDocumentGlossaryIds`
-
-```typescript
-async listDocumentGlossaryIds(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getTranslationQaContext`
-
-```typescript
-async getTranslationQaContext(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/project
-
-#### `listProjectsByCreator`
-
-```typescript
-async listProjectsByCreator(ctx: any, query: any): Promise<{ data: any; total: number; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listProjectDocuments`
-
-```typescript
-async listProjectDocuments(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listOwnedProjects`
-
-```typescript
-async listOwnedProjects(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getProject`
-
-```typescript
-async getProject(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getProjectTargetLanguages`
-
-```typescript
-async getProjectTargetLanguages(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `countProjectElements`
-
-```typescript
-async countProjectElements(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/permission
-
-#### `loadUserSystemRoles`
-
-加载用户的系统级角色（system object 上的权限元组）。
-返回用户对 system:* 持有的所有 relation 列表。
-
-```typescript
-async loadUserSystemRoles(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listPermissionSubjects`
-
-```typescript
-async listPermissionSubjects(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listPermissionObjects`
-
-```typescript
-async listPermissionObjects(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getSubjectPermissionTuples`
-
-```typescript
-async getSubjectPermissionTuples(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/plugin
-
-#### `listPlugins`
-
-```typescript
-async listPlugins(ctx: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-
-#### `listPluginServices`
-
-```typescript
-async listPluginServices(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listPluginServicesForInstallation`
-
-```typescript
-async listPluginServicesForInstallation(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listPluginServiceIdsByType`
-
-```typescript
-async listPluginServiceIdsByType(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listInstalledServicesByType`
-
-```typescript
-async listInstalledServicesByType(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listInstalledPlugins`
-
-```typescript
-async listInstalledPlugins(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `isPluginInstalled`
-
-```typescript
-async isPluginInstalled(ctx: any, query: any): Promise<boolean>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getPlugin`
-
-```typescript
-async getPlugin(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getPluginServiceByType`
-
-```typescript
-async getPluginServiceByType(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getPluginServiceById`
-
-```typescript
-async getPluginServiceById(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getPluginInstallation`
-
-```typescript
-async getPluginInstallation(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getPluginConfig`
-
-```typescript
-async getPluginConfig(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getPluginConfigInstance`
-
-```typescript
-async getPluginConfigInstance(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getPluginConfigInstanceByInstallation`
-
-```typescript
-async getPluginConfigInstanceByInstallation(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `checkServiceReferences`
-
-```typescript
-async checkServiceReferences(ctx: any, query: any): Promise<boolean>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/memory
-
-#### `listProjectMemories`
-
-```typescript
-async listProjectMemories(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listOwnedMemories`
-
-```typescript
-async listOwnedMemories(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listMemorySuggestionsByChunkIds`
-
-```typescript
-async listMemorySuggestionsByChunkIds(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listMemoryIdsByProject`
-
-```typescript
-async listMemoryIdsByProject(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listMemoriesByCreator`
-
-```typescript
-async listMemoriesByCreator(ctx: any, query: any): Promise<{ data: any; total: number; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listExactMemorySuggestions`
-
-```typescript
-async listExactMemorySuggestions(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listTrgmMemorySuggestions`
-
-```typescript
-async listTrgmMemorySuggestions(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listAllMemories`
-
-```typescript
-async listAllMemories(ctx: any, _query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _query | `any` | - |
-
-#### `getSearchMemoryChunkRange`
-
-```typescript
-async getSearchMemoryChunkRange(ctx: any, query: any): Promise<any[]>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getMemory`
-
-```typescript
-async getMemory(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `fetchTranslationsForMemory`
-
-```typescript
-async fetchTranslationsForMemory(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `countMemoryItems`
-
-```typescript
-async countMemoryItems(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/login-attempt
-
-#### `countRecentAttempts`
-
-```typescript
-async countRecentAttempts(ctx: any, query: any): Promise<number>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/language
-
-#### `listLanguages`
-
-```typescript
-async listLanguages(ctx: any, query: any): Promise<{ languages: any; hasMore: boolean; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getLanguage`
-
-```typescript
-async getLanguage(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/file
-
-#### `listAllFiles`
-
-```typescript
-async listAllFiles(ctx: any, _query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _query | `any` | - |
-
-#### `getFile`
-
-```typescript
-async getFile(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getBlobByKey`
-
-```typescript
-async getBlobByKey(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/glossary
-
-#### `listTermConceptIdsBySubject`
-
-```typescript
-async listTermConceptIdsBySubject(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listSemanticTermSearchRange`
-
-```typescript
-async listSemanticTermSearchRange(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listProjectGlossaryIds`
-
-```typescript
-async listProjectGlossaryIds(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listProjectGlossaries`
-
-```typescript
-async listProjectGlossaries(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listOwnedGlossaries`
-
-```typescript
-async listOwnedGlossaries(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listLexicalTermSuggestions`
-
-```typescript
-async listLexicalTermSuggestions(ctx: any, query: any): Promise<LexicalTermSuggestion[]>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listGlossaryTermPairs`
-
-```typescript
-async listGlossaryTermPairs(ctx: any, query: any): Promise<{ data: any; total: number; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listGlossaryConcepts`
-
-```typescript
-async listGlossaryConcepts(ctx: any, query: any): Promise<{ data: any[]; total: number; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listGlossaryConceptSubjects`
-
-```typescript
-async listGlossaryConceptSubjects(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listGlossariesByCreator`
-
-```typescript
-async listGlossariesByCreator(ctx: any, query: any): Promise<{ data: any; total: number; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listConceptSubjectsByConceptIds`
-
-```typescript
-async listConceptSubjectsByConceptIds(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listAllTerms`
-
-```typescript
-async listAllTerms(ctx: any, _query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _query | `any` | - |
-
-#### `listAllGlossaries`
-
-```typescript
-async listAllGlossaries(ctx: any, _query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _query | `any` | - |
-
-#### `getGlossary`
-
-```typescript
-async getGlossary(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getGlossaryConceptDetail`
-
-```typescript
-async getGlossaryConceptDetail(ctx: any, query: any): Promise<{ concept: {} | undefined; subjects: any; terms: any; availableSubjects: any; } | null>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getConceptVectorizationSnapshot`
-
-```typescript
-async getConceptVectorizationSnapshot(ctx: any, query: any): Promise<{ stringId: any; text: any; } | null>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `fetchTermsByConceptIds`
-
-Fetch full term pair details for a list of concept IDs.
-
-Unlike `listLexicalTermSuggestions`, this does not perform any matching —
-it simply resolves the source + translation term texts and definition for
-the given concept IDs. Pairs with no matching term in either language are
-omitted.
-
-```typescript
-async fetchTermsByConceptIds(drizzle: import("/workspaces/cat/node_modules/.pnpm/drizzle-orm@1.0.0-beta.19_@electric-sql+pglite@0.3.14_@opentelemetry+api@1.9.0_@sinclai_f2302f5647c9146a1eb62ddcfa7c9e59/node_modules/drizzle-orm/node-postgres/driver").NodePgDatabase<import("/workspaces/cat/packages/db/dist/index").DrizzleSchema, import("/workspaces/cat/packages/db/dist/index").EmptyRelations> & { $client: import("/workspaces/cat/node_modules/.pnpm/@types+pg@8.18.0/node_modules/@types/pg/index").Client; }, conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number> | undefined): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; }[]>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| drizzle | `import("/workspaces/cat/node_modules/.pnpm/drizzle-orm@1.0.0-beta.19_@electric-sql+pglite@0.3.14_@opentelemetry+api@1.9.0_@sinclai_f2302f5647c9146a1eb62ddcfa7c9e59/node_modules/drizzle-orm/node-postgres/driver").NodePgDatabase<import("/workspaces/cat/packages/db/dist/index").DrizzleSchema, import("/workspaces/cat/packages/db/dist/index").EmptyRelations> & { $client: import("/workspaces/cat/node_modules/.pnpm/@types+pg@8.18.0/node_modules/@types/pg/index").Client; }` | - |
-| conceptIds | `number[]` | - |
-| sourceLanguageId | `string` | - |
-| translationLanguageId | `string` | - |
-| confidenceMap? | `Map<number, number> | undefined` | - |
-
-#### `buildConceptVectorizationText`
-
-Build a structured text representation of a term concept for embedding
-vectorization, following the genus–differentia definition method.
-
-Output format:
-```
-Terms: creeper、苦力怕、爬行者
-Subjects:
- - 敌对生物: 危险且具侵略性的生物…
-Definition: 绿色的，会悄悄接近玩家并自爆的怪物。
-```
-
-Returns `null` if no meaningful content exists (no terms, no subjects, no
-definition), indicating that this concept should not be vectorized.
-
-```typescript
-async buildConceptVectorizationText(drizzle: import("/workspaces/cat/node_modules/.pnpm/drizzle-orm@1.0.0-beta.19_@electric-sql+pglite@0.3.14_@opentelemetry+api@1.9.0_@sinclai_f2302f5647c9146a1eb62ddcfa7c9e59/node_modules/drizzle-orm/node-postgres/driver").NodePgDatabase<import("/workspaces/cat/packages/db/dist/index").DrizzleSchema, import("/workspaces/cat/packages/db/dist/index").EmptyRelations> & { $client: import("/workspaces/cat/node_modules/.pnpm/@types+pg@8.18.0/node_modules/@types/pg/index").Client; }, conceptId: number): Promise<string | null>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| drizzle | `import("/workspaces/cat/node_modules/.pnpm/drizzle-orm@1.0.0-beta.19_@electric-sql+pglite@0.3.14_@opentelemetry+api@1.9.0_@sinclai_f2302f5647c9146a1eb62ddcfa7c9e59/node_modules/drizzle-orm/node-postgres/driver").NodePgDatabase<import("/workspaces/cat/packages/db/dist/index").DrizzleSchema, import("/workspaces/cat/packages/db/dist/index").EmptyRelations> & { $client: import("/workspaces/cat/node_modules/.pnpm/@types+pg@8.18.0/node_modules/@types/pg/index").Client; }` | - |
-| conceptId | `number` | - |
-
-#### `countGlossaryConcepts`
-
-```typescript
-async countGlossaryConcepts(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/comment
-
-#### `listRootComments`
-
-```typescript
-async listRootComments(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listCommentReactions`
-
-```typescript
-async listCommentReactions(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listChildComments`
-
-```typescript
-async listChildComments(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/element
-
-#### `listElements`
-
-```typescript
-async listElements(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listElementsByDocument`
-
-```typescript
-async listElementsByDocument(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listElementsForDiff`
-
-```typescript
-async listElementsForDiff(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listCachedTranslatableStrings`
-
-```typescript
-async listCachedTranslatableStrings(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listAllElements`
-
-```typescript
-async listAllElements(ctx: any, _query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _query | `any` | - |
-
-#### `getElementWithChunkIds`
-
-```typescript
-async getElementWithChunkIds(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getElementSourceLocation`
-
-```typescript
-async getElementSourceLocation(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getElementMeta`
-
-```typescript
-async getElementMeta(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getElementInfo`
-
-```typescript
-async getElementInfo(ctx: any, query: any): Promise<{ elementId: any; documentId: any; sourceText: any; sourceLanguageId: any; sortIndex: any; contexts: any; meta: any; translations: any; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getElementContexts`
-
-```typescript
-async getElementContexts(ctx: any, query: any): Promise<{ element: unknown; contexts: any; }>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/document
-
-#### `listElementIdsByDocument`
-
-```typescript
-async listElementIdsByDocument(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listDocumentElementsWithChunkIds`
-
-```typescript
-async listDocumentElementsWithChunkIds(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listChunkVectorizationInputs`
-
-```typescript
-async listChunkVectorizationInputs(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getProjectRootDocument`
-
-Query the root document for a project — the document with no parent in the
-closure table.
-
-```typescript
-async getProjectRootDocument(db: Omit<DrizzleClient, "$client">, projectId: string): Promise<string>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| db | `Omit<DrizzleClient, "$client">` | - |
-| projectId | `string` | - |
-
-#### `getDocument`
-
-```typescript
-async getDocument(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getDocumentFirstElement`
-
-```typescript
-async getDocumentFirstElement(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getDocumentFileExportContext`
-
-```typescript
-async getDocumentFileExportContext(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getDocumentElements`
-
-```typescript
-async getDocumentElements(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getDocumentElementTranslationStatus`
-
-```typescript
-async getDocumentElementTranslationStatus(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getDocumentElementPageIndex`
-
-```typescript
-async getDocumentElementPageIndex(ctx: any, query: any): Promise<number>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getDocumentBlobInfo`
-
-```typescript
-async getDocumentBlobInfo(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getChunkVectorStorageId`
-
-```typescript
-async getChunkVectorStorageId(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getActiveFileName`
-
-```typescript
-async getActiveFileName(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getActiveFileBlobInfo`
-
-```typescript
-async getActiveFileBlobInfo(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `findProjectDocumentByName`
-
-```typescript
-async findProjectDocumentByName(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `countDocumentTranslations`
-
-```typescript
-async countDocumentTranslations(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `countDocumentElements`
-
-```typescript
-async countDocumentElements(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `buildTranslationStatusConditions`
-
-```typescript
-buildTranslationStatusConditions(db: DbHandle, isTranslated?: boolean | undefined, isApproved?: boolean | undefined, languageId?: string | undefined): SQL<unknown>[]
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| db | `DbHandle` | - |
-| isTranslated? | `boolean | undefined` | - |
-| isApproved? | `boolean | undefined` | - |
-| languageId? | `string | undefined` | - |
-
-### src/queries/chunk
-
-#### `listAllChunks`
-
-```typescript
-async listAllChunks(ctx: any, _: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _ | `any` | - |
-
-### src/queries/api-key
-
-#### `listApiKeysByUser`
-
-```typescript
-async listApiKeysByUser(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getApiKeyByHash`
-
-```typescript
-async getApiKeyByHash(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/auth
-
-#### `getMfaProviderByServiceAndUser`
-
-```typescript
-async getMfaProviderByServiceAndUser(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getAccountMetaByIdentity`
-
-```typescript
-async getAccountMetaByIdentity(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `findUserByIdentifier`
-
-```typescript
-async findUserByIdentifier(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `findAccountByProviderIdentity`
-
-```typescript
-async findAccountByProviderIdentity(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-### src/queries/agent
-
-#### `loadAgentRunSnapshot`
-
-```typescript
-async loadAgentRunSnapshot(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `loadAgentRunMetadata`
-
-```typescript
-async loadAgentRunMetadata(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `loadAgentExternalOutputByIdempotency`
-
-```typescript
-async loadAgentExternalOutputByIdempotency(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listProjectRuns`
-
-```typescript
-async listProjectRuns(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listAgentSessions`
-
-```typescript
-async listAgentSessions(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listAgentEvents`
-
-```typescript
-async listAgentEvents(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `listAgentDefinitions`
-
-```typescript
-async listAgentDefinitions(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getRunNodeEvents`
-
-```typescript
-async getRunNodeEvents(ctx: any, query: any): Promise<any>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getLatestCompletedRunBlackboard`
-
-```typescript
-async getLatestCompletedRunBlackboard(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getAgentSessionRuntimeState`
-
-```typescript
-async getAgentSessionRuntimeState(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getAgentSessionByExternalId`
-
-```typescript
-async getAgentSessionByExternalId(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getAgentRunRuntimeState`
-
-```typescript
-async getAgentRunRuntimeState(ctx: any, query: any): Promise<unknown>
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getAgentRunInternalId`
-
-```typescript
-async getAgentRunInternalId(ctx: any, query: any): Promise<any>
-```
+* `CacheStore` (interface) — 缓存存储接口
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
-
-#### `getAgentDefinition`
-
-```typescript
-async getAgentDefinition(ctx: any, query: any): Promise<unknown>
-```
+* `SessionStore` (interface) — 会话存储接口（基于 Hash 结构）
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
+* `CacheOptions` (type) — 缓存配置选项
 
-#### `getAgentDefinitionByInternalId`
-
-```typescript
-async getAgentDefinitionByInternalId(ctx: any, query: any): Promise<unknown>
-```
+* `ProjectCapabilities` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
+* `DocumentCapabilities` (type)
 
-#### `findAgentRunByDeduplicationKey`
-
-```typescript
-async findAgentRunByDeduplicationKey(ctx: any, query: any): Promise<any>
-```
+* `TranslationCapabilities` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
+* `SettingCapabilities` (type)
 
-#### `findAgentDefinitionByNameAndScope`
+* `AuthCapabilities` (type)
 
-```typescript
-async findAgentDefinitionByNameAndScope(ctx: any, query: any): Promise<unknown>
-```
+* `VectorCapabilities` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| query | `any` | - |
+* `LanguageCapabilities` (type)
 
-### src/commands/vector
+* `UserCapabilities` (type)
 
-#### `upsertChunkVectors`
+* `CommentCapabilities` (type)
 
-```typescript
-async upsertChunkVectors(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `AgentCapabilities` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ElementCapabilities` (type)
 
-#### `updateVectorDimension`
+* `QaCapabilities` (type)
 
-```typescript
-async updateVectorDimension(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `GlossaryCapabilities` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `MemoryCapabilities` (type)
 
-#### `ensureVectorStorageSchema`
+* `PluginCapabilities` (type)
 
-```typescript
-async ensureVectorStorageSchema(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `CreateAgentDefinitionCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateAgentSessionCommand` (type)
 
-### src/commands/translation
+* `DeleteAgentDefinitionCommand` (type)
 
-#### `upsertTranslationVote`
+* `SaveAgentEventCommand` (type)
 
-```typescript
-async upsertTranslationVote(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `SaveAgentExternalOutputCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `SaveAgentRunMetadataCommand` (type)
 
-#### `unapproveTranslation`
+* `SaveAgentRunSnapshotCommand` (type)
 
-```typescript
-async unapproveTranslation(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `UpdateAgentDefinitionCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateApiKeyCommand` (interface)
 
-#### `deleteTranslation`
+* `RevokeApiKeyCommand` (interface)
 
-```typescript
-async deleteTranslation(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `UpdateApiKeyLastUsedCommand` (interface)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateAccountCommand` (type)
 
-#### `createTranslations`
+* `CreateAccountResult` (type)
 
-```typescript
-async createTranslations(ctx: any, command: any): Promise<{ result: any; events: any[]; }>
-```
+* `CreateMfaProviderCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `RegisterUserWithPasswordAccountCommand` (type)
 
-#### `autoApproveDocumentTranslations`
+* `RegisterUserWithPasswordAccountResult` (type)
 
-```typescript
-async autoApproveDocumentTranslations(ctx: any, command: any): Promise<{ result: any; events: any[]; }>
-```
+* `CreateCommentCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `DeleteCommentReactionCommand` (type)
 
-#### `approveTranslation`
+* `DeleteCommentCommand` (type)
 
-```typescript
-async approveTranslation(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `UpsertCommentReactionCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `BulkUpdateChunkVectorMetadataCommand` (type)
 
-### src/commands/user
+* `BulkUpdateChunkVectorMetadataResult` (type)
 
-#### `updateUser`
+* `CreateRootDocumentCommand` (type)
 
-```typescript
-async updateUser(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `CreateVectorizedChunksCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateVectorizedChunksResult` (type)
 
-#### `updateUserAvatar`
+* `DeleteDocumentCommand` (type)
 
-```typescript
-async updateUserAvatar(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `BulkUpdateElementsForDiffCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `BulkUpdateElementsForDiffCommandInput` (type)
 
-#### `createUser`
+* `CreateElementsCommand` (type)
 
-```typescript
-async createUser(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `DeleteElementsByIdsCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateBlobCommand` (type)
 
-### src/commands/session
+* `CreateFileCommand` (type)
 
-#### `revokeSessionRecord`
+* `CreateOrReferenceBlobAndFileCommand` (type)
 
-```typescript
-async revokeSessionRecord(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `CreateOrReferenceBlobAndFileResult` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateBlobAndFileCommand` (type)
 
-#### `createSessionRecord`
+* `CreateBlobAndFileResult` (type)
 
-```typescript
-async createSessionRecord(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `ActivateFileCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `RollbackBlobAndFileCommand` (type)
 
-### src/commands/string
+* `DeleteBlobAndFileCommand` (type)
 
-#### `createTranslatableStrings`
+* `FinalizePresignedFileCommand` (type)
 
-```typescript
-async createTranslatableStrings(ctx: any, command: any): Promise<{ result: any; events: never[]; }>
-```
+* `FinalizePresignedFileResult` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `AddGlossaryTermToConceptCommand` (type)
 
-#### `createChunkSet`
+* `AddGlossaryTermToConceptResult` (type)
 
-```typescript
-async createChunkSet(ctx: any, _command: any): Promise<{ result: unknown; events: never[]; }>
-```
+* `CreateGlossaryConceptSubjectCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _command | `any` | - |
+* `CreateGlossaryConceptCommand` (type)
 
-### src/commands/qa
+* `CreateGlossaryTermsCommand` (type)
 
-#### `createQaResult`
+* `CreateGlossaryTermsResult` (type)
 
-```typescript
-async createQaResult(ctx: any, command: any): Promise<{ result: { id: any; }; events: never[]; }>
-```
+* `CreateGlossaryCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `DeleteGlossaryTermCommand` (type)
 
-#### `createQaResultWithItems`
+* `DeleteGlossaryTermResult` (type)
 
-```typescript
-async createQaResultWithItems(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `SetConceptStringIdCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `SetConceptStringIdResult` (type)
 
-#### `createQaResultItems`
+* `UpdateGlossaryConceptCommand` (type)
 
-```typescript
-async createQaResultItems(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `UpdateGlossaryConceptResult` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `EnsureLanguagesCommand` (type)
 
-### src/commands/setting
+* `InsertLoginAttemptCommand` (interface)
 
-#### `setSetting`
+* `CreateMemoryItemsCommand` (type)
 
-```typescript
-async setSetting(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `CreatedMemoryItemId` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateMemoryCommand` (type)
 
-### src/commands/project
+* `GrantFirstUserSuperadminCommand` (type)
 
-#### `updateProject`
+* `GrantPermissionTupleCommand` (type)
 
-```typescript
-async updateProject(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `AuditLogEntry` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `InsertAuditLogsCommand` (type)
 
-#### `unlinkProjectMemories`
+* `RevokePermissionTupleCommand` (type)
 
-```typescript
-async unlinkProjectMemories(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `SeedSystemRolesCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `DeletePluginServicesCommand` (type)
 
-#### `unlinkProjectGlossaries`
+* `InstallPluginCommand` (type)
 
-```typescript
-async unlinkProjectGlossaries(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `RegisterPluginDefinitionCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `SyncPluginServicesCommand` (type)
 
-#### `linkProjectMemories`
+* `UninstallPluginCommand` (type)
 
-```typescript
-async linkProjectMemories(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `UpdatePluginConfigInstanceValueCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `UpsertPluginConfigInstanceCommand` (type)
 
-#### `linkProjectGlossaries`
+* `AddProjectTargetLanguagesCommand` (type)
 
-```typescript
-async linkProjectGlossaries(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `CreateProjectTranslationSnapshotCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateProjectCommand` (type)
 
-#### `deleteProject`
+* `DeleteProjectCommand` (type)
 
-```typescript
-async deleteProject(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `LinkProjectGlossariesCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `LinkProjectMemoriesCommand` (type)
 
-#### `createProject`
+* `UnlinkProjectGlossariesCommand` (type)
 
-```typescript
-async createProject(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `UnlinkProjectMemoriesCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `UpdateProjectCommand` (type)
 
-#### `createProjectTranslationSnapshot`
+* `CreateQaResultItemsCommand` (type)
 
-```typescript
-async createProjectTranslationSnapshot(ctx: any, command: any): Promise<{ result: any; events: never[]; }>
-```
+* `CreateQaResultWithItemsCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CreateQaResultCommand` (type)
 
-#### `addProjectTargetLanguages`
+* `CreateSessionRecordCommand` (interface)
 
-```typescript
-async addProjectTargetLanguages(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `RevokeSessionRecordCommand` (interface)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `SetSettingCommand` (type)
 
-### src/commands/plugin
+* `CreateChunkSetCommand` (type)
 
-#### `upsertPluginConfigInstance`
+* `CreateTranslatableStringsCommand` (type)
 
-```typescript
-async upsertPluginConfigInstance(ctx: any, command: any): Promise<{ result: unknown; events: never[]; }>
-```
+* `ApproveTranslationCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `AutoApproveDocumentTranslationsCommand` (type)
 
-#### `updatePluginConfigInstanceValue`
+* `CreateTranslationsCommand` (type)
 
-```typescript
-async updatePluginConfigInstanceValue(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `DeleteTranslationCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `UnapproveTranslationCommand` (type)
 
-#### `uninstallPlugin`
+* `UpsertTranslationVoteCommand` (type)
 
-```typescript
-async uninstallPlugin(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `CreateUserCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `UpdateUserAvatarCommand` (type)
 
-#### `syncPluginServices`
+* `UpdateUserCommand` (type)
 
-```typescript
-async syncPluginServices(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `EnsureVectorStorageSchemaCommand` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `UpdateVectorDimensionCommand` (type)
 
-#### `registerPluginDefinition`
+* `UpsertChunkVectorsCommand` (type)
 
-```typescript
-async registerPluginDefinition(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `DomainEventBus` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `DomainEventMap` (type)
 
-#### `installPlugin`
+* `DomainEvent` (type)
 
-```typescript
-async installPlugin(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `DomainEventType` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `EventCollector` (type)
 
-#### `deletePluginServices`
+* `EventMap` (type)
 
-```typescript
-async deletePluginServices(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `EventOf` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `AnyEventOf` (type)
 
-### src/commands/permission
+* `TypedEventHandler` (type)
 
-#### `seedSystemRoles`
+* `WaitForEventOptions` (type)
 
-幂等地确保 4 个系统角色存在于数据库中。
-使用 INSERT ... ON CONFLICT DO NOTHING。
+* `TypedEventBus` (type)
 
-```typescript
-async seedSystemRoles(ctx: any, _command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `CreateEventOptions` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| _command | `any` | - |
+* `ExecutorContext` (type)
 
-#### `revokePermissionTuple`
+* `FindAgentDefinitionByNameAndScopeQuery` (type)
 
-删除权限关系元组。元组不存在时静默完成（幂等）。
+* `FindAgentRunByDeduplicationKeyQuery` (type)
 
-```typescript
-async revokePermissionTuple(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `GetAgentDefinitionByInternalIdQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetAgentDefinitionQuery` (type)
 
-#### `insertAuditLogs`
+* `GetAgentRunInternalIdQuery` (type)
 
-批量插入鉴权审计日志。写入失败时静默忽略，不影响业务流程。
+* `GetAgentRunRuntimeStateQuery` (type)
 
-```typescript
-async insertAuditLogs(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `AgentRunRuntimeState` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetAgentSessionByExternalIdQuery` (type)
 
-#### `grantPermissionTuple`
+* `AgentSessionByExternalId` (type)
 
-插入权限关系元组，已存在则忽略（幂等）。
+* `GetAgentSessionRuntimeStateQuery` (type)
 
-```typescript
-async grantPermissionTuple(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `AgentSessionRuntimeState` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetLatestCompletedRunBlackboardQuery` (type)
 
-#### `grantFirstUserSuperadmin`
+* `LatestCompletedRunBlackboard` (type)
 
-检查是否为首位注册用户：若是，自动授予 system#superadmin 权限元组，
-并将 setting "system:first_user_registered" 置为 true。
+* `GetRunNodeEventsQuery` (type)
 
-性能优化：只查一次 setting（O(1)），不走 count(*)。
-幂等：若 setting 已存在则直接返回。
+* `RunNodeEventRow` (type)
 
-```typescript
-async grantFirstUserSuperadmin(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `ListAgentDefinitionsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListAgentEventsQuery` (type)
 
-### src/commands/memory
+* `AgentEventRow` (type)
 
-#### `createMemory`
+* `ListAgentSessionsQuery` (type)
 
-```typescript
-async createMemory(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `ListProjectRunsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ProjectRunRow` (type)
 
-#### `createMemoryItems`
+* `LoadAgentExternalOutputByIdempotencyQuery` (type)
 
-```typescript
-async createMemoryItems(ctx: any, command: any): Promise<{ result: any; events: never[]; }>
-```
+* `AgentExternalOutputRow` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `LoadAgentRunMetadataQuery` (type)
 
-### src/commands/login-attempt
+* `AgentRunMetadataRow` (type)
 
-#### `insertLoginAttempt`
+* `LoadAgentRunSnapshotQuery` (type)
 
-```typescript
-async insertLoginAttempt(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `GetApiKeyByHashQuery` (interface)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ApiKeyRow` (interface)
 
-### src/commands/language
+* `ListApiKeysByUserQuery` (interface)
 
-#### `ensureLanguages`
+* `FindAccountByProviderIdentityQuery` (type)
 
-```typescript
-async ensureLanguages(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `AccountIdentity` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `FindUserByIdentifierQuery` (type)
 
-### src/commands/file
+* `AuthUserIdentity` (type)
 
-#### `createOrReferenceBlobAndFile`
+* `GetAccountMetaByIdentityQuery` (type)
 
-```typescript
-async createOrReferenceBlobAndFile(ctx: any, command: any): Promise<{ result: { blobId: any; fileId: any; referenceCount: any; }; events: never[]; }>
-```
+* `GetMfaProviderByServiceAndUserQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListAllChunksQuery` (type)
 
-#### `createBlobAndFile`
+* `ListChildCommentsQuery` (type)
 
-```typescript
-async createBlobAndFile(ctx: any, command: any): Promise<{ result: { blobId: any; fileId: any; }; events: never[]; }>
-```
+* `ListCommentReactionsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListRootCommentsQuery` (type)
 
-#### `activateFile`
+* `CountDocumentElementsQuery` (type)
 
-```typescript
-async activateFile(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `CountDocumentTranslationsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `FindProjectDocumentByNameQuery` (type)
 
-#### `rollbackBlobAndFile`
+* `GetActiveFileBlobInfoQuery` (type)
 
-```typescript
-async rollbackBlobAndFile(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `ActiveFileBlobInfo` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetActiveFileNameQuery` (type)
 
-#### `deleteBlobAndFile`
+* `GetChunkVectorStorageIdQuery` (type)
 
-```typescript
-async deleteBlobAndFile(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `GetDocumentBlobInfoQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `DocumentBlobInfo` (type)
 
-#### `finalizePresignedFile`
+* `GetDocumentElementPageIndexQuery` (type)
 
-```typescript
-async finalizePresignedFile(ctx: any, command: any): Promise<{ result: { conflicted: boolean; }; events: never[]; }>
-```
+* `GetDocumentElementTranslationStatusQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ElementTranslationStatus` (type)
 
-#### `createFile`
+* `GetDocumentElementsQuery` (type)
 
-```typescript
-async createFile(ctx: any, command: any): Promise<{ result: unknown; events: never[]; }>
-```
+* `DocumentElementRow` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetDocumentFileExportContextQuery` (type)
 
-#### `createBlob`
+* `DocumentFileExportContext` (type)
 
-```typescript
-async createBlob(ctx: any, command: any): Promise<{ result: unknown; events: never[]; }>
-```
+* `GetDocumentFirstElementQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetDocumentQuery` (type)
 
-### src/commands/glossary
+* `ListChunkVectorizationInputsQuery` (type)
 
-#### `updateGlossaryConcept`
+* `ChunkVectorizationInput` (type)
 
-```typescript
-async updateGlossaryConcept(ctx: any, command: any): Promise<{ result: { updated: boolean; glossaryId: any; }; events: any[]; }>
-```
+* `ListDocumentElementsWithChunkIdsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `DocumentElementWithChunkIds` (type)
 
-#### `setConceptStringId`
+* `ListElementIdsByDocumentQuery` (type)
 
-```typescript
-async setConceptStringId(ctx: any, command: any): Promise<{ result: { updated: boolean; }; events: any[]; }>
-```
+* `GetElementContextsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetElementContextsResult` (type)
 
-#### `deleteGlossaryTerm`
+* `GetElementInfoQuery` (type)
 
-```typescript
-async deleteGlossaryTerm(ctx: any, command: any): Promise<{ result: { deleted: boolean; conceptId: any; glossaryId: any; }; events: any[]; }>
-```
+* `ElementInfoQueryResult` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetElementMetaQuery` (type)
 
-#### `createGlossary`
+* `GetElementSourceLocationQuery` (type)
 
-```typescript
-async createGlossary(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `ElementSourceLocationRow` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetElementWithChunkIdsQuery` (type)
 
-#### `createGlossaryTerms`
+* `ElementWithChunkIds` (type)
 
-```typescript
-async createGlossaryTerms(ctx: any, command: any): Promise<{ result: { termIds: any; conceptIds: number[]; }; events: any[]; }>
-```
+* `ListAllElementsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListCachedTranslatableStringsQuery` (type)
 
-#### `createGlossaryConcept`
+* `CachedTranslatableString` (type)
 
-```typescript
-async createGlossaryConcept(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `ListElementsForDiffQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ElementForDiff` (type)
 
-#### `createGlossaryConceptSubject`
+* `ListElementsQuery` (type)
 
-```typescript
-async createGlossaryConceptSubject(ctx: any, command: any): Promise<{ result: unknown; events: never[]; }>
-```
+* `ElementWithString` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListElementsByDocumentQuery` (type)
 
-#### `addGlossaryTermToConcept`
+* `GetBlobByKeyQuery` (type)
 
-```typescript
-async addGlossaryTermToConcept(ctx: any, command: any): Promise<{ result: { termId: any; conceptId: any; glossaryId: any; }; events: any[]; }>
-```
+* `GetFileQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListAllFilesQuery` (type)
 
-### src/commands/element
+* `CountGlossaryConceptsQuery` (type)
 
-#### `deleteElementsByIds`
+* `LookedUpTerm` (type) — Represents a resolved term pair (source + translation) for a given concept.
+  Alias to TermMatch from
+  @cat /shared for backward compatibility.
 
-```typescript
-async deleteElementsByIds(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `GetConceptVectorizationSnapshotQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ConceptVectorizationSnapshot` (type)
 
-#### `createElements`
+* `GetGlossaryConceptDetailQuery` (type)
 
-```typescript
-async createElements(ctx: any, command: any): Promise<{ result: any; events: never[]; }>
-```
+* `GlossaryConceptDetail` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetGlossaryQuery` (type)
 
-#### `bulkUpdateElementsForDiff`
+* `ListAllGlossariesQuery` (type)
 
-```typescript
-async bulkUpdateElementsForDiff(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `ListAllTermsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `TermWithConcept` (type)
 
-### src/commands/document
+* `ListConceptSubjectsByConceptIdsQuery` (type)
 
-#### `deleteDocument`
+* `ConceptSubjectRow` (type)
 
-```typescript
-async deleteDocument(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `ListGlossariesByCreatorQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListGlossariesByCreatorResult` (type)
 
-#### `createVectorizedChunks`
+* `ListGlossaryConceptSubjectsQuery` (type)
 
-```typescript
-async createVectorizedChunks(ctx: any, command: any): Promise<{ result: { chunkSetIds: any; chunkIds: any; }; events: never[]; }>
-```
+* `GlossaryConceptSubject` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListGlossaryConceptsQuery` (type)
 
-#### `createRootDocument`
+* `GlossaryConceptData` (type)
 
-```typescript
-async createRootDocument(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `ListGlossaryConceptsResult` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListGlossaryTermPairsQuery` (type)
 
-#### `createDocumentUnderParent`
+* `GlossaryTermPairData` (type)
 
-Create a new document under the given parent in the closure-table tree.
-If `parentId` is null, the project root document is used as the parent.
+* `ListGlossaryTermPairsResult` (type)
 
-```typescript
-async createDocumentUnderParent(drizzle: Omit<DrizzleClient, "$client">, input: { name: string; projectId: string; creatorId: string; isDirectory?: boolean; fileId?: number | null; fileHandlerId?: number | null; }, parentId: string | null): Promise<{ id: string; name: string | null; projectId: string; creatorId: string; fileHandlerId: number | null; fileId: number | null; isDirectory: boolean; createdAt: Date; updatedAt: Date; }>
-```
+* `ListLexicalTermSuggestionsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| drizzle | `Omit<DrizzleClient, "$client">` | - |
-| input | `{ name: string; projectId: string; creatorId: string; isDirectory?: boolean; fileId?: number | null; fileHandlerId?: number | null; }` | - |
-| parentId | `string | null` | - |
+* `LexicalTermSuggestion` (type)
 
-#### `bulkUpdateChunkVectorMetadata`
+* `ListOwnedGlossariesQuery` (type)
 
-```typescript
-async bulkUpdateChunkVectorMetadata(ctx: any, command: any): Promise<{ result: { updatedCount: any; }; events: never[]; }>
-```
+* `ListProjectGlossariesQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListProjectGlossaryIdsQuery` (type)
 
-### src/commands/auth
+* `ListSemanticTermSearchRangeQuery` (type)
 
-#### `registerUserWithPasswordAccount`
+* `SemanticTermSearchRangeRow` (type)
 
-```typescript
-async registerUserWithPasswordAccount(ctx: any, command: any): Promise<{ result: { userId: any; providerIssuer: any; providedAccountId: any; }; events: never[]; }>
-```
+* `ListTermConceptIdsBySubjectQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetLanguageQuery` (type)
 
-#### `createMfaProvider`
+* `ListLanguagesQuery` (type)
 
-```typescript
-async createMfaProvider(ctx: any, command: any): Promise<{ result: unknown; events: never[]; }>
-```
+* `ListLanguagesResult` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `CountRecentAttemptsQuery` (interface)
 
-#### `createAccount`
+* `CountMemoryItemsQuery` (type)
 
-```typescript
-async createAccount(ctx: any, command: any): Promise<{ result: unknown; events: never[]; }>
-```
+* `FetchTranslationsForMemoryQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `TranslationForMemoryRow` (type)
 
-### src/commands/comment
+* `GetMemoryQuery` (type)
 
-#### `upsertCommentReaction`
+* `GetSearchMemoryChunkRangeQuery` (type)
 
-```typescript
-async upsertCommentReaction(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `ListAllMemoriesQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `RawMemorySuggestion` (type)
 
-#### `deleteComment`
+* `ListExactMemorySuggestionsQuery` (type)
 
-```typescript
-async deleteComment(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `ListTrgmMemorySuggestionsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListMemoriesByCreatorQuery` (type)
 
-#### `deleteCommentReaction`
+* `ListMemoriesByCreatorResult` (type)
 
-```typescript
-async deleteCommentReaction(ctx: any, command: any): Promise<{ result: undefined; events: any[]; }>
-```
+* `ListMemoryIdsByProjectQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListMemorySuggestionsByChunkIdsQuery` (type)
 
-#### `createComment`
+* `MemorySuggestionCandidateRow` (type)
 
-```typescript
-async createComment(ctx: any, command: any): Promise<{ result: unknown; events: any[]; }>
-```
+* `ListOwnedMemoriesQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListProjectMemoriesQuery` (type)
 
-### src/commands/api-key
+* `ListAllProjectsQuery` (type)
 
-#### `updateApiKeyLastUsed`
+* `ListAllUsersQuery` (type)
 
-```typescript
-async updateApiKeyLastUsed(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `GetSubjectPermissionTuplesQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `SubjectPermissionTupleRow` (type)
 
-#### `revokeApiKey`
+* `ListPermissionObjectsQuery` (type)
 
-```typescript
-async revokeApiKey(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `PermissionObjectRow` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListPermissionSubjectsQuery` (type)
 
-#### `createApiKey`
+* `PermissionSubjectRow` (type)
 
-```typescript
-async createApiKey(ctx: any, command: any): Promise<{ result: { id: any; }; events: never[]; }>
-```
+* `LoadUserSystemRolesQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `UserSystemRole` (type)
 
-### src/commands/agent
+* `CheckServiceReferencesQuery` (type)
 
-#### `updateAgentDefinition`
+* `GetPluginConfigInstanceByInstallationQuery` (type)
 
-```typescript
-async updateAgentDefinition(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `PluginConfigInstanceData` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetPluginConfigInstanceQuery` (type)
 
-#### `saveAgentRunSnapshot`
+* `GetPluginConfigQuery` (type)
 
-```typescript
-async saveAgentRunSnapshot(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `GetPluginInstallationQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetPluginServiceByIdQuery` (type)
 
-#### `saveAgentRunMetadata`
+* `PluginServiceIdentity` (type)
 
-```typescript
-async saveAgentRunMetadata(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `GetPluginServiceByTypeQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetPluginQuery` (type)
 
-#### `saveAgentExternalOutput`
+* `IsPluginInstalledQuery` (type)
 
-```typescript
-async saveAgentExternalOutput(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `ListInstalledPluginsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListInstalledServicesByTypeQuery` (type)
 
-#### `saveAgentEvent`
+* `InstalledServiceRecord` (type)
 
-```typescript
-async saveAgentEvent(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `ListPluginServiceIdsByTypeQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListPluginServicesForInstallationQuery` (type)
 
-#### `deleteAgentDefinition`
+* `PluginServiceRecord` (type)
 
-```typescript
-async deleteAgentDefinition(ctx: any, command: any): Promise<{ result: undefined; events: never[]; }>
-```
+* `ListPluginServicesQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `PluginServiceDbRecord` (type)
 
-#### `createAgentSession`
+* `ListPluginsQuery` (type)
 
-```typescript
-async createAgentSession(ctx: any, command: any): Promise<{ result: { sessionId: any; }; events: never[]; }>
-```
+* `CountProjectElementsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `GetProjectTargetLanguagesQuery` (type)
 
-#### `createAgentDefinition`
+* `GetProjectQuery` (type)
 
-```typescript
-async createAgentDefinition(ctx: any, command: any): Promise<{ result: { id: any; }; events: never[]; }>
-```
+* `ListOwnedProjectsQuery` (type)
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| ctx | `any` | - |
-| command | `any` | - |
+* `ListProjectDocumentsQuery` (type)
 
+* `ProjectDocumentRow` (type)
 
-*Last updated: 2026-04-02*
+* `ListProjectsByCreatorQuery` (type)
+
+* `ListProjectsByCreatorResult` (type)
+
+* `GetTranslationQaContextQuery` (type)
+
+* `TranslationQaContext` (type)
+
+* `ListDocumentGlossaryIdsQuery` (type)
+
+* `ListQaResultItemsQuery` (type)
+
+* `ListSessionsByUserQuery` (interface)
+
+* `SessionRecordRow` (interface)
+
+* `GetSettingQuery` (type)
+
+* `CountTranslatableStringsQuery` (type)
+
+* `GetStringByValueQuery` (type)
+
+* `GetTranslatableStringQuery` (type)
+
+* `ListAllTranslatableStringsQuery` (type)
+
+* `ListChunksByStringIdsQuery` (type)
+
+* `ListTranslatableStringsByIdQuery` (type)
+
+* `GetSelfTranslationVoteQuery` (type)
+
+* `GetTranslationVoteTotalQuery` (type)
+
+* `ListQaResultsByTranslationQuery` (type)
+
+* `ListTranslationsByElementQuery` (type)
+
+* `TranslationListItem` (type)
+
+* `ListTranslationsByIdsQuery` (type)
+
+* `TranslationWithVoteAndText` (type)
+
+* `ListUserTranslationHistoryQuery` (type)
+
+* `ListUserTranslationHistoryResult` (type)
+
+* `GetUserAvatarFileQuery` (type)
+
+* `UserAvatarFileRef` (type)
+
+* `GetUserQuery` (type)
+
+* `GetChunkVectorsQuery` (type)
+
+* `VectorChunk` (type)
+
+* `SearchChunkCosineSimilarityQuery` (type)
+
+* `ChunkCosineSimilarityItem` (type)
+
+* `DbHandle` (type)
+
+* `DbContext` (type)
+
+* `CommandResult` (type)
+
+* `Query` (type)
+
+* `Command` (type)
+
+* `OperationContext` (type) — Cross-cutting context passed through operation chains.
+  Contains a trace ID for distributed tracing, an optional abort signal,
+  and an optional plugin manager instance override.

@@ -1,6 +1,7 @@
 {
   "name": "@cat/shared",
   "version": "0.1.0",
+  "description": "Shared Zod schemas, type definitions, and utility functions",
   "keywords": [
     "cat",
     "plugins",

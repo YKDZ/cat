@@ -1,6 +1,7 @@
 {
   "name": "@cat/db",
   "version": "0.1.0",
+  "description": "Database layer: Drizzle ORM schemas and Redis client",
   "files": [
     "src",
     "dist",

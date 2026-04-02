@@ -2,7 +2,7 @@ import { project } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
-import type { Command } from "@/types";
+import type { Command, DbContext } from "@/types";
 
 import { domainEvent } from "@/events/domain-events";
 
@@ -17,7 +17,7 @@ export type CreateProjectCommand = z.infer<typeof CreateProjectCommandSchema>;
 export const createProject: Command<
   CreateProjectCommand,
   typeof project.$inferSelect
-> = async (ctx, command) => {
+> = async (ctx: DbContext, command: CreateProjectCommand) => {
   const inserted = assertSingleNonNullish(
     await ctx.db
       .insert(project)

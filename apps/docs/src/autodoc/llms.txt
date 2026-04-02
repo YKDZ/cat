@@ -10,11 +10,13 @@
 ## Package Documentation
 
 - [@cat/domain](./packages/domain.md): 242 exported functions — Domain layer: CQRS Commands and Queries, core business logic
-- [@cat/operations](./packages/operations.md): 46 exported functions — Operations layer: composing domain operations into business workflows, functions suffixed with Op
+- [@cat/operations](./packages/operations.md): 46 exported functions — Operations layer: business workflows composing domain operations
 - [@cat/shared](./packages/shared.md): 23 exported functions — Shared Zod schemas, type definitions, and utility functions
 - [@cat/db](./packages/db.md): 8 exported functions — Database layer: Drizzle ORM schemas and Redis client
 - [@cat/permissions](./packages/permissions.md): 9 exported functions — Permission system: ReBAC-based access control
 - [@cat/agent](./packages/agent.md): 56 exported functions — Agent and Workflow graph executor
+- [@cat/server-shared](./packages/server-shared.md): 18 exported functions — Shared server utilities
+- [@cat/plugin-core](./packages/plugin-core.md): 15 exported functions — Plugin system core: service registry, component registry, discovery
 
 ## @cat/domain
 

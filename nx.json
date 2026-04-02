@@ -107,6 +107,14 @@
     },
     "fmt:check": {
       "cache": true
+    },
+    "generate": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "generate:check": {
+      "dependsOn": ["build"],
+      "cache": false
     }
   },
   "plugins": [
