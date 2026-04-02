@@ -74,6 +74,22 @@ const buildRefinePrompt = (data: LlmRefineTranslationInput): string => {
   return prompt;
 };
 
+/**
+ * @zh 使用 LLM 对翻译进行后校。
+ *
+ * 将候选翻译和术语表上下文发送给 LLM，要求其严格使用指定术语、
+ * 保持语义并考虚邻近翻译一致性。若无可用 LLM_PROVIDER ，直接返回候选翻译原文。
+ * @en Post-edit a translation using an LLM.
+ *
+ * Sends the candidate translation and glossary context to the LLM,
+ * requiring it to use the given terms strictly, preserve the source meaning,
+ * and maintain consistency with neighboring translations.
+ * Returns the candidate unchanged when no LLM_PROVIDER is available.
+ *
+ * @param data - {@zh LLM 后校输入参数} {@en LLM post-editing input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 后校结果和是否实际执行了后校的标志} {@en Refined translation text and a flag indicating whether refinement was applied}
+ */
 export const llmRefineTranslationOp = async (
   data: LlmRefineTranslationInput,
   ctx?: OperationContext,

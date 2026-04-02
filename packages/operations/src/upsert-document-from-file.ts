@@ -25,11 +25,20 @@ export type UpsertDocumentInput = z.infer<typeof UpsertDocumentInputSchema>;
 export type UpsertDocumentOutput = z.infer<typeof UpsertDocumentOutputSchema>;
 
 /**
- * 从文件更新文档
+ * @zh 从文件更新文档元素。
  *
  * 1. 解析文件获取元素列表
  * 2. 获取文档当前的旧元素
  * 3. 比较新旧元素并执行增删改
+ * @en Update document elements from a file.
+ *
+ * 1. Parse the file to obtain an element list
+ * 2. Fetch the current (old) element IDs for the document
+ * 3. Diff the new and old elements and apply additions, deletions, and updates
+ *
+ * @param data - {@zh 文件更新输入参数} {@en File-from-document update input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 操作结果，包含新增和删除的元素数量} {@en Result containing the count of added and removed elements}
  */
 export const upsertDocumentFromFileOp = async (
   data: UpsertDocumentInput,

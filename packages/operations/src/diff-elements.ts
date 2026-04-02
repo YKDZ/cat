@@ -45,13 +45,24 @@ export type DiffElementsInput = z.infer<typeof DiffElementsInputSchema>;
 export type DiffElementsOutput = z.infer<typeof DiffElementsOutputSchema>;
 
 /**
- * 比较新旧元素并执行增删改
+ * @zh 比较新旧元素并执行增删改。
  *
  * 1. 获取旧元素
  * 2. 通过 meta 匹配新旧元素
  * 3. 处理文本更新、排序更新、位置更新
  * 4. 创建新增元素
  * 5. 删除移除的元素
+ * @en Compare old and new elements and apply additions, deletions, and updates.
+ *
+ * 1. Fetch old elements
+ * 2. Match old and new elements by meta
+ * 3. Process text updates, sort-index updates, and position updates
+ * 4. Create newly added elements
+ * 5. Delete removed elements
+ *
+ * @param data - {@zh 布丁输入参数} {@en Diff input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 新增元素 ID、移除元素 ID 及文档 ID} {@en IDs of added elements, removed elements, and the document}
  */
 export const diffElementsOp = async (
   data: DiffElementsInput,

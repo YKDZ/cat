@@ -55,10 +55,19 @@ export type SearchMemoryInput = z.infer<typeof SearchMemoryInputSchema>;
 export type SearchMemoryOutput = z.infer<typeof SearchMemoryOutputSchema>;
 
 /**
- * 搜索翻译记忆
+ * @zh 搜索翻译记忆。
  *
  * 在指定记忆库中通过向量相似度搜索匹配的翻译记忆。
- * 合并了原 workflow 的 dependencies（计算搜索范围）和 handler（处理结果）。
+ * 支持通过 chunkIds（已存储嵌入）或 queryVectors（直传向量）两种查询模式。
+ * @en Search translation memory.
+ *
+ * Searches for matching translation memory entries within the specified
+ * memory banks via vector similarity. Supports two query modes:
+ * lookups by chunkIds (pre-stored embeddings) or queryVectors (raw vectors).
+ *
+ * @param data - {@zh 记忆搜索输入参数} {@en Memory search input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 匹配的翻译记忆条目列表（按置信度降序排列）} {@en List of matching memory entries (sorted by confidence descending)}
  */
 export const searchMemoryOp = async (
   data: SearchMemoryInput,

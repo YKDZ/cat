@@ -23,9 +23,17 @@ export type UpdateConceptInput = z.infer<typeof UpdateConceptInputSchema>;
 export type UpdateConceptOutput = z.infer<typeof UpdateConceptOutputSchema>;
 
 /**
- * 更新 termConcept 的定义和/或 M:N 主题关联。
+ * @zh 更新 termConcept 的定义和/或 M:N 主题关联。
  *
  * 写入完成后由领域事件处理器自动触发概念重向量化。
+ * @en Update the definition and/or M:N subject associations of a termConcept.
+ *
+ * After the write completes, the domain event handler automatically
+ * triggers concept re-vectorization.
+ *
+ * @param data - {@zh 概念更新输入参数} {@en Concept update input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 是否执行了更新} {@en Whether any update was applied}
  */
 export const updateConceptOp = async (
   data: UpdateConceptInput,

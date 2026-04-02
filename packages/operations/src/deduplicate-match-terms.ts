@@ -56,11 +56,20 @@ export type DeduplicateAndMatchOutput = z.infer<
 >;
 
 /**
- * 去重 & 与现有术语库比对
+ * @zh 容候词和术语去重并与现有术语库比对。
  *
- * 1. 以 normalizedText (lemma) 为聚合键对候选进行归一化去重
- * 2. 用 listLexicalTermSuggestions (pg_trgm word_similarity) 批量比对现有术语库
+ * 1. 以 normalizedText (lemma) 为聚合键对廣选进行归一化去重
+ * 2. 用 listLexicalTermSuggestions（pg_trgm word_similarity）批量比对现有术语库
  * 3. 标记已存在的术语
+ * @en Deduplicate term candidates and match against the existing glossary.
+ *
+ * 1. Normalize-deduplicate candidates by normalizedText (lemma) as the aggregation key
+ * 2. Batch-compare against the existing glossary via listLexicalTermSuggestions (pg_trgm word_similarity)
+ * 3. Mark candidates that already exist in the glossary
+ *
+ * @param data - {@zh 去重与匹配输入参数} {@en Deduplication and match input parameters}
+ * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @returns - {@zh 去重后标注了是否已存在于词汇表的廣选词列表} {@en Deduplicated candidates annotated with glossary existence flags}
  */
 export const deduplicateAndMatchOp = async (
   data: DeduplicateAndMatchInput,

@@ -236,9 +236,6 @@ const main = async () => {
   const subcommand = args[0];
 
   switch (subcommand) {
-    case "generate":
-      await runGenerate(args.slice(1));
-      break;
     case "check":
       await runCheck(args.slice(1));
       break;
@@ -246,12 +243,7 @@ const main = async () => {
       await runLookup(args.slice(1));
       break;
     default:
-      // Backward compat: old --check flag
-      if (args.includes("--check")) {
-        await runCheck(args);
-      } else {
-        await runGenerate(args);
-      }
+      await runGenerate(args);
   }
 };
 

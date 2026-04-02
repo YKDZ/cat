@@ -77,10 +77,21 @@ export type FetchAdviseInput = z.infer<typeof FetchAdviseInputSchema>;
 export type FetchAdviseOutput = z.infer<typeof FetchAdviseOutputSchema>;
 
 /**
- * 获取翻译建议
+ * @zh 获取机器翻译建议。
  *
  * 通过 TRANSLATION_ADVISOR 插件服务获取机器翻译建议，
  * 支持术语表上下文注入、翻译记忆和元素上下文。
+ * 可通过 `preloadedTerms` / `preloadedMemories` 跳过内部 DB 查询。
+ * @en Fetch machine-translation suggestions.
+ *
+ * Queries the TRANSLATION_ADVISOR plugin service for MT suggestions,
+ * with optional glossary term injection, translation memory context,
+ * and element metadata. Upstream callers can pass preloaded terms/memories
+ * via `preloadedTerms` / `preloadedMemories` to skip internal DB queries.
+ *
+ * @param data - {@zh 翻译建议输入参数} {@en Translation advice input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 排序的翻译建议列表} {@en Sorted list of translation suggestions}
  */
 export const fetchAdviseOp = async (
   data: FetchAdviseInput,

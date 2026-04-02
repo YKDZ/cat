@@ -26,7 +26,7 @@ Use the custom block tags `@zh` and `@en` to separate Chinese and English descri
  * @en Get the display name for the given language code.
  *
  * @param code - {@zh 语言代码（BCP 47）} {@en BCP 47 language code}
- * @returns {@zh 语言显示名称} {@en Display name of the language}
+ * @returns - {@zh 语言显示名称} {@en Display name of the language}
  */
 export const getLanguageName = (code: string): string => { … };
 ```
@@ -124,6 +124,8 @@ When in doubt, **add the doc**. A short redundant comment is cheaper than a miss
 ## 4. Inline Parameter & Return Descriptions
 
 For `@param` and `@returns` tags, embed both languages using inline `{@zh …} {@en …}` custom inline tags (as shown in the examples above) to keep parameter docs compact.
+
+**Important**: `@returns` MUST use a dash prefix before any `{@...}` inline tag: `@returns - {@zh …} {@en …}`. TypeScript's JSDoc parser treats `{` immediately after `@returns` as a type expression start, which corrupts all inline tags (`{@zh}`, `{@en}`, `{@link}`, etc.). The `- ` separator prevents this misparse.
 
 ## 5. Keep Docs in Sync with Code
 

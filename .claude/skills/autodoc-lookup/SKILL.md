@@ -15,10 +15,10 @@ Use the `pnpm autodoc lookup` CLI to find symbol source locations and details.
 
 ## Workflow
 
-1. Run the lookup command:
+1. Run the lookup command (supports multiple queries):
 
    ```bash
-   pnpm autodoc lookup <symbol-name-or-id>
+   pnpm autodoc lookup <symbol-name-or-id> [...]
    ```
 
 2. The output includes:
@@ -40,7 +40,16 @@ pnpm autodoc lookup createProject
 pnpm autodoc lookup translateOp
 
 # Find by full ID
-pnpm autodoc lookup "@cat/domain:src/commands/project:createProject"
+pnpm autodoc lookup @cat/domain:packages/domain/src/commands/project/create-project.cmd:createProject
+
+# List all symbols in a package
+pnpm autodoc lookup @cat/domain
+
+# List symbols under a specific directory within a package
+pnpm autodoc lookup @cat/domain:packages/domain/src/commands
+
+# Look up multiple symbols at once
+pnpm autodoc lookup createProject vectorTermAlignOp
 ```
 
 ## Notes

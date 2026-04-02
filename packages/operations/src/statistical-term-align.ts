@@ -136,11 +136,22 @@ const enrichFromTranslation = async (
 };
 
 /**
- * 统计共现术语对齐
+ * @zh 统计共现术语对齐。
  *
- * 利用 CAT 系统天然的翻译对关系进行共现比对:
+ * 利用 CAT 系统天然的翻译对关系进行共现比对：
  * - 优先利用翻译对关系（translationId 级别）
  * - 若无翻译，回退到元素级共现（elementId 级别）
+ * @en Statistical co-occurrence term alignment.
+ *
+ * Exploits the natural translation-pair relationships in the CAT
+ * system for co-occurrence comparison:
+ * - Preferentially uses translation-pair relationships (translationId level)
+ * - Falls back to element-level co-occurrence (elementId level) when
+ *   no translations exist
+ *
+ * @param data - {@zh 统计对齐输入参数} {@en Statistical alignment input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 对齐的术语对及共现分数} {@en Aligned term pairs with their co-occurrence scores}
  */
 export const statisticalTermAlignOp = async (
   data: StatisticalTermAlignInput,

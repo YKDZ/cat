@@ -26,10 +26,19 @@ export type RevectorizeInput = z.infer<typeof RevectorizeInputSchema>;
 export type RevectorizeOutput = z.infer<typeof RevectorizeOutputSchema>;
 
 /**
- * 重新向量化已有的 chunk
+ * @zh 重新向量化已有的 chunk。
  *
  * 使用新的向量化器更新既有 chunk 的嵌入向量，
  * 适用于切换向量化模型后的数据迁移场景。
+ * @en Re-vectorize existing chunks.
+ *
+ * Updates the embedding vectors of existing chunks using a new
+ * vectorizer. Intended for data migration when switching vectorization
+ * models.
+ *
+ * @param payload - {@zh 重向量化输入参数} {@en Re-vectorization input parameters}
+ * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @returns - {@zh 空对象} {@en Empty object}
  */
 export const revectorizeOp = async (
   payload: RevectorizeInput,

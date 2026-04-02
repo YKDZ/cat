@@ -14,6 +14,23 @@ import {
 } from "./memory-template";
 import { tokenizeOp } from "./tokenize";
 
+/**
+ * @zh 将翻译写入指定的翻译记忆库。
+ *
+ * 对每条翻译，使用分词器和占位符化算法生成模板（含占位符时才存储）。
+ * 分词失败为非致命错误，将在无模板的情况下继续写入。
+ * @en Write translations into the specified translation memory banks.
+ *
+ * For each translation, generates source and translation templates via
+ * tokenization and placeholderization (templates are only stored when
+ * placeholders are present). Tokenization failures are non-fatal;
+ * the memory item will be inserted without a template.
+ *
+ * @param tx - {@zh 数据库事务句柄} {@en Database transaction handle}
+ * @param memoryIds - {@zh 目标记忆库 UUID 列表} {@en List of target memory bank UUIDs}
+ * @param translationIds - {@zh 要写入的翻译 ID 列表} {@en List of translation IDs to store}
+ * @returns - {@zh 写入的记忆条目 ID 列表} {@en List of created memory item IDs}
+ */
 export const insertMemory = async (
   tx: DbHandle,
   memoryIds: string[],

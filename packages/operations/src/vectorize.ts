@@ -28,10 +28,19 @@ export type VectorizeInput = z.infer<typeof InputSchema>;
 export type VectorizeOutput = z.infer<typeof OutputSchema>;
 
 /**
- * 向量化文本并存储 ChunkSet
+ * @zh 向量化文本并存储 ChunkSet。
  *
  * 使用 TEXT_VECTORIZER 插件将文本转为向量，
  * 创建 ChunkSet/Chunk 行并通过 VECTOR_STORAGE 插件持久化向量。
+ * @en Vectorize texts and store as ChunkSets.
+ *
+ * Uses the TEXT_VECTORIZER plugin to convert texts into embedding vectors,
+ * creates ChunkSet/Chunk rows, and persists the vectors via the
+ * VECTOR_STORAGE plugin.
+ *
+ * @param param0 - {@zh 向量化输入参数} {@en Vectorization input parameters}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 每条文本对应的 ChunkSet ID 列表} {@en List of ChunkSet IDs, one per input text}
  */
 export const vectorizeToChunkSetOp = async (
   { data, vectorStorageId, vectorizerId }: VectorizeInput,

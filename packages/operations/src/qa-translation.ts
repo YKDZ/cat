@@ -23,14 +23,24 @@ export type QaTranslationInput = z.infer<typeof QaTranslationInputSchema>;
 export type QaTranslationOutput = z.infer<typeof QaTranslationOutputSchema>;
 
 /**
- * 翻译质量检查
+ * @zh 对指定翻译执行完整 QA 流程。
  *
- * 对指定翻译执行完整 QA 流程：
  * 1. 获取翻译文本、源文本及语言信息
  * 2. 查找相关术语（统一走后端）
  * 3. 并行对源文本和翻译文本进行分词（含术语标注）
- * 4. 创建 QA 结果记录
- * 5. 执行 QA 检查并持久化结果
+ * 4. 执行 QA 检查
+ * 5. 持久化 QA 结果
+ * @en Run the full QA pipeline for a specific translation.
+ *
+ * 1. Fetch the translation text, source text, and language information
+ * 2. Look up relevant terms (via backend query chain)
+ * 3. Tokenize source and translation texts in parallel (with term annotations)
+ * 4. Run QA checks
+ * 5. Persist QA results
+ *
+ * @param payload - {@zh QA 检查输入参数（翻译 ID）} {@en QA input parameters (translation ID)}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
+ * @returns - {@zh 空对象（结果已直接写入数据库）} {@en Empty object (results are persisted directly to the database)}
  */
 export const qaTranslationOp = async (
   payload: QaTranslationInput,

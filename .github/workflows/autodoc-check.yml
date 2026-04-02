@@ -31,14 +31,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build & generate docs
-        run: pnpm nx run autodoc:generate
-
-      - name: Check docs are up-to-date
         run: |
-          if git diff --exit-code apps/docs/src/autodoc/; then
-            echo "Documentation is up-to-date"
-          else
-            echo "::error::Documentation is outdated. Run 'pnpm nx run autodoc:generate' and commit."
-            git diff --stat apps/docs/src/autodoc/
-            exit 1
-          fi
+          pnpm nx build autodoc
+          pnpm autodoc check
