@@ -56,6 +56,7 @@ export default defineConfig({
     nav: [
       { text: "Developer", link: "/developer/future" },
       { text: "User", link: "/user/intro" },
+      { text: "AutoDoc", link: "/autodoc/overview" },
     ],
 
     sidebar: [
@@ -64,6 +65,21 @@ export default defineConfig({
         items: [
           { text: "Future", link: "/developer/future" },
           { text: "Recall Architecture", link: "/developer/recall" },
+        ],
+      },
+      {
+        text: "AutoDoc",
+        items: [
+          { text: "Overview", link: "/autodoc/overview" },
+          { text: "@cat/domain", link: "/autodoc/packages/domain" },
+          { text: "@cat/operations", link: "/autodoc/packages/operations" },
+          { text: "@cat/shared", link: "/autodoc/packages/shared" },
+          { text: "@cat/db", link: "/autodoc/packages/db" },
+          {
+            text: "@cat/permissions",
+            link: "/autodoc/packages/permissions",
+          },
+          { text: "@cat/agent", link: "/autodoc/packages/agent" },
         ],
       },
       {

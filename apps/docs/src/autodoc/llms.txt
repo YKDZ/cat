@@ -1,0 +1,28 @@
+# CAT
+
+> A secure, efficient, and easily extensible self-hosted Computer-Assisted Translation web application.
+
+## Project Info
+
+- Tech stack: TypeScript, Vue 3, Hono, Drizzle ORM, PostgreSQL
+- License: GPL-3.0-only (main app), MIT (packages/plugins)
+
+## Package Documentation
+
+- [@cat/domain](./packages/domain.md): 242 exported functions — Domain layer: CQRS Commands and Queries, core business logic
+- [@cat/operations](./packages/operations.md): 46 exported functions — Operations layer: composing domain operations into business workflows, functions suffixed with Op
+- [@cat/shared](./packages/shared.md): 23 exported functions — Shared Zod schemas, type definitions, and utility functions
+- [@cat/db](./packages/db.md): 8 exported functions — Database layer: Drizzle ORM schemas and Redis client
+- [@cat/permissions](./packages/permissions.md): 9 exported functions — Permission system: ReBAC-based access control
+- [@cat/agent](./packages/agent.md): 56 exported functions — Agent and Workflow graph executor
+
+## @cat/domain
+
+Domain layer using CQRS pattern. Commands mutate state, Queries read data.
+
+- Commands: 87
+- Queries: 141
+
+## @cat/operations
+
+Operations layer composing domain operations. Functions use `Op` suffix with Zod schema input validation.

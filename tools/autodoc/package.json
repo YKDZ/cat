@@ -1,0 +1,29 @@
+{
+  "name": "@tools/autodoc",
+  "version": "0.0.1",
+  "private": true,
+  "bin": {
+    "autodoc": "./dist/cli.js"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
+  },
+  "dependencies": {
+    "glob": "^13.0.6",
+    "ts-morph": "^27.0.2",
+    "yaml": "^2.8.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "beta"
+  }
+}

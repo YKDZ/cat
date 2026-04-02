@@ -110,6 +110,14 @@ Plugin system supports these service types:
 - **AGENT_TOOL_PROVIDER**: Agent tool extensions
 - **AGENT_CONTEXT_PROVIDER**: Agent context extensions
 
+### Auto-generated Module Overview
+
+For a comprehensive, auto-generated overview of all packages with export counts and descriptions, see `apps/docs/src/autodoc/overview.md`. For detailed function signatures, see individual package docs in `apps/docs/src/autodoc/packages/`.
+
+Descriptions are extracted from `@en` (English) TSDoc block tags when available (see `.claude/rules/tsdoc.md`).
+
+Update with: `pnpm nx run autodoc:generate`
+
 ---
 
 ## Architecture
