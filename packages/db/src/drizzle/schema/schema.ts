@@ -24,7 +24,7 @@ import {
   SubjectTypeValues,
   RelationValues,
   PermissionActionValues,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import { sql } from "drizzle-orm";
 import {
   pgEnum,

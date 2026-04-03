@@ -11,12 +11,12 @@ import {
   upsertPluginConfigInstance,
 } from "@cat/domain";
 import { ComponentRecordSchema, PluginManager } from "@cat/plugin-core";
-import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
 import {
   PluginConfigInstanceSchema,
   PluginConfigSchema,
   PluginSchema,
 } from "@cat/shared/schema/drizzle/plugin";
+import { ScopeTypeSchema } from "@cat/shared/schema/enum";
 import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import {
   AuthMethodSchema,

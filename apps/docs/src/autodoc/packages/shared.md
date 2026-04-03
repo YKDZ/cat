@@ -222,44 +222,6 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `TranslatableElementContext` (type)
 
-* `TokenType` (type)
-
-* `PluginServiceType` (type)
-
-* `ScopeType` (type)
-
-* `TaskStatus` (type)
-
-* `TranslatableElementContextType` (type)
-
-* `CommentReactionType` (type)
-
-* `ResourceType` (type)
-
-* `CommentTargetType` (type)
-
-* `TermType` (type)
-
-* `TermStatus` (type)
-
-* `AgentSessionStatus` (type)
-
-* `ObjectType` (type)
-
-* `SubjectType` (type)
-
-* `Relation` (type)
-
-* `PermissionAction` (type)
-
-* `AgentToolTarget` (type)
-
-* `AgentToolConfirmationStatus` (type)
-
-* `AgentSessionTrustPolicy` (type)
-
-* `AgentDefinitionType` (type)
-
 * `File` (type)
 
 * `Blob` (type)
@@ -333,6 +295,44 @@ export const safeJoinURL = (base: string, path: string): string
 * `Chunk` (type)
 
 * `Vector` (type)
+
+* `TokenType` (type)
+
+* `PluginServiceType` (type)
+
+* `ScopeType` (type)
+
+* `TaskStatus` (type)
+
+* `TranslatableElementContextType` (type)
+
+* `CommentReactionType` (type)
+
+* `ResourceType` (type)
+
+* `CommentTargetType` (type)
+
+* `TermType` (type)
+
+* `TermStatus` (type)
+
+* `AgentSessionStatus` (type)
+
+* `ObjectType` (type)
+
+* `SubjectType` (type)
+
+* `Relation` (type)
+
+* `PermissionAction` (type)
+
+* `AgentToolTarget` (type)
+
+* `AgentToolConfirmationStatus` (type)
+
+* `AgentSessionTrustPolicy` (type)
+
+* `AgentDefinitionType` (type)
 
 * `JSONObject` (interface)
 

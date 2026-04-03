@@ -2,7 +2,7 @@ import { agentDefinition, and, desc, eq, getColumns } from "@cat/db";
 import {
   AgentDefinitionTypeSchema,
   ScopeTypeSchema,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import * as z from "zod/v4";
 
 import type { Query } from "@/types";

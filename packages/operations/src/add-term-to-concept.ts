@@ -7,10 +7,7 @@ import {
   domainEventBus,
   executeCommand,
 } from "@cat/domain";
-import {
-  TermStatusValues,
-  TermTypeValues,
-} from "@cat/shared/schema/drizzle/enum";
+import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
 import * as z from "zod";
 
 export const AddTermToConceptInputSchema = z.object({

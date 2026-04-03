@@ -1,6 +1,6 @@
 import type { PluginCapabilities } from "@cat/domain";
 import type { CacheStore, SessionStore } from "@cat/domain";
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import type { ScopeType } from "@cat/shared/schema/enum";
 import type { JSONType } from "@cat/shared/schema/json";
 import type { ObjectType, Relation } from "@cat/shared/schema/permission";
 import type { Hono } from "hono";

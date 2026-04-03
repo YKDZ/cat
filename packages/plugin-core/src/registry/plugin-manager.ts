@@ -1,8 +1,5 @@
 import type { DbHandle, DrizzleClient, DrizzleTransaction } from "@cat/domain";
-import type {
-  PluginServiceType,
-  ScopeType,
-} from "@cat/shared/schema/drizzle/enum";
+import type { PluginServiceType, ScopeType } from "@cat/shared/schema/enum";
 
 import {
   checkServiceReferences,

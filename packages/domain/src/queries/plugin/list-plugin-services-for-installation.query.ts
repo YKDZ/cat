@@ -2,7 +2,7 @@ import { and, eq, pluginInstallation, pluginService } from "@cat/db";
 import {
   PluginServiceTypeSchema,
   ScopeTypeSchema,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import * as z from "zod/v4";
 
 import type { Query } from "@/types";

@@ -1,4 +1,4 @@
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import type { PluginServiceType } from "@cat/shared/schema/enum";
 
 import { eq, pluginService } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";

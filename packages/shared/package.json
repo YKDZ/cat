@@ -41,6 +41,11 @@
       "types": "./dist/schema/plugin.d.ts",
       "import": "./dist/schema/plugin.js"
     },
+    "./schema/enum": {
+      "types": "./dist/schema/enum.d.ts",
+      "import": "./dist/schema/enum.js",
+      "require": "./dist/schema/enum.cjs"
+    },
     "./schema/drizzle/document": {
       "types": "./dist/schema/drizzle/document.d.ts",
       "import": "./dist/schema/drizzle/document.js"
@@ -88,11 +93,6 @@
     "./schema/drizzle/vector": {
       "types": "./dist/schema/drizzle/vector.d.ts",
       "import": "./dist/schema/drizzle/vector.js"
-    },
-    "./schema/drizzle/enum": {
-      "types": "./dist/schema/drizzle/enum.d.ts",
-      "import": "./dist/schema/drizzle/enum.js",
-      "require": "./dist/schema/drizzle/enum.cjs"
     },
     "./schema/drizzle/comment": {
       "types": "./dist/schema/drizzle/comment.d.ts",

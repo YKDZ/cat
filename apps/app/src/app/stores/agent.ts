@@ -1,8 +1,5 @@
 import type { ToolConfirmResponse } from "@cat/shared/schema/agent";
-import type {
-  AgentDefinitionType,
-  ScopeType,
-} from "@cat/shared/schema/drizzle/enum";
+import type { AgentDefinitionType, ScopeType } from "@cat/shared/schema/enum";
 
 import { defineStore } from "pinia";
 import { computed, ref, shallowRef } from "vue";

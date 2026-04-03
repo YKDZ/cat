@@ -306,7 +306,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "memory.ts",
-    imports: ['import { TokenTypeSchema } from "./enum.ts";'],
+    imports: ['import { TokenTypeSchema } from "../enum.ts";'],
     declarations: [
       manualDeclaration(
         `export const SlotMappingEntrySchema = z.object({\n  placeholder: z.string(),\n  value: z.string(),\n  tokenType: TokenTypeSchema,\n});\n\nexport type SlotMappingEntry = z.infer<typeof SlotMappingEntrySchema>;`,

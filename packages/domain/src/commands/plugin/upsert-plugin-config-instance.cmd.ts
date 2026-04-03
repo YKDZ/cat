@@ -5,7 +5,7 @@ import {
   pluginConfigInstance,
   pluginInstallation,
 } from "@cat/db";
-import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
+import { ScopeTypeSchema } from "@cat/shared/schema/enum";
 import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";

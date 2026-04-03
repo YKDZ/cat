@@ -4,7 +4,7 @@ import {
   TokenTypeSchema,
   type PluginServiceType,
   type TokenType,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import { JSONObjectSchema, type JSONObject } from "@cat/shared/schema/json";
 import z from "zod";
 

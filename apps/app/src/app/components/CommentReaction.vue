@@ -3,7 +3,7 @@ import type {
   CommentReaction,
   Comment,
 } from "@cat/shared/schema/drizzle/comment";
-import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
+import type { CommentReactionType } from "@cat/shared/schema/enum";
 
 import { Badge } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";

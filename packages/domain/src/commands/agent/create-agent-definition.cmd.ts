@@ -3,7 +3,7 @@ import { AgentDefinitionSchema } from "@cat/shared/schema/agent";
 import {
   AgentDefinitionTypeSchema,
   ScopeTypeSchema,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Comment } from "@cat/shared/schema/drizzle/comment";
-import type { CommentReactionType } from "@cat/shared/schema/drizzle/enum";
 import type { User } from "@cat/shared/schema/drizzle/user";
+import type { CommentReactionType } from "@cat/shared/schema/enum";
 
 import { Badge } from "@cat/ui";
 import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";

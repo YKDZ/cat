@@ -16,7 +16,7 @@ import {
 import {
   CommentReactionTypeSchema,
   CommentTargetTypeSchema,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import * as z from "zod";
 
 import { authed } from "@/orpc/server";

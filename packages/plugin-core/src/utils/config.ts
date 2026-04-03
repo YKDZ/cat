@@ -1,5 +1,5 @@
 import type { DbHandle } from "@cat/domain";
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import type { ScopeType } from "@cat/shared/schema/enum";
 import type { JSONType } from "@cat/shared/schema/json";
 
 import { executeQuery, getPluginConfigInstance } from "@cat/domain";

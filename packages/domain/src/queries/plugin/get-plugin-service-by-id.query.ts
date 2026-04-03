@@ -1,5 +1,5 @@
 import { and, eq, pluginInstallation, pluginService } from "@cat/db";
-import { PluginServiceTypeSchema } from "@cat/shared/schema/drizzle/enum";
+import { PluginServiceTypeSchema } from "@cat/shared/schema/enum";
 import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
