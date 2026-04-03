@@ -1,13 +1,13 @@
 ---
-description: Database access rules for plugin development under packages/@cat-plugin/.
-paths: ["packages/@cat-plugin/**/*.{ts,vue}"]
+description: Database access rules for plugin development under @cat-plugin/.
+paths: ["@cat-plugin/**/*.{ts,vue}"]
 ---
 
 # Plugin Database Access Rules
 
 ## Mandatory: Use PluginCapabilities for Data Access
 
-Plugins under `packages/@cat-plugin/` **must not** depend on `@cat/db` or any database-level API (Drizzle ORM imports, raw SQL, direct `DbHandle`/`DbContext` usage, etc.).
+Plugins under `@cat-plugin/` **must not** depend on `@cat/db` or any database-level API (Drizzle ORM imports, raw SQL, direct `DbHandle`/`DbContext` usage, etc.).
 
 All data access **must** go through the `PluginCapabilities` system provided by `@cat/domain`:
 

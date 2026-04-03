@@ -1,5 +1,5 @@
 ---
-name: l-replan
+name: replan
 description: Refines an existing implementation plan based on resolved decision blocks, conflicts with the actual codebase, or new requirements. Use when the user has a PLAN file that needs a new revision — whether decisions have been made, conflicts discovered, or requirements changed.
 argument-hint: "[@plan-file] [allow new decisions] (supplementary context)"
 model: inherit

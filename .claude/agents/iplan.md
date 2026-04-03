@@ -1,5 +1,5 @@
 ---
-name: l-plan
+name: iplan
 description: Creates a detailed, self-contained implementation plan from a specification document. Use when the user provides a spec/design doc and needs a concrete step-by-step plan with exact file paths, line numbers, and code snippets.
 argument-hint: "[@spec-file]"
 model: inherit

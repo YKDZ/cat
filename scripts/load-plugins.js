@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import { join, resolve } from "path";
 
-const SRC_DIR = resolve(import.meta.dirname, "../packages/@cat-plugin");
+const SRC_DIR = resolve(import.meta.dirname, "../@cat-plugin");
 const DEST_DIR = resolve(import.meta.dirname, "../apps/app/plugins");
 
 const copyRecursive = async (srcPath, destPath) => {
