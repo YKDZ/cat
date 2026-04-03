@@ -1,3 +1,4 @@
+import { resolvePath } from "@cat/graph";
 import { PluginManager } from "@cat/plugin-core";
 
 import type { NodeExecutor } from "@/graph/node-registry";
@@ -12,17 +13,6 @@ const isStringRecord = (value: unknown): value is Record<string, string> => {
     return false;
   }
   return Object.values(value).every((v) => typeof v === "string");
-};
-
-/** 从嵌套对象按 dot-path 读取值 */
-const resolvePath = (data: unknown, path: string): unknown => {
-  const segments = path.split(".").filter(Boolean);
-  let cursor: unknown = data;
-  for (const segment of segments) {
-    if (typeof cursor !== "object" || cursor === null) return undefined;
-    cursor = (cursor as Record<string, unknown>)[segment];
-  }
-  return cursor;
 };
 
 /**

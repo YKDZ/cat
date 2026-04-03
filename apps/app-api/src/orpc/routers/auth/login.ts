@@ -321,15 +321,15 @@ export const auth = base
       // ignore: fire-and-forget, login attempt logging failure should not block auth
     });
 
-    const mfaProviderIds: number[] = [];
+    const mfaFactorIds: number[] = [];
 
-    await Promise.all(
-      pluginManager.getServices("MFA_PROVIDER").map(async (p) => {
-        mfaProviderIds.push(p.dbId);
-      }),
-    );
+    for (const { dbId, service } of pluginManager.getServices("AUTH_FACTOR")) {
+      if (service.getAal() === 2) {
+        mfaFactorIds.push(dbId);
+      }
+    }
 
-    if (mfaProviderIds.length > 0) {
+    if (mfaFactorIds.length > 0) {
       const waitingMFASessionId = randomBytes(32).toString("hex");
       const waitingMFASessionKey = sessionKeys.waitingMFA(waitingMFASessionId);
 
@@ -338,7 +338,7 @@ export const auth = base
         {
           userId: resolvedUserId,
           authProviderId: String(authProviderId),
-          mfaProviderIds: JSON.stringify(mfaProviderIds),
+          mfaProviderIds: JSON.stringify(mfaFactorIds),
         },
         5 * 60,
       );

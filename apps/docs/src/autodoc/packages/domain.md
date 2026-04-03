@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 230
+* **Modules**: 231
 
-* **Exported functions**: 242
+* **Exported functions**: 243
 
-* **Exported types**: 337
+* **Exported types**: 332
 
 ## Function Index
 
@@ -579,7 +579,7 @@ export const registerPluginDefinition: Command<
 ### `syncPluginServices`
 
 ```ts
-export const syncPluginServices: Command<SyncPluginServicesCommand> = async (ctx: DbContext, command: { pluginInstallationId: number; services: { serviceId: string; serviceType: "AUTH_PROVIDER" | "MFA_PROVIDER" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }[]; }) => {...}
+export const syncPluginServices: Command<SyncPluginServicesCommand> = async (ctx: DbContext, command: { pluginInstallationId: number; services: { serviceId: string; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }[]; }) => {...}
 ```
 
 ### `uninstallPlugin`
@@ -858,12 +858,6 @@ export const domainEvent = (type: T, payload: DomainEventMap[T]): EventOf<Domain
 export const createInProcessCollector = (bus: DomainEventBus): EventCollector
 ```
 
-### `createEvent`
-
-```ts
-export const createEvent = (type: T, payload: M[T], options?: CreateEventOptions): EventOf<M, T>
-```
-
 ### packages/domain/src/infrastructure
 
 ### `getDbHandle`
@@ -1100,6 +1094,24 @@ export const getAccountMetaByIdentity: Query<
   GetAccountMetaByIdentityQuery,
   JSONType | null
 > = async (ctx: DbContext, query: { userId: string; providedAccountId: string; providerIssuer: string; }) => {...}
+```
+
+### `getAccountMetaByProviderAndIdentifier`
+
+```ts
+export const getAccountMetaByProviderAndIdentifier: Query<
+  GetAccountMetaByProviderAndIdentifierQuery,
+  JSONType | null
+> = async (ctx: DbContext, query: { providedAccountId: string; providerIssuer: string; }) => {...}
+```
+
+### `getMfaPayloadByFactorAndUser`
+
+```ts
+export const getMfaPayloadByFactorAndUser: Query<
+  GetMfaPayloadByFactorAndUserQuery,
+  NonNullJSONType | null
+> = async (ctx: DbContext, query: { userId: string; factorId: string; }) => {...}
 ```
 
 ### `getMfaProviderByServiceAndUser`
@@ -1854,7 +1866,7 @@ export const getPluginInstallation: Query<
 export const getPluginServiceById: Query<
   GetPluginServiceByIdQuery,
   PluginServiceIdentity | null
-> = async (ctx: DbContext, query: { serviceDbId: number; serviceType: "AUTH_PROVIDER" | "MFA_PROVIDER" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }) => {...}
+> = async (ctx: DbContext, query: { serviceDbId: number; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }) => {...}
 ```
 
 ### `getPluginServiceByType`
@@ -1896,7 +1908,7 @@ export const listInstalledPlugins: Query<
 export const listInstalledServicesByType: Query<
   ListInstalledServicesByTypeQuery,
   InstalledServiceRecord[]
-> = async (ctx: DbContext, query: { serviceType: "AUTH_PROVIDER" | "MFA_PROVIDER" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
 ```
 
 ### `listPluginServiceIdsByType`
@@ -1905,7 +1917,7 @@ export const listInstalledServicesByType: Query<
 export const listPluginServiceIdsByType: Query<
   ListPluginServiceIdsByTypeQuery,
   string[]
-> = async (ctx: DbContext, query: { serviceType: "AUTH_PROVIDER" | "MFA_PROVIDER" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }) => {...}
+> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }) => {...}
 ```
 
 ### `listPluginServicesForInstallation`
@@ -2450,20 +2462,6 @@ export const searchChunkCosineSimilarity: Query<
 
 * `EventCollector` (type)
 
-* `EventMap` (type)
-
-* `EventOf` (type)
-
-* `AnyEventOf` (type)
-
-* `TypedEventHandler` (type)
-
-* `WaitForEventOptions` (type)
-
-* `TypedEventBus` (type)
-
-* `CreateEventOptions` (type)
-
 * `ExecutorContext` (type)
 
 * `FindAgentDefinitionByNameAndScopeQuery` (type)
@@ -2533,6 +2531,10 @@ export const searchChunkCosineSimilarity: Query<
 * `AuthUserIdentity` (type)
 
 * `GetAccountMetaByIdentityQuery` (type)
+
+* `GetAccountMetaByProviderAndIdentifierQuery` (type)
+
+* `GetMfaPayloadByFactorAndUserQuery` (type)
 
 * `GetMfaProviderByServiceAndUserQuery` (type)
 

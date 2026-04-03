@@ -1,11 +1,8 @@
+import { InProcessEventBus, type EventBus } from "@cat/core";
+
 import type { DomainEvent, DomainEventType } from "@/events/domain-events";
 
-import {
-  InProcessEventBus,
-  type TypedEventBus,
-} from "@/events/typed-event-bus";
-
-export type DomainEventBus = TypedEventBus<DomainEventType, DomainEvent>;
+export type DomainEventBus = EventBus<DomainEventType, DomainEvent>;
 
 export const domainEventBus: DomainEventBus = new InProcessEventBus<
   DomainEventType,

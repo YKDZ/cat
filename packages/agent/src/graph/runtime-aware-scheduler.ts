@@ -1,5 +1,5 @@
 import type { Checkpointer } from "@/graph/checkpointer";
-import type { EventBus } from "@/graph/event-bus";
+import type { AgentEventBus } from "@/graph/event-bus";
 import type { AgentEvent } from "@/graph/events";
 import type { ExecutorPool } from "@/graph/executor-pool";
 import type { GraphRegistry } from "@/graph/graph-registry";
@@ -138,7 +138,7 @@ export class RuntimeAwareScheduler {
     await this.scheduler.handleToolConfirmResponse(event);
   };
 
-  get eventBus(): EventBus {
+  get eventBus(): AgentEventBus {
     return this.scheduler.eventBus;
   }
 

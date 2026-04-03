@@ -10,7 +10,7 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (242 functions, 337 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (243 functions, 332 types)
 
 * [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (46 functions, 79 types)
 
@@ -18,13 +18,19 @@
 
 * [**@cat/db**](./packages/db.md) — Database layer: Drizzle ORM schemas and Redis client (8 functions, 6 types)
 
-* [**@cat/permissions**](./packages/permissions.md) — Permission system: ReBAC-based access control (9 functions, 10 types)
+* [**@cat/permissions**](./packages/permissions.md) — Permission system: ReBAC-based access control (9 functions, 11 types)
 
-* [**@cat/agent**](./packages/agent.md) — Agent and Workflow graph executor (56 functions, 99 types)
+* [**@cat/agent**](./packages/agent.md) — Agent and Workflow graph executor (53 functions, 86 types)
 
 * [**@cat/server-shared**](./packages/server-shared.md) — Shared server utilities (18 functions, 2 types)
 
-* [**@cat/plugin-core**](./packages/plugin-core.md) — Plugin system core: service registry, component registry, discovery (15 functions, 84 types)
+* [**@cat/plugin-core**](./packages/plugin-core.md) — Plugin system core: service registry, component registry, discovery (15 functions, 75 types)
+
+* [**@cat/auth**](./packages/auth.md) — DAG-based authentication flow engine (10 functions, 23 types)
+
+* [**@cat/core**](./packages/core.md) — Core infrastructure: generic event bus, typed pub/sub (1 functions, 7 types)
+
+* [**@cat/graph**](./packages/graph.md) — Storage-agnostic graph core: types, blackboard, condition evaluation (7 functions, 13 types)
 
 ## Core Package Dependencies
 

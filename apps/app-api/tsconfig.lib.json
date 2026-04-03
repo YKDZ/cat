@@ -22,13 +22,16 @@
       "path": "../../packages/plugin-core/tsconfig.lib.json"
     },
     {
+      "path": "../../packages/permissions/tsconfig.lib.json"
+    },
+    {
       "path": "../../packages/operations/tsconfig.lib.json"
     },
     {
       "path": "../../packages/domain/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/permissions/tsconfig.lib.json"
+      "path": "../../packages/auth/tsconfig.lib.json"
     },
     {
       "path": "../../packages/agent"

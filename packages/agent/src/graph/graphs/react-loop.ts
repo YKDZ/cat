@@ -21,16 +21,17 @@ export const reactLoopGraph: GraphDefinition = {
         routes: [
           {
             condition: {
-              type: "schema_match",
-              value: "think.toolCalls.0",
+              field: "think.toolCalls.0",
+              operator: "exists",
             },
             target: "act",
             label: "has_tools",
           },
           {
             condition: {
-              type: "blackboard_field",
-              value: "think.finishRequested==true",
+              field: "think.finishRequested",
+              operator: "eq",
+              value: true,
             },
             target: "finish",
             label: "finish",
@@ -63,16 +64,18 @@ export const reactLoopGraph: GraphDefinition = {
       from: "route",
       to: "act",
       condition: {
-        type: "blackboard_field",
-        value: "__nextNode==act",
+        field: "__nextNode",
+        operator: "eq",
+        value: "act",
       },
     },
     {
       from: "route",
       to: "finish",
       condition: {
-        type: "blackboard_field",
-        value: "__nextNode==finish",
+        field: "__nextNode",
+        operator: "eq",
+        value: "finish",
       },
     },
     { from: "act", to: "think" },

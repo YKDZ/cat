@@ -48,6 +48,30 @@ export default defineConfig({
       // ── 底层包：纯单元测试（无 DB 依赖）──────────────────────────────
       {
         test: {
+          name: "unit-core",
+          include: ["packages/core/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/core")) },
+      },
+      {
+        test: {
+          name: "unit-graph",
+          include: ["packages/graph/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/graph")) },
+      },
+      {
+        test: {
+          name: "unit-auth",
+          include: ["packages/auth/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/auth")) },
+      },
+      {
+        test: {
           name: "unit-shared",
           include: ["packages/shared/src/**/*.{spec,test}.ts"],
           environment: "node",

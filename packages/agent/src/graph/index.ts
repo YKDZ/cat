@@ -1,10 +1,13 @@
 import type { DrizzleClient } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
 
+// 从 @cat/graph 转导核心类型，保持 @cat/agent 的公共 API 不变
+export * from "@cat/graph";
+
 import { PostgresCheckpointer } from "@/graph/checkpointer";
 import { InMemoryCompensationRegistry } from "@/graph/compensation";
 import { InProcessEventBus } from "@/graph/event-bus";
-import { LocalExecutorPool, QueuedExecutorPool } from "@/graph/executor-pool";
+import { QueuedExecutorPool } from "@/graph/executor-pool";
 import {
   HumanInputNodeExecutor,
   JoinNodeExecutor,
@@ -50,7 +53,7 @@ import {
   vectorizeGraph,
 } from "@/workflow/tasks";
 
-export type { EventBus } from "@/graph/event-bus";
+export type { AgentEventBus } from "@/graph/event-bus";
 export type { ExecutorPool, ExecutorTask } from "@/graph/executor-pool";
 export { InProcessEventBus } from "@/graph/event-bus";
 export { LocalExecutorPool, QueuedExecutorPool } from "@/graph/executor-pool";

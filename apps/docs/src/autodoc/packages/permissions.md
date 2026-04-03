@@ -8,7 +8,7 @@ Permission system: ReBAC-based access control
 
 * **Exported functions**: 9
 
-* **Exported types**: 10
+* **Exported types**: 11
 
 ## Function Index
 
@@ -128,6 +128,8 @@ export const initPermissionEngine = (deps: {
 
 * `AscendRule` (type) — "上溯"规则：element/translation 没有自己的权限元组，
   鉴权时自动查找所属 document。
+
+* `CompletedFactor` (type) — 完成的认证因子信息
 
 * `AuthContext` (type) — 鉴权上下文，在各入口层创建后透传
 

@@ -4,11 +4,11 @@ Agent and Workflow graph executor
 
 ## Overview
 
-* **Modules**: 57
+* **Modules**: 56
 
-* **Exported functions**: 56
+* **Exported functions**: 53
 
-* **Exported types**: 99
+* **Exported types**: 86
 
 ## Function Index
 
@@ -117,25 +117,6 @@ export const runAgentCommand = async (command: Command<C, R>, input: C): Promise
 
 ### packages/agent/src/graph
 
-### `createPatchMetadata`
-
-```ts
-export const createPatchMetadata = (args: {
-  actorId: NodeId;
-  parentSnapshotVersion: number;
-}): { patchId: string; parentSnapshotVersion: number; actorId: string; timestamp: string; }
-```
-
-### `buildPatch`
-
-```ts
-export const buildPatch = (args: {
-  actorId: NodeId;
-  parentSnapshotVersion: number;
-  updates: Record<string, unknown>;
-}): { metadata: { patchId: string; parentSnapshotVersion: number; actorId: string; timestamp: string; }; updates: any; }
-```
-
 ### `generateCacheKey`
 
 ```ts
@@ -183,13 +164,13 @@ export const getStoredGraphRuntime = (): StoredGraphRuntime
 ### `compileGraphDSL`
 
 ```ts
-export const compileGraphDSL = (input: unknown): { id: string; version: string; nodes: Record<string, { id: string; type: "llm" | "tool" | "router" | "parallel" | "join" | "human_input" | "transform" | "loop" | "subgraph"; timeoutMs: number; config?: any; idempotency?: { enabled: boolean; keyTemplate?: string | undefined; } | undefined; retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number; } | undefined; humanInput?: { prompt: string; timeoutMs?: number | undefined; } | undefined; }>; edges: { from: string; to: string; condition?: { type: "expression" | "schema_match" | "blackboard_field"; value: string; description?: string | undefined; } | undefined; label?: string | undefined; }[]; entry: string; description?: string | undefined; exit?: string[] | undefined; config?: { maxConcurrentNodes: number; defaultTimeoutMs: number; enableCheckpoints: boolean; checkpointIntervalMs: number; } | undefined; }
+export const compileGraphDSL = (input: unknown): { id: string; version: string; nodes: Record<string, { id: string; type: "llm" | "tool" | "router" | "parallel" | "join" | "human_input" | "transform" | "loop" | "subgraph"; timeoutMs: number; config?: any; idempotency?: { enabled: boolean; keyTemplate?: string | undefined; } | undefined; retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number; } | undefined; humanInput?: { prompt: string; timeoutMs?: number | undefined; } | undefined; }>; edges: { from: string; to: string; condition?: { field: string; operator: "eq" | "neq" | "exists" | "not_exists" | "in" | "gt" | "lt"; value?: unknown; description?: string | undefined; } | undefined; label?: string | undefined; }[]; entry: string; description?: string | undefined; exit?: string[] | undefined; config?: { maxConcurrentNodes: number; defaultTimeoutMs: number; enableCheckpoints: boolean; checkpointIntervalMs: number; } | undefined; }
 ```
 
 ### `parseGraphDSL`
 
 ```ts
-export const parseGraphDSL = (input: unknown): { id: string; version: string; nodes: Record<string, { id: string; type: "llm" | "tool" | "router" | "parallel" | "join" | "human_input" | "transform" | "loop" | "subgraph"; timeoutMs: number; config?: any; idempotency?: { enabled: boolean; keyTemplate?: string | undefined; } | undefined; retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number; } | undefined; humanInput?: { prompt: string; timeoutMs?: number | undefined; } | undefined; }>; edges: { from: string; to: string; condition?: { type: "expression" | "schema_match" | "blackboard_field"; value: string; description?: string | undefined; } | undefined; label?: string | undefined; }[]; entry: string; description?: string | undefined; exit?: string[] | undefined; config?: { maxConcurrentNodes: number; defaultTimeoutMs: number; enableCheckpoints: boolean; checkpointIntervalMs: number; } | undefined; }
+export const parseGraphDSL = (input: unknown): { id: string; version: string; nodes: Record<string, { id: string; type: "llm" | "tool" | "router" | "parallel" | "join" | "human_input" | "transform" | "loop" | "subgraph"; timeoutMs: number; config?: any; idempotency?: { enabled: boolean; keyTemplate?: string | undefined; } | undefined; retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number; } | undefined; humanInput?: { prompt: string; timeoutMs?: number | undefined; } | undefined; }>; edges: { from: string; to: string; condition?: { field: string; operator: "eq" | "neq" | "exists" | "not_exists" | "in" | "gt" | "lt"; value?: unknown; description?: string | undefined; } | undefined; label?: string | undefined; }[]; entry: string; description?: string | undefined; exit?: string[] | undefined; config?: { maxConcurrentNodes: number; defaultTimeoutMs: number; enableCheckpoints: boolean; checkpointIntervalMs: number; } | undefined; }
 ```
 
 ### `validateGraphDSL`
@@ -264,12 +245,6 @@ export const SubgraphNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContex
 
 ```ts
 export const ToolNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
-```
-
-### `resolvePath`
-
-```ts
-export const resolvePath = (data: unknown, path: string): unknown
 ```
 
 ### `interpolateTemplate`
@@ -446,7 +421,7 @@ export const resolveSession = async (drizzle: DrizzleClient, sessionExternalId: 
 /**
  * Load and parse the agent definition for the given DB-internal definition ID.
  */
-export const resolveDefinition = async (drizzle: DrizzleClient, agentDefinitionId: number): Promise<{ id: string; name: string; description: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; systemPrompt: string; tools: string[]; icon?: string | undefined; llm?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; systemPromptVariables?: Record<string, { type: "string" | "number" | "boolean"; source: "config" | "input" | "context"; name?: string | undefined; description?: string | undefined; }> | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; }>
+export const resolveDefinition = async (drizzle: DrizzleClient, agentDefinitionId: number): Promise<{ id: string; name: string; description: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; systemPrompt: string; tools: string[]; icon?: string | undefined; llm?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; systemPromptVariables?: Record<string, { type: "string" | "number" | "boolean"; source: "input" | "config" | "context"; name?: string | undefined; description?: string | undefined; }> | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; }>
 ```
 
 ### `mapSessionMetaToSeeds`
@@ -633,7 +608,7 @@ export const injectContextVariables = (systemPrompt: string, variables: Record<s
 
 * `WaitForEventArgs` (type)
 
-* `EventBus` (type)
+* `AgentEventBus` (type)
 
 * `EventStore` (type)
 
@@ -695,35 +670,9 @@ export const injectContextVariables = (systemPrompt: string, variables: Record<s
 
 * `TypedGraphDefinition` (type) — defineTypedGraph 的返回值
 
-* `RunId` (type)
-
-* `NodeId` (type)
-
-* `EventId` (type)
-
-* `RunStatus` (type)
-
-* `BlackboardSnapshot` (type)
-
-* `PatchMetadata` (type)
-
-* `Patch` (type)
-
-* `NodeType` (type)
-
-* `NodeDefinition` (type)
-
-* `EdgeCondition` (type)
-
-* `EdgeDefinition` (type)
-
-* `GraphDefinition` (type)
-
 * `NodeExecutionResult` (type)
 
 * `NodeExecutionContext` (type)
-
-* `RetryConfig` (type)
 
 * `GraphRuntimeContext` (type)
 

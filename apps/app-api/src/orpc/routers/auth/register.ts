@@ -28,7 +28,7 @@ export const register = base
     // TODO 就算是内部插件 ID 也有可能变
     const authProvider = pluginManager.getService(
       "password-auth-provider",
-      "AUTH_PROVIDER",
+      "AUTH_FACTOR",
       "PASSWORD",
     );
 

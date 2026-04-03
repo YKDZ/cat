@@ -88,6 +88,8 @@ import {
   ensureVectorStorageSchema,
 } from "@/index";
 import { getAccountMetaByIdentity } from "@/queries/auth/get-account-meta-by-identity.query";
+import { getAccountMetaByProviderAndIdentifier } from "@/queries/auth/get-account-meta-by-provider-and-identifier.query";
+import { getMfaPayloadByFactorAndUser } from "@/queries/auth/get-mfa-payload-by-factor-and-user.query";
 
 type CheckPermissionFn = (
   objectType: string,
@@ -260,6 +262,19 @@ export const createPluginCapabilities = (
         userId,
         providedAccountId,
         providerIssuer,
+      }),
+    getAccountMetaByProviderAndIdentifier: async ({
+      providedAccountId,
+      providerIssuer,
+    }) =>
+      executeQuery(execCtx, getAccountMetaByProviderAndIdentifier, {
+        providedAccountId,
+        providerIssuer,
+      }),
+    getMfaPayloadForUser: async ({ userId, factorId }) =>
+      executeQuery(execCtx, getMfaPayloadByFactorAndUser, {
+        userId,
+        factorId,
       }),
   },
   vector: {

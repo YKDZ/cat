@@ -1,4 +1,3 @@
-import type { JSONType } from "@cat/shared/schema/json";
 import type { VectorizedTextData } from "@cat/shared/schema/misc";
 import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
 import type { TranslationAdvise } from "@cat/shared/schema/plugin";
@@ -8,14 +7,6 @@ import { chunk } from "@cat/db";
 import { getDbHandle } from "@cat/domain";
 import {
   CatPlugin,
-  MFAChallengeResult,
-  MFAInitForUserContext,
-  MFAInitForUserResult,
-  MFAVerifyResult,
-  VerifyChallengeContext,
-  AuthResult,
-  HandlePreAuthContext,
-  PreAuthResult,
   VectorStorage,
   type CosineSimilarityContext,
   type RetrieveContext,
@@ -33,8 +24,6 @@ import {
   type GetStreamContext,
   type HeadContext,
   type PutStreamContext,
-  AuthProvider,
-  MFAProvider,
   type PluginLoader,
   FileImporter,
   type CanExportContext,
@@ -70,59 +59,6 @@ const vector = pgTable(
     unique().on(table.chunkId),
   ],
 );
-
-export class TestAuthProvider extends AuthProvider {
-  public override getId = (): string => "auth-provider";
-  public override getName = (): string => "Memory Auth";
-  public override getIcon = (): string => "memory-icon-url";
-
-  public override isAvailable = async (): Promise<boolean> => true;
-
-  public override handleAuth = async (
-    userId: string,
-    identifier: string,
-    _gotFromClient: { urlSearchParams: unknown; formData?: unknown },
-    _preAuthMeta: JSONType,
-  ): Promise<AuthResult> => {
-    return {
-      providerIssuer: "in-memory",
-      providedAccountId: identifier,
-      accountMeta: { verified: true },
-    };
-  };
-
-  public override handlePreAuth = async ({
-    identifier,
-  }: HandlePreAuthContext): Promise<PreAuthResult> => {
-    return {
-      meta: { identifier },
-      passToClient: { message: "Ready to auth" },
-    };
-  };
-}
-
-export class TestMFAProvider extends MFAProvider {
-  public override getId = (): string => "mfa-provider";
-
-  public override verifyChallenge = async (
-    _ctx: VerifyChallengeContext,
-  ): Promise<MFAVerifyResult> => {
-    return { isSuccess: true };
-  };
-
-  public override generateChallenge = async (): Promise<MFAChallengeResult> => {
-    return {
-      meta: { code: "123456" },
-      passToClient: { type: "code" },
-    };
-  };
-
-  public override initForUser = async (
-    _ctx: MFAInitForUserContext,
-  ): Promise<MFAInitForUserResult> => {
-    return { isSuccess: true, payload: { secret: "dummy-secret" } };
-  };
-}
 
 export class TestStorageProvider extends StorageProvider {
   private storage = new Map<string, Buffer>();
@@ -410,8 +346,6 @@ type RegisteredPlugin = {
 const plugin = {
   services: () => {
     return [
-      new TestAuthProvider(),
-      new TestMFAProvider(),
       new TestStorageProvider(),
       new TestTextVectorizer(),
       new TestFileImporter(),
@@ -427,16 +361,6 @@ const manifest = {
   version: "0.0.1",
   entry: "index.js",
   services: [
-    {
-      id: "auth-provider",
-      type: "AUTH_PROVIDER",
-      dynamic: false,
-    },
-    {
-      id: "mfa-provider",
-      type: "MFA_PROVIDER",
-      dynamic: false,
-    },
     {
       id: "qa-checker",
       type: "QA_CHECKER",

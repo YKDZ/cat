@@ -41,8 +41,6 @@ export const getAccountMetaByIdentity = async (drizzle: DrizzleClient | DrizzleT
  * 不删除现有数据 \
  * 所有修改都是试探性的
  * @returns
- *
- * @returns */
  */
 export const ensureDB = async (db: DrizzleDB): Promise<void>
 ```

@@ -1,17 +1,17 @@
 import type { ChatMessage, LLMProvider, PluginManager } from "@cat/plugin-core";
 
+import { evaluateCondition } from "@cat/graph";
 import { randomUUID } from "node:crypto";
 
 import type { Checkpointer } from "@/graph/checkpointer";
 import type { CompensationRegistry } from "@/graph/compensation";
-import type { EventBus } from "@/graph/event-bus";
+import type { AgentEventBus } from "@/graph/event-bus";
 import type { AgentEvent, EventEnvelopeInput } from "@/graph/events";
 import type { ExecutorPool } from "@/graph/executor-pool";
 import type { GraphRegistry } from "@/graph/graph-registry";
 import type { LeaseManager, LeaseRecord } from "@/graph/lease";
 import type { NodeRegistry } from "@/graph/node-registry";
 import type {
-  EdgeCondition,
   GraphRuntimeContext,
   GraphDefinition,
   NodeId,
@@ -44,7 +44,7 @@ type RunContext = {
 };
 
 export type SchedulerOptions = {
-  eventBus: EventBus;
+  eventBus: AgentEventBus;
   checkpointer: Checkpointer;
   executorPool: ExecutorPool;
   graphRegistry: GraphRegistry;
@@ -79,28 +79,6 @@ export type SchedulerRecoverOptions = {
 };
 
 const SCHEDULER_PENDING_NODE_IDS_KEY = "__scheduler.pendingNodeIds";
-
-const parseExpectedValue = (raw: string): string | number | boolean | null => {
-  if (raw === "true") return true;
-  if (raw === "false") return false;
-  if (raw === "null") return null;
-  const asNumber = Number(raw);
-  if (!Number.isNaN(asNumber) && raw.trim() !== "") return asNumber;
-  return raw;
-};
-
-const resolvePath = (data: unknown, path: string): unknown => {
-  if (typeof path !== "string" || path.length === 0) return undefined;
-  const segments = path.split(".").filter(Boolean);
-  let cursor: unknown = data;
-
-  for (const segment of segments) {
-    if (typeof cursor !== "object" || cursor === null) return undefined;
-    cursor = Reflect.get(cursor, segment);
-  }
-
-  return cursor;
-};
 
 const toRecord = (value: unknown): Record<string, unknown> => {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
@@ -173,7 +151,7 @@ const getFirstPendingNodeId = (
 };
 
 export class Scheduler {
-  readonly eventBus: EventBus;
+  readonly eventBus: AgentEventBus;
 
   readonly checkpointer: Checkpointer;
 
@@ -452,7 +430,7 @@ export class Scheduler {
 
     const graph =
       metadata.graphDefinition ?? this.graphRegistry.get(metadata.graphId);
-    const blackboard = await Blackboard.fromSnapshot(snapshot);
+    const blackboard = Blackboard.fromSnapshot(snapshot);
 
     const context: RunContext = {
       runId,
@@ -809,7 +787,7 @@ export class Scheduler {
     const matched = outgoing
       .filter((edge) => {
         if (!edge.condition) return true;
-        return this.evaluateCondition(
+        return evaluateCondition(
           edge.condition,
           context.blackboard.getSnapshot().data,
         );
@@ -824,38 +802,6 @@ export class Scheduler {
         context.completedNodes.has(edge.from),
       );
     });
-  };
-
-  private evaluateCondition = (
-    condition: EdgeCondition,
-    data: unknown,
-  ): boolean => {
-    if (condition.type === "blackboard_field") {
-      const [pathRaw, expectedRaw] = condition.value.split("==");
-      if (!pathRaw || expectedRaw === undefined) return false;
-      const actual = resolvePath(data, pathRaw.trim());
-      const expected = parseExpectedValue(expectedRaw.trim());
-      return actual === expected;
-    }
-
-    if (condition.type === "schema_match") {
-      const value = resolvePath(data, condition.value);
-      return value !== undefined && value !== null;
-    }
-
-    if (condition.type === "expression") {
-      const normalized = condition.value.trim();
-      if (normalized === "true") return true;
-      if (normalized === "false") return false;
-
-      const [pathRaw, expectedRaw] = normalized.split("==");
-      if (!pathRaw || expectedRaw === undefined) return false;
-      const actual = resolvePath(data, pathRaw.trim());
-      const expected = parseExpectedValue(expectedRaw.trim());
-      return actual === expected;
-    }
-
-    return false;
   };
 
   private completeRun = async (

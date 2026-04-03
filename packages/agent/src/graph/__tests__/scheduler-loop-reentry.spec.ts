@@ -72,16 +72,18 @@ describe("Scheduler loop re-entry", () => {
           from: "think",
           to: "act",
           condition: {
-            type: "blackboard_field",
-            value: "__nextNode==act",
+            field: "__nextNode",
+            operator: "eq",
+            value: "act",
           },
         },
         {
           from: "think",
           to: "finish",
           condition: {
-            type: "blackboard_field",
-            value: "__nextNode==finish",
+            field: "__nextNode",
+            operator: "eq",
+            value: "finish",
           },
         },
         {

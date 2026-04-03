@@ -79,6 +79,28 @@ export const getContext = async (
         undefined,
       userAgent: req.headers.get("user-agent") ?? undefined,
     };
+
+    // 从 Cookie Session 读取 AAL 等认证增强字段
+    if (sessionId) {
+      const rawSession = await sessionStore.getAll(`user:session:${sessionId}`);
+      if (rawSession) {
+        const rawAal = rawSession["aal"];
+        const rawFactors = rawSession["completedFactors"];
+        const rawTraceId = rawSession["flowTraceId"];
+        auth = {
+          ...auth,
+          aal: rawAal !== undefined ? Number(rawAal) : undefined,
+          completedFactors:
+            rawFactors !== undefined
+              ? // oxlint-disable-next-line no-unsafe-type-assertion
+                (JSON.parse(
+                  rawFactors,
+                ) as unknown as AuthContext["completedFactors"])
+              : undefined,
+          flowTraceId: rawTraceId ?? undefined,
+        };
+      }
+    }
   }
 
   // ====== CSRF Token ======

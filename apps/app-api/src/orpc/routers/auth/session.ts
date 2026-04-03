@@ -1,12 +1,9 @@
-import type { AuthProvider } from "@cat/plugin-core";
-
 import {
   executeCommand,
   executeQuery,
   listSessionsByUser,
   revokeSessionRecord,
 } from "@cat/domain";
-import { getServiceFromDBId } from "@cat/server-shared";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
@@ -15,27 +12,9 @@ import { authed } from "@/orpc/server";
 import { sessionKeys } from "./schemas.ts";
 
 export const logout = authed.output(z.void()).handler(async ({ context }) => {
-  const { sessionStore, sessionId, pluginManager, helpers } = context;
+  const { sessionStore, sessionId, helpers } = context;
 
   const sessionKey = sessionKeys.userSession(sessionId);
-
-  // 也有不存在 authProviderId 的时候，比如通过注册自动登录
-  const authProviderIdData = await sessionStore.getField(
-    sessionKey,
-    "authProviderId",
-  );
-  if (authProviderIdData) {
-    const authProviderId = Number(authProviderIdData);
-
-    const provider = getServiceFromDBId<AuthProvider>(
-      pluginManager,
-      authProviderId,
-    );
-
-    if (typeof provider.handleLogout === "function") {
-      await provider.handleLogout({ sessionId });
-    }
-  }
 
   await sessionStore.destroy(sessionKey);
   helpers.delCookie("sessionId");
