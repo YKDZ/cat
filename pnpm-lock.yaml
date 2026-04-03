@@ -10,10 +10,10 @@ importers:
     devDependencies:
       '@nx/devkit':
         specifier: 22.5.4
-        version: 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))
+        version: 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))
       '@nx/js':
         specifier: 22.5.4
-        version: 22.5.4(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))
+        version: 22.5.4(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))(nx@22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
@@ -40,7 +40,7 @@ importers:
         version: 2.6.1
       nx:
         specifier: 22.5.4
-        version: 22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))
+        version: 22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))
       oxfmt:
         specifier: ^0.41.0
         version: 0.41.0
@@ -341,7 +341,7 @@ importers:
         version: 6.0.5(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.30(typescript@6.0.0-beta))
       hono:
         specifier: ^4.12.8
-        version: 4.12.8
+        version: 4.12.10
       vite:
         specifier: 8.0.0
         version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
@@ -429,10 +429,10 @@ importers:
         version: 6.40.0
       '@hono/mcp':
         specifier: ^0.2.4
-        version: 0.2.4(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.12.8))(hono@4.12.8)(zod@4.3.6)
+        version: 0.2.4(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.12.10))(hono@4.12.10)(zod@4.3.6)
       '@hono/node-ws':
         specifier: ^1.3.0
-        version: 1.3.0(@hono/node-server@1.19.11(hono@4.12.8))(hono@4.12.8)
+        version: 1.3.0(@hono/node-server@1.19.11(hono@4.12.10))(hono@4.12.10)
       '@intlify/unplugin-vue-i18n':
         specifier: ^11.0.7
         version: 11.0.7(@vue/compiler-dom@3.5.30)(eslint@9.37.0(jiti@2.6.1))(rollup@4.59.0)(typescript@6.0.0-beta)(vue-i18n@11.3.0(vue@3.5.30(typescript@6.0.0-beta)))(vue@3.5.30(typescript@6.0.0-beta))
@@ -450,7 +450,7 @@ importers:
         version: 1.13.7(@opentelemetry/api@1.9.0)(ws@8.19.0)
       '@photonjs/hono':
         specifier: ^0.1.12
-        version: 0.1.12(@hono/node-server@1.19.11(hono@4.12.8))(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 0.1.12(@hono/node-server@1.19.11(hono@4.12.10))(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
       '@pinia/colada':
         specifier: ^1.0.0
         version: 1.0.0(pinia@3.0.4(typescript@6.0.0-beta)(vue@3.5.30(typescript@6.0.0-beta)))(vue@3.5.30(typescript@6.0.0-beta))
@@ -492,7 +492,7 @@ importers:
         version: 17.3.1
       hono:
         specifier: ^4.12.8
-        version: 4.12.8
+        version: 4.12.10
       lucide-vue-next:
         specifier: ^0.577.0
         version: 0.577.0(vue@3.5.30(typescript@6.0.0-beta))
@@ -540,7 +540,7 @@ importers:
         version: 0.4.255(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
       vike-photon:
         specifier: ^0.1.24
-        version: 0.1.24(@photonjs/core@0.1.21(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(@photonjs/runtime@0.1.15(hono@4.12.8)(rollup@4.59.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(hono@4.12.8)(rollup@4.59.0)(srvx@0.9.8)(vike@0.4.255(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 0.1.24(@photonjs/core@0.1.21(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(@photonjs/runtime@0.1.15(hono@4.12.10)(rollup@4.59.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(hono@4.12.10)(rollup@4.59.0)(srvx@0.9.8)(vike@0.4.255(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
       vike-vue:
         specifier: ^0.9.11
         version: 0.9.11(vike@0.4.255(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(vue@3.5.30(typescript@6.0.0-beta))
@@ -1008,7 +1008,7 @@ importers:
         version: link:../domain
       hono:
         specifier: ^4.12.8
-        version: 4.12.8
+        version: 4.12.10
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.5.0))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.27.4)(rollup@4.59.0)(typescript@6.0.0-beta)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
@@ -2768,6 +2768,12 @@ packages:
 
   '@napi-rs/wasm-runtime@1.1.1':
     resolution: {integrity: sha512-p64ah1M1ld8xjWv3qbvFwHiFVWrq1yFvV4f7w+mzaqiR4IlSgkqhcRdHwsGgomwzBH51sRY4NEowLxnaBjcW/A==}
+
+  '@napi-rs/wasm-runtime@1.1.2':
+    resolution: {integrity: sha512-sNXv5oLJ7ob93xkZ1XnxisYhGYXfaG9f65/ZgYuAu3qt7b3NadcOEhLvx28hv31PgX8SZJRYrAIPQilQmFpLVw==}
+    peerDependencies:
+      '@emnapi/core': ^1.7.1
+      '@emnapi/runtime': ^1.7.1
 
   '@noble/ciphers@1.3.0':
     resolution: {integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==}
@@ -4873,6 +4879,9 @@ packages:
   '@vue/shared@3.5.30':
     resolution: {integrity: sha512-YXgQ7JjaO18NeK2K9VTbDHaFy62WrObMa6XERNfNOkAhD1F1oDSf3ZJ7K6GqabZ0BvSDHajp8qfS5Sa2I9n8uQ==}
 
+  '@vue/shared@3.5.32':
+    resolution: {integrity: sha512-ksNyrmRQzWJJ8n3cRDuSF7zNNontuJg1YHnmWRJd2AMu8Ij2bqwiiri2lH5rHtYPZjj4STkNcgcmiQqlOjiYGg==}
+
   '@vue/test-utils@2.4.6':
     resolution: {integrity: sha512-FMxEjOpYNYiFe0GkaHsnJPXFHxQ6m4t8vI/ElPGpMWxZKpmRvQ33OIrvRXemy6yha03RxhOlQuy+gZMC3CQSow==}
 
@@ -6594,6 +6603,10 @@ packages:
     peerDependencies:
       hono: ^4.1.1
 
+  hono@4.12.10:
+    resolution: {integrity: sha512-mx/p18PLy5og9ufies2GOSUqep98Td9q4i/EF6X7yJgAiIopxqdfIO3jbqsi3jRgTgw88jMDEzVKi+V2EF+27w==}
+    engines: {node: '>=16.9.0'}
+
   hono@4.12.8:
     resolution: {integrity: sha512-VJCEvtrezO1IAR+kqEYnxUOoStaQPGrCmX3j4wDTNOcD1uRPFpGlwQUIW8niPuvHXaTUxeOUl5MMDGrl+tmO9A==}
     engines: {node: '>=16.9.0'}
@@ -7798,6 +7811,10 @@ packages:
 
   picomatch@4.0.3:
     resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
+    engines: {node: '>=12'}
+
+  picomatch@4.0.4:
+    resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
 
   pify@2.3.0:
@@ -11076,6 +11093,14 @@ snapshots:
     dependencies:
       tailwindcss: 3.4.19(tsx@4.21.0)(yaml@2.8.3)
 
+  '@hono/mcp@0.2.4(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.12.10))(hono@4.12.10)(zod@4.3.6)':
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.27.1(zod@4.3.6)
+      hono: 4.12.10
+      hono-rate-limiter: 0.4.2(hono@4.12.10)
+      pkce-challenge: 5.0.1
+      zod: 4.3.6
+
   '@hono/mcp@0.2.4(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.12.8))(hono@4.12.8)(zod@4.3.6)':
     dependencies:
       '@modelcontextprotocol/sdk': 1.27.1(zod@4.3.6)
@@ -11084,9 +11109,22 @@ snapshots:
       pkce-challenge: 5.0.1
       zod: 4.3.6
 
+  '@hono/node-server@1.19.11(hono@4.12.10)':
+    dependencies:
+      hono: 4.12.10
+
   '@hono/node-server@1.19.11(hono@4.12.8)':
     dependencies:
       hono: 4.12.8
+
+  '@hono/node-ws@1.3.0(@hono/node-server@1.19.11(hono@4.12.10))(hono@4.12.10)':
+    dependencies:
+      '@hono/node-server': 1.19.11(hono@4.12.10)
+      hono: 4.12.10
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@hono/node-ws@1.3.0(@hono/node-server@1.19.11(hono@4.12.8))(hono@4.12.8)':
     dependencies:
@@ -11385,7 +11423,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.27.1(zod@3.25.76)':
     dependencies:
-      '@hono/node-server': 1.19.11(hono@4.12.8)
+      '@hono/node-server': 1.19.11(hono@4.12.10)
       ajv: 8.18.0
       ajv-formats: 3.0.1(ajv@8.18.0)
       content-type: 1.0.5
@@ -11395,7 +11433,7 @@ snapshots:
       eventsource-parser: 3.0.6
       express: 5.2.1
       express-rate-limit: 8.3.1(express@5.2.1)
-      hono: 4.12.8
+      hono: 4.12.10
       jose: 6.2.1
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -11407,7 +11445,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.27.1(zod@4.3.6)':
     dependencies:
-      '@hono/node-server': 1.19.11(hono@4.12.8)
+      '@hono/node-server': 1.19.11(hono@4.12.10)
       ajv: 8.18.0
       ajv-formats: 3.0.1(ajv@8.18.0)
       content-type: 1.0.5
@@ -11417,7 +11455,7 @@ snapshots:
       eventsource-parser: 3.0.6
       express: 5.2.1
       express-rate-limit: 8.3.1(express@5.2.1)
-      hono: 4.12.8
+      hono: 4.12.10
       jose: 6.2.1
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -11434,6 +11472,13 @@ snapshots:
       '@tybys/wasm-util': 0.9.0
 
   '@napi-rs/wasm-runtime@1.1.1':
+    dependencies:
+      '@emnapi/core': 1.9.0
+      '@emnapi/runtime': 1.9.0
+      '@tybys/wasm-util': 0.10.1
+    optional: true
+
+  '@napi-rs/wasm-runtime@1.1.2(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)':
     dependencies:
       '@emnapi/core': 1.9.0
       '@emnapi/runtime': 1.9.0
@@ -11460,18 +11505,18 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@nx/devkit@22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))':
+  '@nx/devkit@22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))':
     dependencies:
       '@zkochan/js-yaml': 0.0.7
       ejs: 3.1.10
       enquirer: 2.3.6
       minimatch: 10.2.4
-      nx: 22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))
+      nx: 22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))
       semver: 7.7.4
       tslib: 2.8.1
       yargs-parser: 21.1.1
 
-  '@nx/js@22.5.4(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))':
+  '@nx/js@22.5.4(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))(nx@22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-proposal-decorators': 7.29.0(@babel/core@7.29.0)
@@ -11480,8 +11525,8 @@ snapshots:
       '@babel/preset-env': 7.29.2(@babel/core@7.29.0)
       '@babel/preset-typescript': 7.28.5(@babel/core@7.29.0)
       '@babel/runtime': 7.29.2
-      '@nx/devkit': 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))
-      '@nx/workspace': 22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))
+      '@nx/devkit': 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))
+      '@nx/workspace': 22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))
       '@zkochan/js-yaml': 0.0.7
       babel-plugin-const-enum: 1.2.0(@babel/core@7.29.0)
       babel-plugin-macros: 3.1.0
@@ -11537,13 +11582,13 @@ snapshots:
   '@nx/nx-win32-x64-msvc@22.5.4':
     optional: true
 
-  '@nx/workspace@22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))':
+  '@nx/workspace@22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))':
     dependencies:
-      '@nx/devkit': 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))
+      '@nx/devkit': 22.5.4(nx@22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)))
       '@zkochan/js-yaml': 0.0.7
       chalk: 4.1.2
       enquirer: 2.3.6
-      nx: 22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))
+      nx: 22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19))
       picomatch: 4.0.2
       semver: 7.7.4
       tslib: 2.8.1
@@ -11764,9 +11809,12 @@ snapshots:
   '@oxc-resolver/binding-openharmony-arm64@11.19.1':
     optional: true
 
-  '@oxc-resolver/binding-wasm32-wasi@11.19.1':
+  '@oxc-resolver/binding-wasm32-wasi@11.19.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)':
     dependencies:
-      '@napi-rs/wasm-runtime': 1.1.1
+      '@napi-rs/wasm-runtime': 1.1.2(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
     optional: true
 
   '@oxc-resolver/binding-win32-arm64-msvc@11.19.1':
@@ -11912,13 +11960,13 @@ snapshots:
 
   '@oxlint/plugins@1.56.0': {}
 
-  '@photonjs/core@0.1.21(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
+  '@photonjs/core@0.1.21(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
       '@brillout/vite-plugin-server-entry': 0.7.18
-      '@universal-middleware/cloudflare': 0.4.12(hono@4.12.8)(srvx@0.9.8)
+      '@universal-middleware/cloudflare': 0.4.12(hono@4.12.10)(srvx@0.9.8)
       '@universal-middleware/compress': 0.2.35
-      '@universal-middleware/core': 0.4.17(hono@4.12.8)(srvx@0.9.8)
-      '@universal-middleware/express': 0.4.26(hono@4.12.8)(srvx@0.9.8)
+      '@universal-middleware/core': 0.4.17(hono@4.12.10)(srvx@0.9.8)
+      '@universal-middleware/express': 0.4.26(hono@4.12.10)(srvx@0.9.8)
       '@universal-middleware/sirv': 0.1.25
       estree-walker: 3.0.3
       ts-deepmerge: 7.0.3
@@ -11936,12 +11984,12 @@ snapshots:
       - hono
       - srvx
 
-  '@photonjs/hono@0.1.12(@hono/node-server@1.19.11(hono@4.12.8))(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
+  '@photonjs/hono@0.1.12(@hono/node-server@1.19.11(hono@4.12.10))(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
-      '@photonjs/core': 0.1.21(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
-      '@universal-middleware/hono': 0.4.21(hono@4.12.8)(srvx@0.9.8)
+      '@photonjs/core': 0.1.21(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@universal-middleware/hono': 0.4.21(hono@4.12.10)(srvx@0.9.8)
     optionalDependencies:
-      '@hono/node-server': 1.19.11(hono@4.12.8)
+      '@hono/node-server': 1.19.11(hono@4.12.10)
       vite: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
@@ -11954,11 +12002,11 @@ snapshots:
       - hono
       - srvx
 
-  '@photonjs/runtime@0.1.15(hono@4.12.8)(rollup@4.59.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
+  '@photonjs/runtime@0.1.15(hono@4.12.10)(rollup@4.59.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
-      '@photonjs/core': 0.1.21(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
-      '@photonjs/srvx': 0.1.12(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
-      '@universal-middleware/core': 0.4.17(hono@4.12.8)(srvx@0.9.8)
+      '@photonjs/core': 0.1.21(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@photonjs/srvx': 0.1.12(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@universal-middleware/core': 0.4.17(hono@4.12.10)(srvx@0.9.8)
       '@universal-middleware/sirv': 0.1.25
       srvx: 0.9.8
       standaloner: 0.1.11(rollup@4.59.0)
@@ -11977,10 +12025,10 @@ snapshots:
       - rollup
       - supports-color
 
-  '@photonjs/srvx@0.1.12(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
+  '@photonjs/srvx@0.1.12(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
-      '@photonjs/core': 0.1.21(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
-      '@universal-middleware/srvx': 0.1.3(hono@4.12.8)(srvx@0.9.8)
+      '@photonjs/core': 0.1.21(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@universal-middleware/srvx': 0.1.3(hono@4.12.10)(srvx@0.9.8)
     optionalDependencies:
       vite: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
     transitivePeerDependencies:
@@ -12728,18 +12776,20 @@ snapshots:
       '@swc/types': 0.1.25
     optional: true
 
-  '@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta)':
+  '@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta)':
     dependencies:
       '@swc-node/core': 1.14.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)
       '@swc-node/sourcemap-support': 0.6.1
       '@swc/core': 1.13.21(@swc/helpers@0.5.19)
       colorette: 2.0.20
       debug: 4.4.3
-      oxc-resolver: 11.19.1
+      oxc-resolver: 11.19.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)
       pirates: 4.0.7
       tslib: 2.8.1
       typescript: 6.0.0-beta
     transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
       - '@swc/types'
       - supports-color
     optional: true
@@ -13191,9 +13241,9 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@universal-middleware/cloudflare@0.4.12(hono@4.12.8)(srvx@0.9.8)':
+  '@universal-middleware/cloudflare@0.4.12(hono@4.12.10)(srvx@0.9.8)':
     dependencies:
-      '@universal-middleware/core': 0.4.17(hono@4.12.8)(srvx@0.9.8)
+      '@universal-middleware/core': 0.4.17(hono@4.12.10)(srvx@0.9.8)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13207,18 +13257,18 @@ snapshots:
 
   '@universal-middleware/compress@0.2.35': {}
 
-  '@universal-middleware/core@0.4.17(hono@4.12.8)(srvx@0.9.8)':
+  '@universal-middleware/core@0.4.17(hono@4.12.10)(srvx@0.9.8)':
     dependencies:
       regexparam: 3.0.0
       tough-cookie: 6.0.1
     optionalDependencies:
-      hono: 4.12.8
+      hono: 4.12.10
       srvx: 0.9.8
 
-  '@universal-middleware/express@0.4.26(hono@4.12.8)(srvx@0.9.8)':
+  '@universal-middleware/express@0.4.26(hono@4.12.10)(srvx@0.9.8)':
     dependencies:
-      '@universal-middleware/core': 0.4.17(hono@4.12.8)(srvx@0.9.8)
-      '@universal-middleware/node': 0.1.0(hono@4.12.8)(srvx@0.9.8)
+      '@universal-middleware/core': 0.4.17(hono@4.12.10)(srvx@0.9.8)
+      '@universal-middleware/node': 0.1.0(hono@4.12.10)(srvx@0.9.8)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13230,9 +13280,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/hono@0.4.21(hono@4.12.8)(srvx@0.9.8)':
+  '@universal-middleware/hono@0.4.21(hono@4.12.10)(srvx@0.9.8)':
     dependencies:
-      '@universal-middleware/core': 0.4.17(hono@4.12.8)(srvx@0.9.8)
+      '@universal-middleware/core': 0.4.17(hono@4.12.10)(srvx@0.9.8)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13244,9 +13294,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/node@0.1.0(hono@4.12.8)(srvx@0.9.8)':
+  '@universal-middleware/node@0.1.0(hono@4.12.10)(srvx@0.9.8)':
     dependencies:
-      '@universal-middleware/core': 0.4.17(hono@4.12.8)(srvx@0.9.8)
+      '@universal-middleware/core': 0.4.17(hono@4.12.10)(srvx@0.9.8)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13263,9 +13313,9 @@ snapshots:
       mrmime: 2.0.1
       totalist: 3.0.1
 
-  '@universal-middleware/srvx@0.1.3(hono@4.12.8)(srvx@0.9.8)':
+  '@universal-middleware/srvx@0.1.3(hono@4.12.10)(srvx@0.9.8)':
     dependencies:
-      '@universal-middleware/core': 0.4.17(hono@4.12.8)(srvx@0.9.8)
+      '@universal-middleware/core': 0.4.17(hono@4.12.10)(srvx@0.9.8)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13547,11 +13597,11 @@ snapshots:
       '@volar/language-core': 2.4.23
       '@vue/compiler-dom': 3.5.30
       '@vue/compiler-vue2': 2.7.16
-      '@vue/shared': 3.5.30
+      '@vue/shared': 3.5.32
       alien-signals: 2.0.8
       muggle-string: 0.4.1
       path-browserify: 1.0.1
-      picomatch: 4.0.3
+      picomatch: 4.0.4
     optionalDependencies:
       typescript: 6.0.0-beta
     optional: true
@@ -13595,6 +13645,9 @@ snapshots:
       vue: 3.5.30(typescript@6.0.0-beta)
 
   '@vue/shared@3.5.30': {}
+
+  '@vue/shared@3.5.32':
+    optional: true
 
   '@vue/test-utils@2.4.6':
     dependencies:
@@ -15233,9 +15286,15 @@ snapshots:
 
   highlight.js@10.7.3: {}
 
+  hono-rate-limiter@0.4.2(hono@4.12.10):
+    dependencies:
+      hono: 4.12.10
+
   hono-rate-limiter@0.4.2(hono@4.12.8):
     dependencies:
       hono: 4.12.8
+
+  hono@4.12.10: {}
 
   hono@4.12.8: {}
 
@@ -16208,7 +16267,7 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
 
-  nx@22.5.4(@swc-node/register@1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)):
+  nx@22.5.4(@swc-node/register@1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta))(@swc/core@1.13.21(@swc/helpers@0.5.19)):
     dependencies:
       '@napi-rs/wasm-runtime': 0.2.4
       '@yarnpkg/lockfile': 1.1.0
@@ -16257,7 +16316,7 @@ snapshots:
       '@nx/nx-linux-x64-musl': 22.5.4
       '@nx/nx-win32-arm64-msvc': 22.5.4
       '@nx/nx-win32-x64-msvc': 22.5.4
-      '@swc-node/register': 1.11.1(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta)
+      '@swc-node/register': 1.11.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)(@swc/core@1.13.21(@swc/helpers@0.5.19))(@swc/types@0.1.25)(typescript@6.0.0-beta)
       '@swc/core': 1.13.21(@swc/helpers@0.5.19)
     transitivePeerDependencies:
       - debug
@@ -16383,7 +16442,7 @@ snapshots:
       '@oxc-parser/binding-win32-arm64-msvc': 0.104.0
       '@oxc-parser/binding-win32-x64-msvc': 0.104.0
 
-  oxc-resolver@11.19.1:
+  oxc-resolver@11.19.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0):
     optionalDependencies:
       '@oxc-resolver/binding-android-arm-eabi': 11.19.1
       '@oxc-resolver/binding-android-arm64': 11.19.1
@@ -16401,10 +16460,13 @@ snapshots:
       '@oxc-resolver/binding-linux-x64-gnu': 11.19.1
       '@oxc-resolver/binding-linux-x64-musl': 11.19.1
       '@oxc-resolver/binding-openharmony-arm64': 11.19.1
-      '@oxc-resolver/binding-wasm32-wasi': 11.19.1
+      '@oxc-resolver/binding-wasm32-wasi': 11.19.1(@emnapi/core@1.9.0)(@emnapi/runtime@1.9.0)
       '@oxc-resolver/binding-win32-arm64-msvc': 11.19.1
       '@oxc-resolver/binding-win32-ia32-msvc': 11.19.1
       '@oxc-resolver/binding-win32-x64-msvc': 11.19.1
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
     optional: true
 
   oxc-walker@0.6.0(oxc-parser@0.104.0):
@@ -16593,6 +16655,9 @@ snapshots:
   picomatch@4.0.2: {}
 
   picomatch@4.0.3: {}
+
+  picomatch@4.0.4:
+    optional: true
 
   pify@2.3.0: {}
 
@@ -17834,14 +17899,14 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vike-photon@0.1.24(@photonjs/core@0.1.21(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(@photonjs/runtime@0.1.15(hono@4.12.8)(rollup@4.59.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(hono@4.12.8)(rollup@4.59.0)(srvx@0.9.8)(vike@0.4.255(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)):
+  vike-photon@0.1.24(@photonjs/core@0.1.21(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(@photonjs/runtime@0.1.15(hono@4.12.10)(rollup@4.59.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(hono@4.12.10)(rollup@4.59.0)(srvx@0.9.8)(vike@0.4.255(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)))(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@brillout/picocolors': 1.0.30
       '@brillout/vite-plugin-server-entry': 0.7.18
-      '@photonjs/core': 0.1.21(hono@4.12.8)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
-      '@photonjs/runtime': 0.1.15(hono@4.12.8)(rollup@4.59.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@photonjs/core': 0.1.21(hono@4.12.10)(srvx@0.9.8)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@photonjs/runtime': 0.1.15(hono@4.12.10)(rollup@4.59.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
       '@universal-middleware/compress': 0.2.35
-      '@universal-middleware/core': 0.4.17(hono@4.12.8)(srvx@0.9.8)
+      '@universal-middleware/core': 0.4.17(hono@4.12.10)(srvx@0.9.8)
       '@universal-middleware/sirv': 0.1.25
       pkg-types: 2.3.0
       standaloner: 0.1.11(rollup@4.59.0)
