@@ -7,12 +7,12 @@
  */
 
 import type { Checkpointer } from "@/graph/checkpointer";
-import type { EventBus } from "@/graph/event-bus";
+import type { AgentEventBus } from "@/graph/event-bus";
 import type { RuntimeAwareScheduler } from "@/graph/runtime-aware-scheduler";
 
 export type StoredGraphRuntime = {
   scheduler: Pick<RuntimeAwareScheduler, "start">;
-  eventBus: EventBus;
+  eventBus: AgentEventBus;
   checkpointer: Checkpointer;
 };
 

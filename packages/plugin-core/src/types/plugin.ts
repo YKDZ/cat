@@ -3,6 +3,7 @@ import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
 import type { QAChecker, Tokenizer } from "@/services";
 import type { AgentContextProvider } from "@/services/agent-context-provider";
 import type { AgentToolProvider } from "@/services/agent-tool-provider";
+import type { AuthFactor } from "@/services/auth-factor";
 import type { AuthProvider } from "@/services/auth-provider";
 import type { FileExporter, FileImporter } from "@/services/file-handler";
 import type { LLMProvider } from "@/services/llm-provider";
@@ -15,6 +16,7 @@ import type { VectorStorage } from "@/services/vector-storage";
 
 export type PluginServiceTypeMap = {
   AUTH_PROVIDER: AuthProvider;
+  AUTH_FACTOR: AuthFactor;
   MFA_PROVIDER: MFAProvider;
   STORAGE_PROVIDER: StorageProvider;
   TEXT_VECTORIZER: TextVectorizer;

@@ -159,30 +159,24 @@ export const getAllAuthMethod = base
     const providersData = await executeQuery(
       { db: drizzle },
       listPluginServiceIdsByType,
-      { serviceType: "AUTH_PROVIDER" },
+      { serviceType: "AUTH_FACTOR" },
     );
 
     const methods: AuthMethod[] = [];
 
-    await Promise.all(
-      providersData.map(async (serviceId) => {
-        const providers = pluginManager.getServices("AUTH_PROVIDER");
-
-        await Promise.all(
-          providers
-            .filter(({ service }) => serviceId === service.getId())
-            .map(async ({ dbId, id, service }) => {
-              methods.push({
-                providerDBId: dbId,
-                providerId: id,
-                name: service.getName(),
-                icon: service.getIcon(),
-                flowType: service.getAuthFlowType(),
-              });
-            }),
-        );
-      }),
-    );
+    for (const { dbId, id, service } of pluginManager.getServices(
+      "AUTH_FACTOR",
+    )) {
+      if (service.getAal() === 1 && providersData.includes(service.getId())) {
+        methods.push({
+          providerDBId: dbId,
+          providerId: id,
+          name: service.getName(),
+          icon: service.getIcon(),
+          flowType: "CREDENTIAL",
+        });
+      }
+    }
 
     return methods;
   });

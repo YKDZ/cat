@@ -1247,3 +1247,34 @@ export const loginAttempt = pgTable(
     index("idx_login_attempt_created").on(table.createdAt),
   ],
 );
+
+// ====== Auth Flow Audit Log ======
+export const authFlowLog = pgTable(
+  "AuthFlowLog",
+  {
+    id: serial().primaryKey(),
+    /** The auth flow's Redis flowId (UUID) */
+    flowId: text().notNull(),
+    /** Which flow definition was used, e.g. "standard-login" */
+    flowDefId: text().notNull(),
+    /** User ID if the flow successfully resolved identity */
+    userId: uuid().references(() => user.id, { onDelete: "set null" }),
+    /** Final status of the flow */
+    status: text().notNull(),
+    /** The terminal node reached (e.g. "finalize", "user-not-found") */
+    finalNode: text(),
+    /** Authenticator Assurance Level achieved */
+    aal: integer(),
+    ip: text(),
+    userAgent: text(),
+    /** Flow duration in milliseconds */
+    durationMs: integer(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp({ withTimezone: true }),
+  },
+  (table) => [
+    index("idx_auth_flow_log_user").on(table.userId),
+    index("idx_auth_flow_log_flow").on(table.flowId),
+    index("idx_auth_flow_log_created").on(table.createdAt),
+  ],
+);

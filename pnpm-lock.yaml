@@ -66,6 +66,311 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0(typescript@6.0.0-beta)(vitest@4.1.0)
 
+  '@cat-plugin/basic-qa-checker':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/basic-tokenizer':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/json-file-handler':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/libretranslate-advisor':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      undici:
+        specifier: 7.24.5
+        version: 7.24.5
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/local-storage-provider':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/markdown-file-handler':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
+      remark-parse:
+        specifier: ^11.0.0
+        version: 11.0.0
+      remark-stringify:
+        specifier: ^11.0.0
+        version: 11.0.0
+      unified:
+        specifier: ^11.0.5
+        version: 11.0.5
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
+      '@types/unist':
+        specifier: ^3.0.3
+        version: 3.0.3
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/openai-llm-provider':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      openai:
+        specifier: ^6.32.0
+        version: 6.32.0(ws@8.19.0)(zod@4.3.6)
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/openai-vectorizer':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      openai:
+        specifier: ^6.32.0
+        version: 6.32.0(ws@8.19.0)(zod@4.3.6)
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/password-auth-provider':
+    dependencies:
+      '@cat/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/server-shared':
+        specifier: workspace:*
+        version: link:../../packages/server-shared
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/pgvector-storage':
+    dependencies:
+      '@cat/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      drizzle-orm:
+        specifier: ''
+        version: 0.45.2(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@types/pg@8.18.0)(pg@8.20.0)
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/s3-storage-provider':
+    dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.1011.0
+        version: 3.1011.0
+      '@aws-sdk/lib-storage':
+        specifier: ^3.1011.0
+        version: 3.1011.0(@aws-sdk/client-s3@3.1011.0)
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.1011.0
+        version: 3.1011.0
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/spacy-segmenter':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      undici:
+        specifier: 7.24.5
+        version: 7.24.5
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
+  '@cat-plugin/tiny-widget':
+    devDependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.5
+        version: 6.0.5(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.30(typescript@6.0.0-beta))
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+      vue:
+        specifier: ^3.5.30
+        version: 3.5.30(typescript@6.0.0-beta)
+      vue-tsc:
+        specifier: ^3.2.6
+        version: 3.2.6(typescript@6.0.0-beta)
+
+  '@cat-plugin/totp-mfa-provider':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      qrcode:
+        specifier: ^1.5.4
+        version: 1.5.4
+      speakeasy:
+        specifier: ^2.0.0
+        version: 2.0.0
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@types/qrcode':
+        specifier: ^1.5.6
+        version: 1.5.6
+      '@types/speakeasy':
+        specifier: ^2.0.10
+        version: 2.0.10
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.5
+        version: 6.0.5(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.30(typescript@6.0.0-beta))
+      hono:
+        specifier: ^4.12.8
+        version: 4.12.8
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+      vue:
+        specifier: ^3.5.30
+        version: 3.5.30(typescript@6.0.0-beta)
+      vue-tsc:
+        specifier: ^3.2.6
+        version: 3.2.6(typescript@6.0.0-beta)
+
+  '@cat-plugin/yaml-file-handler':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      yaml:
+        specifier: ^2.8.2
+        version: 2.8.3
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
   apps/app:
     dependencies:
       '@cat/agent':
@@ -74,6 +379,9 @@ importers:
       '@cat/app-api':
         specifier: workspace:*
         version: link:../app-api
+      '@cat/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -303,6 +611,9 @@ importers:
       '@cat/agent':
         specifier: workspace:*
         version: link:../../packages/agent
+      '@cat/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@cat/domain':
         specifier: workspace:*
         version: link:../../packages/domain
@@ -420,341 +731,17 @@ importers:
         specifier: ^3.5.30
         version: 3.5.30(typescript@5.9.3)
 
-  packages/@cat-plugin/basic-qa-checker:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/basic-tokenizer:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/json-file-handler:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/libretranslate-advisor:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      undici:
-        specifier: 7.24.5
-        version: 7.24.5
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/local-storage-provider:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/markdown-file-handler:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      remark-gfm:
-        specifier: ^4.0.1
-        version: 4.0.1
-      remark-parse:
-        specifier: ^11.0.0
-        version: 11.0.0
-      remark-stringify:
-        specifier: ^11.0.0
-        version: 11.0.0
-      unified:
-        specifier: ^11.0.5
-        version: 11.0.5
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      '@types/mdast':
-        specifier: ^4.0.4
-        version: 4.0.4
-      '@types/unist':
-        specifier: ^3.0.3
-        version: 3.0.3
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/oidc-auth-provider:
-    dependencies:
-      '@cat/domain':
-        specifier: workspace:*
-        version: link:../../domain
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      jose:
-        specifier: ^6.2.1
-        version: 6.2.1
-      undici:
-        specifier: 7.24.5
-        version: 7.24.5
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/openai-llm-provider:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      openai:
-        specifier: ^6.32.0
-        version: 6.32.0(ws@8.19.0)(zod@4.3.6)
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/openai-vectorizer:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      openai:
-        specifier: ^6.32.0
-        version: 6.32.0(ws@8.19.0)(zod@4.3.6)
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/password-auth-provider:
-    dependencies:
-      '@cat/domain':
-        specifier: workspace:*
-        version: link:../../domain
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/server-shared':
-        specifier: workspace:*
-        version: link:../../server-shared
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/pgvector-storage:
-    dependencies:
-      '@cat/domain':
-        specifier: workspace:*
-        version: link:../../domain
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      drizzle-orm:
-        specifier: ''
-        version: 0.45.1(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@types/pg@8.18.0)(pg@8.20.0)
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/s3-storage-provider:
-    dependencies:
-      '@aws-sdk/client-s3':
-        specifier: ^3.1011.0
-        version: 3.1011.0
-      '@aws-sdk/lib-storage':
-        specifier: ^3.1011.0
-        version: 3.1011.0(@aws-sdk/client-s3@3.1011.0)
-      '@aws-sdk/s3-request-presigner':
-        specifier: ^3.1011.0
-        version: 3.1011.0
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/spacy-segmenter:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      undici:
-        specifier: 7.24.5
-        version: 7.24.5
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-
-  packages/@cat-plugin/tiny-widget:
-    devDependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@vitejs/plugin-vue':
-        specifier: ^6.0.5
-        version: 6.0.5(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.30(typescript@6.0.0-beta))
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-      vue:
-        specifier: ^3.5.30
-        version: 3.5.30(typescript@6.0.0-beta)
-      vue-tsc:
-        specifier: ^3.2.6
-        version: 3.2.6(typescript@6.0.0-beta)
-
-  packages/@cat-plugin/totp-mfa-provider:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      qrcode:
-        specifier: ^1.5.4
-        version: 1.5.4
-      speakeasy:
-        specifier: ^2.0.0
-        version: 2.0.0
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      '@types/qrcode':
-        specifier: ^1.5.6
-        version: 1.5.6
-      '@types/speakeasy':
-        specifier: ^2.0.10
-        version: 2.0.10
-      '@vitejs/plugin-vue':
-        specifier: ^6.0.5
-        version: 6.0.5(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.30(typescript@6.0.0-beta))
-      hono:
-        specifier: ^4.12.8
-        version: 4.12.8
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-      vue:
-        specifier: ^3.5.30
-        version: 3.5.30(typescript@6.0.0-beta)
-      vue-tsc:
-        specifier: ^3.2.6
-        version: 3.2.6(typescript@6.0.0-beta)
-
-  packages/@cat-plugin/yaml-file-handler:
-    dependencies:
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../../plugin-core
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../shared
-      yaml:
-        specifier: ^2.8.2
-        version: 2.8.2
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      vite:
-        specifier: 8.0.0
-        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2)
-
   packages/agent:
     dependencies:
+      '@cat/core':
+        specifier: workspace:*
+        version: link:../core
       '@cat/domain':
         specifier: workspace:*
         version: link:../domain
+      '@cat/graph':
+        specifier: workspace:*
+        version: link:../graph
       '@cat/operations':
         specifier: workspace:*
         version: link:../operations
@@ -783,6 +770,51 @@ importers:
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
+      unplugin-dts:
+        specifier: 1.0.0-beta.6
+        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.5.0))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.27.4)(rollup@4.59.0)(typescript@6.0.0-beta)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@vitest/ui@4.1.0)(happy-dom@20.8.4)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+
+  packages/auth:
+    devDependencies:
+      '@cat/core':
+        specifier: workspace:*
+        version: link:../core
+      '@cat/graph':
+        specifier: workspace:*
+        version: link:../graph
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      redis:
+        specifier: ^5.11.0
+        version: 5.11.0
+      unplugin-dts:
+        specifier: 1.0.0-beta.6
+        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.5.0))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.27.4)(rollup@4.59.0)(typescript@6.0.0-beta)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@vitest/ui@4.1.0)(happy-dom@20.8.4)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+
+  packages/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
       unplugin-dts:
         specifier: 1.0.0-beta.6
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.5.0))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.27.4)(rollup@4.59.0)(typescript@6.0.0-beta)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
@@ -841,6 +873,9 @@ importers:
 
   packages/domain:
     dependencies:
+      '@cat/core':
+        specifier: workspace:*
+        version: link:../core
       '@cat/db':
         specifier: workspace:*
         version: link:../db
@@ -866,6 +901,24 @@ importers:
       vitest:
         specifier: ^4.1.0
         version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@vitest/ui@4.1.0)(happy-dom@20.8.4)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+
+  packages/graph:
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      unplugin-dts:
+        specifier: 1.0.0-beta.6
+        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.5.0))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.27.4)(rollup@4.59.0)(typescript@6.0.0-beta)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      vite:
+        specifier: 8.0.0
+        version: 8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@25.5.0)(@vitest/ui@4.1.0)(happy-dom@20.8.4)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
 
   packages/operations:
     dependencies:
@@ -912,6 +965,9 @@ importers:
 
   packages/permissions:
     dependencies:
+      '@cat/core':
+        specifier: workspace:*
+        version: link:../core
       '@cat/domain':
         specifier: workspace:*
         version: link:../domain
@@ -5805,8 +5861,8 @@ packages:
     resolution: {integrity: sha512-LO9cz8iipjyOROaBLmVAhu1WT4JGd8QKSc0XYhnO0FGXP5FappHII52lHcxfj2j+vVuDCTjoqeTTvW1N9NJYZQ==}
     hasBin: true
 
-  drizzle-orm@0.45.1:
-    resolution: {integrity: sha512-Te0FOdKIistGNPMq2jscdqngBRfBpC8uMFVwqjf6gtTVJHIQ/dosgV/CLBU2N4ZJBsXL5savCba9b0YJskKdcA==}
+  drizzle-orm@0.45.2:
+    resolution: {integrity: sha512-kY0BSaTNYWnoDMVoyY8uxmyHjpJW1geOmBMdSSicKo9CIIWkSxMIj2rkeSR51b8KAPB7m+qysjuHme5nKP+E5Q==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -14540,7 +14596,7 @@ snapshots:
       get-tsconfig: 4.13.6
       jiti: 2.6.1
 
-  drizzle-orm@0.45.1(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@types/pg@8.18.0)(pg@8.20.0):
+  drizzle-orm@0.45.2(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(@types/pg@8.18.0)(pg@8.20.0):
     optionalDependencies:
       '@electric-sql/pglite': 0.3.14
       '@opentelemetry/api': 1.9.0
@@ -17924,23 +17980,6 @@ snapshots:
       stylus: 0.57.0
       tsx: 4.21.0
       yaml: 2.8.3
-
-  vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.2):
-    dependencies:
-      '@oxc-project/runtime': 0.115.0
-      lightningcss: 1.32.0
-      picomatch: 4.0.3
-      postcss: 8.5.8
-      rolldown: 1.0.0-rc.9
-      tinyglobby: 0.2.15
-    optionalDependencies:
-      '@types/node': 25.5.0
-      esbuild: 0.27.4
-      fsevents: 2.3.3
-      jiti: 2.6.1
-      stylus: 0.57.0
-      tsx: 4.21.0
-      yaml: 2.8.2
 
   vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3):
     dependencies:

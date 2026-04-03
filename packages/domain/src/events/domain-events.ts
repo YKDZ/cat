@@ -1,8 +1,4 @@
-import {
-  createEvent,
-  type AnyEventOf,
-  type EventOf,
-} from "@/events/typed-event-bus";
+import { createEvent, type AnyEventOf, type EventOf } from "@cat/core";
 
 export type DomainEventMap = {
   "setting:updated": { key: string };

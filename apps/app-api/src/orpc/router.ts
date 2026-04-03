@@ -1,4 +1,5 @@
 import * as agent from "./routers/agent.ts";
+import * as authFlow from "./routers/auth-flow/index.ts";
 import * as auth from "./routers/auth/index.ts";
 import * as comment from "./routers/comment.ts";
 import * as document from "./routers/document.ts";
@@ -20,6 +21,7 @@ import * as user from "./routers/user.ts";
 const router: AppRouter = {
   agent,
   auth,
+  authFlow,
   user,
   setting,
   document,
@@ -41,6 +43,7 @@ const router: AppRouter = {
 export type AppRouter = {
   agent: typeof agent;
   auth: typeof auth;
+  authFlow: typeof authFlow;
   user: typeof user;
   setting: typeof setting;
   document: typeof document;

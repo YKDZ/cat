@@ -12,7 +12,6 @@ import JSONForm from "@/app/components/json-form/JsonForm.vue";
 import { orpc } from "@/app/rpc/orpc";
 import { useAuthStore } from "@/app/stores/auth.ts";
 
-import OIDCRedirectWaiting from "../components/OIDCRedirectWaiting.vue";
 import PasswordLoginForm from "../components/PasswordLoginForm.vue";
 
 const { t } = useI18n();
@@ -68,22 +67,13 @@ onMounted(async () => {
     return;
   }
 
-  const flowType = authMethod.value.flowType ?? "CREDENTIAL";
-
-  if (flowType === "REDIRECT") {
-    // OIDC 回调：直接从 URL 参数中提交，不等待用户操作
-    await submitAuth();
-    authMethod.value = null;
-    return;
-  }
-
   // CREDENTIAL / 其他类型：加载 form schema
   schema.value = await orpc.auth.getAuthFormSchema({
     providerId: authMethod.value.providerDBId,
   });
 
   // 无需填表则直接登录（如 passkey 等无额外输入的场景）
-  if (isEmpty.value && flowType !== "CREDENTIAL") {
+  if (isEmpty.value) {
     authMethod.value = null;
     await submitAuth();
   }
@@ -97,9 +87,6 @@ onMounted(async () => {
     v-if="authMethod?.flowType === 'CREDENTIAL'"
     @submit="handlePasswordSubmit"
   />
-
-  <!-- REDIRECT 类型（如 OIDC）：等待跳转 -->
-  <OIDCRedirectWaiting v-else-if="authMethod?.flowType === 'REDIRECT'" />
 
   <!-- Fallback：flowType 未知或表单有额外字段时使用 JSONForm -->
   <div

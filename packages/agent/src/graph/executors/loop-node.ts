@@ -1,3 +1,5 @@
+import { parseExpectedValue } from "@cat/graph";
+
 import type { NodeExecutor } from "@/graph/node-registry";
 
 import { buildPatch } from "@/graph/blackboard";
@@ -14,20 +16,6 @@ const toBoolean = (value: unknown): boolean => {
     return normalized.length > 0;
   }
   return value !== null && value !== undefined;
-};
-
-const parseExpectedValue = (raw: string): string | number | boolean | null => {
-  const normalized = raw.trim();
-  if (normalized === "true") return true;
-  if (normalized === "false") return false;
-  if (normalized === "null") return null;
-
-  const maybeNumber = Number(normalized);
-  if (!Number.isNaN(maybeNumber) && normalized.length > 0) {
-    return maybeNumber;
-  }
-
-  return normalized;
 };
 
 const evaluateExpression = (data: unknown, expression: string): boolean => {

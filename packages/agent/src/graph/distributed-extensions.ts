@@ -1,5 +1,5 @@
 import type { Checkpointer } from "./checkpointer";
-import type { EventBus } from "./event-bus";
+import type { AgentEventBus } from "./event-bus";
 import type { AgentEvent, EventHandler, EventType } from "./events";
 import type { ExecutorPool, ExecutorTask } from "./executor-pool";
 import type { RunId } from "./types";
@@ -20,7 +20,7 @@ export type WorkerStatus = {
   runningTasks: number;
 };
 
-export interface DistributedEventBus extends EventBus {
+export interface DistributedEventBus extends AgentEventBus {
   publishRemote: (event: AgentEvent) => Promise<void>;
   subscribeRemote: (
     eventType: EventType,

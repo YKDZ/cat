@@ -52,6 +52,7 @@
   },
   "peerDependencies": {
     "@cat/agent": "workspace:*",
+    "@cat/auth": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/operations": "workspace:*",
     "@cat/permissions": "workspace:*",

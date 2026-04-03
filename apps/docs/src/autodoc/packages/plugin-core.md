@@ -4,11 +4,11 @@ Plugin system core: service registry, component registry, discovery
 
 ## Overview
 
-* **Modules**: 26
+* **Modules**: 25
 
 * **Exported functions**: 15
 
-* **Exported types**: 84
+* **Exported types**: 75
 
 ## Function Index
 
@@ -189,17 +189,15 @@ export const parseInner = async (content: string, offsetInParent: number, rules:
   \- \`server\` — Backend execution (default).
   \- \`client\` — Frontend (browser) execution via streaming protocol.
 
-* `PreAuthResult` (type)
+* `AuthFactorAAL` (type) — Authentication Assurance Level:
+  \- 1: single factor (e.g. password)
+  \- 2: multi-factor (e.g. password + TOTP)
 
-* `AuthResult` (type)
+* `AuthFactorInput` (type) — Input provided by the user for this factor's challenge.
 
-* `HandlePreAuthContext` (type)
+* `AuthFactorResult` (type) — Result of executing an auth factor.
 
-* `HandleLogoutContext` (type)
-
-* `AuthFlowType` (type)
-
-* `AutoRegisterResult` (type)
+* `AuthFactorExecutionContext` (type) — Context passed to an AUTH\_FACTOR when it executes.
 
 * `CanImportContext` (type)
 
@@ -236,20 +234,6 @@ export const parseInner = async (content: string, offsetInParent: number, rules:
 * `FimStreamChunk` (type)
 
 * `FimCompletionResponse` (type)
-
-* `MFAChallengeResult` (type)
-
-* `VerifyChallengeContext` (type)
-
-* `MFAVerifyResult` (type)
-
-* `MFAPreInitForUserContext` (type)
-
-* `MFAInitForUserContext` (type)
-
-* `MFAPreInitForUserResult` (type)
-
-* `MFAInitForUserResult` (type)
 
 * `NlpSegmentContext` (type) — 分词请求上下文
 

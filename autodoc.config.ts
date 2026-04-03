@@ -34,6 +34,21 @@ export default defineConfig({
       name: "@cat/plugin-core",
       priority: "medium",
     },
+    {
+      path: "packages/auth",
+      name: "@cat/auth",
+      priority: "medium",
+    },
+    {
+      path: "packages/core",
+      name: "@cat/core",
+      priority: "medium",
+    },
+    {
+      path: "packages/graph",
+      name: "@cat/graph",
+      priority: "medium",
+    },
   ],
   output: {
     path: "apps/docs/src/autodoc",

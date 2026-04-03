@@ -1,4 +1,4 @@
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType, NonNullJSONType } from "@cat/shared/schema/json";
 
 import type { createAgentDefinition } from "@/commands/agent/create-agent-definition.cmd";
 import type { createAgentSession } from "@/commands/agent/create-agent-session.cmd";
@@ -206,6 +206,14 @@ export type AuthCapabilities = {
     providedAccountId: string;
     providerIssuer: string;
   }) => Promise<JSONType | null>;
+  getAccountMetaByProviderAndIdentifier: (input: {
+    providedAccountId: string;
+    providerIssuer: string;
+  }) => Promise<JSONType | null>;
+  getMfaPayloadForUser: (input: {
+    userId: string;
+    factorId: string;
+  }) => Promise<NonNullJSONType | null>;
 };
 
 export type VectorCapabilities = {

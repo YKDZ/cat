@@ -29,6 +29,7 @@
   "dependencies": {
     "@cat/agent": "workspace:*",
     "@cat/app-api": "workspace:*",
+    "@cat/auth": "workspace:*",
     "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/operations": "workspace:*",

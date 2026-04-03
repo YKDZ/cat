@@ -26,6 +26,7 @@ export type PermissionEngine = {
     authCtx: AuthContext,
     object: ObjectRef,
     relation: Relation,
+    requiredAAL?: number,
   ) => Promise<boolean>;
   filterAuthorized: <T>(
     authCtx: AuthContext,
@@ -82,7 +83,14 @@ export const createPermissionEngine = (deps: {
     authCtx: AuthContext,
     object: ObjectRef,
     requiredRelation: Relation,
+    requiredAAL?: number,
   ): Promise<boolean> => {
+    // 0.5. AAL 检查：若指定最低 AAL，验证当前会话的 AAL 是否足够
+    if (requiredAAL !== undefined && requiredAAL > 0) {
+      const currentAAL = authCtx.aal ?? 0;
+      if (currentAAL < requiredAAL) return false;
+    }
+
     // 0. API Key scope 检查：若 scopes 不为 null（API Key 认证），验证 scope 匹配
     if (authCtx.scopes !== null) {
       const requiredScope = `${object.type}:${requiredRelation}`;

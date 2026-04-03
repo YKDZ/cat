@@ -41,7 +41,9 @@
     "vitest": "^4.1.0"
   },
   "peerDependencies": {
+    "@cat/core": "workspace:*",
     "@cat/domain": "workspace:*",
+    "@cat/graph": "workspace:*",
     "@cat/operations": "workspace:*",
     "@cat/permissions": "workspace:*",
     "@cat/plugin-core": "workspace:*",

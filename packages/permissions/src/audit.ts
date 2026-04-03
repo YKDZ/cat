@@ -5,9 +5,9 @@ import type {
   SubjectType,
 } from "@cat/shared/schema/permission";
 
+import { InProcessEventBus, type AnyEventOf } from "@cat/core";
 import { executeCommand } from "@cat/domain";
 import { insertAuditLogs } from "@cat/domain";
-import { InProcessEventBus, type AnyEventOf } from "@cat/domain";
 import {
   ObjectTypeSchema,
   PermissionActionSchema,

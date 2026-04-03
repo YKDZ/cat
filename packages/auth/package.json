@@ -1,0 +1,46 @@
+{
+  "name": "@cat/auth",
+  "version": "0.0.1",
+  "description": "DAG-based authentication flow engine",
+  "license": "GPL-3.0-only",
+  "files": [
+    "dist",
+    "src",
+    "package.json"
+  ],
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "vite build",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "test": "vitest run --config ../../vitest.config.ts --project=unit-auth",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json"
+  },
+  "devDependencies": {
+    "@cat/core": "workspace:*",
+    "@cat/graph": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@types/node": "^25.5.0",
+    "redis": "^5.11.0",
+    "unplugin-dts": "1.0.0-beta.6",
+    "vite": "8.0.0",
+    "vitest": "^4.1.0",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "@cat/core": "workspace:*",
+    "@cat/graph": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "redis": "^5.11.0",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

@@ -1,6 +1,6 @@
 ---
 name: autodoc-explore
-description: Explore the CAT project architecture using auto-generated documentation. Use this skill when you need to understand the overall monorepo structure, find relevant packages, or discover available APIs.
+description: Explore the project architecture using auto-generated documentation. Use this skill when you need to understand the overall monorepo structure, find relevant packages, or discover available APIs.
 ---
 
 # Project Architecture Exploration via Autodoc

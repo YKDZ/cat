@@ -59,6 +59,7 @@
               "FILE_EXPORTER",
               "STORAGE_PROVIDER",
               "AUTH_PROVIDER",
+              "AUTH_FACTOR",
               "TEXT_VECTORIZER",
               "VECTOR_STORAGE",
               "MFA_PROVIDER",

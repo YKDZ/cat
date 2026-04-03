@@ -40,13 +40,7 @@ const handlePreAuth = async () => {
         return;
       }
 
-      if (
-        !gotFromServer ||
-        !gotFromServer.redirectURL ||
-        typeof gotFromServer.redirectURL !== "string"
-      )
-        await navigate("/auth/callback");
-      else await navigate(gotFromServer.redirectURL);
+      await navigate("/auth/callback");
     })
     .catch(async (e) => {
       if (e.code === "CONFLICT") await navigate("/");

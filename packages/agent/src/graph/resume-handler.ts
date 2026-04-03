@@ -1,5 +1,5 @@
 import type { Checkpointer } from "@/graph/checkpointer";
-import type { EventBus } from "@/graph/event-bus";
+import type { AgentEventBus } from "@/graph/event-bus";
 import type { AgentEvent } from "@/graph/events";
 import type { Scheduler } from "@/graph/scheduler";
 
@@ -27,7 +27,7 @@ export class ResumeHandler {
   private readonly unsubscribeFns: Array<() => void> = [];
 
   constructor(
-    private readonly eventBus: EventBus,
+    private readonly eventBus: AgentEventBus,
     private readonly _checkpointer: Checkpointer,
     private readonly scheduler: Scheduler,
   ) {

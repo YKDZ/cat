@@ -1,14 +1,13 @@
+import type { EdgeCondition } from "@cat/graph";
+
+import { EdgeConditionSchema, evaluateCondition } from "@cat/graph";
+
 import type { NodeExecutor } from "@/graph/node-registry";
 
 import { buildPatch } from "@/graph/blackboard";
 
-import { resolvePath } from "./utils";
-
 type RouteLike = {
-  condition?: {
-    type: "expression" | "schema_match" | "blackboard_field";
-    value: string;
-  };
+  condition?: EdgeCondition;
   target: string;
   label?: string;
 };
@@ -28,49 +27,15 @@ const toRoutes = (value: unknown): RouteLike[] => {
     const label = typeof labelLike === "string" ? labelLike : undefined;
 
     const conditionLike = Reflect.get(item, "condition");
-    let condition: RouteLike["condition"];
-    if (typeof conditionLike === "object" && conditionLike !== null) {
-      const type = Reflect.get(conditionLike, "type");
-      const conditionValue = Reflect.get(conditionLike, "value");
-      if (
-        (type === "expression" ||
-          type === "schema_match" ||
-          type === "blackboard_field") &&
-        typeof conditionValue === "string"
-      ) {
-        condition = { type, value: conditionValue };
-      }
-    }
+    const parsedCondition = EdgeConditionSchema.safeParse(conditionLike);
+    const condition = parsedCondition.success
+      ? parsedCondition.data
+      : undefined;
 
-    routes.push({
-      condition,
-      target,
-      label,
-    });
+    routes.push({ condition, target, label });
   }
 
   return routes;
-};
-
-const evaluate = (
-  condition: RouteLike["condition"],
-  data: unknown,
-): boolean => {
-  if (!condition) return true;
-
-  if (condition.type === "schema_match") {
-    const value = resolvePath(data, condition.value);
-    return value !== undefined && value !== null;
-  }
-
-  const [pathRaw, expectedRaw] = condition.value.split("==");
-  if (!pathRaw || expectedRaw === undefined) return false;
-
-  const actual = resolvePath(data, pathRaw.trim());
-  const expected = expectedRaw.trim();
-  if (expected === "true") return actual === true;
-  if (expected === "false") return actual === false;
-  return String(actual) === expected;
 };
 
 export const RouterNodeExecutor: NodeExecutor = async (ctx, config) => {
@@ -79,7 +44,8 @@ export const RouterNodeExecutor: NodeExecutor = async (ctx, config) => {
     typeof config.defaultTarget === "string" ? config.defaultTarget : undefined;
 
   for (const route of routes) {
-    const matched = evaluate(route.condition, ctx.snapshot.data);
+    const matched =
+      !route.condition || evaluateCondition(route.condition, ctx.snapshot.data);
     if (!matched) continue;
 
     return {

@@ -46,6 +46,7 @@
     "vitest": "^4.1.0"
   },
   "peerDependencies": {
+    "@cat/core": "workspace:*",
     "@cat/db": "workspace:*",
     "@cat/shared": "workspace:*",
     "dotenv": "^17.2.3",

@@ -1,13 +1,6 @@
-export const resolvePath = (data: unknown, path: string): unknown => {
-  if (!path) return undefined;
-  const segments = path.split(".").filter(Boolean);
-  let cursor: unknown = data;
-  for (const segment of segments) {
-    if (typeof cursor !== "object" || cursor === null) return undefined;
-    cursor = Reflect.get(cursor, segment);
-  }
-  return cursor;
-};
+import { resolvePath } from "@cat/graph";
+
+export { resolvePath } from "@cat/graph";
 
 export const interpolateTemplate = (
   template: string,
