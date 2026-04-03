@@ -1,4 +1,4 @@
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import type { PluginServiceType } from "@cat/shared/schema/enum";
 
 export interface IPluginService {
   getId(): string;

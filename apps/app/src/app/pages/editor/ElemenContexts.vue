@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TranslatableElementContextType } from "@cat/shared/schema/drizzle/enum";
+import type { TranslatableElementContextType } from "@cat/shared/schema/enum";
 
 import { SidebarGroup, SidebarGroupContent, SidebarContent } from "@cat/ui";
 import { ScrollArea } from "@cat/ui";

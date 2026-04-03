@@ -30,11 +30,8 @@ import {
 } from "@cat/domain";
 import { streamSearchTermsOp } from "@cat/operations";
 import { firstOrGivenService } from "@cat/server-shared";
-import {
-  TermStatusValues,
-  TermTypeValues,
-} from "@cat/shared/schema/drizzle/enum";
 import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
+import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";

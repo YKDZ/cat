@@ -4,7 +4,7 @@ import {
   TermTypeValues,
   type TermStatus,
   type TermType,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import { Button } from "@cat/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
 import {

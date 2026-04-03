@@ -25,6 +25,7 @@ export default defineConfig({
         "schema/misc": resolve(import.meta.dirname, "src/schema/misc.ts"),
         "schema/plugin": resolve(import.meta.dirname, "src/schema/plugin.ts"),
         "schema/ce": resolve(import.meta.dirname, "src/schema/ce.ts"),
+        "schema/enum": resolve(import.meta.dirname, "src/schema/enum.ts"),
         "schema/drizzle/document": resolve(
           import.meta.dirname,
           "src/schema/drizzle/document.ts",
@@ -72,10 +73,6 @@ export default defineConfig({
         "schema/drizzle/vector": resolve(
           import.meta.dirname,
           "src/schema/drizzle/vector.ts",
-        ),
-        "schema/drizzle/enum": resolve(
-          import.meta.dirname,
-          "src/schema/drizzle/enum.ts",
         ),
         "schema/drizzle/comment": resolve(
           import.meta.dirname,

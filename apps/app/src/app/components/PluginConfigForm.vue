@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import type {
   PluginConfig,
   PluginConfigInstance,
 } from "@cat/shared/schema/drizzle/plugin";
+import type { ScopeType } from "@cat/shared/schema/enum";
 import type { JSONType } from "@cat/shared/schema/json";
 
 import { navigate } from "vike/client/router";

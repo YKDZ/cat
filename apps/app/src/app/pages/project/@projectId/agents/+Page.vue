@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
+import type { ScopeType } from "@cat/shared/schema/enum";
 import type { Component } from "vue";
 
 import {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CommentTargetType } from "@cat/shared/schema/drizzle/enum";
+import type { CommentTargetType } from "@cat/shared/schema/enum";
 
 import {
   SidebarFooter,

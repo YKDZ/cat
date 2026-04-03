@@ -4,7 +4,7 @@ import {
   pluginConfigInstance,
   pluginInstallation,
 } from "@cat/db";
-import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
+import { ScopeTypeSchema } from "@cat/shared/schema/enum";
 import { JSONSchemaSchema } from "@cat/shared/schema/json";
 import {
   assertSingleNonNullish,

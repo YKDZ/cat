@@ -1,4 +1,4 @@
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import type { PluginServiceType } from "@cat/shared/schema/enum";
 
 import type { QAChecker, Tokenizer } from "@/services";
 import type { AgentContextProvider } from "@/services/agent-context-provider";

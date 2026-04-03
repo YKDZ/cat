@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ScopeType } from "@cat/shared/schema/drizzle/enum";
 import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
+import type { ScopeType } from "@cat/shared/schema/enum";
 
 import { Card, CardHeader, CardTitle } from "@cat/ui";
 import { useQuery } from "@pinia/colada";

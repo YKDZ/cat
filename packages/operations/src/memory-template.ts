@@ -12,7 +12,7 @@
  * values swapped in the translation.
  */
 import type { Token } from "@cat/plugin-core";
-import type { TokenType } from "@cat/shared/schema/drizzle/enum";
+import type { TokenType } from "@cat/shared/schema/enum";
 
 // Token types that should NOT be replaced by placeholders
 const PRESERVED_TOKEN_TYPES: ReadonlySet<TokenType> = new Set([

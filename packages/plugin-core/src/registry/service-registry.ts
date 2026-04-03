@@ -5,7 +5,7 @@ import {
   PluginServiceTypeSchema,
   type PluginServiceType,
   type ScopeType,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import { logger } from "@cat/shared/utils";
 import * as z from "zod/v4";
 

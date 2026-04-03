@@ -169,7 +169,7 @@ const runCheck = async (args: string[]): Promise<void> => {
 
     if (outdated) {
       console.error(
-        "\nDocumentation is outdated. Run 'pnpm nx run autodoc:generate' and commit.",
+        "\nDocumentation is outdated. Run 'pnpm autodoc' and commit.",
       );
       process.exit(1);
     } else {
@@ -201,7 +201,7 @@ const runLookup = async (args: string[]): Promise<void> => {
 
   if (!existsSync(indexPath)) {
     console.error(
-      `Symbol index not found at ${indexPath}. Run 'pnpm nx run autodoc:generate' first.`,
+      `Symbol index not found at ${indexPath}. Run 'pnpm autodoc' first.`,
     );
     process.exit(1);
   }

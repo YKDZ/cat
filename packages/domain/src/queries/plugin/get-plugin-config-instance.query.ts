@@ -6,7 +6,7 @@ import {
   pluginConfigInstance,
   pluginInstallation,
 } from "@cat/db";
-import { ScopeTypeSchema } from "@cat/shared/schema/drizzle/enum";
+import { ScopeTypeSchema } from "@cat/shared/schema/enum";
 import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
 

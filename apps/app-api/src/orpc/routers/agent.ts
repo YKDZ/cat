@@ -33,7 +33,7 @@ import { AgentDefinitionSchema } from "@cat/shared/schema/drizzle/agent";
 import {
   AgentDefinitionTypeSchema,
   ScopeTypeSchema,
-} from "@cat/shared/schema/drizzle/enum";
+} from "@cat/shared/schema/enum";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 

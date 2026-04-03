@@ -1,4 +1,4 @@
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import type { PluginServiceType } from "@cat/shared/schema/enum";
 import type { JSONSchema } from "@cat/shared/schema/json";
 
 import type { IPluginService } from "@/services/service";

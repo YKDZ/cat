@@ -1,5 +1,5 @@
 import { eq, pluginService } from "@cat/db";
-import { PluginServiceTypeSchema } from "@cat/shared/schema/drizzle/enum";
+import { PluginServiceTypeSchema } from "@cat/shared/schema/enum";
 import * as z from "zod/v4";
 
 import type { Query } from "@/types";

@@ -5,7 +5,7 @@ import {
   PermissionActionSchema,
   RelationSchema,
   SubjectTypeSchema,
-} from "./drizzle/enum.ts";
+} from "./enum.ts";
 
 export {
   ObjectTypeSchema,
@@ -18,7 +18,7 @@ export type {
   PermissionAction,
   Relation,
   SubjectType,
-} from "./drizzle/enum.ts";
+} from "./enum.ts";
 
 export const PermissionCheckSchema = z.object({
   objectType: ObjectTypeSchema,

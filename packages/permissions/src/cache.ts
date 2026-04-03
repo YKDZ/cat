@@ -1,7 +1,7 @@
 import type { CacheStore } from "@cat/domain";
 import type { Relation } from "@cat/shared/schema/permission";
 
-import { RelationValues } from "@cat/shared/schema/drizzle/enum";
+import { RelationValues } from "@cat/shared/schema/enum";
 
 const permCacheKey = (
   subjectType: string,

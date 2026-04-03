@@ -5,7 +5,7 @@ import type {
   ContextVariableMeta,
 } from "@cat/plugin-core";
 import type { AgentDefinition } from "@cat/shared/schema/agent";
-import type { PluginServiceType } from "@cat/shared/schema/drizzle/enum";
+import type { PluginServiceType } from "@cat/shared/schema/enum";
 
 import { executeQuery, listProjectGlossaryIds } from "@cat/domain";
 import * as z from "zod/v4";
