@@ -18,7 +18,7 @@ const FAKE_DB = {} as unknown as DbHandle;
 
 const makeService = (
   id: string,
-  type: RegisteredService["type"] = "AUTH_PROVIDER",
+  type: RegisteredService["type"] = "FILE_IMPORTER",
 ) => ({
   getId: () => id,
   getType: () => type,
@@ -30,7 +30,7 @@ const makeRegisteredService = (
     id: string;
   },
 ): RegisteredService => ({
-  type: "AUTH_PROVIDER",
+  type: "FILE_IMPORTER",
   dbId: 1,
   service: makeService(partial.id),
   ...partial,
@@ -58,24 +58,24 @@ describe("ServiceRegistry — synchronous API (get / getAll / remove / clear)", 
     const svc = makeRegisteredService({ pluginId: "plugin-a", id: "svc-1" });
     const registry = new ServiceRegistry([svc]);
 
-    expect(registry.get("plugin-a", "AUTH_PROVIDER", "svc-1")).toEqual(svc);
+    expect(registry.get("plugin-a", "FILE_IMPORTER", "svc-1")).toEqual(svc);
   });
 
   it("get returns null for unknown pluginId", () => {
     const registry = new ServiceRegistry();
 
-    expect(registry.get("missing", "AUTH_PROVIDER", "svc-1")).toBeNull();
+    expect(registry.get("missing", "FILE_IMPORTER", "svc-1")).toBeNull();
   });
 
   it("get returns null when type does not match", () => {
     const svc = makeRegisteredService({
       pluginId: "plugin-a",
       id: "svc-1",
-      type: "AUTH_PROVIDER",
+      type: "FILE_IMPORTER",
     });
     const registry = new ServiceRegistry([svc]);
 
-    expect(registry.get("plugin-a", "MFA_PROVIDER", "svc-1")).toBeNull();
+    expect(registry.get("plugin-a", "AUTH_FACTOR", "svc-1")).toBeNull();
   });
 
   it("removeByPlugin removes all services for that plugin", () => {
@@ -135,7 +135,7 @@ describe("ServiceRegistry.combine (with mocked domain)", () => {
 
     const registered = registry.get(
       "password-auth",
-      "AUTH_PROVIDER",
+      "FILE_IMPORTER",
       "AUTH_PASS",
     );
     expect(registered).not.toBeNull();
@@ -195,6 +195,6 @@ describe("ServiceRegistry.combine (with mocked domain)", () => {
     ]);
 
     expect(registry.getAll()).toHaveLength(2);
-    expect(registry.get("plugin-b", "AUTH_PROVIDER", "svc-b")).not.toBeNull();
+    expect(registry.get("plugin-b", "FILE_IMPORTER", "svc-b")).not.toBeNull();
   });
 });

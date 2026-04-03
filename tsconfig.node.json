@@ -13,6 +13,7 @@
     "oxfmt.config.ts",
     "apps/*/oxlint.config.ts",
     "packages/*/oxlint.config.ts",
-    "packages/@cat-plugin/*/oxlint.config.ts"
+    "@cat-plugin/*/oxlint.config.ts",
+    "tools/*/oxlint.config.ts"
   ]
 }

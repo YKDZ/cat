@@ -1,5 +1,5 @@
 ---
-name: l-impl
+name: impl
 description: Implements code changes by strictly following a detailed implementation plan. Use when the user has a finalized PLAN file and wants to execute its TODO items — either all of them or a specific scope.
 argument-hint: "[@plan-file] (scope)"
 model: inherit
