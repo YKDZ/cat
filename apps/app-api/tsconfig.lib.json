@@ -37,7 +37,7 @@
       "path": "../../packages/auth/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/agent"
+      "path": "../../packages/workflow"
     }
   ],
   "exclude": [

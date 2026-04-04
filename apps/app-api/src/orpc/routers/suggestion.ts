@@ -1,9 +1,4 @@
 import {
-  fetchAdviseGraph,
-  getGlobalGraphRuntime,
-  runGraph,
-} from "@cat/agent/workflow";
-import {
   executeQuery,
   getElementWithChunkIds,
   listMemoryIdsByProject,
@@ -15,6 +10,11 @@ import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
 } from "@cat/shared/schema/plugin";
+import {
+  fetchAdviseGraph,
+  getGlobalGraphRuntime,
+  runGraph,
+} from "@cat/workflow/tasks";
 import * as z from "zod/v4";
 
 import { authed, checkElementPermission } from "@/orpc/server";

@@ -31,7 +31,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const editorView = ref<EditorView | null>(null);
 
   const elementId = ref<number | null>(null);
-  const translationValue = ref<string>("");
+  const translationValue = ref("");
   const sourceTokens = ref<Token[]>([]);
   const translationTokens = ref<Token[]>([]);
   const searchQuery = ref("");

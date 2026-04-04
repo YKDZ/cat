@@ -79,7 +79,7 @@ export default defineConfig({
             text: "@cat/permissions",
             link: "/autodoc/packages/permissions",
           },
-          { text: "@cat/agent", link: "/autodoc/packages/agent" },
+          { text: "@cat/workflow", link: "/autodoc/packages/workflow" },
         ],
       },
       {

@@ -2,8 +2,8 @@
 import type { DialogContentEmits, DialogContentProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 
-import { X } from "@lucide/vue";
 import { reactiveOmit } from "@vueuse/core";
+import { X } from "lucide-vue-next";
 import {
   DialogClose,
   DialogContent,
@@ -20,20 +20,16 @@ interface SheetContentProps extends DialogContentProps {
   side?: "top" | "right" | "bottom" | "left";
 }
 
-
 defineOptions({
   inheritAttrs: false,
 });
-
 
 const props = withDefaults(defineProps<SheetContentProps>(), {
   side: "right",
 });
 const emits = defineEmits<DialogContentEmits>();
 
-
 const delegatedProps = reactiveOmit(props, "class", "side");
-
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>

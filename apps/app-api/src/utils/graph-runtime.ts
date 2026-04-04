@@ -4,7 +4,7 @@ import type { PluginManager } from "@cat/plugin-core";
 import {
   createDefaultGraphRuntime,
   type DefaultGraphRuntime,
-} from "@cat/agent";
+} from "@cat/workflow";
 
 let _graphRuntime: DefaultGraphRuntime | null = null;
 

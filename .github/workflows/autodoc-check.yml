@@ -1,14 +1,11 @@
 name: Autodoc Check
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
-    paths:
-      - "packages/domain/**"
-      - "packages/operations/**"
-      - "packages/shared/**"
-      - "packages/db/**"
-      - "packages/permissions/**"
-      - "packages/agent/**"
+  workflow_dispatch:
 
 jobs:
   check:

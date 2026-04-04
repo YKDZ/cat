@@ -59,4 +59,4 @@ export type DomainEventType = keyof DomainEventMap;
 export const domainEvent = <T extends DomainEventType>(
   type: T,
   payload: DomainEventMap[T],
-): EventOf<DomainEventMap, T> => createEvent<DomainEventMap>(type, payload);
+): EventOf<DomainEventMap, T> => createEvent(type, payload);

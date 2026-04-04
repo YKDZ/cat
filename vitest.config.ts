@@ -123,21 +123,21 @@ export default defineConfig({
       },
       {
         test: {
-          name: "agent",
-          include: ["packages/agent/src/**/*.spec.ts"],
+          name: "workflow",
+          include: ["packages/workflow/src/**/*.spec.ts"],
           environment: "node",
           retry: CI ? 3 : 0,
         },
-        resolve: { alias: alias(resolve(ROOT, "packages/agent")) },
+        resolve: { alias: alias(resolve(ROOT, "packages/workflow")) },
       },
       {
         test: {
-          name: "agent-integration",
-          include: ["packages/agent/src/**/*.test.ts"],
+          name: "workflow-integration",
+          include: ["packages/workflow/src/**/*.test.ts"],
           environment: "node",
           retry: CI ? 3 : 0,
         },
-        resolve: { alias: alias(resolve(ROOT, "packages/agent")) },
+        resolve: { alias: alias(resolve(ROOT, "packages/workflow")) },
       },
 
       // ── 应用层 ──────────────────────────────────────────────────────

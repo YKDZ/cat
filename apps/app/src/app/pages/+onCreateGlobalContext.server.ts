@@ -1,6 +1,5 @@
 import type { GlobalContextServer } from "vike/types";
 
-import { createDefaultGraphRuntime } from "@cat/agent";
 import app from "@cat/app-api/app";
 import { ensureDB, ensureRootUser } from "@cat/db";
 import {
@@ -30,6 +29,7 @@ import {
   serverLogger as logger,
 } from "@cat/server-shared";
 import { assertPromise } from "@cat/shared/utils";
+import { createDefaultGraphRuntime } from "@cat/workflow";
 import { access } from "fs/promises";
 import { join, resolve } from "path";
 
