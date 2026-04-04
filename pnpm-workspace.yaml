@@ -7,3 +7,9 @@ packages:
 linkWorkspacePackages: true
 
 syncInjectedDepsAfterScripts: ["build"]
+
+onlyBuiltDependencies:
+  - "@swc/core"
+  - "esbuild"
+  - "nx"
+  - "vue-demi"
