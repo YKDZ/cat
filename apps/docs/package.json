@@ -23,7 +23,7 @@
     "@vueuse/core": "^14.2.1",
     "@zenuml/core": "^3.47.2",
     "mermaid": "^11.14.0",
-    "vitepress": "2.0.0-alpha.16",
+    "vitepress": "2.0.0-alpha.17",
     "vue": "^3.5.32"
   }
 }

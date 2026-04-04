@@ -477,7 +477,7 @@ importers:
         version: 14.2.1(vue@3.5.32(typescript@6.0.0-beta))
       '@vueuse/integrations':
         specifier: ^14.2.1
-        version: 14.2.1(axios@1.14.0)(focus-trap@7.8.0)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@6.0.0-beta))
+        version: 14.2.1(axios@1.14.0)(focus-trap@8.0.1)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@6.0.0-beta))
       cldr-core:
         specifier: ^48.2.0
         version: 48.2.0
@@ -731,8 +731,8 @@ importers:
         specifier: ^11.14.0
         version: 11.14.0
       vitepress:
-        specifier: 2.0.0-alpha.16
-        version: 2.0.0-alpha.16(@types/node@25.5.2)(axios@1.14.0)(jiti@1.21.7)(lightningcss@1.32.0)(postcss@8.5.8)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.1.0)(yaml@2.8.3)
+        specifier: 2.0.0-alpha.17
+        version: 2.0.0-alpha.17(@types/node@25.5.2)(axios@1.14.0)(jiti@1.21.7)(lightningcss@1.32.0)(postcss@8.5.8)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.1.0)(yaml@2.8.3)
       vue:
         specifier: ^3.5.32
         version: 3.5.32(typescript@5.9.3)
@@ -784,7 +784,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/auth:
     devDependencies:
@@ -811,7 +811,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -829,7 +829,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/db:
     dependencies:
@@ -875,7 +875,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/domain:
     dependencies:
@@ -906,7 +906,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/graph:
     devDependencies:
@@ -921,7 +921,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -958,7 +958,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/operations:
     dependencies:
@@ -992,7 +992,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/oxlint-plugin:
     devDependencies:
@@ -1004,7 +1004,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/permissions:
     dependencies:
@@ -1128,7 +1128,7 @@ importers:
         version: 8.20.0
       vitest:
         specifier: ^4.1.0
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
     devDependencies:
       '@cat/domain':
         specifier: workspace:*
@@ -1257,7 +1257,7 @@ importers:
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
 packages:
 
@@ -6632,8 +6632,8 @@ packages:
   flatted@3.4.2:
     resolution: {integrity: sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==}
 
-  focus-trap@7.8.0:
-    resolution: {integrity: sha512-/yNdlIkpWbM0ptxno3ONTuf+2g318kh2ez3KSeZN5dZ8YC6AAmgeWz+GasYYiBJPFaYcSAPeu4GfhUaChzIJXA==}
+  focus-trap@8.0.1:
+    resolution: {integrity: sha512-9ptSG6z51YQOstI/oN4XuVGP/03u2nh0g//qz7L6zX0i6PZiPnkcf3GenXq7N2hZnASXaMxTPpbKwdI+PFvxlw==}
 
   follow-redirects@1.15.11:
     resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
@@ -9196,8 +9196,8 @@ packages:
       yaml:
         optional: true
 
-  vitepress@2.0.0-alpha.16:
-    resolution: {integrity: sha512-w1nwsefDVIsje7BZr2tsKxkZutDGjG0YoQ2yxO7+a9tvYVqfljYbwj5LMYkPy8Tb7YbPwa22HtIhk62jbrvuEQ==}
+  vitepress@2.0.0-alpha.17:
+    resolution: {integrity: sha512-Z3VPUpwk/bHYqt1uMVOOK1/4xFiWQov1GNc2FvMdz6kvje4JRXEOngVI9C+bi5jeedMSHiA4dwKkff1NCvbZ9Q==}
     hasBin: true
     peerDependencies:
       markdown-it-mathjax3: ^4
@@ -13985,25 +13985,25 @@ snapshots:
       '@vueuse/shared': 14.2.1(vue@3.5.32(typescript@6.0.0-beta))
       vue: 3.5.32(typescript@6.0.0-beta)
 
-  '@vueuse/integrations@14.2.1(axios@1.14.0)(focus-trap@7.8.0)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@5.9.3))':
+  '@vueuse/integrations@14.2.1(axios@1.14.0)(focus-trap@8.0.1)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@5.9.3))':
     dependencies:
       '@vueuse/core': 14.2.1(vue@3.5.32(typescript@5.9.3))
       '@vueuse/shared': 14.2.1(vue@3.5.32(typescript@5.9.3))
       vue: 3.5.32(typescript@5.9.3)
     optionalDependencies:
       axios: 1.14.0
-      focus-trap: 7.8.0
+      focus-trap: 8.0.1
       qrcode: 1.5.4
       universal-cookie: 8.1.0
 
-  '@vueuse/integrations@14.2.1(axios@1.14.0)(focus-trap@7.8.0)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@6.0.0-beta))':
+  '@vueuse/integrations@14.2.1(axios@1.14.0)(focus-trap@8.0.1)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@6.0.0-beta))':
     dependencies:
       '@vueuse/core': 14.2.1(vue@3.5.32(typescript@6.0.0-beta))
       '@vueuse/shared': 14.2.1(vue@3.5.32(typescript@6.0.0-beta))
       vue: 3.5.32(typescript@6.0.0-beta)
     optionalDependencies:
       axios: 1.14.0
-      focus-trap: 7.8.0
+      focus-trap: 8.0.1
       qrcode: 1.5.4
       universal-cookie: 8.1.0
 
@@ -15409,7 +15409,7 @@ snapshots:
 
   flatted@3.4.2: {}
 
-  focus-trap@7.8.0:
+  focus-trap@8.0.1:
     dependencies:
       tabbable: 6.4.0
 
@@ -18370,7 +18370,7 @@ snapshots:
       - '@emnapi/core'
       - '@emnapi/runtime'
 
-  vitepress@2.0.0-alpha.16(@types/node@25.5.2)(axios@1.14.0)(jiti@1.21.7)(lightningcss@1.32.0)(postcss@8.5.8)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.1.0)(yaml@2.8.3):
+  vitepress@2.0.0-alpha.17(@types/node@25.5.2)(axios@1.14.0)(jiti@1.21.7)(lightningcss@1.32.0)(postcss@8.5.8)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.1.0)(yaml@2.8.3):
     dependencies:
       '@docsearch/css': 4.6.2
       '@docsearch/js': 4.6.2
@@ -18384,8 +18384,8 @@ snapshots:
       '@vue/devtools-api': 8.1.1
       '@vue/shared': 3.5.32
       '@vueuse/core': 14.2.1(vue@3.5.32(typescript@5.9.3))
-      '@vueuse/integrations': 14.2.1(axios@1.14.0)(focus-trap@7.8.0)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@5.9.3))
-      focus-trap: 7.8.0
+      '@vueuse/integrations': 14.2.1(axios@1.14.0)(focus-trap@8.0.1)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@5.9.3))
+      focus-trap: 8.0.1
       mark.js: 8.11.1
       minisearch: 7.2.0
       shiki: 3.23.0
@@ -18454,7 +18454,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0(vitest@4.1.0))(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)):
+  vitest@4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@vitest/expect': 4.1.2
       '@vitest/mocker': 4.1.2(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
