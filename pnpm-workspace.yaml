@@ -4,12 +4,12 @@ packages:
   - "@cat-plugin/*"
   - tools/*
 
+allowBuilds:
+  "@swc/core": true
+  esbuild: true
+  nx: true
+  vue-demi: true
+
 linkWorkspacePackages: true
 
 syncInjectedDepsAfterScripts: ["build"]
-
-onlyBuiltDependencies:
-  - "@swc/core"
-  - "esbuild"
-  - "nx"
-  - "vue-demi"
