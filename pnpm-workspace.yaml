@@ -17,4 +17,6 @@ syncInjectedDepsAfterScripts: ["build"]
 onlyBuiltDependencies:
   - "@swc/core"
   - "@tailwindcss/oxide"
-  - nx
+  - "esbuild"
+  - "nx"
+  - "vue-demi"
