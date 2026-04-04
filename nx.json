@@ -115,6 +115,10 @@
     "generate:check": {
       "dependsOn": ["build"],
       "cache": false
+    },
+    "check": {
+      "dependsOn": ["build"],
+      "cache": false
     }
   },
   "plugins": [
