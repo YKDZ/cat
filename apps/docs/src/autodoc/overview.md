@@ -20,7 +20,7 @@
 
 * [**@cat/permissions**](./packages/permissions.md) — Permission system: ReBAC-based access control (9 functions, 11 types)
 
-* [**@cat/agent**](./packages/agent.md) — Agent and Workflow graph executor (53 functions, 86 types)
+* [**@cat/workflow**](./packages/workflow.md) — DAG-based workflow graph executor (27 functions, 65 types)
 
 * [**@cat/server-shared**](./packages/server-shared.md) — Shared server utilities (18 functions, 2 types)
 

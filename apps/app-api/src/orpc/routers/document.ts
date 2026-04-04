@@ -1,4 +1,3 @@
-import { runGraph, upsertDocumentGraph } from "@cat/agent/workflow";
 import { createDocumentUnderParent } from "@cat/domain";
 import {
   countDocumentElements,
@@ -34,6 +33,7 @@ import {
   FileMetaSchema,
 } from "@cat/shared/schema/misc";
 import { sanitizeFileName } from "@cat/shared/utils";
+import { runGraph, upsertDocumentGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";

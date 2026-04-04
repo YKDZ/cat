@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * @shadcn-custom-component
+ * description: Custom DAG node for Vue Flow, renders workflow node with status styling
+ * lastReviewed: 2026-03-20
+ */
+import { Handle, Position, type NodeProps } from "@vue-flow/core";
 import {
   ArrowRightLeft,
   Brain,
@@ -9,13 +15,7 @@ import {
   Repeat,
   UserRound,
   Wrench,
-} from "@lucide/vue";
-/**
- * @shadcn-custom-component
- * description: Custom DAG node for Vue Flow, renders workflow node with status styling
- * lastReviewed: 2026-03-20
- */
-import { Handle, Position, type NodeProps } from "@vue-flow/core";
+} from "lucide-vue-next";
 import { computed } from "vue";
 
 import { Badge } from "@/components/badge";
@@ -24,9 +24,7 @@ import type { DagNodeData, DagNodeStatus, DagNodeType } from "./types";
 
 type DagNodeProps = NodeProps<DagNodeData>;
 
-
 const props = defineProps<DagNodeProps>();
-
 
 const iconMap: Record<DagNodeType, typeof Brain> = {
   llm: Brain,
@@ -40,7 +38,6 @@ const iconMap: Record<DagNodeType, typeof Brain> = {
   subgraph: Layers,
 };
 
-
 const statusClassMap: Record<DagNodeStatus, string> = {
   pending: "border-muted-foreground/30 bg-muted/20",
   running: "border-blue-500 bg-blue-50 animate-pulse",
@@ -48,7 +45,6 @@ const statusClassMap: Record<DagNodeStatus, string> = {
   error: "border-destructive bg-destructive/10",
   paused: "border-yellow-500 bg-yellow-50",
 };
-
 
 const badgeVariantMap: Record<
   DagNodeStatus,
@@ -61,7 +57,6 @@ const badgeVariantMap: Record<
   paused: "outline",
 };
 
-
 const statusLabelMap: Record<DagNodeStatus, string> = {
   pending: "Pending",
   running: "Running",
@@ -69,7 +64,6 @@ const statusLabelMap: Record<DagNodeStatus, string> = {
   error: "Error",
   paused: "Paused",
 };
-
 
 const icon = computed(() => iconMap[props.data.type]);
 const status = computed(() => props.data.status);

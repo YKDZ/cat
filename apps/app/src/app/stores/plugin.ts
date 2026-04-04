@@ -4,7 +4,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 export const usePluginStore = defineStore("plugin", () => {
-  const components = ref<Map<string, ComponentRecord[]>>(new Map());
+  const components = ref(new Map<string, ComponentRecord[]>());
 
   const addComponents = (slot: string, newComponents: ComponentRecord[]) => {
     if (!components.value.get(slot)) {

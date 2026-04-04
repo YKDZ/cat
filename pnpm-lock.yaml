@@ -111,7 +111,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       undici:
-        specifier: ^7.24.5
+        specifier: ^7.24.7
         version: 7.24.7
       zod:
         specifier: ^4.3.6
@@ -284,7 +284,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       undici:
-        specifier: ^7.24.5
+        specifier: ^7.24.7
         version: 7.24.7
       zod:
         specifier: ^4.3.6
@@ -373,9 +373,6 @@ importers:
 
   apps/app:
     dependencies:
-      '@cat/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
       '@cat/app-api':
         specifier: workspace:*
         version: link:../app-api
@@ -409,6 +406,9 @@ importers:
       '@cat/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@cat/workflow':
+        specifier: workspace:*
+        version: link:../../packages/workflow
       '@codemirror/autocomplete':
         specifier: ^6.20.1
         version: 6.20.1
@@ -530,7 +530,7 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       undici:
-        specifier: ^7.24.5
+        specifier: ^7.24.7
         version: 7.24.7
       universal-cookie:
         specifier: ^8.1.0
@@ -611,9 +611,6 @@ importers:
 
   apps/app-api:
     dependencies:
-      '@cat/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
       '@cat/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -638,6 +635,9 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@cat/workflow':
+        specifier: workspace:*
+        version: link:../../packages/workflow
       '@hono/mcp':
         specifier: ^0.2.4
         version: 0.2.5(@modelcontextprotocol/sdk@1.29.0(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.12.10))(hono@4.12.10)(zod@4.3.6)
@@ -736,55 +736,6 @@ importers:
       vue:
         specifier: ^3.5.32
         version: 3.5.32(typescript@5.9.3)
-
-  packages/agent:
-    dependencies:
-      '@cat/core':
-        specifier: workspace:*
-        version: link:../core
-      '@cat/domain':
-        specifier: workspace:*
-        version: link:../domain
-      '@cat/graph':
-        specifier: workspace:*
-        version: link:../graph
-      '@cat/operations':
-        specifier: workspace:*
-        version: link:../operations
-      '@cat/permissions':
-        specifier: workspace:*
-        version: link:../permissions
-      '@cat/plugin-core':
-        specifier: workspace:*
-        version: link:../plugin-core
-      '@cat/server-shared':
-        specifier: workspace:*
-        version: link:../server-shared
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../shared
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      '@cat/test-utils':
-        specifier: workspace:*
-        version: link:../test-utils
-      '@types/node':
-        specifier: ^25.5.2
-        version: 25.5.2
-      dotenv:
-        specifier: ^17.4.0
-        version: 17.4.0
-      unplugin-dts:
-        specifier: 1.0.0-beta.6
-        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.5.2))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.27.7)(rollup@4.60.1)(typescript@6.0.0-beta)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
-      vite:
-        specifier: ^8.0.3
-        version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-      vitest:
-        specifier: ^4.1.2
-        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.2)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/auth:
     devDependencies:
@@ -1148,9 +1099,6 @@ importers:
 
   packages/ui:
     dependencies:
-      '@lucide/vue':
-        specifier: ^1.7.0
-        version: 1.7.0(vue@3.5.32(typescript@6.0.0-beta))
       '@vue-flow/controls':
         specifier: ^1.1.3
         version: 1.1.3(@vue-flow/core@1.48.2(vue@3.5.32(typescript@6.0.0-beta)))(vue@3.5.32(typescript@6.0.0-beta))
@@ -1172,6 +1120,9 @@ importers:
       elkjs:
         specifier: ^0.11.1
         version: 0.11.1
+      lucide-vue-next:
+        specifier: ^1.0.0
+        version: 1.0.0(vue@3.5.32(typescript@6.0.0-beta))
       reka-ui:
         specifier: ^2.8.2
         version: 2.9.3(vue@3.5.32(typescript@6.0.0-beta))
@@ -1195,7 +1146,7 @@ importers:
         version: 2.0.9
       zod:
         specifier: ^4.3.6
-        version: 4.3.6
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.2.2
@@ -1221,6 +1172,52 @@ importers:
       vue-tsc:
         specifier: ^3.2.6
         version: 3.2.6(typescript@6.0.0-beta)
+
+  packages/workflow:
+    dependencies:
+      '@cat/core':
+        specifier: workspace:*
+        version: link:../core
+      '@cat/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@cat/graph':
+        specifier: workspace:*
+        version: link:../graph
+      '@cat/operations':
+        specifier: workspace:*
+        version: link:../operations
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../plugin-core
+      '@cat/server-shared':
+        specifier: workspace:*
+        version: link:../server-shared
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../shared
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@cat/test-utils':
+        specifier: workspace:*
+        version: link:../test-utils
+      '@types/node':
+        specifier: ^25.5.2
+        version: 25.5.2
+      dotenv:
+        specifier: ^17.4.0
+        version: 17.4.0
+      unplugin-dts:
+        specifier: 1.0.0-beta.6
+        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.5.2))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.27.7)(rollup@4.60.1)(typescript@6.0.0-beta)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      vite:
+        specifier: ^8.0.3
+        version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+      vitest:
+        specifier: ^4.1.2
+        version: 4.1.2(@opentelemetry/api@1.9.0)(@types/node@25.5.2)(@vitest/ui@4.1.2)(happy-dom@20.8.9)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   tools/autodoc:
     dependencies:
@@ -7346,6 +7343,11 @@ packages:
   lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
+
+  lucide-vue-next@1.0.0:
+    resolution: {integrity: sha512-V6SPvx1IHTj/UY+FrIYWV5faISsPSb8BnWSFDxAtezWKvWc9ZZ40PDrdu1/Qb5vg4lHWr1hs1BAMGVGm6V1Xdg==}
+    peerDependencies:
+      vue: '>=3.0.1'
 
   magic-regexp@0.10.0:
     resolution: {integrity: sha512-Uly1Bu4lO1hwHUW0CQeSWuRtzCMNO00CmXtS8N6fyvB3B979GOEEeAkiTUDsmbYLAbvpUS/Kt5c4ibosAzVyVg==}
@@ -16047,6 +16049,10 @@ snapshots:
     dependencies:
       yallist: 4.0.0
     optional: true
+
+  lucide-vue-next@1.0.0(vue@3.5.32(typescript@6.0.0-beta)):
+    dependencies:
+      vue: 3.5.32(typescript@6.0.0-beta)
 
   magic-regexp@0.10.0:
     dependencies:

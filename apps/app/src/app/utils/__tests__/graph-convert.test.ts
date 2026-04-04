@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { convertGraphDefinition } from "@/app/utils/graph-convert";
 
-// Minimal valid GraphDefinition objects (matching @cat/agent types)
+// Minimal valid GraphDefinition objects (matching @cat/workflow types)
 const makeNode = (id: string, type: string) => ({
   id,
   type,

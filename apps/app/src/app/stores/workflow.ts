@@ -1,5 +1,5 @@
-import type { AgentEvent } from "@cat/agent";
 import type { DagGraphData, DagNodeStatus } from "@cat/ui";
+import type { AgentEvent } from "@cat/workflow";
 
 import { defineStore } from "pinia";
 import { ref, shallowRef } from "vue";
@@ -44,7 +44,7 @@ export const useWorkflowStore = defineStore("workflow", () => {
   const blackboard = ref<Record<string, unknown>>({});
   const blackboardVersion = ref(0);
   const eventLog = shallowRef<AgentEvent[]>([]);
-  const runStatus = ref<string>("pending");
+  const runStatus = ref("pending");
   const selectedNodeId = ref<string | undefined>(undefined);
   const activeRunId = ref<string | null>(null);
   const isLoading = ref(false);
@@ -127,15 +127,6 @@ export const useWorkflowStore = defineStore("workflow", () => {
       case "node:lease:acquired":
       case "node:lease:expired":
       case "node:lease:reclaimed":
-      case "llm:thinking":
-      case "llm:token":
-      case "llm:complete":
-      case "llm:error":
-      case "tool:call":
-      case "tool:result":
-      case "tool:error":
-      case "tool:confirm:required":
-      case "tool:confirm:response":
       case "human:input:required":
       case "human:input:received":
       case "workflow:translation:created":

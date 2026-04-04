@@ -23,7 +23,7 @@ export default defineConfig({
       name: "@cat/permissions",
       priority: "medium",
     },
-    { path: "packages/agent", name: "@cat/agent", priority: "medium" },
+    { path: "packages/workflow", name: "@cat/workflow", priority: "medium" },
     {
       path: "packages/server-shared",
       name: "@cat/server-shared",

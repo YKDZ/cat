@@ -4,7 +4,7 @@
   "files": [],
   "references": [
     {
-      "path": "./packages/agent"
+      "path": "./packages/workflow"
     }
   ]
 }

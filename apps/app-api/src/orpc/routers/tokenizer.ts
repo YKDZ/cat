@@ -1,6 +1,6 @@
-import { runGraph, tokenizeGraph } from "@cat/agent/workflow";
 import { lookupTermsForElementOp } from "@cat/operations";
 import { TokenSchema } from "@cat/plugin-core";
+import { runGraph, tokenizeGraph } from "@cat/workflow/tasks";
 import z from "zod";
 
 import { authed } from "@/orpc/server.ts";

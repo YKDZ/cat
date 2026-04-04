@@ -51,7 +51,6 @@
     "vitest": "4.1.0"
   },
   "peerDependencies": {
-    "@cat/agent": "workspace:*",
     "@cat/auth": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/message": "workspace:*",
@@ -60,6 +59,7 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@cat/workflow": "workspace:*",
     "@hono/mcp": "^0.2.4",
     "@hono/node-ws": "^1.3.0",
     "@modelcontextprotocol/sdk": "^1.27.1",

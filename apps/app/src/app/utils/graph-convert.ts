@@ -1,10 +1,10 @@
-import type { GraphDefinition } from "@cat/agent";
 import type {
   DagEdgeData,
   DagGraphData,
   DagNodeData,
   DagNodeType,
 } from "@cat/ui";
+import type { GraphDefinition } from "@cat/workflow";
 
 const validNodeTypes = [
   "llm",

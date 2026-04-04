@@ -39,7 +39,7 @@ export default defineConfig({
         "reka-ui",
         "vue-sonner",
         "tailwindcss",
-        "@lucide/vue",
+        "lucide-vue-next",
         "class-variance-authority",
         "clsx",
         "tailwind-merge",

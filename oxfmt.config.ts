@@ -7,6 +7,7 @@ export default defineConfig({
     "**/dist",
     "packages/shared/src/schema/drizzle",
     "apps/docs/src/autodoc",
+    "packages/ui/src/components",
   ],
   sortImports: {
     groups: [

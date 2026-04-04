@@ -1,11 +1,4 @@
 import {
-  CreateTranslationPubPayloadSchema,
-  batchAutoTranslateGraph,
-  createTranslationGraph,
-  getGlobalGraphRuntime,
-  runGraph,
-} from "@cat/agent/workflow";
-import {
   approveTranslation,
   autoApproveDocumentTranslations,
   createAgentDefinition,
@@ -39,6 +32,13 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
+import {
+  CreateTranslationPubPayloadSchema,
+  batchAutoTranslateGraph,
+  createTranslationGraph,
+  getGlobalGraphRuntime,
+  runGraph,
+} from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 

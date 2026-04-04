@@ -1,15 +1,15 @@
 import type { QaResultItem } from "@cat/shared/schema/drizzle/qa";
 
+import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
+import { TokenSchema } from "@cat/plugin-core";
+import { AsyncMessageQueue } from "@cat/server-shared";
+import { serverLogger as logger } from "@cat/server-shared";
 import {
   getGlobalGraphRuntime,
   QAPubPayloadSchema,
   qaGraph,
   startGraph,
-} from "@cat/agent/workflow";
-import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
-import { TokenSchema } from "@cat/plugin-core";
-import { AsyncMessageQueue } from "@cat/server-shared";
-import { serverLogger as logger } from "@cat/server-shared";
+} from "@cat/workflow/tasks";
 import z from "zod";
 
 import { authed, checkDocumentPermission } from "@/orpc/server.ts";

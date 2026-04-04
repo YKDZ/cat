@@ -1,10 +1,4 @@
 import {
-  createTermGraph,
-  runGraph,
-  termAlignmentGraph,
-  termDiscoveryGraph,
-} from "@cat/agent/workflow";
-import {
   addGlossaryTermToConcept,
   countGlossaryConcepts,
   createAgentDefinition,
@@ -33,6 +27,12 @@ import { firstOrGivenService } from "@cat/server-shared";
 import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
 import { TermDataSchema } from "@cat/shared/schema/misc";
+import {
+  createTermGraph,
+  runGraph,
+  termAlignmentGraph,
+  termDiscoveryGraph,
+} from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
