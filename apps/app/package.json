@@ -68,7 +68,7 @@
     "dompurify": "^3.3.3",
     "dotenv": "^17.4.0",
     "hono": "^4.12.10",
-    "lucide-vue-next": "^0.577.0",
+    "lucide-vue-next": "^1.0.0",
     "marked": "^17.0.5",
     "partysocket": "^1.1.16",
     "pinia": "^3.0.4",
