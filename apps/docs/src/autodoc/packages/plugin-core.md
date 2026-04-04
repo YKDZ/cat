@@ -229,12 +229,6 @@ export const parseInner = async (content: string, offsetInParent: number, rules:
 
 * `ChatCompletionResponse` (type)
 
-* `FimCompletionRequest` (type)
-
-* `FimStreamChunk` (type)
-
-* `FimCompletionResponse` (type)
-
 * `NlpSegmentContext` (type) — 分词请求上下文
 
 * `NlpBatchSegmentContext` (type) — 批量分词请求上下文
