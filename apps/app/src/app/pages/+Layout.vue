@@ -3,17 +3,29 @@ import { SidebarProvider } from "@cat/ui";
 import { Toaster } from "@cat/ui";
 import { PiniaColadaDevtools } from "@pinia/colada-devtools";
 import { usePageContext } from "vike-vue/usePageContext";
+import { onMounted, onUnmounted } from "vue";
 
+import { useNotificationStore } from "@/app/stores/notification";
 import { useCookieBooleanRef } from "@/app/utils/cookie";
 
 const ctx = usePageContext();
+const notificationStore = useNotificationStore();
 
 
-const indexSidebarOpen = useCookieBooleanRef(
-  usePageContext(),
-  "indexSidebarOpen",
-  true,
-);
+onMounted(async () => {
+  if (ctx.user) {
+    await notificationStore.loadInitial();
+    notificationStore.startStreaming();
+  }
+});
+
+
+onUnmounted(() => {
+  notificationStore.stopStreaming();
+});
+
+
+const indexSidebarOpen = useCookieBooleanRef(ctx, "indexSidebarOpen", true);
 const editorSidebarOpen = useCookieBooleanRef(ctx, "editorSidebarOpen", true);
 const editorContextPanelOpen = useCookieBooleanRef(
   ctx,

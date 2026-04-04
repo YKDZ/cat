@@ -4,6 +4,8 @@ import type { Project } from "@cat/shared/schema/drizzle/project";
 import { SidebarTrigger } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 
+import NotificationInbox from "@/app/components/NotificationInbox.vue";
+
 import HeaderBreadcrumb from "./HeaderBreadcrumb.vue";
 
 defineProps<{
@@ -15,11 +17,12 @@ const ctx = usePageContext();
 </script>
 
 <template>
-  <div class="header">
+  <div class="header flex items-center justify-between">
     <SidebarTrigger sidebar-id="index" />
     <HeaderBreadcrumb v-if="project" :project />
     <div v-else class="font-500 flex items-center text-lg">
       {{ ctx.user?.name }}
     </div>
+    <NotificationInbox />
   </div>
 </template>

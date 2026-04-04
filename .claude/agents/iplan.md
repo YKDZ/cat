@@ -54,7 +54,7 @@ Good: "In `@src/auth/validate.ts:42`, `confirmTokenExists()` — `Session.user` 
 ## Document Structure
 
 1. **Background & Goals** — task context, what problem this solves
-2. **Architecture Diagram** — Mermaid diagram if necessary
+2. **Architecture Diagram** — Mermaid diagram
 3. **Implementation Steps** — each step follows the format below
 4. **File Change Overview** — tree structure of all files to create/modify/delete
 5. **Final Verification** — expected results and verification commands

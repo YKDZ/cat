@@ -14,6 +14,7 @@ import {
   initCacheStore,
   initSessionStore,
 } from "@cat/domain";
+import { MessageGateway } from "@cat/message";
 import { registerDomainEventHandlers } from "@cat/operations";
 import {
   grantFirstUserSuperadmin,
@@ -105,7 +106,18 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     });
 
     await initAllVectorStorage(pluginManager);
-    registerDomainEventHandlers();
+    registerDomainEventHandlers(drizzleDB.client);
+
+    // 初始化消息网关（站内信 + 邮件分发）
+    const messageGateway = new MessageGateway({
+      db: drizzleDB.client,
+      getEmailProvider: () => {
+        const services = pluginManager.getServices("EMAIL_PROVIDER");
+        return services[0]?.service;
+      },
+    });
+    messageGateway.start();
+    globalThis.messageGateway = messageGateway;
 
     // 初始化 Agent Graph Runtime（全局单例，供 runGraph 等 API 使用）
     createDefaultGraphRuntime(drizzleDB.client, pluginManager);

@@ -45,6 +45,11 @@ export default defineConfig({
       priority: "medium",
     },
     {
+      path: "packages/message",
+      name: "@cat/message",
+      priority: "medium",
+    },
+    {
       path: "packages/graph",
       name: "@cat/graph",
       priority: "medium",

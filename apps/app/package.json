@@ -32,6 +32,7 @@
     "@cat/auth": "workspace:*",
     "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
+    "@cat/message": "workspace:*",
     "@cat/operations": "workspace:*",
     "@cat/permissions": "workspace:*",
     "@cat/plugin-core": "workspace:*",

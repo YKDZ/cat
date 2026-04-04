@@ -14,6 +14,7 @@ import {
   Home,
   BrickWall,
   Box,
+  Bell,
   Folder,
   Archive,
   ShieldCheck,
@@ -64,6 +65,11 @@ const items = ref([
     url: "/settings/security",
     icon: ShieldCheck,
     title: t("安全"),
+  },
+  {
+    url: "/settings/notifications",
+    icon: Bell,
+    title: t("通知设置"),
   },
 ]);
 </script>

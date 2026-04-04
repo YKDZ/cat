@@ -50,6 +50,5 @@ export class AsyncMessageQueue<T> {
   clear(): void {
     this.queue.length = 0;
     this.resolve = null;
-    this.closed = false;
   }
 }

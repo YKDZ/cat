@@ -8,6 +8,7 @@ import * as ghostText from "./routers/ghost-text.ts";
 import * as glossary from "./routers/glossary.ts";
 import * as language from "./routers/language.ts";
 import * as memory from "./routers/memory.ts";
+import * as notification from "./routers/notification.ts";
 import * as permission from "./routers/permission.ts";
 import * as plugin from "./routers/plugin.ts";
 import * as project from "./routers/project.ts";
@@ -38,6 +39,7 @@ const router: AppRouter = {
   tokenizer,
   qa,
   comment,
+  notification,
 };
 
 export type AppRouter = {
@@ -60,6 +62,7 @@ export type AppRouter = {
   qa: typeof qa;
   comment: typeof comment;
   permission: typeof permission;
+  notification: typeof notification;
 };
 
 export default router;

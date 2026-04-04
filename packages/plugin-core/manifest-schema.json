@@ -64,7 +64,8 @@
               "LLM_PROVIDER",
               "AGENT_TOOL_PROVIDER",
               "AGENT_CONTEXT_PROVIDER",
-              "NLP_WORD_SEGMENTER"
+              "NLP_WORD_SEGMENTER",
+              "EMAIL_PROVIDER"
             ]
           },
           "dynamic": {

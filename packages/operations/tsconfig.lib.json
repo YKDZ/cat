@@ -26,6 +26,9 @@
     },
     {
       "path": "../domain/tsconfig.lib.json"
+    },
+    {
+      "path": "../message/tsconfig.lib.json"
     }
   ],
   "exclude": [

@@ -1,0 +1,1 @@
+CREATE INDEX "Notification_recipient_id_created_at_index" ON "Notification" ("recipient_id","created_at");

@@ -24,6 +24,9 @@ import {
   SubjectTypeValues,
   RelationValues,
   PermissionActionValues,
+  MessageChannelValues,
+  MessageCategoryValues,
+  NotificationStatusValues,
 } from "@cat/shared/schema/enum";
 import { sql } from "drizzle-orm";
 import {
@@ -82,6 +85,13 @@ export const relation = pgEnum("Relation", RelationValues);
 export const permissionAction = pgEnum(
   "PermissionAction",
   PermissionActionValues,
+);
+
+export const messageChannel = pgEnum("MessageChannel", MessageChannelValues);
+export const messageCategory = pgEnum("MessageCategory", MessageCategoryValues);
+export const notificationStatus = pgEnum(
+  "NotificationStatus",
+  NotificationStatusValues,
 );
 
 const timestamps = {
@@ -1276,5 +1286,47 @@ export const authFlowLog = pgTable(
     index("idx_auth_flow_log_user").on(table.userId),
     index("idx_auth_flow_log_flow").on(table.flowId),
     index("idx_auth_flow_log_created").on(table.createdAt),
+  ],
+);
+
+// ====== Message System ======
+
+export const notification = pgTable(
+  "Notification",
+  {
+    id: serial().primaryKey(),
+    recipientId: uuid()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    category: messageCategory().notNull(),
+    title: text().notNull(),
+    body: text().notNull(),
+    data: jsonb().$type<JSONType>(),
+    status: notificationStatus().notNull().default("UNREAD"),
+    ...timestamps,
+  },
+  (table) => [
+    index().using("btree", table.recipientId.asc().nullsLast()),
+    index().using("btree", table.status.asc().nullsLast()),
+    index().on(table.recipientId, table.status),
+    index().on(table.recipientId, table.createdAt),
+  ],
+);
+
+export const userMessagePreference = pgTable(
+  "UserMessagePreference",
+  {
+    id: serial().primaryKey(),
+    userId: uuid()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    category: messageCategory().notNull(),
+    channel: messageChannel().notNull(),
+    enabled: boolean().notNull().default(true),
+    ...timestamps,
+  },
+  (table) => [
+    unique().on(table.userId, table.category, table.channel),
+    index().using("btree", table.userId.asc().nullsLast()),
   ],
 );

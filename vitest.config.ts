@@ -115,6 +115,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: "message",
+          include: ["packages/message/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/message")) },
+      },
+      {
+        test: {
           name: "agent",
           include: ["packages/agent/src/**/*.spec.ts"],
           environment: "node",
