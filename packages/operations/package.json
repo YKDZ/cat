@@ -39,6 +39,7 @@
   },
   "peerDependencies": {
     "@cat/domain": "workspace:*",
+    "@cat/message": "workspace:*",
     "@cat/permissions": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/server-shared": "workspace:*",

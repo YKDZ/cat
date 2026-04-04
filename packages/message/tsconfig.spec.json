@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist-test",
+    "types": ["node", "vite/client"],
+    "paths": { "@/*": ["./src/*"] },
+    "composite": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "./tsconfig.lib.json" }]
+}

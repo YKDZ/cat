@@ -54,6 +54,7 @@
     "@cat/agent": "workspace:*",
     "@cat/auth": "workspace:*",
     "@cat/domain": "workspace:*",
+    "@cat/message": "workspace:*",
     "@cat/operations": "workspace:*",
     "@cat/permissions": "workspace:*",
     "@cat/plugin-core": "workspace:*",

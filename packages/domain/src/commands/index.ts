@@ -80,3 +80,7 @@ export * from "@/commands/permission/revoke-permission-tuple.cmd";
 export * from "@/commands/permission/seed-system-roles.cmd";
 export * from "@/commands/permission/grant-first-user-superadmin.cmd";
 export * from "@/commands/permission/insert-audit-logs.cmd";
+export * from "@/commands/notification/create-notification.cmd";
+export * from "@/commands/notification/mark-notification-read.cmd";
+export * from "@/commands/notification/mark-all-notifications-read.cmd";
+export * from "@/commands/notification/upsert-message-preference.cmd";

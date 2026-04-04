@@ -61,6 +61,8 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.user.id,
         to: r.mfaProvider.userId,
       }),
+      notifications: r.many.notification(),
+      messagePreferences: r.many.userMessagePreference(),
     },
     blob: {
       pluginService: r.one.pluginService({
@@ -501,6 +503,18 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
     sessionRecord: {
       user: r.one.user({
         from: r.sessionRecord.userId,
+        to: r.user.id,
+      }),
+    },
+    notification: {
+      recipient: r.one.user({
+        from: r.notification.recipientId,
+        to: r.user.id,
+      }),
+    },
+    userMessagePreference: {
+      user: r.one.user({
+        from: r.userMessagePreference.userId,
         to: r.user.id,
       }),
     },

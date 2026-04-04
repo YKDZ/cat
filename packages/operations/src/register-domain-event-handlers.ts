@@ -1,4 +1,12 @@
-import { domainEventBus, type DomainEventMap } from "@cat/domain";
+import type { DrizzleClient } from "@cat/domain";
+
+import {
+  domainEventBus,
+  executeQuery,
+  getCommentRecipient,
+  type DomainEventMap,
+} from "@cat/domain";
+import { sendMessage } from "@cat/message";
 import { getPermissionEngine } from "@cat/permissions";
 import { serverLogger as logger } from "@cat/server-shared";
 
@@ -50,6 +58,7 @@ const onMemoryCreated = async (
  * - `project:created` → 授予创建者 owner 权限
  * - `glossary:created` → 授予创建者 owner 权限
  * - `memory:created` → 授予创建者 owner 权限
+ * - `comment:created` → 向翻译作者发送评论通知
  *
  * 具备内置幂等性防护，重复调用不会重复注册。
  * @en Register domain event handlers (global singleton).
@@ -59,10 +68,11 @@ const onMemoryCreated = async (
  * - `project:created` → grants owner permission to the creator
  * - `glossary:created` → grants owner permission to the creator
  * - `memory:created` → grants owner permission to the creator
+ * - `comment:created` → notifies the translation author of new comment
  *
  * Idempotent: repeated calls are no-ops.
  */
-export const registerDomainEventHandlers = (): void => {
+export const registerDomainEventHandlers = (db: DrizzleClient): void => {
   if (registered) {
     return;
   }
@@ -104,6 +114,27 @@ export const registerDomainEventHandlers = (): void => {
       logger
         .withSituation("SERVER")
         .error(error, "Failed to handle memory:created event");
+    }
+  });
+
+  domainEventBus.subscribe("comment:created", async (event) => {
+    try {
+      const result = await executeQuery({ db }, getCommentRecipient, {
+        commentId: event.payload.commentId,
+      });
+      if (!result) return;
+
+      await sendMessage({
+        recipientId: result.recipientId,
+        category: "COMMENT_REPLY",
+        title: "你收到了一条新评论", // @i18n-key
+        body: "有人在你的翻译上留下了评论", // @i18n-key
+        data: { commentId: event.payload.commentId },
+      });
+    } catch (error) {
+      logger
+        .withSituation("SERVER")
+        .error(error, "Failed to handle comment:created event");
     }
   });
 

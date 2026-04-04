@@ -1,3 +1,6 @@
+import type { MessageCategory, MessageChannel } from "@cat/shared/schema/enum";
+import type { JSONType } from "@cat/shared/schema/json";
+
 import { createEvent, type AnyEventOf, type EventOf } from "@cat/core";
 
 export type DomainEventMap = {
@@ -26,6 +29,28 @@ export type DomainEventMap = {
   "comment:deleted": { commentId: number };
   "memory:item:created": { memoryId: string; itemIds: number[] };
   "qa:completed": { documentId: string; issueCount: number };
+  // ─── Message System ───
+  "message:send-requested": {
+    recipientId: string;
+    category: MessageCategory;
+    title: string;
+    body: string;
+    data?: JSONType;
+    channels?: MessageChannel[];
+  };
+  "notification:created": {
+    notificationId: number;
+    recipientId: string;
+    category: string;
+    title: string;
+    body: string;
+    data?: JSONType;
+  };
+  "notification:status-changed": {
+    notificationId: number;
+    recipientId: string;
+    status: string;
+  };
 };
 
 export type DomainEvent = AnyEventOf<DomainEventMap>;

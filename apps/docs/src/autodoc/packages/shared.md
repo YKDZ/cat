@@ -8,7 +8,7 @@ Shared Zod schemas, type definitions, and utility functions
 
 * **Exported functions**: 23
 
-* **Exported types**: 123
+* **Exported types**: 126
 
 ## Function Index
 
@@ -333,6 +333,12 @@ export const safeJoinURL = (base: string, path: string): string
 * `AgentSessionTrustPolicy` (type)
 
 * `AgentDefinitionType` (type)
+
+* `MessageChannel` (type)
+
+* `MessageCategory` (type)
+
+* `NotificationStatus` (type)
 
 * `JSONObject` (interface)
 

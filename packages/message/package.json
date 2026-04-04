@@ -1,0 +1,42 @@
+{
+  "name": "@cat/message",
+  "version": "0.1.0",
+  "description": "Unified message gateway: in-app notifications and email dispatch",
+  "files": [
+    "dist",
+    "src",
+    "package.json"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "test": "vitest run --config ../../vitest.config.ts --project=message",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "unplugin-dts": "1.0.0-beta.6",
+    "vite": "8.0.0",
+    "vitest": "^4.1.0"
+  },
+  "peerDependencies": {
+    "@cat/core": "workspace:*",
+    "@cat/domain": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
+    "@cat/server-shared": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "zod": "^4.3.6"
+  }
+}

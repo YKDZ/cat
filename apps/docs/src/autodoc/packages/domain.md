@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 231
+* **Modules**: 242
 
-* **Exported functions**: 243
+* **Exported functions**: 254
 
-* **Exported types**: 332
+* **Exported types**: 343
 
 ## Function Index
 
@@ -494,6 +494,53 @@ export const createMemory: Command<
 > = async (ctx: DbContext, command: { name: string; creatorId: string; description?: string | undefined; projectIds?: string[] | undefined; }) => {...}
 ```
 
+### packages/domain/src/commands/notification
+
+### `createNotification`
+
+```ts
+/**
+ * Create an in-app notification record and publish notification:created event.
+ */
+export const createNotification: Command<
+  CreateNotificationCommand,
+  typeof notification.$inferSelect
+> = async (ctx: DbContext, cmd: { recipientId: string; category: "PROJECT" | "TRANSLATION" | "SYSTEM" | "COMMENT_REPLY" | "QA"; title: string; body: string; data?: JSONType | undefined; }) => {...}
+```
+
+### `markAllNotificationsRead`
+
+```ts
+/**
+ * Mark all notifications as read.
+ */
+export const markAllNotificationsRead: Command<
+  MarkAllNotificationsReadCommand
+> = async (ctx: DbContext, cmd: { userId: string; }) => {...}
+```
+
+### `markNotificationRead`
+
+```ts
+/**
+ * Mark notification read.
+ */
+export const markNotificationRead: Command<
+  MarkNotificationReadCommand
+> = async (ctx: DbContext, cmd: { notificationId: number; userId: string; }) => {...}
+```
+
+### `upsertMessagePreference`
+
+```ts
+/**
+ * Update user message preference (upsert).
+ */
+export const upsertMessagePreference: Command<
+  UpsertMessagePreferenceCommand
+> = async (ctx: DbContext, cmd: { userId: string; category: "PROJECT" | "TRANSLATION" | "SYSTEM" | "COMMENT_REPLY" | "QA"; channel: "IN_APP" | "EMAIL"; enabled: boolean; }) => {...}
+```
+
 ### packages/domain/src/commands/permission
 
 ### `grantFirstUserSuperadmin`
@@ -579,7 +626,7 @@ export const registerPluginDefinition: Command<
 ### `syncPluginServices`
 
 ```ts
-export const syncPluginServices: Command<SyncPluginServicesCommand> = async (ctx: DbContext, command: { pluginInstallationId: number; services: { serviceId: string; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }[]; }) => {...}
+export const syncPluginServices: Command<SyncPluginServicesCommand> = async (ctx: DbContext, command: { pluginInstallationId: number; services: { serviceId: string; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }[]; }) => {...}
 ```
 
 ### `uninstallPlugin`
@@ -1135,6 +1182,18 @@ export const listAllChunks: Query<
 ```
 
 ### packages/domain/src/queries/comment
+
+### `getCommentRecipient`
+
+```ts
+/**
+ * Resolve the notification recipient for a comment: reply author or translation author. Returns null when same as commenter.
+ */
+export const getCommentRecipient: Query<
+  GetCommentRecipientQuery,
+  { recipientId: string; commenterId: string } | null
+> = async (ctx: DbContext, query: { commentId: number; }) => {...}
+```
 
 ### `listChildComments`
 
@@ -1771,6 +1830,65 @@ export const listProjectMemories: Query<
 > = async (ctx: DbContext, query: { projectId: string; }) => {...}
 ```
 
+### packages/domain/src/queries/notification
+
+### `countUnread`
+
+```ts
+/**
+ * Count unread notifications.
+ */
+export const countUnread: Query<CountUnreadQuery, number> = async (ctx: DbContext, query: { userId: string; }) => {...}
+```
+
+### `getEnabledChannels`
+
+```ts
+/**
+ * Get enabled channels for a user's message category. Falls back to `["IN_APP"]`.
+ */
+export const getEnabledChannels: Query<
+  GetEnabledChannelsQuery,
+  MessageChannel[]
+> = async (ctx: DbContext, query: { userId: string; category: "PROJECT" | "TRANSLATION" | "SYSTEM" | "COMMENT_REPLY" | "QA"; }) => {...}
+```
+
+### `getNotification`
+
+```ts
+/**
+ * Get a single notification by ID (restricted to the owner).
+ */
+export const getNotification: Query<
+  GetNotificationQuery,
+  typeof notification.$inferSelect | null
+> = async (ctx: DbContext, query: { notificationId: number; userId: string; }) => {...}
+```
+
+### `listNotifications`
+
+```ts
+/**
+ * Query paginated notifications.
+ */
+export const listNotifications: Query<
+  ListNotificationsQuery,
+  (typeof notification.$inferSelect)[]
+> = async (ctx: DbContext, query: { userId: string; pageIndex: number; pageSize: number; statusFilter?: "UNREAD" | "READ" | "ARCHIVED" | undefined; }) => {...}
+```
+
+### `listPreferences`
+
+```ts
+/**
+ * List all message preferences for a user.
+ */
+export const listPreferences: Query<
+  ListPreferencesQuery,
+  (typeof userMessagePreference.$inferSelect)[]
+> = async (ctx: DbContext, query: { userId: string; }) => {...}
+```
+
 ### packages/domain/src/queries/permission
 
 ### `getSubjectPermissionTuples`
@@ -1866,7 +1984,7 @@ export const getPluginInstallation: Query<
 export const getPluginServiceById: Query<
   GetPluginServiceByIdQuery,
   PluginServiceIdentity | null
-> = async (ctx: DbContext, query: { serviceDbId: number; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }) => {...}
+> = async (ctx: DbContext, query: { serviceDbId: number; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }) => {...}
 ```
 
 ### `getPluginServiceByType`
@@ -1908,7 +2026,7 @@ export const listInstalledPlugins: Query<
 export const listInstalledServicesByType: Query<
   ListInstalledServicesByTypeQuery,
   InstalledServiceRecord[]
-> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
 ```
 
 ### `listPluginServiceIdsByType`
@@ -1917,7 +2035,7 @@ export const listInstalledServicesByType: Query<
 export const listPluginServiceIdsByType: Query<
   ListPluginServiceIdsByTypeQuery,
   string[]
-> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER"; }) => {...}
+> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }) => {...}
 ```
 
 ### `listPluginServicesForInstallation`
@@ -2183,6 +2301,15 @@ export const getUserAvatarFile: Query<
 > = async (ctx: DbContext, query: { userId: string; }) => {...}
 ```
 
+### `getUserEmail`
+
+```ts
+/**
+ * Get a user's email address by user ID.
+ */
+export const getUserEmail: Query<GetUserEmailQuery, string | null> = async (ctx: DbContext, query: { userId: string; }) => {...}
+```
+
 ### `getUser`
 
 ```ts
@@ -2368,6 +2495,14 @@ export const searchChunkCosineSimilarity: Query<
 
 * `CreateMemoryCommand` (type)
 
+* `CreateNotificationCommand` (type)
+
+* `MarkAllNotificationsReadCommand` (type)
+
+* `MarkNotificationReadCommand` (type)
+
+* `UpsertMessagePreferenceCommand` (type)
+
 * `GrantFirstUserSuperadminCommand` (type)
 
 * `GrantPermissionTupleCommand` (type)
@@ -2539,6 +2674,8 @@ export const searchChunkCosineSimilarity: Query<
 * `GetMfaProviderByServiceAndUserQuery` (type)
 
 * `ListAllChunksQuery` (type)
+
+* `GetCommentRecipientQuery` (type)
 
 * `ListChildCommentsQuery` (type)
 
@@ -2738,6 +2875,16 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ListAllUsersQuery` (type)
 
+* `CountUnreadQuery` (type)
+
+* `GetEnabledChannelsQuery` (type)
+
+* `GetNotificationQuery` (type)
+
+* `ListNotificationsQuery` (type)
+
+* `ListPreferencesQuery` (type)
+
 * `GetSubjectPermissionTuplesQuery` (type)
 
 * `SubjectPermissionTupleRow` (type)
@@ -2857,6 +3004,8 @@ export const searchChunkCosineSimilarity: Query<
 * `GetUserAvatarFileQuery` (type)
 
 * `UserAvatarFileRef` (type)
+
+* `GetUserEmailQuery` (type)
 
 * `GetUserQuery` (type)
 

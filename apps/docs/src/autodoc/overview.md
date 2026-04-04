@@ -10,11 +10,11 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (243 functions, 332 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (254 functions, 343 types)
 
 * [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (46 functions, 79 types)
 
-* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (23 functions, 123 types)
+* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (23 functions, 126 types)
 
 * [**@cat/db**](./packages/db.md) — Database layer: Drizzle ORM schemas and Redis client (8 functions, 6 types)
 
@@ -29,6 +29,8 @@
 * [**@cat/auth**](./packages/auth.md) — DAG-based authentication flow engine (10 functions, 23 types)
 
 * [**@cat/core**](./packages/core.md) — Core infrastructure: generic event bus, typed pub/sub (1 functions, 7 types)
+
+* [**@cat/message**](./packages/message.md) — Unified message gateway: in-app notifications and email dispatch (1 functions, 5 types)
 
 * [**@cat/graph**](./packages/graph.md) — Storage-agnostic graph core: types, blackboard, condition evaluation (7 functions, 13 types)
 

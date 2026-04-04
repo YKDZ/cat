@@ -534,10 +534,11 @@ export const qaOp = async (payload: QAInput, _ctx?: OperationContext): Promise<{
  * - `project:created` → grants owner permission to the creator
  * - `glossary:created` → grants owner permission to the creator
  * - `memory:created` → grants owner permission to the creator
+ * - `comment:created` → notifies the translation author of new comment
  *
  * Idempotent: repeated calls are no-ops.
  */
-export const registerDomainEventHandlers = ()
+export const registerDomainEventHandlers = (db: DrizzleClient)
 ```
 
 ### `retrieveEmbeddingsOp`

@@ -33,6 +33,7 @@ export const PluginServiceTypeValues = [
   "AGENT_TOOL_PROVIDER",
   "AGENT_CONTEXT_PROVIDER",
   "NLP_WORD_SEGMENTER",
+  "EMAIL_PROVIDER",
 ] as const;
 export const PluginServiceTypeSchema = z.enum(PluginServiceTypeValues);
 
@@ -195,3 +196,23 @@ export type AgentToolConfirmationStatus =
 export type AgentSessionTrustPolicy =
   (typeof AgentSessionTrustPolicyValues)[number];
 export type AgentDefinitionType = (typeof AgentDefinitionTypeValues)[number];
+
+// ─── Message System ───
+
+export const MessageChannelValues = ["IN_APP", "EMAIL"] as const;
+export const MessageChannelSchema = z.enum(MessageChannelValues);
+export type MessageChannel = (typeof MessageChannelValues)[number];
+
+export const MessageCategoryValues = [
+  "SYSTEM",
+  "COMMENT_REPLY",
+  "TRANSLATION",
+  "PROJECT",
+  "QA",
+] as const;
+export const MessageCategorySchema = z.enum(MessageCategoryValues);
+export type MessageCategory = (typeof MessageCategoryValues)[number];
+
+export const NotificationStatusValues = ["UNREAD", "READ", "ARCHIVED"] as const;
+export const NotificationStatusSchema = z.enum(NotificationStatusValues);
+export type NotificationStatus = (typeof NotificationStatusValues)[number];

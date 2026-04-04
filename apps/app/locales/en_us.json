@@ -126,5 +126,7 @@
   "使用 LLM 对翻译结果进行术语一致性和风格精修": "Use LLM to refine translations for terminology consistency and style",
   "选择 LLM Provider...": "Select LLM Provider...",
   "收集文档上下文": "Gather Document Context",
-  "收集相邻已有翻译作为 LLM 精修上下文，提升译文连贯性": "Collect adjacent translations as LLM refinement context to improve consistency"
+  "收集相邻已有翻译作为 LLM 精修上下文，提升译文连贯性": "Collect adjacent translations as LLM refinement context to improve consistency",
+  "你收到了一条新评论": "You received a new comment",
+  "有人在你的翻译上留下了评论": "Someone left a comment on your translation"
 }
