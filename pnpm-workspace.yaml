@@ -4,19 +4,6 @@ packages:
   - "@cat-plugin/*"
   - tools/*
 
-ignoredBuiltDependencies:
-  - esbuild
-  - msgpackr-extract
-  - oxc-resolver
-  - protobufjs
-
 linkWorkspacePackages: true
 
 syncInjectedDepsAfterScripts: ["build"]
-
-onlyBuiltDependencies:
-  - "@swc/core"
-  - "@tailwindcss/oxide"
-  - "esbuild"
-  - "nx"
-  - "vue-demi"
