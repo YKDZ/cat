@@ -24,12 +24,12 @@
     "build": "vite build",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
+    "lint": "oxlint --disable-nested-config --type-aware",
+    "lint:fix": "oxlint --fix --disable-nested-config --type-aware",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "devDependencies": {
-    "vite": "8.0.0"
+    "vite": "^8.0.3"
   },
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*",

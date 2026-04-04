@@ -32,7 +32,6 @@ export default defineConfig({
     ],
     "promise/spec-only": "error",
     "promise/catch-or-return": "error",
-    "oxc/no-optional-chaining ": "error",
     "oxc/no-const-enum": "error",
     "import/no-commonjs": "error",
     "eslint/no-var": "error",
