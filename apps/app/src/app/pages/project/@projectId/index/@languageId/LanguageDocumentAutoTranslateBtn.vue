@@ -37,10 +37,8 @@ const props = defineProps<{
   language: Pick<Language, "id">;
 }>();
 
-
 const { t } = useI18n();
 const ctx = usePageContext();
-
 
 const schema = toTypedSchema(
   z.object({
@@ -54,7 +52,6 @@ const schema = toTypedSchema(
   }),
 );
 
-
 const { handleSubmit, values } = useForm({
   validationSchema: schema,
   initialValues: {
@@ -63,7 +60,6 @@ const { handleSubmit, values } = useForm({
     gatherDocumentContext: false,
   },
 });
-
 
 const advisorOptions = computed<PickerOption<number>[]>(() => {
   if (!advisorState.value || !advisorState.value.data) return [];
@@ -76,7 +72,6 @@ const advisorOptions = computed<PickerOption<number>[]>(() => {
   );
 });
 
-
 const llmProviderOptions = computed<PickerOption<number>[]>(() => {
   if (!llmState.value || !llmState.value.data) return [];
   return llmState.value.data.map(
@@ -87,7 +82,6 @@ const llmProviderOptions = computed<PickerOption<number>[]>(() => {
       }) satisfies PickerOption,
   );
 });
-
 
 const onSubmit = handleSubmit(async (formValues) => {
   const { runId } = await orpc.translation.autoTranslate({
@@ -107,13 +101,11 @@ const onSubmit = handleSubmit(async (formValues) => {
   await navigate(`/project/${projectId}/workflows/${runId}`);
 });
 
-
 const { state: advisorState } = useQuery({
   key: ["availableAdvisors"],
   query: () => orpc.plugin.getAllTranslationAdvisors(),
   enabled: !import.meta.env.SSR,
 });
-
 
 const { state: llmState } = useQuery({
   key: ["availableLLMProviders"],

@@ -29,7 +29,6 @@ const props = defineProps<{
   };
 }>();
 
-
 /**
  * @zh 用户提交标识符（邮箱或用户名）时触发。
  * @en Emitted when user submits the identifier.
@@ -38,9 +37,7 @@ const emit = defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;
 }>();
 
-
 const { t } = useI18n();
-
 
 const schema = toTypedSchema(
   z.object({
@@ -48,9 +45,7 @@ const schema = toTypedSchema(
   }),
 );
 
-
 const { handleSubmit } = useForm({ validationSchema: schema });
-
 
 const onSubmit = handleSubmit((values) => {
   emit("submit", { identifier: values.identifier });

@@ -9,7 +9,6 @@ import MemoryListItem from "./MemoryListItem.vue";
 
 const { t } = useI18n();
 
-
 defineProps<{
   memories: Memory[];
   project: Project;

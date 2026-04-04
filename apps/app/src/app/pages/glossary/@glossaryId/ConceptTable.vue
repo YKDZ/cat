@@ -19,7 +19,7 @@ import {
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { navigate } from "vike/client/router";
 import { inject, onMounted, ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -33,16 +33,13 @@ import { onRequestConcept, type ConceptData } from "./ConceptTable.telefunc";
 
 const { t } = useI18n();
 
-
 const glossary = inject(useInjectionKey<Data>()("glossary"))!;
-
 
 const concepts = ref<ConceptData[]>([]);
 const pageIndex = ref(0);
 const pageSize = ref(10);
 const total = ref(0);
 const isLoading = ref(false);
-
 
 const currentPage = computed({
   get: () => pageIndex.value + 1,
@@ -51,18 +48,15 @@ const currentPage = computed({
   },
 });
 
-
 const pageTotalAmount = computed(() =>
   total.value > 0 ? Math.ceil(total.value / pageSize.value) : 1,
 );
-
 
 const displayRange = computed(() => {
   const from = pageIndex.value * pageSize.value + 1;
   const to = Math.min((pageIndex.value + 1) * pageSize.value, total.value);
   return { from, to };
 });
-
 
 const fetchConcepts = async () => {
   isLoading.value = true;
@@ -81,11 +75,9 @@ const fetchConcepts = async () => {
   }
 };
 
-
 onMounted(() => {
   fetchConcepts();
 });
-
 
 watch([pageIndex], () => {
   fetchConcepts();

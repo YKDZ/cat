@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { Badge, Button } from "@cat/ui";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  RotateCcw,
-  XCircle,
-} from "lucide-vue-next";
+import { AlertTriangle, CheckCircle2, RotateCcw, XCircle } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -14,19 +9,15 @@ export interface AgentRunResultInfo {
   message?: string | null;
 }
 
-
 const props = defineProps<{
   result: AgentRunResultInfo;
 }>();
-
 
 const emit = defineEmits<{
   retry: [];
 }>();
 
-
 const { t } = useI18n();
-
 
 const tone = computed(() => {
   if (props.result.status === "completed") return "success" as const;
@@ -34,13 +25,11 @@ const tone = computed(() => {
   return "error" as const;
 });
 
-
 const label = computed(() => {
   if (props.result.status === "completed") return t("运行完成");
   if (props.result.status === "cancelled") return t("运行已取消");
   return t("运行失败");
 });
-
 
 const description = computed(() => {
   if (props.result.message && props.result.message.trim().length > 0) {
@@ -55,7 +44,6 @@ const description = computed(() => {
   }
   return t("Graph 执行过程中出现错误。可重试或检查日志。");
 });
-
 
 const handleRetry = () => {
   emit("retry");

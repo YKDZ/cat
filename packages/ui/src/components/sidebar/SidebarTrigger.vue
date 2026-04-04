@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue";
+
+import { PanelLeft } from "@lucide/vue";
 import { computed } from "vue";
-import { PanelLeft } from "lucide-vue-next";
-import { cn } from "@/utils/lib/utils";
+
 import { Button } from "@/components/button";
+import { cn } from "@/utils/lib/utils";
+
 import { useSidebar } from "./utils";
 
 const props = defineProps<{
@@ -11,7 +14,9 @@ const props = defineProps<{
   sidebarId: string;
 }>();
 
+
 const triggerClass = computed(() => cn("h-7 w-7", props.class));
+
 
 const { toggleSidebar } = useSidebar(props.sidebarId);
 </script>

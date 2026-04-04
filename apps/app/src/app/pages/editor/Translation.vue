@@ -17,14 +17,11 @@ import TranslationVote from "./TranslationVote.vue";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   translation: TranslationWithStatus;
 }>();
 
-
 const { element } = storeToRefs(useEditorTableStore());
-
 
 const isApproved = computed<boolean>(() => {
   return element.value?.approvedTranslationId === props.translation.id;

@@ -10,7 +10,6 @@ import type { Data } from "./+data.server.ts";
 
 const { plugin } = useData<Data>();
 
-
 provide(pluginKey, plugin);
 </script>
 

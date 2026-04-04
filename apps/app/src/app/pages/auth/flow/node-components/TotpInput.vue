@@ -29,7 +29,6 @@ const props = defineProps<{
   };
 }>();
 
-
 /**
  * @zh 用户提交 TOTP 验证码时触发。
  * @en Emitted when user submits the TOTP code.
@@ -38,9 +37,7 @@ const emit = defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;
 }>();
 
-
 const { t } = useI18n();
-
 
 const schema = toTypedSchema(
   z.object({
@@ -51,9 +48,7 @@ const schema = toTypedSchema(
   }),
 );
 
-
 const { handleSubmit } = useForm({ validationSchema: schema });
-
 
 const onSubmit = handleSubmit((values) => {
   emit("submit", { token: values.token });

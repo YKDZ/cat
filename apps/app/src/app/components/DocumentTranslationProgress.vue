@@ -17,12 +17,10 @@ import ProgressBar from "./progress/bar/ProgressBar.vue";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   document: Pick<Document, "id">;
   language: Pick<Language, "id">;
 }>();
-
 
 const { state: elementAmountState } = useQuery({
   key: ["elementAmount", props.document.id],
@@ -33,7 +31,6 @@ const { state: elementAmountState } = useQuery({
     }),
   enabled: !import.meta.env.SSR,
 });
-
 
 const { state: translatedElementAmountState } = useQuery({
   key: ["translatedElementAmount", props.document.id, props.language.id],
@@ -47,7 +44,6 @@ const { state: translatedElementAmountState } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 const { state: approvedElementAmountState } = useQuery({
   key: ["approvedElementAmount", props.document.id, props.language.id],
   placeholderData: 0,
@@ -60,7 +56,6 @@ const { state: approvedElementAmountState } = useQuery({
     }),
   enabled: !import.meta.env.SSR,
 });
-
 
 const progressBarLines = computed<ProgressBarLine[]>(() => {
   const total = elementAmountState.value.data ?? 0;

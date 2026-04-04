@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button, ScrollArea, ScrollBar } from "@cat/ui";
-import { Download, Copy } from "lucide-vue-next";
+import { Download, Copy } from "@lucide/vue";
 import { codeToHtml } from "shiki";
 import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -18,13 +18,10 @@ const props = defineProps<{
   highlightEndLine?: number | null;
 }>();
 
-
 const { t } = useI18n();
-
 
 const INITIAL_BYTE_LIMIT = 30 * 1024;
 const LOAD_BYTE_LIMIT = 30 * 1024;
-
 
 const content = ref("");
 const totalBytes = ref(0);
@@ -33,29 +30,23 @@ const isLoading = ref(false);
 const highlightedHtml = ref("");
 const hasMoreContent = ref(false);
 
-
 const emit = defineEmits<{
   (e: "update:total-bytes", bytes: number): void;
 }>();
 
-
 const detectedLanguage = computed(() =>
   detectLanguage(props.fileName, props.fileInfo.extension),
 );
-
 
 const resolveDownloadUrl = (rawUrl: string): string => {
   if (rawUrl.startsWith("/api/storage/download/")) return rawUrl;
   return `/api/storage/download/${rawUrl}`;
 };
 
-
 const fetchContent = async (append = false) => {
   if (isLoading.value) return;
 
-
   isLoading.value = true;
-
 
   try {
     const startByte = append ? loadedBytes.value : 0;
@@ -63,21 +54,17 @@ const fetchContent = async (append = false) => {
     const endByte = startByte + byteLimit;
     const url = resolveDownloadUrl(props.fileUrl);
 
-
     const response = await fetch(url, {
       headers: {
         range: `bytes=${startByte}-${endByte}`,
       },
     });
 
-
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
 
-
     const contentRange = response.headers.get("content-range");
-
 
     if (contentRange) {
       const match = contentRange.match(/bytes \d+-\d+\/(\d+)/);
@@ -85,17 +72,14 @@ const fetchContent = async (append = false) => {
         totalBytes.value = parseInt(match[1], 10);
       }
 
-
       if (!append) {
         const text = await response.text();
         const returnedBytes = new Blob([text]).size;
         const nextRange = response.headers.get("next-range");
         const nextStartByte = nextRange ? parseInt(nextRange, 10) : null;
 
-
         loadedBytes.value =
           nextStartByte !== null ? nextStartByte : returnedBytes;
-
 
         const hasMore =
           returnedBytes >= INITIAL_BYTE_LIMIT &&
@@ -105,10 +89,8 @@ const fetchContent = async (append = false) => {
         await highlightCode();
         isLoading.value = false;
 
-
         // 通知父组件更新 totalBytes
         emit("update:total-bytes", totalBytes.value);
-
 
         return;
       }
@@ -120,18 +102,15 @@ const fetchContent = async (append = false) => {
       hasMoreContent.value = false;
       isLoading.value = false;
 
-
       // 通知父组件更新 totalBytes
       emit("update:total-bytes", totalBytes.value);
       return;
     }
 
-
     const text = await response.text();
     const returnedBytes = new Blob([text]).size;
     const nextRange = response.headers.get("next-range");
     const nextStartByte = nextRange ? parseInt(nextRange, 10) : null;
-
 
     if (append && nextStartByte !== null) {
       loadedBytes.value = nextStartByte;
@@ -141,7 +120,6 @@ const fetchContent = async (append = false) => {
       loadedBytes.value = returnedBytes;
     }
 
-
     if (append) {
       content.value += text;
       await highlightCode();
@@ -149,7 +127,6 @@ const fetchContent = async (append = false) => {
       content.value = text;
       await highlightCode();
     }
-
 
     const hasMore = loadedBytes.value < totalBytes.value;
     hasMoreContent.value = hasMore;
@@ -159,7 +136,6 @@ const fetchContent = async (append = false) => {
     isLoading.value = false;
   }
 };
-
 
 const highlightCode = async () => {
   try {
@@ -181,18 +157,14 @@ const highlightCode = async () => {
   }
 };
 
-
 const addLineNumbers = (html: string): string => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   const codeElement = doc.querySelector("code");
 
-
   if (!codeElement) return html;
 
-
   const lines = Array.from(codeElement.querySelectorAll(".line"));
-
 
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
@@ -218,15 +190,12 @@ const addLineNumbers = (html: string): string => {
     line.parentNode?.replaceChild(lineWithNumber, line);
   });
 
-
   return codeElement.innerHTML;
 };
-
 
 const loadMore = () => {
   fetchContent(true);
 };
-
 
 const copyContent = async () => {
   try {
@@ -241,7 +210,6 @@ const copyContent = async () => {
     toast.error(t("复制失败"));
   }
 };
-
 
 const downloadFile = async () => {
   try {
@@ -258,7 +226,6 @@ const downloadFile = async () => {
   }
 };
 
-
 watch(
   () => [props.fileUrl, props.fileName],
   () => {
@@ -270,14 +237,12 @@ watch(
   { immediate: true },
 );
 
-
 // 高亮行自动滚动
 watch(highlightedHtml, async () => {
   await nextTick();
   const el = document.querySelector(".line-highlight");
   el?.scrollIntoView({ behavior: "smooth", block: "center" });
 });
-
 
 defineExpose({
   loadMore,

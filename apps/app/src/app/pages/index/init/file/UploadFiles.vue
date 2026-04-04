@@ -10,10 +10,8 @@ import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
 
 const { t } = useI18n();
 
-
 const progress = defineModel("progress", { type: Number, required: true });
 const project = defineModel<Project>("project");
-
 
 const isProcessing = ref<boolean>(false);
 </script>

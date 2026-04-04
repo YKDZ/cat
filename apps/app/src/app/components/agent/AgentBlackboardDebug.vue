@@ -5,7 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@cat/ui";
-import { ChevronRight } from "lucide-vue-next";
+import { ChevronRight } from "@lucide/vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -13,10 +13,8 @@ const props = defineProps<{
   blackboard: Record<string, unknown>;
 }>();
 
-
 const { t } = useI18n();
 const open = ref(false);
-
 
 const pretty = computed(() => {
   try {

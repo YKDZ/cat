@@ -18,7 +18,7 @@ import {
   Folder,
   Archive,
   ShieldCheck,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -28,12 +28,9 @@ import UserSidebarDropdownMenu from "@/app/components/UserSidebarDropdownMenu.vu
 
 const { t } = useI18n();
 
-
 const { user } = usePageContext();
 
-
 const sidebarId = "index";
-
 
 const items = ref([
   {

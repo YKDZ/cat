@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Button } from "@cat/ui";
 import { Skeleton } from "@cat/ui";
+import { Minus, Plus } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
-import { Minus, Plus } from "lucide-vue-next";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -16,14 +16,11 @@ const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id" | "vote">;
 }>();
 
-
 const { t } = useI18n();
 const { info, rpcWarn } = useToastStore();
 
-
 const preVoteAmount = ref(1);
 const isProcessing = ref<boolean>(false);
-
 
 const { state: selfVoteState, refetch: refetchSelfVote } = useQuery({
   key: ["selfVote", props.translation.id],
@@ -34,7 +31,6 @@ const { state: selfVoteState, refetch: refetchSelfVote } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 const { state: voteState, refetch: refetchVote } = useQuery({
   key: ["vote", props.translation.id],
   query: () =>
@@ -44,11 +40,9 @@ const { state: voteState, refetch: refetchVote } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 const handleUnvote = async () => {
   if (!selfVoteState.value || selfVoteState.value.data?.value === 0) return;
   if (isProcessing.value) return;
-
 
   isProcessing.value = true;
   await orpc.translation
@@ -66,7 +60,6 @@ const handleUnvote = async () => {
     })
     .catch(rpcWarn);
 };
-
 
 const handleVote = async (value: number) => {
   isProcessing.value = true;

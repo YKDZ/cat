@@ -13,7 +13,6 @@ import Navbar from "./Navbar.vue";
 
 const { project, targetLanguages, documents } = useData<Data>();
 
-
 provide(useInjectionKey<Data>()("project"), project);
 provide(useInjectionKey<Data>()("targetLanguages"), targetLanguages);
 provide(useInjectionKey<Data>()("documents"), documents);

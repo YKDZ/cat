@@ -9,7 +9,6 @@ import GlossaryListItem from "./GlossaryListItem.vue";
 
 const { t } = useI18n();
 
-
 defineProps<{
   glossaries: Glossary[];
   project: Project;

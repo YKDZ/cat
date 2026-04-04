@@ -19,7 +19,7 @@ import {
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { ref, onMounted, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -30,13 +30,11 @@ import TableItem from "./TableItem.vue";
 const { t } = useI18n();
 const ctx = usePageContext();
 
-
 const memories = ref<MemoryListItem[]>([]);
 const pageIndex = ref(0);
 const pageSize = ref(10);
 const total = ref(0);
 const isLoading = ref(false);
-
 
 const currentPage = computed({
   get: () => pageIndex.value + 1,
@@ -45,11 +43,9 @@ const currentPage = computed({
   },
 });
 
-
 const pageTotalAmount = computed(() =>
   total.value > 0 ? Math.ceil(total.value / pageSize.value) : 1,
 );
-
 
 const displayRange = computed(() => {
   const from = pageIndex.value * pageSize.value + 1;
@@ -57,10 +53,8 @@ const displayRange = computed(() => {
   return { from, to };
 });
 
-
 const fetchMemories = async () => {
   if (!ctx.user) return;
-
 
   isLoading.value = true;
   try {
@@ -75,11 +69,9 @@ const fetchMemories = async () => {
   }
 };
 
-
 onMounted(() => {
   fetchMemories();
 });
-
 
 watch([pageIndex], () => {
   fetchMemories();

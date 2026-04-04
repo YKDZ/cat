@@ -21,35 +21,27 @@ import { uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 
 const { t } = useI18n();
 
-
 const ctx = usePageContext();
 
-
 const { info, rpcWarn } = useToastStore();
-
 
 const fileInputEl = ref<HTMLInputElement>();
 const file = shallowRef();
 const isOpen = ref(false);
 const isProcessing = ref(false);
 
-
 const src = useObjectUrl(file);
-
 
 const onSubmit = async (blob: Blob | null) => {
   if (blob === null || !ctx.user) return;
 
-
   const file = new File([blob], `${ctx.user.id}.png`);
-
 
   const meta = FileMetaSchema.parse({
     name: file.name,
     mimeType: rawFileMime.value,
     size: file.size,
   });
-
 
   await orpc.user
     .prepareUploadAvatar({
@@ -70,7 +62,6 @@ const onSubmit = async (blob: Blob | null) => {
     .finally(() => (isProcessing.value = false));
 };
 
-
 const handleFileChange = () => {
   if (
     !fileInputEl.value ||
@@ -79,12 +70,10 @@ const handleFileChange = () => {
   )
     return;
 
-
   file.value = fileInputEl.value.files[0];
   if (!file.value) return;
   isOpen.value = true;
 };
-
 
 const rawFileMime = computed(() => {
   if (!fileInputEl.value || !fileInputEl.value.files) return;

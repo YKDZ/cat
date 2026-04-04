@@ -9,7 +9,6 @@ const props = defineProps<{
   height: number;
 }>();
 
-
 const width = computed(() => {
   return props.width * props.line.progress;
 });

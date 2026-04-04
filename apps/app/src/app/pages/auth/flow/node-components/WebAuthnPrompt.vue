@@ -18,7 +18,6 @@ defineProps<{
   };
 }>();
 
-
 /**
  * @zh 用户完成 WebAuthn 验证时触发。
  * @en Emitted when user completes WebAuthn authentication.
@@ -26,7 +25,6 @@ defineProps<{
 defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;
 }>();
-
 
 const { t } = useI18n();
 </script>

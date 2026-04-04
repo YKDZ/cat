@@ -19,7 +19,7 @@ import {
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { navigate } from "vike/client/router";
 import { inject, onMounted, ref, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -34,9 +34,7 @@ import { onRequestTermPair, type PairData } from "./PairTable.telefunc";
 
 const { t } = useI18n();
 
-
 const glossary = inject(useInjectionKey<Data>()("glossary"))!;
-
 
 const terms = ref<PairData[]>([]);
 const pageIndex = ref(0);
@@ -46,7 +44,6 @@ const sourceLanguageId = ref("zh-Hans");
 const targetLanguageId = ref("en");
 const isLoading = ref(false);
 
-
 const currentPage = computed({
   get: () => pageIndex.value + 1,
   set: (value) => {
@@ -54,18 +51,15 @@ const currentPage = computed({
   },
 });
 
-
 const pageTotalAmount = computed(() =>
   total.value > 0 ? Math.ceil(total.value / pageSize.value) : 1,
 );
-
 
 const displayRange = computed(() => {
   const from = pageIndex.value * pageSize.value + 1;
   const to = Math.min((pageIndex.value + 1) * pageSize.value, total.value);
   return { from, to };
 });
-
 
 const fetchTerms = async () => {
   isLoading.value = true;
@@ -86,11 +80,9 @@ const fetchTerms = async () => {
   }
 };
 
-
 onMounted(() => {
   fetchTerms();
 });
-
 
 watch([sourceLanguageId, targetLanguageId, pageIndex], () => {
   fetchTerms();

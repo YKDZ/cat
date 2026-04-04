@@ -10,8 +10,8 @@ import {
 import { ScrollArea } from "@cat/ui";
 import { Input } from "@cat/ui";
 import { Button } from "@cat/ui";
+import { ArrowRight, ChevronDown, ChevronUp } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
-import { ArrowRight, ChevronDown, ChevronUp } from "lucide-vue-next";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -28,12 +28,9 @@ const props = defineProps<{
   targetId: number;
 }>();
 
-
 const { t } = useI18n();
 
-
 const { elementId } = storeToRefs(useEditorTableStore());
-
 
 const { state, refetch } = useQuery({
   key: ["rootComments", elementId.value, 10, 0],
@@ -48,16 +45,12 @@ const { state, refetch } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 const openEditor = defineModel<boolean>("openEditor", { default: false });
-
 
 const content = ref("");
 
-
 const comment = async () => {
   if (!elementId.value) return;
-
 
   await orpc.comment.comment({
     targetType: props.targetType,
@@ -66,10 +59,8 @@ const comment = async () => {
     languageId: "en",
   });
 
-
   refetch();
 };
-
 
 const handleDelete = (commentId: number) => {
   refetch();

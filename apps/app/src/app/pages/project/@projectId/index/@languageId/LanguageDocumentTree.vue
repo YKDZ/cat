@@ -24,18 +24,14 @@ const props = defineProps<{
   language: Pick<Language, "id">;
 }>();
 
-
 const { info, rpcWarn } = useToastStore();
 const { t } = useI18n();
 
-
 const documents = inject(useInjectionKey<Data>()("documents"))!;
-
 
 const handleEdit = async (document: Pick<Document, "id">) => {
   await navigate(`/editor/${document.id}/${props.language.id}/auto`);
 };
-
 
 const handleExportTranslated = async (document: Pick<Document, "id">) => {
   await orpc.document

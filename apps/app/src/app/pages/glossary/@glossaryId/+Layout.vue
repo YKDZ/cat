@@ -11,7 +11,6 @@ import Header from "./Header.vue";
 
 const { glossary } = useData<Data>();
 
-
 provide(useInjectionKey<Data>()("glossary"), glossary);
 </script>
 

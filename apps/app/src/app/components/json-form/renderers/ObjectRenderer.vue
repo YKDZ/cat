@@ -9,7 +9,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@cat/ui";
-import { ChevronDown } from "lucide-vue-next";
+import { ChevronDown } from "@lucide/vue";
 import { computed, inject, ref } from "vue";
 
 import IJsonForm from "../IJsonForm.vue";
@@ -20,17 +20,13 @@ const props = defineProps<{
   data: NonNullJSONType;
 }>();
 
-
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
-
 const schema = inject(schemaKey)!;
 
-
 const collapsed = ref(false);
-
 
 const isNested = computed(() => {
   // Array indices (numeric keys) should never show nested collapse UI
@@ -38,7 +34,6 @@ const isNested = computed(() => {
   // String keys should show nested collapse UI
   return typeof props.propertyKey === "string";
 });
-
 
 const objectProperties = computed(() => {
   const properties = schema.properties;
@@ -50,12 +45,10 @@ const objectProperties = computed(() => {
   }));
 });
 
-
 const dataOfPropertyKey = <T>(key: string, fallback: T) => {
   if (!props.data || !Object.keys(props.data).includes(key)) return fallback;
   return (props.data as Record<string, NonNullJSONType>)[key] as T;
 };
-
 
 const handleUpdate = (
   to: NonNullJSONType,

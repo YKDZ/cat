@@ -17,9 +17,7 @@ const props = defineProps({
   },
 });
 
-
 const { isDark } = useData();
-
 
 const svg = ref("");
 const code = ref(decodeURIComponent(props.graph));
@@ -35,7 +33,6 @@ const isRendering = ref(false);
 // This is not required for all diagrams, but it is required for c4c, mindmap and zenuml.
 const renderKey = ref(0);
 
-
 mermaid.registerIconPacks([
   {
     name: "@iconify/logos",
@@ -48,7 +45,6 @@ mermaid.registerIconPacks([
   },
 ]);
 
-
 const render = async (
   id: string,
   code: string,
@@ -57,29 +53,24 @@ const render = async (
   const zenuml = await import("@zenuml/core");
   const init = mermaid.registerExternalDiagrams([zenuml]);
 
-
   await init;
   mermaid.initialize(config);
   const { svg } = await mermaid.render(id, code);
   return svg;
 };
 
-
 const openModal = () => {
   showModal.value = true;
 };
-
 
 const closeModal = () => {
   showModal.value = false;
   showSource.value = false;
 };
 
-
 const toggleSource = () => {
   showSource.value = !showSource.value;
 };
-
 
 const renderChart = async () => {
   isRendering.value = true;
@@ -94,9 +85,7 @@ const renderChart = async () => {
   isRendering.value = false;
 };
 
-
 watch(isDark, renderChart);
-
 
 onMounted(renderChart);
 </script>

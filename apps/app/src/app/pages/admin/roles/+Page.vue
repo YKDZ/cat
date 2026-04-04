@@ -21,7 +21,6 @@ import { orpc } from "@/app/rpc/orpc";
 const { t } = useI18n();
 const queryCache = useQueryCache();
 
-
 // System roles are stored as permissions on "system:*"
 const { state: rolesState, refetch } = useQuery({
   key: ["permission.listSubjects", "system", "*"],
@@ -33,16 +32,13 @@ const { state: rolesState, refetch } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 // Add user role form
 const newUserId = ref("");
 const newRelation = ref<Relation>("viewer");
 const addLoading = ref(false);
 
-
 // Allowed system relations
 const systemRelations: Relation[] = ["superadmin", "admin", "viewer"];
-
 
 const handleAddRole = async () => {
   if (!newUserId.value) return;
@@ -62,7 +58,6 @@ const handleAddRole = async () => {
     addLoading.value = false;
   }
 };
-
 
 const handleRemoveRole = async (subjectId: string, relation: Relation) => {
   await orpc.permission.revoke({

@@ -8,11 +8,9 @@ const PluginComponentClient = defineAsyncComponent(
   () => import("./PluginComponentClient.vue"),
 );
 
-
 const props = defineProps<{
   id: string;
 }>();
-
 
 const { state } = useQuery({
   key: ["slot", props.id],

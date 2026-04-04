@@ -11,37 +11,28 @@ import ProjectUploadFilesFile from "./ProjectUploadFilesFile.vue";
 
 const { t } = useI18n();
 
-
 const fileInputEl = ref<HTMLInputElement>();
-
 
 defineProps<{
   project: Project;
 }>();
 
-
 const isProcessing = ref<boolean>(false);
 
-
 const acceptedExt = ref<string[]>(["yml", "yaml", "md", "json"]);
-
 
 const acceptAttr = computed(() =>
   acceptedExt.value.map((ext) => "." + ext).join(", "),
 );
 
-
 const files = shallowRef<File[]>([]);
-
 
 const selectFile = () => {
   if (!fileInputEl.value || !fileInputEl.value.files) return;
 
-
   const newFiles: File[] = Array.from(fileInputEl.value.files).filter((file) =>
     acceptedExt.value.includes(file.name.split(".").pop() ?? ""),
   );
-
 
   files.value = [...files.value, ...newFiles];
   fileInputEl.value.value = "";

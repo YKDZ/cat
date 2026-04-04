@@ -13,7 +13,6 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-
 const TASK_TYPE_TRANSLATION = new Map<string, string>([
   ["export_translated_file", t("导出翻译后文件")],
   ["document_file_pretreatment", t("文档文件预处理")],
@@ -24,9 +23,7 @@ const TASK_TYPE_TRANSLATION = new Map<string, string>([
   ["clean_dangling_files", t("清理悬空文件")],
 ]);
 
-
 const data = defineModel<Task[]>("data", { default: [] });
-
 
 const columns = computed<ColumnDef<Task>[]>(() => [
   { id: "status", accessorKey: "status", header: "状态" },
@@ -35,7 +32,6 @@ const columns = computed<ColumnDef<Task>[]>(() => [
   { id: "createdAt", accessorKey: "createdAt", header: "创建时间" },
   { id: "action", accessorKey: "meta", header: "操作" },
 ]);
-
 
 const table = useVueTable({
   data,

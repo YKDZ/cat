@@ -12,7 +12,6 @@ import MemoryList from "./MemoryList.vue";
 
 const { memories } = useData<Data>();
 
-
 const project = inject(useInjectionKey<LayoutData>()("project"))!;
 </script>
 

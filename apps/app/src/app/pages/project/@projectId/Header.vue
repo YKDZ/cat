@@ -12,7 +12,6 @@ defineProps<{
   project: Project;
 }>();
 
-
 const ctx = usePageContext();
 </script>
 

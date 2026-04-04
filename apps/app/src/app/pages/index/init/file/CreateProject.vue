@@ -27,10 +27,8 @@ import { useToastStore } from "@/app/stores/toast.ts";
 const { t } = useI18n();
 const { info } = useToastStore();
 
-
 const progress = defineModel("progress", { type: Number, required: true });
 const project = defineModel<Project>("project");
-
 
 const schema = toTypedSchema(
   z.object({
@@ -46,7 +44,6 @@ const schema = toTypedSchema(
   }),
 );
 
-
 const { handleSubmit } = useForm({
   validationSchema: schema,
   initialValues: {
@@ -59,7 +56,6 @@ const { handleSubmit } = useForm({
     createGlossary: true,
   },
 });
-
 
 const onSubmit = handleSubmit(async (values) => {
   project.value = await orpc.project.create({

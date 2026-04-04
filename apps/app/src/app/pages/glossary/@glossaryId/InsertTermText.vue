@@ -10,20 +10,16 @@ import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   glossaryId: string;
 }>();
 
-
 const { info, warn, rpcWarn } = useToastStore();
-
 
 const termLanguageId = ref("");
 const termsText = ref("");
 const translationLanguageId = ref("");
 const translationsText = ref("");
-
 
 const terms = computed(() => {
   const arr = termsText.value
@@ -33,7 +29,6 @@ const terms = computed(() => {
   return arr;
 });
 
-
 const translations = computed(() => {
   const arr = translationsText.value
     .trim()
@@ -41,7 +36,6 @@ const translations = computed(() => {
     .filter((line: string) => line.length > 0);
   return arr;
 });
-
 
 const handleInsert = async () => {
   if (
@@ -59,12 +53,10 @@ const handleInsert = async () => {
     return;
   }
 
-
   if (terms.value.length !== translations.value.length) {
     warn(t("术语和翻译表行数必须相同"));
     return;
   }
-
 
   const termsData = terms.value.map((term, index) => {
     const translation = translations.value[index];
@@ -76,7 +68,6 @@ const handleInsert = async () => {
       translationLanguageId: translationLanguageId.value,
     };
   });
-
 
   await orpc.glossary
     .insertTerm({

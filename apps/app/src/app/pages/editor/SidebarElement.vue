@@ -14,7 +14,6 @@ const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { pendingElements } = useEditorElementStore();
 
-
 const props = defineProps<{
   element: Pick<TranslatableElement, "id"> & {
     status: ElementTranslationStatus;
@@ -22,10 +21,8 @@ const props = defineProps<{
   };
 }>();
 
-
 const handleClick = async () => {
   if (!props.element) return;
-
 
   await navigate(
     `/editor/${documentId.value}/${languageToId.value}/${props.element.id}`,

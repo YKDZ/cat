@@ -4,8 +4,8 @@ import type { QASeverity } from "@cat/plugin-core";
 
 import { Button } from "@cat/ui";
 import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";
+import { CircleAlert, TriangleAlert, Info, Check } from "@lucide/vue";
 import { consumeEventIterator } from "@orpc/client";
-import { CircleAlert, TriangleAlert, Info, Check } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import z from "zod";
@@ -27,14 +27,11 @@ const props = defineProps<{
   documentId?: string;
 }>();
 
-
 const { t } = useI18n();
-
 
 const isOpen = ref(false);
 const issues = ref<Issue[]>([]);
 let cancel: (() => Promise<void>) | undefined;
-
 
 const IssueSchema = z.object({
   meta: z.object({
@@ -46,18 +43,14 @@ const IssueSchema = z.object({
 });
 type Issue = z.infer<typeof IssueSchema>;
 
-
 const update = async () => {
   if (!props.documentId) return;
-
 
   if (cancel) {
     await cancel();
   }
 
-
   issues.value = [];
-
 
   cancel = consumeEventIterator(
     ws.qa.check({
@@ -88,9 +81,7 @@ const update = async () => {
   );
 };
 
-
 const hasIssues = computed(() => issues.value.length > 0);
-
 
 const getSeverityStyle = (severity: QASeverity) => {
   switch (severity) {
@@ -104,7 +95,6 @@ const getSeverityStyle = (severity: QASeverity) => {
   }
 };
 
-
 const primaryStatus = computed(() => {
   if (issues.value.some((i) => i.meta.severity === "error"))
     return getSeverityStyle("error");
@@ -112,7 +102,6 @@ const primaryStatus = computed(() => {
     return getSeverityStyle("warning");
   return getSeverityStyle("info");
 });
-
 
 watch(
   () => [props.source, props.translation, props.documentId],

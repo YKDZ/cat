@@ -19,25 +19,20 @@ const props = defineProps<{
   data: NonNullJSONType;
 }>();
 
-
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
-
 const schema = inject(schemaKey)!;
-
 
 const value = computed(() => {
   return transferDataToString(props.data ?? schema.default);
 });
 
-
 const type = computed(() => {
   if (schema.format === "email") return "email";
   else return "text";
 });
-
 
 const autocomplete = computed(() => {
   try {
@@ -46,7 +41,6 @@ const autocomplete = computed(() => {
     return "off";
   }
 });
-
 
 const handleUpdate = (value: string | number) => {
   emits("_update", value);

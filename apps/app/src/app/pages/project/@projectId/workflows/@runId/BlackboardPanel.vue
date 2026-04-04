@@ -9,7 +9,6 @@ import { useWorkflowStore } from "@/app/stores/workflow";
 const { t } = useI18n();
 const workflowStore = useWorkflowStore();
 
-
 const version = computed(() => workflowStore.blackboardVersion);
 const blackboard = computed(() => workflowStore.blackboard);
 </script>

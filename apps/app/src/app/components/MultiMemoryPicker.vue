@@ -28,15 +28,12 @@ const props = withDefaults(
   },
 );
 
-
 const memoryIds = defineModel<string[]>();
-
 
 const { state } = useQuery({
   key: ["memories"],
   query: () => props.getter(),
 });
-
 
 const options = computed(() => {
   if (!state.value || !state.value.data) return [];

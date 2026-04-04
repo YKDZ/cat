@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileText } from "lucide-vue-next";
+import { FileText } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -25,15 +25,11 @@ const props = defineProps<{
   compact?: boolean;
 }>();
 
-
 const { t } = useI18n();
-
 
 const fileInfo = computed<FileInfo>(() => detectFileType(props.fileName));
 
-
 const totalBytes = ref(0);
-
 
 // 计算文件大小
 const fileSize = computed(() => {
@@ -50,7 +46,6 @@ const fileSize = computed(() => {
 
   return `${size.toFixed(2)} ${units[unitIndex]}`;
 });
-
 
 watch(
   () => [props.documentId, props.fileUrl],

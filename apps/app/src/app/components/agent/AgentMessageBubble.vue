@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Badge } from "@cat/ui";
-import { ChevronDown, ChevronRight } from "lucide-vue-next";
+import { ChevronDown, ChevronRight } from "@lucide/vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -26,18 +26,14 @@ const props = withDefaults(
   },
 );
 
-
 const { t } = useI18n();
-
 
 const isUser = computed(() => props.role === "USER");
 const isAssistant = computed(() => props.role === "ASSISTANT");
 const isSystem = computed(() => props.role === "SYSTEM");
 const isTool = computed(() => props.role === "TOOL");
 
-
 const timelineExpanded = ref(false);
-
 
 /**
  * 只保留有实质工具调用或有 thinkingText 的步骤进入时间线。
@@ -52,10 +48,8 @@ const timelineSteps = computed(() => {
   );
 });
 
-
 /** 有时间线步骤时显示折叠区 */
 const hasTimeline = computed(() => timelineSteps.value.length > 0);
-
 
 const displayContent = computed(() => {
   if (props.content) return props.content;

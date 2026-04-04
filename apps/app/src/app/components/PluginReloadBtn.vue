@@ -10,15 +10,12 @@ import { useToastStore } from "../stores/toast";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   scopeType: ScopeType;
   scopeId: string;
 }>();
 
-
 const { info, rpcWarn } = useToastStore();
-
 
 const handleReload = async () => {
   await orpc.plugin

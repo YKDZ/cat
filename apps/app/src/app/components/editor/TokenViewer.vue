@@ -24,14 +24,11 @@ const props = defineProps<{
   translationLanguageId?: string;
 }>();
 
-
 const emit = defineEmits<{
   (e: "update", tokens: Token[]): void;
 }>();
 
-
 // ─── 查询键：包含 text、elementId、translationLanguageId ─────────────────────
-
 
 const queryKey = computed(() => [
   "tokenize",
@@ -40,9 +37,7 @@ const queryKey = computed(() => [
   props.translationLanguageId ?? null,
 ]);
 
-
 // ─── 调用后端 tokenize API ────────────────────────────────────────────────────
-
 
 const { state } = useQuery({
   key: queryKey,
@@ -65,17 +60,13 @@ const { state } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 // ─── CM6 编辑器（只读模式）────────────────────────────────────────────────────
-
 
 const containerEl = ref<HTMLDivElement | null>(null);
 let editorView: EditorView | null = null;
 
-
 const createEditor = () => {
   if (!containerEl.value) return;
-
 
   const editorState = EditorState.create({
     doc: props.text,
@@ -90,16 +81,13 @@ const createEditor = () => {
     ],
   });
 
-
   editorView = new EditorView({
     state: editorState,
     parent: containerEl.value,
   });
 };
 
-
 // ─── 同步：text prop 变化时更新文档内容 ──────────────────────────────────────
-
 
 watch(
   () => props.text,
@@ -115,9 +103,7 @@ watch(
   },
 );
 
-
 // ─── 同步：tokens 变化时更新 CM6 装饰 ────────────────────────────────────────
-
 
 watch(
   () => state.value.data?.tokens,
@@ -129,9 +115,7 @@ watch(
   { immediate: false },
 );
 
-
 // ─── 生命周期 ─────────────────────────────────────────────────────────────────
-
 
 onMounted(() => {
   createEditor();
@@ -143,7 +127,6 @@ onMounted(() => {
     emit("update", initialTokens);
   }
 });
-
 
 onUnmounted(() => {
   editorView?.destroy();

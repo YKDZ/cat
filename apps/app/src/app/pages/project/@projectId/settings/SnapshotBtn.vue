@@ -20,15 +20,12 @@ import type { Data } from "../+data.server";
 const { info } = useToastStore();
 const { t } = useI18n();
 
-
 const project = inject(useInjectionKey<Data>()("project"))!;
-
 
 const snapshot = async () => {
   const count = await orpc.project.snapshot({
     projectId: project.id,
   });
-
 
   info(`为 ${count} 个元素的翻译拍摄了快照`);
 };

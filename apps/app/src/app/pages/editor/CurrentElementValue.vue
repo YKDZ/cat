@@ -10,7 +10,6 @@ import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 const { element, sourceTokens } = storeToRefs(useEditorTableStore());
 const { languageToId } = storeToRefs(useEditorContextStore());
 
-
 const handleUpdate = (tokens: Token[]) => {
   sourceTokens.value = tokens;
 };

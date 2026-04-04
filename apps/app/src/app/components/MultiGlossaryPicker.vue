@@ -14,7 +14,6 @@ import MultiPicker from "./picker/MultiPicker.vue";
 
 const { t } = useI18n();
 
-
 const props = withDefaults(
   defineProps<{
     filter?: (option: PickerOption) => boolean;
@@ -32,15 +31,12 @@ const props = withDefaults(
   },
 );
 
-
 const memoryIds = defineModel<string[]>();
-
 
 const { state } = useQuery({
   key: ["glossaries"],
   query: () => props.getter(),
 });
-
 
 const options = computed(() => {
   if (!state.value || !state.value.data) return [];

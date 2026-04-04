@@ -25,17 +25,13 @@ const props = defineProps<{
   data: NonNullJSONType;
 }>();
 
-
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
-
 const schema = inject(schemaKey)!;
 
-
 const value = computed(() => Number(props.data ?? schema.default));
-
 
 const onUpdate = (newValue: number) => {
   emits("_update", newValue);

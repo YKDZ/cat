@@ -9,8 +9,8 @@ import {
   Separator,
   Skeleton,
 } from "@cat/ui";
+import { ArrowLeft } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
-import { ArrowLeft } from "lucide-vue-next";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { computed, watch } from "vue";
@@ -26,9 +26,7 @@ const ctx = usePageContext();
 const store = useNotificationStore();
 const getCategoryLabel = (category: string) => _getCategoryLabel(t, category);
 
-
 const notificationId = computed(() => Number(ctx.routeParams?.notificationId));
-
 
 const { state } = useQuery({
   key: () => ["notification.getById", notificationId.value],
@@ -36,7 +34,6 @@ const { state } = useQuery({
     orpc.notification.getById({ notificationId: notificationId.value }),
   enabled: !import.meta.env.SSR,
 });
-
 
 watch(
   () => state.value.data,
@@ -47,7 +44,6 @@ watch(
   },
   { immediate: false },
 );
-
 
 const item = computed(() => state.value.data);
 </script>

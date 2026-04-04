@@ -10,11 +10,9 @@ import SuggestionListItem from "./SuggestionListItem.vue";
 
 const { t } = useI18n();
 
-
 const { suggestions } = storeToRefs(useEditorSuggestionStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { subSuggestions, unsubscribe } = useEditorSuggestionStore();
-
 
 watchClient(
   elementId,

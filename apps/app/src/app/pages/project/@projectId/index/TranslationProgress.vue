@@ -19,9 +19,7 @@ const props = defineProps<{
   language: Pick<Language, "id">;
 }>();
 
-
 const { t } = useI18n();
-
 
 const { state: elementAmountState } = useQuery({
   key: ["elementAmount", props.project.id],
@@ -32,7 +30,6 @@ const { state: elementAmountState } = useQuery({
     }),
   enabled: !import.meta.env.SSR,
 });
-
 
 const { state: translatedElementAmountState } = useQuery({
   key: ["translatedElementAmount", props.project.id, props.language.id],
@@ -46,7 +43,6 @@ const { state: translatedElementAmountState } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 const { state: approvedElementAmountState } = useQuery({
   key: ["approvedElementAmount", props.project.id, props.language.id],
   placeholderData: 0,
@@ -59,7 +55,6 @@ const { state: approvedElementAmountState } = useQuery({
     }),
   enabled: !import.meta.env.SSR,
 });
-
 
 const progressBarLines = computed<ProgressBarLine[]>(() => {
   const total = elementAmountState.value.data ?? 0;

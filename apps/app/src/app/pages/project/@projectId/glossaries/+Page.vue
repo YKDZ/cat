@@ -12,7 +12,6 @@ import GlossaryList from "./GlossaryList.vue";
 
 const { glossaries } = useData<Data>();
 
-
 const project = inject(useInjectionKey<LayoutData>()("project"))!;
 </script>
 

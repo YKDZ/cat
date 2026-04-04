@@ -10,7 +10,7 @@ import {
   DialogTrigger,
   DialogTitle,
 } from "@cat/ui";
-import { Link2 } from "lucide-vue-next";
+import { Link2 } from "@lucide/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -20,20 +20,15 @@ import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
 
-
 const { info, rpcWarn } = useToastStore();
 
-
 const emits = defineEmits(["link"]);
-
 
 const props = defineProps<{
   project: Project;
 }>();
 
-
 const glossaryIds = ref<string[]>([]);
-
 
 const handleLink = async () => {
   const createNewIndex = glossaryIds.value.findIndex(
@@ -41,14 +36,12 @@ const handleLink = async () => {
   );
   const realIds = glossaryIds.value.splice(createNewIndex, 1);
 
-
   if (createNewIndex !== -1) {
     await orpc.glossary.create({
       name: props.project.name,
       projectIds: [props.project.id],
     });
   }
-
 
   await orpc.project
     .linkGlossary({

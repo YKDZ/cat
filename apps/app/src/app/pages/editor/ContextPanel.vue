@@ -21,16 +21,13 @@ import ElementSourcePreview from "./ElementSourcePreview.vue";
 
 const { t } = useI18n();
 
-
 const panelOpen = useCookieStringRef(
   usePageContext(),
   "editorContextPanelTab",
   "context",
 );
 
-
 const { elementId } = storeToRefs(useEditorTableStore());
-
 
 const id = "editor-context-panel";
 </script>

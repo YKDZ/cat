@@ -20,16 +20,13 @@ import { orpc } from "@/app/rpc/orpc";
 
 const { t } = useI18n();
 
-
 const { state, refetch } = useQuery({
   key: ["notification.preferences"],
   query: () => orpc.notification.getPreferences(),
   enabled: !import.meta.env.SSR,
 });
 
-
 const preferences = computed(() => state.value.data ?? []);
-
 
 const isEnabled = (
   category: (typeof MessageCategoryValues)[number],
@@ -39,7 +36,6 @@ const isEnabled = (
     (p) => p.category === category && p.channel === channel && p.enabled,
   );
 
-
 const togglePreference = async (
   category: (typeof MessageCategoryValues)[number],
   channel: (typeof MessageChannelValues)[number],
@@ -48,7 +44,6 @@ const togglePreference = async (
   await orpc.notification.updatePreference({ category, channel, enabled });
   refetch();
 };
-
 
 const categoryLabel = (cat: string) => {
   const map: Record<string, string> = {
@@ -60,7 +55,6 @@ const categoryLabel = (cat: string) => {
   };
   return map[cat] ?? cat;
 };
-
 
 const channelLabel = (ch: string) => {
   const map: Record<string, string> = {

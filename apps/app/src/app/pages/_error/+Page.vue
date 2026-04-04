@@ -5,12 +5,9 @@ import { useI18n } from "vue-i18n";
 
 const ctx = usePageContext();
 
-
 const { t } = useI18n();
 
-
 const { is404, abortReason } = ctx;
-
 
 const handleBack = () => {
   window.history.back();

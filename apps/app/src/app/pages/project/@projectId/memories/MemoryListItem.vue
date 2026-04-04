@@ -13,20 +13,16 @@ import { watchClient } from "@/app/utils/vue.ts";
 
 const { info, rpcWarn } = useToastStore();
 
-
 const itemAmount = ref(-1);
-
 
 const props = defineProps<{
   memory: Memory;
   project: Project;
 }>();
 
-
 const emits = defineEmits<{
   (e: "unlink"): void;
 }>();
-
 
 const updateTermAmount = async () => {
   await orpc.memory
@@ -36,11 +32,9 @@ const updateTermAmount = async () => {
     .then((amount) => (itemAmount.value = amount));
 };
 
-
 const handleCheck = async () => {
   await navigate(`/memory/${props.memory.id}`);
 };
-
 
 const handleUnlink = async () => {
   await orpc.project
@@ -55,9 +49,7 @@ const handleUnlink = async () => {
     .catch(rpcWarn);
 };
 
-
 watchClient(() => props.memory, updateTermAmount);
-
 
 onMounted(updateTermAmount);
 </script>

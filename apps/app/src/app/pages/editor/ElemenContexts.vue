@@ -14,7 +14,6 @@ import ElemenContextMarkdown from "./ElemenContextMarkdown.vue";
 
 const { elementId } = storeToRefs(useEditorTableStore());
 
-
 const { state } = useQuery({
   key: ["context", elementId.value],
   placeholderData: [],
@@ -26,7 +25,6 @@ const { state } = useQuery({
   },
   enabled: !import.meta.env.SSR,
 });
-
 
 const componentFromType = (type: TranslatableElementContextType) => {
   switch (type) {
