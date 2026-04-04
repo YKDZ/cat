@@ -23,7 +23,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build & generate docs
-        run: |
-          pnpm nx build autodoc
-          pnpm autodoc check
+      - name: Check docs
+        run: pnpm nx check autodoc
