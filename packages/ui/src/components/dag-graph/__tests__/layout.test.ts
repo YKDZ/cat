@@ -7,7 +7,7 @@ import { computeElkLayout, convertGraphDefinitionToData } from "../layout";
 // Mock elkjs to avoid heavy WebWorker or WASM in unit env
 vi.mock("elkjs/lib/elk.bundled.js", () => {
   class MockELK {
-    layout(elkGraph: { children: Array<{ id: string }>; edges: unknown[] }) {
+     async layout(elkGraph: { children: Array<{ id: string }>; edges: unknown[] }) {
       return Promise.resolve({
         children: elkGraph.children.map((c, i) => ({
           id: c.id,

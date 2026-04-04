@@ -8,22 +8,22 @@
     "dev": "vitepress dev src",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
+    "lint": "oxlint --disable-nested-config --type-aware",
+    "lint:fix": "oxlint --fix --disable-nested-config --type-aware",
     "preview": "vitepress preview src",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.1",
-    "tailwindcss": "^4.2.1"
+    "@tailwindcss/vite": "^4.2.2",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/tailwind4": "^1.2.3",
     "@vueuse/core": "^14.2.1",
-    "@zenuml/core": "^3.46.0",
-    "mermaid": "^11.13.0",
+    "@zenuml/core": "^3.47.2",
+    "mermaid": "^11.14.0",
     "vitepress": "2.0.0-alpha.16",
-    "vue": "^3.5.30"
+    "vue": "^3.5.32"
   }
 }
