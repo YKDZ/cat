@@ -106,3 +106,5 @@ PLAN*
 .claude/skills/l-*
 .claude/.gitignore
 .claude/worktrees
+
+.cc

@@ -2,8 +2,6 @@ import type {
   ChatCompletionRequest,
   ChatCompletionResponse,
   ChatStreamChunk,
-  FimCompletionRequest,
-  FimCompletionResponse,
   ToolCall,
 } from "@cat/plugin-core";
 import type {
@@ -84,92 +82,6 @@ export class OpenAILLMProvider extends LLMProvider {
     }
 
     return this.chatNonStreaming(request, messages, tools);
-  }
-
-  override supportsFim(): boolean {
-    return true;
-  }
-
-  override async fim(
-    request: FimCompletionRequest,
-  ): Promise<FimCompletionResponse> {
-    const shouldStream = request.stream !== false;
-
-    if (shouldStream && request.onChunk) {
-      return this.fimStreaming(request);
-    }
-
-    return this.fimNonStreaming(request);
-  }
-
-  private async fimNonStreaming(
-    request: FimCompletionRequest,
-  ): Promise<FimCompletionResponse> {
-    const completion = await this.client.completions.create(
-      {
-        model: this.config.model,
-        prompt: `${request.system}\n\n${request.prefix || ""}`,
-        temperature: request.temperature,
-        max_tokens: request.maxTokens,
-        suffix: request.suffix || undefined,
-        stream: false,
-      },
-      { signal: request.signal },
-    );
-
-    const choice = completion.choices[0];
-
-    return {
-      content: choice.text ?? "",
-      usage: {
-        promptTokens: completion.usage?.prompt_tokens ?? 0,
-        completionTokens: completion.usage?.completion_tokens ?? 0,
-      },
-    };
-  }
-
-  private async fimStreaming(
-    request: FimCompletionRequest,
-  ): Promise<FimCompletionResponse> {
-    const onChunk = request.onChunk!;
-
-    const stream = await this.client.completions.create(
-      {
-        model: this.config.model,
-        prompt: `${request.system}\n\n${request.prefix || ""}`,
-        temperature: request.temperature,
-        max_tokens: request.maxTokens,
-        suffix: request.suffix || undefined,
-        stream: true,
-        stream_options: { include_usage: true },
-      },
-      { signal: request.signal },
-    );
-
-    let contentAcc = "";
-    let promptTokens = 0;
-    let completionTokens = 0;
-
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0];
-
-      if (delta?.text) {
-        contentAcc += delta.text;
-        onChunk({ type: "text_delta", textDelta: delta.text });
-      }
-
-      if (chunk.usage) {
-        promptTokens = chunk.usage.prompt_tokens ?? 0;
-        completionTokens = chunk.usage.completion_tokens ?? 0;
-      }
-    }
-
-    onChunk({ type: "done" });
-
-    return {
-      content: contentAcc,
-      usage: { promptTokens, completionTokens },
-    };
   }
 
   private async chatNonStreaming(

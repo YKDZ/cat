@@ -17,7 +17,6 @@ graph TD
         B -->|memory.onNew| F[streamSearchMemoryOp]
         C -->|glossary.findTerm| G[streamSearchTermsOp]
         D -->|suggestion.onNew| H[fetchAdviseGraph]
-        E -->|ghostText.suggest| I[runFim / LLM]
     end
 
     subgraph "Operations 层"
