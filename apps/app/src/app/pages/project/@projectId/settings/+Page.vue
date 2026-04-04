@@ -20,23 +20,19 @@ import SnapshotBtn from "./SnapshotBtn.vue";
 const { t } = useI18n();
 const { rpcWarn } = useToastStore();
 
-
 const project = inject(useInjectionKey<Data>()("project"))!;
 const name = ref(project.name);
-
 
 const updateName = async (): Promise<void> => {
   if (!project) return;
   update(project.id, { name: name.value });
 };
 
-
 const update = async (
   projectId: string,
   data: Partial<Pick<Project, "name">> = {},
 ): Promise<void> => {
   if (!project) return;
-
 
   await orpc.project
     .update({
@@ -46,10 +42,8 @@ const update = async (
     .catch(rpcWarn);
 };
 
-
 const remove = async (): Promise<void> => {
   if (!project) return;
-
 
   await onProjectDelete(project.id).then(
     async () => await navigate("/projects"),

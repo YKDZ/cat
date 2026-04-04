@@ -24,7 +24,7 @@ import {
   UserRound,
   Wrench,
   X,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -37,15 +37,12 @@ const props = defineProps<{
   nodeId: string;
 }>();
 
-
 const emit = defineEmits<{
   close: [];
 }>();
 
-
 const { t } = useI18n();
 const workflowStore = useWorkflowStore();
-
 
 const nodeDetail = ref<{
   nodeId: string;
@@ -62,17 +59,13 @@ const nodeDetail = ref<{
   }>;
 } | null>(null);
 
-
 const isLoading = ref(false);
 
-
 const expandedEventSet = ref(new Set<string>());
-
 
 const nodeData = computed(() =>
   workflowStore.graph?.nodes.find((n) => n.id === props.nodeId),
 );
-
 
 const iconMap: Record<string, typeof Brain> = {
   llm: Brain,
@@ -86,19 +79,16 @@ const iconMap: Record<string, typeof Brain> = {
   subgraph: Layers,
 };
 
-
 const nodeIcon = computed(() => iconMap[nodeData.value?.type ?? "transform"]);
 const nodeStatus = computed(
   () => workflowStore.nodeStatuses.get(props.nodeId) ?? nodeData.value?.status,
 );
-
 
 const badgeVariant = computed((): "secondary" | "outline" | "destructive" => {
   if (nodeStatus.value === "error") return "destructive";
   if (nodeStatus.value === "completed") return "secondary";
   return "outline";
 });
-
 
 const eventBadgeVariant = (
   type: string,
@@ -107,7 +97,6 @@ const eventBadgeVariant = (
   if (type.includes("end") || type.includes("complete")) return "secondary";
   return "outline";
 };
-
 
 const loadDetail = async (): Promise<void> => {
   isLoading.value = true;
@@ -122,7 +111,6 @@ const loadDetail = async (): Promise<void> => {
   }
 };
 
-
 const toggleEventExpand = (eventId: string): void => {
   if (expandedEventSet.value.has(eventId)) {
     expandedEventSet.value.delete(eventId);
@@ -132,7 +120,6 @@ const toggleEventExpand = (eventId: string): void => {
   expandedEventSet.value = new Set(expandedEventSet.value);
 };
 
-
 watch(
   () => props.nodeId,
   () => {
@@ -140,7 +127,6 @@ watch(
   },
   { immediate: true },
 );
-
 
 const handleRetry = async (): Promise<void> => {
   await workflowStore.retryNode(props.runId, props.nodeId);

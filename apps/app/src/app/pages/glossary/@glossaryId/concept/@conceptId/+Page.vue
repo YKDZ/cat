@@ -44,13 +44,11 @@ const { t } = useI18n();
 const { concept, subjects, terms, availableSubjects } = useData<Data>();
 const toastStore = useToastStore();
 
-
 // 编辑概念状态
 const isEditingConcept = ref(false);
 const editedSubjectIds = ref<number[]>(subjects.map((s) => s.id));
 const editedDefinition = ref(concept.definition || "");
 const isUpdatingConcept = ref(false);
-
 
 // 主题选择器选项
 const subjectOptions = computed<PickerOption<number>[]>(() => {
@@ -62,7 +60,6 @@ const subjectOptions = computed<PickerOption<number>[]>(() => {
   ];
 });
 
-
 // 新术语状态
 const isNewTermDialogOpen = ref(false);
 const newTermText = ref("");
@@ -71,11 +68,9 @@ const newTermType = ref<TermType>("NOT_SPECIFIED");
 const newTermStatus = ref<TermStatus>("PREFERRED");
 const isAddingTerm = ref(false);
 
-
 // 保存概念更改
 const saveConceptChanges = async () => {
   isUpdatingConcept.value = true;
-
 
   try {
     await orpc.glossary.updateConcept({
@@ -83,7 +78,6 @@ const saveConceptChanges = async () => {
       subjectIds: editedSubjectIds.value,
       definition: editedDefinition.value || undefined,
     });
-
 
     isEditingConcept.value = false;
     toastStore.info(t("概念已成功更新"));
@@ -96,7 +90,6 @@ const saveConceptChanges = async () => {
   }
 };
 
-
 // 添加新术语
 const addNewTerm = async () => {
   if (!newTermText.value.trim()) {
@@ -104,9 +97,7 @@ const addNewTerm = async () => {
     return;
   }
 
-
   isAddingTerm.value = true;
-
 
   try {
     await orpc.glossary.addTermToConcept({
@@ -117,10 +108,8 @@ const addNewTerm = async () => {
       status: newTermStatus.value,
     });
 
-
     // 重新加载页面或刷新术语列表
     location.reload();
-
 
     toastStore.info(t("术语已成功添加"));
   } catch (error) {

@@ -6,9 +6,9 @@ import type { CommentReactionType } from "@cat/shared/schema/enum";
 import { Badge } from "@cat/ui";
 import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";
 import { Button } from "@cat/ui";
+import { EllipsisVertical, Trash, Smile, Reply } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
 import { useDateFormat, useTimeAgo } from "@vueuse/core";
-import { EllipsisVertical, Trash, Smile, Reply } from "lucide-vue-next";
 import { usePageContext } from "vike-vue/usePageContext";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -32,15 +32,12 @@ const props = withDefaults(
   },
 );
 
-
 const emits = defineEmits<{
   delete: [commentId: number];
 }>();
 
-
 const { t } = useI18n();
 const ctx = usePageContext();
-
 
 const emojis: {
   emoji: string;
@@ -80,15 +77,12 @@ const emojis: {
   },
 ];
 
-
 const user = ref<User | null>(null);
-
 
 const timeAgo = useTimeAgo(props.comment.createdAt, {
   messages: i18nUseTimeAgoMessages,
 });
 const createdAt = useDateFormat(props.comment.createdAt, "YYYY-MM-DD HH:mm:ss");
-
 
 const { state: reactionsState, refetch: refetchReactions } = useQuery({
   key: ["reactions", props.comment.id],
@@ -100,7 +94,6 @@ const { state: reactionsState, refetch: refetchReactions } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 const { state: childCommentsState } = useQuery({
   key: ["childComments", props.comment.id],
   placeholderData: [],
@@ -111,16 +104,13 @@ const { state: childCommentsState } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 const handleReact = () => {
   refetchReactions();
 };
 
-
 const handleUnReact = () => {
   refetchReactions();
 };
-
 
 const handleDelete = async () => {
   await orpc.comment.deleteComment({

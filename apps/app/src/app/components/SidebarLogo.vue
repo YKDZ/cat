@@ -9,7 +9,6 @@ const props = defineProps<{
   sidebarId: string;
 }>();
 
-
 const ctx = usePageContext();
 const { state } = useSidebar(props.sidebarId);
 </script>

@@ -10,16 +10,13 @@ import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
 
 const { info } = useToastStore();
 
-
 const props = defineProps<{
   projectId: string;
   file: File;
 }>();
 
-
 const isProcessing = ref<boolean>(false);
 const languageId = ref<string>("en");
-
 
 const upload = async () => {
   if (isProcessing.value) return;
@@ -28,9 +25,7 @@ const upload = async () => {
     return;
   }
 
-
   isProcessing.value = true;
-
 
   const { url, putSessionId } = await orpc.document.prepareCreateFromFile({
     meta: {
@@ -40,9 +35,7 @@ const upload = async () => {
     },
   });
 
-
   await uploadFileToS3PresignedURL(props.file, url);
-
 
   await orpc.document
     .finishCreateFromFile({

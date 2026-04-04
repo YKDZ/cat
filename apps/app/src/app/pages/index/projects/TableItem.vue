@@ -13,7 +13,6 @@ const props = defineProps<{
   >;
 }>();
 
-
 const handleCheck = async () => {
   await navigate(`/project/${props.project.id}`);
 };

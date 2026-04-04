@@ -7,7 +7,6 @@ defineProps<{
   document: Pick<Document, "name">;
 }>();
 
-
 // TODO 文件名 -> 图标
 const icon = computed(() => "icon-[mdi--file]");
 </script>

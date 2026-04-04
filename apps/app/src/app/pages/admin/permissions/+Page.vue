@@ -26,11 +26,9 @@ import { orpc } from "@/app/rpc/orpc";
 const { t } = useI18n();
 const queryCache = useQueryCache();
 
-
 const filterObjectType = ref<ObjectType>("system");
 const filterObjectId = ref("*");
 const filterRelation = ref<Relation | "">("");
-
 
 const { state: subjectsState, refetch } = useQuery({
   key: [
@@ -48,7 +46,6 @@ const { state: subjectsState, refetch } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 // Grant form
 const grantSubjectType = ref<SubjectType>("user");
 const grantSubjectId = ref("");
@@ -56,7 +53,6 @@ const grantRelation = ref<Relation>("viewer");
 const grantObjectType = ref<ObjectType>("system");
 const grantObjectId = ref("*");
 const grantLoading = ref(false);
-
 
 const handleGrant = async () => {
   if (!grantSubjectId.value) return;
@@ -77,7 +73,6 @@ const handleGrant = async () => {
   }
 };
 
-
 const handleRevoke = async (
   subjectType: SubjectType,
   subjectId: string,
@@ -92,7 +87,6 @@ const handleRevoke = async (
   });
   void refetch();
 };
-
 
 const objectTypes = ObjectTypeSchema.options ?? [];
 const relations = RelationSchema.options ?? [];

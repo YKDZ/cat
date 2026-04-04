@@ -23,7 +23,6 @@ import SidebarPagination from "./SidebarPagination.vue";
 
 const { displayedElements } = storeToRefs(useEditorElementStore());
 
-
 const sidebarId = "editor";
 </script>
 

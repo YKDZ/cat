@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button } from "@cat/ui";
-import { Download } from "lucide-vue-next";
+import { Download } from "@lucide/vue";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -10,38 +10,31 @@ const props = defineProps<{
   fileName: string;
 }>();
 
-
 const { t } = useI18n();
 const isLoading = ref(true);
 const error = ref<string | null>(null);
 const imageObjectUrl = ref<string | null>(null);
 const imageDimensions = ref<{ width: number; height: number } | null>(null);
 
-
 const resolveDownloadUrl = (rawUrl: string): string => {
   if (rawUrl.startsWith("/api/storage/download/")) return rawUrl;
   return `/api/storage/download/${rawUrl}`;
 };
 
-
 const loadImage = async () => {
   isLoading.value = true;
   error.value = null;
-
 
   try {
     const url = resolveDownloadUrl(props.fileUrl);
     const response = await fetch(url);
 
-
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
 
-
     const blob = await response.blob();
     imageObjectUrl.value = URL.createObjectURL(blob);
-
 
     // 获取图片尺寸
     await new Promise<void>((resolve, reject) => {
@@ -63,7 +56,6 @@ const loadImage = async () => {
   }
 };
 
-
 const downloadFile = async () => {
   try {
     const downloadUrl = resolveDownloadUrl(props.fileUrl);
@@ -78,7 +70,6 @@ const downloadFile = async () => {
     toast.error(t("下载失败"));
   }
 };
-
 
 watch(
   () => [props.fileUrl, props.fileName],

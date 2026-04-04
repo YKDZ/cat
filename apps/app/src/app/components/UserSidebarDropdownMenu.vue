@@ -22,22 +22,17 @@ const props = defineProps<{
   sidebarId: string;
 }>();
 
-
 const { t } = useI18n();
 const { info, rpcWarn } = useToastStore();
 const { state } = useSidebar(props.sidebarId);
 
-
 const isLoggingOut = ref(false);
-
 
 const handleLogout = async () => {
   if (isLoggingOut.value) return;
 
-
   isLoggingOut.value = true;
   info(t("登出中..."));
-
 
   await orpc.auth
     .logout()

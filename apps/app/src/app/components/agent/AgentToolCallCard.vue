@@ -5,14 +5,7 @@ import {
   CollapsibleTrigger,
   Badge,
 } from "@cat/ui";
-import {
-  ChevronRight,
-  Wrench,
-  Monitor,
-  Check,
-  X,
-  Loader2,
-} from "lucide-vue-next";
+import { ChevronRight, Wrench, Monitor, Check, X, Loader2 } from "@lucide/vue";
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -22,10 +15,8 @@ const props = defineProps<{
   toolCall: AgentToolCallItem;
 }>();
 
-
 const { t } = useI18n();
 const isOpen = ref(false);
-
 
 const hasError = computed(() => !!props.toolCall.error);
 const isRunning = computed(
@@ -47,7 +38,6 @@ const durationLabel = computed(() => {
   return `${props.toolCall.durationMs}ms`;
 });
 
-
 const formattedArgs = computed(() => {
   try {
     return JSON.stringify(props.toolCall.arguments, null, 2);
@@ -55,7 +45,6 @@ const formattedArgs = computed(() => {
     return String(props.toolCall.arguments);
   }
 });
-
 
 const formattedResult = computed(() => {
   if (props.toolCall.error) return props.toolCall.error;

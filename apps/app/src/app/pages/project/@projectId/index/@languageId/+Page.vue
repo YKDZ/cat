@@ -15,10 +15,8 @@ import LanguageDocumentTree from "./LanguageDocumentTree.vue";
 const ctx = usePageContext();
 const { t } = useI18n();
 
-
 const project = inject(useInjectionKey<Data>()("project"))!;
 const targetLanguages = inject(useInjectionKey<Data>()("targetLanguages"))!;
-
 
 const language = computed(() => {
   const language = targetLanguages.find(
@@ -27,7 +25,6 @@ const language = computed(() => {
   if (!language) throw new Error("Language not found");
   return language;
 });
-
 
 const handleBack = async () => {
   if (!project) return;

@@ -15,9 +15,7 @@ import type { PickerOption } from "./picker/index.ts";
 
 const { t } = useI18n();
 
-
 const { rpcWarn } = useToastStore();
-
 
 const props = defineProps<{
   project: Project & {
@@ -26,9 +24,7 @@ const props = defineProps<{
   };
 }>();
 
-
 const languageId = ref<string>("");
-
 
 const addTargetLanguages = () => {
   if (languageId.value === "") {
@@ -44,7 +40,6 @@ const addTargetLanguages = () => {
     return;
   }
 
-
   orpc.project
     .addTargetLanguages({
       projectId: props.project.id,
@@ -52,7 +47,6 @@ const addTargetLanguages = () => {
     })
     .catch(rpcWarn);
 };
-
 
 const langFilter = (option: PickerOption) => {
   return (

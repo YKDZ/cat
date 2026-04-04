@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button } from "@cat/ui";
-import { Bot } from "lucide-vue-next";
+import { Bot } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
@@ -9,7 +9,6 @@ import { useAgentStore } from "@/app/stores/agent";
 const { t } = useI18n();
 const agentStore = useAgentStore();
 const { definitions, selectedDefinitionId } = storeToRefs(agentStore);
-
 
 const handleSelect = (id: string) => {
   agentStore.selectDefinition(id);

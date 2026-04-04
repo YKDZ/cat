@@ -10,11 +10,9 @@ import Translation from "./Translation.vue";
 
 const { t } = useI18n();
 
-
 const { state } = storeToRefs(useEditorTranslationStore());
 const { refetch } = useEditorTranslationStore();
 const { elementId } = storeToRefs(useEditorTableStore());
-
 
 watchClient(elementId, () => refetch(), { immediate: true });
 </script>

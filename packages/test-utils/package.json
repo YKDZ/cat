@@ -25,8 +25,8 @@
   "devDependencies": {
     "@cat/domain": "workspace:*",
     "@types/pg": "^8.20.0",
-    "drizzle-kit": "1.0.0-beta.19",
-    "unplugin-dts": "1.0.0-beta.6",
+    "drizzle-kit": "1.0.0-beta.20",
+    "unplugin-dts": "^1.0.0-beta.6",
     "vite": "^8.0.3"
   },
   "peerDependencies": {
@@ -34,7 +34,7 @@
     "@cat/domain": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "drizzle-orm": "1.0.0-beta.19",
+    "drizzle-orm": "1.0.0-beta.20",
     "vitest": "^4.1.0"
   },
   "packageManager": "pnpm@10.26.2"

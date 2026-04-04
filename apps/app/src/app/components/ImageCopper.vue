@@ -7,18 +7,15 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   src: string;
   onSubmit: (blob: Blob | null) => void;
 }>();
 
-
 const isProcessing = defineModel<boolean>("isProcessing", {
   required: false,
   default: false,
 });
-
 
 const copperWidth = ref(288);
 const copperHeight = ref(288);
@@ -40,9 +37,7 @@ const isGrabbing = ref(false);
 const grabStartX = ref(0);
 const grabStartY = ref(0);
 
-
 const scale = computed(() => scales.value[0] ?? 0);
-
 
 const coppedRegion = computed(() => {
   return {
@@ -53,14 +48,11 @@ const coppedRegion = computed(() => {
   };
 });
 
-
 const startGrabbing = (e: MouseEvent) => {
   if (!image.value) return;
 
-
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
-
 
   if (
     mouseX >= imageX.value &&
@@ -74,7 +66,6 @@ const startGrabbing = (e: MouseEvent) => {
   }
 };
 
-
 const handleGrabbing = (e: MouseEvent) => {
   if (isGrabbing.value) {
     imageX.value = e.offsetX - grabStartX.value;
@@ -82,25 +73,20 @@ const handleGrabbing = (e: MouseEvent) => {
   }
 };
 
-
 const stopGrabbing = () => {
   isGrabbing.value = false;
 };
-
 
 const drawCheckerboard = () => {
   if (!bgCanvasEl.value) return;
   const ctx = bgCanvasEl.value.getContext("2d");
   if (!ctx) return;
 
-
   ctx.clearRect(0, 0, copperWidth.value, copperHeight.value);
-
 
   const tileSize = 16;
   const cols = Math.ceil(copperWidth.value / tileSize);
   const rows = Math.ceil(copperHeight.value / tileSize);
-
 
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
@@ -111,12 +97,10 @@ const drawCheckerboard = () => {
   }
 };
 
-
 const drawImage = () => {
   if (!imgCanvasEl.value || !image.value) return;
   const ctx = imgCanvasEl.value.getContext("2d");
   if (!ctx) return;
-
 
   ctx.clearRect(0, 0, imgCanvasEl.value.width, imgCanvasEl.value.height);
   ctx.drawImage(
@@ -132,12 +116,10 @@ const drawImage = () => {
   );
 };
 
-
 const drawExport = () => {
   if (!exportCanvasEl.value || !image.value) return;
   const ctx = exportCanvasEl.value.getContext("2d");
   if (!ctx) return;
-
 
   ctx.clearRect(0, 0, exportCanvasEl.value.width, exportCanvasEl.value.height);
   ctx.fillStyle = "rgba(0, 0, 0, 0)";
@@ -154,14 +136,11 @@ const drawExport = () => {
   );
 };
 
-
 const drawCopper = () => {
   if (!copperCanvasEl.value) return;
   const ctx = copperCanvasEl.value.getContext("2d");
 
-
   if (!ctx) return;
-
 
   ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
   ctx.beginPath();
@@ -177,33 +156,26 @@ const drawCopper = () => {
   ctx.restore();
 };
 
-
 const handleSubmit = () => {
   if (!exportCanvasEl.value) return;
 
-
   isProcessing.value = true;
-
 
   drawExport();
   exportCanvasEl.value.toBlob(props.onSubmit, "image/png", 1);
 };
 
-
 const handleImgLoad = () => {
   if (!image.value || !imgCanvasEl.value) return;
 
-
   imgNaturalWidth.value = image.value.naturalWidth;
   imgNaturalHeight.value = image.value.naturalHeight;
-
 
   // 最大缩放
   maxScale.value = Math.min(
     copperWidth.value / minExportWidth.value,
     copperHeight.value / minExportHeight.value,
   );
-
 
   // 初始缩放
   if (imgNaturalWidth.value <= imgNaturalHeight.value) {
@@ -218,15 +190,12 @@ const handleImgLoad = () => {
     );
   }
 
-
   drawImage();
 };
-
 
 watch(scales, drawImage);
 watch(imageX, drawImage);
 watch(imageY, drawImage);
-
 
 onMounted(() => {
   drawCheckerboard();

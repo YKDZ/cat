@@ -27,17 +27,14 @@ import {
 const { t } = useI18n();
 const toastStore = useToastStore();
 
-
 const props = defineProps<{
   glossaryId: string;
 }>();
-
 
 const isDialogOpen = ref(false);
 const definition = ref("");
 const selectedSubjectId = ref<number | undefined>(undefined);
 const isCreating = ref(false);
-
 
 // 获取可用的主题列表
 const { data: subjects } = useQuery({
@@ -48,7 +45,6 @@ const { data: subjects } = useQuery({
   enabled: isDialogOpen,
 });
 
-
 const subjectOptions = computed<PickerOption<number>[]>(() => {
   if (!subjects.value) return [];
   return subjects.value.map((subject) => ({
@@ -57,16 +53,13 @@ const subjectOptions = computed<PickerOption<number>[]>(() => {
   }));
 });
 
-
 const createConcept = async () => {
   if (!definition.value.trim()) {
     toastStore.error(t("概念定义不能为空"));
     return;
   }
 
-
   isCreating.value = true;
-
 
   try {
     await onCreateConcept(
@@ -76,7 +69,6 @@ const createConcept = async () => {
         ? [selectedSubjectId.value]
         : undefined,
     );
-
 
     toastStore.info(t("概念已成功创建"));
     isDialogOpen.value = false;

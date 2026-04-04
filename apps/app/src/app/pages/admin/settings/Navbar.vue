@@ -6,14 +6,13 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@cat/ui";
-import { Server } from "lucide-vue-next";
+import { Server } from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const ctx = usePageContext();
 const { t } = useI18n();
-
 
 const items = ref([
   {

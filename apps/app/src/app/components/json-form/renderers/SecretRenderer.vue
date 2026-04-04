@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@cat/ui";
 import { Button } from "@cat/ui";
-import { Eye, EyeOff } from "lucide-vue-next";
+import { Eye, EyeOff } from "@lucide/vue";
 import { computed, inject, ref } from "vue";
 import * as z from "zod/v4";
 
@@ -22,28 +22,22 @@ const props = defineProps<{
   data: NonNullJSONType;
 }>();
 
-
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
-
 const schema = inject(schemaKey)!;
-
 
 const value = computed(() =>
   transferDataToString(props.data ?? schema.default),
 );
 
-
 const visible = ref(false);
-
 
 const type = computed(() => {
   if (visible.value === true) return "text";
   else return "password";
 });
-
 
 const autocomplete = computed(() => {
   try {
@@ -52,7 +46,6 @@ const autocomplete = computed(() => {
     return "off";
   }
 });
-
 
 const handleUpdate = (value: string | number) => {
   emits("_update", value);

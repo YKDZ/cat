@@ -25,14 +25,11 @@ const props = defineProps<{
   flowType: "login" | "register";
 }>();
 
-
 const { t } = useI18n();
-
 
 const store = useAuthFlowStore();
 const { status, currentNode, progress, error, loading, sessionCreated } =
   storeToRefs(store);
-
 
 const componentMap: Record<string, ReturnType<typeof shallowRef>> = {
   identifier_input: shallowRef(IdentifierInput),
@@ -43,25 +40,21 @@ const componentMap: Record<string, ReturnType<typeof shallowRef>> = {
   json_form: shallowRef(JsonFormFallback),
 };
 
-
 const activeComponent = computed(() => {
   const componentType = currentNode.value?.hint?.componentType;
   if (!componentType) return null;
   return componentMap[componentType]?.value ?? JsonFormFallback;
 });
 
-
 const handleSubmit = async (input: Record<string, unknown>): Promise<void> => {
   await store.advanceFlow(input);
 };
-
 
 watch(sessionCreated, async (val) => {
   if (val) {
     await navigate("/");
   }
 });
-
 
 onMounted(async () => {
   store.reset();

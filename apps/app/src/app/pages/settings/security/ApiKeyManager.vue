@@ -27,7 +27,6 @@ import { useToastStore } from "@/app/stores/toast";
 const { t } = useI18n();
 const { rpcWarn, info } = useToastStore();
 
-
 type ApiKey = {
   id: number;
   name: string;
@@ -38,12 +37,10 @@ type ApiKey = {
   createdAt: string;
 };
 
-
 const keys = ref<ApiKey[]>([]);
 const newKeyRaw = ref<string | null>(null);
 const createDialogOpen = ref(false);
 const copied = ref(false);
-
 
 const schema = toTypedSchema(
   z.object({
@@ -52,14 +49,11 @@ const schema = toTypedSchema(
   }),
 );
 
-
 const { handleSubmit, resetForm } = useForm({ validationSchema: schema });
-
 
 const load = async () => {
   keys.value = await orpc.auth.listApiKeysEndpoint();
 };
-
 
 const onCreateSubmit = handleSubmit(async (values) => {
   const result = await orpc.auth
@@ -76,7 +70,6 @@ const onCreateSubmit = handleSubmit(async (values) => {
   await load();
 });
 
-
 const copyKey = async () => {
   if (!newKeyRaw.value) return;
   await navigator.clipboard.writeText(newKeyRaw.value);
@@ -84,13 +77,11 @@ const copyKey = async () => {
   setTimeout(() => (copied.value = false), 2000);
 };
 
-
 const revoke = async (id: number) => {
   await orpc.auth.revokeApiKeyEndpoint({ id }).catch(rpcWarn);
   info(t("API 密钥已撤销"));
   await load();
 };
-
 
 onMounted(load);
 </script>

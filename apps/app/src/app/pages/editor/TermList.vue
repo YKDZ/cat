@@ -10,11 +10,9 @@ import TermListItem from "./TermListItem.vue";
 
 const { t } = useI18n();
 
-
 const { elementId } = storeToRefs(useEditorTableStore());
 const { terms } = storeToRefs(useEditorTermStore());
 const { updateTerms } = useEditorTermStore();
-
 
 watchClient(elementId, updateTerms, { immediate: true });
 </script>

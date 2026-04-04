@@ -19,7 +19,7 @@ import {
   NotebookText,
   Settings,
   Workflow,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 
@@ -27,10 +27,8 @@ const props = defineProps<{
   project: Pick<Project, "id">;
 }>();
 
-
 const { t } = useI18n();
 const ctx = usePageContext();
-
 
 const items: { title: string; href: string; icon: Component }[] = [
   {

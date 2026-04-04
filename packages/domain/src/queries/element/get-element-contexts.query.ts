@@ -27,18 +27,15 @@ export const getElementContexts: Query<
   GetElementContextsQuery,
   GetElementContextsResult
 > = async (ctx, query) => {
-  const [element, contexts] = await Promise.all([
-    assertSingleNonNullish(
-      await ctx.db
-        .select({
-          meta: translatableElement.meta,
-          createdAt: translatableElement.createdAt,
-          updatedAt: translatableElement.updatedAt,
-        })
-        .from(translatableElement)
-        .where(eq(translatableElement.id, query.elementId)),
-      `Element with ID ${query.elementId} not found`,
-    ),
+  const [elementRows, contexts] = await Promise.all([
+    ctx.db
+      .select({
+        meta: translatableElement.meta,
+        createdAt: translatableElement.createdAt,
+        updatedAt: translatableElement.updatedAt,
+      })
+      .from(translatableElement)
+      .where(eq(translatableElement.id, query.elementId)),
     ctx.db
       .select()
       .from(translatableElementContext)
@@ -46,6 +43,11 @@ export const getElementContexts: Query<
         eq(translatableElementContext.translatableElementId, query.elementId),
       ),
   ]);
+
+  const element = assertSingleNonNullish(
+    elementRows,
+    `Element with ID ${query.elementId} not found`,
+  );
 
   return {
     element,

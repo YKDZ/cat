@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@cat/ui";
-import { Check } from "lucide-vue-next";
+import { Check } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import { orpc } from "@/app/rpc/orpc";
@@ -19,19 +19,15 @@ import { useToastStore } from "@/app/stores/toast.ts";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   document: Pick<Document, "id">;
   language: Pick<Language, "id">;
 }>();
 
-
 const { info, rpcWarn } = useToastStore();
-
 
 const handleAutoApprove = async () => {
   if (!props.language) return;
-
 
   await orpc.translation
     .autoApprove({

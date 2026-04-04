@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@cat/ui";
-import { Plus } from "lucide-vue-next";
+import { Plus } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
@@ -18,7 +18,6 @@ import ProjectUploadFiles from "@/app/components/ProjectUploadFiles.vue";
 defineProps<{
   project: Project;
 }>();
-
 
 const { t } = useI18n();
 </script>

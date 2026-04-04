@@ -11,7 +11,6 @@ import Header from "./Header.vue";
 
 const { memory } = useData<Data>();
 
-
 provide(useInjectionKey<Data>()("memory"), memory);
 </script>
 

@@ -24,22 +24,17 @@ const props = defineProps<{
   };
 }>();
 
-
 const { t } = useI18n();
 const workflowStore = useWorkflowStore();
-
 
 const direction = ref<"DOWN" | "RIGHT">("RIGHT");
 const showNodeDetail = computed(() => !!workflowStore.selectedNodeId);
 
-
 const graph = computed(() => workflowStore.graph);
-
 
 const handleNodeClick = (nodeId: string): void => {
   workflowStore.selectedNodeId = nodeId;
 };
-
 
 const handleCloseNodeDetail = (): void => {
   workflowStore.selectedNodeId = undefined;

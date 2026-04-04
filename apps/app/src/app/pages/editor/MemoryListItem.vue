@@ -15,12 +15,10 @@ import { useHotKeys } from "@/app/utils/magic-keys.ts";
 const { replace } = useEditorTableStore();
 const { t } = useI18n();
 
-
 const props = defineProps<{
   memorySuggestion: MemorySuggestion;
   index: number;
 }>();
-
 
 const displayTranslation = computed(
   () =>
@@ -28,17 +26,13 @@ const displayTranslation = computed(
     props.memorySuggestion.translation,
 );
 
-
 const handleCopy = () => {
   replace(displayTranslation.value);
 };
 
-
 const memory = ref<Memory | null>(null);
 
-
 useHotKeys(`M+${props.index + 1}`, handleCopy);
-
 
 onMounted(async () => {
   memory.value = await orpc.memory.get({

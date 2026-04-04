@@ -6,7 +6,7 @@ import {
   CollapsibleTrigger,
   ScrollArea,
 } from "@cat/ui";
-import { ChevronDown } from "lucide-vue-next";
+import { ChevronDown } from "@lucide/vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -15,12 +15,9 @@ import { useWorkflowStore } from "@/app/stores/workflow";
 const { t } = useI18n();
 const workflowStore = useWorkflowStore();
 
-
 const events = computed(() => workflowStore.eventLog);
 
-
 const expandedSet = ref(new Set<string>());
-
 
 const toggleExpand = (id: string): void => {
   if (expandedSet.value.has(id)) {
@@ -30,7 +27,6 @@ const toggleExpand = (id: string): void => {
   }
   expandedSet.value = new Set(expandedSet.value);
 };
-
 
 const eventBadgeVariant = (
   type: string,

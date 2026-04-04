@@ -25,7 +25,6 @@ const { t } = useI18n();
 const queryCache = useQueryCache();
 const project = inject(useInjectionKey<Data>()("project"))!;
 
-
 const { state: membersState, refetch } = useQuery({
   key: ["permission.listSubjects", "project", project.id],
   query: () =>
@@ -36,15 +35,12 @@ const { state: membersState, refetch } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 // Add member form
 const newUserId = ref("");
 const newRelation = ref<Relation>("viewer");
 const addLoading = ref(false);
 
-
 const projectRelations: Relation[] = ["owner", "admin", "editor", "viewer"];
-
 
 const handleAddMember = async () => {
   if (!newUserId.value) return;
@@ -64,7 +60,6 @@ const handleAddMember = async () => {
     addLoading.value = false;
   }
 };
-
 
 const handleRemoveMember = async (subjectId: string, relation: Relation) => {
   await orpc.permission.revoke({

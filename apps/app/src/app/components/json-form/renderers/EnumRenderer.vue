@@ -20,28 +20,22 @@ import { schemaKey, transferDataToString } from "../utils.ts";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   propertyKey: string | number;
   data: NonNullJSONType;
 }>();
 
-
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
-
 const schema = inject(schemaKey)!;
 
-
 const value = computed(() => String(props.data ?? schema.defaults));
-
 
 const enumValues = computed(() => {
   return schema.enum as unknown[];
 });
-
 
 const options = computed(() => {
   return enumValues.value.map((value) => {
@@ -51,7 +45,6 @@ const options = computed(() => {
     } satisfies PickerOption;
   });
 });
-
 
 const handleChange = (to: string | undefined) => {
   emits("_update", to ?? "");

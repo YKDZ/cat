@@ -13,14 +13,13 @@ import {
   FormLabel,
   Slider,
 } from "@cat/ui";
-import { Settings } from "lucide-vue-next";
+import { Settings } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
 import { useProfileStore } from "@/app/stores/profile.ts";
 
 const { t } = useI18n();
-
 
 const { editorTermMinConfidence } = storeToRefs(useProfileStore());
 </script>

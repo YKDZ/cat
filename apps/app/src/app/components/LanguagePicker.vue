@@ -17,13 +17,10 @@ const props = withDefaults(
   },
 );
 
-
 const { t } = useI18n();
-
 
 const languageId = defineModel<string | undefined>();
 const search = ref("");
-
 
 const { state, loadNextPage } = useInfiniteQuery({
   key: () => ["languages", search.value],
@@ -40,7 +37,6 @@ const { state, loadNextPage } = useInfiniteQuery({
     return undefined;
   },
 });
-
 
 const options = computed(() => {
   const pages = state.value?.data?.pages;

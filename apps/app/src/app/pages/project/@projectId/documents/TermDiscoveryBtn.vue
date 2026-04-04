@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@cat/ui";
-import { Search } from "lucide-vue-next";
+import { Search } from "@lucide/vue";
 import { navigate } from "vike/client/router";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -27,16 +27,13 @@ const props = defineProps<{
   documents: Pick<Document, "id" | "isDirectory">[];
 }>();
 
-
 const { t } = useI18n();
 const { info, rpcWarn } = useToastStore();
-
 
 const open = ref(false);
 const loading = ref(false);
 const glossaryIds = ref<string[]>([]);
 const sourceLanguageId = ref<string | undefined>(undefined);
-
 
 const glossaryId = computed(() => glossaryIds.value[0]);
 const documentIds = computed(() =>
@@ -50,7 +47,6 @@ const canSubmit = computed(
     !!sourceLanguageId.value &&
     documentIds.value.length > 0,
 );
-
 
 const handleStart = async () => {
   if (!canSubmit.value) return;

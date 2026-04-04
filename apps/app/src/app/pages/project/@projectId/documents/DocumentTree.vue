@@ -17,15 +17,12 @@ defineProps<{
   })[];
 }>();
 
-
 const { info } = useToastStore();
 const { t } = useI18n();
-
 
 const handleClick = async (document: Pick<Document, "id" | "isDirectory">) => {
   if (!document.isDirectory) await navigate(`/document/${document.id}`);
 };
-
 
 const handleDelete = async (document: Pick<Document, "id" | "name">) => {
   await orpc.document.del({ id: document.id });

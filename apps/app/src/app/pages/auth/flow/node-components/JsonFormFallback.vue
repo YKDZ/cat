@@ -25,7 +25,6 @@ const props = defineProps<{
   };
 }>();
 
-
 /**
  * @zh 用户提交表单数据时触发。
  * @en Emitted when user submits the form data.
@@ -34,17 +33,13 @@ const emit = defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;
 }>();
 
-
 const { t } = useI18n();
 
-
 const data = shallowRef<NonNullJSONType>({});
-
 
 const handleUpdate = (to: NonNullJSONType): void => {
   data.value = to;
 };
-
 
 const onSubmit = (): void => {
   emit(

@@ -11,7 +11,6 @@ import { useCookieBooleanRef } from "@/app/utils/cookie";
 const ctx = usePageContext();
 const notificationStore = useNotificationStore();
 
-
 onMounted(async () => {
   if (ctx.user) {
     await notificationStore.loadInitial();
@@ -19,11 +18,9 @@ onMounted(async () => {
   }
 });
 
-
 onUnmounted(() => {
   notificationStore.stopStreaming();
 });
-
 
 const indexSidebarOpen = useCookieBooleanRef(ctx, "indexSidebarOpen", true);
 const editorSidebarOpen = useCookieBooleanRef(ctx, "editorSidebarOpen", true);

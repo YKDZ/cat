@@ -26,11 +26,9 @@ const { t } = useI18n();
 const store = useNotificationStore();
 const getCategoryLabel = (category: string) => _getCategoryLabel(t, category);
 
-
 const pageIndex = ref(0);
 const pageSize = 20;
 const statusFilter = ref<NotificationStatus | undefined>(undefined);
-
 
 const { state, refetch } = useQuery({
   key: () => [
@@ -47,9 +45,7 @@ const { state, refetch } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-
 const notifications = computed(() => state.value.data ?? []);
-
 
 const statusOptions: {
   label: string;
@@ -59,7 +55,6 @@ const statusOptions: {
   { label: t("未读"), value: "UNREAD" },
   { label: t("已读"), value: "READ" },
 ];
-
 
 const handleMarkAllRead = async () => {
   await store.markAllRead();

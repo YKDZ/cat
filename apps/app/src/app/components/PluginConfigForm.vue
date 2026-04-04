@@ -19,9 +19,7 @@ const props = defineProps<{
   scopeId: string;
 }>();
 
-
 const instance = ref<PluginConfigInstance | null>(null);
-
 
 const configSetter = async (value: JSONType) => {
   await orpc.plugin.upsertConfigInstance({
@@ -31,7 +29,6 @@ const configSetter = async (value: JSONType) => {
     value,
   });
 };
-
 
 const configGetter = async () => {
   return await orpc.plugin
@@ -49,7 +46,6 @@ const configGetter = async () => {
       return data.value;
     });
 };
-
 
 const handleSaved = async () => {
   await orpc.plugin.reloadPlugin({

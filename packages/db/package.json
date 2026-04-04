@@ -40,9 +40,9 @@
   "devDependencies": {
     "@types/node": "^25.5.2",
     "@types/pg": "^8.20.0",
-    "drizzle-kit": "1.0.0-beta.19",
+    "drizzle-kit": "1.0.0-beta.20",
     "drizzle-seed": "^0.3.1",
-    "unplugin-dts": "1.0.0-beta.6",
+    "unplugin-dts": "^1.0.0-beta.6",
     "vite": "^8.0.3",
     "vitest": "^4.1.2"
   },
@@ -50,7 +50,7 @@
     "@cat/shared": "workspace:*",
     "cldr-core": "^48.0.0",
     "dotenv": "^17.2.3",
-    "drizzle-orm": "1.0.0-beta.19",
+    "drizzle-orm": "1.0.0-beta.20",
     "zod": "^4.3.6"
   }
 }

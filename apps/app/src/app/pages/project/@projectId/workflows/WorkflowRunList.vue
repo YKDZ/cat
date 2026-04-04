@@ -13,7 +13,6 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   runs: Array<{
     id: string;
@@ -28,7 +27,6 @@ const props = defineProps<{
   projectId: string;
 }>();
 
-
 const statusVariant = (
   status: string,
 ): "secondary" | "outline" | "destructive" => {
@@ -36,7 +34,6 @@ const statusVariant = (
   if (status === "completed") return "secondary";
   return "outline";
 };
-
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "—";

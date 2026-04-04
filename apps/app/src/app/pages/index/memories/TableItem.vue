@@ -13,7 +13,6 @@ const props = defineProps<{
   >;
 }>();
 
-
 const handleCheck = async () => {
   await navigate(`/memory/${props.memory.id}`);
 };

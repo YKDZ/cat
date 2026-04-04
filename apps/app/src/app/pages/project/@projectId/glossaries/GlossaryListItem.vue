@@ -13,20 +13,16 @@ import { watchClient } from "@/app/utils/vue.ts";
 
 const { info, rpcWarn } = useToastStore();
 
-
 const termAmount = ref(-1);
-
 
 const props = defineProps<{
   glossary: Glossary;
   project: Project;
 }>();
 
-
 const emits = defineEmits<{
   (e: "unlink"): void;
 }>();
-
 
 const updateTermAmount = async () => {
   await orpc.glossary
@@ -36,11 +32,9 @@ const updateTermAmount = async () => {
     .then((amount) => (termAmount.value = amount));
 };
 
-
 const handleCheck = async () => {
   await navigate(`/glossary/${props.glossary.id}`);
 };
-
 
 const handleUnlink = async () => {
   await orpc.project
@@ -55,9 +49,7 @@ const handleUnlink = async () => {
     .catch(rpcWarn);
 };
 
-
 watchClient(() => props.glossary, updateTermAmount);
-
 
 onMounted(updateTermAmount);
 </script>

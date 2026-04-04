@@ -8,7 +8,7 @@ import {
   CardFooter,
 } from "@cat/ui";
 import { Button } from "@cat/ui";
-import { Plus } from "lucide-vue-next";
+import { Plus } from "@lucide/vue";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 

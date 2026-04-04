@@ -12,7 +12,7 @@ import {
   ComboboxViewport,
   Button,
 } from "@cat/ui";
-import { Check, ChevronDown, Search, X } from "lucide-vue-next";
+import { Check, ChevronDown, Search, X } from "@lucide/vue";
 import {
   ComboboxCancel,
   ComboboxVirtualizer,
@@ -27,7 +27,6 @@ import type { PickerOption } from "./index.ts";
 
 const { t } = useI18n();
 
-
 const props = withDefaults(
   defineProps<{
     options: PickerOption<T>[];
@@ -40,20 +39,16 @@ const props = withDefaults(
   },
 );
 
-
 const modelValue = defineModel<T>();
 const search = defineModel<string>("search", { default: "" });
 
-
 const selectedOption = ref<PickerOption<T>>();
-
 
 const onSelect = (value: PickerOption<T> | undefined) => {
   selectedOption.value =
     selectedOption.value?.value === value?.value ? undefined : value;
   modelValue.value = selectedOption.value?.value ?? undefined;
 };
-
 
 const onScroll = (e: Event) => {
   const target = e.target as HTMLElement;

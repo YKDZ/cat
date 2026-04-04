@@ -21,17 +21,14 @@ import { onCreateConceptSubject } from "./ConceptTable.telefunc";
 const { t } = useI18n();
 const toastStore = useToastStore();
 
-
 const props = defineProps<{
   glossaryId: string;
 }>();
-
 
 const isDialogOpen = ref(false);
 const subject = ref("");
 const defaultDefinition = ref("");
 const isCreating = ref(false);
-
 
 const createSubject = async () => {
   if (!subject.value.trim()) {
@@ -39,9 +36,7 @@ const createSubject = async () => {
     return;
   }
 
-
   isCreating.value = true;
-
 
   try {
     await onCreateConceptSubject(
@@ -49,7 +44,6 @@ const createSubject = async () => {
       subject.value.trim(),
       defaultDefinition.value.trim() || undefined,
     );
-
 
     toastStore.info(t("主题已成功创建"));
     isDialogOpen.value = false;

@@ -14,11 +14,9 @@ import * as z from "zod";
 
 const { t } = useI18n();
 
-
 const emit = defineEmits<{
   submit: [data: { password: string }];
 }>();
-
 
 const schema = toTypedSchema(
   z.object({
@@ -26,9 +24,7 @@ const schema = toTypedSchema(
   }),
 );
 
-
 const { handleSubmit } = useForm({ validationSchema: schema });
-
 
 const onSubmit = handleSubmit((values) => emit("submit", values));
 </script>

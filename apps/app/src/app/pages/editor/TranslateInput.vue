@@ -6,7 +6,6 @@ import TranslationEditor from "@/app/components/editor/TranslationEditor.vue";
 const editorRef =
   useTemplateRef<InstanceType<typeof TranslationEditor>>("editorRef");
 
-
 onMounted(() => {
   editorRef.value?.focus();
 });

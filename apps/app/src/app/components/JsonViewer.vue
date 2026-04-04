@@ -8,10 +8,8 @@ const props = defineProps<{
   value: unknown;
 }>();
 
-
 const containerEl = ref<HTMLDivElement | null>(null);
 let editorView: EditorView | null = null;
-
 
 const stringify = (val: unknown): string => {
   try {
@@ -20,7 +18,6 @@ const stringify = (val: unknown): string => {
     return "null";
   }
 };
-
 
 const editorTheme = EditorView.theme({
   "&": {
@@ -33,7 +30,6 @@ const editorTheme = EditorView.theme({
   ".cm-scroller": { overflow: "auto" },
   ".cm-line": { color: "var(--foreground)" },
 });
-
 
 onMounted(() => {
   if (!containerEl.value) return;
@@ -54,7 +50,6 @@ onMounted(() => {
   });
 });
 
-
 watch(
   () => props.value,
   (newVal) => {
@@ -67,7 +62,6 @@ watch(
     });
   },
 );
-
 
 onBeforeUnmount(() => {
   editorView?.destroy();

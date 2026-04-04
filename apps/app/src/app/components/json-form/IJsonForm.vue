@@ -12,7 +12,6 @@ const props = defineProps<{
   data: NonNullJSONType;
 }>();
 
-
 const emits = defineEmits<{
   (
     e: "_update",
@@ -23,18 +22,15 @@ const emits = defineEmits<{
   ): void;
 }>();
 
-
 const matchedRenderer = computed<RendererComponent | null>(() => {
   const matcher = MatcherRegistry.match(props.schema);
   if (!matcher) return null;
   return matcher.renderer;
 });
 
-
 const providedData = computed(() => {
   return props.data ?? props.schema.default;
 });
-
 
 provide(schemaKey, props.schema);
 </script>

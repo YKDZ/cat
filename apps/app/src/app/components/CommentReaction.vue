@@ -18,21 +18,17 @@ const props = defineProps<{
   reactions: Pick<CommentReaction, "type" | "userId">[];
 }>();
 
-
 const amount = computed(() => {
   return props.reactions.filter((reaction) => reaction.type === props.type)
     .length;
 });
 
-
 const ctx = usePageContext();
-
 
 const emits = defineEmits<{
   react: [reaction: CommentReaction];
   unReact: [userId: string];
 }>();
-
 
 const react = async () => {
   const reaction = await orpc.comment.react({
@@ -42,14 +38,12 @@ const react = async () => {
   emits("react", reaction);
 };
 
-
 const unReact = async () => {
   await orpc.comment.unReact({
     commentId: props.comment.id,
   });
   emits("unReact", ctx.user!.id);
 };
-
 
 const reacted = computed(() => {
   return props.reactions.some(

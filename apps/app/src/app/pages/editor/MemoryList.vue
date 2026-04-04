@@ -11,12 +11,10 @@ import MemoryListItem from "./MemoryListItem.vue";
 
 const { t } = useI18n();
 
-
 const { memories } = storeToRefs(useEditorMemoryStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { subMemories, unsubscribe } = useEditorMemoryStore();
 const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
-
 
 watchClient(
   elementId,
@@ -28,7 +26,6 @@ watchClient(
     immediate: true,
   },
 );
-
 
 watchClientThrottled(editorMemoryMinConfidence, subMemories);
 </script>

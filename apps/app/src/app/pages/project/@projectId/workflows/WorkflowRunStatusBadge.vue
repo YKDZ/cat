@@ -6,16 +6,13 @@ defineProps<{
   status: string;
 }>();
 
-
 const { t } = useI18n();
-
 
 const variantOf = (status: string): "secondary" | "outline" | "destructive" => {
   if (status === "failed") return "destructive";
   if (status === "completed") return "secondary";
   return "outline";
 };
-
 
 const labelOf = (status: string): string => {
   switch (status) {

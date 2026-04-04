@@ -9,7 +9,6 @@ import { useToastStore } from "@/app/stores/toast";
 const { t } = useI18n();
 const { rpcWarn, info } = useToastStore();
 
-
 type Session = {
   id: string;
   ip: string | null;
@@ -19,21 +18,17 @@ type Session = {
   isCurrent: boolean;
 };
 
-
 const sessions = ref<Session[]>([]);
-
 
 const load = async () => {
   sessions.value = await orpc.auth.listSessions();
 };
-
 
 const revoke = async (sessionId: string) => {
   await orpc.auth.revokeSession({ sessionId }).catch(rpcWarn);
   info(t("会话已撤销"));
   await load();
 };
-
 
 onMounted(load);
 </script>

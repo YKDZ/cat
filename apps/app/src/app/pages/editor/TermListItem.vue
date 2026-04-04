@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toShortFixed } from "@cat/shared/utils";
 import { Badge, Button } from "@cat/ui";
-import { ArrowRight } from "lucide-vue-next";
+import { ArrowRight } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
@@ -28,16 +28,13 @@ const props = defineProps<{
   index: number;
 }>();
 
-
 const { t } = useI18n();
 const { insert } = useEditorTableStore();
 const { document } = storeToRefs(useEditorContextStore());
 
-
 const handleInsert = () => {
   insert(props.term.translation);
 };
-
 
 const handleViewConcept = () => {
   if (props.term.glossaryId && props.term.conceptId) {
@@ -46,7 +43,6 @@ const handleViewConcept = () => {
     );
   }
 };
-
 
 useHotKeys(`T+${props.index + 1}`, handleInsert);
 </script>

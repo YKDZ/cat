@@ -6,7 +6,6 @@ import SettingForm from "../SettingForm.vue";
 
 const { t } = useI18n();
 
-
 const site = z.toJSONSchema(
   z
     .object({

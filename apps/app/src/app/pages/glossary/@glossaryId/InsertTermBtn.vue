@@ -14,7 +14,6 @@ import InsertTermText from "./InsertTermText.vue";
 
 const { t } = useI18n();
 
-
 defineProps<{
   glossaryId: string;
 }>();

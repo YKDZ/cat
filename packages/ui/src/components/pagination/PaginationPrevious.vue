@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { PaginationPrevProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import type { ButtonVariants } from "@/components/button";
+
+import { ChevronLeftIcon } from "@lucide/vue";
 import { reactiveOmit } from "@vueuse/core";
-import { ChevronLeftIcon } from "lucide-vue-next";
 import { PaginationPrev, useForwardProps } from "reka-ui";
-import { cn } from "@/utils/lib/utils";
+
+import type { ButtonVariants } from "@/components/button";
+
 import { buttonVariants } from "@/components/button";
+import { cn } from "@/utils/lib/utils";
 
 const props = withDefaults(
   defineProps<
@@ -20,6 +23,7 @@ const props = withDefaults(
   },
 );
 
+
 const delegatedProps = reactiveOmit(props, "class", "size");
 const forwarded = useForwardProps(delegatedProps);
 </script>
@@ -27,7 +31,13 @@ const forwarded = useForwardProps(delegatedProps);
 <template>
   <PaginationPrev
     data-slot="pagination-previous"
-    :class="cn(buttonVariants({ variant: 'ghost', size }), 'gap-1 px-2.5 sm:pr-2.5', props.class)"
+    :class="
+      cn(
+        buttonVariants({ variant: 'ghost', size }),
+        'gap-1 px-2.5 sm:pr-2.5',
+        props.class,
+      )
+    "
     v-bind="forwarded"
   >
     <slot>

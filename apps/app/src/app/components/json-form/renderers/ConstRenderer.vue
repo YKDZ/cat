@@ -11,14 +11,11 @@ defineProps<{
   data: NonNullJSONType;
 }>();
 
-
 defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
-
 const schema = inject(schemaKey)!;
-
 
 const constValue = computed(() => {
   return schema.const;

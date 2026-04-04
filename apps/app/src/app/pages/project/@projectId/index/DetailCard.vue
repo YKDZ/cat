@@ -12,8 +12,8 @@ import {
 } from "@cat/ui";
 import { FormField, FormItem, FormControl, FormLabel } from "@cat/ui";
 import { Textarea } from "@cat/ui";
+import { Settings } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
-import { Settings } from "lucide-vue-next";
 import { useForm } from "vee-validate";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
@@ -24,9 +24,7 @@ import { useToastStore } from "@/app/stores/toast";
 const { t } = useI18n();
 const { info } = useToastStore();
 
-
 const props = defineProps<{ project: Pick<Project, "id" | "description"> }>();
-
 
 const schema = toTypedSchema(
   z.object({
@@ -34,14 +32,12 @@ const schema = toTypedSchema(
   }),
 );
 
-
 const { handleSubmit } = useForm({
   validationSchema: schema,
   initialValues: {
     description: props.project.description,
   },
 });
-
 
 const onSubmit = handleSubmit(async (values) => {
   await orpc.project.update({

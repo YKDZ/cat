@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Pause,
   Play,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { ref, nextTick, watch, onMounted, onUnmounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -51,31 +51,25 @@ const {
   lastFinishReason,
 } = storeToRefs(agentStore);
 
-
 const editorContext = storeToRefs(useEditorContextStore());
 const editorTable = storeToRefs(useEditorTableStore());
 const { elementId: editorElementId, elementLanguageId } = editorTable;
 
-
 // Register client-side tool handlers for the agent
 useRegisterClientTools();
-
 
 const inputText = ref("");
 const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
 const composerTextareaRef = ref<InstanceType<typeof Textarea> | null>(null);
-
 
 /** 跟踪用户是否处于底部(阈値 80px)，手动向上滚动后不再自动跟随 */
 const isAtBottom = ref(true);
 const SCROLL_THRESHOLD = 80;
 const COMPOSER_MAX_HEIGHT = 160;
 
-
 const getViewport = (): Element | null =>
   scrollAreaRef.value?.$el?.querySelector("[data-reka-scroll-area-viewport]") ??
   null;
-
 
 const handleScroll = () => {
   const el = getViewport();
@@ -83,7 +77,6 @@ const handleScroll = () => {
   isAtBottom.value =
     el.scrollHeight - el.scrollTop - el.clientHeight <= SCROLL_THRESHOLD;
 };
-
 
 const scrollToBottom = () => {
   if (!isAtBottom.value) return;
@@ -95,12 +88,10 @@ const scrollToBottom = () => {
   });
 };
 
-
 const getComposerTextarea = (): HTMLTextAreaElement | null => {
   const element = composerTextareaRef.value?.$el;
   return element instanceof HTMLTextAreaElement ? element : null;
 };
-
 
 const resizeComposer = () => {
   nextTick(() => {
@@ -115,7 +106,6 @@ const resizeComposer = () => {
   });
 };
 
-
 onMounted(() => {
   nextTick(() => {
     getViewport()?.addEventListener("scroll", handleScroll, { passive: true });
@@ -123,11 +113,9 @@ onMounted(() => {
   });
 });
 
-
 onUnmounted(() => {
   getViewport()?.removeEventListener("scroll", handleScroll);
 });
-
 
 watch(
   [messages, streamingText, thinkingText, pendingConfirmation, maxStepsReached],
@@ -136,21 +124,17 @@ watch(
   },
 );
 
-
 watch(inputText, () => {
   resizeComposer();
 });
-
 
 const handleSend = async () => {
   const text = inputText.value.trim();
   if (!text) return;
   if (isStreaming.value) return;
 
-
   // 发送消息时强制重置到底部，确保新回复可见
   isAtBottom.value = true;
-
 
   // Auto-create session if none active
   if (!activeSessionId.value && selectedDefinitionId.value) {
@@ -167,12 +151,10 @@ const handleSend = async () => {
     if (!sessionId) return;
   }
 
-
   inputText.value = "";
   resizeComposer();
   await agentStore.sendMessage(text);
 };
-
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (event.key === "Enter" && !event.shiftKey) {
@@ -181,11 +163,9 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 };
 
-
 const handleNewSession = () => {
   agentStore.selectDefinition(selectedDefinitionId.value);
 };
-
 
 const isRunActive = computed(() => {
   return (
@@ -194,7 +174,6 @@ const isRunActive = computed(() => {
     streamingStatus.value === "waiting_input"
   );
 });
-
 
 const showThinkingIndicator = computed(() => {
   return (
@@ -208,16 +187,13 @@ const showThinkingIndicator = computed(() => {
   );
 });
 
-
 const handleRetry = () => {
   void agentStore.retryLastMessage();
 };
 
-
 const handleCancel = () => {
   void agentStore.cancelStreaming();
 };
-
 
 onMounted(() => {
   void agentStore.fetchDefinitions({ type: "GENERAL" });

@@ -21,12 +21,10 @@ const props = withDefaults(
   },
 );
 
-
 const userId = computed(() => {
   if (props.userId) return props.userId;
   else return props.user!.id;
 });
-
 
 const { state: userState } = useQuery({
   key: ["user", userId.value],
@@ -40,7 +38,6 @@ const { state: userState } = useQuery({
   },
   enabled: !import.meta.env.SSR,
 });
-
 
 const { state: avatarUrlState } = useQuery({
   key: ["avatarUrl", userId.value],

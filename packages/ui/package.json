@@ -28,6 +28,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@lucide/vue": "^1.7.0",
     "@vue-flow/controls": "^1.1.3",
     "@vue-flow/core": "^1.48.2",
     "@vue-flow/minimap": "^1.5.4",
@@ -35,7 +36,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "elkjs": "^0.11.1",
-    "lucide-vue-next": "^0.577.0",
     "tailwind-merge": "^3.5.0",
     "vee-validate": "^4.15.1"
   },

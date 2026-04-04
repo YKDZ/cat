@@ -7,9 +7,7 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-
 const project = defineModel<Project>("project");
-
 
 const handleClick = async () => {
   if (!project.value) return;

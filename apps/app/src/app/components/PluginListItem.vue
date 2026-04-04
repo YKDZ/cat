@@ -13,7 +13,6 @@ import { orpc } from "@/app/rpc/orpc";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   plugin: Plugin;
   scopeType: ScopeType;
@@ -21,15 +20,12 @@ const props = defineProps<{
   pathPrefix: string;
 }>();
 
-
 const iconImgEl = ref<HTMLImageElement>();
 const isIconLoaded = ref(false);
-
 
 const simpleName = computed(() => {
   return props.plugin.name.replace("@cat-plugin/", "");
 });
-
 
 const { state } = useQuery({
   key: ["isInstalled", props.plugin.id],
@@ -41,7 +37,6 @@ const { state } = useQuery({
       scopeId: props.scopeId,
     }),
 });
-
 
 useEventListener(iconImgEl.value, "load", () => (isIconLoaded.value = true));
 </script>

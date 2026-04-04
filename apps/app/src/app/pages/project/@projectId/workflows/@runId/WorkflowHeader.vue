@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button } from "@cat/ui";
-import { ArrowRight, ArrowDown, Pause, Play, X } from "lucide-vue-next";
+import { ArrowRight, ArrowDown, Pause, Play, X } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -13,36 +13,29 @@ const props = defineProps<{
   direction: "DOWN" | "RIGHT";
 }>();
 
-
 const emit = defineEmits<{
   "update:direction": ["DOWN" | "RIGHT"];
 }>();
 
-
 const { t } = useI18n();
 const workflowStore = useWorkflowStore();
-
 
 const status = computed(() => workflowStore.runStatus);
 const isRunning = computed(() => status.value === "running");
 const isPaused = computed(() => status.value === "paused");
 const isActive = computed(() => isRunning.value || isPaused.value);
 
-
 const handlePause = async (): Promise<void> => {
   await workflowStore.pauseRun(props.runId);
 };
-
 
 const handleResume = async (): Promise<void> => {
   await workflowStore.resumeRun(props.runId);
 };
 
-
 const handleCancel = async (): Promise<void> => {
   await workflowStore.cancelRun(props.runId);
 };
-
 
 const toggleDirection = (): void => {
   emit("update:direction", props.direction === "DOWN" ? "RIGHT" : "DOWN");

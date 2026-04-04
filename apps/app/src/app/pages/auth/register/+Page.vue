@@ -23,9 +23,7 @@ import { useToastStore } from "@/app/stores/toast";
 const { t } = useI18n();
 const { info } = useToastStore();
 
-
 const { identifier } = storeToRefs(useAuthStore());
-
 
 const schema = toTypedSchema(
   z.object({
@@ -37,14 +35,12 @@ const schema = toTypedSchema(
   }),
 );
 
-
 const { handleSubmit } = useForm({
   validationSchema: schema,
   initialValues: {
     email: identifier.value,
   },
 });
-
 
 const onSubmit = handleSubmit(async (values) => {
   await orpc.auth.register({
@@ -55,7 +51,6 @@ const onSubmit = handleSubmit(async (values) => {
 
   await navigate("/");
 });
-
 
 onMounted(() => {
   info(

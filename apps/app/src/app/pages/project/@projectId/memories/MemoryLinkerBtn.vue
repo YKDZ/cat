@@ -10,7 +10,7 @@ import {
   DialogTrigger,
   DialogTitle,
 } from "@cat/ui";
-import { Link2 } from "lucide-vue-next";
+import { Link2 } from "@lucide/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -21,30 +21,23 @@ import { useToastStore } from "@/app/stores/toast.ts";
 const { t } = useI18n();
 const { info, rpcWarn } = useToastStore();
 
-
 const props = defineProps<{
   project: Project;
 }>();
 
-
 const emits = defineEmits(["link"]);
-
 
 const memoryIds = ref<string[]>([]);
 
-
 const isOpen = ref(false);
-
 
 const handleOpen = () => {
   isOpen.value = true;
 };
 
-
 const handleLink = async () => {
   const createNewIndex = memoryIds.value.findIndex((id) => id === "createNew");
   const realIds = memoryIds.value.splice(createNewIndex, 1);
-
 
   if (createNewIndex !== -1) {
     await orpc.memory.create({
@@ -52,7 +45,6 @@ const handleLink = async () => {
       projectIds: [props.project.id],
     });
   }
-
 
   await orpc.project
     .linkMemory({

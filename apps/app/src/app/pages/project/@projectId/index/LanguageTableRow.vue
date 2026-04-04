@@ -13,7 +13,6 @@ const props = defineProps<{
   project: Pick<Project, "id">;
 }>();
 
-
 const { t } = useI18n();
 </script>
 

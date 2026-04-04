@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Badge } from "@cat/ui";
-import { Wrench } from "lucide-vue-next";
+import { Wrench } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import type { NodeExecution } from "@/app/types/agent-graph";
@@ -12,9 +12,7 @@ defineProps<{
   nodes: NodeExecution[];
 }>();
 
-
 const { t } = useI18n();
-
 
 const formatTime = (value: Date | null): string => {
   if (!value) return "-";

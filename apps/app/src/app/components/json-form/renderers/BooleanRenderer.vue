@@ -19,14 +19,11 @@ const props = defineProps<{
   data: NonNullJSONType;
 }>();
 
-
 const emits = defineEmits<{
   (e: "_update", to: NonNullJSONType): void;
 }>();
 
-
 const schema = inject(schemaKey)!;
-
 
 const value = computed(() => {
   try {
@@ -35,7 +32,6 @@ const value = computed(() => {
     return false;
   }
 });
-
 
 const handleUpdate = (value: boolean) => {
   emits("_update", value);

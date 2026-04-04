@@ -6,11 +6,9 @@ const props = defineProps<{
   content: string;
 }>();
 
-
 setOptions({
   breaks: true,
 });
-
 
 const compiled = computed(() => marked(props.content));
 </script>

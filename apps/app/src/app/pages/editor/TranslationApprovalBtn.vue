@@ -12,41 +12,32 @@ import { useEditorTableStore } from "@/app/stores/editor/table";
 
 const { t } = useI18n();
 
-
 const props = defineProps<{
   translation: Pick<TranslationWithStatus, "id">;
 }>();
 
-
 const { element } = storeToRefs(useEditorTableStore());
-
 
 const isApproved = computed<boolean>(() => {
   return element?.value?.approvedTranslationId === props.translation.id;
 });
 
-
 const handleApprove = async () => {
   if (isApproved.value) return;
-
 
   await orpc.translation.approve({
     translationId: props.translation.id,
   });
 
-
   element.value!.approvedTranslationId = props.translation.id;
 };
-
 
 const handleUnapprove = async () => {
   if (!isApproved.value) return;
 
-
   await orpc.translation.unapprove({
     translationId: props.translation.id,
   });
-
 
   element.value!.approvedTranslationId = null;
 };

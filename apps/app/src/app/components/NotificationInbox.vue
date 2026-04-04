@@ -8,7 +8,7 @@ import {
   ScrollArea,
   Separator,
 } from "@cat/ui";
-import { Bell } from "lucide-vue-next";
+import { Bell } from "@lucide/vue";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
@@ -17,11 +17,9 @@ import { useNotificationStore } from "@/app/stores/notification";
 const { t } = useI18n();
 const store = useNotificationStore();
 
-
 const handleMarkAllRead = async () => {
   await store.markAllRead();
 };
-
 
 const handleClickItem = async (id: number) => {
   await store.markRead(id);

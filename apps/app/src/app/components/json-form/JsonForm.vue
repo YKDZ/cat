@@ -8,7 +8,6 @@ defineProps<{
   data: NonNullJSONType;
 }>();
 
-
 const emits = defineEmits<{
   (
     e: "update",
