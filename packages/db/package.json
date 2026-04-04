@@ -40,7 +40,7 @@
   "devDependencies": {
     "@types/node": "^25.5.2",
     "@types/pg": "^8.20.0",
-    "drizzle-kit": "1.0.0-beta.19",
+    "drizzle-kit": "1.0.0-beta.20",
     "drizzle-seed": "^0.3.1",
     "unplugin-dts": "1.0.0-beta.6",
     "vite": "^8.0.3",
