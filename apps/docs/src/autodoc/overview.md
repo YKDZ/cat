@@ -24,7 +24,7 @@
 
 * [**@cat/server-shared**](./packages/server-shared.md) — Shared server utilities (18 functions, 2 types)
 
-* [**@cat/plugin-core**](./packages/plugin-core.md) — Plugin system core: service registry, component registry, discovery (15 functions, 75 types)
+* [**@cat/plugin-core**](./packages/plugin-core.md) — Plugin system core: service registry, component registry, discovery (15 functions, 72 types)
 
 * [**@cat/auth**](./packages/auth.md) — DAG-based authentication flow engine (10 functions, 23 types)
 
