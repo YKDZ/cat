@@ -8,7 +8,7 @@ Plugin system core: service registry, component registry, discovery
 
 * **Exported functions**: 15
 
-* **Exported types**: 75
+* **Exported types**: 72
 
 ## Function Index
 
