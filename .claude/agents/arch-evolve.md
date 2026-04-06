@@ -113,16 +113,20 @@ When the review or supplementary context reveals a new ambiguity requiring human
 
 Write the document incrementally using the continuation marker `<!-- §§ARCH_CONTINUE§§ -->`. Do NOT write the entire document in a single tool call.
 
+**Each tool call must write exactly ONE section (one `##`-level heading and its content).** This is a hard rule — never combine multiple sections into one write, even for the final chunk. Violating this causes tool-call timeouts.
+
 Procedure:
 
-1. **Create** the file with the first major sections, ending with the marker.
-2. **Append** subsequent section groups by replacing the marker with content + a fresh marker.
-3. **Final chunk**: append the last sections — no new marker.
+1. **Create** the file with the document header and the first `##` section, ending with the marker.
+2. **For each subsequent section**: replace the marker with that single section's content + a fresh marker.
+3. **Final section**: replace the marker with the last section's content — no new marker.
 
 Rules:
 
 - The marker string is exactly `<!-- §§ARCH_CONTINUE§§ -->` — do not vary it.
 - Never leave the marker in the finished document.
+- **Never batch remaining sections into a single write.** If three sections remain, that is three separate tool calls — not one.
+- If a single section is exceptionally long (e.g., a large table or decision record), split it at natural boundaries (e.g., table halves) using the same marker technique.
 
 ## Quality Checklist
 
