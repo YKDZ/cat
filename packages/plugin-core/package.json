@@ -30,8 +30,8 @@
     "build": "vite build",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "oxlint --disable-nested-config --type-aware",
-    "lint:fix": "oxlint --fix --disable-nested-config --type-aware",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
     "test": "vitest run --config ../../vitest.config.ts --project=unit-plugin-core",
     "test:integration": "vitest run --config ../../vitest.config.ts --project=unit-plugin-core --include='**/*.test.ts'",
     "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-plugin-core --include='**/*.spec.ts'",
@@ -39,9 +39,9 @@
   },
   "devDependencies": {
     "@cat/domain": "workspace:*",
-    "hono": "^4.12.10",
+    "hono": "^4.12.12",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.3",
+    "vite": "^8.0.7",
     "vitest": "4.1.0"
   },
   "peerDependencies": {

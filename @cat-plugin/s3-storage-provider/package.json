@@ -24,17 +24,17 @@
     "build": "vite build",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "oxlint --disable-nested-config --type-aware",
-    "lint:fix": "oxlint --fix --disable-nested-config --type-aware",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1024.0",
-    "@aws-sdk/lib-storage": "^3.1024.0",
-    "@aws-sdk/s3-request-presigner": "^3.1024.0"
+    "@aws-sdk/client-s3": "^3.1026.0",
+    "@aws-sdk/lib-storage": "^3.1026.0",
+    "@aws-sdk/s3-request-presigner": "^3.1026.0"
   },
   "devDependencies": {
-    "vite": "^8.0.3"
+    "vite": "^8.0.7"
   },
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*",
