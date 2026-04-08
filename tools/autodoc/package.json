@@ -13,8 +13,8 @@
     "check": "node dist/cli.js check",
     "dev": "vite build --watch",
     "fmt:check": "oxfmt --check",
-    "lint": "oxlint --disable-nested-config --type-aware",
-    "lint:fix": "oxlint --fix --disable-nested-config --type-aware",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
     "test": "vitest run --config ../../vitest.config.ts --project=unit-autodoc",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
   },
@@ -30,7 +30,7 @@
     "@types/mdast": "^4.0.4",
     "typescript": "beta",
     "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.3",
-    "vitest": "^4.1.2"
+    "vite": "^8.0.7",
+    "vitest": "^4.1.3"
   }
 }

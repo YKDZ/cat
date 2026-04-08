@@ -25,8 +25,8 @@
     "dev": "vite dev",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "oxlint --disable-nested-config --type-aware",
-    "lint:fix": "oxlint --fix --disable-nested-config --type-aware",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
@@ -37,8 +37,8 @@
     "@types/qrcode": "^1.5.6",
     "@types/speakeasy": "^2.0.10",
     "@vitejs/plugin-vue": "^6.0.5",
-    "hono": "^4.12.10",
-    "vite": "^8.0.3",
+    "hono": "^4.12.12",
+    "vite": "^8.0.7",
     "vue": "^3.5.32",
     "vue-tsc": "^3.2.6"
   },
