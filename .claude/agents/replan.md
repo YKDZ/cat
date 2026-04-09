@@ -97,14 +97,40 @@ When new decision points are **enabled**:
 - Provide at least two concrete options with pros/cons. Do NOT collapse into a single-line or omit `Final decision: _pending_`.
 - If you are unsure whether something warrants a decision block, err on the side of creating one.
 
-### 4. Consistency Check
+### 4. Consistency & Conflict Review (Sub-Agent)
 
-Review the entire document to ensure:
+After writing the complete draft plan, invoke a **sub-agent** to perform the consistency and conflict review. Do NOT perform this review yourself.
 
-- No step references removed files or stale line ranges
-- No circular dependencies
-- All new operations have corresponding verification methods
-- TODO list is consistent with step content
+Provide the sub-agent with:
+
+- The full path of the **draft plan file** you just wrote
+- The full path of the **original plan file** (for comparison)
+- Instruction to review for the following:
+  - Steps that reference removed files or stale line ranges
+  - Circular dependencies between steps
+  - Operations missing corresponding verification methods
+  - TODO list inconsistencies with step content
+  - Code snippets or file paths that conflict with the actual codebase (the sub-agent should read relevant source files to verify)
+  - Decided blocks whose impact was not fully propagated
+  - Steps that fail to reuse existing infrastructure (utilities, helpers, services, schemas already in the codebase) and instead reinvent equivalent logic
+  - Steps that adopt a complex approach when a simpler, equally correct alternative exists (over-engineering)
+  - Violations of clean architecture: wrong dependency direction, domain logic leaking into adapters, or business rules coupled to framework details
+
+The sub-agent must return a structured report listing each issue with:
+
+- Issue location (section / step number)
+- Description of the problem
+- Suggested fix
+
+### 5. Apply Review Fixes
+
+Read the sub-agent's report and apply all fixes to the plan file. For each reported issue:
+
+- If the fix is straightforward, apply it directly.
+- If the fix reveals a new ambiguity and new decision points are **enabled**, insert a decision block.
+- If the fix reveals a new ambiguity and new decision points are **disabled**, resolve it using best judgment.
+
+After applying all fixes, do NOT run another review round — one pass is sufficient.
 
 ## Plan Document Format
 
@@ -135,4 +161,6 @@ Rules:
 
 ## Final Step
 
-Write the refined plan to the output file described above, using chunked writing as described above.
+1. Write the refined plan to the output file described above, using chunked writing.
+2. Invoke the review sub-agent on the written file.
+3. Apply fixes from the sub-agent's report to the file.
