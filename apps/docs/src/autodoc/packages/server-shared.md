@@ -4,11 +4,11 @@ Shared server utilities
 
 ## Overview
 
-* **Modules**: 8
+* **Modules**: 9
 
-* **Exported functions**: 18
+* **Exported functions**: 20
 
-* **Exported types**: 2
+* **Exported types**: 3
 
 ## Function Index
 
@@ -132,8 +132,28 @@ export const hashFromReadable = async (stream: Readable, algorithm: string): Pro
 export const userFromSessionId = async (drizzle: DbHandle, sessionId: string | null): Promise<{ id: string; name: string; email: string; emailVerified: boolean; avatarFileId: number | null; createdAt: Date; updatedAt: Date; } | null>
 ```
 
+### `setVectorizationQueue`
+
+```ts
+/**
+ * Set the global vectorization task queue instance. Should be called once during app bootstrap.
+ */
+export const setVectorizationQueue = (q: TaskQueue<VectorizationTask>)
+```
+
+### `getVectorizationQueue`
+
+```ts
+/**
+ * Get the global vectorization task queue instance.
+ */
+export const getVectorizationQueue = (): TaskQueue<VectorizationTask>
+```
+
 ## Type Index
 
 * `PresignedPutFileSessionPayload` (type)
 
 * `FileDownloadPayload` (type)
+
+* `VectorizationTask` (type) — Payload type for a vectorization task.

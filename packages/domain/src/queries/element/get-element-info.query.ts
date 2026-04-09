@@ -5,7 +5,7 @@ import {
   sql,
   translatableElement,
   translatableElementContext,
-  translatableString,
+  vectorizedString,
   translation,
 } from "@cat/db";
 import {
@@ -83,15 +83,15 @@ export const getElementInfo: Query<
         documentId: translatableElement.documentId,
         sortIndex: translatableElement.sortIndex,
         approvedTranslationId: translatableElement.approvedTranslationId,
-        sourceText: translatableString.value,
-        sourceLanguageId: translatableString.languageId,
+        sourceText: vectorizedString.value,
+        sourceLanguageId: vectorizedString.languageId,
         meta: translatableElement.meta,
         contexts: contextsSubquery.contextsArray,
       })
       .from(translatableElement)
       .innerJoin(
-        translatableString,
-        eq(translatableElement.translatableStringId, translatableString.id),
+        vectorizedString,
+        eq(translatableElement.vectorizedStringId, vectorizedString.id),
       )
       .leftJoin(
         contextsSubquery,
@@ -107,21 +107,18 @@ export const getElementInfo: Query<
   ];
   if (query.languageId) {
     translationConditions.push(
-      eq(translatableString.languageId, query.languageId),
+      eq(vectorizedString.languageId, query.languageId),
     );
   }
 
   const translationRows = await ctx.db
     .select({
       translationId: translation.id,
-      text: translatableString.value,
-      languageId: translatableString.languageId,
+      text: vectorizedString.value,
+      languageId: vectorizedString.languageId,
     })
     .from(translation)
-    .innerJoin(
-      translatableString,
-      eq(translation.stringId, translatableString.id),
-    )
+    .innerJoin(vectorizedString, eq(translation.stringId, vectorizedString.id))
     .where(and(...translationConditions))
     .orderBy(asc(translation.createdAt));
 

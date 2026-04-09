@@ -3,7 +3,7 @@ import {
   createElements,
   createProject,
   createRootDocument,
-  createTranslatableStrings,
+  createVectorizedStrings,
   createUser,
   ensureLanguages,
   executeCommand,
@@ -93,7 +93,7 @@ beforeAll(async () => {
     // oxlint-disable-next-line no-await-in-loop
     const stringIds = await executeCommand(
       { db: drizzle },
-      createTranslatableStrings,
+      createVectorizedStrings,
       {
         chunkSetIds: [chunkSet.id],
         data: [{ text: element.text, languageId: element.languageId }],

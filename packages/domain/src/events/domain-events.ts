@@ -29,6 +29,14 @@ export type DomainEventMap = {
   "comment:deleted": { commentId: number };
   "memory:item:created": { memoryId: string; itemIds: number[] };
   "qa:completed": { documentId: string; issueCount: number };
+  // ─── Vectorization ───
+  "vectorization:enqueued": { stringIds: number[]; taskId: string };
+  "vectorization:completed": { stringIds: number[]; taskId: string };
+  "vectorization:failed": {
+    stringIds: number[];
+    taskId: string;
+    error: unknown;
+  };
   // ─── Message System ───
   "message:send-requested": {
     recipientId: string;

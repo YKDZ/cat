@@ -5,7 +5,7 @@ import {
   eq,
   sql,
   translatableElement,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
@@ -35,8 +35,8 @@ export const getElementWithChunkIds: Query<
   return assertSingleOrNull(
     await ctx.db
       .select({
-        value: translatableString.value,
-        languageId: translatableString.languageId,
+        value: vectorizedString.value,
+        languageId: vectorizedString.languageId,
         projectId: document.projectId,
         documentId: document.id,
         chunkIds: sql<
@@ -45,17 +45,17 @@ export const getElementWithChunkIds: Query<
       })
       .from(translatableElement)
       .innerJoin(
-        translatableString,
-        eq(translatableElement.translatableStringId, translatableString.id),
+        vectorizedString,
+        eq(translatableElement.vectorizedStringId, vectorizedString.id),
       )
       .innerJoin(document, eq(translatableElement.documentId, document.id))
-      .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
+      .innerJoin(chunkSet, eq(vectorizedString.chunkSetId, chunkSet.id))
       .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
       .where(eq(translatableElement.id, query.elementId))
       .groupBy(
         translatableElement.id,
-        translatableString.value,
-        translatableString.languageId,
+        vectorizedString.value,
+        vectorizedString.languageId,
         document.projectId,
         document.id,
       )

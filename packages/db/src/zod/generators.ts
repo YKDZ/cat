@@ -42,7 +42,7 @@ import {
   termConceptToSubject,
   translatableElement,
   translatableElementContext,
-  translatableString,
+  vectorizedString,
   translation,
   translationSnapshot,
   translationSnapshotItem,
@@ -93,7 +93,7 @@ type SelectSchemaTable =
   | typeof termConceptToSubject
   | typeof translatableElement
   | typeof translatableElementContext
-  | typeof translatableString
+  | typeof vectorizedString
   | typeof translation
   | typeof translationSnapshot
   | typeof translationSnapshotItem
@@ -216,9 +216,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
       },
       {
         kind: "table",
-        schemaExportName: "TranslatableStringSchema",
-        typeExportName: "TranslatableString",
-        buildShape: buildSelectShape(translatableString),
+        schemaExportName: "VectorizedStringSchema",
+        typeExportName: "VectorizedString",
+        buildShape: buildSelectShape(vectorizedString),
       },
       {
         kind: "table",

@@ -40,7 +40,7 @@ export const AdaptationMethodSchema = z.enum([
 
 export const MemorySuggestionSchema = z.object({
   id: z.int(),
-  translationChunkSetId: z.int(),
+  translationChunkSetId: z.int().nullable(),
   source: z.string(),
   translation: z.string(),
   memoryId: z.uuidv4(),

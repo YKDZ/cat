@@ -40,6 +40,7 @@
     "vite": "^8.0.7"
   },
   "peerDependencies": {
+    "@cat/core": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",

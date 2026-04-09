@@ -350,13 +350,13 @@ export const memoryItem = pgTable("MemoryItem", {
   }),
   sourceStringId: integer()
     .notNull()
-    .references(() => translatableString.id, {
+    .references(() => vectorizedString.id, {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
   translationStringId: integer()
     .notNull()
-    .references(() => translatableString.id, {
+    .references(() => vectorizedString.id, {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
@@ -611,7 +611,7 @@ export const term = pgTable(
 export const termConcept = pgTable("TermConcept", {
   id: serial().primaryKey(),
   definition: text(),
-  stringId: integer().references(() => translatableString.id, {
+  stringId: integer().references(() => vectorizedString.id, {
     onDelete: "set null",
     onUpdate: "cascade",
   }),
@@ -686,9 +686,9 @@ export const translatableElement = pgTable(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-    translatableStringId: integer()
+    vectorizedStringId: integer()
       .notNull()
-      .references(() => translatableString.id, {
+      .references(() => vectorizedString.id, {
         onDelete: "restrict",
         onUpdate: "cascade",
       }),
@@ -803,8 +803,8 @@ export const translatableElementContext = pgTable(
   ],
 );
 
-export const translatableString = pgTable(
-  "TranslatableString",
+export const vectorizedString = pgTable(
+  "VectorizedString",
   {
     id: serial().primaryKey(),
     value: text().notNull(),
@@ -814,24 +814,28 @@ export const translatableString = pgTable(
         onDelete: "restrict",
         onUpdate: "cascade",
       }),
-    chunkSetId: integer()
-      .notNull()
-      .references(() => chunkSet.id, {
-        onDelete: "restrict",
-        onUpdate: "cascade",
-      }),
+    chunkSetId: integer().references(() => chunkSet.id, {
+      onDelete: "restrict",
+      onUpdate: "cascade",
+    }),
+    status: text().notNull().default("PENDING_VECTORIZE"),
   },
   (table) => [
     unique().on(table.languageId, table.value),
     // pg_trgm GIN index for fast bidirectional ILIKE matching (term.lookup)
-    index("idx_translatable_string_value_trgm").using(
+    index("idx_vectorized_string_value_trgm").using(
       "gin",
       sql`${table.value} gin_trgm_ops`,
     ),
     // Index for faster language lookup
-    index("idx_translatable_string_language").using(
+    index("idx_vectorized_string_language").using(
       "btree",
       table.languageId.asc().nullsLast(),
+    ),
+    // Index for status-based filtering
+    index("idx_vectorized_string_status").using(
+      "btree",
+      table.status.asc().nullsLast(),
     ),
   ],
 );
@@ -853,7 +857,7 @@ export const translation = pgTable(
     meta: jsonb().$type<JSONType>(),
     stringId: integer()
       .notNull()
-      .references(() => translatableString.id, {
+      .references(() => vectorizedString.id, {
         onDelete: "restrict",
         onUpdate: "cascade",
       }),

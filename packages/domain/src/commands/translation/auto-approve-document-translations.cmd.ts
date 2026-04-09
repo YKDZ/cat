@@ -6,7 +6,7 @@ import {
   translation,
   translationVote,
   translatableElement,
-  translatableString,
+  vectorizedString,
   and,
 } from "@cat/db";
 import * as z from "zod/v4";
@@ -41,10 +41,7 @@ export const autoApproveDocumentTranslations: Command<
       translatableElement,
       eq(translation.translatableElementId, translatableElement.id),
     )
-    .innerJoin(
-      translatableString,
-      eq(translation.stringId, translatableString.id),
-    )
+    .innerJoin(vectorizedString, eq(translation.stringId, vectorizedString.id))
     .leftJoin(
       translationVote,
       eq(translationVote.translationId, translation.id),
@@ -52,7 +49,7 @@ export const autoApproveDocumentTranslations: Command<
     .where(
       and(
         eq(translatableElement.documentId, command.documentId),
-        eq(translatableString.languageId, command.languageId),
+        eq(vectorizedString.languageId, command.languageId),
         isNull(translatableElement.approvedTranslationId),
       ),
     )

@@ -5,7 +5,7 @@ import { createElements, executeCommand } from "@cat/domain";
 import { zip } from "@cat/shared/utils";
 import * as z from "zod";
 
-import { createTranslatableStringOp } from "./create-translatable-string";
+import { createVectorizedStringOp } from "./create-vectorized-string";
 
 export const CreateElementInputSchema = z.object({
   data: z.array(
@@ -51,8 +51,8 @@ export const createElementOp = async (
 ): Promise<CreateElementOutput> => {
   const { client: drizzle } = await getDbHandle();
 
-  // 直接调用 createTranslatableStringOp
-  const stringResult = await createTranslatableStringOp(
+  // 直接调用 createVectorizedStringOp
+  const stringResult = await createVectorizedStringOp(
     {
       data: data.data.map((d) => ({
         text: d.text,

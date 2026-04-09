@@ -41,7 +41,7 @@ export const createElements: Command<CreateElementsCommand, number[]> = async (
         sortIndex: item.sortIndex ?? 0,
         creatorId: item.creatorId,
         documentId: item.documentId,
-        translatableStringId: item.stringId,
+        vectorizedStringId: item.stringId,
         sourceStartLine: item.sourceStartLine ?? null,
         sourceEndLine: item.sourceEndLine ?? null,
         sourceLocationMeta: item.sourceLocationMeta ?? null,

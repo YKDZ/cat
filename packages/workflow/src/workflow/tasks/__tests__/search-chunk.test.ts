@@ -13,7 +13,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 import { createDefaultGraphRuntime } from "@/graph";
 import { runGraph } from "@/graph/typed-dsl";
 
-import { createTranslatableStringGraph } from "../create-translatable-string";
+import { createVectorizedStringGraph } from "../create-vectorized-string";
 import { searchChunkGraph } from "../search-chunk";
 
 const data = [
@@ -59,7 +59,7 @@ beforeAll(async () => {
 
   createDefaultGraphRuntime(drizzle, pluginManager);
 
-  await runGraph(createTranslatableStringGraph, {
+  await runGraph(createVectorizedStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,

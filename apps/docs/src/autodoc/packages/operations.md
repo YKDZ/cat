@@ -4,9 +4,9 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 44
+* **Modules**: 46
 
-* **Exported functions**: 46
+* **Exported functions**: 48
 
 * **Exported types**: 79
 
@@ -103,23 +103,6 @@ export const createElementOp = async (data: CreateElementInput, ctx?: OperationC
 export const createTermOp = async (data: CreateTermInput, ctx?: OperationContext): Promise<{ termIds: number[]; }>
 ```
 
-### `createTranslatableStringOp`
-
-```ts
-/**
- * Create translatable strings.
- *
- * First vectorizes the text data, then creates the TranslatableString
- * rows in the database.
- *
- * @param data - Translatable string creation input parameters
- * @param ctx - Operation context
- *
- * @returns List of IDs of the newly created strings
- */
-export const createTranslatableStringOp = async (data: CreateTranslatableStringInput, ctx?: OperationContext): Promise<{ stringIds: number[]; }>
-```
-
 ### `createTranslationOp`
 
 ```ts
@@ -138,6 +121,23 @@ export const createTranslatableStringOp = async (data: CreateTranslatableStringI
  * @returns List of created translation IDs and memory item IDs
  */
 export const createTranslationOp = async (data: CreateTranslationInput, ctx?: OperationContext): Promise<{ translationIds: number[]; memoryItemIds: number[]; }>
+```
+
+### `createVectorizedStringOp`
+
+```ts
+/**
+ * Create vectorized strings (async fire-and-forget).
+ *
+ * Inserts VectorizedString rows (status=PENDING_VECTORIZE) into the database first,
+ * then enqueues the vectorization task and publishes a domain event, returning stringIds immediately.
+ *
+ * @param data - String creation input parameters
+ * @param ctx - Operation context
+ *
+ * @returns List of IDs of the newly created strings
+ */
+export const createVectorizedStringOp = async (data: CreateVectorizedStringInput, ctx?: OperationContext): Promise<{ stringIds: number[]; }>
 ```
 
 ### `deduplicateAndMatchOp`
@@ -541,6 +541,15 @@ export const qaOp = async (payload: QAInput, _ctx?: OperationContext): Promise<{
 export const registerDomainEventHandlers = (db: DrizzleClient)
 ```
 
+### `registerVectorizationConsumer`
+
+```ts
+/**
+ * Register the vectorization queue consumer. Event-driven + startup recovery.
+ */
+export const registerVectorizationConsumer = async (queue: TaskQueue<VectorizationTask>, options?: { batchSize?: number }): Promise<void>
+```
+
 ### `retrieveEmbeddingsOp`
 
 ```ts
@@ -629,7 +638,7 @@ export const searchChunkOp = async (payload: SearchChunkInput, ctx?: OperationCo
  *
  * @returns List of matching memory entries (sorted by confidence descending)
  */
-export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; }[]; }>
+export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; }[]; }>
 ```
 
 ### `semanticSearchTermsOp`
@@ -711,7 +720,7 @@ export const statisticalTermExtractOp = async (data: StatisticalTermExtractInput
  *
  * @returns Async iterable that yields matching memory entries as they arrive
  */
-export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; }>
+export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; }>
 ```
 
 ### `streamSearchTermsOp`
@@ -835,6 +844,15 @@ export const upsertDocumentFromFileOp = async (data: UpsertDocumentInput, ctx?: 
 export const vectorTermAlignOp = async (data: VectorTermAlignInput, ctx?: OperationContext): Promise<{ alignedPairs: { groupAIndex: number; candidateAIndex: number; groupBIndex: number; candidateBIndex: number; similarity: number; }[]; stringIds: { groupIndex: number; candidateIndex: number; stringId: number; }[]; }>
 ```
 
+### `processVectorizationBatch`
+
+```ts
+/**
+ * Process a batch of vectorization queue tasks: vectorize → backfill chunkSetId → update status → publish event.
+ */
+export const processVectorizationBatch = async (queue: TaskQueue<VectorizationTask>, batchSize: number, ctx?: OperationContext): Promise<void>
+```
+
 ### `vectorizeToChunkSetOp`
 
 ```ts
@@ -874,15 +892,15 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 
 * `CreateTermOutput` (type)
 
-* `CreateTranslatableStringInput` (type)
-
-* `CreateTranslatableStringOutput` (type)
-
 * `CreateTranslationInput` (type)
 
 * `CreateTranslationOutput` (type)
 
 * `CreateTranslationPubPayload` (type)
+
+* `CreateVectorizedStringInput` (type)
+
+* `CreateVectorizedStringOutput` (type)
 
 * `DeduplicateAndMatchInput` (type)
 

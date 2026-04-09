@@ -7,7 +7,7 @@ import {
   deleteElementsByIds,
   executeCommand,
   executeQuery,
-  listCachedTranslatableStrings,
+  listCachedVectorizedStrings,
   listElementsForDiff,
 } from "@cat/domain";
 import { safeZDotJson } from "@cat/shared/schema/json";
@@ -15,7 +15,7 @@ import { isDeepStrictEqual } from "node:util";
 import * as z from "zod";
 
 import { createElementOp } from "./create-element";
-import { createTranslatableStringOp } from "./create-translatable-string";
+import { createVectorizedStringOp } from "./create-vectorized-string";
 
 export const DiffElementsInputSchema = z.object({
   elementData: z.array(
@@ -154,7 +154,7 @@ export const diffElementsOp = async (
 
   // 4. 处理文本更新
   if (textUpdates.length > 0) {
-    const { stringIds } = await createTranslatableStringOp(
+    const { stringIds } = await createVectorizedStringOp(
       {
         data: textUpdates.map((u) => ({
           text: u.text,
@@ -190,7 +190,7 @@ export const diffElementsOp = async (
     // 检查字符串缓存
     const existingStrings = await executeQuery(
       { db: drizzle },
-      listCachedTranslatableStrings,
+      listCachedVectorizedStrings,
       {
         items: added.map((el) => ({
           text: el.text,

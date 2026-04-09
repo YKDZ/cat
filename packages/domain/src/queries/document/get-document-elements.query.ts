@@ -8,7 +8,7 @@ import {
   isNotNull,
   sql,
   translatableElement,
-  translatableString,
+  vectorizedString,
   translation,
   type SQL,
 } from "@cat/db";
@@ -64,13 +64,13 @@ const buildStatusSql = (
           .select()
           .from(translation)
           .innerJoin(
-            translatableString,
-            eq(translation.stringId, translatableString.id),
+            vectorizedString,
+            eq(translation.stringId, vectorizedString.id),
           )
           .where(
             and(
               eq(translation.id, translatableElement.approvedTranslationId),
-              eq(translatableString.languageId, languageId),
+              eq(vectorizedString.languageId, languageId),
             ),
           ),
       ),
@@ -80,13 +80,13 @@ const buildStatusSql = (
         .select()
         .from(translation)
         .innerJoin(
-          translatableString,
-          eq(translation.stringId, translatableString.id),
+          vectorizedString,
+          eq(translation.stringId, vectorizedString.id),
         )
         .where(
           and(
             eq(translation.translatableElementId, translatableElement.id),
-            eq(translatableString.languageId, languageId),
+            eq(vectorizedString.languageId, languageId),
           ),
         ),
     )} THEN 'TRANSLATED'
@@ -104,7 +104,7 @@ export const getDocumentElements: Query<
 
   if (query.searchQuery && query.searchQuery.trim().length > 0) {
     whereConditions.push(
-      ilike(translatableString.value, `%${query.searchQuery}%`),
+      ilike(vectorizedString.value, `%${query.searchQuery}%`),
     );
   }
 
@@ -120,14 +120,14 @@ export const getDocumentElements: Query<
   return ctx.db
     .select({
       ...getColumns(translatableElement),
-      value: translatableString.value,
-      languageId: translatableString.languageId,
+      value: vectorizedString.value,
+      languageId: vectorizedString.languageId,
       status: buildStatusSql(ctx.db, query.languageId).as("status"),
     })
     .from(translatableElement)
     .innerJoin(
-      translatableString,
-      eq(translatableElement.translatableStringId, translatableString.id),
+      vectorizedString,
+      eq(translatableElement.vectorizedStringId, vectorizedString.id),
     )
     .where(
       whereConditions.length === 1

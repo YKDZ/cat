@@ -1,3 +1,4 @@
+import type { VectorizationTask } from "@cat/operations";
 import type { GlobalContextServer } from "vike/types";
 
 import app from "@cat/app-api/app";
@@ -14,7 +15,10 @@ import {
   initSessionStore,
 } from "@cat/domain";
 import { MessageGateway } from "@cat/message";
-import { registerDomainEventHandlers } from "@cat/operations";
+import {
+  registerDomainEventHandlers,
+  registerVectorizationConsumer,
+} from "@cat/operations";
 import {
   grantFirstUserSuperadmin,
   initPermissionEngine,
@@ -26,7 +30,9 @@ import {
   initAllVectorStorage,
   RedisCacheStore,
   RedisSessionStore,
+  RedisTaskQueue,
   serverLogger as logger,
+  setVectorizationQueue,
 } from "@cat/server-shared";
 import { assertPromise } from "@cat/shared/utils";
 import { createDefaultGraphRuntime } from "@cat/workflow";
@@ -107,6 +113,14 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     await initAllVectorStorage(pluginManager);
     registerDomainEventHandlers(drizzleDB.client);
+
+    // 初始化向量化任务队列并注册消费者
+    const vectorizationQueue = new RedisTaskQueue<VectorizationTask>(
+      redis.redis,
+      "vectorization",
+    );
+    setVectorizationQueue(vectorizationQueue);
+    await registerVectorizationConsumer(vectorizationQueue);
 
     // 初始化消息网关（站内信 + 邮件分发）
     const messageGateway = new MessageGateway({

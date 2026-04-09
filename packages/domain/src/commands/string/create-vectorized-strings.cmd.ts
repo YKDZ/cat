@@ -1,10 +1,10 @@
-import { and, eq, inArray, translatableString } from "@cat/db";
+import { and, eq, inArray, vectorizedString } from "@cat/db";
 import * as z from "zod/v4";
 
 import type { Command } from "@/types";
 
-export const CreateTranslatableStringsCommandSchema = z.object({
-  chunkSetIds: z.array(z.int()),
+export const CreateVectorizedStringsCommandSchema = z.object({
+  chunkSetIds: z.array(z.int()).optional(),
   data: z.array(
     z.object({
       text: z.string(),
@@ -13,12 +13,12 @@ export const CreateTranslatableStringsCommandSchema = z.object({
   ),
 });
 
-export type CreateTranslatableStringsCommand = z.infer<
-  typeof CreateTranslatableStringsCommandSchema
+export type CreateVectorizedStringsCommand = z.infer<
+  typeof CreateVectorizedStringsCommandSchema
 >;
 
-export const createTranslatableStrings: Command<
-  CreateTranslatableStringsCommand,
+export const createVectorizedStrings: Command<
+  CreateVectorizedStringsCommand,
   number[]
 > = async (ctx, command) => {
   const { chunkSetIds, data } = command;
@@ -36,15 +36,12 @@ export const createTranslatableStrings: Command<
   const uniqueEntries: Array<{
     key: string;
     data: (typeof data)[number];
-    chunkSetId: number;
+    chunkSetId: number | null;
   }> = [];
   const seenKeys = new Set<string>();
 
   for (const [index, item] of data.entries()) {
-    const chunkSetId = chunkSetIds[index];
-    if (chunkSetId === undefined) {
-      throw new Error(`Missing chunkSetId for index ${index}`);
-    }
+    const chunkSetId = chunkSetIds?.[index] ?? null;
     const key = makeKey(item.languageId, item.text);
 
     if (seenKeys.has(key)) {
@@ -68,15 +65,15 @@ export const createTranslatableStrings: Command<
     Array.from(byLanguage.entries()).map(([languageId, values]) =>
       ctx.db
         .select({
-          id: translatableString.id,
-          value: translatableString.value,
-          languageId: translatableString.languageId,
+          id: vectorizedString.id,
+          value: vectorizedString.value,
+          languageId: vectorizedString.languageId,
         })
-        .from(translatableString)
+        .from(vectorizedString)
         .where(
           and(
-            eq(translatableString.languageId, languageId),
-            inArray(translatableString.value, values),
+            eq(vectorizedString.languageId, languageId),
+            inArray(vectorizedString.value, values),
           ),
         ),
     ),
@@ -92,19 +89,20 @@ export const createTranslatableStrings: Command<
 
   if (missingEntries.length > 0) {
     const insertedRows = await ctx.db
-      .insert(translatableString)
+      .insert(vectorizedString)
       .values(
         missingEntries.map((entry) => ({
           value: entry.data.text,
           languageId: entry.data.languageId,
           chunkSetId: entry.chunkSetId,
+          status: entry.chunkSetId !== null ? "ACTIVE" : "PENDING_VECTORIZE",
         })),
       )
       .onConflictDoNothing()
       .returning({
-        id: translatableString.id,
-        value: translatableString.value,
-        languageId: translatableString.languageId,
+        id: vectorizedString.id,
+        value: vectorizedString.value,
+        languageId: vectorizedString.languageId,
       });
 
     for (const row of insertedRows) {
@@ -126,15 +124,15 @@ export const createTranslatableStrings: Command<
         Array.from(missingByLanguage.entries()).map(([languageId, values]) =>
           ctx.db
             .select({
-              id: translatableString.id,
-              value: translatableString.value,
-              languageId: translatableString.languageId,
+              id: vectorizedString.id,
+              value: vectorizedString.value,
+              languageId: vectorizedString.languageId,
             })
-            .from(translatableString)
+            .from(vectorizedString)
             .where(
               and(
-                eq(translatableString.languageId, languageId),
-                inArray(translatableString.value, values),
+                eq(vectorizedString.languageId, languageId),
+                inArray(vectorizedString.value, values),
               ),
             ),
         ),
@@ -153,7 +151,7 @@ export const createTranslatableStrings: Command<
       const id = idMap.get(makeKey(item.languageId, item.text));
       if (id === undefined) {
         throw new Error(
-          `Failed to resolve translatable string id for languageId: ${item.languageId}, text: ${item.text}`,
+          `Failed to resolve vectorized string id for languageId: ${item.languageId}, text: ${item.text}`,
         );
       }
 

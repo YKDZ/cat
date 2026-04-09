@@ -10,7 +10,7 @@ import {
 import { zip } from "@cat/shared/utils";
 import * as z from "zod";
 
-import { createTranslatableStringOp } from "./create-translatable-string";
+import { createVectorizedStringOp } from "./create-vectorized-string";
 import { insertMemory } from "./memory";
 import { qaTranslationOp } from "./qa-translation";
 
@@ -78,7 +78,7 @@ export const createTranslationOp = async (
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
   // 1. 创建可翻译字符串
-  const stringResult = await createTranslatableStringOp(
+  const stringResult = await createVectorizedStringOp(
     {
       data: data.data.map((d) => ({
         text: d.text,

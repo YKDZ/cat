@@ -7,7 +7,7 @@ import {
   not,
   translatableElement,
   translation,
-  translatableString,
+  vectorizedString,
   type SQL,
 } from "@cat/db";
 
@@ -43,13 +43,13 @@ export const buildTranslationStatusConditions = (
             .select()
             .from(translation)
             .innerJoin(
-              translatableString,
-              eq(translation.stringId, translatableString.id),
+              vectorizedString,
+              eq(translation.stringId, vectorizedString.id),
             )
             .where(
               and(
                 eq(translation.translatableElementId, translatableElement.id),
-                eq(translatableString.languageId, languageId),
+                eq(vectorizedString.languageId, languageId),
               ),
             ),
         ),
@@ -66,13 +66,13 @@ export const buildTranslationStatusConditions = (
           .select()
           .from(translation)
           .innerJoin(
-            translatableString,
-            eq(translation.stringId, translatableString.id),
+            vectorizedString,
+            eq(translation.stringId, vectorizedString.id),
           )
           .where(
             and(
               eq(translation.translatableElementId, translatableElement.id),
-              eq(translatableString.languageId, languageId),
+              eq(vectorizedString.languageId, languageId),
             ),
           ),
       ),
@@ -88,13 +88,13 @@ export const buildTranslationStatusConditions = (
           .select()
           .from(translation)
           .innerJoin(
-            translatableString,
-            eq(translation.stringId, translatableString.id),
+            vectorizedString,
+            eq(translation.stringId, vectorizedString.id),
           )
           .where(
             and(
               eq(translation.translatableElementId, translatableElement.id),
-              eq(translatableString.languageId, languageId),
+              eq(vectorizedString.languageId, languageId),
               isNull(translatableElement.approvedTranslationId),
             ),
           ),
@@ -110,13 +110,13 @@ export const buildTranslationStatusConditions = (
         .select()
         .from(translation)
         .innerJoin(
-          translatableString,
-          eq(translation.stringId, translatableString.id),
+          vectorizedString,
+          eq(translation.stringId, vectorizedString.id),
         )
         .where(
           and(
             eq(translation.translatableElementId, translatableElement.id),
-            eq(translatableString.languageId, languageId),
+            eq(vectorizedString.languageId, languageId),
             isNotNull(translatableElement.approvedTranslationId),
           ),
         ),

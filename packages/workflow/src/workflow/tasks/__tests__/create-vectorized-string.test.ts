@@ -1,7 +1,7 @@
 import {
   ensureLanguages,
   getStringByValue,
-  listTranslatableStringsById,
+  listVectorizedStringsById,
   executeCommand,
   getDbHandle,
   executeQuery,
@@ -14,7 +14,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 import { createDefaultGraphRuntime } from "@/graph";
 import { runGraph } from "@/graph/typed-dsl";
 
-import { createTranslatableStringGraph } from "../create-translatable-string";
+import { createVectorizedStringGraph } from "../create-vectorized-string";
 
 let cleanup: () => Promise<void>;
 
@@ -63,14 +63,14 @@ test("worker should insert strings to db", async () => {
     { text: "Text 3", languageId: "en" },
   ];
 
-  const { stringIds } = await runGraph(createTranslatableStringGraph, {
+  const { stringIds } = await runGraph(createVectorizedStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
   const strings = await executeQuery(
     { db: client },
-    listTranslatableStringsById,
+    listVectorizedStringsById,
     {
       stringIds,
     },
@@ -87,6 +87,8 @@ test("worker should insert strings to db", async () => {
 
     expect(string).not.toBeNull();
     expect(string?.value).toEqual(stringData.text);
+    // Async mode: strings are inserted with PENDING_VECTORIZE status initially
+    expect(string?.status).toEqual("PENDING_VECTORIZE");
   }
 });
 
@@ -101,7 +103,7 @@ test("empty input should return empty array", async () => {
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  const { stringIds } = await runGraph(createTranslatableStringGraph, {
+  const { stringIds } = await runGraph(createVectorizedStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
@@ -122,13 +124,13 @@ test("worker should reuse existing strings", async () => {
 
   const data = [{ text: "Duplicate Text", languageId: "en" }];
 
-  const { stringIds: ids1 } = await runGraph(createTranslatableStringGraph, {
+  const { stringIds: ids1 } = await runGraph(createVectorizedStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
   });
 
-  const { stringIds: ids2 } = await runGraph(createTranslatableStringGraph, {
+  const { stringIds: ids2 } = await runGraph(createVectorizedStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,

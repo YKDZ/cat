@@ -8,7 +8,7 @@ import { generateCacheKey } from "@/graph/cache";
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 import { runGraph } from "@/graph/typed-dsl/run-graph";
 
-import { createTranslatableStringGraph } from "./create-translatable-string";
+import { createVectorizedStringGraph } from "./create-vectorized-string";
 import { qaTranslationGraph } from "./qa-translation";
 
 export const CreateTranslationInputSchema = z.object({
@@ -65,7 +65,7 @@ export const createTranslationGraph = defineTypedGraph({
         }
 
         const { stringIds } = await runGraph(
-          createTranslatableStringGraph,
+          createVectorizedStringGraph,
           {
             data: input.data.map((item) => ({
               text: item.text,

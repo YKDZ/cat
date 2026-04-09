@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 242
+* **Modules**: 244
 
-* **Exported functions**: 254
+* **Exported functions**: 256
 
-* **Exported types**: 343
+* **Exported types**: 345
 
 ## Function Index
 
@@ -774,6 +774,17 @@ export const setSetting: Command<SetSettingCommand> = async (ctx: DbContext, com
 
 ### packages/domain/src/commands/string
 
+### `attachChunkSetToString`
+
+```ts
+/**
+ * Attach vectorization results (ChunkSet) to existing VectorizedString rows and set status to ACTIVE.
+ */
+export const attachChunkSetToString: Command<
+  AttachChunkSetToStringCommand
+> = async (ctx: DbContext, command: { updates: { stringId: number; chunkSetId: number; }[]; }) => {...}
+```
+
 ### `createChunkSet`
 
 ```ts
@@ -783,13 +794,24 @@ export const createChunkSet: Command<
 > = async (ctx: DbContext, _command: Record) => {...}
 ```
 
-### `createTranslatableStrings`
+### `createVectorizedStrings`
 
 ```ts
-export const createTranslatableStrings: Command<
-  CreateTranslatableStringsCommand,
+export const createVectorizedStrings: Command<
+  CreateVectorizedStringsCommand,
   number[]
-> = async (ctx: DbContext, command: { chunkSetIds: number[]; data: { text: string; languageId: string; }[]; }) => {...}
+> = async (ctx: DbContext, command: { data: { text: string; languageId: string; }[]; chunkSetIds?: number[] | undefined; }) => {...}
+```
+
+### `updateVectorizedStringStatus`
+
+```ts
+/**
+ * Batch-update the status of VectorizedString rows (for state machine transitions such as marking VECTORIZE_FAILED).
+ */
+export const updateVectorizedStringStatus: Command<
+  UpdateVectorizedStringStatusCommand
+> = async (ctx: DbContext, command: { stringIds: number[]; status: string; }) => {...}
 ```
 
 ### packages/domain/src/commands/translation
@@ -1440,12 +1462,12 @@ export const listAllElements: Query<
 > = async (ctx: DbContext, _query: Record) => {...}
 ```
 
-### `listCachedTranslatableStrings`
+### `listCachedVectorizedStrings`
 
 ```ts
-export const listCachedTranslatableStrings: Query<
-  ListCachedTranslatableStringsQuery,
-  CachedTranslatableString[]
+export const listCachedVectorizedStrings: Query<
+  ListCachedVectorizedStringsQuery,
+  CachedVectorizedString[]
 > = async (ctx: DbContext, query: { items: { text: string; languageId: string; }[]; }) => {...}
 ```
 
@@ -2171,11 +2193,11 @@ export const getSetting: Query<GetSettingQuery, JSONType | null> = async (ctx: D
 
 ### packages/domain/src/queries/string
 
-### `countTranslatableStrings`
+### `countVectorizedStrings`
 
 ```ts
-export const countTranslatableStrings: Query<
-  CountTranslatableStringsQuery,
+export const countVectorizedStrings: Query<
+  CountVectorizedStringsQuery,
   number
 > = async (ctx: DbContext, _query: Record) => {...}
 ```
@@ -2185,25 +2207,25 @@ export const countTranslatableStrings: Query<
 ```ts
 export const getStringByValue: Query<
   GetStringByValueQuery,
-  typeof translatableString.$inferSelect | null
+  typeof vectorizedString.$inferSelect | null
 > = async (ctx: DbContext, query: { value: string; languageId: string; }) => {...}
 ```
 
-### `getTranslatableString`
+### `getVectorizedString`
 
 ```ts
-export const getTranslatableString: Query<
-  GetTranslatableStringQuery,
-  typeof translatableString.$inferSelect | null
+export const getVectorizedString: Query<
+  GetVectorizedStringQuery,
+  typeof vectorizedString.$inferSelect | null
 > = async (ctx: DbContext, query: { stringId: number; }) => {...}
 ```
 
-### `listAllTranslatableStrings`
+### `listAllVectorizedStrings`
 
 ```ts
-export const listAllTranslatableStrings: Query<
-  ListAllTranslatableStringsQuery,
-  Array<typeof translatableString.$inferSelect>
+export const listAllVectorizedStrings: Query<
+  ListAllVectorizedStringsQuery,
+  Array<typeof vectorizedString.$inferSelect>
 > = async (ctx: DbContext, _: Record) => {...}
 ```
 
@@ -2216,12 +2238,12 @@ export const listChunksByStringIds: Query<
 > = async (ctx: DbContext, query: { stringIds: number[]; }) => {...}
 ```
 
-### `listTranslatableStringsById`
+### `listVectorizedStringsById`
 
 ```ts
-export const listTranslatableStringsById: Query<
-  ListTranslatableStringsByIdQuery,
-  Array<typeof translatableString.$inferSelect>
+export const listVectorizedStringsById: Query<
+  ListVectorizedStringsByIdQuery,
+  Array<typeof vectorizedString.$inferSelect>
 > = async (ctx: DbContext, query: { stringIds: number[]; }) => {...}
 ```
 
@@ -2559,9 +2581,13 @@ export const searchChunkCosineSimilarity: Query<
 
 * `SetSettingCommand` (type)
 
+* `AttachChunkSetToStringCommand` (type)
+
 * `CreateChunkSetCommand` (type)
 
-* `CreateTranslatableStringsCommand` (type)
+* `CreateVectorizedStringsCommand` (type)
+
+* `UpdateVectorizedStringStatusCommand` (type)
 
 * `ApproveTranslationCommand` (type)
 
@@ -2749,9 +2775,9 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ListAllElementsQuery` (type)
 
-* `ListCachedTranslatableStringsQuery` (type)
+* `ListCachedVectorizedStringsQuery` (type)
 
-* `CachedTranslatableString` (type)
+* `CachedVectorizedString` (type)
 
 * `ListElementsForDiffQuery` (type)
 
@@ -2971,17 +2997,17 @@ export const searchChunkCosineSimilarity: Query<
 
 * `GetSettingQuery` (type)
 
-* `CountTranslatableStringsQuery` (type)
+* `CountVectorizedStringsQuery` (type)
 
 * `GetStringByValueQuery` (type)
 
-* `GetTranslatableStringQuery` (type)
+* `GetVectorizedStringQuery` (type)
 
-* `ListAllTranslatableStringsQuery` (type)
+* `ListAllVectorizedStringsQuery` (type)
 
 * `ListChunksByStringIdsQuery` (type)
 
-* `ListTranslatableStringsByIdQuery` (type)
+* `ListVectorizedStringsByIdQuery` (type)
 
 * `GetSelfTranslationVoteQuery` (type)
 

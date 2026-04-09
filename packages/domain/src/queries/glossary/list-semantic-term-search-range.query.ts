@@ -5,7 +5,7 @@ import {
   inArray,
   isNotNull,
   termConcept,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -38,11 +38,8 @@ export const listSemanticTermSearchRange: Query<
       conceptId: termConcept.id,
     })
     .from(termConcept)
-    .innerJoin(
-      translatableString,
-      eq(translatableString.id, termConcept.stringId),
-    )
-    .innerJoin(chunk, eq(chunk.chunkSetId, translatableString.chunkSetId))
+    .innerJoin(vectorizedString, eq(vectorizedString.id, termConcept.stringId))
+    .innerJoin(chunk, eq(chunk.chunkSetId, vectorizedString.chunkSetId))
     .where(
       and(
         inArray(termConcept.glossaryId, query.glossaryIds),

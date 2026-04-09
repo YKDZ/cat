@@ -4,7 +4,7 @@ import { resolvePluginManager } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
-import { createTranslatableStringOp } from "./create-translatable-string";
+import { createVectorizedStringOp } from "./create-vectorized-string";
 
 // ─── Input / Output Schemas ───
 
@@ -129,7 +129,7 @@ export const vectorTermAlignOp = async (
   }
 
   // Create TranslatableStrings (Decision #4-C: store in formal ChunkSet)
-  const stringResult = await createTranslatableStringOp(
+  const stringResult = await createVectorizedStringOp(
     {
       data: refs.map((r) => ({ text: r.vectorText, languageId: r.languageId })),
       vectorizerId: data.config.vectorizerId,

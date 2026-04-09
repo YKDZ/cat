@@ -1,4 +1,4 @@
-import { eq, termConcept, translatableString } from "@cat/db";
+import { eq, termConcept, vectorizedString } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
@@ -25,13 +25,10 @@ export const getConceptVectorizationSnapshot: Query<
     await ctx.db
       .select({
         stringId: termConcept.stringId,
-        text: translatableString.value,
+        text: vectorizedString.value,
       })
       .from(termConcept)
-      .leftJoin(
-        translatableString,
-        eq(translatableString.id, termConcept.stringId),
-      )
+      .leftJoin(vectorizedString, eq(vectorizedString.id, termConcept.stringId))
       .where(eq(termConcept.id, query.conceptId))
       .limit(1),
   );

@@ -218,7 +218,7 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `TranslatableElement` (type)
 
-* `TranslatableString` (type)
+* `VectorizedString` (type)
 
 * `TranslatableElementContext` (type)
 
