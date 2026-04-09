@@ -4,7 +4,7 @@ import {
   eq,
   project,
   translatableElement,
-  translatableString,
+  vectorizedString,
   translation,
 } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";
@@ -32,8 +32,8 @@ export const getTranslationQaContext: Query<
   GetTranslationQaContextQuery,
   TranslationQaContext | null
 > = async (ctx, query) => {
-  const translationString = alias(translatableString, "translationString");
-  const elementString = alias(translatableString, "elementString");
+  const translationString = alias(vectorizedString, "translationString");
+  const elementString = alias(vectorizedString, "elementString");
 
   return assertSingleOrNull(
     await ctx.db
@@ -55,7 +55,7 @@ export const getTranslationQaContext: Query<
       )
       .innerJoin(
         elementString,
-        eq(elementString.id, translatableElement.translatableStringId),
+        eq(elementString.id, translatableElement.vectorizedStringId),
       )
       .innerJoin(document, eq(document.id, translatableElement.documentId))
       .innerJoin(project, eq(document.projectId, project.id))

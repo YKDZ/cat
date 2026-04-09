@@ -1,5 +1,5 @@
-import { chunk, translatableString } from "@cat/db";
-import { inArray } from "@cat/db";
+import { chunk, vectorizedString } from "@cat/db";
+import { and, inArray, isNotNull } from "@cat/db";
 import * as z from "zod/v4";
 
 import type { Query } from "@/types";
@@ -20,13 +20,20 @@ export const listChunksByStringIds: Query<
     return [];
   }
 
-  // First get chunkSetIds from translatable strings
+  // First get chunkSetIds from vectorized strings
   const strings = await ctx.db
-    .select({ chunkSetId: translatableString.chunkSetId })
-    .from(translatableString)
-    .where(inArray(translatableString.id, query.stringIds));
+    .select({ chunkSetId: vectorizedString.chunkSetId })
+    .from(vectorizedString)
+    .where(
+      and(
+        inArray(vectorizedString.id, query.stringIds),
+        isNotNull(vectorizedString.chunkSetId),
+      ),
+    );
 
-  const chunkSetIds = strings.map((s) => s.chunkSetId);
+  const chunkSetIds = strings
+    .map((s) => s.chunkSetId)
+    .filter((id): id is number => id !== null);
 
   if (chunkSetIds.length === 0) {
     return [];

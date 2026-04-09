@@ -4,11 +4,11 @@ Core infrastructure: generic event bus, typed pub/sub
 
 ## Overview
 
-* **Modules**: 1
+* **Modules**: 2
 
 * **Exported functions**: 1
 
-* **Exported types**: 7
+* **Exported types**: 9
 
 ## Function Index
 
@@ -35,3 +35,7 @@ export const createEvent = (type: T, payload: M[T], options?: CreateEventOptions
 * `EventBus` (type)
 
 * `CreateEventOptions` (type)
+
+* `QueueTask` (type) — A task in the task queue.
+
+* `TaskQueue` (type) — Task queue interface — abstracts enqueue, dequeue, ack, and nack operations.

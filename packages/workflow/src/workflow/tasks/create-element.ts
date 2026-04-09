@@ -6,7 +6,7 @@ import * as z from "zod/v4";
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 import { runGraph } from "@/graph/typed-dsl/run-graph";
 
-import { createTranslatableStringGraph } from "./create-translatable-string";
+import { createVectorizedStringGraph } from "./create-vectorized-string";
 
 export const CreateElementInputSchema = z.object({
   data: z.array(
@@ -40,7 +40,7 @@ export const createElementGraph = defineTypedGraph({
       output: CreateElementOutputSchema,
       handler: async (input, ctx) => {
         const { stringIds } = await runGraph(
-          createTranslatableStringGraph,
+          createVectorizedStringGraph,
           {
             data: input.data.map((item) => ({
               text: item.text,

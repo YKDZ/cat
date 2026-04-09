@@ -1,4 +1,4 @@
-import { translatableString } from "@cat/db";
+import { vectorizedString } from "@cat/db";
 import { eq } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -13,12 +13,12 @@ export type GetStringByValueQuery = z.infer<typeof GetStringByValueQuerySchema>;
 
 export const getStringByValue: Query<
   GetStringByValueQuery,
-  typeof translatableString.$inferSelect | null
+  typeof vectorizedString.$inferSelect | null
 > = async (ctx, query) => {
   const rows = await ctx.db
     .select()
-    .from(translatableString)
-    .where(eq(translatableString.value, query.value))
+    .from(vectorizedString)
+    .where(eq(vectorizedString.value, query.value))
     .limit(1);
 
   return rows[0] ?? null;

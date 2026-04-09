@@ -42,7 +42,7 @@ export const TranslatableElementSchema = z.object({
   sourceEndLine: z.int().nullable(),
   sourceLocationMeta: safeZDotJson.nullable(),
   creatorId: z.uuidv4().nullable(),
-  translatableStringId: z.int(),
+  vectorizedStringId: z.int(),
   approvedTranslationId: z.int().nullable(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
@@ -50,14 +50,15 @@ export const TranslatableElementSchema = z.object({
 
 export type TranslatableElement = z.infer<typeof TranslatableElementSchema>;
 
-export const TranslatableStringSchema = z.object({
+export const VectorizedStringSchema = z.object({
   id: z.int(),
   value: z.string(),
   languageId: z.string(),
-  chunkSetId: z.int(),
+  chunkSetId: z.int().nullable(),
+  status: z.string(),
 });
 
-export type TranslatableString = z.infer<typeof TranslatableStringSchema>;
+export type VectorizedString = z.infer<typeof VectorizedStringSchema>;
 
 export const TranslatableElementContextSchema = z.object({
   id: z.int(),

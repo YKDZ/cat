@@ -5,7 +5,7 @@ import {
   eq,
   inArray,
   memoryItem,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -29,11 +29,8 @@ export const getSearchMemoryChunkRange: Query<
     return [];
   }
 
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
+  const sourceString = aliasedTable(vectorizedString, "sourceString");
+  const translationString = aliasedTable(vectorizedString, "translationString");
 
   const [sourceChunkIds, reversedChunkIds] = await Promise.all([
     ctx.db

@@ -9,3 +9,4 @@ export * from "./queue";
 export * from "./stream";
 export * from "./user";
 export * from "./utils/logger";
+export * from "./vectorization-queue-holder";

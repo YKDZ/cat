@@ -144,12 +144,16 @@ export {
 } from "./search-chunk";
 
 export {
-  createTranslatableStringOp,
-  CreateTranslatableStringInputSchema,
-  CreateTranslatableStringOutputSchema,
-  type CreateTranslatableStringInput,
-  type CreateTranslatableStringOutput,
-} from "./create-translatable-string";
+  createVectorizedStringOp,
+  CreateVectorizedStringInputSchema,
+  CreateVectorizedStringOutputSchema,
+  type CreateVectorizedStringInput,
+  type CreateVectorizedStringOutput,
+} from "./create-vectorized-string";
+
+export { processVectorizationBatch } from "./vectorization-consumer";
+export type { VectorizationTask } from "@cat/server-shared";
+export { registerVectorizationConsumer } from "./register-vectorization-consumer";
 
 // === Level 2 Operations ===
 export {

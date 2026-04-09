@@ -4,7 +4,7 @@ import {
   eq,
   ilike,
   translatableElement,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -34,7 +34,7 @@ export const countDocumentElements: Query<
 
   if (query.searchQuery.trim().length > 0) {
     whereConditions.push(
-      ilike(translatableString.value, `%${query.searchQuery}%`),
+      ilike(vectorizedString.value, `%${query.searchQuery}%`),
     );
   }
 
@@ -51,8 +51,8 @@ export const countDocumentElements: Query<
     .select({ count: count() })
     .from(translatableElement)
     .innerJoin(
-      translatableString,
-      eq(translatableElement.translatableStringId, translatableString.id),
+      vectorizedString,
+      eq(translatableElement.vectorizedStringId, vectorizedString.id),
     )
     .where(
       whereConditions.length === 1

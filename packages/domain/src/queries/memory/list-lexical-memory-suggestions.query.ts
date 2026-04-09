@@ -7,7 +7,7 @@ import {
   inArray,
   memoryItem,
   sql,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import {
   SlotMappingEntrySchema,
@@ -49,11 +49,8 @@ export const listExactMemorySuggestions: Query<
   const trimmedText = query.text.trim();
   if (trimmedText.length === 0) return [];
 
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
+  const sourceString = aliasedTable(vectorizedString, "sourceString");
+  const translationString = aliasedTable(vectorizedString, "translationString");
 
   const rows = await ctx.db
     .select({
@@ -119,11 +116,8 @@ export const listTrgmMemorySuggestions: Query<
   const trimmedText = query.text.trim();
   if (trimmedText.length === 0) return [];
 
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
+  const sourceString = aliasedTable(vectorizedString, "sourceString");
+  const translationString = aliasedTable(vectorizedString, "translationString");
 
   const rows = await ctx.db
     .select({

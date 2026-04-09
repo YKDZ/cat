@@ -94,8 +94,8 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.pluginService.id.through(r.chunk.vectorizerId),
       }),
       languages: r.many.language({
-        from: r.chunkSet.id.through(r.translatableString.chunkSetId),
-        to: r.language.id.through(r.translatableString.languageId),
+        from: r.chunkSet.id.through(r.vectorizedString.chunkSetId),
+        to: r.language.id.through(r.vectorizedString.languageId),
       }),
     },
     document: {
@@ -205,17 +205,17 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.memoryItem.sourceElementId,
         to: r.translatableElement.id,
       }),
-      translatableStringSourceStringId: r.one.translatableString({
+      vectorizedStringSourceStringId: r.one.vectorizedString({
         from: r.memoryItem.sourceStringId,
-        to: r.translatableString.id,
+        to: r.vectorizedString.id,
       }),
       translation: r.one.translation({
         from: r.memoryItem.translationId,
         to: r.translation.id,
       }),
-      translatableStringTranslationStringId: r.one.translatableString({
+      vectorizedStringTranslationStringId: r.one.vectorizedString({
         from: r.memoryItem.translationStringId,
-        to: r.translatableString.id,
+        to: r.vectorizedString.id,
       }),
     },
     translatableElement: {
@@ -227,9 +227,9 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.translatableElement.documentId,
         to: r.document.id,
       }),
-      translatableString: r.one.translatableString({
-        from: r.translatableElement.translatableStringId,
-        to: r.translatableString.id,
+      vectorizedString: r.one.vectorizedString({
+        from: r.translatableElement.vectorizedStringId,
+        to: r.vectorizedString.id,
       }),
       approvedTranslation: r.one.translation({
         from: r.translatableElement.approvedTranslationId,
@@ -242,13 +242,13 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       }),
       translations: r.many.translation(),
     },
-    translatableString: {
+    vectorizedString: {
       memoryItemsSourceStringId: r.many.memoryItem({
-        from: r.translatableString.id,
+        from: r.vectorizedString.id,
         to: r.memoryItem.sourceStringId,
       }),
       memoryItemsTranslationStringId: r.many.memoryItem({
-        from: r.translatableString.id,
+        from: r.vectorizedString.id,
         to: r.memoryItem.translationStringId,
       }),
       termConcepts: r.many.termConcept(),
@@ -256,9 +256,9 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       translations: r.many.translation(),
     },
     translation: {
-      translatableString: r.one.translatableString({
+      vectorizedString: r.one.vectorizedString({
         from: r.translation.stringId,
-        to: r.translatableString.id,
+        to: r.vectorizedString.id,
       }),
       translatableElement: r.one.translatableElement({
         from: r.translation.translatableElementId,
@@ -382,9 +382,9 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.termConcept.creatorId,
         to: r.user.id,
       }),
-      translatableString: r.one.translatableString({
+      vectorizedString: r.one.vectorizedString({
         from: r.termConcept.stringId,
-        to: r.translatableString.id,
+        to: r.vectorizedString.id,
       }),
       termConceptToSubjects: r.many.termConceptToSubject(),
     },

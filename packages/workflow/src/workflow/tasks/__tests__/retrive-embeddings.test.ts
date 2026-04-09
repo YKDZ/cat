@@ -4,7 +4,7 @@ import {
   executeQuery,
   getDbHandle,
   listAllChunks,
-  listAllTranslatableStrings,
+  listAllVectorizedStrings,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
@@ -14,7 +14,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 import { createDefaultGraphRuntime } from "@/graph";
 import { runGraph } from "@/graph/typed-dsl";
 
-import { createTranslatableStringGraph } from "../create-translatable-string";
+import { createVectorizedStringGraph } from "../create-vectorized-string";
 import { retriveEmbeddingsGraph } from "../retrive-embeddings";
 
 const data = [
@@ -64,7 +64,7 @@ test("create-translatable-string should insert chunks to db", async () => {
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  await runGraph(createTranslatableStringGraph, {
+  await runGraph(createVectorizedStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
@@ -72,7 +72,7 @@ test("create-translatable-string should insert chunks to db", async () => {
 
   const strings = await executeQuery(
     { db: drizzle },
-    listAllTranslatableStrings,
+    listAllVectorizedStrings,
     {},
   );
 

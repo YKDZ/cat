@@ -8,7 +8,7 @@ import {
   sql,
   translatableElement,
   translatableElementContext,
-  translatableString,
+  vectorizedString,
   translation,
 } from "@cat/db";
 import {
@@ -66,8 +66,8 @@ export const listUserTranslationHistory: Query<
   ListUserTranslationHistoryQuery,
   ListUserTranslationHistoryResult
 > = async (ctx, query) => {
-  const sourceString = alias(translatableString, "sourceString");
-  const translationString = alias(translatableString, "translationString");
+  const sourceString = alias(vectorizedString, "sourceString");
+  const translationString = alias(vectorizedString, "translationString");
 
   const conditions = [
     eq(document.projectId, query.projectId),
@@ -123,7 +123,7 @@ export const listUserTranslationHistory: Query<
     )
     .innerJoin(
       sourceString,
-      eq(translatableElement.translatableStringId, sourceString.id),
+      eq(translatableElement.vectorizedStringId, sourceString.id),
     )
     .leftJoin(
       contextsSubquery,

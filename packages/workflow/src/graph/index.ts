@@ -26,7 +26,7 @@ import {
   batchAutoTranslateGraph,
   createElementGraph,
   createTermGraph,
-  createTranslatableStringGraph,
+  createVectorizedStringGraph,
   createTranslationGraph,
   diffElementsGraph,
   fetchAdviseGraph,
@@ -105,7 +105,7 @@ export const createDefaultGraphRuntime = (
   graphRegistry.register(batchAutoTranslateGraph.graphDefinition);
   graphRegistry.register(createElementGraph.graphDefinition);
   graphRegistry.register(createTermGraph.graphDefinition);
-  graphRegistry.register(createTranslatableStringGraph.graphDefinition);
+  graphRegistry.register(createVectorizedStringGraph.graphDefinition);
   graphRegistry.register(createTranslationGraph.graphDefinition);
   graphRegistry.register(diffElementsGraph.graphDefinition);
   graphRegistry.register(fetchAdviseGraph.graphDefinition);

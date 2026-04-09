@@ -913,6 +913,9 @@ importers:
 
   packages/operations:
     dependencies:
+      '@cat/core':
+        specifier: workspace:*
+        version: link:../core
       '@cat/domain':
         specifier: workspace:*
         version: link:../domain
@@ -1015,6 +1018,9 @@ importers:
 
   packages/server-shared:
     dependencies:
+      '@cat/core':
+        specifier: workspace:*
+        version: link:../core
       '@cat/domain':
         specifier: workspace:*
         version: link:../domain

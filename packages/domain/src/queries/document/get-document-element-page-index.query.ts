@@ -5,7 +5,7 @@ import {
   ilike,
   lt,
   translatableElement,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
@@ -45,7 +45,7 @@ export const getDocumentElementPageIndex: Query<
 
   if (query.searchQuery.trim().length > 0) {
     whereConditions.push(
-      ilike(translatableString.value, `%${query.searchQuery}%`),
+      ilike(vectorizedString.value, `%${query.searchQuery}%`),
     );
   }
 
@@ -62,8 +62,8 @@ export const getDocumentElementPageIndex: Query<
     .select({ count: count() })
     .from(translatableElement)
     .innerJoin(
-      translatableString,
-      eq(translatableElement.translatableStringId, translatableString.id),
+      vectorizedString,
+      eq(translatableElement.vectorizedStringId, vectorizedString.id),
     )
     .where(
       whereConditions.length === 1

@@ -11,7 +11,7 @@ import {
 import { buildConceptVectorizationText } from "@cat/domain";
 import * as z from "zod";
 
-import { createTranslatableStringOp } from "./create-translatable-string";
+import { createVectorizedStringOp } from "./create-vectorized-string";
 
 export const RevectorizeConceptInputSchema = z.object({
   conceptId: z.int(),
@@ -83,7 +83,7 @@ export const revectorizeConceptOp = async (
 
   // Case: newText is non-null (either new or changed) → vectorize and update
   if (newText !== null) {
-    const { stringIds } = await createTranslatableStringOp(
+    const { stringIds } = await createVectorizedStringOp(
       {
         data: [{ text: newText, languageId: "mul" }],
         vectorizerId: data.vectorizerId,

@@ -5,7 +5,7 @@ import {
   isNotNull,
   translation,
   translatableElement,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -32,14 +32,11 @@ export const countDocumentTranslations: Query<
       translatableElement,
       eq(translation.translatableElementId, translatableElement.id),
     )
-    .innerJoin(
-      translatableString,
-      eq(translatableString.id, translation.stringId),
-    )
+    .innerJoin(vectorizedString, eq(vectorizedString.id, translation.stringId))
     .where(
       and(
         eq(translatableElement.documentId, query.documentId),
-        eq(translatableString.languageId, query.languageId),
+        eq(vectorizedString.languageId, query.languageId),
         query.isApproved
           ? isNotNull(translatableElement.approvedTranslationId)
           : undefined,

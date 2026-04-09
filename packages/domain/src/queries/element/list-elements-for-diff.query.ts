@@ -1,4 +1,4 @@
-import { eq, inArray, translatableElement, translatableString } from "@cat/db";
+import { eq, inArray, translatableElement, vectorizedString } from "@cat/db";
 import * as z from "zod/v4";
 
 import type { Query } from "@/types";
@@ -32,7 +32,7 @@ export const listElementsForDiff: Query<
   return ctx.db
     .select({
       id: translatableElement.id,
-      text: translatableString.value,
+      text: vectorizedString.value,
       meta: translatableElement.meta,
       sortIndex: translatableElement.sortIndex,
       sourceStartLine: translatableElement.sourceStartLine,
@@ -41,8 +41,8 @@ export const listElementsForDiff: Query<
     })
     .from(translatableElement)
     .innerJoin(
-      translatableString,
-      eq(translatableElement.translatableStringId, translatableString.id),
+      vectorizedString,
+      eq(translatableElement.vectorizedStringId, vectorizedString.id),
     )
     .where(inArray(translatableElement.id, query.elementIds))
     .orderBy(translatableElement.sortIndex);

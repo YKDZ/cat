@@ -61,13 +61,13 @@ export const bulkUpdateElementsForDiff: Command<
     }
 
     stringIdChunks.push(
-      sql`ELSE ${translatableElement.translatableStringId} END)`,
+      sql`ELSE ${translatableElement.vectorizedStringId} END)`,
     );
 
     await ctx.db
       .update(translatableElement)
       .set({
-        translatableStringId: sql.join(stringIdChunks, sql` `),
+        vectorizedStringId: sql.join(stringIdChunks, sql` `),
       })
       .where(inArray(translatableElement.id, ids));
   }

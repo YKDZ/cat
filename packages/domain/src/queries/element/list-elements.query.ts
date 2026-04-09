@@ -1,4 +1,4 @@
-import { eq, inArray, translatableElement, translatableString } from "@cat/db";
+import { eq, inArray, translatableElement, vectorizedString } from "@cat/db";
 import * as z from "zod/v4";
 
 import type { Query } from "@/types";
@@ -11,7 +11,7 @@ export type ListElementsQuery = z.infer<typeof ListElementsQuerySchema>;
 
 export type ElementWithString = {
   element: typeof translatableElement.$inferSelect;
-  string: typeof translatableString.$inferSelect;
+  string: typeof vectorizedString.$inferSelect;
 };
 
 export const listElements: Query<
@@ -25,12 +25,12 @@ export const listElements: Query<
   const rows = await ctx.db
     .select({
       element: translatableElement,
-      string: translatableString,
+      string: vectorizedString,
     })
     .from(translatableElement)
     .innerJoin(
-      translatableString,
-      eq(translatableElement.translatableStringId, translatableString.id),
+      vectorizedString,
+      eq(translatableElement.vectorizedStringId, vectorizedString.id),
     )
     .where(inArray(translatableElement.id, query.elementIds));
 
@@ -55,12 +55,12 @@ export const listElementsByDocument: Query<
   const rows = await ctx.db
     .select({
       element: translatableElement,
-      string: translatableString,
+      string: vectorizedString,
     })
     .from(translatableElement)
     .innerJoin(
-      translatableString,
-      eq(translatableElement.translatableStringId, translatableString.id),
+      vectorizedString,
+      eq(translatableElement.vectorizedStringId, vectorizedString.id),
     )
     .where(eq(translatableElement.documentId, query.documentId));
 

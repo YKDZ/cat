@@ -5,7 +5,7 @@ import {
   eq,
   sql,
   translatableElement,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -33,8 +33,8 @@ export const listDocumentElementsWithChunkIds: Query<
   return ctx.db
     .select({
       id: translatableElement.id,
-      value: translatableString.value,
-      languageId: translatableString.languageId,
+      value: vectorizedString.value,
+      languageId: vectorizedString.languageId,
       chunkIds: sql<
         number[]
       >`coalesce(array_agg("Chunk"."id") filter (where "Chunk"."id" is not null), ARRAY[]::int[])`,
@@ -42,15 +42,15 @@ export const listDocumentElementsWithChunkIds: Query<
     .from(translatableElement)
     .innerJoin(document, eq(document.id, translatableElement.documentId))
     .innerJoin(
-      translatableString,
-      eq(translatableElement.translatableStringId, translatableString.id),
+      vectorizedString,
+      eq(translatableElement.vectorizedStringId, vectorizedString.id),
     )
-    .innerJoin(chunkSet, eq(translatableString.chunkSetId, chunkSet.id))
+    .innerJoin(chunkSet, eq(vectorizedString.chunkSetId, chunkSet.id))
     .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
     .where(eq(translatableElement.documentId, query.documentId))
     .groupBy(
       translatableElement.id,
-      translatableString.value,
-      translatableString.languageId,
+      vectorizedString.value,
+      vectorizedString.languageId,
     );
 };

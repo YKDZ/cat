@@ -1,4 +1,4 @@
-import { chunk, chunkSet, eq, inArray, translatableString } from "@cat/db";
+import { chunk, chunkSet, eq, inArray, vectorizedString } from "@cat/db";
 import * as z from "zod/v4";
 
 import type { Query } from "@/types";
@@ -28,14 +28,11 @@ export const listChunkVectorizationInputs: Query<
   return ctx.db
     .select({
       chunkId: chunk.id,
-      text: translatableString.value,
-      languageId: translatableString.languageId,
+      text: vectorizedString.value,
+      languageId: vectorizedString.languageId,
     })
     .from(chunk)
     .innerJoin(chunkSet, eq(chunk.chunkSetId, chunkSet.id))
-    .innerJoin(
-      translatableString,
-      eq(translatableString.chunkSetId, chunkSet.id),
-    )
+    .innerJoin(vectorizedString, eq(vectorizedString.chunkSetId, chunkSet.id))
     .where(inArray(chunk.id, query.chunkIds));
 };

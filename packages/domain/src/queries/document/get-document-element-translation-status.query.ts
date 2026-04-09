@@ -3,7 +3,7 @@ import {
   eq,
   translatableElement,
   translation,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
@@ -41,14 +41,11 @@ export const getDocumentElementTranslationStatus: Query<
   const translations = await ctx.db
     .select({ id: translation.id })
     .from(translation)
-    .innerJoin(
-      translatableString,
-      eq(translation.stringId, translatableString.id),
-    )
+    .innerJoin(vectorizedString, eq(translation.stringId, vectorizedString.id))
     .where(
       and(
         eq(translation.translatableElementId, query.elementId),
-        eq(translatableString.languageId, query.languageId),
+        eq(vectorizedString.languageId, query.languageId),
       ),
     );
 

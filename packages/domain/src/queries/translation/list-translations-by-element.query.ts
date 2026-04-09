@@ -5,7 +5,7 @@ import {
   sumDistinct,
   translation,
   translationVote,
-  translatableString,
+  vectorizedString,
 } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -36,7 +36,7 @@ export const listTranslationsByElement: Query<
     .select({
       id: translation.id,
       translatableElementId: translation.translatableElementId,
-      text: translatableString.value,
+      text: vectorizedString.value,
       vote: sql<number>`COALESCE(${sumDistinct(translationVote.value)}, 0)`.mapWith(
         Number,
       ),
@@ -45,19 +45,16 @@ export const listTranslationsByElement: Query<
       createdAt: translation.createdAt,
     })
     .from(translation)
-    .innerJoin(
-      translatableString,
-      eq(translatableString.id, translation.stringId),
-    )
+    .innerJoin(vectorizedString, eq(vectorizedString.id, translation.stringId))
     .leftJoin(
       translationVote,
       eq(translationVote.translationId, translation.id),
     )
     .where(
       and(
-        eq(translatableString.languageId, query.languageId),
+        eq(vectorizedString.languageId, query.languageId),
         eq(translation.translatableElementId, query.elementId),
       ),
     )
-    .groupBy(translation.id, translatableString.value);
+    .groupBy(translation.id, vectorizedString.value);
 };

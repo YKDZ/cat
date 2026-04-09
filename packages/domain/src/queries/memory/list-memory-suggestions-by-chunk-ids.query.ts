@@ -5,7 +5,7 @@ import {
   eq,
   inArray,
   memoryItem,
-  translatableString,
+  vectorizedString,
   union,
 } from "@cat/db";
 import * as z from "zod/v4";
@@ -28,8 +28,8 @@ export type MemorySuggestionCandidateRow = {
   id: number;
   source: string;
   translation: string;
-  sourceChunkSetId: number;
-  translationChunkSetId: number;
+  sourceChunkSetId: number | null;
+  translationChunkSetId: number | null;
   memoryId: string;
   creatorId: string | null;
   createdAt: Date;
@@ -45,11 +45,8 @@ export const listMemorySuggestionsByChunkIds: Query<
     return [];
   }
 
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
+  const sourceString = aliasedTable(vectorizedString, "sourceString");
+  const translationString = aliasedTable(vectorizedString, "translationString");
 
   const targetSetsQuery = ctx.db
     .selectDistinct({ chunkSetId: chunk.chunkSetId })

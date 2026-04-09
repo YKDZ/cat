@@ -7,7 +7,7 @@ export * from "./revectorize";
 export * from "./revectorize-concept";
 export * from "./revectorize-subject-concepts";
 export * from "./diff-elements";
-export * from "./create-translatable-string";
+export * from "./create-vectorized-string";
 export * from "./create-term";
 export * from "./create-element";
 export * from "./search-chunk";

@@ -3,7 +3,7 @@ import {
   eq,
   inArray,
   translatableElement,
-  translatableString,
+  vectorizedString,
   translation,
 } from "@cat/db";
 import * as z from "zod/v4";
@@ -33,17 +33,14 @@ export const fetchTranslationsForMemory: Query<
 > = async (ctx, query) => {
   if (query.translationIds.length === 0) return [];
 
-  const sourceString = aliasedTable(translatableString, "sourceString");
-  const translationString = aliasedTable(
-    translatableString,
-    "translationString",
-  );
+  const sourceString = aliasedTable(vectorizedString, "sourceString");
+  const translationString = aliasedTable(vectorizedString, "translationString");
 
   return ctx.db
     .select({
       translationId: translation.id,
       translationStringId: translation.stringId,
-      sourceStringId: translatableElement.translatableStringId,
+      sourceStringId: translatableElement.vectorizedStringId,
       creatorId: translation.translatorId,
       sourceText: sourceString.value,
       translationText: translationString.value,
@@ -55,7 +52,7 @@ export const fetchTranslationsForMemory: Query<
     )
     .innerJoin(
       sourceString,
-      eq(sourceString.id, translatableElement.translatableStringId),
+      eq(sourceString.id, translatableElement.vectorizedStringId),
     )
     .innerJoin(
       translationString,

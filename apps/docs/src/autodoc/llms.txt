@@ -9,13 +9,13 @@
 
 ## Package Documentation
 
-- [@cat/domain](./packages/domain.md): 254 exported functions — Domain layer: CQRS Commands and Queries, core business logic
-- [@cat/operations](./packages/operations.md): 46 exported functions — Operations layer: business workflows composing domain operations
+- [@cat/domain](./packages/domain.md): 256 exported functions — Domain layer: CQRS Commands and Queries, core business logic
+- [@cat/operations](./packages/operations.md): 48 exported functions — Operations layer: business workflows composing domain operations
 - [@cat/shared](./packages/shared.md): 23 exported functions — Shared Zod schemas, type definitions, and utility functions
 - [@cat/db](./packages/db.md): 8 exported functions — Database layer: Drizzle ORM schemas and Redis client
 - [@cat/permissions](./packages/permissions.md): 9 exported functions — Permission system: ReBAC-based access control
 - [@cat/workflow](./packages/workflow.md): 27 exported functions — DAG-based workflow graph executor
-- [@cat/server-shared](./packages/server-shared.md): 18 exported functions — Shared server utilities
+- [@cat/server-shared](./packages/server-shared.md): 20 exported functions — Shared server utilities
 - [@cat/plugin-core](./packages/plugin-core.md): 15 exported functions — Plugin system core: service registry, component registry, discovery
 - [@cat/auth](./packages/auth.md): 10 exported functions — DAG-based authentication flow engine
 - [@cat/core](./packages/core.md): 1 exported functions — Core infrastructure: generic event bus, typed pub/sub
@@ -26,7 +26,7 @@
 
 Domain layer using CQRS pattern. Commands mutate state, Queries read data.
 
-- Commands: 91
+- Commands: 93
 - Queries: 150
 
 ## @cat/operations
