@@ -12,7 +12,7 @@ import type { OperationContext } from "@cat/domain";
  * for this single-turn task.
  */
 import { PluginManager } from "@cat/plugin-core";
-import { serverLogger as logger } from "@cat/server-shared";
+import { collectLLMResponse, serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
 export const AdaptMemoryInputSchema = z.object({
@@ -94,17 +94,19 @@ export const adaptMemoryOp = async (
   const llm = llmServices[0].service;
 
   try {
-    const response = await llm.chat({
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: buildUserPrompt(input) },
-      ],
-      temperature: 0.3,
-      maxTokens: 1024,
-      // Disable extended thinking: some models (e.g. DeepSeek R1, Kimi)
-      // reject non-streaming calls unless thinking is explicitly turned off.
-      thinking: false,
-    });
+    const response = await collectLLMResponse(
+      llm.chat({
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: buildUserPrompt(input) },
+        ],
+        temperature: 0.3,
+        maxTokens: 1024,
+        // Disable extended thinking: some models (e.g. DeepSeek R1, Kimi)
+        // reject non-streaming calls unless thinking is explicitly turned off.
+        thinking: false,
+      }),
+    );
 
     const text = response.content?.trim() ?? "";
 

@@ -10,7 +10,10 @@ import type { ChannelDispatcher, MessageRequest } from "@/types";
  */
 export class InAppDispatcher implements ChannelDispatcher {
   readonly channel = "IN_APP" as const;
-  constructor(private readonly db: DbHandle) {}
+  private readonly db: DbHandle;
+  constructor(db: DbHandle) {
+    this.db = db;
+  }
 
   async dispatch(request: MessageRequest): Promise<void> {
     await executeCommand({ db: this.db }, createNotification, {

@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 244
+* **Modules**: 258
 
-* **Exported functions**: 256
+* **Exported functions**: 270
 
-* **Exported types**: 345
+* **Exported types**: 361
 
 ## Function Index
 
@@ -93,13 +93,36 @@ export const createPluginCapabilities = (execCtx: ExecutorContext, checkPermissi
 
 ### packages/domain/src/commands/agent
 
+### `completeAgentSession`
+
+```ts
+/**
+ * Mark an AgentSession as a terminal state (COMPLETED / FAILED / CANCELLED).
+ */
+export const completeAgentSession: Command<
+  CompleteAgentSessionCommand
+> = async (ctx: DbContext, command: { sessionId: string; finalStatus: "COMPLETED" | "FAILED" | "CANCELLED"; }) => {...}
+```
+
 ### `createAgentDefinition`
 
 ```ts
 export const createAgentDefinition: Command<
   CreateAgentDefinitionCommand,
   { id: string }
-> = async (ctx: DbContext, command: { name: string; description: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; definition: { id: string; name: string; description: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; systemPrompt: string; tools: string[]; icon?: string | undefined; llm?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; systemPromptVariables?: Record<string, { type: "string" | "number" | "boolean"; source: "input" | "context" | "config"; name?: string | undefined; description?: string | undefined; }> | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; }; isBuiltin: boolean; type?: "GENERAL" | "GHOST_TEXT" | "WORKFLOW" | undefined; }) => {...}
+> = async (ctx: DbContext, command: { name: string; description: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; definitionId: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; tools: string[]; content: string; isBuiltin: boolean; icon?: string | undefined; llmConfig?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; promptConfig?: { autoInjectSlots: number[]; } | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; errorRecovery?: { truncationMax: number; contextOverflowMax: number; } | undefined; } | undefined; securityPolicy?: { allowExternalNetwork: boolean; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; }) => {...}
+```
+
+### `createAgentRun`
+
+```ts
+/**
+ * Create a new AgentRun and update AgentSession.currentRunId.
+ */
+export const createAgentRun: Command<
+  CreateAgentRunCommand,
+  CreateAgentRunResult
+> = async (ctx: DbContext, command: { sessionId: string; graphDefinition: unknown; deduplicationKey?: string | undefined; }) => {...}
 ```
 
 ### `createAgentSession`
@@ -117,6 +140,15 @@ export const createAgentSession: Command<
 export const deleteAgentDefinition: Command<
   DeleteAgentDefinitionCommand
 > = async (ctx: DbContext, command: { agentDefinitionId: number; }) => {...}
+```
+
+### `finishAgentRun`
+
+```ts
+/**
+ * Update AgentRun status to a terminal state and record completion time.
+ */
+export const finishAgentRun: Command<FinishAgentRunCommand> = async (ctx: DbContext, command: { runId: string; status: "completed" | "failed" | "cancelled"; }) => {...}
 ```
 
 ### `saveAgentEvent`
@@ -154,7 +186,7 @@ export const saveAgentRunSnapshot: Command<
 ```ts
 export const updateAgentDefinition: Command<
   UpdateAgentDefinitionCommand
-> = async (ctx: DbContext, command: { id: string; name?: string | undefined; description?: string | undefined; definition?: { id: string; name: string; description: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; systemPrompt: string; tools: string[]; icon?: string | undefined; llm?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; systemPromptVariables?: Record<string, { type: "string" | "number" | "boolean"; source: "input" | "context" | "config"; name?: string | undefined; description?: string | undefined; }> | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; } | undefined; }) => {...}
+> = async (ctx: DbContext, command: { id: string; name?: string | undefined; description?: string | undefined; definitionId?: string | undefined; version?: string | undefined; icon?: string | null | undefined; type?: "GENERAL" | "GHOST_TEXT" | "WORKFLOW" | undefined; llmConfig?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | null | undefined; tools?: string[] | undefined; promptConfig?: { autoInjectSlots: number[]; } | null | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; errorRecovery?: { truncationMax: number; contextOverflowMax: number; } | undefined; } | null | undefined; securityPolicy?: { allowExternalNetwork: boolean; } | null | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; content?: string | undefined; }) => {...}
 ```
 
 ### packages/domain/src/commands/api-key
@@ -458,6 +490,61 @@ export const updateGlossaryConcept: Command<
 > = async (ctx: DbContext, command: { conceptId: number; subjectIds?: number[] | undefined; definition?: string | undefined; }) => {...}
 ```
 
+### packages/domain/src/commands/kanban
+
+### `claimCard`
+
+```ts
+/**
+ * Atomically claim an available kanban card using FOR UPDATE SKIP LOCKED.
+ *
+ * Returns null if no claimable card is available.
+ */
+export const claimCard: Command<ClaimCardCommand, ClaimCardResult> = async (ctx: DbContext, command: { boardId: number; claimableStatuses: ("OPEN" | "NEEDS_REWORK")[]; agentId?: number | undefined; userId?: string | undefined; }) => {...}
+```
+
+### `createBoard`
+
+```ts
+export const createBoard: Command<
+  CreateBoardCommand,
+  typeof kanbanBoard.$inferSelect
+> = async (ctx: DbContext, command: { name: string; columns: { id: string; name: string; }[]; orgId?: string | undefined; linkedResourceType?: string | undefined; linkedResourceId?: string | undefined; metadata?: any; }) => {...}
+```
+
+### `createCard`
+
+```ts
+export const createCard: Command<
+  CreateCardCommand,
+  typeof kanbanCard.$inferSelect
+> = async (ctx: DbContext, command: { boardId: number; columnId: string; title: string; description: string; priority: number; labels: string[]; status: "FAILED" | "OPEN" | "NEEDS_REWORK" | "CLAIMED" | "IN_PROGRESS" | "REVIEW" | "DONE"; batchSize: number; dueDate?: Date | undefined; linkedResourceType?: string | undefined; linkedResourceId?: string | undefined; parentCardId?: number | undefined; metadata?: any; }) => {...}
+```
+
+### `releaseCard`
+
+```ts
+/**
+ * Release a claimed card, resetting its status to OPEN (for timeout or manual cancel).
+ */
+export const releaseCard: Command<ReleaseCardCommand> = async (ctx: DbContext, command: { cardId: number; }) => {...}
+```
+
+### `updateCardProgress`
+
+```ts
+export const updateCardProgress: Command<UpdateCardProgressCommand> = async (ctx: DbContext, command: { cardId: number; columnId?: string | undefined; metadata?: Record<string, unknown> | undefined; }) => {...}
+```
+
+### `updateCardStatus`
+
+```ts
+export const updateCardStatus: Command<
+  UpdateCardStatusCommand,
+  typeof kanbanCard.$inferSelect
+> = async (ctx: DbContext, command: { cardId: number; status: "FAILED" | "OPEN" | "NEEDS_REWORK" | "CLAIMED" | "IN_PROGRESS" | "REVIEW" | "DONE"; }) => {...}
+```
+
 ### packages/domain/src/commands/language
 
 ### `ensureLanguages`
@@ -566,7 +653,7 @@ export const grantFirstUserSuperadmin: Command<
  */
 export const grantPermissionTuple: Command<
   GrantPermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `insertAuditLogs`
@@ -575,7 +662,7 @@ export const grantPermissionTuple: Command<
 /**
  * 批量插入鉴权审计日志。写入失败时静默忽略，不影响业务流程。
  */
-export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
+export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
 ```
 
 ### `revokePermissionTuple`
@@ -586,7 +673,7 @@ export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbCo
  */
 export const revokePermissionTuple: Command<
   RevokePermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `seedSystemRoles`
@@ -1059,7 +1146,7 @@ export const getRunNodeEvents: Query<
 export const listAgentDefinitions: Query<
   ListAgentDefinitionsQuery,
   Array<typeof agentDefinition.$inferSelect>
-> = async (ctx: DbContext, query: { scopeType?: "GLOBAL" | "PROJECT" | "USER" | undefined; scopeId?: string | undefined; type?: "GENERAL" | "GHOST_TEXT" | "WORKFLOW" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { scopeType?: "GLOBAL" | "PROJECT" | "USER" | undefined; scopeId?: string | undefined; type?: "GENERAL" | "GHOST_TEXT" | "WORKFLOW" | undefined; isBuiltin?: boolean | undefined; }) => {...}
 ```
 
 ### `listAgentEvents`
@@ -1086,7 +1173,7 @@ export const listAgentSessions: Query<
 export const listProjectRuns: Query<
   ListProjectRunsQuery,
   ProjectRunRow[]
-> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "completed" | "pending" | "running" | "paused" | "failed" | "cancelled" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "running" | "completed" | "failed" | "cancelled" | "pending" | "paused" | undefined; }) => {...}
 ```
 
 ### `loadAgentExternalOutputByIdempotency`
@@ -1714,6 +1801,57 @@ export const listTermConceptIdsBySubject: Query<
 > = async (ctx: DbContext, query: { subjectId: number; }) => {...}
 ```
 
+### packages/domain/src/queries/kanban
+
+### `getBoard`
+
+```ts
+export const getBoard: Query<
+  GetBoardQuery,
+  typeof kanbanBoard.$inferSelect | null
+> = async (ctx: DbContext, query: { id: string; }) => {...}
+```
+
+### `getCard`
+
+```ts
+export const getCard: Query<
+  GetCardQuery,
+  typeof kanbanCard.$inferSelect | null
+> = async (ctx: DbContext, query: { id: string; }) => {...}
+```
+
+### `getClaimableCard`
+
+```ts
+/**
+ * Returns the first claimable card (status OPEN or NEEDS_REWORK) sorted by priority DESC, createdAt ASC.
+ * This is a "peek" query — the actual atomic claim uses claim-card.cmd with FOR UPDATE SKIP LOCKED.
+ */
+export const getClaimableCard: Query<
+  GetClaimableCardQuery,
+  typeof kanbanCard.$inferSelect | null
+> = async (ctx: DbContext, query: { boardId: number; columnId?: string | undefined; }) => {...}
+```
+
+### `listBoards`
+
+```ts
+export const listBoards: Query<
+  ListBoardsQuery,
+  (typeof kanbanBoard.$inferSelect)[]
+> = async (ctx: DbContext, query: { orgId?: string | undefined; linkedResourceType?: string | undefined; linkedResourceId?: string | undefined; }) => {...}
+```
+
+### `listCards`
+
+```ts
+export const listCards: Query<
+  ListCardsQuery,
+  (typeof kanbanCard.$inferSelect)[]
+> = async (ctx: DbContext, query: { boardId: number; status?: "FAILED" | "OPEN" | "NEEDS_REWORK" | "CLAIMED" | "IN_PROGRESS" | "REVIEW" | "DONE" | undefined; columnId?: string | undefined; }) => {...}
+```
+
 ### packages/domain/src/queries/language
 
 ### `getLanguage`
@@ -1919,7 +2057,7 @@ export const listPreferences: Query<
 export const getSubjectPermissionTuples: Query<
   GetSubjectPermissionTuplesQuery,
   SubjectPermissionTupleRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `listPermissionObjects`
@@ -1928,7 +2066,7 @@ export const getSubjectPermissionTuples: Query<
 export const listPermissionObjects: Query<
   ListPermissionObjectsQuery,
   PermissionObjectRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member")[] | undefined; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member")[] | undefined; }) => {...}
 ```
 
 ### `listPermissionSubjects`
@@ -1937,7 +2075,7 @@ export const listPermissionObjects: Query<
 export const listPermissionSubjects: Query<
   ListPermissionSubjectsQuery,
   PermissionSubjectRow[]
-> = async (ctx: DbContext, query: { objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | undefined; }) => {...}
 ```
 
 ### `loadUserSystemRoles`
@@ -2399,11 +2537,19 @@ export const searchChunkCosineSimilarity: Query<
 
 * `PluginCapabilities` (type)
 
+* `CompleteAgentSessionCommand` (type)
+
 * `CreateAgentDefinitionCommand` (type)
+
+* `CreateAgentRunCommand` (type)
+
+* `CreateAgentRunResult` (type)
 
 * `CreateAgentSessionCommand` (type)
 
 * `DeleteAgentDefinitionCommand` (type)
+
+* `FinishAgentRunCommand` (type)
 
 * `SaveAgentEventCommand` (type)
 
@@ -2506,6 +2652,20 @@ export const searchChunkCosineSimilarity: Query<
 * `UpdateGlossaryConceptCommand` (type)
 
 * `UpdateGlossaryConceptResult` (type)
+
+* `ClaimCardCommand` (type)
+
+* `ClaimCardResult` (type)
+
+* `CreateBoardCommand` (type)
+
+* `CreateCardCommand` (type)
+
+* `ReleaseCardCommand` (type)
+
+* `UpdateCardProgressCommand` (type)
+
+* `UpdateCardStatusCommand` (type)
 
 * `EnsureLanguagesCommand` (type)
 
@@ -2856,6 +3016,16 @@ export const searchChunkCosineSimilarity: Query<
 * `SemanticTermSearchRangeRow` (type)
 
 * `ListTermConceptIdsBySubjectQuery` (type)
+
+* `GetBoardQuery` (type)
+
+* `GetCardQuery` (type)
+
+* `GetClaimableCardQuery` (type)
+
+* `ListBoardsQuery` (type)
+
+* `ListCardsQuery` (type)
 
 * `GetLanguageQuery` (type)
 

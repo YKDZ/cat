@@ -494,6 +494,33 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.agentRun.id,
       }),
     },
+    kanbanBoard: {
+      cards: r.many.kanbanCard(),
+    },
+    kanbanCard: {
+      board: r.one.kanbanBoard({
+        from: r.kanbanCard.boardId,
+        to: r.kanbanBoard.id,
+      }),
+      assigneeAgent: r.one.agentDefinition({
+        from: r.kanbanCard.assigneeAgentId,
+        to: r.agentDefinition.id,
+      }),
+      assigneeUser: r.one.user({
+        from: r.kanbanCard.assigneeUserId,
+        to: r.user.id,
+      }),
+    },
+    toolCallLog: {
+      session: r.one.agentSession({
+        from: r.toolCallLog.sessionId,
+        to: r.agentSession.id,
+      }),
+      run: r.one.agentRun({
+        from: r.toolCallLog.runId,
+        to: r.agentRun.id,
+      }),
+    },
     apiKey: {
       user: r.one.user({
         from: r.apiKey.userId,

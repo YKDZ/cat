@@ -32,7 +32,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json"
   },
   "devDependencies": {
-    "vite": "^8.0.7"
+    "vite": "catalog:"
   },
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*"

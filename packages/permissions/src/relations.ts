@@ -12,6 +12,7 @@ export const relationHierarchy: Partial<Record<ObjectType, Relation[]>> = {
   glossary: ["owner", "editor", "viewer"],
   memory: ["owner", "editor", "viewer"],
   agent_definition: ["owner", "editor", "viewer"],
+  kanban_board: ["admin", "editor", "member", "viewer"],
 };
 
 /**

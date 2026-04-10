@@ -190,6 +190,33 @@ export default defineConfig({
         },
         resolve: { alias: alias(resolve(ROOT, "tools/autodoc")) },
       },
+
+      // ── Agent 包 ──────────────────────────────────────────────────────
+      {
+        test: {
+          name: "unit-agent",
+          include: ["packages/agent/src/**/*.spec.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/agent")) },
+      },
+      {
+        test: {
+          name: "agent-integration",
+          include: ["packages/agent/src/**/*.test.ts"],
+          environment: "node",
+          retry: CI ? 3 : 0,
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/agent")) },
+      },
+      {
+        test: {
+          name: "unit-agent-tools",
+          include: ["packages/agent-tools/src/**/*.spec.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/agent-tools")) },
+      },
     ],
   },
 });

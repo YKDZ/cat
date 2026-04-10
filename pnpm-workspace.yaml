@@ -13,4 +13,12 @@ allowBuilds:
 
 linkWorkspacePackages: true
 
-syncInjectedDepsAfterScripts: [ "build" ]
+syncInjectedDepsAfterScripts: ["build"]
+
+catalog:
+  "@types/node": ^24.1.0
+  vite: ^8.0.7
+  vitest: ^4.1.3
+  unplugin-dts: ^1.0.0-beta.6
+  zod: ^4.3.6
+  vue: ^3.5.32

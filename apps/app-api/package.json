@@ -46,11 +46,12 @@
   },
   "devDependencies": {
     "@cat/test-utils": "workspace:*",
-    "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.7",
-    "vitest": "4.1.0"
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
+    "@cat/agent": "workspace:*",
     "@cat/auth": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/message": "workspace:*",
@@ -70,7 +71,7 @@
     "pino": "^10.1.0",
     "telefunc": "^0.2.17",
     "vike": "^0.4.255",
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   },
   "nx": {
     "implicitDependencies": [

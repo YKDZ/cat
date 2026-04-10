@@ -17,7 +17,7 @@
     "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.5.2"
+    "@types/node": "catalog:"
   },
   "nx": {
     "implicitDependencies": [

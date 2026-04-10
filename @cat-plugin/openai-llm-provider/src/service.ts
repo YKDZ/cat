@@ -1,8 +1,7 @@
 import type {
+  ChatCompletionFinishReason,
   ChatCompletionRequest,
-  ChatCompletionResponse,
-  ChatStreamChunk,
-  ToolCall,
+  LLMChunk,
 } from "@cat/plugin-core";
 import type {
   ChatCompletionMessageParam,
@@ -49,112 +48,18 @@ export class OpenAILLMProvider extends LLMProvider {
     return this.config.model;
   }
 
-  supportsStreaming(): boolean {
-    return true;
-  }
-
-  private shouldRetryWithoutThinking(
-    request: ChatCompletionRequest,
-    error: unknown,
-  ): boolean {
-    if (request.thinking === undefined || !(error instanceof Error)) {
-      return false;
-    }
-
-    return (
-      error.message.includes("enable_thinking") &&
-      error.message.includes("unexpected keyword argument")
-    );
-  }
-
-  async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+  // generator function — arrow function cannot be used with yield, function keyword required here
+  async *chat(request: ChatCompletionRequest): AsyncIterable<LLMChunk> {
     const messages = request.messages.map(toOpenAIMessage);
     const tools = request.tools?.map(toOpenAITool);
 
-    // If stream=false is explicitly set, use non-streaming path (ignore onChunk)
-    if (request.stream === false) {
-      return this.chatNonStreaming(request, messages, tools);
-    }
-
-    // Default behavior: if onChunk callback is provided, use streaming
-    if (request.onChunk) {
-      return this.chatStreaming(request, messages, tools);
-    }
-
-    return this.chatNonStreaming(request, messages, tools);
-  }
-
-  private async chatNonStreaming(
-    request: ChatCompletionRequest,
-    messages: ChatCompletionMessageParam[],
-    tools: ChatCompletionTool[] | undefined,
-  ): Promise<ChatCompletionResponse> {
     const params = {
       model: this.config.model,
       messages,
       tools: tools && tools.length > 0 ? tools : undefined,
       temperature: request.temperature,
       max_tokens: request.maxTokens,
-      ...(request.thinking !== undefined && {
-        // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
-        enable_thinking: request.thinking as unknown,
-      }),
-    };
-
-    let completion;
-    try {
-      completion = await this.client.chat.completions.create(params, {
-        signal: request.signal,
-      });
-    } catch (error) {
-      if (!this.shouldRetryWithoutThinking(request, error)) {
-        throw error;
-      }
-
-      const { enable_thinking: _ignored, ...fallbackParams } = params;
-      completion = await this.client.chat.completions.create(fallbackParams, {
-        signal: request.signal,
-      });
-    }
-
-    const choice = completion.choices[0];
-    const toolCalls: ToolCall[] =
-      choice.message.tool_calls
-        ?.filter(
-          (tc): tc is Extract<typeof tc, { type: "function" }> =>
-            tc.type === "function",
-        )
-        .map((tc) => ({
-          id: tc.id,
-          name: tc.function.name,
-          arguments: tc.function.arguments,
-        })) ?? [];
-
-    return {
-      content: choice.message.content,
-      toolCalls,
-      usage: {
-        promptTokens: completion.usage?.prompt_tokens ?? 0,
-        completionTokens: completion.usage?.completion_tokens ?? 0,
-      },
-      finishReason: mapFinishReason(choice.finish_reason),
-    };
-  }
-
-  private async chatStreaming(
-    request: ChatCompletionRequest,
-    messages: ChatCompletionMessageParam[],
-    tools: ChatCompletionTool[] | undefined,
-  ): Promise<ChatCompletionResponse> {
-    const onChunk = request.onChunk!;
-
-    const params = {
-      model: this.config.model,
-      messages,
-      tools: tools && tools.length > 0 ? tools : undefined,
-      temperature: request.temperature,
-      max_tokens: request.maxTokens,
-      stream: true,
+      stream: true as const,
       stream_options: { include_usage: true },
       ...(request.thinking !== undefined && {
         // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
@@ -169,91 +74,100 @@ export class OpenAILLMProvider extends LLMProvider {
         signal: request.signal,
       })) as Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
     } catch (error) {
-      if (!this.shouldRetryWithoutThinking(request, error)) {
-        throw error;
+      // Retry without thinking parameter if the provider doesn't support it
+      if (
+        request.thinking !== undefined &&
+        error instanceof Error &&
+        error.message.includes("enable_thinking") &&
+        error.message.includes("unexpected keyword argument")
+      ) {
+        const { enable_thinking: _ignored, ...fallbackParams } = params;
+        // oxlint-disable-next-line no-unsafe-type-assertion -- stream: true guarantees Stream type
+        stream = (await this.client.chat.completions.create(fallbackParams, {
+          signal: request.signal,
+        })) as Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
+      } else {
+        yield {
+          type: "error",
+          error: error instanceof Error ? error : new Error(String(error)),
+        };
+        return;
       }
-
-      const { enable_thinking: _ignored, ...fallbackParams } = params;
-      // oxlint-disable-next-line no-unsafe-type-assertion -- stream: true guarantees Stream type
-      stream = (await this.client.chat.completions.create(fallbackParams, {
-        signal: request.signal,
-      })) as Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
     }
 
-    let contentAcc = "";
-    const toolCallAccMap = new Map<
-      number,
-      { id: string; name: string; arguments: string }
-    >();
-    let finishReason: ChatCompletionResponse["finishReason"] = "stop";
-    let promptTokens = 0;
-    let completionTokens = 0;
+    try {
+      // Track tool call accumulation by index for delta assembly
+      const toolCallAccMap = new Map<
+        number,
+        { id: string; name: string; arguments: string }
+      >();
 
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0]?.delta;
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0]?.delta;
 
-      // Handle reasoning/thinking content (e.g. DeepSeek, o1 models)
-      // oxlint-disable-next-line no-unsafe-type-assertion -- OpenAI-compatible APIs may include reasoning_content outside official types
-      const reasoningContent = (delta as Record<string, unknown> | undefined)
-        ?.reasoning_content as string | undefined;
-      if (reasoningContent) {
-        onChunk({ type: "thinking_delta", thinkingDelta: reasoningContent });
-      }
+        // Handle reasoning/thinking content (e.g. DeepSeek, o1 models)
+        // oxlint-disable-next-line no-unsafe-type-assertion -- OpenAI-compatible APIs may include reasoning_content outside official types
+        const reasoningContent = (delta as Record<string, unknown> | undefined)
+          ?.reasoning_content as string | undefined;
+        if (reasoningContent) {
+          yield { type: "thinking_delta", thinkingDelta: reasoningContent };
+        }
 
-      if (delta?.content) {
-        contentAcc += delta.content;
-        onChunk({ type: "text_delta", textDelta: delta.content });
-      }
+        if (delta?.content) {
+          yield { type: "text_delta", textDelta: delta.content };
+        }
 
-      if (delta?.tool_calls) {
-        for (const tc of delta.tool_calls) {
-          const idx = tc.index;
-          const existing = toolCallAccMap.get(idx);
+        if (delta?.tool_calls) {
+          for (const tc of delta.tool_calls) {
+            const idx = tc.index;
+            const existing = toolCallAccMap.get(idx);
 
-          if (!existing) {
-            toolCallAccMap.set(idx, {
-              id: tc.id ?? "",
-              name: tc.function?.name ?? "",
-              arguments: tc.function?.arguments ?? "",
-            });
-          } else {
-            if (tc.function?.arguments) {
-              existing.arguments += tc.function.arguments;
+            if (!existing) {
+              toolCallAccMap.set(idx, {
+                id: tc.id ?? "",
+                name: tc.function?.name ?? "",
+                arguments: tc.function?.arguments ?? "",
+              });
+            } else {
+              if (tc.function?.arguments) {
+                existing.arguments += tc.function.arguments;
+              }
             }
-          }
 
-          const toolCallChunk: ChatStreamChunk = {
-            type: "tool_call_delta",
-            toolCallDelta: {
-              id: tc.id ?? existing?.id ?? "",
-              name: tc.function?.name,
-              argumentsDelta: tc.function?.arguments,
+            yield {
+              type: "tool_call_delta",
+              toolCallDelta: {
+                id: tc.id ?? existing?.id ?? "",
+                name: tc.function?.name,
+                argumentsDelta: tc.function?.arguments,
+              },
+            };
+          }
+        }
+
+        if (chunk.choices[0]?.finish_reason) {
+          yield {
+            type: "finish",
+            finishReason: mapFinishReason(chunk.choices[0].finish_reason),
+          };
+        }
+
+        if (chunk.usage) {
+          yield {
+            type: "usage",
+            usage: {
+              promptTokens: chunk.usage.prompt_tokens ?? 0,
+              completionTokens: chunk.usage.completion_tokens ?? 0,
             },
           };
-          onChunk(toolCallChunk);
         }
       }
-
-      if (chunk.choices[0]?.finish_reason) {
-        finishReason = mapFinishReason(chunk.choices[0].finish_reason);
-      }
-
-      if (chunk.usage) {
-        promptTokens = chunk.usage.prompt_tokens ?? 0;
-        completionTokens = chunk.usage.completion_tokens ?? 0;
-      }
+    } catch (error) {
+      yield {
+        type: "error",
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
     }
-
-    onChunk({ type: "done" });
-
-    const toolCalls: ToolCall[] = [...toolCallAccMap.values()];
-
-    return {
-      content: contentAcc || null,
-      toolCalls,
-      usage: { promptTokens, completionTokens },
-      finishReason,
-    };
   }
 }
 
@@ -307,18 +221,13 @@ const toOpenAITool = (
   },
 });
 
-const mapFinishReason = (
-  reason: string | null,
-): ChatCompletionResponse["finishReason"] => {
+const mapFinishReason = (reason: string | null): ChatCompletionFinishReason => {
   switch (reason) {
     case "stop":
-      return "stop";
     case "tool_calls":
-      return "tool_calls";
     case "length":
-      return "length";
+      return reason;
     case null:
-      return "stop";
     default:
       return "stop";
   }

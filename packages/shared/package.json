@@ -66,6 +66,10 @@
       "types": "./dist/schema/drizzle/agent.d.ts",
       "import": "./dist/schema/drizzle/agent.js"
     },
+    "./schema/drizzle/kanban": {
+      "types": "./dist/schema/drizzle/kanban.d.ts",
+      "import": "./dist/schema/drizzle/kanban.js"
+    },
     "./schema/drizzle/memory": {
       "types": "./dist/schema/drizzle/memory.d.ts",
       "import": "./dist/schema/drizzle/memory.js"
@@ -127,12 +131,15 @@
     "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-shared --include='**/*.spec.ts'",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
   },
+  "dependencies": {
+    "yaml": "^2.8.3"
+  },
   "devDependencies": {
-    "@types/node": "^25.5.2",
-    "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.7"
+    "@types/node": "catalog:",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:"
   },
   "peerDependencies": {
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   }
 }

@@ -4,11 +4,11 @@ Shared server utilities
 
 ## Overview
 
-* **Modules**: 9
+* **Modules**: 10
 
-* **Exported functions**: 20
+* **Exported functions**: 21
 
-* **Exported types**: 3
+* **Exported types**: 4
 
 ## Function Index
 
@@ -48,6 +48,16 @@ export const finishPresignedPutFile = async (drizzle: DbHandle, sessionStore: Se
 
 ```ts
 export const createHTTPHelpers = (req: IncomingMessage, res: ServerResponse): { setCookie: setCookie; delCookie: delCookie; getCookie: getCookie; getQueryParam: getQueryParam; getReqHeader: getReqHeader; setResHeader: setResHeader; }
+```
+
+### `collectLLMResponse`
+
+```ts
+/**
+ * Consume an LLM AsyncIterable chunk stream and aggregate all chunks into
+ * a single complete response object. Throws if an error chunk is encountered.
+ */
+export const collectLLMResponse = async (stream: AsyncIterable<LLMChunk>): Promise<CollectedLLMResponse>
 ```
 
 ### `detectMobile`
@@ -155,5 +165,7 @@ export const getVectorizationQueue = (): TaskQueue<VectorizationTask>
 * `PresignedPutFileSessionPayload` (type)
 
 * `FileDownloadPayload` (type)
+
+* `CollectedLLMResponse` (interface) — The complete response collected from an LLM stream.
 
 * `VectorizationTask` (type) — Payload type for a vectorization task.

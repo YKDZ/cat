@@ -61,16 +61,29 @@ export class PluginManager {
   private activePlugins = new Map<string, CatPlugin>();
   private readonly routeRegistry = new PluginRouteRegistry();
 
+  public readonly scopeType: ScopeType;
+  public readonly scopeId: string;
+  private readonly loader: PluginLoader;
+  private discovery: PluginDiscoveryService;
+  private readonly serviceRegistry: ServiceRegistry;
+  private readonly componentRegistry: ComponentRegistry;
+
   public constructor(
-    public readonly scopeType: ScopeType,
-    public readonly scopeId: string,
-    private readonly loader: PluginLoader = new FileSystemPluginLoader(),
-    private readonly discovery: PluginDiscoveryService = PluginDiscoveryService.getInstance(
+    scopeType: ScopeType,
+    scopeId: string,
+    loader: PluginLoader = new FileSystemPluginLoader(),
+    discovery: PluginDiscoveryService = PluginDiscoveryService.getInstance(
       loader,
     ),
-    private readonly serviceRegistry: ServiceRegistry = new ServiceRegistry(),
-    private readonly componentRegistry: ComponentRegistry = new ComponentRegistry(),
+    serviceRegistry: ServiceRegistry = new ServiceRegistry(),
+    componentRegistry: ComponentRegistry = new ComponentRegistry(),
   ) {
+    this.scopeType = scopeType;
+    this.scopeId = scopeId;
+    this.loader = loader;
+    this.discovery = discovery;
+    this.serviceRegistry = serviceRegistry;
+    this.componentRegistry = componentRegistry;
     this.discovery = PluginDiscoveryService.getInstance(loader);
   }
 

@@ -1,5 +1,11 @@
 import { agentDefinition } from "@cat/db";
-import { AgentDefinitionSchema } from "@cat/shared/schema/agent";
+import {
+  AgentConstraintsSchema,
+  AgentLLMConfigSchema,
+  AgentPromptConfigSchema,
+  AgentSecurityPolicySchema,
+  OrchestrationSchema,
+} from "@cat/shared/schema/agent";
 import {
   AgentDefinitionTypeSchema,
   ScopeTypeSchema,
@@ -14,8 +20,19 @@ export const CreateAgentDefinitionCommandSchema = z.object({
   description: z.string().default(""),
   scopeType: ScopeTypeSchema.default("GLOBAL"),
   scopeId: z.string().default(""),
-  definition: AgentDefinitionSchema,
-  type: AgentDefinitionTypeSchema.optional(),
+  // Metadata fields (from frontmatter)
+  definitionId: z.string().default(""),
+  version: z.string().default("1.0.0"),
+  icon: z.string().optional(),
+  type: AgentDefinitionTypeSchema.default("GENERAL"),
+  llmConfig: AgentLLMConfigSchema.optional(),
+  tools: z.array(z.string()).default([]),
+  promptConfig: AgentPromptConfigSchema.optional(),
+  constraints: AgentConstraintsSchema.optional(),
+  securityPolicy: AgentSecurityPolicySchema.optional(),
+  orchestration: OrchestrationSchema.nullable().optional(),
+  // MD body (system prompt)
+  content: z.string().default(""),
   isBuiltin: z.boolean().default(false),
 });
 
@@ -35,8 +52,17 @@ export const createAgentDefinition: Command<
         description: command.description,
         scopeType: command.scopeType,
         scopeId: command.scopeId,
-        definition: command.definition,
+        definitionId: command.definitionId,
+        version: command.version,
+        icon: command.icon,
         type: command.type,
+        llmConfig: command.llmConfig ?? null,
+        tools: command.tools,
+        promptConfig: command.promptConfig ?? null,
+        constraints: command.constraints ?? null,
+        securityPolicy: command.securityPolicy ?? null,
+        orchestration: command.orchestration ?? null,
+        content: command.content,
         isBuiltin: command.isBuiltin,
       })
       .returning({ externalId: agentDefinition.externalId }),

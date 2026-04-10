@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import {
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  ScrollArea,
-  Textarea,
-  Button,
-} from "@cat/ui";
+import { ScrollArea, Textarea, Button } from "@cat/ui";
 import {
   ArrowRight,
   Plus,
@@ -22,8 +14,6 @@ import { ref, nextTick, watch, onMounted, onUnmounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useAgentStore } from "@/app/stores/agent";
-import { useEditorContextStore } from "@/app/stores/editor/context";
-import { useEditorTableStore } from "@/app/stores/editor/table";
 import { useRegisterClientTools } from "@/app/utils/agent/register-client-tools";
 
 import AgentMaxStepsCard from "./AgentMaxStepsCard.vue";
@@ -31,6 +21,11 @@ import AgentMessageBubble from "./AgentMessageBubble.vue";
 import AgentSelector from "./AgentSelector.vue";
 import AgentThinkingIndicator from "./AgentThinkingIndicator.vue";
 import AgentToolConfirmCard from "./AgentToolConfirmCard.vue";
+
+const props = defineProps<{
+  /** @zh 当前项目外部 UUID @en Current project external UUID */
+  projectId: string;
+}>();
 
 const { t } = useI18n();
 const agentStore = useAgentStore();
@@ -50,10 +45,6 @@ const {
   maxStepsReached,
   lastFinishReason,
 } = storeToRefs(agentStore);
-
-const editorContext = storeToRefs(useEditorContextStore());
-const editorTable = storeToRefs(useEditorTableStore());
-const { elementId: editorElementId, elementLanguageId } = editorTable;
 
 // Register client-side tool handlers for the agent
 useRegisterClientTools();
@@ -141,11 +132,7 @@ const handleSend = async () => {
     const sessionId = await agentStore.createSession(
       selectedDefinitionId.value,
       {
-        projectId: editorContext.projectId.value ?? undefined,
-        documentId: editorContext.documentId.value,
-        languageId: editorContext.languageToId.value,
-        sourceLanguageId: elementLanguageId.value ?? undefined,
-        elementId: editorElementId.value ?? undefined,
+        projectId: props.projectId,
       },
     );
     if (!sessionId) return;
@@ -227,81 +214,75 @@ onMounted(() => {
     </div>
 
     <!-- Chat Messages -->
-    <SidebarContent class="flex-1">
+    <div class="min-h-0 flex-1 overflow-hidden">
       <ScrollArea ref="scrollAreaRef" class="h-full w-full">
-        <SidebarGroup>
-          <SidebarGroupContent class="flex flex-col gap-2 p-2">
-            <!-- Empty state -->
-            <div
-              v-if="messages.length === 0 && !isStreaming"
-              class="flex flex-col items-center justify-center gap-2 py-8 text-center text-sm text-muted-foreground"
-            >
-              <p>{{ t("选择一个 Agent 并发送消息开始对话") }}</p>
-            </div>
+        <div class="flex flex-col gap-2 p-2">
+          <!-- Empty state -->
+          <div
+            v-if="messages.length === 0 && !isStreaming"
+            class="flex flex-col items-center justify-center gap-2 py-8 text-center text-sm text-muted-foreground"
+          >
+            <p>{{ t("选择一个 Agent 并发送消息开始对话") }}</p>
+          </div>
 
-            <!-- Messages -->
-            <AgentMessageBubble
-              v-for="(msg, idx) in messages"
-              :key="idx"
-              :role="msg.role"
-              :content="msg.content"
-              :toolCallId="msg.toolCallId"
-              :steps="msg.steps"
-              :stepIndex="msg.stepIndex"
-              :thinkingText="msg.thinkingText"
-            />
+          <!-- Messages -->
+          <AgentMessageBubble
+            v-for="(msg, idx) in messages"
+            :key="idx"
+            :role="msg.role"
+            :content="msg.content"
+            :toolCallId="msg.toolCallId"
+            :steps="msg.steps"
+            :stepIndex="msg.stepIndex"
+            :thinkingText="msg.thinkingText"
+          />
 
-            <!-- Thinking indicator (shown during the entire streaming ReAct loop).
-                 Only thinkingText + steps are rendered here; the live response
-                 text (streamingText) is rendered separately in a streaming
-                 MessageBubble below so the final response streams directly in
-                 the message area, matching the UX of ChatGPT / Copilot. -->
-            <AgentThinkingIndicator
-              v-if="showThinkingIndicator"
-              :thinkingText="thinkingText"
-              :steps="currentSteps"
-              :paused="streamingStatus === 'paused'"
-            />
+          <!-- Thinking indicator (shown during the entire streaming ReAct loop).
+               Only thinkingText + steps are rendered here; the live response
+               text (streamingText) is rendered separately in a streaming
+               MessageBubble below so the final response streams directly in
+               the message area, matching the UX of ChatGPT / Copilot. -->
+          <AgentThinkingIndicator
+            v-if="showThinkingIndicator"
+            :thinkingText="thinkingText"
+            :steps="currentSteps"
+            :paused="streamingStatus === 'paused'"
+          />
 
-            <!-- Streaming response bubble — shows the live text_delta output.
-                 Visible whenever the agent is streaming AND there is text being
-                 produced.  On finish steps streamingText is preserved, so the
-                 bubble smoothly transitions into the permanent MessageBubble
-                 created by the 'done' chunk. -->
-            <AgentMessageBubble
-              v-if="isRunActive && streamingText"
-              role="ASSISTANT"
-              :content="streamingText"
-              :isStreaming="true"
-            />
+          <!-- Streaming response bubble — shows the live text_delta output. -->
+          <AgentMessageBubble
+            v-if="isRunActive && streamingText"
+            role="ASSISTANT"
+            :content="streamingText"
+            :isStreaming="true"
+          />
 
-            <!-- Inline tool confirmation card (appears in message flow) -->
-            <AgentToolConfirmCard
-              v-if="pendingConfirmation"
-              :confirmation="pendingConfirmation"
-            />
+          <!-- Inline tool confirmation card (appears in message flow) -->
+          <AgentToolConfirmCard
+            v-if="pendingConfirmation"
+            :confirmation="pendingConfirmation"
+          />
 
-            <!-- Max steps reached card -->
-            <AgentMaxStepsCard v-if="maxStepsReached" :info="maxStepsReached" />
+          <!-- Max steps reached card -->
+          <AgentMaxStepsCard v-if="maxStepsReached" :info="maxStepsReached" />
 
-            <!-- Implicit completion warning -->
-            <div
-              v-if="
-                lastFinishReason === 'implicit_completion' &&
-                streamingStatus === 'done'
-              "
-              class="flex items-center gap-1.5 rounded-md border border-yellow-500/50 bg-yellow-50/10 p-2 text-xs text-yellow-600 dark:text-yellow-400"
-            >
-              <AlertTriangle class="size-3.5 shrink-0" />
-              {{ t("Agent 未通过标准方式结束任务，以上回复可能不完整。") }}
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
+          <!-- Implicit completion warning -->
+          <div
+            v-if="
+              lastFinishReason === 'implicit_completion' &&
+              streamingStatus === 'done'
+            "
+            class="flex items-center gap-1.5 rounded-md border border-yellow-500/50 bg-yellow-50/10 p-2 text-xs text-yellow-600 dark:text-yellow-400"
+          >
+            <AlertTriangle class="size-3.5 shrink-0" />
+            {{ t("Agent 未通过标准方式结束任务，以上回复可能不完整。") }}
+          </div>
+        </div>
       </ScrollArea>
-    </SidebarContent>
+    </div>
 
     <!-- Input Area -->
-    <SidebarFooter>
+    <div class="border-t p-3">
       <div
         class="rounded-2xl border border-border/70 bg-background p-2 shadow-sm"
       >
@@ -379,6 +360,6 @@ onMounted(() => {
           </Button>
         </div>
       </div>
-    </SidebarFooter>
+    </div>
   </div>
 </template>

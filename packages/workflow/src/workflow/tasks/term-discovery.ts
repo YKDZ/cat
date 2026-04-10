@@ -178,7 +178,7 @@ const DedupMatchInputSchema = z.object({
       ),
     }),
   ),
-  glossaryId: z.string().uuid(),
+  glossaryId: z.uuid(),
   sourceLanguageId: z.string().min(1),
 });
 

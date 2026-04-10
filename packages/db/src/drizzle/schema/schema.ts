@@ -1,4 +1,10 @@
-import type { AgentDefinition } from "@cat/shared/schema/agent";
+import type {
+  AgentLLMConfig,
+  AgentPromptConfig,
+  AgentConstraints,
+  AgentSecurityPolicy,
+  Orchestration,
+} from "@cat/shared/schema/agent";
 import type {
   _JSONSchema,
   JSONType,
@@ -27,6 +33,7 @@ import {
   MessageChannelValues,
   MessageCategoryValues,
   NotificationStatusValues,
+  KanbanCardStatusValues,
 } from "@cat/shared/schema/enum";
 import { sql } from "drizzle-orm";
 import {
@@ -1017,8 +1024,30 @@ export const agentDefinition = pgTable("AgentDefinition", {
   description: text().notNull().default(""),
   /** Agent usage type/category */
   type: agentDefinitionType().notNull().default("GENERAL"),
-  /** Full Agent JSON definition (validated against AgentDefinitionSchema) */
-  definition: jsonb().$type<AgentDefinition>().notNull(),
+
+  // ── r2: 元数据列 (replaces single `definition` JSONB column) ──
+  /**
+   * Human-readable slug ID from frontmatter (e.g. "translator-zh-en").
+   * Distinct from `id` (serial PK) and `externalId` (UUID for API exposure).
+   */
+  definitionId: text("definition_id").notNull().default(""),
+  version: text().notNull().default("1.0.0"),
+  icon: text(),
+  /** LLM configuration (providerId, temperature, maxTokens) */
+  llmConfig: jsonb("llm_config").$type<AgentLLMConfig | null>(),
+  /** List of allowed tool names */
+  tools: jsonb().$type<string[]>().notNull().default([]),
+  /** Prompt auto-injection configuration */
+  promptConfig: jsonb("prompt_config").$type<AgentPromptConfig | null>(),
+  /** Runtime constraints */
+  constraints: jsonb().$type<AgentConstraints | null>(),
+  /** Security policy */
+  securityPolicy: jsonb("security_policy").$type<AgentSecurityPolicy | null>(),
+  /** Multi-agent orchestration config */
+  orchestration: jsonb().$type<Orchestration | null>(),
+  /** MD body / system prompt content (supports {{variable}} interpolation) */
+  content: text().notNull().default(""),
+
   isBuiltin: boolean().notNull().default(false),
   ...timestamps,
 });
@@ -1046,6 +1075,12 @@ export const agentSession = pgTable(
     status: agentSessionStatus().notNull().default("ACTIVE"),
     /** Current active run (Graph runtime) */
     currentRunId: integer(),
+    /** Optional Kanban card associated with this session */
+    kanbanCardId: integer(),
+    /** Maximum number of DAG turns for this session (snapshot of agentDefinition.constraints.maxSteps at creation) */
+    maxTurns: integer("max_turns").default(50).notNull(),
+    /** Current DAG loop turn count (incremented by DecisionNode each cycle) */
+    currentTurn: integer("current_turn").default(0).notNull(),
     /** Session-level trust policy for tool confirmation */
     trustPolicy: agentSessionTrustPolicy().notNull().default("CONFIRM_ALL"),
     /** Business context metadata (e.g. projectId, documentId) */
@@ -1134,6 +1169,124 @@ export const agentExternalOutput = pgTable(
     index().on(table.nodeId),
     unique().on(table.runId, table.outputKey, table.idempotencyKey),
   ],
+);
+
+// ─── Kanban System ───
+
+export const kanbanCardStatus = pgEnum(
+  "KanbanCardStatus",
+  KanbanCardStatusValues,
+);
+
+export const kanbanBoard = pgTable(
+  "KanbanBoard",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    orgId: uuid().references(() => project.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    name: text().notNull(),
+    /** Column definitions — ordered list of column metadata */
+    columns: jsonb().$type<NonNullJSONType>().notNull().default([]),
+    /** Type of resource this board is linked to (e.g. "project", "document") */
+    linkedResourceType: text(),
+    /** External ID of the linked resource */
+    linkedResourceId: text(),
+    /** Extra metadata for extensibility */
+    metadata: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.orgId),
+    index().on(table.linkedResourceType, table.linkedResourceId),
+  ],
+);
+
+export const kanbanCard = pgTable(
+  "KanbanCard",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    boardId: integer()
+      .notNull()
+      .references(() => kanbanBoard.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    /** Which column within the board this card belongs to (column id from board.columns) */
+    columnId: text().notNull().default(""),
+    title: text().notNull(),
+    description: text().notNull().default(""),
+    /** Agent that has claimed/is working on this card */
+    assigneeAgentId: integer().references(() => agentDefinition.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    /** Human user that has claimed/is working on this card */
+    assigneeUserId: uuid().references(() => user.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    /** When the card was claimed */
+    claimedAt: timestamp({ withTimezone: true }),
+    /** Who claimed it — "agent:<agentId>" or "user:<userId>" */
+    claimedBy: text(),
+    priority: integer().notNull().default(0),
+    dueDate: timestamp({ withTimezone: true }),
+    /** Array of label strings */
+    labels: jsonb().$type<string[]>().notNull().default([]),
+    /** Type of linked resource (e.g. "task", "translation") */
+    linkedResourceType: text(),
+    /** External ID of the linked resource */
+    linkedResourceId: text(),
+    status: kanbanCardStatus().notNull().default("OPEN"),
+    /** Parent card for subtask grouping */
+    parentCardId: integer(),
+    /** How many translation units are in this batch */
+    batchSize: integer().notNull().default(1),
+    metadata: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.boardId),
+    index().on(table.status),
+    index().on(table.assigneeAgentId),
+    index().on(table.boardId, table.status),
+  ],
+);
+
+export const toolCallLog = pgTable(
+  "ToolCallLog",
+  {
+    id: serial().primaryKey(),
+    sessionId: integer()
+      .notNull()
+      .references(() => agentSession.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    runId: integer()
+      .notNull()
+      .references(() => agentRun.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    nodeId: text(),
+    toolName: text().notNull(),
+    /** Tool call arguments as JSON */
+    arguments: jsonb().$type<NonNullJSONType>().notNull().default({}),
+    /** Tool call result as JSON */
+    result: jsonb().$type<JSONType>(),
+    /** Error message if the call failed */
+    error: text(),
+    /** Duration in milliseconds */
+    durationMs: integer(),
+    sideEffectType: text().notNull().default("none"),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index().on(table.sessionId), index().on(table.runId)],
 );
 
 // ============ Permission System Tables ============

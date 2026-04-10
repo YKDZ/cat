@@ -165,6 +165,7 @@ export const ObjectTypeValues = [
   "plugin",
   "setting",
   "task",
+  "kanban_board",
   "agent_definition",
   "user",
 ] as const;
@@ -216,3 +217,17 @@ export type MessageCategory = (typeof MessageCategoryValues)[number];
 export const NotificationStatusValues = ["UNREAD", "READ", "ARCHIVED"] as const;
 export const NotificationStatusSchema = z.enum(NotificationStatusValues);
 export type NotificationStatus = (typeof NotificationStatusValues)[number];
+
+// ─── Kanban System ───
+
+export const KanbanCardStatusValues = [
+  "OPEN",
+  "CLAIMED",
+  "IN_PROGRESS",
+  "REVIEW",
+  "DONE",
+  "FAILED",
+  "NEEDS_REWORK",
+] as const;
+export const KanbanCardStatusSchema = z.enum(KanbanCardStatusValues);
+export type KanbanCardStatus = (typeof KanbanCardStatusValues)[number];

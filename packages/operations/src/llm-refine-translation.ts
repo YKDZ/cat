@@ -1,6 +1,10 @@
 import type { OperationContext } from "@cat/domain";
 
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  collectLLMResponse,
+  firstOrGivenService,
+  resolvePluginManager,
+} from "@cat/server-shared";
 import * as z from "zod";
 
 const DEFAULT_REFINE_SYSTEM_PROMPT = `You are an expert translation post-editor. Your task is to refine a machine-generated or memory-matched translation.
@@ -106,18 +110,20 @@ export const llmRefineTranslationOp = async (
   }
 
   const userPrompt = buildRefinePrompt(data);
-  const response = await llmService.service.chat({
-    messages: [
-      {
-        role: "system",
-        content: data.systemPrompt ?? DEFAULT_REFINE_SYSTEM_PROMPT,
-      },
-      { role: "user", content: userPrompt },
-    ],
-    temperature: data.temperature,
-    maxTokens: data.maxTokens,
-    thinking: false,
-  });
+  const response = await collectLLMResponse(
+    llmService.service.chat({
+      messages: [
+        {
+          role: "system",
+          content: data.systemPrompt ?? DEFAULT_REFINE_SYSTEM_PROMPT,
+        },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: data.temperature,
+      maxTokens: data.maxTokens,
+      thinking: false,
+    }),
+  );
 
   const refinedText = (response.content ?? "").trim();
   return {

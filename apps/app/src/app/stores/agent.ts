@@ -78,6 +78,16 @@ export type StreamingStatus =
   | "error"
   | "done";
 
+export interface AgentDAGNodeEvent {
+  nodeType: "precheck" | "reasoning" | "tool" | "decision";
+  nodeId: string;
+  status: "started" | "completed" | "failed";
+  inputSnapshot?: Record<string, unknown>;
+  outputSnapshot?: Record<string, unknown>;
+  tokenUsage?: { prompt: number; completion: number };
+  durationMs?: number;
+}
+
 /**
  * All possible agent termination reasons. Matches `AgentRunResult["finishReason"]`
  * from the engine but expressed as a frontend-local type to avoid importing
@@ -135,6 +145,15 @@ export const useAgentStore = defineStore("agent", () => {
 
   /** Stores the last user message so we can retry on error. */
   const lastUserMessage = ref<string | null>(null);
+
+  /** DAG node events for the current run — PreCheck → Reasoning → Tool → Decision. */
+  const dagNodeEvents = shallowRef<AgentDAGNodeEvent[]>([]);
+
+  /** Current DAG turn index (incremented by DecisionNode each loop). */
+  const currentTurn = ref(0);
+
+  /** Kanban card linked to the current session (set when agent claims a card). */
+  const currentKanbanCardId = ref<string | null>(null);
 
   // ─── Computed ───
   const selectedDefinition = computed(
@@ -263,6 +282,9 @@ export const useAgentStore = defineStore("agent", () => {
     maxStepsReached.value = null;
     lastFinishReason.value = null;
     lastUserMessage.value = null;
+    dagNodeEvents.value = [];
+    currentTurn.value = 0;
+    currentKanbanCardId.value = null;
   };
 
   const fetchSessions = async (agentDefinitionId?: string) => {
@@ -284,17 +306,22 @@ export const useAgentStore = defineStore("agent", () => {
   };
 
   const createSession = async (
-    _agentDefinitionId: string,
-    _metadata?: {
+    agentDefinitionId: string,
+    metadata?: {
       projectId?: string;
-      documentId?: string;
-      elementId?: number;
-      languageId?: string;
-      sourceLanguageId?: string;
-      userId?: string;
     },
   ) => {
-    return "";
+    try {
+      const result = await orpc.agent.createSession({
+        agentDefinitionId,
+        projectId: metadata?.projectId,
+      });
+      activeSessionId.value = result.sessionId;
+      return result.sessionId;
+    } catch (err) {
+      logger.withSituation("WEB").error(err, "Failed to create agent session");
+      return "";
+    }
   };
 
   let abortController: AbortController | null = null;
@@ -453,6 +480,9 @@ export const useAgentStore = defineStore("agent", () => {
     maxStepsReached.value = null;
     lastFinishReason.value = null;
     lastUserMessage.value = null;
+    dagNodeEvents.value = [];
+    currentTurn.value = 0;
+    currentKanbanCardId.value = null;
   };
 
   return {
@@ -478,6 +508,9 @@ export const useAgentStore = defineStore("agent", () => {
     maxStepsReached,
     lastFinishReason,
     lastUserMessage,
+    dagNodeEvents,
+    currentTurn,
+    currentKanbanCardId,
     // Computed
     selectedDefinition,
     isStreaming,

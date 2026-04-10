@@ -424,9 +424,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "agent.ts",
-    imports: [
-      'import { AgentDefinitionSchema as AgentDefJsonSchema } from "../agent.ts";',
-    ],
+    imports: [],
     declarations: [
       {
         kind: "table",
@@ -434,7 +432,12 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         typeExportName: "AgentDefinition",
         buildShape: buildSelectShape(agentDefinition),
         overrides: {
-          definition: "AgentDefJsonSchema",
+          llmConfig: "safeZDotJson.nullable()",
+          tools: "z.array(z.string())",
+          promptConfig: "safeZDotJson.nullable()",
+          constraints: "safeZDotJson.nullable()",
+          securityPolicy: "safeZDotJson.nullable()",
+          orchestration: "safeZDotJson.nullable()",
         },
       },
       {

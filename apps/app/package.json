@@ -27,6 +27,7 @@
     "typecheck": "tsc --noEmit && vue-tsc --noEmit"
   },
   "dependencies": {
+    "@cat/agent": "workspace:*",
     "@cat/app-api": "workspace:*",
     "@cat/auth": "workspace:*",
     "@cat/db": "workspace:*",
@@ -90,11 +91,11 @@
     "vike": "^0.4.256",
     "vike-photon": "^0.1.26",
     "vike-vue": "^0.9.11",
-    "vue": "^3.5.32",
+    "vue": "catalog:",
     "vue-i18n": "^11.3.1",
     "vue-sonner": "^2.0.9",
     "vue-tsc": "^3.2.6",
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@iconify-json/codicon": "^1.2.51",
@@ -109,8 +110,8 @@
     "@vue/tsconfig": "^0.9.1",
     "cross-env": "^10.1.0",
     "happy-dom": "^20.8.9",
-    "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.7",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
     "vite-plugin-vue-devtools": "^8.1.1"
   },
   "engines": {

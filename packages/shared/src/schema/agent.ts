@@ -1,9 +1,14 @@
+import { stringify as stringifyYaml } from "yaml";
 import * as z from "zod";
 
 import { AgentDefinitionTypeSchema } from "./enum";
 
 // ─── LLM Configuration ───
 
+/**
+ * @zh Agent LLM 配置 Schema。
+ * @en Agent LLM configuration schema.
+ */
 export const AgentLLMConfigSchema = z.object({
   /** PluginService DB ID referencing an LLM_PROVIDER instance */
   providerId: z.int(),
@@ -11,86 +16,213 @@ export const AgentLLMConfigSchema = z.object({
   maxTokens: z.int().positive().optional(),
 });
 
-// ─── System Prompt Variable ───
+// ─── Prompt Configuration ───
 
-export const SystemPromptVariableSchema = z.object({
-  type: z.enum(["string", "number", "boolean"]),
-  /** Where the variable value comes from */
-  source: z.enum(["context", "config", "input"]),
-  /** Human-readable label shown in the auto-generated context block */
-  name: z.string().optional(),
-  description: z.string().optional(),
+/**
+ * @zh Agent Prompt 配置 Schema。
+ * @en Agent prompt configuration schema.
+ */
+export const AgentPromptConfigSchema = z.object({
+  /** Slot indices to auto-inject into the system prompt */
+  autoInjectSlots: z.array(z.number()).default([]),
+});
+
+// ─── Security Policy ───
+
+/**
+ * @zh Agent 安全策略 Schema（Phase 0a 极简版）。
+ * @en Agent security policy schema (Phase 0a minimal version).
+ */
+export const AgentSecurityPolicySchema = z.object({
+  allowExternalNetwork: z.boolean().default(false),
+});
+
+// ─── Scope ───
+
+/**
+ * @zh Agent 作用域 Schema。
+ * @en Agent scope schema.
+ */
+export const AgentScopeSchema = z.object({
+  type: z.enum(["GLOBAL", "PROJECT"]).default("GLOBAL"),
 });
 
 // ─── Runtime Constraints ───
 
+/**
+ * @zh Agent 运行时约束 Schema。
+ * @en Agent runtime constraints schema.
+ */
 export const AgentConstraintsSchema = z.object({
-  maxSteps: z.int().positive().default(10),
+  maxSteps: z.int().positive().default(50),
   maxConcurrentToolCalls: z.int().positive().default(3),
-  timeoutMs: z.int().positive().default(120_000),
+  timeoutMs: z.int().positive().default(600_000),
   /**
    * Maximum number of correction attempts when the LLM returns plain text
-   * without calling the finish tool. Each correction re-prompts the LLM to
-   * use the explicit termination tool. Does NOT consume a regular step.
+   * without calling the finish tool.
    */
   maxCorrectionAttempts: z.int().min(0).default(2),
+  /** Error recovery budgets (independent per error type). */
+  errorRecovery: z
+    .object({
+      truncationMax: z.int().min(0).default(3),
+      contextOverflowMax: z.int().min(0).default(2),
+    })
+    .optional(),
 });
 
 // ─── Pipeline Orchestration ───
 
+/**
+ * @zh 编排管线阶段 Schema。
+ * @en Orchestration pipeline stage schema.
+ */
 export const PipelineStageSchema = z.object({
   agentId: z.string(),
   inputFrom: z.union([z.string(), z.array(z.string())]).optional(),
   outputKey: z.string(),
 });
 
+/**
+ * @zh 多 Agent 编排配置 Schema。
+ * @en Multi-agent orchestration configuration schema.
+ */
 export const OrchestrationSchema = z.object({
   mode: z.enum(["pipeline"]),
   stages: z.array(PipelineStageSchema).min(1),
 });
 
-// ─── Agent Definition ───
+// ─── Agent Definition Metadata Schema (frontmatter only) ───
 
-export const AgentDefinitionSchema = z.object({
-  /** Unique string identifier for the agent */
+/**
+ * @zh Agent 定义 frontmatter 的 Zod Schema（仅元数据，不含正文）。
+ * @en Zod schema for agent definition frontmatter (metadata only, excludes body).
+ */
+export const AgentDefinitionMetadataSchema = z.object({
+  /** Unique human-readable slug identifier for the agent (e.g. "translator-zh-en") */
   id: z.string().min(1),
   name: z.string().min(1),
-  description: z.string().default(""),
   version: z.string().default("1.0.0"),
   /** Lucide icon name */
   icon: z.string().optional(),
-
   /** Agent usage type/category */
   type: AgentDefinitionTypeSchema.default("GENERAL"),
-
   /** LLM configuration — optional for WORKFLOW type agents */
   llm: AgentLLMConfigSchema.optional(),
-
-  /** System prompt template (supports {{variable}} interpolation) */
-  systemPrompt: z.string().default(""),
-  /** Variable definitions for system prompt interpolation */
-  systemPromptVariables: z
-    .record(z.string(), SystemPromptVariableSchema)
-    .optional(),
-
   /** List of tool names this agent is allowed to use */
   tools: z.array(z.string()).default([]),
-
+  /** Prompt auto-injection configuration */
+  promptConfig: AgentPromptConfigSchema.optional(),
   /** Runtime constraints */
   constraints: AgentConstraintsSchema.optional(),
-
+  /** Security policy */
+  securityPolicy: AgentSecurityPolicySchema.optional(),
+  /** Agent scope (GLOBAL or PROJECT) */
+  scope: AgentScopeSchema.optional(),
   /** Multi-agent orchestration (only present on orchestrator agents) */
   orchestration: OrchestrationSchema.nullable().optional(),
 });
 
+// ─── Parsed Agent Definition (metadata + body) ───
+
+/**
+ * @zh 从 MD 解析后的完整 Agent 定义（元数据 + 正文）。
+ * @en Full agent definition parsed from MD (metadata + body content).
+ */
+export interface ParsedAgentDefinition {
+  /**
+   * @zh 从 frontmatter 解析的元数据。
+   * @en Metadata parsed from frontmatter.
+   */
+  metadata: AgentDefinitionMetadata;
+  /**
+   * @zh MD body 正文（即 systemPrompt 模板内容，支持 {{variable}} 插值）。
+   * @en MD body content (systemPrompt template, supports {{variable}} interpolation).
+   */
+  content: string;
+}
+
+// ─── Serialize Helper ───
+
+/**
+ * @zh 将 Agent 元数据和正文内容序列化为完整的 MD 文本。
+ * @en Serialize agent metadata and body content into a complete MD text.
+ *
+ * @param parsed - {@zh 解析后的 Agent 定义} {@en Parsed agent definition}
+ * @returns - {@zh 包含 YAML frontmatter 和正文的完整 MD 字符串} {@en Full MD string with YAML frontmatter and body}
+ */
+export const serializeAgentDefinition = (
+  parsed: ParsedAgentDefinition,
+): string => {
+  const frontmatter = stringifyYaml(parsed.metadata, { lineWidth: 0 });
+  return `---\n${frontmatter}---\n\n${parsed.content}`;
+};
+
 // ─── Inferred Types ───
 
-export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
+/**
+ * @zh Agent 定义元数据类型。
+ * @en Agent definition metadata type.
+ */
+export type AgentDefinitionMetadata = z.infer<
+  typeof AgentDefinitionMetadataSchema
+>;
+
+/**
+ * @zh Agent LLM 配置类型。
+ * @en Agent LLM configuration type.
+ */
 export type AgentLLMConfig = z.infer<typeof AgentLLMConfigSchema>;
-export type SystemPromptVariable = z.infer<typeof SystemPromptVariableSchema>;
+
+/**
+ * @zh Agent 运行时约束类型。
+ * @en Agent runtime constraints type.
+ */
 export type AgentConstraints = z.infer<typeof AgentConstraintsSchema>;
-export type PipelineStage = z.infer<typeof PipelineStageSchema>;
+
+/**
+ * @zh Agent Prompt 配置类型。
+ * @en Agent prompt configuration type.
+ */
+export type AgentPromptConfig = z.infer<typeof AgentPromptConfigSchema>;
+
+/**
+ * @zh Agent 安全策略类型。
+ * @en Agent security policy type.
+ */
+export type AgentSecurityPolicy = z.infer<typeof AgentSecurityPolicySchema>;
+
+/**
+ * @zh Agent 作用域类型。
+ * @en Agent scope type.
+ */
+export type AgentScope = z.infer<typeof AgentScopeSchema>;
+
+/**
+ * @zh 多 Agent 编排配置类型。
+ * @en Multi-agent orchestration configuration type.
+ */
 export type Orchestration = z.infer<typeof OrchestrationSchema>;
+
+/**
+ * @zh 编排管线阶段类型。
+ * @en Orchestration pipeline stage type.
+ */
+export type PipelineStage = z.infer<typeof PipelineStageSchema>;
+
+// ─── Deprecated: Old AgentDefinitionSchema ───
+
+/** @deprecated Use AgentDefinitionMetadataSchema + content column instead. */
+export const AgentDefinitionSchema = AgentDefinitionMetadataSchema;
+/** @deprecated Use AgentDefinitionMetadata instead. */
+export type AgentDefinition = AgentDefinitionMetadata;
+/** @deprecated Use ParsedAgentDefinition instead. */
+export type SystemPromptVariable = {
+  type: "string" | "number" | "boolean";
+  source: "context" | "config" | "input";
+  name?: string;
+  description?: string;
+};
 
 // ─── Tool Confirmation Request ───
 

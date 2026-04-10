@@ -40,15 +40,15 @@
   "devDependencies": {
     "@cat/domain": "workspace:*",
     "hono": "^4.12.12",
-    "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.7",
-    "vitest": "4.1.0"
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "@cat/domain": "workspace:*",
     "@cat/shared": "workspace:*",
     "dompurify": "^3.3.1",
-    "vue": "^3.5.26",
-    "zod": "^4.3.6"
+    "vue": "catalog:",
+    "zod": "catalog:"
   }
 }

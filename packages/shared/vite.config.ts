@@ -46,6 +46,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/drizzle/agent.ts",
         ),
+        "schema/drizzle/kanban": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/kanban.ts",
+        ),
         "schema/drizzle/memory": resolve(
           import.meta.dirname,
           "src/schema/drizzle/memory.ts",

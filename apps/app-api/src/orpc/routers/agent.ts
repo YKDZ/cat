@@ -2,11 +2,15 @@ import type { AgentRunMetadataRow } from "@cat/domain";
 
 import {
   createAgentDefinition,
+  createAgentRun,
+  createAgentSession,
   deleteAgentDefinition,
   executeCommand,
   executeQuery,
   getAgentDefinition,
+  getAgentDefinitionByInternalId,
   getAgentRunInternalId,
+  getAgentSessionByExternalId,
   getRunNodeEvents,
   listAgentDefinitions,
   listAgentEvents,
@@ -15,8 +19,15 @@ import {
   loadAgentRunMetadata,
   updateAgentDefinition,
 } from "@cat/domain";
-import { AsyncMessageQueue } from "@cat/server-shared";
-import { AgentDefinitionSchema as AgentDefinitionJsonSchema } from "@cat/shared/schema/agent";
+import { AsyncMessageQueue, serverLogger } from "@cat/server-shared";
+import {
+  AgentConstraintsSchema,
+  AgentDefinitionMetadataSchema,
+  AgentLLMConfigSchema,
+  AgentPromptConfigSchema,
+  AgentSecurityPolicySchema,
+  OrchestrationSchema,
+} from "@cat/shared/schema/agent";
 import { AgentDefinitionSchema } from "@cat/shared/schema/drizzle/agent";
 import {
   AgentDefinitionTypeSchema,
@@ -84,7 +95,10 @@ export const getByType = authed
       scopeId: row.scopeId,
       isBuiltin: row.isBuiltin,
       type: row.type,
-      definition: row.definition,
+      definitionId: row.definitionId,
+      version: row.version,
+      icon: row.icon,
+      content: row.content,
       createdAt: row.createdAt,
     }));
   });
@@ -111,7 +125,17 @@ export const get = authed
       scopeType: row.scopeType,
       scopeId: row.scopeId,
       isBuiltin: row.isBuiltin,
-      definition: row.definition,
+      type: row.type,
+      definitionId: row.definitionId,
+      version: row.version,
+      icon: row.icon,
+      llmConfig: row.llmConfig,
+      tools: row.tools,
+      promptConfig: row.promptConfig,
+      constraints: row.constraints,
+      securityPolicy: row.securityPolicy,
+      orchestration: row.orchestration,
+      content: row.content,
       createdAt: row.createdAt,
     };
   });
@@ -124,7 +148,18 @@ export const create = authed
       description: z.string().default(""),
       scopeType: ScopeTypeSchema.default("GLOBAL"),
       scopeId: z.string().default(""),
-      definition: AgentDefinitionJsonSchema,
+      // Metadata fields
+      definitionId: z.string().default(""),
+      version: z.string().default("1.0.0"),
+      icon: z.string().optional(),
+      type: AgentDefinitionMetadataSchema.shape.type,
+      llmConfig: AgentLLMConfigSchema.optional(),
+      tools: z.array(z.string()).default([]),
+      promptConfig: AgentPromptConfigSchema.optional(),
+      constraints: AgentConstraintsSchema.optional(),
+      securityPolicy: AgentSecurityPolicySchema.optional(),
+      orchestration: OrchestrationSchema.nullable().optional(),
+      content: z.string().default(""),
     }),
   )
   .use(checkPermission("system", "admin"), () => "*")
@@ -136,7 +171,6 @@ export const create = authed
     return await executeCommand({ db: drizzle }, createAgentDefinition, {
       ...input,
       isBuiltin: false,
-      type: input.definition.type,
     });
   });
 
@@ -147,7 +181,17 @@ export const update = authed
       id: z.uuidv4(),
       name: z.string().min(1).optional(),
       description: z.string().optional(),
-      definition: AgentDefinitionJsonSchema.optional(),
+      definitionId: z.string().optional(),
+      version: z.string().optional(),
+      icon: z.string().nullable().optional(),
+      type: AgentDefinitionMetadataSchema.shape.type.optional(),
+      llmConfig: AgentLLMConfigSchema.nullable().optional(),
+      tools: z.array(z.string()).optional(),
+      promptConfig: AgentPromptConfigSchema.nullable().optional(),
+      constraints: AgentConstraintsSchema.nullable().optional(),
+      securityPolicy: AgentSecurityPolicySchema.nullable().optional(),
+      orchestration: OrchestrationSchema.nullable().optional(),
+      content: z.string().optional(),
     }),
   )
   .use(checkPermission("system", "admin"), () => "*")
@@ -192,13 +236,42 @@ export const createSession = authed
   .input(
     z.object({
       agentDefinitionId: z.uuidv4(),
-      metadata: z.unknown().optional(),
+      projectId: z.uuidv4().optional(),
+      metadata: z
+        .object({
+          projectId: z.uuidv4().optional(),
+        })
+        .optional(),
     }),
   )
-  .handler(async () => {
-    throw new ORPCError("NOT_IMPLEMENTED", {
-      message: "TODO: Agent 重构后需要重新实现",
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+      user,
+    } = context;
+
+    const sessionResult = await executeCommand(
+      { db: drizzle },
+      createAgentSession,
+      {
+        agentDefinitionId: input.agentDefinitionId,
+        userId: user.id,
+        projectId: input.projectId ?? input.metadata?.projectId,
+      },
+    );
+
+    const { buildAgentDAG } = await import("@cat/agent");
+    const graphDef = buildAgentDAG();
+
+    const runResult = await executeCommand({ db: drizzle }, createAgentRun, {
+      sessionId: sessionResult.sessionId,
+      graphDefinition: graphDef,
     });
+
+    return {
+      sessionId: sessionResult.sessionId,
+      runId: runResult.runId,
+    };
   });
 
 /** List sessions for the current user */
@@ -243,11 +316,157 @@ export const sendMessage = authed
       message: z.string().min(1),
     }),
   )
-  // oxlint-disable-next-line require-yield -- stub handler always throws; yield is not needed
-  .handler(async function* (): AsyncGenerator<AgentEvent> {
-    throw new ORPCError("NOT_IMPLEMENTED", {
-      message: "TODO: Agent 重构后需要重新实现",
+  .handler(async function* ({ context, input }) {
+    const {
+      drizzleDB: { client: drizzle },
+      pluginManager,
+      user,
+    } = context;
+
+    // Verify session belongs to the requesting user
+    const session = await executeQuery(
+      { db: drizzle },
+      getAgentSessionByExternalId,
+      { externalId: input.sessionId, userId: user.id },
+    );
+
+    if (!session) {
+      throw new ORPCError("NOT_FOUND", { message: "Agent session not found" });
+    }
+
+    // Lazy-load AgentRuntime and related classes
+    const {
+      AgentRuntime,
+      LLMGateway,
+      ToolRegistry,
+      PromptEngine,
+      createNoopAgentLogger,
+      buildAgentDAG,
+    } = await import("@cat/agent");
+
+    // Build LLMGateway using the LLM provider configured for this agent definition
+    const agentDef = await executeQuery(
+      { db: drizzle },
+      getAgentDefinitionByInternalId,
+      { id: session.agentDefinitionId },
+    );
+
+    const llmServices = pluginManager.getServices("LLM_PROVIDER");
+
+    // Prefer the provider configured in the agent definition; fall back to first available
+    const targetProviderId = agentDef?.llmConfig?.providerId;
+    let llmProvider;
+    if (targetProviderId) {
+      const found = llmServices.find((s) => s.dbId === targetProviderId);
+      if (!found) {
+        serverLogger.warn(
+          `LLM Provider ${targetProviderId} not found, falling back to first available`,
+        );
+      }
+      llmProvider = found?.service ?? llmServices[0]?.service;
+    } else {
+      llmProvider = llmServices[0]?.service;
+    }
+
+    if (!llmProvider) {
+      throw new ORPCError("PRECONDITION_FAILED", {
+        message:
+          "No LLM provider configured. Install an LLM provider plugin first.",
+      });
+    }
+
+    const gateway = new LLMGateway({ provider: llmProvider });
+    const toolRegistry = new ToolRegistry();
+    const promptEngine = new PromptEngine();
+
+    const runtime = new AgentRuntime({
+      llmGateway: gateway,
+      toolRegistry,
+      promptEngine,
+      logger: createNoopAgentLogger(),
     });
+
+    // Create a new run for this message turn
+    const graphDef = buildAgentDAG();
+    const runResult = await executeCommand({ db: drizzle }, createAgentRun, {
+      sessionId: input.sessionId,
+      graphDefinition: graphDef,
+    });
+
+    // Map Agent node types to workflow node types for event wrapping
+    const agentToWorkflowNodeType = (
+      nodeType: "precheck" | "reasoning" | "tool" | "decision",
+    ) => {
+      switch (nodeType) {
+        case "precheck":
+          return "transform" as const;
+        case "reasoning":
+          return "llm" as const;
+        case "tool":
+          return "tool" as const;
+        case "decision":
+          return "router" as const;
+      }
+    };
+
+    // Stream events from the DAG loop, mapping to valid workflow event types
+    for await (const event of runtime.runLoop(
+      input.sessionId,
+      runResult.runId,
+    )) {
+      const base = {
+        runId: runResult.runId,
+        timestamp: new Date().toISOString(),
+      } as const;
+      if (event.type === "started") {
+        yield createAgentEvent({
+          ...base,
+          type: "run:start",
+          payload: { graphId: event.sessionId, input: {} },
+        });
+      } else if (event.type === "node") {
+        if (event.status === "started") {
+          yield createAgentEvent({
+            ...base,
+            type: "node:start",
+            payload: {
+              nodeType: agentToWorkflowNodeType(event.nodeType),
+              config: {},
+            },
+          });
+        } else if (event.status === "failed") {
+          yield createAgentEvent({
+            ...base,
+            type: "node:error",
+            payload: { error: "agent node failed" },
+          });
+        } else {
+          yield createAgentEvent({
+            ...base,
+            type: "node:end",
+            payload: {
+              status: "completed",
+              output: null,
+              patch: null,
+              pauseReason: null,
+            },
+          });
+        }
+      } else if (event.type === "finished") {
+        yield createAgentEvent({
+          ...base,
+          type: "run:end",
+          payload: { status: event.reason, blackboard: {} },
+        });
+      } else if (event.type === "failed") {
+        yield createAgentEvent({
+          ...base,
+          type: "run:error",
+          payload: { error: event.error.message },
+        });
+      }
+      // token_delta, tool_call, tool_result: yielded as node lifecycle events above
+    }
   });
 
 // ─── Graph Runtime Control ───
@@ -422,11 +641,23 @@ export const submitToolConfirmResponse = authed
 
 // ─── Builtin Template Management ───
 
-/** Return all in-memory builtin agent templates (never touches DB) */
-export const listBuiltinTemplates = authed.handler(async () => {
-  throw new ORPCError("NOT_IMPLEMENTED", {
-    message: "TODO: Agent 重构后需要重新实现",
+/** Return all builtin agent templates stored in the database */
+export const listBuiltinTemplates = authed.handler(async ({ context }) => {
+  const {
+    drizzleDB: { client: drizzle },
+  } = context;
+
+  const defs = await executeQuery({ db: drizzle }, listAgentDefinitions, {
+    isBuiltin: true,
   });
+
+  return defs.map((d) => ({
+    templateId: d.definitionId,
+    name: d.name,
+    description: d.description,
+    icon: d.icon ?? "",
+    tools: d.tools,
+  }));
 });
 
 /** List available LLM_PROVIDER plugin services the user can choose from */

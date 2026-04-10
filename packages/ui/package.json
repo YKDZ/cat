@@ -42,11 +42,11 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/vue-table": "^8.21.3",
-    "@types/node": "^25.5.2",
+    "@types/node": "catalog:",
     "@vue/tsconfig": "^0.9.1",
     "shadcn-vue": "^2.5.3",
-    "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.7",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
     "vue-tsc": "^3.2.6"
   },
   "peerDependencies": {
@@ -57,9 +57,9 @@
     "reka-ui": "^2.9.5",
     "tailwindcss": "^4.2.0",
     "vike-vue": "^0.9.11",
-    "vue": "^3.5.28",
+    "vue": "catalog:",
     "vue-sonner": "^2.0.9",
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   },
   "engines": {
     "node": ">=24.0.0"

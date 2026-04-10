@@ -26,19 +26,19 @@
     "@cat/core": "workspace:*",
     "@cat/graph": "workspace:*",
     "@cat/shared": "workspace:*",
-    "@types/node": "^25.5.2",
+    "@types/node": "catalog:",
     "redis": "^5.11.0",
-    "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.7",
-    "vitest": "^4.1.3",
-    "zod": "^4.3.6"
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "@cat/core": "workspace:*",
     "@cat/graph": "workspace:*",
     "@cat/shared": "workspace:*",
     "redis": "^5.11.0",
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   },
   "engines": {
     "node": ">=24.0.0"

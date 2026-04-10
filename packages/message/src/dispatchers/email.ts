@@ -21,10 +21,15 @@ export interface EmailProvider {
  */
 export class EmailDispatcher implements ChannelDispatcher {
   readonly channel = "EMAIL" as const;
+  private readonly getProvider: () => EmailProvider | undefined;
+  private readonly resolveEmail: (userId: string) => Promise<string | null>;
   constructor(
-    private readonly getProvider: () => EmailProvider | undefined,
-    private readonly resolveEmail: (userId: string) => Promise<string | null>,
-  ) {}
+    getProvider: () => EmailProvider | undefined,
+    resolveEmail: (userId: string) => Promise<string | null>,
+  ) {
+    this.getProvider = getProvider;
+    this.resolveEmail = resolveEmail;
+  }
 
   async dispatch(request: MessageRequest): Promise<void> {
     const provider = this.getProvider();

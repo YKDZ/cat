@@ -32,14 +32,14 @@
     "typecheck": "tsc --noEmit -p tsconfig.lib.json"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
-    "unplugin-dts": "1.0.0-beta.6",
-    "vite": "^8.0.7"
+    "@types/node": "catalog:",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:"
   },
   "peerDependencies": {
     "@cat/core": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/shared": "workspace:*",
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   }
 }

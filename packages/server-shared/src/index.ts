@@ -2,6 +2,7 @@ export * from "./cache";
 export * from "./crypto";
 export * from "./file";
 export * from "./http-helpers";
+export * from "./llm-utils";
 export * from "./mobile";
 export * from "./password";
 export * from "./plugin";

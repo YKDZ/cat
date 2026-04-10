@@ -4,13 +4,28 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 33
+* **Modules**: 34
 
-* **Exported functions**: 23
+* **Exported functions**: 24
 
-* **Exported types**: 126
+* **Exported types**: 135
 
 ## Function Index
+
+### packages/shared/src/schema
+
+### `serializeAgentDefinition`
+
+```ts
+/**
+ * Serialize agent metadata and body content into a complete MD text.
+ *
+ * @param parsed - Parsed agent definition
+ *
+ * @returns Full MD string with YAML frontmatter and body
+ */
+export const serializeAgentDefinition = (parsed: ParsedAgentDefinition): string
+```
 
 ### packages/shared/src/utils
 
@@ -170,17 +185,27 @@ export const safeJoinURL = (base: string, path: string): string
 
 ## Type Index
 
-* `AgentDefinition` (type)
+* `ParsedAgentDefinition` (interface) — Full agent definition parsed from MD (metadata + body content).
 
-* `AgentLLMConfig` (type)
+* `AgentDefinitionMetadata` (type) — Agent definition metadata type.
 
-* `SystemPromptVariable` (type)
+* `AgentLLMConfig` (type) — Agent LLM configuration type.
 
-* `AgentConstraints` (type)
+* `AgentConstraints` (type) — Agent runtime constraints type.
 
-* `PipelineStage` (type)
+* `AgentPromptConfig` (type) — Agent prompt configuration type.
 
-* `Orchestration` (type)
+* `AgentSecurityPolicy` (type) — Agent security policy type.
+
+* `AgentScope` (type) — Agent scope type.
+
+* `Orchestration` (type) — Multi-agent orchestration configuration type.
+
+* `PipelineStage` (type) — Orchestration pipeline stage type.
+
+* `AgentDefinition` (type) — @deprecated Use AgentDefinitionMetadata instead.
+
+* `SystemPromptVariable` (type) — @deprecated Use ParsedAgentDefinition instead.
 
 * `ToolConfirmRequest` (type)
 
@@ -237,6 +262,12 @@ export const safeJoinURL = (base: string, path: string): string
 * `TermConceptToSubject` (type)
 
 * `TermConceptSubject` (type)
+
+* `KanbanBoard` (type)
+
+* `KanbanCard` (type)
+
+* `ToolCallLog` (type)
 
 * `SlotMappingEntry` (type)
 
@@ -339,6 +370,8 @@ export const safeJoinURL = (base: string, path: string): string
 * `MessageCategory` (type)
 
 * `NotificationStatus` (type)
+
+* `KanbanCardStatus` (type)
 
 * `JSONObject` (interface)
 

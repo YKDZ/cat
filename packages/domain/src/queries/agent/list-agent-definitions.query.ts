@@ -11,6 +11,7 @@ export const ListAgentDefinitionsQuerySchema = z.object({
   scopeType: ScopeTypeSchema.optional(),
   scopeId: z.string().optional(),
   type: AgentDefinitionTypeSchema.optional(),
+  isBuiltin: z.boolean().optional(),
 });
 
 export type ListAgentDefinitionsQuery = z.infer<
@@ -33,6 +34,10 @@ export const listAgentDefinitions: Query<
 
   if (query.type) {
     conditions.push(eq(agentDefinition.type, query.type));
+  }
+
+  if (query.isBuiltin !== undefined) {
+    conditions.push(eq(agentDefinition.isBuiltin, query.isBuiltin));
   }
 
   return ctx.db

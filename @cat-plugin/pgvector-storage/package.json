@@ -29,7 +29,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "devDependencies": {
-    "vite": "^8.0.7"
+    "vite": "catalog:"
   },
   "peerDependencies": {
     "@cat/domain": "workspace:*",
