@@ -421,16 +421,11 @@ export const autoTranslate = authed
         description: "自动翻译工作流",
         scopeType: "GLOBAL",
         scopeId: "",
-        definition: {
-          id: "auto-translate",
-          name: "自动翻译",
-          description: "自动翻译工作流",
-          version: "1.0.0",
-          type: "WORKFLOW",
-          systemPrompt: "",
-          tools: [],
-        } as Parameters<typeof createAgentDefinition>[1]["definition"],
+        definitionId: "auto-translate",
+        version: "1.0.0",
         type: "WORKFLOW",
+        tools: [],
+        content: "",
         isBuiltin: true,
       });
       existingDef = await executeQuery(

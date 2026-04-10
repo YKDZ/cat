@@ -6,7 +6,10 @@ import type { FlowStorage } from "../scheduler.ts";
 const KEY_PREFIX = "auth:flow";
 
 export class RedisFlowStorage implements FlowStorage {
-  constructor(private readonly redis: RedisClientType) {}
+  private readonly redis: RedisClientType;
+  constructor(redis: RedisClientType) {
+    this.redis = redis;
+  }
 
   async save(
     flowId: string,

@@ -1,0 +1,1 @@
+ALTER TYPE "ObjectType" ADD VALUE 'kanban_board' BEFORE 'agent_definition';

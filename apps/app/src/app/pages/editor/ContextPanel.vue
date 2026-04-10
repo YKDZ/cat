@@ -11,7 +11,6 @@ import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 
-import AgentChatPanel from "@/app/components/agent/AgentChatPanel.vue";
 import Comments from "@/app/components/Comments.vue";
 import { useEditorTableStore } from "@/app/stores/editor/table";
 import { useCookieStringRef } from "@/app/utils/cookie";
@@ -36,11 +35,10 @@ const id = "editor-context-panel";
   <Sidebar :id>
     <SidebarHeader>
       <Tabs v-model="panelOpen">
-        <TabsList class="grid w-full grid-cols-4">
+        <TabsList class="grid w-full grid-cols-3">
           <TabsTrigger value="context">{{ t("上下文") }}</TabsTrigger>
           <TabsTrigger value="source">{{ t("源文件") }}</TabsTrigger>
           <TabsTrigger value="discussion">{{ t("讨论") }}</TabsTrigger>
-          <TabsTrigger value="agent">{{ t("助理") }}</TabsTrigger>
         </TabsList>
       </Tabs>
     </SidebarHeader>
@@ -51,7 +49,6 @@ const id = "editor-context-panel";
       :targetType="'ELEMENT'"
       :targetId="elementId!"
     />
-    <AgentChatPanel v-else-if="panelOpen === 'agent'" />
     <SidebarRail :sidebarId="id" />
   </Sidebar>
 </template>

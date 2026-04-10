@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   ssr: {
     external: [
+      "@cat/agent",
       "@cat/workflow",
       "@cat/workflow/tasks",
       "@cat/domain",
@@ -37,6 +38,7 @@ export default defineConfig({
     sourcemap: true,
     rolldownOptions: {
       external: [
+        "@cat/agent",
         "@cat/workflow",
         "@cat/workflow/tasks",
         "@cat/domain",

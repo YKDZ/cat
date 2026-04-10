@@ -6,6 +6,7 @@ import * as document from "./routers/document.ts";
 import * as element from "./routers/element.ts";
 import * as ghostText from "./routers/ghost-text.ts";
 import * as glossary from "./routers/glossary.ts";
+import * as kanban from "./routers/kanban.ts";
 import * as language from "./routers/language.ts";
 import * as memory from "./routers/memory.ts";
 import * as notification from "./routers/notification.ts";
@@ -21,6 +22,7 @@ import * as user from "./routers/user.ts";
 
 const router: AppRouter = {
   agent,
+  kanban,
   auth,
   authFlow,
   user,
@@ -44,6 +46,7 @@ const router: AppRouter = {
 
 export type AppRouter = {
   agent: typeof agent;
+  kanban: typeof kanban;
   auth: typeof auth;
   authFlow: typeof authFlow;
   user: typeof user;

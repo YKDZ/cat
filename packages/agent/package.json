@@ -1,0 +1,55 @@
+{
+  "name": "@cat/agent",
+  "version": "0.0.1",
+  "description": "Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser",
+  "license": "GPL-3.0-only",
+  "files": [
+    "dist",
+    "src",
+    "package.json"
+  ],
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "vite build",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "test": "vitest run --config ../../vitest.config.ts --project=unit-agent",
+    "test:integration": "vitest run --config ../../vitest.config.ts --project=agent-integration",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
+  },
+  "dependencies": {
+    "remark-frontmatter": "^5.0.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@cat/test-utils": "workspace:*",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "catalog:",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@cat/core": "workspace:*",
+    "@cat/domain": "workspace:*",
+    "@cat/graph": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
+    "@cat/server-shared": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "@cat/workflow": "workspace:*",
+    "zod": "catalog:"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "!test-utils"
+    ]
+  }
+}

@@ -1,7 +1,11 @@
 import type { OperationContext } from "@cat/domain";
 
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
-import { serverLogger as logger } from "@cat/server-shared";
+import {
+  collectLLMResponse,
+  firstOrGivenService,
+  resolvePluginManager,
+  serverLogger as logger,
+} from "@cat/server-shared";
 import * as z from "zod";
 
 // ─── Types ───
@@ -255,19 +259,21 @@ export const llmTermEnhanceOp = async (
         data.config.inferSubject,
       );
       try {
-        const response = await llm.chat({
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a terminology extraction expert. Always respond with valid JSON arrays only.",
-            },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.1,
-          maxTokens: 4096,
-          thinking: false,
-        });
+        const response = await collectLLMResponse(
+          llm.chat({
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are a terminology extraction expert. Always respond with valid JSON arrays only.",
+              },
+              { role: "user", content: prompt },
+            ],
+            temperature: 0.1,
+            maxTokens: 4096,
+            thinking: false,
+          }),
+        );
         return {
           batch,
           results: parseJsonSafe(response.content?.trim() ?? ""),
@@ -365,19 +371,21 @@ Return ONLY a valid JSON array:
 ]`;
 
         try {
-          const response = await llm.chat({
-            messages: [
-              {
-                role: "system",
-                content:
-                  "You are a terminology expert. Always respond with valid JSON arrays only.",
-              },
-              { role: "user", content: prompt },
-            ],
-            temperature: 0.1,
-            maxTokens: 4096,
-            thinking: false,
-          });
+          const response = await collectLLMResponse(
+            llm.chat({
+              messages: [
+                {
+                  role: "system",
+                  content:
+                    "You are a terminology expert. Always respond with valid JSON arrays only.",
+                },
+                { role: "user", content: prompt },
+              ],
+              temperature: 0.1,
+              maxTokens: 4096,
+              thinking: false,
+            }),
+          );
           return {
             batch,
             results: parseJsonSafe(response.content?.trim() ?? ""),

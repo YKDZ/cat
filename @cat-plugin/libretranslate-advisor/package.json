@@ -29,12 +29,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "devDependencies": {
-    "vite": "^8.0.7"
+    "vite": "catalog:"
   },
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "undici": "^7.24.7",
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   }
 }

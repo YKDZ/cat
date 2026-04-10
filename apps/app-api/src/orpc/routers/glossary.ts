@@ -467,17 +467,11 @@ export const startTermDiscovery = authed
           description: "术语发现工作流",
           scopeType: "GLOBAL",
           scopeId: "",
-          // oxlint-disable-next-line no-unsafe-type-assertion -- WORKFLOW agents don't need llm config
-          definition: {
-            id: "term-discovery",
-            name: "术语发现",
-            description: "术语发现工作流",
-            version: "1.0.0",
-            type: "WORKFLOW",
-            systemPrompt: "",
-            tools: [],
-          } as Parameters<typeof createAgentDefinition>[1]["definition"],
+          definitionId: "term-discovery",
+          version: "1.0.0",
           type: "WORKFLOW",
+          tools: [],
+          content: "",
           isBuiltin: true,
         },
       );
@@ -600,17 +594,11 @@ export const startTermAlignment = authed
           description: "术语对齐工作流",
           scopeType: "GLOBAL",
           scopeId: "",
-          // oxlint-disable-next-line no-unsafe-type-assertion -- WORKFLOW agents don't need llm config
-          definition: {
-            id: "term-alignment",
-            name: "术语对齐",
-            description: "术语对齐工作流",
-            version: "1.0.0",
-            type: "WORKFLOW",
-            systemPrompt: "",
-            tools: [],
-          } as Parameters<typeof createAgentDefinition>[1]["definition"],
+          definitionId: "term-alignment",
+          version: "1.0.0",
           type: "WORKFLOW",
+          tools: [],
+          content: "",
           isBuiltin: true,
         },
       );

@@ -16,12 +16,14 @@ const ctx = usePageContext();
 </script>
 
 <template>
-  <div class="header flex items-center justify-between">
+  <div class="header flex items-center">
     <SidebarTrigger sidebar-id="index" />
-    <HeaderBreadcrumb v-if="project" :project />
-    <div v-else class="font-500 flex items-center text-lg">
-      {{ ctx.user?.name }}
+    <div class="flex flex-1 items-center justify-between">
+      <HeaderBreadcrumb v-if="project" :project />
+      <div v-else class="font-500 flex items-center text-lg">
+        {{ ctx.user?.name }}
+      </div>
+      <NotificationInbox />
     </div>
-    <NotificationInbox />
   </div>
 </template>

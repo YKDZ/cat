@@ -1,0 +1,45 @@
+{
+  "name": "@cat/agent-tools",
+  "version": "0.0.1",
+  "description": "Built-in agent tools: kanban, translation, session management",
+  "license": "GPL-3.0-only",
+  "files": [
+    "dist",
+    "src",
+    "package.json"
+  ],
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "vite build",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "test": "vitest run --config ../../vitest.config.ts --project=unit-agent-tools",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
+  },
+  "devDependencies": {
+    "@cat/test-utils": "workspace:*",
+    "@types/node": "catalog:",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@cat/agent": "workspace:*",
+    "@cat/core": "workspace:*",
+    "@cat/domain": "workspace:*",
+    "@cat/operations": "workspace:*",
+    "@cat/shared": "workspace:*",
+    "zod": "catalog:"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "!test-utils"
+    ]
+  }
+}

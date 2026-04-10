@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@oxlint/plugins": "^1.59.0",
-    "vite": "^8.0.7",
-    "vitest": "^4.1.3"
+    "vite": "catalog:",
+    "vitest": "catalog:"
   }
 }

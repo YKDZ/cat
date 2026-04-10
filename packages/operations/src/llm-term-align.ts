@@ -1,7 +1,11 @@
 import type { OperationContext } from "@cat/domain";
 
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
-import { serverLogger as logger } from "@cat/server-shared";
+import {
+  collectLLMResponse,
+  firstOrGivenService,
+  resolvePluginManager,
+  serverLogger as logger,
+} from "@cat/server-shared";
 import * as z from "zod";
 
 // ─── Input / Output Schemas ───
@@ -202,19 +206,21 @@ export const llmTermAlignOp = async (
       });
 
       try {
-        const response = await llm.chat({
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a multilingual terminology alignment expert. Always respond with valid JSON arrays only.",
-            },
-            { role: "user", content: buildAlignPrompt(batchItems) },
-          ],
-          temperature: 0.1,
-          maxTokens: 4096,
-          thinking: false,
-        });
+        const response = await collectLLMResponse(
+          llm.chat({
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are a multilingual terminology alignment expert. Always respond with valid JSON arrays only.",
+              },
+              { role: "user", content: buildAlignPrompt(batchItems) },
+            ],
+            temperature: 0.1,
+            maxTokens: 4096,
+            thinking: false,
+          }),
+        );
 
         return {
           batch,

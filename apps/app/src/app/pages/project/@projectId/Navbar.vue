@@ -16,6 +16,8 @@ import {
   Bot,
   Box,
   Home,
+  LayoutGrid,
+  MessageSquare,
   NotebookText,
   Settings,
   Workflow,
@@ -62,9 +64,19 @@ const items: { title: string; href: string; icon: Component }[] = [
     href: `/project/${props.project.id}/workflows`,
   },
   {
+    title: t("看板"),
+    icon: LayoutGrid,
+    href: `/project/${props.project.id}/kanban`,
+  },
+  {
     title: t("Agent"),
     icon: Bot,
     href: `/project/${props.project.id}/agents`,
+  },
+  {
+    title: t("Agent 对话"),
+    icon: MessageSquare,
+    href: `/project/${props.project.id}/agent-chat`,
   },
   {
     title: t("设置"),

@@ -8,7 +8,7 @@ Plugin system core: service registry, component registry, discovery
 
 * **Exported functions**: 15
 
-* **Exported types**: 72
+* **Exported types**: 71
 
 ## Function Index
 
@@ -211,23 +211,21 @@ export const parseInner = async (content: string, offsetInParent: number, rules:
 
 * `ElementData` (type)
 
-* `ChatMessageRole` (type)
+* `ChatMessageRole` (type) — Chat message role.
 
-* `ChatMessage` (type)
+* `ChatMessage` (type) — A chat message in a conversation.
 
-* `ToolDefinition` (type)
+* `ToolDefinition` (type) — Tool definition with JSON Schema parameters.
 
-* `ToolCall` (type)
+* `ToolCall` (type) — A tool call initiated by the LLM.
 
-* `ChatCompletionRequest` (type)
+* `ChatCompletionRequest` (type) — Chat completion request parameters (pure AsyncIterable mode, no onChunk callback).
 
-* `ChatStreamChunk` (type)
+* `ChatCompletionFinishReason` (type) — Finish reason for a chat completion.
 
-* `ChatCompletionFinishReason` (type)
+* `ChatCompletionUsage` (type) — Token usage for a chat completion.
 
-* `ChatCompletionUsage` (type)
-
-* `ChatCompletionResponse` (type)
+* `LLMChunk` (type) — Union type for a single chunk from LLM streaming output.
 
 * `NlpSegmentContext` (type) — 分词请求上下文
 

@@ -1,9 +1,10 @@
 export class AssertError extends Error {
-  constructor(
-    public override message: string,
-    public leadTo?: unknown,
-  ) {
+  public override message: string;
+  public leadTo?: unknown;
+  constructor(message: string, leadTo?: unknown) {
     super(message);
+    this.message = message;
+    this.leadTo = leadTo;
     this.name = "AssertError";
   }
 }

@@ -32,11 +32,11 @@
     "openai": "^6.33.0"
   },
   "devDependencies": {
-    "vite": "^8.0.7"
+    "vite": "catalog:"
   },
   "peerDependencies": {
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   }
 }

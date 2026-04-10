@@ -46,7 +46,7 @@ interface AgentItem {
   scopeType: ScopeType;
   scopeId: string;
   isBuiltin: boolean;
-  definition: unknown;
+  icon: string | null;
   createdAt: Date;
 }
 
@@ -103,16 +103,9 @@ const iconMap: Record<string, Component> = {
 const getIcon = (iconName: string | undefined): Component =>
   (iconName ? iconMap[iconName] : undefined) ?? Bot;
 
-const getIconFromDef = (def: unknown): Component => {
-  if (
-    def !== null &&
-    def !== undefined &&
-    typeof def === "object" &&
-    "icon" in def &&
-    typeof (def as Record<string, unknown>).icon === "string"
-  ) {
-    // oxlint-disable-next-line no-unsafe-type-assertion -- guarded by typeof check
-    return getIcon((def as Record<string, string>).icon);
+const getIconFromDef = (icon: string | null | undefined): Component => {
+  if (icon) {
+    return getIcon(icon);
   }
   return Bot;
 };
@@ -122,14 +115,18 @@ const getIconFromDef = (def: unknown): Component => {
 const fetchAll = async () => {
   loading.value = true;
   try {
-    const [projectResult, templateResult, providerResult] = await Promise.all([
-      orpc.agent.list({ scopeType: "PROJECT", scopeId: project.id }),
-      orpc.agent.listBuiltinTemplates(),
-      orpc.agent.listLLMProviders(),
-    ]);
-    enabledAgents.value = projectResult;
-    templates.value = templateResult;
-    llmProviders.value = providerResult;
+    const [projectResult, templateResult, providerResult] =
+      await Promise.allSettled([
+        orpc.agent.list({ scopeType: "PROJECT", scopeId: project.id }),
+        orpc.agent.listBuiltinTemplates(),
+        orpc.agent.listLLMProviders(),
+      ]);
+    if (projectResult.status === "fulfilled")
+      enabledAgents.value = projectResult.value;
+    if (templateResult.status === "fulfilled")
+      templates.value = templateResult.value;
+    if (providerResult.status === "fulfilled")
+      llmProviders.value = providerResult.value;
   } finally {
     loading.value = false;
   }
@@ -227,10 +224,7 @@ onMounted(() => {
             <div
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-green-500/10 text-green-600 dark:text-green-400"
             >
-              <component
-                :is="getIconFromDef(agent.definition)"
-                class="h-5 w-5"
-              />
+              <component :is="getIconFromDef(agent.icon)" class="h-5 w-5" />
             </div>
             <div class="flex min-w-0 flex-col gap-1">
               <div class="flex items-center gap-2">
@@ -293,10 +287,7 @@ onMounted(() => {
             <div
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"
             >
-              <component
-                :is="getIconFromDef(agent.definition)"
-                class="h-5 w-5"
-              />
+              <component :is="getIconFromDef(agent.icon)" class="h-5 w-5" />
             </div>
             <div class="flex min-w-0 flex-col gap-1">
               <div class="flex items-center gap-2">
