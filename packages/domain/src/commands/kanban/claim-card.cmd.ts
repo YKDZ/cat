@@ -66,6 +66,12 @@ export const claimCard: Command<ClaimCardCommand, ClaimCardResult> = async (
           command.claimableStatuses.map((s) => sql`${s}`),
           sql`, `,
         )}]::text[]`})
+        AND NOT EXISTS (
+          SELECT 1 FROM "KanbanCardDep" d
+          INNER JOIN "KanbanCard" dep ON dep.id = d."dependsOnCardId"
+          WHERE d."cardId" = "KanbanCard".id
+            AND dep.status != 'DONE'
+        )
       ORDER BY priority DESC, created_at ASC
       LIMIT 1
       FOR UPDATE SKIP LOCKED

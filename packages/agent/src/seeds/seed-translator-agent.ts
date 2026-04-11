@@ -22,7 +22,6 @@ version: 1.0.0
 icon: languages
 type: GENERAL
 llm:
-  providerId: 1
   temperature: 0.3
   maxTokens: 4096
 tools:
@@ -30,6 +29,7 @@ tools:
   - search_termbase
   - qa_check
   - kanban_claim
+  - kanban_list
   - kanban_update
   - update_scratchpad
   - read_precheck
@@ -53,9 +53,12 @@ scope:
 - **翻译记忆库查询**：使用 \`search_tm\` 在翻译记忆库中搜索已有翻译，利用三通道匹配（精确、三字组、向量语义）查找高置信度匹配。
 - **质量检查**：使用 \`qa_check\` 验证翻译质量（格式、术语、流畅度）。
 
+- **看板查询**：使用 \`kanban_list\` 列出指定看板上的卡片，支持按状态筛选。
+
 # 工作流程
 
-1. **领取任务**：使用 \`kanban_claim\` 从看板领取一张待翻译卡片（OPEN 状态）。
+1. **查看看板**：使用 \`kanban_list\` 查看看板上待处理的卡片。
+2. **领取任务**：使用 \`kanban_claim\` 从看板领取一张待翻译卡片（OPEN 状态）。
 2. **预检查**：使用 \`read_precheck\` 读取并理解翻译要求与质检规则。
 3. **查询资源**：
    - 使用 \`search_tm\` 查找翻译记忆库中的已有翻译。

@@ -15,14 +15,53 @@ import type {
 } from "./session-manager.ts";
 
 import { runDecisionNode } from "../dag/nodes/decision-node.ts";
-import { runPreCheckNode } from "../dag/nodes/precheck-node.ts";
+import {
+  runPreCheckNode,
+  type PreCheckServices,
+} from "../dag/nodes/precheck-node.ts";
 import { runReasoningNode } from "../dag/nodes/reasoning-node.ts";
 import { runToolNode } from "../dag/nodes/tool-node.ts";
 import { createNoopAgentLogger } from "../observability/agent-logger.ts";
 import { AgentMetrics } from "../observability/agent-metrics.ts";
+import {
+  CompressionPipeline,
+  type CompressionConfig,
+} from "../prompt/compression-pipeline.ts";
 import { PromptEngine } from "../prompt/prompt-engine.ts";
+import { estimateTokens } from "../prompt/token-estimator.ts";
+import { AsyncIterableChannel } from "./async-iterable-channel.ts";
 import { ErrorRecoveryManager } from "./error-recovery.ts";
+import { buildPromptVariables } from "./prompt-variables.ts";
 import { SessionManager } from "./session-manager.ts";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * @zh 判断错误是否为 LLM context 超出错误。
+ * @en Check whether the error is a context-length exceeded error from the LLM.
+ */
+function isContextOverflowError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message.toLowerCase();
+  if (
+    msg.includes("context_length_exceeded") ||
+    msg.includes("context window") ||
+    msg.includes("maximum context length") ||
+    msg.includes("tokens exceeds")
+  ) {
+    return true;
+  }
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  const code = (err as { code?: unknown }).code;
+  return code === "context_length_exceeded";
+}
+
+/** @zh 默认压缩管线配置。@en Default compression pipeline configuration. */
+const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
+  toolResultBudget: 2000,
+  contextWindowRatio: 0.8,
+  contextWindowSize: 128_000,
+};
 
 // ─── Agent Events ─────────────────────────────────────────────────────────────
 
@@ -40,6 +79,13 @@ export type AgentEvent =
   | { type: "token_delta"; textDelta: string }
   | { type: "tool_call"; toolName: string; toolCallId: string }
   | { type: "tool_result"; toolCallId: string; content: string }
+  | { type: "llm_thinking"; thinkingDelta: string }
+  | {
+      type: "llm_complete";
+      text: string;
+      thinkingText: string;
+      tokenUsage: { promptTokens: number; completionTokens: number };
+    }
   | {
       type: "finished";
       reason: "finish" | "maxTurns" | "timeout";
@@ -63,6 +109,8 @@ export interface AgentRuntimeConfig {
   promptEngine?: PromptEngine;
   /** @zh 结构化日志 @en Structured logger */
   logger?: AgentLogger;
+  /** @zh PreCheck 使用的可选服务集合 @en Optional services used by PreCheck */
+  preCheckServices?: PreCheckServices;
 }
 
 // ─── AgentRuntime ─────────────────────────────────────────────────────────────
@@ -154,9 +202,12 @@ export class AgentRuntime {
           initialData: initialData as unknown as Record<string, unknown>,
         });
 
-    // Error recovery and metrics
+    // Error recovery, metrics, and compression
     const errorRecovery = new ErrorRecoveryManager(constraints);
     const metrics = new AgentMetrics();
+    const compressionPipeline = new CompressionPipeline(
+      DEFAULT_COMPRESSION_CONFIG,
+    );
 
     // Build node context (shared)
     const promptEngine =
@@ -169,7 +220,12 @@ export class AgentRuntime {
       sessionId,
       runId,
       agentId: agentDefinition.metadata.id,
-      projectId: "",
+      projectId: state.projectId ?? state.sessionMetadata?.projectId ?? "",
+      sessionMetadata: state.sessionMetadata,
+      promptVariables: buildPromptVariables({
+        constraints,
+        metadata: state.sessionMetadata,
+      }),
       llmGateway: this.config.llmGateway,
       toolRegistry: this.config.toolRegistry,
       promptEngine,
@@ -209,7 +265,11 @@ export class AgentRuntime {
       while (true) {
         // ── PreCheck ─────────────────────────────────────────────────────────
         yield { type: "node", nodeType: "precheck", status: "started" };
-        const preCheckResult = runPreCheckNode(getCurrentData(), nodeCtx);
+        // oxlint-disable-next-line no-await-in-loop -- sequential DAG step: must complete before reasoning
+        const preCheckResult = await runPreCheckNode(getCurrentData(), {
+          ...nodeCtx,
+          services: this.config.preCheckServices,
+        });
 
         if (preCheckResult.shouldAbort) {
           const reason = preCheckResult.abortReason ?? "maxTurns";
@@ -236,12 +296,115 @@ export class AgentRuntime {
 
         // ── Reasoning ─────────────────────────────────────────────────────────
         yield { type: "node", nodeType: "reasoning", status: "started" };
-        // oxlint-disable-next-line no-await-in-loop -- sequential DAG step: reasoning must complete before tools
-        const reasoningResult = await runReasoningNode(
-          getCurrentData(),
-          nodeCtx,
-          agentDefinition,
-        );
+
+        // Create a channel for real-time thinking delta forwarding
+        const thinkingChannel = new AsyncIterableChannel<string>();
+
+        // oxlint-disable-next-line no-unsafe-type-assertion -- AgentBlackboardData.messages is structurally ChatMessage[]
+        let reasoningResult!: Awaited<ReturnType<typeof runReasoningNode>>;
+
+        try {
+          const nodeCtxWithEmit: AgentNodeContext = {
+            ...nodeCtx,
+            emitEvent: (event) => {
+              if (
+                event.type === "llm:thinking" &&
+                typeof event.payload.thinkingDelta === "string"
+              ) {
+                thinkingChannel.push(event.payload.thinkingDelta);
+              }
+            },
+          };
+
+          // oxlint-disable-next-line no-await-in-loop -- sequential DAG step: reasoning must complete before tools
+          const reasoningPromise = runReasoningNode(
+            getCurrentData(),
+            nodeCtxWithEmit,
+            agentDefinition,
+          ).then((result) => {
+            thinkingChannel.close();
+            return result;
+          });
+
+          // Interleave: yield llm_thinking events from channel while reasoning runs
+          const channelIter = thinkingChannel[Symbol.asyncIterator]();
+          let partialResult: Awaited<typeof reasoningPromise> | undefined;
+
+          while (!partialResult) {
+            const channelNextPromise = channelIter.next();
+            // oxlint-disable-next-line no-await-in-loop -- interleaving channel and reasoning result
+            const winner = await Promise.race([
+              channelNextPromise.then((v) => ({
+                source: "channel" as const,
+                value: v,
+              })),
+              reasoningPromise.then((r) => ({
+                source: "done" as const,
+                result: r,
+              })),
+            ]);
+
+            if (winner.source === "channel") {
+              if (!winner.value.done) {
+                yield {
+                  type: "llm_thinking",
+                  thinkingDelta: winner.value.value,
+                };
+              }
+            } else {
+              partialResult = winner.result;
+              // Drain any remaining channel events
+              // oxlint-disable-next-line no-await-in-loop
+              for await (const remaining of {
+                [Symbol.asyncIterator]: () => channelIter,
+              }) {
+                yield { type: "llm_thinking", thinkingDelta: remaining };
+              }
+            }
+          }
+
+          reasoningResult = partialResult;
+        } catch (innerErr) {
+          thinkingChannel.close();
+          if (
+            isContextOverflowError(innerErr) &&
+            errorRecovery.consumeContextOverflow()
+          ) {
+            const currentData = getCurrentData();
+            // oxlint-disable-next-line no-unsafe-type-assertion -- AgentBlackboardData.messages is structurally ChatMessage[]
+            const compressed = compressionPipeline.compress(
+              // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+              currentData.messages as unknown as Parameters<
+                typeof compressionPipeline.compress
+              >[0],
+              estimateTokens,
+            );
+            // oxlint-disable-next-line no-unsafe-type-assertion -- compressed messages retain the same structure
+            applyUpdates({
+              messages:
+                // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+                compressed.messages as unknown as AgentBlackboardData["messages"],
+            });
+            this.logger.logError({
+              error:
+                innerErr instanceof Error
+                  ? innerErr
+                  : new Error(String(innerErr)),
+              nodeType: "reasoning",
+              message: `Context overflow recovered: compressed ${compressed.stats.removedTokens} tokens; retrying turn`,
+            });
+            continue;
+          }
+          throw innerErr;
+        }
+
+        // Yield llm_complete event with full thinking text
+        yield {
+          type: "llm_complete",
+          text: reasoningResult.text,
+          thinkingText: reasoningResult.thinkingText,
+          tokenUsage: reasoningResult.tokenUsage,
+        };
 
         metrics.recordTokens(
           reasoningResult.tokenUsage.promptTokens,

@@ -1,4 +1,5 @@
 import type { ToolConfirmResponse } from "@cat/shared/schema/agent";
+import type { AgentSessionMetadata } from "@cat/shared/schema/agent";
 import type { AgentDefinitionType, ScopeType } from "@cat/shared/schema/enum";
 
 import { defineStore } from "pinia";
@@ -7,6 +8,7 @@ import { computed, ref, shallowRef } from "vue";
 import type { GraphEvent, NodeExecution } from "@/app/types/agent-graph";
 
 import { orpc } from "@/app/rpc/orpc";
+import { hydrateSessionState } from "@/app/utils/agent";
 import { clientLogger as logger } from "@/app/utils/logger";
 
 // ─── Constants ───
@@ -25,8 +27,30 @@ export interface AgentDefinitionSummary {
 export interface AgentSessionSummary {
   id: string;
   status: string;
-  metadata: unknown;
+  metadata: AgentSessionContext | null;
   createdAt: Date;
+}
+
+/**
+ * @zh 前端持有的会话上下文元数据。
+ * @en Session context metadata held by the frontend.
+ */
+export type AgentSessionContext = AgentSessionMetadata;
+
+/**
+ * @zh 从服务端会话状态接口归一化后的 hydration 结果。
+ * @en Normalized hydration result returned from the server session-state API.
+ */
+export interface HydratedSessionState {
+  sessionId: string;
+  agentDefinitionId: string;
+  status: string;
+  metadata: AgentSessionContext | null;
+  runId: string | null;
+  runStatus: string | null;
+  blackboardSnapshot: Record<string, unknown> | null;
+  messages: AgentMessageItem[];
+  currentKanbanCardId: string | null;
 }
 
 export interface AgentMessageItem {
@@ -117,6 +141,7 @@ export const useAgentStore = defineStore("agent", () => {
   const selectedDefinitionId = ref<string | null>(null);
   const sessions = ref<AgentSessionSummary[]>([]);
   const activeSessionId = ref<string | null>(null);
+  const activeSessionContext = ref<AgentSessionContext | null>(null);
   const messages = ref<AgentMessageItem[]>([]);
   const streamingText = ref("");
   const thinkingText = ref("");
@@ -179,15 +204,15 @@ export const useAgentStore = defineStore("agent", () => {
       }
 
       case "node:start": {
-        // Update thinking indicator for reasoning nodes
+        // Clear thinking text for new reasoning nodes
         if (payload.nodeType === "llm") {
-          thinkingText.value = "Reasoning...";
+          thinkingText.value = "";
         }
         break;
       }
 
       case "node:end": {
-        // Clear thinking when reasoning completes
+        // Clear thinking when reasoning completes (fallback — llm:complete should do it first)
         if (payload.nodeType === "llm") {
           thinkingText.value = "";
         }
@@ -308,9 +333,7 @@ export const useAgentStore = defineStore("agent", () => {
       case "node:lease:acquired":
       case "node:lease:expired":
       case "node:lease:reclaimed":
-      case "llm:thinking":
       case "llm:token":
-      case "llm:complete":
       case "llm:error":
       case "tool:error":
       case "tool:confirm:required":
@@ -322,6 +345,45 @@ export const useAgentStore = defineStore("agent", () => {
       case "workflow:qa:issue":
       case "workflow:suggestion:ready":
         break;
+
+      case "llm:thinking": {
+        const delta =
+          typeof payload.thinkingDelta === "string"
+            ? payload.thinkingDelta
+            : "";
+        thinkingText.value += delta;
+        break;
+      }
+
+      case "llm:complete": {
+        const fullThinking =
+          typeof payload.thinkingText === "string"
+            ? payload.thinkingText
+            : null;
+        // Archive thinking to current step for history replay
+        if (fullThinking) {
+          if (currentSteps.value.length > 0) {
+            const steps = [...currentSteps.value];
+            const lastStep = { ...steps[steps.length - 1] };
+            lastStep.thinkingText = fullThinking;
+            steps[steps.length - 1] = lastStep;
+            currentSteps.value = steps;
+          } else {
+            // No tool-call step yet — create a thinking-only step
+            currentSteps.value = [
+              ...currentSteps.value,
+              {
+                index: currentSteps.value.length,
+                thought: null,
+                thinkingText: fullThinking,
+                toolCalls: [],
+              },
+            ];
+          }
+        }
+        thinkingText.value = "";
+        break;
+      }
     }
   };
 
@@ -419,6 +481,7 @@ export const useAgentStore = defineStore("agent", () => {
     selectedDefinitionId.value = id;
     // Reset session when changing agent
     activeSessionId.value = null;
+    activeSessionContext.value = null;
     messages.value = [];
     currentSteps.value = [];
     streamingText.value = "";
@@ -450,7 +513,12 @@ export const useAgentStore = defineStore("agent", () => {
       sessions.value = result.map((r) => ({
         id: r.id,
         status: r.status,
-        metadata: r.metadata,
+        metadata:
+          r.metadata &&
+          typeof r.metadata === "object" &&
+          !Array.isArray(r.metadata)
+            ? (r.metadata as AgentSessionContext)
+            : null,
         createdAt: r.createdAt,
       }));
     } catch (err) {
@@ -458,18 +526,65 @@ export const useAgentStore = defineStore("agent", () => {
     }
   };
 
+  const resetRuntimeStateButKeepDefinitions = () => {
+    messages.value = [];
+    currentSteps.value = [];
+    streamingText.value = "";
+    thinkingText.value = "";
+    streamingStatus.value = "idle";
+    runId.value = null;
+    activeSessionContext.value = null;
+    nodeExecutions.value = new Map();
+    llmStreamingNodes.value = new Map();
+    thinkingNodes.value = new Map();
+    blackboardPreview.value = {};
+    eventLog.value = [];
+    errorMessage.value = null;
+    graphRunResult.value = null;
+    maxStepsReached.value = null;
+    lastFinishReason.value = null;
+    currentTurn.value = 0;
+    currentKanbanCardId.value = null;
+  };
+
+  const loadSession = async (sessionId: string) => {
+    const state = hydrateSessionState(
+      await orpc.agent.getSessionState({ sessionId }),
+    );
+
+    activeSessionId.value = state.sessionId;
+    selectedDefinitionId.value = state.agentDefinitionId;
+    activeSessionContext.value = state.metadata;
+    runId.value = state.runId;
+    messages.value = state.messages;
+    currentKanbanCardId.value = state.currentKanbanCardId;
+    streamingStatus.value = "idle";
+  };
+
+  const switchSession = async (sessionId: string) => {
+    if (activeSessionId.value === sessionId) return;
+    resetRuntimeStateButKeepDefinitions();
+
+    try {
+      await loadSession(sessionId);
+    } catch (err) {
+      logger.withSituation("WEB").error(err, "Failed to load agent session");
+    }
+  };
+
   const createSession = async (
     agentDefinitionId: string,
-    metadata?: {
-      projectId?: string;
-    },
+    metadata?: AgentSessionContext,
   ) => {
     try {
       const result = await orpc.agent.createSession({
         agentDefinitionId,
         projectId: metadata?.projectId,
+        metadata,
       });
       activeSessionId.value = result.sessionId;
+      activeSessionContext.value = metadata ?? null;
+      runId.value = result.runId;
       return result.sessionId;
     } catch (err) {
       logger.withSituation("WEB").error(err, "Failed to create agent session");
@@ -620,6 +735,7 @@ export const useAgentStore = defineStore("agent", () => {
   const reset = () => {
     selectedDefinitionId.value = null;
     activeSessionId.value = null;
+    activeSessionContext.value = null;
     messages.value = [];
     currentSteps.value = [];
     streamingText.value = "";
@@ -649,6 +765,7 @@ export const useAgentStore = defineStore("agent", () => {
     selectedDefinitionId,
     sessions,
     activeSessionId,
+    activeSessionContext,
     messages,
     streamingText,
     thinkingText,
@@ -678,6 +795,8 @@ export const useAgentStore = defineStore("agent", () => {
     selectDefinition,
     fetchSessions,
     createSession,
+    loadSession,
+    switchSession,
     sendMessage,
     startGraphRun,
     pauseGraphRun,

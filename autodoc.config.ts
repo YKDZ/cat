@@ -54,6 +54,16 @@ export default defineConfig({
       name: "@cat/graph",
       priority: "medium",
     },
+    {
+      path: "packages/agent",
+      name: "@cat/agent",
+      priority: "medium",
+    },
+    {
+      path: "packages/agent-tools",
+      name: "@cat/agent-tools",
+      priority: "medium",
+    },
   ],
   output: {
     path: "apps/docs/src/autodoc",

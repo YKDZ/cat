@@ -70,6 +70,10 @@
       "types": "./dist/schema/drizzle/kanban.d.ts",
       "import": "./dist/schema/drizzle/kanban.js"
     },
+    "./schema/drizzle/changeset": {
+      "types": "./dist/schema/drizzle/changeset.d.ts",
+      "import": "./dist/schema/drizzle/changeset.js"
+    },
     "./schema/drizzle/memory": {
       "types": "./dist/schema/drizzle/memory.d.ts",
       "import": "./dist/schema/drizzle/memory.js"

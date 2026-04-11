@@ -9,7 +9,11 @@ const kanbanUpdateArgs = z.object({
    * @zh 卡片的内部整数 ID
    * @en Internal integer ID of the card
    */
-  cardId: z.int().positive().describe("Internal integer ID of the kanban card"),
+  cardId: z
+    .int()
+    .positive()
+    .optional()
+    .describe("Internal integer ID of the kanban card"),
   /**
    * @zh 新状态
    * @en New status for the card
@@ -30,11 +34,17 @@ export const kanbanUpdateTool: AgentToolDefinition = {
   parameters: kanbanUpdateArgs,
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
-  async execute(args, _ctx) {
+  async execute(args, ctx) {
     const { client: db } = await getDbHandle();
     const parsed = kanbanUpdateArgs.parse(args);
+    const cardId = parsed.cardId ?? ctx.session.kanbanCardId;
+
+    if (!cardId) {
+      throw new Error("kanban_update requires cardId");
+    }
+
     return await executeCommand({ db }, updateCardStatus, {
-      cardId: parsed.cardId,
+      cardId,
       status: parsed.status,
     });
   },

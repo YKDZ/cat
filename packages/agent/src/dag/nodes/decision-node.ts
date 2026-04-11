@@ -51,7 +51,8 @@ export const runDecisionNode = (
     message: "DecisionNode: evaluating routing",
   });
 
-  // Highest priority: finish tool was called
+  // Highest priority: finish tool was called.
+  // Changeset async orchestration is deferred until real changeset-producing tools land.
   if (data.finish_called) {
     logger.logDAGNode({
       nodeType: "decision",

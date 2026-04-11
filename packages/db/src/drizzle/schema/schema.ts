@@ -34,6 +34,14 @@ import {
   MessageCategoryValues,
   NotificationStatusValues,
   KanbanCardStatusValues,
+  type NotificationStatus,
+  ChangesetStatusValues,
+  EntityTypeValues,
+  ChangeActionValues,
+  RiskLevelValues,
+  ReviewStatusValues,
+  AsyncStatusValues,
+  ChangesetEntryAsyncStatusValues,
 } from "@cat/shared/schema/enum";
 import { sql } from "drizzle-orm";
 import {
@@ -99,6 +107,17 @@ export const messageCategory = pgEnum("MessageCategory", MessageCategoryValues);
 export const notificationStatus = pgEnum(
   "NotificationStatus",
   NotificationStatusValues,
+);
+
+export const changesetStatus = pgEnum("ChangeSetStatus", ChangesetStatusValues);
+export const entityType = pgEnum("EntityType", EntityTypeValues);
+export const changeAction = pgEnum("ChangeAction", ChangeActionValues);
+export const riskLevel = pgEnum("RiskLevel", RiskLevelValues);
+export const reviewStatus = pgEnum("ReviewStatus", ReviewStatusValues);
+export const asyncStatus = pgEnum("AsyncStatus", AsyncStatusValues);
+export const changesetEntryAsyncStatus = pgEnum(
+  "ChangesetEntryAsyncStatus",
+  ChangesetEntryAsyncStatusValues,
 );
 
 const timestamps = {
@@ -368,11 +387,11 @@ export const memoryItem = pgTable("MemoryItem", {
       onUpdate: "cascade",
     }),
   /** Placeholderized source text template, e.g. "Error Code: {NUM_0}" */
-  sourceTemplate: text("source_template"),
+  sourceTemplate: text(),
   /** Placeholderized translation text template */
-  translationTemplate: text("translation_template"),
+  translationTemplate: text(),
   /** JSON mapping of placeholder → original value + token type */
-  slotMapping: jsonb("slot_mapping").$type<JSONType>(),
+  slotMapping: jsonb().$type<JSONType>(),
   ...timestamps,
 });
 
@@ -710,7 +729,7 @@ export const translatableElement = pgTable(
   },
   (table) => [
     // Composite index for faster element listing by document and sort order
-    index("idx_translatable_element_document_sort").using(
+    index().using(
       "btree",
       table.documentId.asc().nullsLast(),
       table.sortIndex.asc().nullsLast(),
@@ -776,7 +795,7 @@ export const commentReaction = pgTable(
   },
   (table) => [
     // Default index name over 63 bytes
-    index("element_id_idx").using("btree", table.commentId.asc().nullsLast()),
+    index().using("btree", table.commentId.asc().nullsLast()),
     index().using("btree", table.userId.asc().nullsLast()),
     unique().on(table.commentId, table.userId),
   ],
@@ -835,15 +854,9 @@ export const vectorizedString = pgTable(
       sql`${table.value} gin_trgm_ops`,
     ),
     // Index for faster language lookup
-    index("idx_vectorized_string_language").using(
-      "btree",
-      table.languageId.asc().nullsLast(),
-    ),
+    index().using("btree", table.languageId.asc().nullsLast()),
     // Index for status-based filtering
-    index("idx_vectorized_string_status").using(
-      "btree",
-      table.status.asc().nullsLast(),
-    ),
+    index().using("btree", table.status.asc().nullsLast()),
   ],
 );
 
@@ -878,10 +891,7 @@ export const translation = pgTable(
       table.stringId.asc().nullsLast(),
     ),
     // Index for faster translation lookup by element
-    index("idx_translation_element").using(
-      "btree",
-      table.translatableElementId.asc().nullsLast(),
-    ),
+    index().using("btree", table.translatableElementId.asc().nullsLast()),
   ],
 );
 
@@ -1030,19 +1040,19 @@ export const agentDefinition = pgTable("AgentDefinition", {
    * Human-readable slug ID from frontmatter (e.g. "translator-zh-en").
    * Distinct from `id` (serial PK) and `externalId` (UUID for API exposure).
    */
-  definitionId: text("definition_id").notNull().default(""),
+  definitionId: text().notNull().default(""),
   version: text().notNull().default("1.0.0"),
   icon: text(),
   /** LLM configuration (providerId, temperature, maxTokens) */
-  llmConfig: jsonb("llm_config").$type<AgentLLMConfig | null>(),
+  llmConfig: jsonb().$type<AgentLLMConfig | null>(),
   /** List of allowed tool names */
   tools: jsonb().$type<string[]>().notNull().default([]),
   /** Prompt auto-injection configuration */
-  promptConfig: jsonb("prompt_config").$type<AgentPromptConfig | null>(),
+  promptConfig: jsonb().$type<AgentPromptConfig | null>(),
   /** Runtime constraints */
   constraints: jsonb().$type<AgentConstraints | null>(),
   /** Security policy */
-  securityPolicy: jsonb("security_policy").$type<AgentSecurityPolicy | null>(),
+  securityPolicy: jsonb().$type<AgentSecurityPolicy | null>(),
   /** Multi-agent orchestration config */
   orchestration: jsonb().$type<Orchestration | null>(),
   /** MD body / system prompt content (supports {{variable}} interpolation) */
@@ -1078,9 +1088,9 @@ export const agentSession = pgTable(
     /** Optional Kanban card associated with this session */
     kanbanCardId: integer(),
     /** Maximum number of DAG turns for this session (snapshot of agentDefinition.constraints.maxSteps at creation) */
-    maxTurns: integer("max_turns").default(50).notNull(),
+    maxTurns: integer().default(50).notNull(),
     /** Current DAG loop turn count (incremented by DecisionNode each cycle) */
-    currentTurn: integer("current_turn").default(0).notNull(),
+    currentTurn: integer().default(0).notNull(),
     /** Session-level trust policy for tool confirmation */
     trustPolicy: agentSessionTrustPolicy().notNull().default("CONFIRM_ALL"),
     /** Business context metadata (e.g. projectId, documentId) */
@@ -1247,6 +1257,8 @@ export const kanbanCard = pgTable(
     /** How many translation units are in this batch */
     batchSize: integer().notNull().default(1),
     metadata: jsonb().$type<JSONType>(),
+    /** List of related ChangeSet external IDs */
+    linkedChangesetIds: jsonb().$type<string[]>(),
     ...timestamps,
   },
   (table) => [
@@ -1255,6 +1267,85 @@ export const kanbanCard = pgTable(
     index().on(table.assigneeAgentId),
     index().on(table.boardId, table.status),
   ],
+);
+
+// ─── ChangeSet / EntityVCS Tables ───────────────────────────
+
+export const changeset = pgTable("Changeset", {
+  id: serial().primaryKey(),
+  externalId: uuid().notNull().unique().defaultRandom(),
+  projectId: uuid()
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  agentRunId: integer().references(() => agentRun.id, {
+    onDelete: "set null",
+  }),
+  linkedCardId: integer().references(() => kanbanCard.id, {
+    onDelete: "set null",
+  }),
+  status: changesetStatus().notNull().default("PENDING"),
+  createdBy: uuid().references(() => user.id, { onDelete: "set null" }),
+  reviewedBy: uuid().references(() => user.id, { onDelete: "set null" }),
+  summary: text(),
+  asyncStatus: changesetEntryAsyncStatus(),
+  reviewedAt: timestamp({ withTimezone: true }),
+  appliedAt: timestamp({ withTimezone: true }),
+  ...timestamps,
+});
+
+export const changesetEntry = pgTable(
+  "ChangesetEntry",
+  {
+    id: serial().primaryKey(),
+    changesetId: integer()
+      .notNull()
+      .references(() => changeset.id, { onDelete: "cascade" }),
+    entityType: entityType().notNull(),
+    entityId: text().notNull(),
+    action: changeAction().notNull(),
+    before: jsonb().$type<JSONType>(),
+    after: jsonb().$type<JSONType>(),
+    fieldPath: text(),
+    riskLevel: riskLevel().notNull().default("LOW"),
+    reviewStatus: reviewStatus().notNull().default("PENDING"),
+    asyncStatus: asyncStatus(),
+    asyncTaskIds: jsonb().$type<string[]>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().using("btree", table.changesetId),
+    index().using("btree", table.entityType, table.entityId),
+  ],
+);
+
+export const entitySnapshot = pgTable("EntitySnapshot", {
+  id: serial().primaryKey(),
+  externalId: uuid().notNull().unique().defaultRandom(),
+  projectId: uuid()
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  name: text().notNull(),
+  description: text(),
+  /** PROJECT | DOCUMENT | ELEMENT */
+  level: text().notNull().default("PROJECT"),
+  scopeFilter: jsonb().$type<JSONType>(),
+  createdBy: uuid().references(() => user.id, { onDelete: "set null" }),
+  ...timestamps,
+});
+
+export const kanbanCardDep = pgTable(
+  "KanbanCardDep",
+  {
+    cardId: integer()
+      .notNull()
+      .references(() => kanbanCard.id, { onDelete: "cascade" }),
+    dependsOnCardId: integer()
+      .notNull()
+      .references(() => kanbanCard.id, { onDelete: "cascade" }),
+    /** FINISH_TO_START | DATA */
+    depType: text().notNull().default("FINISH_TO_START"),
+  },
+  (table) => [primaryKey({ columns: [table.cardId, table.dependsOnCardId] })],
 );
 
 export const toolCallLog = pgTable(
@@ -1334,8 +1425,8 @@ export const permissionTuple = pgTable(
       table.objectType,
       table.objectId,
     ),
-    index("idx_pt_subject").on(table.subjectType, table.subjectId),
-    index("idx_pt_object").on(table.objectType, table.objectId),
+    index().on(table.subjectType, table.subjectId),
+    index().on(table.objectType, table.objectId),
   ],
 );
 
@@ -1372,9 +1463,9 @@ export const apiKey = pgTable(
     ...timestamps,
   },
   (table) => [
-    index("idx_api_key_user").on(table.userId),
-    index("idx_api_key_hash").on(table.keyHash),
-    index("idx_api_key_prefix").on(table.keyPrefix),
+    index().on(table.userId),
+    index().on(table.keyHash),
+    index().on(table.keyPrefix),
   ],
 );
 
@@ -1393,7 +1484,7 @@ export const sessionRecord = pgTable(
     revokedAt: timestamp({ withTimezone: true }),
     ...timestamps,
   },
-  (table) => [index("idx_session_record_user").on(table.userId)],
+  (table) => [index().on(table.userId)],
 );
 
 // ====== Login Attempt (Rate Limiting & Audit) ======
@@ -1409,9 +1500,9 @@ export const loginAttempt = pgTable(
     createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    index("idx_login_attempt_ip").on(table.ip),
-    index("idx_login_attempt_identifier").on(table.identifier),
-    index("idx_login_attempt_created").on(table.createdAt),
+    index().on(table.ip),
+    index().on(table.identifier),
+    index().on(table.createdAt),
   ],
 );
 
@@ -1440,9 +1531,9 @@ export const authFlowLog = pgTable(
     completedAt: timestamp({ withTimezone: true }),
   },
   (table) => [
-    index("idx_auth_flow_log_user").on(table.userId),
-    index("idx_auth_flow_log_flow").on(table.flowId),
-    index("idx_auth_flow_log_created").on(table.createdAt),
+    index().on(table.userId),
+    index().on(table.flowId),
+    index().on(table.createdAt),
   ],
 );
 
@@ -1459,7 +1550,10 @@ export const notification = pgTable(
     title: text().notNull(),
     body: text().notNull(),
     data: jsonb().$type<JSONType>(),
-    status: notificationStatus().notNull().default("UNREAD"),
+    status: notificationStatus()
+      .notNull()
+      .$type<NotificationStatus>()
+      .default("UNREAD"),
     ...timestamps,
   },
   (table) => [

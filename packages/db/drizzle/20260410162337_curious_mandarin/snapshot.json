@@ -6511,7 +6511,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_api_key_user",
+      "name": "ApiKey_user_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "ApiKey"
@@ -6532,7 +6532,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_api_key_hash",
+      "name": "ApiKey_key_hash_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "ApiKey"
@@ -6553,7 +6553,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_api_key_prefix",
+      "name": "ApiKey_key_prefix_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "ApiKey"
@@ -6574,7 +6574,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_auth_flow_log_user",
+      "name": "AuthFlowLog_user_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "AuthFlowLog"
@@ -6595,7 +6595,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_auth_flow_log_flow",
+      "name": "AuthFlowLog_flow_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "AuthFlowLog"
@@ -6616,7 +6616,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_auth_flow_log_created",
+      "name": "AuthFlowLog_created_at_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "AuthFlowLog"
@@ -6749,7 +6749,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "element_id_idx",
+      "name": "CommentReaction_comment_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "CommentReaction"
@@ -7036,7 +7036,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_login_attempt_ip",
+      "name": "LoginAttempt_ip_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "LoginAttempt"
@@ -7057,7 +7057,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_login_attempt_identifier",
+      "name": "LoginAttempt_identifier_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "LoginAttempt"
@@ -7078,7 +7078,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_login_attempt_created",
+      "name": "LoginAttempt_created_at_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "LoginAttempt"
@@ -7225,7 +7225,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_pt_subject",
+      "name": "PermissionTuple_subject_type_subject_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "PermissionTuple"
@@ -7253,7 +7253,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_pt_object",
+      "name": "PermissionTuple_object_type_object_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "PermissionTuple"
@@ -7435,7 +7435,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_session_record_user",
+      "name": "SessionRecord_user_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "SessionRecord"
@@ -7568,7 +7568,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_translatable_element_document_sort",
+      "name": "TranslatableElement_document_id_sort_index_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "TranslatableElement"
@@ -7645,7 +7645,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_translation_element",
+      "name": "Translation_translatable_element_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "Translation"
@@ -7778,7 +7778,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_vectorized_string_language",
+      "name": "VectorizedString_language_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "VectorizedString"
@@ -7799,7 +7799,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_vectorized_string_status",
+      "name": "VectorizedString_status_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "VectorizedString"

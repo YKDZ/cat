@@ -13,7 +13,10 @@ const qaCheckArgs = z.object({
    * @zh 源语言 ID（BCP-47）
    * @en Source language ID (BCP-47)
    */
-  sourceLanguageId: z.string().describe("Source language ID (BCP-47)"),
+  sourceLanguageId: z
+    .string()
+    .optional()
+    .describe("Source language ID (BCP-47)"),
   /**
    * @zh 已翻译文本
    * @en Translated text to check
@@ -23,7 +26,10 @@ const qaCheckArgs = z.object({
    * @zh 目标语言 ID（BCP-47）
    * @en Target language ID (BCP-47)
    */
-  targetLanguageId: z.string().describe("Target language ID (BCP-47)"),
+  targetLanguageId: z
+    .string()
+    .optional()
+    .describe("Target language ID (BCP-47)"),
   /**
    * @zh 术语表 UUID 列表（用于术语一致性检查）
    * @en Glossary UUIDs for terminology consistency check
@@ -45,8 +51,17 @@ export const qaCheckTool: AgentToolDefinition = {
   parameters: qaCheckArgs,
   sideEffectType: "none",
   toolSecurityLevel: "standard",
-  async execute(args, _ctx) {
+  async execute(args, ctx) {
     const parsed = qaCheckArgs.parse(args);
+    const sourceLanguageId =
+      parsed.sourceLanguageId ?? ctx.session.sourceLanguageId;
+    const targetLanguageId = parsed.targetLanguageId ?? ctx.session.languageId;
+
+    if (!sourceLanguageId || !targetLanguageId) {
+      throw new Error(
+        "qa_check requires sourceLanguageId and targetLanguageId",
+      );
+    }
 
     // Tokenize source and translation in parallel
     const [sourceTokens, translationTokens] = await Promise.all([
@@ -56,12 +71,12 @@ export const qaCheckTool: AgentToolDefinition = {
 
     const result = await qaOp({
       source: {
-        languageId: parsed.sourceLanguageId,
+        languageId: sourceLanguageId,
         text: parsed.sourceText,
         tokens: sourceTokens.tokens,
       },
       translation: {
-        languageId: parsed.targetLanguageId,
+        languageId: targetLanguageId,
         text: parsed.translatedText,
         tokens: translationTokens.tokens,
       },

@@ -65,6 +65,9 @@ vi.mock("@/runtime/session-manager.ts", () => {
           sessionDbId: 1,
           agentDefinitionDbId: 1,
           agentDefinition: MOCK_DEFINITION,
+          projectId: null,
+          sessionMetadata: null,
+          currentRunId: null,
           runId: MOCK_RUN_ID,
           blackboardSnapshot: null,
         }),
@@ -116,7 +119,7 @@ function makeMockGateway(callSequence: LLMStream[]): LLMGateway {
   let callIndex = 0;
   // oxlint-disable-next-line no-unsafe-type-assertion -- partial mock object for testing
   return {
-    chat: async () => {
+    chat: () => {
       const stream = callSequence[callIndex];
       callIndex += 1;
       if (!stream) throw new Error("Unexpected extra LLM call");
@@ -323,6 +326,8 @@ describe("AgentLogger — structural log categories L01–L05", () => {
       logToolExecute: (e) =>
         captured.push({ kind: "tool-execute", message: e.message }), // L04
       logError: (e) => captured.push({ kind: "error", message: e.message }), // L05
+      logChangeSetEvent: () => undefined, // L06
+      logKanbanDepEvent: () => undefined, // L07
     };
 
     logger.logRun({

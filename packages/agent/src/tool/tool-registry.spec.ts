@@ -9,7 +9,7 @@ import type {
 import { ToolRegistry } from "./tool-registry.ts";
 
 const mockCtx: ToolExecutionContext = {
-  session: { sessionId: "s1", agentId: "a1", projectId: "p1" },
+  session: { sessionId: "s1", agentId: "a1", projectId: "p1", runId: "r1" },
   permissions: {
     checkPermission: vi.fn().mockResolvedValue(true),
   },

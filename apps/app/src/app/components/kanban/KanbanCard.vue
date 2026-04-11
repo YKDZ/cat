@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import type { KanbanCard } from "@cat/shared/schema/drizzle/kanban";
+import type { KanbanCardStatus } from "@cat/shared/schema/enum";
 
 import { Badge } from "@cat/ui";
+import { computed, type ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 defineProps<{
   card: KanbanCard;
 }>();
 
-const emit = defineEmits<{
-  click: [card: KanbanCard];
-}>();
-
 const { t } = useI18n();
 
-const statusColorMap: Record<string, string> = {
-  OPEN: "bg-muted text-muted-foreground",
+const emit = defineEmits<{
+  click: [card: KanbanCard];
+  dragstart: [card: KanbanCard];
+}>();
+
+const statusColorMap: Record<KanbanCardStatus, string> = {
+  OPEN: "",
   CLAIMED: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   IN_PROGRESS:
     "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
@@ -27,15 +30,17 @@ const statusColorMap: Record<string, string> = {
     "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
 };
 
-const statusLabelMap: Record<string, string> = {
-  OPEN: "待处理",
-  CLAIMED: "已领取",
-  IN_PROGRESS: "进行中",
-  REVIEW: "评审中",
-  DONE: "已完成",
-  FAILED: "失败",
-  NEEDS_REWORK: "需返工",
-};
+const statusLabelMap: ComputedRef<Record<KanbanCardStatus, string>> = computed(
+  () => ({
+    OPEN: t("待处理"),
+    CLAIMED: t("已领取"),
+    IN_PROGRESS: t("进行中"),
+    REVIEW: t("评审中"),
+    DONE: t("已完成"),
+    FAILED: t("失败"),
+    NEEDS_REWORK: t("需返工"),
+  }),
+);
 
 const priorityColorMap: Record<number, string> = {
   0: "bg-muted text-muted-foreground",
@@ -44,18 +49,20 @@ const priorityColorMap: Record<number, string> = {
   3: "bg-destructive/10 text-destructive",
 };
 
-const priorityLabelMap: Record<number, string> = {
-  0: "普通",
-  1: "低",
-  2: "高",
-  3: "紧急",
-};
+const priorityLabelMap: ComputedRef<Record<number, string>> = computed(() => ({
+  0: t("普通"),
+  1: t("低"),
+  2: t("高"),
+  3: t("紧急"),
+}));
 </script>
 
 <template>
   <div
     class="cursor-pointer rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md"
+    draggable="true"
     @click="emit('click', card)"
+    @dragstart="emit('dragstart', card)"
   >
     <!-- Title -->
     <p class="mb-2 line-clamp-2 text-sm font-medium text-foreground">
@@ -76,7 +83,7 @@ const priorityLabelMap: Record<number, string> = {
         class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
         :class="statusColorMap[card.status] ?? 'bg-muted text-muted-foreground'"
       >
-        {{ t(statusLabelMap[card.status] ?? card.status) }}
+        {{ statusLabelMap[card.status] }}
       </span>
 
       <span

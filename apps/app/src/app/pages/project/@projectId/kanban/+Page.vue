@@ -66,6 +66,13 @@ const handleCreateBoard = async () => {
       <Button @click="handleCreateBoard">{{ t("创建看板") }}</Button>
     </div>
 
-    <KanbanBoard v-else :cards :highlightedCardId class="flex-1" />
+    <KanbanBoard
+      v-else
+      :cards
+      :highlightedCardId
+      :boardId="boards[0]?.id"
+      class="flex-1"
+      @cardCreated="() => boards[0] && kanbanStore.fetchCards(boards[0].id)"
+    />
   </div>
 </template>

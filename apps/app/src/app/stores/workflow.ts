@@ -134,6 +134,8 @@ export const useWorkflowStore = defineStore("workflow", () => {
       case "workflow:suggestion:ready":
       case "tool:call":
       case "tool:result":
+      case "llm:thinking":
+      case "llm:complete":
         break;
     }
   };

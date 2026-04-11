@@ -1,18 +1,14 @@
 import type { JSONType } from "@cat/shared/schema/json";
 
 import { agentDefinition, agentSession, eq } from "@cat/db";
+import {
+  AgentSessionMetadataSchema,
+  type AgentSessionMetadata,
+} from "@cat/shared/schema/agent";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
 import type { Command } from "@/types";
-
-const AgentSessionMetadataSchema = z.object({
-  projectId: z.string().optional(),
-  documentId: z.string().optional(),
-  elementId: z.int().optional(),
-  languageId: z.string().optional(),
-  sourceLanguageId: z.string().optional(),
-});
 
 export const CreateAgentSessionCommandSchema = z.object({
   agentDefinitionId: z.uuidv4(),
@@ -44,8 +40,8 @@ export const createAgentSession: Command<
         agentDefinitionId: definition.id,
         userId: command.userId,
         projectId: command.projectId,
-        // oxlint-disable-next-line no-unsafe-type-assertion -- metadata shape is validated by Zod
-        metadata: (command.metadata ?? {}) as JSONType,
+        metadata: (command.metadata ??
+          {}) satisfies AgentSessionMetadata as JSONType,
       })
       .returning({ externalId: agentSession.externalId }),
   );

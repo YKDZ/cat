@@ -57,16 +57,12 @@ watch(() => [props.thinkingText, props.steps?.length], scrollToBottom);
       }}</span>
       <component
         :is="isExpanded ? ChevronDown : ChevronRight"
-        v-if="thinkingText || (steps && steps.length > 0)"
         class="size-3 text-muted-foreground"
       />
     </button>
 
     <!-- Thinking + in-progress tool calls (collapsible) -->
-    <div
-      v-if="isExpanded && (thinkingText || (steps && steps.length > 0))"
-      class="ml-5.5"
-    >
+    <div v-if="isExpanded" class="ml-5.5">
       <div
         ref="scrollEl"
         class="max-h-48 overflow-x-hidden overflow-y-auto rounded border border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground [&::-webkit-scrollbar]:size-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
@@ -104,6 +100,14 @@ watch(() => [props.thinkingText, props.steps?.length], scrollToBottom);
           "
         >
           <Markdown :content="thinkingText" />
+        </div>
+
+        <!-- 空思考占位符：LLM 运行中但尚未收到 thinking delta -->
+        <div
+          v-if="!thinkingText && (!steps || steps.length === 0)"
+          class="animate-pulse italic"
+        >
+          {{ t("思考中...") }}
         </div>
       </div>
     </div>

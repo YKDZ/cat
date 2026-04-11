@@ -10,8 +10,8 @@ import { AgentDefinitionTypeSchema } from "./enum";
  * @en Agent LLM configuration schema.
  */
 export const AgentLLMConfigSchema = z.object({
-  /** PluginService DB ID referencing an LLM_PROVIDER instance */
-  providerId: z.int(),
+  /** Optional fallback PluginService DB ID referencing an LLM_PROVIDER instance */
+  providerId: z.int().nullable().optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.int().positive().optional(),
 });
@@ -45,6 +45,24 @@ export const AgentSecurityPolicySchema = z.object({
  */
 export const AgentScopeSchema = z.object({
   type: z.enum(["GLOBAL", "PROJECT"]).default("GLOBAL"),
+});
+
+// ─── Session Metadata ───
+
+/**
+ * @zh Agent 会话元数据 Schema。
+ * @en Agent session metadata schema.
+ */
+export const AgentSessionMetadataSchema = z.object({
+  projectId: z.uuidv4().optional(),
+  projectName: z.string().optional(),
+  providerId: z.int().optional(),
+  documentId: z.uuidv4().optional(),
+  elementId: z.int().optional(),
+  languageId: z.string().optional(),
+  sourceLanguageId: z.string().optional(),
+  kanbanBoardId: z.int().optional(),
+  kanbanCardId: z.int().optional(),
 });
 
 // ─── Runtime Constraints ───
@@ -107,7 +125,7 @@ export const AgentDefinitionMetadataSchema = z.object({
   icon: z.string().optional(),
   /** Agent usage type/category */
   type: AgentDefinitionTypeSchema.default("GENERAL"),
-  /** LLM configuration — optional for WORKFLOW type agents */
+  /** LLM configuration — optional; providerId is only used as a fallback when the session does not specify one */
   llm: AgentLLMConfigSchema.optional(),
   /** List of tool names this agent is allowed to use */
   tools: z.array(z.string()).default([]),
@@ -197,6 +215,12 @@ export type AgentSecurityPolicy = z.infer<typeof AgentSecurityPolicySchema>;
  * @en Agent scope type.
  */
 export type AgentScope = z.infer<typeof AgentScopeSchema>;
+
+/**
+ * @zh Agent 会话元数据类型。
+ * @en Agent session metadata type.
+ */
+export type AgentSessionMetadata = z.infer<typeof AgentSessionMetadataSchema>;
 
 /**
  * @zh 多 Agent 编排配置类型。

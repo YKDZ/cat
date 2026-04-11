@@ -8,10 +8,13 @@ import {
   deleteAgentDefinition,
   executeCommand,
   executeQuery,
+  findAgentDefinitionByDefinitionIdAndScope,
   getAgentDefinition,
   getAgentDefinitionByInternalId,
+  getAgentRunByInternalId,
   getAgentRunInternalId,
   getAgentSessionByExternalId,
+  getLatestCompletedRunBlackboard,
   getRunNodeEvents,
   listAgentDefinitions,
   listAgentEvents,
@@ -28,6 +31,7 @@ import {
   AgentDefinitionMetadataSchema,
   AgentLLMConfigSchema,
   AgentPromptConfigSchema,
+  AgentSessionMetadataSchema,
   AgentSecurityPolicySchema,
   OrchestrationSchema,
 } from "@cat/shared/schema/agent";
@@ -41,10 +45,74 @@ import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
 import { authed, checkPermission } from "@/orpc/server";
+import { createPreCheckServices } from "@/utils/agent-runtime-services";
+import { createAgentToolRegistry } from "@/utils/agent-tool-registry";
 import { getGraphRuntime } from "@/utils/graph-runtime";
 
 const isTerminalRunEvent = (event: AgentEvent): boolean => {
   return event.type === "run:end" || event.type === "run:error";
+};
+
+const getSessionMetadata = (
+  metadata: unknown,
+): z.infer<typeof AgentSessionMetadataSchema> | null => {
+  const parsed = AgentSessionMetadataSchema.safeParse(metadata);
+  return parsed.success ? parsed.data : null;
+};
+
+const getProviderIdFromSessionMetadata = (metadata: unknown): number | null => {
+  return getSessionMetadata(metadata)?.providerId ?? null;
+};
+
+const getAvailableLLMProviderIds = (
+  services: Array<{ dbId: number }>,
+): Set<number> => {
+  return new Set(services.map((service) => service.dbId));
+};
+
+const normalizeAgentLLMConfig = (
+  llmConfig: unknown,
+  availableProviderIds: Set<number>,
+): z.infer<typeof AgentLLMConfigSchema> | null => {
+  const parsed = AgentLLMConfigSchema.safeParse(llmConfig);
+  if (!parsed.success) return null;
+
+  const normalized = { ...parsed.data };
+
+  if (
+    typeof normalized.providerId === "number" &&
+    !availableProviderIds.has(normalized.providerId)
+  ) {
+    normalized.providerId = null;
+  }
+
+  if (
+    typeof normalized.providerId !== "number" &&
+    normalized.temperature === undefined &&
+    normalized.maxTokens === undefined
+  ) {
+    return null;
+  }
+
+  return normalized;
+};
+
+const persistNormalizedAgentLLMConfig = async (
+  db: Parameters<typeof executeCommand>[0]["db"],
+  row: { externalId: string; llmConfig: unknown },
+  normalizedLLMConfig: z.infer<typeof AgentLLMConfigSchema> | null,
+): Promise<void> => {
+  if (
+    JSON.stringify(row.llmConfig ?? null) ===
+    JSON.stringify(normalizedLLMConfig ?? null)
+  ) {
+    return;
+  }
+
+  await executeCommand({ db }, updateAgentDefinition, {
+    id: row.externalId,
+    llmConfig: normalizedLLMConfig,
+  });
 };
 
 // ─── Routes ───
@@ -66,13 +134,29 @@ export const list = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: db },
+      pluginManager,
     } = context;
     const rows = await executeQuery({ db }, listAgentDefinitions, input);
+    const availableProviderIds = getAvailableLLMProviderIds(
+      pluginManager.getServices("LLM_PROVIDER"),
+    );
 
-    return rows.map((row) => ({
-      ...row,
-      id: row.externalId,
-    }));
+    return await Promise.all(
+      rows.map(async (row) => {
+        const llmConfig = normalizeAgentLLMConfig(
+          row.llmConfig,
+          availableProviderIds,
+        );
+
+        await persistNormalizedAgentLLMConfig(db, row, llmConfig);
+
+        return {
+          ...row,
+          llmConfig,
+          id: row.externalId,
+        };
+      }),
+    );
   });
 
 /** List agent definitions filtered by type */
@@ -112,7 +196,11 @@ export const get = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
+      pluginManager,
     } = context;
+    const availableProviderIds = getAvailableLLMProviderIds(
+      pluginManager.getServices("LLM_PROVIDER"),
+    );
 
     const row = await executeQuery({ db: drizzle }, getAgentDefinition, input);
 
@@ -120,6 +208,13 @@ export const get = authed
       throw new ORPCError("NOT_FOUND", {
         message: "Agent definition not found",
       });
+
+    const llmConfig = normalizeAgentLLMConfig(
+      row.llmConfig,
+      availableProviderIds,
+    );
+
+    await persistNormalizedAgentLLMConfig(drizzle, row, llmConfig);
 
     return {
       id: row.externalId,
@@ -132,7 +227,7 @@ export const get = authed
       definitionId: row.definitionId,
       version: row.version,
       icon: row.icon,
-      llmConfig: row.llmConfig,
+      llmConfig,
       tools: row.tools,
       promptConfig: row.promptConfig,
       constraints: row.constraints,
@@ -240,11 +335,7 @@ export const createSession = authed
     z.object({
       agentDefinitionId: z.uuidv4(),
       projectId: z.uuidv4().optional(),
-      metadata: z
-        .object({
-          projectId: z.uuidv4().optional(),
-        })
-        .optional(),
+      metadata: AgentSessionMetadataSchema.optional(),
     }),
   )
   .handler(async ({ context, input }) => {
@@ -257,6 +348,10 @@ export const createSession = authed
       { db: drizzle },
       createAgentSession,
       {
+        metadata: {
+          ...input.metadata,
+          ...(input.projectId ? { projectId: input.projectId } : {}),
+        },
         agentDefinitionId: input.agentDefinitionId,
         userId: user.id,
         projectId: input.projectId ?? input.metadata?.projectId,
@@ -309,6 +404,56 @@ export const listSessions = authed
     }));
   });
 
+/** Get the hydrated state for an existing agent session */
+export const getSessionState = authed
+  .input(z.object({ sessionId: z.uuidv4() }))
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+      user,
+    } = context;
+
+    const session = await executeQuery(
+      { db: drizzle },
+      getAgentSessionByExternalId,
+      {
+        externalId: input.sessionId,
+        userId: user.id,
+      },
+    );
+
+    if (!session) {
+      throw new ORPCError("NOT_FOUND", {
+        message: "Agent session not found",
+      });
+    }
+
+    const currentRun = session.currentRunId
+      ? await executeQuery({ db: drizzle }, getAgentRunByInternalId, {
+          id: session.currentRunId,
+        })
+      : null;
+
+    const latestCompleted = currentRun?.blackboardSnapshot
+      ? null
+      : await executeQuery({ db: drizzle }, getLatestCompletedRunBlackboard, {
+          sessionId: session.id,
+        });
+
+    return {
+      sessionId: session.externalId,
+      agentDefinitionId: session.agentDefinitionExternalId,
+      status: session.status,
+      metadata: session.metadata,
+      runId: currentRun?.externalId ?? null,
+      runStatus: currentRun?.status ?? null,
+      blackboardSnapshot:
+        currentRun?.blackboardSnapshot ??
+        latestCompleted?.blackboardSnapshot ??
+        null,
+    };
+  });
+
 // ─── Agent Execution (Streaming) ───
 
 /** Send a message to an agent session and stream the response */
@@ -341,7 +486,6 @@ export const sendMessage = authed
     const {
       AgentRuntime,
       LLMGateway,
-      ToolRegistry,
       PromptEngine,
       createNoopAgentLogger,
       buildAgentDAG,
@@ -355,9 +499,18 @@ export const sendMessage = authed
     );
 
     const llmServices = pluginManager.getServices("LLM_PROVIDER");
+    const availableProviderIds = getAvailableLLMProviderIds(llmServices);
+    const agentLLMConfig = normalizeAgentLLMConfig(
+      agentDef?.llmConfig ?? null,
+      availableProviderIds,
+    );
 
-    // Prefer the provider configured in the agent definition; fall back to first available
-    const targetProviderId = agentDef?.llmConfig?.providerId;
+    // Prefer the provider configured in the session; fall back to the agent definition; then first available
+    const sessionProviderId = getProviderIdFromSessionMetadata(
+      session.metadata,
+    );
+    const targetProviderId =
+      sessionProviderId ?? agentLLMConfig?.providerId ?? null;
     let llmProvider;
     if (targetProviderId) {
       const found = llmServices.find((s) => s.dbId === targetProviderId);
@@ -379,7 +532,7 @@ export const sendMessage = authed
     }
 
     const gateway = new LLMGateway({ provider: llmProvider });
-    const toolRegistry = new ToolRegistry();
+    const toolRegistry = createAgentToolRegistry(pluginManager);
     const promptEngine = new PromptEngine();
 
     const runtime = new AgentRuntime({
@@ -387,6 +540,7 @@ export const sendMessage = authed
       toolRegistry,
       promptEngine,
       logger: createNoopAgentLogger(),
+      preCheckServices: createPreCheckServices(drizzle),
     });
 
     // Create a new run for this message turn
@@ -486,6 +640,22 @@ export const sendMessage = authed
           payload: {
             toolCallId: event.toolCallId,
             content: event.content,
+          },
+        });
+      } else if (event.type === "llm_thinking") {
+        yield createAgentEvent({
+          ...base,
+          type: "llm:thinking",
+          payload: { thinkingDelta: event.thinkingDelta },
+        });
+      } else if (event.type === "llm_complete") {
+        yield createAgentEvent({
+          ...base,
+          type: "llm:complete",
+          payload: {
+            text: event.text,
+            thinkingText: event.thinkingText,
+            tokenUsage: event.tokenUsage,
           },
         });
       } else if (event.type === "finished") {
@@ -731,6 +901,8 @@ export const listBuiltinTemplates = authed.handler(async ({ context }) => {
 
   const defs = await executeQuery({ db: drizzle }, listAgentDefinitions, {
     isBuiltin: true,
+    scopeType: "GLOBAL",
+    scopeId: "",
   });
 
   return defs.map((d) => ({
@@ -760,16 +932,107 @@ export const enableBuiltin = authed
   .input(
     z.object({
       templateId: z.string().min(1),
-      providerId: z.int(),
+      providerId: z.int().optional(),
       scopeType: ScopeTypeSchema.default("PROJECT"),
       scopeId: z.string().default(""),
     }),
   )
   .use(checkPermission("system", "admin"), () => "*")
-  .handler(async () => {
-    throw new ORPCError("NOT_IMPLEMENTED", {
-      message: "TODO: Agent 重构后需要重新实现",
-    });
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+      pluginManager,
+    } = context;
+    const llmServices = pluginManager.getServices("LLM_PROVIDER");
+    const availableProviderIds = getAvailableLLMProviderIds(llmServices);
+
+    if (
+      typeof input.providerId === "number" &&
+      !availableProviderIds.has(input.providerId)
+    ) {
+      throw new ORPCError("PRECONDITION_FAILED", {
+        message: "Selected LLM provider not found",
+      });
+    }
+
+    const template = await executeQuery(
+      { db: drizzle },
+      findAgentDefinitionByDefinitionIdAndScope,
+      {
+        definitionId: input.templateId,
+        scopeType: "GLOBAL",
+        scopeId: "",
+      },
+    );
+
+    if (!template || !template.isBuiltin) {
+      throw new ORPCError("NOT_FOUND", {
+        message: "Builtin template not found",
+      });
+    }
+
+    const existing = await executeQuery(
+      { db: drizzle },
+      findAgentDefinitionByDefinitionIdAndScope,
+      {
+        definitionId: input.templateId,
+        scopeType: input.scopeType,
+        scopeId: input.scopeId,
+      },
+    );
+
+    if (existing) {
+      return {
+        id: existing.externalId,
+        templateId: existing.definitionId,
+        scopeType: existing.scopeType,
+        scopeId: existing.scopeId,
+      };
+    }
+
+    const templateLLMConfig = normalizeAgentLLMConfig(
+      template.llmConfig,
+      availableProviderIds,
+    );
+    const nextLLMConfig = normalizeAgentLLMConfig(
+      {
+        ...(templateLLMConfig ?? {}),
+        ...(typeof input.providerId === "number"
+          ? { providerId: input.providerId }
+          : {}),
+      },
+      availableProviderIds,
+    );
+
+    const created = await executeCommand(
+      { db: drizzle },
+      createAgentDefinition,
+      {
+        name: template.name,
+        description: template.description,
+        scopeType: input.scopeType,
+        scopeId: input.scopeId,
+        definitionId: template.definitionId,
+        version: template.version,
+        icon: template.icon ?? undefined,
+        type: template.type,
+        llmConfig: nextLLMConfig ?? undefined,
+        tools: template.tools,
+        promptConfig: template.promptConfig ?? undefined,
+        constraints: template.constraints ?? undefined,
+        securityPolicy: template.securityPolicy ?? undefined,
+        orchestration: template.orchestration ?? undefined,
+        content: template.content,
+        isBuiltin: true,
+      },
+    );
+
+    return {
+      id: created.id,
+      templateId: template.definitionId,
+      scopeType: input.scopeType,
+      scopeId: input.scopeId,
+    };
   });
 
 /**
@@ -778,9 +1041,29 @@ export const enableBuiltin = authed
 export const disableBuiltin = authed
   .input(z.object({ id: z.uuidv4() }))
   .output(z.void())
-  .handler(async () => {
-    throw new ORPCError("NOT_IMPLEMENTED", {
-      message: "TODO: Agent 重构后需要重新实现",
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const row = await executeQuery({ db: drizzle }, getAgentDefinition, {
+      id: input.id,
+    });
+
+    if (!row) {
+      throw new ORPCError("NOT_FOUND", {
+        message: "Agent definition not found",
+      });
+    }
+
+    if (!row.isBuiltin || row.scopeType === "GLOBAL") {
+      throw new ORPCError("FORBIDDEN", {
+        message: "Only project/user builtin instances can be disabled",
+      });
+    }
+
+    await executeCommand({ db: drizzle }, deleteAgentDefinition, {
+      agentDefinitionId: row.id,
     });
   });
 

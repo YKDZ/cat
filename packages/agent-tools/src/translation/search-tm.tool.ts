@@ -13,12 +13,18 @@ const searchTmArgs = z.object({
    * @zh 源语言 ID（BCP-47）
    * @en Source language ID (BCP-47)
    */
-  sourceLanguageId: z.string().describe("Source language ID (BCP-47)"),
+  sourceLanguageId: z
+    .string()
+    .optional()
+    .describe("Source language ID (BCP-47)"),
   /**
    * @zh 目标语言 ID（BCP-47）
    * @en Target language ID (BCP-47)
    */
-  translationLanguageId: z.string().describe("Target language ID (BCP-47)"),
+  translationLanguageId: z
+    .string()
+    .optional()
+    .describe("Target language ID (BCP-47)"),
   /**
    * @zh 翻译记忆库 UUID 列表
    * @en Translation memory bank UUIDs to search
@@ -59,8 +65,19 @@ export const searchTmTool: AgentToolDefinition = {
   parameters: searchTmArgs,
   sideEffectType: "none",
   toolSecurityLevel: "standard",
-  async execute(args, _ctx) {
+  async execute(args, ctx) {
     const parsed = searchTmArgs.parse(args);
+    const sourceLanguageId =
+      parsed.sourceLanguageId ?? ctx.session.sourceLanguageId;
+    const translationLanguageId =
+      parsed.translationLanguageId ?? ctx.session.languageId;
+
+    if (!sourceLanguageId || !translationLanguageId) {
+      throw new Error(
+        "search_tm requires sourceLanguageId and translationLanguageId",
+      );
+    }
+
     const memories: Array<{
       source: string;
       translation: string;
@@ -69,8 +86,8 @@ export const searchTmTool: AgentToolDefinition = {
     }> = [];
     for await (const match of streamSearchMemoryOp({
       text: parsed.text,
-      sourceLanguageId: parsed.sourceLanguageId,
-      translationLanguageId: parsed.translationLanguageId,
+      sourceLanguageId,
+      translationLanguageId,
       memoryIds: parsed.memoryIds,
       chunkIds: [],
       minSimilarity: parsed.minSimilarity,

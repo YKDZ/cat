@@ -105,6 +105,29 @@ export const useKanbanStore = defineStore("kanban", () => {
     }
   };
 
+  const createCard = async (params: {
+    boardId: number;
+    title: string;
+    description?: string;
+    priority?: number;
+    status?: KanbanCardStatus;
+  }) => {
+    try {
+      const card = await orpc.kanban.createKanbanCard({
+        boardId: params.boardId,
+        title: params.title,
+        description: params.description ?? "",
+        priority: params.priority ?? 0,
+        status: params.status ?? "OPEN",
+      });
+      cards.value.push(card);
+      return card;
+    } catch (err) {
+      logger.withSituation("kanban").error(err, "Failed to create card");
+      return null;
+    }
+  };
+
   return {
     boards,
     currentBoard,
@@ -117,5 +140,6 @@ export const useKanbanStore = defineStore("kanban", () => {
     claimCard,
     updateCardStatus,
     createBoard,
+    createCard,
   };
 });

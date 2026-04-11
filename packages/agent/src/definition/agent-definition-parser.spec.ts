@@ -9,7 +9,6 @@ name: Chinese to English Translator
 version: "1.0.5"
 type: GENERAL
 llm:
-  providerId: 1
   temperature: 0.3
 tools:
   - translate_segment
@@ -30,10 +29,28 @@ describe("parseAgentDefinition", () => {
     expect(result.metadata.name).toBe("Chinese to English Translator");
     expect(result.metadata.version).toBe("1.0.5");
     expect(result.metadata.type).toBe("GENERAL");
-    expect(result.metadata.llm?.providerId).toBe(1);
+    expect(result.metadata.llm?.providerId).toBeUndefined();
     expect(result.metadata.llm?.temperature).toBe(0.3);
     expect(result.metadata.tools).toEqual(["translate_segment", "finish"]);
     expect(result.content).toContain("professional Chinese to English");
+  });
+
+  it("parses explicit provider binding when present", () => {
+    const withProvider = `---
+id: translator-with-provider
+name: Translator With Provider
+llm:
+  providerId: 7
+  temperature: 0.2
+---
+
+Body text.
+`;
+
+    const result = parseAgentDefinition(withProvider);
+
+    expect(result.metadata.llm?.providerId).toBe(7);
+    expect(result.metadata.llm?.temperature).toBe(0.2);
   });
 
   it("applies default values for missing optional fields", () => {

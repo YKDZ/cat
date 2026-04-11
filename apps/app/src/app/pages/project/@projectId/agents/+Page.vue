@@ -9,12 +9,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   Separator,
 } from "@cat/ui";
 import {
@@ -30,11 +24,13 @@ import { inject, ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { orpc } from "@/app/rpc/orpc";
+import { useToastStore } from "@/app/stores/toast.ts";
 import { useInjectionKey } from "@/app/utils/provide.ts";
 
 import type { Data as LayoutData } from "../+data.server.ts";
 
 const { t } = useI18n();
+const { rpcWarn } = useToastStore();
 const project = inject(useInjectionKey<LayoutData>()("project"))!;
 
 // ─── Types ───
@@ -58,24 +54,12 @@ interface BuiltinTemplate {
   tools: string[];
 }
 
-interface LLMProviderOption {
-  id: number;
-  serviceId: string;
-  name: string;
-}
-
 // ─── State ───
 
 const enabledAgents = ref<AgentItem[]>([]);
 const templates = ref<BuiltinTemplate[]>([]);
-const llmProviders = ref<LLMProviderOption[]>([]);
 const loading = ref(true);
-
-/** Dialog state */
-const enableDialogOpen = ref(false);
-const selectedTemplate = ref<BuiltinTemplate | null>(null);
-const selectedProviderId = ref<number | null>(null);
-const enabling = ref(false);
+const enablingTemplateId = ref<string | null>(null);
 
 // ─── Computed ───
 
@@ -115,18 +99,14 @@ const getIconFromDef = (icon: string | null | undefined): Component => {
 const fetchAll = async () => {
   loading.value = true;
   try {
-    const [projectResult, templateResult, providerResult] =
-      await Promise.allSettled([
-        orpc.agent.list({ scopeType: "PROJECT", scopeId: project.id }),
-        orpc.agent.listBuiltinTemplates(),
-        orpc.agent.listLLMProviders(),
-      ]);
+    const [projectResult, templateResult] = await Promise.allSettled([
+      orpc.agent.list({ scopeType: "PROJECT", scopeId: project.id }),
+      orpc.agent.listBuiltinTemplates(),
+    ]);
     if (projectResult.status === "fulfilled")
       enabledAgents.value = projectResult.value;
     if (templateResult.status === "fulfilled")
       templates.value = templateResult.value;
-    if (providerResult.status === "fulfilled")
-      llmProviders.value = providerResult.value;
   } finally {
     loading.value = false;
   }
@@ -134,33 +114,31 @@ const fetchAll = async () => {
 
 // ─── Enable / Disable ───
 
-const openEnableDialog = (tmpl: BuiltinTemplate) => {
-  selectedTemplate.value = tmpl;
-  const first = llmProviders.value[0];
-  selectedProviderId.value = first?.id ?? null;
-  enableDialogOpen.value = true;
-};
-
-const confirmEnable = async () => {
-  if (!selectedTemplate.value || selectedProviderId.value === null) return;
-  enabling.value = true;
+const handleEnable = async (tmpl: BuiltinTemplate) => {
+  enablingTemplateId.value = tmpl.templateId;
   try {
     await orpc.agent.enableBuiltin({
-      templateId: selectedTemplate.value.templateId,
-      providerId: selectedProviderId.value,
+      templateId: tmpl.templateId,
       scopeType: "PROJECT",
       scopeId: project.id,
     });
-    enableDialogOpen.value = false;
     await fetchAll();
+  } catch (err) {
+    rpcWarn(err);
   } finally {
-    enabling.value = false;
+    if (enablingTemplateId.value === tmpl.templateId) {
+      enablingTemplateId.value = null;
+    }
   }
 };
 
 const handleDisable = async (agentId: string) => {
-  await orpc.agent.disableBuiltin({ id: agentId });
-  enabledAgents.value = enabledAgents.value.filter((a) => a.id !== agentId);
+  try {
+    await orpc.agent.disableBuiltin({ id: agentId });
+    enabledAgents.value = enabledAgents.value.filter((a) => a.id !== agentId);
+  } catch (err) {
+    rpcWarn(err);
+  }
 };
 
 const handleDelete = async (agentId: string) => {
@@ -209,11 +187,15 @@ onMounted(() => {
             <Button
               variant="outline"
               size="sm"
-              :disabled="llmProviders.length === 0"
-              @click="openEnableDialog(tmpl)"
+              :disabled="enablingTemplateId !== null"
+              @click="handleEnable(tmpl)"
             >
               <Power class="mr-1.5 h-4 w-4" />
-              {{ t("启用") }}
+              {{
+                enablingTemplateId === tmpl.templateId
+                  ? t("启用中...")
+                  : t("启用")
+              }}
             </Button>
           </CardContent>
         </Card>
@@ -258,12 +240,6 @@ onMounted(() => {
         class="text-sm text-muted-foreground"
       >
         {{ t("暂无内置 Agent") }}
-      </p>
-      <p
-        v-if="!loading && llmProviders.length === 0"
-        class="mt-2 text-sm text-yellow-600 dark:text-yellow-400"
-      >
-        {{ t("未检测到 LLM Provider 插件，请先安装并启用 LLM Provider。") }}
       </p>
     </section>
 
@@ -317,50 +293,5 @@ onMounted(() => {
         {{ t("暂无项目级 Agent，可在编辑器中使用内置 Agent。") }}
       </p>
     </section>
-
-    <!-- Enable dialog with LLM provider picker -->
-    <Dialog v-model:open="enableDialogOpen">
-      <DialogContent class="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {{ t("启用 {name}", { name: selectedTemplate?.name ?? "" }) }}
-          </DialogTitle>
-          <DialogDescription>
-            {{ t("选择一个 LLM Provider 来驱动此 Agent。") }}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div class="flex flex-col gap-3 py-4">
-          <label class="text-sm font-medium">{{ t("LLM Provider") }}</label>
-          <select
-            class="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            :value="selectedProviderId ?? ''"
-            @change="
-              ($event) => {
-                const val = ($event.target as HTMLSelectElement).value;
-                selectedProviderId = val ? Number(val) : null;
-              }
-            "
-          >
-            <option
-              v-for="provider in llmProviders"
-              :key="provider.id"
-              :value="provider.id"
-            >
-              {{ provider.name }}
-            </option>
-          </select>
-        </div>
-
-        <DialogFooter>
-          <Button
-            :disabled="selectedProviderId === null || enabling"
-            @click="confirmEnable"
-          >
-            {{ t("确认启用") }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   </div>
 </template>

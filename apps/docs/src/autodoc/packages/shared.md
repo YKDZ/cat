@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 34
+* **Modules**: 35
 
 * **Exported functions**: 24
 
-* **Exported types**: 135
+* **Exported types**: 145
 
 ## Function Index
 
@@ -231,6 +231,12 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `SessionRecord` (type)
 
+* `Changeset` (type)
+
+* `ChangesetEntry` (type)
+
+* `EntitySnapshot` (type)
+
 * `Comment` (type)
 
 * `CommentReaction` (type)
@@ -267,7 +273,7 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `KanbanCard` (type)
 
-* `ToolCallLog` (type)
+* `KanbanCardDep` (type)
 
 * `SlotMappingEntry` (type)
 
@@ -372,6 +378,20 @@ export const safeJoinURL = (base: string, path: string): string
 * `NotificationStatus` (type)
 
 * `KanbanCardStatus` (type)
+
+* `ChangesetStatus` (type)
+
+* `EntityType` (type)
+
+* `ChangeAction` (type)
+
+* `RiskLevel` (type)
+
+* `ReviewStatus` (type)
+
+* `AsyncStatus` (type)
+
+* `ChangesetEntryAsyncStatus` (type)
 
 * `JSONObject` (interface)
 
