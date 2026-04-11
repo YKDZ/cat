@@ -12,12 +12,12 @@ export const useEditorContextStore = defineStore("editorContext", () => {
   const currentPage = ref(1);
 
   const { state: documentState } = useQuery({
-    key: ["documents", documentId.value!],
+    key: () => ["documents", documentId.value!],
     query: async () =>
       orpc.document.get({
         documentId: documentId.value!,
       }),
-    enabled: !import.meta.env.SSR,
+    enabled: () => !import.meta.env.SSR && !!documentId.value,
   });
 
   const document = computed(() => {

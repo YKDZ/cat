@@ -1,3 +1,5 @@
+import type { JSONType, NonNullJSONType } from "@cat/shared/schema/json";
+
 import { agentRun, eq } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -14,12 +16,12 @@ export type LoadAgentRunMetadataQuery = z.infer<
 export type AgentRunMetadataRow = {
   externalId: string;
   status: string;
-  graphDefinition: unknown;
+  graphDefinition: NonNullJSONType;
   currentNodeId: string | null;
   deduplicationKey: string | null;
   startedAt: Date;
   completedAt: Date | null;
-  metadata: unknown;
+  metadata: JSONType;
 };
 
 export const loadAgentRunMetadata: Query<

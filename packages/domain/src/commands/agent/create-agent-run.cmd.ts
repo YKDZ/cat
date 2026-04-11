@@ -1,6 +1,5 @@
-import type { NonNullJSONType } from "@cat/shared/schema/json";
-
 import { agentRun, agentSession, eq } from "@cat/db";
+import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
@@ -16,7 +15,7 @@ export const CreateAgentRunCommandSchema = z.object({
    * @zh 图定义（GraphDefinition JSON）
    * @en Graph definition (GraphDefinition JSON)
    */
-  graphDefinition: z.unknown(),
+  graphDefinition: nonNullSafeZDotJson,
   /**
    * @zh 去重键（可选，用于幂等性保证）
    * @en Deduplication key (optional, for idempotency)
@@ -57,8 +56,7 @@ export const createAgentRun: Command<
       .values({
         sessionId: session.id,
         status: "running",
-        // oxlint-disable-next-line no-unsafe-type-assertion
-        graphDefinition: command.graphDefinition as NonNullJSONType,
+        graphDefinition: command.graphDefinition,
         deduplicationKey: command.deduplicationKey ?? null,
       })
       .returning({ id: agentRun.id, externalId: agentRun.externalId }),

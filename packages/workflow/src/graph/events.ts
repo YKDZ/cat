@@ -29,6 +29,8 @@ export const EventTypeValues = [
   "workflow:translation:created",
   "workflow:qa:issue",
   "workflow:suggestion:ready",
+  "tool:call",
+  "tool:result",
 ] as const;
 
 export const EventTypeSchema = z.enum(EventTypeValues);
@@ -43,7 +45,11 @@ export const eventPayloadSchemas = {
   "run:pause": z.object({}),
   "run:resume": z.object({}),
   "run:cancel": z.object({}),
-  "run:end": z.object({ status: z.string(), blackboard: z.unknown() }),
+  "run:end": z.object({
+    status: z.string(),
+    blackboard: z.unknown().optional(),
+    finalMessage: z.string().nullable().optional(),
+  }),
   "run:error": z.object({ error: z.string() }),
   "run:compensation:start": z.object({ count: z.int() }),
   "run:compensation:end": z.record(z.string(), z.unknown()),
@@ -96,6 +102,16 @@ export const eventPayloadSchemas = {
   "workflow:suggestion:ready": z.object({
     elementId: z.int(),
     suggestion: z.record(z.string(), z.unknown()),
+  }),
+
+  // Tool events
+  "tool:call": z.object({
+    toolName: z.string(),
+    toolCallId: z.string(),
+  }),
+  "tool:result": z.object({
+    toolCallId: z.string(),
+    content: z.string(),
   }),
 } as const satisfies Record<EventType, z.ZodType>;
 

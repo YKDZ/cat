@@ -1,4 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
+import type { JSONObject } from "@cat/shared/schema/json";
 import type * as z from "zod/v4";
 
 import assert from "node:assert";
@@ -12,7 +13,7 @@ import type { TypedGraphDefinition } from "./types";
 export type RunGraphOptions = {
   signal?: AbortSignal;
   sessionId?: number;
-  metadata?: Record<string, unknown> | null;
+  metadata?: JSONObject | null;
   /** Override the plugin manager from the global runtime */
   pluginManager?: PluginManager;
 };

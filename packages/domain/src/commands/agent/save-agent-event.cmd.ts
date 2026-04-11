@@ -1,6 +1,5 @@
-import type { NonNullJSONType } from "@cat/shared/schema/json";
-
 import { agentEvent } from "@cat/db";
+import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 
 import type { Command } from "@/types";
@@ -11,7 +10,7 @@ export const SaveAgentEventCommandSchema = z.object({
   parentEventId: z.string().nullable(),
   nodeId: z.string().nullable(),
   type: z.string(),
-  payload: z.unknown(),
+  payload: nonNullSafeZDotJson,
   timestamp: z.date(),
 });
 
@@ -25,14 +24,11 @@ export const saveAgentEvent: Command<SaveAgentEventCommand> = async (
     .insert(agentEvent)
     .values({
       runId: command.runInternalId,
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      eventId: command.eventId as never,
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      parentEventId: command.parentEventId as never,
+      eventId: command.eventId,
+      parentEventId: command.parentEventId,
       nodeId: command.nodeId,
       type: command.type,
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      payload: (command.payload ?? {}) as NonNullJSONType,
+      payload: command.payload ?? {},
       timestamp: command.timestamp,
     })
     .onConflictDoNothing();

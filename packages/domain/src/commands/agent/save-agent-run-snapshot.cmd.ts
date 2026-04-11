@@ -1,13 +1,12 @@
-import type { NonNullJSONType } from "@cat/shared/schema/json";
-
 import { agentRun, eq } from "@cat/db";
+import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 
 import type { Command } from "@/types";
 
 export const SaveAgentRunSnapshotCommandSchema = z.object({
   externalId: z.string(),
-  snapshot: z.unknown(),
+  snapshot: nonNullSafeZDotJson,
 });
 
 export type SaveAgentRunSnapshotCommand = z.infer<
@@ -20,8 +19,7 @@ export const saveAgentRunSnapshot: Command<
   await ctx.db
     .update(agentRun)
     .set({
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      blackboardSnapshot: command.snapshot as NonNullJSONType,
+      blackboardSnapshot: command.snapshot,
     })
     .where(eq(agentRun.externalId, command.externalId));
 

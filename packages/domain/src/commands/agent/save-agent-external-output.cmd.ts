@@ -1,6 +1,5 @@
-import type { NonNullJSONType } from "@cat/shared/schema/json";
-
 import { agentExternalOutput } from "@cat/db";
+import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 
 import type { Command } from "@/types";
@@ -10,7 +9,7 @@ export const SaveAgentExternalOutputCommandSchema = z.object({
   nodeId: z.string(),
   outputType: z.string(),
   outputKey: z.string(),
-  payload: z.unknown(),
+  payload: nonNullSafeZDotJson,
   idempotencyKey: z.string().nullable(),
   createdAt: z.date(),
 });
@@ -29,8 +28,7 @@ export const saveAgentExternalOutput: Command<
       nodeId: command.nodeId,
       outputType: command.outputType,
       outputKey: command.outputKey,
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      payload: (command.payload ?? {}) as NonNullJSONType,
+      payload: command.payload ?? {},
       idempotencyKey: command.idempotencyKey,
       createdAt: command.createdAt,
     })

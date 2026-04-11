@@ -372,7 +372,7 @@ export const memoryItem = pgTable("MemoryItem", {
   /** Placeholderized translation text template */
   translationTemplate: text("translation_template"),
   /** JSON mapping of placeholder → original value + token type */
-  slotMapping: jsonb("slot_mapping"),
+  slotMapping: jsonb("slot_mapping").$type<JSONType>(),
   ...timestamps,
 });
 

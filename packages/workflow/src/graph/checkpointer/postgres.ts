@@ -1,4 +1,5 @@
-import type { DbHandle } from "@cat/domain";
+import type { AgentRunMetadataRow, DbHandle } from "@cat/domain";
+import type { JSONObject, JSONType } from "@cat/shared/schema/json";
 
 import {
   executeCommand,
@@ -23,30 +24,19 @@ import { GraphDefinitionSchema, RunStatusSchema } from "@/graph/types";
 
 import type { Checkpointer, ExternalOutputRecord, RunMetadata } from "./types";
 
-const isRecord = (value: unknown): value is Record<string, unknown> => {
+const isRecord = (value: JSONType): value is JSONObject => {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 };
 
-const toMetadataRecord = (
-  value: unknown,
-): Record<string, unknown> | null | undefined => {
-  if (value === null || value === undefined) {
+const toMetadataRecord = (value: JSONType): JSONObject | null => {
+  if (value === null) {
     return value;
   }
 
   return isRecord(value) ? value : null;
 };
 
-const toRunMetadata = (row: {
-  externalId: RunId;
-  status: string;
-  graphDefinition: unknown;
-  currentNodeId: string | null;
-  deduplicationKey: string | null;
-  startedAt: Date;
-  completedAt: Date | null;
-  metadata: unknown;
-}): RunMetadata => {
+const toRunMetadata = (row: AgentRunMetadataRow): RunMetadata => {
   const graphDefinition = GraphDefinitionSchema.safeParse(row.graphDefinition);
   const status = RunStatusSchema.safeParse(row.status);
   const metadata = toMetadataRecord(row.metadata);
@@ -160,7 +150,7 @@ export class PostgresCheckpointer implements Checkpointer {
     );
 
     if (snapshot === null) return null;
-    // oxlint-disable-next-line no-unsafe-type-assertion
+    // oxlint-disable-next-line no-unsafe-type-assertion -- JSONType → BlackboardSnapshot structural cast
     return snapshot as unknown as BlackboardSnapshot;
   };
 

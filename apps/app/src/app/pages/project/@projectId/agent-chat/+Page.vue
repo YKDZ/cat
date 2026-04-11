@@ -5,11 +5,11 @@ import { useInjectionKey } from "@/app/utils/provide.ts";
 
 import type { Data as LayoutData } from "../+data.server.ts";
 
-import AgentKanbanPanel from "../AgentKanbanPanel.vue";
+import Chat from "./Chat.vue";
 
 const project = inject(useInjectionKey<LayoutData>()("project"))!;
 </script>
 
 <template>
-  <AgentKanbanPanel :project />
+  <Chat :project />
 </template>
