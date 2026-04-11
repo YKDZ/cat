@@ -42,7 +42,7 @@ const { data: subjects } = useQuery({
   query: async () => {
     return await onRequestConceptSubjects(props.glossaryId);
   },
-  enabled: isDialogOpen,
+  enabled: !import.meta.env.SSR &&  isDialogOpen,
 });
 
 const subjectOptions = computed<PickerOption<number>[]>(() => {
