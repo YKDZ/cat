@@ -31,6 +31,8 @@ export const EventTypeValues = [
   "workflow:suggestion:ready",
   "tool:call",
   "tool:result",
+  "llm:thinking",
+  "llm:complete",
 ] as const;
 
 export const EventTypeSchema = z.enum(EventTypeValues);
@@ -113,6 +115,20 @@ export const eventPayloadSchemas = {
   "tool:result": z.object({
     toolCallId: z.string(),
     content: z.string(),
+  }),
+  // LLM streaming events
+  "llm:thinking": z.object({
+    thinkingDelta: z.string(),
+  }),
+  "llm:complete": z.object({
+    text: z.string(),
+    thinkingText: z.string().optional(),
+    tokenUsage: z
+      .object({
+        promptTokens: z.number(),
+        completionTokens: z.number(),
+      })
+      .optional(),
   }),
 } as const satisfies Record<EventType, z.ZodType>;
 

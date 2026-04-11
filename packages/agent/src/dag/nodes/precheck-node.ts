@@ -26,28 +26,40 @@ export interface PreCheckResult {
   updates: Partial<AgentBlackboardData>;
 }
 
+// ─── Services ─────────────────────────────────────────────────────────────────
+
+/**
+ * @zh PreCheckNode 可选服务接口。
+ * @en Optional services available to PreCheckNode.
+ */
+export interface PreCheckServices {
+  /**
+   * @zh 检查 Kanban 卡片的 DAG 依赖就绪状态。
+   * @en Check whether Kanban card DAG dependencies are satisfied.
+   */
+  checkKanbanDeps?: (
+    cardId: string,
+  ) => Promise<{ allMet: boolean; blocking: string[] }>;
+}
+
+// ─── Context Extension ────────────────────────────────────────────────────────
+
+export type PreCheckContext = Pick<
+  AgentNodeContext,
+  "constraints" | "startedAt" | "logger" | "sessionId"
+> & { services?: PreCheckServices };
+
 // ─── PreCheckNode ─────────────────────────────────────────────────────────────
 
 /**
- * @zh PreCheckNode（Phase 0a 简化版）：步数/超时检查 + Blackboard 更新。
- *
- * 在 Phase 0a 中，PreCheck 仅执行基础的步数和超时边界检查，
- * 并将进度信息写入 `precheck_notes` 字段以供 ReasoningNode 使用。
- *
- * @en PreCheckNode (Phase 0a simplified): step/timeout check + Blackboard update.
- *
- * In Phase 0a, PreCheck only performs basic step count and timeout boundary checks,
- * and writes progress info to `precheck_notes` for ReasoningNode to use.
- *
- * @param data - {@zh 当前 Blackboard 数据} {@en Current Blackboard data}
- * @param ctx - {@zh Agent 节点上下文} {@en Agent node context}
- * @returns - {@zh PreCheckResult} {@en PreCheckResult}
+ * @zh PreCheckNode（Phase 0b）：步数/超时检查 + Kanban DAG 依赖检查 + Blackboard 更新。
+ * @en PreCheckNode (Phase 0b): step/timeout check + Kanban DAG dependency check + Blackboard update.
  */
-export const runPreCheckNode = (
+export const runPreCheckNode = async (
   data: AgentBlackboardData,
-  ctx: Pick<AgentNodeContext, "constraints" | "startedAt" | "logger">,
-): PreCheckResult => {
-  const { constraints, startedAt, logger } = ctx;
+  ctx: PreCheckContext,
+): Promise<PreCheckResult> => {
+  const { constraints, startedAt, logger, services } = ctx;
 
   const currentTurn = data.current_turn ?? 0;
   const elapsedMs = Date.now() - startedAt.getTime();
@@ -88,10 +100,22 @@ export const runPreCheckNode = (
     };
   }
 
-  const precheckNotes = [
+  const notes: string[] = [
     `Turn: ${currentTurn + 1} / ${constraints.maxSteps}`,
     `Elapsed: ${Math.round(elapsedMs / 1000)}s / ${Math.round(constraints.timeoutMs / 1000)}s`,
-  ].join("\n");
+  ];
+
+  // Kanban DAG dependency check
+  if (services?.checkKanbanDeps && data.current_card_id) {
+    const depsResult = await services.checkKanbanDeps(data.current_card_id);
+    if (!depsResult.allMet) {
+      notes.push(
+        `[WARN] Kanban 依赖未就绪 — 以下前置卡片 DONE 状态未达成: ${depsResult.blocking.join(", ")}`,
+      );
+    }
+  }
+
+  const precheckNotes = notes.join("\n");
 
   logger.logDAGNode({
     nodeType: "precheck",

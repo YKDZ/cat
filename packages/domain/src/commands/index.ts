@@ -95,3 +95,6 @@ export * from "@/commands/kanban/claim-card.cmd";
 export * from "@/commands/kanban/update-card-status.cmd";
 export * from "@/commands/kanban/update-card-progress.cmd";
 export * from "@/commands/kanban/release-card.cmd";
+export * from "@/commands/kanban/add-card-dep.cmd";
+export * from "@/commands/kanban/remove-card-dep.cmd";
+export * from "@/commands/changeset/index.ts";

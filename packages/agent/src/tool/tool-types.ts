@@ -22,6 +22,14 @@ export interface ToolExecutionContext {
     sessionId: string;
     agentId: string;
     projectId: string;
+    runId: string;
+    providerId?: number;
+    kanbanBoardId?: number;
+    kanbanCardId?: number;
+    documentId?: string;
+    elementId?: number;
+    languageId?: string;
+    sourceLanguageId?: string;
   };
   /** @zh 权限检查接口 @en Permission checking interface */
   permissions: {

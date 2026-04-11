@@ -231,3 +231,76 @@ export const KanbanCardStatusValues = [
 ] as const;
 export const KanbanCardStatusSchema = z.enum(KanbanCardStatusValues);
 export type KanbanCardStatus = (typeof KanbanCardStatusValues)[number];
+
+// ─── ChangeSet Status ──────────────────────────────────────
+
+export const ChangesetStatusValues = [
+  "PENDING",
+  "APPROVED",
+  "PARTIALLY_APPROVED",
+  "REJECTED",
+  "APPLIED",
+  "CONFLICT",
+] as const;
+export const ChangesetStatusSchema = z.enum(ChangesetStatusValues);
+export type ChangesetStatus = (typeof ChangesetStatusValues)[number];
+
+// ─── Entity Types ──────────────────────────────────────────
+
+export const EntityTypeValues = [
+  "translation",
+  "element",
+  "document",
+  "document_tree",
+  "comment",
+  "comment_reaction",
+  "term",
+  "term_concept",
+  "memory_item",
+  "project_settings",
+  "project_member",
+  "project_attributes",
+  "context",
+] as const;
+export const EntityTypeSchema = z.enum(EntityTypeValues);
+export type EntityType = (typeof EntityTypeValues)[number];
+
+// ─── Change Action ─────────────────────────────────────────
+
+export const ChangeActionValues = ["CREATE", "UPDATE", "DELETE"] as const;
+export const ChangeActionSchema = z.enum(ChangeActionValues);
+export type ChangeAction = (typeof ChangeActionValues)[number];
+
+// ─── Risk Level ────────────────────────────────────────────
+
+export const RiskLevelValues = ["LOW", "MEDIUM", "HIGH"] as const;
+export const RiskLevelSchema = z.enum(RiskLevelValues);
+export type RiskLevel = (typeof RiskLevelValues)[number];
+
+// ─── Review Status ─────────────────────────────────────────
+
+export const ReviewStatusValues = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "CONFLICT",
+] as const;
+export const ReviewStatusSchema = z.enum(ReviewStatusValues);
+export type ReviewStatus = (typeof ReviewStatusValues)[number];
+
+// ─── Async Status ──────────────────────────────────────────
+
+export const AsyncStatusValues = ["READY", "PENDING", "FAILED"] as const;
+export const AsyncStatusSchema = z.enum(AsyncStatusValues).nullable();
+export type AsyncStatus = (typeof AsyncStatusValues)[number];
+
+export const ChangesetEntryAsyncStatusValues = [
+  "ALL_READY",
+  "HAS_PENDING",
+  "HAS_FAILED",
+] as const;
+export const ChangesetEntryAsyncStatusSchema = z
+  .enum(ChangesetEntryAsyncStatusValues)
+  .nullable();
+export type ChangesetEntryAsyncStatus =
+  (typeof ChangesetEntryAsyncStatusValues)[number];

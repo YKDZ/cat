@@ -11,6 +11,7 @@ const claimCardArgs = z.object({
   boardId: z
     .int()
     .positive()
+    .optional()
     .describe("The internal board ID to claim a card from"),
   /**
    * @zh 可领取的状态列表（默认 OPEN 和 NEEDS_REWORK）
@@ -33,11 +34,17 @@ export const kanbanClaimTool: AgentToolDefinition = {
   parameters: claimCardArgs,
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
-  async execute(args, _ctx) {
+  async execute(args, ctx) {
     const { client: db } = await getDbHandle();
     const parsed = claimCardArgs.parse(args);
+    const boardId = parsed.boardId ?? ctx.session.kanbanBoardId;
+
+    if (!boardId) {
+      throw new Error("kanban_claim requires boardId");
+    }
+
     return await executeCommand({ db }, claimCard, {
-      boardId: parsed.boardId,
+      boardId,
       claimableStatuses: parsed.claimableStatuses,
     });
   },

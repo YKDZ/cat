@@ -63,7 +63,35 @@ export interface AgentErrorLogEvent {
   message: string;
 }
 
-// ─── AgentLogger ──────────────────────────────────────────────────────────────
+/**
+ * @zh L06: ChangeSet 事件日志（创建、审核、应用、回滚）。
+ * @en L06: ChangeSet event log (created, reviewed, applied, rolled_back).
+ */
+export interface AgentChangeSetLogEvent {
+  type:
+    | "changeset.created"
+    | "changeset.reviewed"
+    | "changeset.applied"
+    | "changeset.rolled_back";
+  changesetId: string;
+  agentRunId?: string;
+  entryCount: number;
+  status: string;
+  summary?: string;
+}
+
+/**
+ * @zh L07: Kanban 卡片依赖事件日志。
+ * @en L07: Kanban card dependency event log.
+ */
+export interface AgentKanbanDepLogEvent {
+  type: "kanban_dep.added" | "kanban_dep.removed" | "kanban_dep.cycle_detected";
+  cardId: string;
+  dependsOnCardId?: string;
+  depType?: string;
+}
+
+// ─── AgentLogger ──────────────────────────────────────────────────────────────────
 
 /**
  * @zh Agent 结构化日志接口。
@@ -80,6 +108,10 @@ export interface AgentLogger {
   logToolExecute: (event: AgentToolExecuteLogEvent) => void;
   /** L05 */
   logError: (event: AgentErrorLogEvent) => void;
+  /** L06 */
+  logChangeSetEvent: (event: AgentChangeSetLogEvent) => void;
+  /** L07 */
+  logKanbanDepEvent: (event: AgentKanbanDepLogEvent) => void;
 }
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
@@ -114,6 +146,20 @@ export const createAgentLogger = (baseLogger: Logger): AgentLogger => {
     logError: (event) => {
       logger.error(event.error, event.message);
     }, // L05
+    logChangeSetEvent: (event) => {
+      logger.info(
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        event as unknown as Record<string, unknown>,
+        `changeset.${event.type} cs=${event.changesetId}`,
+      );
+    }, // L06
+    logKanbanDepEvent: (event) => {
+      logger.info(
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        event as unknown as Record<string, unknown>,
+        `kanban_dep.${event.type} card=${event.cardId}`,
+      );
+    }, // L07
   };
 };
 
@@ -132,4 +178,8 @@ export const createNoopAgentLogger = (): AgentLogger => ({
   logToolExecute: () => {},
   // oxlint-disable-next-line no-empty-function -- intentional noop for testing/placeholder
   logError: () => {},
+  // oxlint-disable-next-line no-empty-function -- intentional noop for testing/placeholder
+  logChangeSetEvent: () => {},
+  // oxlint-disable-next-line no-empty-function -- intentional noop for testing/placeholder
+  logKanbanDepEvent: () => {},
 });

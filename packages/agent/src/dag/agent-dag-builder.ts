@@ -1,5 +1,8 @@
 import type { GraphDefinition } from "@cat/graph";
-import type { AgentConstraints } from "@cat/shared/schema/agent";
+import type {
+  AgentConstraints,
+  AgentSessionMetadata,
+} from "@cat/shared/schema/agent";
 
 import type { LLMGateway } from "../llm/llm-gateway.ts";
 import type { AgentLogger } from "../observability/agent-logger.ts";
@@ -43,6 +46,8 @@ export interface AgentBlackboardData {
   scratchpad?: string;
   /** @zh PreCheckNode 写入的提示 @en Notes written by PreCheckNode */
   precheck_notes?: string;
+  /** @zh 当前关联的 Kanban 卡片 externalId @en Current linked Kanban card externalId */
+  current_card_id?: string;
 }
 
 // ─── Agent Node Context ───────────────────────────────────────────────────────
@@ -60,6 +65,10 @@ export interface AgentNodeContext {
   agentId: string;
   /** @zh 项目外部 UUID @en Project external UUID */
   projectId: string;
+  /** @zh 会话级业务上下文元数据 @en Session-scoped business context metadata */
+  sessionMetadata: AgentSessionMetadata | null;
+  /** @zh Prompt 变量映射 @en Prompt variable map */
+  promptVariables: Record<string, string>;
   /** @zh LLM 调用网关 @en LLM call gateway */
   llmGateway: LLMGateway;
   /** @zh 工具注册表 @en Tool registry */
@@ -72,6 +81,11 @@ export interface AgentNodeContext {
   startedAt: Date;
   /** @zh 结构化日志 @en Structured logger */
   logger: AgentLogger;
+  /** @zh 实时事件发射回调（可选），用于 thinking delta 转发 @en Optional real-time event callback for thinking delta forwarding */
+  emitEvent?: (event: {
+    type: string;
+    payload: Record<string, unknown>;
+  }) => void;
 }
 
 // ─── Agent DAG Builder ────────────────────────────────────────────────────────

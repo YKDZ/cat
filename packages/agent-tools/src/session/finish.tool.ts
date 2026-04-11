@@ -13,7 +13,10 @@ const finishArgs = z.object({
    * @zh 会话外部 UUID（agentSession.externalId）
    * @en Session external UUID (agentSession.externalId)
    */
-  sessionId: z.uuid().describe("External UUID of the current agent session"),
+  sessionId: z
+    .uuid()
+    .optional()
+    .describe("External UUID of the current agent session"),
   /**
    * @zh 完成原因说明（供日志和审计使用）
    * @en Completion reason (for logging and audit)
@@ -44,20 +47,26 @@ export const finishTool: AgentToolDefinition = {
   parameters: finishArgs,
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
-  async execute(args, _ctx) {
+  async execute(args, ctx) {
     const { client: db } = await getDbHandle();
     const parsed = finishArgs.parse(args);
+    const sessionId = parsed.sessionId ?? ctx.session.sessionId;
+    const kanbanCardId = parsed.kanbanCardId ?? ctx.session.kanbanCardId;
+
+    if (!sessionId) {
+      throw new Error("finish requires sessionId");
+    }
 
     // Mark the session as COMPLETED via domain command
     await executeCommand({ db }, completeAgentSession, {
-      sessionId: parsed.sessionId,
+      sessionId,
       finalStatus: "COMPLETED",
     });
 
     // If kanban card ID provided, move it to DONE
-    if (parsed.kanbanCardId !== undefined) {
+    if (kanbanCardId !== undefined) {
       await executeCommand({ db }, updateCardStatus, {
-        cardId: parsed.kanbanCardId,
+        cardId: kanbanCardId,
         status: "DONE",
       });
     }

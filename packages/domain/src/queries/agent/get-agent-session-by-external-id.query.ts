@@ -1,6 +1,6 @@
 import type { JSONType } from "@cat/shared/schema/json";
 
-import { agentSession, and, eq } from "@cat/db";
+import { agentDefinition, agentSession, and, eq } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
@@ -19,6 +19,9 @@ export type AgentSessionByExternalId = {
   id: number;
   externalId: string;
   agentDefinitionId: number;
+  agentDefinitionExternalId: string;
+  projectId: string | null;
+  currentRunId: number | null;
   status: string;
   userId: string | null;
   metadata: JSONType;
@@ -39,11 +42,18 @@ export const getAgentSessionByExternalId: Query<
         id: agentSession.id,
         externalId: agentSession.externalId,
         agentDefinitionId: agentSession.agentDefinitionId,
+        agentDefinitionExternalId: agentDefinition.externalId,
+        projectId: agentSession.projectId,
+        currentRunId: agentSession.currentRunId,
         status: agentSession.status,
         userId: agentSession.userId,
         metadata: agentSession.metadata,
       })
       .from(agentSession)
+      .innerJoin(
+        agentDefinition,
+        eq(agentSession.agentDefinitionId, agentDefinition.id),
+      )
       .where(and(...conditions))
       .limit(1),
   );

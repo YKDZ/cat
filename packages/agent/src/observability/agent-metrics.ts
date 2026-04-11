@@ -15,6 +15,12 @@ export interface AgentMetricsSnapshot {
   errors: Record<string, number>;
   /** M05: team.kanban.throughput (cards completed) */
   kanbanThroughput: number;
+  /** M06: vcs.changeset.created */
+  changesetCreatedCount: number;
+  /** M07: vcs.changeset.entry per entityType */
+  changesetEntryByType: Record<string, number>;
+  /** M08: vcs.occ.conflict */
+  occConflictCount: number;
 }
 
 // ─── AgentMetrics ─────────────────────────────────────────────────────────────
@@ -30,6 +36,9 @@ export class AgentMetrics {
   private readonly toolCalls: Record<string, number> = {};
   private readonly errors: Record<string, number> = {};
   private kanbanThroughput = 0;
+  private changesetCreatedCount = 0;
+  private readonly changesetEntryByType: Record<string, number> = {};
+  private occConflictCount = 0;
 
   /**
    * @zh 记录 token 用量（M01）。
@@ -83,6 +92,33 @@ export class AgentMetrics {
   }
 
   /**
+   * @zh 记录 ChangeSet 创建（M06）。
+   * @en Record ChangeSet creation (M06).
+   */
+  recordChangesetCreated(): void {
+    this.changesetCreatedCount += 1;
+  }
+
+  /**
+   * @zh 记录 ChangeSet entry 按 entityType 计数（M07）。
+   * @en Record ChangeSet entry count by entityType (M07).
+   *
+   * @param entityType - {@zh 实体类型} {@en Entity type}
+   */
+  recordChangesetEntry(entityType: string): void {
+    this.changesetEntryByType[entityType] =
+      (this.changesetEntryByType[entityType] ?? 0) + 1;
+  }
+
+  /**
+   * @zh 记录 OCC 冲突次数（M08）。
+   * @en Record OCC conflict count (M08).
+   */
+  recordOCCConflict(): void {
+    this.occConflictCount += 1;
+  }
+
+  /**
    * @zh 获取当前指标快照。
    * @en Get current metrics snapshot.
    */
@@ -96,6 +132,9 @@ export class AgentMetrics {
       toolCalls: structuredClone(this.toolCalls),
       errors: structuredClone(this.errors),
       kanbanThroughput: this.kanbanThroughput,
+      changesetCreatedCount: this.changesetCreatedCount,
+      changesetEntryByType: structuredClone(this.changesetEntryByType),
+      occConflictCount: this.occConflictCount,
     };
   }
 }

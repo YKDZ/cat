@@ -13,8 +13,10 @@ import { storeToRefs } from "pinia";
 import { ref, nextTick, watch, onMounted, onUnmounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { orpc } from "@/app/rpc/orpc";
 import { useAgentStore } from "@/app/stores/agent";
 import { useRegisterClientTools } from "@/app/utils/agent/register-client-tools";
+import { clientLogger as logger } from "@/app/utils/logger";
 
 import AgentMaxStepsCard from "./AgentMaxStepsCard.vue";
 import AgentMessageBubble from "./AgentMessageBubble.vue";
@@ -25,6 +27,8 @@ import AgentToolConfirmCard from "./AgentToolConfirmCard.vue";
 const props = defineProps<{
   /** @zh 当前项目外部 UUID @en Current project external UUID */
   projectId: string;
+  /** @zh 当前项目名称 @en Current project name */
+  projectName: string;
 }>();
 
 const { t } = useI18n();
@@ -37,6 +41,7 @@ const {
   isStreaming,
   runId,
   activeSessionId,
+  activeSessionContext,
   selectedDefinitionId,
   selectedDefinition,
   currentSteps,
@@ -46,12 +51,20 @@ const {
   lastFinishReason,
 } = storeToRefs(agentStore);
 
+interface LLMProviderOption {
+  id: number;
+  serviceId: string;
+  name: string;
+}
+
 // Register client-side tool handlers for the agent
 useRegisterClientTools();
 
 const inputText = ref("");
 const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
 const composerTextareaRef = ref<InstanceType<typeof Textarea> | null>(null);
+const llmProviders = ref<LLMProviderOption[]>([]);
+const selectedProviderId = ref<number | null>(null);
 
 /** 跟踪用户是否处于底部(阈値 80px)，手动向上滚动后不再自动跟随 */
 const isAtBottom = ref(true);
@@ -97,6 +110,17 @@ const resizeComposer = () => {
   });
 };
 
+const fetchLLMProviders = async () => {
+  try {
+    llmProviders.value = await orpc.agent.listLLMProviders();
+    if (selectedProviderId.value === null) {
+      selectedProviderId.value = llmProviders.value[0]?.id ?? null;
+    }
+  } catch (err) {
+    logger.withSituation("WEB").error(err, "Failed to fetch LLM providers");
+  }
+};
+
 onMounted(() => {
   nextTick(() => {
     getViewport()?.addEventListener("scroll", handleScroll, { passive: true });
@@ -119,6 +143,33 @@ watch(inputText, () => {
   resizeComposer();
 });
 
+watch(
+  [activeSessionId, activeSessionContext, llmProviders],
+  () => {
+    if (
+      activeSessionId.value &&
+      typeof activeSessionContext.value?.providerId === "number"
+    ) {
+      selectedProviderId.value = activeSessionContext.value.providerId;
+      return;
+    }
+
+    if (selectedProviderId.value === null) {
+      selectedProviderId.value = llmProviders.value[0]?.id ?? null;
+    }
+  },
+  { immediate: true },
+);
+
+const activeProviderName = computed(() => {
+  const providerId = activeSessionContext.value?.providerId;
+  if (typeof providerId !== "number") return null;
+  return (
+    llmProviders.value.find((provider) => provider.id === providerId)?.name ??
+    null
+  );
+});
+
 const handleSend = async () => {
   const text = inputText.value.trim();
   if (!text) return;
@@ -133,6 +184,8 @@ const handleSend = async () => {
       selectedDefinitionId.value,
       {
         projectId: props.projectId,
+        projectName: props.projectName,
+        providerId: selectedProviderId.value ?? undefined,
       },
     );
     if (!sessionId) return;
@@ -183,7 +236,12 @@ const handleCancel = () => {
 };
 
 onMounted(() => {
-  void agentStore.fetchDefinitions({ type: "GENERAL" });
+  void agentStore.fetchDefinitions({
+    type: "GENERAL",
+    scopeType: "PROJECT",
+    scopeId: props.projectId,
+  });
+  void fetchLLMProviders();
 });
 </script>
 
@@ -192,6 +250,30 @@ onMounted(() => {
     <!-- Agent Selector (when no session is active) -->
     <div v-if="!activeSessionId" class="border-b p-2">
       <AgentSelector />
+      <div class="mt-2 flex flex-col gap-1.5 px-1">
+        <label class="text-xs font-medium text-muted-foreground">{{
+          t("LLM Provider")
+        }}</label>
+        <select
+          class="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          :value="selectedProviderId ?? ''"
+          :disabled="llmProviders.length === 0"
+          @change="
+            ($event) => {
+              const value = ($event.target as HTMLSelectElement).value;
+              selectedProviderId = value ? Number(value) : null;
+            }
+          "
+        >
+          <option
+            v-for="provider in llmProviders"
+            :key="provider.id"
+            :value="provider.id"
+          >
+            {{ provider.name }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <!-- Active session header with new-session button -->
@@ -201,6 +283,12 @@ onMounted(() => {
     >
       <span class="truncate text-xs text-muted-foreground">
         {{ selectedDefinition?.name ?? t("对话中") }}
+      </span>
+      <span
+        v-if="activeProviderName"
+        class="truncate px-2 text-[11px] text-muted-foreground"
+      >
+        {{ activeProviderName }}
       </span>
       <Button
         size="icon-sm"

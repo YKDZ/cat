@@ -6,6 +6,10 @@ import type {
   AgentNodeContext,
 } from "../agent-dag-builder.ts";
 
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+};
+
 // ─── Result ───────────────────────────────────────────────────────────────────
 
 /**
@@ -37,10 +41,24 @@ export const runToolNode = async (
   data: AgentBlackboardData,
   ctx: Pick<
     AgentNodeContext,
-    "toolRegistry" | "sessionId" | "agentId" | "projectId" | "logger"
+    | "toolRegistry"
+    | "sessionId"
+    | "runId"
+    | "agentId"
+    | "projectId"
+    | "sessionMetadata"
+    | "logger"
   >,
 ): Promise<ToolNodeResult> => {
-  const { toolRegistry, sessionId, agentId, projectId, logger } = ctx;
+  const {
+    toolRegistry,
+    sessionId,
+    runId,
+    agentId,
+    projectId,
+    sessionMetadata,
+    logger,
+  } = ctx;
   const toolCalls = data.tool_calls ?? [];
 
   if (toolCalls.length === 0) {
@@ -59,7 +77,19 @@ export const runToolNode = async (
 
   // Build ToolExecutionContext
   const toolCtx: ToolExecutionContext = {
-    session: { sessionId, agentId, projectId },
+    session: {
+      sessionId,
+      agentId,
+      projectId,
+      runId,
+      providerId: sessionMetadata?.providerId,
+      kanbanBoardId: sessionMetadata?.kanbanBoardId,
+      kanbanCardId: sessionMetadata?.kanbanCardId,
+      documentId: sessionMetadata?.documentId,
+      elementId: sessionMetadata?.elementId,
+      languageId: sessionMetadata?.languageId,
+      sourceLanguageId: sessionMetadata?.sourceLanguageId,
+    },
     permissions: {
       checkPermission: async () => true, // Phase 0a: allow all
     },
@@ -101,6 +131,7 @@ export const runToolNode = async (
       return {
         toolCallId: tc.id,
         content: JSON.stringify(result),
+        rawResult: result,
         name: tc.name,
       };
     }),
@@ -108,6 +139,7 @@ export const runToolNode = async (
 
   const toolResults: Array<{ toolCallId: string; content: string }> = [];
   let finishCalled = false;
+  let claimedCardExternalId: string | null = null;
 
   for (let i = 0; i < results.length; i += 1) {
     const outcome = results[i];
@@ -120,6 +152,13 @@ export const runToolNode = async (
       });
       if (tc.name === "finish") {
         finishCalled = true;
+      }
+      if (
+        tc.name === "kanban_claim" &&
+        isRecord(outcome.value.rawResult) &&
+        typeof outcome.value.rawResult["externalId"] === "string"
+      ) {
+        claimedCardExternalId = outcome.value.rawResult["externalId"];
       }
     } else {
       const errorMsg =
@@ -159,6 +198,7 @@ export const runToolNode = async (
     updates: {
       tool_results: toolResults,
       finish_called: finishCalled || data.finish_called,
+      current_card_id: claimedCardExternalId ?? data.current_card_id,
       messages: [...existingMessages, ...toolResultMessages],
     },
   };

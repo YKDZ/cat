@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 258
+* **Modules**: 265
 
-* **Exported functions**: 270
+* **Exported functions**: 284
 
-* **Exported types**: 361
+* **Exported types**: 376
 
 ## Function Index
 
@@ -241,6 +241,62 @@ export const registerUserWithPasswordAccount: Command<
   RegisterUserWithPasswordAccountCommand,
   RegisterUserWithPasswordAccountResult
 > = async (ctx: DbContext, command: { email: string; name: string; password: string; authProviderId: number; }) => {...}
+```
+
+### packages/domain/src/commands/changeset
+
+### `addChangesetEntry`
+
+```ts
+export const addChangesetEntry: Command<
+  AddChangesetEntryCommand,
+  typeof changesetEntry.$inferSelect
+> = async (ctx: DbContext, command: { changesetId: number; entityType: "comment" | "term" | "document" | "element" | "translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context"; entityId: string; action: "CREATE" | "UPDATE" | "DELETE"; riskLevel: "LOW" | "MEDIUM" | "HIGH"; before?: any; after?: any; fieldPath?: string | undefined; asyncStatus?: "FAILED" | "PENDING" | "READY" | null | undefined; asyncTaskIds?: string[] | undefined; }) => {...}
+```
+
+### `createChangeset`
+
+```ts
+export const createChangeset: Command<
+  CreateChangesetCommand,
+  typeof changeset.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; agentRunId?: number | undefined; linkedCardId?: number | undefined; createdBy?: string | undefined; summary?: string | undefined; }) => {...}
+```
+
+### `reviewChangesetEntry`
+
+```ts
+export const reviewChangesetEntry: Command<
+  ReviewChangesetEntryCommand
+> = async (ctx: DbContext, command: { entryId: number; verdict: "APPROVED" | "REJECTED"; }) => {...}
+```
+
+### `reviewChangeset`
+
+```ts
+export const reviewChangeset: Command<ReviewChangesetCommand> = async (ctx: DbContext, command: { changesetId: number; verdict: "APPROVED" | "REJECTED"; reviewedBy?: string | undefined; }) => {...}
+```
+
+### `applyChangeset`
+
+```ts
+export const applyChangeset: Command<ApplyChangesetCommand> = async (ctx: DbContext, command: { changesetId: number; }) => {...}
+```
+
+### `updateEntryAsyncStatus`
+
+```ts
+export const updateEntryAsyncStatus: Command<
+  UpdateEntryAsyncStatusCommand
+> = async (ctx: DbContext, command: { entryId: number; asyncStatus: "FAILED" | "PENDING" | "READY"; }) => {...}
+```
+
+### `updateChangesetAsyncStatus`
+
+```ts
+export const updateChangesetAsyncStatus: Command<
+  UpdateChangesetAsyncStatusCommand
+> = async (ctx: DbContext, command: { changesetId: number; asyncStatus: "ALL_READY" | "HAS_PENDING" | "HAS_FAILED" | null; }) => {...}
 ```
 
 ### packages/domain/src/commands/comment
@@ -492,6 +548,15 @@ export const updateGlossaryConcept: Command<
 
 ### packages/domain/src/commands/kanban
 
+### `addCardDep`
+
+```ts
+/**
+ * Add a dependency between two kanban cards, with BFS cycle detection before insert.
+ */
+export const addCardDep: Command<AddCardDepCommand> = async (ctx: DbContext, command: { cardId: number; dependsOnCardId: number; depType: "FINISH_TO_START" | "DATA"; }) => {...}
+```
+
 ### `claimCard`
 
 ```ts
@@ -528,6 +593,15 @@ export const createCard: Command<
  * Release a claimed card, resetting its status to OPEN (for timeout or manual cancel).
  */
 export const releaseCard: Command<ReleaseCardCommand> = async (ctx: DbContext, command: { cardId: number; }) => {...}
+```
+
+### `removeCardDep`
+
+```ts
+/**
+ * Remove a dependency between two kanban cards.
+ */
+export const removeCardDep: Command<RemoveCardDepCommand> = async (ctx: DbContext, command: { cardId: number; dependsOnCardId: number; }) => {...}
 ```
 
 ### `updateCardProgress`
@@ -653,7 +727,7 @@ export const grantFirstUserSuperadmin: Command<
  */
 export const grantPermissionTuple: Command<
   GrantPermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `insertAuditLogs`
@@ -662,7 +736,7 @@ export const grantPermissionTuple: Command<
 /**
  * 批量插入鉴权审计日志。写入失败时静默忽略，不影响业务流程。
  */
-export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
+export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
 ```
 
 ### `revokePermissionTuple`
@@ -673,7 +747,7 @@ export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbCo
  */
 export const revokePermissionTuple: Command<
   RevokePermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `seedSystemRoles`
@@ -1279,6 +1353,44 @@ export const getMfaProviderByServiceAndUser: Query<
 > = async (ctx: DbContext, query: { userId: string; mfaServiceId: number; }) => {...}
 ```
 
+### packages/domain/src/queries/changeset
+
+### `getChangeset`
+
+```ts
+export const getChangeset: Query<
+  GetChangesetQuery,
+  typeof changeset.$inferSelect | null
+> = async (ctx: DbContext, query: { changesetId: number; }) => {...}
+```
+
+### `getChangesetByExternalId`
+
+```ts
+export const getChangesetByExternalId: Query<
+  GetChangesetByExternalIdQuery,
+  typeof changeset.$inferSelect | null
+> = async (ctx: DbContext, query: { externalId: string; }) => {...}
+```
+
+### `listChangesets`
+
+```ts
+export const listChangesets: Query<
+  ListChangesetsQuery,
+  (typeof changeset.$inferSelect)[]
+> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "PENDING" | "APPROVED" | "REJECTED" | "CONFLICT" | "PARTIALLY_APPROVED" | "APPLIED" | undefined; }) => {...}
+```
+
+### `getChangesetEntries`
+
+```ts
+export const getChangesetEntries: Query<
+  GetChangesetEntriesQuery,
+  (typeof changesetEntry.$inferSelect)[]
+> = async (ctx: DbContext, query: { changesetId: number; entityType?: "comment" | "term" | "document" | "element" | "translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | undefined; }) => {...}
+```
+
 ### packages/domain/src/queries/chunk
 
 ### `listAllChunks`
@@ -1843,6 +1955,15 @@ export const listBoards: Query<
 > = async (ctx: DbContext, query: { orgId?: string | undefined; linkedResourceType?: string | undefined; linkedResourceId?: string | undefined; }) => {...}
 ```
 
+### `listCardDeps`
+
+```ts
+/**
+ * List dependency relationships for a kanban card.
+ */
+export const listCardDeps: Query<ListCardDepsQuery, CardDepRow[]> = async (ctx: DbContext, query: { cardId: number; direction: "blocking" | "blocked_by"; }) => {...}
+```
+
 ### `listCards`
 
 ```ts
@@ -2057,7 +2178,7 @@ export const listPreferences: Query<
 export const getSubjectPermissionTuples: Query<
   GetSubjectPermissionTuplesQuery,
   SubjectPermissionTupleRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `listPermissionObjects`
@@ -2066,7 +2187,7 @@ export const getSubjectPermissionTuples: Query<
 export const listPermissionObjects: Query<
   ListPermissionObjectsQuery,
   PermissionObjectRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member")[] | undefined; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member")[] | undefined; }) => {...}
 ```
 
 ### `listPermissionSubjects`
@@ -2075,7 +2196,7 @@ export const listPermissionObjects: Query<
 export const listPermissionSubjects: Query<
   ListPermissionSubjectsQuery,
   PermissionSubjectRow[]
-> = async (ctx: DbContext, query: { objectType: "comment" | "term" | "translation" | "user" | "system" | "project" | "document" | "element" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | undefined; }) => {...}
 ```
 
 ### `loadUserSystemRoles`
@@ -2577,6 +2698,20 @@ export const searchChunkCosineSimilarity: Query<
 
 * `RegisterUserWithPasswordAccountResult` (type)
 
+* `AddChangesetEntryCommand` (type)
+
+* `CreateChangesetCommand` (type)
+
+* `ReviewChangesetEntryCommand` (type)
+
+* `ReviewChangesetCommand` (type)
+
+* `ApplyChangesetCommand` (type)
+
+* `UpdateEntryAsyncStatusCommand` (type)
+
+* `UpdateChangesetAsyncStatusCommand` (type)
+
 * `CreateCommentCommand` (type)
 
 * `DeleteCommentReactionCommand` (type)
@@ -2653,6 +2788,8 @@ export const searchChunkCosineSimilarity: Query<
 
 * `UpdateGlossaryConceptResult` (type)
 
+* `AddCardDepCommand` (type)
+
 * `ClaimCardCommand` (type)
 
 * `ClaimCardResult` (type)
@@ -2662,6 +2799,8 @@ export const searchChunkCosineSimilarity: Query<
 * `CreateCardCommand` (type)
 
 * `ReleaseCardCommand` (type)
+
+* `RemoveCardDepCommand` (type)
 
 * `UpdateCardProgressCommand` (type)
 
@@ -2859,6 +2998,14 @@ export const searchChunkCosineSimilarity: Query<
 
 * `GetMfaProviderByServiceAndUserQuery` (type)
 
+* `GetChangesetQuery` (type)
+
+* `GetChangesetByExternalIdQuery` (type)
+
+* `ListChangesetsQuery` (type)
+
+* `GetChangesetEntriesQuery` (type)
+
 * `ListAllChunksQuery` (type)
 
 * `GetCommentRecipientQuery` (type)
@@ -3024,6 +3171,10 @@ export const searchChunkCosineSimilarity: Query<
 * `GetClaimableCardQuery` (type)
 
 * `ListBoardsQuery` (type)
+
+* `CardDepRow` (interface)
+
+* `ListCardDepsQuery` (type)
 
 * `ListCardsQuery` (type)
 

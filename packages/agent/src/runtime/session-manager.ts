@@ -1,5 +1,8 @@
 import type { BlackboardSnapshot } from "@cat/graph";
-import type { ParsedAgentDefinition } from "@cat/shared/schema/agent";
+import type {
+  AgentSessionMetadata,
+  ParsedAgentDefinition,
+} from "@cat/shared/schema/agent";
 
 import {
   completeAgentSession,
@@ -14,6 +17,7 @@ import {
   loadAgentRunSnapshot,
   saveAgentRunSnapshot,
 } from "@cat/domain";
+import { AgentSessionMetadataSchema } from "@cat/shared/schema/agent";
 
 import { buildAgentDAG } from "../dag/agent-dag-builder.ts";
 
@@ -30,6 +34,8 @@ export interface CreateSessionParams {
   userId: string;
   /** @zh 项目外部 UUID（可选）@en Project external UUID (optional) */
   projectId?: string;
+  /** @zh 会话级业务上下文元数据 @en Session-scoped business context metadata */
+  metadata?: AgentSessionMetadata;
   /** @zh 初始用户消息（可选）@en Initial user message (optional) */
   initialMessage?: string;
   /** @zh 去重键（用于幂等性）@en Deduplication key (for idempotency) */
@@ -62,6 +68,12 @@ export interface SessionState {
   agentDefinition: ParsedAgentDefinition;
   /** @zh 当前 agentRun 外部 UUID @en Current agentRun external UUID */
   runId: string;
+  /** @zh 当前会话关联的项目外部 UUID @en Project external UUID linked to the current session */
+  projectId: string | null;
+  /** @zh 解析后的会话元数据 @en Parsed session metadata */
+  sessionMetadata: AgentSessionMetadata | null;
+  /** @zh 当前运行内部 ID @en Current run internal ID */
+  currentRunId: number | null;
   /** @zh Blackboard 快照（若已有）@en Blackboard snapshot (if any) */
   blackboardSnapshot: BlackboardSnapshot | null;
 }
@@ -89,7 +101,11 @@ export class SessionManager {
     const sessionResult = await executeCommand({ db }, createAgentSession, {
       agentDefinitionId: params.agentDefinitionId,
       userId: params.userId,
-      projectId: params.projectId,
+      projectId: params.projectId ?? params.metadata?.projectId,
+      metadata: {
+        ...params.metadata,
+        ...(params.projectId ? { projectId: params.projectId } : {}),
+      },
     });
 
     // 2. Create agentRun with GraphDefinition
@@ -138,6 +154,13 @@ export class SessionManager {
     if (!session) {
       throw new Error(`AgentSession not found: ${sessionId}`);
     }
+
+    const sessionMetadataResult = AgentSessionMetadataSchema.safeParse(
+      session.metadata,
+    );
+    const sessionMetadata = sessionMetadataResult.success
+      ? sessionMetadataResult.data
+      : null;
 
     // Load agent definition
     const definition = await executeQuery(
@@ -191,6 +214,9 @@ export class SessionManager {
       agentDefinitionDbId: session.agentDefinitionId,
       agentDefinition,
       runId,
+      projectId: session.projectId ?? sessionMetadata?.projectId ?? null,
+      sessionMetadata,
+      currentRunId: session.currentRunId,
       blackboardSnapshot,
     };
   }

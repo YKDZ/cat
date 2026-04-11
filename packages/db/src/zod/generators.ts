@@ -48,6 +48,13 @@ import {
   translationSnapshotItem,
   translationVote,
   user,
+  changeset,
+  changesetEntry,
+  entitySnapshot,
+  kanbanCardDep,
+  kanbanCard,
+  kanbanBoard,
+  toolCallLog,
 } from "../drizzle/schema/schema.ts";
 
 const { createSelectSchema } = createSchemaFactory({ zodInstance: z });
@@ -98,7 +105,14 @@ type SelectSchemaTable =
   | typeof translationSnapshot
   | typeof translationSnapshotItem
   | typeof translationVote
-  | typeof user;
+  | typeof user
+  | typeof changeset
+  | typeof changesetEntry
+  | typeof entitySnapshot
+  | typeof kanbanBoard
+  | typeof kanbanCard
+  | typeof kanbanCardDep
+  | typeof toolCallLog;
 
 type TableDeclaration = {
   kind: "table";
@@ -494,6 +508,79 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "CommentReactionSchema",
         typeExportName: "CommentReaction",
         buildShape: buildSelectShape(commentReaction),
+      },
+    ],
+  },
+  {
+    outputFile: "changeset.ts",
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "ChangesetSchema",
+        typeExportName: "Changeset",
+        buildShape: buildSelectShape(changeset),
+      },
+      {
+        kind: "table",
+        schemaExportName: "ChangesetEntrySchema",
+        typeExportName: "ChangesetEntry",
+        buildShape: buildSelectShape(changesetEntry),
+        overrides: {
+          before: "safeZDotJson.nullable()",
+          after: "safeZDotJson.nullable()",
+          asyncTaskIds: "z.array(z.string()).nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "EntitySnapshotSchema",
+        typeExportName: "EntitySnapshot",
+        buildShape: buildSelectShape(entitySnapshot),
+        overrides: {
+          scopeFilter: "safeZDotJson.nullable()",
+        },
+      },
+    ],
+  },
+  {
+    outputFile: "kanban.ts",
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "KanbanBoardSchema",
+        typeExportName: "KanbanBoard",
+        buildShape: buildSelectShape(kanbanBoard),
+        overrides: {
+          columns: "nonNullSafeZDotJson",
+          metadata: "safeZDotJson.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "KanbanCardSchema",
+        typeExportName: "KanbanCard",
+        buildShape: buildSelectShape(kanbanCard),
+        overrides: {
+          labels: "z.array(z.string())",
+          metadata: "safeZDotJson.nullable()",
+          linkedChangesetIds: "z.array(z.string()).nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "KanbanCardDepSchema",
+        typeExportName: "KanbanCardDep",
+        buildShape: buildSelectShape(kanbanCardDep),
+      },
+      {
+        kind: "table",
+        schemaExportName: "ToolCallLogSchema",
+        typeExportName: "ToolCallLog",
+        buildShape: buildSelectShape(toolCallLog),
+        overrides: {
+          arguments: "nonNullSafeZDotJson",
+          result: "safeZDotJson.nullable()",
+        },
       },
     ],
   },

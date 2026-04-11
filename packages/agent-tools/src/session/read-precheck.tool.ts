@@ -1,10 +1,6 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
-import {
-  executeQuery,
-  getAgentRunRuntimeState,
-  getDbHandle,
-} from "@cat/domain";
+import { executeQuery, getDbHandle, loadAgentRunSnapshot } from "@cat/domain";
 import * as z from "zod/v4";
 
 const readPrecheckArgs = z.object({
@@ -12,8 +8,12 @@ const readPrecheckArgs = z.object({
    * @zh 当前 AgentRun 的外部 UUID（由 AgentRuntime 注入上下文中使用）
    * @en External UUID of the current AgentRun (injected by AgentRuntime as context)
    */
-  runId: z.uuid().describe("External UUID of the current AgentRun"),
+  runId: z.uuid().optional().describe("External UUID of the current AgentRun"),
 });
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+};
 
 /**
  * @zh read_precheck 工具: 读取 PreCheckNode 在本轮写入的检查笔记。
@@ -26,24 +26,30 @@ export const readPrecheckTool: AgentToolDefinition = {
   parameters: readPrecheckArgs,
   sideEffectType: "none",
   toolSecurityLevel: "standard",
-  async execute(args, _ctx) {
+  async execute(args, ctx) {
     const { client: db } = await getDbHandle();
     const parsed = readPrecheckArgs.parse(args);
+    const runId = parsed.runId ?? ctx.session.runId;
 
-    const state = await executeQuery({ db }, getAgentRunRuntimeState, {
-      runId: parsed.runId,
+    if (!runId) {
+      throw new Error("read_precheck requires runId");
+    }
+
+    const snapshot = await executeQuery({ db }, loadAgentRunSnapshot, {
+      externalId: runId,
     });
 
-    // oxlint-disable-next-line no-unsafe-type-assertion -- metadata is JSONType; narrowed after null-coalescing
-    const data = (state?.metadata as Record<string, unknown> | null) ?? {};
-    // oxlint-disable-next-line no-unsafe-type-assertion -- data field is a nested JSON object
-    const boardData = (data["data"] as Record<string, unknown>) ?? {};
+    const boardData = isRecord(snapshot) ? snapshot : {};
 
     return {
-      // oxlint-disable-next-line no-unsafe-type-assertion -- string fields from JSON scratchpad store
-      precheckNotes: (boardData["precheck_notes"] as string | undefined) ?? "",
-      // oxlint-disable-next-line no-unsafe-type-assertion -- string fields from JSON scratchpad store
-      scratchpad: (boardData["scratchpad"] as string | undefined) ?? "",
+      precheckNotes:
+        typeof boardData["precheck_notes"] === "string"
+          ? boardData["precheck_notes"]
+          : "",
+      scratchpad:
+        typeof boardData["scratchpad"] === "string"
+          ? boardData["scratchpad"]
+          : "",
     };
   },
 };

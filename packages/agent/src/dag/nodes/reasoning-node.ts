@@ -20,6 +20,8 @@ export interface CollectedLLMResponse {
   finishReason: string;
   /** @zh Token 用量 @en Token usage */
   tokenUsage: { promptTokens: number; completionTokens: number };
+  /** @zh 聚合后的思维链文本 @en Aggregated thinking chain text */
+  thinkingText: string;
 }
 
 /**
@@ -27,13 +29,16 @@ export interface CollectedLLMResponse {
  * @en Consume AsyncIterable<LLMChunk> stream and aggregate into a complete LLM response.
  *
  * @param stream - {@zh LLM 流式输出} {@en LLM streaming output}
+ * @param onChunk - {@zh 每个 chunk 的回调（可选），用于实时转发 thinking delta} {@en Optional per-chunk callback for real-time thinking delta forwarding}
  * @returns - {@zh 聚合后的 LLM 响应} {@en Aggregated LLM response}
  * @throws - {@zh LLM 流出现 error chunk 时抛出} {@en Throws when an error chunk appears in the stream}
  */
 export const collectLLMResponse = async (
   stream: AsyncIterable<LLMChunk>,
+  onChunk?: (chunk: LLMChunk) => void,
 ): Promise<CollectedLLMResponse> => {
   let text = "";
+  let thinkingText = "";
   const toolCallsMap = new Map<
     string,
     { id: string; name: string; arguments: string }
@@ -43,6 +48,7 @@ export const collectLLMResponse = async (
   let completionTokens = 0;
 
   for await (const chunk of stream) {
+    onChunk?.(chunk);
     switch (chunk.type) {
       case "text_delta":
         text += chunk.textDelta;
@@ -67,7 +73,7 @@ export const collectLLMResponse = async (
       case "error":
         throw chunk.error;
       case "thinking_delta":
-        // Phase 0a: thinking deltas are intentionally ignored
+        thinkingText += chunk.thinkingDelta;
         break;
       default:
         break;
@@ -79,6 +85,7 @@ export const collectLLMResponse = async (
     toolCalls: Array.from(toolCallsMap.values()),
     finishReason,
     tokenUsage: { promptTokens, completionTokens },
+    thinkingText,
   };
 };
 
@@ -95,6 +102,8 @@ export interface ReasoningNodeResult {
   hasToolCalls: boolean;
   /** @zh Token 用量 @en Token usage */
   tokenUsage: { promptTokens: number; completionTokens: number };
+  /** @zh 聚合后的思维链文本 @en Aggregated thinking chain text */
+  thinkingText: string;
   /** @zh Blackboard data 更新 @en Blackboard data updates */
   updates: Partial<AgentBlackboardData>;
 }
@@ -145,6 +154,7 @@ export const runReasoningNode = async (
     messages: (data.messages ?? []) as ChatMessage[],
     scratchpad: data.scratchpad,
     precheckNotes: data.precheck_notes,
+    variables: ctx.promptVariables,
     costStatus: {
       remainingTokens: 999_999, // Phase 0a: always report high
       budgetId: sessionId,
@@ -162,7 +172,7 @@ export const runReasoningNode = async (
 
   // Call LLM via gateway
   // oxlint-disable-next-line await-thenable -- async generator method; await is effectively identity but needed for mock compatibility
-  const stream = await llmGateway.chat({
+  const stream = llmGateway.chat({
     request: {
       messages: builtPrompt.messages,
       tools: llmTools.length > 0 ? llmTools : undefined,
@@ -171,8 +181,15 @@ export const runReasoningNode = async (
     },
   });
 
-  // Collect response
-  const response = await collectLLMResponse(stream);
+  // Collect response, forwarding thinking_delta chunks via emitEvent
+  const response = await collectLLMResponse(stream, (chunk) => {
+    if (chunk.type === "thinking_delta") {
+      ctx.emitEvent?.({
+        type: "llm:thinking",
+        payload: { thinkingDelta: chunk.thinkingDelta },
+      });
+    }
+  });
   const durationMs = Date.now() - startMs;
 
   logger.logLLMCall({
@@ -218,6 +235,7 @@ export const runReasoningNode = async (
     text: response.text,
     hasToolCalls: response.toolCalls.length > 0,
     tokenUsage: response.tokenUsage,
+    thinkingText: response.thinkingText,
     updates: {
       messages: [...existingMessages, assistantMessage],
       tool_calls: response.toolCalls.length > 0 ? response.toolCalls : [],
