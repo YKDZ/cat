@@ -24,6 +24,7 @@ const reviewing = ref(false);
 const { state: changesetState, refresh: refreshChangeset } = useQuery({
   key: () => ["changeset", props.changesetId],
   query: () => orpc.changeset.get({ externalId: props.changesetId }),
+  enabled: !import.meta.env.SSR,
 });
 
 const changeset = computed(() => changesetState.value.data);

@@ -48,6 +48,7 @@ const { state: listState, refresh } = useQuery({
       limit: PAGE_SIZE,
       offset: offset.value,
     }),
+  enabled: !import.meta.env.SSR,
 });
 
 const changesets = computed(() => {
