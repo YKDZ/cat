@@ -1,4 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
+import type { NonNullJSONType } from "@cat/shared/schema/json";
 import type * as z from "zod/v4";
 
 import type { EventEnvelopeInput } from "@/graph/events";
@@ -25,9 +26,11 @@ export type TypedNodeContext = {
   /** Buffer an event to be published after node execution */
   addEvent: (event: EventEnvelopeInput) => void;
   /** Check whether a side-effect has already been recorded for this run+key */
-  checkSideEffect: <T>(key: string) => Promise<T | null>;
+  checkSideEffect: <T extends NonNullJSONType>(
+    key: string,
+  ) => Promise<T | null>;
   /** Record a side-effect for idempotency; returns null on first call */
-  recordSideEffect: <T>(
+  recordSideEffect: <T extends NonNullJSONType>(
     key: string,
     outputType: "db_write" | "api_call" | "event_publish",
     payload: T,

@@ -1,4 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
+import type { JSONObject } from "@cat/shared/schema/json";
 
 import { evaluateCondition } from "@cat/graph";
 import { randomUUID } from "node:crypto";
@@ -35,7 +36,7 @@ type RunContext = {
   blackboard: Blackboard;
   runtime: GraphRuntimeContext;
   deduplicationKey?: string;
-  metadata?: Record<string, unknown> | null;
+  metadata?: JSONObject | null;
   status: RunStatus;
   pendingNodeIds: Set<NodeId>;
   currentNodeIds: Set<NodeId>;
@@ -59,7 +60,7 @@ export type SchedulerStartOptions = {
   /** DB-internal session ID, used to associate AgentRun records */
   sessionId?: number;
   /** Additional persisted run metadata */
-  metadata?: Record<string, unknown> | null;
+  metadata?: JSONObject | null;
   deduplicationKey?: string;
   /** Plugin manager instance for this run */
   pluginManager?: PluginManager;
@@ -71,14 +72,14 @@ export type SchedulerRecoverOptions = {
 
 const SCHEDULER_PENDING_NODE_IDS_KEY = "__scheduler.pendingNodeIds";
 
-const toRecord = (value: unknown): Record<string, unknown> => {
+const toRecord = (value: unknown): JSONObject => {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     return { ...value };
   }
   return {};
 };
 
-const toConfigObject = (value: unknown): Record<string, unknown> => {
+const toConfigObject = (value: unknown): JSONObject => {
   return toRecord(value);
 };
 
@@ -97,9 +98,9 @@ const toNodeIdList = (value: unknown): NodeId[] => {
 };
 
 const withPendingNodeIds = (
-  metadata: Record<string, unknown> | null | undefined,
+  metadata: JSONObject | null | undefined,
   pendingNodeIds: Iterable<NodeId>,
-): Record<string, unknown> | null => {
+): JSONObject | null => {
   const result = toRecord(metadata);
   const nodeIds = toNodeIdList(Array.from(pendingNodeIds));
 
@@ -113,7 +114,7 @@ const withPendingNodeIds = (
 };
 
 const getPendingNodeIds = (
-  metadata: Record<string, unknown> | null | undefined,
+  metadata: JSONObject | null | undefined,
   currentNodeId?: NodeId,
 ): Set<NodeId> => {
   const persisted = toNodeIdList(

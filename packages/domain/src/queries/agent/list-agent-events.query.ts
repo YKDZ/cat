@@ -1,3 +1,5 @@
+import type { NonNullJSONType } from "@cat/shared/schema/json";
+
 import { agentEvent, eq } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -14,7 +16,7 @@ export type AgentEventRow = {
   parentEventId: string | null;
   nodeId: string | null;
   type: string;
-  payload: unknown;
+  payload: NonNullJSONType;
   timestamp: Date;
 };
 

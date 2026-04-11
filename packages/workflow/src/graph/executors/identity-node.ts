@@ -1,3 +1,5 @@
+import type { NonNullJSONType } from "@cat/shared/schema/json";
+
 import { resolvePath } from "@cat/graph";
 import { PluginManager } from "@cat/plugin-core";
 
@@ -64,7 +66,9 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
     traceId: ctx.runId,
     pluginManager: ctx.runtime.pluginManager ?? PluginManager.get("GLOBAL", ""),
     addEvent: ctx.addEvent,
-    checkSideEffect: async <T>(key: string): Promise<T | null> => {
+    checkSideEffect: async <T extends NonNullJSONType>(
+      key: string,
+    ): Promise<T | null> => {
       const fullKey = `${ctx.nodeId}:${ctx.runId}:${key}`;
       const existing = await ctx.checkpointer.loadExternalOutputByIdempotency(
         ctx.runId,
@@ -73,7 +77,7 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
       // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion -- side-effect payloads are caller-defined generic
       return (existing?.payload as T | undefined) ?? null;
     },
-    recordSideEffect: async <T>(
+    recordSideEffect: async <T extends NonNullJSONType>(
       key: string,
       outputType: "db_write" | "api_call" | "event_publish",
       payload: T,

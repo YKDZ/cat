@@ -1,3 +1,5 @@
+import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+
 import {
   and,
   eq,
@@ -23,8 +25,8 @@ export type GetPluginConfigInstanceByInstallationQuery = z.infer<
 export type PluginConfigInstanceData = {
   configId: number;
   instanceId: number;
-  schema: unknown;
-  value: unknown;
+  schema: _JSONSchema;
+  value: NonNullJSONType;
 };
 
 export const getPluginConfigInstanceByInstallation: Query<

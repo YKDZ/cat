@@ -1,4 +1,5 @@
 import { memoryItem } from "@cat/db";
+import { safeZDotJson } from "@cat/shared/schema/json";
 import * as z from "zod/v4";
 
 import type { Command } from "@/types";
@@ -10,7 +11,7 @@ const MemoryItemInputSchema = z.object({
   creatorId: z.string().nullable(),
   sourceTemplate: z.string().nullable(),
   translationTemplate: z.string().nullable(),
-  slotMapping: z.unknown().nullable(),
+  slotMapping: safeZDotJson,
 });
 
 export const CreateMemoryItemsCommandSchema = z.object({
@@ -43,8 +44,7 @@ export const createMemoryItems: Command<
         creatorId: item.creatorId,
         sourceTemplate: item.sourceTemplate,
         translationTemplate: item.translationTemplate,
-        // oxlint-disable-next-line no-unsafe-type-assertion
-        slotMapping: item.slotMapping as Record<string, unknown> | null,
+        slotMapping: item.slotMapping,
       })),
     )
     .returning({ id: memoryItem.id });

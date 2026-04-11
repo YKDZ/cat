@@ -1,3 +1,5 @@
+import type { JSONType } from "@cat/shared/schema/json";
+
 import { agentSession, and, eq } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
@@ -19,7 +21,7 @@ export type AgentSessionByExternalId = {
   agentDefinitionId: number;
   status: string;
   userId: string | null;
-  metadata: unknown;
+  metadata: JSONType;
 };
 
 export const getAgentSessionByExternalId: Query<

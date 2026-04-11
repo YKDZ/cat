@@ -1,3 +1,5 @@
+import type { NonNullJSONType } from "@cat/shared/schema/json";
+
 import { agentExternalOutput, and, eq } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -16,7 +18,7 @@ export type AgentExternalOutputRow = {
   nodeId: string;
   outputType: string;
   outputKey: string;
-  payload: unknown;
+  payload: NonNullJSONType;
   idempotencyKey: string | null;
   createdAt: Date;
 };

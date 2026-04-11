@@ -29,5 +29,5 @@ export const getConfigInstance = async (
 
   if (!data) return {};
 
-  return data.value as JSONType;
+  return data.value;
 };

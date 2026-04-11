@@ -168,8 +168,161 @@ export const useAgentStore = defineStore("agent", () => {
     return [...nodeExecutions.value.values()];
   });
 
-  const applyGraphEvent = (_event: GraphEvent) => {
-    return;
+  const applyGraphEvent = (event: GraphEvent) => {
+    const payload = event.payload;
+
+    switch (event.type) {
+      case "run:start": {
+        runId.value = event.runId;
+        streamingStatus.value = "streaming";
+        break;
+      }
+
+      case "node:start": {
+        // Update thinking indicator for reasoning nodes
+        if (payload.nodeType === "llm") {
+          thinkingText.value = "Reasoning...";
+        }
+        break;
+      }
+
+      case "node:end": {
+        // Clear thinking when reasoning completes
+        if (payload.nodeType === "llm") {
+          thinkingText.value = "";
+        }
+        break;
+      }
+
+      case "node:error": {
+        thinkingText.value = "";
+        break;
+      }
+
+      case "tool:call": {
+        const toolName =
+          typeof payload.toolName === "string" ? payload.toolName : "unknown";
+        const toolCallId =
+          typeof payload.toolCallId === "string"
+            ? payload.toolCallId
+            : crypto.randomUUID();
+
+        // Add a new step with the tool call
+        const stepIndex = currentSteps.value.length;
+        currentSteps.value = [
+          ...currentSteps.value,
+          {
+            index: stepIndex,
+            thought: null,
+            thinkingText: null,
+            toolCalls: [
+              {
+                id: toolCallId,
+                toolName,
+                arguments: {},
+                result: null,
+                error: null,
+                durationMs: null,
+              },
+            ],
+          },
+        ];
+        break;
+      }
+
+      case "tool:result": {
+        const toolCallId =
+          typeof payload.toolCallId === "string" ? payload.toolCallId : "";
+        const content =
+          typeof payload.content === "string" ? payload.content : "";
+
+        // Update the matching tool call with the result
+        const updatedSteps = currentSteps.value.map((step) => ({
+          ...step,
+          toolCalls: step.toolCalls.map((tc) =>
+            tc.id === toolCallId ? { ...tc, result: content } : tc,
+          ),
+        }));
+        currentSteps.value = updatedSteps;
+        break;
+      }
+
+      case "run:end": {
+        const finalMessage =
+          typeof payload.finalMessage === "string"
+            ? payload.finalMessage
+            : null;
+
+        if (finalMessage) {
+          messages.value.push({
+            role: "ASSISTANT",
+            content: finalMessage,
+            toolCallId: null,
+            stepIndex: null,
+            thinkingText: null,
+            steps: [...currentSteps.value],
+            createdAt: new Date(),
+          });
+        }
+
+        const status =
+          typeof payload.status === "string" ? payload.status : "completed";
+        if (status === "finish" || status === "completed") {
+          lastFinishReason.value = "completed";
+        } else if (status === "maxTurns") {
+          lastFinishReason.value = "max_steps";
+          maxStepsReached.value = {
+            totalSteps: currentSteps.value.length,
+            finalMessage,
+          };
+        } else {
+          lastFinishReason.value = "completed";
+        }
+
+        streamingText.value = "";
+        thinkingText.value = "";
+        currentSteps.value = [];
+        streamingStatus.value = "done";
+        break;
+      }
+
+      case "run:error": {
+        const errorMsg =
+          typeof payload.error === "string" ? payload.error : "Unknown error";
+        errorMessage.value = errorMsg;
+        lastFinishReason.value = "error";
+        streamingText.value = "";
+        thinkingText.value = "";
+        currentSteps.value = [];
+        streamingStatus.value = "error";
+        break;
+      }
+
+      // Unhandled event types — no client-side action needed
+      case "run:pause":
+      case "run:resume":
+      case "run:cancel":
+      case "run:compensation:start":
+      case "run:compensation:end":
+      case "node:retry":
+      case "node:lease:acquired":
+      case "node:lease:expired":
+      case "node:lease:reclaimed":
+      case "llm:thinking":
+      case "llm:token":
+      case "llm:complete":
+      case "llm:error":
+      case "tool:error":
+      case "tool:confirm:required":
+      case "tool:confirm:response":
+      case "human:input:required":
+      case "human:input:received":
+      case "checkpoint:saved":
+      case "workflow:translation:created":
+      case "workflow:qa:issue":
+      case "workflow:suggestion:ready":
+        break;
+    }
   };
 
   const consumeGraphEvents = async (graphRunId: string) => {
@@ -377,6 +530,11 @@ export const useAgentStore = defineStore("agent", () => {
               ? { ...event.payload }
               : {},
         });
+      }
+
+      // Safety net: if stream ended without a run:end/run:error event
+      if (streamingStatus.value === "streaming") {
+        streamingStatus.value = "done";
       }
     } catch (err) {
       if (abortController.signal.aborted) {

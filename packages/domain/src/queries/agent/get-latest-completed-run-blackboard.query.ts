@@ -1,3 +1,5 @@
+import type { JSONType } from "@cat/shared/schema/json";
+
 import { agentRun, and, desc, eq } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";
 import * as z from "zod/v4";
@@ -13,7 +15,7 @@ export type GetLatestCompletedRunBlackboardQuery = z.infer<
 >;
 
 export type LatestCompletedRunBlackboard = {
-  blackboardSnapshot: unknown;
+  blackboardSnapshot: JSONType;
 } | null;
 
 export const getLatestCompletedRunBlackboard: Query<

@@ -1,3 +1,5 @@
+import type { JSONObject, NonNullJSONType } from "@cat/shared/schema/json";
+
 import type { AgentEvent } from "@/graph/events";
 import type {
   BlackboardSnapshot,
@@ -15,7 +17,7 @@ export type RunMetadata = {
   deduplicationKey?: string;
   startedAt: string;
   completedAt?: string;
-  metadata?: Record<string, unknown> | null;
+  metadata?: JSONObject | null;
 };
 
 export type ExternalOutputRecord = {
@@ -28,7 +30,7 @@ export type ExternalOutputRecord = {
     | "api_call"
     | "event_publish";
   outputKey: string;
-  payload: unknown;
+  payload: NonNullJSONType;
   idempotencyKey?: string;
   createdAt: string;
 };

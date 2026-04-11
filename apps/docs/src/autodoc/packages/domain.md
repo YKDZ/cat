@@ -122,7 +122,7 @@ export const createAgentDefinition: Command<
 export const createAgentRun: Command<
   CreateAgentRunCommand,
   CreateAgentRunResult
-> = async (ctx: DbContext, command: { sessionId: string; graphDefinition: unknown; deduplicationKey?: string | undefined; }) => {...}
+> = async (ctx: DbContext, command: { sessionId: string; graphDefinition: any; deduplicationKey?: string | undefined; }) => {...}
 ```
 
 ### `createAgentSession`
@@ -154,7 +154,7 @@ export const finishAgentRun: Command<FinishAgentRunCommand> = async (ctx: DbCont
 ### `saveAgentEvent`
 
 ```ts
-export const saveAgentEvent: Command<SaveAgentEventCommand> = async (ctx: DbContext, command: { runInternalId: number; eventId: string; parentEventId: string | null; nodeId: string | null; type: string; payload: unknown; timestamp: Date; }) => {...}
+export const saveAgentEvent: Command<SaveAgentEventCommand> = async (ctx: DbContext, command: { runInternalId: number; eventId: string; parentEventId: string | null; nodeId: string | null; type: string; payload: any; timestamp: Date; }) => {...}
 ```
 
 ### `saveAgentExternalOutput`
@@ -162,7 +162,7 @@ export const saveAgentEvent: Command<SaveAgentEventCommand> = async (ctx: DbCont
 ```ts
 export const saveAgentExternalOutput: Command<
   SaveAgentExternalOutputCommand
-> = async (ctx: DbContext, command: { runInternalId: number; nodeId: string; outputType: string; outputKey: string; payload: unknown; idempotencyKey: string | null; createdAt: Date; }) => {...}
+> = async (ctx: DbContext, command: { runInternalId: number; nodeId: string; outputType: string; outputKey: string; payload: any; idempotencyKey: string | null; createdAt: Date; }) => {...}
 ```
 
 ### `saveAgentRunMetadata`
@@ -170,7 +170,7 @@ export const saveAgentExternalOutput: Command<
 ```ts
 export const saveAgentRunMetadata: Command<
   SaveAgentRunMetadataCommand
-> = async (ctx: DbContext, command: { externalId: string; sessionId: number; status: string; graphDefinition: unknown; currentNodeId: string | null; deduplicationKey: string | null; startedAt: Date; completedAt: Date | null; metadata: unknown; }) => {...}
+> = async (ctx: DbContext, command: { externalId: string; sessionId: number; status: string; graphDefinition: any; currentNodeId: string | null; deduplicationKey: string | null; startedAt: Date; completedAt: Date | null; metadata: any; }) => {...}
 ```
 
 ### `saveAgentRunSnapshot`
@@ -178,7 +178,7 @@ export const saveAgentRunMetadata: Command<
 ```ts
 export const saveAgentRunSnapshot: Command<
   SaveAgentRunSnapshotCommand
-> = async (ctx: DbContext, command: { externalId: string; snapshot: unknown; }) => {...}
+> = async (ctx: DbContext, command: { externalId: string; snapshot: any; }) => {...}
 ```
 
 ### `updateAgentDefinition`
@@ -569,7 +569,7 @@ export const insertLoginAttempt: Command<InsertLoginAttemptCommand> = async (ctx
 export const createMemoryItems: Command<
   CreateMemoryItemsCommand,
   number[]
-> = async (ctx: DbContext, command: { memoryId: string; items: { translationId: number | null; translationStringId: number; sourceStringId: number; creatorId: string | null; sourceTemplate: string | null; translationTemplate: string | null; slotMapping: unknown; }[]; }) => {...}
+> = async (ctx: DbContext, command: { memoryId: string; items: { translationId: number | null; translationStringId: number; sourceStringId: number; creatorId: string | null; sourceTemplate: string | null; translationTemplate: string | null; slotMapping: any; }[]; }) => {...}
 ```
 
 ### `createMemory`
@@ -1199,7 +1199,7 @@ export const loadAgentRunMetadata: Query<
 ```ts
 export const loadAgentRunSnapshot: Query<
   LoadAgentRunSnapshotQuery,
-  unknown
+  JSONType
 > = async (ctx: DbContext, query: { externalId: string; }) => {...}
 ```
 

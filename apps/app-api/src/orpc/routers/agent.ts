@@ -1,4 +1,5 @@
 import type { AgentRunMetadataRow } from "@cat/domain";
+import type { JSONType } from "@cat/shared/schema/json";
 
 import {
   createAgentDefinition,
@@ -17,6 +18,7 @@ import {
   listAgentSessions,
   listProjectRuns as queryListProjectRuns,
   loadAgentRunMetadata,
+  loadAgentRunSnapshot,
   updateAgentDefinition,
 } from "@cat/domain";
 import { AsyncMessageQueue, serverLogger } from "@cat/server-shared";
@@ -409,6 +411,9 @@ export const sendMessage = authed
       }
     };
 
+    // Track final state to include the assistant response in run:end
+    let finishReason: string | null = null;
+
     // Stream events from the DAG loop, mapping to valid workflow event types
     for await (const event of runtime.runLoop(
       input.sessionId,
@@ -452,12 +457,26 @@ export const sendMessage = authed
             },
           });
         }
-      } else if (event.type === "finished") {
+      } else if (event.type === "tool_call") {
         yield createAgentEvent({
           ...base,
-          type: "run:end",
-          payload: { status: event.reason, blackboard: {} },
+          type: "tool:call",
+          payload: {
+            toolName: event.toolName,
+            toolCallId: event.toolCallId,
+          },
         });
+      } else if (event.type === "tool_result") {
+        yield createAgentEvent({
+          ...base,
+          type: "tool:result",
+          payload: {
+            toolCallId: event.toolCallId,
+            content: event.content,
+          },
+        });
+      } else if (event.type === "finished") {
+        finishReason = event.reason;
       } else if (event.type === "failed") {
         yield createAgentEvent({
           ...base,
@@ -465,8 +484,51 @@ export const sendMessage = authed
           payload: { error: event.error.message },
         });
       }
-      // token_delta, tool_call, tool_result: yielded as node lifecycle events above
     }
+
+    // After the loop: load the final blackboard snapshot to extract the assistant message
+    const finalSnapshot = await executeQuery(
+      { db: drizzle },
+      loadAgentRunSnapshot,
+      { externalId: runResult.runId },
+    );
+
+    // Extract the last assistant message from the blackboard
+    // The snapshot is the AgentBlackboardData directly (messages at top level)
+    let finalMessage: string | null = null;
+    if (
+      finalSnapshot &&
+      typeof finalSnapshot === "object" &&
+      !Array.isArray(finalSnapshot)
+    ) {
+      const snapshotObj = finalSnapshot;
+      const msgs = snapshotObj["messages"];
+      if (Array.isArray(msgs) && msgs.length > 0) {
+        const lastMsg = msgs[msgs.length - 1];
+        if (
+          lastMsg &&
+          typeof lastMsg === "object" &&
+          !Array.isArray(lastMsg) &&
+          "role" in lastMsg &&
+          "content" in lastMsg
+        ) {
+          const { role, content } = lastMsg;
+          if (role === "assistant" && typeof content === "string") {
+            finalMessage = content;
+          }
+        }
+      }
+    }
+
+    yield createAgentEvent({
+      runId: runResult.runId,
+      timestamp: new Date().toISOString(),
+      type: "run:end",
+      payload: {
+        status: finishReason ?? "completed",
+        finalMessage,
+      },
+    });
   });
 
 // ─── Graph Runtime Control ───
@@ -817,18 +879,20 @@ export const getNodeDetail = authed
     });
 
     let status = "pending";
-    let nodeInput: unknown = undefined;
-    let nodeOutput: unknown = undefined;
-    let nodeError: unknown = undefined;
+    let nodeInput: JSONType | undefined = undefined;
+    let nodeOutput: JSONType | undefined = undefined;
+    let nodeError: JSONType | undefined = undefined;
 
-    const getPayloadProp = (payload: unknown, key: string): unknown => {
+    const getPayloadProp = (
+      payload: JSONType,
+      key: string,
+    ): JSONType | undefined => {
       if (
         typeof payload === "object" &&
         payload !== null &&
         !Array.isArray(payload)
       ) {
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-        return (payload as Record<string, unknown>)[key];
+        return payload[key];
       }
       return undefined;
     };

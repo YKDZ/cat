@@ -1,3 +1,5 @@
+import type { JSONType } from "@cat/shared/schema/json";
+
 import { agentRun, eq } from "@cat/db";
 import * as z from "zod/v4";
 
@@ -13,7 +15,7 @@ export type LoadAgentRunSnapshotQuery = z.infer<
 
 export const loadAgentRunSnapshot: Query<
   LoadAgentRunSnapshotQuery,
-  unknown
+  JSONType
 > = async (ctx, query) => {
   const [row] = await ctx.db
     .select({ blackboardSnapshot: agentRun.blackboardSnapshot })
