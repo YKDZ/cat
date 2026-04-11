@@ -61,6 +61,7 @@ export const eventPayloadSchemas = {
     output: z.unknown(),
     patch: z.unknown(),
     pauseReason: z.string().nullable(),
+    nodeType: NodeTypeSchema.optional(),
   }),
   "node:error": z.object({ error: z.string() }),
   "node:retry": z.object({
