@@ -61,6 +61,17 @@ export const runDecisionNode = (
     return { shouldContinue: false, reason: "finish" };
   }
 
+  // Implicit completion: LLM responded with text only, no tool calls requested
+  const pendingToolCalls = data.tool_calls ?? [];
+  if (pendingToolCalls.length === 0) {
+    logger.logDAGNode({
+      nodeType: "decision",
+      status: "completed",
+      message: "DecisionNode: no tool calls → implicit completion",
+    });
+    return { shouldContinue: false, reason: "finish" };
+  }
+
   // Check maxTurns using current_turn (already incremented by PreCheckNode)
   const currentTurn = data.current_turn ?? 0;
   if (currentTurn >= constraints.maxSteps) {

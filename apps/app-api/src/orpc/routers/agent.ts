@@ -19,6 +19,7 @@ import {
   listProjectRuns as queryListProjectRuns,
   loadAgentRunMetadata,
   loadAgentRunSnapshot,
+  saveAgentRunSnapshot,
   updateAgentDefinition,
 } from "@cat/domain";
 import { AsyncMessageQueue, serverLogger } from "@cat/server-shared";
@@ -395,6 +396,16 @@ export const sendMessage = authed
       graphDefinition: graphDef,
     });
 
+    // Persist the user message into the blackboard so the runtime has context
+    await executeCommand({ db: drizzle }, saveAgentRunSnapshot, {
+      externalId: runResult.runId,
+      snapshot: {
+        messages: [{ role: "user", content: input.message }],
+        started_at: new Date().toISOString(),
+        current_turn: 0,
+      },
+    });
+
     // Map Agent node types to workflow node types for event wrapping
     const agentToWorkflowNodeType = (
       nodeType: "precheck" | "reasoning" | "tool" | "decision",
@@ -413,6 +424,7 @@ export const sendMessage = authed
 
     // Track final state to include the assistant response in run:end
     let finishReason: string | null = null;
+    let hadError = false;
 
     // Stream events from the DAG loop, mapping to valid workflow event types
     for await (const event of runtime.runLoop(
@@ -454,6 +466,7 @@ export const sendMessage = authed
               output: null,
               patch: null,
               pauseReason: null,
+              nodeType: agentToWorkflowNodeType(event.nodeType),
             },
           });
         }
@@ -478,12 +491,19 @@ export const sendMessage = authed
       } else if (event.type === "finished") {
         finishReason = event.reason;
       } else if (event.type === "failed") {
+        hadError = true;
         yield createAgentEvent({
           ...base,
           type: "run:error",
           payload: { error: event.error.message },
         });
       }
+    }
+
+    // If the runtime already emitted a run:error, do not send run:end
+    // which would overwrite the frontend error state.
+    if (hadError) {
+      return;
     }
 
     // After the loop: load the final blackboard snapshot to extract the assistant message
