@@ -14,10 +14,10 @@ import {
   getAgentRunByInternalId,
   getAgentRunInternalId,
   getAgentSessionByExternalId,
-  getLatestCompletedRunBlackboard,
   getRunNodeEvents,
   listAgentDefinitions,
   listAgentEvents,
+  listAgentRunSnapshotsBySession,
   listAgentSessions,
   listProjectRuns as queryListProjectRuns,
   loadAgentRunMetadata,
@@ -95,6 +95,100 @@ const normalizeAgentLLMConfig = (
   }
 
   return normalized;
+};
+
+type SnapshotMessage = Record<string, unknown> & {
+  role: string;
+  content?: string;
+  createdAt?: string;
+};
+
+const toSnapshotRecord = (value: unknown): Record<string, unknown> | null => {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value))
+    : null;
+};
+
+const extractSnapshotMessages = (snapshot: unknown): SnapshotMessage[] => {
+  const record = toSnapshotRecord(snapshot);
+  const messages = record?.["messages"];
+  if (!Array.isArray(messages)) return [];
+
+  return messages.flatMap((message) => {
+    const messageRecord = toSnapshotRecord(message);
+    if (!messageRecord || typeof messageRecord["role"] !== "string") return [];
+
+    return [
+      {
+        ...messageRecord,
+        role: messageRecord["role"],
+        content:
+          typeof messageRecord["content"] === "string"
+            ? messageRecord["content"]
+            : undefined,
+        createdAt:
+          typeof messageRecord["createdAt"] === "string"
+            ? messageRecord["createdAt"]
+            : undefined,
+      } satisfies SnapshotMessage,
+    ];
+  });
+};
+
+const sameMessage = (
+  left: SnapshotMessage,
+  right: SnapshotMessage,
+): boolean => {
+  return JSON.stringify(left) === JSON.stringify(right);
+};
+
+const isPrefix = (
+  existing: SnapshotMessage[],
+  next: SnapshotMessage[],
+): boolean => {
+  if (existing.length > next.length) return false;
+  return existing.every((message, index) => {
+    const candidate = next[index];
+    return candidate !== undefined && sameMessage(message, candidate);
+  });
+};
+
+const mergeSnapshotHistory = (snapshots: unknown[]): SnapshotMessage[] => {
+  let merged: SnapshotMessage[] = [];
+
+  for (const snapshot of snapshots) {
+    const nextMessages = extractSnapshotMessages(snapshot);
+    if (nextMessages.length === 0) continue;
+
+    if (isPrefix(merged, nextMessages)) {
+      merged = nextMessages;
+      continue;
+    }
+
+    for (const message of nextMessages) {
+      if (!merged.some((existing) => sameMessage(existing, message))) {
+        merged.push(message);
+      }
+    }
+  }
+
+  return merged;
+};
+
+const buildMergedSessionSnapshot = (
+  snapshots: unknown[],
+): Record<string, unknown> | null => {
+  const latest = [...snapshots]
+    .reverse()
+    .map((snapshot) => toSnapshotRecord(snapshot))
+    .find(Boolean);
+
+  if (!latest) return null;
+
+  return {
+    ...latest,
+    messages: mergeSnapshotHistory(snapshots),
+  };
 };
 
 const persistNormalizedAgentLLMConfig = async (
@@ -378,6 +472,7 @@ export const listSessions = authed
     z
       .object({
         agentDefinitionId: z.uuidv4().optional(),
+        projectId: z.uuidv4().optional(),
         limit: z.int().min(1).max(100).default(20),
         offset: z.int().min(0).default(0),
       })
@@ -392,6 +487,7 @@ export const listSessions = authed
     const rows = await executeQuery({ db: drizzle }, listAgentSessions, {
       userId: user.id,
       agentDefinitionId: input?.agentDefinitionId,
+      projectId: input?.projectId,
       limit: input?.limit ?? 20,
       offset: input?.offset ?? 0,
     });
@@ -434,11 +530,14 @@ export const getSessionState = authed
         })
       : null;
 
-    const latestCompleted = currentRun?.blackboardSnapshot
-      ? null
-      : await executeQuery({ db: drizzle }, getLatestCompletedRunBlackboard, {
-          sessionId: session.id,
-        });
+    const runSnapshots = await executeQuery(
+      { db: drizzle },
+      listAgentRunSnapshotsBySession,
+      { sessionId: session.id },
+    );
+    const mergedSnapshot = buildMergedSessionSnapshot(
+      runSnapshots.map((run) => run.blackboardSnapshot),
+    );
 
     return {
       sessionId: session.externalId,
@@ -447,10 +546,7 @@ export const getSessionState = authed
       metadata: session.metadata,
       runId: currentRun?.externalId ?? null,
       runStatus: currentRun?.status ?? null,
-      blackboardSnapshot:
-        currentRun?.blackboardSnapshot ??
-        latestCompleted?.blackboardSnapshot ??
-        null,
+      blackboardSnapshot: mergedSnapshot,
     };
   });
 
@@ -550,11 +646,29 @@ export const sendMessage = authed
       graphDefinition: graphDef,
     });
 
+    const previousRunSnapshots = await executeQuery(
+      { db: drizzle },
+      listAgentRunSnapshotsBySession,
+      { sessionId: session.id },
+    );
+    const previousMergedSnapshot = buildMergedSessionSnapshot(
+      previousRunSnapshots.map((run) => run.blackboardSnapshot),
+    );
+    const previousMessages = extractSnapshotMessages(previousMergedSnapshot);
+
     // Persist the user message into the blackboard so the runtime has context
     await executeCommand({ db: drizzle }, saveAgentRunSnapshot, {
       externalId: runResult.runId,
       snapshot: {
-        messages: [{ role: "user", content: input.message }],
+        ...(previousMergedSnapshot ?? {}),
+        messages: [
+          ...previousMessages,
+          {
+            role: "user",
+            content: input.message,
+            createdAt: new Date().toISOString(),
+          },
+        ],
         started_at: new Date().toISOString(),
         current_turn: 0,
       },

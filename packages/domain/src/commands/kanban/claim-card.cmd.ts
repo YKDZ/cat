@@ -54,29 +54,29 @@ export const claimCard: Command<ClaimCardCommand, ClaimCardResult> = async (
     UPDATE "KanbanCard"
     SET
       status = 'CLAIMED',
-      claimed_at = ${now},
-      claimed_by = ${claimedBy},
-      assignee_agent_id = ${command.agentId ?? null},
-      assignee_user_id = ${command.userId ?? null},
-      updated_at = ${now}
+      "claimed_at" = ${now},
+      "claimed_by" = ${claimedBy},
+      "assignee_agent_id" = ${command.agentId ?? null},
+      "assignee_user_id" = ${command.userId ?? null},
+      "updated_at" = ${now}
     WHERE id = (
       SELECT id FROM "KanbanCard"
-      WHERE board_id = ${command.boardId}
+      WHERE "board_id" = ${command.boardId}
         AND status = ANY(${sql`ARRAY[${sql.join(
           command.claimableStatuses.map((s) => sql`${s}`),
           sql`, `,
-        )}]::text[]`})
+        )}]::"KanbanCardStatus"[]`})
         AND NOT EXISTS (
           SELECT 1 FROM "KanbanCardDep" d
-          INNER JOIN "KanbanCard" dep ON dep.id = d."dependsOnCardId"
-          WHERE d."cardId" = "KanbanCard".id
-            AND dep.status != 'DONE'
+          INNER JOIN "KanbanCard" dep ON dep.id = d."depends_on_card_id"
+          WHERE d."card_id" = "KanbanCard".id
+            AND dep.status != 'DONE'::"KanbanCardStatus"
         )
-      ORDER BY priority DESC, created_at ASC
+      ORDER BY priority DESC, "created_at" ASC
       LIMIT 1
       FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, external_id, title, linked_resource_type, linked_resource_id
+    RETURNING id, "external_id", title, "linked_resource_type", "linked_resource_id"
   `);
 
   if (!rows.rows || rows.rows.length === 0) {

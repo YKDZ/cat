@@ -40,15 +40,15 @@ export const addCardDep: Command<AddCardDepCommand> = async (ctx, command) => {
   // If so, adding cardId → dependsOnCardId would create a cycle.
   const cycleRows = await ctx.db.execute<{ id: number }>(sql`
     WITH RECURSIVE deps AS (
-      SELECT d."dependsOnCardId" AS id
+      SELECT d."depends_on_card_id" AS id
       FROM "KanbanCardDep" d
-      WHERE d."cardId" = ${dependsOnCardId}
+      WHERE d."card_id" = ${dependsOnCardId}
 
       UNION ALL
 
-      SELECT d."dependsOnCardId" AS id
+      SELECT d."depends_on_card_id" AS id
       FROM "KanbanCardDep" d
-      INNER JOIN deps ON d."cardId" = deps.id
+      INNER JOIN deps ON d."card_id" = deps.id
     )
     SELECT id FROM deps WHERE id = ${cardId}
     LIMIT 1

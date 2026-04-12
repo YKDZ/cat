@@ -70,4 +70,49 @@ describe("session-hydration", () => {
       content: "ready",
     });
   });
+
+  it("hydrates cumulative snapshot history while preserving current card context", () => {
+    const state = hydrateSessionState({
+      sessionId: "session-2",
+      agentDefinitionId: "agent-2",
+      status: "ACTIVE",
+      metadata: null,
+      runId: null,
+      runStatus: null,
+      blackboardSnapshot: {
+        current_card_id: "card-2",
+        messages: [
+          {
+            role: "user",
+            content: "first",
+            createdAt: "2026-04-11T00:00:00.000Z",
+          },
+          {
+            role: "assistant",
+            content: "second",
+            createdAt: "2026-04-11T00:00:01.000Z",
+          },
+          {
+            role: "user",
+            content: "third",
+            createdAt: "2026-04-11T00:00:02.000Z",
+          },
+        ],
+      },
+    });
+
+    expect(state.currentKanbanCardId).toBe("card-2");
+    expect(state.messages.map((message) => message.content)).toEqual([
+      "first",
+      "second",
+      "third",
+    ]);
+    expect(
+      state.messages.map((message) => message.createdAt.toISOString()),
+    ).toEqual([
+      "2026-04-11T00:00:00.000Z",
+      "2026-04-11T00:00:01.000Z",
+      "2026-04-11T00:00:02.000Z",
+    ]);
+  });
 });
