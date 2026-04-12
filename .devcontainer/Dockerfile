@@ -8,8 +8,3 @@ RUN corepack enable
 ENV PNPM_HOME="/root/.local/share/pnpm"
 ENV PATH="${PNPM_HOME}:${PATH}"
 
-RUN pnpm setup \
-    && pnpm add --global nx \
-    && pnpm add --global @github/copilot \
-    && pnpm add --global @anthropic-ai/claude-code
-
