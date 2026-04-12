@@ -13,6 +13,15 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
+      "path": "../../@cat-plugin/basic-tokenizer/tsconfig.app.json"
+    },
+    {
+      "path": "../db/tsconfig.lib.json"
+    },
+    {
+      "path": "../test-utils/tsconfig.lib.json"
+    },
+    {
       "path": "../shared/tsconfig.lib.json"
     },
     {
@@ -25,10 +34,13 @@
       "path": "../permissions/tsconfig.lib.json"
     },
     {
+      "path": "../message/tsconfig.lib.json"
+    },
+    {
       "path": "../domain/tsconfig.lib.json"
     },
     {
-      "path": "../message/tsconfig.lib.json"
+      "path": "../core/tsconfig.lib.json"
     }
   ],
   "exclude": [
