@@ -43,7 +43,10 @@ const handleNewSession = () => {
         </Button>
       </div>
       <div class="min-h-0 flex-1 overflow-hidden">
-        <AgentSessionSidebar @new-session="handleNewSession" />
+        <AgentSessionSidebar
+          :projectId="project.id"
+          @new-session="handleNewSession"
+        />
       </div>
     </div>
 

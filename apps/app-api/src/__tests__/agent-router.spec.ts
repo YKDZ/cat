@@ -10,11 +10,15 @@ import type { Context } from "@/utils/context";
 vi.mock("@cat/domain", async () => {
   const actual =
     await vi.importActual<typeof import("@cat/domain")>("@cat/domain");
+  const listAgentRunSnapshotsBySession = Symbol(
+    "listAgentRunSnapshotsBySession",
+  );
 
   return {
     ...actual,
     executeCommand: vi.fn(),
     executeQuery: vi.fn(),
+    listAgentRunSnapshotsBySession,
   };
 });
 
@@ -71,8 +75,11 @@ import {
   findAgentDefinitionByDefinitionIdAndScope,
   getAgentDefinition,
   getAgentDefinitionByInternalId,
+  getAgentRunByInternalId,
   getAgentSessionByExternalId,
+  listAgentRunSnapshotsBySession,
   listAgentDefinitions,
+  listAgentSessions,
   loadAgentRunSnapshot,
   saveAgentRunSnapshot,
   updateAgentDefinition,
@@ -82,7 +89,9 @@ import {
   disableBuiltin,
   enableBuiltin,
   get as getAgentRoute,
+  getSessionState,
   listBuiltinTemplates,
+  listSessions,
   sendMessage,
 } from "@/orpc/routers/agent";
 import { createAgentToolRegistry } from "@/utils/agent-tool-registry";
@@ -568,6 +577,10 @@ describe("agent router", () => {
         };
       }
 
+      if (query === listAgentRunSnapshotsBySession) {
+        return [];
+      }
+
       if (query === loadAgentRunSnapshot) {
         return { messages: [] };
       }
@@ -607,6 +620,342 @@ describe("agent router", () => {
 
     expect(Reflect.get(agentModule.LLMGateway, "lastProvider")).toBe(
       llmProviderFromSession.service,
+    );
+  });
+
+  it("getSessionState merges per-run snapshots into a full message history", async () => {
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === getAgentSessionByExternalId) {
+        return {
+          id: 1,
+          externalId: "session-1",
+          agentDefinitionId: 101,
+          agentDefinitionExternalId: "agent-def-1",
+          projectId: "00000000-0000-0000-0000-000000000111",
+          currentRunId: 11,
+          status: "ACTIVE",
+          userId: "00000000-0000-0000-0000-000000000001",
+          metadata: { projectId: "00000000-0000-0000-0000-000000000111" },
+        };
+      }
+
+      if (query === getAgentRunByInternalId) {
+        return {
+          id: 11,
+          externalId: "run-current",
+          status: "running",
+          blackboardSnapshot: {
+            messages: [{ role: "assistant", content: "partial" }],
+          },
+        };
+      }
+
+      if (query === listAgentRunSnapshotsBySession) {
+        return [
+          {
+            externalId: "run-1",
+            status: "completed",
+            startedAt: new Date("2026-04-11T00:00:00.000Z"),
+            completedAt: new Date("2026-04-11T00:00:10.000Z"),
+            blackboardSnapshot: {
+              messages: [
+                {
+                  role: "user",
+                  content: "hello",
+                  createdAt: "2026-04-11T00:00:00.000Z",
+                },
+              ],
+            },
+          },
+          {
+            externalId: "run-2",
+            status: "completed",
+            startedAt: new Date("2026-04-11T00:01:00.000Z"),
+            completedAt: new Date("2026-04-11T00:01:10.000Z"),
+            blackboardSnapshot: {
+              messages: [
+                {
+                  role: "user",
+                  content: "hello",
+                  createdAt: "2026-04-11T00:00:00.000Z",
+                },
+                {
+                  role: "assistant",
+                  content: "hi",
+                  createdAt: "2026-04-11T00:00:05.000Z",
+                },
+              ],
+            },
+          },
+          {
+            externalId: "run-3",
+            status: "running",
+            startedAt: new Date("2026-04-11T00:02:00.000Z"),
+            completedAt: null,
+            blackboardSnapshot: {
+              current_turn: 1,
+              messages: [
+                {
+                  role: "assistant",
+                  content: "hi",
+                  createdAt: "2026-04-11T00:00:05.000Z",
+                },
+                {
+                  role: "user",
+                  content: "follow",
+                  createdAt: "2026-04-11T00:02:00.000Z",
+                },
+                {
+                  role: "assistant",
+                  content: "done",
+                  createdAt: "2026-04-11T00:02:05.000Z",
+                },
+              ],
+            },
+          },
+        ];
+      }
+
+      return null;
+    });
+
+    const result = await call(
+      getSessionState,
+      { sessionId: "11111111-1111-4111-8111-111111111111" },
+      { context: createContext(createPluginManager()) },
+    );
+
+    expect(result.runId).toBe("run-current");
+    expect(result.runStatus).toBe("running");
+    expect(asRecord(result.blackboardSnapshot)?.["current_turn"]).toBe(1);
+    expect(asRecord(result.blackboardSnapshot)?.["messages"]).toEqual([
+      {
+        role: "user",
+        content: "hello",
+        createdAt: "2026-04-11T00:00:00.000Z",
+      },
+      {
+        role: "assistant",
+        content: "hi",
+        createdAt: "2026-04-11T00:00:05.000Z",
+      },
+      {
+        role: "user",
+        content: "follow",
+        createdAt: "2026-04-11T00:02:00.000Z",
+      },
+      {
+        role: "assistant",
+        content: "done",
+        createdAt: "2026-04-11T00:02:05.000Z",
+      },
+    ]);
+  });
+
+  it("sendMessage seeds the new run snapshot with previous history", async () => {
+    const llmProvider = {
+      pluginId: "plugin-llm-session",
+      dbId: 7,
+      id: "provider-7",
+      service: {
+        getId: () => "provider-7",
+        getType: () => "LLM_PROVIDER" as const,
+        getModelName: () => "Provider 7",
+        chat: async function* () {
+          yield* [];
+        },
+      },
+      type: "LLM_PROVIDER" as const,
+    };
+
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === getAgentSessionByExternalId) {
+        return {
+          id: 1,
+          externalId: "session-1",
+          agentDefinitionId: 101,
+          agentDefinitionExternalId: "agent-def-1",
+          projectId: "00000000-0000-0000-0000-000000000111",
+          currentRunId: null,
+          status: "ACTIVE",
+          userId: "00000000-0000-0000-0000-000000000001",
+          metadata: { providerId: 7 },
+        };
+      }
+
+      if (query === getAgentDefinitionByInternalId) {
+        return {
+          id: 101,
+          externalId: "agent-def-1",
+          name: "翻译助手",
+          description: "desc",
+          scopeType: "PROJECT",
+          scopeId: "project-1",
+          isBuiltin: true,
+          definitionId: "translator",
+          version: "1.0.0",
+          icon: "languages",
+          type: "GENERAL",
+          llmConfig: { providerId: 7 },
+          tools: ["finish"],
+          promptConfig: null,
+          constraints: null,
+          securityPolicy: null,
+          orchestration: null,
+          content: "prompt",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
+
+      if (query === listAgentRunSnapshotsBySession) {
+        return [
+          {
+            externalId: "run-1",
+            status: "completed",
+            startedAt: new Date("2026-04-11T00:00:00.000Z"),
+            completedAt: new Date("2026-04-11T00:00:10.000Z"),
+            blackboardSnapshot: {
+              current_card_id: "card-1",
+              messages: [
+                {
+                  role: "user",
+                  content: "hello",
+                  createdAt: "2026-04-11T00:00:00.000Z",
+                },
+              ],
+            },
+          },
+          {
+            externalId: "run-2",
+            status: "completed",
+            startedAt: new Date("2026-04-11T00:01:00.000Z"),
+            completedAt: new Date("2026-04-11T00:01:10.000Z"),
+            blackboardSnapshot: {
+              current_card_id: "card-1",
+              messages: [
+                {
+                  role: "user",
+                  content: "hello",
+                  createdAt: "2026-04-11T00:00:00.000Z",
+                },
+                {
+                  role: "assistant",
+                  content: "world",
+                  createdAt: "2026-04-11T00:00:05.000Z",
+                },
+              ],
+            },
+          },
+        ];
+      }
+
+      if (query === loadAgentRunSnapshot) {
+        return {
+          messages: [
+            { role: "user", content: "hello" },
+            { role: "assistant", content: "world" },
+            { role: "user", content: "next turn" },
+          ],
+        };
+      }
+
+      return null;
+    });
+
+    vi.mocked(executeCommand).mockImplementation(async (_ctx, command) => {
+      if (command === createAgentRun) {
+        return { runId: "run-1", runDbId: 1 };
+      }
+
+      if (command === saveAgentRunSnapshot) {
+        return undefined;
+      }
+
+      return undefined;
+    });
+
+    const stream = await call(
+      sendMessage,
+      {
+        sessionId: "11111111-1111-4111-8111-111111111111",
+        message: "next turn",
+      },
+      {
+        context: createContext(
+          createPluginManager({ llmProviders: [llmProvider] }),
+        ),
+      },
+    );
+
+    for await (const _event of stream) {
+      // exhaust the stream
+    }
+
+    expect(vi.mocked(executeCommand)).toHaveBeenCalledWith(
+      expect.anything(),
+      saveAgentRunSnapshot,
+      expect.objectContaining({
+        externalId: "run-1",
+        snapshot: expect.objectContaining({
+          current_card_id: "card-1",
+          current_turn: 0,
+          started_at: expect.any(String),
+          messages: [
+            {
+              role: "user",
+              content: "hello",
+              createdAt: "2026-04-11T00:00:00.000Z",
+            },
+            {
+              role: "assistant",
+              content: "world",
+              createdAt: "2026-04-11T00:00:05.000Z",
+            },
+            {
+              role: "user",
+              content: "next turn",
+              createdAt: expect.any(String),
+            },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it("listSessions forwards projectId to listAgentSessions", async () => {
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === listAgentSessions) {
+        return [];
+      }
+
+      return null;
+    });
+
+    const input = {
+      projectId: "11111111-1111-4111-8111-111111111111",
+      limit: 20,
+      offset: 0,
+    } satisfies {
+      projectId: string;
+      limit: number;
+      offset: number;
+    };
+
+    await call(
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      listSessions as never,
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      input as never,
+      { context: createContext(createPluginManager()) },
+    );
+
+    expect(vi.mocked(executeQuery)).toHaveBeenCalledWith(
+      expect.anything(),
+      listAgentSessions,
+      expect.objectContaining({
+        projectId: "11111111-1111-4111-8111-111111111111",
+      }),
     );
   });
 

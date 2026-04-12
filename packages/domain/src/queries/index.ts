@@ -15,6 +15,7 @@ export * from "@/queries/agent/get-latest-completed-run-blackboard.query";
 export * from "@/queries/agent/find-agent-definition-by-name-and-scope.query";
 export * from "@/queries/agent/find-agent-definition-by-definition-id-and-scope.query";
 export * from "@/queries/agent/list-agent-sessions.query";
+export * from "@/queries/agent/list-agent-run-snapshots-by-session.query";
 export * from "@/queries/agent/list-project-runs.query";
 export * from "@/queries/agent/get-run-node-events.query";
 export * from "@/queries/document/build-translation-status-conditions";

@@ -31,6 +31,11 @@ export interface AgentSessionSummary {
   createdAt: Date;
 }
 
+export interface SessionListFilter {
+  projectId?: string;
+  agentDefinitionId?: string;
+}
+
 /**
  * @zh 前端持有的会话上下文元数据。
  * @en Session context metadata held by the frontend.
@@ -140,6 +145,7 @@ export const useAgentStore = defineStore("agent", () => {
   const definitions = ref<AgentDefinitionSummary[]>([]);
   const selectedDefinitionId = ref<string | null>(null);
   const sessions = ref<AgentSessionSummary[]>([]);
+  const sessionListFilter = ref<SessionListFilter>({});
   const activeSessionId = ref<string | null>(null);
   const activeSessionContext = ref<AgentSessionContext | null>(null);
   const messages = ref<AgentMessageItem[]>([]);
@@ -503,10 +509,16 @@ export const useAgentStore = defineStore("agent", () => {
     currentKanbanCardId.value = null;
   };
 
-  const fetchSessions = async (agentDefinitionId?: string) => {
+  const fetchSessions = async (
+    filter: {
+      projectId?: string;
+      agentDefinitionId?: string;
+    } = sessionListFilter.value,
+  ) => {
     try {
+      sessionListFilter.value = { ...filter };
       const result = await orpc.agent.listSessions({
-        agentDefinitionId,
+        ...filter,
         limit: 20,
         offset: 0,
       });
@@ -585,6 +597,12 @@ export const useAgentStore = defineStore("agent", () => {
       activeSessionId.value = result.sessionId;
       activeSessionContext.value = metadata ?? null;
       runId.value = result.runId;
+      if (sessionListFilter.value.projectId || metadata?.projectId) {
+        await fetchSessions({
+          ...sessionListFilter.value,
+          projectId: sessionListFilter.value.projectId ?? metadata?.projectId,
+        });
+      }
       return result.sessionId;
     } catch (err) {
       logger.withSituation("WEB").error(err, "Failed to create agent session");
@@ -757,6 +775,7 @@ export const useAgentStore = defineStore("agent", () => {
     dagNodeEvents.value = [];
     currentTurn.value = 0;
     currentKanbanCardId.value = null;
+    sessionListFilter.value = {};
   };
 
   return {
@@ -764,6 +783,7 @@ export const useAgentStore = defineStore("agent", () => {
     definitions,
     selectedDefinitionId,
     sessions,
+    sessionListFilter,
     activeSessionId,
     activeSessionContext,
     messages,

@@ -7,14 +7,17 @@ import { useI18n } from "vue-i18n";
 
 import { useAgentStore } from "@/app/stores/agent";
 
+const props = defineProps<{
+  projectId: string;
+}>();
+
 const emit = defineEmits<{
   newSession: [];
 }>();
 
 const { t } = useI18n();
 const agentStore = useAgentStore();
-const { sessions, activeSessionId, selectedDefinitionId } =
-  storeToRefs(agentStore);
+const { sessions, activeSessionId } = storeToRefs(agentStore);
 
 const formatDate = (date: Date) => {
   const d = date instanceof Date ? date : new Date(date);
@@ -46,9 +49,9 @@ const statusClass = (status: string) => {
 };
 
 watch(
-  selectedDefinitionId,
-  (definitionId) => {
-    void agentStore.fetchSessions(definitionId ?? undefined);
+  () => props.projectId,
+  (projectId) => {
+    void agentStore.fetchSessions({ projectId });
   },
   { immediate: true },
 );
