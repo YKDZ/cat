@@ -1,0 +1,80 @@
+{
+  "name": "term-disambiguation",
+  "description": "Fusion keeps the better concept on top while preserving multiple evidence channels.",
+  "kind": "term",
+  "matrix": "fallback",
+  "query": {
+    "text": "memory bank",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 201,
+    "minimumTopConfidence": 0.88,
+    "requiredChannels": ["lexical", "morphological"],
+    "requiredVariantTypes": ["LEMMA"],
+    "missIds": []
+  },
+  "mock": {
+    "term": {
+      "lexical": [
+        {
+          "term": "memory bank",
+          "translation": "记忆库",
+          "confidence": 0.82,
+          "definition": "Translation memory repository.",
+          "conceptId": 201,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "memory bank",
+          "evidences": [
+            {
+              "channel": "lexical",
+              "matchedText": "memory bank",
+              "confidence": 0.82,
+              "note": "lexical match"
+            }
+          ]
+        },
+        {
+          "term": "bank memory",
+          "translation": "银行内存",
+          "confidence": 0.63,
+          "definition": "An unrelated hardware term.",
+          "conceptId": 202,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "memory bank",
+          "evidences": [
+            {
+              "channel": "lexical",
+              "matchedText": "memory bank",
+              "confidence": 0.63,
+              "note": "ambiguous lexical hit"
+            }
+          ]
+        }
+      ],
+      "morphological": [
+        {
+          "term": "memory bank",
+          "translation": "记忆库",
+          "confidence": 0.88,
+          "definition": "Translation memory repository.",
+          "conceptId": 201,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "memory bank",
+          "evidences": [
+            {
+              "channel": "morphological",
+              "matchedText": "memory bank",
+              "matchedVariantText": "memory bank",
+              "matchedVariantType": "LEMMA",
+              "confidence": 0.88,
+              "note": "variant hit"
+            }
+          ]
+        }
+      ],
+      "semantic": []
+    }
+  }
+}

@@ -447,11 +447,6 @@ export const termAlignmentGraph = defineTypedGraph({
         stringIds: "vector-align.stringIds",
         config: "config",
       },
-      outputMapping: {
-        alignedGroups: "alignedGroups",
-        unaligned: "unaligned",
-        stats: "stats",
-      },
       handler: async (input, _ctx) => {
         return mergeAlignmentOp({
           termGroups: input.termGroups,
@@ -486,7 +481,7 @@ export const termAlignmentGraph = defineTypedGraph({
   exit: ["merge"],
 
   config: {
-    maxConcurrentNodes: 2,
+    maxConcurrentNodes: 1,
     defaultTimeoutMs: 120_000,
     enableCheckpoints: true,
     checkpointIntervalMs: 1000,

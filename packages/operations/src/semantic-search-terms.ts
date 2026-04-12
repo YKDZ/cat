@@ -125,11 +125,24 @@ export const semanticSearchTermsOp = async (
 
   // 5. Fetch full source + translation term pairs for the matched concept IDs.
   //    Pass similarity map so each result gets its confidence from cosine similarity.
-  return fetchTermsByConceptIds(
+  const terms = await fetchTermsByConceptIds(
     drizzle,
     conceptIds,
     data.sourceLanguageId,
     data.translationLanguageId,
     conceptSimilarityMap,
   );
+
+  return terms.map((term) => ({
+    ...term,
+    matchedText: data.text,
+    evidences: [
+      {
+        channel: "semantic",
+        matchedText: data.text,
+        confidence: term.confidence,
+        note: "vector similarity match",
+      },
+    ],
+  }));
 };

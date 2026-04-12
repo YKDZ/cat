@@ -7,11 +7,13 @@ import {
   fetchTranslationsForMemory,
 } from "@cat/domain";
 
+import { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants";
 import {
   placeholderize,
   slotsToMapping,
   type SlotMappingEntry,
 } from "./memory-template";
+import { nlpBatchSegmentOp } from "./nlp-batch-segment";
 import { tokenizeOp } from "./tokenize";
 
 /**
@@ -44,6 +46,41 @@ export const insertMemory = async (
     { db: tx },
     fetchTranslationsForMemory,
     { translationIds },
+  );
+
+  const sourceNlpTokensByTranslationId = new Map<
+    number,
+    BuildMemoryRecallTokens
+  >();
+
+  const translationsByLanguage = new Map<string, typeof translations>();
+  for (const translation of translations) {
+    const existing = translationsByLanguage.get(translation.sourceLanguageId);
+    if (existing) {
+      existing.push(translation);
+    } else {
+      translationsByLanguage.set(translation.sourceLanguageId, [translation]);
+    }
+  }
+
+  await Promise.all(
+    [...translationsByLanguage.entries()].map(async ([languageId, rows]) => {
+      const result = await nlpBatchSegmentOp({
+        languageId,
+        items: rows.map((row) => ({
+          id: String(row.translationId),
+          text: row.sourceText,
+        })),
+      });
+
+      for (const { id, result: segmentResult } of result.results) {
+        const translationId = Number.parseInt(id, 10);
+        if (Number.isNaN(translationId)) {
+          continue;
+        }
+        sourceNlpTokensByTranslationId.set(translationId, segmentResult.tokens);
+      }
+    }),
   );
 
   // Compute templates for each translation pair
@@ -85,6 +122,18 @@ export const insertMemory = async (
     }),
   );
 
+  const buildTemplatedKey = (item: {
+    translationId: number | null;
+    translationStringId: number;
+    sourceStringId: number;
+  }) => {
+    return `${item.translationId ?? "null"}:${item.sourceStringId}:${item.translationStringId}`;
+  };
+
+  const templatedByInsertedKey = new Map(
+    templated.map((item) => [buildTemplatedKey(item), item]),
+  );
+
   const ids: number[] = [];
 
   await Promise.all(
@@ -101,9 +150,48 @@ export const insertMemory = async (
           slotMapping: t.slotMapping,
         })),
       });
-      ids.push(...result);
+
+      await Promise.all(
+        result.map(async (memoryItem, index) => {
+          const hasStructuredIdentity =
+            typeof memoryItem.translationStringId === "number" &&
+            typeof memoryItem.sourceStringId === "number";
+
+          const templatedRow = hasStructuredIdentity
+            ? templatedByInsertedKey.get(buildTemplatedKey(memoryItem))
+            : templated[index];
+
+          if (!templatedRow) {
+            throw new Error(
+              `Missing templated memory row for inserted memory item ${memoryItem.id}`,
+            );
+          }
+
+          await buildMemoryRecallVariantsOp(
+            {
+              memoryItemId: memoryItem.id,
+              memoryId,
+              sourceText: templatedRow.sourceText,
+              translationText: templatedRow.translationText,
+              sourceLanguageId: templatedRow.sourceLanguageId,
+              translationLanguageId: templatedRow.translationLanguageId,
+              sourceNlpTokens: sourceNlpTokensByTranslationId.get(
+                templatedRow.translationId,
+              ),
+            },
+            undefined,
+            tx,
+          );
+        }),
+      );
+
+      ids.push(...result.map((item) => item.id));
     }),
   );
 
   return { memoryItemIds: ids };
 };
+
+type BuildMemoryRecallTokens = NonNullable<
+  Parameters<typeof buildMemoryRecallVariantsOp>[0]["sourceNlpTokens"]
+>;

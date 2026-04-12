@@ -56,7 +56,14 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
       let ghostTextSet = false;
 
       for await (const memory of onNew.value) {
-        memories.value.push(memory);
+        const existingIndex = memories.value.findIndex(
+          (item) => item.id === memory.id,
+        );
+        if (existingIndex === -1) {
+          memories.value.push(memory);
+        } else {
+          memories.value.splice(existingIndex, 1, memory);
+        }
 
         // Auto-trigger ghost text for the first exact/token-replaced result
         // when the translation input is still empty

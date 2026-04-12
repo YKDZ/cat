@@ -1,6 +1,6 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
-import { streamSearchMemoryOp } from "@cat/operations";
+import { collectMemoryRecallOp } from "@cat/operations";
 import * as z from "zod/v4";
 
 const searchTmArgs = z.object({
@@ -78,13 +78,7 @@ export const searchTmTool: AgentToolDefinition = {
       );
     }
 
-    const memories: Array<{
-      source: string;
-      translation: string;
-      confidence: number;
-      memoryId: string;
-    }> = [];
-    for await (const match of streamSearchMemoryOp({
+    const matches = await collectMemoryRecallOp({
       text: parsed.text,
       sourceLanguageId,
       translationLanguageId,
@@ -92,14 +86,18 @@ export const searchTmTool: AgentToolDefinition = {
       chunkIds: [],
       minSimilarity: parsed.minSimilarity,
       maxAmount: parsed.maxAmount,
-    })) {
-      memories.push({
+    });
+    return {
+      memories: matches.map((match) => ({
         source: match.source,
         translation: match.adaptedTranslation ?? match.translation,
         confidence: match.confidence,
         memoryId: match.memoryId,
-      });
-    }
-    return { memories };
+        evidences: match.evidences,
+        matchedText: match.matchedText,
+        matchedVariantText: match.matchedVariantText,
+        matchedVariantType: match.matchedVariantType,
+      })),
+    };
   },
 };

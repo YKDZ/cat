@@ -45,6 +45,11 @@ import {
 } from "drizzle-orm/pg-core";
 import { Readable } from "node:stream";
 
+import {
+  testNlpSegmenterManifest,
+  testNlpSegmenterPlugin,
+} from "./test-nlp-segmenter.ts";
+
 const vector = pgTable(
   "Vector",
   {
@@ -343,6 +348,10 @@ type RegisteredPlugin = {
   instance: CatPlugin;
 };
 
+export type TestPluginLoaderOptions = {
+  includeNlpSegmenter?: boolean;
+};
+
 const plugin = {
   services: () => {
     return [
@@ -405,8 +414,11 @@ const manifest = {
 export class TestPluginLoader implements PluginLoader {
   private plugins = new Map<string, RegisteredPlugin>();
 
-  constructor() {
+  constructor(options: TestPluginLoaderOptions = {}) {
     this.registerPlugin(manifest, plugin);
+    if (options.includeNlpSegmenter) {
+      this.registerMockNlpSegmenter();
+    }
   }
 
   public registerPlugin = (
@@ -428,6 +440,17 @@ export class TestPluginLoader implements PluginLoader {
     });
   };
 
+  /**
+   * Register a mock NLP_WORD_SEGMENTER service as a separate plugin.
+   *
+   * By default, `TestPluginLoader` does **not** include an NLP segmenter,
+   * so that existing tests relying on the `intl-fallback` path are not
+   * accidentally changed. Call this method explicitly to opt in.
+   */
+  public registerMockNlpSegmenter = (): void => {
+    this.registerPlugin(testNlpSegmenterManifest, testNlpSegmenterPlugin);
+  };
+
   public getManifest = async (pluginId: string): Promise<PluginManifest> => {
     const plugin = this.plugins.get(pluginId);
     if (!plugin) throw new Error(`Plugin ${pluginId} not found in memory`);
@@ -447,6 +470,6 @@ export class TestPluginLoader implements PluginLoader {
   };
 
   public listAvailablePlugins = async (): Promise<PluginManifest[]> => {
-    return [manifest];
+    return [...this.plugins.values()].map((p) => p.manifest);
   };
 }

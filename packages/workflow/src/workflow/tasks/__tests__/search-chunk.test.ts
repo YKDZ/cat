@@ -5,9 +5,14 @@ import {
   getDbHandle,
   listAllChunks,
 } from "@cat/domain";
+import { processVectorizationBatch } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import {
+  installTestVectorizationQueue,
+  setupTestDB,
+  TestPluginLoader,
+} from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { createDefaultGraphRuntime } from "@/graph";
@@ -23,6 +28,8 @@ const data = [
 ];
 
 let cleanup: () => Promise<void>;
+let pluginManager: PluginManager;
+let vectorizationQueue: ReturnType<typeof installTestVectorizationQueue>;
 
 afterAll(async () => {
   await cleanup?.();
@@ -33,7 +40,7 @@ beforeAll(async () => {
   cleanup = db.cleanup;
   const drizzle = db.client;
 
-  const pluginManager = PluginManager.get("GLOBAL", "", new TestPluginLoader());
+  pluginManager = PluginManager.get("GLOBAL", "", new TestPluginLoader());
 
   await pluginManager.getDiscovery().syncDefinitions(drizzle);
   await pluginManager.install(drizzle, "mock");
@@ -57,12 +64,18 @@ beforeAll(async () => {
     pluginManager2.getServices("TEXT_VECTORIZER"),
   );
 
+  vectorizationQueue = installTestVectorizationQueue();
   createDefaultGraphRuntime(drizzle, pluginManager);
 
   await runGraph(createVectorizedStringGraph, {
     data,
     vectorizerId: vectorizer.dbId,
     vectorStorageId: vectorStorage.dbId,
+  });
+
+  await processVectorizationBatch(vectorizationQueue, 10, {
+    traceId: "search-chunk-test",
+    pluginManager,
   });
 });
 

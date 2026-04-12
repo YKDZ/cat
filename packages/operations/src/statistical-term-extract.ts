@@ -1,9 +1,9 @@
 import type { OperationContext } from "@cat/domain";
-import type { NlpToken } from "@cat/shared/schema/nlp";
 
 import * as z from "zod";
 
 import { nlpBatchSegmentOp } from "./nlp-batch-segment";
+import { joinTokens, joinLemmas } from "./nlp-normalization";
 
 // ─── Types ───
 
@@ -152,24 +152,6 @@ export type StatisticalTermExtractInput = z.infer<
 export type StatisticalTermExtractOutput = z.infer<
   typeof StatisticalTermExtractOutputSchema
 >;
-
-// ─── Join CJK tokens without space ───
-
-/** For CJK languages, tokens are joined without spaces; others with a space. */
-const isCjkLanguage = (languageId: string): boolean => {
-  const lang = languageId.split("-")[0]?.toLowerCase() ?? "";
-  return ["zh", "ja", "ko"].includes(lang);
-};
-
-const joinTokens = (tokens: NlpToken[], languageId: string): string => {
-  const separator = isCjkLanguage(languageId) ? "" : " ";
-  return tokens.map((t) => t.text).join(separator);
-};
-
-const joinLemmas = (tokens: NlpToken[], languageId: string): string => {
-  const separator = isCjkLanguage(languageId) ? "" : " ";
-  return tokens.map((t) => t.lemma).join(separator);
-};
 
 // ─── Core Operation ───
 

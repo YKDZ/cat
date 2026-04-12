@@ -13,7 +13,6 @@ import {
   getAgentSessionByExternalId,
   getElementWithChunkIds,
   getGlossary,
-  listConceptSubjectsByConceptIds,
   listGlossaryConceptSubjects,
   listOwnedGlossaries,
   listProjectDocuments,
@@ -22,7 +21,7 @@ import {
   loadAgentRunMetadata,
   updateGlossaryConcept,
 } from "@cat/domain";
-import { streamSearchTermsOp } from "@cat/operations";
+import { rerankTermRecallOp, termRecallOp } from "@cat/operations";
 import { firstOrGivenService } from "@cat/server-shared";
 import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
@@ -220,51 +219,26 @@ export const searchTerm = authed
       { projectId },
     );
 
-    const stream = streamSearchTermsOp({
-      glossaryIds,
-      text,
-      sourceLanguageId: termLanguageId,
-      translationLanguageId,
-      minConfidence,
-    });
+    const recall = await termRecallOp(
+      {
+        glossaryIds,
+        text,
+        sourceLanguageId: termLanguageId,
+        translationLanguageId,
+      },
+      {
+        pluginManager: context.pluginManager,
+        traceId: crypto.randomUUID(),
+      },
+    );
 
-    // 收集全部结果后批量查询 concept 上下文
-    const collected = [];
-    for await (const t of stream) {
-      collected.push(t);
-    }
-
-    if (collected.length > 0) {
-      const conceptIds = [...new Set(collected.map((t) => t.conceptId))];
-      const subjectRows = await executeQuery(
-        { db: drizzle },
-        listConceptSubjectsByConceptIds,
-        { conceptIds },
-      );
-      const subjectMap = new Map<
-        number,
-        Array<{ name: string; defaultDefinition: string | null }>
-      >();
-      for (const s of subjectRows) {
-        const arr = subjectMap.get(s.conceptId) ?? [];
-        arr.push({ name: s.name, defaultDefinition: s.defaultDefinition });
-        subjectMap.set(s.conceptId, arr);
-      }
-
-      for (const t of collected) {
-        yield {
-          term: t.term,
-          translation: t.translation,
-          definition: t.definition,
-          confidence: t.confidence,
-          termLanguageId,
-          translationLanguageId,
-          concept: {
-            subjects: subjectMap.get(t.conceptId) ?? [],
-            definition: t.definition,
-          },
-        };
-      }
+    for (const term of recall.terms) {
+      if (term.confidence < minConfidence) continue;
+      yield {
+        ...term,
+        termLanguageId,
+        translationLanguageId,
+      };
     }
   });
 
@@ -302,51 +276,32 @@ export const findTerm = authed
       { projectId: element.projectId },
     );
 
-    const stream = streamSearchTermsOp({
-      glossaryIds,
-      text: element.value,
-      sourceLanguageId: element.languageId,
-      translationLanguageId,
-      minConfidence,
+    const recall = await termRecallOp(
+      {
+        glossaryIds,
+        text: element.value,
+        sourceLanguageId: element.languageId,
+        translationLanguageId,
+      },
+      {
+        pluginManager: context.pluginManager,
+        traceId: crypto.randomUUID(),
+      },
+    );
+
+    const reranked = await rerankTermRecallOp({
+      elementId,
+      queryText: element.value,
+      terms: recall.terms,
     });
 
-    // 收集全部结果后批量查询 concept 上下文
-    const collected = [];
-    for await (const t of stream) {
-      collected.push(t);
-    }
-
-    if (collected.length > 0) {
-      const conceptIds = [...new Set(collected.map((t) => t.conceptId))];
-      const subjectRows = await executeQuery(
-        { db: drizzle },
-        listConceptSubjectsByConceptIds,
-        { conceptIds },
-      );
-      const subjectMap = new Map<
-        number,
-        Array<{ name: string; defaultDefinition: string | null }>
-      >();
-      for (const s of subjectRows) {
-        const arr = subjectMap.get(s.conceptId) ?? [];
-        arr.push({ name: s.name, defaultDefinition: s.defaultDefinition });
-        subjectMap.set(s.conceptId, arr);
-      }
-
-      for (const t of collected) {
-        yield {
-          term: t.term,
-          translation: t.translation,
-          definition: t.definition,
-          confidence: t.confidence,
-          termLanguageId: element.languageId,
-          translationLanguageId,
-          concept: {
-            subjects: subjectMap.get(t.conceptId) ?? [],
-            definition: t.definition,
-          },
-        };
-      }
+    for (const term of reranked) {
+      if (term.confidence < minConfidence) continue;
+      yield {
+        ...term,
+        termLanguageId: element.languageId,
+        translationLanguageId,
+      };
     }
   });
 

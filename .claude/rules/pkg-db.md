@@ -1,5 +1,5 @@
 ---
-description: Dependency restriction for @cat/db — only @cat/domain and @cat/app may depend on it.
+description: Dependency and migration boundary for @cat/db — runtime access stays in domain/app, with explicit test exceptions.
 paths:
   - "packages/db/**/*.{ts,js}"
   - "packages/*/package.json"
@@ -7,16 +7,26 @@ paths:
   - "apps/*/package.json"
 ---
 
-# @cat/db Package Dependency Rules
+# @cat/db 依赖与迁移规范
 
-## Allowed Consumers
+## 正面限制
 
-`@cat/db` may **only** appear as a dependency (in `package.json`) of:
+1. **`@cat/db` 只应出现在确实需要数据库引导、领域执行或测试基础设施的包里。** 当前允许的消费者是：
+   - `@cat/domain`
+   - `@cat/app`
+   - `@cat/app-e2e`（以 `devDependencies` 形式依赖）
+   - `@cat/test-utils`（以 `peerDependencies` 形式声明）
+2. **其他功能包、插件和应用应通过 `@cat/domain` 访问数据。** 新的数据访问需求优先落在 `packages/domain/src/queries/`、`packages/domain/src/commands/` 和 capability 层。
+3. **schema 变更统一走自动生成流程。** 修改 `packages/db/src/drizzle/schema/` 或 `packages/shared/src/schema/enum.ts` 后，应生成 migration，并重新生成 shared Zod schema。
 
-- **`@cat/domain`** — the domain layer that wraps all database access as typed Queries / Commands.
-- **`@cat/app`** — the main application entry point that bootstraps the database connection.
+## 负面限制
 
-All other packages (`packages/*`, `@cat-plugin/*`, `apps/*` except `app`) **must not** list `@cat/db` in their `dependencies` or `devDependencies`.
+1. **不要**在其他 package / app / plugin 的 `dependencies`、`devDependencies` 或 `peerDependencies` 里新增 `@cat/db`。
+2. **不要**在普通功能包或插件源码中直接导入 `@cat/db`、Drizzle schema 或 raw SQL；这些访问应落在 `packages/domain`。
+3. **不要**手改自动生成的 migration SQL；如果生成结果不对，回源修 schema 再重新生成。
+4. **不要**只提交 schema 变更而漏掉 migration 或共享 schema 生成产物。
+
+## 例子
 
 ```jsonc
 // ✅ Allowed — packages/domain/package.json
@@ -25,71 +35,45 @@ All other packages (`packages/*`, `@cat-plugin/*`, `apps/*` except `app`) **must
 // ✅ Allowed — apps/app/package.json
 { "dependencies": { "@cat/db": "workspace:*" } }
 
+// ✅ Allowed — apps/app-e2e/package.json
+{ "devDependencies": { "@cat/db": "workspace:*" } }
+
+// ✅ Allowed — packages/test-utils/package.json
+{ "peerDependencies": { "@cat/db": "workspace:*" } }
+
 // ❌ Forbidden — any other package.json
 { "dependencies": { "@cat/db": "workspace:*" } }
 ```
 
-## Why
+## Schema 变更流程
 
-1. **Single source of truth** — All schema knowledge and migration logic stays in `@cat/db`; all _business_ data access stays in `@cat/domain`. Other packages never couple to ORM internals.
-2. **Permission enforcement** — Domain queries/commands are the only gate that applies `assertPermission()` checks and emits domain events.
-3. **Refactoring safety** — Schema changes, migration strategies, and ORM upgrades only impact `@cat/db` + `@cat/domain`, not the wider dependency graph.
-
-## When You Need New Database Access
-
-If your feature requires data access that doesn't exist yet:
-
-1. **First, check existing queries/commands** in `packages/domain/src/queries/` and `packages/domain/src/commands/` — reuse whenever possible.
-2. If nothing fits, **create a new Query or Command** in `packages/domain/`:
-   - Queries: `packages/domain/src/queries/<domain>/get-*.query.ts` (or `list-*`, `count-*`)
-   - Commands: `packages/domain/src/commands/<domain>/create-*.cmd.ts` (or `update-*`, `delete-*`)
-3. Define a Zod schema for the input, implement with the `Query<Q, R>` or `Command<C, R>` signature.
-4. Wire it into the relevant capability namespace in `packages/domain/src/capabilities/`.
-5. Consume the new capability from your package — **never import `@cat/db` directly**.
-
-**Do not bypass this by adding `@cat/db` to another package's dependencies.**
-
-## Database Schema Modifications & Migration Generation
-
-Any change to the following paths constitutes a **database schema modification**:
-
-- `packages/db/src/drizzle/schema/` — Drizzle ORM table/column definitions
-- `packages/shared/src/schema/enum.ts` — Shared enums mapped to PostgreSQL enum types (must be built before migration generation; the Nx dependency graph handles this automatically)
-
-### Rules
-
-1. **Always prefer auto-generated migrations.** After modifying schema or enum files, generate the migration using the Nx target:
+1. **优先生成自动 migration。**
 
    ```bash
-   pnpm nx run db:drizzle:generate
+   pnpm nx drizzle:generate db
    ```
 
-   This command:
-   - Automatically builds `@cat/shared` first (via `dependsOn` in `packages/db/project.json`), ensuring enum changes are compiled.
-   - Runs `drizzle-kit generate` with the config in `packages/db/drizzle.config.ts`.
-   - Outputs a new timestamped migration folder under `packages/db/drizzle/`.
-
-2. **Review the generated SQL** to verify correctness, but do not manually edit it. If the generated migration is wrong, fix the schema source files and re-generate.
-
-3. **Custom migrations (special cases only):** When you need DDL changes that Drizzle Kit cannot auto-generate, or data migrations (e.g. seed data, complex data transformations, manual SQL operations), use `--custom` to generate an empty migration file and write the SQL manually:
+2. **只审查生成结果，不直接手改。** 如果 SQL 不正确，应修 schema 源文件后重新生成。
+3. **只有 Drizzle Kit 无法表达的场景才使用 custom migration。**
 
    ```bash
-   # Inside packages/db
-   pnpm drizzle:generate -- --custom --name=<descriptive-name>
+   pnpm --dir packages/db drizzle:generate -- --custom --name=<descriptive-name>
    ```
 
-   When using `--custom`, you **must** explain in the PR / commit message why a custom migration is necessary instead of an auto-generated one.
+   使用 custom migration 时，需要在 PR / commit message 中说明为什么不能走自动生成。
 
-4. **Regenerate Zod schemas after any schema/enum change.** The codegen script derives Zod schemas from the Drizzle schema and writes them to `packages/shared/src/schema/drizzle/`. Run:
+4. **schema / enum 变更后重新生成共享 Zod schema。**
 
    ```bash
-   pnpm nx run db:codegen-schemas
+   pnpm nx codegen-schemas db
    ```
 
-   This target automatically builds `@cat/shared` first (same `dependsOn` as `drizzle:generate`). Always commit the regenerated Zod files together with the schema and migration changes.
-
-5. To apply migrations to the dev database, run:
+5. **应用 migration 到开发数据库。**
 
    ```bash
-   pnpm nx run db:drizzle:migrate
+   pnpm nx drizzle:migrate db
    ```
+
+## 作用域说明
+
+本文件负责 **依赖边界 + schema 变更流程**。插件源码如何消费领域能力，单独遵循 `plugin-db-access.md`。

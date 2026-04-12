@@ -33,7 +33,7 @@ watchClientThrottled(editorMemoryMinConfidence, subMemories);
 <template>
   <MemoryListItem
     v-for="(memory, index) in memories"
-    :key="memory.translation"
+    :key="memory.id"
     :index
     :memory-suggestion="memory"
   />

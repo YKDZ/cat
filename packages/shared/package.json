@@ -122,6 +122,10 @@
     "./schema/term-recall": {
       "types": "./dist/schema/term-recall.d.ts",
       "import": "./dist/schema/term-recall.js"
+    },
+    "./schema/recall": {
+      "types": "./dist/schema/recall.d.ts",
+      "import": "./dist/schema/recall.js"
     }
   },
   "scripts": {

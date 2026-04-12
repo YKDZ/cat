@@ -23,11 +23,16 @@ export type CreateMemoryItemsCommand = z.infer<
   typeof CreateMemoryItemsCommandSchema
 >;
 
-export type CreatedMemoryItemId = { id: number };
+export type CreatedMemoryItemRow = {
+  id: number;
+  translationId: number | null;
+  translationStringId: number;
+  sourceStringId: number;
+};
 
 export const createMemoryItems: Command<
   CreateMemoryItemsCommand,
-  number[]
+  CreatedMemoryItemRow[]
 > = async (ctx, command) => {
   if (command.items.length === 0) {
     return { result: [], events: [] };
@@ -47,7 +52,12 @@ export const createMemoryItems: Command<
         slotMapping: item.slotMapping,
       })),
     )
-    .returning({ id: memoryItem.id });
+    .returning({
+      id: memoryItem.id,
+      translationId: memoryItem.translationId,
+      translationStringId: memoryItem.translationStringId,
+      sourceStringId: memoryItem.sourceStringId,
+    });
 
-  return { result: inserted.map((i) => i.id), events: [] };
+  return { result: inserted, events: [] };
 };

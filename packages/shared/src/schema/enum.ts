@@ -304,3 +304,21 @@ export const ChangesetEntryAsyncStatusSchema = z
   .nullable();
 export type ChangesetEntryAsyncStatus =
   (typeof ChangesetEntryAsyncStatusValues)[number];
+
+// ─── Recall Variant Type ───────────────────────────────────────
+
+export const RecallVariantTypeValues = [
+  "SURFACE",
+  "CASE_FOLDED",
+  "LEMMA",
+  "TOKEN_TEMPLATE",
+  "FRAGMENT",
+] as const;
+export const RecallVariantTypeSchema = z.enum(RecallVariantTypeValues);
+export type RecallVariantType = (typeof RecallVariantTypeValues)[number];
+
+// ─── Recall Query Side ─────────────────────────────────────────
+
+export const RecallQuerySideValues = ["SOURCE", "TRANSLATION"] as const;
+export const RecallQuerySideSchema = z.enum(RecallQuerySideValues);
+export type RecallQuerySide = (typeof RecallQuerySideValues)[number];

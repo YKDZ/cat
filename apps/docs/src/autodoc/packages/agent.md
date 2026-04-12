@@ -4,9 +4,9 @@ Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parse
 
 ## Overview
 
-* **Modules**: 27
+* **Modules**: 28
 
-* **Exported functions**: 17
+* **Exported functions**: 18
 
 * **Exported types**: 52
 
@@ -23,7 +23,7 @@ Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parse
  * This definition is used for schema validation and GraphRegistry.
  * The actual execution logic is implemented imperatively by AgentRuntime calling each node function.
  */
-export const buildAgentDAG = (): { id: string; version: string; nodes: Record<string, { id: string; type: "llm" | "tool" | "router" | "parallel" | "join" | "human_input" | "transform" | "loop" | "subgraph"; timeoutMs: number; config?: any; idempotency?: { enabled: boolean; keyTemplate?: string | undefined; } | undefined; retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number; } | undefined; humanInput?: { prompt: string; timeoutMs?: number | undefined; } | undefined; }>; edges: { from: string; to: string; condition?: { field: string; operator: "eq" | "neq" | "exists" | "not_exists" | "in" | "gt" | "lt"; value?: unknown; description?: string | undefined; } | undefined; label?: string | undefined; }[]; entry: string; description?: string | undefined; exit?: string[] | undefined; config?: { maxConcurrentNodes: number; defaultTimeoutMs: number; enableCheckpoints: boolean; checkpointIntervalMs: number; } | undefined; }
+export const buildAgentDAG = (): { id: string; version: string; nodes: Record<string, { id: string; type: "llm" | "tool" | "router" | "parallel" | "join" | "human_input" | "transform" | "loop" | "subgraph"; timeoutMs: number; config?: any; idempotency?: { enabled: boolean; keyTemplate?: string | undefined; } | undefined; retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number; } | undefined; humanInput?: { prompt: string; timeoutMs?: number | undefined; } | undefined; }>; edges: { from: string; to: string; condition?: { field: string; operator: "in" | "eq" | "neq" | "exists" | "not_exists" | "gt" | "lt"; value?: unknown; description?: string | undefined; } | undefined; label?: string | undefined; }[]; entry: string; description?: string | undefined; exit?: string[] | undefined; config?: { maxConcurrentNodes: number; defaultTimeoutMs: number; enableCheckpoints: boolean; checkpointIntervalMs: number; } | undefined; }
 ```
 
 ### packages/agent/src/dag/nodes
@@ -107,7 +107,13 @@ export const runReasoningNode = async (data: AgentBlackboardData, ctx: AgentNode
  */
 export const runToolNode = async (data: AgentBlackboardData, ctx: Pick<
     AgentNodeContext,
-    "toolRegistry" | "sessionId" | "agentId" | "projectId" | "logger"
+    | "toolRegistry"
+    | "sessionId"
+    | "runId"
+    | "agentId"
+    | "projectId"
+    | "sessionMetadata"
+    | "logger"
   >): Promise<ToolNodeResult>
 ```
 
@@ -187,6 +193,24 @@ export const estimateTokens = (msg: ChatMessage): number
  * @returns The interpolated string
  */
 export const interpolate = (template: string, variables: Record<string, string>): string
+```
+
+### packages/agent/src/runtime
+
+### `buildPromptVariables`
+
+```ts
+/**
+ * Build the variable map passed to the PromptEngine.
+ *
+ * @param input - Constraints and session metadata
+ *
+ * @returns Prompt variable key-value map
+ */
+export const buildPromptVariables = (input: {
+  constraints: AgentConstraints;
+  metadata: AgentSessionMetadata | null;
+}): Record<string, string>
 ```
 
 ### packages/agent/src/seeds

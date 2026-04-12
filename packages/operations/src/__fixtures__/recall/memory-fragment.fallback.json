@@ -1,0 +1,75 @@
+{
+  "name": "memory-fragment",
+  "description": "Fragment recall merges with lexical similarity on the same memory item.",
+  "kind": "memory",
+  "matrix": "fallback",
+  "query": {
+    "text": "click save button",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 302,
+    "minimumTopConfidence": 0.87,
+    "requiredChannels": ["fragment", "trgm"],
+    "requiredVariantTypes": ["FRAGMENT"],
+    "missIds": []
+  },
+  "mock": {
+    "memory": {
+      "queryTokens": [
+        { "type": "text", "value": "click save button", "start": 0, "end": 17 }
+      ],
+      "exact": [],
+      "trgm": [
+        {
+          "id": 302,
+          "source": "Please click the save button",
+          "translation": "请点击保存按钮",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 0.76,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "matchedText": "click save button",
+          "evidences": [
+            {
+              "channel": "trgm",
+              "matchedText": "click save button",
+              "confidence": 0.76,
+              "note": "surface similarity"
+            }
+          ]
+        }
+      ],
+      "variant": [
+        {
+          "id": 302,
+          "source": "Please click the save button",
+          "translation": "请点击保存按钮",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 0.87,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "matchedText": "click save button",
+          "matchedVariantText": "click save button",
+          "matchedVariantType": "FRAGMENT",
+          "evidences": [
+            {
+              "channel": "fragment",
+              "matchedText": "click save button",
+              "matchedVariantText": "click save button",
+              "matchedVariantType": "FRAGMENT",
+              "confidence": 0.87,
+              "note": "fragment recall"
+            }
+          ]
+        }
+      ],
+      "semantic": []
+    }
+  }
+}

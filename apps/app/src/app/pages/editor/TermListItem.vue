@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import type { RecallEvidence } from "@cat/shared/schema/recall";
+
 import { toShortFixed } from "@cat/shared/utils";
 import { Badge, Button } from "@cat/ui";
 import { ArrowRight } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import TokenViewer from "@/app/components/editor/TokenViewer.vue";
@@ -21,8 +24,11 @@ const props = defineProps<{
     subjectId?: number | null;
     conceptId?: number;
     glossaryId?: string;
+    evidences?: RecallEvidence[];
+    matchedText?: string;
     concept?: {
       subjects: Array<{ name: string; defaultDefinition: string | null }>;
+      definition?: string | null;
     };
   };
   index: number;
@@ -43,6 +49,27 @@ const handleViewConcept = () => {
     );
   }
 };
+
+const evidenceBadges = computed(() =>
+  (props.term.evidences ?? []).map((evidence) => ({
+    label: evidence.matchedVariantType
+      ? `${evidence.channel}:${evidence.matchedVariantType}`
+      : evidence.channel,
+    title:
+      evidence.note ??
+      evidence.matchedVariantText ??
+      evidence.matchedText ??
+      undefined,
+  })),
+);
+
+const debugNotes = computed(() => [
+  ...new Set(
+    (props.term.evidences ?? []).flatMap((evidence) =>
+      evidence.note ? [evidence.note] : [],
+    ),
+  ),
+]);
 
 useHotKeys(`T+${props.index + 1}`, handleInsert);
 </script>
@@ -100,6 +127,31 @@ useHotKeys(`T+${props.index + 1}`, handleInsert);
         >
           {{ subject.name }}
         </Badge>
+      </div>
+      <div
+        v-if="term.matchedText || evidenceBadges.length > 0"
+        class="flex flex-wrap items-center gap-1 text-xs text-muted-foreground"
+      >
+        <span v-if="term.matchedText">
+          {{ t("命中文本：{text}", { text: term.matchedText }) }}
+        </span>
+        <Badge
+          v-for="badge in evidenceBadges"
+          :key="badge.label + badge.title"
+          variant="outline"
+          class="text-[10px]"
+          :title="badge.title"
+        >
+          {{ badge.label }}
+        </Badge>
+      </div>
+      <div
+        v-if="debugNotes.length > 0"
+        class="flex flex-col gap-1 text-xs text-muted-foreground"
+      >
+        <span v-for="note in debugNotes" :key="note">
+          {{ note }}
+        </span>
       </div>
     </div>
   </TextTooltip>

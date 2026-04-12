@@ -22,6 +22,7 @@ import {
   language,
   memory,
   memoryItem,
+  memoryRecallVariant,
   memoryToProject,
   mfaProvider,
   plugin,
@@ -40,6 +41,7 @@ import {
   termConcept,
   termConceptSubject,
   termConceptToSubject,
+  termRecallVariant,
   translatableElement,
   translatableElementContext,
   vectorizedString,
@@ -80,6 +82,7 @@ type SelectSchemaTable =
   | typeof language
   | typeof memory
   | typeof memoryItem
+  | typeof memoryRecallVariant
   | typeof memoryToProject
   | typeof mfaProvider
   | typeof plugin
@@ -98,6 +101,7 @@ type SelectSchemaTable =
   | typeof termConcept
   | typeof termConceptSubject
   | typeof termConceptToSubject
+  | typeof termRecallVariant
   | typeof translatableElement
   | typeof translatableElementContext
   | typeof vectorizedString
@@ -316,6 +320,15 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         typeExportName: "TermConceptSubject",
         buildShape: buildSelectShape(termConceptSubject),
       },
+      {
+        kind: "table",
+        schemaExportName: "TermRecallVariantSchema",
+        typeExportName: "TermRecallVariant",
+        buildShape: buildSelectShape(termRecallVariant),
+        overrides: {
+          meta: "safeZDotJson.nullable()",
+        },
+      },
     ],
   },
   {
@@ -345,6 +358,15 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "MemoryToProjectSchema",
         typeExportName: "MemoryToProject",
         buildShape: buildSelectShape(memoryToProject),
+      },
+      {
+        kind: "table",
+        schemaExportName: "MemoryRecallVariantSchema",
+        typeExportName: "MemoryRecallVariant",
+        buildShape: buildSelectShape(memoryRecallVariant),
+        overrides: {
+          meta: "safeZDotJson.nullable()",
+        },
       },
     ],
   },

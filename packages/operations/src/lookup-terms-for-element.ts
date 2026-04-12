@@ -5,9 +5,10 @@ import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
   getElementWithChunkIds,
-  listLexicalTermSuggestions,
   listProjectGlossaryIds,
 } from "@cat/domain";
+
+import { collectTermRecallOp } from "./collect-term-recall";
 
 /**
  * @zh 根据 elementId 从后端自动查找相关术语。
@@ -51,17 +52,15 @@ export const lookupTermsForElementOp = async (
 
   if (glossaryIds.length === 0) return [];
 
-  // 4. 直接执行 lexical term query（ILIKE + word_similarity）
-  const results = await executeQuery(
-    { db: drizzle },
-    listLexicalTermSuggestions,
+  const results = await collectTermRecallOp(
     {
       glossaryIds,
       text: element.value,
       sourceLanguageId: element.languageId,
       translationLanguageId,
-      wordSimilarityThreshold: 0.3,
+      maxAmount: 20,
     },
+    _ctx,
   );
 
   // 5. 转换为 TermData[]

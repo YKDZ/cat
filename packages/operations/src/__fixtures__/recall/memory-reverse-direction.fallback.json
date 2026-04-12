@@ -1,0 +1,51 @@
+{
+  "name": "memory-reverse-direction",
+  "description": "Semantic recall can return a reversed bilingual memory in the caller's source/target order.",
+  "kind": "memory",
+  "matrix": "fallback",
+  "query": {
+    "text": "Hello world",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 303,
+    "minimumTopConfidence": 0.89,
+    "requiredChannels": ["semantic"],
+    "requiredVariantTypes": [],
+    "expectedTranslation": "你好，世界",
+    "missIds": []
+  },
+  "mock": {
+    "memory": {
+      "queryTokens": [
+        { "type": "text", "value": "Hello world", "start": 0, "end": 11 }
+      ],
+      "exact": [],
+      "trgm": [],
+      "variant": [],
+      "semantic": [
+        {
+          "id": 303,
+          "source": "Hello world",
+          "translation": "你好，世界",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 0.89,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "matchedText": "你好，世界",
+          "evidences": [
+            {
+              "channel": "semantic",
+              "matchedText": "你好，世界",
+              "confidence": 0.89,
+              "note": "reverse-direction semantic hit"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

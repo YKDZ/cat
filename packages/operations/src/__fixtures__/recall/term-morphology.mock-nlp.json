@@ -1,0 +1,65 @@
+{
+  "name": "term-morphology",
+  "description": "Morphology lane keeps the concept retrievable through lemma/window evidence.",
+  "kind": "term",
+  "matrix": "mock-nlp",
+  "query": {
+    "text": "running cat",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 101,
+    "minimumTopConfidence": 0.91,
+    "requiredChannels": ["morphological"],
+    "requiredVariantTypes": ["LEMMA"],
+    "missIds": []
+  },
+  "mock": {
+    "term": {
+      "nlpTokens": [
+        {
+          "text": "running",
+          "lemma": "run",
+          "pos": "VERB",
+          "start": 0,
+          "end": 7,
+          "isStop": false,
+          "isPunct": false
+        },
+        {
+          "text": "cat",
+          "lemma": "cat",
+          "pos": "NOUN",
+          "start": 8,
+          "end": 11,
+          "isStop": false,
+          "isPunct": false
+        }
+      ],
+      "lexical": [],
+      "morphological": [
+        {
+          "term": "The running cat",
+          "translation": "奔跑的猫",
+          "confidence": 0.91,
+          "definition": "A cat that is running.",
+          "conceptId": 101,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "run cat",
+          "evidences": [
+            {
+              "channel": "morphological",
+              "matchedText": "run cat",
+              "matchedVariantText": "run cat",
+              "matchedVariantType": "LEMMA",
+              "confidence": 0.91,
+              "note": "lemma window"
+            }
+          ]
+        }
+      ],
+      "semantic": []
+    }
+  }
+}

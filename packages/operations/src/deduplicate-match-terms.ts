@@ -1,7 +1,7 @@
 import type { OperationContext } from "@cat/domain";
 
 import { getDbHandle } from "@cat/domain";
-import { executeQuery, listLexicalTermSuggestions } from "@cat/domain";
+import { executeQuery, listTermConceptIdsByRecallVariants } from "@cat/domain";
 import * as z from "zod";
 
 export const DeduplicateAndMatchInputSchema = z.object({
@@ -59,12 +59,12 @@ export type DeduplicateAndMatchOutput = z.infer<
  * @zh 容候词和术语去重并与现有术语库比对。
  *
  * 1. 以 normalizedText (lemma) 为聚合键对廣选进行归一化去重
- * 2. 用 listLexicalTermSuggestions（pg_trgm word_similarity）批量比对现有术语库
+ * 2. 用 recall variant existence query 批量比对现有术语库
  * 3. 标记已存在的术语
  * @en Deduplicate term candidates and match against the existing glossary.
  *
  * 1. Normalize-deduplicate candidates by normalizedText (lemma) as the aggregation key
- * 2. Batch-compare against the existing glossary via listLexicalTermSuggestions (pg_trgm word_similarity)
+ * 2. Batch-compare against the existing glossary via the recall variant existence query
  * 3. Mark candidates that already exist in the glossary
  *
  * @param data - {@zh 去重与匹配输入参数} {@en Deduplication and match input parameters}
@@ -107,22 +107,19 @@ export const deduplicateAndMatchOp = async (
     batches.map(async (batch) => {
       return Promise.all(
         batch.map(async (candidate) => {
-          const suggestions = await executeQuery(
+          const conceptIds = await executeQuery(
             { db: drizzle },
-            listLexicalTermSuggestions,
+            listTermConceptIdsByRecallVariants,
             {
               glossaryIds: [data.glossaryId],
-              text: candidate.text,
+              normalizedText: candidate.normalizedText,
               sourceLanguageId: data.sourceLanguageId,
-              translationLanguageId: data.sourceLanguageId,
-              wordSimilarityThreshold: 0.8,
+              minSimilarity: 0.8,
+              maxAmount: 1,
             },
           );
-          if (suggestions.length > 0 && suggestions[0]) {
-            glossaryMatchMap.set(
-              candidate.normalizedText,
-              suggestions[0].conceptId,
-            );
+          if (conceptIds.length > 0 && conceptIds[0] !== undefined) {
+            glossaryMatchMap.set(candidate.normalizedText, conceptIds[0]);
           }
         }),
       );

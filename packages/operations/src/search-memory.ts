@@ -154,6 +154,7 @@ const searchMemory = async (
       confidence: searchResult.get(row.chunkId) ?? 0,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt),
+      evidences: [],
     }))
     .sort((a, b) => b.confidence - a.confidence);
 

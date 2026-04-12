@@ -42,6 +42,8 @@ import {
   ReviewStatusValues,
   AsyncStatusValues,
   ChangesetEntryAsyncStatusValues,
+  RecallVariantTypeValues,
+  RecallQuerySideValues,
 } from "@cat/shared/schema/enum";
 import { sql } from "drizzle-orm";
 import {
@@ -1579,5 +1581,90 @@ export const userMessagePreference = pgTable(
   (table) => [
     unique().on(table.userId, table.category, table.channel),
     index().using("btree", table.userId.asc().nullsLast()),
+  ],
+);
+
+// ─── Recall Variant Enums ─────────────────────────────────────────────────
+
+export const recallVariantType = pgEnum(
+  "RecallVariantType",
+  RecallVariantTypeValues,
+);
+
+export const recallQuerySide = pgEnum("RecallQuerySide", RecallQuerySideValues);
+
+// ─── Term Recall Variant Table ────────────────────────────────────────────
+
+export const termRecallVariant = pgTable(
+  "TermRecallVariant",
+  {
+    id: serial().primaryKey(),
+    conceptId: integer()
+      .notNull()
+      .references(() => termConcept.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    languageId: text()
+      .notNull()
+      .references(() => language.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    text: text().notNull(),
+    normalizedText: text().notNull(),
+    variantType: recallVariantType().notNull(),
+    meta: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().using("btree", table.conceptId.asc().nullsLast()),
+    index().using("btree", table.languageId.asc().nullsLast()),
+    index("idx_term_recall_variant_text_trgm").using(
+      "gin",
+      sql`${table.normalizedText} gin_trgm_ops`,
+    ),
+  ],
+);
+
+// ─── Memory Recall Variant Table ──────────────────────────────────────────
+
+export const memoryRecallVariant = pgTable(
+  "MemoryRecallVariant",
+  {
+    id: serial().primaryKey(),
+    memoryItemId: integer()
+      .notNull()
+      .references(() => memoryItem.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    memoryId: uuid()
+      .notNull()
+      .references(() => memory.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    languageId: text()
+      .notNull()
+      .references(() => language.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    querySide: recallQuerySide().notNull(),
+    text: text().notNull(),
+    normalizedText: text().notNull(),
+    variantType: recallVariantType().notNull(),
+    meta: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().using("btree", table.memoryItemId.asc().nullsLast()),
+    index().using("btree", table.memoryId.asc().nullsLast()),
+    index().using("btree", table.languageId.asc().nullsLast()),
+    index("idx_memory_recall_variant_text_trgm").using(
+      "gin",
+      sql`${table.normalizedText} gin_trgm_ops`,
+    ),
   ],
 );

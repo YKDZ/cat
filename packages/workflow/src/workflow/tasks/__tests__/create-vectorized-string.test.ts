@@ -8,7 +8,11 @@ import {
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish, zip } from "@cat/shared/utils";
-import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import {
+  installTestVectorizationQueue,
+  setupTestDB,
+  TestPluginLoader,
+} from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { createDefaultGraphRuntime } from "@/graph";
@@ -43,6 +47,7 @@ beforeAll(async () => {
     languageIds: ["en", "zh-Hans"],
   });
 
+  installTestVectorizationQueue();
   createDefaultGraphRuntime(drizzle, pluginManager);
 });
 

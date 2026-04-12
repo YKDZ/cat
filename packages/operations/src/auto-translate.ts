@@ -3,9 +3,9 @@ import type { JSONObject } from "@cat/shared/schema/json";
 
 import { z } from "zod";
 
+import { collectMemoryRecallOp } from "./collect-memory-recall";
 import { createTranslationOp } from "./create-translation";
 import { fetchAdviseOp } from "./fetch-advise";
-import { searchMemoryOp } from "./search-memory";
 
 export const AutoTranslateInputSchema = z.object({
   translatableElementId: z.int(),
@@ -73,8 +73,9 @@ export const autoTranslateOp = async (
       },
       ctx,
     ),
-    searchMemoryOp(
+    collectMemoryRecallOp(
       {
+        text: data.text,
         chunkIds: data.chunkIds,
         memoryIds: data.memoryIds,
         sourceLanguageId: data.sourceLanguageId,
@@ -87,9 +88,7 @@ export const autoTranslateOp = async (
     ),
   ]);
 
-  const memory = memoryResult.memories
-    .sort((a, b) => b.confidence - a.confidence)
-    .at(0);
+  const memory = memoryResult.sort((a, b) => b.confidence - a.confidence).at(0);
 
   const suggestion = adviseResult.suggestions
     .sort((a, b) => b.confidence - a.confidence)
@@ -100,7 +99,7 @@ export const autoTranslateOp = async (
   let meta: JSONObject = {};
 
   if (memory) {
-    selectedText = memory.translation;
+    selectedText = memory.adaptedTranslation ?? memory.translation;
     meta = { memoryId: memory.id, confidence: memory.confidence };
   } else if (suggestion) {
     selectedText = suggestion.translation;

@@ -17,6 +17,24 @@ export type NotificationItem = {
   createdAt: Date;
 };
 
+const isNotificationPushPayload = (
+  value: unknown,
+): value is NotificationPushPayload => {
+  if (typeof value !== "object" || value === null) return false;
+  const notificationId = Reflect.get(value, "notificationId");
+  const recipientId = Reflect.get(value, "recipientId");
+  const category = Reflect.get(value, "category");
+  const title = Reflect.get(value, "title");
+  const body = Reflect.get(value, "body");
+  return (
+    typeof notificationId === "number" &&
+    typeof recipientId === "string" &&
+    typeof category === "string" &&
+    typeof title === "string" &&
+    typeof body === "string"
+  );
+};
+
 /**
  * @zh 通知 Store — 管理站内信状态与实时推送流。
  * @en Notification store — manages in-app notification state and real-time stream.
@@ -47,7 +65,8 @@ export const useNotificationStore = defineStore("notification", () => {
       const stream = await ws.notification.stream();
       for await (const payload of stream) {
         if (abortController?.signal.aborted) break;
-        const item = payload as NotificationPushPayload;
+        if (!isNotificationPushPayload(payload)) continue;
+        const item = payload;
         unreadCount.value += 1;
         recentNotifications.value.unshift({
           id: item.notificationId,

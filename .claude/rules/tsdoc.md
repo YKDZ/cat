@@ -3,37 +3,62 @@ description: Bilingual TSDoc requirements for exported symbols and Vue-exposed A
 paths: ["**/*.{ts,vue}"]
 ---
 
-# Bilingual TSDoc Guidelines
+# 双语 TSDoc 规范
 
-## 1. Mandatory Documentation Scope
+## 正面限制
 
-The following symbols **must** have bilingual TSDoc comments:
+1. **以下对外符号必须补双语 TSDoc。**
+   - 所有 `export` 的函数、类、接口、类型别名、枚举、常量
+   - 导出类、接口、对象字面量上的公共成员（属性 / 方法）
+   - 会把类型化 API 暴露给调用方的 Vue SFC 宏：`defineProps`、`defineEmits`、`defineExpose`、`defineSlots`、`defineModel`
+2. **统一使用 `@zh` 和 `@en`。** 中文在前，英文在后；两种语言都要完整描述同一语义。
+3. **`@param` 与 `@returns` 使用内联双语标签。** 格式统一为 `{@zh …} {@en …}`。
+4. **`@returns` 必须写成 `@returns - ...`。** `- ` 不是装饰，它是为了避免 TypeScript 的 JSDoc 解析器把 `{` 误判为类型表达式起点。
+5. **代码与文档必须一起演进。** 符号签名、行为、命名一旦变化，对应 TSDoc 也必须同步更新或删除。
 
-- All `export`-ed functions, classes, interfaces, type aliases, enums, and constants
-- All public members (properties, methods) of exported classes, interfaces, and object literals
-- Vue SFC compiler macros that expose typed APIs to callers: `defineProps`, `defineEmits`, `defineExpose`, `defineSlots`, `defineModel` — document their properties, events, slots, and model definitions respectively
-- `defineOptions` does **not** require TSDoc (it declares internal component options, not caller-facing APIs)
+## 允许省略
 
-## 2. Bilingual Format
+当标识符语义完全自解释、没有任何歧义时，可以省略 TSDoc。典型例子包括：
 
-Use the custom block tags `@zh` and `@en` to separate Chinese and English descriptions. Chinese comes first.
+- `name`
+- `id`
+- `description`
+- `label`
+- `title`
+- `toString`
+- `valueOf`
+- `toJSON`
 
-**Function / Variable example:**
+拿不准时，**宁可补注释，也不要赌调用方会心领神会**。
 
-```typescript
+## 负面限制
+
+1. **不要只写单语注释。** 双语要求是成对的，不能只更新中文或只更新英文。
+2. **不要交换顺序。** 一律 `@zh` 在前，`@en` 在后。
+3. **不要让注释与代码失真。** 过时注释比没有注释更糟糕。
+4. **不要把 `defineOptions` 当成必须文档化的公开 API。** 它声明的是组件内部选项，不是暴露给调用方的接口。
+5. **不要省略 `@returns -` 里的短横线。** 少了这一笔，解析器就可能开始整活。
+
+## 例子
+
+### 函数 / 常量
+
+```ts
 /**
- * @zh 根据语言代码获取对应的语言显示名称。
+ * @zh 根据语言代码获取对应的显示名称。
  * @en Get the display name for the given language code.
  *
  * @param code - {@zh 语言代码（BCP 47）} {@en BCP 47 language code}
  * @returns - {@zh 语言显示名称} {@en Display name of the language}
  */
-export const getLanguageName = (code: string): string => { … };
+export const getLanguageName = (code: string): string => {
+  return code;
+};
 ```
 
-**Interface / Type example:**
+### 接口 / 类型
 
-```typescript
+```ts
 /**
  * @zh 翻译记忆条目。
  * @en A translation memory entry.
@@ -53,7 +78,7 @@ export interface TMEntry {
 }
 ```
 
-**Vue `defineProps` / `defineEmits` / `defineExpose` / `defineSlots` / `defineModel` example:**
+### Vue 宏（`defineProps` / `defineEmits` / `defineModel` / `defineSlots` / `defineExpose`）
 
 ```vue
 <script setup lang="ts">
@@ -95,51 +120,14 @@ defineSlots<{
    * @en Default slot for rendering term details.
    */
   default(props: { term: string }): void;
-
-  /**
-   * @zh 页脚插槽，用于放置操作按钮。
-   * @en Footer slot for action buttons.
-   */
-  footer(): void;
 }>();
 
 /**
  * @zh 重置表单为初始状态。
  * @en Reset the form to its initial state.
  */
-const reset = () => { … };
+const reset = () => {};
 
 defineExpose({ reset });
 </script>
 ```
-
-## 3. Self-Explanatory Name Exemption
-
-You may **omit** TSDoc when the identifier name alone fully conveys its purpose and semantics, leaving zero ambiguity. Typical exempt names include:
-
-- `name`, `id`, `description`, `label`, `title`, `toString`, `valueOf`, `toJSON`
-
-When in doubt, **add the doc**. A short redundant comment is cheaper than a missing one.
-
-## 4. Inline Parameter & Return Descriptions
-
-For `@param` and `@returns` tags, embed both languages using inline `{@zh …} {@en …}` custom inline tags (as shown in the examples above) to keep parameter docs compact.
-
-**Important**: `@returns` MUST use a dash prefix before any `{@...}` inline tag: `@returns - {@zh …} {@en …}`. TypeScript's JSDoc parser treats `{` immediately after `@returns` as a type expression start, which corrupts all inline tags (`{@zh}`, `{@en}`, `{@link}`, etc.). The `- ` separator prevents this misparse.
-
-## 5. Keep Docs in Sync with Code
-
-When modifying a symbol that already has TSDoc, you **must** update or remove the corresponding comments to match the new behavior:
-
-- **Signature change** (parameters added/removed/renamed, return type changed): update `@param`, `@returns`, and description accordingly.
-- **Semantics change** (behavior differs while signature stays the same): update the `@zh` / `@en` description to reflect the new behavior.
-- **Symbol removed**: delete its TSDoc along with the code.
-- **Symbol renamed**: update the TSDoc if the new name no longer matches the old description.
-
-Stale or contradictory documentation is **worse** than no documentation. Treat TSDoc updates as part of the same commit that changes the code.
-
-## 6. Consistency Rules
-
-- Always place `@zh` before `@en`.
-- Keep both languages in sync — do not leave one language outdated.
-- Use concise, complete sentences ending with a period (Chinese：句号 `。`; English: period `.`).

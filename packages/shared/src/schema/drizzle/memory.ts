@@ -2,6 +2,7 @@
 import * as z from "zod/v4";
 import { DrizzleDateTimeSchema } from "../misc.ts";
 import { TokenTypeSchema } from "../enum.ts";
+import { safeZDotJson } from "../json.ts";
 
 export const SlotMappingEntrySchema = z.object({
   placeholder: z.string(),
@@ -45,3 +46,19 @@ export const MemoryToProjectSchema = z.object({
 });
 
 export type MemoryToProject = z.infer<typeof MemoryToProjectSchema>;
+
+export const MemoryRecallVariantSchema = z.object({
+  id: z.int(),
+  memoryItemId: z.int(),
+  memoryId: z.uuidv4(),
+  languageId: z.string(),
+  querySide: z.enum(["SOURCE", "TRANSLATION"]),
+  text: z.string(),
+  normalizedText: z.string(),
+  variantType: z.enum(["SURFACE", "CASE_FOLDED", "LEMMA", "TOKEN_TEMPLATE", "FRAGMENT"]),
+  meta: safeZDotJson.nullable(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+export type MemoryRecallVariant = z.infer<typeof MemoryRecallVariantSchema>;

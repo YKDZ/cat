@@ -5,7 +5,8 @@
     "moduleResolution": "NodeNext",
     "allowJs": true,
     "checkJs": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node"]
   },
   "include": [
     "vitest.config.ts",

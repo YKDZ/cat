@@ -6,14 +6,14 @@ const mocked = vi.hoisted(() => ({
   qaOp: vi.fn(),
   termRecallOp: vi.fn(),
   tokenizeOp: vi.fn(),
-  streamSearchMemoryOp: vi.fn(),
+  collectMemoryRecallOp: vi.fn(),
 }));
 
 vi.mock("@cat/operations", () => ({
   qaOp: mocked.qaOp,
   termRecallOp: mocked.termRecallOp,
   tokenizeOp: mocked.tokenizeOp,
-  streamSearchMemoryOp: mocked.streamSearchMemoryOp,
+  collectMemoryRecallOp: mocked.collectMemoryRecallOp,
 }));
 
 import { qaCheckTool } from "./qa-check.tool.ts";
@@ -39,49 +39,29 @@ const createCtx = (
   vcsMode: "trust",
 });
 
-const asAsyncIterable = <T>(values: T[]): AsyncIterable<T> => ({
-  [Symbol.asyncIterator]: () => {
-    let index = 0;
-
-    return {
-      next: async () => {
-        const value = values[index];
-        index += 1;
-
-        if (value === undefined) {
-          return { done: true, value: undefined };
-        }
-
-        return { done: false, value };
-      },
-    };
-  },
-});
-
 describe("translation tools", () => {
   beforeEach(() => {
     mocked.qaOp.mockReset();
     mocked.termRecallOp.mockReset();
     mocked.tokenizeOp.mockReset();
-    mocked.streamSearchMemoryOp.mockReset();
+    mocked.collectMemoryRecallOp.mockReset();
   });
 
   it("uses session language fallback when searching translation memory", async () => {
-    mocked.streamSearchMemoryOp.mockReturnValue(
-      asAsyncIterable([
-        {
-          source: "hello",
-          translation: "你好",
-          adaptedTranslation: null,
-          confidence: 0.91,
-          memoryId: "33333333-3333-4333-8333-333333333333",
-        },
-      ]),
-    );
+    mocked.collectMemoryRecallOp.mockResolvedValue([
+      {
+        source: "hello",
+        translation: "你好",
+        adaptedTranslation: null,
+        confidence: 0.91,
+        memoryId: "33333333-3333-4333-8333-333333333333",
+        evidences: [],
+      },
+    ]);
 
     const result = await searchTmTool.execute({ text: "hello" }, createCtx());
 
-    expect(mocked.streamSearchMemoryOp).toHaveBeenCalledWith({
+    expect(mocked.collectMemoryRecallOp).toHaveBeenCalledWith({
       text: "hello",
       sourceLanguageId: "en-US",
       translationLanguageId: "zh-CN",
@@ -97,6 +77,10 @@ describe("translation tools", () => {
           translation: "你好",
           confidence: 0.91,
           memoryId: "33333333-3333-4333-8333-333333333333",
+          evidences: [],
+          matchedText: undefined,
+          matchedVariantText: undefined,
+          matchedVariantType: undefined,
         },
       ],
     });
