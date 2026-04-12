@@ -1,0 +1,14 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+
+tasks:
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-core"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+    options:
+      cache: true

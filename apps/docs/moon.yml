@@ -1,0 +1,27 @@
+language: "typescript"
+layer: "application"
+stack: "frontend"
+tags:
+  - "docs"
+
+tasks:
+  build:
+    command: "vitepress build"
+
+  dev:
+    command: "vitepress dev"
+    preset: "server"
+
+  preview:
+    command: "vitepress preview"
+    deps:
+      - "~:build"
+    options:
+      persistent: true
+
+  typecheck:
+    command: "tsc --noEmit -p tsconfig.app.json"
+
+workspace:
+  inheritedTasks:
+    exclude: ["test"]

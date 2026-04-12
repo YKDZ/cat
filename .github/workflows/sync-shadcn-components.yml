@@ -30,9 +30,6 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check Nx Sync
-        run: pnpm nx sync:check
-
       - name: Check Component Sync Status
         run: node packages/ui/scripts/sync-shadcn-components.js --check
         id: check-components

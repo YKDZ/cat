@@ -22,14 +22,6 @@
       "import": "./dist/index.js"
     }
   },
-  "scripts": {
-    "build": "vite build",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "typecheck": "tsc --noEmit -p tsconfig.lib.json"
-  },
   "dependencies": {
     "pino": "^10.3.1",
     "redis": "^5.11.0"

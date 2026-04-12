@@ -9,7 +9,7 @@ on:
 
 jobs:
   quality:
-    name: Run Affected Typcheck, Lint and Format Checks
+    name: Run Affected Typecheck, Lint and Format Checks
     runs-on: ubuntu-latest
 
     steps:
@@ -31,17 +31,8 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check Nx Sync
-        run: pnpm nx sync:check
-
       - name: Check Generated Drizzle Schemas
         run: pnpm check:generated-schemas
 
-      - name: Derive SHAs for affected
-        uses: nrwl/nx-set-shas@v5
-
       - name: Run Affected Tasks
-        run: |
-          pnpm exec nx affected \
-            --targets=lint,typecheck,fmt:check \
-            --parallel=3
+        run: pnpm moon ci :lint :typecheck :fmt-check

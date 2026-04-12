@@ -33,17 +33,6 @@
       "import": "./dist/context.js"
     }
   },
-  "scripts": {
-    "build": "vite build",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "test": "vitest run --config ../../vitest.config.ts --project=app-api",
-    "test:integration": "vitest run --config ../../vitest.config.ts --project=app-api --include='**/*.test.ts'",
-    "test:unit": "vitest run --config ../../vitest.config.ts --project=app-api --include='**/*.spec.ts'",
-    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
-  },
   "devDependencies": {
     "@cat/agent-tools": "workspace:*",
     "@cat/test-utils": "workspace:*",
@@ -74,10 +63,5 @@
     "telefunc": "^0.2.17",
     "vike": "^0.4.255",
     "zod": "catalog:"
-  },
-  "nx": {
-    "implicitDependencies": [
-      "!@cat/test-utils"
-    ]
   }
 }

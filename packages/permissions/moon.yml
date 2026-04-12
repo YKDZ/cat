@@ -1,0 +1,7 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+
+workspace:
+  inheritedTasks:
+    exclude: ["test"]

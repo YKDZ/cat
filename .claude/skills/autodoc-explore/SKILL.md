@@ -42,5 +42,5 @@ pnpm autodoc lookup <symbol-name> [...]
 If documentation seems stale or a package is missing:
 
 ```bash
-pnpm nx run autodoc:generate
+pnpm moon run autodoc:generate
 ```

@@ -1,0 +1,36 @@
+language: "typescript"
+layer: "configuration"
+stack: "infrastructure"
+tags:
+  - "root"
+
+tasks:
+  lint:
+    command: "oxlint --type-aware *.ts scripts/**/*.ts"
+    options:
+      runFromWorkspaceRoot: true
+
+  lint-fix:
+    command: "oxlint --fix --type-aware *.ts scripts/**/*.ts"
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
+
+  fmt:
+    command: "oxfmt *.ts *.json scripts/**/*.ts scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/* .vscode/**/*"
+    options:
+      runFromWorkspaceRoot: true
+
+  fmt-check:
+    command: "oxfmt --check *.ts *.json scripts/**/*.ts scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/* .vscode/**/*"
+    options:
+      runFromWorkspaceRoot: true
+
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p scripts/tsconfig.json"
+    options:
+      runFromWorkspaceRoot: true
+
+workspace:
+  inheritedTasks:
+    exclude: ["build", "test"]

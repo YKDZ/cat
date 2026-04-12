@@ -1,0 +1,19 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+tags:
+  - "plugin"
+
+tasks:
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json"
+
+  test:
+    command: "vitest run"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+    options:
+      cache: true

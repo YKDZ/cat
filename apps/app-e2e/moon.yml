@@ -1,0 +1,25 @@
+language: "typescript"
+layer: "automation"
+stack: "frontend"
+tags:
+  - "e2e"
+
+dependsOn:
+  - "app"
+
+tasks:
+  typecheck:
+    command: "tsc --noEmit"
+
+  test-e2e:
+    command: "playwright test"
+    inputs:
+      - "src/**/*"
+      - "playwright.config.ts"
+    options:
+      cache: false
+      runInCI: false
+
+workspace:
+  inheritedTasks:
+    exclude: ["build", "test"]

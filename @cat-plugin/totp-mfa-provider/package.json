@@ -20,15 +20,6 @@
       "import": "./dist/index.js"
     }
   },
-  "scripts": {
-    "build": "vite build",
-    "dev": "vite dev",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
-  },
   "dependencies": {
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0"

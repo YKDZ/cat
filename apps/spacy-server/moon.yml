@@ -1,0 +1,21 @@
+language: "python"
+layer: "application"
+stack: "backend"
+tags:
+  - "python"
+
+tasks:
+  docker-build:
+    command: "docker build -t cat-spacy-server ."
+    options:
+      cache: false
+      runInCI: false
+
+  serve:
+    command: "uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
+    preset: "server"
+
+workspace:
+  inheritedTasks:
+    exclude:
+      ["build", "lint", "lint-fix", "fmt", "fmt-check", "typecheck", "test"]

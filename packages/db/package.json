@@ -19,19 +19,10 @@
     }
   },
   "scripts": {
-    "build": "vite build",
     "codegen:schemas": "tsx src/zod/codegen.ts",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:studio": "drizzle-kit studio --host 0.0.0.0 --port 4983",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "test": "vitest run --config ../../vitest.config.ts --project=unit-db",
-    "test:integration": "vitest run --config ../../vitest.config.ts --project=unit-db --include='**/*.test.ts'",
-    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-db --include='**/*.spec.ts'",
-    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
+    "drizzle:studio": "drizzle-kit studio --host 0.0.0.0 --port 4983"
   },
   "dependencies": {
     "pg": "^8.20.0",

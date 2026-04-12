@@ -1,0 +1,37 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+
+tasks:
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
+
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=domain"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+
+  test-unit:
+    command: "vitest run --config ../../vitest.config.ts --project=domain --include='**/*.spec.ts'"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+
+  test-integration:
+    command: "vitest run --config ../../vitest.config.ts --project=domain --include='**/*.test.ts'"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+    options:
+      cache: true

@@ -2,40 +2,48 @@ FROM node:24-alpine AS base
 ENV PNPM_HOME="/pnpm" \
     PATH="/pnpm:$PATH" \
     NODE_ENV=production \
-    CI=true
+    CI=true \
+    MOON_TOOLCHAIN_FORCE_GLOBALS=true
 
-RUN corepack enable
+RUN corepack enable && \
+    npm install -g @moonrepo/cli
 
-FROM base AS deps
-WORKDIR /deps
-
-COPY pnpm-workspace.yaml pnpm-lock.yaml ./
-
-RUN pnpm fetch
-
-FROM deps AS builder
-WORKDIR /builder
+#### SKELETON — copy everything, then scaffold to separate manifests from sources
+FROM base AS skeleton
+WORKDIR /app
 
 COPY . .
+RUN moon docker scaffold app
 
-RUN pnpm install --offline --frozen-lockfile --filter=@cat/app... --filter=@cat-plugin/*... \
-    && pnpm nx sync:check \
-    && pnpm nx build @cat/app \
-    && pnpm build-plugins \
-    && pnpm load-plugins \
-    && pnpm --filter=@cat/app copy-drizzle
+#### BUILD — layer-cached dependency install, then build
+FROM base AS build
+WORKDIR /app
 
-FROM builder AS deployer
+# Copy workspace skeleton (manifests, lockfiles, configs only)
+COPY --from=skeleton /app/.moon/docker/workspace .
 
-RUN pnpm --filter=@cat/app deploy --prod --no-optional --legacy /deployer \
-    && pnpm prune --prod --no-optional
+# Install dependencies (moon uses pnpm under the hood)
+RUN moon docker setup
 
+# Copy source files for app and its transitive dependencies
+COPY --from=skeleton /app/.moon/docker/sources .
+
+# Build the app and plugins
+RUN moon run app:build && \
+    pnpm build-plugins && \
+    pnpm load-plugins && \
+    pnpm --filter=@cat/app copy-drizzle
+
+# Prune non-production files and dependencies
+RUN moon docker prune
+
+#### RUNNER — minimal production image
 FROM node:24-alpine AS runner
 ENV NODE_ENV=production
 
-WORKDIR /app 
+WORKDIR /app
 
-COPY --from=deployer /deployer/ ./
+COPY --from=build /app/ ./
 
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
     CMD node scripts/docker-health-check.js

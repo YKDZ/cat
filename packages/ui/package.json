@@ -16,16 +16,8 @@
     }
   },
   "scripts": {
-    "build": "vite build",
     "component:sync": "node scripts/sync-shadcn-components.js",
-    "component:sync:check": "node scripts/sync-shadcn-components.js --check",
-    "dev": "vite build --watch",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "test": "vitest run --config ../../vitest.config.ts --project=unit-ui",
-    "typecheck": "tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
+    "component:sync:check": "node scripts/sync-shadcn-components.js --check"
   },
   "dependencies": {
     "@vue-flow/controls": "^1.1.3",

@@ -17,10 +17,9 @@ updates:
       vueuse:
         patterns:
           - "@vueuse/*"
-      nx:
+      moon:
         patterns:
-          - "nx"
-          - "@nx/*"
+          - "@moonrepo/*"
       drizzle:
         patterns:
           - "drizzle*"

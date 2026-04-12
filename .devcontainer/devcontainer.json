@@ -34,7 +34,7 @@
     "vscode": {
       "extensions": [
         "Selemondev.shadcn-vue",
-        "nrwl.angular-console",
+        
         "antfu.iconify",
         "Vue.volar",
         "bradlc.vscode-tailwindcss",

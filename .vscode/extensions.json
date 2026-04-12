@@ -5,7 +5,6 @@
     "vitest.explorer",
     "selemondev.shadcn-vue",
     "ms-playwright.playwright",
-    "nrwl.angular-console",
     "bradlc.vscode-tailwindcss",
     "github.copilot-chat",
     "ms-python.python",
