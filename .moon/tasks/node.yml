@@ -1,0 +1,82 @@
+# Inherited by all projects that use the javascript/node/typescript toolchains.
+inheritedBy:
+  toolchains:
+    or: ["javascript", "node", "typescript"]
+
+fileGroups:
+  sources:
+    - "src/**/*"
+  configs:
+    - "*.config.*"
+    - "tsconfig*.json"
+    - "package.json"
+  tests:
+    - "src/**/*.spec.ts"
+    - "src/**/*.test.ts"
+
+implicitInputs:
+  - "package.json"
+  - "tsconfig.json"
+
+tasks:
+  # ─── Build ───
+  build:
+    command: "vite build"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    outputs:
+      - "dist/"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+
+  # ─── Lint ───
+  lint:
+    command: "oxlint --type-aware"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+      - "@group(configs)"
+    deps:
+      - "^:build"
+      - "~:build"
+    options:
+      cache: true
+
+  lint-fix:
+    extends: "lint"
+    command: "oxlint --fix --type-aware"
+    options:
+      cache: false
+
+  # ─── Format ───
+  fmt:
+    command: "oxfmt"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    options:
+      cache: true
+
+  fmt-check:
+    command: "oxfmt --check"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    options:
+      cache: true
+
+  # ─── Typecheck ───
+  # Default: single tsconfig.lib.json — projects override as needed
+  typecheck:
+    command: "tsc --noEmit -p tsconfig.lib.json"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    deps:
+      - "^:build"
+      - "~:build"
+    options:
+      cache: true

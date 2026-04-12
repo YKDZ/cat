@@ -1,0 +1,52 @@
+language: "typescript"
+layer: "application"
+stack: "frontend"
+tags:
+  - "app"
+  - "deployable"
+
+tasks:
+  build:
+    command: "vike build"
+
+  dev:
+    script: "vike dev | pino-pretty"
+    preset: "server"
+
+  preview:
+    script: "tsx scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.mjs"
+    deps:
+      - "~:build"
+    options:
+      persistent: true
+
+  typecheck:
+    script: "tsc --noEmit && vue-tsc --noEmit"
+
+  copy-drizzle:
+    command: "tsx scripts/copy-drizzle.ts"
+    options:
+      cache: false
+
+  docker-build:
+    command: "docker buildx build ../../ -f Dockerfile -t ykdz/cat"
+    options:
+      cache: false
+      runInCI: false
+
+  docker-push:
+    command: "docker push ykdz/cat"
+    options:
+      cache: false
+      runInCI: false
+
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-app"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+      - "test-utils:build"
+    options:
+      cache: true

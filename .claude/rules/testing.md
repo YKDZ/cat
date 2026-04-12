@@ -165,8 +165,8 @@ afterAll(async () => {
 ```bash
 pnpm vitest run
 pnpm vitest run --project=unit-core
-pnpm nx run @cat/core:test
-pnpm nx run @cat/domain:test:unit
-pnpm nx run @cat/domain:test:integration
-pnpm nx affected --target=test
+pnpm moon run core:test
+pnpm moon run domain:test-unit
+pnpm moon run domain:test-integration
+pnpm moon ci :test
 ```

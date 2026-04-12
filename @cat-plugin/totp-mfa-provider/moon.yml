@@ -1,0 +1,17 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+tags:
+  - "plugin"
+
+tasks:
+  typecheck:
+    command: "tsc --noEmit -p tsconfig.app.json"
+
+  dev:
+    command: "vite dev"
+    preset: "server"
+
+workspace:
+  inheritedTasks:
+    exclude: ["test"]

@@ -1,0 +1,25 @@
+projects:
+  - "apps/*"
+  - "packages/*"
+  - "@cat-plugin/*"
+  - "tools/*"
+
+vcs:
+  client: "git"
+  defaultBranch: "main"
+  provider: "github"
+
+docker:
+  scaffold:
+    configsPhaseGlobs:
+      - "**/**/package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".npmrc"
+  prune:
+    deleteVendorDirectories: true
+    installToolchainDependencies: true
+
+hasher:
+  walkStrategy: "vcs"
+  optimization: "accuracy"

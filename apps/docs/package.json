@@ -3,16 +3,6 @@
   "version": "0.1.0",
   "license": "GPL-3.0-only",
   "type": "module",
-  "scripts": {
-    "build": "vitepress build src",
-    "dev": "vitepress dev src",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "preview": "vitepress preview src",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
-  },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "tailwindcss": "^4.2.2"

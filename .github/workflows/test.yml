@@ -56,17 +56,8 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check Nx Sync
-        run: pnpm nx sync:check
-
-      - name: Derive SHAs for affected
-        uses: nrwl/nx-set-shas@v5
-
       - name: Run Affected Tests
         env:
           REDIS_URL: "redis://localhost:6379"
           TEST_DATABASE_URL: "postgres://user:pass@localhost:5432/cat"
-        run: |
-          pnpm exec nx affected \
-            --targets=test \
-            --parallel=3
+        run: pnpm moon ci :test

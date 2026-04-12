@@ -20,7 +20,7 @@ node packages/ui/scripts/sync-shadcn-components.js
 Then verify the changes:
 
 ```bash
-pnpm exec nx run-many --target=lint,typecheck --projects=@cat/ui
+pnpm moon run ui:lint ui:typecheck
 ```
 
 ## Components to Sync

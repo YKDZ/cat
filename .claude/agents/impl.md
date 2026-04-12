@@ -46,7 +46,6 @@ For each TODO item:
 
 - If a step fails verification: diagnose why before retrying. Read the error, check assumptions, try a focused fix. Don't retry the same action blindly.
 - If subsequent steps depend on a failed step: stop and fix the failure first.
-- If the plan's instructions conflict with the actual codebase state: **STOP immediately. Do NOT make implementation decisions.** Instead, produce a discrepancy report listing each conflict with: (a) the file path and line range, (b) what the plan expected, (c) what the actual code contains. Then halt and request human review before proceeding.
 
 ## Task Tracking
 

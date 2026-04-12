@@ -1,0 +1,40 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+
+tasks:
+  typecheck:
+    command: "tsc --noEmit -p tsconfig.json"
+
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=workflow"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+      - "test-utils:build"
+    options:
+      cache: true
+
+  test-unit:
+    command: "vitest run --config ../../vitest.config.ts --project=workflow --include='**/*.spec.ts'"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+      - "test-utils:build"
+    options:
+      cache: true
+
+  test-integration:
+    command: "vitest run --config ../../vitest.config.ts --project=workflow-integration --include='**/*.test.ts'"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+      - "test-utils:build"
+    options:
+      cache: true

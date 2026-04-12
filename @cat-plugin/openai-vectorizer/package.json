@@ -20,14 +20,6 @@
       "import": "./dist/index.js"
     }
   },
-  "scripts": {
-    "build": "vite build",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
-  },
   "dependencies": {
     "openai": "^6.33.0"
   },

@@ -1,0 +1,15 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+
+tasks:
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-auth"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+      - "test-utils:build"
+    options:
+      cache: true

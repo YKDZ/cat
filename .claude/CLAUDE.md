@@ -20,7 +20,7 @@ applyTo: "**/*"
 - **Runtime**: Node.js 24+
 - **Language**: TypeScript 5.x (strict mode)
 - **Package Manager**: pnpm 10.32+
-- **Monorepo Tool**: Nx 22.5+
+- **Monorepo Tool**: moon 2.x (via @moonrepo/cli)
 
 ### Frontend
 
@@ -76,7 +76,7 @@ Quick reference:
 - **Monorepo overview**: `apps/docs/src/autodoc/overview.md`
 - **Package API docs**: `apps/docs/src/autodoc/packages/<name>.md`
 - **Symbol lookup**: use `autodoc-lookup` skill
-- **Update docs**: `pnpm nx run autodoc:generate`
+- **Update docs**: `pnpm moon run autodoc:generate`
 
 ---
 
@@ -105,7 +105,7 @@ Quick reference:
 
 ## Configuration Files
 
-- **`nx.json`**: Nx monorepo configuration
+- **`moon.yml`**: moon project configuration (tasks, deps, metadata)
 - **`pnpm-workspace.yaml`**: pnpm workspace definition
 - **`tsconfig.base.json`**: Base TypeScript config (extends @tsconfig/node24)
 - **`packages/plugin-core/manifest-schema.json`**: Plugin manifest JSON Schema

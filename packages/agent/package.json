@@ -17,16 +17,6 @@
       "import": "./dist/index.js"
     }
   },
-  "scripts": {
-    "build": "vite build",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "test": "vitest run --config ../../vitest.config.ts --project=unit-agent",
-    "test:integration": "vitest run --config ../../vitest.config.ts --project=agent-integration",
-    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
-  },
   "dependencies": {
     "remark-frontmatter": "^5.0.0",
     "remark-parse": "^11.0.0",
@@ -50,10 +40,5 @@
     "@cat/shared": "workspace:*",
     "@cat/workflow": "workspace:*",
     "zod": "catalog:"
-  },
-  "nx": {
-    "implicitDependencies": [
-      "!test-utils"
-    ]
   }
 }

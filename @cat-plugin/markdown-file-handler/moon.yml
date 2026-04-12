@@ -1,0 +1,13 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+tags:
+  - "plugin"
+
+tasks:
+  typecheck:
+    command: "tsc --noEmit -p tsconfig.app.json"
+
+workspace:
+  inheritedTasks:
+    exclude: ["test"]

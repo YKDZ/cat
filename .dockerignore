@@ -10,9 +10,9 @@ apps/app/plugins
 **/build
 **/out
 
-# NX cache
-**/.nx
-.nx
+# Moon cache (required by moon Docker integration)
+.moon/cache
+.moon/docker
 
 # Test and coverage
 **/coverage

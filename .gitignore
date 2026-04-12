@@ -91,6 +91,9 @@ node_modules/
 .nx
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+
+# Moon
+.moon/cache
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 

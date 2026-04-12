@@ -20,18 +20,6 @@
       "import": "./dist/workflow/index.js"
     }
   },
-  "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "test": "vitest run --config ../../vitest.config.ts --project=workflow",
-    "test:integration": "vitest run --config ../../vitest.config.ts --project=workflow-integration",
-    "test:unit": "vitest run --config ../../vitest.config.ts --project=workflow",
-    "typecheck": "tsc --noEmit"
-  },
   "devDependencies": {
     "@cat/test-utils": "workspace:*",
     "@types/node": "catalog:",
@@ -52,10 +40,5 @@
   },
   "engines": {
     "node": ">=24.0.0"
-  },
-  "nx": {
-    "implicitDependencies": [
-      "!test-utils"
-    ]
   }
 }

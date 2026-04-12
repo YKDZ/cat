@@ -1,0 +1,25 @@
+language: "typescript"
+layer: "tool"
+stack: "infrastructure"
+
+tasks:
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
+
+  check:
+    command: "node dist/cli.js check"
+    deps:
+      - "~:build"
+    options:
+      cache: false
+
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-autodoc"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+      - "test-utils:build"
+    options:
+      cache: true

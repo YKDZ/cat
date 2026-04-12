@@ -13,7 +13,7 @@ applyTo: "packages/db/src/drizzle/schema/schema.ts, packages/db/src/zod/generato
    - 在 `generators.ts` 导入新表
    - 加入 `SelectSchemaTable` union
    - 在 `generatedSharedSchemaFiles` 中补 `TableDeclaration`
-   - 运行 `pnpm nx codegen-schemas db`
+   - 运行 `pnpm moon run db:codegen-schemas`
 
 ## 负面限制
 
@@ -57,7 +57,7 @@ type SelectSchemaTable =
 ### 4. 运行 codegen
 
 ```bash
-pnpm nx codegen-schemas db
+pnpm moon run db:codegen-schemas
 ```
 
 ## 常见 `overrides`

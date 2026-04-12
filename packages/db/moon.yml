@@ -1,0 +1,40 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+
+tasks:
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
+
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-db"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+
+  codegen-schemas:
+    command: "tsx src/zod/codegen.ts"
+    deps:
+      - "shared:build"
+    options:
+      cache: false
+
+  drizzle-generate:
+    command: "drizzle-kit generate"
+    deps:
+      - "shared:build"
+    options:
+      cache: false
+
+  drizzle-migrate:
+    command: "drizzle-kit migrate"
+    options:
+      cache: false
+
+  drizzle-studio:
+    command: "drizzle-kit studio --host 0.0.0.0 --port 4983"
+    preset: "server"

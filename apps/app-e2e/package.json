@@ -3,14 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": {
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint --type-aware",
-    "lint:fix": "oxlint --fix --type-aware",
-    "test:e2e": "playwright test",
-    "typecheck": "tsc --noEmit"
-  },
   "devDependencies": {
     "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
@@ -18,10 +10,5 @@
     "@cat/shared": "workspace:*",
     "@playwright/test": "^1.59.1",
     "@types/node": "catalog:"
-  },
-  "nx": {
-    "implicitDependencies": [
-      "!test-utils"
-    ]
   }
 }

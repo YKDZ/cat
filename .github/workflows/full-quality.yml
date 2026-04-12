@@ -24,16 +24,8 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check Nx Sync
-        run: pnpm nx sync:check
-
       - name: Check Generated Drizzle Schemas
         run: pnpm check:generated-schemas
 
       - name: Run ALL Tasks
-        env:
-          REDIS_URL: "redis://localhost:6379"
-        run: |
-          pnpm exec nx run-many \
-            --targets=lint,typecheck,fmt:check \
-            --parallel=3
+        run: pnpm moon run :lint :typecheck :fmt-check

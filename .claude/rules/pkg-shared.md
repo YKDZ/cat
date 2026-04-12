@@ -36,5 +36,5 @@ import { z } from "zod";
 ### 生成区重新生成命令
 
 ```bash
-pnpm nx codegen-schemas db
+pnpm moon run db:codegen-schemas
 ```

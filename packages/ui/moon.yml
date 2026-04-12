@@ -1,0 +1,28 @@
+language: "typescript"
+layer: "library"
+stack: "frontend"
+
+tasks:
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
+
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-ui"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+      - "test-utils:build"
+    options:
+      cache: true
+
+  component-sync:
+    command: "node scripts/sync-shadcn-components.js"
+    options:
+      cache: false
+
+  component-sync-check:
+    command: "node scripts/sync-shadcn-components.js --check"
+    options:
+      cache: false

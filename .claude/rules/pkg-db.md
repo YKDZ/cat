@@ -50,7 +50,7 @@ paths:
 1. **优先生成自动 migration。**
 
    ```bash
-   pnpm nx drizzle:generate db
+   pnpm moon run db:drizzle:generate
    ```
 
 2. **只审查生成结果，不直接手改。** 如果 SQL 不正确，应修 schema 源文件后重新生成。
@@ -65,13 +65,13 @@ paths:
 4. **schema / enum 变更后重新生成共享 Zod schema。**
 
    ```bash
-   pnpm nx codegen-schemas db
+   pnpm moon run db:codegen-schemas
    ```
 
 5. **应用 migration 到开发数据库。**
 
    ```bash
-   pnpm nx drizzle:migrate db
+   pnpm moon run db:drizzle:migrate
    ```
 
 ## 作用域说明
