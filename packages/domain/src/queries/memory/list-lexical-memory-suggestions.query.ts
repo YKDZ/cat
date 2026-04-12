@@ -52,40 +52,83 @@ export const listExactMemorySuggestions: Query<
   const sourceString = aliasedTable(vectorizedString, "sourceString");
   const translationString = aliasedTable(vectorizedString, "translationString");
 
-  const rows = await ctx.db
-    .select({
-      id: memoryItem.id,
-      source: sourceString.value,
-      translation: translationString.value,
-      translationChunkSetId: translationString.chunkSetId,
-      memoryId: memoryItem.memoryId,
-      creatorId: memoryItem.creatorId,
-      createdAt: memoryItem.createdAt,
-      updatedAt: memoryItem.updatedAt,
-      sourceTemplate: memoryItem.sourceTemplate,
-      translationTemplate: memoryItem.translationTemplate,
-      slotMapping: memoryItem.slotMapping,
-    })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .where(
-      and(
-        inArray(memoryItem.memoryId, query.memoryIds),
-        eq(sourceString.languageId, query.sourceLanguageId),
-        eq(translationString.languageId, query.translationLanguageId),
-        eq(sourceString.value, trimmedText),
-      ),
-    )
-    .limit(query.maxAmount);
+  const baseSelection = {
+    id: memoryItem.id,
+    translationChunkSetId: translationString.chunkSetId,
+    memoryId: memoryItem.memoryId,
+    creatorId: memoryItem.creatorId,
+    createdAt: memoryItem.createdAt,
+    updatedAt: memoryItem.updatedAt,
+    sourceTemplate: memoryItem.sourceTemplate,
+    translationTemplate: memoryItem.translationTemplate,
+    slotMapping: memoryItem.slotMapping,
+  };
+
+  const [forwardRows, reversedRows] = await Promise.all([
+    ctx.db
+      .select({
+        ...baseSelection,
+        source: sourceString.value,
+        translation: translationString.value,
+      })
+      .from(memoryItem)
+      .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+      .innerJoin(
+        translationString,
+        eq(translationString.id, memoryItem.translationStringId),
+      )
+      .where(
+        and(
+          inArray(memoryItem.memoryId, query.memoryIds),
+          eq(sourceString.languageId, query.sourceLanguageId),
+          eq(translationString.languageId, query.translationLanguageId),
+          eq(sourceString.value, trimmedText),
+        ),
+      )
+      .limit(query.maxAmount),
+    ctx.db
+      .select({
+        ...baseSelection,
+        source: translationString.value,
+        translation: sourceString.value,
+      })
+      .from(memoryItem)
+      .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+      .innerJoin(
+        translationString,
+        eq(translationString.id, memoryItem.translationStringId),
+      )
+      .where(
+        and(
+          inArray(memoryItem.memoryId, query.memoryIds),
+          eq(translationString.languageId, query.sourceLanguageId),
+          eq(sourceString.languageId, query.translationLanguageId),
+          eq(translationString.value, trimmedText),
+        ),
+      )
+      .limit(query.maxAmount),
+  ]);
+
+  const rows = [
+    ...new Map(
+      [...forwardRows, ...reversedRows].map((row) => [row.id, row]),
+    ).values(),
+  ].slice(0, query.maxAmount);
 
   return rows.map((row) => ({
     ...row,
     confidence: 1,
     adaptationMethod: "exact",
+    evidences: [
+      {
+        channel: "lexical",
+        matchedText: row.source,
+        matchedVariantText: row.source,
+        confidence: 1,
+        note: "exact source-string match",
+      },
+    ],
+    matchedText: row.source,
     sourceTemplate: row.sourceTemplate,
     translationTemplate: row.translationTemplate,
     slotMapping: parseSlotMapping(row.slotMapping),
@@ -119,41 +162,89 @@ export const listTrgmMemorySuggestions: Query<
   const sourceString = aliasedTable(vectorizedString, "sourceString");
   const translationString = aliasedTable(vectorizedString, "translationString");
 
-  const rows = await ctx.db
-    .select({
-      id: memoryItem.id,
-      source: sourceString.value,
-      translation: translationString.value,
-      translationChunkSetId: translationString.chunkSetId,
-      memoryId: memoryItem.memoryId,
-      creatorId: memoryItem.creatorId,
-      createdAt: memoryItem.createdAt,
-      updatedAt: memoryItem.updatedAt,
-      confidence: sql<number>`similarity(${sourceString.value}, ${trimmedText})`,
-      sourceTemplate: memoryItem.sourceTemplate,
-      translationTemplate: memoryItem.translationTemplate,
-      slotMapping: memoryItem.slotMapping,
-    })
-    .from(memoryItem)
-    .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
-    .innerJoin(
-      translationString,
-      eq(translationString.id, memoryItem.translationStringId),
-    )
-    .where(
-      and(
-        inArray(memoryItem.memoryId, query.memoryIds),
-        eq(sourceString.languageId, query.sourceLanguageId),
-        eq(translationString.languageId, query.translationLanguageId),
-        sql`similarity(${sourceString.value}, ${trimmedText}) >= ${query.minSimilarity}`,
-      ),
-    )
-    .orderBy(sql`similarity(${sourceString.value}, ${trimmedText}) DESC`)
-    .limit(query.maxAmount);
+  const baseSelection = {
+    id: memoryItem.id,
+    memoryId: memoryItem.memoryId,
+    creatorId: memoryItem.creatorId,
+    createdAt: memoryItem.createdAt,
+    updatedAt: memoryItem.updatedAt,
+    sourceTemplate: memoryItem.sourceTemplate,
+    translationTemplate: memoryItem.translationTemplate,
+    slotMapping: memoryItem.slotMapping,
+  };
+
+  const [forwardRows, reversedRows] = await Promise.all([
+    ctx.db
+      .select({
+        ...baseSelection,
+        source: sourceString.value,
+        translation: translationString.value,
+        translationChunkSetId: translationString.chunkSetId,
+        confidence: sql<number>`similarity(${sourceString.value}, ${trimmedText})`,
+      })
+      .from(memoryItem)
+      .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+      .innerJoin(
+        translationString,
+        eq(translationString.id, memoryItem.translationStringId),
+      )
+      .where(
+        and(
+          inArray(memoryItem.memoryId, query.memoryIds),
+          eq(sourceString.languageId, query.sourceLanguageId),
+          eq(translationString.languageId, query.translationLanguageId),
+          sql`similarity(${sourceString.value}, ${trimmedText}) >= ${query.minSimilarity}`,
+        ),
+      )
+      .orderBy(sql`similarity(${sourceString.value}, ${trimmedText}) DESC`)
+      .limit(query.maxAmount),
+    ctx.db
+      .select({
+        ...baseSelection,
+        source: translationString.value,
+        translation: sourceString.value,
+        translationChunkSetId: sourceString.chunkSetId,
+        confidence: sql<number>`similarity(${translationString.value}, ${trimmedText})`,
+      })
+      .from(memoryItem)
+      .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
+      .innerJoin(
+        translationString,
+        eq(translationString.id, memoryItem.translationStringId),
+      )
+      .where(
+        and(
+          inArray(memoryItem.memoryId, query.memoryIds),
+          eq(translationString.languageId, query.sourceLanguageId),
+          eq(sourceString.languageId, query.translationLanguageId),
+          sql`similarity(${translationString.value}, ${trimmedText}) >= ${query.minSimilarity}`,
+        ),
+      )
+      .orderBy(sql`similarity(${translationString.value}, ${trimmedText}) DESC`)
+      .limit(query.maxAmount),
+  ]);
+
+  const rows = [
+    ...new Map(
+      [...forwardRows, ...reversedRows]
+        .sort((a, b) => b.confidence - a.confidence)
+        .map((row) => [row.id, row]),
+    ).values(),
+  ].slice(0, query.maxAmount);
 
   return rows.map((row) => ({
     ...row,
     confidence: row.confidence,
+    evidences: [
+      {
+        channel: "lexical",
+        matchedText: row.source,
+        matchedVariantText: row.source,
+        confidence: row.confidence,
+        note: "pg_trgm source-string match",
+      },
+    ],
+    matchedText: row.source,
     sourceTemplate: row.sourceTemplate,
     translationTemplate: row.translationTemplate,
     slotMapping: parseSlotMapping(row.slotMapping),

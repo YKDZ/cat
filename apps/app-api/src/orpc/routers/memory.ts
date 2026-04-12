@@ -11,8 +11,11 @@ import {
   listOwnedMemories,
   listProjectMemories,
 } from "@cat/domain";
-import { adaptMemoryOp, streamSearchMemoryOp } from "@cat/operations";
-import { AsyncMessageQueue } from "@cat/server-shared";
+import {
+  adaptMemoryOp,
+  collectMemoryRecallOp,
+  recallContextRerankOp,
+} from "@cat/operations";
 import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import * as z from "zod/v4";
@@ -78,68 +81,76 @@ export const onNew = authed
 
     if (!element || memoryIds.length === 0) return;
 
-    // Use three-channel streaming search
-    const stream = streamSearchMemoryOp({
-      text: element.value,
-      sourceLanguageId: element.languageId,
-      translationLanguageId,
-      memoryIds,
-      chunkIds: element.chunkIds,
-      minSimilarity: minConfidence,
-      maxAmount,
-    });
+    const reranked = await recallContextRerankOp(
+      {
+        elementId,
+        queryText: element.value,
+        memories: await collectMemoryRecallOp(
+          {
+            text: element.value,
+            sourceLanguageId: element.languageId,
+            translationLanguageId,
+            memoryIds,
+            chunkIds: element.chunkIds,
+            minSimilarity: minConfidence,
+            maxAmount,
+          },
+          {
+            pluginManager: context.pluginManager,
+            traceId: crypto.randomUUID(),
+          },
+        ),
+      },
+      {
+        pluginManager: context.pluginManager,
+        traceId: crypto.randomUUID(),
+      },
+    );
 
-    const memoriesQueue = new AsyncMessageQueue<MemorySuggestion>();
+    const adaptationTasks: Promise<MemorySuggestion | null>[] = [];
 
-    // Forward stream results to queue, and fire async LLM adaptation for fuzzy matches
-    const pendingAdaptations: Promise<void>[] = [];
+    for (const memory of reranked) {
+      yield memory;
 
-    void (async () => {
-      try {
-        for await (const memory of stream) {
-          memoriesQueue.push(memory);
+      if (
+        memory.adaptationMethod === "exact" ||
+        memory.adaptationMethod === "token-replaced" ||
+        memory.confidence >= 1
+      ) {
+        continue;
+      }
 
-          // Fire LLM adaptation for non-exact, non-template-replaced results
-          if (
-            memory.adaptationMethod !== "exact" &&
-            memory.adaptationMethod !== "token-replaced" &&
-            memory.confidence < 1
-          ) {
-            const adaptationPromise = adaptMemoryOp({
-              sourceText: element.value,
-              memorySource: memory.source,
-              memoryTranslation: memory.translation,
-              sourceLanguageId: element.languageId,
-              translationLanguageId,
-            })
-              .then(({ adaptedTranslation }) => {
-                if (!adaptedTranslation) return;
-                memoriesQueue.push({
+      adaptationTasks.push(
+        adaptMemoryOp({
+          sourceText: element.value,
+          memorySource: memory.source,
+          memoryTranslation: memory.translation,
+          sourceLanguageId: element.languageId,
+          translationLanguageId,
+        })
+          .then(({ adaptedTranslation }) =>
+            adaptedTranslation
+              ? {
                   ...memory,
-                  translation: adaptedTranslation,
-                });
-              })
-              .catch((err: unknown) => {
-                logger
-                  .withSituation("WORKER")
-                  .error(err, "LLM memory adaptation failed");
-              });
-            pendingAdaptations.push(adaptationPromise);
-          }
-        }
-      } catch (err) {
-        logger
-          .withSituation("WORKER")
-          .error(err, "Stream search memory failed");
-      }
-    })();
+                  adaptedTranslation,
+                  adaptationMethod: "llm-adapted" as const,
+                }
+              : null,
+          )
+          .catch((err: unknown) => {
+            logger
+              .withSituation("WORKER")
+              .error(err, "LLM memory adaptation failed");
+            return null;
+          }),
+      );
+    }
 
-    try {
-      for await (const memory of memoriesQueue.consume()) {
-        yield memory;
+    const adaptedMemories = await Promise.all(adaptationTasks);
+    for (const adapted of adaptedMemories) {
+      if (adapted) {
+        yield adapted;
       }
-    } finally {
-      memoriesQueue.clear();
     }
   });
 

@@ -3,17 +3,26 @@ description: Constraints for the @cat/shared package — isomorphic-only, no ser
 paths: ["packages/shared/**/*.{ts,vue,js}"]
 ---
 
-# @cat/shared Package Rules
+# @cat/shared 包规范
 
-## 1. Isomorphic Only — No Server-Side Imports
+## 正面限制
 
-`@cat/shared` is consumed by **both browser and server** code. It **must not** import any environment-specific module:
+1. **`@cat/shared` 只放 isomorphic 内容。** 它会同时被浏览器和服务端消费，因此应只包含可跨环境运行的 schema、类型和纯工具函数。
+2. **需要运行时环境能力的逻辑应移出 shared。** 一旦代码依赖 Node API 或服务端运行时，应放进 `@cat/server-shared` 或其他服务端包。
+3. **`packages/shared/src/schema/drizzle/` 是派生生成区。** 想修改这里的内容，必须回到 `packages/db` 的 schema / generator 源头修改后，再执行 codegen。
 
-- **Forbidden**: `node:*` built-in modules (`node:fs`, `node:path`, `node:crypto`, …)
-- **Forbidden**: Any npm package that only works in Node.js (e.g., `fs-extra`, `better-sqlite3`)
-- **Forbidden**: Direct usage of browser-only globals (`document`, `window`) without a guard — prefer isomorphic alternatives
+## 负面限制
 
-```typescript
+1. **不要**在 `@cat/shared` 中导入环境绑定模块：
+   - `node:*` built-in（如 `node:fs`、`node:path`）
+   - 仅适用于 Node.js 的 npm 包（如 `fs-extra`、`better-sqlite3`）
+   - 未做守卫的浏览器专有全局对象（如 `window`、`document`）
+2. **不要**手动编辑 `packages/shared/src/schema/drizzle/` 下的生成文件。
+3. **不要**在生成区手工创建新文件；生成结果有问题时，应回源修正 `packages/db`。
+
+## 例子
+
+```ts
 // ❌ Breaks in browser
 import { readFileSync } from "node:fs";
 
@@ -24,19 +33,8 @@ import pg from "pg";
 import { z } from "zod";
 ```
 
-If a utility genuinely requires Node.js APIs, it belongs in a server-side package (e.g., `@cat/server-shared`) rather than `@cat/shared`.
-
-## 2. Auto-Generated Code — Do Not Edit
-
-The directory **`packages/shared/src/schema/drizzle/`** is **entirely auto-generated** by:
+### 生成区重新生成命令
 
 ```bash
-pnpm nx codegen:schemas db
+pnpm nx codegen-schemas db
 ```
-
-**Rules:**
-
-- **Never** manually edit any file under `src/schema/drizzle/`.
-- **Never** create new files in that directory by hand.
-- If the generated output needs to change, modify the source schema in the `packages/db` package and re-run the codegen command.
-- When reviewing or searching code, treat these files as **read-only reference** — do not suggest modifications to them.

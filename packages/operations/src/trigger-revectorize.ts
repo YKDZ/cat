@@ -1,7 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 
-import { PluginManager } from "@cat/plugin-core";
-import { firstOrGivenService } from "@cat/server-shared";
+import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 
 import { revectorizeConceptOp } from "./revectorize-concept";
@@ -24,7 +23,7 @@ export const triggerConceptRevectorize = (
   conceptId: number,
   ctx?: OperationContext,
 ): void => {
-  const pluginManager = PluginManager.get("GLOBAL", "");
+  const pluginManager = resolvePluginManager(ctx?.pluginManager);
   const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
   const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
 

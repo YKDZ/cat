@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 46
+* **Modules**: 54
 
-* **Exported functions**: 48
+* **Exported functions**: 59
 
-* **Exported types**: 79
+* **Exported types**: 87
 
 ## Function Index
 
@@ -67,6 +67,66 @@ export const addTermToConceptOp = async (data: AddTermToConceptInput, ctx?: Oper
  * @returns List of created translation IDs, empty when no match was found
  */
 export const autoTranslateOp = async (data: AutoTranslateInput, ctx?: OperationContext): Promise<{ translationIds?: number[] | undefined; }>
+```
+
+### `buildMemoryRecallVariantsOp`
+
+```ts
+/**
+ * Build recall variants for a single memory item and persist them.
+ *
+ * SOURCE side variants:
+ *   - SURFACE: exact source text
+ *   - CASE_FOLDED: lowercased
+ *   - LEMMA: joined lemmas (when NLP tokens available)
+ *   - TOKEN_TEMPLATE: canonical source template (placeholder form)
+ *   - FRAGMENT: content tokens joined (stop words stripped)
+ *
+ * TRANSLATION side variants:
+ *   - SURFACE: exact translation text
+ *   - CASE_FOLDED: lowercased
+ */
+export const buildMemoryRecallVariantsOp = async (data: BuildMemoryRecallVariantsInput, _ctx?: OperationContext): Promise<void>
+```
+
+### `buildTermRecallVariantsOp`
+
+```ts
+/**
+ * Build and persist recall variants for a single concept.
+ *
+ * Variant types produced:
+ * - SURFACE: exact original text
+ * - CASE_FOLDED: lowercased text
+ * - LEMMA: joined lemmas (when NLP tokens provided)
+ *
+ * For multi-word terms a limited lemma window is also stored (windowSize in meta).
+ */
+export const buildTermRecallVariantsOp = async (data: BuildTermRecallVariantsInput, _ctx?: OperationContext): Promise<void>
+```
+
+### `collectMemoryRecallOp`
+
+```ts
+/**
+ * Aggregated memory recall — multi-channel evidence merge.
+ *
+ * Channels (in order of speed):
+ * 1. Exact match (fastest)
+ * 2. trgm similarity
+ * 3. Variant-based (morphological / template / fragment)
+ *
+ * All results are globally deduplicated by `memoryItem.id`, keeping the
+ * highest confidence across all channels. Evidence from multiple channels
+ * is merged onto the winning result.
+ */
+export const collectMemoryRecallOp = async (data: CollectMemoryRecallInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+```
+
+### `collectTermRecallOp`
+
+```ts
+export const collectTermRecallOp = async (data: CollectTermRecallInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
 ```
 
 ### `createElementOp`
@@ -147,7 +207,7 @@ export const createVectorizedStringOp = async (data: CreateVectorizedStringInput
  * Deduplicate term candidates and match against the existing glossary.
  *
  * 1. Normalize-deduplicate candidates by normalizedText (lemma) as the aggregation key
- * 2. Batch-compare against the existing glossary via listLexicalTermSuggestions (pg_trgm word_similarity)
+ * 2. Batch-compare against the existing glossary via the recall variant existence query
  * 3. Mark candidates that already exist in the glossary
  *
  * @param data - Deduplication and match input parameters
@@ -451,6 +511,30 @@ export const nlpBatchSegmentOp = async (data: NlpBatchSegmentInput, ctx?: Operat
 export const intlSegmenterFallback = (text: string, languageId: string): { sentences: { text: string; tokens: { text: string; lemma: string; pos: string; start: number; end: number; isStop: boolean; isPunct: boolean; }[]; start: number; end: number; }[]; tokens: { text: string; lemma: string; pos: string; start: number; end: number; isStop: boolean; isPunct: boolean; }[]; }
 ```
 
+### `isCjkLanguage`
+
+```ts
+export const isCjkLanguage = (languageId: string): boolean
+```
+
+### `joinTokens`
+
+```ts
+export const joinTokens = (tokens: NlpToken[], languageId: string): string
+```
+
+### `joinLemmas`
+
+```ts
+export const joinLemmas = (tokens: NlpToken[], languageId: string): string
+```
+
+### `buildTokenWindows`
+
+```ts
+export const buildTokenWindows = (tokens: NlpToken[], languageId: string, maxWindowSize: number): TokenWindow[]
+```
+
 ### `nlpSegmentOp`
 
 ```ts
@@ -521,6 +605,18 @@ export const qaTranslationOp = async (payload: QaTranslationInput, ctx?: Operati
  * @returns List of check results from each QA checker
  */
 export const qaOp = async (payload: QAInput, _ctx?: OperationContext): Promise<{ result: { meta: any; isPassed: boolean; checkerId: number; }[]; }>
+```
+
+### `recallContextRerankOp`
+
+```ts
+export const recallContextRerankOp = async (data: RecallContextRerankInput, _ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+```
+
+### `rerankTermRecallOp`
+
+```ts
+export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, _ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
 ```
 
 ### `registerDomainEventHandlers`
@@ -638,7 +734,7 @@ export const searchChunkOp = async (payload: SearchChunkInput, ctx?: OperationCo
  *
  * @returns List of matching memory entries (sorted by confidence descending)
  */
-export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; }[]; }>
+export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
 ```
 
 ### `semanticSearchTermsOp`
@@ -702,34 +798,18 @@ export const statisticalTermExtractOp = async (data: StatisticalTermExtractInput
 
 ```ts
 /**
- * Three-channel streaming memory search.
- *
- * Returns an AsyncIterable that yields MemorySuggestion items as they
- * arrive from the three channels:
- * 1. **Exact match** (fastest): SQL `value = input`, confidence = 1.0
- * 2. **trgm similarity** (fast): `similarity() >= threshold`, confidence = similarity()
- * 3. **Vector semantic** (slow): cosine similarity via vector storage
- *
- * Results are globally deduplicated by `memoryItem.id`, keeping the
- * highest confidence. For non-exact results with stored templates,
- * attempts deterministic placeholder replacement to produce an
- * `adaptedTranslation`.
- *
- * @param data - Streaming memory search input parameters
- * @param ctx - Operation context
- *
- * @returns Async iterable that yields matching memory entries as they arrive
+ * Streaming memory search backed by the aggregated recall helper.
  */
-export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; }>
+export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
 ```
 
 ### `streamSearchTermsOp`
 
 ```ts
 /**
- * Combined term search with dual-channel streaming output.
+ * Combined term search with tri-channel streaming output.
  *
- * Launches two search strategies concurrently; results are pushed via
+ * Launches three search strategies concurrently; results are pushed via
  * {
  *
  * @param data - Term search input parameters
@@ -737,7 +817,7 @@ export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: Operat
  *
  * @returns Async iterable that yields deduplicated term match results
  */
-export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: OperationContext): AsyncIterable<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; }>
+export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: OperationContext): AsyncIterable<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }>
 ```
 
 ### `termRecallOp`
@@ -755,7 +835,7 @@ export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: Operatio
  *
  * @returns Term matches enriched with concept subject information
  */
-export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContext): Promise<{ terms: { term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; }[]; }>
+export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContext): Promise<{ terms: { term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]; }>
 ```
 
 ### `tokenizeOp`
@@ -788,6 +868,20 @@ export const tokenizeOp = async (payload: TokenizeInput, ctx?: OperationContext)
  * @param ctx - Operation context
  */
 export const triggerConceptRevectorize = (conceptId: number, ctx?: OperationContext)
+```
+
+### `triggerTermRecallReindex`
+
+```ts
+/**
+ * Fire-and-forget wrapper around `buildTermRecallVariantsOp`.
+ *
+ * Called from the `concept:updated` domain event handler to keep
+ * `TermRecallVariant` rows fresh after any term content change.
+ *
+ * Errors are logged but do not propagate (graceful degradation).
+ */
+export const triggerTermRecallReindex = (conceptId: number, ctx?: OperationContext)
 ```
 
 ### `updateConceptOp`
@@ -884,6 +978,14 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 
 * `AutoTranslateOutput` (type)
 
+* `BuildMemoryRecallVariantsInput` (type)
+
+* `BuildTermRecallVariantsInput` (type)
+
+* `CollectMemoryRecallInput` (type)
+
+* `CollectTermRecallInput` (type)
+
 * `CreateElementInput` (type)
 
 * `CreateElementOutput` (type)
@@ -952,6 +1054,8 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 
 * `NlpBatchSegmentOutput` (type)
 
+* `TokenWindow` (type)
+
 * `NlpSegmentInput` (type)
 
 * `NlpSegmentOutput` (type)
@@ -967,6 +1071,10 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 * `QAInput` (type)
 
 * `QAOutput` (type)
+
+* `RecallContextRerankInput` (type)
+
+* `TermRecallContextRerankInput` (type)
 
 * `RetrieveEmbeddingsInput` (type)
 
@@ -1009,6 +1117,8 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 * `TermContext` (type)
 
 * `TermRecallOutput` (type)
+
+* `RecallFixture` (type)
 
 * `TokenizeInput` (type)
 

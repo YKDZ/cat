@@ -30,9 +30,11 @@
     "vite": "catalog:"
   },
   "peerDependencies": {
+    "@cat/core": "workspace:*",
     "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/plugin-core": "workspace:*",
+    "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
     "drizzle-orm": "1.0.0-beta.20",
     "vitest": "^4.1.0"

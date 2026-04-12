@@ -6,10 +6,16 @@ import {
   executeQuery,
   getDbHandle,
   listAllTerms,
+  listMorphologicalTermSuggestions,
 } from "@cat/domain";
+import { registerDomainEventHandlers } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import {
+  installTestVectorizationQueue,
+  setupTestDB,
+  TestPluginLoader,
+} from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { createDefaultGraphRuntime } from "@/graph";
@@ -33,11 +39,12 @@ beforeAll(async () => {
   pluginManager = PluginManager.get(
     "PROJECT",
     "create-term-test",
-    new TestPluginLoader(),
+    new TestPluginLoader({ includeNlpSegmenter: true }),
   );
 
   await pluginManager.getDiscovery().syncDefinitions(db.client);
   await pluginManager.install(db.client, "mock");
+  await pluginManager.install(db.client, "mock-nlp-segmenter");
   await db.client.transaction(async (tx) => {
     await pluginManager.restore(
       tx,
@@ -51,6 +58,8 @@ beforeAll(async () => {
     languageIds: ["en", "zh-Hans", "mul"],
   });
 
+  installTestVectorizationQueue();
+
   const user = await executeCommand({ db: db.client }, createUser, {
     email: "admin@encmys.cn",
     name: "YKDZ",
@@ -63,6 +72,7 @@ beforeAll(async () => {
   glossaryId = glossary.id;
 
   createDefaultGraphRuntime(db.client, pluginManager);
+  registerDomainEventHandlers(db.client, { pluginManager });
 });
 
 test("create-term should insert terms to db", async () => {
@@ -128,4 +138,54 @@ test("create-term with empty data should return empty termIds", async () => {
     { pluginManager },
   );
   expect(termIds).toEqual([]);
+});
+
+test("create-term rebuilds morphological recall variants via domain events", async () => {
+  const { client: drizzle } = await getDbHandle();
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
+
+  await runGraph(
+    createTermGraph,
+    {
+      glossaryId,
+      data: [
+        {
+          term: "HTTP 404 error",
+          termLanguageId: "en",
+          translation: "HTTP 404 错误",
+          translationLanguageId: "zh-Hans",
+          definition: "A structured HTTP error term",
+        },
+      ],
+      vectorizerId: vectorizer.dbId,
+      vectorStorageId: vectorStorage.dbId,
+    },
+    { pluginManager },
+  );
+
+  const matches = await executeQuery(
+    { db: drizzle },
+    listMorphologicalTermSuggestions,
+    {
+      glossaryIds: [glossaryId],
+      normalizedText: "404 error",
+      sourceLanguageId: "en",
+      translationLanguageId: "zh-Hans",
+      minSimilarity: 0.99,
+      maxAmount: 5,
+    },
+  );
+
+  expect(matches.some((match) => match.term === "HTTP 404 error")).toBe(true);
+  expect(
+    matches[0]?.evidences.some(
+      (evidence) => evidence.channel === "morphological",
+    ),
+  ).toBe(true);
 });

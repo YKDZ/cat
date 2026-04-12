@@ -113,7 +113,7 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     });
 
     await initAllVectorStorage(pluginManager);
-    registerDomainEventHandlers(drizzleDB.client);
+    registerDomainEventHandlers(drizzleDB.client, { pluginManager });
 
     // 初始化向量化任务队列并注册消费者
     const vectorizationQueue = new RedisTaskQueue<VectorizationTask>(

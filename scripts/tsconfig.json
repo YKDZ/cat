@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@/*": ["../packages/db/src/*"]
+    },
+    "types": ["node"]
+  },
+  "include": ["./**/*.ts"]
+}

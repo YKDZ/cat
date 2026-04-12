@@ -3,42 +3,41 @@ description: Database access rules for plugin development under @cat-plugin/.
 paths: ["@cat-plugin/**/*.{ts,vue}"]
 ---
 
-# Plugin Database Access Rules
+# 插件数据访问规范
 
-## Mandatory: Use PluginCapabilities for Data Access
+## 正面限制
 
-Plugins under `@cat-plugin/` **must not** depend on `@cat/db` or any database-level API (Drizzle ORM imports, raw SQL, direct `DbHandle`/`DbContext` usage, etc.).
+1. **`@cat-plugin/**`下的插件代码必须通过注入的`PluginCapabilities` 访问数据。\*\*
+2. **`PluginCapabilities` 的导入来源遵循当前子系统约定。** 它可能直接来自 `@cat/domain`，也可能由 `@cat/plugin-core` 重导出。
+3. **现有 capability 不够用时，先扩领域层。** 新的数据访问需求应先在 `packages/domain/` 中补 query / command，再把它挂进 capability，最后由插件消费。
 
-All data access **must** go through the `PluginCapabilities` system provided by `@cat/domain`:
+## 负面限制
 
-```typescript
-// ✅ Correct — use injected capabilities
+1. **不要**在插件源码中导入 `@cat/db`、`@cat/db/*`、Drizzle schema、raw SQL、`DbHandle` 或 `DbContext`。
+2. **不要**在插件内部自行开启数据库事务或依赖底层 ORM 细节。
+3. **不要**通过给插件 `package.json` 增加 `@cat/db` 来绕过 capability 边界。
+
+## 例子
+
+### 推荐：使用注入的 capability
+
+```ts
 await this.capabilities.project.get({ id: projectId });
 await this.capabilities.translation.updateUnit({ ... });
+```
 
-// ❌ Forbidden — direct database access
+### 避免：直接访问数据库
+
+```ts
 import { db } from "@cat/db";
 import { projects } from "@cat/db/schema";
+
 db.select().from(projects).where(...);
 ```
 
-## Why
+### capability 不够用时的正确路径
 
-1. **Permission enforcement** — Capability methods wrap domain queries/commands with `assertPermission()` checks.
-2. **Domain events** — Commands return `CommandResult<R>` carrying domain events for audit and side-effects.
-3. **Isolation** — Plugins stay decoupled from ORM internals (schema changes, migrations, transactions).
-4. **Type safety** — Each capability method is fully typed via `CapabilityInput<T>` / `CapabilityOutput<T>`.
-
-## When No Existing Query/Command Fits
-
-If no existing capability method covers your use case, you are allowed (and encouraged) to implement a **new Query or Command** in `packages/domain/`:
-
-1. Create the query/command file following existing conventions:
-   - Queries: `packages/domain/src/queries/<domain>/get-*.query.ts` (or `list-*`, `count-*`)
-   - Commands: `packages/domain/src/commands/<domain>/create-*.cmd.ts` (or `update-*`, `delete-*`)
-2. Define a Zod schema for the input type.
-3. Implement the function with the `Query<Q, R>` or `Command<C, R>` signature (receiving `DbContext`).
-4. Wire it into the relevant capability namespace in `packages/domain/src/capabilities/`.
-5. Then consume it in your plugin via `PluginCapabilities`.
-
-**Never bypass this by importing database utilities directly into the plugin.**
+1. 在 `packages/domain/src/queries/` 或 `packages/domain/src/commands/` 中新增能力
+2. 定义对应的 Zod input schema
+3. 接入 `packages/domain/src/capabilities/`
+4. 回到插件侧通过 `PluginCapabilities` 消费

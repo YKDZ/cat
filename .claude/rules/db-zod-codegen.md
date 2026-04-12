@@ -3,15 +3,27 @@ description: Every new table in schema.ts must be registered in generators.ts fo
 applyTo: "packages/db/src/drizzle/schema/schema.ts, packages/db/src/zod/generators.ts"
 ---
 
-# Zod Codegen Registration for New Tables
+# 新表的 Zod Codegen 注册规范
 
-Every table added to `packages/db/src/drizzle/schema/schema.ts` **must** be registered in `packages/db/src/zod/generators.ts` so that a reusable Zod schema is generated into the `@cat/shared` package.
+## 正面限制
 
-## Required Steps
+1. **每当你在 `packages/db/src/drizzle/schema/schema.ts` 新增表时，必须同步注册 `packages/db/src/zod/generators.ts`。**
+2. **生成产物统一落到 `packages/shared/src/schema/drizzle/`。** 其他包应通过 `@cat/shared/schema/drizzle/*` 消费这些 schema，而不是手写平行类型。
+3. **注册动作至少包含四步。**
+   - 在 `generators.ts` 导入新表
+   - 加入 `SelectSchemaTable` union
+   - 在 `generatedSharedSchemaFiles` 中补 `TableDeclaration`
+   - 运行 `pnpm nx codegen-schemas db`
 
-### 1. Import the table in `generators.ts`
+## 负面限制
 
-Add the new table to the import block from `../drizzle/schema/schema.ts`:
+1. **不要**只改 `schema.ts` 而忘记更新 `generators.ts`。
+2. **不要**手动创建或编辑 `packages/shared/src/schema/drizzle/**` 下的生成文件；生成结果不对时，应回源修改 `schema.ts` / `generators.ts` 后重新跑 codegen。
+3. **不要**把新表放进错误的 `outputFile` 分组；已有领域分组存在时应沿用该分组。
+
+## 例子
+
+### 1. 在 `generators.ts` 中导入新表
 
 ```ts
 import {
@@ -20,7 +32,7 @@ import {
 } from "../drizzle/schema/schema.ts";
 ```
 
-### 2. Add to the `SelectSchemaTable` union
+### 2. 加入 `SelectSchemaTable` union
 
 ```ts
 type SelectSchemaTable =
@@ -28,9 +40,7 @@ type SelectSchemaTable =
   | typeof myNewTable;
 ```
 
-### 3. Register a declaration in `generatedSharedSchemaFiles`
-
-Add a `TableDeclaration` entry inside the appropriate `outputFile` group (or create a new group if the table belongs to a new domain):
+### 3. 在 `generatedSharedSchemaFiles` 中注册声明
 
 ```ts
 {
@@ -38,31 +48,23 @@ Add a `TableDeclaration` entry inside the appropriate `outputFile` group (or cre
   schemaExportName: "MyNewTableSchema",
   typeExportName: "MyNewTable",
   buildShape: buildSelectShape(myNewTable),
-  // Optional: override columns that need custom Zod types
   overrides: {
     meta: "safeZDotJson.nullable()",
   },
 },
 ```
 
-### 4. Run codegen
-
-After registration, run the codegen command so the shared Zod schema file is generated/updated:
+### 4. 运行 codegen
 
 ```bash
 pnpm nx codegen-schemas db
 ```
 
-## Common `overrides`
+## 常见 `overrides`
 
-| Column pattern | Override value |
-|---|---|
+| Column pattern | Override value              |
+| -------------- | --------------------------- |
 | Nullable JSONB | `"safeZDotJson.nullable()"` |
-| Non-null JSONB | `"nonNullSafeZDotJson"` |
-| Email field | `"z.email()"` |
-| URL field | `"z.url().nullable()"` |
-
-## Why
-
-- The generated Zod schemas are the **single source of truth** for row types consumed by the rest of the monorepo (`@cat/shared/schema/generated/*`).
-- Forgetting to register a table means other packages cannot import a validated schema or inferred type for that table, leading to manual type duplication.
+| Non-null JSONB | `"nonNullSafeZDotJson"`     |
+| Email field    | `"z.email()"`               |
+| URL field      | `"z.url().nullable()"`      |

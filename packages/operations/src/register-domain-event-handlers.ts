@@ -1,4 +1,5 @@
 import type { DrizzleClient } from "@cat/domain";
+import type { PluginManager } from "@cat/plugin-core";
 
 import {
   domainEventBus,
@@ -11,13 +12,21 @@ import { getPermissionEngine } from "@cat/permissions";
 import { serverLogger as logger } from "@cat/server-shared";
 
 import { triggerConceptRevectorize } from "./trigger-revectorize";
+import { triggerTermRecallReindex } from "./trigger-term-recall-reindex";
 
 let registered = false;
 
 const onConceptUpdated = async (
   payload: DomainEventMap["concept:updated"],
+  pluginManager?: PluginManager,
 ): Promise<void> => {
-  triggerConceptRevectorize(payload.conceptId);
+  const ctx = {
+    traceId: `domain-event:concept-updated:${payload.conceptId}`,
+    pluginManager,
+  };
+
+  triggerConceptRevectorize(payload.conceptId, ctx);
+  triggerTermRecallReindex(payload.conceptId, ctx);
 };
 
 const onProjectCreated = async (
@@ -72,14 +81,17 @@ const onMemoryCreated = async (
  *
  * Idempotent: repeated calls are no-ops.
  */
-export const registerDomainEventHandlers = (db: DrizzleClient): void => {
+export const registerDomainEventHandlers = (
+  db: DrizzleClient,
+  options?: { pluginManager?: PluginManager },
+): void => {
   if (registered) {
     return;
   }
 
   domainEventBus.subscribe("concept:updated", async (event) => {
     try {
-      await onConceptUpdated(event.payload);
+      await onConceptUpdated(event.payload, options?.pluginManager);
     } catch (error) {
       logger
         .withSituation("SERVER")

@@ -1,3 +1,5 @@
+import type { TermMatch } from "@cat/shared/schema/term-recall";
+
 import {
   aliasedTable,
   and,
@@ -27,14 +29,7 @@ export type ListLexicalTermSuggestionsQuery = z.infer<
   typeof ListLexicalTermSuggestionsQuerySchema
 >;
 
-export type LexicalTermSuggestion = {
-  term: string;
-  translation: string;
-  definition: string | null;
-  conceptId: number;
-  glossaryId: string;
-  confidence: number;
-};
+export type LexicalTermSuggestion = TermMatch;
 
 export const listLexicalTermSuggestions: Query<
   ListLexicalTermSuggestionsQuery,
@@ -164,6 +159,16 @@ export const listLexicalTermSuggestions: Query<
       conceptId: row.conceptId,
       glossaryId: row.glossaryId,
       confidence,
+      evidences: [
+        {
+          channel: "lexical",
+          matchedText: row.term,
+          matchedVariantText: row.term,
+          confidence,
+          note: "pg_trgm lexical match",
+        },
+      ],
+      matchedText: row.term,
     };
 
     const key = `${mapped.term}\0${mapped.conceptId}`;

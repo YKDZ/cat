@@ -4,10 +4,11 @@ import {
   executeQuery,
   getDbHandle,
   listConceptSubjectsByConceptIds,
-  listLexicalTermSuggestions,
 } from "@cat/domain";
 import { EnrichedTermMatchSchema } from "@cat/shared/schema/term-recall";
 import * as z from "zod";
+
+import { collectTermRecallOp } from "./collect-term-recall";
 
 export const TermRecallInputSchema = z.object({
   text: z.string(),
@@ -23,7 +24,7 @@ export const TermRecallOutputSchema = z.object({
   terms: z.array(TermContextSchema),
 });
 
-export type TermRecallInput = z.infer<typeof TermRecallInputSchema>;
+export type TermRecallInput = z.input<typeof TermRecallInputSchema>;
 export type TermContext = z.infer<typeof TermContextSchema>;
 export type TermRecallOutput = z.infer<typeof TermRecallOutputSchema>;
 
@@ -46,18 +47,19 @@ export const termRecallOp = async (
   data: TermRecallInput,
   _ctx?: OperationContext,
 ): Promise<TermRecallOutput> => {
+  const input = TermRecallInputSchema.parse(data);
   const { client: drizzle } = await getDbHandle();
 
-  const lookedUpTerms = await executeQuery(
-    { db: drizzle },
-    listLexicalTermSuggestions,
+  const lookedUpTerms = await collectTermRecallOp(
     {
-      text: data.text,
-      sourceLanguageId: data.sourceLanguageId,
-      translationLanguageId: data.translationLanguageId,
-      glossaryIds: data.glossaryIds,
-      wordSimilarityThreshold: data.wordSimilarityThreshold,
+      text: input.text,
+      sourceLanguageId: input.sourceLanguageId,
+      translationLanguageId: input.translationLanguageId,
+      glossaryIds: input.glossaryIds,
+      wordSimilarityThreshold: input.wordSimilarityThreshold,
+      maxAmount: 20,
     },
+    _ctx,
   );
 
   const uniqueConceptIds = [...new Set(lookedUpTerms.map((t) => t.conceptId))];
@@ -88,6 +90,8 @@ export const termRecallOp = async (
     definition: t.definition,
     conceptId: t.conceptId,
     glossaryId: t.glossaryId,
+    evidences: t.evidences,
+    matchedText: t.matchedText,
     concept: {
       subjects: subjectsMap.get(t.conceptId) ?? [],
       definition: t.definition,

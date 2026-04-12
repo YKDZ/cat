@@ -1,3 +1,5 @@
+import type { RecallEvidence } from "@cat/shared/schema/recall";
+
 import { defineStore, storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
@@ -14,8 +16,13 @@ type TermRelationWithDetails = {
   confidence: number;
   termLanguageId: string;
   translationLanguageId: string;
+  conceptId?: number;
+  glossaryId?: string;
+  evidences?: RecallEvidence[];
+  matchedText?: string;
   concept?: {
     subjects: Array<{ name: string; defaultDefinition: string | null }>;
+    definition?: string | null;
   };
 };
 
@@ -88,15 +95,21 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
     termsToAdd.forEach((relation) => {
       const { term, translation } = relation;
       if (!term || !translation) return;
-      const id = term + translation;
-      if (
-        !terms.value.find((relation) => {
-          const { term: t, translation: tr } = relation;
-          if (!t || !tr) return false;
-          return t + tr === id;
-        })
-      )
+      const existingIndex = terms.value.findIndex((current) =>
+        relation.conceptId !== undefined && current.conceptId !== undefined
+          ? current.conceptId === relation.conceptId
+          : current.term === relation.term &&
+            current.translation === relation.translation,
+      );
+
+      if (existingIndex === -1) {
         terms.value.push(relation);
+        return;
+      }
+
+      if (terms.value[existingIndex].confidence <= relation.confidence) {
+        terms.value.splice(existingIndex, 1, relation);
+      }
     });
   };
 

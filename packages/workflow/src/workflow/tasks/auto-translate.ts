@@ -1,7 +1,7 @@
 import {
+  collectMemoryRecallOp,
   fetchAdviseOp,
   llmRefineTranslationOp,
-  searchMemoryOp,
   termRecallOp,
 } from "@cat/operations";
 import { safeZDotJson } from "@cat/shared/schema/json";
@@ -232,8 +232,9 @@ export const autoTranslateGraph = defineTypedGraph({
             },
             { traceId: ctx.runId, signal: ctx.signal },
           ),
-          searchMemoryOp(
+          collectMemoryRecallOp(
             {
+              text: input.text,
               chunkIds: input.chunkIds,
               memoryIds: input.memoryIds,
               sourceLanguageId: input.sourceLanguageId,
@@ -249,7 +250,7 @@ export const autoTranslateGraph = defineTypedGraph({
             },
           ),
         ]);
-        return { terms: termResult.terms, memories: memoryResult.memories };
+        return { terms: termResult.terms, memories: memoryResult };
       },
     }),
 
@@ -277,7 +278,7 @@ export const autoTranslateGraph = defineTypedGraph({
             preloadedTerms: input.terms,
             preloadedMemories: input.memories.map((m) => ({
               source: m.source,
-              translation: m.translation,
+              translation: m.adaptedTranslation ?? m.translation,
               confidence: m.confidence,
             })),
           },

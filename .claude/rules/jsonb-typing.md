@@ -1,5 +1,5 @@
 ---
-description: Typing rules for database JSONB columns — always use JSONType/NonNullJSONType from @cat/shared.
+description: Typing rules for database JSONB columns — require explicit .$type<T>() and prefer the most specific shared/domain type.
 paths:
   [
     "packages/domain/**/*.ts",
@@ -10,28 +10,30 @@ paths:
   ]
 ---
 
-# JSONB Column Typing Rules
+# JSONB 列类型规范
 
-## 1. Never Use `unknown` for JSONB Values
+## 正面限制
 
-When typing database JSONB column inputs or outputs, **never** use:
+1. **每个 `jsonb()` 列都必须显式写 `.$type<T>()`。** 不要让 JSONB 列停留在未注解状态。
+2. **优先使用“最具体、最稳定”的类型。**
+   - 通用 / 非结构化 JSON：使用 `JSONType` / `NonNullJSONType`
+   - 明确要求 object 的 JSON：使用 `JSONObject` / `_JSONSchema`
+   - 领域内已知结构：使用精确类型，例如 `string[]`、`AgentLLMConfig | null` 等
+3. **在命令、查询和能力层延续列的真实类型。** 如果 schema 已经精确建模，调用方不应再靠后置断言修正类型。
+4. **Zod 层保持一致。** 通用 JSON 字段使用 `safeZDotJson` / `nonNullSafeZDotJson`；结构化 JSON 字段使用对应的精确 Zod schema，必要时在 `packages/db/src/zod/generators.ts` 里写 override。
 
-- `unknown` as the TypeScript type
-- `z.unknown()` as the Zod schema
-- `Record<string, unknown>` as a substitute
+## 负面限制
 
-Instead, use the canonical JSON types from `@cat/shared/schema/json`:
+1. **不要**把持久化 JSONB 字段偷懒写成 `unknown`、`z.unknown()` 或 `Record<string, unknown>`。
+2. **不要**遗漏 `.$type<T>()`。
+3. **不要**把领域内已知结构的 JSONB 字段降级成宽泛的 `JSONType`，仅仅因为它“存的是 jsonb”。
+4. **不要**在查询结果出来之后再用 `as JSONType` / `as NonNullJSONType` 补类型；如果 schema 对了，返回类型本来就应该对。
 
-| Scenario                                  | TypeScript Type   | Zod Schema            |
-| ----------------------------------------- | ----------------- | --------------------- |
-| Nullable JSON value (default for jsonb)   | `JSONType`        | `safeZDotJson`        |
-| Non-null JSON value (`.notNull()` column) | `NonNullJSONType` | `nonNullSafeZDotJson` |
-| JSON object specifically                  | `JSONObject`      | `JSONObjectSchema`    |
-| JSON Schema metadata                      | `_JSONSchema`     | `_JSONSchemaSchema`   |
+## 例子
 
-## 2. Import Path
+### 导入路径
 
-```typescript
+```ts
 import type {
   JSONType,
   NonNullJSONType,
@@ -40,30 +42,27 @@ import type {
 import { safeZDotJson, nonNullSafeZDotJson } from "@cat/shared/schema/json";
 ```
 
-## 3. DB Schema Annotations
+### 通用 JSON 字段
 
-Every `jsonb()` column in `@cat/db` schema **must** have a `.$type<T>()` annotation:
-
-```typescript
+```ts
 // ✅ Correct
-meta: jsonb("meta").$type<JSONType>(),
-value: jsonb("value").$type<NonNullJSONType>().notNull(),
+meta: jsonb().$type<JSONType>(),
+value: jsonb().$type<NonNullJSONType>().notNull(),
 
-// ❌ Wrong — loses type information
-meta: jsonb("meta"),
-value: jsonb("value").notNull(),
+// ❌ Wrong
+meta: jsonb(),
+value: jsonb().notNull(),
 ```
 
-## 4. Domain Command/Query Typing
+### 结构化 JSON 字段
 
-- **Command Zod schemas**: Use `safeZDotJson` / `nonNullSafeZDotJson` for JSONB input fields
-- **Query return types**: Use `JSONType` / `NonNullJSONType` for JSONB output fields
-- **Never** cast query results with `as JSONType` when the query already returns the correct type
+```ts
+// ✅ Correct
+labels: jsonb().$type<string[]>().notNull().default([]),
+llmConfig: jsonb().$type<AgentLLMConfig | null>(),
+schema: jsonb().notNull().$type<_JSONSchema>(),
 
-## 5. Downstream Consumer Rules
-
-When consuming domain query results that return JSON types:
-
-- Do **not** add `as JSONType` or `as NonNullJSONType` casts — the type flows naturally
-- Do **not** add `oxlint-disable` comments for type assertions that are no longer needed
-- When narrowing `JSONType` to `JSONObject`, use standard type guards (`typeof x === "object" && x !== null && !Array.isArray(x)`) — TypeScript will narrow correctly
+// ❌ Wrong
+labels: jsonb().$type<unknown>(),
+llmConfig: jsonb().$type<Record<string, unknown>>(),
+```

@@ -1,5 +1,7 @@
 import * as z from "zod/v4";
 
+import { RecallEvidenceSchema } from "@/schema/recall.ts";
+
 // ─── 术语召回通道统一输出 ───
 
 /** 扁平术语匹配结果（所有术语召回通道的直接输出） */
@@ -10,6 +12,10 @@ export const TermMatchSchema = z.object({
   conceptId: z.int(),
   glossaryId: z.string(),
   confidence: z.number().min(0).max(1),
+  /** Recall evidence entries from all channels that matched this concept. Backward-compatible default: []. */
+  evidences: z.array(RecallEvidenceSchema).default([]),
+  /** The text fragment that was actually matched (may be a variant). */
+  matchedText: z.string().optional(),
 });
 export type TermMatch = z.infer<typeof TermMatchSchema>;
 

@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/db", "@cat/domain"],
+    external: ["@cat/core", "@cat/db", "@cat/domain", "@cat/server-shared"],
   },
 
   resolve: {
@@ -24,7 +24,15 @@ export default defineConfig({
       formats: ["es"],
     },
     rolldownOptions: {
-      external: ["vitest", "@cat/db", "@cat/domain", "pg", "drizzle-orm"],
+      external: [
+        "vitest",
+        "@cat/core",
+        "@cat/db",
+        "@cat/domain",
+        "@cat/server-shared",
+        "pg",
+        "drizzle-orm",
+      ],
     },
   },
 

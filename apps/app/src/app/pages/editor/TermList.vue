@@ -21,7 +21,7 @@ watchClient(elementId, updateTerms, { immediate: true });
   <div class="flex flex-col gap-1">
     <TermListItem
       v-for="(term, index) in terms"
-      :key="term.term + term.translation"
+      :key="term.conceptId ?? `${term.term}:${term.translation}`"
       :index
       :term
     />

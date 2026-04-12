@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 265
+* **Modules**: 275
 
-* **Exported functions**: 284
+* **Exported functions**: 294
 
-* **Exported types**: 376
+* **Exported types**: 390
 
 ## Function Index
 
@@ -110,7 +110,7 @@ export const completeAgentSession: Command<
 export const createAgentDefinition: Command<
   CreateAgentDefinitionCommand,
   { id: string }
-> = async (ctx: DbContext, command: { name: string; description: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; definitionId: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; tools: string[]; content: string; isBuiltin: boolean; icon?: string | undefined; llmConfig?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; promptConfig?: { autoInjectSlots: number[]; } | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; errorRecovery?: { truncationMax: number; contextOverflowMax: number; } | undefined; } | undefined; securityPolicy?: { allowExternalNetwork: boolean; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; }) => {...}
+> = async (ctx: DbContext, command: { name: string; description: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; definitionId: string; version: string; type: "GENERAL" | "GHOST_TEXT" | "WORKFLOW"; tools: string[]; content: string; isBuiltin: boolean; icon?: string | undefined; llmConfig?: { providerId?: number | null | undefined; temperature?: number | undefined; maxTokens?: number | undefined; } | undefined; promptConfig?: { autoInjectSlots: number[]; } | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; errorRecovery?: { truncationMax: number; contextOverflowMax: number; } | undefined; } | undefined; securityPolicy?: { allowExternalNetwork: boolean; } | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; }) => {...}
 ```
 
 ### `createAgentRun`
@@ -131,7 +131,7 @@ export const createAgentRun: Command<
 export const createAgentSession: Command<
   CreateAgentSessionCommand,
   { sessionId: string }
-> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; documentId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; } | undefined; }) => {...}
+> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; projectName?: string | undefined; providerId?: number | undefined; documentId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; kanbanBoardId?: number | undefined; kanbanCardId?: number | undefined; } | undefined; }) => {...}
 ```
 
 ### `deleteAgentDefinition`
@@ -186,7 +186,7 @@ export const saveAgentRunSnapshot: Command<
 ```ts
 export const updateAgentDefinition: Command<
   UpdateAgentDefinitionCommand
-> = async (ctx: DbContext, command: { id: string; name?: string | undefined; description?: string | undefined; definitionId?: string | undefined; version?: string | undefined; icon?: string | null | undefined; type?: "GENERAL" | "GHOST_TEXT" | "WORKFLOW" | undefined; llmConfig?: { providerId: number; temperature?: number | undefined; maxTokens?: number | undefined; } | null | undefined; tools?: string[] | undefined; promptConfig?: { autoInjectSlots: number[]; } | null | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; errorRecovery?: { truncationMax: number; contextOverflowMax: number; } | undefined; } | null | undefined; securityPolicy?: { allowExternalNetwork: boolean; } | null | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; content?: string | undefined; }) => {...}
+> = async (ctx: DbContext, command: { id: string; name?: string | undefined; description?: string | undefined; definitionId?: string | undefined; version?: string | undefined; icon?: string | null | undefined; type?: "GENERAL" | "GHOST_TEXT" | "WORKFLOW" | undefined; llmConfig?: { providerId?: number | null | undefined; temperature?: number | undefined; maxTokens?: number | undefined; } | null | undefined; tools?: string[] | undefined; promptConfig?: { autoInjectSlots: number[]; } | null | undefined; constraints?: { maxSteps: number; maxConcurrentToolCalls: number; timeoutMs: number; maxCorrectionAttempts: number; errorRecovery?: { truncationMax: number; contextOverflowMax: number; } | undefined; } | null | undefined; securityPolicy?: { allowExternalNetwork: boolean; } | null | undefined; orchestration?: { mode: "pipeline"; stages: { agentId: string; outputKey: string; inputFrom?: string | string[] | undefined; }[]; } | null | undefined; content?: string | undefined; }) => {...}
 ```
 
 ### packages/domain/src/commands/api-key
@@ -528,6 +528,21 @@ export const deleteGlossaryTerm: Command<
 > = async (ctx: DbContext, command: { termId: number; }) => {...}
 ```
 
+### `replaceTermRecallVariants`
+
+```ts
+/**
+ * Idempotent replace: delete all existing variants for (conceptId, languageId)
+ * and insert the new set in a single transaction.
+ *
+ * Designed to be called after term content changes. Passing an empty
+ * `variants` array is a valid "clear" operation.
+ */
+export const replaceTermRecallVariants: Command<
+  ReplaceTermRecallVariantsCommand
+> = async (ctx: DbContext, command: { conceptId: number; languageId: string; variants: { text: string; normalizedText: string; variantType: "SURFACE" | "CASE_FOLDED" | "LEMMA" | "TOKEN_TEMPLATE" | "FRAGMENT"; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
+```
+
 ### `setConceptStringId`
 
 ```ts
@@ -653,6 +668,18 @@ export const createMemory: Command<
   CreateMemoryCommand,
   typeof memory.$inferSelect
 > = async (ctx: DbContext, command: { name: string; creatorId: string; description?: string | undefined; projectIds?: string[] | undefined; }) => {...}
+```
+
+### `replaceMemoryRecallVariants`
+
+```ts
+/**
+ * Idempotent replace: delete all existing variants for
+ * (memoryItemId, languageId, querySide) and insert the new set.
+ */
+export const replaceMemoryRecallVariants: Command<
+  ReplaceMemoryRecallVariantsCommand
+> = async (ctx: DbContext, command: { memoryItemId: number; memoryId: string; languageId: string; querySide: "TRANSLATION" | "SOURCE"; variants: { text: string; normalizedText: string; variantType: "SURFACE" | "CASE_FOLDED" | "LEMMA" | "TOKEN_TEMPLATE" | "FRAGMENT"; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
 ```
 
 ### packages/domain/src/commands/notification
@@ -1124,6 +1151,15 @@ export const listAllUsers: Query<
 
 ### packages/domain/src/queries/agent
 
+### `findAgentDefinitionByDefinitionIdAndScope`
+
+```ts
+export const findAgentDefinitionByDefinitionIdAndScope: Query<
+  FindAgentDefinitionByDefinitionIdAndScopeQuery,
+  typeof agentDefinition.$inferSelect | null
+> = async (ctx: DbContext, query: { definitionId: string; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+```
+
 ### `findAgentDefinitionByNameAndScope`
 
 ```ts
@@ -1158,6 +1194,15 @@ export const getAgentDefinition: Query<
   GetAgentDefinitionQuery,
   typeof agentDefinition.$inferSelect | null
 > = async (ctx: DbContext, query: { id: string; }) => {...}
+```
+
+### `getAgentRunByInternalId`
+
+```ts
+export const getAgentRunByInternalId: Query<
+  GetAgentRunByInternalIdQuery,
+  AgentRunByInternalId
+> = async (ctx: DbContext, query: { id: number; }) => {...}
 ```
 
 ### `getAgentRunInternalId`
@@ -1232,13 +1277,22 @@ export const listAgentEvents: Query<
 > = async (ctx: DbContext, query: { runInternalId: number; }) => {...}
 ```
 
+### `listAgentRunSnapshotsBySession`
+
+```ts
+export const listAgentRunSnapshotsBySession: Query<
+  z.infer<typeof ListAgentRunSnapshotsBySessionQuerySchema>,
+  AgentRunSnapshotBySessionRow[]
+> = async (ctx: DbContext, query: { sessionId: number; }) => {...}
+```
+
 ### `listAgentSessions`
 
 ```ts
 export const listAgentSessions: Query<
   ListAgentSessionsQuery,
   Array<typeof agentSession.$inferSelect>
-> = async (ctx: DbContext, query: { userId: string; limit: number; offset: number; agentDefinitionId?: string | undefined; }) => {...}
+> = async (ctx: DbContext, query: { userId: string; limit: number; offset: number; agentDefinitionId?: string | undefined; projectId?: string | undefined; }) => {...}
 ```
 
 ### `listProjectRuns`
@@ -1697,6 +1751,21 @@ export const listElementsByDocument: Query<
 > = async (ctx: DbContext, query: { documentId: string; }) => {...}
 ```
 
+### `listNeighborElements`
+
+```ts
+/**
+ * Fetch the nearest sibling elements within the same document.
+ *
+ * Prefer `sortIndex` ordering when available; fall back to `id` ordering when
+ * the reference element has no sort index.
+ */
+export const listNeighborElements: Query<
+  ListNeighborElementsQuery,
+  NeighborElement[]
+> = async (ctx: DbContext, query: { elementId: number; windowSize: number; }) => {...}
+```
+
 ### packages/domain/src/queries/file
 
 ### `getBlobByKey`
@@ -1748,7 +1817,7 @@ export const countGlossaryConcepts: Query<
  * the given concept IDs. Pairs with no matching term in either language are
  * omitted.
  */
-export const fetchTermsByConceptIds = async (drizzle: DrizzleDB["client"], conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; }[]>
+export const fetchTermsByConceptIds = async (drizzle: DbHandle, conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
 ```
 
 ### `buildConceptVectorizationText`
@@ -1769,8 +1838,24 @@ export const fetchTermsByConceptIds = async (drizzle: DrizzleDB["client"], conce
  * Returns `null` if no meaningful content exists (no terms, no subjects, no
  * definition), indicating that this concept should not be vectorized.
  */
-export const buildConceptVectorizationText = async (drizzle: DrizzleDB["client"], conceptId: number): Promise<string | null>
+export const buildConceptVectorizationText = async (drizzle: DbHandle, conceptId: number): Promise<string | null>
 ````
+
+### `getConceptRecallDetail`
+
+```ts
+/**
+ * Fetch all data required to build recall variants for a single concept.
+ *
+ * This is a conceptId-only snapshot query: it does not filter by glossaryId
+ * and does not require knowing the source / translation language in advance.
+ * The caller (variant builder) is responsible for language filtering.
+ */
+export const getConceptRecallDetail: Query<
+  GetConceptRecallDetailQuery,
+  ConceptRecallDetail | null
+> = async (ctx: DbContext, query: { conceptId: number; }) => {...}
+```
 
 ### `getConceptVectorizationSnapshot`
 
@@ -1868,6 +1953,21 @@ export const listLexicalTermSuggestions: Query<
 > = async (ctx: DbContext, query: { glossaryIds: string[]; text: string; sourceLanguageId: string; translationLanguageId: string; wordSimilarityThreshold: number; }) => {...}
 ```
 
+### `listMorphologicalTermSuggestions`
+
+```ts
+/**
+ * Query `TermRecallVariant` by trigram similarity on `normalizedText`,
+ * then assemble full term pairs via `fetchTermsByConceptIds`.
+ *
+ * Returns LookedUpTerm[] with confidence derived from trigram similarity.
+ */
+export const listMorphologicalTermSuggestions: Query<
+  ListMorphologicalTermSuggestionsQuery,
+  LookedUpTerm[]
+> = async (ctx: DbContext, query: { glossaryIds: string[]; normalizedText: string; sourceLanguageId: string; translationLanguageId: string; minSimilarity: number; maxAmount: number; }) => {...}
+```
+
 ### `listOwnedGlossaries`
 
 ```ts
@@ -1902,6 +2002,21 @@ export const listSemanticTermSearchRange: Query<
   ListSemanticTermSearchRangeQuery,
   SemanticTermSearchRangeRow[]
 > = async (ctx: DbContext, query: { glossaryIds: string[]; }) => {...}
+```
+
+### `listTermConceptIdsByRecallVariants`
+
+```ts
+/**
+ * Lightweight query that returns only the set of conceptIds whose
+ * `TermRecallVariant` records match the given normalizedText by trigram
+ * similarity. Used by `deduplicateAndMatchOp` to check existence without
+ * fetching the full term pair data.
+ */
+export const listTermConceptIdsByRecallVariants: Query<
+  ListTermConceptIdsByRecallVariantsQuery,
+  number[]
+> = async (ctx: DbContext, query: { glossaryIds: string[]; normalizedText: string; sourceLanguageId: string; minSimilarity: number; maxAmount: number; }) => {...}
 ```
 
 ### `listTermConceptIdsBySubject`
@@ -2109,6 +2224,27 @@ export const listProjectMemories: Query<
   ListProjectMemoriesQuery,
   Array<typeof memory.$inferSelect>
 > = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listVariantMemorySuggestions`
+
+```ts
+/**
+ * Query `MemoryRecallVariant` by trigram similarity on `normalizedText`,
+ * then fetch the full memory item details.
+ *
+ * This covers the morphological recall channel for memory items:
+ * - fragment recall (partial surface match)
+ * - lemma recall (normalized token join)
+ * - template recall (TOKEN_TEMPLATE variant)
+ *
+ * Results are returned as `RawMemorySuggestion[]` so they are directly
+ * compatible with the existing `streamSearchMemoryOp` dedup pipeline.
+ */
+export const listVariantMemorySuggestions: Query<
+  ListVariantMemorySuggestionsQuery,
+  RawMemorySuggestion[]
+> = async (ctx: DbContext, query: { text: string; normalizedText: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; minSimilarity: number; maxAmount: number; }) => {...}
 ```
 
 ### packages/domain/src/queries/notification
@@ -2780,6 +2916,8 @@ export const searchChunkCosineSimilarity: Query<
 
 * `DeleteGlossaryTermResult` (type)
 
+* `ReplaceTermRecallVariantsCommand` (type)
+
 * `SetConceptStringIdCommand` (type)
 
 * `SetConceptStringIdResult` (type)
@@ -2815,6 +2953,8 @@ export const searchChunkCosineSimilarity: Query<
 * `CreatedMemoryItemId` (type)
 
 * `CreateMemoryCommand` (type)
+
+* `ReplaceMemoryRecallVariantsCommand` (type)
 
 * `CreateNotificationCommand` (type)
 
@@ -2924,6 +3064,8 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ExecutorContext` (type)
 
+* `FindAgentDefinitionByDefinitionIdAndScopeQuery` (type)
+
 * `FindAgentDefinitionByNameAndScopeQuery` (type)
 
 * `FindAgentRunByDeduplicationKeyQuery` (type)
@@ -2931,6 +3073,10 @@ export const searchChunkCosineSimilarity: Query<
 * `GetAgentDefinitionByInternalIdQuery` (type)
 
 * `GetAgentDefinitionQuery` (type)
+
+* `GetAgentRunByInternalIdQuery` (type)
+
+* `AgentRunByInternalId` (type) — Query an agent run and its blackboard snapshot by internal ID.
 
 * `GetAgentRunInternalIdQuery` (type)
 
@@ -2959,6 +3105,8 @@ export const searchChunkCosineSimilarity: Query<
 * `ListAgentEventsQuery` (type)
 
 * `AgentEventRow` (type)
+
+* `AgentRunSnapshotBySessionRow` (type)
 
 * `ListAgentSessionsQuery` (type)
 
@@ -3096,6 +3244,10 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ListElementsByDocumentQuery` (type)
 
+* `ListNeighborElementsQuery` (type)
+
+* `NeighborElement` (type)
+
 * `GetBlobByKeyQuery` (type)
 
 * `GetFileQuery` (type)
@@ -3107,6 +3259,12 @@ export const searchChunkCosineSimilarity: Query<
 * `LookedUpTerm` (type) — Represents a resolved term pair (source + translation) for a given concept.
   Alias to TermMatch from
   @cat /shared for backward compatibility.
+
+* `GetConceptRecallDetailQuery` (type)
+
+* `ConceptTermEntry` (type)
+
+* `ConceptRecallDetail` (type)
 
 * `GetConceptVectorizationSnapshotQuery` (type)
 
@@ -3152,6 +3310,8 @@ export const searchChunkCosineSimilarity: Query<
 
 * `LexicalTermSuggestion` (type)
 
+* `ListMorphologicalTermSuggestionsQuery` (type)
+
 * `ListOwnedGlossariesQuery` (type)
 
 * `ListProjectGlossariesQuery` (type)
@@ -3161,6 +3321,8 @@ export const searchChunkCosineSimilarity: Query<
 * `ListSemanticTermSearchRangeQuery` (type)
 
 * `SemanticTermSearchRangeRow` (type)
+
+* `ListTermConceptIdsByRecallVariantsQuery` (type)
 
 * `ListTermConceptIdsBySubjectQuery` (type)
 
@@ -3217,6 +3379,8 @@ export const searchChunkCosineSimilarity: Query<
 * `ListOwnedMemoriesQuery` (type)
 
 * `ListProjectMemoriesQuery` (type)
+
+* `ListVariantMemorySuggestionsQuery` (type)
 
 * `ListAllProjectsQuery` (type)
 

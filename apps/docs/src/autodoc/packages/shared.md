@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 35
+* **Modules**: 36
 
 * **Exported functions**: 24
 
-* **Exported types**: 145
+* **Exported types**: 154
 
 ## Function Index
 
@@ -199,6 +199,8 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `AgentScope` (type) — Agent scope type.
 
+* `AgentSessionMetadata` (type) — Agent session metadata type.
+
 * `Orchestration` (type) — Multi-agent orchestration configuration type.
 
 * `PipelineStage` (type) — Orchestration pipeline stage type.
@@ -269,11 +271,15 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `TermConceptSubject` (type)
 
+* `TermRecallVariant` (type)
+
 * `KanbanBoard` (type)
 
 * `KanbanCard` (type)
 
 * `KanbanCardDep` (type)
+
+* `ToolCallLog` (type)
 
 * `SlotMappingEntry` (type)
 
@@ -282,6 +288,8 @@ export const safeJoinURL = (base: string, path: string): string
 * `MemoryItem` (type)
 
 * `MemoryToProject` (type)
+
+* `MemoryRecallVariant` (type)
 
 * `Language` (type)
 
@@ -393,6 +401,10 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `ChangesetEntryAsyncStatus` (type)
 
+* `RecallVariantType` (type)
+
+* `RecallQuerySide` (type)
+
 * `JSONObject` (interface)
 
 * `JSONSchema` (type)
@@ -446,6 +458,12 @@ export const safeJoinURL = (base: string, path: string): string
 * `PluginData` (type)
 
 * `TranslationSuggestion` (type)
+
+* `RecallChannel` (type)
+
+* `RecallEvidence` (type)
+
+* `RecallDebugContext` (type)
 
 * `TermMatch` (type)
 

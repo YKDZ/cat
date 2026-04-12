@@ -1,0 +1,71 @@
+{
+  "name": "memory-template",
+  "description": "Template recall adapts placeholders from the current source text.",
+  "kind": "memory",
+  "matrix": "mock-nlp",
+  "query": {
+    "text": "Order 43 completed",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 301,
+    "minimumTopConfidence": 0.93,
+    "requiredChannels": ["template"],
+    "requiredVariantTypes": ["TOKEN_TEMPLATE"],
+    "expectedTranslation": "订单 43 已完成",
+    "missIds": []
+  },
+  "mock": {
+    "memory": {
+      "queryTokens": [
+        { "type": "text", "value": "Order ", "start": 0, "end": 6 },
+        { "type": "number", "value": "43", "start": 6, "end": 8 },
+        { "type": "text", "value": " completed", "start": 8, "end": 18 }
+      ],
+      "exact": [],
+      "trgm": [],
+      "variant": [
+        {
+          "id": 301,
+          "source": "Order 42 completed",
+          "translation": "订单 42 已完成",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 0.93,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "sourceTemplate": "Order {NUM_0} completed",
+          "translationTemplate": "订单 {NUM_0} 已完成",
+          "slotMapping": [
+            {
+              "placeholder": "src:{NUM_0}",
+              "value": "42",
+              "tokenType": "number"
+            },
+            {
+              "placeholder": "tgt:{NUM_0}",
+              "value": "42",
+              "tokenType": "number"
+            }
+          ],
+          "matchedText": "Order {NUM_0} completed",
+          "matchedVariantText": "Order {NUM_0} completed",
+          "matchedVariantType": "TOKEN_TEMPLATE",
+          "evidences": [
+            {
+              "channel": "template",
+              "matchedText": "Order {NUM_0} completed",
+              "matchedVariantText": "Order {NUM_0} completed",
+              "matchedVariantType": "TOKEN_TEMPLATE",
+              "confidence": 0.93,
+              "note": "template recall"
+            }
+          ]
+        }
+      ],
+      "semantic": []
+    }
+  }
+}

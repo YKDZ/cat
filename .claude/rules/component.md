@@ -3,26 +3,30 @@ description: Component reuse and discovery guidelines for Vue component developm
 paths: ["**/*.{vue,ts}"]
 ---
 
-# Vue Component Reuse Guidelines
+# Vue 组件复用规范
 
-## 1. Mandatory Component Discovery
+## 正面限制
 
-- **Search First:** Before implementing any custom UI element from scratch, you **must** thoroughly search the `packages/ui/src` and `apps/app/src/app/components` directories to check if a suitable component already exists.
-- **Avoid Duplication:** Do not reinvent standard UI patterns (e.g., buttons, modals, dialogs, pagination, data tables). Always prioritize reusing the established design system components.
+1. **先搜再写。** 在实现任何新 UI 之前，先检查 `packages/ui/src/components` 和 `apps/app/src/app/components` 是否已经有可复用组件。
+2. **优先复用共享组件。** 按钮、对话框、表单项、分页、数据表格等常见模式，应优先基于 `@cat/ui` 或现有 app 组件组合，而不是重新实现。
+3. **优先组合，不要复制。** 需要定制行为时，优先用 wrapper、slot、props 或组合式封装扩展已有组件。
+4. **新组件放对位置。**
+   - 设计系统级、跨应用复用：放在 `packages/ui/src/components/**`
+   - 仅 app 内复用：放在 `apps/app/src/app/components/**`
+5. **通用函数风格与类型约束遵循全局规则。** Vue 组件里的函数写法和类型安全要求统一遵循 `type-safety.md`，这里不再重复定义同义规则。
 
-## 2. Import Conventions
+## 负面限制
 
-- **Standard Paths:** Import existing components directly from the designated directory using your project's configured alias (e.g., `@/app/components/` or relative paths depending on your setup).
+1. **不要重复实现已有共享 UI。** 只因为“自己写更快”而绕过现有组件，会把设计系统撕成碎片。
+2. **不要直接修改共享组件源码，除非确有必要。** 只有满足以下任一条件时，才考虑直接改 `packages/ui/src/components/**`：
+   - 这是应保留到共享层的 bug fix
+   - wrapper / slot 无法表达该定制
+   - 性能或 DOM 结构限制要求直接修改源码
+3. **不要绕过 shadcn 同步机制。** `packages/ui/src/components/**` 中很多组件受同步脚本管理；直接改源码且不加标注，后续同步时很容易被覆盖。
 
-## 3. Extending Existing Components
+## 例子
 
-- **Slot Composition:** Leverage Vue slots (`<slot>`) provided by existing layout or wrapper components to inject custom content, rather than rebuilding the structural container.
-
-## 4. Avoiding Direct Modifications to Shared Components
-
-- **Wrapper Pattern First:** When you need to customize a shared component (especially shadcn-vue components in `packages/ui/src`), **always prefer creating a wrapper component** rather than modifying the source file directly.
-
-**Example - Preferred (Wrapper):**
+### 推荐：用 wrapper 扩展共享组件
 
 ```vue
 <!-- apps/app/src/app/components/CustomButton.vue -->
@@ -37,52 +41,33 @@ const props = defineProps<{
 </script>
 
 <template>
-  <Button :variant="variant" v-bind="$attrs">
+  <Button :variant="props.variant" v-bind="$attrs">
     <slot />
-    <span v-if="customFeature">{{ customFeature }}</span>
+    <span v-if="props.customFeature">{{ props.customFeature }}</span>
   </Button>
 </template>
 ```
 
-**Example - Avoid (Direct Modification):**
+### 避免：为了页面局部需求直接改共享组件
 
 ```vue
-<!-- ❌ Don't modify packages/ui/src/components/button/Button.vue directly -->
+<!-- ❌ 不要为了单个页面需求直接改 packages/ui/src/components/button/Button.vue -->
 ```
 
-- **When Source Modification is Absolutely Necessary:** Only modify source files when:
-  - The change is a bug fix that should be upstreamed
-  - The customization is too complex for a wrapper pattern
-  - Performance considerations require direct modification
-- **Mandatory Annotation:** When you must modify a source file, add the appropriate annotation at the top:
+### 必须直接修改共享组件时，补齐同步标注
 
-**For components that should not be auto-synced:**
-
-```typescript
+```ts
 /**
  * @shadcn-do-not-sync
- * reason: [Brief explanation, e.g., custom virtual scrolling support]
+ * reason: custom virtual scrolling support
  * lastReviewed: YYYY-MM-DD
  */
 ```
 
-**For custom component files (not in upstream):**
-
 ```vue
 <!--
   @shadcn-custom-component
-  description: [Description, e.g., Separate viewport for custom scrolling]
+  description: Separate viewport for custom scrolling
   lastReviewed: YYYY-MM-DD
 -->
 ```
-
-- **Sync Awareness:** Remember that components in `packages/ui/src/` are managed by the shadcn-vue sync system. Direct modifications will be overwritten during sync unless properly annotated.
-
-## 5. Scripting & Type Rigor (When Writing Wrapper/Glue Code)
-
-- **Arrow Functions Only:** All methods, event handlers, and callbacks within `<script setup>` must be defined using arrow functions. Do not use `function` declarations or expressions.
-- **Strict Typing (No `any`):** Explicitly define types for all props, emits, and reactive state. The `any` keyword is strictly prohibited. Use generic objects (e.g., `Record<string, unknown>`) or define specific interfaces if the exact shape is temporarily unknown.
-
-## 6. Fallback for Missing Components
-
-- **Justification Required:** If you determine that a new component must be created because nothing suitable exists in `apps/app/src/app/components` and `packages/ui/src`, ensure the new component is modular and placed in the `apps/app/src/app/components` if it has the potential for future reuse.

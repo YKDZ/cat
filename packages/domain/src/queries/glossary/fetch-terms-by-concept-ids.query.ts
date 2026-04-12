@@ -6,7 +6,6 @@ import {
   asc,
   desc,
   eq,
-  type DrizzleDB,
   inArray,
   sql,
   term,
@@ -14,6 +13,8 @@ import {
   termConceptSubject,
   termConceptToSubject,
 } from "@cat/db";
+
+import type { DbHandle } from "@/types";
 
 /**
  * Represents a resolved term pair (source + translation) for a given concept.
@@ -30,7 +31,7 @@ export type LookedUpTerm = TermMatch;
  * omitted.
  */
 export const fetchTermsByConceptIds = async (
-  drizzle: DrizzleDB["client"],
+  drizzle: DbHandle,
   conceptIds: number[],
   sourceLanguageId: string,
   translationLanguageId: string,
@@ -47,7 +48,7 @@ export const fetchTermsByConceptIds = async (
 };
 
 const fetchTerms = async (
-  drizzle: DrizzleDB["client"],
+  drizzle: DbHandle,
   termConceptIds: number[],
   sourceLanguageId: string,
   translationLanguageId: string,
@@ -115,6 +116,7 @@ const fetchTerms = async (
     conceptId: r.conceptId,
     glossaryId: r.glossaryId,
     confidence: confidenceMap?.get(r.conceptId) ?? 1.0,
+    evidences: [],
   }));
 };
 
@@ -143,7 +145,7 @@ const MAX_SUBJECTS_FOR_VECTORIZATION = 3;
  * definition), indicating that this concept should not be vectorized.
  */
 export const buildConceptVectorizationText = async (
-  drizzle: DrizzleDB["client"],
+  drizzle: DbHandle,
   conceptId: number,
 ): Promise<string | null> => {
   // 1. Fetch concept definition
@@ -208,10 +210,11 @@ export const buildConceptVectorizationText = async (
   }
 
   if (subjectRows.length > 0) {
-    const subjectLines = subjectRows.map((s) =>
-      s.defaultDefinition
-        ? ` - ${s.subject}: ${s.defaultDefinition}`
-        : ` - ${s.subject}`,
+    const subjectLines = subjectRows.map(
+      (s: { subject: string; defaultDefinition: string | null }) =>
+        s.defaultDefinition
+          ? ` - ${s.subject}: ${s.defaultDefinition}`
+          : ` - ${s.subject}`,
     );
     sections.push(`Subjects:\n${subjectLines.join("\n")}`);
   }

@@ -25,6 +25,8 @@ export type TranslationForMemoryRow = {
   creatorId: string | null;
   sourceText: string;
   translationText: string;
+  sourceLanguageId: string;
+  translationLanguageId: string;
 };
 
 export const fetchTranslationsForMemory: Query<
@@ -44,6 +46,8 @@ export const fetchTranslationsForMemory: Query<
       creatorId: translation.translatorId,
       sourceText: sourceString.value,
       translationText: translationString.value,
+      sourceLanguageId: sourceString.languageId,
+      translationLanguageId: translationString.languageId,
     })
     .from(translation)
     .innerJoin(

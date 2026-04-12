@@ -1,48 +1,46 @@
 ---
 description: Database enum values must be declared in @cat/shared and reused in schema.ts via pgEnum.
-paths: ["packages/shared/src/schema/enum.ts", "packages/db/src/drizzle/schema/schema.ts"]
+paths:
+  [
+    "packages/shared/src/schema/enum.ts",
+    "packages/db/src/drizzle/schema/schema.ts",
+  ]
 ---
 
-# Database Enum Convention
+# 数据库枚举规范
 
-All database-related enums **must** follow a two-step declaration pattern. Do **not** inline string literals or define enum values directly in `schema.ts`.
+## 正面限制
 
-## Step 1 — Declare in `packages/shared/src/schema/enum.ts`
+1. **所有数据库枚举都必须走“两处协作、单一来源”的模式。**
+   - 在 `packages/shared/src/schema/enum.ts` 中声明共享枚举值、Zod schema 和 TypeScript 类型
+   - 在 `packages/db/src/drizzle/schema/schema.ts` 中仅复用 `*Values`，通过 `pgEnum()` 建立 PostgreSQL enum
+2. **共享层是枚举值的唯一来源。** 前后端、Zod 校验和数据库 schema 都应从同一组 `*Values` 推导。
 
-For each enum, export three artifacts:
+## 负面限制
+
+1. **不要**在 `schema.ts` 中内联字符串字面量数组。
+2. **不要**在 `packages/db` 里再维护一份重复的 enum values tuple。
+3. **不要**只建 PostgreSQL enum，却不在 `@cat/shared` 同步暴露对应的 Zod schema 和 TS 类型。
+
+## 例子
+
+### Step 1：在 `packages/shared/src/schema/enum.ts` 中声明
 
 ```ts
-// 1. Values tuple (used by both pgEnum and Zod)
 export const FooStatusValues = ["A", "B", "C"] as const;
-
-// 2. Zod schema
 export const FooStatusSchema = z.enum(FooStatusValues);
-
-// 3. TypeScript type
 export type FooStatus = (typeof FooStatusValues)[number];
 ```
 
-## Step 2 — Reuse in `packages/db/src/drizzle/schema/schema.ts`
-
-Import the `*Values` constant and pass it to `pgEnum`:
+### Step 2：在 `packages/db/src/drizzle/schema/schema.ts` 中复用
 
 ```ts
 import { FooStatusValues } from "@cat/shared/schema/enum";
 import { pgEnum } from "drizzle-orm/pg-core";
 
 export const fooStatus = pgEnum("FooStatus", FooStatusValues);
-```
 
-Then use the resulting enum in table columns:
-
-```ts
 export const someTable = pgTable("SomeTable", {
   status: fooStatus().notNull().default("A"),
 });
 ```
-
-## Why
-
-- **Single source of truth**: Enum values are defined once in `@cat/shared`, which is isomorphic and importable by every package.
-- **Type safety across layers**: The Zod schema and TS type derived from the same `Values` tuple keep API validation, frontend code, and database schema in sync.
-- **Prevents drift**: Adding/removing a member in one place automatically propagates everywhere.

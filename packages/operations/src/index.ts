@@ -187,6 +187,12 @@ export {
 } from "./stream-search-memory";
 
 export {
+  collectMemoryRecallOp,
+  CollectMemoryRecallInputSchema,
+  type CollectMemoryRecallInput,
+} from "./collect-memory-recall";
+
+export {
   qaTranslationOp,
   QaTranslationInputSchema,
   QaTranslationOutputSchema,
@@ -203,6 +209,11 @@ export {
   type TermContext,
   type TermRecallOutput,
 } from "./term-recall";
+
+export {
+  recallContextRerankOp,
+  rerankTermRecallOp,
+} from "./recall-context-rerank";
 
 export {
   llmRefineTranslationOp,
@@ -288,6 +299,15 @@ export {
   type DeduplicateAndMatchInput,
   type DeduplicateAndMatchOutput,
 } from "./deduplicate-match-terms";
+
+export {
+  collectTermRecallOp,
+  CollectTermRecallInputSchema,
+  type CollectTermRecallInput,
+} from "./collect-term-recall";
+
+export { buildTermRecallVariantsOp } from "./build-term-recall-variants";
+export { triggerTermRecallReindex } from "./trigger-term-recall-reindex";
 
 export {
   llmTermEnhanceOp,

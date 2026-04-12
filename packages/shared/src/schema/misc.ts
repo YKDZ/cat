@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 
 import { safeZDotJson } from "@/schema/json.ts";
+import { RecallEvidenceSchema } from "@/schema/recall.ts";
 
 export const DrizzleDateTimeSchema = z.coerce.date();
 
@@ -50,6 +51,14 @@ export const MemorySuggestionSchema = z.object({
   adaptationMethod: AdaptationMethodSchema.optional(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
+  /** The text fragment that was actually matched (may be a variant). */
+  matchedText: z.string().optional(),
+  /** Variant text that was stored and matched against. */
+  matchedVariantText: z.string().optional(),
+  /** Variant type of the matched entry (e.g. SURFACE, TOKEN_TEMPLATE, FRAGMENT). */
+  matchedVariantType: z.string().optional(),
+  /** Recall evidence entries from all channels that matched this memory item. Backward-compatible default: []. */
+  evidences: z.array(RecallEvidenceSchema).default([]),
 });
 
 export const UnvectorizedTextDataSchema = z.object({

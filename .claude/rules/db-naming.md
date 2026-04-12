@@ -3,54 +3,52 @@ description: Database naming convention — rely on Drizzle auto-generated names
 paths: ["packages/db/src/drizzle/schema/schema.ts"]
 ---
 
-# Database Naming Convention
+# 数据库命名规范
 
-## Rule: Rely on Auto-Generated Names
+## 正面限制
 
-Drizzle ORM automatically generates database names for columns, indexes, unique constraints, and other identifiers based on the TypeScript property names and table names. **Do not** manually specify these names — let Drizzle handle it.
+1. **常规列、纯列索引和纯列唯一约束，优先依赖 Drizzle 自动命名。** TypeScript 属性名就是默认的单一来源。
+2. **让 schema 定义保持最小冗余。** 当 Drizzle 已能稳定推导数据库名称时，不要再手写一份同义名称。
+3. **只有 expression index 需要显式命名。** 涉及 `` sql`...` `` 表达式的索引，Drizzle 无法自动生成名称，此时必须手写名字。
 
-### Columns
+## 负面限制
 
-Do **not** pass a custom database column name to column builder functions. The TypeScript property name is the single source of truth.
+1. **不要**给普通列传入冗余的数据库列名。
+2. **不要**给仅基于列的 `index()`、`unique()`、`uniqueIndex()` 硬编码名称。
+3. **不要**把手写 snake_case / 自定义数据库名当默认做法；除非表达式索引需要，否则让 Drizzle 根据属性名映射即可。
 
-```typescript
-// ✅ Correct — Drizzle auto-generates the column name
+## 例子
+
+### 普通列
+
+```ts
+// ✅ Correct
 status: text().notNull(),
 creatorId: uuid().notNull(),
 
-// ❌ Wrong — manually specified column name
+// ❌ Wrong
 status: text("status").notNull(),
 creator_id: uuid("creator_id").notNull(),
 ```
 
-### Indexes and Constraints
+### 纯列索引 / 唯一约束
 
-Do **not** pass a custom name to `index()`, `unique()`, or `uniqueIndex()` when the index is on **columns only** (not expressions). Drizzle auto-generates deterministic names for these.
-
-```typescript
-// ✅ Correct — auto-generated index name
+```ts
+// ✅ Correct
 index().using("btree", table.projectId.asc().nullsLast()),
 unique().on(table.languageId, table.text, table.termConceptId),
 
-// ❌ Wrong — unnecessary manual index name
+// ❌ Wrong
 index("my_custom_idx").using("btree", table.projectId.asc().nullsLast()),
 unique("my_custom_unique").on(table.languageId, table.text),
 ```
 
-## Exception: Expression-Based Indexes
+### expression index：必须显式命名
 
-When an index uses a raw SQL **expression** (via `` sql`...` ``), Drizzle **cannot** auto-generate a name. In this case, you **must** provide an explicit name. This is the only scenario where a manual name is allowed.
-
-```typescript
-// ✅ Correct — expression index requires a manual name
+```ts
+// ✅ Correct
 index("idx_term_text_trgm").using("gin", sql`${table.text} gin_trgm_ops`),
 
-// ❌ Wrong — expression index without a name (drizzle-kit generate will fail)
+// ❌ Wrong
 index().using("gin", sql`${table.text} gin_trgm_ops`),
 ```
-
-## Why
-
-- **Consistency**: Drizzle's auto-generated names follow a deterministic pattern, ensuring consistency across the schema.
-- **Reduced drift**: Manual names can diverge from property names, causing confusion between TypeScript code and the actual database.
-- **Migration safety**: `drizzle-kit generate` uses auto-generated names to track renames and changes; manual names can trigger false-positive interactive rename prompts during migration generation.

@@ -8,7 +8,8 @@
     "check:generated-schemas": "node scripts/check-generated-drizzle-schemas.js",
     "load-plugins": "node scripts/load-plugins.js",
     "precommit": "nx run-many --target=lint:fix,fmt,test,typecheck,check,check:generated-schemas",
-    "repeat-test": "node scripts/repeat-test.js"
+    "spacy:contract": "tsx scripts/run-spacy-contract.ts",
+    "tmtb:reindex": "tsx scripts/reindex-recall.ts"
   },
   "devDependencies": {
     "@moonrepo/cli": "^2.1.4",

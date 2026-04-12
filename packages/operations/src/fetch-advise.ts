@@ -2,18 +2,14 @@ import type { OperationContext } from "@cat/domain";
 import type { JSONType } from "@cat/shared/schema/json";
 
 import { getDbHandle } from "@cat/domain";
-import {
-  executeQuery,
-  getElementMeta,
-  listConceptSubjectsByConceptIds,
-  listLexicalTermSuggestions,
-} from "@cat/domain";
+import { executeQuery, getElementMeta } from "@cat/domain";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import { TranslationAdviseSchema } from "@cat/shared/schema/plugin";
 import * as z from "zod";
 
-import { streamSearchMemoryOp } from "./stream-search-memory";
+import { collectMemoryRecallOp } from "./collect-memory-recall";
+import { termRecallOp } from "./term-recall";
 
 export const FetchAdviseInputSchema = z.object({
   advisorId: z.int().optional().meta({
@@ -113,76 +109,41 @@ export const fetchAdviseOp = async (
           })),
         )
       : (async () => {
-          const lookedUpTerms = await executeQuery(
-            { db: drizzle },
-            listLexicalTermSuggestions,
+          const lookedUpTerms = await termRecallOp(
             {
               text: data.text,
               sourceLanguageId: data.sourceLanguageId,
               translationLanguageId: data.translationLanguageId,
               glossaryIds: data.glossaryIds,
-              wordSimilarityThreshold: 0.3,
             },
+            ctx,
           );
-
-          const uniqueConceptIds = [
-            ...new Set(lookedUpTerms.map((t) => t.conceptId)),
-          ];
-          const conceptSubjects = await executeQuery(
-            { db: drizzle },
-            listConceptSubjectsByConceptIds,
-            { conceptIds: uniqueConceptIds },
-          );
-          const subjectsMap = new Map<
-            number,
-            { name: string; defaultDefinition: string | null }[]
-          >();
-          for (const row of conceptSubjects) {
-            const existing = subjectsMap.get(row.conceptId);
-            const subject = {
-              name: row.name,
-              defaultDefinition: row.defaultDefinition,
-            };
-            if (existing) {
-              existing.push(subject);
-            } else {
-              subjectsMap.set(row.conceptId, [subject]);
-            }
-          }
-
-          return lookedUpTerms.map((t) => ({
-            term: t.term,
-            translation: t.translation,
-            concept: {
-              subjects: subjectsMap.get(t.conceptId) ?? [],
-              definition: t.definition,
-            },
-            confidence: t.confidence,
+          return lookedUpTerms.terms.map((term) => ({
+            term: term.term,
+            translation: term.translation,
+            concept: term.concept,
+            confidence: term.confidence,
           }));
         })(),
     data.preloadedMemories
       ? Promise.resolve(data.preloadedMemories)
       : (async () => {
           if (data.memoryIds.length === 0) return [];
-          const results: {
-            source: string;
-            translation: string;
-            confidence: number;
-          }[] = [];
-          for await (const m of streamSearchMemoryOp({
-            text: data.text,
-            sourceLanguageId: data.sourceLanguageId,
-            translationLanguageId: data.translationLanguageId,
-            memoryIds: data.memoryIds,
-            chunkIds: [],
-          })) {
-            results.push({
-              source: m.source,
-              translation: m.translation,
-              confidence: m.confidence,
-            });
-          }
-          return results;
+          const results = await collectMemoryRecallOp(
+            {
+              text: data.text,
+              sourceLanguageId: data.sourceLanguageId,
+              translationLanguageId: data.translationLanguageId,
+              memoryIds: data.memoryIds,
+              chunkIds: [],
+            },
+            ctx,
+          );
+          return results.map((m) => ({
+            source: m.source,
+            translation: m.adaptedTranslation ?? m.translation,
+            confidence: m.confidence,
+          }));
         })(),
     data.elementId !== undefined
       ? executeQuery({ db: drizzle }, getElementMeta, {
