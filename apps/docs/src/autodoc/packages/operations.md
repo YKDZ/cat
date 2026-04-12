@@ -86,7 +86,7 @@ export const autoTranslateOp = async (data: AutoTranslateInput, ctx?: OperationC
  *   - SURFACE: exact translation text
  *   - CASE_FOLDED: lowercased
  */
-export const buildMemoryRecallVariantsOp = async (data: BuildMemoryRecallVariantsInput, _ctx?: OperationContext): Promise<void>
+export const buildMemoryRecallVariantsOp = async (data: BuildMemoryRecallVariantsInput, ctx?: OperationContext, db?: DbHandle): Promise<void>
 ```
 
 ### `buildTermRecallVariantsOp`
@@ -102,7 +102,7 @@ export const buildMemoryRecallVariantsOp = async (data: BuildMemoryRecallVariant
  *
  * For multi-word terms a limited lemma window is also stored (windowSize in meta).
  */
-export const buildTermRecallVariantsOp = async (data: BuildTermRecallVariantsInput, _ctx?: OperationContext): Promise<void>
+export const buildTermRecallVariantsOp = async (data: BuildTermRecallVariantsInput, ctx?: OperationContext): Promise<void>
 ```
 
 ### `collectMemoryRecallOp`
@@ -634,7 +634,7 @@ export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, _ct
  *
  * Idempotent: repeated calls are no-ops.
  */
-export const registerDomainEventHandlers = (db: DrizzleClient)
+export const registerDomainEventHandlers = (db: DrizzleClient, options?: { pluginManager?: PluginManager })
 ```
 
 ### `registerVectorizationConsumer`

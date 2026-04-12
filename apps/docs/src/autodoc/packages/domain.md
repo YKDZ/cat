@@ -657,7 +657,7 @@ export const insertLoginAttempt: Command<InsertLoginAttemptCommand> = async (ctx
 ```ts
 export const createMemoryItems: Command<
   CreateMemoryItemsCommand,
-  number[]
+  CreatedMemoryItemRow[]
 > = async (ctx: DbContext, command: { memoryId: string; items: { translationId: number | null; translationStringId: number; sourceStringId: number; creatorId: string | null; sourceTemplate: string | null; translationTemplate: string | null; slotMapping: any; }[]; }) => {...}
 ```
 
@@ -2950,7 +2950,7 @@ export const searchChunkCosineSimilarity: Query<
 
 * `CreateMemoryItemsCommand` (type)
 
-* `CreatedMemoryItemId` (type)
+* `CreatedMemoryItemRow` (type)
 
 * `CreateMemoryCommand` (type)
 
