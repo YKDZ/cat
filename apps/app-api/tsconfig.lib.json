@@ -13,7 +13,7 @@
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "references": [
     {
-      "path": "../../packages/agent/tsconfig.lib.json"
+      "path": "../../packages/workflow"
     },
     {
       "path": "../../packages/shared/tsconfig.lib.json"
@@ -31,16 +31,19 @@
       "path": "../../packages/operations/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/domain/tsconfig.lib.json"
+      "path": "../../packages/message/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/message/tsconfig.lib.json"
+      "path": "../../packages/domain/tsconfig.lib.json"
     },
     {
       "path": "../../packages/auth/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/workflow"
+      "path": "../../packages/agent-tools/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/agent/tsconfig.lib.json"
     }
   ],
   "exclude": [

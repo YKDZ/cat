@@ -11,10 +11,27 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    { "path": "../shared/tsconfig.lib.json" },
-    { "path": "../graph/tsconfig.lib.json" },
-    { "path": "../plugin-core/tsconfig.lib.json" },
-    { "path": "../server-shared/tsconfig.lib.json" }
+    {
+      "path": "../workflow"
+    },
+    {
+      "path": "../shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../server-shared/tsconfig.lib.json"
+    },
+    {
+      "path": "../plugin-core/tsconfig.lib.json"
+    },
+    {
+      "path": "../graph/tsconfig.lib.json"
+    },
+    {
+      "path": "../domain/tsconfig.lib.json"
+    },
+    {
+      "path": "../core/tsconfig.lib.json"
+    }
   ],
   "exclude": [
     "vite.config.ts",
