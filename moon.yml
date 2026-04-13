@@ -37,6 +37,26 @@ tasks:
       mergeDeps: replace
       runFromWorkspaceRoot: true
 
+  codegen-check:
+    script: |
+      echo "=== Drizzle Zod schema check ==="
+      pnpm moon run db:codegen-schemas --quiet
+      git diff --exit-code -- packages/shared/src/schema/drizzle || { echo "ERROR: Drizzle Zod schemas are out of date. Run 'pnpm moon run db:codegen-schemas' and commit." >&2; exit 1; }
+
+      echo "=== Autodoc check ==="
+      pnpm moon run autodoc:check --quiet
+
+      echo "=== Moon sync projects check ==="
+      pnpm moon sync projects --quiet
+      git diff --exit-code -- '**/tsconfig*.json' || { echo "ERROR: tsconfig project references are out of date. Run 'moon sync projects' and commit." >&2; exit 1; }
+    deps:
+      - "shared:build"
+      - "autodoc:build"
+    options:
+      cache: false
+      runInCI: false
+      runFromWorkspaceRoot: true
+
 workspace:
   inheritedTasks:
     exclude: ["build", "test"]

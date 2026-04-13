@@ -13,3 +13,6 @@ tasks:
       - "test-utils:build"
     options:
       cache: true
+
+  test-unit:
+    extends: "test"

@@ -5,9 +5,8 @@
   "scripts": {
     "autodoc": "node tools/autodoc/dist/cli.js",
     "build-plugins": "moon run '#plugin:build'",
-    "check:generated-schemas": "node scripts/check-generated-drizzle-schemas.js",
     "load-plugins": "node scripts/load-plugins.js",
-    "precommit": "moon run :lint-fix :fmt :test :typecheck && moon run autodoc:check && pnpm check:generated-schemas",
+    "precommit": "moon run :lint-fix :fmt :test :typecheck && moon run root:codegen-check",
     "spacy:contract": "tsx scripts/run-spacy-contract.ts",
     "tmtb:reindex": "tsx scripts/reindex-recall.ts"
   },

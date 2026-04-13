@@ -16,6 +16,9 @@ tasks:
     options:
       cache: true
 
+  test-unit:
+    extends: "test"
+
   codegen-schemas:
     command: "tsx src/zod/codegen.ts"
     deps:

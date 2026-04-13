@@ -15,3 +15,6 @@ tasks:
       - "^:build"
     options:
       cache: true
+
+  test-unit:
+    extends: "test"
