@@ -952,7 +952,7 @@ importers:
         version: 1.0.0-beta.20
       drizzle-seed:
         specifier: ^0.3.1
-        version: 0.3.1(drizzle-orm@1.0.0-beta.20(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.1)(@sinclair/typebox@0.34.49)(@types/mssql@9.1.8(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6))
+        version: 0.3.1
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.12.2))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.28.0)(rollup@4.60.1)(typescript@6.0.0-beta)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
@@ -1299,7 +1299,7 @@ importers:
         version: 2.0.9
       zod:
         specifier: 'catalog:'
-        version: 4.3.6
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.2.2
@@ -1315,7 +1315,7 @@ importers:
         version: 0.9.1(typescript@6.0.0-beta)(vue@3.5.32(typescript@6.0.0-beta))
       shadcn-vue:
         specifier: ^2.5.3
-        version: 2.5.3(babel-plugin-macros@3.1.0)(eslint@9.37.0(jiti@2.6.1))(vue@3.5.32(typescript@6.0.0-beta))
+        version: 2.6.2(babel-plugin-macros@3.1.0)(eslint@9.37.0(jiti@2.6.1))(vue@3.5.32(typescript@6.0.0-beta))
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.12.2))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.28.0)(rollup@4.60.1)(typescript@6.0.0-beta)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
@@ -1898,8 +1898,8 @@ packages:
   '@docsearch/sidepanel-js@4.6.2':
     resolution: {integrity: sha512-Pni85AP/GwRj7fFg8cBJp0U04tzbueBvWSd3gysgnOsVnQVSZwSYncfErUScLE1CAtR+qocPDFjmYR9AMRNJtQ==}
 
-  '@dotenvx/dotenvx@1.60.2':
-    resolution: {integrity: sha512-r4AznHUvfLONuWdoSIQtut6Ez/ym+lGXRtDvRaoAEMEhAmwSoK24jRsfR28vcb3ygWm7qeYOcbZolhtseJl6mA==}
+  '@dotenvx/dotenvx@1.61.0':
+    resolution: {integrity: sha512-utL3cpZoFzflyqUkjYbxYujI6STBTmO5LFn4bbin/NZnRWN6wQ7eErhr3/Vpa5h/jicPFC6kTa42r940mQftJQ==}
     hasBin: true
 
   '@drizzle-team/brocli@0.11.0':
@@ -3731,11 +3731,14 @@ packages:
       vite:
         optional: true
 
-  '@photonjs/srvx@0.1.12':
-    resolution: {integrity: sha512-UT/ukFPdmLsEm6Z5kKIl2DXhayxP0braPBcKRZ4bE1l2sFpN67/54JlZXyFgS/Qdmuo3Hpn94sDIX9uoEBVlGQ==}
+  '@photonjs/srvx@0.1.13':
+    resolution: {integrity: sha512-Aocc3aMRKooiOSauW4f8XzmzT4h4KFytCFNYK0J77RkhHheukdb64uB/yn/dL2RiN6KLJBV8Z6WRmOJ+02Lz/A==}
     peerDependencies:
+      srvx: '>=0.9.8'
       vite: '>=7.1'
     peerDependenciesMeta:
+      srvx:
+        optional: true
       vite:
         optional: true
 
@@ -5398,8 +5401,8 @@ packages:
   bowser@2.14.1:
     resolution: {integrity: sha512-tzPjzCxygAKWFOJP011oxFHs57HzIhOEracIgAePE4pqB3LikALKnSzUyU4MGs9/iCEUuHlAJTjTc5M+u7YEGg==}
 
-  brace-expansion@1.1.13:
-    resolution: {integrity: sha512-9ZLprWS6EENmhEOpjCYW2c8VkmOvckIJZfkr7rBW6dObmfgJ/L1GpSYW5Hpo9lDz4D1+n0Ckz8rU7FwHDQiG/w==}
+  brace-expansion@1.1.14:
+    resolution: {integrity: sha512-MWPGfDxnyzKU7rNOW9SP/c50vi3xrmrua/+6hfPbCS2ABNWfx24vPidzvC7krjU/RTo235sV776ymlsMtGKj8g==}
 
   brace-expansion@2.0.3:
     resolution: {integrity: sha512-MCV/fYJEbqx68aE58kv2cA/kiky1G8vux3OR6/jbS+jIMe/6fJWa0DTzJU7dqijOWYwHi1t29FlfYI9uytqlpA==}
@@ -5996,6 +5999,10 @@ packages:
 
   dotenv@17.4.1:
     resolution: {integrity: sha512-k8DaKGP6r1G30Lx8V4+pCsLzKr8vLmV2paqEj1Y55GdAgJuIqpRp5FfajGF8KtwMxCz9qJc6wUIJnm053d/WCw==}
+    engines: {node: '>=12'}
+
+  dotenv@17.4.2:
+    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
     engines: {node: '>=12'}
 
   drizzle-kit@1.0.0-beta.20:
@@ -7913,8 +7920,8 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier@3.8.1:
-    resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
+  prettier@3.8.2:
+    resolution: {integrity: sha512-8c3mgTe0ASwWAJK+78dpviD+A8EqhndQPUBpNUIPt6+xWlIigCwfN01lWr9MAede4uqXGTEKeQWTvzb3vjia0Q==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -8102,6 +8109,11 @@ packages:
     engines: {node: '>= 0.4'}
     hasBin: true
 
+  resolve@1.22.12:
+    resolution: {integrity: sha512-TyeJ1zif53BPfHootBGwPRYT1RUt6oGWsaQr8UyZW/eAm9bKoijtvruSDEmZHm92CwS9nj7/fWttqPCgzep8CA==}
+    engines: {node: '>= 0.4'}
+    hasBin: true
+
   restore-cursor@5.1.0:
     resolution: {integrity: sha512-oMA2dcrw6u0YfxJQXm342bFKX/E4sG9rbTzO9ptUcR/e8A33cHuvStiYOwH7fszkZlZ1z/ta9AAoPk2F4qIOHA==}
     engines: {node: '>=18'}
@@ -8199,8 +8211,8 @@ packages:
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
 
-  shadcn-vue@2.5.3:
-    resolution: {integrity: sha512-TvZgwEzvuEEil8KB3ZEs+J++OkjOithDOGU/Uz1GRTCRQr0/Vh1D+RXvDDu1tWCh16FJYenSdHA6504igDKX4Q==}
+  shadcn-vue@2.6.2:
+    resolution: {integrity: sha512-5IGP8qaLyaRDs3g+ap9epeZ/KoaUKlv9cjeAxdkdIaOUDwu5ktI3ntfk+dgfk2EGBdZDrXLG3jiOEdygVifh0w==}
     hasBin: true
 
   shebang-command@2.0.0:
@@ -8643,6 +8655,10 @@ packages:
 
   undici@7.24.7:
     resolution: {integrity: sha512-H/nlJ/h0ggGC+uRL3ovD+G0i4bqhvsDOpbDv7At5eFLlj2b41L8QliGbnl2H7SnDiYhENphh1tQFJZf+MyfLsQ==}
+    engines: {node: '>=20.18.1'}
+
+  undici@7.24.8:
+    resolution: {integrity: sha512-6KQ/+QxK49Z/p3HO6E5ZCZWNnCasyZLa5ExaVYyvPxUwKtbCPMKELJOqh7EqOle0t9cH/7d2TaaTRRa6Nhs4YQ==}
     engines: {node: '>=20.18.1'}
 
   unified@11.0.5:
@@ -10167,10 +10183,10 @@ snapshots:
 
   '@docsearch/sidepanel-js@4.6.2': {}
 
-  '@dotenvx/dotenvx@1.60.2':
+  '@dotenvx/dotenvx@1.61.0':
     dependencies:
       commander: 11.1.0
-      dotenv: 17.4.1
+      dotenv: 17.4.2
       eciesjs: 0.4.18
       execa: 5.1.1
       fdir: 6.5.0(picomatch@4.0.4)
@@ -10870,7 +10886,7 @@ snapshots:
       '@rushstack/ts-command-line': 5.0.3(@types/node@24.12.2)
       lodash: 4.17.23
       minimatch: 10.0.3
-      resolve: 1.22.11
+      resolve: 1.22.12
       semver: 7.5.4
       source-map: 0.6.1
       typescript: 5.8.2
@@ -10889,7 +10905,7 @@ snapshots:
       '@rushstack/ts-command-line': 5.0.3(@types/node@25.5.2)
       lodash: 4.17.23
       minimatch: 10.0.3
-      resolve: 1.22.11
+      resolve: 1.22.12
       semver: 7.5.4
       source-map: 0.6.1
       typescript: 5.8.2
@@ -10902,7 +10918,7 @@ snapshots:
       '@microsoft/tsdoc': 0.15.1
       ajv: 8.12.0
       jju: 1.4.0
-      resolve: 1.22.11
+      resolve: 1.22.12
     optional: true
 
   '@microsoft/tsdoc@0.15.1':
@@ -12030,7 +12046,7 @@ snapshots:
   '@photonjs/runtime@0.1.15(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(hono@4.12.12)(rollup@4.60.1)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
       '@photonjs/core': 0.1.22(hono@4.12.12)(srvx@0.9.8)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
-      '@photonjs/srvx': 0.1.12(hono@4.12.12)(srvx@0.9.8)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@photonjs/srvx': 0.1.13(hono@4.12.12)(srvx@0.9.8)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
       '@universal-middleware/core': 0.4.17(hono@4.12.12)(srvx@0.9.8)
       '@universal-middleware/sirv': 0.1.25
       srvx: 0.9.8
@@ -12052,11 +12068,12 @@ snapshots:
       - rollup
       - supports-color
 
-  '@photonjs/srvx@0.1.12(hono@4.12.12)(srvx@0.9.8)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
+  '@photonjs/srvx@0.1.13(hono@4.12.12)(srvx@0.9.8)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
       '@photonjs/core': 0.1.22(hono@4.12.12)(srvx@0.9.8)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
       '@universal-middleware/srvx': 0.1.3(hono@4.12.12)(srvx@0.9.8)
     optionalDependencies:
+      srvx: 0.9.8
       vite: 8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
@@ -12067,7 +12084,6 @@ snapshots:
       - fastify
       - h3
       - hono
-      - srvx
 
   '@pinia/colada-devtools@0.4.5': {}
 
@@ -12376,7 +12392,7 @@ snapshots:
       fs-extra: 11.3.4
       import-lazy: 4.0.0
       jju: 1.4.0
-      resolve: 1.22.11
+      resolve: 1.22.12
       semver: 7.5.4
     optionalDependencies:
       '@types/node': 24.12.2
@@ -12390,7 +12406,7 @@ snapshots:
       fs-extra: 11.3.4
       import-lazy: 4.0.0
       jju: 1.4.0
-      resolve: 1.22.11
+      resolve: 1.22.12
       semver: 7.5.4
     optionalDependencies:
       '@types/node': 25.5.2
@@ -12398,7 +12414,7 @@ snapshots:
 
   '@rushstack/rig-package@0.5.3':
     dependencies:
-      resolve: 1.22.11
+      resolve: 1.22.12
       strip-json-comments: 3.1.1
     optional: true
 
@@ -13368,7 +13384,7 @@ snapshots:
       '@vue/compiler-sfc': 3.5.32
       '@vuedx/template-ast-types': 0.7.1
       fast-glob: 3.3.3
-      prettier: 3.8.1
+      prettier: 3.8.2
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -13955,7 +13971,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.29.2
       cosmiconfig: 7.1.0
-      resolve: 1.22.11
+      resolve: 1.22.12
     optional: true
 
   bail@2.0.2: {}
@@ -14005,7 +14021,7 @@ snapshots:
 
   bowser@2.14.1: {}
 
-  brace-expansion@1.1.13:
+  brace-expansion@1.1.14:
     dependencies:
       balanced-match: 1.0.2
       concat-map: 0.0.1
@@ -14055,7 +14071,7 @@ snapshots:
       chokidar: 5.0.0
       confbox: 0.2.4
       defu: 6.1.7
-      dotenv: 17.4.1
+      dotenv: 17.4.2
       exsolve: 1.0.8
       giget: 3.2.0
       jiti: 2.6.1
@@ -14585,6 +14601,8 @@ snapshots:
 
   dotenv@17.4.1: {}
 
+  dotenv@17.4.2: {}
+
   drizzle-kit@1.0.0-beta.20:
     dependencies:
       '@drizzle-team/brocli': 0.11.0
@@ -14605,11 +14623,9 @@ snapshots:
       pg: 8.20.0
       zod: 4.3.6
 
-  drizzle-seed@0.3.1(drizzle-orm@1.0.0-beta.20(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.1)(@sinclair/typebox@0.34.49)(@types/mssql@9.1.8(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)):
+  drizzle-seed@0.3.1:
     dependencies:
       pure-rand: 6.1.0
-    optionalDependencies:
-      drizzle-orm: 1.0.0-beta.20(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.1)(@sinclair/typebox@0.34.49)(@types/mssql@9.1.8(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6)
 
   dunder-proto@1.0.1:
     dependencies:
@@ -16086,7 +16102,7 @@ snapshots:
 
   minimatch@3.1.5:
     dependencies:
-      brace-expansion: 1.1.13
+      brace-expansion: 1.1.14
 
   minimatch@9.0.9:
     dependencies:
@@ -16675,7 +16691,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier@3.8.1: {}
+  prettier@3.8.2: {}
 
   process-warning@3.0.0: {}
 
@@ -16898,6 +16914,14 @@ snapshots:
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 
+  resolve@1.22.12:
+    dependencies:
+      es-errors: 1.3.0
+      is-core-module: 2.16.1
+      path-parse: 1.0.7
+      supports-preserve-symlinks-flag: 1.0.0
+    optional: true
+
   restore-cursor@5.1.0:
     dependencies:
       onetime: 7.0.0
@@ -17061,9 +17085,9 @@ snapshots:
 
   setprototypeof@1.2.0: {}
 
-  shadcn-vue@2.5.3(babel-plugin-macros@3.1.0)(eslint@9.37.0(jiti@2.6.1))(vue@3.5.32(typescript@6.0.0-beta)):
+  shadcn-vue@2.6.2(babel-plugin-macros@3.1.0)(eslint@9.37.0(jiti@2.6.1))(vue@3.5.32(typescript@6.0.0-beta)):
     dependencies:
-      '@dotenvx/dotenvx': 1.60.2
+      '@dotenvx/dotenvx': 1.61.0
       '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
       '@unovue/detypes': 0.8.5
       '@vue/compiler-sfc': 3.5.32
@@ -17093,7 +17117,7 @@ snapshots:
       tinyexec: 1.1.1
       tinyglobby: 0.2.16
       ts-morph: 27.0.2
-      undici: 7.24.7
+      undici: 7.24.8
       validate-npm-package-name: 5.0.1
       vue-metamorph: 3.3.4(eslint@9.37.0(jiti@2.6.1))
       zod: 3.25.76
@@ -17620,6 +17644,8 @@ snapshots:
   undici-types@7.18.2: {}
 
   undici@7.24.7: {}
+
+  undici@7.24.8: {}
 
   unified@11.0.5:
     dependencies:
