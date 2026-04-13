@@ -111,6 +111,4 @@ PLAN*
 .claude/.gitignore
 .claude/worktrees
 
-.cc
-
 test-results.json
