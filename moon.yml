@@ -5,12 +5,17 @@ language: "typescript"
 tasks:
   lint:
     command: "oxlint --type-aware *.ts scripts/**/*.ts"
+    deps: []
     options:
+      mergeArgs: replace
+      mergeDeps: replace
       runFromWorkspaceRoot: true
 
   lint-fix:
     script: "oxlint --fix --type-aware *.ts scripts/**/*.ts"
+    deps: []
     options:
+      mergeDeps: replace
       runFromWorkspaceRoot: true
       cache: false
 
@@ -22,11 +27,14 @@ tasks:
   fmt-check:
     command: "oxfmt --check *.ts *.json scripts/**/*.ts scripts/**/*.js .github/**/* .devcontainer/**/* __mocks__/**/* .vscode/**/*"
     options:
+      mergeArgs: replace
       runFromWorkspaceRoot: true
 
   typecheck:
     script: "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p scripts/tsconfig.json"
+    deps: []
     options:
+      mergeDeps: replace
       runFromWorkspaceRoot: true
 
 workspace:

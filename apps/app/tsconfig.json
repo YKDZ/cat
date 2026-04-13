@@ -13,7 +13,8 @@
     "declarationMap": false,
     "emitDeclarationOnly": false,
     "moduleResolution": "bundler",
-    "customConditions": ["import", "types"]
+    "customConditions": ["import", "types"],
+    "types": ["node"]
   },
   "exclude": [
     "out-tsc",

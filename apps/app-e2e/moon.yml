@@ -9,7 +9,7 @@ dependsOn:
 
 tasks:
   typecheck:
-    command: "tsc --noEmit"
+    command: "tsc --noEmit -p tsconfig.json"
 
   test-e2e:
     command: "playwright test"

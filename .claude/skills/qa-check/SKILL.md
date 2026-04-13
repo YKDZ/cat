@@ -1,53 +1,87 @@
 ---
 name: qa-check
-description: Run mandatory QA checks. Use this skill after generating or modifying any code to execute tests, linting, typechecking, and formatting on the modified sub-projects.
+description: Run mandatory moon-based QA checks after modifying code. Use affected checks first, print only a short success report when checks pass, and print full logs when checks fail.
 user-invocable: false
 ---
 
-# Post-Modification Progressive Review (moon Tasks)
+# Post-Modification QA Review (moon)
 
-You must validate the changes progressively to ensure both local and workspace-wide integrity. Please strictly follow these steps sequentially:
+Use moon's built-in affected and CI semantics instead of manually mapping `git diff` output to projects.
 
-## 1. Identify Changes and Affected Projects
+- `moon ci` already determines changed files, computes affected tasks, continues through failures, and summarizes the run.
+- `moon exec` is the low-level escape hatch for full-workspace sweeps that need explicit failure behavior.
+- `MOON_OUTPUT_STYLE=buffer-only-failure` is a global override for task output style, and is a much better default for agent-driven QA than raw streaming output.
+- If you only need to inspect scope, use `moon query projects --affected`.
 
-Review the following list of recently modified files and analyze which moon sub-projects they belong to:
+## Output policy
 
-- Workspace changes: !`git diff --name-only`
-- Staged changes: !`git diff --cached --name-only`
+QA output must follow this rule:
 
-## 2. Phase 1: Targeted QA Check (Modified Projects)
+- If a QA command succeeds, do **not** print its task output. Print a short success report instead.
+- If a QA command fails, print the **entire** captured log.
+- Do **not** use `script`, `sed`, `grep`, `tail`, or other truncation filters for QA commands.
+- Do **not** re-run a failed command just to reveal the full error output; the first failing run must already show it.
 
-First, validate only the projects you just modified (affected):
+Always use the bundled [QA helper script](./scripts/qa-run.sh) instead of defining a shell function inline.
+Inline functions are scoped to the current shell session and are easy to lose between terminal commands; the bundled script is reusable across agents and runs.
+The helper automatically defaults `MOON_OUTPUT_STYLE` to `buffer-only-failure`, so successful task output is suppressed natively before the helper decides whether to print the overall command log.
+
+From the repository root, invoke it like this:
 
 ```bash
-script -q -c "pnpm moon ci :test :lint :typecheck :fmt" /dev/null 2>&1 | sed 's/\x1b\[[0-9;]*m//g; s/\x1b\[?25[hl]//g; s/\[1G//g; s/\[0K//g; s/\[0J//g; s/\[[0-9]*A//g' | tr -d '\r\033' | grep -E "pass|fail|Actions" | tail -5
+bash ./.claude/skills/qa-check/scripts/qa-run.sh "<label>" <command> [args...]
 ```
 
-_Note: If Phase 1 shows failures, immediately proceed to Step 4 (Validation and Remediation) and fix the issues before moving to Phase 2._
+## 1. Phase 1: Affected QA
 
-## 3. Phase 2: Full Workspace QA Check
-
-Once the targeted projects pass Phase 1 successfully, ensure your changes did not break other dependent projects:
+Start with moon's CI workflow. This is the default targeted check because it already uses changed files to determine the affected task set.
 
 ```bash
-script -q -c "pnpm moon run :test :lint :typecheck :fmt" /dev/null 2>&1 | sed 's/\x1b\[[0-9;]*m//g; s/\x1b\[?25[hl]//g; s/\[1G//g; s/\[0K//g; s/\[0J//g; s/\[[0-9]*A//g' | tr -d '\r\033' | grep -E "pass|fail|Actions" | tail -5
+bash ./.claude/skills/qa-check/scripts/qa-run.sh \
+  "Affected QA passed (moon ci :test :lint :typecheck :fmt)" \
+  moon ci :test :lint :typecheck :fmt --quiet
 ```
 
-## 4. Validation and Remediation (Error Handling)
+If you need to inspect what moon considers affected before running QA, query it directly:
 
-- You must ensure code style compliance, strict type safety, and consistent formatting.
-- **CRITICAL:** If Phase 1 or Phase 2 shows failure, re-run without filtering to see the full error output:
-  ```bash
-  pnpm moon ci :test :lint :typecheck :fmt
-  ```
-  or for full workspace:
-  ```bash
-  pnpm moon run :test :lint :typecheck :fmt
-  ```
-- Analyze the error messages and identify failed projects.
-- **Retry specific projects** using per-project moon targets:
-  ```bash
-  pnpm moon run shared:test shared:lint shared:typecheck shared:fmt ui:test ui:lint ui:typecheck ui:fmt
-  ```
-- Proactively analyze the error messages and use tools to fix the code.
-- Once fixed, re-run the appropriate Phase command and repeat this process until all tasks pass.
+```bash
+moon query projects --affected
+```
+
+## 2. Phase 2: Full workspace QA
+
+After the affected check passes, run a workspace-wide sweep to catch broader regressions. Use `moon exec` here so failure handling is explicit and non-fail-fast.
+
+```bash
+bash ./.claude/skills/qa-check/scripts/qa-run.sh \
+  "Workspace QA passed (moon exec :test :lint :typecheck :fmt)" \
+  moon exec :test :lint :typecheck :fmt --on-failure continue --upstream deep --quiet
+```
+
+## 3. Failure remediation
+
+If either phase fails:
+
+- Start from the printed log. It is already the full failure output.
+- Identify the failed projects and tasks, then fix them.
+- Re-run the smallest relevant set of targets first. For example:
+
+```bash
+bash ./.claude/skills/qa-check/scripts/qa-run.sh \
+  "shared/ui QA passed" \
+  moon run \
+    shared:test shared:lint shared:typecheck shared:fmt \
+    ui:test ui:lint ui:typecheck ui:fmt \
+    --quiet
+```
+
+- Once the targeted retry passes, re-run the failed phase.
+- Repeat until both phases pass.
+
+## 4. Guardrails
+
+- Prefer `moon ci` over manual `git diff` inspection for affected QA.
+- Prefer `moon exec` over `moon run` when you need explicit `--on-failure continue` behavior.
+- Prefer the bundled `./.claude/skills/qa-check/scripts/qa-run.sh` helper over inline shell functions.
+- Prefer the helper's default `MOON_OUTPUT_STYLE=buffer-only-failure` over ad hoc output filtering.
+- Keep successful QA output tiny; keep failing QA output complete.
