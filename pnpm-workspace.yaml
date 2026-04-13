@@ -7,7 +7,7 @@ packages:
 allowBuilds:
   "@swc/core": true
   esbuild: true
-  protobufjs: set this to true or false
+  protobufjs: true
   vue-demi: true
 
 linkWorkspacePackages: true
