@@ -54,7 +54,6 @@ tasks:
       - "autodoc:build"
     options:
       cache: false
-      runInCI: false
       runFromWorkspaceRoot: true
 
 workspace:
