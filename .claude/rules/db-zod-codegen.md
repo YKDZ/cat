@@ -1,6 +1,9 @@
 ---
 description: Every new table in schema.ts must be registered in generators.ts for Zod codegen.
-applyTo: "packages/db/src/drizzle/schema/schema.ts, packages/db/src/zod/generators.ts"
+paths:
+  [
+    "packages/db/src/drizzle/schema/schema.ts, packages/db/src/zod/generators.ts",
+  ]
 ---
 
 # 新表的 Zod Codegen 注册规范
