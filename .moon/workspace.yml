@@ -1,4 +1,5 @@
 projects:
+  - "."
   - "apps/*"
   - "packages/*"
   - "@cat-plugin/*"

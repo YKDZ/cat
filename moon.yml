@@ -1,8 +1,6 @@
+id: root
+
 language: "typescript"
-layer: "configuration"
-stack: "infrastructure"
-tags:
-  - "root"
 
 tasks:
   lint:
@@ -11,7 +9,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   lint-fix:
-    command: "oxlint --fix --type-aware *.ts scripts/**/*.ts"
+    script: "oxlint --fix --type-aware *.ts scripts/**/*.ts"
     options:
       runFromWorkspaceRoot: true
       cache: false

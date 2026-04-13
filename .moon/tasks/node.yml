@@ -47,7 +47,7 @@ tasks:
 
   lint-fix:
     extends: "lint"
-    command: "oxlint --fix --type-aware"
+    script: "oxlint --fix --type-aware"
     options:
       cache: false
 

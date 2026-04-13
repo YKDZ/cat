@@ -7,7 +7,7 @@ tags:
 
 tasks:
   build:
-    command: "vike build"
+    script: "vike build"
 
   dev:
     script: "vike dev | pino-pretty"
