@@ -1,4 +1,4 @@
-name: E2E Test
+name: CI
 
 on:
   push:
@@ -7,9 +7,118 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  e2e:
-    name: Run E2E Tests
+  static:
+    name: Static Gateway
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Codegen Check
+        run: pnpm moon run root:codegen-check
+
+      - name: Format Check (affected)
+        run: pnpm moon ci :fmt-check
+
+      - name: Typecheck (affected)
+        run: pnpm moon ci :typecheck
+
+      - name: Lint (affected)
+        run: pnpm moon ci :lint
+
+  unit-tests:
+    name: Unit Tests
+    needs: static
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Unit Tests (affected)
+        run: pnpm moon ci :test-unit
+
+  integration-tests:
+    name: Integration Tests
+    needs: static
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: cat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U user -d cat"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Integration Tests (affected)
+        env:
+          TEST_DATABASE_URL: "postgres://user:pass@localhost:5432/cat"
+        run: pnpm moon ci :test-integration
+
+  e2e-tests:
+    name: E2E Tests
+    needs: static
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -24,7 +133,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      postgresql:
+      postgres:
         image: pgvector/pgvector:pg18
         env:
           POSTGRES_USER: user
@@ -33,7 +142,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U user -d cat"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -49,7 +158,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout Repo
+      - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -62,7 +171,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: "pnpm"
+          cache: pnpm
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -109,7 +218,7 @@ jobs:
           echo "Server is up!"
 
       - name: Run E2E Tests
-        run: pnpm moon run app-e2e:test-e2e || exit 0
+        run: pnpm moon run app-e2e:test-e2e
         env:
           PORT: 3000
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public

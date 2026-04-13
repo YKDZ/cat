@@ -17,6 +17,9 @@ tasks:
     options:
       cache: true
 
+  test-unit:
+    extends: "test"
+
   component-sync:
     command: "node scripts/sync-shadcn-components.js"
     options:
