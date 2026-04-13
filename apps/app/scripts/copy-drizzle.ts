@@ -1,4 +1,3 @@
-import { workspaceRoot } from "@nx/devkit";
 import { copyFile, mkdir, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { cwd } from "node:process";
@@ -25,5 +24,5 @@ async function copyDir(src: string, dest: string): Promise<void> {
 await (async () => {
   const dest = join(cwd(), "drizzle");
   await rm(dest, { recursive: true, force: true });
-  await copyDir(join(workspaceRoot, "packages", "db", "drizzle"), dest);
+  await copyDir(join(cwd(), "..", "..", "packages", "db", "drizzle"), dest);
 })();

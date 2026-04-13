@@ -21,7 +21,7 @@ tasks:
       persistent: true
 
   typecheck:
-    script: "tsc --noEmit && vue-tsc --noEmit"
+    script: "tsc --noEmit -p tsconfig.json && tsc --noEmit -p scripts/tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
 
   copy-drizzle:
     command: "tsx scripts/copy-drizzle.ts"

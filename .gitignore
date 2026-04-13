@@ -112,3 +112,5 @@ PLAN*
 .claude/worktrees
 
 .cc
+
+test-results.json
