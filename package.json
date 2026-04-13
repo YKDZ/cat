@@ -11,7 +11,7 @@
     "tmtb:reindex": "tsx scripts/reindex-recall.ts"
   },
   "devDependencies": {
-    "@moonrepo/cli": "^2.1.4",
+    "@moonrepo/cli": "^2.2.0",
     "@playwright/test": "^1.59.1",
     "@tools/autodoc": "workspace:*",
     "@tsconfig/node24": "^24.0.4",
