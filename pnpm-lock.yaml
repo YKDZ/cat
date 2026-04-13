@@ -1314,8 +1314,8 @@ importers:
         specifier: ^0.9.1
         version: 0.9.1(typescript@6.0.0-beta)(vue@3.5.32(typescript@6.0.0-beta))
       shadcn-vue:
-        specifier: ^2.5.3
-        version: 2.5.3(babel-plugin-macros@3.1.0)(eslint@9.37.0(jiti@2.6.1))(vue@3.5.32(typescript@6.0.0-beta))
+        specifier: ^2.6.2
+        version: 2.6.2(babel-plugin-macros@3.1.0)(eslint@9.37.0(jiti@2.6.1))(vue@3.5.32(typescript@6.0.0-beta))
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.12.2))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.28.0)(rollup@4.60.1)(typescript@6.0.0-beta)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
@@ -8199,8 +8199,8 @@ packages:
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
 
-  shadcn-vue@2.5.3:
-    resolution: {integrity: sha512-TvZgwEzvuEEil8KB3ZEs+J++OkjOithDOGU/Uz1GRTCRQr0/Vh1D+RXvDDu1tWCh16FJYenSdHA6504igDKX4Q==}
+  shadcn-vue@2.6.2:
+    resolution: {integrity: sha512-5IGP8qaLyaRDs3g+ap9epeZ/KoaUKlv9cjeAxdkdIaOUDwu5ktI3ntfk+dgfk2EGBdZDrXLG3jiOEdygVifh0w==}
     hasBin: true
 
   shebang-command@2.0.0:
@@ -17061,7 +17061,7 @@ snapshots:
 
   setprototypeof@1.2.0: {}
 
-  shadcn-vue@2.5.3(babel-plugin-macros@3.1.0)(eslint@9.37.0(jiti@2.6.1))(vue@3.5.32(typescript@6.0.0-beta)):
+  shadcn-vue@2.6.2(babel-plugin-macros@3.1.0)(eslint@9.37.0(jiti@2.6.1))(vue@3.5.32(typescript@6.0.0-beta)):
     dependencies:
       '@dotenvx/dotenvx': 1.60.2
       '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
