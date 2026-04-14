@@ -17,7 +17,9 @@ export const base = os.$context<Context>();
 export const authed = base.use(async ({ context, next }) => {
   const { user, sessionId, auth, helpers } = context;
 
-  if (!user || !sessionId || !auth) throw new ORPCError("UNAUTHORIZED");
+  if (!user || !auth) throw new ORPCError("UNAUTHORIZED");
+  // Cookie Session 认证必须有 sessionId；API Key（auth.scopes !== null）不需要
+  if (!sessionId && auth.scopes === null) throw new ORPCError("UNAUTHORIZED");
 
   // CSRF 验证：仅对来自浏览器的 Cookie Session 请求生效
   // SSR 内部调用和 API Key（Bearer header）请求豁免
