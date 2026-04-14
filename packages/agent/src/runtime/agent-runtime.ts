@@ -1,3 +1,4 @@
+import type { PluginManager } from "@cat/plugin-core";
 import type { AgentConstraints } from "@cat/shared/schema/agent";
 
 import { Blackboard, buildPatch } from "@cat/graph";
@@ -111,6 +112,11 @@ export interface AgentRuntimeConfig {
   logger?: AgentLogger;
   /** @zh PreCheck 使用的可选服务集合 @en Optional services used by PreCheck */
   preCheckServices?: PreCheckServices;
+  /**
+   * @zh 当前作用域的插件管理器
+   * @en Scoped plugin manager
+   */
+  pluginManager?: PluginManager;
 }
 
 // ─── AgentRuntime ─────────────────────────────────────────────────────────────
@@ -232,6 +238,7 @@ export class AgentRuntime {
       constraints,
       startedAt,
       logger: this.logger,
+      pluginManager: this.config.pluginManager,
     };
 
     this.logger.logRun({

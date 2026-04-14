@@ -637,6 +637,7 @@ export const sendMessage = authed
       promptEngine,
       logger: createNoopAgentLogger(),
       preCheckServices: createPreCheckServices(drizzle),
+      pluginManager,
     });
 
     // Create a new run for this message turn

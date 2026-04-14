@@ -8,4 +8,4 @@ export * from "./prompt/index.ts";
 export * from "./dag/index.ts";
 export * from "./runtime/index.ts";
 export * from "./observability/index.ts";
-export * from "./seeds/seed-translator-agent.ts";
+export * from "./seeds/register-builtin-agents.ts";
