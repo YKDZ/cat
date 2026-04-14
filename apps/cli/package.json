@@ -1,0 +1,25 @@
+{
+  "name": "@cat/cli",
+  "version": "0.0.1",
+  "private": true,
+  "bin": {
+    "cat-cli": "./dist/cli.js"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@orpc/client": "^1.13.13",
+    "@orpc/server": "^1.13.13"
+  },
+  "peerDependencies": {
+    "@cat/app-api": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "beta",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

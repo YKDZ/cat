@@ -218,3 +218,61 @@ export const countItem = authed
 
     return await executeQuery({ db: drizzle }, countMemoryItems, input);
   });
+
+/**
+ * @zh 基于文本的记忆回射。接受原始文本而非 elementId。
+ * @en Text-based memory recall. Accepts raw text instead of an element ID.
+ */
+export const searchByText = authed
+  .input(
+    z.object({
+      projectId: z.uuidv4(),
+      text: z.string().min(1),
+      sourceLanguageId: z.string(),
+      translationLanguageId: z.string(),
+      minConfidence: z.number().min(0).max(1).default(0.72),
+      maxAmount: z.int().min(1).default(5),
+    }),
+  )
+  .use(checkPermission("project", "viewer"), (i) => i.projectId)
+  .handler(async function* ({ context, input }) {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const {
+      projectId,
+      text,
+      sourceLanguageId,
+      translationLanguageId,
+      minConfidence,
+      maxAmount,
+    } = input;
+
+    const memoryIds = await executeQuery(
+      { db: drizzle },
+      listMemoryIdsByProject,
+      { projectId },
+    );
+
+    if (memoryIds.length === 0) return;
+
+    const memories = await collectMemoryRecallOp(
+      {
+        text,
+        sourceLanguageId,
+        translationLanguageId,
+        memoryIds,
+        chunkIds: [],
+        minSimilarity: minConfidence,
+        maxAmount,
+      },
+      {
+        pluginManager: context.pluginManager,
+        traceId: crypto.randomUUID(),
+      },
+    );
+
+    for (const memory of memories) {
+      yield memory;
+    }
+  });

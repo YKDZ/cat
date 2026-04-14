@@ -58,6 +58,7 @@ export const getContext = async (
       if (resolved) {
         user = resolved.user;
         apiKeyScopes = resolved.scopes;
+        sessionId = `apikey:${resolved.apiKeyId}`;
         // 异步更新 lastUsedAt（不阻塞请求）
         updateApiKeyLastUsedAsync(drizzleDB.client, resolved.apiKeyId);
       }
