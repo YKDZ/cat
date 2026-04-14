@@ -1,4 +1,5 @@
 import type { GraphDefinition } from "@cat/graph";
+import type { PluginManager } from "@cat/plugin-core";
 import type {
   AgentConstraints,
   AgentSessionMetadata,
@@ -81,6 +82,11 @@ export interface AgentNodeContext {
   startedAt: Date;
   /** @zh 结构化日志 @en Structured logger */
   logger: AgentLogger;
+  /**
+   * @zh 当前作用域的插件管理器
+   * @en Scoped plugin manager
+   */
+  pluginManager?: PluginManager;
   /** @zh 实时事件发射回调（可选），用于 thinking delta 转发 @en Optional real-time event callback for thinking delta forwarding */
   emitEvent?: (event: {
     type: string;

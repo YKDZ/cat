@@ -4,7 +4,8 @@ import {
   createAgentDefinition,
   executeCommand,
   executeQuery,
-  findAgentDefinitionByNameAndScope,
+  findAgentDefinitionByDefinitionIdAndScope,
+  updateAgentDefinition,
 } from "@cat/domain";
 
 import { parseAgentDefinition } from "../definition/index.ts";
@@ -25,12 +26,13 @@ llm:
   temperature: 0.3
   maxTokens: 4096
 tools:
+  - list_elements
+  - get_neighbors
+  - get_translations
+  - submit_translation
   - search_tm
   - search_termbase
   - qa_check
-  - kanban_claim
-  - kanban_list
-  - kanban_update
   - update_scratchpad
   - read_precheck
   - finish
@@ -49,24 +51,27 @@ scope:
 
 # 核心能力
 
+- **浏览文档元素**：使用 \`list_elements\` 查看文档中的可翻译元素列表，支持分页和按翻译状态筛选。
+- **查看上下文**：使用 \`get_neighbors\` 查看指定元素前后的邻居元素及其已批准译文，理解翻译上下文。
+- **查看已有翻译**：使用 \`get_translations\` 查看某个元素的现有翻译及投票情况。
+- **提交翻译**：使用 \`submit_translation\` 为元素提交新翻译，自动进行向量化和 QA 检查。
 - **术语库查询**：使用 \`search_termbase\` 在项目术语库中搜索相关术语及其标准译文，确保术语一致性。
 - **翻译记忆库查询**：使用 \`search_tm\` 在翻译记忆库中搜索已有翻译，利用三通道匹配（精确、三字组、向量语义）查找高置信度匹配。
 - **质量检查**：使用 \`qa_check\` 验证翻译质量（格式、术语、流畅度）。
 
-- **看板查询**：使用 \`kanban_list\` 列出指定看板上的卡片，支持按状态筛选。
-
 # 工作流程
 
-1. **查看看板**：使用 \`kanban_list\` 查看看板上待处理的卡片。
-2. **领取任务**：使用 \`kanban_claim\` 从看板领取一张待翻译卡片（OPEN 状态）。
-2. **预检查**：使用 \`read_precheck\` 读取并理解翻译要求与质检规则。
-3. **查询资源**：
-   - 使用 \`search_tm\` 查找翻译记忆库中的已有翻译。
-   - 使用 \`search_termbase\` 查找术语库中的标准术语译文。
-4. **执行翻译**：基于术语库和记忆库的结果，结合上下文完成准确的翻译。
-5. **质量检查**：使用 \`qa_check\` 验证翻译质量。
-6. **更新状态**：使用 \`kanban_update\` 更新卡片状态。
-7. **完成任务**：使用 \`finish\` 结束当前会话。
+1. **预检查**：使用 \`read_precheck\` 读取并理解翻译要求与质检规则。
+2. **浏览元素**：使用 \`list_elements\` 查看文档中待翻译的元素，或直接查看你被告知要翻译的元素。
+3. **逐一翻译**：对每个需要翻译的元素：
+   a. 使用 \`get_neighbors\` 查看周围上下文。
+   b. 使用 \`get_translations\` 检查是否已有翻译并参考。
+   c. 使用 \`search_tm\` 查找翻译记忆库中的参考翻译。
+   d. 使用 \`search_termbase\` 查找术语库中的标准术语译文。
+   e. 基于参考资料完成翻译。
+   f. 使用 \`qa_check\` 验证翻译质量。
+   g. 使用 \`submit_translation\` 提交翻译。
+4. **完成任务**：所有元素翻译完毕后，使用 \`finish\` 结束会话。
 
 # 翻译原则
 
@@ -77,37 +82,23 @@ scope:
 
 # 注意事项
 
-- 每次只处理一张卡片，完成后调用 \`finish\`。
+- 每次完成翻译后调用 \`finish\`。
 - 若遇到无法解决的问题，在 scratchpad 中记录后仍调用 \`finish\` 并在备注中说明。
 - maxTurns 为 {{maxTurns}}，请在限制内完成任务。
 `;
 
 /**
- * Idempotent seed: ensures the built-in translator agent definition exists.
- * If an agent with the same name + GLOBAL scope already exists, this is a no-op.
- *
- * @zh 幂等 seed：确保内置的翻译助手 Agent 定义存在。
- * @en Idempotent seed: ensures the built-in translator agent definition exists.
+ * @zh 注册/更新所有内置 Agent 的 GLOBAL 模板行。每次启动时调用，确保模板始终与代码同步。
+ * @en Register or update all builtin agent GLOBAL template rows. Called on every startup to keep templates in sync with code.
  */
-export const seedTranslatorAgent = async (db: DbHandle): Promise<void> => {
+export const registerBuiltinAgents = async (db: DbHandle): Promise<void> => {
   const ctx = { db };
-
-  // Check for existing definition (idempotent)
-  const existing = await executeQuery(ctx, findAgentDefinitionByNameAndScope, {
-    name: "翻译助手",
-    scopeType: "GLOBAL",
-    scopeId: "",
-    isBuiltin: true,
-  });
-
-  if (existing) return;
-
   const { metadata, content } = parseAgentDefinition(TRANSLATOR_MD);
 
-  await executeCommand(ctx, createAgentDefinition, {
+  const payload = {
     name: metadata.name,
     description: "内置翻译助手，具备术语库查询、翻译记忆库查询和质量检查能力。",
-    scopeType: "GLOBAL",
+    scopeType: "GLOBAL" as const,
     scopeId: "",
     definitionId: metadata.id ?? "translator",
     version: metadata.version,
@@ -120,5 +111,24 @@ export const seedTranslatorAgent = async (db: DbHandle): Promise<void> => {
     securityPolicy: metadata.securityPolicy,
     content,
     isBuiltin: true,
-  });
+  };
+
+  const existing = await executeQuery(
+    ctx,
+    findAgentDefinitionByDefinitionIdAndScope,
+    {
+      definitionId: payload.definitionId,
+      scopeType: "GLOBAL",
+      scopeId: "",
+    },
+  );
+
+  if (existing) {
+    await executeCommand(ctx, updateAgentDefinition, {
+      id: existing.externalId,
+      ...payload,
+    });
+  } else {
+    await executeCommand(ctx, createAgentDefinition, payload);
+  }
 };

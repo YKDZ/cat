@@ -1,7 +1,7 @@
 import type { VectorizationTask } from "@cat/operations";
 import type { GlobalContextServer } from "vike/types";
 
-import { seedTranslatorAgent } from "@cat/agent";
+import { registerBuiltinAgents } from "@cat/agent";
 import app from "@cat/app-api/app";
 import { ensureDB, ensureRootUser } from "@cat/db";
 import {
@@ -148,8 +148,8 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
     // 播种系统角色（幂等）
     await seedSystemRoles(drizzleDB.client);
 
-    // 播种内置翻译助手 Agent（幂等）
-    await seedTranslatorAgent(drizzleDB.client);
+    // 注册/更新内置 Agent 模板（幂等 upsert）
+    await registerBuiltinAgents(drizzleDB.client);
 
     // 回填超级管理员：若 PermissionTuple 中尚无任何超级管理员记录（例如权限系统上线前已注册的用户），
     // 则将最早注册的用户自动提升为超级管理员。此调用内部幂等（通过 system:first_user_registered setting 去重）。

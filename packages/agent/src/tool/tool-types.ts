@@ -1,3 +1,4 @@
+import type { PluginManager } from "@cat/plugin-core";
 import type { ZodObject, ZodRawShape } from "zod/v4";
 
 /**
@@ -48,6 +49,11 @@ export interface ToolExecutionContext {
    * @en VCS mode
    */
   vcsMode: "trust" | "audit" | "isolation";
+  /**
+   * @zh 当前作用域的插件管理器（可选，未提供时工具应按自身逻辑降级）
+   * @en Scoped plugin manager (optional; tools should degrade gracefully when absent)
+   */
+  pluginManager?: PluginManager;
 }
 
 /**

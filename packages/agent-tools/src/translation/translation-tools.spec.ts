@@ -7,6 +7,30 @@ const mocked = vi.hoisted(() => ({
   termRecallOp: vi.fn(),
   tokenizeOp: vi.fn(),
   collectMemoryRecallOp: vi.fn(),
+  createTranslationOp: vi.fn(),
+  getDocument: Symbol("getDocument"),
+  getDocumentElements: Symbol("getDocumentElements"),
+  getElementContexts: Symbol("getElementContexts"),
+  getElementWithChunkIds: Symbol("getElementWithChunkIds"),
+  listMemoryIdsByProject: Symbol("listMemoryIdsByProject"),
+  listNeighborElements: Symbol("listNeighborElements"),
+  listTranslationsByElement: Symbol("listTranslationsByElement"),
+  executeQuery: vi.fn(),
+  getDbHandle: vi.fn().mockResolvedValue({ client: { tag: "db" } }),
+  firstOrGivenService: vi.fn(),
+  resolvePluginManager: vi.fn(),
+}));
+
+vi.mock("@cat/domain", () => ({
+  executeQuery: mocked.executeQuery,
+  getDbHandle: mocked.getDbHandle,
+  getDocument: mocked.getDocument,
+  getDocumentElements: mocked.getDocumentElements,
+  getElementContexts: mocked.getElementContexts,
+  getElementWithChunkIds: mocked.getElementWithChunkIds,
+  listMemoryIdsByProject: mocked.listMemoryIdsByProject,
+  listNeighborElements: mocked.listNeighborElements,
+  listTranslationsByElement: mocked.listTranslationsByElement,
 }));
 
 vi.mock("@cat/operations", () => ({
@@ -14,11 +38,21 @@ vi.mock("@cat/operations", () => ({
   termRecallOp: mocked.termRecallOp,
   tokenizeOp: mocked.tokenizeOp,
   collectMemoryRecallOp: mocked.collectMemoryRecallOp,
+  createTranslationOp: mocked.createTranslationOp,
 }));
 
+vi.mock("@cat/server-shared/plugin", () => ({
+  firstOrGivenService: mocked.firstOrGivenService,
+  resolvePluginManager: mocked.resolvePluginManager,
+}));
+
+import { getNeighborsTool } from "./get-neighbors.tool.ts";
+import { getTranslationsTool } from "./get-translations.tool.ts";
+import { listElementsTool } from "./list-elements.tool.ts";
 import { qaCheckTool } from "./qa-check.tool.ts";
 import { searchTermbaseTool } from "./search-termbase.tool.ts";
 import { searchTmTool } from "./search-tm.tool.ts";
+import { submitTranslationTool } from "./submit-translation.tool.ts";
 
 const createCtx = (
   overrides?: Partial<ToolExecutionContext["session"]>,
@@ -28,6 +62,7 @@ const createCtx = (
     agentId: "agent-1",
     projectId: "project-1",
     runId: "22222222-2222-4222-8222-222222222222",
+    documentId: "33333333-3333-4333-8333-333333333333",
     languageId: "zh-CN",
     sourceLanguageId: "en-US",
     ...overrides,
@@ -45,6 +80,11 @@ describe("translation tools", () => {
     mocked.termRecallOp.mockReset();
     mocked.tokenizeOp.mockReset();
     mocked.collectMemoryRecallOp.mockReset();
+    mocked.createTranslationOp.mockReset();
+    mocked.executeQuery.mockReset();
+    mocked.getDbHandle.mockClear();
+    mocked.firstOrGivenService.mockReset();
+    mocked.resolvePluginManager.mockReset();
   });
 
   it("uses session language fallback when searching translation memory", async () => {
@@ -137,5 +177,333 @@ describe("translation tools", () => {
       glossaryIds: [],
     });
     expect(result).toEqual({ passed: true, issues: [] });
+  });
+
+  it("uses session document and language fallback when listing elements", async () => {
+    // First call: assertDocumentInSession → getDocument
+    mocked.executeQuery.mockResolvedValueOnce({
+      id: "33333333-3333-4333-8333-333333333333",
+      projectId: "project-1",
+    });
+    // Second call: getDocumentElements
+    mocked.executeQuery.mockResolvedValueOnce([
+      {
+        id: 1,
+        value: "Hello",
+        languageId: "en-US",
+        status: "NO",
+        sortIndex: 10,
+      },
+      {
+        id: 2,
+        value: "World",
+        languageId: "en-US",
+        status: "TRANSLATED",
+        sortIndex: 20,
+      },
+    ]);
+
+    const result = await listElementsTool.execute({ pageSize: 2 }, createCtx());
+
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      1,
+      { db: { tag: "db" } },
+      mocked.getDocument,
+      { documentId: "33333333-3333-4333-8333-333333333333" },
+    );
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      2,
+      { db: { tag: "db" } },
+      mocked.getDocumentElements,
+      {
+        documentId: "33333333-3333-4333-8333-333333333333",
+        page: 0,
+        pageSize: 2,
+        searchQuery: undefined,
+        languageId: "zh-CN",
+        isTranslated: undefined,
+        isApproved: undefined,
+      },
+    );
+    expect(result).toEqual({
+      elements: [
+        {
+          id: 1,
+          sourceText: "Hello",
+          languageId: "en-US",
+          status: "NO",
+          sortIndex: 10,
+        },
+        {
+          id: 2,
+          sourceText: "World",
+          languageId: "en-US",
+          status: "TRANSLATED",
+          sortIndex: 20,
+        },
+      ],
+      page: 0,
+      pageSize: 2,
+      hasMore: true,
+    });
+  });
+
+  it("delegates get_neighbors and reshapes neighbor output", async () => {
+    // First call: assertElementInSession → getElementWithChunkIds
+    mocked.executeQuery.mockResolvedValueOnce({
+      value: "Target sentence",
+      languageId: "en-US",
+      projectId: "project-1",
+      documentId: "33333333-3333-4333-8333-333333333333",
+      chunkIds: [],
+    });
+    // Second call: listNeighborElements
+    mocked.executeQuery.mockResolvedValueOnce([
+      {
+        id: 8,
+        value: "Previous sentence",
+        languageId: "en-US",
+        approvedTranslation: "上一句",
+        approvedTranslationLanguageId: "zh-CN",
+        offset: -1,
+      },
+    ]);
+
+    const result = await getNeighborsTool.execute(
+      { elementId: 9, windowSize: 1 },
+      createCtx(),
+    );
+
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      1,
+      { db: { tag: "db" } },
+      mocked.getElementWithChunkIds,
+      { elementId: 9 },
+    );
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      2,
+      { db: { tag: "db" } },
+      mocked.listNeighborElements,
+      { elementId: 9, windowSize: 1 },
+    );
+    expect(result).toEqual({
+      neighbors: [
+        {
+          id: 8,
+          sourceText: "Previous sentence",
+          languageId: "en-US",
+          approvedTranslation: "上一句",
+          approvedTranslationLanguageId: "zh-CN",
+          offset: -1,
+        },
+      ],
+    });
+  });
+
+  it("uses session language fallback and optionally loads contexts for get_translations", async () => {
+    const createdAt = new Date("2025-01-01T00:00:00.000Z");
+    // First call: assertElementInSession → getElementWithChunkIds
+    mocked.executeQuery
+      .mockResolvedValueOnce({
+        value: "Hello",
+        languageId: "en-US",
+        projectId: "project-1",
+        documentId: "33333333-3333-4333-8333-333333333333",
+        chunkIds: [],
+      })
+      // Second call: listTranslationsByElement
+      .mockResolvedValueOnce([
+        {
+          id: 7,
+          text: "你好",
+          vote: 3,
+          translatorId: "translator-1",
+          createdAt,
+        },
+      ])
+      // Third call: getElementContexts
+      .mockResolvedValueOnce({
+        element: { meta: null, createdAt, updatedAt: createdAt },
+        contexts: [{ kind: "comment", value: "UI label" }],
+      });
+
+    const result = await getTranslationsTool.execute(
+      { elementId: 5, includeContext: true },
+      createCtx(),
+    );
+
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      1,
+      { db: { tag: "db" } },
+      mocked.getElementWithChunkIds,
+      { elementId: 5 },
+    );
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      2,
+      { db: { tag: "db" } },
+      mocked.listTranslationsByElement,
+      { elementId: 5, languageId: "zh-CN" },
+    );
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      3,
+      { db: { tag: "db" } },
+      mocked.getElementContexts,
+      { elementId: 5 },
+    );
+    expect(result).toEqual({
+      translations: [
+        {
+          id: 7,
+          text: "你好",
+          vote: 3,
+          translatorId: "translator-1",
+          createdAt,
+        },
+      ],
+      contexts: [{ kind: "comment", value: "UI label" }],
+    });
+  });
+
+  it("submits translations through createTranslationOp with plugin services and memory ids", async () => {
+    mocked.executeQuery
+      .mockResolvedValueOnce({
+        value: "Hello",
+        languageId: "en-US",
+        projectId: "project-1",
+        documentId: "33333333-3333-4333-8333-333333333333",
+        chunkIds: [1, 2],
+      })
+      .mockResolvedValueOnce([
+        "66666666-6666-4666-8666-666666666666",
+        "77777777-7777-4777-8777-777777777777",
+      ]);
+    mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
+    mocked.firstOrGivenService
+      .mockReturnValueOnce({ id: 101, service: { tag: "vectorizer" } })
+      .mockReturnValueOnce({ id: 202, service: { tag: "vector-storage" } });
+    mocked.createTranslationOp.mockResolvedValue({
+      translationIds: [88],
+      memoryItemIds: [99],
+    });
+
+    const result = await submitTranslationTool.execute(
+      { elementId: 5, text: "你好" },
+      createCtx(),
+    );
+
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      1,
+      { db: { tag: "db" } },
+      mocked.getElementWithChunkIds,
+      { elementId: 5 },
+    );
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      2,
+      { db: { tag: "db" } },
+      mocked.listMemoryIdsByProject,
+      { projectId: "project-1" },
+    );
+    expect(mocked.resolvePluginManager).toHaveBeenCalledWith(undefined); // ctx.pluginManager is undefined in createCtx()
+    expect(mocked.firstOrGivenService).toHaveBeenNthCalledWith(
+      1,
+      { tag: "plugin-manager" },
+      "TEXT_VECTORIZER",
+    );
+    expect(mocked.firstOrGivenService).toHaveBeenNthCalledWith(
+      2,
+      { tag: "plugin-manager" },
+      "VECTOR_STORAGE",
+    );
+    expect(mocked.createTranslationOp).toHaveBeenCalledWith({
+      data: [
+        {
+          translatableElementId: 5,
+          text: "你好",
+          languageId: "zh-CN",
+        },
+      ],
+      translatorId: null,
+      memoryIds: [
+        "66666666-6666-4666-8666-666666666666",
+        "77777777-7777-4777-8777-777777777777",
+      ],
+      vectorizerId: 101,
+      vectorStorageId: 202,
+      documentId: "33333333-3333-4333-8333-333333333333",
+    });
+    expect(result).toEqual({
+      translationIds: [88],
+      memoryItemIds: [99],
+    });
+  });
+
+  describe("scope validation", () => {
+    it("rejects list_elements when documentId belongs to a different project", async () => {
+      mocked.executeQuery.mockResolvedValueOnce({
+        id: "33333333-3333-4333-8333-333333333333",
+        projectId: "other-project",
+      });
+
+      await expect(
+        listElementsTool.execute(
+          { documentId: "33333333-3333-4333-8333-333333333333" },
+          createCtx(),
+        ),
+      ).rejects.toThrow("different project");
+    });
+
+    it("rejects list_elements when documentId does not match session", async () => {
+      await expect(
+        listElementsTool.execute(
+          { documentId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" },
+          createCtx(),
+        ),
+      ).rejects.toThrow("does not match the session document");
+    });
+
+    it("rejects get_neighbors when element belongs to a different project", async () => {
+      mocked.executeQuery.mockResolvedValueOnce({
+        value: "Hello",
+        languageId: "en-US",
+        projectId: "other-project",
+        documentId: "other-doc",
+        chunkIds: [],
+      });
+
+      await expect(
+        getNeighborsTool.execute({ elementId: 99 }, createCtx()),
+      ).rejects.toThrow("different project");
+    });
+
+    it("rejects get_translations when element belongs to a different document", async () => {
+      mocked.executeQuery.mockResolvedValueOnce({
+        value: "Hello",
+        languageId: "en-US",
+        projectId: "project-1",
+        documentId: "other-doc-id",
+        chunkIds: [],
+      });
+
+      await expect(
+        getTranslationsTool.execute({ elementId: 5 }, createCtx()),
+      ).rejects.toThrow("different document");
+    });
+
+    it("rejects submit_translation when element belongs to a different project", async () => {
+      mocked.executeQuery.mockResolvedValueOnce({
+        value: "Hello",
+        languageId: "en-US",
+        projectId: "other-project",
+        documentId: "33333333-3333-4333-8333-333333333333",
+        chunkIds: [],
+      });
+
+      await expect(
+        submitTranslationTool.execute(
+          { elementId: 5, text: "你好" },
+          createCtx(),
+        ),
+      ).rejects.toThrow("different project");
+    });
   });
 });

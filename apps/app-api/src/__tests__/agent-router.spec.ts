@@ -1059,11 +1059,24 @@ describe("agent router", () => {
 
     const registry = createAgentToolRegistry(manager);
     const toolNames = registry
-      .resolve(["finish", "qa_check", "kanban_list", "plugin_tool"])
+      .resolve([
+        "finish",
+        "list_elements",
+        "get_neighbors",
+        "get_translations",
+        "submit_translation",
+        "qa_check",
+        "kanban_list",
+        "plugin_tool",
+      ])
       .map((tool) => tool.name);
 
     expect(toolNames).toEqual([
       "finish",
+      "list_elements",
+      "get_neighbors",
+      "get_translations",
+      "submit_translation",
       "qa_check",
       "kanban_list",
       "plugin_tool",

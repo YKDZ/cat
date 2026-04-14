@@ -48,6 +48,7 @@ export const runToolNode = async (
     | "projectId"
     | "sessionMetadata"
     | "logger"
+    | "pluginManager"
   >,
 ): Promise<ToolNodeResult> => {
   const {
@@ -58,6 +59,7 @@ export const runToolNode = async (
     projectId,
     sessionMetadata,
     logger,
+    pluginManager,
   } = ctx;
   const toolCalls = data.tool_calls ?? [];
 
@@ -98,6 +100,7 @@ export const runToolNode = async (
       remainingTokens: 999_999,
     },
     vcsMode: "trust",
+    pluginManager,
   };
 
   // Execute all tool calls concurrently

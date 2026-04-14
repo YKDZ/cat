@@ -29,6 +29,7 @@
     "@cat/core": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/operations": "workspace:*",
+    "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
     "zod": "catalog:"
   }

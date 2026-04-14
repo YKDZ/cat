@@ -848,6 +848,9 @@ importers:
       '@cat/operations':
         specifier: workspace:*
         version: link:../operations
+      '@cat/server-shared':
+        specifier: workspace:*
+        version: link:../server-shared
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
