@@ -156,6 +156,19 @@ When you encounter issues requiring human input, insert a decision block instead
 - Final decision: _pending_
 ```
 
+### Decision Block Discipline: Stop at the Fork
+
+**When you place a decision block, STOP elaborating on that topic.** Do not:
+
+- Guess which option the human will choose
+- Write subsequent steps that assume a particular decision outcome
+- Create "if A is chosen, then..." conditional branches
+- Pre-write code snippets, file operations, or verifications that only apply under one option
+
+The steps following a decision block should only contain work that is valid **regardless of which option is chosen**. Steps that depend on the choice do not exist yet — they will be created by replan after the human decides.
+
+This prevents wasting tokens on speculative content and avoids pre-loading context that biases toward one option.
+
 ## Chunked Writing
 
 Always write the plan incrementally by section using the continuation marker `<!-- §§PLAN_CONTINUE§§ -->`. Do NOT attempt to write the entire plan in a single tool call.
