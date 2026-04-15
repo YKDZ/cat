@@ -29,6 +29,14 @@ Extract the following from the user's message:
 - **Minimal changes only.** Don't refactor, add features, or "improve" code beyond what the plan specifies. Don't add comments, docstrings, or type annotations to unchanged code.
 - **Prove understanding.** Before editing, verify the plan's referenced line numbers and code snippets match the actual file. If they've drifted, adapt — don't blindly apply.
 - **Fix root cause, not symptom.** If you encounter a bug during implementation, fix the underlying issue rather than adding workarounds.
+- **Follow existing patterns.** In the existing codebase, match the conventions and style already in place. Improve code you're touching the way a good developer would, but don't restructure things outside your scope.
+
+## Code Organization
+
+- Follow the file structure defined in the plan.
+- Each file should have one clear responsibility with a well-defined interface.
+- If a file you're creating grows beyond the plan's intent, stop and report it as DONE_WITH_CONCERNS — don't split files on your own without plan guidance.
+- If an existing file you're modifying is already large or tangled, work carefully and note it as a concern in your report.
 
 ## Execution Strategy
 
@@ -46,6 +54,40 @@ For each TODO item:
 
 - If a step fails verification: diagnose why before retrying. Read the error, check assumptions, try a focused fix. Don't retry the same action blindly.
 - If subsequent steps depend on a failed step: stop and fix the failure first.
+- If you've been stuck on the same issue for more than 2-3 attempts: escalate (see below).
+
+## When to Stop and Ask
+
+**STOP executing immediately when:**
+
+- Hit a blocker (missing dependency, test fails repeatedly, instruction unclear)
+- Plan has critical gaps preventing the step from starting
+- You don't understand an instruction
+- Verification fails repeatedly after focused diagnosis
+- The task requires architectural decisions with multiple valid approaches the plan didn't anticipate
+- You need to understand code beyond what the plan provided and can't find clarity
+
+**Ask for clarification rather than guessing.** Bad work is worse than no work.
+
+## Status Reporting
+
+After completing all items in scope (or when blocked), report your status:
+
+- **DONE**: All items implemented and verified. Proceed to QA.
+- **DONE_WITH_CONCERNS**: Completed but with doubts — describe what concerns you (e.g., "file growing too large", "edge case not covered by tests").
+- **NEEDS_CONTEXT**: Cannot proceed without additional information. Describe specifically what's missing.
+- **BLOCKED**: Cannot complete the task. Describe what you're stuck on, what you've tried, and what kind of help you need.
+
+## Self-Review Before Reporting
+
+Before reporting DONE or DONE_WITH_CONCERNS, review your work:
+
+1. **Completeness**: Did you fully implement everything the plan specified for your scope? Any requirements missed?
+2. **Quality**: Are names clear and accurate? Is the code clean and maintainable?
+3. **Discipline**: Did you avoid overbuilding (YAGNI)? Did you only build what was requested? Did you follow existing codebase patterns?
+4. **Testing**: Do tests actually verify behavior (not just mock behavior)? Are they comprehensive for the scope?
+
+If you find issues during self-review, fix them before reporting.
 
 ## Task Tracking
 
@@ -56,3 +98,5 @@ For each TODO item:
 ## Final Validation
 
 After completing all items in scope, run the QA checks from the preloaded qa-check skill. Implementation is complete only after QA passes.
+
+Report status and any concerns to the user.
