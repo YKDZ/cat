@@ -1,12 +1,19 @@
 {
   "extends": "../../tsconfig.base.json",
+  "files": [],
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
     "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["scripts/**/*.ts", "vite.config.ts", "src/**/*.d.ts"],
+  "references": [
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
 }

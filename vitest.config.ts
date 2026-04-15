@@ -149,6 +149,14 @@ export default defineConfig({
         },
         resolve: { alias: alias(resolve(ROOT, "apps/app-api")) },
       },
+      {
+        test: {
+          name: "unit-cli",
+          include: ["apps/cli/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "apps/cli")) },
+      },
 
       // ── UI 包：组件单元测试 ──────────────────────────────────────────
       {

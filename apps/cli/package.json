@@ -8,6 +8,10 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "vitest run --config ../../vitest.config.ts --project=unit-cli",
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-cli --include='**/*.spec.ts'"
+  },
   "dependencies": {
     "@orpc/client": "^1.13.13",
     "@orpc/server": "^1.13.13"

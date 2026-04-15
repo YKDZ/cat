@@ -37,16 +37,18 @@ export const callByPath = (
   input: unknown,
 ): unknown => {
   const segments = path.split(".");
-  // Proxy 客户端支持任意字符串属性访问，逐层递归创建子 Proxy
+  // oRPC Proxy 客户端在运行时是函数代理；路由节点和叶子 handler 都可能表现为 function。
   let current: unknown = client;
   for (const segment of segments) {
-    if (typeof current !== "object" || current === null) {
+    if (
+      (typeof current !== "object" || current === null) &&
+      typeof current !== "function"
+    ) {
       throw new Error(
         `Invalid path segment '${segment}': parent is not an object`,
       );
     }
-    // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed by typeof check above
-    current = (current as Record<string, unknown>)[segment];
+    current = Reflect.get(current, segment);
   }
   if (typeof current !== "function") {
     throw new Error(`Path '${path}' does not resolve to a callable handler`);
