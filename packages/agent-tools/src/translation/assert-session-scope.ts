@@ -40,6 +40,21 @@ export const assertElementInSession = async (
 };
 
 /**
+ * @zh 验证指定项目属于当前会话的项目作用域。
+ * @en Verify the given project belongs to the current session's project scope.
+ *
+ * @throws 若项目不在会话作用域内。 / If the project is outside the current session scope.
+ */
+export const assertProjectInSession = (
+  projectId: string,
+  ctx: ToolExecutionContext,
+): void => {
+  if (projectId !== ctx.session.projectId) {
+    throw new Error(`Project ${projectId} does not match the session project`);
+  }
+};
+
+/**
  * @zh 验证指定文档属于当前会话的项目（以及匹配会话的 documentId，若存在）。
  * @en Verify the given documentId matches the session scope and belongs to the session's project.
  *

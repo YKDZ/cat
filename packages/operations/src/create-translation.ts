@@ -26,8 +26,8 @@ export const CreateTranslationInputSchema = z.object({
   ),
   translatorId: z.uuidv4().nullable(),
   memoryIds: z.array(z.uuidv4()).default([]),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizerId: z.int().optional(),
+  vectorStorageId: z.int().optional(),
   documentId: z.uuidv4(),
 });
 
@@ -53,14 +53,14 @@ export type CreateTranslationPubPayload = z.infer<
 /**
  * @zh 创建翻译记录。
  *
- * 1. 创建可翻译字符串（含向量化）
+ * 1. 创建可翻译字符串（向量服务可用时会异步排队向量化）
  * 2. 插入翻译记录
  * 3. 通过领域事件触发可选发布通知
  * 4. 可选写入翻译记忆
  * 5. 对每条翻译执行 QA 检查
  * @en Create translation records.
  *
- * 1. Create translatable strings (with vectorization)
+ * 1. Create translatable strings (enqueue vectorization when services are available)
  * 2. Insert translation records
  * 3. Trigger optional publish notification via domain event
  * 4. Optionally write to translation memory
