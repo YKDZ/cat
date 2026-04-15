@@ -4,10 +4,3 @@ stack: "infrastructure"
 tags:
   - "cli"
   - "deployable"
-
-tasks:
-  build:
-    script: "vite build"
-
-  typecheck:
-    script: "tsc --noEmit -p tsconfig.lib.json"

@@ -41,21 +41,20 @@ const extractZodIssues = (data: unknown): ZodIssue[] | null => {
   if (!data || typeof data !== "object") return null;
 
   // oRPC wraps Zod issues in { issues: [...] }
-  const candidate = "issues" in data ? (data as { issues: unknown }).issues : data;
+  const candidate =
+    "issues" in data ? (data as { issues: unknown }).issues : data;
 
   if (!Array.isArray(candidate)) return null;
   if (candidate.length === 0) return null;
 
   // Verify at least one item looks like a Zod issue
-  const first = candidate[0];
-  if (
-    !first ||
-    typeof first !== "object" ||
-    !("message" in first)
-  ) {
+  const first: unknown = candidate[0];
+  if (!first || typeof first !== "object" || !("message" in first)) {
     return null;
   }
 
+  // validated above: every element has at least `message`
+  // oxlint-disable-next-line no-unsafe-type-assertion
   return candidate as ZodIssue[];
 };
 
@@ -97,13 +96,10 @@ const generateHint = (
 const formatZodIssues = (issues: ZodIssue[]): string => {
   return issues
     .map((issue) => {
-      const location =
-        issue.path.length > 0 ? issue.path.join(".") : "(root)";
+      const location = issue.path.length > 0 ? issue.path.join(".") : "(root)";
       let line = `  • ${location}: ${issue.message}`;
-      if (issue.expected)
-        line += ` (expected: ${issue.expected}`;
-      if (issue.received)
-        line += `, received: ${issue.received}`;
+      if (issue.expected) line += ` (expected: ${issue.expected}`;
+      if (issue.received) line += `, received: ${issue.received}`;
       if (issue.expected) line += ")";
       return line;
     })
@@ -125,19 +121,22 @@ export const toSemanticError = (
   if (err instanceof ORPCError) {
     const zodIssues = extractZodIssues(err.data);
 
+    const code: string = typeof err.code === "string" ? err.code : "UNKNOWN";
     return {
-      code: err.code,
+      code,
       status: err.status,
-      message:
-        err.message || `Server returned ${err.code} (HTTP ${err.status})`,
+      message: err.message || `Server returned ${code} (HTTP ${err.status})`,
       path: context?.path,
       details: zodIssues ?? err.data ?? undefined,
-      hint: generateHint(err.code, err.status, context),
+      hint: generateHint(code, err.status, context),
     };
   }
 
   // Network / fetch errors
-  if (err instanceof TypeError && /fetch|network|ECONNREFUSED/i.test(err.message)) {
+  if (
+    err instanceof TypeError &&
+    /fetch|network|ECONNREFUSED/i.test(err.message)
+  ) {
     return {
       code: "NETWORK_ERROR",
       message: err.message,
@@ -181,6 +180,7 @@ export const formatSemanticError = (se: SemanticError): string => {
 
   // Format Zod validation issues specially
   if (Array.isArray(se.details)) {
+    // oxlint-disable-next-line no-unsafe-type-assertion
     const zodIssues = se.details as ZodIssue[];
     if (zodIssues.length > 0 && zodIssues[0] && "message" in zodIssues[0]) {
       lines.push("  validation errors:");
@@ -211,6 +211,7 @@ export const withErrorReporting = async (
     await fn();
   } catch (err) {
     const se = toSemanticError(err, context);
+    // oxlint-disable-next-line no-console
     console.error(formatSemanticError(se));
     process.exit(1);
   }

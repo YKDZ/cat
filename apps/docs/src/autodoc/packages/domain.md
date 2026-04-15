@@ -2526,7 +2526,7 @@ export const listOwnedProjects: Query<
 export const listProjectDocuments: Query<
   ListProjectDocumentsQuery,
   ProjectDocumentRow[]
-> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; page?: number | undefined; pageSize?: number | undefined; }) => {...}
 ```
 
 ### `listProjectsByCreator`

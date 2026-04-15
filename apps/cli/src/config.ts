@@ -29,6 +29,7 @@ export const resolveConfig = (values: Record<string, unknown>): CliConfig => {
     "";
 
   if (!apiKey) {
+    // oxlint-disable-next-line no-console
     console.error(
       "[ERROR] MISSING_API_KEY: No API key provided.\n" +
         "  hint: Set --api-key <key> or export CAT_API_KEY=cat_...",

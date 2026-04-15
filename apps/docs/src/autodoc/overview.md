@@ -36,7 +36,7 @@
 
 * [**@cat/agent**](./packages/agent.md) — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser (18 functions, 52 types)
 
-* [**@cat/agent-tools**](./packages/agent-tools.md) — Built-in agent tools: kanban, translation, session management (3 functions, 0 types)
+* [**@cat/agent-tools**](./packages/agent-tools.md) — Built-in agent tools: kanban, translation, session management (6 functions, 0 types)
 
 ## Core Package Dependencies
 

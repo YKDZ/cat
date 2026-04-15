@@ -30,14 +30,16 @@ export const runCallCommand = async (
   config: CliConfig,
   args: string[],
   inputFromFile?: unknown,
-) => {
+): Promise<void> => {
   if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
+    // oxlint-disable-next-line no-console
     console.log(HELP);
     return;
   }
 
   const [path, rawInput] = args;
   if (!path) {
+    // oxlint-disable-next-line no-console
     console.error(
       "[ERROR] MISSING_PATH: No handler path specified.\n" +
         "  hint: Provide a dot-separated path, e.g. 'cat-cli call memory.get'.\n" +
@@ -52,6 +54,7 @@ export const runCallCommand = async (
     try {
       input = JSON.parse(rawInput);
     } catch {
+      // oxlint-disable-next-line no-console
       console.error(
         `[ERROR] INVALID_JSON: Cannot parse input as JSON.\n` +
           `  input: ${rawInput}\n` +
@@ -61,19 +64,28 @@ export const runCallCommand = async (
     }
   }
 
-  await withErrorReporting(async () => {
-    const result = await callByPath(config.client, path, input);
+  await withErrorReporting(
+    async () => {
+      const result = await callByPath(config.client, path, input);
 
-    if (
-      result != null &&
-      typeof result === "object" &&
-      Symbol.asyncIterator in result
-    ) {
-      for await (const item of result as AsyncIterable<unknown>) {
-        console.log(JSON.stringify(item, null, 2));
+      if (
+        result !== null &&
+        typeof result === "object" &&
+        Symbol.asyncIterator in result
+      ) {
+        // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed by Symbol.asyncIterator check above
+        const iterable = result as {
+          [Symbol.asyncIterator](): AsyncIterator<unknown>;
+        };
+        for await (const item of iterable) {
+          // oxlint-disable-next-line no-console
+          console.log(JSON.stringify(item, null, 2));
+        }
+      } else {
+        // oxlint-disable-next-line no-console
+        console.log(JSON.stringify(result, null, 2));
       }
-    } else {
-      console.log(JSON.stringify(result, null, 2));
-    }
-  }, { path, input });
+    },
+    { path, input },
+  );
 };

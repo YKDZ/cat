@@ -30,7 +30,7 @@ glossary text:
 export const runGlossaryCommand = async (
   config: CliConfig,
   args: string[],
-) => {
+): Promise<void> => {
   const { positionals, values } = parseArgs({
     args,
     options: {
@@ -51,6 +51,7 @@ export const runGlossaryCommand = async (
   const [sub] = positionals;
 
   if (values.help || !sub) {
+    // oxlint-disable-next-line no-console
     console.log(HELP);
     return;
   }
@@ -63,6 +64,7 @@ export const runGlossaryCommand = async (
       await searchByText(config, values);
       break;
     default:
+      // oxlint-disable-next-line no-console
       console.error(
         `[ERROR] UNKNOWN_SUBCOMMAND: 'glossary ${sub}' is not valid.\n` +
           "  hint: Available subcommands: element, text.",
@@ -84,6 +86,7 @@ const findByElement = async (
     if (!Number.isInteger(elementId))
       missing.push("--element-id (must be an integer)");
     if (typeof lang !== "string") missing.push("--lang");
+    // oxlint-disable-next-line no-console
     console.error(
       `[ERROR] MISSING_ARGUMENT: Required option(s) not provided: ${missing.join(", ")}.\n` +
         "  hint: cat-cli glossary element --element-id 42 --lang zh-Hans",
@@ -100,15 +103,20 @@ const findByElement = async (
     values["extra-json"],
   );
 
-  console.log(`查找元素 ${elementId} → ${lang} 的术语匹配...`);
+  // oxlint-disable-next-line no-console
+  console.log(`Query term of element ${elementId} → ${lang}...`);
 
-  await withErrorReporting(async () => {
-    const stream = await config.client.glossary.findTerm(input);
+  await withErrorReporting(
+    async () => {
+      const stream = await config.client.glossary.findTerm(input);
 
-    for await (const term of stream) {
-      console.log(JSON.stringify(term, null, 2));
-    }
-  }, { path: "glossary.findTerm", input });
+      for await (const term of stream) {
+        // oxlint-disable-next-line no-console
+        console.log(JSON.stringify(term, null, 2));
+      }
+    },
+    { path: "glossary.findTerm", input },
+  );
 };
 
 const searchByText = async (
@@ -132,6 +140,7 @@ const searchByText = async (
     if (typeof text !== "string") missing.push("--text");
     if (typeof sourceLang !== "string") missing.push("--source-lang");
     if (typeof targetLang !== "string") missing.push("--target-lang");
+    // oxlint-disable-next-line no-console
     console.error(
       `[ERROR] MISSING_ARGUMENT: Required option(s) not provided: ${missing.join(", ")}.\n` +
         '  hint: cat-cli glossary text --project-id <uuid> --text "国际化" --source-lang zh --target-lang en',
@@ -150,15 +159,20 @@ const searchByText = async (
     values["extra-json"],
   );
 
+  // oxlint-disable-next-line no-console
   console.log(
-    `搜索文本 "${text.slice(0, 50)}..." → ${targetLang} 的术语匹配...`,
+    `Query term of text "${text.slice(0, 50)}..." → ${targetLang}...`,
   );
 
-  await withErrorReporting(async () => {
-    const stream = await config.client.glossary.searchTerm(input);
+  await withErrorReporting(
+    async () => {
+      const stream = await config.client.glossary.searchTerm(input);
 
-    for await (const term of stream) {
-      console.log(JSON.stringify(term, null, 2));
-    }
-  }, { path: "glossary.searchTerm", input });
+      for await (const term of stream) {
+        // oxlint-disable-next-line no-console
+        console.log(JSON.stringify(term, null, 2));
+      }
+    },
+    { path: "glossary.searchTerm", input },
+  );
 };

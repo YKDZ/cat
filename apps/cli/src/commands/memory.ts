@@ -27,7 +27,10 @@ memory text:
   --extra-json <json>     额外 JSON 参数合并到 input（可选）
 `;
 
-export const runMemoryCommand = async (config: CliConfig, args: string[]) => {
+export const runMemoryCommand = async (
+  config: CliConfig,
+  args: string[],
+): Promise<void> => {
   const { positionals, values } = parseArgs({
     args,
     options: {
@@ -48,6 +51,7 @@ export const runMemoryCommand = async (config: CliConfig, args: string[]) => {
   const [sub] = positionals;
 
   if (values.help || !sub) {
+    // oxlint-disable-next-line no-console
     console.log(HELP);
     return;
   }
@@ -60,6 +64,7 @@ export const runMemoryCommand = async (config: CliConfig, args: string[]) => {
       await recallByText(config, values);
       break;
     default:
+      // oxlint-disable-next-line no-console
       console.error(
         `[ERROR] UNKNOWN_SUBCOMMAND: 'memory ${sub}' is not valid.\n` +
           "  hint: Available subcommands: element, text.",
@@ -81,6 +86,7 @@ const recallByElement = async (
     if (!Number.isInteger(elementId))
       missing.push("--element-id (must be an integer)");
     if (typeof lang !== "string") missing.push("--lang");
+    // oxlint-disable-next-line no-console
     console.error(
       `[ERROR] MISSING_ARGUMENT: Required option(s) not provided: ${missing.join(", ")}.\n` +
         "  hint: cat-cli memory element --element-id 42 --lang zh-Hans",
@@ -97,15 +103,20 @@ const recallByElement = async (
     values["extra-json"],
   );
 
-  console.log(`查询元素 ${elementId} → ${lang} 的翻译记忆...`);
+  // oxlint-disable-next-line no-console
+  console.log(`Query memory of element ${elementId} → ${lang}...`);
 
-  await withErrorReporting(async () => {
-    const stream = await config.client.memory.onNew(input);
+  await withErrorReporting(
+    async () => {
+      const stream = await config.client.memory.onNew(input);
 
-    for await (const suggestion of stream) {
-      console.log(JSON.stringify(suggestion, null, 2));
-    }
-  }, { path: "memory.onNew", input });
+      for await (const suggestion of stream) {
+        // oxlint-disable-next-line no-console
+        console.log(JSON.stringify(suggestion, null, 2));
+      }
+    },
+    { path: "memory.onNew", input },
+  );
 };
 
 const recallByText = async (
@@ -129,6 +140,7 @@ const recallByText = async (
     if (typeof text !== "string") missing.push("--text");
     if (typeof sourceLang !== "string") missing.push("--source-lang");
     if (typeof targetLang !== "string") missing.push("--target-lang");
+    // oxlint-disable-next-line no-console
     console.error(
       `[ERROR] MISSING_ARGUMENT: Required option(s) not provided: ${missing.join(", ")}.\n` +
         '  hint: cat-cli memory text --project-id <uuid> --text "Hello" --source-lang en --target-lang zh-Hans',
@@ -147,15 +159,20 @@ const recallByText = async (
     values["extra-json"],
   );
 
+  // oxlint-disable-next-line no-console
   console.log(
-    `查询文本 "${text.slice(0, 50)}..." → ${targetLang} 的翻译记忆...`,
+    `Query memory of text "${text.slice(0, 50)}..." → ${targetLang}...`,
   );
 
-  await withErrorReporting(async () => {
-    const stream = await config.client.memory.searchByText(input);
+  await withErrorReporting(
+    async () => {
+      const stream = await config.client.memory.searchByText(input);
 
-    for await (const suggestion of stream) {
-      console.log(JSON.stringify(suggestion, null, 2));
-    }
-  }, { path: "memory.searchByText", input });
+      for await (const suggestion of stream) {
+        // oxlint-disable-next-line no-console
+        console.log(JSON.stringify(suggestion, null, 2));
+      }
+    },
+    { path: "memory.searchByText", input },
+  );
 };

@@ -40,8 +40,8 @@ const readInputFile = (filePath: string): unknown => {
     const content = readFileSync(filePath, "utf-8");
     return JSON.parse(content);
   } catch (err) {
-    const msg =
-      err instanceof Error ? err.message : String(err);
+    const msg = err instanceof Error ? err.message : String(err);
+    // oxlint-disable-next-line no-console
     console.error(
       `[ERROR] INPUT_FILE_ERROR: Cannot read or parse '${filePath}'.\n` +
         `  details: ${msg}\n` +
@@ -64,6 +64,7 @@ const main = async () => {
   });
 
   if (values.help || positionals.length === 0) {
+    // oxlint-disable-next-line no-console
     console.log(HELP);
     process.exit(0);
   }
@@ -91,6 +92,7 @@ const main = async () => {
       await runGlossaryCommand(config, rest);
       break;
     default:
+      // oxlint-disable-next-line no-console
       console.error(
         `[ERROR] UNKNOWN_COMMAND: '${command}' is not a valid command.\n` +
           `  hint: Available commands: call, agent, memory, glossary. Run 'cat-cli --help' for usage.`,
@@ -100,6 +102,7 @@ const main = async () => {
 };
 
 main().catch((err: unknown) => {
+  // oxlint-disable-next-line no-console
   console.error(err);
   process.exit(1);
 });
