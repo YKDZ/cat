@@ -1,0 +1,69 @@
+{
+  "glossary": {
+    "name": "Smoke Test Glossary",
+    "sourceLanguage": "en",
+    "translationLanguage": "zh-Hans",
+    "concepts": [
+      {
+        "ref": "concept:creeper",
+        "definition": "A hostile mob that silently approaches and explodes",
+        "terms": [
+          {
+            "term": "Creeper",
+            "termLanguageId": "en",
+            "translation": "苦力怕",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enderman",
+        "definition": "A tall neutral mob that teleports and picks up blocks",
+        "terms": [
+          {
+            "term": "Enderman",
+            "termLanguageId": "en",
+            "translation": "末影人",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:redstone",
+        "definition": "A mineral used to create electrical circuits in-game",
+        "terms": [
+          {
+            "term": "Redstone",
+            "termLanguageId": "en",
+            "translation": "红石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:diamond",
+        "definition": "A rare ore used to craft the strongest tools and armor",
+        "terms": [
+          {
+            "term": "Diamond",
+            "termLanguageId": "en",
+            "translation": "钻石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:nether",
+        "definition": "A dangerous hell-like dimension accessed through a portal",
+        "terms": [
+          {
+            "term": "Nether",
+            "termLanguageId": "en",
+            "translation": "下界",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      }
+    ]
+  }
+}

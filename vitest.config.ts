@@ -157,6 +157,14 @@ export default defineConfig({
         },
         resolve: { alias: alias(resolve(ROOT, "apps/cli")) },
       },
+      {
+        test: {
+          name: "unit-eval",
+          include: ["apps/eval/src/**/*.spec.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "apps/eval")) },
+      },
 
       // ── UI 包：组件单元测试 ──────────────────────────────────────────
       {

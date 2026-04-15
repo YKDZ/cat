@@ -307,6 +307,7 @@ export {
 } from "./collect-term-recall";
 
 export { buildTermRecallVariantsOp } from "./build-term-recall-variants";
+export { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants";
 export { triggerTermRecallReindex } from "./trigger-term-recall-reindex";
 
 export {

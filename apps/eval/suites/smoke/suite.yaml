@@ -1,0 +1,20 @@
+name: smoke-term-recall
+description: Minimal smoke test for term recall evaluation pipeline
+
+seed:
+  project: seed/project.json
+  glossary: seed/glossary.json
+
+plugins:
+  loader: test
+  overrides: []
+
+scenarios:
+  - type: term-recall
+    test-set: test-sets/smoke-terms.yaml
+    scorers: [precision, recall, f1, mrr, hit-rate, latency]
+    params:
+      maxAmount: 10
+      wordSimilarityThreshold: 0.3
+      minMorphologySimilarity: 0.7
+      minSemanticSimilarity: 0.6

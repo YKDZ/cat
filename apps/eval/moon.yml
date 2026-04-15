@@ -1,0 +1,55 @@
+language: "typescript"
+layer: "application"
+stack: "infrastructure"
+tags:
+  - "eval"
+
+tasks:
+  build:
+    script: "tsc --noEmit -p tsconfig.app.json"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    outputs: []
+    deps:
+      - "^:build"
+    options:
+      cache: true
+      mergeOutputs: replace
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.app.json"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+  run:
+    command: "tsx src/cli.ts run"
+    deps:
+      - "^:build"
+      - "#plugin:build"
+    options:
+      cache: false
+  seed:
+    command: "tsx src/cli.ts seed"
+    deps:
+      - "^:build"
+      - "#plugin:build"
+    options:
+      cache: false
+  report:
+    command: "tsx src/cli.ts report"
+    deps:
+      - "^:build"
+    options:
+      cache: false
+  env-up:
+    command: "docker compose up -d"
+    options:
+      cache: false
+  env-down:
+    command: "docker compose down"
+    options:
+      cache: false
