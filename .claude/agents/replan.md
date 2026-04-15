@@ -119,6 +119,8 @@ When new decision points are **enabled**:
 - Provide at least two concrete options with pros/cons. Do NOT collapse into a single-line or omit `Final decision: _pending_`.
 - If you are unsure whether something warrants a decision block, err on the side of creating one.
 
+**Decision Block Discipline: Stop at the Fork.** When you insert a new decision block, STOP elaborating on that topic. Do not write subsequent steps that assume a particular decision outcome, create conditional branches, or pre-write code/operations that only apply under one option. Steps after a decision block must be valid regardless of which option is chosen. Content that depends on the pending decision belongs in the next revision.
+
 ### 4. Self-Review
 
 After writing the complete draft, review it yourself:
