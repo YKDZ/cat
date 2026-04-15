@@ -4,3 +4,15 @@ stack: "infrastructure"
 tags:
   - "cli"
   - "deployable"
+
+tasks:
+  generate-routes:
+    command: "node --import=tsx/esm scripts/generate-routes.ts"
+    inputs:
+      - "scripts/generate-routes.ts"
+      - "//apps/app-api/src/orpc/router.ts"
+      - "//apps/app-api/src/orpc/routers/**/*.ts"
+    outputs:
+      - "src/routes.generated.ts"
+    options:
+      cache: true
