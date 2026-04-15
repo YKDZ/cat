@@ -1,0 +1,36 @@
+name: smoke-terms
+cases:
+  - id: smoke-term-1
+    inputText: "Watch out for the Creeper behind you!"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:creeper"
+        term: "Creeper"
+        translation: "苦力怕"
+        requiredChannels: ["lexical"]
+    negativeTerms: []
+
+  - id: smoke-term-2
+    inputText: "I need more Redstone to build a circuit."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:redstone"
+        term: "Redstone"
+        translation: "红石"
+        requiredChannels: ["lexical"]
+    negativeTerms: []
+
+  - id: smoke-term-3
+    inputText: "Found a Diamond ore near the Nether portal!"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:diamond"
+        term: "Diamond"
+        translation: "钻石"
+      - conceptRef: "concept:nether"
+        term: "Nether"
+        translation: "下界"
+    negativeTerms: []
