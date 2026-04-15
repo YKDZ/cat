@@ -49,7 +49,11 @@ describe("registerBuiltinAgents", () => {
       expect.objectContaining({
         definitionId: "translator",
         isBuiltin: true,
-        tools: expect.arrayContaining(["submit_translation", "list_elements"]),
+        tools: expect.arrayContaining([
+          "submit_translation",
+          "list_elements",
+          "get_documents",
+        ]),
       }),
     );
   });

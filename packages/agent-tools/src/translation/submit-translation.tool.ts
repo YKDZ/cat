@@ -1,6 +1,12 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
-import { executeQuery, getDbHandle, listMemoryIdsByProject } from "@cat/domain";
+import {
+  executeQuery,
+  getDbHandle,
+  getLanguage,
+  getProjectTargetLanguages,
+  listMemoryIdsByProject,
+} from "@cat/domain";
 import { createTranslationOp } from "@cat/operations";
 import {
   firstOrGivenService,
@@ -29,13 +35,16 @@ const submitTranslationArgs = z.object({
 export const submitTranslationTool: AgentToolDefinition = {
   name: "submit_translation",
   description:
-    "Submit a new translation for a translatable element. The translation will be vectorized, stored, and automatically QA-checked. Optionally saves to translation memory for future reuse.",
+    "Submit a new translation for a translatable element. The translation is created immediately, automatically QA-checked, and vectorized when compatible services are available. Optionally saves to translation memory for future reuse.",
   parameters: submitTranslationArgs,
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
     const parsed = submitTranslationArgs.parse(args);
     const languageId = parsed.languageId ?? ctx.session.languageId;
+    const languageIdSource = parsed.languageId
+      ? "the tool arguments"
+      : "the current session";
 
     if (!languageId) {
       throw new Error("submit_translation requires languageId");
@@ -43,16 +52,34 @@ export const submitTranslationTool: AgentToolDefinition = {
 
     const element = await assertElementInSession(parsed.elementId, ctx);
     const { client: db } = await getDbHandle();
+    const targetLanguage = await executeQuery({ db }, getLanguage, {
+      languageId,
+    });
+
+    if (!targetLanguage) {
+      const projectTargetLanguages = await executeQuery(
+        { db },
+        getProjectTargetLanguages,
+        {
+          projectId: element.projectId,
+        },
+      );
+      const projectTargetLanguageIds = projectTargetLanguages.map(
+        (language) => language.id,
+      );
+      const availableLanguagesMessage =
+        projectTargetLanguageIds.length > 0
+          ? `Available project target languages: ${projectTargetLanguageIds.join(", ")}.`
+          : "The current project has no configured target languages.";
+
+      throw new Error(
+        `submit_translation target language "${languageId}" from ${languageIdSource} does not exist in the language registry. No implicit fallback will be applied. ${availableLanguagesMessage}`,
+      );
+    }
 
     const pluginManager = resolvePluginManager(ctx.pluginManager);
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
     const vectorStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-
-    if (!vectorizer || !vectorStorage) {
-      throw new Error(
-        "TEXT_VECTORIZER or VECTOR_STORAGE service not available",
-      );
-    }
 
     let memoryIds: string[] = [];
     if (parsed.createMemory) {
@@ -66,13 +93,13 @@ export const submitTranslationTool: AgentToolDefinition = {
         {
           translatableElementId: parsed.elementId,
           text: parsed.text,
-          languageId,
+          languageId: targetLanguage.id,
         },
       ],
       translatorId: null,
       memoryIds,
-      vectorizerId: vectorizer.id,
-      vectorStorageId: vectorStorage.id,
+      vectorizerId: vectorizer?.id,
+      vectorStorageId: vectorStorage?.id,
       documentId: element.documentId,
     });
 

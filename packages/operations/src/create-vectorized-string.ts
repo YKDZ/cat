@@ -18,8 +18,8 @@ export const CreateVectorizedStringInputSchema = z.object({
       languageId: z.string(),
     }),
   ),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizerId: z.int().optional(),
+  vectorStorageId: z.int().optional(),
 });
 
 export const CreateVectorizedStringOutputSchema = z.object({
@@ -48,14 +48,17 @@ const createStringIdsFromData = async (
 };
 
 /**
- * @zh 创建向量化字符串（异步 fire-and-forget 方式）。
+ * @zh 创建向量化字符串；若已提供向量服务，则以异步 fire-and-forget 方式排队向量化。
  *
  * 先在数据库中插入 VectorizedString 行（status=PENDING_VECTORIZE），
- * 然后将向量化任务加入队列并发布领域事件，立即返回 stringIds。
- * @en Create vectorized strings (async fire-and-forget).
+ * 仅当 `vectorizerId` 与 `vectorStorageId` 同时可用时，才会将向量化任务加入队列并发布领域事件；
+ * 否则仅创建字符串记录，等待后续重向量化流程补齐。
+ * @en Create vectorized strings and enqueue background vectorization when vector services are available.
  *
  * Inserts VectorizedString rows (status=PENDING_VECTORIZE) into the database first,
- * then enqueues the vectorization task and publishes a domain event, returning stringIds immediately.
+ * and only enqueues the vectorization task plus publishes a domain event when both
+ * `vectorizerId` and `vectorStorageId` are available. Otherwise it only creates the
+ * string records and leaves later re-vectorization to follow-up flows.
  *
  * @param data - {@zh 字符串创建输入参数} {@en String creation input parameters}
  * @param ctx - {@zh 操作上下文} {@en Operation context}
@@ -68,6 +71,12 @@ export const createVectorizedStringOp = async (
   if (data.data.length === 0) return { stringIds: [] };
 
   const stringIds = await createStringIdsFromData(data.data, ctx);
+  const vectorizerId = data.vectorizerId;
+  const vectorStorageId = data.vectorStorageId;
+
+  if (typeof vectorizerId !== "number" || typeof vectorStorageId !== "number") {
+    return { stringIds };
+  }
 
   // Enqueue vectorization task (fire-and-forget)
   const queue = getVectorizationQueue();
@@ -77,8 +86,8 @@ export const createVectorizedStringOp = async (
       taskId,
       stringIds,
       data: data.data,
-      vectorizerId: data.vectorizerId,
-      vectorStorageId: data.vectorStorageId,
+      vectorizerId,
+      vectorStorageId,
     },
   ]);
 
