@@ -12,14 +12,14 @@
     "@orpc/client": "^1.13.13",
     "@orpc/server": "^1.13.13"
   },
-  "peerDependencies": {
-    "@cat/app-api": "workspace:*"
-  },
   "devDependencies": {
     "@types/node": "catalog:",
     "typescript": "beta",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@cat/app-api": "workspace:*"
   }
 }

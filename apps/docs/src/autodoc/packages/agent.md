@@ -114,6 +114,7 @@ export const runToolNode = async (data: AgentBlackboardData, ctx: Pick<
     | "projectId"
     | "sessionMetadata"
     | "logger"
+    | "pluginManager"
   >): Promise<ToolNodeResult>
 ```
 
@@ -215,13 +216,13 @@ export const buildPromptVariables = (input: {
 
 ### packages/agent/src/seeds
 
-### `seedTranslatorAgent`
+### `registerBuiltinAgents`
 
 ```ts
 /**
- * Idempotent seed: ensures the built-in translator agent definition exists.
+ * Register or update all builtin agent GLOBAL template rows. Called on every startup to keep templates in sync with code.
  */
-export const seedTranslatorAgent = async (db: DbHandle): Promise<void>
+export const registerBuiltinAgents = async (db: DbHandle): Promise<void>
 ```
 
 ### packages/agent/src/vcs

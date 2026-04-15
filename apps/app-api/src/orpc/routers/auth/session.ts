@@ -14,6 +14,7 @@ import { sessionKeys } from "./schemas.ts";
 export const logout = authed.output(z.void()).handler(async ({ context }) => {
   const { sessionStore, sessionId, helpers } = context;
 
+  if (!sessionId) throw new ORPCError("UNAUTHORIZED");
   const sessionKey = sessionKeys.userSession(sessionId);
 
   await sessionStore.destroy(sessionKey);

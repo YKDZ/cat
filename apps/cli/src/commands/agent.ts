@@ -28,7 +28,10 @@ agent sessions:
   --extra-json <json>     额外 JSON 参数合并到 input（可选）
 `;
 
-export const runAgentCommand = async (config: CliConfig, args: string[]) => {
+export const runAgentCommand = async (
+  config: CliConfig,
+  args: string[],
+): Promise<void> => {
   const { positionals, values } = parseArgs({
     args,
     options: {
@@ -46,6 +49,7 @@ export const runAgentCommand = async (config: CliConfig, args: string[]) => {
   const [sub] = positionals;
 
   if (values.help || !sub) {
+    // oxlint-disable-next-line no-console
     console.log(HELP);
     return;
   }
@@ -61,6 +65,7 @@ export const runAgentCommand = async (config: CliConfig, args: string[]) => {
       await listSessions(config, values);
       break;
     default:
+      // oxlint-disable-next-line no-console
       console.error(
         `[ERROR] UNKNOWN_SUBCOMMAND: 'agent ${sub}' is not valid.\n` +
           "  hint: Available subcommands: create, send, sessions.",
@@ -75,6 +80,7 @@ const createSession = async (
 ) => {
   const agentId = values["agent-id"];
   if (typeof agentId !== "string") {
+    // oxlint-disable-next-line no-console
     console.error(
       "[ERROR] MISSING_ARGUMENT: --agent-id is required.\n" +
         "  hint: Provide the agent definition UUID, e.g. --agent-id 550e8400-...",
@@ -93,10 +99,14 @@ const createSession = async (
     values["extra-json"],
   );
 
-  await withErrorReporting(async () => {
-    const result = await config.client.agent.createSession(input);
-    console.log(JSON.stringify(result, null, 2));
-  }, { path: "agent.createSession", input });
+  await withErrorReporting(
+    async () => {
+      const result = await config.client.agent.createSession(input);
+      // oxlint-disable-next-line no-console
+      console.log(JSON.stringify(result, null, 2));
+    },
+    { path: "agent.createSession", input },
+  );
 };
 
 const sendMessage = async (
@@ -110,84 +120,112 @@ const sendMessage = async (
     const missing: string[] = [];
     if (typeof sessionId !== "string") missing.push("--session-id");
     if (typeof message !== "string") missing.push("--message (-m)");
+
+    // oxlint-disable-next-line no-console
     console.error(
       `[ERROR] MISSING_ARGUMENT: Required option(s) not provided: ${missing.join(", ")}.\n` +
-        "  hint: cat-cli agent send --session-id <uuid> -m \"your message\"",
+        '  hint: cat-cli agent send --session-id <uuid> -m "your message"',
     );
     process.exit(1);
   }
 
-  const input = mergeExtraJson(
-    { sessionId, message },
-    values["extra-json"],
-  );
+  const input = mergeExtraJson({ sessionId, message }, values["extra-json"]);
 
-  console.log(`▶ 发送至会话 ${sessionId}...`);
+  // oxlint-disable-next-line no-console
+  console.log(`▶ Send to session ${sessionId}...`);
 
-  await withErrorReporting(async () => {
-    const stream = await config.client.agent.sendMessage(input);
+  await withErrorReporting(
+    async () => {
+      const stream = await config.client.agent.sendMessage(input);
 
-    let thinkingBuffer = "";
+      let thinkingBuffer = "";
 
-    for await (const event of stream) {
-      const e = event as Record<string, unknown>;
-      const type = e["type"] as string;
-      const payload = (e["payload"] ?? {}) as Record<string, unknown>;
+      for await (const event of stream) {
+        const e =
+          typeof event === "object" && event !== null
+            ? (event as Record<string, unknown>)
+            : {};
+        const type = typeof e["type"] === "string" ? e["type"] : "";
+        const rawPayload = e["payload"];
+        const payload: Record<string, unknown> =
+          typeof rawPayload === "object" && rawPayload !== null
+            ? // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed by typeof check above
+              (rawPayload as Record<string, unknown>)
+            : {};
 
-      switch (type) {
-        case "run:start":
-          console.log("▶ Agent 运行开始");
-          break;
-        case "node:start":
-          console.log(`  ┌ [${payload["nodeType"]}] 开始...`);
-          break;
-        case "node:end":
-          console.log(`  └ [${payload["nodeType"]}] 完成`);
-          break;
-        case "node:error":
-          console.log(`  ✗ 节点错误: ${payload["error"]}`);
-          break;
-        case "tool:call":
-          console.log(
-            `  🔧 工具调用: ${payload["toolName"]} (${payload["toolCallId"]})`,
-          );
-          break;
-        case "tool:result": {
-          const content = String(payload["content"] ?? "").slice(0, 200);
-          console.log(`  ✓ 工具结果: ${content}`);
-          break;
-        }
-        case "llm:thinking": {
-          const delta = String(payload["thinkingDelta"] ?? "");
-          thinkingBuffer += delta;
-          process.stdout.write(".");
-          break;
-        }
-        case "llm:complete": {
-          if (thinkingBuffer) {
-            console.log(`\n  🧠 思考: ${thinkingBuffer.slice(0, 300)}...`);
-            thinkingBuffer = "";
+        const str = (v: unknown): string =>
+          typeof v === "string" ? v : JSON.stringify(v ?? "");
+
+        switch (type) {
+          case "run:start":
+            // oxlint-disable-next-line no-console
+            console.log("▶ Agent 运行开始");
+            break;
+          case "node:start":
+            // oxlint-disable-next-line no-console
+            console.log(`  ┌ [${str(payload["nodeType"])}] 开始...`);
+            break;
+          case "node:end":
+            // oxlint-disable-next-line no-console
+            console.log(`  └ [${str(payload["nodeType"])}] 完成`);
+            break;
+          case "node:error":
+            // oxlint-disable-next-line no-console
+            console.log(`  ✗ 节点错误: ${str(payload["error"])}`);
+            break;
+          case "tool:call":
+            // oxlint-disable-next-line no-console
+            console.log(
+              `  🔧 工具调用: ${str(payload["toolName"])} (${str(payload["toolCallId"])})`,
+            );
+            break;
+          case "tool:result": {
+            const content = str(payload["content"]).slice(0, 200);
+            // oxlint-disable-next-line no-console
+            console.log(`  ✓ 工具结果: ${content}`);
+            break;
           }
-          const text = String(payload["text"] ?? "");
-          const tokens = JSON.stringify(payload["tokenUsage"] ?? {});
-          console.log(`  💬 LLM 响应: ${text.slice(0, 500)}`);
-          console.log(`     Tokens: ${tokens}`);
-          break;
-        }
-        case "run:end":
-          console.log("\n✅ 运行完成");
-          if (payload["finalMessage"]) {
-            console.log(`   最终结果: ${String(payload["finalMessage"])}`);
+          case "llm:thinking": {
+            // oxlint-disable-next-line no-console
+            const delta = str(payload["thinkingDelta"]);
+            thinkingBuffer += delta;
+            process.stdout.write(".");
+            break;
           }
-          break;
-        case "run:error":
-          console.error(`\n❌ 错误: ${payload["error"]}`);
-          break;
-        default:
-          console.log(`  [${type}] ${JSON.stringify(payload)}`);
+          case "llm:complete": {
+            if (thinkingBuffer) {
+              // oxlint-disable-next-line no-console
+              console.log(`\n  🧠 思考: ${thinkingBuffer.slice(0, 300)}...`);
+              thinkingBuffer = "";
+            }
+            const text = str(payload["text"]);
+            const tokens = JSON.stringify(payload["tokenUsage"] ?? {});
+            // oxlint-disable-next-line no-console
+            console.log(`  💬 LLM 响应: ${text.slice(0, 500)}`);
+            // oxlint-disable-next-line no-console
+            console.log(`     Tokens: ${tokens}`);
+            break;
+          }
+          case "run:end":
+            // oxlint-disable-next-line no-console
+            console.log("\n✅ 运行完成");
+            if (payload["finalMessage"]) {
+              // oxlint-disable-next-line no-console
+              console.log(`   最终结果: ${str(payload["finalMessage"])}`);
+            }
+            break;
+          case "run:error":
+            // oxlint-disable-next-line no-console
+            console.error(`\n❌ 错误: ${str(payload["error"])}`);
+            break;
+          default:
+            // oxlint-disable-next-line no-console
+            console.log(`  [${type}] ${JSON.stringify(payload)}`);
+        }
       }
-    }
-  }, { path: "agent.sendMessage", input });
+    },
+    { path: "agent.sendMessage", input },
+  );
 };
 
 const listSessions = async (
@@ -202,8 +240,12 @@ const listSessions = async (
     values["extra-json"],
   );
 
-  await withErrorReporting(async () => {
-    const sessions = await config.client.agent.listSessions(input);
-    console.log(JSON.stringify(sessions, null, 2));
-  }, { path: "agent.listSessions", input });
+  await withErrorReporting(
+    async () => {
+      const sessions = await config.client.agent.listSessions(input);
+      // oxlint-disable-next-line no-console
+      console.log(JSON.stringify(sessions, null, 2));
+    },
+    { path: "agent.listSessions", input },
+  );
 };

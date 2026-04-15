@@ -62,7 +62,7 @@ export const authed = base.use(async ({ context, next }) => {
 export const checkPermission = (objectType: ObjectType, relation: Relation) => {
   type AuthedContext = {
     user: NonNullable<Context["user"]>;
-    sessionId: NonNullable<Context["sessionId"]>;
+    sessionId: Context["sessionId"];
     auth: NonNullable<Context["auth"]>;
   };
 
@@ -75,7 +75,9 @@ export const checkPermission = (objectType: ObjectType, relation: Relation) => {
         { type: objectType, id: objectId },
         relation,
       );
+
       if (!allowed) throw new ORPCError("FORBIDDEN");
+
       return next({
         context: {
           user: context.user,
@@ -100,7 +102,7 @@ export const checkPermission = (objectType: ObjectType, relation: Relation) => {
 export const checkDocumentPermission = (relation: Relation) => {
   type AuthedContext = {
     user: NonNullable<Context["user"]>;
-    sessionId: NonNullable<Context["sessionId"]>;
+    sessionId: Context["sessionId"];
     auth: NonNullable<Context["auth"]>;
     drizzleDB: Context["drizzleDB"];
   };
@@ -147,7 +149,7 @@ export const checkDocumentPermission = (relation: Relation) => {
 export const checkElementPermission = (relation: Relation) => {
   type AuthedContext = {
     user: NonNullable<Context["user"]>;
-    sessionId: NonNullable<Context["sessionId"]>;
+    sessionId: Context["sessionId"];
     auth: NonNullable<Context["auth"]>;
     drizzleDB: Context["drizzleDB"];
   };
@@ -303,7 +305,7 @@ export const requireElementPermission = (
 export const checkTranslationPermission = (relation: Relation) => {
   type AuthedContext = {
     user: NonNullable<Context["user"]>;
-    sessionId: NonNullable<Context["sessionId"]>;
+    sessionId: Context["sessionId"];
     auth: NonNullable<Context["auth"]>;
     drizzleDB: Context["drizzleDB"];
   };

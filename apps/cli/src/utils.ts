@@ -14,16 +14,17 @@ export const mergeExtraJson = <T extends Record<string, unknown>>(
   try {
     const extra: unknown = JSON.parse(raw);
     if (typeof extra === "object" && extra !== null && !Array.isArray(extra)) {
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      return { ...base, ...extra } as T;
+      return { ...base, ...extra };
     }
+    // oxlint-disable-next-line no-console
     console.error(
       "[ERROR] INVALID_EXTRA_JSON: --extra-json must be a JSON object.\n" +
         `  received: ${raw}\n` +
-        "  hint: Use '{\"key\":\"value\"}' format.",
+        '  hint: Use \'{"key":"value"}\' format.',
     );
     process.exit(1);
   } catch {
+    // oxlint-disable-next-line no-console
     console.error(
       "[ERROR] INVALID_EXTRA_JSON: Cannot parse --extra-json as JSON.\n" +
         `  input: ${raw}\n` +

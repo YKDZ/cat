@@ -169,7 +169,7 @@ export const createTermOp = async (data: CreateTermInput, ctx?: OperationContext
 /**
  * Create translation records.
  *
- * 1. Create translatable strings (with vectorization)
+ * 1. Create translatable strings (enqueue vectorization when services are available)
  * 2. Insert translation records
  * 3. Trigger optional publish notification via domain event
  * 4. Optionally write to translation memory
@@ -187,10 +187,12 @@ export const createTranslationOp = async (data: CreateTranslationInput, ctx?: Op
 
 ```ts
 /**
- * Create vectorized strings (async fire-and-forget).
+ * Create vectorized strings and enqueue background vectorization when vector services are available.
  *
  * Inserts VectorizedString rows (status=PENDING_VECTORIZE) into the database first,
- * then enqueues the vectorization task and publishes a domain event, returning stringIds immediately.
+ * and only enqueues the vectorization task plus publishes a domain event when both
+ * `vectorizerId` and `vectorStorageId` are available. Otherwise it only creates the
+ * string records and leaves later re-vectorization to follow-up flows.
  *
  * @param data - String creation input parameters
  * @param ctx - Operation context

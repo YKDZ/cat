@@ -38,10 +38,19 @@ export const callByPath = (
 ): unknown => {
   const segments = path.split(".");
   // Proxy 客户端支持任意字符串属性访问，逐层递归创建子 Proxy
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let current: any = client;
+  let current: unknown = client;
   for (const segment of segments) {
-    current = current[segment];
+    if (typeof current !== "object" || current === null) {
+      throw new Error(
+        `Invalid path segment '${segment}': parent is not an object`,
+      );
+    }
+    // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed by typeof check above
+    current = (current as Record<string, unknown>)[segment];
   }
-  return current(input);
+  if (typeof current !== "function") {
+    throw new Error(`Path '${path}' does not resolve to a callable handler`);
+  }
+  // oxlint-disable-next-line no-unsafe-type-assertion -- narrowed by typeof check above
+  return (current as (arg: unknown) => unknown)(input);
 };

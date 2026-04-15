@@ -22,7 +22,7 @@
 - [@cat/message](./packages/message.md): 1 exported functions — Unified message gateway: in-app notifications and email dispatch
 - [@cat/graph](./packages/graph.md): 7 exported functions — Storage-agnostic graph core: types, blackboard, condition evaluation
 - [@cat/agent](./packages/agent.md): 18 exported functions — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser
-- [@cat/agent-tools](./packages/agent-tools.md): 3 exported functions — Built-in agent tools: kanban, translation, session management
+- [@cat/agent-tools](./packages/agent-tools.md): 6 exported functions — Built-in agent tools: kanban, translation, session management
 
 ## @cat/domain
 
