@@ -17,7 +17,7 @@ call — 通用 oRPC 调用
   --input-file <file>  从文件读取 JSON 输入
 
 示例:
-  cat-cli call user.me
+  cat-cli call auth.listApiKeysEndpoint
   cat-cli call memory.get '{"memoryId":"550e8400-..."}'
   cat-cli call glossary.searchTerm --input-file params.json
 `;

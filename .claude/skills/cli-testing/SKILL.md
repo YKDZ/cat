@@ -52,10 +52,10 @@ pnpm cat-cli call <点分路径> --input-file <file.json>
 **验证认证是否正常**（最基础的冒烟测试）：
 
 ```bash
-pnpm cat-cli call user.me
+pnpm cat-cli call auth.listApiKeysEndpoint
 ```
 
-返回当前用户 JSON 表示认证正常；返回 `UNAUTHORIZED` 表示 API Key 无效或 authed 中间件有问题。
+返回当前用户的 API Key 列表（可能为空数组）表示认证正常；返回 `UNAUTHORIZED` 表示 API Key 无效或 authed 中间件有问题。
 
 **调用带参数的端点**：
 
@@ -243,7 +243,7 @@ CLI 使用结构化错误输出，格式为 `[ERROR] CODE: message + hint`。常
 ### 冒烟测试（快速验证服务是否存活）
 
 ```bash
-pnpm cat-cli call user.me
+pnpm cat-cli call auth.listApiKeysEndpoint
 ```
 
 ### 端点可用性验证
