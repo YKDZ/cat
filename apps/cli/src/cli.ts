@@ -6,6 +6,7 @@ import { runAgentCommand } from "./commands/agent.ts";
 import { runCallCommand } from "./commands/call.ts";
 import { runGlossaryCommand } from "./commands/glossary.ts";
 import { runMemoryCommand } from "./commands/memory.ts";
+import { runRoutesCommand } from "./commands/routes.ts";
 import { resolveConfig } from "./config.ts";
 
 const HELP = `
@@ -18,6 +19,7 @@ cat-cli — CAT 平台命令行控制面
   agent      Agent 会话管理（带流式输出格式化）
   memory     翻译记忆查询
   glossary   术语表查询
+  routes     列出所有可调用的 oRPC 端点路径
 
 全局选项:
   --api-url <url>    服务器地址（默认: $CAT_API_URL 或 http://localhost:3000）
@@ -52,6 +54,15 @@ const readInputFile = (filePath: string): unknown => {
 };
 
 const main = async () => {
+  // `routes` is offline — no API key or server connection needed.
+  // Handle it before parseArgs so subcommand-specific flags (--filter, --json, --group)
+  // are not consumed by the top-level parser.
+  const rawArgs = process.argv.slice(2);
+  if (rawArgs[0] === "routes") {
+    runRoutesCommand(rawArgs.slice(1));
+    return;
+  }
+
   const { positionals, values } = parseArgs({
     options: {
       "api-url": { type: "string" },
@@ -69,8 +80,9 @@ const main = async () => {
     process.exit(0);
   }
 
-  const config = resolveConfig(values);
   const [command, ...rest] = positionals;
+
+  const config = resolveConfig(values);
 
   // Pass input-file reader through to commands that need it
   const inputFile =
@@ -95,7 +107,7 @@ const main = async () => {
       // oxlint-disable-next-line no-console
       console.error(
         `[ERROR] UNKNOWN_COMMAND: '${command}' is not a valid command.\n` +
-          `  hint: Available commands: call, agent, memory, glossary. Run 'cat-cli --help' for usage.`,
+          `  hint: Available commands: call, agent, memory, glossary, routes. Run 'cat-cli --help' for usage.`,
       );
       process.exit(1);
   }
