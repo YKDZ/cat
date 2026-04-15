@@ -1,0 +1,953 @@
+name: minecraft-term-recall
+cases:
+  - id: mc-term-001
+    inputText: "Watch out for the Creeper sneaking up behind you!"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:creeper"
+        term: "Creeper"
+        translation: "苦力怕"
+    negativeTerms: []
+  - id: mc-term-002
+    inputText: "The Enderman picked up my grass block and teleported away."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:enderman"
+        term: "Enderman"
+        translation: "末影人"
+    negativeTerms: []
+  - id: mc-term-003
+    inputText: "I found a Fox sleeping under an oak tree."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:fox"
+        term: "Fox"
+        translation: "狐狸"
+    negativeTerms: []
+  - id: mc-term-004
+    inputText: "The Warden is the scariest mob in the game."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:warden"
+        term: "Warden"
+        translation: "监守者"
+    negativeTerms: []
+  - id: mc-term-005
+    inputText: "A Villager is offering me emeralds for wheat."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:villager"
+        term: "Villager"
+        translation: "村民"
+    negativeTerms: []
+  - id: mc-term-006
+    inputText: "The Blaze was shooting fireballs at me in the fortress."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:blaze"
+        term: "Blaze"
+        translation: "烈焰人"
+    negativeTerms: []
+  - id: mc-term-007
+    inputText: "I tamed a Wolf with a bone on the mountain."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:wolf"
+        term: "Wolf"
+        translation: "狼"
+    negativeTerms: []
+  - id: mc-term-008
+    inputText: "The Ghast cried and shot explosive balls at us."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:ghast"
+        term: "Ghast"
+        translation: "恶魂"
+    negativeTerms: []
+  - id: mc-term-009
+    inputText: "A Skeleton appeared in the dark cave with a bow."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:skeleton"
+        term: "Skeleton"
+        translation: "骷髅"
+    negativeTerms: []
+  - id: mc-term-010
+    inputText: "The Zombie broke through my door at night."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:zombie"
+        term: "Zombie"
+        translation: "僵尸"
+    negativeTerms: []
+  - id: mc-term-011
+    inputText: "I spotted an Axolotl in the underground lake."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:axolotl"
+        term: "Axolotl"
+        translation: "美西螈"
+    negativeTerms: []
+  - id: mc-term-012
+    inputText: "The Witch threw potions at me near the swamp hut."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:witch"
+        term: "Witch"
+        translation: "女巫"
+    negativeTerms: []
+  - id: mc-term-013
+    inputText: "A Phantom swooped down because I hadn't slept in days."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:phantom"
+        term: "Phantom"
+        translation: "幻翼"
+    negativeTerms: []
+  - id: mc-term-014
+    inputText: "The Piglin wanted to barter gold ingots with me."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:piglin"
+        term: "Piglin"
+        translation: "猪灵"
+    negativeTerms: []
+  - id: mc-term-015
+    inputText: "I rode a Strider across the lava lake safely."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:strider"
+        term: "Strider"
+        translation: "炽足兽"
+    negativeTerms: []
+  - id: mc-term-016
+    inputText: "The Guardian was guarding the Ocean Monument entrance."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:guardian"
+        term: "Guardian"
+        translation: "守卫者"
+    negativeTerms: []
+  - id: mc-term-017
+    inputText: "A Dolphin led me to a hidden shipwreck underwater."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:dolphin"
+        term: "Dolphin"
+        translation: "海豚"
+    negativeTerms: []
+  - id: mc-term-018
+    inputText: "The Hoglin charged at me aggressively."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:hoglin"
+        term: "Hoglin"
+        translation: "疣猪兽"
+    negativeTerms: []
+  - id: mc-term-019
+    inputText: "I noticed a Glow Squid deep underwater emitting light."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:glow_squid"
+        term: "Glow Squid"
+        translation: "发光鱿鱼"
+    negativeTerms: []
+  - id: mc-term-020
+    inputText: "The Ravager destroyed the village crops during the raid."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:ravager"
+        term: "Ravager"
+        translation: "劫掠兽"
+    negativeTerms: []
+  - id: mc-term-021
+    inputText: "I placed a Crafting Table next to my bed."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:crafting_table"
+        term: "Crafting Table"
+        translation: "工作台"
+    negativeTerms: []
+  - id: mc-term-022
+    inputText: "The Enchanting Table needs bookshelves around it to work."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:enchanting_table"
+        term: "Enchanting Table"
+        translation: "附魔台"
+    negativeTerms: []
+  - id: mc-term-023
+    inputText: "I smelted my iron ores in the Blast Furnace."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:blast_furnace"
+        term: "Blast Furnace"
+        translation: "高炉"
+    negativeTerms: []
+  - id: mc-term-024
+    inputText: "Place the Brewing Stand on the table to make potions."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:brewing_stand"
+        term: "Brewing Stand"
+        translation: "酿造台"
+    negativeTerms: []
+  - id: mc-term-025
+    inputText: "The Beacon gave us speed and strength effects across the base."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:beacon"
+        term: "Beacon"
+        translation: "信标"
+    negativeTerms: []
+  - id: mc-term-026
+    inputText: "I found Ancient Debris deep in the Nether at level 15."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:ancient_debris"
+        term: "Ancient Debris"
+        translation: "远古残骸"
+    negativeTerms: []
+  - id: mc-term-027
+    inputText: "Crying Obsidian can be used to build things."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:crying_obsidian"
+        term: "Crying Obsidian"
+        translation: "哭泣的黑曜石"
+    negativeTerms: []
+  - id: mc-term-028
+    inputText: "Activate the Respawn Anchor with glowstone charges."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:respawn_anchor"
+        term: "Respawn Anchor"
+        translation: "重生锚"
+    negativeTerms: []
+  - id: mc-term-029
+    inputText: "The Sculk Sensor detects vibrations from player movement."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:sculk_sensor"
+        term: "Sculk Sensor"
+        translation: "幽匿感测体"
+    negativeTerms: []
+  - id: mc-term-030
+    inputText: "I stored my diamonds safely in a Barrel."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:barrel"
+        term: "Barrel"
+        translation: "木桶"
+    negativeTerms: []
+  - id: mc-term-031
+    inputText: "I crafted a Diamond Sword to prepare for the boss fight."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:diamond_sword"
+        term: "Diamond Sword"
+        translation: "钻石剑"
+    negativeTerms: []
+  - id: mc-term-032
+    inputText: "Equip the Elytra to glide from the tower."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:elytra"
+        term: "Elytra"
+        translation: "鞘翅"
+    negativeTerms: []
+  - id: mc-term-033
+    inputText: "Use Flint and Steel to light the Nether portal frame."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:flint_and_steel"
+        term: "Flint and Steel"
+        translation: "打火石"
+    negativeTerms: []
+  - id: mc-term-034
+    inputText: "The Spyglass lets you zoom in on distant mobs."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:spyglass"
+        term: "Spyglass"
+        translation: "望远镜"
+    negativeTerms: []
+  - id: mc-term-035
+    inputText: "I caught a salmon with my Fishing Rod."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:fishing_rod"
+        term: "Fishing Rod"
+        translation: "钓鱼竿"
+    negativeTerms: []
+  - id: mc-term-036
+    inputText: "The Netherite Pickaxe is the strongest mining tool in the game."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:netherite_pickaxe"
+        term: "Netherite Pickaxe"
+        translation: "下界合金镐"
+    negativeTerms: []
+  - id: mc-term-037
+    inputText: "I used Shears to collect wool from the sheep."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:shears"
+        term: "Shears"
+        translation: "剪刀"
+    negativeTerms: []
+  - id: mc-term-038
+    inputText: "The Golden Apple restored my health instantly."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:golden_apple"
+        term: "Golden Apple"
+        translation: "金苹果"
+    negativeTerms: []
+  - id: mc-term-039
+    inputText: "I equipped a Shield to block incoming arrows."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:shield"
+        term: "Shield"
+        translation: "盾牌"
+    negativeTerms: []
+  - id: mc-term-040
+    inputText: "We need a Crossbow for long-range attacks in raids."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:crossbow"
+        term: "Crossbow"
+        translation: "弩"
+    negativeTerms: []
+  - id: mc-term-041
+    inputText: "The Invisibility effect made me invisible to nearby mobs."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:invisibility"
+        term: "Invisibility"
+        translation: "隐身"
+    negativeTerms: []
+  - id: mc-term-042
+    inputText: "I gained Fire Resistance from the golden potion."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:fire_resistance"
+        term: "Fire Resistance"
+        translation: "抗火"
+    negativeTerms: []
+  - id: mc-term-043
+    inputText: "The Night Vision potion illuminated the entire cave system."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:night_vision"
+        term: "Night Vision"
+        translation: "夜视"
+    negativeTerms: []
+  - id: mc-term-044
+    inputText: "Water Breathing lets you explore underwater ruins freely."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:water_breathing"
+        term: "Water Breathing"
+        translation: "水下呼吸"
+    negativeTerms: []
+  - id: mc-term-045
+    inputText: "The Strength effect doubled my melee damage output."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:strength"
+        term: "Strength"
+        translation: "力量"
+    negativeTerms: []
+  - id: mc-term-046
+    inputText: "I was afflicted with Poison after eating a spider eye."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:poison"
+        term: "Poison"
+        translation: "中毒"
+    negativeTerms: []
+  - id: mc-term-047
+    inputText: "The Slow Falling effect prevented all fall damage."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:slow_falling"
+        term: "Slow Falling"
+        translation: "缓降"
+    negativeTerms: []
+  - id: mc-term-048
+    inputText: "Haste makes you mine blocks significantly faster."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:haste"
+        term: "Haste"
+        translation: "急迫"
+    negativeTerms: []
+  - id: mc-term-049
+    inputText: "I applied Sharpness V on my diamond sword for extra damage."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:sharpness"
+        term: "Sharpness"
+        translation: "锋利"
+    negativeTerms: []
+  - id: mc-term-050
+    inputText: "The Mending enchantment automatically repairs your gear with XP."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:mending"
+        term: "Mending"
+        translation: "经验修补"
+    negativeTerms: []
+  - id: mc-term-051
+    inputText: "Apply Unbreaking III to maximize the durability of your tools."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:unbreaking"
+        term: "Unbreaking"
+        translation: "耐久"
+    negativeTerms: []
+  - id: mc-term-052
+    inputText: "Fortune III gives extra diamond drops when mining ore."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:fortune"
+        term: "Fortune"
+        translation: "时运"
+    negativeTerms: []
+  - id: mc-term-053
+    inputText: "Silk Touch allows you to mine blocks intact without breaking them."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:silk_touch"
+        term: "Silk Touch"
+        translation: "精准采集"
+    negativeTerms: []
+  - id: mc-term-054
+    inputText: "Protection IV provides excellent general damage reduction."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:protection"
+        term: "Protection"
+        translation: "保护"
+    negativeTerms: []
+  - id: mc-term-055
+    inputText: "The Efficiency enchantment significantly speeds up mining."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:efficiency"
+        term: "Efficiency"
+        translation: "效率"
+    negativeTerms: []
+  - id: mc-term-056
+    inputText: "Feather Falling reduces all fall damage to your boots."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:feather_falling"
+        term: "Feather Falling"
+        translation: "摔落缓冲"
+    negativeTerms: []
+  - id: mc-term-057
+    inputText: "Infinity means you only need a single arrow forever."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:infinity"
+        term: "Infinity"
+        translation: "无限"
+    negativeTerms: []
+  - id: mc-term-058
+    inputText: "Frost Walker creates a layer of ice under your feet on water."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:frost_walker"
+        term: "Frost Walker"
+        translation: "冰霜行者"
+    negativeTerms: []
+  - id: mc-term-059
+    inputText: "We established our base in the Cherry Grove biome."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:biome:cherry_grove"
+        term: "Cherry Grove"
+        translation: "樱花树林"
+    negativeTerms: []
+  - id: mc-term-060
+    inputText: "The Mushroom Fields biome is incredibly peaceful and safe."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:biome:mushroom_fields"
+        term: "Mushroom Fields"
+        translation: "蘑菇岛"
+    negativeTerms: []
+  - id: mc-term-061
+    inputText: "I was exploring the Mangrove Swamp for rare wood types."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:biome:mangrove_swamp"
+        term: "Mangrove Swamp"
+        translation: "红树林沼泽"
+    negativeTerms: []
+  - id: mc-term-062
+    inputText: "The Frozen Ocean biome is covered with massive icebergs."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:biome:frozen_ocean"
+        term: "Frozen Ocean"
+        translation: "冻洋"
+    negativeTerms: []
+  - id: mc-term-063
+    inputText: "I found a desert village in the Savanna biome."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:biome:savanna"
+        term: "Savanna"
+        translation: "热带草原"
+    negativeTerms: []
+  - id: mc-term-064
+    inputText: "Use a Diamond Pickaxe with Fortune III to mine Diamond Ore."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:diamond_pickaxe"
+        term: "Diamond Pickaxe"
+        translation: "钻石镐"
+      - conceptRef: "concept:enchantment:fortune"
+        term: "Fortune"
+        translation: "时运"
+      - conceptRef: "concept:block:diamond_ore"
+        term: "Diamond Ore"
+        translation: "钻石矿石"
+    negativeTerms: []
+  - id: mc-term-065
+    inputText: "The Pillager patrol attacked me in the Flower Forest."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:pillager"
+        term: "Pillager"
+        translation: "掠夺者"
+      - conceptRef: "concept:biome:flower_forest"
+        term: "Flower Forest"
+        translation: "繁花森林"
+    negativeTerms: []
+  - id: mc-term-066
+    inputText: "I brewed Night Vision potions on the Brewing Stand."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:effect:night_vision"
+        term: "Night Vision"
+        translation: "夜视"
+      - conceptRef: "concept:block:brewing_stand"
+        term: "Brewing Stand"
+        translation: "酿造台"
+    negativeTerms: []
+  - id: mc-term-067
+    inputText: "The Wither destroyed my Beacon with skull attacks."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:wither"
+        term: "Wither"
+        translation: "凋灵"
+      - conceptRef: "concept:block:beacon"
+        term: "Beacon"
+        translation: "信标"
+    negativeTerms: []
+  - id: mc-term-068
+    inputText: "I put Depth Strider on boots for the Warm Ocean exploration."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:depth_strider"
+        term: "Depth Strider"
+        translation: "深海探索者"
+      - conceptRef: "concept:biome:warm_ocean"
+        term: "Warm Ocean"
+        translation: "暖水海洋"
+    negativeTerms: []
+  - id: mc-term-069
+    inputText: "The Enderman teleported away carrying my Piston block."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:enderman"
+        term: "Enderman"
+        translation: "末影人"
+      - conceptRef: "concept:block:piston"
+        term: "Piston"
+        translation: "活塞"
+    negativeTerms: []
+  - id: mc-term-070
+    inputText: "A Drowned attacked near the Conduit in the underwater temple."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:drowned"
+        term: "Drowned"
+        translation: "溺尸"
+      - conceptRef: "concept:block:conduit"
+        term: "Conduit"
+        translation: "潮涌核心"
+    negativeTerms: []
+  - id: mc-term-071
+    inputText: "The Ender Dragon circled above the End Portal Frame."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:ender_dragon"
+        term: "Ender Dragon"
+        translation: "末影龙"
+      - conceptRef: "concept:block:end_portal_frame"
+        term: "End Portal Frame"
+        translation: "末地传送门框架"
+    negativeTerms: []
+  - id: mc-term-072
+    inputText: "I used a Netherite Sword with Smite against the Wither Skeleton."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:netherite_sword"
+        term: "Netherite Sword"
+        translation: "下界合金剑"
+      - conceptRef: "concept:enchantment:smite"
+        term: "Smite"
+        translation: "亡灵杀手"
+      - conceptRef: "concept:entity:wither_skeleton"
+        term: "Wither Skeleton"
+        translation: "凋灵骷髅"
+    negativeTerms: []
+  - id: mc-term-073
+    inputText: "The Iron Golem protected the Villager from the Zombie horde."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:iron_golem"
+        term: "Iron Golem"
+        translation: "铁傀儡"
+      - conceptRef: "concept:entity:villager"
+        term: "Villager"
+        translation: "村民"
+      - conceptRef: "concept:entity:zombie"
+        term: "Zombie"
+        translation: "僵尸"
+    negativeTerms: []
+  - id: mc-term-074
+    inputText: "I found a Chest with Golden Apples in the Basalt Deltas."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:chest"
+        term: "Chest"
+        translation: "箱子"
+      - conceptRef: "concept:item:golden_apple"
+        term: "Golden Apple"
+        translation: "金苹果"
+      - conceptRef: "concept:biome:basalt_deltas"
+        term: "Basalt Deltas"
+        translation: "玄武岩三角洲"
+    negativeTerms: []
+  - id: mc-term-075
+    inputText: "Apply Aqua Affinity to your helmet for underwater mining."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:enchantment:aqua_affinity"
+        term: "Aqua Affinity"
+        translation: "水下速掘"
+    negativeTerms: []
+  - id: mc-term-076
+    inputText: "My Cat scared the Creeper away from the house."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:cat"
+        term: "Cat"
+        translation: "猫"
+      - conceptRef: "concept:entity:creeper"
+        term: "Creeper"
+        translation: "苦力怕"
+    negativeTerms: []
+  - id: mc-term-077
+    inputText: "I tamed an Ocelot deep in the Jungle biome."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:ocelot"
+        term: "Ocelot"
+        translation: "豹猫"
+      - conceptRef: "concept:biome:jungle"
+        term: "Jungle"
+        translation: "丛林"
+    negativeTerms: []
+  - id: mc-term-078
+    inputText: "Use a Bucket to collect lava in the deep caves."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:item:bucket"
+        term: "Bucket"
+        translation: "铁桶"
+    negativeTerms: []
+  - id: mc-term-079
+    inputText: "The Sniffer found ancient plant seeds buried underground."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:sniffer"
+        term: "Sniffer"
+        translation: "嗅探兽"
+    negativeTerms: []
+  - id: mc-term-080
+    inputText: "I spotted a Frog near the Mangrove Swamp edge."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:frog"
+        term: "Frog"
+        translation: "青蛙"
+      - conceptRef: "concept:biome:mangrove_swamp"
+        term: "Mangrove Swamp"
+        translation: "红树林沼泽"
+    negativeTerms: []
+  - id: mc-term-081
+    inputText: "The Camel traveled smoothly across the Desert biome."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:camel"
+        term: "Camel"
+        translation: "骆驼"
+      - conceptRef: "concept:biome:desert"
+        term: "Desert"
+        translation: "沙漠"
+    negativeTerms: []
+  - id: mc-term-082
+    inputText: "A Breeze mob knocked me back with its wind attacks."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:breeze"
+        term: "Breeze"
+        translation: "旋风人"
+    negativeTerms: []
+  - id: mc-term-083
+    inputText: "I activated the Respawn Anchor deep inside the Nether."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:respawn_anchor"
+        term: "Respawn Anchor"
+        translation: "重生锚"
+    negativeTerms: []
+  - id: mc-term-084
+    inputText: "The Fox in the Taiga biome was hunting chickens."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:fox"
+        term: "Fox"
+        translation: "狐狸"
+      - conceptRef: "concept:biome:taiga"
+        term: "Taiga"
+        translation: "针叶林"
+    negativeTerms: []
+  - id: mc-term-085
+    inputText: "The Warden emerged from the Deep Dark sculk blocks."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:warden"
+        term: "Warden"
+        translation: "监守者"
+      - conceptRef: "concept:biome:deep_dark"
+        term: "Deep Dark"
+        translation: "深暗之域"
+    negativeTerms: []
+  - id: mc-term-086
+    inputText: "The Hoglin was aggressive in the Crimson Forest."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:hoglin"
+        term: "Hoglin"
+        translation: "疣猪兽"
+      - conceptRef: "concept:biome:crimson_forest"
+        term: "Crimson Forest"
+        translation: "绯红森林"
+    negativeTerms: []
+  - id: mc-term-087
+    inputText: "I mined Lodestone from a bastion remnant."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:lodestone"
+        term: "Lodestone"
+        translation: "磁石"
+    negativeTerms: []
+  - id: mc-term-088
+    inputText: "The Enchanting Table needs fifteen bookshelves for max level."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:enchanting_table"
+        term: "Enchanting Table"
+        translation: "附魔台"
+    negativeTerms: []
+  - id: mc-term-089
+    inputText: "I used the Crafting Table to make a Diamond Pickaxe."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:crafting_table"
+        term: "Crafting Table"
+        translation: "工作台"
+      - conceptRef: "concept:item:diamond_pickaxe"
+        term: "Diamond Pickaxe"
+        translation: "钻石镐"
+    negativeTerms: []
+  - id: mc-term-090
+    inputText: "Fighting the Ender Dragon required lots of preparation."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:ender_dragon"
+        term: "Ender Dragon"
+        translation: "末影龙"
+    negativeTerms: []
+  - id: mc-term-091
+    inputText: "The Wither Skeleton dropped a skull for the boss fight."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:wither_skeleton"
+        term: "Wither Skeleton"
+        translation: "凋灵骷髅"
+    negativeTerms: []
+  - id: mc-term-092
+    inputText: "I found a Sculk Sensor in the ancient city underground."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:block:sculk_sensor"
+        term: "Sculk Sensor"
+        translation: "幽匿感测体"
+    negativeTerms: []
+  - id: mc-term-093
+    inputText: "The Guardian shot a laser beam at me underwater."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:guardian"
+        term: "Guardian"
+        translation: "守卫者"
+    negativeTerms: []
+  - id: mc-term-094
+    inputText: "Those creepers keep blowing up all my structures."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:creeper"
+        term: "Creeper"
+        translation: "苦力怕"
+    negativeTerms: []
+  - id: mc-term-095
+    inputText: "Swimming alongside dolphins is a fun experience."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:dolphin"
+        term: "Dolphin"
+        translation: "海豚"
+    negativeTerms: []
+  - id: mc-term-096
+    inputText: "Multiple skeletons spawned in the dungeon."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:skeleton"
+        term: "Skeleton"
+        translation: "骷髅"
+    negativeTerms: []
+  - id: mc-term-097
+    inputText: "Several blazes appeared in the Nether fortress."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:blaze"
+        term: "Blaze"
+        translation: "烈焰人"
+    negativeTerms: []
+  - id: mc-term-098
+    inputText: "The local villagers traded me valuable items."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:entity:villager"
+        term: "Villager"
+        translation: "村民"
+    negativeTerms: []

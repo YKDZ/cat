@@ -1,0 +1,1057 @@
+{
+  "memory": {
+    "name": "Minecraft Translation Memory",
+    "items": [
+      {
+        "ref": "mem:adv:advancements_adventure_adventuring_time_description",
+        "source": "Discover every biome",
+        "translation": "发现所有的生物群系",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_blowback_description",
+        "source": "Kill a Breeze with a deflected Breeze-shot Wind Charge",
+        "translation": "反弹旋风人的风弹来击杀旋风人",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_brush_armadillo_description",
+        "source": "Get Armadillo Scutes from an Armadillo using a Brush",
+        "translation": "用刷子从犰狳身上获得犰狳鳞甲",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_bullseye_description",
+        "source": "Hit the bullseye of a Target block from at least 30 meters away",
+        "translation": "从至少30米外射中标靶的靶心",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_fall_from_world_height_description",
+        "source": "Free fall from the top of the world (build limit) to the bottom of the world and survive",
+        "translation": "从世界顶部（建筑高度限制处）自由落体，坠至世界底部并存活下来",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_hero_of_the_village_description",
+        "source": "Successfully defend a village from a raid",
+        "translation": "成功在袭击中保卫村庄",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_honey_block_slide_description",
+        "source": "Jump into a Honey Block to break your fall",
+        "translation": "跳入蜂蜜块以缓冲摔落",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_kill_a_mob_description",
+        "source": "Kill any hostile monster",
+        "translation": "杀死任意敌对性怪物",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_kill_all_mobs_description",
+        "source": "Kill one of every hostile monster",
+        "translation": "杀死每一种敌对性怪物",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_kill_mob_near_sculk_catalyst_description",
+        "source": "Kill a mob near a Sculk Catalyst",
+        "translation": "在幽匿催发体附近杀死生物",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_lighten_up_description",
+        "source": "Scrape a Copper Bulb with an Axe to make it brighter",
+        "translation": "用斧刮削铜灯来让它变得更亮",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_minecraft_trials_edition_description",
+        "source": "Step foot in a Trial Chamber",
+        "translation": "踏入试炼密室",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_overoverkill_description",
+        "source": "Deal 50 hearts of damage in a single hit using the Mace",
+        "translation": "使用重锤一击造成50颗心的伤害",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_play_jukebox_in_meadows_description",
+        "source": "Make the Meadows come alive with the sound of music from a Jukebox",
+        "translation": "用唱片机的音乐声为草甸增添生机",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_salvage_sherd_description",
+        "source": "Brush a Suspicious block to obtain a Pottery Sherd",
+        "translation": "刷扫可疑的方块来获得陶片",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_shoot_arrow_description",
+        "source": "Shoot something with an Arrow",
+        "translation": "用弓箭射点什么",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_sniper_duel_description",
+        "source": "Kill a Skeleton from at least 50 meters away",
+        "translation": "从至少50米外射杀一只骷髅",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_spyglass_at_dragon_description",
+        "source": "Look at the Ender Dragon through a Spyglass",
+        "translation": "透过望远镜观察末影龙",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_spyglass_at_ghast_description",
+        "source": "Look at a Ghast through a Spyglass",
+        "translation": "透过望远镜观察恶魂",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_summon_iron_golem_description",
+        "source": "Summon an Iron Golem to help defend a village",
+        "translation": "召唤一只铁傀儡来帮忙守卫村庄",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_totem_of_undying_description",
+        "source": "Use a Totem of Undying to cheat death",
+        "translation": "利用不死图腾逃离死神",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_trade_at_world_height_description",
+        "source": "Trade with a Villager at the build height limit",
+        "translation": "在建筑高度限制处与村民交易",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_trim_with_any_armor_pattern_description",
+        "source": "Craft trimmed armor at a Smithing Table",
+        "translation": "在锻造台中合成带有纹饰的盔甲",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_walk_on_powder_snow_with_leather_boots_description",
+        "source": "Walk on Powder Snow... without sinking in it",
+        "translation": "在细雪上行走……并且不陷进去",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_who_needs_rockets_description",
+        "source": "Use a Wind Charge to launch yourself upward 8 blocks",
+        "translation": "使用风弹将自己向上弹射8格",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_adventure_whos_the_pillager_now_description",
+        "source": "Give a Pillager a taste of their own medicine",
+        "translation": "让掠夺者也尝尝弩的滋味",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_end_dragon_breath_description",
+        "source": "Collect Dragon's Breath in a Glass Bottle",
+        "translation": "用玻璃瓶收集一些龙息",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_end_elytra_description",
+        "source": "Find Elytra",
+        "translation": "找到鞘翅",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_end_root_description",
+        "source": "Or the beginning?",
+        "translation": "抑或是起点？",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_allay_deliver_cake_to_note_block_description",
+        "source": "Have an Allay drop a Cake at a Note Block",
+        "translation": "让悦灵向音符盒投掷一块蛋糕",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_balanced_diet_description",
+        "source": "Eat everything that is edible, even if it's not good for you",
+        "translation": "尝遍天下食材，即便是对身体不好的",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_breed_all_animals_description",
+        "source": "Breed all the animals!",
+        "translation": "繁殖每种动物！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_kill_axolotl_target_description",
+        "source": "Team up with an Axolotl and win a fight",
+        "translation": "与美西螈并肩作战并赢得胜利",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_obtain_sniffer_egg_description",
+        "source": "Obtain a Sniffer Egg",
+        "translation": "获得嗅探兽蛋",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_place_dried_ghast_in_water_description",
+        "source": "Place a Dried Ghast block into water",
+        "translation": "将失水恶魂方块放在水中",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_plant_seed_description",
+        "source": "Plant a seed and watch it grow",
+        "translation": "种下种子，见证它的成长",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_root_description",
+        "source": "The world is full of friends and food",
+        "translation": "世界无处没有朋友与美食",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_silk_touch_nest_description",
+        "source": "Move a Bee Nest or Beehive, with 3 Bees inside, using Silk Touch",
+        "translation": "用精准采集移动住着3只蜜蜂的蜂巢或蜂箱",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_tactical_fishing_description",
+        "source": "Catch a Fish... without a Fishing Rod!",
+        "translation": "不用钓鱼竿抓住一条鱼！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_wax_off_description",
+        "source": "Scrape Wax off of a Copper block!",
+        "translation": "给铜质方块脱蜡！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_husbandry_whole_pack_description",
+        "source": "Tame one of each Wolf variant",
+        "translation": "驯服所有种类的狼",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_all_potions_description",
+        "source": "Have every potion effect applied at the same time",
+        "translation": "同时拥有所有药水效果",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_brew_potion_description",
+        "source": "Brew a Potion",
+        "translation": "酿造一瓶药水",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_create_full_beacon_description",
+        "source": "Bring a Beacon to full power",
+        "translation": "让一座信标发挥最大功效",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_explore_nether_description",
+        "source": "Explore all Nether biomes",
+        "translation": "探索所有下界生物群系",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_find_fortress_description",
+        "source": "Break your way into a Nether Fortress",
+        "translation": "闯入下界要塞",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_get_wither_skull_description",
+        "source": "Obtain a Wither Skeleton's skull",
+        "translation": "获得凋灵骷髅的头颅",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_root_description",
+        "source": "Bring summer clothes",
+        "translation": "记得带夏装",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_summon_wither_description",
+        "source": "Summon the Wither",
+        "translation": "召唤凋灵",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_nether_uneasy_alliance_description",
+        "source": "Rescue a Ghast from the Nether, bring it safely home to the Overworld... and then kill it",
+        "translation": "从下界救出一只恶魂，将其安全地带到主世界……然后干掉它",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_cure_zombie_villager_description",
+        "source": "Weaken and then cure a Zombie Villager",
+        "translation": "弱化并治疗一名僵尸村民",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_deflect_arrow_description",
+        "source": "Deflect a projectile with a Shield",
+        "translation": "用盾牌反弹一个弹射物",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_enchant_item_description",
+        "source": "Enchant an item at an Enchanting Table",
+        "translation": "用附魔台附魔一样物品",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_enter_the_end_description",
+        "source": "Enter the End Portal",
+        "translation": "进入末地传送门",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_form_obsidian_description",
+        "source": "Obtain a block of Obsidian",
+        "translation": "获得一块黑曜石",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_iron_tools_description",
+        "source": "Upgrade your Pickaxe",
+        "translation": "升级你的镐",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_mine_diamond_description",
+        "source": "Acquire diamonds",
+        "translation": "获得钻石",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_obtain_armor_description",
+        "source": "Protect yourself with a piece of iron armor",
+        "translation": "用铁盔甲来保护你自己",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_root_description",
+        "source": "The heart and story of the game",
+        "translation": "游戏的核心与故事",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:advancements_story_shiny_gear_description",
+        "source": "Diamond armor saves lives",
+        "translation": "钻石盔甲能救人",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_cactus",
+        "source": "Steve was pricked to death",
+        "translation": "Steve被戳死了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_cramming",
+        "source": "Steve was squished too much",
+        "translation": "Steve因被过度挤压而死",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_dragonBreath",
+        "source": "Steve was roasted in dragon's breath",
+        "translation": "Steve被龙息烤熟了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_dragonBreath_player",
+        "source": "Steve was roasted in dragon's breath by a Zombie",
+        "translation": "Steve被僵尸的龙息烤熟了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_drown_player",
+        "source": "Steve drowned while trying to escape a Zombie",
+        "translation": "Steve在试图逃离僵尸时淹死了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_fall_player",
+        "source": "Steve hit the ground too hard while trying to escape a Zombie",
+        "translation": "Steve在试图逃离僵尸时落地过猛",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_fallingBlock",
+        "source": "Steve was squashed by a falling block",
+        "translation": "Steve被下落的方块压扁了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_fireball_item",
+        "source": "Steve was fireballed by a Zombie using a Sword",
+        "translation": "Steve被僵尸用剑发射的火球烧死了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_fireworks_item",
+        "source": "Steve went off with a bang due to a firework fired from a Sword by a Zombie",
+        "translation": "Steve随着僵尸用剑发射的烟花发出的巨响消失了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_fireworks_player",
+        "source": "Steve went off with a bang while fighting a Zombie",
+        "translation": "Steve在与僵尸战斗时随着一声巨响消失了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_flyIntoWall_player",
+        "source": "Steve experienced kinetic energy while trying to escape a Zombie",
+        "translation": "Steve在试图逃离僵尸时感受到了动能",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_generic",
+        "source": "Steve died",
+        "translation": "Steve死了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_generic_player",
+        "source": "Steve died because of a Zombie",
+        "translation": "Steve死于僵尸",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_genericKill_player",
+        "source": "Steve was killed while fighting a Zombie",
+        "translation": "Steve在与僵尸战斗时被杀死了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_inFire_player",
+        "source": "Steve walked into fire while fighting a Zombie",
+        "translation": "Steve在与僵尸战斗时不慎走入了火中",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_indirectMagic_item",
+        "source": "Steve was killed by a Zombie using a Sword",
+        "translation": "Steve被僵尸用剑杀死了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_lava",
+        "source": "Steve tried to swim in lava",
+        "translation": "Steve试图在熔岩里游泳",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_lava_player",
+        "source": "Steve tried to swim in lava to escape a Zombie",
+        "translation": "Steve在逃离僵尸时试图在熔岩里游泳",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_lightningBolt",
+        "source": "Steve was struck by lightning",
+        "translation": "Steve被闪电击中",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_onFire_player",
+        "source": "Steve was burned to a crisp while fighting a Zombie",
+        "translation": "Steve在与僵尸战斗时被烤得酥脆",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_outOfWorld",
+        "source": "Steve fell out of the world",
+        "translation": "Steve掉出了这个世界",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_stalagmite",
+        "source": "Steve was impaled on a stalagmite",
+        "translation": "Steve被石笋刺穿了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_starve_player",
+        "source": "Steve starved to death while fighting a Zombie",
+        "translation": "Steve在与僵尸战斗时饿死了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_thorns",
+        "source": "Steve was killed while trying to hurt a Zombie",
+        "translation": "Steve在试图伤害僵尸时被杀",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_trident",
+        "source": "Steve was impaled by a Zombie",
+        "translation": "Steve被僵尸刺穿了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_trident_item",
+        "source": "Steve was impaled by a Zombie with a Sword",
+        "translation": "Steve被僵尸用剑刺穿了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_wither_player",
+        "source": "Steve withered away while fighting a Zombie",
+        "translation": "Steve在与僵尸战斗时凋零了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_attack_witherSkull_item",
+        "source": "Steve was shot by a skull from a Zombie using a Sword",
+        "translation": "Steve被僵尸用剑发射的头颅射杀",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_fell_accident_twisting_vines",
+        "source": "Steve fell off some twisting vines",
+        "translation": "Steve从缠怨藤上摔了下来",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:death_fell_finish",
+        "source": "Steve fell too far and was finished by a Zombie",
+        "translation": "Steve摔伤得太重并被僵尸完结了生命",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:container_enchant_lapis_one",
+        "source": "1 Lapis Lazuli",
+        "translation": "花费：1颗青金石",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:container_shulkerBox_unknownContents",
+        "source": "???????",
+        "translation": "???????",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_abuseReport_reason_generic",
+        "source": "I want to report them",
+        "translation": "我想举报该玩家",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_abuseReport_reason_generic_description",
+        "source": "I'm annoyed with them / they have done something I do not like.",
+        "translation": "该玩家使我恼怒或做的事情使我反感。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_abuseReport_reason_harassment_or_bullying_description",
+        "source": "Someone is shaming, attacking, or bullying you or someone else. This includes when someone is repeatedly trying to contact you or someone else without consent or posting private personal information about you or someone else without consent (\"doxing\").",
+        "translation": "有人羞辱、攻击、霸凌你或其他人。这包括在未经允许的情况下不断尝试联系你或其他人，或发布你或其他人的隐私信息。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_banned_description",
+        "source": "%s\n\n%s\n\nLearn more at the following link: %s",
+        "translation": "%s\n\n%s\n\n点击以下链接了解更多：%s",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_banned_description_reason_id_message",
+        "source": "Code: %s - %s",
+        "translation": "代码：%s - %s",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_banned_name_title",
+        "source": "Name Not Allowed in Multiplayer",
+        "translation": "多人游戏中不允许使用当前名称",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_banned_reason_hate_terrorism_notorious_figure",
+        "source": "References to hate groups, terrorist organizations, or notorious figures",
+        "translation": "推广仇恨群体、恐怖组织或不法分子",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_banned_title_temporary",
+        "source": "Account temporarily suspended",
+        "translation": "账户已被暂时封禁",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_cancel",
+        "source": "Cancel",
+        "translation": "取消",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_chatReport_describe",
+        "source": "Sharing details will help us make a well-informed decision.",
+        "translation": "提供详情可以帮助我们更严谨地做出决定。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_chatReport_title",
+        "source": "Report Player Chat",
+        "translation": "举报玩家聊天",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_recipebook_search_hint",
+        "source": "Search...",
+        "translation": "搜索…",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_socialInteractions_search_hint",
+        "source": "Search...",
+        "translation": "搜索…",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_socialInteractions_server_label_single",
+        "source": "%s - %s player",
+        "translation": "%s - %s名玩家",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_socialInteractions_show",
+        "source": "Show in Chat",
+        "translation": "在聊天中显示",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:gui_socialInteractions_tooltip_report_not_reportable",
+        "source": "This player can't be reported, because their chat messages can't be verified on this server",
+        "translation": "无法举报该玩家，服务器无法验证其聊天消息。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:menu_custom_screen_info_contents",
+        "source": "The contents of this screen are controlled by third-party servers and maps that are not owned, operated, or supervised by Mojang Studios or Microsoft.\n\nHandle with care! Always be careful when following links and never give away your personal information, including login details.\n\nIf this screen prevents you from playing, you can also disconnect from the current server by using the button below.",
+        "translation": "此屏幕的内容由第三方服务器或地图控制，不由Mojang Studios或Microsoft拥有、运营和监督。\n\n请小心操作！点击链接时请务必谨慎，确保不要泄露你的个人信息，包括账号密码等。\n\n如果此屏幕阻止你继续，可以点击下方按钮与当前服务器断开连接。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:menu_returnToGame",
+        "source": "Back to Game",
+        "translation": "回到游戏",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_backupQuestion_snapshot",
+        "source": "Do you really want to load this world?",
+        "translation": "你真的想加载此世界吗？",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_dataPacks",
+        "source": "Data Packs",
+        "translation": "数据包",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_deleteButton",
+        "source": "Delete",
+        "translation": "删除",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_edit_backupSize",
+        "source": "size: %s MB",
+        "translation": "大小：%s MB",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_edit_export_worldgen_settings",
+        "source": "Export World Generation Settings",
+        "translation": "导出世界生成设置",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_gameMode_hardcore_line1",
+        "source": "Same as Survival Mode, locked at hardest",
+        "translation": "难度锁定在困难的生存模式",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_gameMode_survival_info",
+        "source": "Explore a mysterious world where you build, collect, craft, and fight monsters.",
+        "translation": "探索未知的世界，尽情建造、收集、合成并与怪物战斗。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_title",
+        "source": "Select World",
+        "translation": "选择世界",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_warning_experimental_title",
+        "source": "Warning! These settings are using experimental features",
+        "translation": "警告！这些设置使用了实验性功能",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gui:selectWorld_warning_lowDiskSpace_description",
+        "source": "There is not much space left on your device.\nRunning out of disk space while in game can lead to your world being damaged.",
+        "translation": "设备上的存储空间不足。\n运行游戏时磁盘空间不足可能会导致世界损坏。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_allowEnteringNetherUsingPortals_description",
+        "source": "Controls whether players are allowed to enter the Nether.",
+        "translation": "控制玩家能否进入下界。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_allowFireTicksAwayFromPlayer_description",
+        "source": "Controls whether fire and lava should be able to tick further than 8 chunks away from any player.",
+        "translation": "控制火和熔岩能否在距离任何玩家超过8个区块处蔓延。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_blockExplosionDropDecay_description",
+        "source": "Some of the drops from blocks destroyed by explosions caused by block interactions are lost in the explosion.",
+        "translation": "在与方块交互引起的爆炸中，部分被破坏方块的掉落物会被炸毁。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_commandModificationBlockLimit_description",
+        "source": "The number of blocks that can be changed at once by one command, such as fill or clone.",
+        "translation": "单条命令（如fill和clone）最多能更改的方块数量。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_doEntityDrops_description",
+        "source": "Controls drops from minecarts (including inventories), item frames, boats, etc.",
+        "translation": "控制矿车（包括内容物）、物品展示框、船等的物品掉落。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_doLimitedCrafting_description",
+        "source": "If enabled, players will be able to craft only unlocked recipes.",
+        "translation": "若启用，玩家只能使用已解锁的配方合成。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_doTileDrops_description",
+        "source": "Controls resource drops from blocks, including experience orbs.",
+        "translation": "控制破坏方块后是否掉落资源，包括经验球。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_enderPearlsVanishOnDeath_description",
+        "source": "Whether Ender Pearls thrown by a player vanish when that player dies.",
+        "translation": "玩家投掷的末影珍珠是否在玩家死亡时消失。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_entitiesWithPassengersCanUsePortals_description",
+        "source": "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways.",
+        "translation": "允许被骑乘的实体通过下界传送门、末地传送门和末地折跃门传送。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_forgiveDeadPlayers_description",
+        "source": "Angered neutral mobs stop being angry when the targeted player dies nearby.",
+        "translation": "愤怒的中立生物将在其目标玩家于附近死亡后息怒。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_globalSoundEvents_description",
+        "source": "When certain game events happen, like a boss spawning, the sound is heard everywhere.",
+        "translation": "特定游戏事件（如Boss生成）发生时，声音可在所有地方听见。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_lavaSourceConversion_description",
+        "source": "When flowing lava is surrounded on two sides by lava sources it converts into a source.",
+        "translation": "流动熔岩在两面与熔岩源相邻时转化为熔岩源。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_locatorBar_description",
+        "source": "When enabled, a bar is shown on the screen to indicate the direction of players.",
+        "translation": "启用后，屏幕上会显示指示玩家方位的定位栏。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_maxCommandChainLength_description",
+        "source": "Applies to command block chains and functions.",
+        "translation": "应用于命令方块链和函数。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_maxCommandForkCount_description",
+        "source": "Maximum number of contexts that can be used by commands like 'execute as'.",
+        "translation": "“execute as”等命令可以使用的上下文数量最大值。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_minecartMaxSpeed_description",
+        "source": "Maximum default speed of a moving Minecart on land.",
+        "translation": "矿车在地面上移动的默认最大速度。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_mobExplosionDropDecay_description",
+        "source": "Some of the drops from blocks destroyed by explosions caused by mobs are lost in the explosion.",
+        "translation": "在生物引起的爆炸中，部分被破坏方块的掉落物会被炸毁。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_playersNetherPortalCreativeDelay_description",
+        "source": "Time (in ticks) that a creative mode player needs to stand in a Nether portal before changing dimensions.",
+        "translation": "创造模式下的玩家通过下界传送门前往其他维度前需要站在其中等待的时间（以刻为单位）。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_playersNetherPortalDefaultDelay_description",
+        "source": "Time (in ticks) that a non-creative mode player needs to stand in a Nether portal before changing dimensions.",
+        "translation": "非创造模式下的玩家通过下界传送门前往其他维度前需要站在其中等待的时间（以刻为单位）。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_playersSleepingPercentage_description",
+        "source": "The percentage of players who must be sleeping to skip the night.",
+        "translation": "跳过夜晚所需的入睡玩家占比。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_projectilesCanBreakBlocks_description",
+        "source": "Controls whether impact projectiles will destroy blocks that are destructible by them.",
+        "translation": "控制弹射物能否破坏可被其破坏的方块。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_pvp_description",
+        "source": "Controls whether players are allowed to damage other players.",
+        "translation": "控制玩家间能否互相伤害。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_reducedDebugInfo_description",
+        "source": "Limits contents of debug screen.",
+        "translation": "限制调试屏幕内容。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_snowAccumulationHeight_description",
+        "source": "When it snows, layers of snow form on the ground up to at most this number of layers.",
+        "translation": "降雪时，地面上的雪最多堆积到此处指定的层数。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_spawnChunkRadius_description",
+        "source": "The amount of chunks that stay loaded around the overworld spawn position.",
+        "translation": "主世界出生点周围保持加载的区块数量。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_spawnMonsters_description",
+        "source": "Controls whether monsters naturally spawn.",
+        "translation": "控制怪物能否自然生成。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_spawnRadius_description",
+        "source": "Controls the size of the area around the spawn point that players can spawn in.",
+        "translation": "控制适合玩家生成的出生点周围区域大小。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_tntExplosionDropDecay_description",
+        "source": "Some of the drops from blocks destroyed by explosions caused by TNT are lost in the explosion.",
+        "translation": "在TNT引起的爆炸中，部分被破坏方块的掉落物会被炸毁。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_universalAnger_description",
+        "source": "Angered neutral mobs attack any nearby player, not just the player that angered them. Works best if forgiveDeadPlayers is disabled.",
+        "translation": "愤怒的中立生物将攻击附近的所有玩家，而不再限于激怒它们的玩家。禁用“宽恕死亡玩家”可达到最佳效果。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:gamerule:gamerule_waterSourceConversion_description",
+        "source": "When flowing water is surrounded on two sides by water sources it converts into a source.",
+        "translation": "流动水在两面与水源相邻时转化为水源。",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      }
+    ]
+  }
+}

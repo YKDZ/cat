@@ -98,13 +98,15 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       scopeType: override.scope,
       scopeId: override.scopeId ?? "",
     });
-    await executeCommand(execCtx, upsertPluginConfigInstance, {
-      pluginId: override.plugin,
-      scopeType: override.scope,
-      scopeId: override.scopeId ?? "",
-      creatorId: userId,
-      value: override.config,
-    });
+    if (data.config !== undefined) {
+      await executeCommand(execCtx, upsertPluginConfigInstance, {
+        pluginId: override.plugin,
+        scopeType: override.scope,
+        scopeId: override.scopeId ?? "",
+        creatorId: userId,
+        value: override.config,
+      });
+    }
     await pluginManager.activate(testDb.client, data.id);
   }
 
@@ -303,14 +305,17 @@ const getDimensionFromConfig = (
   override: PluginOverride | undefined,
 ): number | undefined => {
   if (!override) return undefined;
-  const model = override.config?.model;
+  const model = override.config?.["model-id"] ?? override.config?.model;
   if (typeof model !== "string") return undefined;
   const dimensionMap: Record<string, number> = {
     "text-embedding-3-small": 1536,
     "text-embedding-3-large": 3072,
     "text-embedding-ada-002": 1536,
   };
-  return dimensionMap[model];
+  // The openai-vectorizer plugin hardcodes dimensions: 1024 in the API call,
+  // so any model accessed via it produces 1024-dimensional vectors unless
+  // explicitly mapped to a different known dimension.
+  return dimensionMap[model] ?? 1024;
 };
 
 const vectorizeWithCache = async (opts: {
@@ -337,7 +342,7 @@ const vectorizeWithCache = async (opts: {
 
   const db = execCtx.db;
   const pendingRows = await db.execute(
-    sql`SELECT id, value, "languageId" FROM "VectorizedString" WHERE status = 'PENDING_VECTORIZE'`,
+    sql`SELECT id, value, language_id FROM "VectorizedString" WHERE status = 'PENDING_VECTORIZE'`,
   );
 
   if (!pendingRows.rows || pendingRows.rows.length === 0) return;
@@ -345,7 +350,7 @@ const vectorizeWithCache = async (opts: {
   for (const row of pendingRows.rows) {
     const stringId = row.id as number;
     const text = row.value as string;
-    const languageId = row.languageId as string;
+    const languageId = row.language_id as string;
 
     const cached = cache.get(modelName, text, languageId);
     let chunkDataArrays: Array<
@@ -378,10 +383,10 @@ const vectorizeWithCache = async (opts: {
 
     try {
       const vectorizerPlugin = await db.execute(
-        sql`SELECT id FROM "Vectorizer" LIMIT 1`,
+        sql`SELECT id FROM "PluginService" WHERE service_type = 'TEXT_VECTORIZER' LIMIT 1`,
       );
       const storagePlugin = await db.execute(
-        sql`SELECT id FROM "VectorStorage" LIMIT 1`,
+        sql`SELECT id FROM "PluginService" WHERE service_type = 'VECTOR_STORAGE' LIMIT 1`,
       );
       const vectorizerId = (vectorizerPlugin.rows?.[0]?.id as number) ?? 1;
       const vectorStorageId = (storagePlugin.rows?.[0]?.id as number) ?? 1;

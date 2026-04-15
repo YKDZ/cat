@@ -1,0 +1,33 @@
+name: minecraft-memory-recall
+description: Evaluate memory recall against Minecraft translation memory (150 sentence pairs)
+
+seed:
+  project: seed/project.json
+  memory: seed/memory.json
+
+plugins:
+  loader: real
+  overrides:
+    - plugin: openai-vectorizer
+      scope: GLOBAL
+      config:
+        model-id: "qwen3-embedding:4b"
+        baseURL: "http://172.17.0.1:11435/v1"
+        apiKey: "dummy-key"
+    - plugin: pgvector-storage
+      scope: GLOBAL
+      config: {}
+    - plugin: spacy-segmenter
+      scope: GLOBAL
+      config:
+        serverUrl: "http://172.17.0.1:8000"
+
+scenarios:
+  - type: memory-recall
+    test-set: test-sets/memory-recall.yaml
+    scorers: [precision, recall, f1, hit-rate, latency]
+    params:
+      maxAmount: 5
+      minSimilarity: 0.72
+      minVariantSimilarity: 0.7
+      timeoutMs: 60000

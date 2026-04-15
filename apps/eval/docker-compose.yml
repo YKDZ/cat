@@ -1,7 +1,7 @@
 services:
   redis:
     image: redis
-    container_name: cat_redis
+    container_name: eval_redis
     healthcheck:
       test:
         - CMD-SHELL
@@ -15,7 +15,7 @@ services:
 
   postgresql:
     image: pgvector/pgvector:pg18
-    container_name: cat_postgresql
+    container_name: eval_postgresql
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
@@ -31,19 +31,21 @@ services:
       retries: 5
       timeout: 5s
 
-  # ollama:
-  #   image: ollama/ollama
-  #   container_name: cat_ollama
-  #   volumes:
-  #     - ./ollama:/root/.ollama
-  #   ports:
-  #     - 11434:11434
-  #   healthcheck:
-  #     test:
-  #       - "CMD-SHELL"
-  #       - |
-  #         test -f /tmp/ollama_ready && \
-  #         bash -c '</dev/tcp/localhost/11434'
+  ollama:
+    image: ollama/ollama
+    container_name: eval_ollama
+    volumes:
+      - ./ollama:/root/.ollama
+    ports:
+      - 11435:11434
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "bash -c '</dev/tcp/localhost/11434'"
+      start_period: 30s
+      interval: 15s
+      retries: 5
+      timeout: 5s
   #   deploy:
   #     resources:
   #       reservations:
@@ -53,7 +55,7 @@ services:
   #             capabilities: [gpu]
 
   libretranslate:
-    container_name: cat_libretranslate
+    container_name: eval_libretranslate
     image: libretranslate/libretranslate
     ports:
       - 5000:5000
@@ -63,3 +65,40 @@ services:
         - ./venv/bin/python scripts/healthcheck.py
     environment:
       - LT_LOAD_ONLY=zh,en
+
+  jaeger:
+    image: jaegertracing/jaeger:2.17.0
+    container_name: eval_jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget --spider -q http://localhost:16686/ || exit 1"
+      start_period: 10s
+      interval: 15s
+      retries: 5
+      timeout: 3s
+
+  # spacy:
+  #   build:
+  #     context: ../spacy-server
+  #     args:
+  #       SPACY_MODELS: "en_core_web_sm zh_core_web_sm ja_core_news_sm de_core_news_sm"
+  #   ports:
+  #     - "8000:8000"
+  #   healthcheck:
+  #     test:
+  #       - CMD-SHELL
+  #       - curl -f http://localhost:8000/health || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 60s
+  #     retries: 3
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 2G
