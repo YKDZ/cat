@@ -80,9 +80,11 @@ program
         console.log(`\n[eval] JSON results written to ${outPath}`);
       }
 
-      process.exit(report.allPassed ? 0 : 1);
-    } finally {
       await otel.shutdown();
+      process.exit(report.allPassed ? 0 : 1);
+    } catch (err) {
+      await otel.shutdown();
+      throw err;
     }
   });
 

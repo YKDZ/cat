@@ -1,0 +1,377 @@
+name: minecraft-memory-recall
+cases:
+  - id: mc-mem-001
+    inputText: "Explore a mysterious world where you build, collect, craft, and fight monsters."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:selectWorld_gameMode_survival_info"
+        expectedSource: "Explore a mysterious world where you build, collect, craft, and fight monsters."
+        expectedTranslation: "探索未知的世界，尽情建造、收集、合成并与怪物战斗。"
+    negativeMemories: []
+  - id: mc-mem-002
+    inputText: "Discover every biome"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_adventure_adventuring_time_description"
+        expectedSource: "Discover every biome"
+        expectedTranslation: "发现所有的生物群系"
+    negativeMemories: []
+  - id: mc-mem-003
+    inputText: "Steve was fireballed by a Zombie using a Sword"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_fireball_item"
+        expectedSource: "Steve was fireballed by a Zombie using a Sword"
+        expectedTranslation: "Steve被僵尸用剑发射的火球烧死了"
+    negativeMemories: []
+  - id: mc-mem-004
+    inputText: "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_entitiesWithPassengersCanUsePortals_description"
+        expectedSource: "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways."
+        expectedTranslation: "允许被骑乘的实体通过下界传送门、末地传送门和末地折跃门传送。"
+    negativeMemories: []
+  - id: mc-mem-005
+    inputText: "Break your way into a Nether Fortress"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_nether_find_fortress_description"
+        expectedSource: "Break your way into a Nether Fortress"
+        expectedTranslation: "闯入下界要塞"
+    negativeMemories: []
+  - id: mc-mem-006
+    inputText: "Angered neutral mobs stop being angry when the targeted player dies nearby."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_forgiveDeadPlayers_description"
+        expectedSource: "Angered neutral mobs stop being angry when the targeted player dies nearby."
+        expectedTranslation: "愤怒的中立生物将在其目标玩家于附近死亡后息怒。"
+    negativeMemories: []
+  - id: mc-mem-007
+    inputText: "Find Elytra"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_end_elytra_description"
+        expectedSource: "Find Elytra"
+        expectedTranslation: "找到鞘翅"
+    negativeMemories: []
+  - id: mc-mem-008
+    inputText: "Steve tried to swim in lava"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_lava"
+        expectedSource: "Steve tried to swim in lava"
+        expectedTranslation: "Steve试图在熔岩里游泳"
+    negativeMemories: []
+  - id: mc-mem-009
+    inputText: "The amount of chunks that stay loaded around the overworld spawn position."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_spawnChunkRadius_description"
+        expectedSource: "The amount of chunks that stay loaded around the overworld spawn position."
+        expectedTranslation: "主世界出生点周围保持加载的区块数量。"
+    negativeMemories: []
+  - id: mc-mem-010
+    inputText: "Weaken and then cure a Zombie Villager"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_story_cure_zombie_villager_description"
+        expectedSource: "Weaken and then cure a Zombie Villager"
+        expectedTranslation: "弱化并治疗一名僵尸村民"
+    negativeMemories: []
+  - id: mc-mem-011
+    inputText: "Scrape Wax off of a Copper block!"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_husbandry_wax_off_description"
+        expectedSource: "Scrape Wax off of a Copper block!"
+        expectedTranslation: "给铜质方块脱蜡！"
+    negativeMemories: []
+  - id: mc-mem-012
+    inputText: |
+      %s
+
+      %s
+
+      Learn more at the following link: %s
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:gui_banned_description"
+        expectedSource: |
+          %s
+
+          %s
+
+          Learn more at the following link: %s
+        expectedTranslation: |
+          %s
+
+          %s
+
+          点击以下链接了解更多：%s
+    negativeMemories: []
+  - id: mc-mem-013
+    inputText: "Have every potion effect applied at the same time"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_nether_all_potions_description"
+        expectedSource: "Have every potion effect applied at the same time"
+        expectedTranslation: "同时拥有所有药水效果"
+    negativeMemories: []
+  - id: mc-mem-014
+    inputText: "Maximum default speed of a moving Minecart on land."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_minecartMaxSpeed_description"
+        expectedSource: "Maximum default speed of a moving Minecart on land."
+        expectedTranslation: "矿车在地面上移动的默认最大速度。"
+    negativeMemories: []
+  - id: mc-mem-015
+    inputText: "Angered neutral mobs attack any nearby player, not just the player that angered them. Works best if forgiveDeadPlayers is disabled."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_universalAnger_description"
+        expectedSource: "Angered neutral mobs attack any nearby player, not just the player that angered them. Works best if forgiveDeadPlayers is disabled."
+        expectedTranslation: "愤怒的中立生物将攻击附近的所有玩家，而不再限于激怒它们的玩家。禁用“宽恕死亡玩家”可达到最佳效果。"
+    negativeMemories: []
+  - id: mc-mem-016
+    inputText: "Steve starved to death while fighting the Zombie"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_starve_player"
+        expectedSource: "Steve starved to death while fighting a Zombie"
+        expectedTranslation: "Steve在与僵尸战斗时饿死了"
+    negativeMemories: []
+  - id: mc-mem-017
+    inputText: "If enabled, players will be able to craft only unlocked recipes."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_doLimitedCrafting_description"
+        expectedSource: "If enabled, players will be able to craft only unlocked recipes."
+        expectedTranslation: "若启用，玩家只能使用已解锁的配方合成。"
+    negativeMemories: []
+  - id: mc-mem-018
+    inputText: "Free fall from the top of the world (build limit) to the bottom of the world and survive successfully"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_adventure_fall_from_world_height_description"
+        expectedSource: "Free fall from the top of the world (build limit) to the bottom of the world and survive"
+        expectedTranslation: "从世界顶部（建筑高度限制处）自由落体，坠至世界底部并存活下来"
+    negativeMemories: []
+  - id: mc-mem-019
+    inputText: "Try to or the beginning?"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_end_root_description"
+        expectedSource: "Or the beginning?"
+        expectedTranslation: "抑或是起点？"
+    negativeMemories: []
+  - id: mc-mem-020
+    inputText: "I want to report them"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:gui_abuseReport_reason_generic"
+        expectedSource: "I want to report them"
+        expectedTranslation: "我想举报该玩家"
+    negativeMemories: []
+  - id: mc-mem-021
+    inputText: "Steve was struck by lightning"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_lightningBolt"
+        expectedSource: "Steve was struck by lightning"
+        expectedTranslation: "Steve被闪电击中"
+    negativeMemories: []
+  - id: mc-mem-022
+    inputText: "Steve was squished too much"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_cramming"
+        expectedSource: "Steve was squished too much"
+        expectedTranslation: "Steve因被过度挤压而死"
+    negativeMemories: []
+  - id: mc-mem-023
+    inputText: "Brush a Suspicious block to obtain a Pottery Sherd"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_adventure_salvage_sherd_description"
+        expectedSource: "Brush a Suspicious block to obtain a Pottery Sherd"
+        expectedTranslation: "刷扫可疑的方块来获得陶片"
+    negativeMemories: []
+  - id: mc-mem-024
+    inputText: "Eat everything that is edible, even if it's not good for you"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_husbandry_balanced_diet_description"
+        expectedSource: "Eat everything that is edible, even if it's not good for you"
+        expectedTranslation: "尝遍天下食材，即便是对身体不好的"
+    negativeMemories: []
+  - id: mc-mem-025
+    inputText: "Delete"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:selectWorld_deleteButton"
+        expectedSource: "Delete"
+        expectedTranslation: "删除"
+    negativeMemories: []
+  - id: mc-mem-026
+    inputText: "You need to steve died because of a Zombie"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_generic_player"
+        expectedSource: "Steve died because of a Zombie"
+        expectedTranslation: "Steve死于僵尸"
+    negativeMemories: []
+  - id: mc-mem-027
+    inputText: "Controls whether fire and lava should be able to tick further than 8 chunks away from any player."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_allowFireTicksAwayFromPlayer_description"
+        expectedSource: "Controls whether fire and lava should be able to tick further than 8 chunks away from any player."
+        expectedTranslation: "控制火和熔岩能否在距离任何玩家超过8个区块处蔓延。"
+    negativeMemories: []
+  - id: mc-mem-028
+    inputText: "Scrape a Copper Bulb with an Axe to make it brighter"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_adventure_lighten_up_description"
+        expectedSource: "Scrape a Copper Bulb with an Axe to make it brighter"
+        expectedTranslation: "用斧刮削铜灯来让它变得更亮"
+    negativeMemories: []
+  - id: mc-mem-029
+    inputText: "Some of the drops from blocks destroyed by explosions caused by block interactions are lost in the explosion."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_blockExplosionDropDecay_description"
+        expectedSource: "Some of the drops from blocks destroyed by explosions caused by block interactions are lost in the explosion."
+        expectedTranslation: "在与方块交互引起的爆炸中，部分被破坏方块的掉落物会被炸毁。"
+    negativeMemories: []
+  - id: mc-mem-030
+    inputText: "I'm annoyed with them / they have done something I do not like. in Minecraft"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:gui_abuseReport_reason_generic_description"
+        expectedSource: "I'm annoyed with them / they have done something I do not like."
+        expectedTranslation: "该玩家使我恼怒或做的事情使我反感。"
+    negativeMemories: []
+  - id: mc-mem-031
+    inputText: "You need to steve was roasted in dragon's breath"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_dragonBreath"
+        expectedSource: "Steve was roasted in dragon's breath"
+        expectedTranslation: "Steve被龙息烤熟了"
+    negativeMemories: []
+  - id: mc-mem-032
+    inputText: "Search..."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:gui_socialInteractions_search_hint"
+        expectedSource: "Search..."
+        expectedTranslation: "搜索…"
+    negativeMemories: []
+  - id: mc-mem-033
+    inputText: "Kill one of every hostile monster"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_adventure_kill_all_mobs_description"
+        expectedSource: "Kill one of every hostile monster"
+        expectedTranslation: "杀死每一种敌对性怪物"
+    negativeMemories: []
+  - id: mc-mem-034
+    inputText: "Name Not Allowed in Multiplayer"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:gui_banned_name_title"
+        expectedSource: "Name Not Allowed in Multiplayer"
+        expectedTranslation: "多人游戏中不允许使用当前名称"
+    negativeMemories: []
+  - id: mc-mem-035
+    inputText: "Steve went off with a bang due to a firework fired from a Sword by a Zombie in Minecraft"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_fireworks_item"
+        expectedSource: "Steve went off with a bang due to a firework fired from a Sword by a Zombie"
+        expectedTranslation: "Steve随着僵尸用剑发射的烟花发出的巨响消失了"
+    negativeMemories: []
+  - id: mc-mem-036
+    inputText: "References to hate groups, terrorist organizations,"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:gui_banned_reason_hate_terrorism_notorious_figure"
+        expectedSource: "References to hate groups, terrorist organizations, or notorious figures"
+        expectedTranslation: "推广仇恨群体、恐怖组织或不法分子"
+    negativeMemories: []
+  - id: mc-mem-037
+    inputText: "Kill a Skeleton from at least"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_adventure_sniper_duel_description"
+        expectedSource: "Kill a Skeleton from at least 50 meters away"
+        expectedTranslation: "从至少50米外射杀一只骷髅"
+    negativeMemories: []
+  - id: mc-mem-038
+    inputText: "size: %s MB"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:gui:selectWorld_edit_backupSize"
+        expectedSource: "size: %s MB"
+        expectedTranslation: "大小：%s MB"
+    negativeMemories: []
+  - id: mc-mem-039
+    inputText: "Steve was impaled by a"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_trident"
+        expectedSource: "Steve was impaled by a Zombie"
+        expectedTranslation: "Steve被僵尸刺穿了"
+    negativeMemories: []
+  - id: mc-mem-040
+    inputText: "Steve was pricked to"
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedMemories:
+      - memoryItemRef: "mem:death:death_attack_cactus"
+        expectedSource: "Steve was pricked to death"
+        expectedTranslation: "Steve被戳死了"
+    negativeMemories: []
