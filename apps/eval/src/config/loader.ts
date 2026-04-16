@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as z from "zod";
 
+import { interpolateEnvVars } from "./env-interpolation";
+
 import {
   type ElementsSeed,
   ElementsSeedSchema,
@@ -41,6 +43,13 @@ const readYaml = <T>(filePath: string, schema: z.ZodType<T>): T => {
   return schema.parse(parsed);
 };
 
+const readYamlWithEnv = <T>(filePath: string, schema: z.ZodType<T>): T => {
+  const raw = readFileSync(filePath, "utf-8");
+  const parsed = yaml.load(raw);
+  const interpolated = interpolateEnvVars(parsed);
+  return schema.parse(interpolated);
+};
+
 const readJson = <T>(filePath: string, schema: z.ZodType<T>): T => {
   const raw = readFileSync(filePath, "utf-8");
   return schema.parse(JSON.parse(raw));
@@ -49,7 +58,7 @@ const readJson = <T>(filePath: string, schema: z.ZodType<T>): T => {
 export const loadSuite = (suiteDir: string): LoadedSuite => {
   const abs = (rel: string) => resolve(suiteDir, rel);
 
-  const config = readYaml(abs("suite.yaml"), SuiteConfigSchema);
+  const config = readYamlWithEnv(abs("suite.yaml"), SuiteConfigSchema);
 
   const projectSeed = readJson(abs(config.seed.project), ProjectSeedSchema);
   const glossarySeed = config.seed.glossary

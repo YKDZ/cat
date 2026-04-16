@@ -46,10 +46,10 @@ tasks:
     options:
       cache: false
   env-up:
-    command: "docker compose up -d"
+    command: "tsx src/cli.ts env up"
     options:
       cache: false
   env-down:
-    command: "docker compose down"
+    command: "tsx src/cli.ts env down"
     options:
       cache: false

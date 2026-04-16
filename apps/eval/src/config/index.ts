@@ -1,3 +1,4 @@
+export { interpolateEnvVars } from "./env-interpolation";
 export { loadSuite, type LoadedSuite } from "./loader";
 export type {
   SuiteConfig,

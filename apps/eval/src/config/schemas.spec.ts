@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   SuiteConfigSchema,
+  SeedConfigSchema,
   ProjectSeedSchema,
   GlossarySeedSchema,
   TermRecallTestSetSchema,
@@ -92,5 +93,23 @@ describe("TermRecallTestSetSchema", () => {
       ],
     });
     expect(result.cases).toHaveLength(1);
+  });
+});
+
+describe("SeedConfigSchema agentDefinition", () => {
+  it("accepts a builtin agent ID", () => {
+    const result = SeedConfigSchema.parse({
+      project: "seed/project.json",
+      agentDefinition: "translator",
+    });
+    expect(result.agentDefinition).toBe("translator");
+  });
+
+  it("accepts a .md file path", () => {
+    const result = SeedConfigSchema.parse({
+      project: "seed/project.json",
+      agentDefinition: "seed/my-agent.md",
+    });
+    expect(result.agentDefinition).toBe("seed/my-agent.md");
   });
 });

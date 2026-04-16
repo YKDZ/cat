@@ -11,16 +11,16 @@ plugins:
     - plugin: openai-vectorizer
       scope: GLOBAL
       config:
-        model-id: "qwen3-embedding:4b"
-        baseURL: "http://172.17.0.1:11435/v1"
-        apiKey: "dummy-key"
+        model-id: "${VECTORIZER_MODEL_ID:-qwen3-embedding:4b}"
+        baseURL: "${VECTORIZER_BASE_URL:-http://172.17.0.1:11435/v1}"
+        apiKey: "${VECTORIZER_API_KEY:-dummy-key}"
     - plugin: pgvector-storage
       scope: GLOBAL
       config: {}
     - plugin: spacy-segmenter
       scope: GLOBAL
       config:
-        serverUrl: "http://172.17.0.1:8000"
+        serverUrl: "${SPACY_SERVER_URL:-http://172.17.0.1:8000}"
 
 scenarios:
   - type: memory-recall
