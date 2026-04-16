@@ -1,0 +1,364 @@
+name: agent-translate
+cases:
+  - id: mc-agent-001
+    instruction: >
+      Translate the following Minecraft game elements from English to Simplified
+      Chinese (zh-Hans). Use the termbase to look up official Minecraft term
+      translations and the translation memory for common UI strings. Ensure all
+      required Minecraft terminology is translated consistently with official
+      localization conventions.
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    elementRefs:
+      - el:001
+      - el:002
+      - el:003
+      - el:004
+      - el:005
+      - el:006
+      - el:007
+      - el:008
+      - el:009
+      - el:010
+      - el:011
+      - el:012
+      - el:013
+      - el:014
+      - el:015
+      - el:016
+      - el:017
+      - el:018
+      - el:019
+      - el:020
+      - el:021
+      - el:022
+      - el:023
+      - el:024
+      - el:025
+      - el:026
+      - el:027
+      - el:028
+      - el:029
+      - el:030
+      - el:031
+      - el:032
+      - el:033
+      - el:034
+      - el:035
+      - el:036
+      - el:037
+      - el:038
+      - el:039
+      - el:040
+      - el:041
+      - el:042
+      - el:043
+      - el:044
+      - el:045
+      - el:046
+      - el:047
+      - el:048
+      - el:049
+      - el:050
+      - el:051
+      - el:052
+      - el:053
+      - el:054
+      - el:055
+      - el:056
+      - el:057
+      - el:058
+      - el:059
+      - el:060
+      - el:061
+      - el:062
+      - el:063
+      - el:064
+      - el:065
+      - el:066
+      - el:067
+      - el:068
+      - el:069
+      - el:070
+      - el:071
+      - el:072
+      - el:073
+      - el:074
+      - el:075
+      - el:076
+      - el:077
+      - el:078
+      - el:079
+      - el:080
+      - el:081
+      - el:082
+      - el:083
+      - el:084
+      - el:085
+      - el:086
+      - el:087
+      - el:088
+      - el:089
+      - el:090
+      - el:091
+      - el:092
+      - el:093
+      - el:094
+      - el:095
+      - el:096
+      - el:097
+      - el:098
+      - el:099
+      - el:100
+    referenceTranslations:
+      - elementRef: el:001
+        expectedText: 钻石剑
+        requiredTerms: [钻石]
+      - elementRef: el:002
+        expectedText: 弓
+        requiredTerms: [弓]
+      - elementRef: el:003
+        expectedText: 盾牌
+        requiredTerms: [盾牌]
+      - elementRef: el:004
+        expectedText: 铁镐
+        requiredTerms: [镐]
+      - elementRef: el:005
+        expectedText: 金苹果
+      - elementRef: el:006
+        expectedText: 末影珍珠
+        requiredTerms: [末影]
+      - elementRef: el:007
+        expectedText: 烈焰棒
+        requiredTerms: [烈焰]
+      - elementRef: el:008
+        expectedText: 黑曜石
+        requiredTerms: [黑曜石]
+      - elementRef: el:009
+        expectedText: 红石粉
+        requiredTerms: [红石]
+      - elementRef: el:010
+        expectedText: 工作台
+        requiredTerms: [工作台]
+      - elementRef: el:011
+        expectedText: 附魔台
+        requiredTerms: [附魔]
+      - elementRef: el:012
+        expectedText: 熔炉
+      - elementRef: el:013
+        expectedText: 箱子
+      - elementRef: el:014
+        expectedText: 床
+      - elementRef: el:015
+        expectedText: TNT
+      - elementRef: el:016
+        expectedText: 活塞
+      - elementRef: el:017
+        expectedText: 指南针
+      - elementRef: el:018
+        expectedText: 钟
+      - elementRef: el:019
+        expectedText: 地图
+      - elementRef: el:020
+        expectedText: 书与笔
+      - elementRef: el:021
+        expectedText: 一把用钻石打造的锋利剑。
+        requiredTerms: [钻石]
+      - elementRef: el:022
+        expectedText: 一种发射箭矢的远程武器。
+      - elementRef: el:023
+        expectedText: 一种用于格挡攻击的副手道具。
+      - elementRef: el:024
+        expectedText: 一把用铁制成的坚固镐。
+        requiredTerms: [镐]
+      - elementRef: el:025
+        expectedText: 一个能给予生命恢复效果的神奇苹果。
+      - elementRef: el:026
+        expectedText: 来自末影人的闪耀珍珠。
+        requiredTerms: [末影人]
+      - elementRef: el:027
+        expectedText: 烈焰人掉落的炙热棒子。
+        requiredTerms: [烈焰人]
+      - elementRef: el:028
+        expectedText: 一种极其坚硬的黑曜石火山岩块。
+        requiredTerms: [黑曜石]
+      - elementRef: el:029
+        expectedText: 用于红石电路的细红色粉末。
+        requiredTerms: [红石]
+      - elementRef: el:030
+        expectedText: 用于3x3配方合成的木制工作台。
+        requiredTerms: [工作台]
+      - elementRef: el:031
+        expectedText: 用于为物品施加魔法附魔的台子。
+        requiredTerms: [附魔]
+      - elementRef: el:032
+        expectedText: 用于冶炼矿石和烹饪食物的加热熔炉。
+      - elementRef: el:033
+        expectedText: 一个可存放最多27件物品的木制容器。
+      - elementRef: el:034
+        expectedText: 一张可以设置重生点的舒适床铺。
+      - elementRef: el:035
+        expectedText: 可由红石或火焰引爆的强力爆炸方块。
+      - elementRef: el:036
+        expectedText: 由红石驱动、可推动其他方块的机械装置。
+      - elementRef: el:037
+        expectedText: 引导你回到世界出生点。
+      - elementRef: el:038
+        expectedText: 显示当前游戏内时间。
+      - elementRef: el:039
+        expectedText: 周围地形的网格地图。
+      - elementRef: el:040
+        expectedText: 一本可以记录你冒险经历的空白书。
+      - elementRef: el:041
+        expectedText: 将2颗钻石放在1根木棍上方，合成钻石剑。
+        requiredTerms: [钻石]
+      - elementRef: el:042
+        expectedText: 排列3根木棍和3根线，合成弓。
+        requiredTerms: [弓]
+      - elementRef: el:043
+        expectedText: 将1个铁锭放在木板上方，合成盾牌。
+        requiredTerms: [盾牌]
+      - elementRef: el:044
+        expectedText: 用3个铁锭围住2根木棍，合成铁镐。
+        requiredTerms: [镐]
+      - elementRef: el:045
+        expectedText: 用8个金锭环绕苹果，合成金苹果。
+      - elementRef: el:046
+        expectedText: 末影珍珠无法合成——它们从末影人掉落。
+        requiredTerms: [末影人]
+      - elementRef: el:047
+        expectedText: 烈焰棒从下界要塞中的烈焰人身上掉落。
+        requiredTerms: [烈焰人, 下界]
+      - elementRef: el:048
+        expectedText: 向岩浆源头方块浇水即可挖取黑曜石。
+        requiredTerms: [黑曜石]
+      - elementRef: el:049
+        expectedText: 用铁镐破坏红石矿石，获得红石粉。
+        requiredTerms: [红石, 镐]
+      - elementRef: el:050
+        expectedText: 将4块木板排列在2×2格中，合成工作台。
+        requiredTerms: [工作台]
+      - elementRef: el:051
+        expectedText: 用书、钻石和4块黑曜石合成附魔台。
+        requiredTerms: [附魔台, 黑曜石]
+      - elementRef: el:052
+        expectedText: 将8块圆石排列成环形，合成熔炉。
+      - elementRef: el:053
+        expectedText: 将8块木板排列成环形，合成箱子。
+      - elementRef: el:054
+        expectedText: 将3块羊毛放在3块木板上方，合成床。
+      - elementRef: el:055
+        expectedText: 将5个火药与4个沙子交替排列，合成TNT。
+      - elementRef: el:056
+        expectedText: 将3个铁锭放在1个红石和4块木板上方，合成活塞。
+        requiredTerms: [红石]
+      - elementRef: el:057
+        expectedText: 用4个铁锭围住1个红石粉，合成指南针。
+        requiredTerms: [红石]
+      - elementRef: el:058
+        expectedText: 用4个金锭围住1个红石粉，合成钟。
+      - elementRef: el:059
+        expectedText: 用8张纸围住1个指南针，合成地图。
+      - elementRef: el:060
+        expectedText: 用1本书、1根羽毛和1瓶墨囊，合成书与笔。
+      - elementRef: el:061
+        expectedText: 苦力怕会悄悄靠近玩家并爆炸，造成大量伤害。
+        requiredTerms: [苦力怕]
+      - elementRef: el:062
+        expectedText: 末影人是高大的黑暗生物，会传送并拾起方块。
+        requiredTerms: [末影人]
+      - elementRef: el:063
+        expectedText: 骷髅是会用弓攻击玩家的亡灵射手。
+        requiredTerms: [骷髅]
+      - elementRef: el:064
+        expectedText: 僵尸是可以破坏木门的亡灵生物。
+        requiredTerms: [僵尸]
+      - elementRef: el:065
+        expectedText: 蜘蛛可以攀爬墙壁，白天会变成中立状态。
+      - elementRef: el:066
+        expectedText: 烈焰人是下界要塞中的火焰生物。
+        requiredTerms: [烈焰人, 下界]
+      - elementRef: el:067
+        expectedText: 女巫会投掷伤害、虚弱和迟缓的喷溅药水。
+        requiredTerms: [药水]
+      - elementRef: el:068
+        expectedText: 史莱姆会弹跳，死亡时分裂成更小的版本。
+      - elementRef: el:069
+        expectedText: 恶魂是大型飞行生物，会发射爆炸性火球。
+      - elementRef: el:070
+        expectedText: 猪灵是类猪的生物，会用金与玩家以物易物。
+        requiredTerms: [猪灵]
+      - elementRef: el:071
+        expectedText: 村民会交易资源，可以在村庄中找到他们。
+        requiredTerms: [村民]
+      - elementRef: el:072
+        expectedText: 铁傀儡是保护村民的强大构造体。
+        requiredTerms: [铁傀儡, 村民]
+      - elementRef: el:073
+        expectedText: 幻翼会攻击连续三个游戏夜晚未睡觉的玩家。
+      - elementRef: el:074
+        expectedText: 监守者是通过声音和振动来追踪猎物的盲眼生物。
+        requiredTerms: [监守者]
+      - elementRef: el:075
+        expectedText: 美西螈是协助玩家进行水下战斗的水生生物。
+        requiredTerms: [美西螈]
+      - elementRef: el:076
+        expectedText: 炽足兽是可以在下界岩浆上行走的防火生物。
+        requiredTerms: [炽足兽, 下界]
+      - elementRef: el:077
+        expectedText: 蜜蜂会给花朵授粉，被激怒时会发动攻击。
+        requiredTerms: [蜜蜂]
+      - elementRef: el:078
+        expectedText: 狐狸是狡猾的动物，嘴里经常叼着物品。
+      - elementRef: el:079
+        expectedText: 熊猫有独特的性格特点，喜欢吃竹子。
+      - elementRef: el:080
+        expectedText: 海龟在沙滩上产卵，孵化成幼小的海龟。
+      - elementRef: el:081
+        expectedText: 重生
+      - elementRef: el:082
+        expectedText: 游戏结束
+      - elementRef: el:083
+        expectedText: 你死了！
+      - elementRef: el:084
+        expectedText: 得分：%s
+      - elementRef: el:085
+        expectedText: 新纪录！
+      - elementRef: el:086
+        expectedText: 物品栏
+        requiredTerms: [物品栏]
+      - elementRef: el:087
+        expectedText: 合成
+      - elementRef: el:088
+        expectedText: 盔甲
+        requiredTerms: [盔甲]
+      - elementRef: el:089
+        expectedText: 装备
+      - elementRef: el:090
+        expectedText: 快捷栏
+      - elementRef: el:091
+        expectedText: 石器时代：用你的新镐挖掘石头。
+        requiredTerms: [镐]
+      - elementRef: el:092
+        expectedText: 更好的工具：制作一把更好的镐。
+        requiredTerms: [镐]
+      - elementRef: el:093
+        expectedText: 获取硬件：冶炼一个铁锭。
+      - elementRef: el:094
+        expectedText: 穿上盔甲：用一件盔甲保护自己。
+        requiredTerms: [盔甲]
+      - elementRef: el:095
+        expectedText: 热门物品：用桶装满岩浆。
+      - elementRef: el:096
+        expectedText: 冰桶挑战：获得一块黑曜石。
+        requiredTerms: [黑曜石]
+      - elementRef: el:097
+        expectedText: 我们需要更深入：建造并点亮一个下界传送门。
+        requiredTerms: [下界]
+      - elementRef: el:098
+        expectedText: 深入火中：从烈焰人身上取得烈焰棒。
+        requiredTerms: [烈焰人, 烈焰棒]
+      - elementRef: el:099
+        expectedText: 远程逃脱：逃离小岛。
+      - elementRef: el:100
+        expectedText: 终界？

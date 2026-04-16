@@ -1,0 +1,49 @@
+name: minecraft-agent-translate
+description: Evaluate agent-driven translation of 100 Minecraft elements (en→zh-Hans)
+
+seed:
+  project: seed/project.json
+  glossary: seed/glossary.json
+  memory: seed/memory.json
+  elements: seed/elements.json
+  agentDefinition: translator
+
+plugins:
+  loader: real
+  overrides:
+    - plugin: spacy-segmenter
+      scope: GLOBAL
+      config:
+        serverUrl: "http://172.17.0.1:8000"
+    - plugin: openai-vectorizer
+      scope: GLOBAL
+      config:
+        model-id: "qwen3-embedding:4b"
+        baseURL: "http://172.17.0.1:11435/v1"
+        apiKey: "dummy-key"
+    - plugin: pgvector-storage
+      scope: GLOBAL
+      config: {}
+    - plugin: openai-llm-provider
+      scope: GLOBAL
+      config:
+        model-id: "gpt-5-mini"
+        baseURL: "http://192.168.2.23:8317/v1"
+        apiKey: "see-local-config"
+
+scenarios:
+  - type: agent-translate
+    test-set: test-sets/agent-translate.yaml
+    scorers:
+      - instruction-adherence
+      - term-compliance
+      - chrf
+      - token-cost
+      - agent-latency
+    params:
+      timeoutMs: 900000
+
+thresholds:
+  instruction-adherence: ">= 0.90"
+  term-compliance: ">= 0.70"
+  chrf: ">= 0.40"

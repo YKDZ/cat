@@ -1,0 +1,367 @@
+{
+  "elements": [
+    { "ref": "el:001", "text": "Diamond Sword" },
+    { "ref": "el:002", "text": "Bow" },
+    { "ref": "el:003", "text": "Shield" },
+    { "ref": "el:004", "text": "Iron Pickaxe" },
+    { "ref": "el:005", "text": "Golden Apple" },
+    { "ref": "el:006", "text": "Ender Pearl" },
+    { "ref": "el:007", "text": "Blaze Rod" },
+    { "ref": "el:008", "text": "Obsidian" },
+    { "ref": "el:009", "text": "Redstone Dust" },
+    { "ref": "el:010", "text": "Crafting Table" },
+    { "ref": "el:011", "text": "Enchanting Table" },
+    { "ref": "el:012", "text": "Furnace" },
+    { "ref": "el:013", "text": "Chest" },
+    { "ref": "el:014", "text": "Bed" },
+    { "ref": "el:015", "text": "TNT" },
+    { "ref": "el:016", "text": "Piston" },
+    { "ref": "el:017", "text": "Compass" },
+    { "ref": "el:018", "text": "Clock" },
+    { "ref": "el:019", "text": "Map" },
+    { "ref": "el:020", "text": "Book and Quill" },
+    { "ref": "el:021", "text": "A sharp sword forged from diamonds." },
+    { "ref": "el:022", "text": "A ranged weapon for firing arrows." },
+    { "ref": "el:023", "text": "An off-hand tool for blocking attacks." },
+    { "ref": "el:024", "text": "A sturdy pickaxe made from iron." },
+    { "ref": "el:025", "text": "A magical apple that grants regeneration." },
+    { "ref": "el:026", "text": "A shimmering pearl from the Enderman." },
+    { "ref": "el:027", "text": "A fiery rod dropped by Blazes." },
+    {
+      "ref": "el:028",
+      "text": "An extremely hard block of volcanic obsidian."
+    },
+    { "ref": "el:029", "text": "Fine red powder used in redstone circuits." },
+    { "ref": "el:030", "text": "A wooden crafting station for 3x3 recipes." },
+    {
+      "ref": "el:031",
+      "text": "An enchanted table for applying magical enhancements."
+    },
+    {
+      "ref": "el:032",
+      "text": "A heated chamber for smelting ores and cooking food."
+    },
+    {
+      "ref": "el:033",
+      "text": "A wooden container for storing up to 27 items."
+    },
+    {
+      "ref": "el:034",
+      "text": "A cozy resting place that sets your spawn point."
+    },
+    {
+      "ref": "el:035",
+      "text": "A powerful explosive block activated by redstone or fire."
+    },
+    {
+      "ref": "el:036",
+      "text": "A redstone-powered mechanical block that pushes other blocks."
+    },
+    { "ref": "el:037", "text": "Guides you back to the world origin point." },
+    { "ref": "el:038", "text": "Shows the current in-game time of day." },
+    { "ref": "el:039", "text": "A gridded map of the surrounding terrain." },
+    {
+      "ref": "el:040",
+      "text": "A blank book you can write your adventures in."
+    },
+    {
+      "ref": "el:041",
+      "text": "Place 2 diamonds above 1 stick to craft a Diamond Sword."
+    },
+    {
+      "ref": "el:042",
+      "text": "Arrange 3 sticks and 3 string to craft a Bow."
+    },
+    {
+      "ref": "el:043",
+      "text": "Place 1 iron ingot above a wooden plank to craft a Shield."
+    },
+    {
+      "ref": "el:044",
+      "text": "Surround 2 sticks with 3 iron ingots to make an Iron Pickaxe."
+    },
+    {
+      "ref": "el:045",
+      "text": "Surround an apple with 8 gold ingots to make a Golden Apple."
+    },
+    {
+      "ref": "el:046",
+      "text": "Ender Pearls are not crafted—they drop from Endermen."
+    },
+    {
+      "ref": "el:047",
+      "text": "Blaze Rods drop from Blazes in Nether fortresses."
+    },
+    {
+      "ref": "el:048",
+      "text": "Mine Obsidian by pouring water over a lava source block."
+    },
+    {
+      "ref": "el:049",
+      "text": "Break Redstone Ore with an Iron Pickaxe to get Redstone Dust."
+    },
+    {
+      "ref": "el:050",
+      "text": "Arrange 4 wooden planks in a 2x2 grid to craft a Crafting Table."
+    },
+    {
+      "ref": "el:051",
+      "text": "Surround a book and diamond with 4 obsidian to craft an Enchanting Table."
+    },
+    {
+      "ref": "el:052",
+      "text": "Place 8 cobblestone in a ring pattern to craft a Furnace."
+    },
+    {
+      "ref": "el:053",
+      "text": "Surround 8 wooden planks in a ring to craft a Chest."
+    },
+    {
+      "ref": "el:054",
+      "text": "Place 3 wool blocks on top of 3 wooden planks to craft a Bed."
+    },
+    {
+      "ref": "el:055",
+      "text": "Arrange 5 gunpowder and 4 sand alternately to craft TNT."
+    },
+    {
+      "ref": "el:056",
+      "text": "Place 3 iron ingots above a redstone and 4 planks to craft a Piston."
+    },
+    {
+      "ref": "el:057",
+      "text": "Craft a Compass from 4 iron ingots surrounding 1 Redstone Dust."
+    },
+    {
+      "ref": "el:058",
+      "text": "Craft a Clock from 4 gold ingots surrounding 1 Redstone Dust."
+    },
+    {
+      "ref": "el:059",
+      "text": "Craft a Map from 8 paper surrounding a Compass."
+    },
+    {
+      "ref": "el:060",
+      "text": "Craft a Book and Quill from 1 book, 1 feather, and 1 ink sac."
+    },
+    {
+      "ref": "el:061",
+      "text": "Creepers sneak up on players and explode, dealing heavy damage."
+    },
+    {
+      "ref": "el:062",
+      "text": "Endermen are tall, dark mobs that teleport and pick up blocks."
+    },
+    {
+      "ref": "el:063",
+      "text": "Skeletons are undead archers that attack players with bows."
+    },
+    {
+      "ref": "el:064",
+      "text": "Zombies are undead mobs that can break down wooden doors."
+    },
+    {
+      "ref": "el:065",
+      "text": "Spiders can climb walls and become neutral during daytime."
+    },
+    {
+      "ref": "el:066",
+      "text": "Blazes are fiery mobs found inside Nether fortresses."
+    },
+    {
+      "ref": "el:067",
+      "text": "Witches throw splash potions of harming, weakness, and slowness."
+    },
+    {
+      "ref": "el:068",
+      "text": "Slimes bounce around and split into smaller versions when killed."
+    },
+    {
+      "ref": "el:069",
+      "text": "Ghasts are large flying mobs that fire explosive fireballs."
+    },
+    {
+      "ref": "el:070",
+      "text": "Piglins are pig-like mobs that barter with players using gold."
+    },
+    {
+      "ref": "el:071",
+      "text": "Villagers trade resources and can be found in their villages."
+    },
+    {
+      "ref": "el:072",
+      "text": "Iron Golems are powerful constructs that protect villagers."
+    },
+    {
+      "ref": "el:073",
+      "text": "Phantoms attack players who have not slept for three nights."
+    },
+    {
+      "ref": "el:074",
+      "text": "The Warden is a blind mob that hunts by sound and vibration."
+    },
+    {
+      "ref": "el:075",
+      "text": "Axolotls are aquatic mobs that aid players in underwater combat."
+    },
+    {
+      "ref": "el:076",
+      "text": "Striders are fireproof mobs that walk on lava in the Nether."
+    },
+    {
+      "ref": "el:077",
+      "text": "Bees pollinate flowers and attack when provoked."
+    },
+    {
+      "ref": "el:078",
+      "text": "Foxes are cunning animals that carry items in their mouths."
+    },
+    {
+      "ref": "el:079",
+      "text": "Pandas have unique personalities and love to eat bamboo."
+    },
+    {
+      "ref": "el:080",
+      "text": "Turtles lay eggs on beaches and hatch into baby turtles."
+    },
+    { "ref": "el:081", "text": "Respawn" },
+    { "ref": "el:082", "text": "Game Over" },
+    { "ref": "el:083", "text": "You died!" },
+    { "ref": "el:084", "text": "Score: %s" },
+    { "ref": "el:085", "text": "New Highscore!" },
+    { "ref": "el:086", "text": "Inventory" },
+    { "ref": "el:087", "text": "Crafting" },
+    { "ref": "el:088", "text": "Armor" },
+    { "ref": "el:089", "text": "Equipment" },
+    { "ref": "el:090", "text": "Hotbar" },
+    { "ref": "el:091", "text": "Stone Age: Mine stone with your new pickaxe." },
+    {
+      "ref": "el:092",
+      "text": "Getting an Upgrade: Construct a better pickaxe."
+    },
+    { "ref": "el:093", "text": "Acquire Hardware: Smelt an iron ingot." },
+    {
+      "ref": "el:094",
+      "text": "Suit Up: Protect yourself with a piece of armor."
+    },
+    { "ref": "el:095", "text": "Hot Stuff: Fill a bucket with lava." },
+    {
+      "ref": "el:096",
+      "text": "Ice Bucket Challenge: Obtain a block of obsidian."
+    },
+    {
+      "ref": "el:097",
+      "text": "We Need to Go Deeper: Build, light, and enter a Nether Portal."
+    },
+    { "ref": "el:098", "text": "Into Fire: Relieve a Blaze of its rod." },
+    { "ref": "el:099", "text": "Remote Getaway: Escape the island." },
+    { "ref": "el:100", "text": "The End?" },
+    { "ref": "el:101", "text": "Tip: Beds explode in the Nether and the End." },
+    { "ref": "el:102", "text": "Tip: Creepers are afraid of cats." },
+    {
+      "ref": "el:103",
+      "text": "Tip: Striders can be ridden across lava using a Warped Fungus on a Stick."
+    },
+    {
+      "ref": "el:104",
+      "text": "Tip: Drinking milk removes all potion effects."
+    },
+    {
+      "ref": "el:105",
+      "text": "Tip: Wearing a carved pumpkin prevents Endermen from turning hostile."
+    },
+    {
+      "ref": "el:106",
+      "text": "Tip: Lightning strikes can turn Creepers into charged Creepers."
+    },
+    {
+      "ref": "el:107",
+      "text": "Tip: Foxes are immune to sweet berry bush thorns."
+    },
+    { "ref": "el:108", "text": "Tip: You can lead passive mobs with a lead." },
+    {
+      "ref": "el:109",
+      "text": "Tip: Name tags can be used to rename mobs and prevent despawning."
+    },
+    {
+      "ref": "el:110",
+      "text": "Tip: Silk Touch lets you mine blocks without destroying them."
+    },
+    { "ref": "el:111", "text": "Tip: Fortune increases your ore drops." },
+    {
+      "ref": "el:112",
+      "text": "Tip: Unbreaking extends the durability of your tools."
+    },
+    {
+      "ref": "el:113",
+      "text": "Tip: Mending repairs items with experience orbs."
+    },
+    { "ref": "el:114", "text": "Tip: Looting increases mob drop rates." },
+    { "ref": "el:115", "text": "Tip: Sharpness increases melee damage." },
+    { "ref": "el:116", "text": "Tip: Power increases bow damage." },
+    { "ref": "el:117", "text": "Tip: Flame sets arrows on fire." },
+    {
+      "ref": "el:118",
+      "text": "Tip: Infinity allows you to shoot infinite arrows."
+    },
+    { "ref": "el:119", "text": "Tip: Knockback pushes mobs away on hit." },
+    {
+      "ref": "el:120",
+      "text": "Tip: Feather Falling reduces fall damage on boots."
+    },
+    { "ref": "el:121", "text": "Now with achievements!" },
+    { "ref": "el:122", "text": "Seecret Friday update!" },
+    { "ref": "el:123", "text": "Made in Java!" },
+    { "ref": "el:124", "text": "Survival mode!" },
+    { "ref": "el:125", "text": "Open source!" },
+    { "ref": "el:126", "text": "Notch approves!" },
+    { "ref": "el:127", "text": "100% pure gameplay!" },
+    { "ref": "el:128", "text": "Oh man, it's Minecraft!" },
+    { "ref": "el:129", "text": "Play on Java and Bedrock!" },
+    { "ref": "el:130", "text": "Better than Minecraft 2!" },
+    { "ref": "el:131", "text": "Now with 100% more blocks!" },
+    { "ref": "el:132", "text": "Check out the Minecraft wiki!" },
+    { "ref": "el:133", "text": "Made by Mojang!" },
+    { "ref": "el:134", "text": "Optimized for fun!" },
+    { "ref": "el:135", "text": "Multiplayer ready!" },
+    { "ref": "el:136", "text": "Cross-platform play!" },
+    { "ref": "el:137", "text": "Dragon slayer!" },
+    { "ref": "el:138", "text": "Fully customizable!" },
+    { "ref": "el:139", "text": "Craft your way to victory!" },
+    { "ref": "el:140", "text": "Adventure awaits in every biome!" },
+    {
+      "ref": "el:141",
+      "text": "Defeat the Ender Dragon to complete the game."
+    },
+    { "ref": "el:142", "text": "The End dimension awaits brave adventurers." },
+    {
+      "ref": "el:143",
+      "text": "Explore the Nether for powerful resources and unique mobs."
+    },
+    { "ref": "el:144", "text": "Build your dream structure in Creative mode." },
+    {
+      "ref": "el:145",
+      "text": "Survive your first night to continue your adventure."
+    },
+    {
+      "ref": "el:146",
+      "text": "Mine deep underground to find rare ores and diamonds."
+    },
+    {
+      "ref": "el:147",
+      "text": "Join a server to explore and build with friends."
+    },
+    {
+      "ref": "el:148",
+      "text": "Use commands to customize and manage your world."
+    },
+    {
+      "ref": "el:149",
+      "text": "Every biome has unique flora, fauna, and resources to discover."
+    },
+    {
+      "ref": "el:150",
+      "text": "Tame a wolf with bones to gain a loyal companion."
+    }
+  ]
+}
