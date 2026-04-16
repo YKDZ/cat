@@ -157,16 +157,57 @@ program
     console.log(report.markdown);
   });
 
+const SAFE_SUITE_NAME = /^[a-zA-Z0-9_-]+$/;
+
+function resolveComposeConfig(
+  suiteName: string | undefined,
+  existsSync: (path: string) => boolean,
+): { composeArgs: string[]; composeCwd: string } {
+  const evalRoot = resolve(import.meta.dirname, "..");
+
+  if (!suiteName) {
+    return { composeArgs: [], composeCwd: evalRoot };
+  }
+
+  if (!SAFE_SUITE_NAME.test(suiteName)) {
+    throw new Error(
+      `Invalid suite name: "${suiteName}" — must match ${SAFE_SUITE_NAME}`,
+    );
+  }
+
+  const suiteDir = resolve(evalRoot, "suites", suiteName);
+  const suiteCompose = resolve(suiteDir, "docker-compose.yml");
+
+  if (!existsSync(suiteCompose)) {
+    // Fall back to root docker-compose.yml with suite-specific project name
+    return {
+      composeArgs: ["-p", `eval-${suiteName}`],
+      composeCwd: evalRoot,
+    };
+  }
+
+  return {
+    composeArgs: ["-p", `eval-${suiteName}`],
+    composeCwd: suiteDir,
+  };
+}
+
 program
   .command("env")
   .description("Manage Docker environment")
   .addCommand(
     new Command("up")
       .description("Start Docker Compose services")
-      .action(async () => {
-        const { execSync } = await import("node:child_process");
-        execSync("docker compose up -d", {
-          cwd: resolve(import.meta.dirname, ".."),
+      .option("--suite <name>", "Start environment for a specific suite")
+      .action(async (opts) => {
+        const { execFileSync } = await import("node:child_process");
+        const { existsSync } = await import("node:fs");
+        const { composeArgs, composeCwd } = resolveComposeConfig(
+          opts.suite,
+          existsSync,
+        );
+        execFileSync("docker", ["compose", ...composeArgs, "up", "-d"], {
+          cwd: composeCwd,
           stdio: "inherit",
         });
       }),
@@ -174,10 +215,16 @@ program
   .addCommand(
     new Command("down")
       .description("Stop Docker Compose services")
-      .action(async () => {
-        const { execSync } = await import("node:child_process");
-        execSync("docker compose down", {
-          cwd: resolve(import.meta.dirname, ".."),
+      .option("--suite <name>", "Stop environment for a specific suite")
+      .action(async (opts) => {
+        const { execFileSync } = await import("node:child_process");
+        const { existsSync } = await import("node:fs");
+        const { composeArgs, composeCwd } = resolveComposeConfig(
+          opts.suite,
+          existsSync,
+        );
+        execFileSync("docker", ["compose", ...composeArgs, "down"], {
+          cwd: composeCwd,
           stdio: "inherit",
         });
       }),

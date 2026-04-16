@@ -8,6 +8,7 @@ import type { JSONType } from "@cat/shared/schema/json";
 import { RedisConnection, sql } from "@cat/db";
 import {
   attachChunkSetToString,
+  createAgentDefinition,
   createElements,
   createGlossary,
   createGlossaryConcept,
@@ -294,20 +295,79 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   // ── 12. Agent definition registration ────────────────────────────
   let agentDefinitionId: string | undefined;
   if (config.seed.agentDefinition) {
-    const { registerBuiltinAgents } = await import("@cat/agent");
-    await registerBuiltinAgents(testDb.client);
-    const agentDef = await executeQuery(
-      execCtx,
-      findAgentDefinitionByDefinitionIdAndScope,
-      {
-        definitionId: config.seed.agentDefinition,
-        scopeType: "GLOBAL",
+    const agentDefValue = config.seed.agentDefinition;
+
+    if (agentDefValue.endsWith(".md")) {
+      // File-based agent definition — parse MD and create in DB
+      const { parseAgentDefinition } = await import("@cat/agent");
+      const { resolve: resolvePath } = await import("node:path");
+      const { readFileSync, existsSync } = await import("node:fs");
+      const mdPath = resolvePath(suite.suiteDir, agentDefValue);
+      if (!existsSync(mdPath)) {
+        throw new Error(
+          `Agent definition file not found: "${mdPath}" (resolved from "${agentDefValue}" in suite.yaml seed.agentDefinition)`,
+        );
+      }
+      const mdContent = readFileSync(mdPath, "utf-8");
+      const { metadata, content } = parseAgentDefinition(mdContent);
+
+      const payload = {
+        name: metadata.name,
+        description: "",
+        scopeType: "GLOBAL" as const,
         scopeId: "",
-      },
-    );
-    if (agentDef) {
-      agentDefinitionId = agentDef.externalId;
+        definitionId: metadata.id ?? agentDefValue,
+        version: metadata.version,
+        icon: metadata.icon,
+        type: metadata.type,
+        llmConfig: metadata.llm,
+        tools: metadata.tools,
+        promptConfig: metadata.promptConfig,
+        constraints: metadata.constraints,
+        securityPolicy: metadata.securityPolicy,
+        orchestration: metadata.orchestration,
+        content,
+        isBuiltin: false,
+      };
+
+      // Check if already exists (idempotent)
+      const existing = await executeQuery(
+        execCtx,
+        findAgentDefinitionByDefinitionIdAndScope,
+        {
+          definitionId: payload.definitionId,
+          scopeType: "GLOBAL",
+          scopeId: "",
+        },
+      );
+      if (existing) {
+        agentDefinitionId = existing.externalId;
+      } else {
+        const created = await executeCommand(
+          execCtx,
+          createAgentDefinition,
+          payload,
+        );
+        agentDefinitionId = created.id;
+      }
       refs.set("agent-definition", agentDefinitionId);
+    } else {
+      // Builtin agent definition — register builtins and look up by ID
+      const { registerBuiltinAgents } = await import("@cat/agent");
+      await registerBuiltinAgents(testDb.client);
+      const agentDef = await executeQuery(
+        execCtx,
+        findAgentDefinitionByDefinitionIdAndScope,
+        {
+          definitionId: agentDefValue,
+          scopeType: "GLOBAL",
+          scopeId: "",
+        },
+      );
+      if (agentDef) {
+        agentDefinitionId = agentDef.externalId;
+        refs.set("agent-definition", agentDefinitionId);
+      }
     }
   }
 
