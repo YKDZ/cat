@@ -1,7 +1,7 @@
-import { Command } from "commander";
 // oxlint-disable no-console -- intentional CLI output
 // oxlint-disable typescript-eslint/no-unsafe-member-access -- Commander opts are typed as any
 // oxlint-disable typescript-eslint/no-unsafe-argument -- Commander opts are typed as any
+import { Command } from "commander";
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -20,6 +20,10 @@ program
   .description("Run all test cases in a suite directory")
   .option("--scenario <type>", "Run only scenarios of this type")
   .option("--otlp <endpoint>", "Send traces/metrics to OTLP endpoint")
+  .option(
+    "--otlp-headers <headers>",
+    "Headers for OTLP endpoint (comma-separated key=value pairs)",
+  )
   .option("--clear-cache", "Clear vector cache before run")
   .option(
     "--plugins-dir <dir>",
@@ -43,7 +47,10 @@ program
       console.log("[eval] Vector cache cleared.");
     }
 
-    const otel = initObservability({ otlpEndpoint: opts.otlp });
+    const otel = initObservability({
+      otlpEndpoint: opts.otlp,
+      otlpHeaders: parseHeaders(opts.otlpHeaders),
+    });
 
     try {
       const suite = loadSuite(absoluteSuiteDir);
@@ -178,6 +185,21 @@ program
 
 function resolveDefaultPluginsDir(): string {
   return resolve(import.meta.dirname, "../../../@cat-plugin");
+}
+
+function parseHeaders(
+  raw: string | undefined,
+): Record<string, string> | undefined {
+  if (!raw) return undefined;
+  const headers: Record<string, string> = {};
+  for (const pair of raw.split(",")) {
+    const idx = pair.indexOf("=");
+    if (idx === -1) continue;
+    const key = pair.slice(0, idx).trim();
+    const value = pair.slice(idx + 1).trim();
+    if (key) headers[key] = value;
+  }
+  return Object.keys(headers).length > 0 ? headers : undefined;
 }
 
 program.parse();
