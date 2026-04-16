@@ -1,3 +1,4 @@
+import type { DrizzleDB } from "@cat/db";
 import type { PluginManager } from "@cat/plugin-core";
 
 import type { ScenarioConfig } from "@/config/schemas";
@@ -9,6 +10,9 @@ export type HarnessContext = {
   projectId: string;
   glossaryId: string | undefined;
   memoryId: string | undefined;
+  agentDefinitionId: string | undefined;
+  documentId: string | undefined;
+  db: DrizzleDB;
   userId: string;
 };
 

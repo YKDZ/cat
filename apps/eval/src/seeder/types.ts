@@ -12,6 +12,7 @@ export type SeededContext = {
   glossaryId: string | undefined;
   memoryId: string | undefined;
   documentId: string | undefined;
+  agentDefinitionId: string | undefined;
   userId: string;
   cleanup: () => Promise<void>;
 };

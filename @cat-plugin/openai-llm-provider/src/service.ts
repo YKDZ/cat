@@ -17,7 +17,7 @@ const SingleConfigSchema = z.object({
   id: z.string().optional(),
   apiKey: z.string().optional(),
   baseURL: z.string().optional(),
-  model: z.string().optional().default("gpt-4o"),
+  "model-id": z.string().optional().default("gpt-4o"),
 });
 
 export const ConfigSchema = z.union([
@@ -41,11 +41,11 @@ export class OpenAILLMProvider extends LLMProvider {
   }
 
   getId(): string {
-    return this.config.id ?? `openai-llm-provider-${this.config.model}`;
+    return this.config.id ?? `openai-llm-provider-${this.config["model-id"]}`;
   }
 
   getModelName(): string {
-    return this.config.model;
+    return this.config["model-id"];
   }
 
   // generator function — arrow function cannot be used with yield, function keyword required here
@@ -54,7 +54,7 @@ export class OpenAILLMProvider extends LLMProvider {
     const tools = request.tools?.map(toOpenAITool);
 
     const params = {
-      model: this.config.model,
+      model: this.config["model-id"],
       messages,
       tools: tools && tools.length > 0 ? tools : undefined,
       temperature: request.temperature,

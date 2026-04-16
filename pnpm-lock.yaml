@@ -809,6 +809,12 @@ importers:
 
   apps/eval:
     dependencies:
+      '@cat/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@cat/agent-tools':
+        specifier: workspace:*
+        version: link:../../packages/agent-tools
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db

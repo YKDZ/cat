@@ -22,6 +22,8 @@ import {
   ensureLanguages,
   ensureVectorStorageSchema,
   executeCommand,
+  executeQuery,
+  findAgentDefinitionByDefinitionIdAndScope,
   installPlugin,
   registerPluginDefinition,
   upsertPluginConfigInstance,
@@ -32,7 +34,7 @@ import {
 } from "@cat/operations";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
-import { setupTestDB } from "@cat/test-utils";
+import { setupTestDB, installTestVectorizationQueue } from "@cat/test-utils";
 
 import type { LoadedSuite } from "@/config";
 import type { PluginOverride } from "@/config/schemas";
@@ -55,6 +57,11 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
 
   // ── 1. Database setup ──────────────────────────────────────────────
   const testDb = await setupTestDB();
+
+  // ── 1a. Vectorization queue setup ─────────────────────────────────
+  // Install an in-memory queue so submit_translation can enqueue
+  // vectorization tasks without needing the full app bootstrap.
+  installTestVectorizationQueue();
 
   // ── 2. Redis setup ─────────────────────────────────────────────────
   const redis = new RedisConnection();
@@ -284,6 +291,26 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     dimension,
   });
 
+  // ── 12. Agent definition registration ────────────────────────────
+  let agentDefinitionId: string | undefined;
+  if (config.seed.agentDefinition) {
+    const { registerBuiltinAgents } = await import("@cat/agent");
+    await registerBuiltinAgents(testDb.client);
+    const agentDef = await executeQuery(
+      execCtx,
+      findAgentDefinitionByDefinitionIdAndScope,
+      {
+        definitionId: config.seed.agentDefinition,
+        scopeType: "GLOBAL",
+        scopeId: "",
+      },
+    );
+    if (agentDef) {
+      agentDefinitionId = agentDef.externalId;
+      refs.set("agent-definition", agentDefinitionId);
+    }
+  }
+
   return {
     db: testDb,
     redis,
@@ -293,6 +320,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     glossaryId,
     memoryId,
     documentId,
+    agentDefinitionId,
     userId,
     cleanup: async () => {
       await testDb.cleanup();

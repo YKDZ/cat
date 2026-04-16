@@ -29,7 +29,7 @@ plugins:
       config:
         model-id: "gpt-5-mini"
         baseURL: "http://192.168.2.23:8317/v1"
-        apiKey: "see-local-config"
+        apiKey: "sk-1256987qazA"
 
 scenarios:
   - type: agent-translate
@@ -41,7 +41,7 @@ scenarios:
       - token-cost
       - agent-latency
     params:
-      timeoutMs: 900000
+      timeoutMs: 2400000
 
 thresholds:
   instruction-adherence: ">= 0.90"

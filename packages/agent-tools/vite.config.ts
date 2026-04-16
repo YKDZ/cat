@@ -8,6 +8,8 @@ export default defineConfig({
       "@cat/agent",
       "@cat/domain",
       "@cat/operations",
+      "@cat/plugin-core",
+      "@cat/server-shared",
       "@cat/shared",
       "zod",
       "zod/v4",

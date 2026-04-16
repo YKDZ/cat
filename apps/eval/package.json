@@ -9,6 +9,8 @@
     "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-eval --include='**/*.spec.ts'"
   },
   "dependencies": {
+    "@cat/agent": "workspace:*",
+    "@cat/agent-tools": "workspace:*",
     "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/operations": "workspace:*",

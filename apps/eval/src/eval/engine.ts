@@ -1,8 +1,10 @@
 import type {
   TermRecallTestSet,
   MemoryRecallTestSet,
+  TranslationTestSet,
   TermRecallTestCase,
   MemoryRecallTestCase,
+  TranslationTestCase,
 } from "@/config/schemas";
 import type { ScenarioResult } from "@/harness/types";
 import type { RefResolver } from "@/seeder/ref-resolver";
@@ -18,7 +20,10 @@ import { getScorer } from "./scorers";
 
 export const evaluate = (
   scenarioResults: ScenarioResult[],
-  testSets: Map<string, TermRecallTestSet | MemoryRecallTestSet>,
+  testSets: Map<
+    string,
+    TermRecallTestSet | MemoryRecallTestSet | TranslationTestSet
+  >,
   scorerNames: string[][],
   refs: RefResolver,
 ): EvaluationReport => {
@@ -71,22 +76,38 @@ export const evaluate = (
 };
 
 const findTestCase = (
-  testSet: TermRecallTestSet | MemoryRecallTestSet | undefined,
+  testSet:
+    | TermRecallTestSet
+    | MemoryRecallTestSet
+    | TranslationTestSet
+    | undefined,
   caseId: string,
-): TermRecallTestCase | MemoryRecallTestCase | undefined =>
-  testSet?.cases.find((c) => c.id === caseId);
+):
+  | TermRecallTestCase
+  | MemoryRecallTestCase
+  | TranslationTestCase
+  | undefined => testSet?.cases.find((c) => c.id === caseId);
 
 const getExpectedItems = (
-  tc: TermRecallTestCase | MemoryRecallTestCase | undefined,
+  tc:
+    | TermRecallTestCase
+    | MemoryRecallTestCase
+    | TranslationTestCase
+    | undefined,
 ): unknown[] => {
   if (!tc) return [];
   if ("expectedTerms" in tc) return tc.expectedTerms;
   if ("expectedMemories" in tc) return tc.expectedMemories;
+  if ("referenceTranslations" in tc) return tc.referenceTranslations;
   return [];
 };
 
 const getNegativeItems = (
-  tc: TermRecallTestCase | MemoryRecallTestCase | undefined,
+  tc:
+    | TermRecallTestCase
+    | MemoryRecallTestCase
+    | TranslationTestCase
+    | undefined,
 ): unknown[] => {
   if (!tc) return [];
   if ("negativeTerms" in tc) return tc.negativeTerms;
@@ -106,11 +127,12 @@ const computeAggregates = (cases: CaseEvaluation[]): Record<string, number> => {
 
   const result: Record<string, number> = {};
   for (const [name, values] of Object.entries(agg)) {
-    if (name === "latency_ms") {
+    if (name === "latency_ms" || name === "agent_latency_ms") {
       const sorted = [...values].sort((a, b) => a - b);
-      result["p50_latency_ms"] = percentile(sorted, 0.5);
-      result["p95_latency_ms"] = percentile(sorted, 0.95);
-      result["p99_latency_ms"] = percentile(sorted, 0.99);
+      const prefix = name === "agent_latency_ms" ? "agent_" : "";
+      result[`${prefix}p50_latency_ms`] = percentile(sorted, 0.5);
+      result[`${prefix}p95_latency_ms`] = percentile(sorted, 0.95);
+      result[`${prefix}p99_latency_ms`] = percentile(sorted, 0.99);
     } else {
       result[name] = values.reduce((a, b) => a + b, 0) / values.length;
     }
