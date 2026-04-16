@@ -1,14 +1,19 @@
 import type { Scorer } from "../types";
 
+import { agentLatencyScorer } from "./agent-latency";
 import { channelCoverageScorer } from "./channel-coverage";
+import { chrfScorer } from "./chrf";
 import { confidenceScorer } from "./confidence";
 import { f1Scorer } from "./f1";
 import { hitRateScorer } from "./hit-rate";
+import { instructionAdherenceScorer } from "./instruction-adherence";
 import { latencyScorer } from "./latency";
 import { mrrScorer } from "./mrr";
 import { negativeExclusionScorer } from "./negative-exclusion";
 import { precisionScorer } from "./precision";
 import { recallScorer } from "./recall";
+import { termComplianceScorer } from "./term-compliance";
+import { tokenCostScorer } from "./token-cost";
 
 const scorerRegistry = new Map<string, Scorer>([
   ["precision", precisionScorer],
@@ -20,6 +25,11 @@ const scorerRegistry = new Map<string, Scorer>([
   ["confidence", confidenceScorer],
   ["channel-coverage", channelCoverageScorer],
   ["latency", latencyScorer],
+  ["instruction-adherence", instructionAdherenceScorer],
+  ["term-compliance", termComplianceScorer],
+  ["chrf", chrfScorer],
+  ["token-cost", tokenCostScorer],
+  ["agent-latency", agentLatencyScorer],
 ]);
 
 export const getScorer = (name: string): Scorer => {

@@ -1,0 +1,369 @@
+{
+  "glossary": {
+    "name": "Minecraft Agent Translate Glossary",
+    "sourceLanguage": "en",
+    "translationLanguage": "zh-Hans",
+    "concepts": [
+      {
+        "ref": "concept:entity:creeper",
+        "definition": "A hostile mob that sneaks up and explodes",
+        "terms": [
+          {
+            "term": "Creeper",
+            "termLanguageId": "en",
+            "translation": "苦力怕",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:enderman",
+        "definition": "A tall neutral mob that can teleport and pick up blocks",
+        "terms": [
+          {
+            "term": "Enderman",
+            "termLanguageId": "en",
+            "translation": "末影人",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:redstone",
+        "definition": "A mineral used for crafting electrical circuits",
+        "terms": [
+          {
+            "term": "Redstone",
+            "termLanguageId": "en",
+            "translation": "红石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:dimension:nether",
+        "definition": "The underworld dimension accessible via a portal",
+        "terms": [
+          {
+            "term": "Nether",
+            "termLanguageId": "en",
+            "translation": "下界",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:diamond",
+        "definition": "A rare blue gemstone used to craft the best tools and armor",
+        "terms": [
+          {
+            "term": "Diamond",
+            "termLanguageId": "en",
+            "translation": "钻石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:crafting-table",
+        "definition": "A block used as a crafting station for 3x3 recipes",
+        "terms": [
+          {
+            "term": "Crafting Table",
+            "termLanguageId": "en",
+            "translation": "工作台",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:mechanic:enchantment",
+        "definition": "A magical enhancement applied to tools, weapons, and armor",
+        "terms": [
+          {
+            "term": "Enchantment",
+            "termLanguageId": "en",
+            "translation": "附魔",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:obsidian",
+        "definition": "An extremely hard volcanic block formed from lava and water",
+        "terms": [
+          {
+            "term": "Obsidian",
+            "termLanguageId": "en",
+            "translation": "黑曜石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:potion",
+        "definition": "A drinkable or throwable liquid that applies effects",
+        "terms": [
+          {
+            "term": "Potion",
+            "termLanguageId": "en",
+            "translation": "药水",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:mechanic:biome",
+        "definition": "A region of the world with a distinct climate and terrain",
+        "terms": [
+          {
+            "term": "Biome",
+            "termLanguageId": "en",
+            "translation": "生物群系",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:mechanic:spawn",
+        "definition": "The act of a mob or player appearing in the world",
+        "terms": [
+          {
+            "term": "Spawn",
+            "termLanguageId": "en",
+            "translation": "生成",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:mechanic:mob",
+        "definition": "Any living or moving entity in Minecraft",
+        "terms": [
+          {
+            "term": "Mob",
+            "termLanguageId": "en",
+            "translation": "生物",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:ui:inventory",
+        "definition": "The player's personal storage interface",
+        "terms": [
+          {
+            "term": "Inventory",
+            "termLanguageId": "en",
+            "translation": "物品栏",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:armor",
+        "definition": "Protective equipment worn to reduce damage",
+        "terms": [
+          {
+            "term": "Armor",
+            "termLanguageId": "en",
+            "translation": "盔甲",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:mechanic:durability",
+        "definition": "A measure of how much use remains in a tool or armor piece",
+        "terms": [
+          {
+            "term": "Durability",
+            "termLanguageId": "en",
+            "translation": "耐久度",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:blaze",
+        "definition": "A hostile flying mob found in Nether fortresses",
+        "terms": [
+          {
+            "term": "Blaze",
+            "termLanguageId": "en",
+            "translation": "烈焰人",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:skeleton",
+        "definition": "An undead archer mob that fires arrows",
+        "terms": [
+          {
+            "term": "Skeleton",
+            "termLanguageId": "en",
+            "translation": "骷髅",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:zombie",
+        "definition": "An undead mob that can break down wooden doors",
+        "terms": [
+          {
+            "term": "Zombie",
+            "termLanguageId": "en",
+            "translation": "僵尸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:witch",
+        "definition": "A hostile mob that throws splash potions",
+        "terms": [
+          {
+            "term": "Witch",
+            "termLanguageId": "en",
+            "translation": "女巫",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:piglin",
+        "definition": "A pig-like mob that trades with players using gold",
+        "terms": [
+          {
+            "term": "Piglin",
+            "termLanguageId": "en",
+            "translation": "猪灵",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:villager",
+        "definition": "A passive mob that trades resources with players",
+        "terms": [
+          {
+            "term": "Villager",
+            "termLanguageId": "en",
+            "translation": "村民",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:iron-golem",
+        "definition": "A powerful construct that protects villagers",
+        "terms": [
+          {
+            "term": "Iron Golem",
+            "termLanguageId": "en",
+            "translation": "铁傀儡",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:ender-dragon",
+        "definition": "The final boss of the End dimension",
+        "terms": [
+          {
+            "term": "Ender Dragon",
+            "termLanguageId": "en",
+            "translation": "末影龙",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:warden",
+        "definition": "A powerful blind mob that hunts by sound and vibration",
+        "terms": [
+          {
+            "term": "Warden",
+            "termLanguageId": "en",
+            "translation": "监守者",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:strider",
+        "definition": "A fireproof mob that walks on lava in the Nether",
+        "terms": [
+          {
+            "term": "Strider",
+            "termLanguageId": "en",
+            "translation": "炽足兽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:axolotl",
+        "definition": "An aquatic mob that assists players in underwater combat",
+        "terms": [
+          {
+            "term": "Axolotl",
+            "termLanguageId": "en",
+            "translation": "美西螈",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:bee",
+        "definition": "A passive mob that pollinates flowers and attacks when provoked",
+        "terms": [
+          {
+            "term": "Bee",
+            "termLanguageId": "en",
+            "translation": "蜜蜂",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:pickaxe",
+        "definition": "A tool used for mining stone and ores",
+        "terms": [
+          {
+            "term": "Pickaxe",
+            "termLanguageId": "en",
+            "translation": "镐",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:bow",
+        "definition": "A ranged weapon used to fire arrows",
+        "terms": [
+          {
+            "term": "Bow",
+            "termLanguageId": "en",
+            "translation": "弓",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:shield",
+        "definition": "An off-hand defensive tool used to block attacks",
+        "terms": [
+          {
+            "term": "Shield",
+            "termLanguageId": "en",
+            "translation": "盾牌",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      }
+    ]
+  }
+}

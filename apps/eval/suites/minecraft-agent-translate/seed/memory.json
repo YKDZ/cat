@@ -1,0 +1,357 @@
+{
+  "memory": {
+    "name": "Minecraft Agent Translate Memory",
+    "items": [
+      {
+        "ref": "mem:ui:open-inventory",
+        "source": "Press E to open your inventory",
+        "translation": "按 E 键打开物品栏",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:ui:close-inventory",
+        "source": "Press Escape or E to close",
+        "translation": "按 Esc 或 E 键关闭",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:ui:crafting-menu",
+        "source": "Right-click a Crafting Table to open the crafting menu",
+        "translation": "右键单击工作台，打开合成菜单",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:ui:pause-game",
+        "source": "Press Escape to pause the game",
+        "translation": "按 Esc 键暂停游戏",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:getting-upgrade",
+        "source": "Getting an Upgrade: Construct a better pickaxe",
+        "translation": "更好的工具：制作一把更好的镐",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:stone-age",
+        "source": "Stone Age: Mine stone with your new pickaxe",
+        "translation": "石器时代：用你的新镐挖掘石头",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:acquire-hardware",
+        "source": "Acquire Hardware: Smelt an iron ingot",
+        "translation": "获取硬件：冶炼一个铁锭",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:suit-up",
+        "source": "Suit Up: Protect yourself with a piece of armor",
+        "translation": "穿上盔甲：用一件盔甲保护自己",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:hot-stuff",
+        "source": "Hot Stuff: Fill a bucket with lava",
+        "translation": "热门物品：用桶装满岩浆",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:ice-bucket",
+        "source": "Ice Bucket Challenge: Obtain a block of obsidian",
+        "translation": "冰桶挑战：获得一块黑曜石",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:nether-portal",
+        "source": "We Need to Go Deeper: Build a Nether portal",
+        "translation": "我们需要更深入：建造一个下界传送门",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:adv:into-fire",
+        "source": "Into Fire: Relieve a Blaze of its rod",
+        "translation": "深入火中：从烈焰人身上取得烈焰棒",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:creepers-cats",
+        "source": "Creepers are afraid of cats",
+        "translation": "苦力怕害怕猫",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:beds-explode",
+        "source": "Beds explode in the Nether and the End",
+        "translation": "床在下界和末地会爆炸",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:milk-removes-effects",
+        "source": "Drinking milk removes all potion effects",
+        "translation": "喝牛奶可以清除所有药水效果",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:pumpkin-endermen",
+        "source": "Wearing a pumpkin prevents Endermen from attacking",
+        "translation": "戴上南瓜头可以防止末影人攻击",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:name-tags",
+        "source": "Use a name tag to rename a mob",
+        "translation": "使用命名牌给生物命名",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:fortune",
+        "source": "Fortune increases the number of drops from ore blocks",
+        "translation": "时运附魔可以增加矿石方块的掉落数量",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:mending",
+        "source": "Mending repairs items using experience orbs",
+        "translation": "经验修补附魔可以用经验球修复物品",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:silk-touch",
+        "source": "Silk Touch lets you mine blocks without breaking them",
+        "translation": "精准采集附魔让你采掘方块而不破坏它们",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:unbreaking",
+        "source": "Unbreaking extends the durability of your tools",
+        "translation": "耐久附魔可以延长工具的耐久度",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:looting",
+        "source": "Looting increases the loot dropped by mobs",
+        "translation": "抢夺附魔可以增加生物掉落的战利品",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:gold-piglins",
+        "source": "Wearing gold armor prevents Piglins from attacking",
+        "translation": "穿戴金甲可以防止猪灵攻击",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:compass-origin",
+        "source": "A compass always points to the world spawn point",
+        "translation": "指南针始终指向世界出生点",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:fishing",
+        "source": "Fishing in rain increases your luck",
+        "translation": "在雨中钓鱼可以提高运气",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:creeper",
+        "source": "%1$s was blown up by Creeper",
+        "translation": "%1$s 被苦力怕炸飞了",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:enderman",
+        "source": "%1$s was slain by Enderman",
+        "translation": "%1$s 被末影人击杀",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:skeleton",
+        "source": "%1$s was shot by Skeleton",
+        "translation": "%1$s 被骷髅射击",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:zombie",
+        "source": "%1$s was slain by Zombie",
+        "translation": "%1$s 被僵尸击杀",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:death:lava",
+        "source": "%1$s tried to swim in lava",
+        "translation": "%1$s 试图在岩浆中游泳",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:desc:diamond-sword",
+        "source": "A powerful sword made of diamond",
+        "translation": "一把用钻石制成的强力剑",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:desc:iron-pickaxe",
+        "source": "A sturdy pickaxe made of iron",
+        "translation": "一把用铁制成的坚固镐",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:desc:crafting-table",
+        "source": "A wooden crafting station for all your recipes",
+        "translation": "用于所有配方的木制工作台",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:desc:enchanting-table",
+        "source": "A mystical table for adding enchantments to items",
+        "translation": "用于给物品添加附魔的神秘台子",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:desc:ender-pearl",
+        "source": "A teleportation item dropped by Endermen",
+        "translation": "末影人掉落的传送道具",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:ui:respawn",
+        "source": "Respawn",
+        "translation": "重生",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:ui:you-died",
+        "source": "You died!",
+        "translation": "你死了！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:ui:game-over",
+        "source": "Game Over",
+        "translation": "游戏结束",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:ui:new-highscore",
+        "source": "New Highscore!",
+        "translation": "新纪录！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:ui:score",
+        "source": "Score: %s",
+        "translation": "得分：%s",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:splash:achievements",
+        "source": "Now with achievements!",
+        "translation": "现已包含成就！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:splash:java",
+        "source": "Made in Java!",
+        "translation": "用 Java 制作！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:splash:survival",
+        "source": "Survival mode!",
+        "translation": "生存模式！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:splash:multiplayer",
+        "source": "Multiplayer ready!",
+        "translation": "多人游戏就绪！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:splash:wiki",
+        "source": "Check out the Minecraft wiki!",
+        "translation": "快去看 Minecraft 百科！",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:fall-damage",
+        "source": "Feather Falling reduces fall damage",
+        "translation": "摔落保护附魔可以减少摔落伤害",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:water-torch",
+        "source": "Placing a torch under water creates an air pocket",
+        "translation": "在水下放置火把可以创造气泡",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:end-dragon",
+        "source": "Defeat the Ender Dragon to complete the main quest",
+        "translation": "击败末影龙以完成主线任务",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:nether-travel",
+        "source": "Every block traveled in the Nether equals 8 in the Overworld",
+        "translation": "在下界每走一格相当于主世界八格",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:tip:wolves",
+        "source": "Tame wolves with bones to make them your loyal companions",
+        "translation": "用骨头驯服狼，让它们成为你忠诚的伙伴",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      }
+    ]
+  }
+}

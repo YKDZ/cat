@@ -17,6 +17,7 @@ export const SeedConfigSchema = z.object({
   memory: z.string().optional(),
   elements: z.string().optional(),
   plugins: z.string().optional(),
+  agentDefinition: z.string().optional(),
 });
 
 // ── Scorers ──────────────────────────────────────────────────────────
@@ -31,12 +32,17 @@ export const ScorerNameSchema = z.enum([
   "confidence",
   "channel-coverage",
   "latency",
+  "instruction-adherence",
+  "term-compliance",
+  "chrf",
+  "token-cost",
+  "agent-latency",
 ]);
 
 // ── Scenario ─────────────────────────────────────────────────────────
 
 export const ScenarioConfigSchema = z.object({
-  type: z.enum(["term-recall", "memory-recall"]),
+  type: z.enum(["term-recall", "memory-recall", "agent-translate"]),
   "test-set": z.string(),
   scorers: z.array(ScorerNameSchema).min(1),
   params: z.record(z.string(), z.unknown()).optional(),
@@ -203,3 +209,29 @@ export type TermRecallTestSet = z.infer<typeof TermRecallTestSetSchema>;
 export type MemoryRecallTestSet = z.infer<typeof MemoryRecallTestSetSchema>;
 export type TermRecallTestCase = z.infer<typeof TermRecallTestCaseSchema>;
 export type MemoryRecallTestCase = z.infer<typeof MemoryRecallTestCaseSchema>;
+
+// ── Translation test set schemas ──────────────────────────────────────────────
+
+export const ReferenceTranslationSchema = z.object({
+  elementRef: z.string(),
+  expectedText: z.string(),
+  requiredTerms: z.array(z.string()).default([]),
+});
+
+export const TranslationTestCaseSchema = z.object({
+  id: z.string(),
+  instruction: z.string(),
+  elementRefs: z.array(z.string()).min(1),
+  referenceTranslations: z.array(ReferenceTranslationSchema).min(1),
+  sourceLanguage: z.string(),
+  targetLanguage: z.string(),
+});
+
+export const TranslationTestSetSchema = z.object({
+  name: z.string(),
+  cases: z.array(TranslationTestCaseSchema).min(1),
+});
+
+export type ReferenceTranslation = z.infer<typeof ReferenceTranslationSchema>;
+export type TranslationTestCase = z.infer<typeof TranslationTestCaseSchema>;
+export type TranslationTestSet = z.infer<typeof TranslationTestSetSchema>;
