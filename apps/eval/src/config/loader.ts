@@ -18,6 +18,8 @@ import {
   SuiteConfigSchema,
   type TermRecallTestSet,
   TermRecallTestSetSchema,
+  type TranslationTestSet,
+  TranslationTestSetSchema,
 } from "./schemas";
 
 export type LoadedSuite = {
@@ -27,7 +29,10 @@ export type LoadedSuite = {
   glossarySeed: GlossarySeed | undefined;
   memorySeed: MemorySeed | undefined;
   elementsSeed: ElementsSeed | undefined;
-  testSets: Map<string, TermRecallTestSet | MemoryRecallTestSet>;
+  testSets: Map<
+    string,
+    TermRecallTestSet | MemoryRecallTestSet | TranslationTestSet
+  >;
 };
 
 const readYaml = <T>(filePath: string, schema: z.ZodType<T>): T => {
@@ -57,15 +62,24 @@ export const loadSuite = (suiteDir: string): LoadedSuite => {
     ? readJson(abs(config.seed.elements), ElementsSeedSchema)
     : undefined;
 
-  const testSets = new Map<string, TermRecallTestSet | MemoryRecallTestSet>();
+  const testSets = new Map<
+    string,
+    TermRecallTestSet | MemoryRecallTestSet | TranslationTestSet
+  >();
   for (const scenario of config.scenarios) {
     const tsPath = scenario["test-set"];
     if (testSets.has(tsPath)) continue;
 
-    const schema: z.ZodType<TermRecallTestSet | MemoryRecallTestSet> =
-      scenario.type === "term-recall"
-        ? TermRecallTestSetSchema
-        : MemoryRecallTestSetSchema;
+    let schema: z.ZodType<
+      TermRecallTestSet | MemoryRecallTestSet | TranslationTestSet
+    >;
+    if (scenario.type === "term-recall") {
+      schema = TermRecallTestSetSchema;
+    } else if (scenario.type === "agent-translate") {
+      schema = TranslationTestSetSchema;
+    } else {
+      schema = MemoryRecallTestSetSchema;
+    }
     testSets.set(tsPath, readYaml(abs(tsPath), schema));
   }
 

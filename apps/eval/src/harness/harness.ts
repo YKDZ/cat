@@ -74,6 +74,9 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
           projectId: seededCtx.projectId,
           glossaryId: seededCtx.glossaryId,
           memoryId: seededCtx.memoryId,
+          agentDefinitionId: seededCtx.agentDefinitionId,
+          documentId: seededCtx.documentId,
+          db: seededCtx.db,
           userId: seededCtx.userId,
         };
 
@@ -108,6 +111,13 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
                   testSet,
                   harnessCtx,
                 );
+                for (const c of r.cases) {
+                  if (c.status !== "ok" && c.error) {
+                    console.error(
+                      `[eval] Case "${c.caseId}" failed (${c.status}): ${c.error}`,
+                    );
+                  }
+                }
                 const okCount = r.cases.filter((c) => c.status === "ok").length;
                 scenarioSpan.setAttribute("eval.cases_total", r.cases.length);
                 scenarioSpan.setAttribute("eval.cases_ok", okCount);

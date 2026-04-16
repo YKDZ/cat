@@ -40,7 +40,7 @@ tools:
 promptConfig:
   autoInjectSlots: []
 constraints:
-  maxSteps: 50
+  maxSteps: 500
   timeoutMs: 600000
 scope:
   type: PROJECT
@@ -85,7 +85,8 @@ scope:
 
 # 注意事项
 
-- 每次完成翻译后调用 \`finish\`。
+- 完成**所有**指定元素翻译后才调用 \`finish\`；未完成全部前不要提前结束。
+- 在所有指定元素翻译完成之前，每次响应都必须包含至少一个工具调用；如需记录进度或想法，使用 \`update_scratchpad\`，之后继续翻译剩余元素。
 - 若遇到无法解决的问题，在 scratchpad 中记录后仍调用 \`finish\` 并在备注中说明。
 - maxTurns 为 {{maxTurns}}，请在限制内完成任务。
 `;
