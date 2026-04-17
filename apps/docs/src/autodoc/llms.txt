@@ -9,11 +9,11 @@
 
 ## Package Documentation
 
-- [@cat/domain](./packages/domain.md): 294 exported functions — Domain layer: CQRS Commands and Queries, core business logic
+- [@cat/domain](./packages/domain.md): 324 exported functions — Domain layer: CQRS Commands and Queries, core business logic
 - [@cat/operations](./packages/operations.md): 59 exported functions — Operations layer: business workflows composing domain operations
 - [@cat/shared](./packages/shared.md): 24 exported functions — Shared Zod schemas, type definitions, and utility functions
-- [@cat/db](./packages/db.md): 8 exported functions — Database layer: Drizzle ORM schemas and Redis client
-- [@cat/permissions](./packages/permissions.md): 9 exported functions — Permission system: ReBAC-based access control
+- [@cat/db](./packages/db.md): 9 exported functions — Database layer: Drizzle ORM schemas and Redis client
+- [@cat/permissions](./packages/permissions.md): 10 exported functions — Permission system: ReBAC-based access control
 - [@cat/workflow](./packages/workflow.md): 27 exported functions — DAG-based workflow graph executor
 - [@cat/server-shared](./packages/server-shared.md): 21 exported functions — Shared server utilities
 - [@cat/plugin-core](./packages/plugin-core.md): 15 exported functions — Plugin system core: service registry, component registry, discovery
@@ -21,15 +21,15 @@
 - [@cat/core](./packages/core.md): 1 exported functions — Core infrastructure: generic event bus, typed pub/sub
 - [@cat/message](./packages/message.md): 1 exported functions — Unified message gateway: in-app notifications and email dispatch
 - [@cat/graph](./packages/graph.md): 7 exported functions — Storage-agnostic graph core: types, blackboard, condition evaluation
-- [@cat/agent](./packages/agent.md): 18 exported functions — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser
-- [@cat/agent-tools](./packages/agent-tools.md): 6 exported functions — Built-in agent tools: kanban, translation, session management
+- [@cat/agent](./packages/agent.md): 24 exported functions — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser
+- [@cat/agent-tools](./packages/agent-tools.md): 3 exported functions — Built-in agent tools: kanban, translation, session management
 
 ## @cat/domain
 
 Domain layer using CQRS pattern. Commands mutate state, Queries read data.
 
-- Commands: 113
-- Queries: 168
+- Commands: 129
+- Queries: 182
 
 ## @cat/operations
 

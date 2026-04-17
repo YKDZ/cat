@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 275
+* **Modules**: 302
 
-* **Exported functions**: 294
+* **Exported functions**: 324
 
-* **Exported types**: 390
+* **Exported types**: 420
 
 ## Function Index
 
@@ -131,7 +131,7 @@ export const createAgentRun: Command<
 export const createAgentSession: Command<
   CreateAgentSessionCommand,
   { sessionId: string }
-> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; projectName?: string | undefined; providerId?: number | undefined; documentId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; kanbanBoardId?: number | undefined; kanbanCardId?: number | undefined; } | undefined; }) => {...}
+> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; projectName?: string | undefined; providerId?: number | undefined; documentId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; issueId?: number | undefined; pullRequestId?: number | undefined; } | undefined; }) => {...}
 ```
 
 ### `deleteAgentDefinition`
@@ -243,6 +243,47 @@ export const registerUserWithPasswordAccount: Command<
 > = async (ctx: DbContext, command: { email: string; name: string; password: string; authProviderId: number; }) => {...}
 ```
 
+### packages/domain/src/commands/branch
+
+### `createBranch`
+
+```ts
+/**
+ * Creates a new entity_branch with baseChangesetId set to the latest main changeset ID.
+ */
+export const createBranch: Command<
+  CreateBranchCommand,
+  typeof entityBranch.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; name: string; createdBy?: string | undefined; createdByAgentId?: number | undefined; }) => {...}
+```
+
+### `markBranchConflicted`
+
+```ts
+export const markBranchConflicted: Command<
+  MarkBranchConflictedCommand,
+  typeof entityBranch.$inferSelect
+> = async (ctx: DbContext, command: { branchId: number; hasConflicts: boolean; }) => {...}
+```
+
+### `updateBranchBaseChangeset`
+
+```ts
+export const updateBranchBaseChangeset: Command<
+  UpdateBranchBaseChangesetCommand,
+  typeof entityBranch.$inferSelect
+> = async (ctx: DbContext, command: { branchId: number; baseChangesetId: number | null; }) => {...}
+```
+
+### `updateBranchStatus`
+
+```ts
+export const updateBranchStatus: Command<
+  UpdateBranchStatusCommand,
+  typeof entityBranch.$inferSelect
+> = async (ctx: DbContext, command: { branchId: number; status: "ACTIVE" | "MERGED" | "ABANDONED"; mergedAt?: Date | undefined; }) => {...}
+```
+
 ### packages/domain/src/commands/changeset
 
 ### `addChangesetEntry`
@@ -260,7 +301,7 @@ export const addChangesetEntry: Command<
 export const createChangeset: Command<
   CreateChangesetCommand,
   typeof changeset.$inferSelect
-> = async (ctx: DbContext, command: { projectId: string; agentRunId?: number | undefined; linkedCardId?: number | undefined; createdBy?: string | undefined; summary?: string | undefined; }) => {...}
+> = async (ctx: DbContext, command: { projectId: string; agentRunId?: number | undefined; createdBy?: string | undefined; summary?: string | undefined; branchId?: number | undefined; status?: "PENDING" | "APPROVED" | "PARTIALLY_APPROVED" | "REJECTED" | "APPLIED" | "CONFLICT" | undefined; }) => {...}
 ```
 
 ### `reviewChangesetEntry`
@@ -331,6 +372,20 @@ export const upsertCommentReaction: Command<
   UpsertCommentReactionCommand,
   typeof commentReaction.$inferSelect
 > = async (ctx: DbContext, command: { commentId: number; userId: string; type: "+1" | "-1" | "LAUGH" | "HOORAY" | "CONFUSED" | "HEART" | "ROCKET" | "EYES"; }) => {...}
+```
+
+### packages/domain/src/commands/cross-reference
+
+### `parseAndSaveCrossReferences`
+
+```ts
+/**
+ * Parses #N references in text and saves them to the cross_reference table.
+ * On edit: deletes old references for this source, then inserts fresh ones.
+ */
+export const parseAndSaveCrossReferences: Command<
+  ParseAndSaveCrossReferencesCommand
+> = async (ctx: DbContext, command: { projectId: string; sourceType: "issue" | "pr" | "issue_comment"; sourceId: number; text: string; }) => {...}
 ```
 
 ### packages/domain/src/commands/document
@@ -561,77 +616,106 @@ export const updateGlossaryConcept: Command<
 > = async (ctx: DbContext, command: { conceptId: number; subjectIds?: number[] | undefined; definition?: string | undefined; }) => {...}
 ```
 
-### packages/domain/src/commands/kanban
+### packages/domain/src/commands/issue
 
-### `addCardDep`
+### `assignIssue`
 
 ```ts
-/**
- * Add a dependency between two kanban cards, with BFS cycle detection before insert.
- */
-export const addCardDep: Command<AddCardDepCommand> = async (ctx: DbContext, command: { cardId: number; dependsOnCardId: number; depType: "FINISH_TO_START" | "DATA"; }) => {...}
+export const assignIssue: Command<
+  AssignIssueCommand,
+  typeof issue.$inferSelect
+> = async (ctx: DbContext, command: { issueId: number; assignees: { type: "user" | "agent"; id: string; }[]; }) => {...}
 ```
 
-### `claimCard`
+### `claimIssue`
 
 ```ts
 /**
- * Atomically claim an available kanban card using FOR UPDATE SKIP LOCKED.
+ * Atomically claims the first OPEN issue matching claimPolicy in the project (FOR UPDATE SKIP LOCKED).
  *
- * Returns null if no claimable card is available.
+ * Returns null if no claimable issue is available.
  */
-export const claimCard: Command<ClaimCardCommand, ClaimCardResult> = async (ctx: DbContext, command: { boardId: number; claimableStatuses: ("OPEN" | "NEEDS_REWORK")[]; agentId?: number | undefined; userId?: string | undefined; }) => {...}
+export const claimIssue: Command<ClaimIssueCommand, ClaimIssueResult> = async (ctx: DbContext, command: { projectId: string; userId?: string | undefined; agentId?: number | undefined; }) => {...}
 ```
 
-### `createBoard`
+### `closeIssue`
 
 ```ts
-export const createBoard: Command<
-  CreateBoardCommand,
-  typeof kanbanBoard.$inferSelect
-> = async (ctx: DbContext, command: { name: string; columns: { id: string; name: string; }[]; orgId?: string | undefined; linkedResourceType?: string | undefined; linkedResourceId?: string | undefined; metadata?: any; }) => {...}
+export const closeIssue: Command<
+  CloseIssueCommand,
+  typeof issue.$inferSelect
+> = async (ctx: DbContext, command: { issueId: number; closedByPRId?: number | undefined; }) => {...}
 ```
 
-### `createCard`
+### `createIssue`
 
 ```ts
-export const createCard: Command<
-  CreateCardCommand,
-  typeof kanbanCard.$inferSelect
-> = async (ctx: DbContext, command: { boardId: number; columnId: string; title: string; description: string; priority: number; labels: string[]; status: "FAILED" | "OPEN" | "NEEDS_REWORK" | "CLAIMED" | "IN_PROGRESS" | "REVIEW" | "DONE"; batchSize: number; dueDate?: Date | undefined; linkedResourceType?: string | undefined; linkedResourceId?: string | undefined; parentCardId?: number | undefined; metadata?: any; }) => {...}
+export const createIssue: Command<
+  CreateIssueCommand,
+  typeof issue.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; title: string; body: string; assignees: { type: "user" | "agent"; id: string; }[]; labels: string[]; authorId?: string | undefined; authorAgentId?: number | undefined; claimPolicy?: { rules: { type: "user" | "agent" | "role"; id: string; }[]; } | null | undefined; parentIssueId?: number | undefined; metadata?: any; }) => {...}
 ```
 
-### `releaseCard`
+### `reopenIssue`
 
 ```ts
-/**
- * Release a claimed card, resetting its status to OPEN (for timeout or manual cancel).
- */
-export const releaseCard: Command<ReleaseCardCommand> = async (ctx: DbContext, command: { cardId: number; }) => {...}
+export const reopenIssue: Command<
+  ReopenIssueCommand,
+  typeof issue.$inferSelect
+> = async (ctx: DbContext, command: { issueId: number; }) => {...}
 ```
 
-### `removeCardDep`
+### `updateIssue`
 
 ```ts
-/**
- * Remove a dependency between two kanban cards.
- */
-export const removeCardDep: Command<RemoveCardDepCommand> = async (ctx: DbContext, command: { cardId: number; dependsOnCardId: number; }) => {...}
+export const updateIssue: Command<
+  UpdateIssueCommand,
+  typeof issue.$inferSelect
+> = async (ctx: DbContext, command: { issueId: number; title?: string | undefined; body?: string | undefined; labels?: string[] | undefined; metadata?: any; }) => {...}
 ```
 
-### `updateCardProgress`
+### packages/domain/src/commands/issue-comment
+
+### `createIssueComment`
 
 ```ts
-export const updateCardProgress: Command<UpdateCardProgressCommand> = async (ctx: DbContext, command: { cardId: number; columnId?: string | undefined; metadata?: Record<string, unknown> | undefined; }) => {...}
+export const createIssueComment: Command<
+  CreateIssueCommentCommand,
+  typeof issueComment.$inferSelect
+> = async (ctx: DbContext, command: { threadId: number; body: string; targetType: "issue" | "pr"; targetId: number; authorId?: string | undefined; authorAgentId?: number | undefined; }) => {...}
 ```
 
-### `updateCardStatus`
+### `createThread`
 
 ```ts
-export const updateCardStatus: Command<
-  UpdateCardStatusCommand,
-  typeof kanbanCard.$inferSelect
-> = async (ctx: DbContext, command: { cardId: number; status: "FAILED" | "OPEN" | "NEEDS_REWORK" | "CLAIMED" | "IN_PROGRESS" | "REVIEW" | "DONE"; }) => {...}
+export const createThread: Command<
+  CreateThreadCommand,
+  typeof issueCommentThread.$inferSelect
+> = async (ctx: DbContext, command: { targetType: "issue" | "pr"; targetId: number; isReviewThread: boolean; reviewContext?: { entityType: string; entityId: string; fieldPath: string; changesetEntryId: number; } | null | undefined; }) => {...}
+```
+
+### `deleteIssueComment`
+
+```ts
+export const deleteIssueComment: Command<DeleteIssueCommentCommand> = async (ctx: DbContext, command: { commentId: number; }) => {...}
+```
+
+### `resolveThread`
+
+```ts
+export const resolveThread: Command<
+  ResolveThreadCommand,
+  typeof issueCommentThread.$inferSelect
+> = async (ctx: DbContext, command: { threadId: number; resolved: boolean; }) => {...}
+```
+
+### `updateIssueComment`
+
+```ts
+export const updateIssueComment: Command<
+  UpdateIssueCommentCommand,
+  typeof issueComment.$inferSelect
+> = async (ctx: DbContext, command: { commentId: number; body: string; }) => {...}
 ```
 
 ### packages/domain/src/commands/language
@@ -751,10 +835,12 @@ export const grantFirstUserSuperadmin: Command<
 ```ts
 /**
  * 插入权限关系元组，已存在则忽略（幂等）。
+ * 联写规则：当 objectType=project 且 relation ∈ {editor,admin,owner} 时，
+ * 同一事务内额外 grant `direct_editor`（幂等）。
  */
 export const grantPermissionTuple: Command<
   GrantPermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "agent" | "role"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `insertAuditLogs`
@@ -763,7 +849,7 @@ export const grantPermissionTuple: Command<
 /**
  * 批量插入鉴权审计日志。写入失败时静默忽略，不影响业务流程。
  */
-export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
+export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "agent" | "role"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
 ```
 
 ### `revokePermissionTuple`
@@ -771,10 +857,13 @@ export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbCo
 ```ts
 /**
  * 删除权限关系元组。元组不存在时静默完成（幂等）。
+ * 联动规则：当 objectType=project 且 relation ∈ {editor,admin,owner} 时，
+ * 移除当前元组后，若 Subject 对该 project 已无任何 editor+ 来源，
+ * 则联动 revoke `direct_editor` 和 `isolation_forced`。
  */
 export const revokePermissionTuple: Command<
   RevokePermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "agent" | "role"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `seedSystemRoles`
@@ -904,6 +993,19 @@ export const unlinkProjectMemories: Command<
 > = async (ctx: DbContext, command: { projectId: string; memoryIds: string[]; }) => {...}
 ```
 
+### `updateProjectFeatures`
+
+```ts
+/**
+ * Update project feature flags. When pullRequests toggles from true to false,
+ * first checks for active PRs (rejects if any exist), then revokes all isolation_forced tuples in the same transaction.
+ */
+export const updateProjectFeatures: Command<
+  UpdateProjectFeaturesCommand,
+  typeof project.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; features: { issues: boolean; pullRequests: boolean; }; }) => {...}
+```
+
 ### `updateProject`
 
 ```ts
@@ -911,6 +1013,81 @@ export const updateProject: Command<
   UpdateProjectCommand,
   typeof project.$inferSelect
 > = async (ctx: DbContext, command: { projectId: string; name?: string | undefined; description?: string | undefined; }) => {...}
+```
+
+### packages/domain/src/commands/pull-request
+
+### `closePR`
+
+```ts
+/**
+ * Close a PR: set PR status to CLOSED and update associated branch to ABANDONED.
+ */
+export const closePR: Command<
+  ClosePRCommand,
+  typeof pullRequest.$inferSelect
+> = async (ctx: DbContext, command: { prId: number; }) => {...}
+```
+
+### `createPR`
+
+```ts
+/**
+ * Create a PR: allocate number, create associated branch, and insert the PR record.
+ */
+export const createPR: Command<
+  CreatePRCommand,
+  typeof pullRequest.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; title: string; body: string; reviewers: { type: "user" | "agent"; id: string; }[]; authorId?: string | undefined; authorAgentId?: number | undefined; issueId?: number | undefined; metadata?: any; }) => {...}
+```
+
+### `mergePR`
+
+```ts
+/**
+ * Merge a PR: set PR status to MERGED and update associated branch to MERGED. Fires pr:merged event.
+ */
+export const mergePR: Command<
+  MergePRCommand,
+  typeof pullRequest.$inferSelect
+> = async (ctx: DbContext, command: { prId: number; mergedBy: string; }) => {...}
+```
+
+### `submitReview`
+
+```ts
+/**
+ * Submit a PR review: APPROVE keeps the PR in REVIEW (or moves back to OPEN if CHANGES_REQUESTED),
+ * CHANGES_REQUESTED sets PR status to CHANGES_REQUESTED.
+ */
+export const submitReview: Command<
+  SubmitReviewCommand,
+  typeof pullRequest.$inferSelect
+> = async (ctx: DbContext, command: { prId: number; reviewerId: string; decision: "CHANGES_REQUESTED" | "APPROVE"; }) => {...}
+```
+
+### `updatePRStatus`
+
+```ts
+/**
+ * Update PR status (state machine transitions: DRAFT→OPEN→REVIEW→MERGED/CLOSED etc.).
+ */
+export const updatePRStatus: Command<
+  UpdatePRStatusCommand,
+  typeof pullRequest.$inferSelect
+> = async (ctx: DbContext, command: { prId: number; status: "MERGED" | "OPEN" | "CLOSED" | "DRAFT" | "REVIEW" | "CHANGES_REQUESTED"; }) => {...}
+```
+
+### `updatePR`
+
+```ts
+/**
+ * Update a PR's title, body, or reviewers list.
+ */
+export const updatePR: Command<
+  UpdatePRCommand,
+  typeof pullRequest.$inferSelect
+> = async (ctx: DbContext, command: { prId: number; title?: string | undefined; body?: string | undefined; reviewers?: { type: "user" | "agent"; id: string; }[] | undefined; metadata?: any; }) => {...}
 ```
 
 ### packages/domain/src/commands/qa
@@ -936,6 +1113,18 @@ export const createQaResult: Command<
   CreateQaResultCommand,
   { id: number }
 > = async (ctx: DbContext, command: { translationId: number; }) => {...}
+```
+
+### packages/domain/src/commands/sequence
+
+### `allocateNumber`
+
+```ts
+/**
+ * Atomically increments the project_sequence and returns the allocated number.
+ * Auto-initializes if no record exists for the given projectId.
+ */
+export const allocateNumber: Command<AllocateNumberCommand, number> = async (ctx: DbContext, command: { projectId: string; }) => {...}
 ```
 
 ### packages/domain/src/commands/session
@@ -1407,7 +1596,72 @@ export const getMfaProviderByServiceAndUser: Query<
 > = async (ctx: DbContext, query: { userId: string; mfaServiceId: number; }) => {...}
 ```
 
+### packages/domain/src/queries/branch
+
+### `getBranchById`
+
+```ts
+export const getBranchById: Query<
+  GetBranchByIdQuery,
+  typeof entityBranch.$inferSelect | null
+> = async (ctx: DbContext, query: { branchId: number; }) => {...}
+```
+
+### `getBranch`
+
+```ts
+export const getBranch: Query<
+  GetBranchQuery,
+  typeof entityBranch.$inferSelect | null
+> = async (ctx: DbContext, query: { id: string; }) => {...}
+```
+
+### `listBranches`
+
+```ts
+export const listBranches: Query<
+  ListBranchesQuery,
+  (typeof entityBranch.$inferSelect)[]
+> = async (ctx: DbContext, query: { projectId: string; status?: "ACTIVE" | "MERGED" | "ABANDONED" | undefined; }) => {...}
+```
+
 ### packages/domain/src/queries/changeset
+
+### `getLatestBranchChangesetId`
+
+```ts
+export const getLatestBranchChangesetId: Query<
+  GetLatestBranchChangesetIdQuery,
+  number | null
+> = async (ctx: DbContext, query: { branchId: number; }) => {...}
+```
+
+### `getLatestMainChangesetId`
+
+```ts
+export const getLatestMainChangesetId: Query<
+  GetLatestMainChangesetIdQuery,
+  number | null
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listBranchChangesetIds`
+
+```ts
+export const listBranchChangesetIds: Query<
+  ListBranchChangesetIdsQuery,
+  number[]
+> = async (ctx: DbContext, query: { branchId: number; }) => {...}
+```
+
+### `listMainEntriesSince`
+
+```ts
+export const listMainEntriesSince: Query<
+  ListMainEntriesSinceQuery,
+  (typeof changesetEntry.$inferSelect)[]
+> = async (ctx: DbContext, query: { projectId: string; baseChangesetId: number; }) => {...}
+```
 
 ### `getChangeset`
 
@@ -1433,7 +1687,7 @@ export const getChangesetByExternalId: Query<
 export const listChangesets: Query<
   ListChangesetsQuery,
   (typeof changeset.$inferSelect)[]
-> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "PENDING" | "APPROVED" | "REJECTED" | "CONFLICT" | "PARTIALLY_APPROVED" | "APPLIED" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "PENDING" | "APPROVED" | "PARTIALLY_APPROVED" | "REJECTED" | "APPLIED" | "CONFLICT" | undefined; }) => {...}
 ```
 
 ### `getChangesetEntries`
@@ -1443,6 +1697,15 @@ export const getChangesetEntries: Query<
   GetChangesetEntriesQuery,
   (typeof changesetEntry.$inferSelect)[]
 > = async (ctx: DbContext, query: { changesetId: number; entityType?: "comment" | "term" | "document" | "element" | "translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | undefined; }) => {...}
+```
+
+### `listBranchChangesetEntries`
+
+```ts
+export const listBranchChangesetEntries: Query<
+  ListBranchChangesetEntriesQuery,
+  (typeof changesetEntry.$inferSelect)[]
+> = async (ctx: DbContext, query: { branchId: number; entityType?: "comment" | "term" | "document" | "element" | "translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
 ```
 
 ### packages/domain/src/queries/chunk
@@ -1495,6 +1758,32 @@ export const listRootComments: Query<
   ListRootCommentsQuery,
   Array<typeof comment.$inferSelect>
 > = async (ctx: DbContext, query: { targetType: "TRANSLATION" | "ELEMENT"; targetId: number; pageIndex: number; pageSize: number; }) => {...}
+```
+
+### packages/domain/src/queries/cross-reference
+
+### `listReferencesFrom`
+
+```ts
+/**
+ * Forward lookup: given a source, list all targets it references.
+ */
+export const listReferencesFrom: Query<
+  ListReferencesFromQuery,
+  (typeof crossReference.$inferSelect)[]
+> = async (ctx: DbContext, query: { sourceType: "issue" | "pr" | "issue_comment"; sourceId: number; }) => {...}
+```
+
+### `listReferencesTo`
+
+```ts
+/**
+ * Reverse lookup: given a target (Issue or PR), list all sources that reference it.
+ */
+export const listReferencesTo: Query<
+  ListReferencesToQuery,
+  (typeof crossReference.$inferSelect)[]
+> = async (ctx: DbContext, query: { targetType: "issue" | "pr"; targetId: number; }) => {...}
 ```
 
 ### packages/domain/src/queries/document
@@ -2028,64 +2317,68 @@ export const listTermConceptIdsBySubject: Query<
 > = async (ctx: DbContext, query: { subjectId: number; }) => {...}
 ```
 
-### packages/domain/src/queries/kanban
+### packages/domain/src/queries/issue
 
-### `getBoard`
-
-```ts
-export const getBoard: Query<
-  GetBoardQuery,
-  typeof kanbanBoard.$inferSelect | null
-> = async (ctx: DbContext, query: { id: string; }) => {...}
-```
-
-### `getCard`
-
-```ts
-export const getCard: Query<
-  GetCardQuery,
-  typeof kanbanCard.$inferSelect | null
-> = async (ctx: DbContext, query: { id: string; }) => {...}
-```
-
-### `getClaimableCard`
+### `getClaimableIssue`
 
 ```ts
 /**
- * Returns the first claimable card (status OPEN or NEEDS_REWORK) sorted by priority DESC, createdAt ASC.
- * This is a "peek" query — the actual atomic claim uses claim-card.cmd with FOR UPDATE SKIP LOCKED.
+ * Returns the first claimable OPEN issue in the project (filtered by claimPolicy), without locking.
+ * This is a "peek" query — actual atomic claim uses claim-issue.cmd with FOR UPDATE SKIP LOCKED.
  */
-export const getClaimableCard: Query<
-  GetClaimableCardQuery,
-  typeof kanbanCard.$inferSelect | null
-> = async (ctx: DbContext, query: { boardId: number; columnId?: string | undefined; }) => {...}
+export const getClaimableIssue: Query<
+  GetClaimableIssueQuery,
+  typeof issue.$inferSelect | null
+> = async (ctx: DbContext, query: { projectId: string; userId?: string | undefined; agentId?: number | undefined; }) => {...}
 ```
 
-### `listBoards`
+### `getIssueByNumber`
 
 ```ts
-export const listBoards: Query<
-  ListBoardsQuery,
-  (typeof kanbanBoard.$inferSelect)[]
-> = async (ctx: DbContext, query: { orgId?: string | undefined; linkedResourceType?: string | undefined; linkedResourceId?: string | undefined; }) => {...}
+export const getIssueByNumber: Query<
+  GetIssueByNumberQuery,
+  typeof issue.$inferSelect | null
+> = async (ctx: DbContext, query: { projectId: string; number: number; }) => {...}
 ```
 
-### `listCardDeps`
+### `getIssue`
 
 ```ts
-/**
- * List dependency relationships for a kanban card.
- */
-export const listCardDeps: Query<ListCardDepsQuery, CardDepRow[]> = async (ctx: DbContext, query: { cardId: number; direction: "blocking" | "blocked_by"; }) => {...}
+export const getIssue: Query<
+  GetIssueQuery,
+  typeof issue.$inferSelect | null
+> = async (ctx: DbContext, query: { id: string; }) => {...}
 ```
 
-### `listCards`
+### `listIssues`
 
 ```ts
-export const listCards: Query<
-  ListCardsQuery,
-  (typeof kanbanCard.$inferSelect)[]
-> = async (ctx: DbContext, query: { boardId: number; status?: "FAILED" | "OPEN" | "NEEDS_REWORK" | "CLAIMED" | "IN_PROGRESS" | "REVIEW" | "DONE" | undefined; columnId?: string | undefined; }) => {...}
+export const listIssues: Query<
+  ListIssuesQuery,
+  (typeof issue.$inferSelect)[]
+> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "OPEN" | "CLOSED" | undefined; label?: string | undefined; assigneeId?: string | undefined; }) => {...}
+```
+
+### packages/domain/src/queries/issue-comment
+
+### `listComments`
+
+```ts
+export const listComments: Query<
+  ListCommentsQuery,
+  (typeof issueComment.$inferSelect)[]
+> = async (ctx: DbContext, query: { threadId: number; }) => {...}
+```
+
+### `listThreads`
+
+```ts
+export const listThreads: Query<
+  ListThreadsQuery,
+  (typeof issueCommentThread.$inferSelect & {
+    comments: (typeof issueComment.$inferSelect)[];
+  })[]
+> = async (ctx: DbContext, query: { targetType: "issue" | "pr"; targetId: number; isReviewThread?: boolean | undefined; }) => {...}
 ```
 
 ### packages/domain/src/queries/language
@@ -2314,7 +2607,7 @@ export const listPreferences: Query<
 export const getSubjectPermissionTuples: Query<
   GetSubjectPermissionTuplesQuery,
   SubjectPermissionTupleRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "agent" | "role"; subjectId: string; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
 ```
 
 ### `listPermissionObjects`
@@ -2323,7 +2616,7 @@ export const getSubjectPermissionTuples: Query<
 export const listPermissionObjects: Query<
   ListPermissionObjectsQuery,
   PermissionObjectRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member")[] | undefined; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "agent" | "role"; subjectId: string; objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced")[] | undefined; }) => {...}
 ```
 
 ### `listPermissionSubjects`
@@ -2332,7 +2625,7 @@ export const listPermissionObjects: Query<
 export const listPermissionSubjects: Query<
   ListPermissionSubjectsQuery,
   PermissionSubjectRow[]
-> = async (ctx: DbContext, query: { objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "kanban_board" | "agent_definition"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { objectType: "comment" | "term" | "document" | "element" | "translation" | "user" | "system" | "project" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced" | undefined; }) => {...}
 ```
 
 ### `loadUserSystemRoles`
@@ -2536,6 +2829,56 @@ export const listProjectsByCreator: Query<
   ListProjectsByCreatorQuery,
   ListProjectsByCreatorResult
 > = async (ctx: DbContext, query: { creatorId: string; pageIndex?: number | undefined; pageSize?: number | undefined; }) => {...}
+```
+
+### packages/domain/src/queries/pull-request
+
+### `getPRByNumber`
+
+```ts
+/**
+ * Get a PR by (projectId, number).
+ */
+export const getPRByNumber: Query<
+  GetPRByNumberQuery,
+  typeof pullRequest.$inferSelect | null
+> = async (ctx: DbContext, query: { projectId: string; number: number; }) => {...}
+```
+
+### `getPRDiff`
+
+```ts
+/**
+ * Get the changeset entries (diff) for the branch associated with the PR.
+ */
+export const getPRDiff: Query<
+  GetPRDiffQuery,
+  (typeof changesetEntry.$inferSelect)[]
+> = async (ctx: DbContext, query: { prId: number; entityType?: "comment" | "term" | "document" | "element" | "translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
+```
+
+### `getPR`
+
+```ts
+/**
+ * Get a PR by externalId.
+ */
+export const getPR: Query<
+  GetPRQuery,
+  typeof pullRequest.$inferSelect | null
+> = async (ctx: DbContext, query: { id: string; }) => {...}
+```
+
+### `listPRs`
+
+```ts
+/**
+ * List PRs in a project with optional status filter and pagination.
+ */
+export const listPRs: Query<
+  ListPRsQuery,
+  (typeof pullRequest.$inferSelect)[]
+> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "MERGED" | "OPEN" | "CLOSED" | "DRAFT" | "REVIEW" | "CHANGES_REQUESTED" | undefined; }) => {...}
 ```
 
 ### packages/domain/src/queries/qa
@@ -2834,6 +3177,14 @@ export const searchChunkCosineSimilarity: Query<
 
 * `RegisterUserWithPasswordAccountResult` (type)
 
+* `CreateBranchCommand` (type)
+
+* `MarkBranchConflictedCommand` (type)
+
+* `UpdateBranchBaseChangesetCommand` (type)
+
+* `UpdateBranchStatusCommand` (type)
+
 * `AddChangesetEntryCommand` (type)
 
 * `CreateChangesetCommand` (type)
@@ -2855,6 +3206,8 @@ export const searchChunkCosineSimilarity: Query<
 * `DeleteCommentCommand` (type)
 
 * `UpsertCommentReactionCommand` (type)
+
+* `ParseAndSaveCrossReferencesCommand` (type)
 
 * `BulkUpdateChunkVectorMetadataCommand` (type)
 
@@ -2926,23 +3279,29 @@ export const searchChunkCosineSimilarity: Query<
 
 * `UpdateGlossaryConceptResult` (type)
 
-* `AddCardDepCommand` (type)
+* `CreateIssueCommentCommand` (type)
 
-* `ClaimCardCommand` (type)
+* `CreateThreadCommand` (type)
 
-* `ClaimCardResult` (type)
+* `DeleteIssueCommentCommand` (type)
 
-* `CreateBoardCommand` (type)
+* `ResolveThreadCommand` (type)
 
-* `CreateCardCommand` (type)
+* `UpdateIssueCommentCommand` (type)
 
-* `ReleaseCardCommand` (type)
+* `AssignIssueCommand` (type)
 
-* `RemoveCardDepCommand` (type)
+* `ClaimIssueCommand` (type)
 
-* `UpdateCardProgressCommand` (type)
+* `ClaimIssueResult` (type)
 
-* `UpdateCardStatusCommand` (type)
+* `CloseIssueCommand` (type)
+
+* `CreateIssueCommand` (type)
+
+* `ReopenIssueCommand` (type)
+
+* `UpdateIssueCommand` (type)
 
 * `EnsureLanguagesCommand` (type)
 
@@ -3006,13 +3365,31 @@ export const searchChunkCosineSimilarity: Query<
 
 * `UnlinkProjectMemoriesCommand` (type)
 
+* `UpdateProjectFeaturesCommand` (type)
+
 * `UpdateProjectCommand` (type)
+
+* `ClosePRCommand` (type)
+
+* `CreatePRCommand` (type)
+
+* `MergePRCommand` (type)
+
+* `ReviewDecision` (type)
+
+* `SubmitReviewCommand` (type)
+
+* `UpdatePRStatusCommand` (type)
+
+* `UpdatePRCommand` (type)
 
 * `CreateQaResultItemsCommand` (type)
 
 * `CreateQaResultWithItemsCommand` (type)
 
 * `CreateQaResultCommand` (type)
+
+* `AllocateNumberCommand` (type)
 
 * `CreateSessionRecordCommand` (interface)
 
@@ -3146,6 +3523,20 @@ export const searchChunkCosineSimilarity: Query<
 
 * `GetMfaProviderByServiceAndUserQuery` (type)
 
+* `GetBranchByIdQuery` (type)
+
+* `GetBranchQuery` (type)
+
+* `ListBranchesQuery` (type)
+
+* `GetLatestBranchChangesetIdQuery` (type)
+
+* `GetLatestMainChangesetIdQuery` (type)
+
+* `ListBranchChangesetIdsQuery` (type)
+
+* `ListMainEntriesSinceQuery` (type)
+
 * `GetChangesetQuery` (type)
 
 * `GetChangesetByExternalIdQuery` (type)
@@ -3153,6 +3544,8 @@ export const searchChunkCosineSimilarity: Query<
 * `ListChangesetsQuery` (type)
 
 * `GetChangesetEntriesQuery` (type)
+
+* `ListBranchChangesetEntriesQuery` (type)
 
 * `ListAllChunksQuery` (type)
 
@@ -3163,6 +3556,10 @@ export const searchChunkCosineSimilarity: Query<
 * `ListCommentReactionsQuery` (type)
 
 * `ListRootCommentsQuery` (type)
+
+* `ListReferencesFromQuery` (type)
+
+* `ListReferencesToQuery` (type)
 
 * `CountDocumentElementsQuery` (type)
 
@@ -3326,19 +3723,17 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ListTermConceptIdsBySubjectQuery` (type)
 
-* `GetBoardQuery` (type)
+* `ListCommentsQuery` (type)
 
-* `GetCardQuery` (type)
+* `ListThreadsQuery` (type)
 
-* `GetClaimableCardQuery` (type)
+* `GetClaimableIssueQuery` (type)
 
-* `ListBoardsQuery` (type)
+* `GetIssueByNumberQuery` (type)
 
-* `CardDepRow` (interface)
+* `GetIssueQuery` (type)
 
-* `ListCardDepsQuery` (type)
-
-* `ListCardsQuery` (type)
+* `ListIssuesQuery` (type)
 
 * `GetLanguageQuery` (type)
 
@@ -3467,6 +3862,14 @@ export const searchChunkCosineSimilarity: Query<
 * `ListProjectsByCreatorQuery` (type)
 
 * `ListProjectsByCreatorResult` (type)
+
+* `GetPRByNumberQuery` (type)
+
+* `GetPRDiffQuery` (type)
+
+* `GetPRQuery` (type)
+
+* `ListPRsQuery` (type)
 
 * `GetTranslationQaContextQuery` (type)
 

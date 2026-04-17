@@ -4,13 +4,25 @@ Database layer: Drizzle ORM schemas and Redis client
 
 ## Overview
 
-* **Modules**: 9
+* **Modules**: 10
 
-* **Exported functions**: 8
+* **Exported functions**: 9
 
 * **Exported types**: 6
 
 ## Function Index
+
+### packages/db/src/drizzle/migrations
+
+### `backfillDirectEditor`
+
+```ts
+/**
+ * One-time migration: grant direct_editor to all existing project editor/admin/owner subjects.
+ * This preserves the previous trust-by-default behaviour for existing projects.
+ */
+export async function backfillDirectEditor(db: DbHandle): Promise<void>
+```
 
 ### packages/db/src/utils
 

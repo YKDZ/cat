@@ -4,11 +4,11 @@ Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parse
 
 ## Overview
 
-* **Modules**: 28
+* **Modules**: 29
 
-* **Exported functions**: 18
+* **Exported functions**: 24
 
-* **Exported types**: 52
+* **Exported types**: 53
 
 ## Function Index
 
@@ -52,7 +52,7 @@ export const runDecisionNode = (data: AgentBlackboardData, ctx: Pick<AgentNodeCo
 
 ```ts
 /**
- * PreCheckNode (Phase 0b): step/timeout check + Kanban DAG dependency check + Blackboard update.
+ * PreCheckNode (Phase 0b): step/timeout check + Blackboard update.
  */
 export const runPreCheckNode = async (data: AgentBlackboardData, ctx: PreCheckContext): Promise<PreCheckResult>
 ```
@@ -132,19 +132,6 @@ export const runToolNode = async (data: AgentBlackboardData, ctx: Pick<
  * @returns ParsedAgentDefinition with validated metadata and body content
  */
 export const parseAgentDefinition = (markdown: string): ParsedAgentDefinition
-```
-
-### packages/agent/src/kanban
-
-### `estimateBatchSize`
-
-```ts
-/**
- * Estimate batch size based on document elements, average length, and complexity.
- *
- * @param input - Batch size estimation inputs
- */
-export const estimateBatchSize = (input: BatchSizeInput): number
 ```
 
 ### packages/agent/src/observability
@@ -227,6 +214,78 @@ export const registerBuiltinAgents = async (db: DbHandle): Promise<void>
 
 ### packages/agent/src/vcs
 
+### `detectConflicts`
+
+```ts
+/**
+ * Detects conflicts: compares main changes since branch creation with branch changes.
+ */
+export async function detectConflicts(db: DbHandle, branchId: number): Promise<ConflictInfo[]>
+```
+
+### `mergeBranch`
+
+```ts
+/**
+ * Merges a branch into main:
+ * 1. Detect conflicts
+ * 2. If conflicts exist, mark hasConflicts=true and return
+ * 3. If no conflicts, apply branch changes as a new main changeset
+ * 4. Update branch status=MERGED
+ *
+ * @param mergedByUserId - - UUID of the user performing the merge (or null for agent-initiated merges)
+ */
+export async function mergeBranch(db: DbHandle, branchId: number, mergedByUserId: string | null): Promise<MergeResult>
+```
+
+### `rebaseBranch`
+
+```ts
+/**
+ * Rebase: updates the branch's baseChangesetId to the latest main changeset.
+ */
+export async function rebaseBranch(db: DbHandle, branchId: number): Promise<RebaseResult>
+```
+
+### `readWithOverlay`
+
+```ts
+/**
+ * Reads an entity in branch context: checks the most recent branch changeset entry first,
+ * then falls back to main data.
+ * Returns null if deleted in branch, or if no branch changes exist (caller reads from main).
+ */
+export async function readWithOverlay(db: DbHandle, branchId: number, entityType: "translation" | "element" | "document" | "document_tree" | "comment" | "comment_reaction" | "term" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context", entityId: string): Promise<{ data: JSONType; action?: "CREATE" | "UPDATE" | "DELETE"; } | null>
+```
+
+### `listWithOverlay`
+
+```ts
+/**
+ * List query overlay: merges main data with branch changes
+ * (CREATE appended, DELETE removed, UPDATE overwritten).
+ */
+export async function listWithOverlay(db: DbHandle, branchId: number, entityType: "translation" | "element" | "document" | "document_tree" | "comment" | "comment_reaction" | "term" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context", mainItems: JSONType[], getItemId: (item: JSONType) => string): Promise<JSONType[]>
+```
+
+### `getBranchChangesetId`
+
+```ts
+/**
+ * Gets the latest changeset ID associated with the given branch.
+ */
+export async function getBranchChangesetId(db: DbHandle, branchId: number): Promise<number | null>
+```
+
+### `getBranchBaseChangesetId`
+
+```ts
+/**
+ * Gets the baseChangesetId of a branch.
+ */
+export async function getBranchBaseChangesetId(db: DbHandle, branchId: number): Promise<number | null>
+```
+
 ### `registerAllDiffStrategies`
 
 ```ts
@@ -282,7 +341,7 @@ export const createGenericStrategy = (options: {
 
 * `PreCheckResult` (interface) — PreCheckNode execution result.
 
-* `PreCheckServices` (interface) — Optional services available to PreCheckNode.
+* `PreCheckServices` (type) — Optional services available to PreCheckNode.
 
 * `PreCheckContext` (type)
 
@@ -291,8 +350,6 @@ export const createGenericStrategy = (options: {
 * `ReasoningNodeResult` (interface) — ReasoningNode execution result.
 
 * `ToolNodeResult` (interface) — ToolNode execution result.
-
-* `BatchSizeInput` (interface) — Heuristic function for automatically estimating Kanban card batchSize.
 
 * `LLMGatewayOptions` (interface) — LLMGateway initialization options.
 
@@ -311,8 +368,6 @@ export const createGenericStrategy = (options: {
 * `AgentErrorLogEvent` (interface) — L05: Agent error log event.
 
 * `AgentChangeSetLogEvent` (interface) — L06: ChangeSet event log (created, reviewed, applied, rolled\_back).
-
-* `AgentKanbanDepLogEvent` (interface) — L07: Kanban card dependency event log.
 
 * `AgentLogger` (interface) — Agent structured logger interface.
 
@@ -361,6 +416,12 @@ export const createGenericStrategy = (options: {
 * `ApplicationContext` (interface) — Context for applying a changeset entry.
 
 * `ApplicationMethod` (interface) — Application method interface, separating synchronous CRUD from async-dependent operations.
+
+* `ConflictInfo` (interface)
+
+* `MergeResult` (interface)
+
+* `RebaseResult` (interface)
 
 * `Changeset` (interface) — Changeset summary for internal agent use.
 

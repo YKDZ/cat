@@ -633,6 +633,7 @@ export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, _ct
  * - `glossary:created` → grants owner permission to the creator
  * - `memory:created` → grants owner permission to the creator
  * - `comment:created` → notifies the translation author of new comment
+ * - `pr:merged` → auto-closes linked issue if present
  *
  * Idempotent: repeated calls are no-ops.
  */

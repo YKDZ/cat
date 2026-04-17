@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 36
+* **Modules**: 39
 
 * **Exported functions**: 24
 
-* **Exported types**: 154
+* **Exported types**: 164
 
 ## Function Index
 
@@ -229,6 +229,8 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `AgentExternalOutput` (type)
 
+* `ToolCallLog` (type)
+
 * `ApiKey` (type)
 
 * `SessionRecord` (type)
@@ -255,6 +257,8 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `TranslatableElementContext` (type)
 
+* `EntityBranch` (type)
+
 * `File` (type)
 
 * `Blob` (type)
@@ -273,13 +277,17 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `TermRecallVariant` (type)
 
-* `KanbanBoard` (type)
+* `IssueCommentThread` (type)
 
-* `KanbanCard` (type)
+* `IssueComment` (type)
 
-* `KanbanCardDep` (type)
+* `CrossReference` (type)
 
-* `ToolCallLog` (type)
+* `ProjectSequence` (type)
+
+* `Issue` (type)
+
+* `IssueLabel` (type)
 
 * `SlotMappingEntry` (type)
 
@@ -316,6 +324,8 @@ export const safeJoinURL = (base: string, path: string): string
 * `Project` (type)
 
 * `ProjectTargetLanguage` (type)
+
+* `PullRequest` (type)
 
 * `QaResult` (type)
 
@@ -385,7 +395,17 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `NotificationStatus` (type)
 
-* `KanbanCardStatus` (type)
+* `IssueStatus` (type)
+
+* `PullRequestStatus` (type)
+
+* `EntityBranchStatus` (type)
+
+* `IssueCommentTargetType` (type)
+
+* `CrossReferenceSourceType` (type)
+
+* `CrossReferenceTargetType` (type)
 
 * `ChangesetStatus` (type)
 
