@@ -47,14 +47,19 @@ export class VCSMiddleware {
     entityType: string,
     entityId: string,
     action: "CREATE" | "UPDATE" | "DELETE",
-    before: JSONType,
-    after: JSONType,
+    before: unknown,
+    after: unknown,
     writeFn: () => Promise<T>,
   ): Promise<T> {
     if (ctx.mode === "isolation" && ctx.branchChangesetId !== undefined) {
       // Isolation mode: do NOT execute writeFn — only record the change to branch changeset
+      // Diff registry expects JSONType; domain entities are treated as JSON-compatible here.
       const diffResult = this.diffRegistry.has(entityType)
-        ? this.diffRegistry.diff(entityType, before, after)
+        ? this.diffRegistry.diff(
+            entityType,
+            before as JSONType,
+            after as JSONType,
+          )
         : null;
 
       await this.changeSetService.addEntry(ctx.branchChangesetId, {
@@ -66,8 +71,7 @@ export class VCSMiddleware {
         riskLevel: diffResult?.impactScope === "CASCADING" ? "MEDIUM" : "LOW",
       });
 
-      // Return `after` as the simulated result
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      // Return `after` as the simulated result of the intercepted write.
       return after as T;
     }
 
@@ -75,7 +79,11 @@ export class VCSMiddleware {
 
     if (ctx.mode === "audit" && ctx.currentChangesetId !== undefined) {
       const diffResult = this.diffRegistry.has(entityType)
-        ? this.diffRegistry.diff(entityType, before, after)
+        ? this.diffRegistry.diff(
+            entityType,
+            before as JSONType,
+            after as JSONType,
+          )
         : null;
 
       await this.changeSetService.addEntry(ctx.currentChangesetId, {

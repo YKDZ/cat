@@ -26,6 +26,7 @@ import { firstOrGivenService } from "@cat/server-shared";
 import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
 import { TermDataSchema } from "@cat/shared/schema/misc";
+import { listWithOverlay } from "@cat/vcs";
 import {
   createTermGraph,
   runGraph,
@@ -35,23 +36,50 @@ import {
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
+import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import { authed, checkPermission } from "@/orpc/server";
 import { getGraphRuntime } from "@/utils/graph-runtime";
+import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 export const deleteTerm = authed
   .input(
     z.object({
       termId: z.int(),
+      branchId: z.int().optional(),
     }),
   )
   .use(checkPermission("glossary", "editor"), (input) =>
     input.termId.toString(),
   )
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
+
+    if (
+      context.branchId !== undefined &&
+      context.branchChangesetId !== undefined
+    ) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      await middleware.interceptWrite(
+        {
+          mode: "isolation",
+          projectId: context.branchProjectId!,
+          branchId: context.branchId,
+          branchChangesetId: context.branchChangesetId,
+        },
+        "term",
+        String(input.termId),
+        "DELETE",
+        { termId: input.termId },
+        null,
+        async () => undefined,
+      );
+      return;
+    }
+
     const collector = createInProcessCollector(domainEventBus);
 
     const result = await executeCommand(
@@ -160,12 +188,40 @@ export const insertTerm = authed
     z.object({
       glossaryId: z.uuidv4(),
       termsData: z.array(TermDataSchema),
+      branchId: z.int().optional(),
     }),
   )
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(z.void())
   .handler(async ({ context, input }) => {
     const { pluginManager, user } = context;
     const { termsData, glossaryId } = input;
+
+    if (
+      context.branchId !== undefined &&
+      context.branchChangesetId !== undefined
+    ) {
+      const {
+        drizzleDB: { client: drizzle },
+      } = context;
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const entityId = crypto.randomUUID();
+      await middleware.interceptWrite(
+        {
+          mode: "isolation",
+          projectId: context.branchProjectId!,
+          branchId: context.branchId,
+          branchChangesetId: context.branchChangesetId,
+        },
+        "term",
+        entityId,
+        "CREATE",
+        null,
+        { glossaryId, termsData, creatorId: user.id },
+        async () => undefined,
+      );
+      return;
+    }
 
     const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
@@ -368,17 +424,35 @@ export const getConceptSubjects = authed
   .input(
     z.object({
       glossaryId: z.string(),
+      branchId: z.int().optional(),
     }),
   )
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(z.array(z.object({ id: z.int(), subject: z.string() })))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
 
-    return await executeQuery({ db: drizzle }, listGlossaryConceptSubjects, {
-      glossaryId: input.glossaryId,
-    });
+    const mainItems = await executeQuery(
+      { db: drizzle },
+      listGlossaryConceptSubjects,
+      {
+        glossaryId: input.glossaryId,
+      },
+    );
+
+    if (context.branchId !== undefined) {
+      return await listWithOverlay(
+        drizzle,
+        context.branchId,
+        "term",
+        mainItems,
+        (item) => String(item.id),
+      );
+    }
+
+    return mainItems;
   });
 
 // ─── Workflow Runner — Term Discovery ────────────────────────────────────────

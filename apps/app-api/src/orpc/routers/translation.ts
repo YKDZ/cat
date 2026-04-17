@@ -32,6 +32,7 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
+import { listWithOverlay } from "@cat/vcs";
 import {
   CreateTranslationPubPayloadSchema,
   batchAutoTranslateGraph,
@@ -42,6 +43,7 @@ import {
 import { ORPCError } from "@orpc/client";
 import * as z from "zod/v4";
 
+import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import {
   authed,
   checkDocumentPermission,
@@ -49,6 +51,7 @@ import {
   checkTranslationPermission,
 } from "@/orpc/server";
 import { getGraphRuntime } from "@/utils/graph-runtime";
+import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 const TranslationDataSchema = TranslationSchema.omit({
   updatedAt: true,
@@ -83,9 +86,11 @@ export const create = authed
       languageId: z.string(),
       text: z.string(),
       createMemory: z.boolean().default(true),
+      branchId: z.int().optional(),
     }),
   )
   .use(checkElementPermission("editor"), (i) => i.elementId)
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -94,6 +99,30 @@ export const create = authed
       pluginManager,
     } = context;
     const { elementId, languageId, text, createMemory } = input;
+
+    // Isolation write: record translation in branch changeset
+    if (
+      context.branchId !== undefined &&
+      context.branchChangesetId !== undefined
+    ) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const entityId = crypto.randomUUID();
+      await middleware.interceptWrite(
+        {
+          mode: "isolation",
+          projectId: context.branchProjectId!,
+          branchId: context.branchId,
+          branchChangesetId: context.branchChangesetId,
+        },
+        "translation",
+        entityId,
+        "CREATE",
+        null,
+        { elementId, languageId, text, translatorId: user.id },
+        async () => undefined,
+      );
+      return;
+    }
 
     const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
@@ -203,9 +232,11 @@ export const getAll = authed
     z.object({
       elementId: z.int(),
       languageId: z.string(),
+      branchId: z.int().optional(),
     }),
   )
   .use(checkElementPermission("viewer"), (i) => i.elementId)
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(z.array(TranslationDataSchema))
   .handler(async ({ context, input }) => {
     const {
@@ -213,10 +244,26 @@ export const getAll = authed
     } = context;
     const { elementId, languageId } = input;
 
-    return await executeQuery({ db: drizzle }, listTranslationsByElement, {
-      elementId,
-      languageId,
-    });
+    const mainItems = await executeQuery(
+      { db: drizzle },
+      listTranslationsByElement,
+      {
+        elementId,
+        languageId,
+      },
+    );
+
+    if (context.branchId !== undefined) {
+      return await listWithOverlay(
+        drizzle,
+        context.branchId,
+        "translation",
+        mainItems,
+        (item) => String(item.id),
+      );
+    }
+
+    return mainItems;
   });
 
 export const vote = authed

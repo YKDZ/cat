@@ -87,6 +87,8 @@ const createContext = (input?: { promptEngine?: PromptEngine }) => {
       },
       startedAt: new Date("2026-04-11T00:00:00.000Z"),
       logger: createNoopAgentLogger(),
+      vcsMode: "trust" as const,
+      permissionChecker: async () => true,
     },
   };
 };

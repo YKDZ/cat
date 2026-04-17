@@ -27,14 +27,13 @@ import {
   updateBranchStatus,
 } from "@cat/domain";
 import { setupTestDB } from "@cat/test-utils";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
-
-import { detectConflicts, mergeBranch, rebaseBranch } from "../branch-merge.ts";
+import { detectConflicts, mergeBranch, rebaseBranch } from "@cat/vcs";
 import {
   getBranchChangesetId,
   listWithOverlay,
   readWithOverlay,
-} from "../branch-overlay.ts";
+} from "@cat/vcs";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 // ─── Test State ───────────────────────────────────────────────────────────────
 

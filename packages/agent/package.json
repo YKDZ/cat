@@ -35,9 +35,12 @@
     "@cat/core": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/graph": "workspace:*",
+    "@cat/operations": "workspace:*",
+    "@cat/permissions": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@cat/vcs": "workspace:*",
     "@cat/workflow": "workspace:*",
     "zod": "catalog:"
   }

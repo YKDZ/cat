@@ -1,0 +1,10 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+
+tasks:
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-vcs"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"

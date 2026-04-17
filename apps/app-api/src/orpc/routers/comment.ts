@@ -17,9 +17,12 @@ import {
   CommentReactionTypeSchema,
   CommentTargetTypeSchema,
 } from "@cat/shared/schema/enum";
+import { listWithOverlay } from "@cat/vcs";
 import * as z from "zod";
 
+import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import { authed } from "@/orpc/server";
+import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 export const comment = authed
   .input(
@@ -29,14 +32,52 @@ export const comment = authed
       parentCommentId: z.int().optional(),
       content: z.string(),
       languageId: z.string(),
+      branchId: z.number().int().optional(),
     }),
   )
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(CommentSchema)
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
       user,
     } = context;
+
+    if (
+      context.branchId !== undefined &&
+      context.branchChangesetId !== undefined
+    ) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const entityId = crypto.randomUUID();
+      const commentData = {
+        targetType: input.targetType,
+        targetId: input.targetId,
+        content: input.content,
+        languageId: input.languageId,
+        userId: user.id,
+      };
+      return await middleware.interceptWrite(
+        {
+          mode: "isolation",
+          projectId: context.branchProjectId!,
+          branchId: context.branchId,
+          branchChangesetId: context.branchChangesetId,
+        },
+        "comment",
+        entityId,
+        "CREATE",
+        null,
+        commentData,
+        async () => ({
+          id: 0,
+          parentCommentId: null,
+          rootCommentId: null,
+          ...commentData,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
+    }
 
     return await executeCommand({ db: drizzle }, createComment, {
       ...input,
@@ -51,15 +92,33 @@ export const getRootComments = authed
       targetId: z.int(),
       pageIndex: z.int().nonnegative(),
       pageSize: z.int().positive(),
+      branchId: z.number().int().optional(),
     }),
   )
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(z.array(CommentSchema))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
 
-    return await executeQuery({ db: drizzle }, listRootComments, input);
+    const mainItems = await executeQuery(
+      { db: drizzle },
+      listRootComments,
+      input,
+    );
+
+    if (context.branchId !== undefined) {
+      return await listWithOverlay(
+        drizzle,
+        context.branchId,
+        "comment",
+        mainItems,
+        (item) => String(item.id),
+      );
+    }
+
+    return mainItems;
   });
 
 export const getChildComments = authed

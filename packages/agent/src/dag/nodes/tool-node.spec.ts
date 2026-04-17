@@ -51,6 +51,8 @@ describe("runToolNode", () => {
           sourceLanguageId: "en-US",
         },
         logger: createNoopAgentLogger(),
+        vcsMode: "trust",
+        permissionChecker: async () => true,
       },
     );
 

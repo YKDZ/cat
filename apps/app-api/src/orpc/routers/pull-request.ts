@@ -13,8 +13,6 @@ import {
   GetPRQuerySchema,
   listPRs,
   ListPRsQuerySchema,
-  mergePR,
-  MergePRCommandSchema,
   submitReview,
   SubmitReviewCommandSchema,
   updatePR,
@@ -22,6 +20,7 @@ import {
   updatePRStatus,
   UpdatePRStatusCommandSchema,
 } from "@cat/domain";
+import { mergePRFull, rebasePRFull } from "@cat/operations";
 import { PullRequestSchema } from "@cat/shared/schema/drizzle/pull-request";
 import * as z from "zod/v4";
 
@@ -98,16 +97,53 @@ export const updateProjectPRStatus = authed
     return await executeCommand({ db }, updatePRStatus, input);
   });
 
-/** Merge a pull request */
+/** Merge a pull request (full merge flow with conflict detection) */
 export const mergeProjectPR = authed
-  .input(MergePRCommandSchema)
+  .input(
+    z.object({
+      prExternalId: z.uuidv4(),
+      mergedBy: z.string().min(1),
+    }),
+  )
   .use(checkPermission("project", "editor"), () => "*")
-  .output(PullRequestSchema)
+  .output(
+    z.object({
+      success: z.boolean(),
+      hasConflicts: z.boolean(),
+      conflicts: z.array(z.unknown()),
+      prId: z.int(),
+      mainChangesetId: z.int().optional(),
+      errorMessage: z.string().optional(),
+    }),
+  )
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: db },
     } = context;
-    return await executeCommand({ db }, mergePR, input);
+    return await mergePRFull({ db }, input);
+  });
+
+/** Rebase a pull request onto the latest main branch */
+export const rebaseProjectPR = authed
+  .input(
+    z.object({
+      prExternalId: z.uuidv4(),
+    }),
+  )
+  .use(checkPermission("project", "editor"), () => "*")
+  .output(
+    z.object({
+      success: z.boolean(),
+      newBaseChangesetId: z.int().nullable(),
+      hasConflicts: z.boolean(),
+      conflicts: z.array(z.unknown()),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: db },
+    } = context;
+    return await rebasePRFull({ db }, input);
   });
 
 /** Close a pull request */

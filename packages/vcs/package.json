@@ -1,0 +1,30 @@
+{
+  "name": "@cat/vcs",
+  "version": "0.0.1",
+  "description": "VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "src",
+    "package.json"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@cat/domain": "workspace:*",
+    "@cat/shared": "workspace:*"
+  }
+}
