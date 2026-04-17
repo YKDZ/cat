@@ -7,6 +7,7 @@ export const ProjectSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   creatorId: z.uuidv4(),
+  features: z.object({ issues: z.boolean(), pullRequests: z.boolean() }),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

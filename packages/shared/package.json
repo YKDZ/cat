@@ -66,10 +66,6 @@
       "types": "./dist/schema/drizzle/agent.d.ts",
       "import": "./dist/schema/drizzle/agent.js"
     },
-    "./schema/drizzle/kanban": {
-      "types": "./dist/schema/drizzle/kanban.d.ts",
-      "import": "./dist/schema/drizzle/kanban.js"
-    },
     "./schema/drizzle/changeset": {
       "types": "./dist/schema/drizzle/changeset.d.ts",
       "import": "./dist/schema/drizzle/changeset.js"
@@ -106,6 +102,22 @@
       "types": "./dist/schema/drizzle/comment.d.ts",
       "import": "./dist/schema/drizzle/comment.js",
       "require": "./dist/schema/drizzle/comment.cjs"
+    },
+    "./schema/drizzle/issue": {
+      "types": "./dist/schema/drizzle/issue.d.ts",
+      "import": "./dist/schema/drizzle/issue.js"
+    },
+    "./schema/drizzle/pull-request": {
+      "types": "./dist/schema/drizzle/pull-request.d.ts",
+      "import": "./dist/schema/drizzle/pull-request.js"
+    },
+    "./schema/drizzle/entity-branch": {
+      "types": "./dist/schema/drizzle/entity-branch.d.ts",
+      "import": "./dist/schema/drizzle/entity-branch.js"
+    },
+    "./schema/drizzle/issue-comment": {
+      "types": "./dist/schema/drizzle/issue-comment.d.ts",
+      "import": "./dist/schema/drizzle/issue-comment.js"
     },
     "./schema/agent": {
       "types": "./dist/schema/agent.d.ts",

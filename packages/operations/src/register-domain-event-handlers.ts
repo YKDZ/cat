@@ -2,7 +2,9 @@ import type { DrizzleClient } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
 
 import {
+  closeIssue,
   domainEventBus,
+  executeCommand,
   executeQuery,
   getCommentRecipient,
   type DomainEventMap,
@@ -68,6 +70,7 @@ const onMemoryCreated = async (
  * - `glossary:created` → 授予创建者 owner 权限
  * - `memory:created` → 授予创建者 owner 权限
  * - `comment:created` → 向翻译作者发送评论通知
+ * - `pr:merged` → 如关联 Issue 则自动关闭 Issue
  *
  * 具备内置幂等性防护，重复调用不会重复注册。
  * @en Register domain event handlers (global singleton).
@@ -78,6 +81,7 @@ const onMemoryCreated = async (
  * - `glossary:created` → grants owner permission to the creator
  * - `memory:created` → grants owner permission to the creator
  * - `comment:created` → notifies the translation author of new comment
+ * - `pr:merged` → auto-closes linked issue if present
  *
  * Idempotent: repeated calls are no-ops.
  */
@@ -147,6 +151,36 @@ export const registerDomainEventHandlers = (
       logger
         .withSituation("SERVER")
         .error(error, "Failed to handle comment:created event");
+    }
+  });
+
+  domainEventBus.subscribe("issue:closed", async (event) => {
+    try {
+      logger
+        .withSituation("SERVER")
+        .info(
+          `Issue ${event.payload.issueId} closed${event.payload.closedByPRId ? ` by PR ${event.payload.closedByPRId}` : ""}`,
+        );
+    } catch (error) {
+      logger
+        .withSituation("SERVER")
+        .error(error, "Failed to handle issue:closed event");
+    }
+  });
+
+  domainEventBus.subscribe("pr:merged", async (event) => {
+    try {
+      const { issueId, prId } = event.payload;
+      if (issueId !== undefined) {
+        await executeCommand({ db }, closeIssue, {
+          issueId,
+          closedByPRId: prId,
+        });
+      }
+    } catch (error) {
+      logger
+        .withSituation("SERVER")
+        .error(error, "Failed to handle pr:merged event");
     }
   });
 

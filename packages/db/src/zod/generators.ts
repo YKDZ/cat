@@ -53,10 +53,15 @@ import {
   changeset,
   changesetEntry,
   entitySnapshot,
-  kanbanCardDep,
-  kanbanCard,
-  kanbanBoard,
   toolCallLog,
+  issue,
+  issueLabel,
+  pullRequest,
+  entityBranch,
+  issueCommentThread,
+  issueComment,
+  crossReference,
+  projectSequence,
 } from "../drizzle/schema/schema.ts";
 
 const { createSelectSchema } = createSchemaFactory({ zodInstance: z });
@@ -113,10 +118,15 @@ type SelectSchemaTable =
   | typeof changeset
   | typeof changesetEntry
   | typeof entitySnapshot
-  | typeof kanbanBoard
-  | typeof kanbanCard
-  | typeof kanbanCardDep
-  | typeof toolCallLog;
+  | typeof toolCallLog
+  | typeof issue
+  | typeof issueLabel
+  | typeof pullRequest
+  | typeof entityBranch
+  | typeof issueCommentThread
+  | typeof issueComment
+  | typeof crossReference
+  | typeof projectSequence;
 
 type TableDeclaration = {
   kind: "table";
@@ -192,6 +202,10 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "ProjectSchema",
         typeExportName: "Project",
         buildShape: buildSelectShape(project),
+        overrides: {
+          features:
+            "z.object({ issues: z.boolean(), pullRequests: z.boolean() })",
+        },
       },
       {
         kind: "table",
@@ -514,6 +528,16 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
           payload: "nonNullSafeZDotJson",
         },
       },
+      {
+        kind: "table",
+        schemaExportName: "ToolCallLogSchema",
+        typeExportName: "ToolCallLog",
+        buildShape: buildSelectShape(toolCallLog),
+        overrides: {
+          arguments: "nonNullSafeZDotJson",
+          result: "safeZDotJson.nullable()",
+        },
+      },
     ],
   },
   {
@@ -560,48 +584,6 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(entitySnapshot),
         overrides: {
           scopeFilter: "safeZDotJson.nullable()",
-        },
-      },
-    ],
-  },
-  {
-    outputFile: "kanban.ts",
-    declarations: [
-      {
-        kind: "table",
-        schemaExportName: "KanbanBoardSchema",
-        typeExportName: "KanbanBoard",
-        buildShape: buildSelectShape(kanbanBoard),
-        overrides: {
-          columns: "nonNullSafeZDotJson",
-          metadata: "safeZDotJson.nullable()",
-        },
-      },
-      {
-        kind: "table",
-        schemaExportName: "KanbanCardSchema",
-        typeExportName: "KanbanCard",
-        buildShape: buildSelectShape(kanbanCard),
-        overrides: {
-          labels: "z.array(z.string())",
-          metadata: "safeZDotJson.nullable()",
-          linkedChangesetIds: "z.array(z.string()).nullable()",
-        },
-      },
-      {
-        kind: "table",
-        schemaExportName: "KanbanCardDepSchema",
-        typeExportName: "KanbanCardDep",
-        buildShape: buildSelectShape(kanbanCardDep),
-      },
-      {
-        kind: "table",
-        schemaExportName: "ToolCallLogSchema",
-        typeExportName: "ToolCallLog",
-        buildShape: buildSelectShape(toolCallLog),
-        overrides: {
-          arguments: "nonNullSafeZDotJson",
-          result: "safeZDotJson.nullable()",
         },
       },
     ],
@@ -667,6 +649,86 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
       manualDeclaration(
         `export const VectorSchema = z.object({\n  id: z.int(),\n  vector: z.array(z.number()),\n  chunkId: z.int(),\n});\n\nexport type Vector = z.infer<typeof VectorSchema>;`,
       ),
+    ],
+  },
+  {
+    outputFile: "issue.ts",
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "ProjectSequenceSchema",
+        typeExportName: "ProjectSequence",
+        buildShape: buildSelectShape(projectSequence),
+      },
+      {
+        kind: "table",
+        schemaExportName: "IssueSchema",
+        typeExportName: "Issue",
+        buildShape: buildSelectShape(issue),
+        overrides: {
+          assignees: "nonNullSafeZDotJson",
+          claimPolicy: "safeZDotJson.nullable()",
+          metadata: "safeZDotJson.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "IssueLabelSchema",
+        typeExportName: "IssueLabel",
+        buildShape: buildSelectShape(issueLabel),
+      },
+    ],
+  },
+  {
+    outputFile: "pull-request.ts",
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "PullRequestSchema",
+        typeExportName: "PullRequest",
+        buildShape: buildSelectShape(pullRequest),
+        overrides: {
+          reviewers: "nonNullSafeZDotJson",
+          metadata: "safeZDotJson.nullable()",
+        },
+      },
+    ],
+  },
+  {
+    outputFile: "entity-branch.ts",
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "EntityBranchSchema",
+        typeExportName: "EntityBranch",
+        buildShape: buildSelectShape(entityBranch),
+      },
+    ],
+  },
+  {
+    outputFile: "issue-comment.ts",
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "IssueCommentThreadSchema",
+        typeExportName: "IssueCommentThread",
+        buildShape: buildSelectShape(issueCommentThread),
+        overrides: {
+          reviewContext: "safeZDotJson.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "IssueCommentSchema",
+        typeExportName: "IssueComment",
+        buildShape: buildSelectShape(issueComment),
+      },
+      {
+        kind: "table",
+        schemaExportName: "CrossReferenceSchema",
+        typeExportName: "CrossReference",
+        buildShape: buildSelectShape(crossReference),
+      },
     ],
   },
 ];

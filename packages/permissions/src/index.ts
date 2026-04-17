@@ -5,3 +5,4 @@ export * from "@/cache";
 export * from "@/audit";
 export * from "@/seed";
 export * from "@/singleton";
+export * from "@/trust-isolation";

@@ -61,8 +61,8 @@ export const AgentSessionMetadataSchema = z.object({
   elementId: z.int().optional(),
   languageId: z.string().optional(),
   sourceLanguageId: z.string().optional(),
-  kanbanBoardId: z.int().optional(),
-  kanbanCardId: z.int().optional(),
+  issueId: z.int().optional(),
+  pullRequestId: z.int().optional(),
 });
 
 // ─── Runtime Constraints ───

@@ -13,9 +13,7 @@ export interface AgentMetricsSnapshot {
   toolCalls: Record<string, number>;
   /** M04: agent.errors per category */
   errors: Record<string, number>;
-  /** M05: team.kanban.throughput (cards completed) */
-  kanbanThroughput: number;
-  /** M06: vcs.changeset.created */
+  /** M05: vcs.changeset.created */
   changesetCreatedCount: number;
   /** M07: vcs.changeset.entry per entityType */
   changesetEntryByType: Record<string, number>;
@@ -35,7 +33,6 @@ export class AgentMetrics {
   private readonly nodeDurations: Record<string, number[]> = {};
   private readonly toolCalls: Record<string, number> = {};
   private readonly errors: Record<string, number> = {};
-  private kanbanThroughput = 0;
   private changesetCreatedCount = 0;
   private readonly changesetEntryByType: Record<string, number> = {};
   private occConflictCount = 0;
@@ -84,24 +81,16 @@ export class AgentMetrics {
   }
 
   /**
-   * @zh 记录 Kanban 卡片完成（M05）。
-   * @en Record kanban card completion (M05).
-   */
-  recordKanbanCardCompleted(): void {
-    this.kanbanThroughput += 1;
-  }
-
-  /**
-   * @zh 记录 ChangeSet 创建（M06）。
-   * @en Record ChangeSet creation (M06).
+   * @zh 记录 ChangeSet 创建（M05）。
+   * @en Record ChangeSet creation (M05).
    */
   recordChangesetCreated(): void {
     this.changesetCreatedCount += 1;
   }
 
   /**
-   * @zh 记录 ChangeSet entry 按 entityType 计数（M07）。
-   * @en Record ChangeSet entry count by entityType (M07).
+   * @zh 记录 ChangeSet entry 按 entityType 计数（M06）。
+   * @en Record ChangeSet entry count by entityType (M06).
    *
    * @param entityType - {@zh 实体类型} {@en Entity type}
    */
@@ -111,8 +100,8 @@ export class AgentMetrics {
   }
 
   /**
-   * @zh 记录 OCC 冲突次数（M08）。
-   * @en Record OCC conflict count (M08).
+   * @zh 记录 OCC 冲突次数（M07）。
+   * @en Record OCC conflict count (M07).
    */
   recordOCCConflict(): void {
     this.occConflictCount += 1;
@@ -131,7 +120,6 @@ export class AgentMetrics {
       nodeDurations: structuredClone(this.nodeDurations),
       toolCalls: structuredClone(this.toolCalls),
       errors: structuredClone(this.errors),
-      kanbanThroughput: this.kanbanThroughput,
       changesetCreatedCount: this.changesetCreatedCount,
       changesetEntryByType: structuredClone(this.changesetEntryByType),
       occConflictCount: this.occConflictCount,

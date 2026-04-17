@@ -22,7 +22,6 @@ const props = defineProps<{
     asyncStatus: string | null;
     createdAt: Date | string;
     agentRunId: number | null;
-    linkedCardId: number | null;
   };
 }>();
 
@@ -101,9 +100,6 @@ const formattedDate = computed(() => {
           <span>{{ formattedDate }}</span>
           <span v-if="changeset.agentRunId">{{
             t("智能体运行 #{id}", { id: changeset.agentRunId })
-          }}</span>
-          <span v-if="changeset.linkedCardId">{{
-            t("关联卡片 #{id}", { id: changeset.linkedCardId })
           }}</span>
         </div>
       </div>

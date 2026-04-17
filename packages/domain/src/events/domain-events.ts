@@ -59,6 +59,39 @@ export type DomainEventMap = {
     recipientId: string;
     status: string;
   };
+  // ─── Issue System ───
+  "issue:created": { projectId: string; issueId: number; number: number };
+  "issue:updated": { issueId: number };
+  "issue:closed": { issueId: number; closedByPRId?: number };
+  "issue:reopened": { issueId: number };
+  "issue:assigned": {
+    issueId: number;
+    assignees: Array<{ type: string; id: string }>;
+  };
+  "issue:claimed": { issueId: number; claimedBy: string };
+  // ─── PR System ───
+  "pr:created": {
+    projectId: string;
+    prId: number;
+    number: number;
+    issueId?: number;
+  };
+  "pr:updated": { prId: number };
+  "pr:status-changed": { prId: number; oldStatus: string; newStatus: string };
+  "pr:merged": { prId: number; issueId?: number; mergedBy: string };
+  "pr:closed": { prId: number };
+  "pr:review-submitted": {
+    prId: number;
+    reviewerId: string;
+    decision: string;
+  };
+  // ─── Issue Comment System ───
+  "issue-comment:created": {
+    threadId: number;
+    commentId: number;
+    targetType: string;
+    targetId: number;
+  };
 };
 
 export type DomainEvent = AnyEventOf<DomainEventMap>;

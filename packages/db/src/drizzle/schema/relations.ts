@@ -149,6 +149,13 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       }),
       languages: r.many.language(),
       snapshots: r.many.translationSnapshot(),
+      projectSequence: r.one.projectSequence({
+        from: r.project.id,
+        to: r.projectSequence.projectId,
+      }),
+      issues: r.many.issue(),
+      pullRequests: r.many.pullRequest(),
+      entityBranches: r.many.entityBranch(),
     },
     documentClosure: {
       documentAncestor: r.one.document({
@@ -473,6 +480,14 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.user.id,
       }),
       runs: r.many.agentRun(),
+      issue: r.one.issue({
+        from: r.agentSession.issueId,
+        to: r.issue.id,
+      }),
+      pullRequest: r.one.pullRequest({
+        from: r.agentSession.pullRequestId,
+        to: r.pullRequest.id,
+      }),
     },
     agentRun: {
       session: r.one.agentSession({
@@ -492,23 +507,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       run: r.one.agentRun({
         from: r.agentExternalOutput.runId,
         to: r.agentRun.id,
-      }),
-    },
-    kanbanBoard: {
-      cards: r.many.kanbanCard(),
-    },
-    kanbanCard: {
-      board: r.one.kanbanBoard({
-        from: r.kanbanCard.boardId,
-        to: r.kanbanBoard.id,
-      }),
-      assigneeAgent: r.one.agentDefinition({
-        from: r.kanbanCard.assigneeAgentId,
-        to: r.agentDefinition.id,
-      }),
-      assigneeUser: r.one.user({
-        from: r.kanbanCard.assigneeUserId,
-        to: r.user.id,
       }),
     },
     toolCallLog: {
@@ -543,6 +541,118 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       user: r.one.user({
         from: r.userMessagePreference.userId,
         to: r.user.id,
+      }),
+    },
+
+    // ─── Issue + PR System Relations ───
+
+    projectSequence: {
+      project: r.one.project({
+        from: r.projectSequence.projectId,
+        to: r.project.id,
+      }),
+    },
+    issue: {
+      project: r.one.project({
+        from: r.issue.projectId,
+        to: r.project.id,
+      }),
+      author: r.one.user({
+        from: r.issue.authorId,
+        to: r.user.id,
+      }),
+      authorAgent: r.one.agentDefinition({
+        from: r.issue.authorAgentId,
+        to: r.agentDefinition.id,
+      }),
+      labels: r.many.issueLabel(),
+      parentIssue: r.one.issue({
+        from: r.issue.parentIssueId,
+        to: r.issue.id,
+      }),
+      childIssues: r.many.issue({
+        from: r.issue.id,
+        to: r.issue.parentIssueId,
+      }),
+      pullRequests: r.many.pullRequest(),
+      commentThreads: r.many.issueCommentThread({
+        from: r.issue.id,
+        to: r.issueCommentThread.targetId,
+      }),
+    },
+    issueLabel: {
+      issue: r.one.issue({
+        from: r.issueLabel.issueId,
+        to: r.issue.id,
+      }),
+    },
+    pullRequest: {
+      project: r.one.project({
+        from: r.pullRequest.projectId,
+        to: r.project.id,
+      }),
+      author: r.one.user({
+        from: r.pullRequest.authorId,
+        to: r.user.id,
+      }),
+      authorAgent: r.one.agentDefinition({
+        from: r.pullRequest.authorAgentId,
+        to: r.agentDefinition.id,
+      }),
+      issue: r.one.issue({
+        from: r.pullRequest.issueId,
+        to: r.issue.id,
+      }),
+      entityBranch: r.one.entityBranch({
+        from: r.pullRequest.branchId,
+        to: r.entityBranch.id,
+      }),
+      commentThreads: r.many.issueCommentThread({
+        from: r.pullRequest.id,
+        to: r.issueCommentThread.targetId,
+      }),
+    },
+    entityBranch: {
+      project: r.one.project({
+        from: r.entityBranch.projectId,
+        to: r.project.id,
+      }),
+      creator: r.one.user({
+        from: r.entityBranch.createdBy,
+        to: r.user.id,
+      }),
+      creatorAgent: r.one.agentDefinition({
+        from: r.entityBranch.createdByAgentId,
+        to: r.agentDefinition.id,
+      }),
+      pullRequests: r.many.pullRequest(),
+      changesets: r.many.changeset(),
+    },
+    issueCommentThread: {
+      comments: r.many.issueComment(),
+    },
+    issueComment: {
+      thread: r.one.issueCommentThread({
+        from: r.issueComment.threadId,
+        to: r.issueCommentThread.id,
+      }),
+      author: r.one.user({
+        from: r.issueComment.authorId,
+        to: r.user.id,
+      }),
+      authorAgent: r.one.agentDefinition({
+        from: r.issueComment.authorAgentId,
+        to: r.agentDefinition.id,
+      }),
+    },
+    changeset: {
+      pullRequest: r.one.pullRequest({
+        from: r.changeset.pullRequestId,
+        to: r.pullRequest.id,
+      }),
+      entityBranch: r.one.entityBranch({
+        from: r.changeset.branchId,
+        to: r.entityBranch.id,
       }),
     },
   }));

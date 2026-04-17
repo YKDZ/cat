@@ -25,12 +25,12 @@ export interface ToolExecutionContext {
     projectId: string;
     runId: string;
     providerId?: number;
-    kanbanBoardId?: number;
-    kanbanCardId?: number;
     documentId?: string;
     elementId?: number;
     languageId?: string;
     sourceLanguageId?: string;
+    issueId?: number;
+    pullRequestId?: number;
   };
   /** @zh 权限检查接口 @en Permission checking interface */
   permissions: {

@@ -4,4 +4,4 @@ stack: "backend"
 
 workspace:
   inheritedTasks:
-    exclude: ["test"]
+    exclude: []

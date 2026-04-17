@@ -23,6 +23,10 @@
       "import": "./dist/index.js"
     }
   },
+  "scripts": {
+    "test": "vitest run --config ../../vitest.config.ts --project=unit-permissions",
+    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-permissions"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "unplugin-dts": "catalog:",

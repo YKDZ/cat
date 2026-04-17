@@ -46,10 +46,6 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/drizzle/agent.ts",
         ),
-        "schema/drizzle/kanban": resolve(
-          import.meta.dirname,
-          "src/schema/drizzle/kanban.ts",
-        ),
         "schema/drizzle/memory": resolve(
           import.meta.dirname,
           "src/schema/drizzle/memory.ts",
@@ -81,6 +77,22 @@ export default defineConfig({
         "schema/drizzle/comment": resolve(
           import.meta.dirname,
           "src/schema/drizzle/comment.ts",
+        ),
+        "schema/drizzle/issue": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/issue.ts",
+        ),
+        "schema/drizzle/pull-request": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/pull-request.ts",
+        ),
+        "schema/drizzle/entity-branch": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/entity-branch.ts",
+        ),
+        "schema/drizzle/issue-comment": resolve(
+          import.meta.dirname,
+          "src/schema/drizzle/issue-comment.ts",
         ),
         "schema/nlp": resolve(import.meta.dirname, "src/schema/nlp.ts"),
         "schema/permission": resolve(

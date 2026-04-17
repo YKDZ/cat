@@ -145,19 +145,13 @@ const executeAgentTranslation = async (
     getNeighborsTool,
     getTranslationsTool,
     submitTranslationTool,
-    kanbanClaimTool,
-    kanbanListTool,
-    kanbanUpdateTool,
-    createAddCardDependencyTool,
-    createRemoveCardDependencyTool,
-    createListCardDependenciesTool,
   } = await import("@cat/agent-tools");
   const { firstOrGivenService, resolvePluginManager } =
     await import("@cat/server-shared");
   const { executeQuery, listTranslationsByElement } =
     await import("@cat/domain");
 
-  // ── Tool registry (all 17 builtin tools) ─────────────────────────────────
+  // ── Tool registry ────────────────────────────────────────────────────────
   const toolRegistry = new ToolRegistry();
   for (const tool of [
     finishTool,
@@ -171,12 +165,6 @@ const executeAgentTranslation = async (
     getNeighborsTool,
     getTranslationsTool,
     submitTranslationTool,
-    kanbanClaimTool,
-    kanbanListTool,
-    kanbanUpdateTool,
-    createAddCardDependencyTool(),
-    createRemoveCardDependencyTool(),
-    createListCardDependenciesTool(),
   ]) {
     toolRegistry.register(tool);
   }
@@ -255,7 +243,10 @@ const executeAgentTranslation = async (
       if (Date.now() >= overallDeadline) break;
 
       if (attempt > 0) {
-        const waitMs = Math.min(BATCH_RETRY_DELAY_MS, overallDeadline - Date.now());
+        const waitMs = Math.min(
+          BATCH_RETRY_DELAY_MS,
+          overallDeadline - Date.now(),
+        );
         console.log(
           `[eval] Batch ${batchIndex + 1}/${batches.length} retry ${attempt}/${MAX_BATCH_RETRIES} — waiting ${Math.round(waitMs / 1000)}s...`,
         );

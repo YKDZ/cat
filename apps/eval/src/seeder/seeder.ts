@@ -300,9 +300,9 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     if (agentDefValue.endsWith(".md")) {
       // File-based agent definition — parse MD and create in DB
       const { parseAgentDefinition } = await import("@cat/agent");
-      const { resolve: resolvePath } = await import("node:path");
+      const nodePath = await import("node:path");
       const { readFileSync, existsSync } = await import("node:fs");
-      const mdPath = resolvePath(suite.suiteDir, agentDefValue);
+      const mdPath = nodePath.resolve(suite.suiteDir, agentDefValue);
       if (!existsSync(mdPath)) {
         throw new Error(
           `Agent definition file not found: "${mdPath}" (resolved from "${agentDefValue}" in suite.yaml seed.agentDefinition)`,

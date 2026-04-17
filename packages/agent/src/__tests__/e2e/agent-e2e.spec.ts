@@ -299,14 +299,14 @@ describe("AgentMetrics — M01–M05 basic counters", () => {
     expect(snap.errors["tool_failed"]).toBe(1);
   });
 
-  it("M05: records kanban throughput", () => {
+  it("M05: records changeset created count", () => {
     const metrics = new AgentMetrics();
 
-    metrics.recordKanbanCardCompleted();
-    metrics.recordKanbanCardCompleted();
+    metrics.recordChangesetCreated();
+    metrics.recordChangesetCreated();
 
     const snap = metrics.snapshot();
-    expect(snap.kanbanThroughput).toBe(2);
+    expect(snap.changesetCreatedCount).toBe(2);
   });
 });
 
@@ -327,7 +327,6 @@ describe("AgentLogger — structural log categories L01–L05", () => {
         captured.push({ kind: "tool-execute", message: e.message }), // L04
       logError: (e) => captured.push({ kind: "error", message: e.message }), // L05
       logChangeSetEvent: () => undefined, // L06
-      logKanbanDepEvent: () => undefined, // L07
     };
 
     logger.logRun({

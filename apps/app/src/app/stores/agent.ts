@@ -55,7 +55,6 @@ export interface HydratedSessionState {
   runStatus: string | null;
   blackboardSnapshot: Record<string, unknown> | null;
   messages: AgentMessageItem[];
-  currentKanbanCardId: string | null;
 }
 
 export interface AgentMessageItem {
@@ -182,9 +181,6 @@ export const useAgentStore = defineStore("agent", () => {
 
   /** Current DAG turn index (incremented by DecisionNode each loop). */
   const currentTurn = ref(0);
-
-  /** Kanban card linked to the current session (set when agent claims a card). */
-  const currentKanbanCardId = ref<string | null>(null);
 
   // ─── Computed ───
   const selectedDefinition = computed(
@@ -506,7 +502,6 @@ export const useAgentStore = defineStore("agent", () => {
     lastUserMessage.value = null;
     dagNodeEvents.value = [];
     currentTurn.value = 0;
-    currentKanbanCardId.value = null;
   };
 
   const fetchSessions = async (
@@ -556,7 +551,6 @@ export const useAgentStore = defineStore("agent", () => {
     maxStepsReached.value = null;
     lastFinishReason.value = null;
     currentTurn.value = 0;
-    currentKanbanCardId.value = null;
   };
 
   const loadSession = async (sessionId: string) => {
@@ -569,7 +563,6 @@ export const useAgentStore = defineStore("agent", () => {
     activeSessionContext.value = state.metadata;
     runId.value = state.runId;
     messages.value = state.messages;
-    currentKanbanCardId.value = state.currentKanbanCardId;
     streamingStatus.value = "idle";
   };
 
@@ -774,7 +767,6 @@ export const useAgentStore = defineStore("agent", () => {
     lastUserMessage.value = null;
     dagNodeEvents.value = [];
     currentTurn.value = 0;
-    currentKanbanCardId.value = null;
     sessionListFilter.value = {};
   };
 
@@ -805,7 +797,6 @@ export const useAgentStore = defineStore("agent", () => {
     lastUserMessage,
     dagNodeEvents,
     currentTurn,
-    currentKanbanCardId,
     // Computed
     selectedDefinition,
     isStreaming,

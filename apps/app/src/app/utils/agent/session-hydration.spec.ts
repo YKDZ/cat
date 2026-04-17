@@ -57,21 +57,19 @@ describe("session-hydration", () => {
       runId: "run-1",
       runStatus: "running",
       blackboardSnapshot: {
-        current_card_id: "card-1",
         messages: [{ role: "assistant", content: "ready" }],
       },
     });
 
     expect(state.runId).toBe("run-1");
     expect(state.metadata?.providerId).toBe(42);
-    expect(state.currentKanbanCardId).toBe("card-1");
     expect(state.messages[0]).toMatchObject({
       role: "ASSISTANT",
       content: "ready",
     });
   });
 
-  it("hydrates cumulative snapshot history while preserving current card context", () => {
+  it("hydrates cumulative snapshot history", () => {
     const state = hydrateSessionState({
       sessionId: "session-2",
       agentDefinitionId: "agent-2",
@@ -80,7 +78,6 @@ describe("session-hydration", () => {
       runId: null,
       runStatus: null,
       blackboardSnapshot: {
-        current_card_id: "card-2",
         messages: [
           {
             role: "user",
@@ -101,7 +98,6 @@ describe("session-hydration", () => {
       },
     });
 
-    expect(state.currentKanbanCardId).toBe("card-2");
     expect(state.messages.map((message) => message.content)).toEqual([
       "first",
       "second",

@@ -16,6 +16,7 @@ import type { Data } from "../+data.server.ts";
 
 import { onProjectDelete } from "./Page.telefunc.ts";
 import SnapshotBtn from "./SnapshotBtn.vue";
+import TrustSettings from "./TrustSettings.vue";
 
 const { t } = useI18n();
 const { rpcWarn } = useToastStore();
@@ -52,7 +53,7 @@ const remove = async (): Promise<void> => {
 </script>
 
 <template>
-  <div class="mt-2 space-y-2">
+  <div class="mt-2 space-y-6">
     <div class="grid w-full max-w-sm items-center gap-1.5">
       <Label for="name">{{ t("项目名称") }}</Label>
       <div class="flex w-full max-w-sm items-center gap-1.5">
@@ -67,5 +68,6 @@ const remove = async (): Promise<void> => {
     </div>
     <Button variant="destructive" @click="remove">{{ t("删除项目") }}</Button>
     <SnapshotBtn />
+    <TrustSettings :projectId="project.id" />
   </div>
 </template>

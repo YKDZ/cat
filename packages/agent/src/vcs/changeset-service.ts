@@ -56,7 +56,6 @@ export class OCCConflictError extends Error {
 export interface CreateChangeSetParams {
   projectId: string;
   agentRunId?: number;
-  linkedCardId?: number;
   createdBy?: string;
   summary?: string;
 }
@@ -131,7 +130,6 @@ export class ChangeSetService {
     const { result } = await createChangeset(this.ctx, {
       projectId: params.projectId,
       agentRunId: params.agentRunId,
-      linkedCardId: params.linkedCardId,
       createdBy: params.createdBy,
       summary: params.summary,
     });
