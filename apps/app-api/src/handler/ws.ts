@@ -25,6 +25,8 @@ app.get(
   "*",
   wsHelper.upgradeWebSocket(async (c) => {
     const context = await getContext(c.req.raw, c.res.headers);
+    // WebSocket 受浏览器同源策略保护，无需 CSRF token 验证
+    context.isWebSocket = true;
     const listeners = {
       message: [] as ((event: unknown) => void)[],
       close: [] as ((event: unknown) => void)[],
@@ -48,7 +50,6 @@ app.get(
           },
         } as unknown as WebSocket;
 
-        // oxlint-disable-next-line no-confusing-void-expression no-unsafe-call
         handler.upgrade(standardWs, {
           context,
         });
