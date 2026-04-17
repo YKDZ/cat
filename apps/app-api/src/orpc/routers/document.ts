@@ -33,18 +33,21 @@ import {
   FileMetaSchema,
 } from "@cat/shared/schema/misc";
 import { sanitizeFileName } from "@cat/shared/utils";
+import { listWithOverlay, readWithOverlay } from "@cat/vcs";
 import { runGraph, upsertDocumentGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import * as z from "zod/v4";
 
+import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import {
   authed,
   checkDocumentPermission,
   checkElementPermission,
   checkPermission,
 } from "@/orpc/server";
+import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 export const prepareCreateFromFile = authed
   .input(
@@ -100,9 +103,14 @@ export const finishCreateFromFile = authed
       projectId: z.uuidv4(),
       languageId: z.string(),
       putSessionId: z.uuidv4(),
+      branchId: z.int().optional(),
     }),
   )
   .use(checkPermission("project", "editor"), (i) => i.projectId)
+  .use(withBranchContext, (i) => ({
+    branchId: i.branchId,
+    projectId: i.projectId,
+  }))
   .handler(async ({ input, context }) => {
     const { projectId, putSessionId, languageId } = input;
     const {
@@ -146,6 +154,30 @@ export const finishCreateFromFile = authed
       throw new ORPCError("NOT_FOUND", {
         message: `File ${fileId} not found`,
       });
+    }
+
+    // Isolation write: record document creation in branch changeset
+    if (
+      context.branchId !== undefined &&
+      context.branchChangesetId !== undefined
+    ) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const entityId = randomUUID();
+      await middleware.interceptWrite(
+        {
+          mode: "isolation",
+          projectId: context.branchProjectId!,
+          branchId: context.branchId,
+          branchChangesetId: context.branchChangesetId,
+        },
+        "document",
+        entityId,
+        "CREATE",
+        null,
+        { projectId, name: fileName, languageId },
+        async () => undefined,
+      );
+      return;
     }
 
     // 名称相同则视为重复文档
@@ -213,14 +245,25 @@ export const finishCreateFromFile = authed
   });
 
 export const get = authed
-  .input(z.object({ documentId: z.uuidv4() }))
+  .input(z.object({ documentId: z.uuidv4(), branchId: z.int().optional() }))
   .use(checkDocumentPermission("viewer"), (i) => i.documentId)
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(DocumentSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
     const { documentId } = input;
+
+    if (context.branchId !== undefined) {
+      const overlayEntry = await readWithOverlay<
+        z.infer<typeof DocumentSchema>
+      >(drizzle, context.branchId, "document", documentId);
+      if (overlayEntry !== null) {
+        if (overlayEntry.action === "DELETE") return null;
+        return overlayEntry.data;
+      }
+    }
 
     return await executeQuery({ db: drizzle }, getDocument, { documentId });
   });
@@ -329,9 +372,11 @@ export const getElements = authed
       isApproved: z.boolean().optional(),
       isTranslated: z.boolean().optional(),
       languageId: z.string().optional(),
+      branchId: z.int().optional(),
     }),
   )
   .use(checkDocumentPermission("viewer"), (i) => i.documentId)
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(
     z.array(
       TranslatableElementSchema.extend({
@@ -353,7 +398,23 @@ export const getElements = authed
       });
     }
 
-    return await executeQuery({ db: drizzle }, getDocumentElements, input);
+    const mainItems = await executeQuery(
+      { db: drizzle },
+      getDocumentElements,
+      input,
+    );
+
+    if (context.branchId !== undefined) {
+      return await listWithOverlay(
+        drizzle,
+        context.branchId,
+        "document",
+        mainItems,
+        (item) => String(item.id),
+      );
+    }
+
+    return mainItems;
   });
 
 export const getPageIndexOfElement = authed
@@ -393,14 +454,42 @@ export const del = authed
   .input(
     z.object({
       id: z.uuidv4(),
+      branchId: z.int().optional(),
     }),
   )
   .use(checkDocumentPermission("editor"), (i) => i.id)
+  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
+
+    if (
+      context.branchId !== undefined &&
+      context.branchChangesetId !== undefined
+    ) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const currentDoc = await executeQuery({ db: drizzle }, getDocument, {
+        documentId: input.id,
+      });
+      await middleware.interceptWrite(
+        {
+          mode: "isolation",
+          projectId: context.branchProjectId!,
+          branchId: context.branchId,
+          branchChangesetId: context.branchChangesetId,
+        },
+        "document",
+        input.id,
+        "DELETE",
+        currentDoc,
+        null,
+        async () => undefined,
+      );
+      return;
+    }
+
     await executeCommand({ db: drizzle }, deleteDocument, {
       documentId: input.id,
     });

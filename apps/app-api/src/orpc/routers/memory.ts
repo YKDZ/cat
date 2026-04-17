@@ -20,7 +20,9 @@ import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import * as z from "zod/v4";
 
+import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import { authed, checkElementPermission, checkPermission } from "@/orpc/server";
+import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 export const create = authed
   .input(
@@ -28,14 +30,59 @@ export const create = authed
       name: z.string(),
       description: z.string().optional(),
       projectIds: z.array(z.uuidv4()).optional(),
+      branchId: z.int().optional(),
     }),
   )
+  .use(withBranchContext, (i) => ({
+    branchId: i.branchId,
+    projectId: i.projectIds?.[0],
+  }))
   .output(MemorySchema)
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
       user,
     } = context;
+
+    if (
+      context.branchId !== undefined &&
+      context.branchChangesetId !== undefined
+    ) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const entityId = crypto.randomUUID();
+
+      return await middleware.interceptWrite(
+        {
+          mode: "isolation",
+          projectId: context.branchProjectId!,
+          branchId: context.branchId,
+          branchChangesetId: context.branchChangesetId,
+        },
+        "memory_item",
+        entityId,
+        "CREATE",
+        null,
+        {
+          name: input.name,
+          ...(input.description !== undefined
+            ? { description: input.description }
+            : {}),
+          ...(input.projectIds !== undefined
+            ? { projectIds: input.projectIds }
+            : {}),
+          creatorId: user.id,
+        },
+        async () => ({
+          id: "00000000-0000-0000-0000-000000000000",
+          externalId: entityId,
+          name: input.name,
+          description: input.description ?? null,
+          creatorId: user.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
+    }
 
     return await drizzle.transaction(async (tx) => {
       return executeCommand({ db: tx }, createMemoryCommand, {

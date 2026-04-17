@@ -2,6 +2,7 @@ import type { PluginManager } from "@cat/plugin-core";
 import type { AgentConstraints } from "@cat/shared/schema/agent";
 
 import { Blackboard, buildPatch } from "@cat/graph";
+import { determineTrustMode, getPermissionEngine } from "@cat/permissions";
 
 import type {
   AgentBlackboardData,
@@ -222,11 +223,37 @@ export class AgentRuntime {
         await import("../prompt/prompt-engine.ts").then((m) => m.PromptEngine)
       )();
 
+    const engine = getPermissionEngine();
+    const agentAuthCtx = {
+      subjectType: "agent" as const,
+      subjectId: agentDefinition.metadata.id,
+      systemRoles: [],
+      scopes: null,
+    };
+    const projectId = state.projectId ?? state.sessionMetadata?.projectId ?? "";
+    const vcsMode = await determineTrustMode(engine, agentAuthCtx, projectId);
+    if (vcsMode === "no_access") {
+      throw new Error(
+        `Agent ${agentDefinition.metadata.id} has no access to project ${projectId}`,
+      );
+    }
+    const permissionChecker = async (
+      action: string,
+      _resource: string,
+    ): Promise<boolean> => {
+      return engine.check(
+        agentAuthCtx,
+        { type: "project", id: projectId },
+        // oxlint-disable-next-line no-unsafe-type-assertion -- action strings match Relation type
+        action as Parameters<typeof engine.check>[2],
+      );
+    };
+
     const nodeCtx: AgentNodeContext = {
       sessionId,
       runId,
       agentId: agentDefinition.metadata.id,
-      projectId: state.projectId ?? state.sessionMetadata?.projectId ?? "",
+      projectId,
       sessionMetadata: state.sessionMetadata,
       promptVariables: buildPromptVariables({
         constraints,
@@ -239,6 +266,8 @@ export class AgentRuntime {
       startedAt,
       logger: this.logger,
       pluginManager: this.config.pluginManager,
+      vcsMode,
+      permissionChecker,
     };
 
     this.logger.logRun({

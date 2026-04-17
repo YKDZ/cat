@@ -1,11 +1,35 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
+import { onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
+
+import { useBranchStore } from "@/app/stores/branch";
 
 import type { Data } from "./+data.ts";
 
 const { t } = useI18n();
-const { pr, projectId } = useData<Data>();
+const data = useData<Data>();
+const { pr, projectId } = data;
+
+const branchStore = useBranchStore();
+
+watch(
+  () => data.pr,
+  (currentPr) => {
+    if (currentPr && currentPr.status === "OPEN" && currentPr.branchId) {
+      branchStore.enterBranch(
+        currentPr.branchId,
+        currentPr.id,
+        currentPr.number,
+      );
+    }
+  },
+  { immediate: true },
+);
+
+onBeforeUnmount(() => {
+  branchStore.leaveBranch();
+});
 </script>
 
 <template>

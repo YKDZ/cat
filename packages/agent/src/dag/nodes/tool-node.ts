@@ -45,6 +45,8 @@ export const runToolNode = async (
     | "sessionMetadata"
     | "logger"
     | "pluginManager"
+    | "vcsMode"
+    | "permissionChecker"
   >,
 ): Promise<ToolNodeResult> => {
   const {
@@ -89,13 +91,13 @@ export const runToolNode = async (
       pullRequestId: sessionMetadata?.pullRequestId,
     },
     permissions: {
-      checkPermission: async () => true, // Phase 0a: allow all
+      checkPermission: ctx.permissionChecker,
     },
     cost: {
       budgetId: sessionId,
       remainingTokens: 999_999,
     },
-    vcsMode: "trust",
+    vcsMode: ctx.vcsMode,
     pluginManager,
   };
 

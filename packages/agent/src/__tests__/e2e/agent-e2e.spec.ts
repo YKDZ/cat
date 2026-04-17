@@ -28,6 +28,15 @@ import { createNoopAgentLogger } from "@/observability/agent-logger.ts";
 import { AgentMetrics } from "@/observability/agent-metrics.ts";
 import { AgentRuntime } from "@/runtime/agent-runtime.ts";
 
+// ─── Mock @cat/permissions ────────────────────────────────────────────────────
+
+vi.mock("@cat/permissions", () => ({
+  getPermissionEngine: () => ({
+    check: async () => true,
+  }),
+  determineTrustMode: async () => "trust",
+}));
+
 // ─── Mock SessionManager ──────────────────────────────────────────────────────
 
 const MOCK_SESSION_ID = "00000000-0000-4000-8000-000000000001";

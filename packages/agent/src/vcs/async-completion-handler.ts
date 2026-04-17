@@ -1,12 +1,11 @@
 import type { DbHandle } from "@cat/domain";
+import type { ApplicationMethodRegistry } from "@cat/vcs";
 
 import {
   getChangesetEntries,
   updateEntryAsyncStatus,
   updateChangesetAsyncStatus,
 } from "@cat/domain";
-
-import type { ApplicationMethodRegistry } from "./application-method-registry.ts";
 
 /**
  * @zh 向量化异步任务完成的回调处理器。

@@ -4,19 +4,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: [
-      "@cat/domain",
-      "@cat/db",
-      "@cat/shared",
-      "@cat/plugin-core",
-      "@cat/server-shared",
-      "@cat/permissions",
-      "@cat/vcs",
-      "zod",
-      "zod/v4",
-      "zod/v4/core",
-      "diff",
-    ],
+    external: ["@cat/domain", "@cat/shared"],
   },
 
   resolve: {
@@ -38,19 +26,6 @@ export default defineConfig({
     },
 
     rolldownOptions: {
-      external: [
-        "@cat/domain",
-        "@cat/db",
-        "@cat/shared",
-        "@cat/plugin-core",
-        "@cat/server-shared",
-        "@cat/permissions",
-        "@cat/vcs",
-        "zod",
-        "zod/v4",
-        "zod/v4/core",
-        "diff",
-      ],
       output: {
         preserveModules: true,
         preserveModulesRoot: resolve(import.meta.dirname, "src"),

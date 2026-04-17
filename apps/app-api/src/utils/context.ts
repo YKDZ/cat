@@ -143,4 +143,10 @@ export type Context = {
   helpers: HTTPHelpers;
   isSSR: boolean;
   isWebSocket: boolean;
+  /** @zh 分支工作空间 ID（由 withBranchContext 中间件注入）@en Branch workspace ID */
+  branchId?: number;
+  /** @zh 分支 changeset ID（由 withBranchContext 中间件注入）@en Branch changeset ID */
+  branchChangesetId?: number;
+  /** @zh 分支所属项目 ID（由 withBranchContext 中间件注入）@en Branch project ID */
+  branchProjectId?: string;
 };

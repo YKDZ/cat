@@ -18,12 +18,12 @@ import {
  * then falls back to main data.
  * Returns null if deleted in branch, or if no branch changes exist (caller reads from main).
  */
-export async function readWithOverlay(
+export async function readWithOverlay<T extends Record<string, unknown>>(
   db: DbHandle,
   branchId: number,
   entityType: EntityType,
   entityId: string,
-): Promise<{ data: JSONType; action?: "CREATE" | "UPDATE" | "DELETE" } | null> {
+): Promise<{ data: T; action?: "CREATE" | "UPDATE" | "DELETE" } | null> {
   const entries = await executeQuery({ db }, listBranchChangesetEntries, {
     branchId,
     entityType,
@@ -45,7 +45,9 @@ export async function readWithOverlay(
   // CREATE or UPDATE: return the `after` state
   if (latestEntry.after !== null && latestEntry.after !== undefined) {
     return {
-      data: latestEntry.after as JSONType,
+      // Overlay data is stored as plain JSON in the changeset; cast to the
+      // caller-declared domain type T (dates arrive as ISO strings).
+      data: latestEntry.after as unknown as T,
       action: latestEntry.action,
     };
   }
@@ -58,13 +60,13 @@ export async function readWithOverlay(
  * @en List query overlay: merges main data with branch changes
  * (CREATE appended, DELETE removed, UPDATE overwritten).
  */
-export async function listWithOverlay(
+export async function listWithOverlay<T extends Record<string, unknown>>(
   db: DbHandle,
   branchId: number,
   entityType: EntityType,
-  mainItems: JSONType[],
-  getItemId: (item: JSONType) => string,
-): Promise<JSONType[]> {
+  mainItems: T[],
+  getItemId: (item: T) => string,
+): Promise<T[]> {
   const branchEntries = await executeQuery({ db }, listBranchChangesetEntries, {
     branchId,
     entityType,
@@ -85,7 +87,7 @@ export async function listWithOverlay(
     }
   }
 
-  const result: JSONType[] = [];
+  const result: T[] = [];
 
   for (const item of mainItems) {
     const id = getItemId(item);
@@ -100,7 +102,8 @@ export async function listWithOverlay(
       branchEntry.after !== null &&
       branchEntry.after !== undefined
     ) {
-      result.push(branchEntry.after);
+      // Overlay data is plain JSON from the changeset; cast to T at the boundary.
+      result.push(branchEntry.after as unknown as T);
       branchMap.delete(id);
     }
   }
@@ -114,7 +117,7 @@ export async function listWithOverlay(
     ) {
       const existsInMain = mainItems.some((item) => getItemId(item) === id);
       if (!existsInMain) {
-        result.push(entry.after);
+        result.push(entry.after as unknown as T);
       }
     }
   }

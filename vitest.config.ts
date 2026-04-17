@@ -64,6 +64,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: "unit-vcs",
+          include: ["packages/vcs/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/vcs")) },
+      },
+      {
+        test: {
           name: "unit-graph",
           include: ["packages/graph/src/**/*.{spec,test}.ts"],
           environment: "node",

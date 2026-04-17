@@ -674,6 +674,9 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@cat/vcs':
+        specifier: workspace:*
+        version: link:../../packages/vcs
       '@cat/workflow':
         specifier: workspace:*
         version: link:../../packages/workflow
@@ -897,6 +900,12 @@ importers:
       '@cat/graph':
         specifier: workspace:*
         version: link:../graph
+      '@cat/operations':
+        specifier: workspace:*
+        version: link:../operations
+      '@cat/permissions':
+        specifier: workspace:*
+        version: link:../permissions
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../plugin-core
@@ -906,6 +915,9 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
+      '@cat/vcs':
+        specifier: workspace:*
+        version: link:../vcs
       '@cat/workflow':
         specifier: workspace:*
         version: link:../workflow
@@ -1182,6 +1194,9 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
+      '@cat/vcs':
+        specifier: workspace:*
+        version: link:../vcs
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -1438,6 +1453,28 @@ importers:
       vue-tsc:
         specifier: ^3.2.6
         version: 3.2.6(typescript@6.0.0-beta)
+
+  packages/vcs:
+    dependencies:
+      '@cat/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.2
+      unplugin-dts:
+        specifier: 'catalog:'
+        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.12.2))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.28.0)(rollup@4.60.1)(typescript@6.0.0-beta)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      vite:
+        specifier: 'catalog:'
+        version: 8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.3(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/ui@4.1.3)(happy-dom@20.8.9)(vite@8.0.7(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/workflow:
     dependencies:

@@ -350,3 +350,16 @@ export {
   type MergeAlignmentInput,
   type MergeAlignmentOutput,
 } from "./merge-alignment";
+
+// === VCS Operations ===
+export {
+  mergePRFull,
+  type MergePRFullInput,
+  type MergePRFullResult,
+} from "./merge-pr-full";
+
+export {
+  rebasePRFull,
+  type RebasePRFullInput,
+  type RebasePRFullResult,
+} from "./rebase-pr-full";

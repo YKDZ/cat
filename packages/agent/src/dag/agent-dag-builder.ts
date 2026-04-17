@@ -90,6 +90,16 @@ export interface AgentNodeContext {
     type: string;
     payload: Record<string, unknown>;
   }) => void;
+  /**
+   * @zh VCS 模式，通过 determineTrustMode() 动态计算
+   * @en VCS mode, dynamically computed via determineTrustMode()
+   */
+  vcsMode: "trust" | "audit" | "isolation";
+  /**
+   * @zh 权限检查函数，使用真实权限引擎进行检查
+   * @en Permission checker using the real permission engine
+   */
+  permissionChecker: (action: string, resource: string) => Promise<boolean>;
 }
 
 // ─── Agent DAG Builder ────────────────────────────────────────────────────────
