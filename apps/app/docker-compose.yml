@@ -6,12 +6,12 @@ services:
         condition: service_healthy
       postgresql:
         condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
       ollama:
         condition: service_healthy
-      # libretranslate:
-      #   condition: service_healthy
+      libretranslate:
+        condition: service_healthy
+      spacy:
+        condition: service_healthy
     ports:
       - 3000:3000
     environment:
