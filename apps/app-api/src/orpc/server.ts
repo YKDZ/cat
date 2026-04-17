@@ -22,8 +22,8 @@ export const authed = base.use(async ({ context, next }) => {
   if (!sessionId && auth.scopes === null) throw new ORPCError("UNAUTHORIZED");
 
   // CSRF 验证：仅对来自浏览器的 Cookie Session 请求生效
-  // SSR 内部调用和 API Key（Bearer header）请求豁免
-  if (!context.isSSR && auth.scopes === null) {
+  // SSR 内部调用、WebSocket 连接和 API Key（Bearer header）请求豁免
+  if (!context.isSSR && !context.isWebSocket && auth.scopes === null) {
     const csrfCookie = helpers.getCookie("csrfToken");
     const csrfHeader = helpers.getReqHeader("x-csrf-token");
     if (!verifyCsrfToken(csrfCookie, csrfHeader)) {

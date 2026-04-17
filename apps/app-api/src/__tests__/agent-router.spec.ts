@@ -122,6 +122,7 @@ const createContext = (pluginManager: PluginManager): Context => {
       scopes: [],
     },
     isSSR: true,
+    isWebSocket: false,
   };
 };
 

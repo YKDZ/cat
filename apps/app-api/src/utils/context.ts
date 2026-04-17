@@ -127,6 +127,7 @@ export const getContext = async (
     sessionStore,
     helpers,
     isSSR: false,
+    isWebSocket: false,
   };
 };
 
@@ -141,4 +142,5 @@ export type Context = {
   sessionStore: SessionStore;
   helpers: HTTPHelpers;
   isSSR: boolean;
+  isWebSocket: boolean;
 };

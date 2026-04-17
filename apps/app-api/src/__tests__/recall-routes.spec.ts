@@ -84,6 +84,7 @@ const createContext = (): Context => {
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     redis: {} as unknown as Context["redis"],
     isSSR: true,
+    isWebSocket: false,
   };
 };
 

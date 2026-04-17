@@ -16,6 +16,7 @@ export const ssc = (ctx: PageContextServer): RouterClient<AppRouter> => {
         cacheStore: getCacheStore(),
         sessionStore: getSessionStore(),
         isSSR: true,
+        isWebSocket: false,
       } satisfies Context;
     },
   });
