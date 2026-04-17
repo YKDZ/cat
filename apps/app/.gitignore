@@ -3,3 +3,5 @@ plugins/
 ollama/
 drizzle/
 dist/
+
+*.local.*
