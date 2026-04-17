@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { Button } from "@cat/ui";
 import { useData } from "vike-vue/useData";
+import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
 import type { Data } from "./+data.ts";
@@ -12,6 +14,13 @@ const { pullRequests, projectId } = useData<Data>();
   <div class="space-y-4">
     <div class="flex items-center justify-between">
       <h1 class="text-lg font-semibold">{{ t("Pull Requests") }}</h1>
+      <Button
+        v-perm="{ object: 'project', id: projectId, relation: 'editor' }"
+        @click="navigate(`/project/${projectId}/pull-requests/new`)"
+      >
+        <div class="icon-[mdi--plus] size-4" />
+        {{ t("New Pull Request") }}
+      </Button>
     </div>
 
     <div v-if="pullRequests.length === 0" class="text-sm text-muted-foreground">
