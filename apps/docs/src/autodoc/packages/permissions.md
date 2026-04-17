@@ -4,9 +4,9 @@ Permission system: ReBAC-based access control
 
 ## Overview
 
-* **Modules**: 7
+* **Modules**: 8
 
-* **Exported functions**: 9
+* **Exported functions**: 10
 
 * **Exported types**: 11
 
@@ -82,7 +82,7 @@ export const grantFirstUserSuperadmin = async (db: DbHandle, userId: string): Pr
  * 加载用户的系统角色列表（通过权限元组查询）。
  * 返回用户对 system:* 持有的所有 relation 列表。
  */
-export const loadUserSystemRoles = async (db: DbHandle, userId: string): Promise<("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member")[]>
+export const loadUserSystemRoles = async (db: DbHandle, userId: string): Promise<("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced")[]>
 ```
 
 ### `getPermissionEngine`
@@ -107,6 +107,20 @@ export const initPermissionEngine = (deps: {
   cache: CacheStore;
   auditEnabled?: boolean;
 }): PermissionEngine
+```
+
+### `determineTrustMode`
+
+```ts
+/**
+ * 判定 Subject 对 Project 的 Trust/Isolation 模式。
+ *
+ * Determine the trust/isolation mode for a subject on a project.
+ * @returns "trust" | "isolation" | "no_access"
+ *
+ * @returns "trust" | "isolation" | "no_access"
+ */
+export async function determineTrustMode(engine: PermissionEngine, authCtx: AuthContext, projectId: string): Promise<"trust" | "isolation" | "no_access">
 ```
 
 ## Type Index

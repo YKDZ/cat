@@ -89,3 +89,19 @@ export const AgentExternalOutputSchema = z.object({
 });
 
 export type AgentExternalOutput = z.infer<typeof AgentExternalOutputSchema>;
+
+export const ToolCallLogSchema = z.object({
+  id: z.int(),
+  sessionId: z.int(),
+  runId: z.int(),
+  nodeId: z.string().nullable(),
+  toolName: z.string(),
+  arguments: nonNullSafeZDotJson,
+  result: safeZDotJson.nullable(),
+  error: z.string().nullable(),
+  durationMs: z.int().nullable(),
+  sideEffectType: z.string(),
+  createdAt: DrizzleDateTimeSchema,
+});
+
+export type ToolCallLog = z.infer<typeof ToolCallLogSchema>;
