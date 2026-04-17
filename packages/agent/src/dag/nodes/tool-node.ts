@@ -6,10 +6,6 @@ import type {
   AgentNodeContext,
 } from "../agent-dag-builder.ts";
 
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-};
-
 // ─── Result ───────────────────────────────────────────────────────────────────
 
 /**
@@ -85,12 +81,12 @@ export const runToolNode = async (
       projectId,
       runId,
       providerId: sessionMetadata?.providerId,
-      kanbanBoardId: sessionMetadata?.kanbanBoardId,
-      kanbanCardId: sessionMetadata?.kanbanCardId,
       documentId: sessionMetadata?.documentId,
       elementId: sessionMetadata?.elementId,
       languageId: sessionMetadata?.languageId,
       sourceLanguageId: sessionMetadata?.sourceLanguageId,
+      issueId: sessionMetadata?.issueId,
+      pullRequestId: sessionMetadata?.pullRequestId,
     },
     permissions: {
       checkPermission: async () => true, // Phase 0a: allow all
@@ -142,7 +138,6 @@ export const runToolNode = async (
 
   const toolResults: Array<{ toolCallId: string; content: string }> = [];
   let finishCalled = false;
-  let claimedCardExternalId: string | null = null;
 
   for (let i = 0; i < results.length; i += 1) {
     const outcome = results[i];
@@ -155,13 +150,6 @@ export const runToolNode = async (
       });
       if (tc.name === "finish") {
         finishCalled = true;
-      }
-      if (
-        tc.name === "kanban_claim" &&
-        isRecord(outcome.value.rawResult) &&
-        typeof outcome.value.rawResult["externalId"] === "string"
-      ) {
-        claimedCardExternalId = outcome.value.rawResult["externalId"];
       }
     } else {
       const errorMsg =
@@ -201,7 +189,6 @@ export const runToolNode = async (
     updates: {
       tool_results: toolResults,
       finish_called: finishCalled || data.finish_called,
-      current_card_id: claimedCardExternalId ?? data.current_card_id,
       messages: [...existingMessages, ...toolResultMessages],
     },
   };

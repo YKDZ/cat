@@ -1066,7 +1066,6 @@ describe("agent router", () => {
         "get_translations",
         "submit_translation",
         "qa_check",
-        "kanban_list",
         "plugin_tool",
       ])
       .map((tool) => tool.name);
@@ -1078,7 +1077,6 @@ describe("agent router", () => {
       "get_translations",
       "submit_translation",
       "qa_check",
-      "kanban_list",
       "plugin_tool",
     ]);
   });

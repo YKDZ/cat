@@ -48,6 +48,14 @@ export default defineConfig({
       // ── 底层包：纯单元测试（无 DB 依赖）──────────────────────────────
       {
         test: {
+          name: "unit-permissions",
+          include: ["packages/permissions/src/**/*.spec.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/permissions")) },
+      },
+      {
+        test: {
           name: "unit-core",
           include: ["packages/core/src/**/*.{spec,test}.ts"],
           environment: "node",

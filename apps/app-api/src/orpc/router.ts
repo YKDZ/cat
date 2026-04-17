@@ -7,24 +7,32 @@ import * as document from "./routers/document.ts";
 import * as element from "./routers/element.ts";
 import * as ghostText from "./routers/ghost-text.ts";
 import * as glossary from "./routers/glossary.ts";
-import * as kanban from "./routers/kanban.ts";
+import * as issueComment from "./routers/issue-comment.ts";
+import * as issue from "./routers/issue.ts";
 import * as language from "./routers/language.ts";
 import * as memory from "./routers/memory.ts";
 import * as notification from "./routers/notification.ts";
 import * as permission from "./routers/permission.ts";
 import * as plugin from "./routers/plugin.ts";
+import * as projectFeatures from "./routers/project-features.ts";
 import * as project from "./routers/project.ts";
+import * as pullRequest from "./routers/pull-request.ts";
 import * as qa from "./routers/qa.ts";
 import * as setting from "./routers/setting.ts";
 import * as suggestion from "./routers/suggestion.ts";
 import * as tokenizer from "./routers/tokenizer.ts";
 import * as translation from "./routers/translation.ts";
+import * as trustSettings from "./routers/trust-settings.ts";
 import * as user from "./routers/user.ts";
 
 const router: AppRouter = {
   agent,
   changeset,
-  kanban,
+  issue,
+  issueComment,
+  pullRequest,
+  projectFeatures,
+  trustSettings,
   auth,
   authFlow,
   user,
@@ -49,7 +57,11 @@ const router: AppRouter = {
 export type AppRouter = {
   agent: typeof agent;
   changeset: typeof changeset;
-  kanban: typeof kanban;
+  issue: typeof issue;
+  issueComment: typeof issueComment;
+  pullRequest: typeof pullRequest;
+  projectFeatures: typeof projectFeatures;
+  trustSettings: typeof trustSettings;
   auth: typeof auth;
   authFlow: typeof authFlow;
   user: typeof user;

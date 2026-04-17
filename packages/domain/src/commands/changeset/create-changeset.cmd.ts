@@ -1,4 +1,5 @@
 import { changeset, getColumns } from "@cat/db";
+import { ChangesetStatusSchema } from "@cat/shared/schema/enum";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
 
@@ -7,9 +8,12 @@ import type { Command } from "@/types";
 export const CreateChangesetCommandSchema = z.object({
   projectId: z.uuid(),
   agentRunId: z.int().optional(),
-  linkedCardId: z.int().optional(),
   createdBy: z.uuid().optional(),
   summary: z.string().optional(),
+  /** Internal branch ID — set for branch-scoped changesets */
+  branchId: z.int().positive().optional(),
+  /** Override the default PENDING status */
+  status: ChangesetStatusSchema.optional(),
 });
 
 export type CreateChangesetCommand = z.infer<
@@ -26,10 +30,10 @@ export const createChangeset: Command<
       .values({
         projectId: command.projectId,
         agentRunId: command.agentRunId,
-        linkedCardId: command.linkedCardId,
         createdBy: command.createdBy,
         summary: command.summary,
-        status: "PENDING",
+        branchId: command.branchId,
+        status: command.status ?? "PENDING",
       })
       .returning({ ...getColumns(changeset) }),
   );

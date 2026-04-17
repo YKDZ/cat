@@ -6,7 +6,6 @@ const mocked = vi.hoisted(() => ({
   completeAgentSession: Symbol("completeAgentSession"),
   loadAgentRunSnapshot: Symbol("loadAgentRunSnapshot"),
   saveAgentRunSnapshot: Symbol("saveAgentRunSnapshot"),
-  updateCardStatus: Symbol("updateCardStatus"),
   executeQuery: vi.fn(),
   executeCommand: vi.fn(),
   getDbHandle: vi.fn().mockResolvedValue({ client: { tag: "db" } }),
@@ -19,7 +18,6 @@ vi.mock("@cat/domain", () => ({
   getDbHandle: mocked.getDbHandle,
   loadAgentRunSnapshot: mocked.loadAgentRunSnapshot,
   saveAgentRunSnapshot: mocked.saveAgentRunSnapshot,
-  updateCardStatus: mocked.updateCardStatus,
 }));
 
 import { finishTool } from "./finish.tool.ts";
@@ -37,7 +35,6 @@ const createCtx = (
     agentId: "agent-1",
     projectId: "project-1",
     runId,
-    kanbanCardId: 42,
     ...overrides,
   },
   permissions: {
@@ -77,7 +74,6 @@ describe("session tools", () => {
     mocked.executeQuery.mockResolvedValue({
       precheck_notes: "deps blocked",
       scratchpad: "old value",
-      current_card_id: "card-1",
     });
 
     await updateScratchpadTool.execute(
@@ -93,34 +89,24 @@ describe("session tools", () => {
         snapshot: {
           precheck_notes: "deps blocked",
           scratchpad: "new notes",
-          current_card_id: "card-1",
         },
       },
     );
   });
 
-  it("falls back to session context when finish omits sessionId and kanbanCardId", async () => {
+  it("falls back to session context when finish omits sessionId", async () => {
     const result = await finishTool.execute(
       { reason: "all done" },
       createCtx(),
     );
 
-    expect(mocked.executeCommand).toHaveBeenNthCalledWith(
-      1,
+    expect(mocked.executeCommand).toHaveBeenCalledOnce();
+    expect(mocked.executeCommand).toHaveBeenCalledWith(
       { db: { tag: "db" } },
       mocked.completeAgentSession,
       {
         sessionId,
         finalStatus: "COMPLETED",
-      },
-    );
-    expect(mocked.executeCommand).toHaveBeenNthCalledWith(
-      2,
-      { db: { tag: "db" } },
-      mocked.updateCardStatus,
-      {
-        cardId: 42,
-        status: "DONE",
       },
     );
     expect(result).toEqual({ finished: true, reason: "all done" });

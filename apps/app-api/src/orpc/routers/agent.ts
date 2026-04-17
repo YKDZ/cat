@@ -636,7 +636,7 @@ export const sendMessage = authed
       toolRegistry,
       promptEngine,
       logger: createNoopAgentLogger(),
-      preCheckServices: createPreCheckServices(drizzle),
+      preCheckServices: createPreCheckServices(),
       pluginManager,
     });
 

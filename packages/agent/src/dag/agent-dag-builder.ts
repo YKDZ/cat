@@ -47,8 +47,6 @@ export interface AgentBlackboardData {
   scratchpad?: string;
   /** @zh PreCheckNode 写入的提示 @en Notes written by PreCheckNode */
   precheck_notes?: string;
-  /** @zh 当前关联的 Kanban 卡片 externalId @en Current linked Kanban card externalId */
-  current_card_id?: string;
 }
 
 // ─── Agent Node Context ───────────────────────────────────────────────────────

@@ -33,7 +33,6 @@ import {
   MessageChannelValues,
   MessageCategoryValues,
   NotificationStatusValues,
-  KanbanCardStatusValues,
   type NotificationStatus,
   ChangesetStatusValues,
   EntityTypeValues,
@@ -44,6 +43,12 @@ import {
   ChangesetEntryAsyncStatusValues,
   RecallVariantTypeValues,
   RecallQuerySideValues,
+  IssueStatusValues,
+  PullRequestStatusValues,
+  EntityBranchStatusValues,
+  IssueCommentTargetTypeValues,
+  CrossReferenceSourceTypeValues,
+  CrossReferenceTargetTypeValues,
 } from "@cat/shared/schema/enum";
 import { sql } from "drizzle-orm";
 import {
@@ -120,6 +125,35 @@ export const asyncStatus = pgEnum("AsyncStatus", AsyncStatusValues);
 export const changesetEntryAsyncStatus = pgEnum(
   "ChangesetEntryAsyncStatus",
   ChangesetEntryAsyncStatusValues,
+);
+
+// ─── Issue + PR System ───
+
+export const issueStatus = pgEnum("IssueStatus", IssueStatusValues);
+
+export const pullRequestStatus = pgEnum(
+  "PullRequestStatus",
+  PullRequestStatusValues,
+);
+
+export const entityBranchStatus = pgEnum(
+  "EntityBranchStatus",
+  EntityBranchStatusValues,
+);
+
+export const issueCommentTargetType = pgEnum(
+  "IssueCommentTargetType",
+  IssueCommentTargetTypeValues,
+);
+
+export const crossReferenceSourceType = pgEnum(
+  "CrossReferenceSourceType",
+  CrossReferenceSourceTypeValues,
+);
+
+export const crossReferenceTargetType = pgEnum(
+  "CrossReferenceTargetType",
+  CrossReferenceTargetTypeValues,
 );
 
 const timestamps = {
@@ -552,9 +586,197 @@ export const project = pgTable(
     creatorId: uuid()
       .notNull()
       .references(() => user.id, { onDelete: "restrict", onUpdate: "cascade" }),
+    /** Feature flags for Issue + PR system */
+    features: jsonb()
+      .$type<{ issues: boolean; pullRequests: boolean }>()
+      .notNull()
+      .default({ issues: false, pullRequests: false }),
     ...timestamps,
   },
   (table) => [index().using("btree", table.creatorId.asc().nullsLast())],
+);
+
+export const projectSequence = pgTable(
+  "ProjectSequence",
+  {
+    id: serial().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .unique()
+      .references(() => project.id, { onDelete: "cascade" }),
+    nextValue: integer().notNull().default(1),
+  },
+  (table) => [uniqueIndex().on(table.projectId)],
+);
+
+// ─── Issue System ───
+
+export const issue = pgTable(
+  "Issue",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    number: integer().notNull(),
+    title: text().notNull(),
+    body: text().notNull().default(""),
+    status: issueStatus().notNull().default("OPEN"),
+    authorId: uuid().references(() => user.id, { onDelete: "set null" }),
+    authorAgentId: integer().references(() => agentDefinition.id, {
+      onDelete: "set null",
+    }),
+    assignees: jsonb()
+      .$type<Array<{ type: "user" | "agent"; id: string }>>()
+      .notNull()
+      .default([]),
+    claimPolicy: jsonb().$type<{
+      rules: Array<{ type: "agent" | "role" | "user"; id: string }>;
+    } | null>(),
+    parentIssueId: integer(),
+    closedAt: timestamp({ withTimezone: true }),
+    closedByPRId: integer(),
+    metadata: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.projectId),
+    uniqueIndex().on(table.projectId, table.number),
+    index().on(table.projectId, table.status),
+    index().on(table.parentIssueId),
+    foreignKey({
+      columns: [table.parentIssueId],
+      foreignColumns: [table.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+  ],
+);
+
+export const issueLabel = pgTable(
+  "IssueLabel",
+  {
+    issueId: integer()
+      .notNull()
+      .references(() => issue.id, { onDelete: "cascade" }),
+    label: text().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.issueId, table.label] }),
+    index().on(table.label),
+  ],
+);
+
+// ─── Pull Request System ───
+
+export const pullRequest = pgTable(
+  "PullRequest",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    number: integer().notNull(),
+    title: text().notNull(),
+    body: text().notNull().default(""),
+    status: pullRequestStatus().notNull().default("DRAFT"),
+    authorId: uuid().references(() => user.id, { onDelete: "set null" }),
+    authorAgentId: integer().references(() => agentDefinition.id, {
+      onDelete: "set null",
+    }),
+    branchId: integer()
+      .notNull()
+      .references(() => entityBranch.id, { onDelete: "restrict" }),
+    issueId: integer().references(() => issue.id, { onDelete: "set null" }),
+    reviewers: jsonb()
+      .$type<Array<{ type: "user" | "agent"; id: string }>>()
+      .notNull()
+      .default([]),
+    mergedAt: timestamp({ withTimezone: true }),
+    mergedBy: text(),
+    metadata: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.projectId),
+    uniqueIndex().on(table.projectId, table.number),
+    index().on(table.branchId),
+    index().on(table.issueId),
+    index().on(table.projectId, table.status),
+  ],
+);
+
+// ─── Issue/PR Comment System (独立于翻译评论) ───
+
+export const issueCommentThread = pgTable(
+  "IssueCommentThread",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    targetType: issueCommentTargetType().notNull(),
+    targetId: integer().notNull(),
+    isReviewThread: boolean().notNull().default(false),
+    isResolved: boolean().notNull().default(false),
+    reviewContext: jsonb().$type<{
+      entityType: string;
+      entityId: string;
+      fieldPath: string;
+      changesetEntryId: number;
+    } | null>(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index().on(table.targetType, table.targetId),
+    index().on(table.targetType, table.targetId, table.isReviewThread),
+  ],
+);
+
+export const issueComment = pgTable(
+  "IssueComment",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    threadId: integer()
+      .notNull()
+      .references(() => issueCommentThread.id, { onDelete: "cascade" }),
+    body: text().notNull(),
+    authorId: uuid().references(() => user.id, { onDelete: "set null" }),
+    authorAgentId: integer().references(() => agentDefinition.id, {
+      onDelete: "set null",
+    }),
+    editedAt: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index().on(table.threadId, table.createdAt)],
+);
+
+// ─── Cross Reference ───
+
+export const crossReference = pgTable(
+  "CrossReference",
+  {
+    id: serial().primaryKey(),
+    sourceType: crossReferenceSourceType().notNull(),
+    sourceId: integer().notNull(),
+    targetType: crossReferenceTargetType().notNull(),
+    targetId: integer().notNull(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index().on(table.targetType, table.targetId),
+    index().on(table.sourceType, table.sourceId),
+    unique().on(
+      table.sourceType,
+      table.sourceId,
+      table.targetType,
+      table.targetId,
+    ),
+  ],
 );
 
 export const projectTargetLanguage = pgTable(
@@ -1087,8 +1309,12 @@ export const agentSession = pgTable(
     status: agentSessionStatus().notNull().default("ACTIVE"),
     /** Current active run (Graph runtime) */
     currentRunId: integer(),
-    /** Optional Kanban card associated with this session */
-    kanbanCardId: integer(),
+    /** Optional Issue associated with this session */
+    issueId: integer().references(() => issue.id, { onDelete: "set null" }),
+    /** Optional Pull Request associated with this session (Isolation mode) */
+    pullRequestId: integer().references(() => pullRequest.id, {
+      onDelete: "set null",
+    }),
     /** Maximum number of DAG turns for this session (snapshot of agentDefinition.constraints.maxSteps at creation) */
     maxTurns: integer().default(50).notNull(),
     /** Current DAG loop turn count (incremented by DecisionNode each cycle) */
@@ -1183,95 +1409,33 @@ export const agentExternalOutput = pgTable(
   ],
 );
 
-// ─── Kanban System ───
-
-export const kanbanCardStatus = pgEnum(
-  "KanbanCardStatus",
-  KanbanCardStatusValues,
-);
-
-export const kanbanBoard = pgTable(
-  "KanbanBoard",
-  {
-    id: serial().primaryKey(),
-    externalId: uuid().defaultRandom().notNull().unique(),
-    orgId: uuid().references(() => project.id, {
-      onDelete: "set null",
-      onUpdate: "cascade",
-    }),
-    name: text().notNull(),
-    /** Column definitions — ordered list of column metadata */
-    columns: jsonb().$type<NonNullJSONType>().notNull().default([]),
-    /** Type of resource this board is linked to (e.g. "project", "document") */
-    linkedResourceType: text(),
-    /** External ID of the linked resource */
-    linkedResourceId: text(),
-    /** Extra metadata for extensibility */
-    metadata: jsonb().$type<JSONType>(),
-    ...timestamps,
-  },
-  (table) => [
-    index().on(table.orgId),
-    index().on(table.linkedResourceType, table.linkedResourceId),
-  ],
-);
-
-export const kanbanCard = pgTable(
-  "KanbanCard",
-  {
-    id: serial().primaryKey(),
-    externalId: uuid().defaultRandom().notNull().unique(),
-    boardId: integer()
-      .notNull()
-      .references(() => kanbanBoard.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    /** Which column within the board this card belongs to (column id from board.columns) */
-    columnId: text().notNull().default(""),
-    title: text().notNull(),
-    description: text().notNull().default(""),
-    /** Agent that has claimed/is working on this card */
-    assigneeAgentId: integer().references(() => agentDefinition.id, {
-      onDelete: "set null",
-      onUpdate: "cascade",
-    }),
-    /** Human user that has claimed/is working on this card */
-    assigneeUserId: uuid().references(() => user.id, {
-      onDelete: "set null",
-      onUpdate: "cascade",
-    }),
-    /** When the card was claimed */
-    claimedAt: timestamp({ withTimezone: true }),
-    /** Who claimed it — "agent:<agentId>" or "user:<userId>" */
-    claimedBy: text(),
-    priority: integer().notNull().default(0),
-    dueDate: timestamp({ withTimezone: true }),
-    /** Array of label strings */
-    labels: jsonb().$type<string[]>().notNull().default([]),
-    /** Type of linked resource (e.g. "task", "translation") */
-    linkedResourceType: text(),
-    /** External ID of the linked resource */
-    linkedResourceId: text(),
-    status: kanbanCardStatus().notNull().default("OPEN"),
-    /** Parent card for subtask grouping */
-    parentCardId: integer(),
-    /** How many translation units are in this batch */
-    batchSize: integer().notNull().default(1),
-    metadata: jsonb().$type<JSONType>(),
-    /** List of related ChangeSet external IDs */
-    linkedChangesetIds: jsonb().$type<string[]>(),
-    ...timestamps,
-  },
-  (table) => [
-    index().on(table.boardId),
-    index().on(table.status),
-    index().on(table.assigneeAgentId),
-    index().on(table.boardId, table.status),
-  ],
-);
-
 // ─── ChangeSet / EntityVCS Tables ───────────────────────────
+
+export const entityBranch = pgTable(
+  "EntityBranch",
+  {
+    id: serial().primaryKey(),
+    externalId: uuid().defaultRandom().notNull().unique(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    status: entityBranchStatus().notNull().default("ACTIVE"),
+    hasConflicts: boolean().notNull().default(false),
+    baseChangesetId: integer(),
+    createdBy: uuid().references(() => user.id, { onDelete: "set null" }),
+    createdByAgentId: integer().references(() => agentDefinition.id, {
+      onDelete: "set null",
+    }),
+    mergedAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.projectId),
+    uniqueIndex().on(table.projectId, table.name),
+    index().on(table.status),
+  ],
+);
 
 export const changeset = pgTable("Changeset", {
   id: serial().primaryKey(),
@@ -1282,7 +1446,10 @@ export const changeset = pgTable("Changeset", {
   agentRunId: integer().references(() => agentRun.id, {
     onDelete: "set null",
   }),
-  linkedCardId: integer().references(() => kanbanCard.id, {
+  pullRequestId: integer().references(() => pullRequest.id, {
+    onDelete: "set null",
+  }),
+  branchId: integer().references(() => entityBranch.id, {
     onDelete: "set null",
   }),
   status: changesetStatus().notNull().default("PENDING"),
@@ -1334,21 +1501,6 @@ export const entitySnapshot = pgTable("EntitySnapshot", {
   createdBy: uuid().references(() => user.id, { onDelete: "set null" }),
   ...timestamps,
 });
-
-export const kanbanCardDep = pgTable(
-  "KanbanCardDep",
-  {
-    cardId: integer()
-      .notNull()
-      .references(() => kanbanCard.id, { onDelete: "cascade" }),
-    dependsOnCardId: integer()
-      .notNull()
-      .references(() => kanbanCard.id, { onDelete: "cascade" }),
-    /** FINISH_TO_START | DATA */
-    depType: text().notNull().default("FINISH_TO_START"),
-  },
-  (table) => [primaryKey({ columns: [table.cardId, table.dependsOnCardId] })],
-);
 
 export const toolCallLog = pgTable(
   "ToolCallLog",

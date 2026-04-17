@@ -165,7 +165,6 @@ export const ObjectTypeValues = [
   "plugin",
   "setting",
   "task",
-  "kanban_board",
   "agent_definition",
   "user",
 ] as const;
@@ -183,6 +182,8 @@ export const RelationValues = [
   "editor",
   "viewer",
   "member",
+  "direct_editor",
+  "isolation_forced",
 ] as const;
 export const RelationSchema = z.enum(RelationValues);
 export type Relation = (typeof RelationValues)[number];
@@ -218,19 +219,55 @@ export const NotificationStatusValues = ["UNREAD", "READ", "ARCHIVED"] as const;
 export const NotificationStatusSchema = z.enum(NotificationStatusValues);
 export type NotificationStatus = (typeof NotificationStatusValues)[number];
 
-// ─── Kanban System ───
+// ─── Issue System ───
 
-export const KanbanCardStatusValues = [
+export const IssueStatusValues = ["OPEN", "CLOSED"] as const;
+export const IssueStatusSchema = z.enum(IssueStatusValues);
+export type IssueStatus = (typeof IssueStatusValues)[number];
+
+export const PullRequestStatusValues = [
+  "DRAFT",
   "OPEN",
-  "CLAIMED",
-  "IN_PROGRESS",
   "REVIEW",
-  "DONE",
-  "FAILED",
-  "NEEDS_REWORK",
+  "CHANGES_REQUESTED",
+  "MERGED",
+  "CLOSED",
 ] as const;
-export const KanbanCardStatusSchema = z.enum(KanbanCardStatusValues);
-export type KanbanCardStatus = (typeof KanbanCardStatusValues)[number];
+export const PullRequestStatusSchema = z.enum(PullRequestStatusValues);
+export type PullRequestStatus = (typeof PullRequestStatusValues)[number];
+
+export const EntityBranchStatusValues = [
+  "ACTIVE",
+  "MERGED",
+  "ABANDONED",
+] as const;
+export const EntityBranchStatusSchema = z.enum(EntityBranchStatusValues);
+export type EntityBranchStatus = (typeof EntityBranchStatusValues)[number];
+
+export const IssueCommentTargetTypeValues = ["issue", "pr"] as const;
+export const IssueCommentTargetTypeSchema = z.enum(
+  IssueCommentTargetTypeValues,
+);
+export type IssueCommentTargetType =
+  (typeof IssueCommentTargetTypeValues)[number];
+
+export const CrossReferenceSourceTypeValues = [
+  "issue",
+  "pr",
+  "issue_comment",
+] as const;
+export const CrossReferenceSourceTypeSchema = z.enum(
+  CrossReferenceSourceTypeValues,
+);
+export type CrossReferenceSourceType =
+  (typeof CrossReferenceSourceTypeValues)[number];
+
+export const CrossReferenceTargetTypeValues = ["issue", "pr"] as const;
+export const CrossReferenceTargetTypeSchema = z.enum(
+  CrossReferenceTargetTypeValues,
+);
+export type CrossReferenceTargetType =
+  (typeof CrossReferenceTargetTypeValues)[number];
 
 // ─── ChangeSet Status ──────────────────────────────────────
 

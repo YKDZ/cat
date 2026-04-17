@@ -92,9 +92,5 @@ export const hydrateSessionState = (state: {
     runStatus: state.runStatus,
     blackboardSnapshot,
     messages: hydrateMessagesFromBlackboard(blackboardSnapshot),
-    currentKanbanCardId:
-      typeof blackboardSnapshot?.["current_card_id"] === "string"
-        ? blackboardSnapshot["current_card_id"]
-        : null,
   };
 };

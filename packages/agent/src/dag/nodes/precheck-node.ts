@@ -32,15 +32,7 @@ export interface PreCheckResult {
  * @zh PreCheckNode 可选服务接口。
  * @en Optional services available to PreCheckNode.
  */
-export interface PreCheckServices {
-  /**
-   * @zh 检查 Kanban 卡片的 DAG 依赖就绪状态。
-   * @en Check whether Kanban card DAG dependencies are satisfied.
-   */
-  checkKanbanDeps?: (
-    cardId: string,
-  ) => Promise<{ allMet: boolean; blocking: string[] }>;
-}
+export type PreCheckServices = Record<string, never>;
 
 // ─── Context Extension ────────────────────────────────────────────────────────
 
@@ -52,14 +44,14 @@ export type PreCheckContext = Pick<
 // ─── PreCheckNode ─────────────────────────────────────────────────────────────
 
 /**
- * @zh PreCheckNode（Phase 0b）：步数/超时检查 + Kanban DAG 依赖检查 + Blackboard 更新。
- * @en PreCheckNode (Phase 0b): step/timeout check + Kanban DAG dependency check + Blackboard update.
+ * @zh PreCheckNode（Phase 0b）：步数/超时检查 + Blackboard 更新。
+ * @en PreCheckNode (Phase 0b): step/timeout check + Blackboard update.
  */
 export const runPreCheckNode = async (
   data: AgentBlackboardData,
   ctx: PreCheckContext,
 ): Promise<PreCheckResult> => {
-  const { constraints, startedAt, logger, services } = ctx;
+  const { constraints, startedAt, logger } = ctx;
 
   const currentTurn = data.current_turn ?? 0;
   const elapsedMs = Date.now() - startedAt.getTime();
@@ -104,16 +96,6 @@ export const runPreCheckNode = async (
     `Turn: ${currentTurn + 1} / ${constraints.maxSteps}`,
     `Elapsed: ${Math.round(elapsedMs / 1000)}s / ${Math.round(constraints.timeoutMs / 1000)}s`,
   ];
-
-  // Kanban DAG dependency check
-  if (services?.checkKanbanDeps && data.current_card_id) {
-    const depsResult = await services.checkKanbanDeps(data.current_card_id);
-    if (!depsResult.allMet) {
-      notes.push(
-        `[WARN] Kanban 依赖未就绪 — 以下前置卡片 DONE 状态未达成: ${depsResult.blocking.join(", ")}`,
-      );
-    }
-  }
 
   const precheckNotes = notes.join("\n");
 

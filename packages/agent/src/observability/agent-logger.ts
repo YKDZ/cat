@@ -80,17 +80,6 @@ export interface AgentChangeSetLogEvent {
   summary?: string;
 }
 
-/**
- * @zh L07: Kanban 卡片依赖事件日志。
- * @en L07: Kanban card dependency event log.
- */
-export interface AgentKanbanDepLogEvent {
-  type: "kanban_dep.added" | "kanban_dep.removed" | "kanban_dep.cycle_detected";
-  cardId: string;
-  dependsOnCardId?: string;
-  depType?: string;
-}
-
 // ─── AgentLogger ──────────────────────────────────────────────────────────────────
 
 /**
@@ -110,8 +99,6 @@ export interface AgentLogger {
   logError: (event: AgentErrorLogEvent) => void;
   /** L06 */
   logChangeSetEvent: (event: AgentChangeSetLogEvent) => void;
-  /** L07 */
-  logKanbanDepEvent: (event: AgentKanbanDepLogEvent) => void;
 }
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
@@ -153,13 +140,6 @@ export const createAgentLogger = (baseLogger: Logger): AgentLogger => {
         `changeset.${event.type} cs=${event.changesetId}`,
       );
     }, // L06
-    logKanbanDepEvent: (event) => {
-      logger.info(
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-        event as unknown as Record<string, unknown>,
-        `kanban_dep.${event.type} card=${event.cardId}`,
-      );
-    }, // L07
   };
 };
 
@@ -180,6 +160,4 @@ export const createNoopAgentLogger = (): AgentLogger => ({
   logError: () => {},
   // oxlint-disable-next-line no-empty-function -- intentional noop for testing/placeholder
   logChangeSetEvent: () => {},
-  // oxlint-disable-next-line no-empty-function -- intentional noop for testing/placeholder
-  logKanbanDepEvent: () => {},
 });

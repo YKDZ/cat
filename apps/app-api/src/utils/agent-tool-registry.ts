@@ -3,17 +3,16 @@ import type { AgentToolProviderToolDef } from "@cat/plugin-core";
 
 import { ToolRegistry, type AgentToolDefinition } from "@cat/agent";
 import {
-  createAddCardDependencyTool,
-  createListCardDependenciesTool,
-  createRemoveCardDependencyTool,
   finishTool,
   getDocumentsTool,
   getNeighborsTool,
   getTranslationsTool,
-  kanbanClaimTool,
-  kanbanListTool,
-  kanbanUpdateTool,
+  issueClaimTool,
+  issueCreateTool,
+  issueListTool,
   listElementsTool,
+  prCreateTool,
+  prUpdateTool,
   qaCheckTool,
   readPrecheckTool,
   searchTermbaseTool,
@@ -67,12 +66,11 @@ export const createAgentToolRegistry = (
     getNeighborsTool,
     getTranslationsTool,
     submitTranslationTool,
-    kanbanClaimTool,
-    kanbanListTool,
-    kanbanUpdateTool,
-    createAddCardDependencyTool(),
-    createRemoveCardDependencyTool(),
-    createListCardDependenciesTool(),
+    issueCreateTool,
+    issueListTool,
+    issueClaimTool,
+    prCreateTool,
+    prUpdateTool,
   ].forEach((tool) => {
     registry.register(tool);
   });
