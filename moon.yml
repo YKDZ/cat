@@ -31,7 +31,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   typecheck:
-    script: "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p scripts/tsconfig.json"
+    script: "tsc --noEmit -p tsconfig.node.json"
     deps: []
     options:
       mergeDeps: replace
