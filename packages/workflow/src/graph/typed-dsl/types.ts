@@ -1,5 +1,6 @@
 import type { PluginManager } from "@cat/plugin-core";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
+import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod/v4";
 
 import type { EventEnvelopeInput } from "@/graph/events";
@@ -35,6 +36,16 @@ export type TypedNodeContext = {
     outputType: "db_write" | "api_call" | "event_publish",
     payload: T,
   ) => Promise<T | null>;
+  /**
+   * @zh 可选的 VCS 上下文。当提供时，graph 节点应通过 executeWithVCS 记录写操作。
+   * @en Optional VCS context. When provided, graph nodes should use executeWithVCS for writes.
+   */
+  vcsContext?: VCSContext;
+  /**
+   * @zh VCS 中间件实例。与 vcsContext 配对使用。
+   * @en VCS middleware instance. Used alongside vcsContext.
+   */
+  vcsMiddleware?: VCSMiddleware;
 };
 
 // ─── 类型安全节点定义 ──────────────────────────────────────────────

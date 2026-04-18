@@ -67,6 +67,7 @@ export * from "@/graph/graphs";
 export * from "@/graph/dsl";
 export * from "@/graph/typed-dsl";
 export * from "@/graph/distributed-extensions";
+export { executeWithVCS } from "@/graph/vcs-write-helper";
 export { getStoredGraphRuntime as getGlobalGraphRuntime } from "@/graph/runtime-store";
 
 export type DefaultGraphRuntime = {

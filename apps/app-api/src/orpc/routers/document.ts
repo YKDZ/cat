@@ -34,6 +34,7 @@ import {
 } from "@cat/shared/schema/misc";
 import { sanitizeFileName } from "@cat/shared/utils";
 import { listWithOverlay, readWithOverlay } from "@cat/vcs";
+import type { VCSContext } from "@cat/vcs";
 import { runGraph, upsertDocumentGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";
@@ -219,6 +220,13 @@ export const finishCreateFromFile = authed
         return { document };
       });
 
+      const vcsContext: VCSContext = {
+        mode: "direct",
+        projectId,
+        createdBy: user.id,
+      };
+      const { middleware: vcsMiddleware } = createVCSRouteHelper(drizzle);
+
       await runGraph(
         upsertDocumentGraph,
         {
@@ -230,9 +238,18 @@ export const finishCreateFromFile = authed
         },
         {
           pluginManager,
+          vcsContext,
+          vcsMiddleware,
         },
       );
     } else {
+      const vcsContext: VCSContext = {
+        mode: "direct",
+        projectId,
+        createdBy: user.id,
+      };
+      const { middleware: vcsMiddleware } = createVCSRouteHelper(drizzle);
+
       await runGraph(
         upsertDocumentGraph,
         {
@@ -244,6 +261,8 @@ export const finishCreateFromFile = authed
         },
         {
           pluginManager,
+          vcsContext,
+          vcsMiddleware,
         },
       );
     }

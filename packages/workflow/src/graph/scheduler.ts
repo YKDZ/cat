@@ -1,5 +1,6 @@
 import type { PluginManager } from "@cat/plugin-core";
 import type { JSONObject } from "@cat/shared/schema/json";
+import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
 import { evaluateCondition } from "@cat/graph";
 import { randomUUID } from "node:crypto";
@@ -64,6 +65,10 @@ export type SchedulerStartOptions = {
   deduplicationKey?: string;
   /** Plugin manager instance for this run */
   pluginManager?: PluginManager;
+  /** @zh 可选的 VCS 上下文，用于 Direct 模式审计 @en Optional VCS context for Direct mode audit */
+  vcsContext?: VCSContext;
+  /** @zh 可选的 VCS 中间件实例 @en Optional VCS middleware instance */
+  vcsMiddleware?: VCSMiddleware;
 };
 
 export type SchedulerRecoverOptions = {
@@ -227,6 +232,8 @@ export class Scheduler {
 
     const runtime: GraphRuntimeContext = {
       pluginManager: options?.pluginManager,
+      vcsContext: options?.vcsContext,
+      vcsMiddleware: options?.vcsMiddleware,
     };
     const persistedMetadata = {
       ...(options?.metadata ?? {}),

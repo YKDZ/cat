@@ -2,11 +2,13 @@ import { createTranslations, executeCommand, getDbHandle } from "@cat/domain";
 import { insertMemory } from "@cat/operations";
 import { safeZDotJson } from "@cat/shared/schema/json";
 import { zip } from "@cat/shared/utils";
+import { randomUUID } from "node:crypto";
 import * as z from "zod/v4";
 
 import { generateCacheKey } from "@/graph/cache";
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { executeWithVCS } from "@/graph/vcs-write-helper";
 
 import { createVectorizedStringGraph } from "./create-vectorized-string";
 import { qaTranslationGraph } from "./qa-translation";
@@ -78,19 +80,29 @@ export const createTranslationGraph = defineTypedGraph({
         );
 
         const { client: translationDb } = await getDbHandle();
-        const translationIds = await executeCommand(
-          { db: translationDb },
-          createTranslations,
-          {
-            data: Array.from(zip(input.data, stringIds)).map(
-              ([item, stringId]) => ({
-                translatableElementId: item.translatableElementId,
-                translatorId: item.translatorId,
-                meta: item.meta,
-                stringId,
-              }),
+        const batchEntityId = randomUUID();
+        const translationIds = await executeWithVCS(
+          ctx,
+          "translation",
+          batchEntityId,
+          "CREATE",
+          null,
+          { data: input.data },
+          async () =>
+            executeCommand(
+              { db: translationDb },
+              createTranslations,
+              {
+                data: Array.from(zip(input.data, stringIds)).map(
+                  ([item, stringId]) => ({
+                    translatableElementId: item.translatableElementId,
+                    translatorId: item.translatorId,
+                    meta: item.meta,
+                    stringId,
+                  }),
+                ),
+              },
             ),
-          },
         );
 
         ctx.addEvent({

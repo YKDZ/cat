@@ -330,7 +330,60 @@ describe("VCS branch isolation — integration", () => {
   });
 });
 
-// ─── Rebase before-rewrite ────────────────────────────────────────────────────
+// ─── Direct mode — route integration ─────────────────────────────────────────
+
+describe("Direct mode — route integration", () => {
+  test("interceptWrite in direct mode calls writeFn and records changeset entry", async () => {
+    const { projectId, userId } = await seedProject();
+
+    const { csService, middleware } = createVCSRouteHelper(testDb.client);
+    const writeFnSpy = vi.fn().mockResolvedValue({ id: "direct-entity-001" });
+
+    await middleware.interceptWrite(
+      {
+        mode: "direct",
+        projectId,
+        createdBy: userId,
+      },
+      "comment",
+      "direct-entity-001",
+      "CREATE",
+      null,
+      { id: "direct-entity-001", content: "Direct mode comment" },
+      writeFnSpy,
+    );
+
+    // writeFn MUST be called in direct mode
+    expect(writeFnSpy).toHaveBeenCalledOnce();
+
+    // A main changeset must have been lazily created for this project
+    const changesets = await csService.listChangeSets(projectId);
+    expect(changesets.length).toBeGreaterThan(0);
+    const directCs = changesets[0];
+    if (directCs === undefined) throw new Error("Expected at least one changeset");
+
+    const entries = await executeQuery(
+      { db: testDb.client },
+      getChangesetEntries,
+      { changesetId: directCs.id },
+    );
+    expect(entries.length).toBeGreaterThan(0);
+    const entry = entries.find((e) => e.entityId === "direct-entity-001");
+    expect(entry).toBeDefined();
+    expect(entry?.action).toBe("CREATE");
+    expect(entry?.entityType).toBe("comment");
+  });
+
+  test("direct mode — no interceptWrite call means no changeset created (lazy creation)", async () => {
+    const { projectId } = await seedProject();
+
+    const { csService } = createVCSRouteHelper(testDb.client);
+    const changesets = await csService.listChangeSets(projectId);
+
+    // No changeset should exist for this brand-new project
+    expect(changesets).toHaveLength(0);
+  });
+});
 
 describe("Rebase before-rewrite", () => {
   let testDb2: TestDB;

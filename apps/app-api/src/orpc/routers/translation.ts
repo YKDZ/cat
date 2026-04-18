@@ -33,6 +33,7 @@ import {
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
 import { listWithOverlay } from "@cat/vcs";
+import type { VCSContext } from "@cat/vcs";
 import {
   CreateTranslationPubPayloadSchema,
   batchAutoTranslateGraph,
@@ -177,6 +178,12 @@ export const create = authed
       },
       {
         pluginManager,
+        vcsContext: {
+          mode: "direct",
+          projectId: element.projectId,
+          createdBy: user.id,
+        } satisfies VCSContext,
+        vcsMiddleware: createVCSRouteHelper(drizzle).middleware,
       },
     );
   });
