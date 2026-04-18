@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { PermissionEngine } from "@/engine";
 import type { AuthContext, ObjectRef } from "@/types";
 
-import { determineTrustMode } from "@/trust-isolation";
+import { determineWriteMode } from "@/trust-isolation";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -39,48 +39,48 @@ const makeEngine = (grantedRelations: string[]): PermissionEngine => {
 
 // ─── Tests ─────────────────────────────────────────────────────────────────
 
-describe("determineTrustMode", () => {
+describe("determineWriteMode", () => {
   const PROJECT_ID = "project-abc";
 
   it("returns 'no_access' when subject has no editor relation", async () => {
     const engine = makeEngine([]); // no permissions at all
-    const result = await determineTrustMode(engine, makeAuthCtx(), PROJECT_ID);
+    const result = await determineWriteMode(engine, makeAuthCtx(), PROJECT_ID);
     expect(result).toBe("no_access");
   });
 
   it("returns 'no_access' when subject has only viewer relation", async () => {
     const engine = makeEngine(["viewer"]);
-    const result = await determineTrustMode(engine, makeAuthCtx(), PROJECT_ID);
+    const result = await determineWriteMode(engine, makeAuthCtx(), PROJECT_ID);
     expect(result).toBe("no_access");
   });
 
-  it("returns 'trust' when subject has editor + direct_editor, no isolation_forced", async () => {
+  it("returns 'direct' when subject has editor + direct_editor, no isolation_forced", async () => {
     const engine = makeEngine(["editor", "direct_editor"]);
-    const result = await determineTrustMode(engine, makeAuthCtx(), PROJECT_ID);
-    expect(result).toBe("trust");
+    const result = await determineWriteMode(engine, makeAuthCtx(), PROJECT_ID);
+    expect(result).toBe("direct");
   });
 
   it("returns 'isolation' when subject has editor but no direct_editor", async () => {
     const engine = makeEngine(["editor"]);
-    const result = await determineTrustMode(engine, makeAuthCtx(), PROJECT_ID);
+    const result = await determineWriteMode(engine, makeAuthCtx(), PROJECT_ID);
     expect(result).toBe("isolation");
   });
 
   it("returns 'isolation' when subject has direct_editor but also isolation_forced", async () => {
     const engine = makeEngine(["editor", "direct_editor", "isolation_forced"]);
-    const result = await determineTrustMode(engine, makeAuthCtx(), PROJECT_ID);
+    const result = await determineWriteMode(engine, makeAuthCtx(), PROJECT_ID);
     expect(result).toBe("isolation");
   });
 
   it("returns 'isolation' when only isolation_forced is set (no direct_editor)", async () => {
     const engine = makeEngine(["editor", "isolation_forced"]);
-    const result = await determineTrustMode(engine, makeAuthCtx(), PROJECT_ID);
+    const result = await determineWriteMode(engine, makeAuthCtx(), PROJECT_ID);
     expect(result).toBe("isolation");
   });
 
   it("passes the correct projectId as object ref to engine.check", async () => {
     const engine = makeEngine(["editor", "direct_editor"]);
-    await determineTrustMode(engine, makeAuthCtx(), PROJECT_ID);
+    await determineWriteMode(engine, makeAuthCtx(), PROJECT_ID);
     expect(engine.check).toHaveBeenCalledWith(
       expect.any(Object),
       { type: "project", id: PROJECT_ID },
@@ -90,7 +90,7 @@ describe("determineTrustMode", () => {
 
   it("short-circuits after the first check when there is no editor access", async () => {
     const engine = makeEngine([]);
-    await determineTrustMode(engine, makeAuthCtx(), PROJECT_ID);
+    await determineWriteMode(engine, makeAuthCtx(), PROJECT_ID);
     // Only the initial 'editor' check should have been made
     expect(engine.check).toHaveBeenCalledTimes(1);
   });

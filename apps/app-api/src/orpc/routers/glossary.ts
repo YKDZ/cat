@@ -62,11 +62,16 @@ export const deleteTerm = authed
       context.branchId !== undefined &&
       context.branchChangesetId !== undefined
     ) {
+      if (context.branchProjectId === undefined) {
+        throw new Error(
+          "branchProjectId missing when branch context is active",
+        );
+      }
       const { middleware } = createVCSRouteHelper(drizzle);
       await middleware.interceptWrite(
         {
           mode: "isolation",
-          projectId: context.branchProjectId!,
+          projectId: context.branchProjectId,
           branchId: context.branchId,
           branchChangesetId: context.branchChangesetId,
         },
@@ -201,6 +206,11 @@ export const insertTerm = authed
       context.branchId !== undefined &&
       context.branchChangesetId !== undefined
     ) {
+      if (context.branchProjectId === undefined) {
+        throw new Error(
+          "branchProjectId missing when branch context is active",
+        );
+      }
       const {
         drizzleDB: { client: drizzle },
       } = context;
@@ -209,7 +219,7 @@ export const insertTerm = authed
       await middleware.interceptWrite(
         {
           mode: "isolation",
-          projectId: context.branchProjectId!,
+          projectId: context.branchProjectId,
           branchId: context.branchId,
           branchChangesetId: context.branchChangesetId,
         },

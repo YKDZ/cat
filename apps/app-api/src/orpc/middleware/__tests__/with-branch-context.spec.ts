@@ -7,7 +7,7 @@ vi.mock("@cat/permissions");
 vi.mock("@cat/vcs");
 
 import { executeQuery } from "@cat/domain";
-import { determineTrustMode, getPermissionEngine } from "@cat/permissions";
+import { determineWriteMode, getPermissionEngine } from "@cat/permissions";
 import { getBranchChangesetId } from "@cat/vcs";
 import { ORPCError } from "@orpc/server";
 
@@ -83,8 +83,8 @@ describe("withBranchContext", () => {
       expect(executeQuery).not.toHaveBeenCalled();
     });
 
-    it("projectId 有 trust 权限 → 放行", async () => {
-      vi.mocked(determineTrustMode).mockResolvedValue("trust");
+    it("projectId 有 direct 权限 → 放行", async () => {
+      vi.mocked(determineWriteMode).mockResolvedValue("direct");
       const next = makeNext();
       await invokeMiddleware(
         {
@@ -102,7 +102,7 @@ describe("withBranchContext", () => {
     });
 
     it("projectId 有 isolation_forced → 403", async () => {
-      vi.mocked(determineTrustMode).mockResolvedValue("isolation");
+      vi.mocked(determineWriteMode).mockResolvedValue("isolation");
       const next = makeNext();
       const promise = invokeMiddleware(
         {

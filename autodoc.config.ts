@@ -64,6 +64,11 @@ export default defineConfig({
       name: "@cat/agent-tools",
       priority: "medium",
     },
+    {
+      path: "packages/vcs",
+      name: "@cat/vcs",
+      priority: "medium",
+    },
   ],
   output: {
     path: "apps/docs/src/autodoc",

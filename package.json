@@ -6,9 +6,7 @@
     "autodoc": "node tools/autodoc/dist/cli.js",
     "build-plugins": "moon run '#plugin:build'",
     "load-plugins": "node scripts/load-plugins.js",
-    "precommit": "moon run :lint-fix :fmt :test :typecheck && moon run root:codegen-check",
-    "spacy:contract": "tsx scripts/run-spacy-contract.ts",
-    "tmtb:reindex": "tsx scripts/reindex-recall.ts"
+    "precommit": "moon run :lint-fix :fmt :test :typecheck && moon run root:codegen-check"
   },
   "devDependencies": {
     "@cat/cli": "workspace:*",

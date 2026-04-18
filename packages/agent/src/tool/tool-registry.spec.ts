@@ -14,7 +14,7 @@ const mockCtx: ToolExecutionContext = {
     checkPermission: vi.fn().mockResolvedValue(true),
   },
   cost: { budgetId: "b1", remainingTokens: 10_000 },
-  vcsMode: "trust",
+  vcsMode: "direct",
 };
 
 const makeTool = (

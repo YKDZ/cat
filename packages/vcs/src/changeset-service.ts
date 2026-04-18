@@ -64,8 +64,8 @@ export interface AddEntryParams {
   entityType: string;
   entityId: string;
   action: "CREATE" | "UPDATE" | "DELETE";
-  before?: unknown;
-  after?: unknown;
+  before?: JSONType;
+  after?: JSONType;
   fieldPath?: string;
   riskLevel?: "LOW" | "MEDIUM" | "HIGH";
 }

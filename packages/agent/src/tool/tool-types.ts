@@ -43,12 +43,11 @@ export interface ToolExecutionContext {
   };
   /**
    * @zh VCS 模式
-   * - `trust`: 直接写入 VCS（信任模式）
-   * - `audit`: 写入后需人工审计
+   * - `direct`: 直接写入并记录变更（Direct 模式）
    * - `isolation`: 写入沙盒，不影响主干
    * @en VCS mode
    */
-  vcsMode: "trust" | "audit" | "isolation";
+  vcsMode: "direct" | "isolation";
   /**
    * @zh 当前作用域的插件管理器（可选，未提供时工具应按自身逻辑降级）
    * @en Scoped plugin manager (optional; tools should degrade gracefully when absent)

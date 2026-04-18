@@ -137,3 +137,18 @@ export const JSONObjectSchema = z.custom<JSONObject>((data) => {
 
 export type JSONArray = JSONType[];
 export type NonNullJSONType = Exclude<JSONType, null>;
+
+/**
+ * @zh 可序列化为 JSON 的值，允许 `Date`（`JSON.stringify` 会将其转换为 ISO 字符串）。
+ * 比 `unknown` 更安全——禁止传入函数、`symbol` 等不可序列化值。
+ * @en Values serializable to JSON; `Date` is allowed and will be converted to ISO string by `JSON.stringify`.
+ * Safer than `unknown` — functions, symbols, and other non-serializable types are rejected.
+ */
+export type SerializableType =
+  | string
+  | number
+  | boolean
+  | null
+  | Date
+  | SerializableType[]
+  | { [key: string]: SerializableType };

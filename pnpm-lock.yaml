@@ -424,6 +424,9 @@ importers:
       '@cat/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@cat/vcs':
+        specifier: workspace:*
+        version: link:../../packages/vcs
       '@cat/workflow':
         specifier: workspace:*
         version: link:../../packages/workflow

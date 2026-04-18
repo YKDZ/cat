@@ -298,6 +298,8 @@ export const EntityTypeValues = [
   "project_member",
   "project_attributes",
   "context",
+  "project",
+  "issue",
 ] as const;
 export const EntityTypeSchema = z.enum(EntityTypeValues);
 export type EntityType = (typeof EntityTypeValues)[number];

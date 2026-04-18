@@ -16,7 +16,11 @@ const branchStore = useBranchStore();
 watch(
   () => data.pr,
   (currentPr) => {
-    if (currentPr && currentPr.status === "OPEN" && currentPr.branchId) {
+    if (
+      currentPr &&
+      currentPr.status === "OPEN" &&
+      currentPr.branchId !== null
+    ) {
       branchStore.enterBranch(
         currentPr.branchId,
         currentPr.id,

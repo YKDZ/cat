@@ -1,5 +1,5 @@
 // packages/operations/src/merge-pr-full.ts
-import type { DrizzleClient } from "@cat/domain";
+import type { DbContext, DrizzleClient } from "@cat/domain";
 import type { ConflictInfo, MergeResult } from "@cat/vcs";
 
 import {
@@ -44,7 +44,7 @@ export interface MergePRFullResult {
  * Executed in a single database transaction; any step failure triggers full rollback.
  */
 export const mergePRFull = async (
-  ctx: { db: DrizzleClient },
+  ctx: DbContext,
   input: MergePRFullInput,
 ): Promise<MergePRFullResult> => {
   const { db } = ctx;
@@ -120,7 +120,12 @@ export const mergePRFull = async (
     })
     .catch(async (error: unknown) => {
       if (error instanceof MergePRConflictError) {
-        return markConflictOutsideTx(db, pr.branchId, error.conflicts, pr.id);
+        return markConflictOutsideTx(
+          db as DrizzleClient,
+          pr.branchId,
+          error.conflicts,
+          pr.id,
+        );
       }
       if (error instanceof MergePRApplyError) {
         return {

@@ -10,7 +10,7 @@
 ## Package Documentation
 
 - [@cat/domain](./packages/domain.md): 324 exported functions — Domain layer: CQRS Commands and Queries, core business logic
-- [@cat/operations](./packages/operations.md): 59 exported functions — Operations layer: business workflows composing domain operations
+- [@cat/operations](./packages/operations.md): 61 exported functions — Operations layer: business workflows composing domain operations
 - [@cat/shared](./packages/shared.md): 24 exported functions — Shared Zod schemas, type definitions, and utility functions
 - [@cat/db](./packages/db.md): 9 exported functions — Database layer: Drizzle ORM schemas and Redis client
 - [@cat/permissions](./packages/permissions.md): 10 exported functions — Permission system: ReBAC-based access control
@@ -21,8 +21,9 @@
 - [@cat/core](./packages/core.md): 1 exported functions — Core infrastructure: generic event bus, typed pub/sub
 - [@cat/message](./packages/message.md): 1 exported functions — Unified message gateway: in-app notifications and email dispatch
 - [@cat/graph](./packages/graph.md): 7 exported functions — Storage-agnostic graph core: types, blackboard, condition evaluation
-- [@cat/agent](./packages/agent.md): 24 exported functions — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser
+- [@cat/agent](./packages/agent.md): 13 exported functions — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser
 - [@cat/agent-tools](./packages/agent-tools.md): 3 exported functions — Built-in agent tools: kanban, translation, session management
+- [@cat/vcs](./packages/vcs.md): 12 exported functions — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies
 
 ## @cat/domain
 

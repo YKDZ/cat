@@ -91,10 +91,10 @@ export interface AgentNodeContext {
     payload: Record<string, unknown>;
   }) => void;
   /**
-   * @zh VCS 模式，通过 determineTrustMode() 动态计算
-   * @en VCS mode, dynamically computed via determineTrustMode()
+   * @zh VCS 模式，通过 determineWriteMode() 动态计算
+   * @en VCS mode, dynamically computed via determineWriteMode()
    */
-  vcsMode: "trust" | "audit" | "isolation";
+  vcsMode: "direct" | "isolation";
   /**
    * @zh 权限检查函数，使用真实权限引擎进行检查
    * @en Permission checker using the real permission engine

@@ -171,20 +171,7 @@ This prevents wasting tokens on speculative content and avoids pre-loading conte
 
 ## Chunked Writing
 
-Always write the plan incrementally by section using the continuation marker `<!-- §§PLAN_CONTINUE§§ -->`. Do NOT attempt to write the entire plan in a single tool call.
-
-Write in this order, one chunk per tool call:
-
-1. **Create** the file with **Background & Goals** + **Architecture Diagram**, ending with the marker.
-2. **Append** each phase of **Implementation Steps** (replace the marker with content + a fresh marker). If there are many steps, split across multiple chunks by phase.
-3. **Append** **File Change Overview** + **Final Verification** (replace marker, add fresh marker).
-4. **Final chunk**: append **TODO List** — no new marker.
-
-Rules:
-
-- The marker string is exactly `<!-- §§PLAN_CONTINUE§§ -->` — do not vary it.
-- Never leave the marker in the finished document.
-- Only the plan output file may contain this marker.
+Follow `.claude/rules/chunked-writing.md`. Write sections in the order defined by the plan document structure above.
 
 ## Self-Review
 

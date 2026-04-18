@@ -23,7 +23,11 @@ export async function readWithOverlay<T extends Record<string, unknown>>(
   branchId: number,
   entityType: EntityType,
   entityId: string,
-): Promise<{ data: T; action?: "CREATE" | "UPDATE" | "DELETE" } | null> {
+): Promise<
+  | { data: T; action: "CREATE" | "UPDATE" }
+  | { data: null; action: "DELETE" }
+  | null
+> {
   const entries = await executeQuery({ db }, listBranchChangesetEntries, {
     branchId,
     entityType,
@@ -39,7 +43,7 @@ export async function readWithOverlay<T extends Record<string, unknown>>(
   }
 
   if (latestEntry.action === "DELETE") {
-    return null;
+    return { data: null, action: "DELETE" };
   }
 
   // CREATE or UPDATE: return the `after` state
@@ -47,6 +51,7 @@ export async function readWithOverlay<T extends Record<string, unknown>>(
     return {
       // Overlay data is stored as plain JSON in the changeset; cast to the
       // caller-declared domain type T (dates arrive as ISO strings).
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       data: latestEntry.after as unknown as T,
       action: latestEntry.action,
     };
@@ -103,6 +108,7 @@ export async function listWithOverlay<T extends Record<string, unknown>>(
       branchEntry.after !== undefined
     ) {
       // Overlay data is plain JSON from the changeset; cast to T at the boundary.
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       result.push(branchEntry.after as unknown as T);
       branchMap.delete(id);
     }
@@ -117,6 +123,7 @@ export async function listWithOverlay<T extends Record<string, unknown>>(
     ) {
       const existsInMain = mainItems.some((item) => getItemId(item) === id);
       if (!existsInMain) {
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         result.push(entry.after as unknown as T);
       }
     }

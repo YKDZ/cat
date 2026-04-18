@@ -12,7 +12,6 @@ import {
  * @zh 创建 VCS 路由 helper，用于在 handler 中执行 isolation 模式写入。
  * @en Create VCS route helper for isolation mode writes in handlers.
  */
-// oxlint-disable-next-line typescript/no-explicit-any
 export const createVCSRouteHelper = (
   db: DbHandle,
 ): {

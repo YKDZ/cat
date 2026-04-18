@@ -72,7 +72,7 @@ export const issueClaimTool: AgentToolDefinition = {
 
     return {
       issue: claimedIssue,
-      mode: "trust",
+      mode: "direct",
     };
   },
 };

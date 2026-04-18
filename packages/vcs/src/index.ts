@@ -32,6 +32,7 @@ export { DiffStrategyRegistry } from "./diff-strategy-registry.ts";
 export { ChangeSetService } from "./changeset-service.ts";
 export { VCSMiddleware } from "./vcs-middleware.ts";
 export { SimpleApplicationMethod } from "./methods/simple-application-method.ts";
+export type { EntityStateFetcher } from "./methods/simple-application-method.ts";
 export { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 
 // ── Functions ─────────────────────────────────────────────────────────────────
@@ -44,6 +45,8 @@ export {
 } from "./branch-overlay.ts";
 
 export { registerAllDiffStrategies } from "./diff-strategies-init.ts";
+
+export { wireEntityStateFetchers } from "./wire-entity-state-fetchers.ts";
 
 // ── Default Registries ────────────────────────────────────────────────────────
 import { ApplicationMethodRegistry } from "./application-method-registry.ts";
@@ -61,10 +64,17 @@ import { VectorizedStringApplicationMethod } from "./methods/vectorized-string-a
  * Vectorized entities (translation, element, term_concept, memory_item) use
  * VectorizedStringApplicationMethod; others use SimpleApplicationMethod.
  */
+let _cachedRegistries: {
+  diffRegistry: DiffStrategyRegistry;
+  appMethodRegistry: ApplicationMethodRegistry;
+} | null = null;
+
 export const getDefaultRegistries = (): {
   diffRegistry: DiffStrategyRegistry;
   appMethodRegistry: ApplicationMethodRegistry;
 } => {
+  if (_cachedRegistries) return _cachedRegistries;
+
   const diffRegistry = new DiffStrategyRegistry();
   registerAllDiffStrategies(diffRegistry);
 
@@ -94,6 +104,8 @@ export const getDefaultRegistries = (): {
     "project_member",
     "project_attributes",
     "context",
+    "project",
+    "issue",
   ]) {
     appMethodRegistry.register(
       entityType,
@@ -101,5 +113,6 @@ export const getDefaultRegistries = (): {
     );
   }
 
-  return { diffRegistry, appMethodRegistry };
+  _cachedRegistries = { diffRegistry, appMethodRegistry };
+  return _cachedRegistries;
 };
