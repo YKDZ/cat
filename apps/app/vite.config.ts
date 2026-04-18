@@ -9,7 +9,7 @@ import vueDevTools from "vite-plugin-vue-devtools";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/agent", "@cat/plugin-core", "@cat/permissions"],
+    external: ["@cat/agent", "@cat/plugin-core", "@cat/permissions", "@cat/db"],
   },
 
   resolve: {
@@ -42,7 +42,7 @@ export default defineConfig({
     target: "esnext",
     emptyOutDir: true,
     rollupOptions: {
-      external: ["@cat/agent", "@cat/permissions"],
+      external: ["@cat/agent", "@cat/permissions", "@cat/db"],
     },
   },
 });

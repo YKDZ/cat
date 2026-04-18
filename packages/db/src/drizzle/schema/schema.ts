@@ -45,6 +45,7 @@ import {
   RecallQuerySideValues,
   IssueStatusValues,
   PullRequestStatusValues,
+  PullRequestTypeValues,
   EntityBranchStatusValues,
   IssueCommentTargetTypeValues,
   CrossReferenceSourceTypeValues,
@@ -135,6 +136,8 @@ export const pullRequestStatus = pgEnum(
   "PullRequestStatus",
   PullRequestStatusValues,
 );
+
+export const pullRequestType = pgEnum("PullRequestType", PullRequestTypeValues);
 
 export const entityBranchStatus = pgEnum(
   "EntityBranchStatus",
@@ -596,6 +599,31 @@ export const project = pgTable(
   (table) => [index().using("btree", table.creatorId.asc().nullsLast())],
 );
 
+export const projectSetting = pgTable(
+  "ProjectSetting",
+  {
+    id: serial().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" })
+      .unique(),
+    settings: jsonb()
+      .$type<{
+        enableAutoTranslation: boolean;
+        autoTranslationLanguages: string[];
+        ghostTextFallback: "first-memory" | "none";
+      }>()
+      .notNull()
+      .default({
+        enableAutoTranslation: false,
+        autoTranslationLanguages: [],
+        ghostTextFallback: "none",
+      }),
+    ...timestamps,
+  },
+  (table) => [index().on(table.projectId)],
+);
+
 export const projectSequence = pgTable(
   "ProjectSequence",
   {
@@ -697,6 +725,8 @@ export const pullRequest = pgTable(
     mergedAt: timestamp({ withTimezone: true }),
     mergedBy: text(),
     metadata: jsonb().$type<JSONType>(),
+    type: pullRequestType().notNull().default("MANUAL"),
+    targetLanguageId: text(),
     ...timestamps,
   },
   (table) => [
@@ -705,6 +735,12 @@ export const pullRequest = pgTable(
     index().on(table.branchId),
     index().on(table.issueId),
     index().on(table.projectId, table.status),
+    index().on(table.projectId, table.type, table.targetLanguageId),
+    uniqueIndex()
+      .on(table.projectId, table.targetLanguageId)
+      .where(
+        sql`"type" = 'AUTO_TRANSLATE' AND "status" NOT IN ('MERGED', 'CLOSED')`,
+      ),
   ],
 );
 

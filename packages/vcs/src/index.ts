@@ -52,6 +52,7 @@ export { wireEntityStateFetchers } from "./wire-entity-state-fetchers.ts";
 import { ApplicationMethodRegistry } from "./application-method-registry.ts";
 import { registerAllDiffStrategies } from "./diff-strategies-init.ts";
 import { DiffStrategyRegistry } from "./diff-strategy-registry.ts";
+import { AutoTranslationApplicationMethod } from "./methods/auto-translation-application-method.ts";
 import { SimpleApplicationMethod } from "./methods/simple-application-method.ts";
 import { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 
@@ -113,6 +114,14 @@ export const getDefaultRegistries = (): {
     );
   }
 
+  // Auto-translate pre-translation entries — creates real Translation records on PR merge
+  appMethodRegistry.register(
+    "auto_translation",
+    new AutoTranslationApplicationMethod(),
+  );
+
   _cachedRegistries = { diffRegistry, appMethodRegistry };
   return _cachedRegistries;
 };
+
+export { AutoTranslationApplicationMethod } from "./methods/auto-translation-application-method.ts";

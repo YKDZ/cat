@@ -212,14 +212,15 @@ export class ChangeSetService {
         .map(async (row) => {
           const method = this.appMethodRegistry.get(row.entityType);
           const action = row.action;
+          const methodCtx = { ...ctx, db: this.ctx.db };
 
           let result;
           if (action === "CREATE") {
-            result = await method.applyCreate(mapEntry(row), ctx);
+            result = await method.applyCreate(mapEntry(row), methodCtx);
           } else if (action === "UPDATE") {
-            result = await method.applyUpdate(mapEntry(row), ctx);
+            result = await method.applyUpdate(mapEntry(row), methodCtx);
           } else {
-            result = await method.applyDelete(mapEntry(row), ctx);
+            result = await method.applyDelete(mapEntry(row), methodCtx);
           }
 
           const entryAsyncStatus =

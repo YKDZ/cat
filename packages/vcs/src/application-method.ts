@@ -1,3 +1,4 @@
+import type { DbHandle } from "@cat/domain";
 import type { JSONType } from "@cat/shared/schema/json";
 
 /**
@@ -58,6 +59,7 @@ export interface ApplicationContext {
   projectId: string;
   sessionId?: string;
   agentRunId?: number;
+  db?: DbHandle;
 }
 
 /**

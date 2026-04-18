@@ -1,8 +1,8 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "94f742e2-7c6d-46f3-ab39-023754c38e58",
-  "prevIds": ["067598a4-149b-4db9-9594-96184d1a401f"],
+  "id": "127eeae5-bbaf-4016-8ff6-dd011f257e08",
+  "prevIds": ["94f742e2-7c6d-46f3-ab39-023754c38e58"],
   "ddl": [
     {
       "values": ["GENERAL", "GHOST_TEXT", "WORKFLOW"],
@@ -107,6 +107,7 @@
     {
       "values": [
         "translation",
+        "auto_translation",
         "element",
         "document",
         "document_tree",
@@ -214,6 +215,12 @@
         "CLOSED"
       ],
       "name": "PullRequestStatus",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["MANUAL", "AUTO_TRANSLATE"],
+      "name": "PullRequestType",
       "entityType": "enums",
       "schema": "public"
     },
@@ -604,6 +611,12 @@
     {
       "isRlsEnabled": false,
       "name": "ProjectSequence",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ProjectSetting",
       "entityType": "tables",
       "schema": "public"
     },
@@ -5614,6 +5627,71 @@
       "table": "ProjectSequence"
     },
     {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'{\"enableAutoTranslation\":false,\"autoTranslationLanguages\":[],\"ghostTextFallback\":\"none\"}'",
+      "generated": null,
+      "identity": null,
+      "name": "settings",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -5830,6 +5908,32 @@
       "generated": null,
       "identity": null,
       "name": "metadata",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PullRequest"
+    },
+    {
+      "type": "PullRequestType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'MANUAL'",
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PullRequest"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "target_language_id",
       "entityType": "columns",
       "schema": "public",
       "table": "PullRequest"
@@ -9302,6 +9406,27 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
+      "name": "ProjectSetting_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
       "name": "ProjectTargetLanguage_project_id_index",
       "entityType": "indexes",
       "schema": "public",
@@ -9422,6 +9547,69 @@
       "method": "btree",
       "concurrently": false,
       "name": "PullRequest_project_id_status_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "PullRequest"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "type",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "target_language_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "PullRequest_project_id_type_target_language_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "PullRequest"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "target_language_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"type\" = 'AUTO_TRANSLATE' AND \"status\" NOT IN ('MERGED', 'CLOSED')",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "PullRequest_project_id_target_language_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "PullRequest"
@@ -10903,6 +11091,19 @@
     },
     {
       "nameExplicit": false,
+      "columns": ["project_id"],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "ProjectSetting_project_id_Project_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "nameExplicit": false,
       "columns": ["language_id"],
       "schemaTo": "public",
       "tableTo": "Language",
@@ -11899,6 +12100,14 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
+      "name": "ProjectSetting_pkey",
+      "schema": "public",
+      "table": "ProjectSetting",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
       "name": "PullRequest_pkey",
       "schema": "public",
       "table": "PullRequest",
@@ -12283,6 +12492,15 @@
       "name": "ProjectSequence_project_id_key",
       "schema": "public",
       "table": "ProjectSequence",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["project_id"],
+      "nullsNotDistinct": false,
+      "name": "ProjectSetting_project_id_key",
+      "schema": "public",
+      "table": "ProjectSetting",
       "entityType": "uniques"
     },
     {

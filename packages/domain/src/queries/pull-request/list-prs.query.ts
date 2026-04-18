@@ -1,5 +1,8 @@
-import { and, eq, getColumns, pullRequest } from "@cat/db";
-import { PullRequestStatusSchema } from "@cat/shared/schema/enum";
+import { and, eq, ne, pullRequest } from "@cat/db";
+import {
+  PullRequestStatusSchema,
+  PullRequestTypeSchema,
+} from "@cat/shared/schema/enum";
 import * as z from "zod/v4";
 
 import type { Query } from "@/types";
@@ -7,6 +10,8 @@ import type { Query } from "@/types";
 export const ListPRsQuerySchema = z.object({
   projectId: z.uuid(),
   status: PullRequestStatusSchema.optional(),
+  type: PullRequestTypeSchema.optional(),
+  excludeTypes: z.array(PullRequestTypeSchema).optional(),
   limit: z.int().positive().max(100).default(50),
   offset: z.int().min(0).default(0),
 });
@@ -27,8 +32,18 @@ export const listPRs: Query<
     conditions.push(eq(pullRequest.status, query.status));
   }
 
+  if (query.type) {
+    conditions.push(eq(pullRequest.type, query.type));
+  }
+
+  if (query.excludeTypes && query.excludeTypes.length > 0) {
+    for (const t of query.excludeTypes) {
+      conditions.push(ne(pullRequest.type, t));
+    }
+  }
+
   return ctx.db
-    .select({ ...getColumns(pullRequest) })
+    .select()
     .from(pullRequest)
     .where(and(...conditions))
     .limit(query.limit)
