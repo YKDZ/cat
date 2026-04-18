@@ -360,19 +360,17 @@ import { executeWithVCS } from "@cat/workflow";
 
 // 在图节点处理器中
 const result = await executeWithVCS(
-  ctx,            // TypedNodeContext（含 vcsContext / vcsMiddleware）
-  "translation",  // entityType
-  entityId,       // entityId
-  "CREATE",       // action
-  null,           // before
-  afterSnapshot,  // after
+  ctx, // TypedNodeContext（含 vcsContext / vcsMiddleware）
+  "translation", // entityType
+  entityId, // entityId
+  "CREATE", // action
+  null, // before
+  afterSnapshot, // after
   async () => actualWriteOp(),
 );
 ```
 
 当节点上下文中没有 `vcsContext` 或 `vcsMiddleware` 时（测试 / 旧路径），`executeWithVCS` 直接调用写函数，保持向后兼容。
-
-
 
 以 **Agent 在隔离模式下创建一条译文** 为例：
 

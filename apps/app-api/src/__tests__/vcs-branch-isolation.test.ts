@@ -360,7 +360,8 @@ describe("Direct mode — route integration", () => {
     const changesets = await csService.listChangeSets(projectId);
     expect(changesets.length).toBeGreaterThan(0);
     const directCs = changesets[0];
-    if (directCs === undefined) throw new Error("Expected at least one changeset");
+    if (directCs === undefined)
+      throw new Error("Expected at least one changeset");
 
     const entries = await executeQuery(
       { db: testDb.client },

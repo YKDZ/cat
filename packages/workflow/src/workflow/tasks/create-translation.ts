@@ -89,20 +89,16 @@ export const createTranslationGraph = defineTypedGraph({
           null,
           { data: input.data },
           async () =>
-            executeCommand(
-              { db: translationDb },
-              createTranslations,
-              {
-                data: Array.from(zip(input.data, stringIds)).map(
-                  ([item, stringId]) => ({
-                    translatableElementId: item.translatableElementId,
-                    translatorId: item.translatorId,
-                    meta: item.meta,
-                    stringId,
-                  }),
-                ),
-              },
-            ),
+            executeCommand({ db: translationDb }, createTranslations, {
+              data: Array.from(zip(input.data, stringIds)).map(
+                ([item, stringId]) => ({
+                  translatableElementId: item.translatableElementId,
+                  translatorId: item.translatorId,
+                  meta: item.meta,
+                  stringId,
+                }),
+              ),
+            }),
         );
 
         ctx.addEvent({

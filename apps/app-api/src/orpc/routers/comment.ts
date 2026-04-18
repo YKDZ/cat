@@ -1,3 +1,5 @@
+import type { VCSContext } from "@cat/vcs";
+
 import {
   createComment,
   deleteComment as deleteCommentCommand,
@@ -18,7 +20,6 @@ import {
   CommentTargetTypeSchema,
 } from "@cat/shared/schema/enum";
 import { listWithOverlay } from "@cat/vcs";
-import type { VCSContext } from "@cat/vcs";
 import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";

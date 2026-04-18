@@ -1,3 +1,5 @@
+import type { VCSContext } from "@cat/vcs";
+
 import {
   addGlossaryTermToConcept,
   countGlossaryConcepts,
@@ -27,7 +29,6 @@ import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import { listWithOverlay } from "@cat/vcs";
-import type { VCSContext } from "@cat/vcs";
 import {
   createTermGraph,
   runGraph,

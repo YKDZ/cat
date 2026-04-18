@@ -1,4 +1,5 @@
 import type { MemorySuggestion } from "@cat/shared/schema/misc";
+import type { VCSContext } from "@cat/vcs";
 
 import {
   countMemoryItems,
@@ -18,7 +19,6 @@ import {
 } from "@cat/operations";
 import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
-import type { VCSContext } from "@cat/vcs";
 import * as z from "zod/v4";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
