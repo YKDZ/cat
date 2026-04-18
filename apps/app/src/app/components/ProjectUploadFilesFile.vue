@@ -2,11 +2,14 @@
 import { TableCell, TableRow } from "@cat/ui";
 import { Button } from "@cat/ui";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import LanguagePicker from "@/app/components/LanguagePicker.vue";
 import { orpc } from "@/app/rpc/orpc";
 import { useToastStore } from "@/app/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/app/utils/file.ts";
+
+const { t } = useI18n();
 
 const { info } = useToastStore();
 
@@ -44,7 +47,11 @@ const upload = async () => {
       putSessionId,
     })
     .then(() => {
-      info(`上传 ${props.file.name} 成功，等待处理完成后即可翻译`);
+      info(
+        t("上传 {name} 成功，等待处理完成后即可翻译", {
+          name: props.file.name,
+        }),
+      );
     });
 };
 </script>

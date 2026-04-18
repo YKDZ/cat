@@ -17,7 +17,7 @@ import { buildTokenWindows, joinLemmas } from "./nlp-normalization";
 const MAX_WINDOW_SIZE = 6;
 
 export const BuildTermRecallVariantsInputSchema = z.object({
-  conceptId: z.number().int(),
+  conceptId: z.int(),
 });
 
 export type BuildTermRecallVariantsInput = z.infer<

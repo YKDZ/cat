@@ -3,9 +3,8 @@ import type { JSONObject } from "@cat/shared/schema/json";
 
 import { z } from "zod";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall";
 import { createTranslationOp } from "./create-translation";
-import { fetchAdviseOp } from "./fetch-advise";
+import { fetchBestTranslationCandidateOp } from "./fetch-best-translation-candidate";
 
 export const AutoTranslateInputSchema = z.object({
   translatableElementId: z.int(),
@@ -60,68 +59,46 @@ export const autoTranslateOp = async (
 ): Promise<AutoTranslateOutput> => {
   const traceId = ctx?.traceId ?? crypto.randomUUID();
 
-  // 并行获取翻译建议和记忆搜索（原 dependencies 阶段）
-  const [adviseResult, memoryResult] = await Promise.all([
-    fetchAdviseOp(
-      {
-        text: data.text,
-        sourceLanguageId: data.sourceLanguageId,
-        translationLanguageId: data.translationLanguageId,
-        advisorId: data.advisorId,
-        glossaryIds: data.glossaryIds,
-        memoryIds: data.memoryIds,
-      },
-      ctx,
-    ),
-    collectMemoryRecallOp(
-      {
-        text: data.text,
-        chunkIds: data.chunkIds,
-        memoryIds: data.memoryIds,
-        sourceLanguageId: data.sourceLanguageId,
-        translationLanguageId: data.translationLanguageId,
-        minSimilarity: data.minMemorySimilarity,
-        maxAmount: data.maxMemoryAmount,
-        vectorStorageId: data.memoryVectorStorageId,
-      },
-      ctx,
-    ),
-  ]);
+  const candidate = await fetchBestTranslationCandidateOp(
+    {
+      text: data.text,
+      sourceLanguageId: data.sourceLanguageId,
+      translationLanguageId: data.translationLanguageId,
+      advisorId: data.advisorId,
+      memoryIds: data.memoryIds,
+      glossaryIds: data.glossaryIds,
+      chunkIds: data.chunkIds,
+      minMemorySimilarity: data.minMemorySimilarity,
+      maxMemoryAmount: data.maxMemoryAmount,
+      memoryVectorStorageId: data.memoryVectorStorageId,
+    },
+    ctx,
+  );
 
-  const memory = memoryResult.sort((a, b) => b.confidence - a.confidence).at(0);
-
-  const suggestion = adviseResult.suggestions
-    .sort((a, b) => b.confidence - a.confidence)
-    .at(0);
-
-  // 决策逻辑
-  let selectedText: string | undefined;
-  let meta: JSONObject = {};
-
-  if (memory) {
-    selectedText = memory.adaptedTranslation ?? memory.translation;
-    meta = { memoryId: memory.id, confidence: memory.confidence };
-  } else if (suggestion) {
-    selectedText = suggestion.translation;
-    if (data.advisorId) meta = { advisorId: data.advisorId };
-  }
-
-  if (!selectedText) {
+  if (!candidate) {
     return {};
   }
 
-  // 创建翻译（直接调用 createTranslationOp）
+  let meta: JSONObject = {};
+  if (candidate.source === "memory") {
+    meta = {
+      ...(candidate.memoryId ? { memoryId: candidate.memoryId } : {}),
+      confidence: candidate.confidence,
+    };
+  } else if (data.advisorId) {
+    meta = { advisorId: data.advisorId };
+  }
+
   const taskResult = await createTranslationOp(
     {
       data: [
         {
           translatableElementId: data.translatableElementId,
           languageId: data.translationLanguageId,
-          text: selectedText,
+          text: candidate.text,
           meta,
         },
       ],
-      // 自动翻译暂时不创建记忆
       memoryIds: [],
       translatorId: data.translatorId,
       vectorizerId: data.vectorizerId,

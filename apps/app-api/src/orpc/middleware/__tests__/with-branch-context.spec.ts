@@ -39,6 +39,9 @@ const makeContext = () => ({
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     client: {} as unknown as Record<string, never>,
   },
+  helpers: {
+    getReqHeader: vi.fn().mockReturnValue(undefined),
+  },
 });
 
 const makeNext = () =>

@@ -14,7 +14,9 @@ import { useInjectionKey } from "@/app/utils/provide.ts";
 
 import type { Data } from "../+data.server.ts";
 
+import AutoTranslationSettings from "./AutoTranslationSettings.vue";
 import { onProjectDelete } from "./Page.telefunc.ts";
+import ProjectFeaturesSettings from "./ProjectFeaturesSettings.vue";
 import TrustSettings from "./TrustSettings.vue";
 
 const { t } = useI18n();
@@ -22,6 +24,7 @@ const { rpcWarn } = useToastStore();
 
 const project = inject(useInjectionKey<Data>()("project"))!;
 const name = ref(project.name);
+const features = ref(project.features);
 
 const updateName = async (): Promise<void> => {
   if (!project) return;
@@ -66,6 +69,15 @@ const remove = async (): Promise<void> => {
       </div>
     </div>
     <Button variant="destructive" @click="remove">{{ t("删除项目") }}</Button>
+    <ProjectFeaturesSettings
+      :projectId="project.id"
+      :features="features"
+      @update:features="features = $event"
+    />
     <TrustSettings :projectId="project.id" />
+    <AutoTranslationSettings
+      :projectId="project.id"
+      :pullRequestsEnabled="features.pullRequests"
+    />
   </div>
 </template>

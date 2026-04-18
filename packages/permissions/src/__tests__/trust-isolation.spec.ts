@@ -94,4 +94,27 @@ describe("determineWriteMode", () => {
     // Only the initial 'editor' check should have been made
     expect(engine.check).toHaveBeenCalledTimes(1);
   });
+
+  it("returns 'direct' for superadmin regardless of engine responses", async () => {
+    // engine.check would return true for everything (including isolation_forced),
+    // but superadmin short-circuits before those checks.
+    const engine = makeEngine(["editor", "direct_editor", "isolation_forced"]);
+    const superadminCtx: AuthContext = {
+      ...makeAuthCtx(),
+      systemRoles: ["superadmin"],
+    };
+    const result = await determineWriteMode(engine, superadminCtx, PROJECT_ID);
+    expect(result).toBe("direct");
+  });
+
+  it("superadmin only checks editor, then short-circuits", async () => {
+    const engine = makeEngine(["editor"]);
+    const superadminCtx: AuthContext = {
+      ...makeAuthCtx(),
+      systemRoles: ["superadmin"],
+    };
+    await determineWriteMode(engine, superadminCtx, PROJECT_ID);
+    // editor check + superadmin short-circuit → only 1 call
+    expect(engine.check).toHaveBeenCalledTimes(1);
+  });
 });

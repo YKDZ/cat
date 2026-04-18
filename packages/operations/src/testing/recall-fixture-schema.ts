@@ -15,8 +15,8 @@ const NlpTokenSchema = z.object({
   text: z.string(),
   lemma: z.string(),
   pos: z.string(),
-  start: z.number().int(),
-  end: z.number().int(),
+  start: z.int(),
+  end: z.int(),
   isStop: z.boolean(),
   isPunct: z.boolean(),
 });
@@ -24,8 +24,8 @@ const NlpTokenSchema = z.object({
 const TokenizerTokenSchema = z.object({
   type: z.string(),
   value: z.string(),
-  start: z.number().int(),
-  end: z.number().int(),
+  start: z.int(),
+  end: z.int(),
 });
 
 const TermResultSchema = z.object({
@@ -33,17 +33,17 @@ const TermResultSchema = z.object({
   translation: z.string(),
   confidence: z.number(),
   definition: z.string().nullable(),
-  conceptId: z.number().int(),
+  conceptId: z.int(),
   glossaryId: UuidSchema,
   matchedText: z.string().optional(),
   evidences: z.array(RecallEvidenceSchema),
 });
 
 const MemoryResultSchema = z.object({
-  id: z.number().int(),
+  id: z.int(),
   source: z.string(),
   translation: z.string(),
-  translationChunkSetId: z.number().int().nullable(),
+  translationChunkSetId: z.int().nullable(),
   memoryId: UuidSchema,
   creatorId: UuidSchema.nullable(),
   confidence: z.number(),
@@ -82,12 +82,12 @@ export const RecallFixtureSchema = z.object({
     translationLanguageId: z.string(),
   }),
   expected: z.object({
-    topId: z.number().int(),
+    topId: z.int(),
     minimumTopConfidence: z.number(),
     requiredChannels: z.array(z.string()).default([]),
     requiredVariantTypes: z.array(z.string()).default([]),
     expectedTranslation: z.string().optional(),
-    missIds: z.array(z.number().int()).default([]),
+    missIds: z.array(z.int()).default([]),
   }),
   mock: z.object({
     term: z

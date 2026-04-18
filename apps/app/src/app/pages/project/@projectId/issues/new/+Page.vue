@@ -8,6 +8,7 @@ import {
   FormMessage,
   Input,
 } from "@cat/ui";
+import { ChevronLeft } from "@lucide/vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { navigate } from "vike/client/router";
@@ -28,7 +29,7 @@ const project = inject(useInjectionKey<LayoutData>()("project"))!;
 
 const schema = toTypedSchema(
   z.object({
-    title: z.string().min(1, { error: "Issue 必须有标题" }),
+    title: z.string().min(1, { error: "议题必须有标题" }),
   }),
 );
 
@@ -48,7 +49,7 @@ const onSubmit = handleSubmit(async (values) => {
       title: values.title,
       body: body.value,
     });
-    info(t("Issue 创建成功"));
+    info(t("议题创建成功"));
     await navigate(`/project/${project.id}/issues/${issue.number}`);
   } catch (e) {
     rpcWarn(e);
@@ -65,11 +66,11 @@ const onSubmit = handleSubmit(async (values) => {
         :href="`/project/${project.id}/issues`"
         class="text-sm text-muted-foreground hover:underline"
       >
-        ← {{ t("Issues") }}
+        <ChevronLeft /> {{ t("议题列表") }}
       </a>
     </div>
 
-    <h1 class="text-xl font-semibold">{{ t("New Issue") }}</h1>
+    <h1 class="text-xl font-semibold">{{ t("新建议题") }}</h1>
 
     <form class="space-y-4" @submit="onSubmit">
       <FormField v-slot="{ componentField }" name="title">
@@ -78,7 +79,7 @@ const onSubmit = handleSubmit(async (values) => {
           <FormControl>
             <Input
               type="text"
-              :placeholder="t('Issue 标题')"
+              :placeholder="t('标题')"
               v-bind="componentField"
             />
           </FormControl>
@@ -100,7 +101,7 @@ const onSubmit = handleSubmit(async (values) => {
           {{ t("取消") }}
         </Button>
         <Button type="submit" :disabled="isSubmitting">
-          {{ t("创建 Issue") }}
+          {{ t("创建") }}
         </Button>
       </div>
     </form>

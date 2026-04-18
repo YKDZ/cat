@@ -13,6 +13,7 @@ import { sendMessage } from "@cat/message";
 import { getPermissionEngine } from "@cat/permissions";
 import { serverLogger as logger } from "@cat/server-shared";
 
+import { runAutoTranslatePipeline } from "./run-auto-translate-pipeline";
 import { triggerConceptRevectorize } from "./trigger-revectorize";
 import { triggerTermRecallReindex } from "./trigger-term-recall-reindex";
 
@@ -182,6 +183,21 @@ export const registerDomainEventHandlers = (
         .withSituation("SERVER")
         .error(error, "Failed to handle pr:merged event");
     }
+  });
+
+  domainEventBus.subscribe("element:created", (event) => {
+    void runAutoTranslatePipeline(
+      { db },
+      {
+        projectId: event.payload.projectId,
+        documentId: event.payload.documentId,
+        elementIds: event.payload.elementIds,
+      },
+    ).catch((error: unknown) => {
+      logger
+        .withSituation("SERVER")
+        .error(error, "Auto-translate pipeline failed for element:created");
+    });
   });
 
   registered = true;

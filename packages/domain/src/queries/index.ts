@@ -44,6 +44,7 @@ export * from "@/queries/element/get-element-source-location.query";
 export * from "@/queries/element/get-element-with-chunk-ids.query";
 export * from "@/queries/element/list-cached-vectorized-strings.query";
 export * from "@/queries/element/list-elements-for-diff.query";
+export * from "@/queries/element/list-element-source-texts.query";
 export * from "@/queries/glossary/get-glossary.query";
 export * from "@/queries/glossary/fetch-terms-by-concept-ids.query";
 export * from "@/queries/glossary/get-concept-recall-detail.query";

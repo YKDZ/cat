@@ -12,3 +12,10 @@ export type { GetPRByNumberQuery } from "./get-pr-by-number.query.ts";
 
 export { getPRDiff, GetPRDiffQuerySchema } from "./get-pr-diff.query.ts";
 export type { GetPRDiffQuery } from "./get-pr-diff.query.ts";
+
+export {
+  findOpenAutoTranslatePR,
+  FindOpenAutoTranslatePRQuerySchema,
+  type FindOpenAutoTranslatePRQuery,
+  type OpenAutoTranslatePR,
+} from "./find-open-auto-translate-pr.query.ts";

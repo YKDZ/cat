@@ -13,8 +13,8 @@ import { buildTokenWindows, joinLemmas } from "./nlp-normalization";
 import { tokenizeOp } from "./tokenize";
 
 export const BuildMemoryRecallVariantsInputSchema = z.object({
-  memoryItemId: z.number().int(),
-  memoryId: z.string().uuid(),
+  memoryItemId: z.int(),
+  memoryId: z.uuid(),
   sourceText: z.string(),
   translationText: z.string(),
   sourceLanguageId: z.string(),
@@ -26,8 +26,8 @@ export const BuildMemoryRecallVariantsInputSchema = z.object({
         text: z.string(),
         lemma: z.string(),
         pos: z.string(),
-        start: z.number().int(),
-        end: z.number().int(),
+        start: z.int(),
+        end: z.int(),
         isStop: z.boolean(),
         isPunct: z.boolean(),
       }),

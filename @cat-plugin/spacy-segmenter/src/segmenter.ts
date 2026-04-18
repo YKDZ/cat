@@ -22,7 +22,7 @@ import {
 
 const SpacyConfigSchema = z.object({
   serverUrl: z.url(),
-  timeout: z.number().int().positive().optional().default(30000),
+  timeout: z.int().positive().optional().default(30000),
   languageModelMap: z.record(z.string(), z.string()).optional(),
 });
 

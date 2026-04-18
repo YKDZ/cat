@@ -10,17 +10,17 @@ export const SpacyTokenResponseSchema = z.object({
   /** UPOS tag (spaCy token.pos_) */
   pos: z.string(),
   /** 字符起始偏移 (spaCy token.idx) */
-  start: z.number().int().nonnegative(),
+  start: z.int().nonnegative(),
   /** 字符结束偏移 (token.idx + len(token.text)) */
-  end: z.number().int().nonnegative(),
+  end: z.int().nonnegative(),
   is_stop: z.boolean(),
   is_punct: z.boolean(),
 });
 
 export const SpacySentenceResponseSchema = z.object({
   text: z.string(),
-  start: z.number().int().nonnegative(),
-  end: z.number().int().nonnegative(),
+  start: z.int().nonnegative(),
+  end: z.int().nonnegative(),
   tokens: z.array(SpacyTokenResponseSchema),
 });
 

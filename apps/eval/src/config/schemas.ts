@@ -148,7 +148,7 @@ export const ExpectedTermSchema = z.object({
   conceptRef: z.string(),
   term: z.string(),
   translation: z.string(),
-  mustBeTopK: z.number().int().optional(),
+  mustBeTopK: z.int().optional(),
   minimumConfidence: z.number().optional(),
   requiredChannels: z.array(z.string()).default([]),
 });

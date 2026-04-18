@@ -1,9 +1,11 @@
 import type { JSONType } from "@cat/shared/schema/json";
 
-import { translatableElement } from "@cat/db";
+import { document, translatableElement, inArray } from "@cat/db";
 import * as z from "zod/v4";
 
 import type { Command } from "@/types";
+
+import { domainEvent } from "@/events/domain-events";
 
 export const CreateElementsCommandSchema = z.object({
   data: z.array(
@@ -47,10 +49,40 @@ export const createElements: Command<CreateElementsCommand, number[]> = async (
         sourceLocationMeta: item.sourceLocationMeta ?? null,
       })),
     )
-    .returning({ id: translatableElement.id });
+    .returning({
+      id: translatableElement.id,
+      documentId: translatableElement.documentId,
+    });
+
+  const byDocument = new Map<string, number[]>();
+  for (const row of inserted) {
+    const ids = byDocument.get(row.documentId) ?? [];
+    ids.push(row.id);
+    byDocument.set(row.documentId, ids);
+  }
+
+  const documentIds = [...byDocument.keys()];
+  const documentRows = await ctx.db
+    .select({ id: document.id, projectId: document.projectId })
+    .from(document)
+    .where(inArray(document.id, documentIds));
+
+  const projectIdByDocument = new Map(
+    documentRows.map((d) => [d.id, d.projectId]),
+  );
+
+  const events = [...byDocument.entries()].flatMap(
+    ([documentId, elementIds]) => {
+      const projectId = projectIdByDocument.get(documentId);
+      if (!projectId) return [];
+      return [
+        domainEvent("element:created", { projectId, documentId, elementIds }),
+      ];
+    },
+  );
 
   return {
     result: inserted.map((item) => item.id),
-    events: [],
+    events,
   };
 };

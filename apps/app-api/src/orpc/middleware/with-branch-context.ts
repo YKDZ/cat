@@ -10,15 +10,18 @@ type BranchAwareContext = {
   sessionId: Context["sessionId"];
   auth: NonNullable<Context["auth"]>;
   drizzleDB: Context["drizzleDB"];
+  helpers: Context["helpers"];
 };
 
 /**
  * @zh 提取并验证 branchId，将分支上下文注入到 context 中。
  * branchId 存在时验证 branch 状态和权限，并注入 branchId/branchChangesetId/branchProjectId。
  * branchId 不存在时，若 projectId 有 isolation_forced 则返回 403。
+ * 当 input 中未提供 branchId 时，会尝试从 x-branch-id 请求头读取。
  * @en Extracts and validates branchId, injecting branch context into the handler context.
  * When branchId is present, validates branch status and permissions.
  * When absent, returns 403 if the project has isolation_forced.
+ * Falls back to reading x-branch-id request header when branchId is not in input.
  */
 export const withBranchContext = os
   .$context<BranchAwareContext>()
@@ -27,7 +30,16 @@ export const withBranchContext = os
       { context, next },
       input: { branchId?: number; projectId?: string },
     ) => {
-      const { branchId, projectId } = input;
+      // Resolve branchId: prefer input, fall back to x-branch-id header
+      const headerBranchId = context.helpers.getReqHeader("x-branch-id");
+      const parsedHeader =
+        headerBranchId !== undefined ? Number(headerBranchId) : undefined;
+      const branchId =
+        input.branchId ??
+        (parsedHeader !== undefined && Number.isFinite(parsedHeader)
+          ? parsedHeader
+          : undefined);
+      const { projectId } = input;
       const {
         drizzleDB: { client: db },
         auth,

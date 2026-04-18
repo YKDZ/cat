@@ -70,7 +70,7 @@ const items = computed(() => {
 
   if (props.project.features?.issues) {
     base.push({
-      title: t("Issues"),
+      title: t("议题"),
       icon: TriangleAlert,
       href: `/project/${props.project.id}/issues`,
     });
@@ -78,7 +78,7 @@ const items = computed(() => {
 
   if (props.project.features?.pullRequests) {
     base.push({
-      title: t("Pull Requests"),
+      title: t("拉取请求"),
       icon: GitPullRequest,
       href: `/project/${props.project.id}/pull-requests`,
     });

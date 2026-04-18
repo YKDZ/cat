@@ -9,6 +9,7 @@ export const useBranchStore = defineStore("branch", () => {
   const currentBranchId = ref<number | null>(null);
   const currentPRId = ref<number | null>(null);
   const currentPRNumber = ref<number | null>(null);
+  const currentBranchName = ref<string | null>(null);
 
   /**
    * @zh 当前是否处于分支工作空间
@@ -17,13 +18,25 @@ export const useBranchStore = defineStore("branch", () => {
   const isOnBranch = computed(() => currentBranchId.value !== null);
 
   /**
+   * @zh 当前是否在主分支（isOnBranch 的语义反转）
+   * @en Whether the user is on the main branch (semantic inverse of isOnBranch)
+   */
+  const isOnMainBranch = computed(() => !isOnBranch.value);
+
+  /**
    * @zh 进入分支工作空间
    * @en Enter the branch workspace
    */
-  const enterBranch = (branchId: number, prId: number, prNumber: number) => {
+  const enterBranch = (
+    branchId: number,
+    prId: number,
+    prNumber: number,
+    branchName: string,
+  ) => {
     currentBranchId.value = branchId;
     currentPRId.value = prId;
     currentPRNumber.value = prNumber;
+    currentBranchName.value = branchName;
   };
 
   /**
@@ -34,13 +47,16 @@ export const useBranchStore = defineStore("branch", () => {
     currentBranchId.value = null;
     currentPRId.value = null;
     currentPRNumber.value = null;
+    currentBranchName.value = null;
   };
 
   return {
     currentBranchId,
     currentPRId,
     currentPRNumber,
+    currentBranchName,
     isOnBranch,
+    isOnMainBranch,
     enterBranch,
     leaveBranch,
   };

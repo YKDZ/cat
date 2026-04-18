@@ -363,3 +363,23 @@ export {
   type RebasePRFullInput,
   type RebasePRFullResult,
 } from "./rebase-pr-full";
+
+// === Auto-translate Pipeline ===
+export {
+  fetchBestTranslationCandidateOp,
+  FetchBestTranslationCandidateInputSchema,
+  FetchBestTranslationCandidateOutputSchema,
+  type FetchBestTranslationCandidateInput,
+  type FetchBestTranslationCandidateOutput,
+} from "./fetch-best-translation-candidate";
+
+export {
+  findOrCreateAutoTranslatePR,
+  type FindOrCreateAutoTranslatePRInput,
+  type FindOrCreateAutoTranslatePRResult,
+} from "./find-or-create-auto-translate-pr";
+
+export {
+  runAutoTranslatePipeline,
+  type RunAutoTranslatePipelineInput,
+} from "./run-auto-translate-pipeline";

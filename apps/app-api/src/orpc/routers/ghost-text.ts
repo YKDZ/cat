@@ -1,15 +1,15 @@
-import { ORPCError } from "@orpc/client";
+import {
+  executeQuery,
+  findOpenAutoTranslatePR,
+  getElementWithChunkIds,
+  getProjectSettings,
+  listMemoryIdsByProject,
+} from "@cat/domain";
+import { readWithOverlay } from "@cat/vcs";
 import * as z from "zod/v4";
 
 import { authed, checkElementPermission } from "@/orpc/server";
 
-// ─── Ghost Text Suggest ───
-
-/**
- * Stream ghost text continuation suggestions for the current editor input.
- *
- * TODO: Ghost text 依赖已移除的 buildSystemPrompt/runFim，需在 Agent 重构后重新实现。
- */
 export const suggest = authed
   .input(
     z.object({
@@ -30,9 +30,79 @@ export const suggest = authed
     }),
   )
   .use(checkElementPermission("viewer"), (i) => i.elementId)
-  // oxlint-disable-next-line require-yield -- stub handler always throws
-  .handler(async function* (): AsyncGenerator<{ text: string }> {
-    throw new ORPCError("NOT_IMPLEMENTED", {
-      message: "TODO: Ghost text 依赖已移除的模块，需在 Agent 重构后重新实现",
+  .handler(async function* ({
+    context,
+    input,
+  }): AsyncGenerator<{ text: string }> {
+    const {
+      drizzleDB: { client: db },
+    } = context;
+    const { elementId, languageId } = input;
+
+    // 1. Get element info (projectId, source text, source language)
+    const elem = await executeQuery({ db }, getElementWithChunkIds, {
+      elementId,
     });
+    if (!elem) return;
+
+    const { projectId } = elem;
+
+    // 2. Find auto-translate PR for this language and read overlay
+    const pr = await executeQuery({ db }, findOpenAutoTranslatePR, {
+      projectId,
+      languageId,
+    });
+
+    if (pr) {
+      const entityId = `element:${elementId}:lang:${languageId}`;
+      const overlay = await readWithOverlay(
+        db,
+        pr.branchId,
+        "auto_translation",
+        entityId,
+      );
+
+      if (overlay?.data) {
+        const payload = overlay.data as { text?: string };
+        if (payload.text) {
+          yield { text: payload.text };
+          return;
+        }
+      }
+    }
+
+    // 3. Fallback based on project settings
+    const settings = await executeQuery({ db }, getProjectSettings, {
+      projectId,
+    });
+
+    if (settings.ghostTextFallback === "first-memory") {
+      try {
+        const { collectMemoryRecallOp } = await import("@cat/operations");
+
+        const memoryIds = await executeQuery({ db }, listMemoryIdsByProject, {
+          projectId,
+        });
+
+        if (memoryIds.length > 0) {
+          const results = await collectMemoryRecallOp({
+            text: elem.value,
+            sourceLanguageId: elem.languageId,
+            translationLanguageId: languageId,
+            memoryIds,
+            maxAmount: 1,
+          });
+
+          const top = results[0];
+          if (top) {
+            yield { text: top.adaptedTranslation ?? top.translation };
+            return;
+          }
+        }
+      } catch {
+        // Fallback failed silently — return nothing
+      }
+    }
+
+    // ghostTextFallback === "none" or no result: yield nothing
   });
