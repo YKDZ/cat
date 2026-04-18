@@ -1,3 +1,5 @@
+import type { VCSContext } from "@cat/vcs";
+
 import { createDocumentUnderParent } from "@cat/domain";
 import {
   countDocumentElements,
@@ -34,7 +36,6 @@ import {
 } from "@cat/shared/schema/misc";
 import { sanitizeFileName } from "@cat/shared/utils";
 import { listWithOverlay, readWithOverlay } from "@cat/vcs";
-import type { VCSContext } from "@cat/vcs";
 import { runGraph, upsertDocumentGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";

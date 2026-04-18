@@ -1,3 +1,5 @@
+import type { VCSContext } from "@cat/vcs";
+
 import {
   approveTranslation,
   autoApproveDocumentTranslations,
@@ -33,7 +35,6 @@ import {
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
 import { listWithOverlay } from "@cat/vcs";
-import type { VCSContext } from "@cat/vcs";
 import {
   CreateTranslationPubPayloadSchema,
   batchAutoTranslateGraph,

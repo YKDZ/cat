@@ -1,3 +1,5 @@
+import type { VCSContext } from "@cat/vcs";
+
 import {
   assignIssue,
   AssignIssueCommandSchema,
@@ -21,7 +23,6 @@ import {
   UpdateIssueCommandSchema,
 } from "@cat/domain";
 import { IssueSchema } from "@cat/shared/schema/drizzle/issue";
-import type { VCSContext } from "@cat/vcs";
 import * as z from "zod/v4";
 
 import { authed, checkPermission } from "@/orpc/server";
