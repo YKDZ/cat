@@ -33,13 +33,17 @@ export const getDocumentElementPageIndex: Query<
 > = async (ctx, query) => {
   const target = assertSingleNonNullish(
     await ctx.db
-      .select({ sortIndex: translatableElement.sortIndex })
+      .select({
+        sortIndex: translatableElement.sortIndex,
+        documentId: translatableElement.documentId,
+      })
       .from(translatableElement)
       .where(eq(translatableElement.id, query.elementId)),
     `Element ${query.elementId} with given id does not exists`,
   );
 
   const whereConditions = [
+    eq(translatableElement.documentId, target.documentId),
     lt(translatableElement.sortIndex, target.sortIndex ?? 0),
   ];
 

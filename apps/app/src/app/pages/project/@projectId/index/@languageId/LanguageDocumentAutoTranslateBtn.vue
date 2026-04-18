@@ -47,7 +47,7 @@ const schema = toTypedSchema(
       .length(1),
     advisorId: z.int().optional(),
     enableLlmRefine: z.boolean().default(false),
-    llmProviderId: z.number().int().optional(),
+    llmProviderId: z.int().optional(),
     gatherDocumentContext: z.boolean().default(false),
   }),
 );

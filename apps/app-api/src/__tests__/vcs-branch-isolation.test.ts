@@ -101,6 +101,7 @@ const invokeWithBranchContext = withBranchContext as unknown as (
         scopes: string[] | null;
       };
       drizzleDB: { client: typeof testDb.client };
+      helpers: { getReqHeader: (name: string) => string | undefined };
     };
     next: () => Promise<{
       output: undefined;
@@ -133,6 +134,9 @@ function makeTestAuthContext(userId: string, db: typeof testDb.client) {
       scopes: null as string[] | null,
     },
     drizzleDB: { client: db },
+    helpers: {
+      getReqHeader: () => undefined,
+    },
   };
 }
 

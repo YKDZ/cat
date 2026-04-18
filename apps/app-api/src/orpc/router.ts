@@ -15,6 +15,7 @@ import * as notification from "./routers/notification.ts";
 import * as permission from "./routers/permission.ts";
 import * as plugin from "./routers/plugin.ts";
 import * as projectFeatures from "./routers/project-features.ts";
+import * as projectSettings from "./routers/project-settings.ts";
 import * as project from "./routers/project.ts";
 import * as pullRequest from "./routers/pull-request.ts";
 import * as qa from "./routers/qa.ts";
@@ -32,6 +33,7 @@ const router: AppRouter = {
   issueComment,
   pullRequest,
   projectFeatures,
+  projectSettings,
   trustSettings,
   auth,
   authFlow,
@@ -61,6 +63,7 @@ export type AppRouter = {
   issueComment: typeof issueComment;
   pullRequest: typeof pullRequest;
   projectFeatures: typeof projectFeatures;
+  projectSettings: typeof projectSettings;
   trustSettings: typeof trustSettings;
   auth: typeof auth;
   authFlow: typeof authFlow;

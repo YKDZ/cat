@@ -18,6 +18,10 @@ export async function determineWriteMode(
   const hasEditor = await engine.check(authCtx, projectRef, "editor");
   if (!hasEditor) return "no_access";
 
+  // superadmin 直接放行 — engine.check 对 superadmin 无差别返回 true，
+  // 导致 isolation_forced 也被误判为 true，需提前短路。
+  if (authCtx.systemRoles.includes("superadmin")) return "direct";
+
   // 第二层: 如何修改
   const hasDirectEditor = await engine.check(
     authCtx,

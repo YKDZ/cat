@@ -34,9 +34,9 @@ export const comment = authed
       parentCommentId: z.int().optional(),
       content: z.string(),
       languageId: z.string(),
-      branchId: z.number().int().optional(),
+      branchId: z.int().optional(),
       /** @zh 项目 ID（用于 Direct 模式 VCS 审计） @en Project ID for Direct mode VCS audit */
-      projectId: z.string().uuid().optional(),
+      projectId: z.uuid().optional(),
     }),
   )
   .use(withBranchContext, (i) => ({ branchId: i.branchId }))
@@ -130,7 +130,7 @@ export const getRootComments = authed
       targetId: z.int(),
       pageIndex: z.int().nonnegative(),
       pageSize: z.int().positive(),
-      branchId: z.number().int().optional(),
+      branchId: z.int().optional(),
     }),
   )
   .use(withBranchContext, (i) => ({ branchId: i.branchId }))

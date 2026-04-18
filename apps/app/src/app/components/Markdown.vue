@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DOMPurify from "dompurify";
 import { setOptions, marked } from "marked";
 import { computed } from "vue";
 
@@ -10,7 +11,9 @@ setOptions({
   breaks: true,
 });
 
-const compiled = computed(() => marked(props.content));
+const compiled = computed(() =>
+  DOMPurify.sanitize(marked(props.content) as string),
+);
 </script>
 
 <template>

@@ -72,7 +72,7 @@ const loadNeighborContext = async (elementId: number) => {
 };
 
 export const RecallContextRerankInputSchema = z.object({
-  elementId: z.number().int(),
+  elementId: z.int(),
   queryText: z.string(),
   memories: z.array(z.any()),
 });
@@ -84,7 +84,7 @@ export type RecallContextRerankInput = {
 };
 
 export const TermRecallContextRerankInputSchema = z.object({
-  elementId: z.number().int(),
+  elementId: z.int(),
   queryText: z.string(),
   terms: z.array(z.any()),
 });

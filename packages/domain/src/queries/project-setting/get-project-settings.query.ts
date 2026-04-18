@@ -5,7 +5,7 @@ import * as z from "zod/v4";
 import type { Query } from "@/types";
 
 export const GetProjectSettingsQuerySchema = z.object({
-  projectId: z.uuid(),
+  projectId: z.uuidv4(),
 });
 
 export type GetProjectSettingsQuery = z.infer<

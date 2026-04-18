@@ -45,15 +45,22 @@ const options = computed(() => {
   const pages = state.value?.data?.pages;
   if (!pages) return [];
 
-  return pages
+  const fromPages = pages
     .flatMap((page) => page.languages)
-    .map((language) => {
-      return {
-        value: language.id,
-        content: t(language.id),
-      };
-    })
+    .map((language) => ({
+      value: language.id,
+      content: t(language.id),
+    }))
     .filter((language) => props.filter(language));
+
+  // Ensure pre-selected values always appear in the options list,
+  // even when they fall outside the current paginated page.
+  const known = new Set(fromPages.map((o) => o.value));
+  const extras = languageIds.value
+    .filter((id) => !known.has(id))
+    .map((id) => ({ value: id, content: t(id) }));
+
+  return [...extras, ...fromPages];
 });
 </script>
 

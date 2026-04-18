@@ -11,6 +11,8 @@ import {
   getPRDiff,
   GetPRDiffQuerySchema,
   GetPRQuerySchema,
+  listElementsForDiff,
+  ListElementsForDiffQuerySchema,
   listPRs,
   ListPRsQuerySchema,
   submitReview,
@@ -179,4 +181,34 @@ export const getProjectPRDiff = authed
       drizzleDB: { client: db },
     } = context;
     return await executeQuery({ db }, getPRDiff, input);
+  });
+
+/** Get elements by IDs for diff context display */
+export const getElementsForDiff = authed
+  .input(
+    ListElementsForDiffQuerySchema.extend({
+      projectId: z.uuidv4(),
+    }),
+  )
+  .use(checkPermission("project", "viewer"), (i) => i.projectId)
+  .output(
+    z.array(
+      z.object({
+        id: z.int(),
+        text: z.string(),
+        meta: z.unknown(),
+        sortIndex: z.int().nullable(),
+        sourceStartLine: z.int().nullable(),
+        sourceEndLine: z.int().nullable(),
+        sourceLocationMeta: z.unknown(),
+      }),
+    ),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: db },
+    } = context;
+    return await executeQuery({ db }, listElementsForDiff, {
+      elementIds: input.elementIds,
+    });
   });

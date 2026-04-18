@@ -10,6 +10,7 @@ import type {
   JSONType,
   NonNullJSONType,
 } from "@cat/shared/schema/json";
+import type { ProjectSettingPayload } from "@cat/shared/schema/project-setting";
 
 import {
   PluginServiceTypeValues,
@@ -607,18 +608,11 @@ export const projectSetting = pgTable(
       .notNull()
       .references(() => project.id, { onDelete: "cascade" })
       .unique(),
-    settings: jsonb()
-      .$type<{
-        enableAutoTranslation: boolean;
-        autoTranslationLanguages: string[];
-        ghostTextFallback: "first-memory" | "none";
-      }>()
-      .notNull()
-      .default({
-        enableAutoTranslation: false,
-        autoTranslationLanguages: [],
-        ghostTextFallback: "none",
-      }),
+    settings: jsonb().$type<ProjectSettingPayload>().notNull().default({
+      enableAutoTranslation: false,
+      autoTranslationLanguages: [],
+      ghostTextFallback: "none",
+    }),
     ...timestamps,
   },
   (table) => [index().on(table.projectId)],

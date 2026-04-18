@@ -1,4 +1,5 @@
 import { getColumns, pullRequest } from "@cat/db";
+import { PullRequestTypeSchema } from "@cat/shared/schema/enum";
 import { safeZDotJson } from "@cat/shared/schema/json";
 import { assertSingleNonNullish } from "@cat/shared/utils";
 import * as z from "zod/v4";
@@ -20,6 +21,10 @@ export const CreatePRCommandSchema = z.object({
     .default([]),
   issueId: z.int().positive().optional(),
   metadata: safeZDotJson.optional(),
+  // ── Optional fields for auto-translate PRs ──
+  type: PullRequestTypeSchema.optional(),
+  targetLanguageId: z.string().optional(),
+  branchName: z.string().optional(),
 });
 
 export type CreatePRCommand = z.infer<typeof CreatePRCommandSchema>;
@@ -36,7 +41,7 @@ export const createPR: Command<
     projectId: command.projectId,
   });
 
-  const branchName = `pr/${number}`;
+  const branchName = command.branchName ?? `pr/${number}`;
   const { result: branch } = await createBranch(ctx, {
     projectId: command.projectId,
     name: branchName,
@@ -59,6 +64,8 @@ export const createPR: Command<
         issueId: command.issueId ?? null,
         reviewers: command.reviewers,
         metadata: command.metadata ?? null,
+        type: command.type ?? "MANUAL",
+        targetLanguageId: command.targetLanguageId ?? null,
       })
       .returning({ ...getColumns(pullRequest) }),
   );

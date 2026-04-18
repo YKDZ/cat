@@ -18,7 +18,11 @@ export type DomainEventMap = {
   "document:created": { projectId: string; documentId: string };
   "document:updated": { documentId: string };
   "document:deleted": { documentId: string };
-  "element:created": { documentId: string; elementIds: number[] };
+  "element:created": {
+    projectId: string;
+    documentId: string;
+    elementIds: number[];
+  };
   "project:created": { projectId: string; creatorId: string };
   "project:updated": { projectId: string };
   "project:deleted": { projectId: string };

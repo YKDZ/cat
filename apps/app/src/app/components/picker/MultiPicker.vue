@@ -16,7 +16,7 @@ import {
   Button,
 } from "@cat/ui";
 import { ComboboxVirtualizer, type AcceptableInputValue } from "reka-ui";
-import { shallowRef } from "vue";
+import { shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { PickerOption } from "./index.ts";
@@ -41,6 +41,40 @@ const modalValue = defineModel<T[]>({
 
 const selectedOptions = shallowRef<PickerOption<T>[]>([]);
 const search = defineModel<string>("search", { default: "" });
+
+// Resolve modelValue entries that don't yet have a matching selectedOption.
+// Watches both options (pagination / search) and modelValue (async load from server).
+watch(
+  [() => props.options, modalValue],
+  ([opts, values]) => {
+    if (values.length === 0 || opts.length === 0) return;
+    const selectedSet = new Set(
+      selectedOptions.value.map((o) => o.value as unknown),
+    );
+    const missing = opts.filter(
+      (o) =>
+        (values as unknown[]).includes(o.value) &&
+        !selectedSet.has(o.value as unknown),
+    );
+    if (missing.length > 0) {
+      selectedOptions.value = [...selectedOptions.value, ...missing];
+    }
+  },
+  { immediate: true },
+);
+
+// Keep modalValue in sync when TagsInput removes a tag via the × button.
+// (onSelect already handles add/remove through the combobox dropdown.)
+watch(selectedOptions, (opts) => {
+  const newValues = opts.map((o) => o.value);
+  const curSet = new Set(modalValue.value as unknown[]);
+  if (
+    newValues.length !== curSet.size ||
+    newValues.some((v) => !curSet.has(v as unknown))
+  ) {
+    modalValue.value = newValues;
+  }
+});
 
 const onSelect = (option: PickerOption<T> | undefined) => {
   if (option) {

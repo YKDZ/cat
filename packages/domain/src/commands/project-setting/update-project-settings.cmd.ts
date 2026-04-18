@@ -1,5 +1,6 @@
 import { eq, projectSetting } from "@cat/db";
 import {
+  ProjectSettingPatchSchema,
   ProjectSettingPayloadSchema,
   type ProjectSettingPayload,
 } from "@cat/shared/schema/project-setting";
@@ -9,7 +10,7 @@ import type { Command } from "@/types";
 
 export const UpdateProjectSettingsCommandSchema = z.object({
   projectId: z.uuid(),
-  patch: ProjectSettingPayloadSchema.partial(),
+  patch: ProjectSettingPatchSchema,
 });
 
 export type UpdateProjectSettingsCommand = z.infer<
@@ -28,7 +29,10 @@ export const updateProjectSettings: Command<
 
   const currentRaw = existing[0]?.settings ?? {};
   const current = ProjectSettingPayloadSchema.parse(currentRaw);
-  const merged = { ...current, ...command.patch };
+  const definedPatch = Object.fromEntries(
+    Object.entries(command.patch).filter(([, v]) => v !== undefined),
+  );
+  const merged = { ...current, ...definedPatch };
 
   if (existing[0]) {
     await ctx.db
