@@ -236,6 +236,10 @@ export const PullRequestStatusValues = [
 export const PullRequestStatusSchema = z.enum(PullRequestStatusValues);
 export type PullRequestStatus = (typeof PullRequestStatusValues)[number];
 
+export const PullRequestTypeValues = ["MANUAL", "AUTO_TRANSLATE"] as const;
+export const PullRequestTypeSchema = z.enum(PullRequestTypeValues);
+export type PullRequestType = (typeof PullRequestTypeValues)[number];
+
 export const EntityBranchStatusValues = [
   "ACTIVE",
   "MERGED",
@@ -286,6 +290,7 @@ export type ChangesetStatus = (typeof ChangesetStatusValues)[number];
 
 export const EntityTypeValues = [
   "translation",
+  "auto_translation",
   "element",
   "document",
   "document_tree",

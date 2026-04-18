@@ -19,6 +19,8 @@ export const PullRequestSchema = z.object({
   mergedAt: DrizzleDateTimeSchema.nullable(),
   mergedBy: z.string().nullable(),
   metadata: safeZDotJson.nullable(),
+  type: z.enum(["MANUAL", "AUTO_TRANSLATE"]),
+  targetLanguageId: z.string().nullable(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

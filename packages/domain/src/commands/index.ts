@@ -99,3 +99,4 @@ export * from "@/commands/branch/index.ts";
 export * from "@/commands/pull-request/index.ts";
 export * from "@/commands/issue-comment/index.ts";
 export * from "@/commands/cross-reference/index.ts";
+export * from "@/commands/project-setting/index.ts";

@@ -1459,6 +1459,9 @@ importers:
 
   packages/vcs:
     dependencies:
+      '@cat/db':
+        specifier: workspace:*
+        version: link:../db
       '@cat/domain':
         specifier: workspace:*
         version: link:../domain

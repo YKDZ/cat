@@ -103,6 +103,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/term-recall.ts",
         ),
+        "schema/project-setting": resolve(
+          import.meta.dirname,
+          "src/schema/project-setting.ts",
+        ),
       },
       formats: ["es"],
     },

@@ -158,3 +158,4 @@ export * from "@/queries/branch/index.ts";
 export * from "@/queries/pull-request/index.ts";
 export * from "@/queries/issue-comment/index.ts";
 export * from "@/queries/cross-reference/index.ts";
+export * from "@/queries/project-setting/index.ts";
