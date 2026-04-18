@@ -16,7 +16,7 @@ import { Label } from "@cat/ui";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { useI18n } from "vue-i18n";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import MultiGlossaryPicker from "@/app/components/MultiGlossaryPicker.vue";
 import MultiLanguagePicker from "@/app/components/MultiLanguagePicker.vue";

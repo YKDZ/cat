@@ -13,7 +13,7 @@ import {
 import { Button } from "@cat/ui";
 import { Eye, EyeOff } from "@lucide/vue";
 import { computed, inject, ref } from "vue";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { schemaKey, transferDataToString } from "../utils.ts";
 

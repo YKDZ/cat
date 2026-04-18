@@ -1,6 +1,6 @@
 import { plugin, pluginConfig } from "@cat/db";
 import { _JSONSchemaSchema, JSONSchemaSchema } from "@cat/shared/schema/json";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

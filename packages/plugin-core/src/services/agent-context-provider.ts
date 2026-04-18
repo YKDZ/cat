@@ -1,7 +1,7 @@
 import type { DbHandle } from "@cat/domain";
 import type { PluginServiceType } from "@cat/shared/schema/enum";
 
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { IPluginService } from "@/services/service";
 

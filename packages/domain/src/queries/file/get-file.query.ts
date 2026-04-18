@@ -1,7 +1,7 @@
 import { file } from "@cat/db";
 import { eq } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared/utils";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Query } from "@/types";
 

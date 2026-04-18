@@ -1,7 +1,7 @@
 import type { JSONObject } from "@cat/shared/schema/json";
 
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { EventIdSchema, NodeTypeSchema } from "@/graph/types";
 

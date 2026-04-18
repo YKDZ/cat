@@ -1,4 +1,4 @@
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { PluginServiceTypeSchema } from "@/schema/enum";
 import { JSONSchemaSchema, nonNullSafeZDotJson } from "@/schema/json.ts";

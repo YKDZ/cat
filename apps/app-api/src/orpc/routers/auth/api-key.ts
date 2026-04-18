@@ -6,7 +6,7 @@ import {
   revokeApiKey,
 } from "@cat/domain";
 import { createHash, randomBytes } from "node:crypto";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed } from "@/orpc/server";
 

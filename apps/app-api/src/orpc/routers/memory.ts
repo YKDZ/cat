@@ -19,7 +19,7 @@ import {
 } from "@cat/operations";
 import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import { authed, checkElementPermission, checkPermission } from "@/orpc/server";

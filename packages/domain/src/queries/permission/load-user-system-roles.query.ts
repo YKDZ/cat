@@ -1,6 +1,6 @@
 import { and, eq, permissionTuple } from "@cat/db";
 import { RelationSchema } from "@cat/shared/schema/permission";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Query } from "@/types";
 

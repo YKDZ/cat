@@ -9,7 +9,7 @@ import {
   standardLoginFlow,
   registerFlow,
 } from "@cat/auth";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Context } from "@/utils/context";
 

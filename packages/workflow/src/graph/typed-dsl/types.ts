@@ -1,7 +1,7 @@
 import type { PluginManager } from "@cat/plugin-core";
 import type { NonNullJSONType } from "@cat/shared/schema/json";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
-import type * as z from "zod/v4";
+import type * as z from "zod";
 
 import type { EventEnvelopeInput } from "@/graph/events";
 import type {

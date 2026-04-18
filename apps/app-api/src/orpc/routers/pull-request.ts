@@ -24,7 +24,7 @@ import {
 } from "@cat/domain";
 import { mergePRFull, rebasePRFull } from "@cat/operations";
 import { PullRequestSchema } from "@cat/shared/schema/drizzle/pull-request";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";
 

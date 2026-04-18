@@ -50,6 +50,7 @@ cd /workspaces/cat/apps/app && node dist/server/index.mjs &
 ```
 
 After backgrounding with `&`, wait and confirm:
+
 ```bash
 sleep 8 && lsof -i :3000 | head -5
 ```
@@ -57,6 +58,7 @@ sleep 8 && lsof -i :3000 | head -5
 ### Stopping the server — CRITICAL SAFETY
 
 **NEVER** use any of these:
+
 ```bash
 # ALL of these can kill VS Code server → SSH disconnection
 lsof -i :3000 -t | xargs kill        # ❌
@@ -68,6 +70,7 @@ killall node                          # ❌
 **Why**: VS Code's port-forwarding process (`MainThrea`) shares port 3000. `lsof -i :3000` returns the VS Code PID alongside the app server PID. Killing it disconnects the session.
 
 **Safe approach**:
+
 ```bash
 # 1. Find ONLY app server PIDs
 ps aux | grep "dist/server/index.mjs" | grep -v grep
@@ -147,6 +150,7 @@ Element refs (`e26`, `e27`, ...) are invalidated after any page navigation or si
 ### 4. Combobox / popup interactions
 
 For combobox pickers (like `MultiLanguagePicker`), the pattern is:
+
 ```
 1. click_element → button "Show popup"
 2. waitForTimeout(500)
@@ -160,6 +164,7 @@ Some pickers use virtual scrolling — items not in viewport won't appear in the
 ### 5. `scrollIntoViewIfNeeded` for off-screen elements
 
 When taking a screenshot of an element below the fold:
+
 ```
 screenshot_page with scrollIntoViewIfNeeded: true
 ```
@@ -189,6 +194,7 @@ For verifying a UI fix end-to-end:
 ### Round-trip persistence test
 
 When verifying data persistence (e.g. language picker saving to DB):
+
 ```
 1. Navigate to settings page
 2. read_page → verify saved value is displayed
@@ -221,12 +227,12 @@ When running `pnpm moon run app:preview 2>&1 &`, the terminal may report "waitin
 
 ## Common Failure Modes
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| 500 error on login | Server crashed or wasn't started with correct env | Use `moon run app:preview` instead of direct `node` |
-| Port 3000 already in use | Zombie server process | `ps aux \| grep "dist/server/index.mjs"` → kill PIDs |
-| UI shows stale code | Didn't rebuild after code change | Rebuild full chain: `domain:build app-api:build app:build` |
-| SSH disconnection | Killed VS Code port-forwarding process | See "Stopping the server — CRITICAL SAFETY" |
-| Page shows old content after rebuild | Server not restarted | Kill old server, start new one |
-| Element ref not found | Stale refs from before navigation | Call `read_page` again after navigation |
-| Picker shows empty despite DB having data | Async load race / pagination miss | Check if value is in paginated results; may need "extras" pattern |
+| Symptom                                   | Cause                                             | Fix                                                               |
+| ----------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- |
+| 500 error on login                        | Server crashed or wasn't started with correct env | Use `moon run app:preview` instead of direct `node`               |
+| Port 3000 already in use                  | Zombie server process                             | `ps aux \| grep "dist/server/index.mjs"` → kill PIDs              |
+| UI shows stale code                       | Didn't rebuild after code change                  | Rebuild full chain: `domain:build app-api:build app:build`        |
+| SSH disconnection                         | Killed VS Code port-forwarding process            | See "Stopping the server — CRITICAL SAFETY"                       |
+| Page shows old content after rebuild      | Server not restarted                              | Kill old server, start new one                                    |
+| Element ref not found                     | Stale refs from before navigation                 | Call `read_page` again after navigation                           |
+| Picker shows empty despite DB having data | Async load race / pagination miss                 | Check if value is in paginated results; may need "extras" pattern |

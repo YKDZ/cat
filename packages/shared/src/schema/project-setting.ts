@@ -1,4 +1,4 @@
-import * as z from "zod/v4";
+import * as z from "zod";
 
 export const ProjectSettingPayloadSchema = z.object({
   enableAutoTranslation: z.boolean().default(false),

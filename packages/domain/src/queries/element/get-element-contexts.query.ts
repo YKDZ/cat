@@ -2,7 +2,7 @@ import type { TranslatableElementContext } from "@cat/shared/schema/drizzle/docu
 
 import { eq, translatableElement, translatableElementContext } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Query } from "@/types";
 

@@ -5,7 +5,7 @@ import {
   RetrieveEmbeddingsInputSchema,
 } from "@cat/operations";
 import { getServiceFromDBId } from "@cat/server-shared";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 

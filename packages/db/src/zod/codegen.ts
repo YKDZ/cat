@@ -154,7 +154,7 @@ const collectImports = (
     imports.add(`import { ${jsonImports.join(", ")} } from "../json.ts";`);
   }
 
-  return ['import * as z from "zod/v4";', ...Array.from(imports).sort()];
+  return ['import * as z from "zod";', ...Array.from(imports).sort()];
 };
 
 const renderFile = (fileSpec: GeneratedFileSpec): string => {

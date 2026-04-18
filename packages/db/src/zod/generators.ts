@@ -1,5 +1,5 @@
 import { createSchemaFactory } from "drizzle-orm/zod";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import {
   account,

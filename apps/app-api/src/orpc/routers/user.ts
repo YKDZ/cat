@@ -19,7 +19,7 @@ import { FileMetaSchema } from "@cat/shared/schema/misc";
 import { ORPCError } from "@orpc/client";
 import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed } from "@/orpc/server";
 

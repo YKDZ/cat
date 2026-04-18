@@ -1,4 +1,4 @@
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const isJSONText = (value: unknown): value is string =>
   typeof value === "string" && z.json().safeParse(value).success;

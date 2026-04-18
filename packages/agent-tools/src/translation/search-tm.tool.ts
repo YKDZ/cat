@@ -1,7 +1,7 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
 import { collectMemoryRecallOp } from "@cat/operations";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const searchTmArgs = z.object({
   /**

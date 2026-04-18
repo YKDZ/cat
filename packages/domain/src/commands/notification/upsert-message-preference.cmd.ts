@@ -1,7 +1,7 @@
 import type { MessageCategory, MessageChannel } from "@cat/shared/schema/enum";
 
 import { userMessagePreference } from "@cat/db";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

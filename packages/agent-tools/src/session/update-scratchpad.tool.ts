@@ -7,7 +7,7 @@ import {
   loadAgentRunSnapshot,
   saveAgentRunSnapshot,
 } from "@cat/domain";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const updateScratchpadArgs = z.object({
   /**

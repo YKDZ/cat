@@ -5,7 +5,7 @@ import { Button } from "@cat/ui";
 import { Save } from "@lucide/vue";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import JsonForm from "@/app/components/json-form/JsonForm.vue";
 

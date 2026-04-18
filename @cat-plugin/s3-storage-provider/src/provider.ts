@@ -22,7 +22,7 @@ import {
   type PutStreamContext,
 } from "@cat/plugin-core";
 import { join } from "node:path";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const S3ConfigSchema = z.object({
   "endpoint-url": z.url(),

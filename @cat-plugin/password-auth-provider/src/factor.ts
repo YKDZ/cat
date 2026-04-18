@@ -6,7 +6,7 @@ import {
   type AuthFactorResult,
 } from "@cat/plugin-core";
 import { verifyPassword } from "@cat/server-shared";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const InputSchema = z.object({
   password: z.string().min(1),

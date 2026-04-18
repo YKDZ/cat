@@ -15,7 +15,7 @@ import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, stat, unlink, access, open } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const ConfigSchema = z.object({
   "root-path": z.string().default("./storage"),

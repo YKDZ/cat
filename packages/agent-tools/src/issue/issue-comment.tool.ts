@@ -6,7 +6,7 @@ import {
   executeCommand,
   getDbHandle,
 } from "@cat/domain";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const issueCommentArgs = z.object({
   /**

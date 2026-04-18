@@ -1,7 +1,7 @@
 import { createElements, executeCommand, getDbHandle } from "@cat/domain";
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import { zip } from "@cat/shared/utils";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 import { runGraph } from "@/graph/typed-dsl/run-graph";

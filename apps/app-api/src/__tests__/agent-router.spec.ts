@@ -3,7 +3,7 @@ import { PluginManager } from "@cat/plugin-core";
 import { createAuthedTestContext } from "@cat/test-utils";
 import { call } from "@orpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Context } from "@/utils/context";
 

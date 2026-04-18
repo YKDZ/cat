@@ -3,7 +3,7 @@ import {
   getDbHandle,
   listTermConceptIdsBySubject,
 } from "@cat/domain";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 import { runGraph } from "@/graph/typed-dsl/run-graph";

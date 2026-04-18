@@ -1,6 +1,6 @@
 import type { ToolDefinition as LLMToolDefinition } from "@cat/plugin-core";
 
-import { toJSONSchema } from "zod/v4";
+import { toJSONSchema } from "zod";
 
 import type {
   AgentToolDefinition,

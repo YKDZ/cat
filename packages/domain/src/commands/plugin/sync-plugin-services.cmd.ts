@@ -1,6 +1,6 @@
 import { pluginService } from "@cat/db";
 import { PluginServiceTypeSchema } from "@cat/shared/schema/enum";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

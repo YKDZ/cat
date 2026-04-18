@@ -14,7 +14,7 @@ import {
   MessageChannelSchema,
   NotificationStatusSchema,
 } from "@cat/shared/schema/enum";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed } from "@/orpc/server";
 

@@ -4,7 +4,7 @@ import {
   ProjectSettingPayloadSchema,
   type ProjectSettingPayload,
 } from "@cat/shared/schema/project-setting";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

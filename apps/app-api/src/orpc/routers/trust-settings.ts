@@ -2,7 +2,7 @@ import type { AuthContext } from "@cat/permissions";
 
 import { getPermissionEngine } from "@cat/permissions";
 import { SubjectTypeSchema } from "@cat/shared/schema/permission";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";
 

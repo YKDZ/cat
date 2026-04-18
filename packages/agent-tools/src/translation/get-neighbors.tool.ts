@@ -1,7 +1,7 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
 import { executeQuery, getDbHandle, listNeighborElements } from "@cat/domain";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { assertElementInSession } from "./assert-session-scope.ts";
 

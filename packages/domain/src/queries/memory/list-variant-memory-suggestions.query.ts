@@ -11,7 +11,7 @@ import {
   vectorizedString,
 } from "@cat/db";
 import { SlotMappingEntrySchema } from "@cat/shared/schema/drizzle/memory";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { RawMemorySuggestion } from "@/queries/memory/list-lexical-memory-suggestions.query";
 import type { Query } from "@/types";

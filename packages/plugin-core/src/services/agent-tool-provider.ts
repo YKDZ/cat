@@ -1,4 +1,4 @@
-import type { ZodObject, ZodRawShape } from "zod/v4";
+import type { ZodObject, ZodRawShape } from "zod";
 
 import type { IPluginService } from "@/services/service";
 

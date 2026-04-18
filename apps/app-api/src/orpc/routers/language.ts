@@ -1,6 +1,6 @@
 import { executeQuery, getLanguage, listLanguages } from "@cat/domain";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { base } from "@/orpc/server";
 

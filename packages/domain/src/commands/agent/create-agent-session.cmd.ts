@@ -6,7 +6,7 @@ import {
   type AgentSessionMetadata,
 } from "@cat/shared/schema/agent";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

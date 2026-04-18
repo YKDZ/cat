@@ -3,7 +3,7 @@ import { insertMemory } from "@cat/operations";
 import { safeZDotJson } from "@cat/shared/schema/json";
 import { zip } from "@cat/shared/utils";
 import { randomUUID } from "node:crypto";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { generateCacheKey } from "@/graph/cache";
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";

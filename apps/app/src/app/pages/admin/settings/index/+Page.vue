@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import SettingForm from "../SettingForm.vue";
 

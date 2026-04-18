@@ -3,7 +3,7 @@ import {
   FetchAdviseInputSchema,
   FetchAdviseOutputSchema,
 } from "@cat/operations";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 

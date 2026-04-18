@@ -1,6 +1,6 @@
 import { count, eq, termConcept } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Query } from "@/types";
 

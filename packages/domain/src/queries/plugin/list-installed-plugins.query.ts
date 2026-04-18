@@ -1,7 +1,7 @@
 import { eq, pluginInstallation } from "@cat/db";
 import { and } from "@cat/db";
 import { ScopeTypeSchema } from "@cat/shared/schema/enum";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Query } from "@/types";
 

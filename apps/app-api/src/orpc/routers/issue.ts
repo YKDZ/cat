@@ -23,7 +23,7 @@ import {
   UpdateIssueCommandSchema,
 } from "@cat/domain";
 import { IssueSchema } from "@cat/shared/schema/drizzle/issue";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";
 import { createVCSRouteHelper } from "@/utils/vcs-route-helper";

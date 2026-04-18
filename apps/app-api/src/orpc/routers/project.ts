@@ -24,7 +24,7 @@ import {
 import { DocumentSchema } from "@cat/shared/schema/drizzle/document";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";
 import { createVCSRouteHelper } from "@/utils/vcs-route-helper";

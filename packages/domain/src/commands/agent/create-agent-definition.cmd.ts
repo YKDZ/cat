@@ -11,7 +11,7 @@ import {
   ScopeTypeSchema,
 } from "@cat/shared/schema/enum";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 
