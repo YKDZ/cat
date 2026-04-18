@@ -5,7 +5,7 @@ import {
   revokeSessionRecord,
 } from "@cat/domain";
 import { ORPCError } from "@orpc/client";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed } from "@/orpc/server";
 

@@ -16,7 +16,7 @@ import {
   TranslatableElementContextSchema,
 } from "@cat/shared/schema/drizzle/document";
 import { safeZDotJson } from "@cat/shared/schema/json";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Query } from "@/types";
 

@@ -7,7 +7,7 @@ import {
   OrchestrationSchema,
 } from "@cat/shared/schema/agent";
 import { AgentDefinitionTypeSchema } from "@cat/shared/schema/enum";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

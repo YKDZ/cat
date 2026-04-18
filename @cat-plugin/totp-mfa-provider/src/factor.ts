@@ -6,7 +6,7 @@ import {
   type AuthFactorResult,
 } from "@cat/plugin-core";
 import speakeasy from "speakeasy";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const TotpTokenSchema = z.string().regex(/^\d{6}$/);
 

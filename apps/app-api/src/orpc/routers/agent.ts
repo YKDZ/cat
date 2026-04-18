@@ -42,7 +42,7 @@ import {
 } from "@cat/shared/schema/enum";
 import { createAgentEvent, type AgentEvent } from "@cat/workflow";
 import { ORPCError } from "@orpc/client";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";
 import { createPreCheckServices } from "@/utils/agent-runtime-services";

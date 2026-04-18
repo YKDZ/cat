@@ -1,5 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
-import type { ZodObject, ZodRawShape } from "zod/v4";
+import type { ZodObject, ZodRawShape } from "zod";
 
 /**
  * @zh 工具的副作用类型

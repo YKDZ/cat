@@ -1,6 +1,6 @@
 import type { EdgeCondition } from "@cat/graph";
 
-import * as z from "zod/v4";
+import * as z from "zod";
 
 // ====== Auth 节点类型 ======
 

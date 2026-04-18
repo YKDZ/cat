@@ -7,7 +7,7 @@ import {
 import { safeZDotJson } from "@cat/shared/schema/json";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
 import { TranslationAdviseSchema } from "@cat/shared/schema/plugin";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 import { runGraph } from "@/graph/typed-dsl/run-graph";

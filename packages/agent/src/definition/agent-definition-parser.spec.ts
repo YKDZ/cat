@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ZodError } from "zod/v4";
+import { ZodError } from "zod";
 
 import { parseAgentDefinition } from "./agent-definition-parser.ts";
 

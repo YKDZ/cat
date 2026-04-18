@@ -10,7 +10,7 @@ import {
   ProjectSettingPayloadSchema,
 } from "@cat/shared/schema/project-setting";
 import { ORPCError } from "@orpc/client";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";
 

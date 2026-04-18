@@ -7,7 +7,7 @@ import {
 } from "@cat/shared/schema/misc";
 import { defineStore, storeToRefs } from "pinia";
 import { reactive, computed } from "vue";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { orpc } from "@/app/rpc/orpc";
 import { useEditorContextStore } from "@/app/stores/editor/context.ts";

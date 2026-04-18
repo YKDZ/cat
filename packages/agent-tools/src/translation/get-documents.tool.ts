@@ -1,7 +1,7 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
 import { executeQuery, getDbHandle, listProjectDocuments } from "@cat/domain";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { assertProjectInSession } from "./assert-session-scope.ts";
 

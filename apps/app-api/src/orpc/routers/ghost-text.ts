@@ -6,7 +6,7 @@ import {
   listMemoryIdsByProject,
 } from "@cat/domain";
 import { readWithOverlay } from "@cat/vcs";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, checkElementPermission } from "@/orpc/server";
 

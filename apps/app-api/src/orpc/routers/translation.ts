@@ -43,7 +43,7 @@ import {
   runGraph,
 } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import {

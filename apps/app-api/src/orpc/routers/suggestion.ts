@@ -15,7 +15,7 @@ import {
   getGlobalGraphRuntime,
   runGraph,
 } from "@cat/workflow/tasks";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, checkElementPermission } from "@/orpc/server";
 

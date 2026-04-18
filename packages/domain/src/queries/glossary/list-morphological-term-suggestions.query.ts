@@ -8,7 +8,7 @@ import {
   termConcept,
   termRecallVariant,
 } from "@cat/db";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { LookedUpTerm } from "@/queries/glossary/fetch-terms-by-concept-ids.query";
 import type { Query } from "@/types";

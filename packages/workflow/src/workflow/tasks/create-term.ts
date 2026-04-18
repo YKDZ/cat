@@ -1,6 +1,6 @@
 import { createGlossaryTerms, executeCommand, getDbHandle } from "@cat/domain";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { generateCacheKey } from "@/graph/cache";
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";

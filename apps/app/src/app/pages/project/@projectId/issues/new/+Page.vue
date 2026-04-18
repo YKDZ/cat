@@ -14,7 +14,7 @@ import { useForm } from "vee-validate";
 import { navigate } from "vike/client/router";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import MarkdownEditor from "@/app/components/editor/MarkdownEditor.vue";
 import { orpc } from "@/app/rpc/orpc";

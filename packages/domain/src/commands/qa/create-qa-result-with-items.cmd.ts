@@ -2,7 +2,7 @@ import type { JSONType } from "@cat/shared/schema/json";
 
 import { qaResult, qaResultItem } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared/utils";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command, DbHandle } from "@/types";
 

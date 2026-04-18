@@ -1,5 +1,5 @@
 import { agentRun, eq } from "@cat/db";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { AgentRunMetadataRow } from "@/queries/agent/load-agent-run-metadata.query";
 import type { Query } from "@/types";

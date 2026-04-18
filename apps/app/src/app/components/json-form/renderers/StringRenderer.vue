@@ -10,7 +10,7 @@ import {
   FormLabel,
 } from "@cat/ui";
 import { computed, inject } from "vue";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { schemaKey, transferDataToString } from "../utils.ts";
 

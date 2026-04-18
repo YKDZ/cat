@@ -1,5 +1,5 @@
 import { and, crossReference, eq, issue, pullRequest, sql } from "@cat/db";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

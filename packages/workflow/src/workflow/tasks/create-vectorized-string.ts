@@ -1,5 +1,5 @@
 import { createVectorizedStringOp } from "@cat/operations";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { generateCacheKey } from "@/graph/cache";
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";

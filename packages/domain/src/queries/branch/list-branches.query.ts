@@ -1,6 +1,6 @@
 import { and, entityBranch, eq, getColumns, type SQL } from "@cat/db";
 import { EntityBranchStatusSchema } from "@cat/shared/schema/enum";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Query } from "@/types";
 

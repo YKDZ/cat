@@ -1,7 +1,7 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
 import { completeAgentSession, executeCommand, getDbHandle } from "@cat/domain";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const finishArgs = z.object({
   /**

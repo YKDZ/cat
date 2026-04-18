@@ -1,6 +1,6 @@
 import { searchMemoryOp } from "@cat/operations";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
 

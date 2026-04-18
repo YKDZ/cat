@@ -12,7 +12,7 @@ import {
   firstOrGivenService,
   resolvePluginManager,
 } from "@cat/server-shared/plugin";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { assertElementInSession } from "./assert-session-scope.ts";
 

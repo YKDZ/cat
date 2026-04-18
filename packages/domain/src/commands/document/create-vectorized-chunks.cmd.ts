@@ -1,7 +1,7 @@
 import type { JSONType } from "@cat/shared/schema/json";
 
 import { chunk, chunkSet } from "@cat/db";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

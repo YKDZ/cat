@@ -1,6 +1,6 @@
 import { notification } from "@cat/db";
 import { and, desc, eq } from "@cat/db";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Query } from "@/types";
 

@@ -3,7 +3,7 @@ import type { VectorizedTextData } from "@cat/shared/schema/misc";
 
 import { TextVectorizer, type VectorizeContext } from "@cat/plugin-core";
 import OpenAI from "openai";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const ConfigSchema = z.object({
   apiKey: z.string().optional(),

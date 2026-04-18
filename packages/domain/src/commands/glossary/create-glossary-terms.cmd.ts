@@ -8,7 +8,7 @@ import {
   termConceptToSubject,
 } from "@cat/db";
 import { TermDataSchema } from "@cat/shared/schema/misc";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import type { Command } from "@/types";
 

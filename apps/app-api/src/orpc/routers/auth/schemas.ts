@@ -7,7 +7,7 @@ import {
   type SessionStore,
 } from "@cat/domain";
 import { randomBytes } from "node:crypto";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 // ====== Session Key 工厂 ======
 export const sessionKeys = {

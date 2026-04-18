@@ -1,7 +1,7 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
 import { claimIssue, createPR, executeCommand, getDbHandle } from "@cat/domain";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const issueClaimArgs = z.object({
   /**

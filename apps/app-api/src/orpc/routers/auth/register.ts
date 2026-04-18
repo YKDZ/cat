@@ -1,7 +1,7 @@
 import { executeCommand, registerUserWithPasswordAccount } from "@cat/domain";
 import { grantFirstUserSuperadmin } from "@cat/permissions";
 import { ORPCError } from "@orpc/client";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { base } from "@/orpc/server";
 

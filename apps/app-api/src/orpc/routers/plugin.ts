@@ -25,7 +25,7 @@ import {
   type TranslationAdvisorData,
 } from "@cat/shared/schema/misc";
 import { ORPCError } from "@orpc/client";
-import * as z from "zod/v4";
+import * as z from "zod";
 
 import { authed, base, checkPermission } from "@/orpc/server";
 
