@@ -2,17 +2,16 @@ import type { PermissionEngine } from "./engine.ts";
 import type { AuthContext, ObjectRef } from "./types.ts";
 
 /**
- * 判定 Subject 对 Project 的 Trust/Isolation 模式。
+ * @zh 判定 Subject 对 Project 的写入模式（Direct / Isolation）。
+ * @en Determine the write mode (Direct / Isolation) for a subject on a project.
  *
- * Determine the trust/isolation mode for a subject on a project.
- *
- * @returns "trust" | "isolation" | "no_access"
+ * @returns "direct" | "isolation" | "no_access"
  */
-export async function determineTrustMode(
+export async function determineWriteMode(
   engine: PermissionEngine,
   authCtx: AuthContext,
   projectId: string,
-): Promise<"trust" | "isolation" | "no_access"> {
+): Promise<"direct" | "isolation" | "no_access"> {
   const projectRef: ObjectRef = { type: "project", id: projectId };
 
   // 第一层: 是否可修改（editor 或以上）
@@ -31,6 +30,6 @@ export async function determineTrustMode(
     "isolation_forced",
   );
 
-  if (hasDirectEditor && !hasIsolationForced) return "trust";
+  if (hasDirectEditor && !hasIsolationForced) return "direct";
   return "isolation";
 }

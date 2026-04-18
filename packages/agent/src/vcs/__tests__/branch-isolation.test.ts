@@ -27,7 +27,12 @@ import {
   updateBranchStatus,
 } from "@cat/domain";
 import { setupTestDB } from "@cat/test-utils";
-import { detectConflicts, mergeBranch, rebaseBranch } from "@cat/vcs";
+import {
+  detectConflicts,
+  getDefaultRegistries,
+  mergeBranch,
+  rebaseBranch,
+} from "@cat/vcs";
 import {
   getBranchChangesetId,
   listWithOverlay,
@@ -246,8 +251,10 @@ describe("entity_branch Isolation", () => {
       entityId,
     );
 
-    // DELETE → should return null
-    expect(result).toBeNull();
+    // DELETE → should return marker object with action: "DELETE"
+    expect(result).not.toBeNull();
+    expect(result?.action).toBe("DELETE");
+    expect(result?.data).toBeNull();
   });
 
   test("读一致性: listWithOverlay merges main items with branch changes", async () => {
@@ -456,7 +463,11 @@ describe("entity_branch Isolation", () => {
       { id: "rebase-entity-2", name: "Newer" },
     );
 
-    const result = await rebaseBranch(testDb.client, branchId);
+    const result = await rebaseBranch(
+      testDb.client,
+      branchId,
+      getDefaultRegistries().appMethodRegistry,
+    );
 
     expect(result.success).toBe(true);
     expect(result.newBaseChangesetId).toBe(newerCsId);

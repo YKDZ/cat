@@ -2,7 +2,7 @@ import type { PluginManager } from "@cat/plugin-core";
 import type { AgentConstraints } from "@cat/shared/schema/agent";
 
 import { Blackboard, buildPatch } from "@cat/graph";
-import { determineTrustMode, getPermissionEngine } from "@cat/permissions";
+import { determineWriteMode, getPermissionEngine } from "@cat/permissions";
 
 import type {
   AgentBlackboardData,
@@ -231,7 +231,7 @@ export class AgentRuntime {
       scopes: null,
     };
     const projectId = state.projectId ?? state.sessionMetadata?.projectId ?? "";
-    const vcsMode = await determineTrustMode(engine, agentAuthCtx, projectId);
+    const vcsMode = await determineWriteMode(engine, agentAuthCtx, projectId);
     if (vcsMode === "no_access") {
       throw new Error(
         `Agent ${agentDefinition.metadata.id} has no access to project ${projectId}`,

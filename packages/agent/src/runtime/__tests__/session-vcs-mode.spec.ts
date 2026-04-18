@@ -3,9 +3,9 @@
  * @en Unit tests for dynamic vcsMode calculation in AgentRuntime.runLoop().
  *
  * Validates:
- * - determineTrustMode returns "trust"      → vcsMode = "trust" passed to tool context
- * - determineTrustMode returns "isolation"  → vcsMode = "isolation" passed to tool context
- * - determineTrustMode returns "no_access"  → runLoop() throws error
+ * - determineWriteMode returns "direct"      → vcsMode = "direct" passed to tool context
+ * - determineWriteMode returns "isolation"   → vcsMode = "isolation" passed to tool context
+ * - determineWriteMode returns "no_access"   → runLoop() throws error
  */
 
 import type { LLMChunk } from "@cat/plugin-core";
@@ -24,13 +24,13 @@ import { AgentRuntime } from "@/runtime/agent-runtime.ts";
 // ─── Mock @cat/permissions ────────────────────────────────────────────────────
 
 const permsMock = vi.hoisted(() => ({
-  determineTrustMode:
-    vi.fn<() => Promise<"trust" | "isolation" | "no_access">>(),
+  determineWriteMode:
+    vi.fn<() => Promise<"direct" | "isolation" | "no_access">>(),
 }));
 
 vi.mock("@cat/permissions", () => ({
   getPermissionEngine: () => ({ check: async () => true }),
-  determineTrustMode: permsMock.determineTrustMode,
+  determineWriteMode: permsMock.determineWriteMode,
 }));
 
 // ─── Mock SessionManager ──────────────────────────────────────────────────────
@@ -175,8 +175,8 @@ describe("AgentRuntime.runLoop() — vcsMode dynamic calculation", () => {
     vi.clearAllMocks();
   });
 
-  it('determineTrustMode "trust" → vcsMode "trust" propagated to tool context', async () => {
-    permsMock.determineTrustMode.mockResolvedValue("trust");
+  it('determineWriteMode "direct" → vcsMode "direct" propagated to tool context', async () => {
+    permsMock.determineWriteMode.mockResolvedValue("direct");
 
     const { registry, getCaptured } = makeCaptureRegistry();
 
@@ -195,11 +195,11 @@ describe("AgentRuntime.runLoop() — vcsMode dynamic calculation", () => {
     const events = await collectEvents(runtime);
 
     expect(events).toContain("tool_call");
-    expect(getCaptured()?.vcsMode).toBe("trust");
+    expect(getCaptured()?.vcsMode).toBe("direct");
   });
 
-  it('determineTrustMode "isolation" → vcsMode "isolation" propagated to tool context', async () => {
-    permsMock.determineTrustMode.mockResolvedValue("isolation");
+  it('determineWriteMode "isolation" → vcsMode "isolation" propagated to tool context', async () => {
+    permsMock.determineWriteMode.mockResolvedValue("isolation");
 
     const { registry, getCaptured } = makeCaptureRegistry();
 
@@ -221,8 +221,8 @@ describe("AgentRuntime.runLoop() — vcsMode dynamic calculation", () => {
     expect(getCaptured()?.vcsMode).toBe("isolation");
   });
 
-  it('determineTrustMode "no_access" → runLoop() throws error', async () => {
-    permsMock.determineTrustMode.mockResolvedValue("no_access");
+  it('determineWriteMode "no_access" → runLoop() throws error', async () => {
+    permsMock.determineWriteMode.mockResolvedValue("no_access");
 
     const runtime = new AgentRuntime({
       llmGateway: makeMockGateway([]),

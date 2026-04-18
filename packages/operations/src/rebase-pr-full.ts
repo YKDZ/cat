@@ -1,5 +1,5 @@
 // packages/operations/src/rebase-pr-full.ts
-import type { DrizzleClient } from "@cat/domain";
+import type { DbContext } from "@cat/domain";
 import type { ConflictInfo, RebaseResult } from "@cat/vcs";
 
 import {
@@ -9,7 +9,7 @@ import {
   getPR,
   markBranchConflicted,
 } from "@cat/domain";
-import { detectConflicts, rebaseBranch } from "@cat/vcs";
+import { detectConflicts, getDefaultRegistries, rebaseBranch } from "@cat/vcs";
 
 /**
  * @zh rebasePRFull 的输入参数。
@@ -36,7 +36,7 @@ export interface RebasePRFullResult {
  * @en Full PR rebase operation: baseline move → conflict detection → branch status sync.
  */
 export const rebasePRFull = async (
-  ctx: { db: DrizzleClient },
+  ctx: DbContext,
   input: RebasePRFullInput,
 ): Promise<RebasePRFullResult> => {
   const { db } = ctx;
@@ -61,7 +61,12 @@ export const rebasePRFull = async (
   }
 
   return await db.transaction(async (tx) => {
-    const rebaseResult: RebaseResult = await rebaseBranch(tx, pr.branchId);
+    const { appMethodRegistry } = getDefaultRegistries();
+    const rebaseResult: RebaseResult = await rebaseBranch(
+      tx,
+      pr.branchId,
+      appMethodRegistry,
+    );
     const conflicts: ConflictInfo[] = await detectConflicts(tx, pr.branchId);
 
     await executeCommand({ db: tx }, markBranchConflicted, {

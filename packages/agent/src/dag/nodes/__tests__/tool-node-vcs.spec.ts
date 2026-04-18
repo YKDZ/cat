@@ -79,17 +79,17 @@ describe("runToolNode — vcsMode propagation", () => {
     expect(capturedCtx()?.vcsMode).toBe("isolation");
   });
 
-  it('passes vcsMode "trust" to ToolExecutionContext when ctx.vcsMode is "trust"', async () => {
+  it('passes vcsMode "direct" to ToolExecutionContext when ctx.vcsMode is "direct"', async () => {
     const { registry, capturedCtx } = makeMockRegistry();
 
     await runToolNode(dataWithToolCall, {
       ...baseCtx,
       toolRegistry: registry,
-      vcsMode: "trust",
+      vcsMode: "direct",
       permissionChecker: async () => true,
     });
 
-    expect(capturedCtx()?.vcsMode).toBe("trust");
+    expect(capturedCtx()?.vcsMode).toBe("direct");
   });
 
   it("passes permissionChecker to ToolExecutionContext.permissions.checkPermission", async () => {
@@ -99,7 +99,7 @@ describe("runToolNode — vcsMode propagation", () => {
     await runToolNode(dataWithToolCall, {
       ...baseCtx,
       toolRegistry: registry,
-      vcsMode: "trust",
+      vcsMode: "direct",
       permissionChecker: denyAll,
     });
 

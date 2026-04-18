@@ -8,7 +8,7 @@ Shared Zod schemas, type definitions, and utility functions
 
 * **Exported functions**: 24
 
-* **Exported types**: 164
+* **Exported types**: 165
 
 ## Function Index
 
@@ -436,6 +436,9 @@ export const safeJoinURL = (base: string, path: string): string
 * `JSONArray` (type)
 
 * `NonNullJSONType` (type)
+
+* `SerializableType` (type) — Values serializable to JSON; \`Date\` is allowed and will be converted to ISO string by \`JSON.stringify\`.
+  Safer than \`unknown\` — functions, symbols, and other non-serializable types are rejected.
 
 * `FileMeta` (type)
 

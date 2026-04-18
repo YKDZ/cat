@@ -1,4 +1,4 @@
-import type { DrizzleClient } from "@cat/domain";
+import type { DbHandle } from "@cat/domain";
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -25,19 +25,7 @@ vi.mock("@cat/domain", () => ({
 vi.mock("@cat/vcs", () => ({
   rebaseBranch: m.rebaseBranch,
   detectConflicts: m.detectConflicts,
-  mergeBranch: vi.fn(),
-  // oxlint-disable-next-line no-unsafe-type-assertion
-  ChangeSetService: vi
-    .fn()
-    .mockImplementation(function MockCS(this: Record<string, unknown>) {
-      this.applyChangeSet = vi.fn();
-    }),
-  getDefaultRegistries: vi
-    .fn()
-    .mockReturnValue({ diffRegistry: {}, appMethodRegistry: {} }),
-  registerAllDiffStrategies: vi.fn(),
-  SimpleApplicationMethod: vi.fn(),
-  VectorizedStringApplicationMethod: vi.fn(),
+  getDefaultRegistries: vi.fn(() => ({ appMethodRegistry: {} })),
 }));
 
 import { rebasePRFull } from "../rebase-pr-full";
@@ -57,7 +45,7 @@ const db = {
   ),
 };
 // oxlint-disable-next-line no-unsafe-type-assertion
-const dbClient: DrizzleClient = db as unknown as DrizzleClient;
+const dbClient = db as unknown as DbHandle;
 
 beforeEach(() => {
   m.executeQuery.mockReset();

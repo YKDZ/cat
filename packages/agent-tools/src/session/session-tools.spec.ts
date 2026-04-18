@@ -41,7 +41,7 @@ const createCtx = (
     checkPermission: vi.fn().mockResolvedValue(true),
   },
   cost: { budgetId: "budget-1", remainingTokens: 10_000 },
-  vcsMode: "trust",
+  vcsMode: "direct",
 });
 
 describe("session tools", () => {

@@ -3,6 +3,7 @@ import type { JSONType } from "@cat/shared/schema/json";
 
 import {
   addChangesetEntry,
+  batchUpdateEntryBefore,
   createChangeset,
   executeCommand,
   executeQuery,
@@ -15,6 +16,8 @@ import {
   updateBranchBaseChangeset,
   updateBranchStatus,
 } from "@cat/domain";
+
+import type { ApplicationMethodRegistry } from "./application-method-registry.ts";
 
 // ─── Result Types ─────────────────────────────────────────────────────────────
 
@@ -198,12 +201,14 @@ export async function mergeBranch(
 }
 
 /**
- * @zh Rebase：更新 branch 的 baseChangesetId 到 main 最新。
- * @en Rebase: updates the branch's baseChangesetId to the latest main changeset.
+ * @zh Rebase：更新 branch 的 baseChangesetId 到 main 最新，并重写 UPDATE/DELETE entry 的 before 值。
+ * @en Rebase: updates the branch's baseChangesetId to the latest main changeset and rewrites
+ * the before-values of UPDATE/DELETE entries to reflect the current main state.
  */
 export async function rebaseBranch(
   db: DbHandle,
   branchId: number,
+  appMethodRegistry: ApplicationMethodRegistry,
 ): Promise<RebaseResult> {
   const branch = await executeQuery({ db }, getBranchById, { branchId });
   if (!branch) {
@@ -220,6 +225,53 @@ export async function rebaseBranch(
     branchId,
     baseChangesetId: newBaseChangesetId,
   });
+
+  // 2. Rewrite before-values for UPDATE/DELETE entries
+  const branchEntries = await executeQuery({ db }, listBranchChangesetEntries, {
+    branchId,
+  });
+
+  const entriesToRewrite = branchEntries.filter(
+    (e) => e.action === "UPDATE" || e.action === "DELETE",
+  );
+
+  if (entriesToRewrite.length > 0) {
+    // Group by entityType for batch query optimization
+    const grouped = new Map<string, typeof entriesToRewrite>();
+    for (const entry of entriesToRewrite) {
+      const list = grouped.get(entry.entityType) ?? [];
+      list.push(entry);
+      grouped.set(entry.entityType, list);
+    }
+
+    const updateBatches = await Promise.all(
+      [...grouped.entries()].map(async ([entityType, entries]) => {
+        if (!appMethodRegistry.has(entityType)) return [];
+
+        const method = appMethodRegistry.get(entityType);
+        const entityIds = entries.map((e) => e.entityId);
+        const stateMap = await method.fetchCurrentStates(entityIds, {
+          projectId: branch.projectId,
+        });
+
+        const batch: Array<{ entryId: number; before: unknown }> = [];
+        for (const entry of entries) {
+          if (!stateMap.has(entry.entityId)) continue;
+          batch.push({
+            entryId: entry.id,
+            before: stateMap.get(entry.entityId) ?? null,
+          });
+        }
+        return batch;
+      }),
+    );
+
+    const updates = updateBatches.flat();
+
+    if (updates.length > 0) {
+      await executeCommand({ db }, batchUpdateEntryBefore, { updates });
+    }
+  }
 
   return { success: true, newBaseChangesetId };
 }

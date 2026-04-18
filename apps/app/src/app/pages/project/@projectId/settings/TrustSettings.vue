@@ -19,7 +19,7 @@ const trustList = ref<
     subjectId: string;
     hasDirectEditor: boolean;
     hasIsolationForced: boolean;
-    trustMode: "trust" | "isolation";
+    trustMode: "direct" | "isolation";
   }[]
 >([]);
 
@@ -90,7 +90,7 @@ onMounted(load);
             <span
               class="rounded-full px-2 py-0.5 text-xs"
               :class="
-                item.trustMode === 'trust'
+                item.trustMode === 'direct'
                   ? 'bg-green-100 text-green-700'
                   : 'bg-orange-100 text-orange-700'
               "
@@ -100,7 +100,7 @@ onMounted(load);
           </td>
           <td class="py-2">
             <Button
-              v-if="item.trustMode === 'trust'"
+              v-if="item.trustMode === 'direct'"
               size="sm"
               variant="outline"
               @click="grantIsolation(item.subjectType, item.subjectId)"

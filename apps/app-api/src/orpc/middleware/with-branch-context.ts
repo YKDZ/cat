@@ -1,5 +1,5 @@
 import { executeQuery, getBranchById } from "@cat/domain";
-import { determineTrustMode, getPermissionEngine } from "@cat/permissions";
+import { determineWriteMode, getPermissionEngine } from "@cat/permissions";
 import { getBranchChangesetId } from "@cat/vcs";
 import { ORPCError, os } from "@orpc/server";
 
@@ -76,8 +76,8 @@ export const withBranchContext = os
       // No branchId — check isolation mode if projectId is provided
       if (projectId) {
         const engine = getPermissionEngine();
-        const trustMode = await determineTrustMode(engine, auth, projectId);
-        if (trustMode === "isolation") {
+        const writeMode = await determineWriteMode(engine, auth, projectId);
+        if (writeMode === "isolation") {
           throw new ORPCError("FORBIDDEN", {
             message: "isolation_forced: branchId is required for writes",
           });

@@ -31,6 +31,7 @@
     "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
     "@cat/ui": "workspace:*",
+    "@cat/vcs": "workspace:*",
     "@cat/workflow": "workspace:*",
     "@codemirror/autocomplete": "^6.20.1",
     "@codemirror/commands": "^6.10.3",

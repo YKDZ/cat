@@ -92,4 +92,26 @@ export interface ApplicationMethod {
   validateDependencies(entityId: string): Promise<DependencyStatus>;
 
   compensate(entry: ChangesetEntry, ctx: ApplicationContext): Promise<void>;
+
+  /**
+   * @zh 从实际数据库表查询实体的当前状态。用于 rebase before-重写。
+   * 返回 null 表示实体不存在（已被删除或未创建）。
+   * @en Fetch the current state of an entity from the actual DB table. Used for rebase before-rewrite.
+   * Returns null if the entity does not exist (deleted or not yet created).
+   */
+  fetchCurrentState(
+    entityId: string,
+    ctx: ApplicationContext,
+  ): Promise<JSONType | null>;
+
+  /**
+   * @zh 批量从实际数据库表查询多个实体的当前状态。用于 rebase before-重写的批量优化。
+   * 返回 entityId → state 的映射，不存在的实体不包含在映射中。
+   * @en Batch-fetch current states of multiple entities from the actual DB table.
+   * Returns a map of entityId → state. Missing entities are omitted from the map.
+   */
+  fetchCurrentStates(
+    entityIds: string[],
+    ctx: ApplicationContext,
+  ): Promise<Map<string, JSONType>>;
 }

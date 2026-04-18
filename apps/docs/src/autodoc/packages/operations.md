@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 54
+* **Modules**: 56
 
-* **Exported functions**: 59
+* **Exported functions**: 61
 
-* **Exported types**: 87
+* **Exported types**: 91
 
 ## Function Index
 
@@ -475,6 +475,16 @@ export const insertMemory = async (tx: DbHandle, memoryIds: string[], translatio
 export const mergeAlignmentOp = (data: MergeAlignmentInput): { alignedGroups: { terms: { languageId: string; text: string; normalizedText?: string | undefined; definition?: string | null | undefined; subjects?: string[] | null | undefined; stringId?: number | null | undefined; }[]; confidence: number; alignmentSources: ("statistical" | "llm" | "vector")[]; }[]; unaligned: { text: string; languageId: string; reason: string; }[]; stats: { totalInputTerms: number; totalAlignedGroups: number; vectorAlignments: number; statisticalAlignments: number; llmAlignments: number; }; }
 ```
 
+### `mergePRFull`
+
+```ts
+/**
+ * Full PR merge operation: conflict detection → entry copy to main → entity changes (full rollback) → status update.
+ * Executed in a single database transaction; any step failure triggers full rollback.
+ */
+export const mergePRFull = async (ctx: DbContext, input: MergePRFullInput): Promise<MergePRFullResult>
+```
+
 ### `nlpBatchSegmentOp`
 
 ```ts
@@ -607,6 +617,15 @@ export const qaTranslationOp = async (payload: QaTranslationInput, ctx?: Operati
  * @returns List of check results from each QA checker
  */
 export const qaOp = async (payload: QAInput, _ctx?: OperationContext): Promise<{ result: { meta: any; isPassed: boolean; checkerId: number; }[]; }>
+```
+
+### `rebasePRFull`
+
+```ts
+/**
+ * Full PR rebase operation: baseline move → conflict detection → branch status sync.
+ */
+export const rebasePRFull = async (ctx: DbContext, input: RebasePRFullInput): Promise<RebasePRFullResult>
 ```
 
 ### `recallContextRerankOp`
@@ -1053,6 +1072,10 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 
 * `MergeAlignmentOutput` (type)
 
+* `MergePRFullInput` (interface) — Input parameters for mergePRFull.
+
+* `MergePRFullResult` (interface) — Result of mergePRFull.
+
 * `NlpBatchSegmentInput` (type)
 
 * `NlpBatchSegmentOutput` (type)
@@ -1074,6 +1097,10 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 * `QAInput` (type)
 
 * `QAOutput` (type)
+
+* `RebasePRFullInput` (interface) — Input parameters for rebasePRFull.
+
+* `RebasePRFullResult` (interface) — Result of rebasePRFull.
 
 * `RecallContextRerankInput` (type)
 

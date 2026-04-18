@@ -76,7 +76,7 @@ export const listTrustStatus = authed
         subjectId: z.string(),
         hasDirectEditor: z.boolean(),
         hasIsolationForced: z.boolean(),
-        trustMode: z.enum(["trust", "isolation"]),
+        trustMode: z.enum(["direct", "isolation"]),
       }),
     ),
   )
@@ -100,8 +100,8 @@ export const listTrustStatus = authed
           engine.check(authCtx, projectRef, "isolation_forced"),
         ]);
 
-        const trustMode: "trust" | "isolation" =
-          hasDirectEditor && !hasIsolationForced ? "trust" : "isolation";
+        const trustMode: "direct" | "isolation" =
+          hasDirectEditor && !hasIsolationForced ? "direct" : "isolation";
 
         return {
           subjectType: subject.type,

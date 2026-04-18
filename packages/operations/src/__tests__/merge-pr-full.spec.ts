@@ -1,4 +1,4 @@
-import type { DrizzleClient } from "@cat/domain";
+import type { DbHandle } from "@cat/domain";
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -61,7 +61,7 @@ const db = {
   ),
 };
 // oxlint-disable-next-line no-unsafe-type-assertion
-const dbClient = db as unknown as DrizzleClient;
+const dbClient = db as unknown as DbHandle;
 
 beforeEach(() => {
   m.executeQuery.mockReset();

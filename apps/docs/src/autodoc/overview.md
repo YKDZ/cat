@@ -12,9 +12,9 @@
 
 * [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (324 functions, 420 types)
 
-* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (59 functions, 87 types)
+* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (61 functions, 91 types)
 
-* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (24 functions, 164 types)
+* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (24 functions, 165 types)
 
 * [**@cat/db**](./packages/db.md) — Database layer: Drizzle ORM schemas and Redis client (9 functions, 6 types)
 
@@ -34,9 +34,11 @@
 
 * [**@cat/graph**](./packages/graph.md) — Storage-agnostic graph core: types, blackboard, condition evaluation (7 functions, 13 types)
 
-* [**@cat/agent**](./packages/agent.md) — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser (24 functions, 53 types)
+* [**@cat/agent**](./packages/agent.md) — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser (13 functions, 36 types)
 
 * [**@cat/agent-tools**](./packages/agent-tools.md) — Built-in agent tools: kanban, translation, session management (3 functions, 0 types)
+
+* [**@cat/vcs**](./packages/vcs.md) — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies (12 functions, 17 types)
 
 ## Core Package Dependencies
 

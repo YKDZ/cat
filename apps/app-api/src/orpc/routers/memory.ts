@@ -48,13 +48,18 @@ export const create = authed
       context.branchId !== undefined &&
       context.branchChangesetId !== undefined
     ) {
+      if (context.branchProjectId === undefined) {
+        throw new Error(
+          "branchProjectId missing when branch context is active",
+        );
+      }
       const { middleware } = createVCSRouteHelper(drizzle);
       const entityId = crypto.randomUUID();
 
       return await middleware.interceptWrite(
         {
           mode: "isolation",
-          projectId: context.branchProjectId!,
+          projectId: context.branchProjectId,
           branchId: context.branchId,
           branchChangesetId: context.branchChangesetId,
         },

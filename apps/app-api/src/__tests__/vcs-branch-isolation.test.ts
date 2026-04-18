@@ -13,6 +13,7 @@ import type { TestDB } from "@cat/test-utils";
 
 import {
   addChangesetEntry,
+  createBranch,
   createChangeset,
   createPR,
   createProject,
@@ -20,10 +21,17 @@ import {
   executeCommand,
   executeQuery,
   getChangesetEntries,
+  listBranchChangesetEntries,
   mergePR,
+  updateBranchBaseChangeset,
 } from "@cat/domain";
 import { setupTestDB } from "@cat/test-utils";
-import { getBranchChangesetId, listWithOverlay } from "@cat/vcs";
+import {
+  getBranchChangesetId,
+  getDefaultRegistries,
+  listWithOverlay,
+  rebaseBranch,
+} from "@cat/vcs";
 import { ORPCError } from "@orpc/server";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 
@@ -36,7 +44,7 @@ vi.mock("@cat/permissions", () => ({
   getPermissionEngine: () => ({
     check: async () => true,
   }),
-  determineTrustMode: async () => "trust",
+  determineWriteMode: async () => "direct",
 }));
 
 // ─── Test State ───────────────────────────────────────────────────────────────
@@ -319,5 +327,192 @@ describe("VCS branch isolation — integration", () => {
         expect(err.code).toBe("CONFLICT");
       }
     }
+  });
+});
+
+// ─── Rebase before-rewrite ────────────────────────────────────────────────────
+
+describe("Rebase before-rewrite", () => {
+  let testDb2: TestDB;
+
+  beforeAll(async () => {
+    testDb2 = await setupTestDB();
+  });
+
+  afterAll(async () => {
+    await testDb2?.cleanup();
+  });
+
+  test("UPDATE entry before-value is unchanged when no fetcher is wired (safe no-op)", async () => {
+    const user = await executeCommand({ db: testDb2.client }, createUser, {
+      email: `rebase-before-${Date.now()}@test.local`,
+      name: "Rebase Tester",
+    });
+    const project = await executeCommand(
+      { db: testDb2.client },
+      createProject,
+      { name: "Rebase Before Test", description: null, creatorId: user.id },
+    );
+    const { id: projectId } = project;
+
+    // 1. Create initial main changeset with entity at version v1
+    const mainCs = await executeCommand(
+      { db: testDb2.client },
+      createChangeset,
+      { projectId, status: "APPLIED" },
+    );
+    await executeCommand({ db: testDb2.client }, addChangesetEntry, {
+      changesetId: mainCs.id,
+      entityType: "document",
+      entityId: "rewrite-entity-1",
+      action: "CREATE",
+      after: { id: "rewrite-entity-1", text: "hello_v1" },
+      riskLevel: "LOW",
+    });
+
+    // 2. Create branch based on mainCs
+    const branch = await executeCommand({ db: testDb2.client }, createBranch, {
+      projectId,
+      name: "rewrite-branch-1",
+    });
+    await executeCommand({ db: testDb2.client }, updateBranchBaseChangeset, {
+      branchId: branch.id,
+      baseChangesetId: mainCs.id,
+    });
+
+    // 3. Add an UPDATE entry to the branch (before = v1 snapshot)
+    const branchCs = await executeCommand(
+      { db: testDb2.client },
+      createChangeset,
+      { projectId, branchId: branch.id, status: "PENDING" },
+    );
+    await executeCommand({ db: testDb2.client }, addChangesetEntry, {
+      changesetId: branchCs.id,
+      entityType: "document",
+      entityId: "rewrite-entity-1",
+      action: "UPDATE",
+      before: { id: "rewrite-entity-1", text: "hello_v1" },
+      after: { id: "rewrite-entity-1", text: "branch_edit" },
+      riskLevel: "LOW",
+    });
+
+    // 4. Main advances — update same entity on main to v2
+    const mainCs2 = await executeCommand(
+      { db: testDb2.client },
+      createChangeset,
+      { projectId, status: "APPLIED" },
+    );
+    await executeCommand({ db: testDb2.client }, addChangesetEntry, {
+      changesetId: mainCs2.id,
+      entityType: "document",
+      entityId: "rewrite-entity-1",
+      action: "UPDATE",
+      before: { id: "rewrite-entity-1", text: "hello_v1" },
+      after: { id: "rewrite-entity-1", text: "hello_v2" },
+      riskLevel: "LOW",
+    });
+
+    // 5. Rebase without wired fetchers (no-fetcher fallback: before becomes null)
+    const { appMethodRegistry } = getDefaultRegistries();
+    const result = await rebaseBranch(
+      testDb2.client,
+      branch.id,
+      appMethodRegistry,
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.newBaseChangesetId).toBe(mainCs2.id);
+
+    // 6. Verify: branch UPDATE entry's before is unchanged (no-op without fetcher)
+    const entries = await executeQuery(
+      { db: testDb2.client },
+      listBranchChangesetEntries,
+      { branchId: branch.id },
+    );
+    const updateEntry = entries.find((e) => e.action === "UPDATE");
+    expect(updateEntry).toBeDefined();
+    // Without wired fetchers, rebase is a safe no-op: before value is preserved
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    expect((updateEntry!.before as Record<string, unknown>)?.["text"]).toBe(
+      "hello_v1",
+    );
+  });
+
+  test("CREATE entries are not rewritten (before remains null) during rebase", async () => {
+    const user = await executeCommand({ db: testDb2.client }, createUser, {
+      email: `rebase-create-${Date.now()}@test.local`,
+      name: "Rebase Create Tester",
+    });
+    const project = await executeCommand(
+      { db: testDb2.client },
+      createProject,
+      {
+        name: "Rebase Create Test",
+        description: null,
+        creatorId: user.id,
+      },
+    );
+    const { id: projectId } = project;
+
+    // 1. Create initial main changeset
+    const mainCs = await executeCommand(
+      { db: testDb2.client },
+      createChangeset,
+      { projectId, status: "APPLIED" },
+    );
+
+    // 2. Create branch based on mainCs
+    const branch = await executeCommand({ db: testDb2.client }, createBranch, {
+      projectId,
+      name: "rewrite-branch-create-1",
+    });
+    await executeCommand({ db: testDb2.client }, updateBranchBaseChangeset, {
+      branchId: branch.id,
+      baseChangesetId: mainCs.id,
+    });
+
+    // 3. Add a CREATE entry to the branch (before = null)
+    const branchCs = await executeCommand(
+      { db: testDb2.client },
+      createChangeset,
+      { projectId, branchId: branch.id, status: "PENDING" },
+    );
+    await executeCommand({ db: testDb2.client }, addChangesetEntry, {
+      changesetId: branchCs.id,
+      entityType: "document",
+      entityId: "new-entity-branch",
+      action: "CREATE",
+      after: { id: "new-entity-branch", text: "brand new" },
+      riskLevel: "LOW",
+    });
+
+    // 4. Main advances
+    const mainCs2 = await executeCommand(
+      { db: testDb2.client },
+      createChangeset,
+      { projectId, status: "APPLIED" },
+    );
+    await executeCommand({ db: testDb2.client }, addChangesetEntry, {
+      changesetId: mainCs2.id,
+      entityType: "document",
+      entityId: "other-entity",
+      action: "CREATE",
+      after: { id: "other-entity", text: "main item" },
+      riskLevel: "LOW",
+    });
+
+    // 5. Rebase
+    const { appMethodRegistry } = getDefaultRegistries();
+    await rebaseBranch(testDb2.client, branch.id, appMethodRegistry);
+
+    // 6. Verify: CREATE entry's before remains null (not touched by rewrite)
+    const entries = await executeQuery(
+      { db: testDb2.client },
+      listBranchChangesetEntries,
+      { branchId: branch.id },
+    );
+    const createEntry = entries.find((e) => e.action === "CREATE");
+    expect(createEntry).toBeDefined();
+    expect(createEntry!.before).toBeNull();
   });
 });

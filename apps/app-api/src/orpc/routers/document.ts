@@ -161,12 +161,17 @@ export const finishCreateFromFile = authed
       context.branchId !== undefined &&
       context.branchChangesetId !== undefined
     ) {
+      if (context.branchProjectId === undefined) {
+        throw new Error(
+          "branchProjectId missing when branch context is active",
+        );
+      }
       const { middleware } = createVCSRouteHelper(drizzle);
       const entityId = randomUUID();
       await middleware.interceptWrite(
         {
           mode: "isolation",
-          projectId: context.branchProjectId!,
+          projectId: context.branchProjectId,
           branchId: context.branchId,
           branchChangesetId: context.branchChangesetId,
         },
@@ -408,7 +413,7 @@ export const getElements = authed
       return await listWithOverlay(
         drizzle,
         context.branchId,
-        "document",
+        "element",
         mainItems,
         (item) => String(item.id),
       );
@@ -469,6 +474,11 @@ export const del = authed
       context.branchId !== undefined &&
       context.branchChangesetId !== undefined
     ) {
+      if (context.branchProjectId === undefined) {
+        throw new Error(
+          "branchProjectId missing when branch context is active",
+        );
+      }
       const { middleware } = createVCSRouteHelper(drizzle);
       const currentDoc = await executeQuery({ db: drizzle }, getDocument, {
         documentId: input.id,
@@ -476,7 +486,7 @@ export const del = authed
       await middleware.interceptWrite(
         {
           mode: "isolation",
-          projectId: context.branchProjectId!,
+          projectId: context.branchProjectId,
           branchId: context.branchId,
           branchChangesetId: context.branchChangesetId,
         },

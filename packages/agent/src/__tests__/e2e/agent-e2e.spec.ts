@@ -34,7 +34,7 @@ vi.mock("@cat/permissions", () => ({
   getPermissionEngine: () => ({
     check: async () => true,
   }),
-  determineTrustMode: async () => "trust",
+  determineWriteMode: async () => "direct",
 }));
 
 // ─── Mock SessionManager ──────────────────────────────────────────────────────

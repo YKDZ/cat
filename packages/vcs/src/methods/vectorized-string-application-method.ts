@@ -1,3 +1,5 @@
+import type { JSONType } from "@cat/shared/schema/json";
+
 import type {
   ApplicationContext,
   ApplicationMethod,
@@ -6,6 +8,7 @@ import type {
   ChangesetEntry,
   DependencyStatus,
 } from "../application-method.ts";
+import type { EntityStateFetcher } from "./simple-application-method.ts";
 
 const VECTORIZATION_ASYNC_SPEC: AsyncDependencySpec = {
   description: "TranslatableString vectorization via pgvector",
@@ -26,9 +29,11 @@ const VECTORIZATION_ASYNC_SPEC: AsyncDependencySpec = {
 export class VectorizedStringApplicationMethod implements ApplicationMethod {
   readonly entityType: string;
   readonly asyncDependencySpec: AsyncDependencySpec = VECTORIZATION_ASYNC_SPEC;
+  private fetcher: EntityStateFetcher | null;
 
-  constructor(entityType: string) {
+  constructor(entityType: string, fetcher?: EntityStateFetcher) {
     this.entityType = entityType;
+    this.fetcher = fetcher ?? null;
   }
 
   async applyCreate(
@@ -81,5 +86,25 @@ export class VectorizedStringApplicationMethod implements ApplicationMethod {
     _ctx: ApplicationContext,
   ): Promise<void> {
     // Cancel or clean up any pending vectorization jobs
+  }
+
+  async fetchCurrentState(
+    entityId: string,
+    ctx: ApplicationContext,
+  ): Promise<JSONType | null> {
+    if (!this.fetcher) return null;
+    return this.fetcher.fetchOne(entityId, ctx);
+  }
+
+  async fetchCurrentStates(
+    entityIds: string[],
+    ctx: ApplicationContext,
+  ): Promise<Map<string, JSONType>> {
+    if (!this.fetcher) return new Map();
+    return this.fetcher.fetchMany(entityIds, ctx);
+  }
+
+  setFetcher(fetcher: EntityStateFetcher): void {
+    this.fetcher = fetcher;
   }
 }

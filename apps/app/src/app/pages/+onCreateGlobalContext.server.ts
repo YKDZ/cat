@@ -36,6 +36,7 @@ import {
   setVectorizationQueue,
 } from "@cat/server-shared";
 import { assertPromise } from "@cat/shared/utils";
+import { getDefaultRegistries, wireEntityStateFetchers } from "@cat/vcs";
 import { createDefaultGraphRuntime } from "@cat/workflow";
 import { access } from "fs/promises";
 import { join, resolve } from "path";
@@ -164,6 +165,10 @@ export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
 
     // 注册审计日志处理器
     registerAuditHandler(drizzleDB.client);
+
+    // 注入 DB-backed 实体状态 fetcher 到应用方法注册表（用于 rebase before-重写）
+    const { appMethodRegistry } = getDefaultRegistries();
+    wireEntityStateFetchers(appMethodRegistry, drizzleDB.client);
 
     ctx.drizzleDB = drizzleDB;
     ctx.redis = redis;

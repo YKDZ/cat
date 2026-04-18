@@ -184,20 +184,7 @@ After writing and self-reviewing the spec, present it to the user:
 
 ## Chunked Writing
 
-Always write the spec incrementally by section using the continuation marker `<!-- §§SPEC_CONTINUE§§ -->`. Do NOT attempt to write the entire spec in a single tool call.
-
-Write in this order, one chunk per tool call:
-
-1. **Create** the file with header + **Problem & Goals** + **Constraints**, ending with the marker.
-2. **Append** **Architecture** section (replace marker with content + fresh marker).
-3. **Append** **Component Design** + **Data Model** (replace marker + fresh marker).
-4. **Append** **Data Flow** + **Error Handling** + **Testing Strategy** (replace marker + fresh marker).
-5. **Final chunk**: append **Open Questions** (if any) — no new marker.
-
-Rules:
-
-- The marker string is exactly `<!-- §§SPEC_CONTINUE§§ -->` — do not vary it.
-- Never leave the marker in the finished document.
+Follow `.claude/rules/chunked-writing.md`. Write sections in the order defined by the spec document structure above.
 
 ## Key Principles
 
