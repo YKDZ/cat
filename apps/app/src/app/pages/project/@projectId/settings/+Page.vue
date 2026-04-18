@@ -15,7 +15,6 @@ import { useInjectionKey } from "@/app/utils/provide.ts";
 import type { Data } from "../+data.server.ts";
 
 import { onProjectDelete } from "./Page.telefunc.ts";
-import SnapshotBtn from "./SnapshotBtn.vue";
 import TrustSettings from "./TrustSettings.vue";
 
 const { t } = useI18n();
@@ -67,7 +66,6 @@ const remove = async (): Promise<void> => {
       </div>
     </div>
     <Button variant="destructive" @click="remove">{{ t("删除项目") }}</Button>
-    <SnapshotBtn />
     <TrustSettings :projectId="project.id" />
   </div>
 </template>
