@@ -36,6 +36,7 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@cat/vcs": "workspace:*",
     "zod": "catalog:"
   },
   "engines": {

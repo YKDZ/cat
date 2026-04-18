@@ -22,9 +22,11 @@ import {
 import { DocumentSchema } from "@cat/shared/schema/drizzle/document";
 import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
 import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
+import type { VCSContext } from "@cat/vcs";
 import * as z from "zod/v4";
 
 import { authed, checkPermission } from "@/orpc/server";
+import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 // 使用新的类型安全权限中间件
 // mapInput 函数 (i) => i.projectId 的参数类型从 .input() schema 自动推断
@@ -39,9 +41,24 @@ export const del = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
+      user,
     } = context;
 
-    await executeCommand({ db: drizzle }, deleteProject, input);
+    const { middleware } = createVCSRouteHelper(drizzle);
+    const vcsCtx: VCSContext = {
+      mode: "direct",
+      projectId: input.projectId,
+      createdBy: user.id,
+    };
+    await middleware.interceptWrite(
+      vcsCtx,
+      "project",
+      input.projectId,
+      "DELETE",
+      { projectId: input.projectId },
+      null,
+      async () => executeCommand({ db: drizzle }, deleteProject, input),
+    );
   });
 
 export const update = authed
@@ -57,9 +74,24 @@ export const update = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
+      user,
     } = context;
 
-    return await executeCommand({ db: drizzle }, updateProject, input);
+    const { middleware } = createVCSRouteHelper(drizzle);
+    const vcsCtx: VCSContext = {
+      mode: "direct",
+      projectId: input.projectId,
+      createdBy: user.id,
+    };
+    return await middleware.interceptWrite(
+      vcsCtx,
+      "project",
+      input.projectId,
+      "UPDATE",
+      { projectId: input.projectId },
+      { ...input },
+      async () => executeCommand({ db: drizzle }, updateProject, input),
+    );
   });
 
 export const create = authed
@@ -90,7 +122,7 @@ export const create = authed
       createGlossary,
     } = input;
 
-    return await drizzle.transaction(async (tx) => {
+    const project = await drizzle.transaction(async (tx) => {
       const project = await executeCommand({ db: tx }, createProject, {
         name,
         description,
@@ -145,6 +177,25 @@ export const create = authed
 
       return project;
     });
+
+    // Post-write audit: project ID not available before creation
+    const { middleware } = createVCSRouteHelper(drizzle);
+    const vcsCtx: VCSContext = {
+      mode: "direct",
+      projectId: project.id,
+      createdBy: user.id,
+    };
+    await middleware.interceptWrite(
+      vcsCtx,
+      "project",
+      project.id,
+      "CREATE",
+      null,
+      { name: project.name, description: project.description },
+      async () => project,
+    );
+
+    return project;
   });
 
 export const linkGlossary = authed

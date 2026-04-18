@@ -21,9 +21,11 @@ import {
   UpdateIssueCommandSchema,
 } from "@cat/domain";
 import { IssueSchema } from "@cat/shared/schema/drizzle/issue";
+import type { VCSContext } from "@cat/vcs";
 import * as z from "zod/v4";
 
 import { authed, checkPermission } from "@/orpc/server";
+import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 /** Create a new issue in a project */
 export const createProjectIssue = authed
@@ -33,8 +35,25 @@ export const createProjectIssue = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: db },
+      user,
     } = context;
-    return await executeCommand({ db }, createIssue, input);
+
+    const { middleware } = createVCSRouteHelper(db);
+    const entityId = crypto.randomUUID();
+    const vcsCtx: VCSContext = {
+      mode: "direct",
+      projectId: input.projectId,
+      createdBy: user.id,
+    };
+    return await middleware.interceptWrite(
+      vcsCtx,
+      "issue",
+      entityId,
+      "CREATE",
+      null,
+      { ...input },
+      async () => executeCommand({ db }, createIssue, input),
+    );
   });
 
 /** Get a single issue by externalId */

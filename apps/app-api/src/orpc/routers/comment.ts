@@ -18,6 +18,7 @@ import {
   CommentTargetTypeSchema,
 } from "@cat/shared/schema/enum";
 import { listWithOverlay } from "@cat/vcs";
+import type { VCSContext } from "@cat/vcs";
 import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
@@ -33,6 +34,8 @@ export const comment = authed
       content: z.string(),
       languageId: z.string(),
       branchId: z.number().int().optional(),
+      /** @zh 项目 ID（用于 Direct 模式 VCS 审计） @en Project ID for Direct mode VCS audit */
+      projectId: z.string().uuid().optional(),
     }),
   )
   .use(withBranchContext, (i) => ({ branchId: i.branchId }))
@@ -81,6 +84,35 @@ export const comment = authed
           createdAt: new Date(),
           updatedAt: new Date(),
         }),
+      );
+    }
+
+    if (input.projectId !== undefined) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const entityId = crypto.randomUUID();
+      const vcsCtx: VCSContext = {
+        mode: "direct",
+        projectId: input.projectId,
+        createdBy: user.id,
+      };
+      return await middleware.interceptWrite(
+        vcsCtx,
+        "comment",
+        entityId,
+        "CREATE",
+        null,
+        {
+          targetType: input.targetType,
+          targetId: input.targetId,
+          content: input.content,
+          languageId: input.languageId,
+          userId: user.id,
+        },
+        async () =>
+          executeCommand({ db: drizzle }, createComment, {
+            ...input,
+            userId: user.id,
+          }),
       );
     }
 

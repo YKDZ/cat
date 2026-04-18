@@ -1,5 +1,6 @@
 import type { PluginManager } from "@cat/plugin-core";
 import type { JSONObject } from "@cat/shared/schema/json";
+import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod/v4";
 
 import assert from "node:assert";
@@ -16,6 +17,10 @@ export type RunGraphOptions = {
   metadata?: JSONObject | null;
   /** Override the plugin manager from the global runtime */
   pluginManager?: PluginManager;
+  /** @zh 可选的 VCS 上下文，用于 Direct 模式审计 @en Optional VCS context for Direct mode audit */
+  vcsContext?: VCSContext;
+  /** @zh 可选的 VCS 中间件实例 @en Optional VCS middleware instance */
+  vcsMiddleware?: VCSMiddleware;
 };
 
 /**
@@ -42,6 +47,8 @@ export const runGraph = async <
     sessionId: options?.sessionId,
     metadata: options?.metadata,
     pluginManager: options?.pluginManager,
+    vcsContext: options?.vcsContext,
+    vcsMiddleware: options?.vcsMiddleware,
   });
 
   return new Promise<z.infer<TOutput>>((resolve, reject) => {
@@ -128,6 +135,8 @@ export const startGraph = async <
     sessionId: options?.sessionId,
     metadata: options?.metadata,
     pluginManager: options?.pluginManager,
+    vcsContext: options?.vcsContext,
+    vcsMiddleware: options?.vcsMiddleware,
   });
 
   const complete = new Promise<z.infer<TOutput>>((resolve, reject) => {

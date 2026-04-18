@@ -27,6 +27,7 @@ import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import { listWithOverlay } from "@cat/vcs";
+import type { VCSContext } from "@cat/vcs";
 import {
   createTermGraph,
   runGraph,
@@ -46,6 +47,8 @@ export const deleteTerm = authed
     z.object({
       termId: z.int(),
       branchId: z.int().optional(),
+      /** @zh 项目 ID（用于 Direct 模式 VCS 审计） @en Project ID for Direct mode VCS audit */
+      projectId: z.uuidv4().optional(),
     }),
   )
   .use(checkPermission("glossary", "editor"), (input) =>
@@ -81,6 +84,35 @@ export const deleteTerm = authed
         { termId: input.termId },
         null,
         async () => undefined,
+      );
+      return;
+    }
+
+    if (input.projectId !== undefined) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const vcsCtx: VCSContext = {
+        mode: "direct",
+        projectId: input.projectId,
+        createdBy: context.user.id,
+      };
+      const collector = createInProcessCollector(domainEventBus);
+      await middleware.interceptWrite(
+        vcsCtx,
+        "term",
+        String(input.termId),
+        "DELETE",
+        { termId: input.termId },
+        null,
+        async () => {
+          const result = await executeCommand(
+            { db: drizzle, collector },
+            deleteGlossaryTerm,
+            { termId: input.termId },
+          );
+          if (result.deleted) {
+            await collector.flush();
+          }
+        },
       );
       return;
     }
@@ -194,6 +226,8 @@ export const insertTerm = authed
       glossaryId: z.uuidv4(),
       termsData: z.array(TermDataSchema),
       branchId: z.int().optional(),
+      /** @zh 项目 ID（用于 Direct 模式 VCS 审计） @en Project ID for Direct mode VCS audit */
+      projectId: z.uuidv4().optional(),
     }),
   )
   .use(withBranchContext, (i) => ({ branchId: i.branchId }))
@@ -240,6 +274,40 @@ export const insertTerm = authed
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
         message: "No storage provider available",
       });
+    }
+
+    if (input.projectId !== undefined) {
+      const {
+        drizzleDB: { client: drizzle },
+      } = context;
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const entityId = crypto.randomUUID();
+      const vcsCtx: VCSContext = {
+        mode: "direct",
+        projectId: input.projectId,
+        createdBy: user.id,
+      };
+      await middleware.interceptWrite(
+        vcsCtx,
+        "term",
+        entityId,
+        "CREATE",
+        null,
+        { glossaryId, termsData, creatorId: user.id },
+        async () =>
+          runGraph(
+            createTermGraph,
+            {
+              glossaryId,
+              data: termsData,
+              creatorId: user.id,
+              vectorizerId: vectorizer.id,
+              vectorStorageId: storage.id,
+            },
+            { pluginManager },
+          ),
+      );
+      return;
     }
 
     await runGraph(

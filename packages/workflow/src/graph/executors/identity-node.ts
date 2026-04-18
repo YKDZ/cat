@@ -66,6 +66,8 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
     traceId: ctx.runId,
     pluginManager: ctx.runtime.pluginManager ?? PluginManager.get("GLOBAL", ""),
     addEvent: ctx.addEvent,
+    vcsContext: ctx.runtime.vcsContext,
+    vcsMiddleware: ctx.runtime.vcsMiddleware,
     checkSideEffect: async <T extends NonNullJSONType>(
       key: string,
     ): Promise<T | null> => {

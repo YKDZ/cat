@@ -18,6 +18,7 @@ import {
 } from "@cat/operations";
 import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
+import type { VCSContext } from "@cat/vcs";
 import * as z from "zod/v4";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
@@ -86,6 +87,41 @@ export const create = authed
           createdAt: new Date(),
           updatedAt: new Date(),
         }),
+      );
+    }
+
+    const projectId = input.projectIds?.[0];
+    if (projectId !== undefined) {
+      const { middleware } = createVCSRouteHelper(drizzle);
+      const entityId = crypto.randomUUID();
+      const vcsCtx: VCSContext = {
+        mode: "direct",
+        projectId,
+        createdBy: user.id,
+      };
+      return await middleware.interceptWrite(
+        vcsCtx,
+        "memory_item",
+        entityId,
+        "CREATE",
+        null,
+        {
+          name: input.name,
+          ...(input.description !== undefined
+            ? { description: input.description }
+            : {}),
+          ...(input.projectIds !== undefined
+            ? { projectIds: input.projectIds }
+            : {}),
+          creatorId: user.id,
+        },
+        async () =>
+          drizzle.transaction(async (tx) =>
+            executeCommand({ db: tx }, createMemoryCommand, {
+              ...input,
+              creatorId: user.id,
+            }),
+          ),
       );
     }
 
