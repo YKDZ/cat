@@ -15,7 +15,7 @@ import ElemenContextMarkdown from "./ElemenContextMarkdown.vue";
 const { elementId } = storeToRefs(useEditorTableStore());
 
 const { state } = useQuery({
-  key: ["context", elementId.value],
+  key: () => ["context", elementId.value],
   placeholderData: [],
   query: () => {
     if (elementId.value) {
@@ -23,7 +23,7 @@ const { state } = useQuery({
     }
     return Promise.resolve([]);
   },
-  enabled: !import.meta.env.SSR,
+  enabled: () => !import.meta.env.SSR && !!elementId.value,
 });
 
 const componentFromType = (type: TranslatableElementContextType) => {

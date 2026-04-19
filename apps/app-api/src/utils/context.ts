@@ -106,10 +106,18 @@ export const getContext = async (
 
   // ====== CSRF Token ======
   // 如果 csrfToken cookie 不存在，生成一个新的（不带 HttpOnly 以便前端 JS 读取）
-  if (!helpers.getCookie("csrfToken")) {
-    const csrfToken = generateCsrfToken();
+  let csrfToken = helpers.getCookie("csrfToken") ?? undefined;
+  if (!csrfToken) {
+    csrfToken = generateCsrfToken();
     const flags = ["Path=/", "SameSite=Lax"];
-    if (process.env["NODE_ENV"] === "production") flags.push("Secure");
+
+    const forwardedProto =
+      helpers.getReqHeader("x-forwarded-proto")?.split(",")[0]?.trim() ?? "";
+    const isHttpsRequest =
+      req.url.startsWith("https://") ||
+      forwardedProto.toLowerCase() === "https";
+    if (isHttpsRequest) flags.push("Secure");
+
     resHeaders.append(
       "Set-Cookie",
       `csrfToken=${csrfToken}; ${flags.join("; ")}`,
@@ -126,6 +134,7 @@ export const getContext = async (
     cacheStore,
     sessionStore,
     helpers,
+    csrfToken,
     isSSR: false,
     isWebSocket: false,
   };
@@ -141,6 +150,7 @@ export type Context = {
   cacheStore: CacheStore;
   sessionStore: SessionStore;
   helpers: HTTPHelpers;
+  csrfToken?: string;
   isSSR: boolean;
   isWebSocket: boolean;
   /** @zh 分支工作空间 ID（由 withBranchContext 中间件注入）@en Branch workspace ID */

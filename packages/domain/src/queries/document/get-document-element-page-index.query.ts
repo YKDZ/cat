@@ -4,6 +4,7 @@ import {
   eq,
   ilike,
   lt,
+  or,
   translatableElement,
   vectorizedString,
 } from "@cat/db";
@@ -42,9 +43,16 @@ export const getDocumentElementPageIndex: Query<
     `Element ${query.elementId} with given id does not exists`,
   );
 
+  const targetSortIndex = target.sortIndex ?? 0;
   const whereConditions = [
     eq(translatableElement.documentId, target.documentId),
-    lt(translatableElement.sortIndex, target.sortIndex ?? 0),
+    or(
+      lt(translatableElement.sortIndex, targetSortIndex),
+      and(
+        eq(translatableElement.sortIndex, targetSortIndex),
+        lt(translatableElement.id, query.elementId),
+      ),
+    )!,
   ];
 
   if (query.searchQuery.trim().length > 0) {

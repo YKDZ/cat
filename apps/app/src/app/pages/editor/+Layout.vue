@@ -36,11 +36,12 @@ watchClient(
 
 watch(
   documentId,
-  () => {
+  (newDoc, oldDoc) => {
+    if (newDoc === oldDoc) return;
     refreshContext();
     refreshElement();
   },
-  { immediate: true },
+  { immediate: false },
 );
 </script>
 

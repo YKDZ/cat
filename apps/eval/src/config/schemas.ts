@@ -1,24 +1,24 @@
+import { PluginOverrideSchema, SeedConfigSchema } from "@cat/seed";
 import * as z from "zod";
 
-// ── Plugin override ──────────────────────────────────────────────────
-
-export const PluginOverrideSchema = z.object({
-  plugin: z.string(),
-  scope: z.enum(["GLOBAL", "PROJECT", "USER"]),
-  scopeId: z.string().optional(),
-  config: z.record(z.string(), z.unknown()),
-});
-
-// ── Seed file references ─────────────────────────────────────────────
-
-export const SeedConfigSchema = z.object({
-  project: z.string(),
-  glossary: z.string().optional(),
-  memory: z.string().optional(),
-  elements: z.string().optional(),
-  plugins: z.string().optional(),
-  agentDefinition: z.string().optional(),
-});
+// ── Re-export shared seed schemas from @cat/seed ─────────────────────
+export {
+  PluginOverrideSchema,
+  type PluginOverride,
+  SeedConfigSchema,
+  ProjectSeedSchema,
+  type ProjectSeed,
+  GlossaryConceptSeedSchema,
+  GlossarySeedSchema,
+  type GlossarySeed,
+  MemoryItemSeedSchema,
+  MemorySeedSchema,
+  type MemorySeed,
+  ElementSeedSchema,
+  ElementsSeedSchema,
+  type ElementsSeed,
+  PluginSeedSchema,
+} from "@cat/seed";
 
 // ── Scorers ──────────────────────────────────────────────────────────
 
@@ -71,76 +71,6 @@ export const SuiteConfigSchema = z.object({
 
 export type SuiteConfig = z.infer<typeof SuiteConfigSchema>;
 export type ScenarioConfig = z.infer<typeof ScenarioConfigSchema>;
-export type PluginOverride = z.infer<typeof PluginOverrideSchema>;
-
-// ── Seed data schemas ────────────────────────────────────────────────
-
-export const ProjectSeedSchema = z.object({
-  name: z.string().min(1),
-  sourceLanguage: z.string(),
-  translationLanguages: z.array(z.string()).min(1),
-});
-
-export const GlossaryConceptSeedSchema = z.object({
-  ref: z.string(),
-  definition: z.string(),
-  terms: z
-    .array(
-      z.object({
-        term: z.string(),
-        termLanguageId: z.string(),
-        translation: z.string(),
-        translationLanguageId: z.string(),
-      }),
-    )
-    .min(1),
-});
-
-export const GlossarySeedSchema = z.object({
-  glossary: z.object({
-    name: z.string(),
-    sourceLanguage: z.string(),
-    translationLanguage: z.string(),
-    concepts: z.array(GlossaryConceptSeedSchema).min(1),
-  }),
-});
-
-export const MemoryItemSeedSchema = z.object({
-  ref: z.string(),
-  source: z.string(),
-  translation: z.string(),
-  sourceLanguage: z.string(),
-  translationLanguage: z.string(),
-});
-
-export const MemorySeedSchema = z.object({
-  memory: z.object({
-    name: z.string(),
-    items: z.array(MemoryItemSeedSchema).min(1),
-  }),
-});
-
-export const ElementSeedSchema = z.object({
-  ref: z.string(),
-  text: z.string(),
-  context: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
-  meta: z.record(z.string(), z.unknown()).optional(),
-});
-
-export const ElementsSeedSchema = z.object({
-  elements: z.array(ElementSeedSchema).min(1),
-});
-
-export const PluginSeedSchema = z.object({
-  plugins: z.array(
-    z.object({
-      pluginId: z.string(),
-      scope: z.enum(["GLOBAL", "PROJECT", "USER"]),
-      scopeId: z.string().optional(),
-      config: z.record(z.string(), z.unknown()),
-    }),
-  ),
-});
 
 // ── Test set schemas ─────────────────────────────────────────────────
 
@@ -201,10 +131,6 @@ export const MemoryRecallTestSetSchema = z.object({
   cases: z.array(MemoryRecallTestCaseSchema).min(1),
 });
 
-export type ProjectSeed = z.infer<typeof ProjectSeedSchema>;
-export type GlossarySeed = z.infer<typeof GlossarySeedSchema>;
-export type MemorySeed = z.infer<typeof MemorySeedSchema>;
-export type ElementsSeed = z.infer<typeof ElementsSeedSchema>;
 export type TermRecallTestSet = z.infer<typeof TermRecallTestSetSchema>;
 export type MemoryRecallTestSet = z.infer<typeof MemoryRecallTestSetSchema>;
 export type TermRecallTestCase = z.infer<typeof TermRecallTestCaseSchema>;

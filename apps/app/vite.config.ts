@@ -12,6 +12,10 @@ export default defineConfig({
     external: ["@cat/agent", "@cat/plugin-core", "@cat/permissions", "@cat/db"],
   },
 
+  optimizeDeps: {
+    include: ["@cat/ui"],
+  },
+
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),

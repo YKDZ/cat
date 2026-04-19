@@ -8,52 +8,98 @@ user-invocable: true
 
 Guide for using the VS Code integrated browser tools to verify UI fixes in the CAT app.
 
-## Build Chain
+There are two operating modes:
 
-The monorepo has strict dependency ordering. When modifying a library package, you must rebuild the **entire downstream chain** before the running server will pick up changes.
+- **Dev mode** (default) — `pnpm dev` with hot reload, fixed credentials, no build step
+- **Preview mode** (advanced) — `pnpm build && pnpm preview` mimics production; needed for SSR, bundle, or production-only bugs
+
+---
+
+## Mode 1: Quick Debug (Dev Mode)
+
+### Starting the dev server
+
+```bash
+# From apps/app
+pnpm moon run app:dev 2>&1 &
+```
+
+After backgrounding, wait and confirm:
+
+```bash
+sleep 10 && lsof -i :3000 | head -5
+```
+
+### Dev credentials
+
+- **Email**: `admin@encmys.cn`
+- **Password**: `password`
+
+The password is fixed to `"password"` in dev mode (`NODE_ENV=development`). No need to look up a generated password.
+
+### Hot reload behaviour
+
+In dev mode, Vite watches source files and pushes updates without restarting the server. After editing a `.vue` or `.ts` file in `apps/app`, changes appear within 1–2 seconds — no rebuild or restart needed.
+
+For changes to **library packages** (e.g. `@cat/domain`, `@cat/ui`):
+
+- Rebuild the library: `pnpm moon run domain:build --force`
+- Vite picks up the updated `dist/` automatically via HMR — no server restart needed in most cases.
+
+---
+
+## Mode 2: Production Verification (Preview Mode)
+
+Use preview mode when you need to verify SSR, bundle output, or production-specific behaviour.
+
+### Build Chain
 
 ```
 packages/shared → packages/db → packages/domain → apps/app-api → apps/app
 ```
 
-- Library packages (e.g. `domain`) compile to `dist/` via `vite build`.
-- `pnpm` symlinks mean `apps/app` imports from `packages/domain/dist/`.
-- The running server loads compiled JS **into memory**. Rebuilding a package does **not** update an already-running server — you must restart it.
-
-### Rebuild commands
-
 ```bash
-# Rebuild a single package (e.g. after editing domain)
-pnpm moon run domain:build --force
-
-# Rebuild downstream chain
-pnpm moon run app-api:build app:build --force
-
-# Full chain from domain
+# Full chain rebuild
 pnpm moon run domain:build app-api:build app:build --force
 ```
 
-`--force` skips moon's cache so the rebuild always runs.
+### Starting the preview server
+
+```bash
+pnpm moon run app:preview 2>&1 &
+sleep 8 && lsof -i :3000 | head -5
+```
+
+### Preview credentials
+
+In preview mode (`NODE_ENV=production`), the admin password is a random hex string generated at first startup. Retrieve it from the database:
+
+```bash
+docker ps --format "table {{.ID}}\t{{.Image}}" | grep pgvector
+docker exec <container-id> psql -U user -d cat -c \
+  "SELECT value FROM \"Setting\" WHERE key = 'system:root_password';"
+```
+
+Alternatively, use the seed tool (see below) to populate a known password.
+
+---
+
+## Environment Setup with Seed Tool
+
+To populate the database with known test data and credentials, use the seed tool:
+
+```bash
+# From repo root — requires dataset directory
+tsx tools/seeder/main.ts datasets/default --skip-vectorization
+```
+
+After seeding, `admin@encmys.cn` / `password` will work regardless of mode, provided the dataset defines it in `users.json`.
+
+See `.claude/skills/seeder/SKILL.md` for dataset creation and seed tool usage.
 
 ---
 
 ## Server Lifecycle
-
-### Starting the server
-
-```bash
-# Preferred — moon handles env vars, deps, working dir
-pnpm moon run app:preview 2>&1 &
-
-# Alternative — direct node (must cd to app dir first)
-cd /workspaces/cat/apps/app && node dist/server/index.mjs &
-```
-
-After backgrounding with `&`, wait and confirm:
-
-```bash
-sleep 8 && lsof -i :3000 | head -5
-```
 
 ### Stopping the server — CRITICAL SAFETY
 
@@ -69,7 +115,7 @@ killall node                          # ❌
 
 **Why**: VS Code's port-forwarding process (`MainThrea`) shares port 3000. `lsof -i :3000` returns the VS Code PID alongside the app server PID. Killing it disconnects the session.
 
-**Safe approach**:
+**Safe approach for preview mode** (compiled server):
 
 ```bash
 # 1. Find ONLY app server PIDs
@@ -78,19 +124,27 @@ ps aux | grep "dist/server/index.mjs" | grep -v grep
 # 2. Kill specific PIDs
 kill <PID1> <PID2> ...
 
-# 3. If SIGTERM doesn't work
-kill -9 <PID1> <PID2> ...
-
-# 4. Verify
+# 3. Verify
 ps aux | grep "dist/server/index.mjs" | grep -v grep
+```
+
+**Safe approach for dev mode** (Vite dev server):
+
+```bash
+# 1. Find Vite server PIDs
+ps aux | grep "vike dev\|vite" | grep -v grep
+
+# 2. Kill specific PIDs
+kill <PID1> <PID2> ...
 ```
 
 ### Zombie process accumulation
 
-Multiple `moon run app:preview` invocations can leave orphan `node dist/server/index.mjs` processes. These bind port 3000 and prevent new servers from starting. Always check and clean up before starting a new server:
+Multiple server invocations can leave orphan processes that bind port 3000. Always check before starting a new server:
 
 ```bash
-ps aux | grep "dist/server/index.mjs" | grep -v grep
+# Check for both dev and preview processes
+ps aux | grep -E "dist/server/index.mjs|vike dev" | grep -v grep
 # Kill all found PIDs, then start new server
 ```
 
@@ -116,11 +170,6 @@ The CAT app uses a two-step auth flow:
 7. waitForTimeout(3000)  — wait for redirect
 8. read_page          → verify dashboard loaded
 ```
-
-### Dev credentials
-
-- **Email**: `admin@encmys.cn`
-- **Password**: `11f8d6182e86ef2e`
 
 ---
 
@@ -177,18 +226,29 @@ screenshot_page with scrollIntoViewIfNeeded: true
 
 ## Verification Workflow Template
 
-For verifying a UI fix end-to-end:
+### Dev mode (default)
 
 ```
-1. Rebuild affected packages  (moon run <pkg>:build --force)
-2. Kill old server             (ps aux | grep ... → kill PIDs)
-3. Start new server            (moon run app:preview 2>&1 &)
-4. Wait for ready              (sleep 8 && lsof -i :3000)
-5. Open browser                (open_browser_page)
-6. Login                       (email → password → verify redirect)
-7. Navigate to target page     (click links, wait between navigations)
-8. Verify fix                  (read_page to check DOM, screenshot for visual)
-9. Test round-trip             (change → save → reload → verify persisted)
+1. Start dev server      (moon run app:dev 2>&1 &)
+2. Wait for ready        (sleep 10 && lsof -i :3000)
+3. Open browser          (open_browser_page http://localhost:3000)
+4. Login                 (admin@encmys.cn / password)
+5. Navigate to target    (click links, waitForTimeout between navigations)
+6. Verify fix            (read_page → check DOM, screenshot_page → visual)
+7. Edit source file      (save → HMR picks up in 1-2s)
+8. read_page             (verify updated content)
+```
+
+### Preview mode (production verification)
+
+```
+1. Rebuild chain         (moon run domain:build app-api:build app:build --force)
+2. Kill old server       (ps aux | grep "dist/server/index.mjs" → kill PIDs)
+3. Start preview         (moon run app:preview 2>&1 &)
+4. Wait for ready        (sleep 8 && lsof -i :3000)
+5. Open browser          (open_browser_page)
+6. Login                 (look up password from DB or use seeded credentials)
+7. Navigate + verify
 ```
 
 ### Round-trip persistence test
@@ -227,12 +287,14 @@ When running `pnpm moon run app:preview 2>&1 &`, the terminal may report "waitin
 
 ## Common Failure Modes
 
-| Symptom                                   | Cause                                             | Fix                                                               |
-| ----------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- |
-| 500 error on login                        | Server crashed or wasn't started with correct env | Use `moon run app:preview` instead of direct `node`               |
-| Port 3000 already in use                  | Zombie server process                             | `ps aux \| grep "dist/server/index.mjs"` → kill PIDs              |
-| UI shows stale code                       | Didn't rebuild after code change                  | Rebuild full chain: `domain:build app-api:build app:build`        |
-| SSH disconnection                         | Killed VS Code port-forwarding process            | See "Stopping the server — CRITICAL SAFETY"                       |
-| Page shows old content after rebuild      | Server not restarted                              | Kill old server, start new one                                    |
-| Element ref not found                     | Stale refs from before navigation                 | Call `read_page` again after navigation                           |
-| Picker shows empty despite DB having data | Async load race / pagination miss                 | Check if value is in paginated results; may need "extras" pattern |
+| Symptom                                   | Cause                                      | Fix                                                               |
+| ----------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| 500 error on login                        | Server crashed or wasn't started correctly | Use `moon run app:dev` (dev) or `moon run app:preview` (preview)  |
+| Port 3000 already in use                  | Zombie server process                      | `ps aux \| grep "dist/server\|vike dev"` → kill PIDs              |
+| UI shows stale code (preview)             | Didn't rebuild after code change           | Rebuild full chain: `domain:build app-api:build app:build`        |
+| UI shows stale code (dev)                 | Library package not rebuilt                | `pnpm moon run <pkg>:build --force`; HMR picks up automatically   |
+| SSH disconnection                         | Killed VS Code port-forwarding process     | See "Stopping the server — CRITICAL SAFETY"                       |
+| Login fails with wrong password (preview) | Random password generated at startup       | Look up from DB `Setting` table, or use seed tool                 |
+| Login fails with wrong password (dev)     | Not running in dev mode                    | Use `moon run app:dev`, password is always `"password"`           |
+| Element ref not found                     | Stale refs from before navigation          | Call `read_page` again after navigation                           |
+| Picker shows empty despite DB having data | Async load race / pagination miss          | Check if value is in paginated results; may need "extras" pattern |
