@@ -69,20 +69,9 @@ export const ghostTextStateField = StateField.define<GhostTextState>({
       }
     }
 
-    // If the document changed and selection moved, check consistency
-    if (tr.docChanged || tr.selection) {
-      const cursorPos = tr.state.selection.main.head;
-      if (state.suggestion !== null) {
-        const newDocText = tr.state.doc.toString();
-        // Check if typed text still forms a prefix of (anchor_text + suggestion)
-        const anchoredText = newDocText.slice(0, state.anchorPosition);
-        const expectedPrefix = anchoredText + state.suggestion;
-        const currentBefore = newDocText.slice(0, cursorPos);
-        if (!expectedPrefix.startsWith(currentBefore)) {
-          return { suggestion: null, anchorPosition: 0 };
-        }
-      }
-    }
+    // Document changes do not clear suggestion — buildDecorations controls
+    // visibility via prefix matching. This allows ghost text to reappear
+    // when the user deletes text to restore a prefix match.
 
     return state;
   },

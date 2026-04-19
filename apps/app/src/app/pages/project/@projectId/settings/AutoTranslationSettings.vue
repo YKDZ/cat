@@ -19,9 +19,6 @@ const { rpcWarn } = useToastStore();
 
 const enableAutoTranslation = ref(false);
 const autoTranslationLanguages = ref<string[]>([]);
-const ghostTextFallback =
-  ref<ProjectSettingPayload["ghostTextFallback"]>("none");
-
 const loading = ref(true);
 
 const load = async () => {
@@ -31,7 +28,6 @@ const load = async () => {
   if (result) {
     enableAutoTranslation.value = result.enableAutoTranslation;
     autoTranslationLanguages.value = result.autoTranslationLanguages;
-    ghostTextFallback.value = result.ghostTextFallback;
   }
   await nextTick();
   loading.value = false;
@@ -49,10 +45,6 @@ watch(enableAutoTranslation, (val) => {
 
 watch(autoTranslationLanguages, (val) => {
   if (!loading.value) updateSetting({ autoTranslationLanguages: val });
-});
-
-watch(ghostTextFallback, (val) => {
-  if (!loading.value) updateSetting({ ghostTextFallback: val });
 });
 
 onMounted(load);
@@ -90,21 +82,6 @@ onMounted(load);
             {{ t("选择需要自动翻译的目标语言。留空则对所有目标语言生效。") }}
           </p>
           <MultiLanguagePicker v-model="autoTranslationLanguages" />
-        </div>
-
-        <div class="space-y-2">
-          <Label for="ghostTextFallback">{{ t("Ghost Text 回退策略") }}</Label>
-          <p class="text-sm text-muted-foreground">
-            {{ t("当没有自动翻译结果时，Ghost Text 的回退行为。") }}
-          </p>
-          <select
-            id="ghostTextFallback"
-            v-model="ghostTextFallback"
-            class="flex h-9 w-full max-w-xs rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm ring-offset-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
-          >
-            <option value="none">{{ t("无") }}</option>
-            <option value="first-memory">{{ t("第一条翻译记忆") }}</option>
-          </select>
         </div>
       </template>
     </template>

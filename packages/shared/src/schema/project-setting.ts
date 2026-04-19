@@ -3,7 +3,6 @@ import * as z from "zod";
 export const ProjectSettingPayloadSchema = z.object({
   enableAutoTranslation: z.boolean().default(false),
   autoTranslationLanguages: z.array(z.string()).default([]),
-  ghostTextFallback: z.enum(["first-memory", "none"]).default("none"),
 });
 
 export type ProjectSettingPayload = z.infer<typeof ProjectSettingPayloadSchema>;
@@ -18,6 +17,5 @@ export const ProjectSettingPatchSchema = z
   .object({
     enableAutoTranslation: z.boolean(),
     autoTranslationLanguages: z.array(z.string()),
-    ghostTextFallback: z.enum(["first-memory", "none"]),
   })
   .partial();

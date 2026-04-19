@@ -8,24 +8,8 @@ import { useEditorContextStore } from "@/app/stores/editor/context.ts";
 import { useEditorTableStore } from "@/app/stores/editor/table.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 
-/**
- * Determine the best text for ghost text from a memory suggestion.
- * Returns the adapted translation if available, otherwise the raw translation
- * for exact/token-replaced results. Returns null for other types.
- */
-const getGhostCandidate = (memory: MemorySuggestion): string | null => {
-  if (
-    memory.adaptationMethod === "exact" ||
-    memory.adaptationMethod === "token-replaced"
-  ) {
-    return memory.adaptedTranslation ?? memory.translation;
-  }
-  return null;
-};
-
 export const useEditorMemoryStore = defineStore("editorMemory", () => {
-  const tableStore = useEditorTableStore();
-  const { elementId, translationValue } = storeToRefs(tableStore);
+  const { elementId } = storeToRefs(useEditorTableStore());
   const { languageToId } = storeToRefs(useEditorContextStore());
   const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
   const onNew = shallowRef<AsyncGenerator<MemorySuggestion>>();
@@ -53,8 +37,6 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
         { signal: abortController.signal },
       );
 
-      let ghostTextSet = false;
-
       for await (const memory of onNew.value) {
         const existingIndex = memories.value.findIndex(
           (item) => item.id === memory.id,
@@ -63,16 +45,6 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
           memories.value.push(memory);
         } else {
           memories.value.splice(existingIndex, 1, memory);
-        }
-
-        // Auto-trigger ghost text for the first exact/token-replaced result
-        // when the translation input is still empty
-        if (!ghostTextSet && translationValue.value === "") {
-          const candidate = getGhostCandidate(memory);
-          if (candidate) {
-            tableStore.setGhostText(candidate);
-            ghostTextSet = true;
-          }
         }
       }
     } catch (error) {

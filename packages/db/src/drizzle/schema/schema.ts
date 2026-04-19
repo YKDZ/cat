@@ -611,7 +611,6 @@ export const projectSetting = pgTable(
     settings: jsonb().$type<ProjectSettingPayload>().notNull().default({
       enableAutoTranslation: false,
       autoTranslationLanguages: [],
-      ghostTextFallback: "none",
     }),
     ...timestamps,
   },
@@ -951,17 +950,34 @@ export const translatableElement = pgTable(
   "TranslatableElement",
   {
     id: serial().primaryKey(),
+
+    /**
+     * 元素的元数据，被 file-importer 和 exporter 用于从元素还原源文件\
+     * 本身也是一种重要的上下文，例如对于 json 文件，一般都有一个近似语义化的 key
+     */
     meta: jsonb().$type<JSONType>(),
+
     documentId: uuid()
       .notNull()
       .references(() => document.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
+
+    /**
+     * 元素的排序方式，用于确定元素在编辑器中的展示顺序以及提供 “邻居上下文”\
+     * 即在翻译过程中可以表示后相邻的元素内容，帮助译者理解上下文进行更准确的翻译\
+     * 应该重视而不是随便指定，要确保它可以将互为参考的文本聚合在一起
+     */
     sortIndex: integer(),
+
+    /**
+     * 以文件提取方式上传的元素在源文件中的位置信息
+     */
     sourceStartLine: integer(),
     sourceEndLine: integer(),
     sourceLocationMeta: jsonb().$type<JSONType>(),
+
     creatorId: uuid().references(() => user.id, {
       onDelete: "cascade",
       onUpdate: "cascade",

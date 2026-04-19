@@ -2,8 +2,6 @@ import {
   executeQuery,
   findOpenAutoTranslatePR,
   getElementWithChunkIds,
-  getProjectSettings,
-  listMemoryIdsByProject,
 } from "@cat/domain";
 import { readWithOverlay } from "@cat/vcs";
 import * as z from "zod";
@@ -71,38 +69,5 @@ export const suggest = authed
       }
     }
 
-    // 3. Fallback based on project settings
-    const settings = await executeQuery({ db }, getProjectSettings, {
-      projectId,
-    });
-
-    if (settings.ghostTextFallback === "first-memory") {
-      try {
-        const { collectMemoryRecallOp } = await import("@cat/operations");
-
-        const memoryIds = await executeQuery({ db }, listMemoryIdsByProject, {
-          projectId,
-        });
-
-        if (memoryIds.length > 0) {
-          const results = await collectMemoryRecallOp({
-            text: elem.value,
-            sourceLanguageId: elem.languageId,
-            translationLanguageId: languageId,
-            memoryIds,
-            maxAmount: 1,
-          });
-
-          const top = results[0];
-          if (top) {
-            yield { text: top.adaptedTranslation ?? top.translation };
-            return;
-          }
-        }
-      } catch {
-        // Fallback failed silently — return nothing
-      }
-    }
-
-    // ghostTextFallback === "none" or no result: yield nothing
+    // No pre-translate result available — frontend handles fallback
   });
