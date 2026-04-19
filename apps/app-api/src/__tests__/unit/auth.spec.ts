@@ -71,21 +71,21 @@ describe("@cat/domain mock", () => {
     vi.clearAllMocks();
   });
 
-  it("executeCommand は vi.fn() に置き換えられる", () => {
+  it("executeCommand 会被替换为 vi.fn()", () => {
     expect(vi.isMockFunction(executeCommand)).toBe(true);
   });
 
-  it("executeQuery は vi.fn() に置き換えられる", () => {
+  it("executeQuery 会被替换为 vi.fn()", () => {
     expect(vi.isMockFunction(executeQuery)).toBe(true);
   });
 
-  it("beforeEach で呼び出し履歴がリセットされる", () => {
+  it("beforeEach 会重置调用历史", () => {
     expect(vi.mocked(executeCommand)).not.toHaveBeenCalled();
     expect(vi.mocked(executeQuery)).not.toHaveBeenCalled();
   });
 
   /**
-   * 実際の handler テストでは以下のパターンを使用する：
+   * 在实际的 handler 测试中可使用以下模式：
    *
    * ```ts
    * vi.mocked(executeCommand).mockResolvedValueOnce({ id: 'proj-1' })
@@ -94,9 +94,9 @@ describe("@cat/domain mock", () => {
    * expect(result.id).toBe('proj-1')
    * ```
    */
-  it("mockResolvedValueOnce / mockResolvedValue パターンの確認", () => {
+  it("检查 mockResolvedValueOnce / mockResolvedValue 模式", () => {
     vi.mocked(executeCommand).mockResolvedValue({ id: "queued" });
-    // mock が設定されていることを検証（実際の呼び出しは handler テストで行う）
+    // 验证 mock 已正确设置（实际调用应在 handler 测试中完成）
     expect(vi.mocked(executeCommand).mock.invocationCallOrder).toHaveLength(0);
   });
 });

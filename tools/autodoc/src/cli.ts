@@ -2,7 +2,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 
 import { buildIndex, loadIndex, saveIndex, findSymbols } from "./ir-index.js";
@@ -11,6 +12,60 @@ import { createOverviewRenderer } from "./renderer/overview-renderer.js";
 import { createPackageRenderer } from "./renderer/package-renderer.js";
 import { createPackageScanner } from "./scanner/package-scanner.js";
 import { AutodocConfigSchema } from "./types.js";
+
+const findFileUpwards = (
+  startDir: string,
+  fileName: string,
+): string | undefined => {
+  let currentDir = resolve(startDir);
+
+  while (true) {
+    const candidate = join(currentDir, fileName);
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+
+    const parentDir = dirname(currentDir);
+    if (parentDir === currentDir) {
+      return undefined;
+    }
+    currentDir = parentDir;
+  }
+};
+
+const resolveWorkspaceConfig = (
+  configArg: string,
+): { configPath: string; workspaceRoot: string } => {
+  if (isAbsolute(configArg)) {
+    const configPath = resolve(configArg);
+    if (!existsSync(configPath)) {
+      throw new Error(`Autodoc config not found: ${configPath}`);
+    }
+    return { configPath, workspaceRoot: dirname(configPath) };
+  }
+
+  const candidateStarts = [
+    process.env.MOON_WORKSPACE_ROOT,
+    process.cwd(),
+  ].filter((value): value is string => typeof value === "string");
+
+  const seen = new Set<string>();
+  for (const start of candidateStarts) {
+    if (seen.has(start)) {
+      continue;
+    }
+    seen.add(start);
+
+    const found = findFileUpwards(start, configArg);
+    if (found) {
+      return { configPath: found, workspaceRoot: dirname(found) };
+    }
+  }
+
+  throw new Error(
+    `Autodoc config not found: ${configArg}. Tried resolving from ${candidateStarts.join(", ")}`,
+  );
+};
 
 const loadConfig = async (args: string[] = []) => {
   const { values } = parseArgs({
@@ -26,14 +81,17 @@ const loadConfig = async (args: string[] = []) => {
     strict: false,
   });
 
-  // Nx sets NX_WORKSPACE_ROOT to the monorepo root; fall back to cwd for standalone use
-  const wsRoot = process.env.NX_WORKSPACE_ROOT ?? process.cwd();
+  const configArg =
+    typeof values.config === "string" ? values.config : "autodoc.config.ts";
+  const { configPath, workspaceRoot: wsRoot } =
+    resolveWorkspaceConfig(configArg);
 
-  const configPath = resolve(
-    wsRoot,
-    typeof values.config === "string" ? values.config : "autodoc.config.ts",
+  // Keep scanner/extractor behavior consistent even when launched from nested project cwd.
+  process.env.MOON_WORKSPACE_ROOT ??= wsRoot;
+
+  const configModule: { default: unknown } = await import(
+    pathToFileURL(configPath).href
   );
-  const configModule: { default: unknown } = await import(configPath);
   const config = AutodocConfigSchema.parse(configModule.default);
 
   // Resolve all relative paths against workspace root
