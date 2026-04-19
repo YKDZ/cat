@@ -68,7 +68,7 @@
     "dompurify": "^3.4.0",
     "dotenv": "^17.4.2",
     "hono": "^4.12.14",
-    "marked": "^17.0.6",
+    "marked": "^18.0.2",
     "partysocket": "^1.1.16",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
