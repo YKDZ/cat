@@ -1,11 +1,12 @@
 import type { DbHandle } from "@cat/domain";
 import type { JSONType } from "@cat/shared/schema/json";
 
-import { and, eq, translation, vectorizedString } from "@cat/db";
 import {
   createVectorizedStrings,
   createTranslations,
   executeCommand,
+  executeQuery,
+  listTranslationsByElement,
 } from "@cat/domain";
 
 import type {
@@ -61,20 +62,11 @@ export class AutoTranslationApplicationMethod implements ApplicationMethod {
     }
 
     // Check if translation already exists for this element + language
-    const existingTranslations = await db
-      .select({ id: translation.id })
-      .from(translation)
-      .innerJoin(
-        vectorizedString,
-        eq(translation.stringId, vectorizedString.id),
-      )
-      .where(
-        and(
-          eq(translation.translatableElementId, payload.elementId),
-          eq(vectorizedString.languageId, payload.languageId),
-        ),
-      )
-      .limit(1);
+    const existingTranslations = await executeQuery(
+      { db },
+      listTranslationsByElement,
+      { elementId: payload.elementId, languageId: payload.languageId },
+    );
 
     if (existingTranslations.length > 0) {
       // Don't overwrite human translations — skip silently

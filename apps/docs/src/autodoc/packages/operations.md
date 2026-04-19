@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 56
+* **Modules**: 59
 
-* **Exported functions**: 61
+* **Exported functions**: 64
 
-* **Exported types**: 91
+* **Exported types**: 96
 
 ## Function Index
 
@@ -274,6 +274,28 @@ export const diffElementsOp = async (data: DiffElementsInput, ctx?: OperationCon
  * @returns Sorted list of translation suggestions
  */
 export const fetchAdviseOp = async (data: FetchAdviseInput, ctx?: OperationContext): Promise<{ suggestions: { translation: string; confidence: number; meta?: any; }[]; }>
+```
+
+### `fetchBestTranslationCandidateOp`
+
+```ts
+/**
+ * Fetch the best translation candidate by running advisor + memory recall
+ * in parallel and picking the highest-confidence result. Memory > advisor.
+ * Individual provider failures are silently suppressed.
+ */
+export const fetchBestTranslationCandidateOp = async (rawData: FetchBestTranslationCandidateInput, ctx?: OperationContext): Promise<{ text: string; confidence: number; source: "memory" | "advisor"; memoryId?: string | undefined; } | null>
+```
+
+### `findOrCreateAutoTranslatePR`
+
+```ts
+/**
+ * Find or create an AutoTranslate PR for the given language.
+ * Concurrency safety is ensured by a partial unique index on the pullRequest table.
+ * On conflict, re-query the existing PR.
+ */
+export const findOrCreateAutoTranslatePR = async (ctx: { db: DbHandle }, input: FindOrCreateAutoTranslatePRInput): Promise<FindOrCreateAutoTranslatePRResult>
 ```
 
 ### `llmRefineTranslationOp`
@@ -721,6 +743,16 @@ export const revectorizeConceptOp = async (data: RevectorizeConceptInput, ctx?: 
 export const revectorizeOp = async (payload: RevectorizeInput, _ctx?: OperationContext): Promise<Record<string, never>>
 ```
 
+### `runAutoTranslatePipeline`
+
+```ts
+/**
+ * Pre-translation pipeline: check project settings, then for each enabled
+ * language generate candidates and write them to a changeset.
+ */
+export const runAutoTranslatePipeline = async (ctx: { db: DbHandle }, input: RunAutoTranslatePipelineInput): Promise<void>
+```
+
 ### `searchChunkOp`
 
 ```ts
@@ -1042,6 +1074,14 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 
 * `FetchAdviseOutput` (type)
 
+* `FetchBestTranslationCandidateInput` (type)
+
+* `FetchBestTranslationCandidateOutput` (type)
+
+* `FindOrCreateAutoTranslatePRInput` (interface)
+
+* `FindOrCreateAutoTranslatePRResult` (interface)
+
 * `LlmRefineTranslationInput` (type)
 
 * `LlmRefineTranslationOutput` (type)
@@ -1117,6 +1157,8 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 * `RevectorizeInput` (type)
 
 * `RevectorizeOutput` (type)
+
+* `RunAutoTranslatePipelineInput` (interface)
 
 * `SearchChunkInput` (type)
 

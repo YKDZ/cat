@@ -91,6 +91,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       pageSize: context.pageSize.value,
       searchQuery: searchQuery.value,
       isTranslated: !isProofreading.value ? undefined : true,
+      languageId: context.languageToId.value,
     });
     await toPage(page);
     elementId.value = id;

@@ -134,7 +134,7 @@ export const getDocumentElements: Query<
         ? whereConditions[0]
         : and(...whereConditions),
     )
-    .orderBy(asc(translatableElement.sortIndex))
+    .orderBy(asc(translatableElement.sortIndex), asc(translatableElement.id))
     .limit(query.pageSize)
     .offset(query.page * query.pageSize);
 };

@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 39
+* **Modules**: 40
 
 * **Exported functions**: 24
 
-* **Exported types**: 165
+* **Exported types**: 167
 
 ## Function Index
 
@@ -399,6 +399,8 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `PullRequestStatus` (type)
 
+* `PullRequestType` (type)
+
 * `EntityBranchStatus` (type)
 
 * `IssueCommentTargetType` (type)
@@ -481,6 +483,8 @@ export const safeJoinURL = (base: string, path: string): string
 * `PluginData` (type)
 
 * `TranslationSuggestion` (type)
+
+* `ProjectSettingPayload` (type)
 
 * `RecallChannel` (type)
 

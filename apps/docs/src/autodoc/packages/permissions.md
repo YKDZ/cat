@@ -109,18 +109,15 @@ export const initPermissionEngine = (deps: {
 }): PermissionEngine
 ```
 
-### `determineTrustMode`
+### `determineWriteMode`
 
 ```ts
 /**
- * 判定 Subject 对 Project 的 Trust/Isolation 模式。
+ * Determine the write mode (Direct / Isolation) for a subject on a project.
  *
- * Determine the trust/isolation mode for a subject on a project.
- * @returns "trust" | "isolation" | "no_access"
- *
- * @returns "trust" | "isolation" | "no_access"
+ * @returns "direct" | "isolation" | "no_access"
  */
-export async function determineTrustMode(engine: PermissionEngine, authCtx: AuthContext, projectId: string): Promise<"trust" | "isolation" | "no_access">
+export async function determineWriteMode(engine: PermissionEngine, authCtx: AuthContext, projectId: string): Promise<"direct" | "isolation" | "no_access">
 ```
 
 ## Type Index

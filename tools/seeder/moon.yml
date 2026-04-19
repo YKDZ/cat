@@ -1,0 +1,33 @@
+language: "typescript"
+layer: "tool"
+stack: "infrastructure"
+
+tasks:
+  build:
+    script: "tsc --noEmit -p tsconfig.json"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    outputs: []
+    deps:
+      - "^:build"
+    options:
+      cache: true
+      mergeOutputs: "replace"
+
+  typecheck:
+    command: "tsc --noEmit -p tsconfig.json"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+
+  seed:
+    command: "tsx main.ts"
+    deps:
+      - "^:build"
+    options:
+      cache: false

@@ -15,6 +15,7 @@ import {
   TagsInputItemDelete,
   Button,
 } from "@cat/ui";
+import { Plus, Search, Check } from "@lucide/vue";
 import { ComboboxVirtualizer, type AcceptableInputValue } from "reka-ui";
 import { shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";

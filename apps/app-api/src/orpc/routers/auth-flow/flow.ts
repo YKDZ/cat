@@ -100,7 +100,11 @@ const buildHttpContext = (context: Context) => ({
     context.helpers.getReqHeader("x-real-ip") ??
     "unknown",
   userAgent: context.helpers.getReqHeader("user-agent") ?? "unknown",
-  csrfToken: context.helpers.getCookie("csrfToken") ?? "",
+  csrfToken:
+    context.helpers.getCookie("csrfToken") ??
+    context.helpers.getReqHeader("x-csrf-token") ??
+    context.csrfToken ??
+    "",
   cookies: {},
 });
 

@@ -4,11 +4,11 @@ VCS engine: changeset management, branch merge/rebase, overlay reads, diff strat
 
 ## Overview
 
-* **Modules**: 10
+* **Modules**: 11
 
-* **Exported functions**: 12
+* **Exported functions**: 13
 
-* **Exported types**: 17
+* **Exported types**: 18
 
 ## Function Index
 
@@ -42,9 +42,10 @@ export async function mergeBranch(db: DbHandle, branchId: number, mergedByUserId
 
 ```ts
 /**
- * Rebase: updates the branch's baseChangesetId to the latest main changeset.
+ * Rebase: updates the branch's baseChangesetId to the latest main changeset and rewrites
+ * the before-values of UPDATE/DELETE entries to reflect the current main state.
  */
-export async function rebaseBranch(db: DbHandle, branchId: number): Promise<RebaseResult>
+export async function rebaseBranch(db: DbHandle, branchId: number, appMethodRegistry: ApplicationMethodRegistry): Promise<RebaseResult>
 ```
 
 ### `readWithOverlay`
@@ -55,7 +56,7 @@ export async function rebaseBranch(db: DbHandle, branchId: number): Promise<Reba
  * then falls back to main data.
  * Returns null if deleted in branch, or if no branch changes exist (caller reads from main).
  */
-export async function readWithOverlay(db: DbHandle, branchId: number, entityType: "translation" | "element" | "document" | "document_tree" | "comment" | "comment_reaction" | "term" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context", entityId: string): Promise<{ data: T; action: "CREATE" | "UPDATE"; } | { data: null; action: "DELETE"; } | null>
+export async function readWithOverlay(db: DbHandle, branchId: number, entityType: "translation" | "auto_translation" | "element" | "document" | "document_tree" | "comment" | "comment_reaction" | "term" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "project" | "issue", entityId: string): Promise<{ data: T; action: "CREATE" | "UPDATE"; } | { data: null; action: "DELETE"; } | null>
 ```
 
 ### `listWithOverlay`
@@ -65,7 +66,7 @@ export async function readWithOverlay(db: DbHandle, branchId: number, entityType
  * List query overlay: merges main data with branch changes
  * (CREATE appended, DELETE removed, UPDATE overwritten).
  */
-export async function listWithOverlay(db: DbHandle, branchId: number, entityType: "translation" | "element" | "document" | "document_tree" | "comment" | "comment_reaction" | "term" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context", mainItems: T[], getItemId: (item: T) => string): Promise<T[]>
+export async function listWithOverlay(db: DbHandle, branchId: number, entityType: "translation" | "auto_translation" | "element" | "document" | "document_tree" | "comment" | "comment_reaction" | "term" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "project" | "issue", mainItems: T[], getItemId: (item: T) => string): Promise<T[]>
 ```
 
 ### `getBranchChangesetId`
@@ -99,6 +100,16 @@ export const registerAllDiffStrategies = (registry: DiffStrategyRegistry)
 
 ```ts
 export const getDefaultRegistries = (): { diffRegistry: DiffStrategyRegistry; appMethodRegistry: ApplicationMethodRegistry; }
+```
+
+### `wireEntityStateFetchers`
+
+```ts
+/**
+ * Inject EntityStateFetcher into each method in the registry.
+ * Called once at server startup so rebase before-rewrite can query actual DB tables.
+ */
+export function wireEntityStateFetchers(_registry: ApplicationMethodRegistry, _db: DbHandle)
 ```
 
 ### packages/vcs/src/methods
@@ -170,5 +181,7 @@ export const createGenericStrategy = (options: {
 * `DiffResult` (interface) — Diff computation result
 
 * `DiffStrategy` (interface) — Entity diff strategy interface
+
+* `EntityStateFetcher` (type) — Entity state fetcher callback, provided by the registrar for rebase before-rewrite.
 
 * `VCSContext` (interface) — VCS operation context — determines whether to generate audit records.

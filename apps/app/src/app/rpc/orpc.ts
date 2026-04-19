@@ -12,8 +12,13 @@ const getCsrfToken = (): string | undefined => {
   return match?.[1];
 };
 
+const rpcOrigin =
+  typeof window === "undefined"
+    ? "http://localhost:3000"
+    : window.location.origin;
+
 const link = new RPCLink({
-  url: new URL("/api/rpc", "http://localhost:3000"),
+  url: new URL("/api/rpc", rpcOrigin),
   headers: () => {
     const csrfToken = getCsrfToken();
     const branchStore = useBranchStore();

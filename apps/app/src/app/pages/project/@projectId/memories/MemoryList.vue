@@ -21,7 +21,7 @@ defineProps<{
       <TableRow>
         <TableHead>{{ t("名称") }}</TableHead>
         <TableHead>{{ t("描述") }}</TableHead>
-        <TableHead>{{ t("创建时间") }}</TableHead>
+        <TableHead>{{ t("记忆数量") }}</TableHead>
       </TableRow>
     </TableHeader>
     <TableBody>

@@ -1,0 +1,19 @@
+{
+  "name": "@tools/seeder",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@cat/db": "workspace:*",
+    "@cat/domain": "workspace:*",
+    "@cat/plugin-core": "workspace:*",
+    "@cat/seed": "workspace:*",
+    "@cat/server-shared": "workspace:*",
+    "@cat/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "beta"
+  }
+}

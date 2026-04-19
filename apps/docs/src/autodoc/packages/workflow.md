@@ -4,9 +4,9 @@ DAG-based workflow graph executor
 
 ## Overview
 
-* **Modules**: 36
+* **Modules**: 37
 
-* **Exported functions**: 27
+* **Exported functions**: 28
 
 * **Exported types**: 65
 
@@ -54,6 +54,16 @@ export const storeGraphRuntime = (runtime: StoredGraphRuntime)
 
 ```ts
 export const getStoredGraphRuntime = (): StoredGraphRuntime
+```
+
+### `executeWithVCS`
+
+```ts
+/**
+ * Execute a VCS-audited write in a graph node.
+ * Uses interceptWrite when VCS is configured; falls back to direct writeFn otherwise.
+ */
+export async function executeWithVCS(nodeCtx: TypedNodeContext, entityType: string, entityId: string, action: "CREATE" | "UPDATE" | "DELETE", before: SerializableType, after: SerializableType, writeFn: () => Promise<T>): Promise<T>
 ```
 
 ### packages/workflow/src/graph/dsl

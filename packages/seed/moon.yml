@@ -1,0 +1,14 @@
+language: "typescript"
+layer: "library"
+stack: "backend"
+
+tasks:
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.json"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    deps:
+      - "^:build"
+    options:
+      cache: true

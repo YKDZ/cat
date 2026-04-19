@@ -26,7 +26,7 @@ export type Changeset = z.infer<typeof ChangesetSchema>;
 export const ChangesetEntrySchema = z.object({
   id: z.int(),
   changesetId: z.int(),
-  entityType: z.enum(["translation", "element", "document", "document_tree", "comment", "comment_reaction", "term", "term_concept", "memory_item", "project_settings", "project_member", "project_attributes", "context"]),
+  entityType: z.enum(["translation", "auto_translation", "element", "document", "document_tree", "comment", "comment_reaction", "term", "term_concept", "memory_item", "project_settings", "project_member", "project_attributes", "context", "project", "issue"]),
   entityId: z.string(),
   action: z.enum(["CREATE", "UPDATE", "DELETE"]),
   before: safeZDotJson.nullable(),

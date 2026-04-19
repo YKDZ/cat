@@ -10,17 +10,17 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (324 functions, 420 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (330 functions, 428 types)
 
-* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (61 functions, 91 types)
+* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (64 functions, 96 types)
 
-* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (24 functions, 165 types)
+* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (24 functions, 167 types)
 
 * [**@cat/db**](./packages/db.md) — Database layer: Drizzle ORM schemas and Redis client (9 functions, 6 types)
 
 * [**@cat/permissions**](./packages/permissions.md) — Permission system: ReBAC-based access control (10 functions, 11 types)
 
-* [**@cat/workflow**](./packages/workflow.md) — DAG-based workflow graph executor (27 functions, 65 types)
+* [**@cat/workflow**](./packages/workflow.md) — DAG-based workflow graph executor (28 functions, 65 types)
 
 * [**@cat/server-shared**](./packages/server-shared.md) — Shared server utilities (21 functions, 4 types)
 
@@ -38,7 +38,7 @@
 
 * [**@cat/agent-tools**](./packages/agent-tools.md) — Built-in agent tools: kanban, translation, session management (3 functions, 0 types)
 
-* [**@cat/vcs**](./packages/vcs.md) — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies (12 functions, 17 types)
+* [**@cat/vcs**](./packages/vcs.md) — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies (13 functions, 18 types)
 
 ## Core Package Dependencies
 

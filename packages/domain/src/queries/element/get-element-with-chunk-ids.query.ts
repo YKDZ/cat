@@ -49,7 +49,7 @@ export const getElementWithChunkIds: Query<
         eq(translatableElement.vectorizedStringId, vectorizedString.id),
       )
       .innerJoin(document, eq(translatableElement.documentId, document.id))
-      .innerJoin(chunkSet, eq(vectorizedString.chunkSetId, chunkSet.id))
+      .leftJoin(chunkSet, eq(vectorizedString.chunkSetId, chunkSet.id))
       .leftJoin(chunk, eq(chunk.chunkSetId, chunkSet.id))
       .where(eq(translatableElement.id, query.elementId))
       .groupBy(

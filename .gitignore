@@ -7,6 +7,9 @@ dist
 ollama
 uploads
 
+# Seed datasets (may contain API keys via env interpolation)
+datasets/
+
 # Logs
 logs
 *.log
