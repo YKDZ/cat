@@ -39,7 +39,7 @@ export const createPackageScanner = (
 
     // pkgPathRaw is already resolved to absolute by the CLI loadConfig
     const pkgPath = pkgPathRaw;
-    const wsRoot = process.env.NX_WORKSPACE_ROOT ?? process.cwd();
+    const wsRoot = process.env.MOON_WORKSPACE_ROOT ?? process.cwd();
 
     // Prefer package-level tsconfig for correct path alias resolution (@/*)
     const pkgTsConfigLib = join(pkgPath, "tsconfig.lib.json");

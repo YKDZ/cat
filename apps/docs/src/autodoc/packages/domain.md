@@ -1046,7 +1046,7 @@ export const updateProject: Command<
 export const updateProjectSettings: Command<
   UpdateProjectSettingsCommand,
   ProjectSettingPayload
-> = async (ctx: DbContext, command: { projectId: string; patch: { enableAutoTranslation?: boolean | undefined; autoTranslationLanguages?: string[] | undefined; ghostTextFallback?: "first-memory" | "none" | undefined; }; }) => {...}
+> = async (ctx: DbContext, command: { projectId: string; patch: { enableAutoTranslation?: boolean | undefined; autoTranslationLanguages?: string[] | undefined; }; }) => {...}
 ```
 
 ### packages/domain/src/commands/pull-request

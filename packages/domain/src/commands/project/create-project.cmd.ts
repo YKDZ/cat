@@ -25,6 +25,10 @@ export const createProject: Command<
         name: command.name,
         description: command.description,
         creatorId: command.creatorId,
+        features: {
+          issues: true,
+          pullRequests: true,
+        },
       })
       .returning(),
   );

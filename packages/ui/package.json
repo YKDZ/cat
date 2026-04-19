@@ -39,7 +39,7 @@
     "shadcn-vue": "^2.6.2",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
-    "vue-tsc": "^3.2.6"
+    "vue-tsc": "^3.2.7"
   },
   "peerDependencies": {
     "@vue-flow/controls": "^1.1.3",
