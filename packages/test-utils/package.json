@@ -17,7 +17,7 @@
   "devDependencies": {
     "@cat/domain": "workspace:*",
     "@types/pg": "^8.20.0",
-    "drizzle-kit": "1.0.0-beta.20",
+    "drizzle-kit": "1.0.0-beta.22",
     "unplugin-dts": "catalog:",
     "vite": "catalog:"
   },
@@ -28,7 +28,7 @@
     "@cat/plugin-core": "workspace:*",
     "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
-    "drizzle-orm": "1.0.0-beta.20",
+    "drizzle-orm": "1.0.0-beta.22",
     "vitest": "^4.1.0"
   },
   "packageManager": "pnpm@10.26.2"
