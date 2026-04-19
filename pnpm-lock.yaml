@@ -1082,8 +1082,8 @@ importers:
         specifier: ^8.20.0
         version: 8.20.0
       drizzle-kit:
-        specifier: 1.0.0-beta.20
-        version: 1.0.0-beta.20
+        specifier: 1.0.0-beta.22
+        version: 1.0.0-beta.22
       drizzle-seed:
         specifier: ^0.3.1
         version: 0.3.1(drizzle-orm@1.0.0-beta.20(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.1)(@sinclair/typebox@0.34.49)(@types/better-sqlite3@7.6.13)(@types/mssql@9.1.8(@azure/core-client@1.10.1))(@types/pg@8.20.0)(better-sqlite3@12.9.0)(mssql@11.0.1(@azure/core-client@1.10.1))(pg@8.20.0)(zod@4.3.6))
@@ -1430,8 +1430,8 @@ importers:
         specifier: ^8.20.0
         version: 8.20.0
       drizzle-kit:
-        specifier: 1.0.0-beta.20
-        version: 1.0.0-beta.20
+        specifier: 1.0.0-beta.22
+        version: 1.0.0-beta.22
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@25.6.0))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.28.0)(rollup@4.60.2)(typescript@6.0.0-beta)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
@@ -6330,8 +6330,8 @@ packages:
     resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
     engines: {node: '>=12'}
 
-  drizzle-kit@1.0.0-beta.20:
-    resolution: {integrity: sha512-qMUBnrOQIU+H32aF80BSn7lT1IQuKmofCypmkrKMuOMqvM0bhz5hjCHim1bLcXUzXYRtTSr6U2pe0MSV79WbAg==}
+  drizzle-kit@1.0.0-beta.22:
+    resolution: {integrity: sha512-9HTZuQRljQKTgCx4UhiGn8KYYfHGk4+B/bRR1714W67kz0qgJvdrG527i8rQD8uUyET9UTGR1u8syySJD4znGw==}
     hasBin: true
 
   drizzle-orm@1.0.0-beta.20:
@@ -15177,7 +15177,7 @@ snapshots:
 
   dotenv@17.4.2: {}
 
-  drizzle-kit@1.0.0-beta.20:
+  drizzle-kit@1.0.0-beta.22:
     dependencies:
       '@drizzle-team/brocli': 0.11.0
       '@js-temporal/polyfill': 0.5.1
