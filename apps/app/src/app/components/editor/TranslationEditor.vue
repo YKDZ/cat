@@ -42,7 +42,7 @@ const { t } = useI18n();
 // ─── Store References ───
 
 const tableStore = useEditorTableStore();
-const { translationValue, ghostText, elementId, translationTokens } =
+const { translationValue, elementId, translationTokens } =
   storeToRefs(tableStore);
 
 const contextStore = useEditorContextStore();
@@ -235,25 +235,6 @@ watch([suggestion, anchorPosition], ([newSuggestion, newAnchor]) => {
         effects: clearGhostTextEffect.of(null),
       });
     }
-  }
-});
-
-// ─── Sync: legacy memory ghost text → CodeMirror extension ───
-// tableStore.ghostText is set by the memory store for exact/token-replaced
-// matches. It replaces the entire translation value, so anchorPosition = 0.
-watch(ghostText, (newGhostText) => {
-  if (!editorView) return;
-  if (newGhostText !== null) {
-    editorView.dispatch({
-      effects: setGhostTextEffect.of({
-        suggestion: newGhostText,
-        anchorPosition: 0,
-      }),
-    });
-  } else {
-    editorView.dispatch({
-      effects: clearGhostTextEffect.of(null),
-    });
   }
 });
 

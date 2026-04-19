@@ -5,7 +5,7 @@ import { useQuery } from "@pinia/colada";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import * as z from "zod";
 
 import { orpc } from "@/app/rpc/orpc";
@@ -36,8 +36,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const translationTokens = ref<Token[]>([]);
   const searchQuery = ref("");
   const isProofreading = ref(false);
-
-  const ghostText = ref<string | null>(null);
 
   const { undo, redo } = useRefHistory(translationValue);
 
@@ -209,41 +207,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     }
   };
 
-  const setGhostText = (text: string) => {
-    ghostText.value = text;
-  };
-
-  const clearGhostText = () => {
-    ghostText.value = null;
-  };
-
-  const acceptGhostText = () => {
-    if (ghostText.value) {
-      translationValue.value = ghostText.value;
-      ghostText.value = null;
-    }
-  };
-
-  /**
-   * Ghost text is visible when the current input is a prefix of the ghost text.
-   */
-  const showGhost = computed(
-    () =>
-      ghostText.value !== null &&
-      ghostText.value.startsWith(translationValue.value),
-  );
-
-  // Clear ghost text when the input no longer matches the ghost text prefix
-  watch(translationValue, (val) => {
-    if (ghostText.value !== null && !ghostText.value.startsWith(val)) {
-      clearGhostText();
-    }
-  });
-
-  watch(elementId, () => {
-    clearGhostText();
-  });
-
   return {
     elementId,
     translationValue,
@@ -257,8 +220,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     elementTotalAmount,
     elementLanguageId,
     pageTotalAmount,
-    ghostText,
-    showGhost,
     toElement,
     toPage,
     toNextUntranslated,
@@ -266,9 +227,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     replace,
     clear,
     insert,
-    setGhostText,
-    clearGhostText,
-    acceptGhostText,
     redo,
     undo,
   };

@@ -10,29 +10,19 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   Label,
-  Slider,
   Switch,
 } from "@cat/ui";
 import { Sparkles } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useProfileStore } from "@/app/stores/profile.ts";
 
 const { t } = useI18n();
 
-const { ghostTextEnabled, ghostTextDebounceMs } =
+const { ghostTextEnabled, ghostTextFallbackStrategy } =
   storeToRefs(useProfileStore());
-
-const debounceSliderModel = computed({
-  get: () => [ghostTextDebounceMs.value],
-  set: (val: number[]) => {
-    ghostTextDebounceMs.value = val[0] ?? 800;
-  },
-});
 </script>
 
 <template>
@@ -59,21 +49,30 @@ const debounceSliderModel = computed({
             </FormControl>
           </FormItem>
         </FormField>
-        <FormField name="ghostTextDebounceMs">
+        <FormField name="ghostTextFallbackStrategy">
           <FormItem>
-            <FormLabel>{{ t("响应延迟") }}</FormLabel>
+            <Label for="ghostTextFallbackStrategy">{{ t("回退策略") }}</Label>
             <FormControl>
-              <Slider
-                v-model="debounceSliderModel"
-                :max="2000"
-                :step="100"
-                :min="300"
+              <select
+                id="ghostTextFallbackStrategy"
+                v-model="ghostTextFallbackStrategy"
                 :disabled="!ghostTextEnabled"
-              />
+                class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm ring-offset-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="none">{{ t("无回退") }}</option>
+                <option value="first-memory">
+                  {{ t("第一条翻译记忆") }}
+                </option>
+                <option value="first-suggestion">
+                  {{ t("第一条翻译建议") }}
+                </option>
+                <option value="best-confidence">
+                  {{ t("最高置信度") }}
+                </option>
+              </select>
             </FormControl>
-            <FormDescription class="flex justify-between">
-              <span>{{ t("停止输入多久后触发建议？") }}</span>
-              <span>{{ ghostTextDebounceMs }}ms</span>
+            <FormDescription>
+              {{ t("当没有预翻译结果时的回退行为。") }}
             </FormDescription>
           </FormItem>
         </FormField>

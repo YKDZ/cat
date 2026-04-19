@@ -10,10 +10,14 @@ export const useProfileStore = defineStore(
 
     /** Ghost text auto-suggest toggle */
     const ghostTextEnabled = ref(true);
-    /** Debounce delay for auto-triggering ghost text (ms) */
-    const ghostTextDebounceMs = ref(800);
-    /** Keyboard shortcut to manually trigger ghost text (human-readable) */
-    const ghostTextTriggerKey = ref("Alt+\\");
+    /**
+     * 前端 fallback 策略：当 Ghost Text API 无预翻译结果时的回退行为。
+     *
+     * Frontend fallback strategy when Ghost Text API returns no pre-translate result.
+     */
+    const ghostTextFallbackStrategy = ref<
+      "none" | "first-memory" | "first-suggestion" | "best-confidence"
+    >("first-memory");
 
     const editorTermMinConfidence = ref([0.6]);
 
@@ -22,8 +26,7 @@ export const useProfileStore = defineStore(
       editorMemoryMinConfidence,
       editorMemoryAutoCreateMemory,
       ghostTextEnabled,
-      ghostTextDebounceMs,
-      ghostTextTriggerKey,
+      ghostTextFallbackStrategy,
       editorTermMinConfidence,
     };
   },
