@@ -4,11 +4,11 @@ import {
   ParseFileOutputSchema,
 } from "@cat/operations";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export { ParseFileInputSchema, ParseFileOutputSchema };
 
-export const parseFileGraph = defineTypedGraph({
+export const parseFileGraph = defineGraph({
   id: "file-parse",
   input: ParseFileInputSchema,
   output: ParseFileOutputSchema,

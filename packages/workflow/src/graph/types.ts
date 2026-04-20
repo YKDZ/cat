@@ -10,7 +10,6 @@ export {
   EventIdSchema,
   GraphDefinitionSchema,
   IdempotencyConfigSchema,
-  NodeConfigSchema,
   NodeDefinitionSchema,
   NodeIdSchema,
   NodeTypeSchema,

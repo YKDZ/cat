@@ -209,7 +209,7 @@ export class Scheduler {
 
   start = async (
     graphId: string,
-    input: Record<string, unknown>,
+    input: JSONObject,
     options?: SchedulerStartOptions,
   ): Promise<RunId> => {
     if (options?.deduplicationKey) {

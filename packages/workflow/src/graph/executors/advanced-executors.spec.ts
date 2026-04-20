@@ -1,3 +1,5 @@
+import type { JSONObject } from "@cat/shared/schema/json";
+
 import { describe, expect, it } from "vitest";
 
 import type { AgentEvent } from "@/graph/events";
@@ -15,10 +17,7 @@ import { LoopNodeExecutor } from "@/graph/executors/loop-node";
 import { ParallelNodeExecutor } from "@/graph/executors/parallel-node";
 import { SubgraphNodeExecutor } from "@/graph/executors/subgraph-node";
 
-const createCtx = (
-  nodeId: string,
-  data: Record<string, unknown>,
-): NodeExecutorContext => {
+const createCtx = (nodeId: string, data: JSONObject): NodeExecutorContext => {
   const eventBus = new InProcessEventBus();
   const bufferedEvents: AgentEvent[] = [];
   return {
@@ -95,7 +94,7 @@ describe("advanced graph executors", () => {
 
     await expect(async () => {
       await ParallelNodeExecutor(ctx, {});
-    }).rejects.toThrowError();
+    }).rejects.toThrow();
   });
 
   it("ParallelNodeExecutor 在有效分支时返回 completed", async () => {
@@ -157,7 +156,7 @@ describe("advanced graph executors", () => {
 
     await expect(async () => {
       await SubgraphNodeExecutor(ctx, {});
-    }).rejects.toThrowError();
+    }).rejects.toThrow();
   });
 
   it("SubgraphNodeExecutor 将输入映射写入 resultPath", async () => {

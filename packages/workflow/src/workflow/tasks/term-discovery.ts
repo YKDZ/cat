@@ -6,7 +6,7 @@ import {
 } from "@cat/operations";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 // ─── Config Schema ───────────────────────────────────────────────────────────
 
@@ -240,7 +240,7 @@ const LlmEnhanceInputSchema = z.object({
  *
  * DAG 结构：load-texts → stat-extract → dedup-match → llm-enhance
  */
-export const termDiscoveryGraph = defineTypedGraph({
+export const termDiscoveryGraph = defineGraph({
   id: "term-discovery",
   version: "1.0.0",
   description: "术语发现工作流 — 从文档元素中提取候选术语",

@@ -1,6 +1,5 @@
+import { JSONObjectSchema } from "@cat/shared/schema/json";
 import * as z from "zod";
-
-import { nonNullSafeZDotJson, safeZDotJson } from "./json-schema.ts";
 
 // ====== ID Types ======
 
@@ -30,7 +29,7 @@ export type RunStatus = z.infer<typeof RunStatusSchema>;
 export const BlackboardSnapshotSchema = z.object({
   runId: RunIdSchema,
   version: z.int().nonnegative(),
-  data: nonNullSafeZDotJson,
+  data: JSONObjectSchema,
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
@@ -48,7 +47,7 @@ export const PatchMetadataSchema = z.object({
 
 export const PatchSchema = z.object({
   metadata: PatchMetadataSchema,
-  updates: nonNullSafeZDotJson,
+  updates: JSONObjectSchema,
 });
 
 export type PatchMetadata = z.infer<typeof PatchMetadataSchema>;
@@ -70,8 +69,6 @@ export const NodeTypeSchema = z.enum([
 
 export type NodeType = z.infer<typeof NodeTypeSchema>;
 
-export const NodeConfigSchema = safeZDotJson;
-
 export const IdempotencyConfigSchema = z.object({
   enabled: z.boolean().default(true),
   keyTemplate: z.string().optional(),
@@ -88,7 +85,7 @@ export type RetryConfig = z.infer<typeof RetryConfigSchema>;
 export const NodeDefinitionSchema = z.object({
   id: NodeIdSchema,
   type: NodeTypeSchema,
-  config: NodeConfigSchema.optional(),
+  config: JSONObjectSchema.optional(),
   idempotency: IdempotencyConfigSchema.optional(),
   retry: RetryConfigSchema.optional(),
   timeoutMs: z.int().positive().default(120_000),

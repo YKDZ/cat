@@ -15,7 +15,6 @@ import {
   TransformNodeExecutor,
 } from "@/graph/executors";
 import { GraphRegistry } from "@/graph/graph-registry";
-import { pipelineGraph } from "@/graph/graphs";
 import { InProcessLeaseManager } from "@/graph/lease";
 import { NodeRegistry } from "@/graph/node-registry";
 import { storeGraphRuntime } from "@/graph/runtime-store";
@@ -63,9 +62,7 @@ export * from "@/graph/blackboard";
 export * from "@/graph/schema-registry";
 export * from "@/graph/checkpointer";
 export * from "@/graph/event-store";
-export * from "@/graph/graphs";
 export * from "@/graph/dsl";
-export * from "@/graph/typed-dsl";
 export * from "@/graph/distributed-extensions";
 export { executeWithVCS } from "@/graph/vcs-write-helper";
 export { getStoredGraphRuntime as getGlobalGraphRuntime } from "@/graph/runtime-store";
@@ -99,7 +96,6 @@ export const createDefaultGraphRuntime = (
   nodeRegistry.register("transform", TransformNodeExecutor);
   nodeRegistry.register("subgraph", SubgraphNodeExecutor);
 
-  graphRegistry.register(pipelineGraph);
   graphRegistry.register(termDiscoveryGraph.graphDefinition);
   graphRegistry.register(termAlignmentGraph.graphDefinition);
   graphRegistry.register(autoTranslateGraph.graphDefinition);

@@ -1,7 +1,6 @@
 // oxlint-disable no-console -- intentional diagnostic logging in seed tool
 // oxlint-disable no-await-in-loop -- seeder is intentionally sequential
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- raw SQL results require casting
-// oxlint-disable typescript-eslint/no-unsafe-return -- vectorize result requires cast
 import type { DrizzleClient, DrizzleTransaction } from "@cat/db";
 import type { ExecutorContext } from "@cat/domain";
 import type { PluginLoader } from "@cat/plugin-core";
@@ -566,6 +565,7 @@ const vectorizeWithCache = async (opts: {
           elements: [{ text, languageId }],
         });
         chunkDataArrays = result.map((r: unknown) =>
+          // oxlint-disable-next-line typescript/no-unsafe-return
           Array.isArray(r) ? r : [r],
         ) as typeof chunkDataArrays;
         cache.set(modelName, text, languageId, chunkDataArrays, dimension);

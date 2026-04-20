@@ -2,7 +2,7 @@ import { searchMemoryOp } from "@cat/operations";
 import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export const SearchMemoryInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),
@@ -18,7 +18,7 @@ export const SearchMemoryOutputSchema = z.object({
   memories: z.array(MemorySuggestionSchema),
 });
 
-export const searchMemoryGraph = defineTypedGraph({
+export const searchMemoryGraph = defineGraph({
   id: "memory-search",
   input: SearchMemoryInputSchema,
   output: SearchMemoryOutputSchema,

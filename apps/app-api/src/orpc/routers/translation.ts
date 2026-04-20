@@ -34,6 +34,7 @@ import {
   TranslationSchema,
   TranslationVoteSchema,
 } from "@cat/shared/schema/drizzle/translation";
+import { JSONObjectSchema } from "@cat/shared/schema/json";
 import { listWithOverlay } from "@cat/vcs";
 import {
   CreateTranslationPubPayloadSchema,
@@ -530,22 +531,24 @@ export const autoTranslate = authed
 
     const runtime = await getGraphRuntime(drizzle, pluginManager);
 
+    const graphInput = JSONObjectSchema.parse({
+      documentId,
+      languageId,
+      advisorId,
+      minMemorySimilarity,
+      maxMemoryAmount,
+      memoryVectorStorageId: storage.id,
+      translationVectorStorageId: storage.id,
+      vectorizerId: vectorizer.id,
+      translatorId: user.id,
+      memoryIds,
+      glossaryIds,
+      config,
+    });
+
     const runId = await runtime.scheduler.start(
       "batch-auto-translate",
-      {
-        documentId,
-        languageId,
-        advisorId,
-        minMemorySimilarity,
-        maxMemoryAmount,
-        memoryVectorStorageId: storage.id,
-        translationVectorStorageId: storage.id,
-        vectorizerId: vectorizer.id,
-        translatorId: user.id,
-        memoryIds,
-        glossaryIds,
-        config,
-      },
+      graphInput,
       { sessionId: sessionRow.id, pluginManager },
     );
 

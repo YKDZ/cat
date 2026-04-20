@@ -9,13 +9,13 @@ import {
 } from "@cat/domain";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
-import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { defineNode, defineGraph } from "@/graph/dsl";
+import { runGraph } from "@/graph/dsl/run-graph";
 
 import { qaGraph } from "./qa";
 import { tokenizeGraph } from "./tokenize";
 
-export const qaTranslationGraph = defineTypedGraph({
+export const qaTranslationGraph = defineGraph({
   id: "qa-translation",
   input: z.object({
     translationId: z.int(),

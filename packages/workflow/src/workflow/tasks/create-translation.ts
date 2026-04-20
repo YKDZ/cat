@@ -6,8 +6,8 @@ import { randomUUID } from "node:crypto";
 import * as z from "zod";
 
 import { generateCacheKey } from "@/graph/cache";
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
-import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { defineNode, defineGraph } from "@/graph/dsl";
+import { runGraph } from "@/graph/dsl/run-graph";
 import { executeWithVCS } from "@/graph/vcs-write-helper";
 
 import { createVectorizedStringGraph } from "./create-vectorized-string";
@@ -44,7 +44,7 @@ export type CreateTranslationPubPayload = z.infer<
   typeof CreateTranslationPubPayloadSchema
 >;
 
-export const createTranslationGraph = defineTypedGraph({
+export const createTranslationGraph = defineGraph({
   id: "translation-create",
   input: CreateTranslationInputSchema,
   output: CreateTranslationOutputSchema,

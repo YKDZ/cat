@@ -17,6 +17,7 @@ import {
   loadAgentRunSnapshot,
   saveAgentRunSnapshot,
 } from "@cat/domain";
+import { BlackboardSnapshotSchema } from "@cat/graph";
 import { AgentSessionMetadataSchema } from "@cat/shared/schema/agent";
 
 import { buildAgentDAG } from "../dag/agent-dag-builder.ts";
@@ -199,13 +200,13 @@ export class SessionManager {
     });
 
     const blackboardSnapshot: BlackboardSnapshot | null = rawSnapshot
-      ? ({
+      ? BlackboardSnapshotSchema.parse({
           runId,
           version: 0,
           data: rawSnapshot,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        } as BlackboardSnapshot)
+        })
       : null;
 
     return {

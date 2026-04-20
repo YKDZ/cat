@@ -1,3 +1,5 @@
+import type { JSONObject } from "@cat/shared/schema/json";
+
 import type { Checkpointer } from "@/graph/checkpointer";
 import type { EventEnvelopeInput } from "@/graph/events";
 import type { LeaseManager } from "@/graph/lease";
@@ -22,7 +24,7 @@ export type ExecutorTask = {
   snapshot: {
     runId: string;
     version: number;
-    data: unknown;
+    data: JSONObject;
     createdAt: string;
     updatedAt: string;
   };

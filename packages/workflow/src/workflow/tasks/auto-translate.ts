@@ -9,8 +9,8 @@ import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
 import { TranslationAdviseSchema } from "@cat/shared/schema/plugin";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
-import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { defineNode, defineGraph } from "@/graph/dsl";
+import { runGraph } from "@/graph/dsl/run-graph";
 
 import { createTranslationGraph } from "./create-translation";
 
@@ -181,7 +181,7 @@ const CreateTranslationNodeInputSchema = z.object({
 
 // ─── 6 节点线性流水线 ─────────────────────────────────────────────────────────────
 
-export const autoTranslateGraph = defineTypedGraph({
+export const autoTranslateGraph = defineGraph({
   id: "auto-translate",
   version: "1.0.0",
   description: "自动翻译工作流 — 术语回归/记忆匹配/MT建议/LLM精修",

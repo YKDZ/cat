@@ -4,11 +4,11 @@ import {
   VectorizeOutputSchema,
 } from "@cat/operations";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export { VectorizeInputSchema, VectorizeOutputSchema };
 
-export const vectorizeGraph = defineTypedGraph({
+export const vectorizeGraph = defineGraph({
   id: "vectorize",
   input: VectorizeInputSchema,
   output: VectorizeOutputSchema,

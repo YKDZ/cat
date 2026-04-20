@@ -3,7 +3,7 @@
  *
  * A minimal singleton that holds references to the core graph infrastructure
  * (scheduler, eventBus, checkpointer). Kept in its own file to avoid circular
- * dependencies between `graph/index.ts` and `graph/typed-dsl/run-graph.ts`.
+ * dependencies between `graph/index.ts` and `graph/dsl/run-graph.ts`.
  */
 
 import type { Checkpointer } from "@/graph/checkpointer";

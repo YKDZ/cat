@@ -43,6 +43,7 @@ export default defineConfig({
     "eslint/no-empty": "error",
     "eslint/no-console": "error",
     "eslint/no-eq-null": "error",
+    "typescript/no-deprecated": "error",
     "oxc/no-accumulating-spread": "error",
     "no-useless-call": "error",
     "eslint/no-await-in-loop": "error",

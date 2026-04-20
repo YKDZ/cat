@@ -1,5 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
-import type { ZodObject, ZodRawShape } from "zod";
+import type { ZodObject } from "zod";
 
 /**
  * @zh 工具的副作用类型
@@ -65,7 +65,7 @@ export interface AgentToolDefinition {
   /** @zh 工具描述（用于 LLM 上下文）@en Tool description (used for LLM context) */
   description: string;
   /** @zh 参数 Zod Schema（自动转换为 JSON Schema 传给 LLM）@en Parameter Zod schema (auto-converted to JSON Schema for LLM) */
-  parameters: ZodObject<ZodRawShape>;
+  parameters: ZodObject;
   /** @zh 副作用类型 @en Side-effect type */
   sideEffectType: SideEffectType;
   /** @zh 安全级别 @en Security level */

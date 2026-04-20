@@ -78,7 +78,7 @@ export type TypedNodeDef<
 
 // ─── 类型安全图定义 ──────────────────────────────────────────────
 
-/** defineTypedGraph 的选项 */
+/** defineGraph 的选项 */
 export type TypedGraphOptions<
   TInput extends z.ZodType,
   TOutput extends z.ZodType,
@@ -108,7 +108,7 @@ export type TypedGraphOptions<
   config?: GraphDefinition["config"];
 };
 
-/** defineTypedGraph 的返回值 */
+/** defineGraph 的返回值 */
 export type TypedGraphDefinition<
   TInput extends z.ZodType,
   TOutput extends z.ZodType,
@@ -122,5 +122,7 @@ export type TypedGraphDefinition<
   /** 输出 schema，用于从 Blackboard 提取结果 */
   outputSchema: TOutput;
   /** 从 Blackboard 最终快照中提取类型安全结果 */
-  extractResult: (snapshot: BlackboardSnapshot) => z.infer<TOutput>;
+  extractResult: (
+    snapshot: Pick<BlackboardSnapshot, "data">,
+  ) => z.infer<TOutput>;
 };

@@ -40,6 +40,7 @@ import {
   AgentDefinitionTypeSchema,
   ScopeTypeSchema,
 } from "@cat/shared/schema/enum";
+import { JSONObjectSchema } from "@cat/shared/schema/json";
 import { createAgentEvent, type AgentEvent } from "@cat/workflow";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod";
@@ -852,7 +853,7 @@ export const graphStart = authed
     const graphRuntime = await getGraphRuntime(drizzle, context.pluginManager);
     const runId = await graphRuntime.scheduler.start(
       input.graphId,
-      input.input,
+      JSONObjectSchema.parse(input.input),
     );
     return { runId };
   });

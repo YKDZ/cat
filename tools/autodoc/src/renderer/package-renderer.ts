@@ -93,7 +93,7 @@ export const createPackageRenderer = (): {
     const grouped = new Map<string, ModuleIR[]>();
     for (const mod of pkg.modules) {
       const dir = mod.relativePath.includes("/")
-        ? mod.relativePath.split("/").slice(0, -1).join("/")
+        ? mod.relativePath.slice(0, mod.relativePath.lastIndexOf("/"))
         : "(root)";
       const list = grouped.get(dir) ?? [];
       list.push(mod);

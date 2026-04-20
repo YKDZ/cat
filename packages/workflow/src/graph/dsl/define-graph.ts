@@ -1,3 +1,4 @@
+import type { JSONObject } from "@cat/shared/schema/json";
 import type * as z from "zod";
 
 import type { GraphDefinition, NodeDefinition } from "@/graph/types";
@@ -17,9 +18,9 @@ import { registerStepHandler } from "./step-handler-registry";
  * - 运行时：输出标准 GraphDefinition + 注册 step handler
  * - 执行时：增强的 TransformNodeExecutor 通过 config.handler 分发
  */
-export const defineTypedGraph = <
-  TInput extends z.ZodType,
-  TOutput extends z.ZodType,
+export const defineGraph = <
+  TInput extends z.ZodObject,
+  TOutput extends z.ZodObject,
   TNodes extends Record<string, TypedNodeDef>,
 >(
   options: TypedGraphOptions<TInput, TOutput, TNodes>,
@@ -35,7 +36,7 @@ export const defineTypedGraph = <
       return nodeDef.output.parse(result);
     });
 
-    const nodeConfig: Record<string, unknown> = { handler: handlerKey };
+    const nodeConfig: JSONObject = { handler: handlerKey };
     if (nodeDef.inputMapping) {
       nodeConfig["inputMapping"] = nodeDef.inputMapping;
     }
@@ -73,9 +74,9 @@ export const defineTypedGraph = <
     inputSchema: options.input,
     outputSchema: options.output,
     id: options.id,
+
     extractResult: (snapshot) => {
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-      const data = snapshot.data as Record<string, unknown>;
+      const data = snapshot.data;
 
       // First try: parse from exit node data (no outputMapping, standard write)
       const exitNodeId = options.exit?.[0] ?? options.entry;

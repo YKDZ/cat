@@ -4,11 +4,11 @@ import {
   TokenizeOutputSchema,
 } from "@cat/operations";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export { TokenizeInputSchema, TokenizeOutputSchema };
 
-export const tokenizeGraph = defineTypedGraph({
+export const tokenizeGraph = defineGraph({
   id: "tokenizer",
   input: TokenizeInputSchema,
   output: TokenizeOutputSchema,

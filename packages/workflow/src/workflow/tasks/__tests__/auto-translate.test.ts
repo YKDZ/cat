@@ -33,7 +33,7 @@ vi.mock("@cat/operations", async () => {
   };
 });
 
-vi.mock("@/graph/typed-dsl/run-graph", () => ({
+vi.mock("@/graph/dsl/run-graph", () => ({
   runGraph: mocks.nestedRunGraph,
 }));
 
@@ -99,8 +99,8 @@ describe("autoTranslateGraph", () => {
 
   it("feeds fused recall into MT advise instead of re-querying vector-only memory", async () => {
     const { runGraph } = await vi.importActual<
-      typeof import("@/graph/typed-dsl/run-graph")
-    >("@/graph/typed-dsl/run-graph");
+      typeof import("@/graph/dsl/run-graph")
+    >("@/graph/dsl/run-graph");
 
     const result = await runGraph(
       autoTranslateGraph,

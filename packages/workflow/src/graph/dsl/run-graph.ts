@@ -3,9 +3,8 @@ import type { JSONObject } from "@cat/shared/schema/json";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod";
 
+import { JSONObjectSchema } from "@cat/shared/schema/json";
 import assert from "node:assert";
-
-import type { BlackboardSnapshot } from "@/graph/types";
 
 import { getStoredGraphRuntime } from "@/graph/runtime-store";
 
@@ -31,8 +30,8 @@ export type RunGraphOptions = {
  * runtime unless overridden via `options.pluginManager`.
  */
 export const runGraph = async <
-  TInput extends z.ZodType,
-  TOutput extends z.ZodType,
+  TInput extends z.ZodObject,
+  TOutput extends z.ZodObject,
 >(
   graph: TypedGraphDefinition<TInput, TOutput>,
   input: z.input<TInput>,
@@ -40,8 +39,7 @@ export const runGraph = async <
 ): Promise<z.infer<TOutput>> => {
   const { scheduler, eventBus } = getStoredGraphRuntime();
 
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-  const parsedInput = graph.inputSchema.parse(input) as Record<string, unknown>;
+  const parsedInput = JSONObjectSchema.parse(graph.inputSchema.parse(input));
 
   const runId = await scheduler.start(graph.id, parsedInput, {
     sessionId: options?.sessionId,
@@ -56,8 +54,7 @@ export const runGraph = async <
 
     const unsubError = eventBus.subscribe("run:error", (event) => {
       if (event.runId !== runId) return;
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-      const payload = event.payload as Record<string, unknown>;
+      const payload = event.payload;
       const msg =
         typeof payload["error"] === "string" ? payload["error"] : undefined;
       lastNodeError = new Error(msg ?? "Unknown graph node error");
@@ -68,8 +65,7 @@ export const runGraph = async <
       unsubError();
       unsubEnd();
 
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-      const payload = event.payload as Record<string, unknown>;
+      const payload = event.payload;
       const status = payload["status"];
 
       if (status === "failed" || status === "cancelled") {
@@ -85,13 +81,12 @@ export const runGraph = async <
       // Extract result directly from the run:end payload blackboard data,
       // avoiding a DB round-trip and potential saveSnapshot race conditions.
       try {
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-        const blackboardData = payload["blackboard"] as Record<string, unknown>;
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-        const snapshot = {
-          data: blackboardData,
-        } as unknown as BlackboardSnapshot;
-        resolve(graph.extractResult(snapshot));
+        const blackboardData = JSONObjectSchema.parse(payload["blackboard"]);
+        resolve(
+          graph.extractResult({
+            data: blackboardData,
+          }),
+        );
       } catch (err) {
         assert(err instanceof Error, "Captured object is not an Error");
         reject(err);
@@ -119,8 +114,8 @@ export type GraphRunHandle<TOutput> = {
  * upfront (e.g. to filter graph-emitted events before the run finishes).
  */
 export const startGraph = async <
-  TInput extends z.ZodType,
-  TOutput extends z.ZodType,
+  TInput extends z.ZodObject,
+  TOutput extends z.ZodObject,
 >(
   graph: TypedGraphDefinition<TInput, TOutput>,
   input: z.input<TInput>,
@@ -128,8 +123,7 @@ export const startGraph = async <
 ): Promise<GraphRunHandle<z.infer<TOutput>>> => {
   const { scheduler, eventBus } = getStoredGraphRuntime();
 
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-  const parsedInput = graph.inputSchema.parse(input) as Record<string, unknown>;
+  const parsedInput = JSONObjectSchema.parse(graph.inputSchema.parse(input));
 
   const runId = await scheduler.start(graph.id, parsedInput, {
     sessionId: options?.sessionId,
@@ -144,8 +138,7 @@ export const startGraph = async <
 
     const unsubError = eventBus.subscribe("run:error", (event) => {
       if (event.runId !== runId) return;
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-      const payload = event.payload as Record<string, unknown>;
+      const payload = event.payload;
       const msg =
         typeof payload["error"] === "string" ? payload["error"] : undefined;
       lastNodeError = new Error(msg ?? "Unknown graph node error");
@@ -156,8 +149,7 @@ export const startGraph = async <
       unsubError();
       unsubEnd();
 
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-      const payload = event.payload as Record<string, unknown>;
+      const payload = event.payload;
       const status = payload["status"];
 
       if (status === "failed" || status === "cancelled") {
@@ -173,13 +165,12 @@ export const startGraph = async <
       // Extract result directly from the run:end payload blackboard data,
       // avoiding a DB round-trip and potential saveSnapshot race conditions.
       try {
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-        const blackboardData = payload["blackboard"] as Record<string, unknown>;
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-        const snapshot = {
-          data: blackboardData,
-        } as unknown as BlackboardSnapshot;
-        resolve(graph.extractResult(snapshot));
+        const blackboardData = JSONObjectSchema.parse(payload["blackboard"]);
+        resolve(
+          graph.extractResult({
+            data: blackboardData,
+          }),
+        );
       } catch (err) {
         assert(err instanceof Error, "Captured object is not an Error");
         reject(err);

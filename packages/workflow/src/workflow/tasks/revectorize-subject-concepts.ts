@@ -5,8 +5,8 @@ import {
 } from "@cat/domain";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
-import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { defineNode, defineGraph } from "@/graph/dsl";
+import { runGraph } from "@/graph/dsl/run-graph";
 
 import { revectorizeConceptGraph } from "./revectorize-concept";
 
@@ -20,7 +20,7 @@ export const RevectorizeSubjectConceptsOutputSchema = z.object({
   processedCount: z.int(),
 });
 
-export const revectorizeSubjectConceptsGraph = defineTypedGraph({
+export const revectorizeSubjectConceptsGraph = defineGraph({
   id: "term-revectorize-subject-concepts",
   input: RevectorizeSubjectConceptsInputSchema,
   output: RevectorizeSubjectConceptsOutputSchema,

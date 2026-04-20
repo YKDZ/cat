@@ -4,11 +4,11 @@ import {
   RevectorizeOutputSchema,
 } from "@cat/operations";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export { RevectorizeInputSchema, RevectorizeOutputSchema };
 
-export const revectorizeGraph = defineTypedGraph({
+export const revectorizeGraph = defineGraph({
   id: "revectorizer",
   input: RevectorizeInputSchema,
   output: RevectorizeOutputSchema,

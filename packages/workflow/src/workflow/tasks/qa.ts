@@ -16,7 +16,7 @@ import {
 } from "@cat/shared/schema/drizzle/qa";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export const QAInputSchema = z.object({
   source: z.object({
@@ -64,7 +64,7 @@ const flattenTokens = (tokens: Token[]): Token[] => {
   return result;
 };
 
-export const qaGraph = defineTypedGraph({
+export const qaGraph = defineGraph({
   id: "qa",
   input: QAInputSchema,
   output: QAOutputSchema,
