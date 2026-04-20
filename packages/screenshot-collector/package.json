@@ -17,6 +17,7 @@
   "dependencies": {
     "@cat/shared": "workspace:*",
     "playwright": "^1.52.0",
+    "yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

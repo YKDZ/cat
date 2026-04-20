@@ -45,3 +45,35 @@ export interface CollectOptions {
   /** @zh 文档名称。 @en Document name for the payload. */
   documentName: string;
 }
+
+/**
+ * @zh extract() 函数的选项（纯提取，不含平台参数）。
+ * @en Options for the extract() function (pure extraction, no platform params).
+ */
+export interface SourceExtractOptions {
+  /** @zh 用于文件发现的 glob 模式列表。 @en Glob patterns for file discovery. */
+  globs: string[];
+  /** @zh 使用的提取器列表。 @en Extractors to use. */
+  extractors: SourceExtractor[];
+  /** @zh glob 展开的基目录。 @en Base directory for glob expansion. */
+  baseDir: string;
+}
+
+/**
+ * @zh toCollectionPayload() 的平台路由参数。
+ * @en Platform routing parameters for toCollectionPayload().
+ */
+export interface PayloadRoutingOptions {
+  /** @zh 目标项目 ID（UUIDv4）。 @en Target project ID (UUIDv4). */
+  projectId: string;
+  /** @zh 源语言 ID。 @en Source language ID. */
+  sourceLanguageId: string;
+  /** @zh 文档名称。 @en Document name. */
+  documentName: string;
+  /** @zh 文件处理器 ID。 @en File handler ID. */
+  fileHandlerId?: string;
+  /** @zh 可选参数。 @en Optional parameters. */
+  options?: {
+    branchId?: number;
+  };
+}

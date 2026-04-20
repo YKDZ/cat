@@ -8,3 +8,4 @@ export * from "./json-schema.ts";
 export * from "./array.ts";
 export * from "./assert.ts";
 export * from "./object.ts";
+export { resolveRouteTemplate } from "./resolve-route-template.ts";

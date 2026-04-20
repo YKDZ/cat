@@ -1,4 +1,8 @@
 import type { CollectionElement } from "@cat/shared/schema/collection";
+import type { NavigationStep } from "@cat/shared/schema/extraction";
+
+// Re-export so existing imports from this module still work
+export type { NavigationStep };
 
 /**
  * Screenshot route configuration — describes a page to screenshot.
@@ -10,15 +14,9 @@ export interface ScreenshotRoute {
   waitAfterLoad?: number;
   /** Optional navigation steps to execute before screenshotting. */
   steps?: NavigationStep[];
+  /** Whether authentication is needed for this route (default: true). */
+  auth?: boolean;
 }
-
-/**
- * Navigation step — interaction to execute after page load, before screenshots.
- */
-export type NavigationStep =
-  | { action: "click"; selector: string }
-  | { action: "fill"; selector: string; value: string }
-  | { action: "wait"; ms: number };
 
 /**
  * Captured screenshot info — local file info and associated element for a single screenshot.

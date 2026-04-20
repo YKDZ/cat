@@ -8,11 +8,11 @@ user-invocable: true
 
 元素收集系统将项目源码中的可翻译文本自动采集、入库到 CAT 平台。包含三大组件：
 
-| 组件 | 包名 | 用途 |
-|------|------|------|
-| 源码收集器 | `@cat/source-collector` | 从 `.vue`/`.ts`/`.js` 等文件中提取 i18n 调用 |
-| 截图收集器 | `@cat/screenshot-collector` | 用 Playwright 截图并标注元素在页面中的位置 |
-| GitHub Action | `.github/actions/collect` | CI/CD 中自动化收集+入库+截图的复合 Action |
+| 组件          | 包名                        | 用途                                         |
+| ------------- | --------------------------- | -------------------------------------------- |
+| 源码收集器    | `@cat/source-collector`     | 从 `.vue`/`.ts`/`.js` 等文件中提取 i18n 调用 |
+| 截图收集器    | `@cat/screenshot-collector` | 用 Playwright 截图并标注元素在页面中的位置   |
+| GitHub Action | `.github/actions/collect`   | CI/CD 中自动化收集+入库+截图的复合 Action    |
 
 ---
 
@@ -25,16 +25,14 @@ user-invocable: true
 ### CLI 用法
 
 ```bash
-# 基本采集（输出到 stdout）
-npx tsx packages/source-collector/src/cli.ts collect \
+# 纯粹提取（无需平台参数，输出 ExtractionResult JSON）
+npx tsx packages/source-collector/src/cli.ts extract \
   --glob "apps/app/src/**/*.vue" \
   --glob "apps/app/src/**/*.ts" \
   --framework vue-i18n \
-  --project-id "<项目 UUID>" \
-  --source-lang zh_cn \
-  --document-name "app-i18n"
+  --output /tmp/extraction.json
 
-# 输出到文件
+# 兼容采集命令（输出 CollectionPayload JSON，含平台参数）
 npx tsx packages/source-collector/src/cli.ts collect \
   --glob "apps/app/src/**/*.vue" \
   --glob "apps/app/src/**/*.ts" \
@@ -47,46 +45,76 @@ npx tsx packages/source-collector/src/cli.ts collect \
 
 ### CLI 参数
 
-| 参数 | 必填 | 说明 |
-|------|------|------|
-| `--glob <pattern>` | ✅ | 文件匹配模式（可多次使用） |
-| `--framework <id>` | 否 | 提取器框架，默认 `vue-i18n` |
-| `--project-id <uuid>` | ✅ | 目标项目 ID |
-| `--source-lang <id>` | ✅ | 源语言 ID（如 `zh_cn`、`en`） |
-| `--document-name <name>` | ✅ | 文档名称 |
-| `--base-dir <path>` | 否 | 基目录，默认当前工作目录 |
-| `--output, -o <path>` | 否 | 输出文件路径，默认 stdout |
+**`extract` 子命令（纯粹提取）：**
+
+| 参数                  | 必填 | 说明                          |
+| --------------------- | ---- | ----------------------------- |
+| `--glob <pattern>`    | ✅   | 文件匹配模式（可多次使用）    |
+| `--framework <id>`    | 否   | 提取器框架，默认 `vue-i18n`   |
+| `--base-dir <path>`   | 否   | 基目录，默认当前工作目录      |
+| `--output, -o <path>` | 否   | 输出文件路径，默认 stdout     |
+
+**`collect` 子命令（兼容命令，输出 CollectionPayload）：**
+
+| 参数                     | 必填 | 说明                          |
+| ------------------------ | ---- | ----------------------------- |
+| `--glob <pattern>`       | ✅   | 文件匹配模式（可多次使用）    |
+| `--framework <id>`       | 否   | 提取器框架，默认 `vue-i18n`   |
+| `--project-id <uuid>`    | ✅   | 目标项目 ID                   |
+| `--source-lang <id>`     | ✅   | 源语言 ID（如 `zh_cn`、`en`） |
+| `--document-name <name>` | ✅   | 文档名称                      |
+| `--base-dir <path>`      | 否   | 基目录，默认当前工作目录      |
+| `--output, -o <path>`    | 否   | 输出文件路径，默认 stdout     |
 
 ### 输出格式
 
-输出 `CollectionPayload` JSON，结构定义在 `packages/shared/src/schema/collection.ts`：
+**`extract` 输出** `ExtractionResult` JSON（`packages/shared/src/schema/extraction.ts`）：
+
+```typescript
+interface ExtractionResult {
+  elements: CollectionElement[];
+  contexts: CollectionContext[];
+  metadata?: {
+    extractorIds: string[];
+    baseDir: string;
+    timestamp: string;
+  };
+}
+```
+
+**`collect` 输出** `CollectionPayload` JSON（`packages/shared/src/schema/collection.ts`）：
 
 ```typescript
 interface CollectionPayload {
   projectId: string;           // UUID
   sourceLanguageId: string;
   document: { name: string; fileHandlerId?: string };
-  elements: Array<{
-    ref: string;               // 唯一引用 ID
-    text: string;              // 原文文本
-    meta: Record<string, unknown>;  // 框架元数据
-    sortIndex?: number;
-    location?: { startLine?: number; endLine?: number; custom?: Record<string, unknown> };
-  }>;
-  contexts: Array<{
-    elementRef: string;        // 对应 element.ref
-    type: "TEXT" | "IMAGE" | "JSON" | "FILE" | "MARKDOWN" | "URL";
-    data: { ... };             // 按 type 不同结构
-  }>;
+  elements: CollectionElement[];
+  contexts: CollectionContext[];
 }
 ```
 
 ### 编程 API
 
 ```typescript
-import { collect, vueI18nExtractor } from "@cat/source-collector";
+import { collect, extract, toCollectionPayload, vueI18nExtractor } from "@cat/source-collector";
 
-const payload = await collect({
+// 纯粹提取（不含平台参数）
+const result = await extract({
+  globs: ["src/**/*.vue", "src/**/*.ts"],
+  extractors: [vueI18nExtractor],
+  baseDir: "/path/to/project",
+});
+
+// 组装 CollectionPayload（含平台参数）
+const payload = toCollectionPayload(result, {
+  projectId: "00000000-0000-0000-0000-000000000001",
+  sourceLanguageId: "zh_cn",
+  documentName: "app-i18n",
+});
+
+// 或直接使用 collect()（兼容命令）
+const payload2 = await collect({
   globs: ["src/**/*.vue", "src/**/*.ts"],
   extractors: [vueI18nExtractor],
   baseDir: "/path/to/project",
@@ -101,14 +129,11 @@ const payload = await collect({
 本仓库自身作为测试数据源。运行以下命令可验证收集器是否正常工作：
 
 ```bash
-npx tsx packages/source-collector/src/cli.ts collect \
+npx tsx packages/source-collector/src/cli.ts extract \
   --glob "apps/app/src/**/*.vue" \
   --glob "apps/app/src/**/*.ts" \
   --framework vue-i18n \
-  --project-id "00000000-0000-0000-0000-000000000000" \
-  --source-lang zh_cn \
-  --document-name "app-i18n" \
-  | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf-8'));console.log('Elements:',d.elements.length,'Contexts:',d.contexts.length)"
+  | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf-8'));console.log('Elements:',d.elements.length,'Contexts:',d.contexts.length,'HasMetadata:',!!d.metadata)"
 ```
 
 预期输出约 **792 个元素**（随代码变化可能增减）。若输出 0 或报错，说明提取器或文件匹配有问题。
@@ -125,19 +150,39 @@ npx tsx packages/source-collector/src/cli.ts collect \
 
 - 需要安装 Playwright 浏览器：`npx playwright install chromium`
 - 目标应用需要在本地运行（提供 `--base-url`）
-- 需要 source-collector 的输出作为输入（`--elements`）
+- `capture` 子命令需要 ExtractionResult JSON（source-collector extract 输出）
+- `collect` 兼容命令需要 CollectionPayload JSON（source-collector collect 输出）
 
 ### CLI 用法
 
 ```bash
-# 仅采集截图（输出 CollectionPayload JSON 到 stdout）
+# capture 子命令：ExtractionResult 输入 → CaptureResult 输出
+npx tsx packages/screenshot-collector/src/cli.ts capture \
+  --base-url http://localhost:3000 \
+  --routes tools/seeder/datasets/minecraft/routes.yaml \
+  --bindings /tmp/bindings.json \
+  --elements /tmp/extraction.json \
+  --output-dir /tmp/screenshots \
+  --output /tmp/capture-result.json \
+  --auth-email user@example.com \
+  --auth-password secret
+
+# upload 子命令：CaptureResult → 上传到平台
+npx tsx packages/screenshot-collector/src/cli.ts upload \
+  --capture /tmp/capture-result.json \
+  --project-id "00000000-0000-0000-0000-000000000001" \
+  --document-name "app-i18n" \
+  --api-url http://localhost:3000 \
+  --api-key "cat_..."
+
+# collect 子命令（兼容命令）：CollectionPayload 输入 + 可选上传
 npx tsx packages/screenshot-collector/src/cli.ts collect \
   --base-url http://localhost:3000 \
   --routes routes.json \
   --elements /tmp/source-payload.json \
   --output-dir /tmp/screenshots
 
-# 采集 + 上传到平台 + 关联上下文
+# collect + 上传到平台
 npx tsx packages/screenshot-collector/src/cli.ts collect \
   --base-url http://localhost:3000 \
   --routes routes.json \
@@ -152,20 +197,72 @@ npx tsx packages/screenshot-collector/src/cli.ts collect \
 
 ### CLI 参数
 
-| 参数 | 必填 | 说明 |
-|------|------|------|
-| `--base-url <url>` | ✅ | 目标应用 URL（如 `http://localhost:3000`） |
-| `--routes <path>` | ✅ | 路由配置 JSON 文件路径 |
-| `--elements <path>` | ✅ | source-collector 输出的 JSON 文件路径 |
-| `--output-dir <path>` | 否 | 截图输出目录，默认 `./screenshots` |
-| `--project-id <uuid>` | `--upload` 时必填 | 目标项目 ID |
-| `--document-name <name>` | `--upload` 时必填 | 文档名称 |
-| `--api-url <url>` | 否 | 平台 API URL，默认 `http://localhost:3000` |
-| `--api-key <key>` | `--upload` 时必填 | API Key（或设置 `CAT_API_KEY` 环境变量） |
-| `--upload` | 否 | 上传截图并关联到平台 |
-| `--headless / --no-headless` | 否 | 是否无头模式，默认 `true` |
+**`capture` 子命令：**
+
+| 参数                           | 必填 | 说明                                           |
+| ------------------------------ | ---- | ---------------------------------------------- |
+| `--base-url <url>`             | ✅   | 目标应用 URL                                   |
+| `--routes <path>`              | ✅   | 路由配置文件路径（JSON 或 YAML）               |
+| `--elements <path>`            | ✅   | ExtractionResult JSON 文件路径                 |
+| `--bindings <path>`            | 否   | 绑定 JSON 文件路径（覆盖路由文件中的 bindings）|
+| `--output-dir <path>`          | 否   | 截图输出目录，默认 `./screenshots`             |
+| `--output, -o <path>`          | 否   | CaptureResult JSON 输出路径，默认 stdout       |
+| `--headless / --no-headless`   | 否   | 是否无头模式，默认 `true`                      |
+| `--auth-email <email>`         | 否   | 登录邮箱（或 `CAT_AUTH_EMAIL` 环境变量）       |
+| `--auth-password <password>`   | 否   | 登录密码（或 `CAT_AUTH_PASSWORD` 环境变量）    |
+| `--auth-storage-state <path>`  | 否   | Playwright storage state 文件路径              |
+
+**`upload` 子命令：**
+
+| 参数                     | 必填 | 说明                                        |
+| ------------------------ | ---- | ------------------------------------------- |
+| `--capture <path>`       | ✅   | CaptureResult JSON 文件路径                 |
+| `--project-id <uuid>`    | ✅   | 目标项目 ID                                 |
+| `--document-name <name>` | ✅   | 文档名称                                    |
+| `--api-url <url>`        | 否   | 平台 API URL，默认 `http://localhost:3000`  |
+| `--api-key <key>`        | ✅   | API Key（或 `CAT_API_KEY` 环境变量）        |
+
+**`collect` 子命令（兼容命令）：**
+
+| 参数                         | 必填              | 说明                                       |
+| ---------------------------- | ----------------- | ------------------------------------------ |
+| `--base-url <url>`           | ✅                | 目标应用 URL                               |
+| `--routes <path>`            | ✅                | 路由配置文件路径                           |
+| `--elements <path>`          | ✅                | source-collector 输出的 JSON 文件路径      |
+| `--output-dir <path>`        | 否                | 截图输出目录，默认 `./screenshots`         |
+| `--project-id <uuid>`        | `--upload` 时必填 | 目标项目 ID                                |
+| `--document-name <name>`     | `--upload` 时必填 | 文档名称                                   |
+| `--api-url <url>`            | 否                | 平台 API URL，默认 `http://localhost:3000` |
+| `--api-key <key>`            | `--upload` 时必填 | API Key（或 `CAT_API_KEY` 环境变量）       |
+| `--upload`                   | 否                | 上传截图并关联到平台                       |
+| `--headless / --no-headless` | 否                | 是否无头模式，默认 `true`                  |
 
 ### 路由配置文件格式
+
+支持两种格式：
+
+**新格式（RouteManifest YAML / JSON）：**
+
+```yaml
+# routes.yaml — 支持 $ref:<name> 占位符
+routes:
+  - template: "/"
+    auth: false
+
+  - template: "/project/$ref:project"
+
+  - template: "/editor/$ref:document:elements/zh-CN/empty"
+    waitAfterLoad: 2000
+
+bindings:
+  project: "a1b2c3d4-0000-0000-0000-000000000001"
+  "document:elements": "42"
+```
+
+- `$ref:<name>` 占位符在运行时由 bindings 替换（可来自文件或 `--bindings` 参数）
+- `auth: false` 表示该路由无需登录（在独立的无认证浏览器上下文中访问）
+
+**旧格式（兼容，path 数组）：**
 
 ```json
 [
@@ -184,25 +281,37 @@ npx tsx packages/screenshot-collector/src/cli.ts collect \
 ```
 
 `steps` 支持的 action：
+
 - `click` — `{ action: "click", selector: "<CSS选择器>" }`
 - `fill` — `{ action: "fill", selector: "<CSS选择器>", value: "<值>" }`
 - `wait` — `{ action: "wait", ms: <毫秒数> }`
 
-### 截图流程
-
-1. 启动 Playwright Chromium 浏览器
-2. 遍历路由配置，逐页导航（`waitUntil: 'networkidle'`）
-3. 对每个唯一 i18n 文本，用 `page.getByText(text, { exact: true }).first()` 定位
-4. 用 CSS `outline` 高亮元素，截取页面截图
-5. 记录 `boundingBox` 作为 `highlightRegion`
-6. 生成 IMAGE 类型的 `CollectionPayload` 上下文
-
 ### 编程 API
 
 ```typescript
-import { collectScreenshots, uploadScreenshots, addImageContexts } from "@cat/screenshot-collector";
+import {
+  captureScreenshots,
+  collectScreenshots,
+  loadRouteManifest,
+  resolveRoutes,
+  uploadScreenshots,
+  addImageContexts,
+} from "@cat/screenshot-collector";
 
-// 1. 采集截图
+// 新 API：ExtractionResult → CaptureResult
+const manifest = await loadRouteManifest("routes.yaml");
+const routes = resolveRoutes(manifest, { project: "abc-123" });
+
+const captureResult = await captureScreenshots({
+  baseUrl: "http://localhost:3000",
+  routes,
+  elements: extractionResult.elements,
+  outputDir: "/tmp/screenshots",
+  headless: true,
+  auth: { email: "user@example.com", password: "secret" },
+});
+
+// 旧 API：CollectionPayload.elements → CapturedScreenshot[]（兼容）
 const captured = await collectScreenshots({
   baseUrl: "http://localhost:3000",
   routes: [{ path: "/" }, { path: "/projects" }],
@@ -211,16 +320,51 @@ const captured = await collectScreenshots({
   headless: true,
 });
 
-// 2. 上传（可选）
+// 上传（两种 API 均可用）
 const contexts = await uploadScreenshots(captured, {
   apiUrl: "http://localhost:3000",
   apiKey: "cat_...",
   projectId: "...",
   documentName: "app-i18n",
 });
-
-// 3. 关联到平台（可选）
 await addImageContexts(contexts, uploadOptions);
+```
+
+### 本地截图工作流（完整端到端）
+
+使用 seeder 的 `--output-bindings` 输出绑定，再结合 extract + capture 完成本地截图：
+
+```bash
+# Step 1: 运行 seeder，导出绑定 JSON
+cd tools/seeder
+tsx main.ts datasets/minecraft --output-bindings /tmp/bindings.json
+
+# Step 2: 提取源码元素
+npx tsx packages/source-collector/src/cli.ts extract \
+  --glob "apps/app/src/**/*.vue" \
+  --glob "apps/app/src/**/*.ts" \
+  --framework vue-i18n \
+  --output /tmp/extraction.json
+
+# Step 3: 截图（使用 routes.yaml + bindings.json）
+npx playwright install chromium
+npx tsx packages/screenshot-collector/src/cli.ts capture \
+  --base-url http://localhost:3000 \
+  --routes tools/seeder/datasets/minecraft/routes.yaml \
+  --bindings /tmp/bindings.json \
+  --elements /tmp/extraction.json \
+  --output-dir /tmp/screenshots \
+  --output /tmp/capture-result.json \
+  --auth-email admin@example.com \
+  --auth-password secret
+
+# Step 4: 上传截图上下文到平台
+npx tsx packages/screenshot-collector/src/cli.ts upload \
+  --capture /tmp/capture-result.json \
+  --project-id "$PROJECT_ID" \
+  --document-name "app-i18n" \
+  --api-url http://localhost:3000 \
+  --api-key "$CAT_API_KEY"
 ```
 
 ---
@@ -229,12 +373,12 @@ await addImageContexts(contexts, uploadOptions);
 
 收集系统使用 4 个 oRPC 端点（位于 `apps/app-api/src/orpc/routers/collection.ts`）：
 
-| 端点 | 用途 | 输入 |
-|------|------|------|
-| `collection.ingest` | 接受 CollectionPayload，执行完整入库流程 | `CollectionPayloadSchema` |
-| `collection.prepareUpload` | 获取 presigned 上传 URL + fileId + putSessionId | `{ projectId, fileName }` |
-| `collection.finishUpload` | 完成上传：校验、哈希、去重、激活文件 | `{ projectId, putSessionId }` |
-| `collection.addContexts` | 为已有元素补充上下文（增量添加） | `{ projectId, documentName, contexts[] }` |
+| 端点                       | 用途                                            | 输入                                      |
+| -------------------------- | ----------------------------------------------- | ----------------------------------------- |
+| `collection.ingest`        | 接受 CollectionPayload，执行完整入库流程        | `CollectionPayloadSchema`                 |
+| `collection.prepareUpload` | 获取 presigned 上传 URL + fileId + putSessionId | `{ projectId, fileName }`                 |
+| `collection.finishUpload`  | 完成上传：校验、哈希、去重、激活文件            | `{ projectId, putSessionId }`             |
+| `collection.addContexts`   | 为已有元素补充上下文（增量添加）                | `{ projectId, documentName, contexts[] }` |
 
 ### 通过 CLI 调用端点
 
@@ -323,7 +467,7 @@ source-collector collect → collection.ingest → screenshot-collector collect 
 export CAT_API_KEY="cat_..."
 export CAT_API_URL="http://localhost:3000"
 
-# Step 1: 采集源码元素
+# Step 1: 采集源码元素（兼容命令，含平台参数）
 npx tsx packages/source-collector/src/cli.ts collect \
   --glob "apps/app/src/**/*.vue" \
   --glob "apps/app/src/**/*.ts" \
@@ -358,6 +502,7 @@ npx tsx packages/screenshot-collector/src/cli.ts collect \
 ### 构建与类型检查
 
 ```bash
+pnpm moon run shared:typecheck
 pnpm moon run source-collector:typecheck
 pnpm moon run screenshot-collector:typecheck
 ```
@@ -365,8 +510,9 @@ pnpm moon run screenshot-collector:typecheck
 ### 运行测试
 
 ```bash
-pnpm moon run source-collector:test       # 37 个测试
-pnpm moon run screenshot-collector:test   # 9 个测试
+pnpm moon run shared:test               # extraction schema + route template tests
+pnpm moon run source-collector:test     # 37+ 个测试（含 extract/adapter 新测试）
+pnpm moon run screenshot-collector:test # 9+ 个测试（含 route 新测试）
 ```
 
 ### 添加新提取器
@@ -392,10 +538,11 @@ export const myExtractor: SourceExtractor = {
 
 ### 排查常见问题
 
-| 症状 | 排查方向 |
-|------|----------|
-| 元素数为 0 | 检查 `--glob` 模式和 `--base-dir`；确认文件中有 `$t()`/`t()` 调用 |
-| 截图全黑/空白 | 检查 `--base-url` 是否正确；确认应用已启动 |
-| 上传失败 | 检查 API Key 是否有 `project:editor` 权限；检查 `--api-url` |
-| `finishUpload` 报错 | 检查 `putSessionId` 是否正确；Redis session 可能已过期 |
-| 相对 URL 上传失败 | 本地存储返回相对 URL，screenshot-collector 已自动处理；若手动调用需拼接 `apiUrl` |
+| 症状                | 排查方向                                                                         |
+| ------------------- | -------------------------------------------------------------------------------- |
+| 元素数为 0          | 检查 `--glob` 模式和 `--base-dir`；确认文件中有 `$t()`/`t()` 调用                |
+| 截图全黑/空白       | 检查 `--base-url` 是否正确；确认应用已启动                                       |
+| 上传失败            | 检查 API Key 是否有 `project:editor` 权限；检查 `--api-url`                      |
+| `finishUpload` 报错 | 检查 `putSessionId` 是否正确；Redis session 可能已过期                           |
+| 相对 URL 上传失败   | 本地存储返回相对 URL，screenshot-collector 已自动处理；若手动调用需拼接 `apiUrl` |
+| `$ref` 占位符未替换 | 确认 `--bindings` 文件存在且包含对应 key；检查 seeder 是否用 `--output-bindings` |

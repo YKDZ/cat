@@ -111,6 +111,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/collection.ts",
         ),
+        "schema/extraction": resolve(
+          import.meta.dirname,
+          "src/schema/extraction.ts",
+        ),
       },
       formats: ["es"],
     },
