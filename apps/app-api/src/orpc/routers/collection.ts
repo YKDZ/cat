@@ -7,6 +7,7 @@ import {
   listElementsForDiff,
 } from "@cat/domain";
 import {
+  finishPresignedPutFile,
   firstOrGivenService,
   preparePresignedPutFile,
 } from "@cat/server-shared";
@@ -123,6 +124,36 @@ export const prepareUpload = authed
     );
 
     return { url, putSessionId, fileId };
+  });
+
+/**
+ * @zh 完成 presigned 上传：校验会话、计算哈希、去重、激活文件。
+ * @en Finish presigned upload: validate session, compute hash, deduplicate, activate file.
+ */
+export const finishUpload = authed
+  .input(
+    z.object({
+      projectId: z.uuidv4(),
+      putSessionId: z.uuidv4(),
+    }),
+  )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
+  .output(z.object({ fileId: z.int() }))
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+      sessionStore,
+      pluginManager,
+    } = context;
+
+    const fileId = await finishPresignedPutFile(
+      drizzle,
+      sessionStore,
+      pluginManager,
+      input.putSessionId,
+    );
+
+    return { fileId };
   });
 
 /**

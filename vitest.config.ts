@@ -104,6 +104,16 @@ export default defineConfig({
       },
       {
         test: {
+          name: "unit-screenshot-collector",
+          include: ["packages/screenshot-collector/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: {
+          alias: alias(resolve(ROOT, "packages/screenshot-collector")),
+        },
+      },
+      {
+        test: {
           name: "unit-shared",
           include: ["packages/shared/src/**/*.{spec,test}.ts"],
           environment: "node",

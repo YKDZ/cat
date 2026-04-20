@@ -1,0 +1,137 @@
+name: "CAT Collect"
+description: "Collect translatable elements from source code and optionally capture screenshots, then upload to CAT platform. Internal monorepo use only."
+
+inputs:
+  project-id:
+    description: "Target CAT project ID (UUID)"
+    required: true
+  api-url:
+    description: "CAT platform API URL"
+    required: true
+  api-key:
+    description: "CAT platform API key"
+    required: true
+  source-lang:
+    description: "Source language ID (e.g., 'zh_cn', 'en')"
+    required: true
+  document-name:
+    description: "Document name for the collection"
+    required: true
+  source-glob:
+    description: "Glob patterns for source files (newline-separated)"
+    required: true
+  framework:
+    description: "Source extractor framework"
+    required: false
+    default: "vue-i18n"
+  base-dir:
+    description: "Base directory for glob resolution"
+    required: false
+    default: "."
+  screenshots:
+    description: "Enable screenshot collection (true/false)"
+    required: false
+    default: "false"
+  screenshot-base-url:
+    description: "Base URL for screenshot collection (required if screenshots=true)"
+    required: false
+  screenshot-routes:
+    description: "Path to routes JSON file (required if screenshots=true)"
+    required: false
+
+outputs:
+  elements-count:
+    description: "Number of elements collected"
+    value: ${{ steps.ingest.outputs.elements-count }}
+  added-count:
+    description: "Number of new elements added"
+    value: ${{ steps.ingest.outputs.added-count }}
+  removed-count:
+    description: "Number of elements removed"
+    value: ${{ steps.ingest.outputs.removed-count }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Collect source elements
+      id: collect
+      shell: bash
+      run: |
+        # Build glob arguments from newline-separated patterns
+        GLOB_ARGS=()
+        while IFS= read -r pattern; do
+          pattern=$(echo "$pattern" | xargs)
+          if [ -n "$pattern" ]; then
+            GLOB_ARGS+=(--glob "$pattern")
+          fi
+        done <<< "${{ inputs.source-glob }}"
+
+        npx tsx packages/source-collector/src/cli.ts collect \
+          "${GLOB_ARGS[@]}" \
+          --framework "${{ inputs.framework }}" \
+          --project-id "${{ inputs.project-id }}" \
+          --source-lang "${{ inputs.source-lang }}" \
+          --document-name "${{ inputs.document-name }}" \
+          --base-dir "${{ inputs.base-dir }}" \
+          --output /tmp/cat-source-payload.json
+
+        ELEMENT_COUNT=$(node -e "const p=JSON.parse(require('fs').readFileSync('/tmp/cat-source-payload.json','utf-8'));console.log(p.elements.length)")
+        echo "Collected $ELEMENT_COUNT elements"
+        echo "elements-count=$ELEMENT_COUNT" >> "$GITHUB_OUTPUT"
+
+    - name: Ingest source to platform
+      id: ingest
+      shell: bash
+      run: |
+        RESPONSE=$(node -e "
+          const fs = require('fs');
+          const payload = fs.readFileSync('/tmp/cat-source-payload.json', 'utf-8');
+          fetch(new URL('/api/rpc/collection.ingest', '${{ inputs.api-url }}'), {
+            method: 'POST',
+            headers: {
+              'authorization': 'Bearer ${{ inputs.api-key }}',
+              'content-type': 'application/json',
+            },
+            body: payload,
+          })
+          .then(r => r.json())
+          .then(j => {
+            console.log(JSON.stringify(j));
+            process.exit(0);
+          })
+          .catch(e => { console.error(e); process.exit(1); });
+        ")
+
+        echo "Ingest response: $RESPONSE"
+
+        ADDED=$(echo "$RESPONSE" | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf-8'));console.log(d.addedCount??0)")
+        REMOVED=$(echo "$RESPONSE" | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf-8'));console.log(d.removedCount??0)")
+        ELEMENTS_COUNT=$(node -e "const p=JSON.parse(require('fs').readFileSync('/tmp/cat-source-payload.json','utf-8'));console.log(p.elements.length)")
+
+        echo "elements-count=$ELEMENTS_COUNT" >> "$GITHUB_OUTPUT"
+        echo "added-count=$ADDED" >> "$GITHUB_OUTPUT"
+        echo "removed-count=$REMOVED" >> "$GITHUB_OUTPUT"
+
+        echo "### 📦 CAT Collection Summary" >> "$GITHUB_STEP_SUMMARY"
+        echo "| Metric | Count |" >> "$GITHUB_STEP_SUMMARY"
+        echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
+        echo "| Elements collected | $ELEMENTS_COUNT |" >> "$GITHUB_STEP_SUMMARY"
+        echo "| New elements added | $ADDED |" >> "$GITHUB_STEP_SUMMARY"
+        echo "| Elements removed | $REMOVED |" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Collect and upload screenshots
+      if: inputs.screenshots == 'true'
+      shell: bash
+      run: |
+        npx playwright install --with-deps chromium
+
+        npx tsx packages/screenshot-collector/src/cli.ts collect \
+          --base-url "${{ inputs.screenshot-base-url }}" \
+          --routes "${{ inputs.screenshot-routes }}" \
+          --elements /tmp/cat-source-payload.json \
+          --output-dir /tmp/cat-screenshots \
+          --project-id "${{ inputs.project-id }}" \
+          --document-name "${{ inputs.document-name }}" \
+          --api-url "${{ inputs.api-url }}" \
+          --api-key "${{ inputs.api-key }}" \
+          --upload
