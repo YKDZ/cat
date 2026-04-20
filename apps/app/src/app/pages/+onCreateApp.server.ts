@@ -43,7 +43,14 @@ const loadLocaleMessagesInServerSide = async (
   if (ctx.i18nMessages && ctx.i18nMessages[locale]) return nextTick();
 
   const path = join(process.cwd(), `./locales/${locale}.json`);
-  if (!(await stat(path))) return nextTick();
+  try {
+    await stat(path);
+  } catch {
+    // Locale file not found — treat as empty (i18n falls back to zh_cn)
+    if (!ctx.i18nMessages) ctx.i18nMessages = {};
+    ctx.i18nMessages[locale] = {};
+    return nextTick();
+  }
   const fileContent = await readFile(path, "utf-8");
   const messages = JSON.parse(fileContent);
   const tempI18n = createI18n({

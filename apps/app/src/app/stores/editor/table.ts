@@ -1,7 +1,7 @@
 import type { Token } from "@cat/plugin-core";
 import type { EditorView } from "@codemirror/view";
 
-import { useQuery } from "@pinia/colada";
+import { useQuery, useQueryCache } from "@pinia/colada";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
@@ -22,6 +22,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const elementStore = useEditorElementStore();
   const elementRefStore = storeToRefs(elementStore);
   const profile = storeToRefs(useProfileStore());
+  const queryCache = useQueryCache();
 
   const inputDivEl = ref<HTMLDivElement>();
   /**
@@ -168,17 +169,26 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     )
       return;
 
-    elementStore.setElementPending(elementId.value, true);
+    const currentElementId = elementId.value;
+    const currentLanguageId = context.languageToId.value;
+
+    elementStore.setElementPending(currentElementId, true);
 
     try {
       await orpc.translation.create({
-        elementId: elementId.value,
-        languageId: context.languageToId.value,
+        elementId: currentElementId,
+        languageId: currentLanguageId,
         text: translationValue.value,
         createMemory: profile.editorMemoryAutoCreateMemory.value,
       });
+
+      // Ensure the translation list updates even if the SSE event races.
+      void queryCache.invalidateQueries({
+        key: ["translations", currentElementId, currentLanguageId],
+        exact: true,
+      });
     } catch (error) {
-      elementStore.setElementPending(elementId.value, false);
+      elementStore.setElementPending(currentElementId, false);
       throw error;
     }
   };

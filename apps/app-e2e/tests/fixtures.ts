@@ -85,6 +85,7 @@ export const test = baseTest.extend<E2EFixtures, E2EWorkerFixtures>({
       // browser.newPage() does not inherit project-level baseURL; pass it explicitly.
       const context = await browser.newContext({
         baseURL: `http://localhost:${process.env.PORT ?? 3000}`,
+        locale: "zh-CN",
         storageState: undefined,
       });
       const page = await context.newPage();

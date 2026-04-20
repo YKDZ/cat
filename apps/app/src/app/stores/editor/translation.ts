@@ -32,13 +32,20 @@ export const useEditorTranslationStore = defineStore(
     const queryCache = useQueryCache();
 
     const { state, refresh, refetch } = useQuery({
-      key: ["translations", table.elementId.value, context.languageToId.value!],
+      key: () => [
+        "translations",
+        table.elementId.value,
+        context.languageToId.value,
+      ],
       query: async () =>
         orpc.translation.getAll({
           elementId: table.elementId.value!,
           languageId: context.languageToId.value!,
         }),
-      enabled: !import.meta.env.SSR,
+      enabled: () =>
+        !import.meta.env.SSR &&
+        !!table.elementId.value &&
+        !!context.languageToId.value,
     });
 
     let abortController: AbortController | null = null;
@@ -76,18 +83,14 @@ export const useEditorTranslationStore = defineStore(
               context.languageToId.value!,
             ];
 
-            const cached = queryCache.getQueryData(queryKey);
-
-            if (cached) {
-              queryCache.setQueryData(
-                queryKey,
-                (old: TranslationWithStatus[] | undefined) => {
-                  if (!old) return [translation];
-                  if (old.some((t) => t.id === translation.id)) return old;
-                  return [...old, translation];
-                },
-              );
-            }
+            queryCache.setQueryData(
+              queryKey,
+              (old: TranslationWithStatus[] | undefined) => {
+                if (!old) return [translation];
+                if (old.some((t) => t.id === translation.id)) return old;
+                return [...old, translation];
+              },
+            );
           }
         } catch (err) {
           logger
