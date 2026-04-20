@@ -96,6 +96,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: "unit-source-collector",
+          include: ["packages/source-collector/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/source-collector")) },
+      },
+      {
+        test: {
           name: "unit-shared",
           include: ["packages/shared/src/**/*.{spec,test}.ts"],
           environment: "node",
