@@ -86,6 +86,7 @@ export function resolveRoutes(
   return manifest.routes.map((entry) => ({
     path: resolveRouteTemplate(entry.template, bindings),
     waitAfterLoad: entry.waitAfterLoad,
+    waitUntil: entry.waitUntil,
     steps: entry.steps,
     auth: entry.auth,
   }));

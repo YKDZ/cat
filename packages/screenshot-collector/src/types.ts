@@ -12,6 +12,8 @@ export interface ScreenshotRoute {
   path: string;
   /** Wait time after page load (ms), default 1000. */
   waitAfterLoad?: number;
+  /** Playwright waitUntil strategy for goto(), default "networkidle". */
+  waitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
   /** Optional navigation steps to execute before screenshotting. */
   steps?: NavigationStep[];
   /** Whether authentication is needed for this route (default: true). */

@@ -20,8 +20,8 @@ describe("ExtractionResultSchema", () => {
       contexts: [
         {
           elementRef: "vue-i18n:app.vue:1:1",
-          type: "TEXT",
-          data: { text: "Source: app.vue" },
+          type: "JSON",
+          data: { json: { source: "app.vue" } },
         },
       ],
       metadata: {

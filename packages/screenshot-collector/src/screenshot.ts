@@ -23,6 +23,28 @@ import type {
 import { authenticateBrowser } from "./auth.ts";
 
 /**
+ * @zh 按文本在页面中查找元素，先尝试文本节点，再 fallback 到 placeholder 属性。
+ * @en Find an element by text, first as a text node, then falling back to placeholder attribute.
+ */
+const findLocatorByText = (page: Page, text: string) => {
+  const byText = page.getByText(text, { exact: true });
+  return {
+    async first() {
+      const textCount = await byText.count();
+      if (textCount > 0) {
+        return byText.first();
+      }
+      return page.getByPlaceholder(text, { exact: true }).first();
+    },
+    async count() {
+      const textCount = await byText.count();
+      if (textCount > 0) return textCount;
+      return page.getByPlaceholder(text, { exact: true }).count();
+    },
+  };
+};
+
+/**
  * Collect screenshots: launch browser, traverse routes, locate elements and screenshot.
  * For each route, iterates unique element texts and takes one screenshot per text.
  * Each screenshot is associated with the first element matching that text (not all).
@@ -56,7 +78,7 @@ export async function collectScreenshots(
       console.error(`[INFO] Navigating to ${url}`);
 
       try {
-        await page.goto(url, { waitUntil: "networkidle" });
+        await page.goto(url, { waitUntil: route.waitUntil ?? "networkidle" });
       } catch (err) {
         console.warn(
           `[WARN] Failed to navigate to ${url}: ${err instanceof Error ? err.message : String(err)}`,
@@ -79,12 +101,12 @@ export async function collectScreenshots(
         if (!element) continue;
 
         try {
-          const locator = page.getByText(text, { exact: true });
+          const locator = findLocatorByText(page, text);
           const count = await locator.count();
           if (count === 0) continue;
 
           // Take the first visible match
-          const firstVisible = locator.first();
+          const firstVisible = await locator.first();
           if (!(await firstVisible.isVisible())) continue;
 
           // Get bounding box before highlight
@@ -216,7 +238,9 @@ export async function captureScreenshots(
         console.error(`[INFO] Navigating to ${url}`);
 
         try {
-          await targetPage.goto(url, { waitUntil: "networkidle" });
+          await targetPage.goto(url, {
+            waitUntil: route.waitUntil ?? "networkidle",
+          });
         } catch (err) {
           console.warn(
             `[WARN] Failed to navigate to ${url}: ${err instanceof Error ? err.message : String(err)}`,
@@ -236,11 +260,11 @@ export async function captureScreenshots(
           if (!element) continue;
 
           try {
-            const locator = targetPage.getByText(text, { exact: true });
+            const locator = findLocatorByText(targetPage, text);
             const count = await locator.count();
             if (count === 0) continue;
 
-            const firstVisible = locator.first();
+            const firstVisible = await locator.first();
             if (!(await firstVisible.isVisible())) continue;
 
             const boundingBox = await firstVisible.boundingBox();
