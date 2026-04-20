@@ -26,18 +26,18 @@ tasks:
     options:
       cache: false
 
-  drizzle-generate:
+  generate:
     command: "drizzle-kit generate"
     deps:
       - "shared:build"
     options:
       cache: false
 
-  drizzle-migrate:
+  migrate:
     command: "drizzle-kit migrate"
     options:
       cache: false
 
-  drizzle-studio:
+  studio:
     command: "drizzle-kit studio --host 0.0.0.0 --port 4983"
     preset: "server"
