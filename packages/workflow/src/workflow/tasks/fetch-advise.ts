@@ -5,7 +5,7 @@ import {
 } from "@cat/operations";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export { FetchAdviseOutputSchema };
 
@@ -14,7 +14,7 @@ export const FetchAdviseWorkflowInputSchema = FetchAdviseInputSchema.extend({
   eventAdvisorId: z.int().optional(),
 });
 
-export const fetchAdviseGraph = defineTypedGraph({
+export const fetchAdviseGraph = defineGraph({
   id: "advise-fetch",
   input: FetchAdviseWorkflowInputSchema,
   output: FetchAdviseOutputSchema,

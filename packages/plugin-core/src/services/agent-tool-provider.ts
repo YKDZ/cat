@@ -1,4 +1,4 @@
-import type { ZodObject, ZodRawShape } from "zod";
+import type { ZodObject } from "zod";
 
 import type { IPluginService } from "@/services/service";
 
@@ -27,7 +27,7 @@ export interface AgentToolProviderToolDef {
   /** Human-readable description for the LLM context. */
   description: string;
   /** Zod schema for parameters — auto-converted to JSON Schema for LLM. */
-  parameters: ZodObject<ZodRawShape>;
+  parameters: ZodObject;
   /**
    * Server-side execution function. For client tools this should be omitted
    * (the framework handles delegation to the browser).

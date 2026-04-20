@@ -7,7 +7,7 @@ import {
   NlpSegmentOutputSchema,
 } from "@cat/operations";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export {
   NlpSegmentInputSchema,
@@ -16,7 +16,7 @@ export {
   NlpBatchSegmentOutputSchema,
 };
 
-export const nlpSegmentGraph = defineTypedGraph({
+export const nlpSegmentGraph = defineGraph({
   id: "nlp-segment",
   input: NlpSegmentInputSchema,
   output: NlpSegmentOutputSchema,
@@ -37,7 +37,7 @@ export const nlpSegmentGraph = defineTypedGraph({
   exit: ["main"],
 });
 
-export const nlpBatchSegmentGraph = defineTypedGraph({
+export const nlpBatchSegmentGraph = defineGraph({
   id: "nlp-batch-segment",
   input: NlpBatchSegmentInputSchema,
   output: NlpBatchSegmentOutputSchema,

@@ -6,15 +6,17 @@ import { PluginManager } from "@cat/plugin-core";
 import type { NodeExecutor } from "@/graph/node-registry";
 
 import { buildPatch } from "@/graph/blackboard";
-import { getStepHandler } from "@/graph/typed-dsl/step-handler-registry";
-
-// oxlint-disable typescript-eslint/no-unsafe-type-assertion -- runtime type checking for dynamic Blackboard data
+import { getStepHandler } from "@/graph/dsl/step-handler-registry";
 
 const isStringRecord = (value: unknown): value is Record<string, string> => {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     return false;
   }
   return Object.values(value).every((v) => typeof v === "string");
+};
+
+const isUnknownRecord = (value: unknown): value is Record<string, unknown> => {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 };
 
 /**
@@ -113,10 +115,10 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
     : undefined;
   let updates: Record<string, unknown>;
 
-  if (outputMapping && typeof result === "object" && result !== null) {
+  if (outputMapping && isUnknownRecord(result)) {
     updates = {};
     for (const [bbPath, outputKey] of Object.entries(outputMapping)) {
-      updates[bbPath] = (result as Record<string, unknown>)[outputKey];
+      updates[bbPath] = result[outputKey];
     }
   } else {
     // 默认：以 nodeId 为 key 写入

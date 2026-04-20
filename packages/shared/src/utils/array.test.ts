@@ -43,7 +43,7 @@ describe("Array Utility Functions", () => {
       // arr1 length is 3, arr2 length is 1, min length is 1
       const gen = dualChunkGenerator([1, 2, 3], ["a"], 2);
 
-      // First iteration: i=0, size=2. arr1.slice(0, 2) is [1, 2]
+      // First iteration: i=0, size=2. arr1.subarray(0, 2) is [1, 2]
       expect(gen.next().value).toEqual([[1, 2], ["a"]]);
 
       // Second iteration: i=2, no longer less than min length 1, end

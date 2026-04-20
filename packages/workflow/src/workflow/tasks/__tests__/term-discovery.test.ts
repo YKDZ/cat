@@ -31,7 +31,7 @@ vi.mock("@cat/operations", async () => {
 });
 
 import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/typed-dsl";
+import { runGraph } from "@/graph/dsl";
 
 import { termDiscoveryGraph } from "../term-discovery";
 

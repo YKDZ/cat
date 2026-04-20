@@ -5,8 +5,8 @@ import {
 } from "@cat/domain";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
-import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { defineNode, defineGraph } from "@/graph/dsl";
+import { runGraph } from "@/graph/dsl/run-graph";
 
 import {
   AutoTranslateConfigSchema,
@@ -80,7 +80,7 @@ const TranslateAllNodeInputSchema = z.object({
 
 // ─── Document 级批量自动翻译图 ─────────────────────────────────────────────────
 
-export const batchAutoTranslateGraph = defineTypedGraph({
+export const batchAutoTranslateGraph = defineGraph({
   id: "batch-auto-translate",
   version: "1.0.0",
   description: "文档级批量自动翻译",

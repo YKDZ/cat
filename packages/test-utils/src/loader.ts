@@ -130,7 +130,7 @@ export class TestStorageProvider extends StorageProvider {
       return { data: "", total, actualEnd: actualStart - 1 };
     }
 
-    const slice = data.slice(actualStart, actualEnd + 1);
+    const slice = data.subarray(actualStart, actualEnd + 1);
 
     // 处理 UTF-8 边界：如果最后一个字节是不完整的 UTF-8 字符，去掉它
     let sliceEnd = slice.length;
@@ -144,7 +144,7 @@ export class TestStorageProvider extends StorageProvider {
       }
     }
 
-    const dataStr = slice.slice(0, sliceEnd).toString("utf-8");
+    const dataStr = slice.subarray(0, sliceEnd).toString("utf-8");
     // 返回实际读取的字节位置（包括被截断的无效 UTF-8 字节）
     // 这样客户端下次会从正确的位置继续，不会跳过任何内容
     return { data: dataStr, total, actualEnd: actualStart + slice.length - 1 };

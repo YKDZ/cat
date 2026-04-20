@@ -4,11 +4,11 @@ import {
   DiffElementsOutputSchema,
 } from "@cat/operations";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export { DiffElementsInputSchema, DiffElementsOutputSchema };
 
-export const diffElementsGraph = defineTypedGraph({
+export const diffElementsGraph = defineGraph({
   id: "element-diff",
   input: DiffElementsInputSchema,
   output: DiffElementsOutputSchema,

@@ -154,9 +154,9 @@ export const interpolateTemplate = (template: string, data: unknown): string
 export const hashArgs = (args: Record<string, unknown>): string
 ```
 
-### packages/workflow/src/graph/typed-dsl
+### packages/workflow/src/graph/dsl
 
-### `defineTypedGraph`
+### `defineGraph`
 
 ```ts
 /**
@@ -166,7 +166,7 @@ export const hashArgs = (args: Record<string, unknown>): string
  * - 运行时：输出标准 GraphDefinition + 注册 step handler
  * - 执行时：增强的 TransformNodeExecutor 通过 config.handler 分发
  */
-export const defineTypedGraph = (options: TypedGraphOptions<TInput, TOutput, TNodes>): TypedGraphDefinition<TInput, TOutput>
+export const defineGraph = (options: TypedGraphOptions<TInput, TOutput, TNodes>): TypedGraphDefinition<TInput, TOutput>
 ```
 
 ### `defineNode`
@@ -316,9 +316,9 @@ export const hasStepHandler = (name: string): boolean
 
 * `TypedNodeDef` (type) — 一个类型安全的节点声明
 
-* `TypedGraphOptions` (type) — defineTypedGraph 的选项
+* `TypedGraphOptions` (type) — defineGraph 的选项
 
-* `TypedGraphDefinition` (type) — defineTypedGraph 的返回值
+* `TypedGraphDefinition` (type) — defineGraph 的返回值
 
 * `NodeExecutionResult` (type)
 

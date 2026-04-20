@@ -79,6 +79,7 @@ describe("Password Utilities", () => {
       const [salt, hash] = storedHash.split(":");
 
       // 人为修改 hash 的长度（去掉最后一个字符）
+
       const tamperedHash = `${salt}:${hash.slice(0, -1)}`;
 
       const isValid = await verifyPassword(TEST_PASSWORD, tamperedHash);

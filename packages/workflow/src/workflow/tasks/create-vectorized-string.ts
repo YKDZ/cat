@@ -2,7 +2,7 @@ import { createVectorizedStringOp } from "@cat/operations";
 import * as z from "zod";
 
 import { generateCacheKey } from "@/graph/cache";
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export const CreateVectorizedStringInputSchema = z.object({
   data: z.array(
@@ -19,7 +19,7 @@ export const CreateVectorizedStringOutputSchema = z.object({
   stringIds: z.array(z.int()),
 });
 
-export const createVectorizedStringGraph = defineTypedGraph({
+export const createVectorizedStringGraph = defineGraph({
   id: "vectorized-string-create",
   input: CreateVectorizedStringInputSchema,
   output: CreateVectorizedStringOutputSchema,

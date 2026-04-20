@@ -7,7 +7,7 @@ import {
 import { getServiceFromDBId } from "@cat/server-shared";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 const SearchChunkInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),
@@ -41,7 +41,7 @@ const CosineSearchInputSchema = z.object({
 
 export { SearchChunkInputSchema, SearchChunkOutputSchema };
 
-export const searchChunkGraph = defineTypedGraph({
+export const searchChunkGraph = defineGraph({
   id: "chunk-search",
   input: SearchChunkInputSchema,
   output: SearchChunkOutputSchema,

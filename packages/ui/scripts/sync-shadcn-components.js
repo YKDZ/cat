@@ -174,7 +174,7 @@ function getSyncableComponents() {
  * Main function
  */
 async function main() {
-  const args = process.argv.slice(2);
+  const args = process.argv.subarray(2);
   const dryRun = args.includes("--dry-run");
   const checkMode = args.includes("--check");
   const specificComponents = args.filter((arg) => !arg.startsWith("--"));

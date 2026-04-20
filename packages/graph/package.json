@@ -25,6 +25,7 @@
     "zod": "catalog:"
   },
   "peerDependencies": {
+    "@cat/shared": "workspace:*",
     "zod": "catalog:"
   }
 }

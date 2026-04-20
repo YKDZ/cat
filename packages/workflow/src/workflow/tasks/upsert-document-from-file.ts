@@ -5,8 +5,8 @@ import {
 } from "@cat/domain";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
-import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { defineNode, defineGraph } from "@/graph/dsl";
+import { runGraph } from "@/graph/dsl/run-graph";
 
 import { diffElementsGraph } from "./diff-elements";
 import { parseFileGraph } from "./parse-file";
@@ -25,7 +25,7 @@ export const UpsertDocumentOutputSchema = z.object({
   removedCount: z.int(),
 });
 
-export const upsertDocumentGraph = defineTypedGraph({
+export const upsertDocumentGraph = defineGraph({
   id: "document-upsert-from-file",
   input: UpsertDocumentInputSchema,
   output: UpsertDocumentOutputSchema,

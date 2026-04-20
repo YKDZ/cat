@@ -1,6 +1,6 @@
 import type { SerializableType } from "@cat/shared/schema/json";
 
-import type { TypedNodeContext } from "@/graph/typed-dsl/types";
+import type { TypedNodeContext } from "@/graph/dsl/types";
 
 /**
  * @zh 在 graph 节点中执行带 VCS 审计的写操作。

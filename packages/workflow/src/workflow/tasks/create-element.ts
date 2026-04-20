@@ -3,8 +3,8 @@ import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
 import { zip } from "@cat/shared/utils";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
-import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { defineNode, defineGraph } from "@/graph/dsl";
+import { runGraph } from "@/graph/dsl/run-graph";
 
 import { createVectorizedStringGraph } from "./create-vectorized-string";
 
@@ -30,7 +30,7 @@ export const CreateElementOutputSchema = z.object({
   elementIds: z.array(z.int()),
 });
 
-export const createElementGraph = defineTypedGraph({
+export const createElementGraph = defineGraph({
   id: "element-create",
   input: CreateElementInputSchema,
   output: CreateElementOutputSchema,

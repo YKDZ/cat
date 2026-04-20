@@ -4,14 +4,14 @@ import {
   RetrieveEmbeddingsOutputSchema,
 } from "@cat/operations";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 export {
   RetrieveEmbeddingsInputSchema as RetriveEmbeddingsInputSchema,
   RetrieveEmbeddingsOutputSchema as RetriveEmbeddingsOutputSchema,
 };
 
-export const retriveEmbeddingsGraph = defineTypedGraph({
+export const retriveEmbeddingsGraph = defineGraph({
   id: "embeddings-retrive",
   input: RetrieveEmbeddingsInputSchema,
   output: RetrieveEmbeddingsOutputSchema,

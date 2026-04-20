@@ -293,7 +293,7 @@ export class Provider extends StorageProvider {
       }
     }
 
-    const data = buffer.slice(0, sliceEnd).toString("utf-8");
+    const data = buffer.subarray(0, sliceEnd).toString("utf-8");
     return { data, total, actualEnd: actualStart + sliceEnd - 1 };
   }
 }

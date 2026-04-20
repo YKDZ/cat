@@ -3,8 +3,8 @@ import { TermDataSchema } from "@cat/shared/schema/misc";
 import * as z from "zod";
 
 import { generateCacheKey } from "@/graph/cache";
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
-import { runGraph } from "@/graph/typed-dsl/run-graph";
+import { defineNode, defineGraph } from "@/graph/dsl";
+import { runGraph } from "@/graph/dsl/run-graph";
 
 import { revectorizeConceptGraph } from "./revectorize-concept";
 
@@ -20,7 +20,7 @@ export const CreateTermOutputSchema = z.object({
   termIds: z.array(z.int()),
 });
 
-export const createTermGraph = defineTypedGraph({
+export const createTermGraph = defineGraph({
   id: "term-create",
   input: CreateTermInputSchema,
   output: CreateTermOutputSchema,

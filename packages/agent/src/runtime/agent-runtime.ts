@@ -65,6 +65,69 @@ const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   contextWindowSize: 128_000,
 };
 
+const toUnknownRecord = (value: unknown): Record<string, unknown> | null => {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return Object.fromEntries(Object.entries(value));
+};
+
+const isToolCall = (
+  value: unknown,
+): value is { id: string; name: string; arguments: string } => {
+  const record = toUnknownRecord(value);
+  if (!record) {
+    return false;
+  }
+
+  return (
+    typeof record["id"] === "string" &&
+    typeof record["name"] === "string" &&
+    typeof record["arguments"] === "string"
+  );
+};
+
+const isAgentMessage = (
+  value: unknown,
+): value is AgentBlackboardData["messages"][number] => {
+  const record = toUnknownRecord(value);
+  if (!record) {
+    return false;
+  }
+
+  const role = record["role"];
+  const content = record["content"];
+  const toolCallId = record["toolCallId"];
+  const toolCalls = record["toolCalls"];
+
+  const hasValidRole =
+    role === "system" ||
+    role === "user" ||
+    role === "assistant" ||
+    role === "tool";
+
+  const hasValidToolCalls =
+    toolCalls === undefined ||
+    (Array.isArray(toolCalls) && toolCalls.every((item) => isToolCall(item)));
+
+  return (
+    hasValidRole &&
+    (typeof content === "string" || content === null) &&
+    (typeof toolCallId === "string" || toolCallId === undefined) &&
+    hasValidToolCalls
+  );
+};
+
+const toAgentMessages = (value: unknown): AgentBlackboardData["messages"] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is AgentBlackboardData["messages"][number] =>
+    isAgentMessage(item),
+  );
+};
+
 // ─── Agent Events ─────────────────────────────────────────────────────────────
 
 /**
@@ -193,13 +256,19 @@ export class AgentRuntime {
 
     // Initialize Blackboard
     const startedAt = new Date();
-    const initialData: AgentBlackboardData = blackboardSnapshot
-      ? blackboardSnapshot.data
-      : {
-          messages: [],
-          current_turn: 0,
-          started_at: startedAt.toISOString(),
-        };
+    const snapshotData = blackboardSnapshot?.data;
+    const initialData: AgentBlackboardData = {
+      ...(snapshotData ?? {}),
+      messages: toAgentMessages(snapshotData?.["messages"]),
+      current_turn:
+        typeof snapshotData?.["current_turn"] === "number"
+          ? snapshotData["current_turn"]
+          : 0,
+      started_at:
+        typeof snapshotData?.["started_at"] === "string"
+          ? snapshotData["started_at"]
+          : startedAt.toISOString(),
+    };
 
     const blackboard = blackboardSnapshot
       ? Blackboard.fromSnapshot(blackboardSnapshot)

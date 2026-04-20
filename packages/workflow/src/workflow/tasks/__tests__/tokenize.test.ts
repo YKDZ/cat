@@ -4,7 +4,7 @@ import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/typed-dsl";
+import { runGraph } from "@/graph/dsl";
 
 import { tokenizeGraph } from "../tokenize";
 

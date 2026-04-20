@@ -6,7 +6,7 @@ import {
 } from "@cat/operations";
 import * as z from "zod";
 
-import { defineNode, defineTypedGraph } from "@/graph/typed-dsl";
+import { defineNode, defineGraph } from "@/graph/dsl";
 
 // ─── Input Schema ────────────────────────────────────────────────────────────
 
@@ -221,7 +221,7 @@ const MergeInputSchema = z.object({
  * start ──┤                 ├── llm-align ── merge
  *         └─ stat-align  ──┘
  */
-export const termAlignmentGraph = defineTypedGraph({
+export const termAlignmentGraph = defineGraph({
   id: "term-alignment",
   version: "1.0.0",
   description: "术语对齐工作流 — 跨语言术语配对",

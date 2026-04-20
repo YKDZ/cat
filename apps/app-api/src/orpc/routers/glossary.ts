@@ -27,6 +27,7 @@ import { rerankTermRecallOp, termRecallOp } from "@cat/operations";
 import { firstOrGivenService } from "@cat/server-shared";
 import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
 import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
+import { JSONObjectSchema } from "@cat/shared/schema/json";
 import { TermDataSchema } from "@cat/shared/schema/misc";
 import { listWithOverlay } from "@cat/vcs";
 import {
@@ -652,7 +653,7 @@ export const startTermDiscovery = authed
     }
     const runId = await runtime.scheduler.start(
       "term-discovery",
-      resolvedGraphInput,
+      JSONObjectSchema.parse(resolvedGraphInput),
       {
         sessionId: sessionRow.id,
       },
