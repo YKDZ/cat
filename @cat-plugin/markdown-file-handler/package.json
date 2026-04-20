@@ -20,18 +20,11 @@
       "import": "./dist/index.js"
     }
   },
-  "dependencies": {
-    "remark-gfm": "catalog:",
-    "remark-parse": "catalog:",
-    "remark-stringify": "catalog:",
-    "unified": "catalog:"
-  },
   "devDependencies": {
-    "@types/mdast": "catalog:",
-    "@types/unist": "^3.0.3",
     "vite": "catalog:"
   },
   "peerDependencies": {
+    "@cat/file-parsers": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "zod": "catalog:"

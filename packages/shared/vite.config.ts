@@ -107,6 +107,10 @@ export default defineConfig({
           import.meta.dirname,
           "src/schema/project-setting.ts",
         ),
+        "schema/collection": resolve(
+          import.meta.dirname,
+          "src/schema/collection.ts",
+        ),
       },
       formats: ["es"],
     },

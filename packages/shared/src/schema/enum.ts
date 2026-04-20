@@ -62,6 +62,7 @@ export const TranslatableElementContextTypeValues = [
   "FILE",
   "MARKDOWN",
   "URL",
+  "IMAGE",
 ] as const;
 export const TranslatableElementContextTypeSchema = z.enum(
   TranslatableElementContextTypeValues,

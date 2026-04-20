@@ -22,13 +22,11 @@
       "import": "./dist/index.js"
     }
   },
-  "dependencies": {
-    "yaml": "catalog:"
-  },
   "devDependencies": {
     "vite": "catalog:"
   },
   "peerDependencies": {
+    "@cat/file-parsers": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/shared": "workspace:*",
     "zod": "catalog:"

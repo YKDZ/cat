@@ -29,6 +29,7 @@ import {
   createTranslationGraph,
   diffElementsGraph,
   fetchAdviseGraph,
+  ingestCollectionGraph,
   nlpBatchSegmentGraph,
   nlpSegmentGraph,
   parseFileGraph,
@@ -106,6 +107,7 @@ export const createDefaultGraphRuntime = (
   graphRegistry.register(createTranslationGraph.graphDefinition);
   graphRegistry.register(diffElementsGraph.graphDefinition);
   graphRegistry.register(fetchAdviseGraph.graphDefinition);
+  graphRegistry.register(ingestCollectionGraph.graphDefinition);
   graphRegistry.register(nlpBatchSegmentGraph.graphDefinition);
   graphRegistry.register(nlpSegmentGraph.graphDefinition);
   graphRegistry.register(parseFileGraph.graphDefinition);

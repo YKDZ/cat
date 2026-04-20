@@ -88,6 +88,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: "unit-file-parsers",
+          include: ["packages/file-parsers/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/file-parsers")) },
+      },
+      {
+        test: {
           name: "unit-shared",
           include: ["packages/shared/src/**/*.{spec,test}.ts"],
           environment: "node",

@@ -62,7 +62,7 @@ export type VectorizedString = z.infer<typeof VectorizedStringSchema>;
 
 export const TranslatableElementContextSchema = z.object({
   id: z.int(),
-  type: z.enum(["TEXT", "JSON", "FILE", "MARKDOWN", "URL"]),
+  type: z.enum(["TEXT", "JSON", "FILE", "MARKDOWN", "URL", "IMAGE"]),
   jsonData: safeZDotJson.nullable(),
   fileId: z.int().nullable(),
   storageProviderId: z.int().nullable(),
