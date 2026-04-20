@@ -1,7 +1,8 @@
 import type { FullConfig } from "@playwright/test";
 
 // oxlint-disable no-console -- intentional diagnostic logging in globalSetup
-import { DrizzleDB, ensureDB } from "@cat/db";
+
+import { DrizzleDB, ensureDB, RedisConnection } from "@cat/db";
 import { loadDevSeed, runSeedPipeline, truncateAllTables } from "@cat/seed";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -42,51 +43,15 @@ const validateDatabaseUrl = (): string => {
 };
 
 /**
- * Warm up the app server before running tests.
- *
- * `onCreateGlobalContext` (Vike) initialises the graph runtime and domain
- * event handlers the first time a Vike page is served. This takes >30 s on a
- * cold DB, which exceeds Vike's built-in timeout and leaves the event bus
- * uninitialised. Warmup triggers `onCreateGlobalContext` early (before table
- * truncation), then polls `/_health` until `globalThis.inited` is true (up to
- * 120 s). Because `onCreateGlobalContext` only runs once per process, the
- * domain event handlers remain registered throughout the entire test run.
+ * With Direction B, initialization is performed at server startup in
+ * server/initialize.ts before the HTTP server starts. By the time Playwright's
+ * webServer confirms /_health returns 200, domain event handlers are already
+ * registered and no manual warmup is needed.
  */
-const warmupServer = async (baseURL: string): Promise<void> => {
-  console.log("[e2e globalSetup] Warming up app server...");
 
-  // Hit a Vike page to trigger onCreateGlobalContext (/_health is a Hono
-  // route and does NOT trigger Vike's hook).
-  await fetch(`${baseURL}/auth`).catch(() => {
-    /* server may not yet be up — ignore */
-  });
-
-  const deadline = Date.now() + 120_000;
-  while (Date.now() < deadline) {
-    const res = await fetch(`${baseURL}/_health`).catch(() => null);
-    if (res?.ok) {
-      console.log("[e2e globalSetup] Server is ready (/_health returned 200).");
-      return;
-    }
-    await new Promise((r) => setTimeout(r, 2_000));
-  }
-
-  throw new Error(
-    "[e2e globalSetup] App server did not become ready within 120 s. " +
-      "Check the webServer logs for errors.",
-  );
-};
-
-const globalSetup = async (config: FullConfig): Promise<void> => {
+const globalSetup = async (_config: FullConfig): Promise<void> => {
   // 1. Validate DATABASE_URL
   validateDatabaseUrl();
-
-  // 1b. Warm up the server BEFORE truncating tables so that
-  //     onCreateGlobalContext (and the domain event handlers it registers) runs
-  //     while the DB is still populated from the previous seed run.
-  const baseURL =
-    config.projects[0]?.use.baseURL ?? "http://localhost:3000";
-  await warmupServer(baseURL);
 
   // 2. Connect to database
   const drizzleDB = new DrizzleDB();
@@ -99,6 +64,16 @@ const globalSetup = async (config: FullConfig): Promise<void> => {
     // 3. Truncate all tables
     console.log("[e2e globalSetup] Truncating all tables...");
     await truncateAllTables(execCtx);
+
+    // 3a. Clear stale Redis queues (prevents server startup hang during crash recovery)
+    if (process.env.REDIS_URL) {
+      const redis = new RedisConnection();
+      await redis.connect();
+      await redis.redis.del("queue:vectorization:pending");
+      await redis.redis.del("queue:vectorization:processing");
+      redis.disconnect();
+      console.log("[e2e globalSetup] Cleared Redis vectorization queues.");
+    }
 
     // 3b. Remove stale auth storage-state files (from a previous DB seed)
     const authDir = resolve(import.meta.dirname, "test-results/.auth");

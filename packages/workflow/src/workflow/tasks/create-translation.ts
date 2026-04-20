@@ -101,7 +101,7 @@ export const createTranslationGraph = defineGraph({
             }),
         );
 
-        ctx.addEvent({
+        await ctx.emit({
           type: "workflow:translation:created",
           payload: {
             documentId: input.documentId,

@@ -6,6 +6,8 @@ import { getDbHandle, getRedisHandle } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
 import { apply, serve } from "@photonjs/hono";
 
+import { initializeApp } from "./initialize.ts";
+
 let server: Server | null = null;
 
 const shutdownServer = () => {
@@ -41,7 +43,6 @@ const shutdownServer = () => {
 
 const startServer = () => {
   apply(app);
-
   return serve(app, {
     port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
 
@@ -89,5 +90,11 @@ const startServer = () => {
     },
   });
 };
+
+// Initialize the application before starting the HTTP server.
+// This ensures /_health returns 200 only after the server is fully ready,
+// decoupling initialization from Vike's onCreateGlobalContext hook (which has
+// a 30 s timeout that would fail on cold start).
+await initializeApp();
 
 export default startServer();
