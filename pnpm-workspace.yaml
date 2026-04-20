@@ -12,6 +12,8 @@ allowBuilds:
   vue-demi: true
 
 catalog:
+  "@vue/compiler-dom": ^3.5.32
+  "@vue/compiler-sfc": ^3.5.32
   "@types/node": ^24.12.2
   tsx: ^4.21.0
   unplugin-dts: 1.0.0-beta.6
