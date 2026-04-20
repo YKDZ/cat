@@ -1,4 +1,5 @@
-# Deps for run e2e locally
+# E2E test dependencies — start with:
+#   docker compose -f apps/app-e2e/docker-compose.yml up -d
 services:
   redis:
     image: redis
@@ -20,7 +21,7 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
-      POSTGRES_DB: cat
+      POSTGRES_DB: cat_e2e
     ports:
       - 5432:5432
     healthcheck:
@@ -31,30 +32,3 @@ services:
       interval: 30s
       retries: 5
       timeout: 5s
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: e2e_ollama
-    ports:
-      - 11434:11434
-    volumes:
-      - ./ollama:/root/.ollama
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 5s
-
-  ollama-init:
-    image: curlimages/curl
-    container_name: e2e_ollama_init
-    depends_on:
-      ollama:
-        condition: service_healthy
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "echo 'Pulling qwen2.5:0.5b...' &&
-       curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"qwen2.5:0.5b\", \"stream\": false}' &&
-       echo 'Pulling nomic-embed-text...' &&
-       curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"nomic-embed-text\", \"stream\": false}'"

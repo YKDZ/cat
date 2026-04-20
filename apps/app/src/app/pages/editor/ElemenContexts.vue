@@ -30,6 +30,7 @@ const componentFromType = (type: TranslatableElementContextType) => {
   switch (type) {
     case "JSON":
       return ElemenContextJson;
+    case "TEXT":
     case "MARKDOWN":
       return ElemenContextMarkdown;
     default:

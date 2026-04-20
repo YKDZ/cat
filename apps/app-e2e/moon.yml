@@ -6,6 +6,7 @@ tags:
 
 dependsOn:
   - "app"
+  - "seed"
 
 tasks:
   typecheck:
@@ -14,7 +15,8 @@ tasks:
   test-e2e:
     command: "playwright test"
     inputs:
-      - "src/**/*"
+      - "tests/**/*"
+      - "global-setup.ts"
       - "playwright.config.ts"
     options:
       cache: false

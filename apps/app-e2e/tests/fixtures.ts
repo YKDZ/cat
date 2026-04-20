@@ -1,72 +1,121 @@
-import { test as baseTest, expect } from "@playwright/test";
-import fs from "fs";
-import { randomUUID } from "node:crypto";
-import path from "path";
+import { test as baseTest } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-import { acquireAccount } from "@/utils/account";
+import { EditorPage } from "@/pages/editor-page";
+import { LoginPage } from "@/pages/login-page";
 
-export * from "@playwright/test";
+// ── Types ────────────────────────────────────────────────────────────
 
-interface TestFixtures {
-  testId: string;
+export type E2ERefs = Record<string, string>;
+
+interface E2EFixtures {
+  /** Ref→ID mapping from seeded data (e.g., refs["project"], refs["el:001"]) */
+  refs: E2ERefs;
+  /** LoginPage Page Object for the current page */
+  loginPage: LoginPage;
+  /** EditorPage Page Object for the current page */
+  editorPage: EditorPage;
+  /** Pre-built URL to the seeded project dashboard */
+  projectUrl: string;
 }
 
-export const test = baseTest.extend<
-  TestFixtures,
-  { workerStorageState: string }
->({
-  // oxlint-disable-next-line no-empty-pattern
-  testId: async ({}, use) => {
-    // 为每个测试生成唯一的 ID
-    const id = randomUUID().split("-")[0];
-    await use(id);
-  },
-  // Use the same storage state for all tests in this worker.
-  storageState: async ({ workerStorageState }, use) => use(workerStorageState),
+interface E2EWorkerFixtures {
+  /** Path to the admin user's storageState file (worker-scoped, reused across tests) */
+  adminStorageState: string;
+}
 
-  // Authenticate once per worker with a worker-scoped fixture.
-  workerStorageState: [
+// ── Load refs from globalSetup output ────────────────────────────────
+
+const REFS_PATH = resolve(import.meta.dirname, "../test-results/e2e-refs.json");
+
+let _cachedRefs: E2ERefs | undefined;
+
+const loadRefs = (): E2ERefs => {
+  if (_cachedRefs) return _cachedRefs;
+  try {
+    const raw = readFileSync(REFS_PATH, "utf-8");
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    _cachedRefs = JSON.parse(raw) as E2ERefs;
+  } catch {
+    throw new Error(
+      `[e2e fixtures] Failed to load refs from ${REFS_PATH}. ` +
+        "Did globalSetup run successfully?",
+    );
+  }
+
+  // Validate required refs
+  const required = ["project", "user:admin", "document:elements"];
+  for (const ref of required) {
+    if (!_cachedRefs[ref]) {
+      throw new Error(
+        `[e2e fixtures] Required ref "${ref}" not found in ${REFS_PATH}.`,
+      );
+    }
+  }
+
+  return _cachedRefs;
+};
+
+// ── Credentials (must match datasets/e2e/seed/users.json) ───────────
+
+const ADMIN_EMAIL = "admin@cat.dev";
+const ADMIN_PASSWORD = "password";
+
+// ── Extend Playwright test ──────────────────────────────────────────
+
+export const test = baseTest.extend<E2EFixtures, E2EWorkerFixtures>({
+  // Worker-scoped: authenticate admin once, reuse storageState
+  adminStorageState: [
     async ({ browser }, use) => {
-      // Use parallelIndex as a unique identifier for each worker.
       const id = test.info().parallelIndex;
-      const fileName = path.resolve(
+      const fileName = resolve(
         test.info().project.outputDir,
-        `.auth/${id}.json`,
+        `.auth/admin-${id}.json`,
       );
 
-      if (fs.existsSync(fileName)) {
-        // Reuse existing authentication state if any.
+      // Reuse existing auth if available
+      const { existsSync } = await import("node:fs");
+      if (existsSync(fileName)) {
         await use(fileName);
         return;
       }
 
-      // Important: make sure we authenticate in a clean environment by unsetting storage state.
-      const page = await browser.newPage({ storageState: undefined });
-
-      // Acquire a unique account, for example create a new one.
-      // Alternatively, you can have a list of precreated accounts for testing.
-      // Make sure that accounts are unique, so that multiple team members
-      // can run tests at the same time without interference.
-      const account = await acquireAccount(randomUUID().split("-")[0]);
-
-      // Perform authentication steps. Replace these actions with your own.
-      await page.goto("http://localhost:3000/");
-      await page.getByRole("textbox", { name: "邮箱" }).click();
-      await page.getByRole("textbox", { name: "邮箱" }).fill(account.email);
-      await page.getByTestId("PASSWORD").click();
-      await page.locator('input[type="password"]').click();
-      await page.locator('input[type="password"]').fill(account.password);
-      await page.getByRole("button", { name: "登录" }).click();
-
-      await expect(page).toHaveURL("http://localhost:3000/");
-      await expect(page).toHaveTitle("CAT");
-
-      // End of authentication steps.
-
+      // Authenticate via UI
+      // browser.newPage() does not inherit project-level baseURL; pass it explicitly.
+      const context = await browser.newContext({
+        baseURL: `http://localhost:${process.env.PORT ?? 3000}`,
+        storageState: undefined,
+      });
+      const page = await context.newPage();
+      const loginPage = new LoginPage(page);
+      await loginPage.loginAndVerify(ADMIN_EMAIL, ADMIN_PASSWORD);
       await page.context().storageState({ path: fileName });
-      await page.close();
+      await context.close();
       await use(fileName);
     },
     { scope: "worker" },
   ],
+
+  // Every test gets a page with admin auth
+  storageState: async ({ adminStorageState }, use) => use(adminStorageState),
+
+  // oxlint-disable-next-line no-empty-pattern
+  refs: async ({}, use) => {
+    await use(loadRefs());
+  },
+
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+
+  editorPage: async ({ page }, use) => {
+    await use(new EditorPage(page));
+  },
+
+  projectUrl: async ({ refs }, use) => {
+    await use(`/project/${refs["project"]}`);
+  },
 });
+
+export { expect } from "@playwright/test";

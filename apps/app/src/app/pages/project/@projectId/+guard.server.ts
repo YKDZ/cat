@@ -1,11 +1,11 @@
 import type { PageContextServer } from "vike/types";
 
-import { render } from "vike/abort";
+import { redirect, render } from "vike/abort";
 
 import { ssc } from "@/server/ssc";
 
 export const guard = async (ctx: PageContextServer) => {
-  if (!ctx.user) throw render("/auth", `You must login to access`);
+  if (!ctx.user) throw redirect("/auth");
 
   const { projectId } = ctx.routeParams;
   if (!projectId) throw render("/", `Invalid route params`);

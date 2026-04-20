@@ -1,72 +1,54 @@
+import dotenv from "dotenv";
+import { resolve } from "node:path";
+
+// Load .env from the app-e2e directory (not CWD, which may differ)
+dotenv.config({ path: resolve(import.meta.dirname, ".env") });
+
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
 export default defineConfig({
   testDir: "./tests",
-  /* Run tests in files in parallel */
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "html",
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+  globalSetup: "./global-setup.ts",
+
+  /* Ignore old spec files pending Phase 2 migration */
+  testIgnore: ["**/project-crud.spec.ts", "**/agent-phase2.spec.ts"],
+
+  use: {
+    baseURL: `http://localhost:${process.env.PORT ?? 3000}`,
     trace: "on-first-retry",
+    // Force zh-CN locale so the server reads Accept-Language: zh-CN and
+    // serves Chinese i18n strings. Without this, Chromium defaults to en-US
+    // and the app renders English text ("Submit", "Showing … of …") which
+    // breaks assertions that check for Chinese strings ("提交", "共 N 条").
+    locale: "zh-CN",
   },
 
-  /* Configure projects for major browsers */
+  webServer: {
+    command: "pnpm moon run app:preview",
+    url: `http://localhost:${process.env.PORT ?? 3000}/_health`,
+    reuseExistingServer: !process.env.CI,
+    timeout: 300_000,
+    env: {
+      PORT: process.env.PORT ?? "3000",
+      DATABASE_URL: process.env.DATABASE_URL ?? "",
+      REDIS_URL: process.env.REDIS_URL ?? "",
+    },
+  },
+
   projects: [
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
     },
-
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 });

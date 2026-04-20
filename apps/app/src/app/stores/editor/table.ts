@@ -93,7 +93,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     });
     await toPage(page);
     elementId.value = id;
-    translationValue.value = "";
+    // translationValue is cleared synchronously by +Layout.vue watchClient
+    // before toElement is called, so no async race with user input.
     // 页码从 1 开始
     context.currentPage.value = page + 1;
   };

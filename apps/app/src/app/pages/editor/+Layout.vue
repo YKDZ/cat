@@ -19,7 +19,7 @@ const ctx = usePageContext();
 const { refresh: refreshContext } = useEditorContextStore();
 const { refresh: refreshElement } = useEditorElementStore();
 const { toElement } = useEditorTableStore();
-const { elementId } = storeToRefs(useEditorTableStore());
+const { elementId, translationValue } = storeToRefs(useEditorTableStore());
 const { documentId, languageToId } = storeToRefs(useEditorContextStore());
 
 syncRefWith(documentId, () => z.uuidv4().parse(ctx.routeParams["documentId"]));
@@ -28,7 +28,10 @@ syncRefWith(elementId, () => parseInt(ctx.routeParams["elementId"] ?? ""));
 
 watchClient(
   elementId,
-  (to) => {
+  (to, from) => {
+    // Clear the translation editor synchronously when switching elements so
+    // that toElement()'s async network work cannot race with typed input.
+    if (from && to !== from) translationValue.value = "";
     if (to) toElement(to);
   },
   { immediate: true },
