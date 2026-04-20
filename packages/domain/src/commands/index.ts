@@ -19,6 +19,7 @@ export * from "@/commands/document/delete-document.cmd";
 export * from "@/commands/element/create-elements.cmd";
 export * from "@/commands/element/delete-elements-by-ids.cmd";
 export * from "@/commands/element/bulk-update-elements-for-diff.cmd";
+export * from "@/commands/element/insert-element-contexts.cmd";
 export * from "@/commands/glossary/add-glossary-term-to-concept.cmd";
 export * from "@/commands/glossary/create-glossary.cmd";
 export * from "@/commands/glossary/create-glossary-concept.cmd";

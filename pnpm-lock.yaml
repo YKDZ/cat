@@ -130,6 +130,9 @@ importers:
 
   '@cat-plugin/json-file-handler':
     dependencies:
+      '@cat/file-parsers':
+        specifier: workspace:*
+        version: link:../../packages/file-parsers
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../packages/plugin-core
@@ -181,34 +184,19 @@ importers:
 
   '@cat-plugin/markdown-file-handler':
     dependencies:
+      '@cat/file-parsers':
+        specifier: workspace:*
+        version: link:../../packages/file-parsers
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      remark-gfm:
-        specifier: 'catalog:'
-        version: 4.0.1
-      remark-parse:
-        specifier: 'catalog:'
-        version: 11.0.0
-      remark-stringify:
-        specifier: 'catalog:'
-        version: 11.0.0
-      unified:
-        specifier: 'catalog:'
-        version: 11.0.5
       zod:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@types/mdast':
-        specifier: 'catalog:'
-        version: 4.0.4
-      '@types/unist':
-        specifier: ^3.0.3
-        version: 3.0.3
       vite:
         specifier: 'catalog:'
         version: 8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
@@ -393,15 +381,15 @@ importers:
 
   '@cat-plugin/yaml-file-handler':
     dependencies:
+      '@cat/file-parsers':
+        specifier: workspace:*
+        version: link:../../packages/file-parsers
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../packages/plugin-core
       '@cat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      yaml:
-        specifier: 'catalog:'
-        version: 2.8.3
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -1139,6 +1127,49 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.2
+      unplugin-dts:
+        specifier: 'catalog:'
+        version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.12.2))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.28.0)(rollup@4.60.2)(typescript@6.0.0-beta)(vite@8.0.8(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+      vite:
+        specifier: 'catalog:'
+        version: 8.0.8(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.4(@opentelemetry/api@1.9.1)(@types/node@24.12.2)(@vitest/ui@4.1.4)(happy-dom@20.9.0)(vite@8.0.8(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
+
+  packages/file-parsers:
+    dependencies:
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../shared
+      remark-gfm:
+        specifier: 'catalog:'
+        version: 4.0.1
+      remark-parse:
+        specifier: 'catalog:'
+        version: 11.0.0
+      remark-stringify:
+        specifier: 'catalog:'
+        version: 11.0.0
+      unified:
+        specifier: 'catalog:'
+        version: 11.0.5
+      yaml:
+        specifier: 'catalog:'
+        version: 2.8.3
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@types/mdast':
+        specifier: 'catalog:'
+        version: 4.0.4
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.2
+      '@types/unist':
+        specifier: ^3.0.3
+        version: 3.0.3
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(@microsoft/api-extractor@7.52.12(@types/node@24.12.2))(@vue/language-core@3.0.6(typescript@6.0.0-beta))(esbuild@0.28.0)(rollup@4.60.2)(typescript@6.0.0-beta)(vite@8.0.8(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))
@@ -13487,7 +13518,7 @@ snapshots:
 
   '@types/bunyan@1.8.11':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
 
   '@types/chai@5.2.3':
     dependencies:
@@ -13496,7 +13527,7 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
 
   '@types/d3-array@3.2.2': {}
 
@@ -13650,7 +13681,7 @@ snapshots:
 
   '@types/memcached@2.2.10':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
 
   '@types/ms@2.1.0': {}
 
@@ -13666,7 +13697,7 @@ snapshots:
 
   '@types/mysql@2.15.27':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
 
   '@types/node@24.12.2':
     dependencies:
@@ -13678,7 +13709,7 @@ snapshots:
 
   '@types/oracledb@6.5.2':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
 
   '@types/parse-json@4.0.2':
     optional: true
@@ -13689,7 +13720,7 @@ snapshots:
 
   '@types/pg@8.15.6':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
       pg-protocol: 1.13.0
       pg-types: 2.2.0
 
@@ -13714,7 +13745,7 @@ snapshots:
 
   '@types/tedious@4.0.14':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
 
   '@types/trusted-types@2.0.7':
     optional: true
@@ -13729,7 +13760,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
 
   '@typescript-eslint/project-service@8.58.2(typescript@6.0.0-beta)':
     dependencies:
@@ -17418,7 +17449,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 24.12.2
+      '@types/node': 25.6.0
       long: 5.3.2
 
   proxy-addr@2.0.7:

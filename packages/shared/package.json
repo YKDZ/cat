@@ -142,6 +142,10 @@
     "./schema/project-setting": {
       "types": "./dist/schema/project-setting.d.ts",
       "import": "./dist/schema/project-setting.js"
+    },
+    "./schema/collection": {
+      "types": "./dist/schema/collection.d.ts",
+      "import": "./dist/schema/collection.js"
     }
   },
   "dependencies": {
