@@ -37,6 +37,9 @@ export const NavigationStepSchema = z.discriminatedUnion("action", [
 export const RouteEntrySchema = z.object({
   template: z.string(),
   waitAfterLoad: z.number().optional(),
+  waitUntil: z
+    .enum(["load", "domcontentloaded", "networkidle", "commit"])
+    .optional(),
   steps: z.array(NavigationStepSchema).optional(),
   auth: z.boolean().optional(),
 });

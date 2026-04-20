@@ -67,8 +67,12 @@ export async function extract(
 
         fileContexts.push({
           elementRef: el.ref,
-          type: "TEXT",
-          data: { text: `Source: ${relPath}` },
+          type: "JSON",
+          data: {
+            json: {
+              source: relPath,
+            },
+          },
         });
 
         const i18nCtx = el.location?.custom?.["i18nContext"];
