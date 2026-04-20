@@ -5,10 +5,9 @@
   "type": "module",
   "devDependencies": {
     "@cat/db": "workspace:*",
-    "@cat/domain": "workspace:*",
-    "@cat/server-shared": "workspace:*",
-    "@cat/shared": "workspace:*",
+    "@cat/seed": "workspace:*",
     "@playwright/test": "^1.59.1",
-    "@types/node": "catalog:"
+    "@types/node": "catalog:",
+    "dotenv": "^16.5.0"
   }
 }

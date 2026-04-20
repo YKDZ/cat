@@ -756,21 +756,18 @@ importers:
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@cat/domain':
+      '@cat/seed':
         specifier: workspace:*
-        version: link:../../packages/domain
-      '@cat/server-shared':
-        specifier: workspace:*
-        version: link:../../packages/server-shared
-      '@cat/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
+        version: link:../../packages/seed
       '@playwright/test':
         specifier: ^1.59.1
         version: 1.59.1
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.2
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.6.1
 
   apps/cli:
     dependencies:
@@ -1401,6 +1398,9 @@ importers:
       '@cat/shared':
         specifier: workspace:*
         version: link:../shared
+      '@cat/test-utils':
+        specifier: workspace:*
+        version: link:../test-utils
       better-sqlite3:
         specifier: ^12.9.0
         version: 12.9.0
@@ -6456,6 +6456,10 @@ packages:
 
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
+
+  dotenv@16.6.1:
+    resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
+    engines: {node: '>=12'}
 
   dotenv@17.4.2:
     resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
@@ -15348,6 +15352,8 @@ snapshots:
       dom-serializer: 2.0.0
       domelementtype: 2.3.0
       domhandler: 5.0.3
+
+  dotenv@16.6.1: {}
 
   dotenv@17.4.2: {}
 
