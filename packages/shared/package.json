@@ -146,6 +146,10 @@
     "./schema/collection": {
       "types": "./dist/schema/collection.d.ts",
       "import": "./dist/schema/collection.js"
+    },
+    "./schema/extraction": {
+      "types": "./dist/schema/extraction.d.ts",
+      "import": "./dist/schema/extraction.js"
     }
   },
   "dependencies": {

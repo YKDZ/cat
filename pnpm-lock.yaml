@@ -1361,6 +1361,9 @@ importers:
       playwright:
         specifier: ^1.52.0
         version: 1.59.1
+      yaml:
+        specifier: 'catalog:'
+        version: 2.8.3
       zod:
         specifier: 'catalog:'
         version: 4.3.6

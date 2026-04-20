@@ -2,15 +2,21 @@
 
 import { DrizzleDB, ensureDB } from "@cat/db";
 import { loadDevSeed, runSeedPipeline, truncateAllTables } from "@cat/seed";
+import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const main = async (): Promise<void> => {
   const args = process.argv.slice(2);
   const skipVectorization = args.includes("--skip-vectorization");
-  const datasetDir = args.find((a) => !a.startsWith("--"));
+  const outputBindingsIdx = args.indexOf("--output-bindings");
+  const outputBindingsPath =
+    outputBindingsIdx !== -1 ? args[outputBindingsIdx + 1] : undefined;
+  const datasetDir = args.find(
+    (a, i) => !a.startsWith("--") && i !== outputBindingsIdx + 1,
+  );
 
   if (!datasetDir) {
-    console.error("Usage: tsx main.ts <dataset-dir> [--skip-vectorization]");
+    console.error("Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--output-bindings <path>]");
     console.error("Example: tsx main.ts datasets/default");
     process.exit(1);
   }
@@ -80,6 +86,17 @@ const main = async (): Promise<void> => {
     console.log(`  ${ref} → ${id}`);
   }
   console.log("\n[seed] Done.");
+
+  // Write bindings JSON file if --output-bindings was specified
+  if (outputBindingsPath) {
+    const bindings: Record<string, string> = {};
+    for (const [ref, id] of result.refs.entries()) {
+      bindings[ref] = String(id);
+    }
+    const absPath = resolve(process.cwd(), outputBindingsPath);
+    await writeFile(absPath, JSON.stringify(bindings, null, 2), "utf-8");
+    console.log(`[seed] Bindings written to: ${absPath}`);
+  }
 
   // 7. Cleanup connections
   await drizzleDB.disconnect();
