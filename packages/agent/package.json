@@ -18,14 +18,14 @@
     }
   },
   "dependencies": {
-    "remark-frontmatter": "^5.0.0",
-    "remark-parse": "^11.0.0",
-    "unified": "^11.0.5",
-    "yaml": "^2.8.3"
+    "remark-frontmatter": "catalog:",
+    "remark-parse": "catalog:",
+    "unified": "catalog:",
+    "yaml": "catalog:"
   },
   "devDependencies": {
     "@cat/test-utils": "workspace:*",
-    "@types/mdast": "^4.0.4",
+    "@types/mdast": "catalog:",
     "@types/node": "catalog:",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",

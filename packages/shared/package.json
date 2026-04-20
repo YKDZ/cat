@@ -145,7 +145,7 @@
     }
   },
   "dependencies": {
-    "yaml": "^2.8.3"
+    "yaml": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

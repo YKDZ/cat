@@ -6,12 +6,30 @@ settings:
 
 catalogs:
   default:
+    '@types/mdast':
+      specifier: ^4.0.4
+      version: 4.0.4
     '@types/node':
       specifier: ^24.12.2
       version: 24.12.2
+    remark-frontmatter:
+      specifier: ^5.0.0
+      version: 5.0.0
+    remark-gfm:
+      specifier: ^4.0.1
+      version: 4.0.1
+    remark-parse:
+      specifier: ^11.0.0
+      version: 11.0.0
+    remark-stringify:
+      specifier: ^11.0.0
+      version: 11.0.0
     tsx:
       specifier: ^4.21.0
       version: 4.21.0
+    unified:
+      specifier: ^11.0.5
+      version: 11.0.5
     unplugin-dts:
       specifier: 1.0.0-beta.6
       version: 1.0.0-beta.6
@@ -24,6 +42,9 @@ catalogs:
     vue:
       specifier: ^3.5.32
       version: 3.5.32
+    yaml:
+      specifier: ^2.8.3
+      version: 2.8.3
     zod:
       specifier: ^4.3.6
       version: 4.3.6
@@ -167,23 +188,23 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       remark-gfm:
-        specifier: ^4.0.1
+        specifier: 'catalog:'
         version: 4.0.1
       remark-parse:
-        specifier: ^11.0.0
+        specifier: 'catalog:'
         version: 11.0.0
       remark-stringify:
-        specifier: ^11.0.0
+        specifier: 'catalog:'
         version: 11.0.0
       unified:
-        specifier: ^11.0.5
+        specifier: 'catalog:'
         version: 11.0.5
       zod:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
       '@types/mdast':
-        specifier: ^4.0.4
+        specifier: 'catalog:'
         version: 4.0.4
       '@types/unist':
         specifier: ^3.0.3
@@ -379,7 +400,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       yaml:
-        specifier: ^2.8.3
+        specifier: 'catalog:'
         version: 2.8.3
       zod:
         specifier: 'catalog:'
@@ -931,16 +952,16 @@ importers:
         specifier: workspace:*
         version: link:../workflow
       remark-frontmatter:
-        specifier: ^5.0.0
+        specifier: 'catalog:'
         version: 5.0.0
       remark-parse:
-        specifier: ^11.0.0
+        specifier: 'catalog:'
         version: 11.0.0
       unified:
-        specifier: ^11.0.5
+        specifier: 'catalog:'
         version: 11.0.5
       yaml:
-        specifier: ^2.8.3
+        specifier: 'catalog:'
         version: 2.8.3
       zod:
         specifier: 'catalog:'
@@ -950,7 +971,7 @@ importers:
         specifier: workspace:*
         version: link:../test-utils
       '@types/mdast':
-        specifier: ^4.0.4
+        specifier: 'catalog:'
         version: 4.0.4
       '@types/node':
         specifier: 'catalog:'
@@ -1384,7 +1405,7 @@ importers:
   packages/shared:
     dependencies:
       yaml:
-        specifier: ^2.8.3
+        specifier: 'catalog:'
         version: 2.8.3
       zod:
         specifier: 'catalog:'
@@ -1599,23 +1620,23 @@ importers:
         specifier: ^13.0.6
         version: 13.0.6
       remark-gfm:
-        specifier: ^4.0.1
+        specifier: 'catalog:'
         version: 4.0.1
       remark-stringify:
-        specifier: ^11.0.0
+        specifier: 'catalog:'
         version: 11.0.0
       ts-morph:
         specifier: ^28.0.0
         version: 28.0.0
       unified:
-        specifier: ^11.0.5
+        specifier: 'catalog:'
         version: 11.0.5
       zod:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
       '@types/mdast':
-        specifier: ^4.0.4
+        specifier: 'catalog:'
         version: 4.0.4
       typescript:
         specifier: beta

@@ -21,13 +21,13 @@
     }
   },
   "dependencies": {
-    "remark-gfm": "^4.0.1",
-    "remark-parse": "^11.0.0",
-    "remark-stringify": "^11.0.0",
-    "unified": "^11.0.5"
+    "remark-gfm": "catalog:",
+    "remark-parse": "catalog:",
+    "remark-stringify": "catalog:",
+    "unified": "catalog:"
   },
   "devDependencies": {
-    "@types/mdast": "^4.0.4",
+    "@types/mdast": "catalog:",
     "@types/unist": "^3.0.3",
     "vite": "catalog:"
   },

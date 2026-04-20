@@ -13,14 +13,14 @@
   },
   "dependencies": {
     "glob": "^13.0.6",
-    "remark-gfm": "^4.0.1",
-    "remark-stringify": "^11.0.0",
+    "remark-gfm": "catalog:",
+    "remark-stringify": "catalog:",
     "ts-morph": "^28.0.0",
-    "unified": "^11.0.5",
+    "unified": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/mdast": "^4.0.4",
+    "@types/mdast": "catalog:",
     "typescript": "beta",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
