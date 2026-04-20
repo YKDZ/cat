@@ -1,0 +1,28 @@
+{
+  "name": "@cat/screenshot-collector",
+  "version": "0.1.0",
+  "license": "MIT",
+  "bin": {
+    "screenshot-collector": "./dist/cli.js"
+  },
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "dependencies": {
+    "@cat/shared": "workspace:*",
+    "playwright": "^1.52.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}
