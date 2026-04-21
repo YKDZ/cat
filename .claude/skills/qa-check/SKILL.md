@@ -78,6 +78,29 @@ bash ./.claude/skills/qa-check/scripts/qa-run.sh \
 - Once the targeted retry passes, re-run the failed phase.
 - Repeat until both phases pass.
 
+## 4. CI verification
+
+After local QA passes, push the branch and verify the GitHub Actions CI workflow:
+
+```bash
+# Get the latest run after pushing
+gh run list --limit 1 --json databaseId,status,conclusion,name
+
+# Watch and wait for completion (exits non-zero on failure)
+gh run watch <run-id> --exit-status
+```
+
+The CI workflow (`.github/workflows/ci.yml`) is the **authoritative acceptance gate**. It runs all local checks plus jobs that cannot be replicated locally:
+
+| Job                   | Checks                                           |
+| --------------------- | ------------------------------------------------ |
+| **Static Gateway**    | codegen-check, fmt-check, typecheck, lint        |
+| **Unit Tests**        | all unit test suites                             |
+| **Integration Tests** | database integration tests                       |
+| **E2E Tests**         | full Playwright suite against a live application |
+
+CI is not optional. Passing local QA without verifying CI is insufficient — E2E tests in particular require a real database, Redis, and a built production server.
+
 ## 4. Guardrails
 
 - Prefer `moon ci` over manual `git diff` inspection for affected QA.
