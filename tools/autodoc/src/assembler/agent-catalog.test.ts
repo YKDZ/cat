@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 
-import type { SectionIR, SubjectIR } from "../subjects/ir.js";
+import { ReferenceCatalog } from "../reference/compiler.js";
 import type { SemanticCatalog } from "../semantic/ir.js";
-import type { ReferenceCatalog } from "../reference/compiler.js";
+import type { SectionIR, SubjectIR } from "../subjects/ir.js";
 
 import { buildAgentCatalog } from "./agent-catalog.js";
 
@@ -15,10 +15,7 @@ const makeSection = (id = "domain"): SectionIR => ({
   public: true,
 });
 
-const makeSubject = (
-  id: string,
-  opts: Partial<SubjectIR> = {},
-): SubjectIR => {
+const makeSubject = (id: string, opts: Partial<SubjectIR> = {}): SubjectIR => {
   const section = opts.section ?? makeSection();
   return {
     id,
@@ -51,14 +48,7 @@ const makeSemanticCatalog = (
   fragmentCount: Object.values(fragmentsBySubject).reduce((n, c) => n + c, 0),
 });
 
-const makeReferenceCatalog = (): ReferenceCatalog => ({
-  packages: [],
-  resolveById: () => undefined,
-  resolveByStableKey: () => undefined,
-  resolveByName: () => [],
-  toSymbolIndex: () => [],
-  symbolCount: 0,
-});
+const makeReferenceCatalog = (): ReferenceCatalog => new ReferenceCatalog([]);
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -72,21 +62,18 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog(),
         makeReferenceCatalog(),
       );
-      expect(() => JSON.parse(subjectsJson)).not.toThrow();
+      expect(() => { JSON.parse(subjectsJson); }).not.toThrow();
     });
 
     it("includes all public subjects", () => {
-      const subjects = [
-        makeSubject("domain/core"),
-        makeSubject("domain/ops"),
-      ];
+      const subjects = [makeSubject("domain/core"), makeSubject("domain/ops")];
       const { subjectsJson } = buildAgentCatalog(
         subjects,
         [makeSection()],
         makeSemanticCatalog(),
         makeReferenceCatalog(),
       );
-      const parsed = JSON.parse(subjectsJson) as { id: string }[];
+      const parsed: { id: string }[] = JSON.parse(subjectsJson);
       const ids = parsed.map((e) => e.id);
       expect(ids).toContain("domain/core");
       expect(ids).toContain("domain/ops");
@@ -103,7 +90,7 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog(),
         makeReferenceCatalog(),
       );
-      const parsed = JSON.parse(subjectsJson) as { id: string }[];
+      const parsed: { id: string }[] = JSON.parse(subjectsJson);
       const ids = parsed.map((e) => e.id);
       expect(ids).toContain("domain/public");
       expect(ids).not.toContain("domain/private");
@@ -117,7 +104,7 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog(),
         makeReferenceCatalog(),
       );
-      const parsed = JSON.parse(subjectsJson) as { id: string }[];
+      const parsed: { id: string }[] = JSON.parse(subjectsJson);
       expect(parsed[0].id).toBe("domain/a");
       expect(parsed[1].id).toBe("domain/z");
     });
@@ -130,7 +117,8 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog(),
         makeReferenceCatalog(),
       );
-      const parsed = JSON.parse(subjectsJson) as { zhPage: string; enPage: string }[];
+      const parsed: { zhPage: string; enPage: string }[] =
+        JSON.parse(subjectsJson);
       expect(parsed[0].zhPage).toBe("domain/domain--core.zh.md");
       expect(parsed[0].enPage).toBe("domain/domain--core.en.md");
     });
@@ -143,7 +131,7 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog({ "domain/core": 3 }),
         makeReferenceCatalog(),
       );
-      const parsed = JSON.parse(subjectsJson) as { fragmentCount: number }[];
+      const parsed: { fragmentCount: number }[] = JSON.parse(subjectsJson);
       expect(parsed[0].fragmentCount).toBe(3);
     });
   });
@@ -156,31 +144,46 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog(),
         makeReferenceCatalog(),
       );
-      expect(() => JSON.parse(referencesJson)).not.toThrow();
+      expect(() => { JSON.parse(referencesJson); }).not.toThrow();
     });
 
     it("includes symbols from packages", () => {
-      const catalog: ReferenceCatalog = {
-        ...makeReferenceCatalog(),
-        packages: [{
+      const catalog = new ReferenceCatalog([
+        {
           name: "@cat/domain",
           path: "/packages/domain",
           priority: "high",
-          modules: [{
-            filePath: "src/index.ts",
-            symbols: [{
-              id: "@cat/domain:src/index:MyType",
-              name: "MyType",
-              kind: "interface",
-              signature: "interface MyType {}",
-              sourceLocation: { filePath: "src/index.ts", line: 1, endLine: 5 },
-              parameters: [],
-            }],
-          }],
-        }],
-      };
-      const { referencesJson } = buildAgentCatalog([], [], makeSemanticCatalog(), catalog);
-      const parsed = JSON.parse(referencesJson) as { id: string; name: string }[];
+          modules: [
+            {
+              relativePath: "src/index.ts",
+              symbols: [
+                {
+                  id: "@cat/domain:src/index:MyType",
+                  name: "MyType",
+                  kind: "interface",
+                  signature: "interface MyType {}",
+                  isAsync: false,
+                  isExported: true,
+                  sourceLocation: {
+                    filePath: "src/index.ts",
+                    line: 1,
+                    endLine: 5,
+                  },
+                  parameters: [],
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+      const { referencesJson } = buildAgentCatalog(
+        [],
+        [],
+        makeSemanticCatalog(),
+        catalog,
+      );
+      const parsed: { id: string; name: string }[] =
+        JSON.parse(referencesJson);
 
       expect(parsed).toHaveLength(1);
       expect(parsed[0].id).toBe("@cat/domain:src/index:MyType");
@@ -188,39 +191,57 @@ describe("buildAgentCatalog", () => {
     });
 
     it("sorts entries by stableKey for deterministic output", () => {
-      const catalog: ReferenceCatalog = {
-        ...makeReferenceCatalog(),
-        packages: [{
+      const catalog = new ReferenceCatalog([
+        {
           name: "@cat/domain",
           path: "/packages/domain",
           priority: "high",
-          modules: [{
-            filePath: "src/index.ts",
-            symbols: [
-              {
-                id: "@cat/domain:src/index:ZType",
-                name: "ZType",
-                kind: "type",
-                signature: "type ZType = string",
-                stableKey: "@cat/domain:src/index:ZType",
-                sourceLocation: { filePath: "src/index.ts", line: 10, endLine: 10 },
-                parameters: [],
-              },
-              {
-                id: "@cat/domain:src/index:AType",
-                name: "AType",
-                kind: "type",
-                signature: "type AType = number",
-                stableKey: "@cat/domain:src/index:AType",
-                sourceLocation: { filePath: "src/index.ts", line: 1, endLine: 1 },
-                parameters: [],
-              },
-            ],
-          }],
-        }],
-      };
-      const { referencesJson } = buildAgentCatalog([], [], makeSemanticCatalog(), catalog);
-      const parsed = JSON.parse(referencesJson) as { stableKey: string }[];
+          modules: [
+            {
+              relativePath: "src/index.ts",
+              symbols: [
+                {
+                  id: "@cat/domain:src/index:ZType",
+                  name: "ZType",
+                  kind: "type",
+                  signature: "type ZType = string",
+                  stableKey: "@cat/domain:src/index:ZType",
+                  isAsync: false,
+                  isExported: true,
+                  sourceLocation: {
+                    filePath: "src/index.ts",
+                    line: 10,
+                    endLine: 10,
+                  },
+                  parameters: [],
+                },
+                {
+                  id: "@cat/domain:src/index:AType",
+                  name: "AType",
+                  kind: "type",
+                  signature: "type AType = number",
+                  stableKey: "@cat/domain:src/index:AType",
+                  isAsync: false,
+                  isExported: true,
+                  sourceLocation: {
+                    filePath: "src/index.ts",
+                    line: 1,
+                    endLine: 1,
+                  },
+                  parameters: [],
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+      const { referencesJson } = buildAgentCatalog(
+        [],
+        [],
+        makeSemanticCatalog(),
+        catalog,
+      );
+      const parsed: { stableKey: string }[] = JSON.parse(referencesJson);
 
       expect(parsed[0].stableKey).toBe("@cat/domain:src/index:AType");
       expect(parsed[1].stableKey).toBe("@cat/domain:src/index:ZType");

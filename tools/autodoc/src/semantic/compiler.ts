@@ -1,7 +1,7 @@
-import type { SemanticFragment, SemanticCatalog } from "./ir.js";
-import type { SubjectRegistry } from "../subjects/registry.js";
 import type { ReferenceCatalog } from "../reference/compiler.js";
+import type { SubjectRegistry } from "../subjects/registry.js";
 import type { ValidationFinding } from "../validation/findings.js";
+import type { SemanticFragment, SemanticCatalog } from "./ir.js";
 
 // ── Language detection ─────────────────────────────────────────────────────────
 
@@ -12,9 +12,7 @@ const LATIN_WORD_RE = /[a-zA-Z]{4,}/g;
  * @zh 简单检测文本主语言：CJK 字符比例 > 10% → zh；latin word 比例过高 → en；其余 → mixed。
  * @en Simple primary-language detection: CJK > 10% → zh; heavy latin words → en; else mixed.
  */
-const detectPrimaryLanguage = (
-  text: string,
-): "zh" | "en" | "mixed" => {
+const detectPrimaryLanguage = (text: string): "zh" | "en" | "mixed" => {
   if (!text.trim()) return "mixed";
   const cjkCount = Array.from(text).filter((ch) => CJK_RE.test(ch)).length;
   if (cjkCount / text.length > 0.1) return "zh";
@@ -90,7 +88,8 @@ const validateFragments = (
     }
 
     // 3. Duplicate body per subject (same source file + same subject)
-    const subjectMap = seenPerSubject.get(frag.subjectId) ?? new Map();
+    const subjectMap =
+      seenPerSubject.get(frag.subjectId) ?? new Map<string, string>();
     const conflictKey = frag.sourcePath;
     if (subjectMap.has(conflictKey)) {
       findings.push({

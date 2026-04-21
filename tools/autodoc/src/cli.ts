@@ -6,19 +6,20 @@ import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 
-import { loadIndex, saveIndex, findSymbols } from "./ir-index.js";
-import { createPackageScanner } from "./scanner/package-scanner.js";
-import { AutodocConfigSchema } from "./types.js";
-import { buildReferenceCatalog } from "./reference/compiler.js";
-import { collectFragments } from "./semantic/fragment-collector.js";
-import { buildSemanticCatalog } from "./semantic/compiler.js";
+import type { AutodocConfig } from "./types.js";
+
+import { buildAgentCatalog } from "./assembler/agent-catalog.js";
+import { buildCompatProjections } from "./assembler/compat-projections.js";
 import { buildAllPairedPages } from "./assembler/paired-pages.js";
 import { buildAllSectionIndexes } from "./assembler/subject-index.js";
-import { buildCompatProjections } from "./assembler/compat-projections.js";
-import { buildAgentCatalog } from "./assembler/agent-catalog.js";
-import { runValidation } from "./validation/run.js";
+import { loadIndex, saveIndex, findSymbols } from "./ir-index.js";
+import { buildReferenceCatalog } from "./reference/compiler.js";
+import { createPackageScanner } from "./scanner/package-scanner.js";
+import { buildSemanticCatalog } from "./semantic/compiler.js";
+import { collectFragments } from "./semantic/fragment-collector.js";
+import { AutodocConfigSchema } from "./types.js";
 import { formatFindings, hasErrors } from "./validation/findings.js";
-import type { AutodocConfig } from "./types.js";
+import { runValidation } from "./validation/run.js";
 
 // ── Config loading ─────────────────────────────────────────────────────────────
 
@@ -157,19 +158,23 @@ const writeOutputFiles = async (
   if (compat.llmsTxt !== null) {
     await writeFile(join(outputDir, "llms.txt"), compat.llmsTxt);
   }
-  for (const [shortName, content] of compat.packagePages) {
-    await writeFile(join(outputDir, "packages", `${shortName}.md`), content);
-  }
+  await Promise.all(
+    Array.from(compat.packagePages, async ([shortName, content]) =>
+      writeFile(join(outputDir, "packages", `${shortName}.md`), content),
+    ),
+  );
   await saveIndex(compat.symbolIndex, join(outputDir, ".symbol-index.json"));
 
   // 2.0 outputs — only if registry + sections available
   if (registry && sections) {
     // Section indexes
     const sectionIndexes = buildAllSectionIndexes(sections, registry.subjects);
-    for (const [sectionId, content] of sectionIndexes) {
-      await mkdir(join(outputDir, sectionId), { recursive: true });
-      await writeFile(join(outputDir, sectionId, "index.md"), content);
-    }
+    await Promise.all(
+      Array.from(sectionIndexes, async ([sectionId, content]) => {
+        await mkdir(join(outputDir, sectionId), { recursive: true });
+        await writeFile(join(outputDir, sectionId, "index.md"), content);
+      }),
+    );
 
     // Paired pages
     const pairedPages = buildAllPairedPages(
@@ -177,12 +182,22 @@ const writeOutputFiles = async (
       semanticCatalog,
       referenceCatalog,
     );
-    for (const page of pairedPages) {
-      const dir = join(outputDir, dirname(page.basePath));
-      await mkdir(dir, { recursive: true });
-      await writeFile(join(outputDir, `${page.basePath}.zh.md`), page.zhContent);
-      await writeFile(join(outputDir, `${page.basePath}.en.md`), page.enContent);
-    }
+    await Promise.all(
+      pairedPages.map(async (page) => {
+        const dir = join(outputDir, dirname(page.basePath));
+        await mkdir(dir, { recursive: true });
+        await Promise.all([
+          writeFile(
+            join(outputDir, `${page.basePath}.zh.md`),
+            page.zhContent,
+          ),
+          writeFile(
+            join(outputDir, `${page.basePath}.en.md`),
+            page.enContent,
+          ),
+        ]);
+      }),
+    );
 
     // Agent catalog
     await mkdir(join(outputDir, "agent"), { recursive: true });
@@ -271,16 +286,12 @@ const runValidateCmd = async (args: string[]): Promise<void> => {
   const { referenceCatalog, semanticCatalog, semanticFindings } =
     await buildCompileChain(config, workspaceRoot);
 
-  const { findings } = await runValidation(
-    config,
-    workspaceRoot,
-    {
-      tiers: [1, 2, 3],
-      referenceCatalog,
-      semanticCatalog,
-      existingOutputPaths: collectOutputPaths(config.output.path),
-    },
-  );
+  const { findings } = await runValidation(config, workspaceRoot, {
+    tiers: [1, 2, 3],
+    referenceCatalog,
+    semanticCatalog,
+    existingOutputPaths: collectOutputPaths(config.output.path),
+  });
 
   const allFindings = [...semanticFindings, ...findings];
 
@@ -358,16 +369,12 @@ const runCheck = async (args: string[]): Promise<void> => {
 
     // Also run full validation (Tier-1 + Tier-2 + Tier-3)
     const tmpPaths = collectOutputPaths(tmpDir);
-    const { findings } = await runValidation(
-      config,
-      workspaceRoot,
-      {
-        tiers: [1, 2, 3],
-        referenceCatalog,
-        semanticCatalog,
-        existingOutputPaths: tmpPaths,
-      },
-    );
+    const { findings } = await runValidation(config, workspaceRoot, {
+      tiers: [1, 2, 3],
+      referenceCatalog,
+      semanticCatalog,
+      existingOutputPaths: tmpPaths,
+    });
 
     const allFindings = [...semanticFindings, ...findings];
     if (allFindings.length > 0) {
@@ -375,7 +382,9 @@ const runCheck = async (args: string[]): Promise<void> => {
     }
 
     if (outdated) {
-      console.error("\nDocumentation is outdated. Run 'pnpm autodoc' and commit.");
+      console.error(
+        "\nDocumentation is outdated. Run 'pnpm autodoc' and commit.",
+      );
       process.exit(1);
     }
 
