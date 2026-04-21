@@ -18,6 +18,8 @@ tasks:
       - "tests/**/*"
       - "global-setup.ts"
       - "playwright.config.ts"
+    deps:
+      - "seed:build"
     options:
       cache: false
 
