@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 
-import type { SectionIR, SubjectIR } from "../subjects/ir.js";
+import { ReferenceCatalog } from "../reference/compiler.js";
 import type { SemanticCatalog, SemanticFragment } from "../semantic/ir.js";
-import type { ReferenceCatalog } from "../reference/compiler.js";
+import type { SectionIR, SubjectIR } from "../subjects/ir.js";
 
 import { buildPairedPage, buildAllPairedPages } from "./paired-pages.js";
 
@@ -41,14 +41,7 @@ const makeSemanticCatalog = (
 
 const makeReferenceCatalog = (
   packages: ReferenceCatalog["packages"] = [],
-): ReferenceCatalog => ({
-  packages,
-  resolveById: () => undefined,
-  resolveByStableKey: () => undefined,
-  resolveByName: () => [],
-  toSymbolIndex: () => [],
-  symbolCount: 0,
-});
+): ReferenceCatalog => new ReferenceCatalog(packages);
 
 const makeFragment = (
   subjectId: string,
@@ -69,8 +62,15 @@ const makeFragment = (
 describe("buildPairedPage", () => {
   describe("ZH page", () => {
     it("includes subject title and section info", () => {
-      const subject = makeSubject({ id: "domain/core", title: { zh: "领域核心", en: "Domain Core" } });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const subject = makeSubject({
+        id: "domain/core",
+        title: { zh: "领域核心", en: "Domain Core" },
+      });
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.zhContent).toContain("# 领域核心");
       expect(page.zhContent).toContain("领域模型");
@@ -100,14 +100,25 @@ describe("buildPairedPage", () => {
 
     it("shows placeholder when no fragments", () => {
       const subject = makeSubject({ id: "domain/empty" });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.zhContent).toContain("暂无语义描述");
     });
 
     it("renders related topics for subjects with dependsOn", () => {
-      const subject = makeSubject({ id: "domain/core", dependsOn: ["infrastructure/db"] });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const subject = makeSubject({
+        id: "domain/core",
+        dependsOn: ["infrastructure/db"],
+      });
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.zhContent).toContain("相关主题");
       expect(page.zhContent).toContain("`infrastructure/db`");
@@ -115,7 +126,11 @@ describe("buildPairedPage", () => {
 
     it("omits related topics section when dependsOn is empty", () => {
       const subject = makeSubject({ id: "domain/core", dependsOn: [] });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.zhContent).not.toContain("相关主题");
     });
@@ -128,7 +143,11 @@ describe("buildPairedPage", () => {
         title: { zh: "领域核心", en: "Domain Core" },
         primaryOwner: "@cat/domain",
       });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.enContent).toContain("# Domain Core");
       expect(page.enContent).toContain("`@cat/domain`");
@@ -139,15 +158,26 @@ describe("buildPairedPage", () => {
         id: "domain/core",
         secondaryAssociations: ["@cat/shared"],
       });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.enContent).toContain("Also covers");
       expect(page.enContent).toContain("`@cat/shared`");
     });
 
     it("omits secondary associations when none", () => {
-      const subject = makeSubject({ id: "domain/core", secondaryAssociations: [] });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const subject = makeSubject({
+        id: "domain/core",
+        secondaryAssociations: [],
+      });
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.enContent).not.toContain("Also covers");
     });
@@ -157,23 +187,40 @@ describe("buildPairedPage", () => {
         name: "@cat/test",
         path: "/pkg/test",
         priority: "medium" as const,
-        modules: [{
-          filePath: "src/index.ts",
-          symbols: [{
-            id: "@cat/test:src/index:myFn",
-            name: "myFn",
-            kind: "function" as const,
-            signature: "() => void",
-            sourceLocation: { filePath: "src/index.ts", line: 1, endLine: 1 },
-            parameters: [],
-            description: "Does something",
-          }],
-        }],
+        modules: [
+          {
+            relativePath: "src/index.ts",
+            symbols: [
+              {
+                id: "@cat/test:src/index:myFn",
+                name: "myFn",
+                kind: "function" as const,
+                signature: "() => void",
+                isAsync: false,
+                isExported: true,
+                sourceLocation: {
+                  filePath: "src/index.ts",
+                  line: 1,
+                  endLine: 1,
+                },
+                parameters: [],
+                description: "Does something",
+              },
+            ],
+          },
+        ],
       };
       const referenceCatalog = makeReferenceCatalog([pkg]);
-      const subject = makeSubject({ id: "domain/core", primaryOwner: "@cat/test" });
+      const subject = makeSubject({
+        id: "domain/core",
+        primaryOwner: "@cat/test",
+      });
 
-      const page = buildPairedPage(subject, makeSemanticCatalog(), referenceCatalog);
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        referenceCatalog,
+      );
 
       expect(page.enContent).toContain("## API Reference");
       expect(page.enContent).toContain("`myFn`");
@@ -181,8 +228,15 @@ describe("buildPairedPage", () => {
     });
 
     it("renders related topics when dependsOn is set", () => {
-      const subject = makeSubject({ id: "domain/core", dependsOn: ["infrastructure/db"] });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const subject = makeSubject({
+        id: "domain/core",
+        dependsOn: ["infrastructure/db"],
+      });
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.enContent).toContain("Related Topics");
       expect(page.enContent).toContain("`infrastructure/db`");
@@ -192,14 +246,25 @@ describe("buildPairedPage", () => {
   describe("basePath", () => {
     it("uses section/subject slug as basePath", () => {
       const subject = makeSubject({ id: "domain/core" });
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.basePath).toBe("domain/domain--core");
     });
 
     it("replaces slashes with double-dash in ID slug", () => {
-      const subject = makeSubject({ id: "services/workflow" }, makeSection("services"));
-      const page = buildPairedPage(subject, makeSemanticCatalog(), makeReferenceCatalog());
+      const subject = makeSubject(
+        { id: "services/workflow" },
+        makeSection("services"),
+      );
+      const page = buildPairedPage(
+        subject,
+        makeSemanticCatalog(),
+        makeReferenceCatalog(),
+      );
 
       expect(page.basePath).toBe("services/services--workflow");
     });
@@ -212,7 +277,11 @@ describe("buildAllPairedPages", () => {
       makeSubject({ id: "domain/core" }),
       makeSubject({ id: "domain/operations" }),
     ];
-    const pages = buildAllPairedPages(subjects, makeSemanticCatalog(), makeReferenceCatalog());
+    const pages = buildAllPairedPages(
+      subjects,
+      makeSemanticCatalog(),
+      makeReferenceCatalog(),
+    );
 
     expect(pages).toHaveLength(2);
     expect(pages.map((p) => p.basePath)).toContain("domain/domain--core");
@@ -224,14 +293,22 @@ describe("buildAllPairedPages", () => {
       makeSubject({ id: "domain/public" }),
       makeSubject({ id: "domain/private", public: false }),
     ];
-    const pages = buildAllPairedPages(subjects, makeSemanticCatalog(), makeReferenceCatalog());
+    const pages = buildAllPairedPages(
+      subjects,
+      makeSemanticCatalog(),
+      makeReferenceCatalog(),
+    );
 
     expect(pages).toHaveLength(1);
     expect(pages[0].basePath).toContain("domain--public");
   });
 
   it("returns empty array when no public subjects", () => {
-    const pages = buildAllPairedPages([], makeSemanticCatalog(), makeReferenceCatalog());
+    const pages = buildAllPairedPages(
+      [],
+      makeSemanticCatalog(),
+      makeReferenceCatalog(),
+    );
     expect(pages).toHaveLength(0);
   });
 });

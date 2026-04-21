@@ -6,14 +6,14 @@ tags:
 
 tasks:
   build:
-    command: "vitepress build"
+    command: "vitepress build src"
 
   dev:
-    command: "vitepress dev"
+    command: "vitepress dev src"
     preset: "server"
 
   preview:
-    command: "vitepress preview"
+    command: "vitepress preview src"
     deps:
       - "~:build"
     options:

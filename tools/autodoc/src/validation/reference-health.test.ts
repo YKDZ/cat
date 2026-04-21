@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
+import { ReferenceCatalog } from "../reference/compiler.js";
 import type { SectionIR, SubjectIR } from "../subjects/ir.js";
-import type { ReferenceCatalog } from "../reference/compiler.js";
 
 import { SubjectRegistry } from "../subjects/registry.js";
 import { validateReferenceHealth } from "./reference-health.js";
@@ -36,19 +36,15 @@ const makeSubject = (
   manifestPath: `autodoc.subjects/packages/${id}.subject.ts`,
 });
 
-const makeReferenceCatalog = (packageNames: string[]): ReferenceCatalog => ({
-  packages: packageNames.map((name) => ({
-    name,
-    path: `/pkg/${name}`,
-    priority: "medium" as const,
-    modules: [],
-  })),
-  resolveById: () => undefined,
-  resolveByStableKey: () => undefined,
-  resolveByName: () => [],
-  toSymbolIndex: () => [],
-  symbolCount: 0,
-});
+const makeReferenceCatalog = (packageNames: string[]): ReferenceCatalog =>
+  new ReferenceCatalog(
+    packageNames.map((name) => ({
+      name,
+      path: `/pkg/${name}`,
+      priority: "medium" as const,
+      modules: [],
+    })),
+  );
 
 const makeRegistry = (subjects: SubjectIR[]): SubjectRegistry =>
   new SubjectRegistry(subjects, [makeSection()]);
@@ -70,7 +66,9 @@ describe("validateReferenceHealth (Tier-2)", () => {
     const findings = validateReferenceHealth(makeRegistry([subject]), catalog);
 
     expect(findings).toHaveLength(2); // primaryOwner + member ref
-    const ownerFinding = findings.find((f) => f.code === "UNRESOLVED_PRIMARY_OWNER");
+    const ownerFinding = findings.find(
+      (f) => f.code === "UNRESOLVED_PRIMARY_OWNER",
+    );
     expect(ownerFinding).toBeDefined();
     expect(ownerFinding?.severity).toBe("warning");
     expect(ownerFinding?.tier).toBe(2);
@@ -84,7 +82,9 @@ describe("validateReferenceHealth (Tier-2)", () => {
     const catalog = makeReferenceCatalog(["@cat/domain"]);
     const findings = validateReferenceHealth(makeRegistry([subject]), catalog);
 
-    const finding = findings.find((f) => f.code === "UNRESOLVED_SECONDARY_ASSOCIATION");
+    const finding = findings.find(
+      (f) => f.code === "UNRESOLVED_SECONDARY_ASSOCIATION",
+    );
     expect(finding).toBeDefined();
     expect(finding?.message).toContain("@cat/unknown");
   });
@@ -96,7 +96,9 @@ describe("validateReferenceHealth (Tier-2)", () => {
     const catalog = makeReferenceCatalog(["@cat/domain"]);
     const findings = validateReferenceHealth(makeRegistry([subject]), catalog);
 
-    const finding = findings.find((f) => f.code === "UNRESOLVED_MEMBER_PACKAGE");
+    const finding = findings.find(
+      (f) => f.code === "UNRESOLVED_MEMBER_PACKAGE",
+    );
     expect(finding).toBeDefined();
     expect(finding?.message).toContain("@cat/ghost");
   });
@@ -121,7 +123,10 @@ describe("validateReferenceHealth (Tier-2)", () => {
     const good = makeSubject("domain/ok", "@cat/domain");
     const bad = makeSubject("domain/bad", "@cat/missing");
     const catalog = makeReferenceCatalog(["@cat/domain"]);
-    const findings = validateReferenceHealth(makeRegistry([good, bad]), catalog);
+    const findings = validateReferenceHealth(
+      makeRegistry([good, bad]),
+      catalog,
+    );
 
     // Only the bad subject should produce findings
     for (const f of findings) {
