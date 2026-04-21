@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 308
+* **Modules**: 309
 
-* **Exported functions**: 330
+* **Exported functions**: 331
 
-* **Exported types**: 428
+* **Exported types**: 429
 
 ## Function Index
 
@@ -483,6 +483,14 @@ export const createElements: Command<CreateElementsCommand, number[]> = async (c
 
 ```ts
 export const deleteElementsByIds: Command<DeleteElementsByIdsCommand> = async (ctx: DbContext, command: { elementIds: number[]; }) => {...}
+```
+
+### `insertElementContexts`
+
+```ts
+export const insertElementContexts: Command<
+  InsertElementContextsCommand
+> = async (ctx: DbContext, command: { data: { type: string; translatableElementId: number; textData?: string | null | undefined; jsonData?: unknown; fileId?: number | null | undefined; storageProviderId?: number | null | undefined; }[]; }) => {...}
 ```
 
 ### packages/domain/src/commands/file
@@ -3301,6 +3309,8 @@ export const searchChunkCosineSimilarity: Query<
 * `CreateElementsCommand` (type)
 
 * `DeleteElementsByIdsCommand` (type)
+
+* `InsertElementContextsCommand` (type)
 
 * `CreateBlobCommand` (type)
 

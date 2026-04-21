@@ -1,5 +1,4 @@
 import type { FullConfig } from "@playwright/test";
-
 // oxlint-disable no-console -- intentional diagnostic logging in globalSetup
 
 import { DrizzleDB, ensureDB, RedisConnection } from "@cat/db";

@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 40
+* **Modules**: 43
 
-* **Exported functions**: 24
+* **Exported functions**: 25
 
-* **Exported types**: 167
+* **Exported types**: 180
 
 ## Function Index
 
@@ -159,6 +159,19 @@ export const getDefaultFromSchema = (schema: JSONSchema): JSONType | undefined
 export const summarize = (obj: unknown): unknown
 ```
 
+### `resolveRouteTemplate`
+
+```ts
+/**
+ * Resolve `$ref:<name>` placeholders in a route template string using the provided bindings.
+ *
+ * Placeholder syntax: `$ref:<name>` where <name> extends to the next `/` or end of string.
+ * Allowed characters in name: letters, digits, `:`, `-`, `_`.
+ * @throws Error listing all missing binding names if any placeholder cannot be resolved.
+ */
+export function resolveRouteTemplate(template: string, bindings: Record<string, string>): string
+```
+
 ### `useStringTemplate`
 
 ```ts
@@ -218,6 +231,16 @@ export const safeJoinURL = (base: string, path: string): string
 * `ToolExecuteResponse` (type)
 
 * `ConfirmationPolicy` (type)
+
+* `CollectionPayload` (type)
+
+* `CollectionElement` (type)
+
+* `CollectionContext` (type)
+
+* `CollectionContextData` (type)
+
+* `CollectionElementLocation` (type)
 
 * `AgentDefinition` (type)
 
@@ -426,6 +449,22 @@ export const safeJoinURL = (base: string, path: string): string
 * `RecallVariantType` (type)
 
 * `RecallQuerySide` (type)
+
+* `ExtractionResult` (type)
+
+* `ExtractionMetadata` (type)
+
+* `NavigationStep` (type)
+
+* `RouteEntry` (type)
+
+* `RouteManifest` (type)
+
+* `CaptureResult` (type)
+
+* `CaptureScreenshotEntry` (type)
+
+* `CaptureResultMetadata` (type)
 
 * `JSONObject` (interface)
 

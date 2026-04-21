@@ -14,11 +14,11 @@
   "dependencies": {
     "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
-    "@cat/test-utils": "workspace:*",
     "@cat/operations": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/server-shared": "workspace:*",
     "@cat/shared": "workspace:*",
+    "@cat/test-utils": "workspace:*",
     "better-sqlite3": "^12.9.0",
     "js-yaml": "^4.1.1",
     "zod": "catalog:"

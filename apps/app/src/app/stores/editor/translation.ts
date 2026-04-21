@@ -35,7 +35,7 @@ export const useEditorTranslationStore = defineStore(
       key: () => [
         "translations",
         table.elementId.value,
-        context.languageToId.value,
+        context.languageToId.value!,
       ],
       query: async () =>
         orpc.translation.getAll({

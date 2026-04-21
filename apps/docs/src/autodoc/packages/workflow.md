@@ -4,11 +4,11 @@ DAG-based workflow graph executor
 
 ## Overview
 
-* **Modules**: 37
+* **Modules**: 35
 
-* **Exported functions**: 28
+* **Exported functions**: 25
 
-* **Exported types**: 65
+* **Exported types**: 66
 
 ## Function Index
 
@@ -64,94 +64,6 @@ export const getStoredGraphRuntime = (): StoredGraphRuntime
  * Uses interceptWrite when VCS is configured; falls back to direct writeFn otherwise.
  */
 export async function executeWithVCS(nodeCtx: TypedNodeContext, entityType: string, entityId: string, action: "CREATE" | "UPDATE" | "DELETE", before: SerializableType, after: SerializableType, writeFn: () => Promise<T>): Promise<T>
-```
-
-### packages/workflow/src/graph/dsl
-
-### `compileGraphDSL`
-
-```ts
-export const compileGraphDSL = (input: unknown): { id: string; version: string; nodes: Record<string, { id: string; type: "llm" | "tool" | "router" | "parallel" | "join" | "human_input" | "transform" | "loop" | "subgraph"; timeoutMs: number; config?: any; idempotency?: { enabled: boolean; keyTemplate?: string | undefined; } | undefined; retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number; } | undefined; humanInput?: { prompt: string; timeoutMs?: number | undefined; } | undefined; }>; edges: { from: string; to: string; condition?: { field: string; operator: "in" | "eq" | "neq" | "exists" | "not_exists" | "gt" | "lt"; value?: unknown; description?: string | undefined; } | undefined; label?: string | undefined; }[]; entry: string; description?: string | undefined; exit?: string[] | undefined; config?: { maxConcurrentNodes: number; defaultTimeoutMs: number; enableCheckpoints: boolean; checkpointIntervalMs: number; } | undefined; }
-```
-
-### `parseGraphDSL`
-
-```ts
-export const parseGraphDSL = (input: unknown): { id: string; version: string; nodes: Record<string, { id: string; type: "llm" | "tool" | "router" | "parallel" | "join" | "human_input" | "transform" | "loop" | "subgraph"; timeoutMs: number; config?: any; idempotency?: { enabled: boolean; keyTemplate?: string | undefined; } | undefined; retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number; } | undefined; humanInput?: { prompt: string; timeoutMs?: number | undefined; } | undefined; }>; edges: { from: string; to: string; condition?: { field: string; operator: "in" | "eq" | "neq" | "exists" | "not_exists" | "gt" | "lt"; value?: unknown; description?: string | undefined; } | undefined; label?: string | undefined; }[]; entry: string; description?: string | undefined; exit?: string[] | undefined; config?: { maxConcurrentNodes: number; defaultTimeoutMs: number; enableCheckpoints: boolean; checkpointIntervalMs: number; } | undefined; }
-```
-
-### `validateGraphDSL`
-
-```ts
-export const validateGraphDSL = (input: unknown): GraphDSLValidationResult
-```
-
-### packages/workflow/src/graph/executors
-
-### `HumanInputNodeExecutor`
-
-```ts
-export const HumanInputNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
-```
-
-### `resumeHumanInputNode`
-
-```ts
-export const resumeHumanInputNode = async (ctx: Parameters<NodeExecutor>[0], config: Record<string, unknown>, input: unknown): Promise<{ patch: ReturnType<typeof buildPatch>; output: { input: unknown; }; status: "completed"; }>
-```
-
-### `TransformNodeExecutor`
-
-```ts
-/**
- * Transform 节点执行器。
- *
- * - 若 config.handler 存在 → 从 StepHandlerRegistry 分发执行
- * - 若 config.handler 不存在 → 保持原有 identity 行为（直接 completed）
- */
-export const TransformNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
-```
-
-### `JoinNodeExecutor`
-
-```ts
-export const JoinNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
-```
-
-### `LoopNodeExecutor`
-
-```ts
-export const LoopNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
-```
-
-### `ParallelNodeExecutor`
-
-```ts
-export const ParallelNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
-```
-
-### `RouterNodeExecutor`
-
-```ts
-export const RouterNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
-```
-
-### `SubgraphNodeExecutor`
-
-```ts
-export const SubgraphNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
-```
-
-### `interpolateTemplate`
-
-```ts
-export const interpolateTemplate = (template: string, data: unknown): string
-```
-
-### `hashArgs`
-
-```ts
-export const hashArgs = (args: Record<string, unknown>): string
 ```
 
 ### packages/workflow/src/graph/dsl
@@ -222,6 +134,74 @@ export const getStepHandler = (name: string): StepHandler<unknown, unknown> | un
 export const hasStepHandler = (name: string): boolean
 ```
 
+### packages/workflow/src/graph/executors
+
+### `HumanInputNodeExecutor`
+
+```ts
+export const HumanInputNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
+```
+
+### `resumeHumanInputNode`
+
+```ts
+export const resumeHumanInputNode = async (ctx: Parameters<NodeExecutor>[0], config: Record<string, unknown>, input: unknown): Promise<{ patch: ReturnType<typeof buildPatch>; output: { input: unknown; }; status: "completed"; }>
+```
+
+### `TransformNodeExecutor`
+
+```ts
+/**
+ * Transform 节点执行器。
+ *
+ * - 若 config.handler 存在 → 从 StepHandlerRegistry 分发执行
+ * - 若 config.handler 不存在 → 保持原有 identity 行为（直接 completed）
+ */
+export const TransformNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
+```
+
+### `JoinNodeExecutor`
+
+```ts
+export const JoinNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
+```
+
+### `LoopNodeExecutor`
+
+```ts
+export const LoopNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
+```
+
+### `ParallelNodeExecutor`
+
+```ts
+export const ParallelNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
+```
+
+### `RouterNodeExecutor`
+
+```ts
+export const RouterNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
+```
+
+### `SubgraphNodeExecutor`
+
+```ts
+export const SubgraphNodeExecutor: NodeExecutor = async (ctx: NodeExecutorContext, config: Record) => {...}
+```
+
+### `interpolateTemplate`
+
+```ts
+export const interpolateTemplate = (template: string, data: unknown): string
+```
+
+### `hashArgs`
+
+```ts
+export const hashArgs = (args: Record<string, unknown>): string
+```
+
 ## Type Index
 
 * `CacheKeyStrategy` (type)
@@ -256,7 +236,19 @@ export const hasStepHandler = (name: string): boolean
   \- ExecutorPool: LocalExecutorPool
   \- Scheduler: Single process
 
-* `GraphDSLValidationResult` (type)
+* `RunGraphOptions` (type)
+
+* `GraphRunHandle` (type)
+
+* `StepHandler` (type)
+
+* `TypedNodeContext` (type) — Step handler 执行时注入的上下文
+
+* `TypedNodeDef` (type) — 一个类型安全的节点声明
+
+* `TypedGraphOptions` (type) — defineGraph 的选项
+
+* `TypedGraphDefinition` (type) — defineGraph 的返回值
 
 * `WaitForEventArgs` (type)
 
@@ -306,20 +298,6 @@ export const hasStepHandler = (name: string): boolean
 
 * `SchedulerRecoverOptions` (type)
 
-* `RunGraphOptions` (type)
-
-* `GraphRunHandle` (type)
-
-* `StepHandler` (type)
-
-* `TypedNodeContext` (type) — Step handler 执行时注入的上下文
-
-* `TypedNodeDef` (type) — 一个类型安全的节点声明
-
-* `TypedGraphOptions` (type) — defineGraph 的选项
-
-* `TypedGraphDefinition` (type) — defineGraph 的返回值
-
 * `NodeExecutionResult` (type)
 
 * `NodeExecutionContext` (type)
@@ -339,6 +317,10 @@ export const hasStepHandler = (name: string): boolean
 * `BatchAutoTranslateOutput` (type)
 
 * `CreateTranslationPubPayload` (type)
+
+* `IngestCollectionInput` (type)
+
+* `IngestCollectionOutput` (type)
 
 * `QAPubPayload` (type)
 
