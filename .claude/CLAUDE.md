@@ -75,8 +75,12 @@ Quick reference:
 
 - **Monorepo overview**: `apps/docs/src/autodoc/overview.md`
 - **Package API docs**: `apps/docs/src/autodoc/packages/<name>.md`
+- **Section indexes**: `apps/docs/src/autodoc/<section>/index.md`
+- **Subject paired pages**: `apps/docs/src/autodoc/<section>/<subject>.zh.md` / `.en.md`
+- **Agent catalogs**: `apps/docs/src/autodoc/agent/subjects.json`, `agent/references.json`
 - **Symbol lookup**: use `autodoc-lookup` skill
 - **Update docs**: `pnpm moon run autodoc:generate`
+- **Validate only (no write)**: `pnpm moon run autodoc:validate`
 
 ---
 
