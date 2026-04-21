@@ -905,7 +905,7 @@ export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContex
  *
  * @returns Token list (supports tree structure)
  */
-export const tokenizeOp = async (payload: TokenizeInput, ctx?: OperationContext): Promise<{ tokens: import("/workspaces/cat/packages/plugin-core/dist/index").Token[]; }>
+export const tokenizeOp = async (payload: TokenizeInput, ctx?: OperationContext): Promise<{ tokens: import("@cat/plugin-core").Token[]; }>
 ```
 
 ### `triggerConceptRevectorize`

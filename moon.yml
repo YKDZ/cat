@@ -39,6 +39,7 @@ tasks:
 
   codegen-check:
     script: |
+      set -eo pipefail
       echo "=== Drizzle Zod schema check ==="
       pnpm moon run db:codegen-schemas --quiet
       git diff --exit-code -- packages/shared/src/schema/drizzle || { echo "ERROR: Drizzle Zod schemas are out of date. Run 'pnpm moon run db:codegen-schemas' and commit." >&2; exit 1; }

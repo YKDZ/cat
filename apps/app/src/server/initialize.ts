@@ -40,8 +40,6 @@ import { createDefaultGraphRuntime } from "@cat/workflow";
 import { access } from "fs/promises";
 import { join, resolve } from "path";
 
-
-
 const getStringSetting = async (
   drizzle: DrizzleClient,
   key: string,

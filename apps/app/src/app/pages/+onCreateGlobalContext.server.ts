@@ -31,4 +31,3 @@ export const onCreateGlobalContext = (ctx: GlobalContextServer) => {
     configurable: true,
   });
 };
-
