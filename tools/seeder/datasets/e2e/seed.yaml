@@ -1,0 +1,14 @@
+name: "e2e"
+description: "Minimal E2E test dataset — 2 users, 1 project, 20 elements"
+
+seed:
+  project: seed/project.json
+  users: seed/users.json
+  elements: seed/elements.json
+
+vectorization:
+  enabled: false
+
+plugins:
+  loader: real
+  overrides: []

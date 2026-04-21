@@ -1,0 +1,21 @@
+{
+  "memory": {
+    "name": "E2E Memory",
+    "items": [
+      {
+        "ref": "mem:greeting",
+        "source": "Hello World",
+        "translation": "你好世界",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      },
+      {
+        "ref": "mem:farewell",
+        "source": "Goodbye",
+        "translation": "再见",
+        "sourceLanguage": "en",
+        "translationLanguage": "zh-Hans"
+      }
+    ]
+  }
+}

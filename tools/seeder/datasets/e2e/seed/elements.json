@@ -1,0 +1,25 @@
+{
+  "documentName": "e2e-test.json",
+  "elements": [
+    { "ref": "el:001", "text": "Hello World", "context": ["A greeting message displayed on the home page"] },
+    { "ref": "el:002", "text": "Save Changes" },
+    { "ref": "el:003", "text": "Cancel" },
+    { "ref": "el:004", "text": "Delete" },
+    { "ref": "el:005", "text": "Settings" },
+    { "ref": "el:006", "text": "Profile" },
+    { "ref": "el:007", "text": "Dashboard" },
+    { "ref": "el:008", "text": "Notifications" },
+    { "ref": "el:009", "text": "Search" },
+    { "ref": "el:010", "text": "Filter" },
+    { "ref": "el:011", "text": "Export" },
+    { "ref": "el:012", "text": "Import" },
+    { "ref": "el:013", "text": "Create New" },
+    { "ref": "el:014", "text": "Edit" },
+    { "ref": "el:015", "text": "View Details" },
+    { "ref": "el:016", "text": "Close" },
+    { "ref": "el:017", "text": "Submit" },
+    { "ref": "el:018", "text": "Confirm" },
+    { "ref": "el:019", "text": "Back" },
+    { "ref": "el:020", "text": "Next" }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "glossary": {
+    "name": "E2E Glossary",
+    "sourceLanguage": "en",
+    "translationLanguage": "zh-Hans",
+    "concepts": [
+      {
+        "ref": "concept:hello",
+        "definition": "A common greeting",
+        "terms": [
+          {
+            "term": "Hello",
+            "termLanguageId": "en",
+            "translation": "你好",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:world",
+        "definition": "The planet Earth",
+        "terms": [
+          {
+            "term": "World",
+            "termLanguageId": "en",
+            "translation": "世界",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      }
+    ]
+  }
+}
