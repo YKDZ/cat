@@ -148,7 +148,6 @@ jobs:
           --health-retries 5
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -175,8 +174,17 @@ jobs:
           pnpm build-plugins
           pnpm load-plugins
 
+      - name: Build App
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app:build --quiet
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
+          REDIS_URL: redis://localhost:6379
+
       - name: Run App
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app:preview --quiet > app.log 2>&1 &
+        working-directory: apps/app
+        run: |
+          pnpm exec tsx scripts/copy-drizzle.ts
+          NODE_ENV=production node dist/server/index.mjs > ../../app.log 2>&1 &
         env:
           PORT: 3000
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public

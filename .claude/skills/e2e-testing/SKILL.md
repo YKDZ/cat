@@ -59,9 +59,10 @@ pnpm exec playwright test --ui --config=apps/app-e2e/playwright.config.ts
    - Writes ref→ID mapping to `apps/app-e2e/test-results/e2e-refs.json`
 
 2. **webServer** (`playwright.config.ts`):
-   - Runs `pnpm moon run app:preview` (Moon auto-builds app first)
+   - Runs `pnpm moon run app:preview` (Moon auto-builds app first) **only if the server is not already running**
    - Waits for `/_health` endpoint on port 3000
-   - `reuseExistingServer: !process.env.CI` — reuses locally, starts fresh in CI
+   - `reuseExistingServer: true` — always reuses an existing server on port 3000; starts via `pnpm moon run app:preview` if nothing is listening
+   - **CI note**: moon 2.x skips `persistent: true` tasks in CI environments, so the CI workflow pre-builds the app (`app:build`) and starts `node dist/server/index.mjs` directly before Playwright runs. Playwright then reuses that already-running server.
 
 3. **Fixtures** (`tests/fixtures.ts`):
    - Loads refs from `e2e-refs.json`
@@ -82,22 +83,23 @@ PORT=3000
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| globalSetup: DATABASE_URL validation failed | Ensure database name contains "e2e" or "test" |
-| globalSetup: seed failed / PASSWORD auth provider not found | Plugins not built. Run `pnpm moon run :build` |
-| webServer: preview server timeout | App build failed or port 3000 in use. Check build logs |
-| Browsers not installed | Run `pnpm exec playwright install chromium firefox` |
-| Docker services not running | Run `docker compose -f apps/app-e2e/docker-compose.yml up -d` |
-| Auth fixture: login failed | Auth flow UI may have changed. Check `tests/pages/login-page.ts` selectors |
-| Server hangs on startup (never reaches `/_health`) | Stale Redis vectorization tasks — `global-setup.ts` clears them automatically, but for manual server starts run: `redis-cli del queue:vectorization:pending queue:vectorization:processing` |
-| Firefox: auth 500 error / `ENOENT locales/undefined.json` | Firefox sends `"undefined"` as Accept-Language in headless mode. Fixed in `+onCreateApp.server.ts` (stat try/catch) and `fixtures.ts` (`locale: "zh-Hans"` in context) |
-| Translation not appearing after submit | Check graph node event dispatch: `ctx.addEvent()` is buffered until the **entire node** completes (including QA sub-graphs). Use `await ctx.emit()` when the UI must react before the node finishes |
-| Multiple stale server processes on port 3000 | `ps aux | grep dist/server` then `kill -9 <pids>`. Happens when previous test runs left orphaned processes |
+| Problem                                                     | Solution                                                                                                                                                                                            |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| globalSetup: DATABASE_URL validation failed                 | Ensure database name contains "e2e" or "test"                                                                                                                                                       |
+| globalSetup: seed failed / PASSWORD auth provider not found | Plugins not built. Run `pnpm moon run :build`                                                                                                                                                       |
+| webServer: preview server timeout                           | App build failed or port 3000 in use by a wrong process. Check build logs. For CI failures, check `app.log` printed in the workflow output                                                          |
+| Browsers not installed                                      | Run `pnpm exec playwright install chromium firefox`                                                                                                                                                 |
+| Docker services not running                                 | Run `docker compose -f apps/app-e2e/docker-compose.yml up -d`                                                                                                                                       |
+| Auth fixture: login failed                                  | Auth flow UI may have changed. Check `tests/pages/login-page.ts` selectors                                                                                                                          |
+| Server hangs on startup (never reaches `/_health`)          | Stale Redis vectorization tasks — `global-setup.ts` clears them automatically, but for manual server starts run: `redis-cli del queue:vectorization:pending queue:vectorization:processing`         |
+| Firefox: auth 500 error / `ENOENT locales/undefined.json`   | Firefox sends `"undefined"` as Accept-Language in headless mode. Fixed in `+onCreateApp.server.ts` (stat try/catch) and `fixtures.ts` (`locale: "zh-Hans"` in context)                              |
+| Translation not appearing after submit                      | Check graph node event dispatch: `ctx.addEvent()` is buffered until the **entire node** completes (including QA sub-graphs). Use `await ctx.emit()` when the UI must react before the node finishes |
+| Multiple stale server processes on port 3000                | `ps aux                                                                                                                                                                                             | grep dist/server`then`kill -9 <pids>`. Happens when previous test runs left orphaned processes |
 
 ## Server Initialization
 
 The app server (`apps/app/src/server/index.ts`) uses a top-level `await initializeApp()` before binding to the port. This means:
+
 - The `/_health` endpoint only responds after DB, Redis, and plugin manager are fully ready
 - `onCreateGlobalContext` (Vike hook with hardcoded 30s timeout) is synchronous — it reads from `globalThis.*` via getters set during init
 - Cold start on first run can take 10–30s depending on DB migration state
