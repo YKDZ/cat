@@ -97,6 +97,11 @@ If you find issues during self-review, fix them before reporting.
 
 ## Final Validation
 
-After completing all items in scope, run the QA checks from the preloaded qa-check skill. Implementation is complete only after QA passes.
+After completing all items in scope:
+
+1. Run the QA checks from the preloaded qa-check skill (fmt, typecheck, lint, unit/integration tests).
+2. Push the changes and verify the GitHub Actions CI workflow passes — all jobs: **Static Gateway**, **Unit Tests**, **Integration Tests**, **E2E Tests**.
+
+Implementation is complete only after **both** local QA and CI pass. CI is a non-optional gate: E2E tests run there cannot be reproduced locally, and CI is the authoritative acceptance environment.
 
 Report status and any concerns to the user.
