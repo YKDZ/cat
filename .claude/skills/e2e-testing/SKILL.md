@@ -55,6 +55,7 @@ pnpm exec playwright test --ui --config=apps/app-e2e/playwright.config.ts
 1. **globalSetup** (`apps/app-e2e/global-setup.ts`):
    - Validates `DATABASE_URL` contains "e2e" or "test" (safety check)
    - Truncates all tables → seeds database with `datasets/e2e/` dataset
+   - Clears Redis vectorization queue keys (`queue:vectorization:pending/processing`) to prevent stale task hang
    - Writes ref→ID mapping to `apps/app-e2e/test-results/e2e-refs.json`
 
 2. **webServer** (`playwright.config.ts`):
@@ -89,6 +90,29 @@ PORT=3000
 | Browsers not installed | Run `pnpm exec playwright install chromium firefox` |
 | Docker services not running | Run `docker compose -f apps/app-e2e/docker-compose.yml up -d` |
 | Auth fixture: login failed | Auth flow UI may have changed. Check `tests/pages/login-page.ts` selectors |
+| Server hangs on startup (never reaches `/_health`) | Stale Redis vectorization tasks — `global-setup.ts` clears them automatically, but for manual server starts run: `redis-cli del queue:vectorization:pending queue:vectorization:processing` |
+| Firefox: auth 500 error / `ENOENT locales/undefined.json` | Firefox sends `"undefined"` as Accept-Language in headless mode. Fixed in `+onCreateApp.server.ts` (stat try/catch) and `fixtures.ts` (`locale: "zh-Hans"` in context) |
+| Translation not appearing after submit | Check graph node event dispatch: `ctx.addEvent()` is buffered until the **entire node** completes (including QA sub-graphs). Use `await ctx.emit()` when the UI must react before the node finishes |
+| Multiple stale server processes on port 3000 | `ps aux | grep dist/server` then `kill -9 <pids>`. Happens when previous test runs left orphaned processes |
+
+## Server Initialization
+
+The app server (`apps/app/src/server/index.ts`) uses a top-level `await initializeApp()` before binding to the port. This means:
+- The `/_health` endpoint only responds after DB, Redis, and plugin manager are fully ready
+- `onCreateGlobalContext` (Vike hook with hardcoded 30s timeout) is synchronous — it reads from `globalThis.*` via getters set during init
+- Cold start on first run can take 10–30s depending on DB migration state
+
+## Redis Vectorization Queue
+
+`registerVectorizationConsumer` drains all pending/processing tasks on startup as crash recovery. If stale tasks exist (especially with high `retryCount` from the `nack()` infinite-retry bug), this hangs indefinitely.
+
+**Known bug**: `nack()` in `RedisTaskQueue` re-queues failed tasks regardless of retry count, causing infinite retry loops. `global-setup.ts` works around this by deleting queue keys before each test run.
+
+## Key Implementation Notes
+
+- **`ctx.emit()` vs `ctx.addEvent()`**: `emit()` publishes immediately to the event bus; `addEvent()` buffers and publishes only after the node handler returns. For SSE-based UI updates that must appear before long-running sub-graphs (e.g., QA) finish, always use `emit()`.
+- **PostgreSQL sequences don't reset on TRUNCATE**: DB IDs increment across test runs. Don't hardcode IDs — always use `e2e-refs.json`.
+- **`reuseExistingServer`**: Playwright checks `/_health` before launching `webServer`. If the server is unresponsive (e.g., stuck in init), Playwright will launch a second instance — leading to port conflicts.
 
 ## Viewing Results
 
@@ -101,7 +125,7 @@ pnpm exec playwright show-report apps/app-e2e/playwright-report
 
 ```
 apps/app-e2e/
-├── global-setup.ts          # DB seed + refs output
+├── global-setup.ts          # DB seed + Redis queue clear + refs output
 ├── playwright.config.ts     # Config with globalSetup + webServer
 ├── tests/
 │   ├── fixtures.ts          # Playwright fixtures (refs, auth, page objects)
