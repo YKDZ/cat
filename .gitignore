@@ -9,6 +9,11 @@ uploads
 
 # Seed datasets (may contain API keys via env interpolation)
 datasets/
+# E2E dataset must be committed for CI
+!tools/seeder/datasets/
+tools/seeder/datasets/*
+!tools/seeder/datasets/e2e/
+!tools/seeder/datasets/e2e/**
 
 # Logs
 logs

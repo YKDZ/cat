@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "ref": "user:admin",
+      "email": "admin@cat.dev",
+      "name": "Admin",
+      "password": "password",
+      "role": "superadmin"
+    },
+    {
+      "ref": "user:translator",
+      "email": "translator@cat.dev",
+      "name": "Translator",
+      "password": "password",
+      "role": "editor"
+    }
+  ]
+}
