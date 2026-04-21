@@ -33,7 +33,7 @@ export default defineConfig({
   webServer: {
     command: "pnpm moon run app:preview",
     url: `http://localhost:${process.env.PORT ?? 3000}/_health`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 300_000,
     env: {
       PORT: process.env.PORT ?? "3000",
