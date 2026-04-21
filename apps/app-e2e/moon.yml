@@ -20,7 +20,6 @@ tasks:
       - "playwright.config.ts"
     options:
       cache: false
-      runInCI: false
 
 workspace:
   inheritedTasks:
